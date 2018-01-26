@@ -129,10 +129,7 @@ class TestFileHandling:
             pytest.skip("File was still readable")
 
         with caplog.at_level(logging.ERROR):
-            with qtbot.wait_signal(editor._watcher.fileChanged):
-                with open(filename, 'w', encoding='utf-8') as f:
-                    f.write('unreadable')
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+            editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
@@ -177,9 +174,28 @@ def test_modify(qtbot, editor, initial_text, edited_text):
         with open(editor._filename, 'w', encoding='utf-8') as f:
             f.write(edited_text)
 
-    editor._proc.finished.emit(0, QProcess.NormalExit)
+    with qtbot.assert_not_emitted(editor.file_updated):
+        editor._proc.finished.emit(0, QProcess.NormalExit)
 
     assert blocker.args == [edited_text]
+
+
+def test_modify_multiple(qtbot, editor):
+    """Test that multiple saves all trigger file_updated."""
+    editor.edit('foo')
+
+    with qtbot.wait_signal(editor.file_updated) as blocker:
+        with open(editor._filename, 'w', encoding='utf-8') as f:
+            f.write('bar')
+    assert blocker.args == ['bar']
+
+    with qtbot.wait_signal(editor.file_updated) as blocker:
+        with open(editor._filename, 'w', encoding='utf-8') as f:
+            f.write('baz')
+    assert blocker.args == ['baz']
+
+    with qtbot.assert_not_emitted(editor.file_updated):
+        editor._proc.finished.emit(0, QProcess.NormalExit)
 
 
 @pytest.mark.parametrize('text, caret_position, result', [

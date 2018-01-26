@@ -51,6 +51,7 @@ class ExternalEditor(QObject):
         self._proc = None
         self._remove_file = None
         self._watcher = QFileSystemWatcher(parent=self)
+        self._content = None
 
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
@@ -79,6 +80,8 @@ class ExternalEditor(QObject):
             # No error/cleanup here, since we already handle this in
             # on_proc_error.
             return
+        # do a final read to make sure we don't miss the last signal
+        self._on_file_changed(self._filename)
         self._cleanup()
 
     @pyqtSlot(QProcess.ProcessError)
@@ -128,7 +131,10 @@ class ExternalEditor(QObject):
             message.error("Failed to read back edited file: {}".format(e))
             return
         log.procs.debug("Read back: {}".format(text))
-        self.file_updated.emit(text)
+        if self._content != text:
+            self._content = text
+            self.file_updated.emit(text)
+
 
     def edit_file(self, filename):
         """Edit the file with the given filename."""
