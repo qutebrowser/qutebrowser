@@ -366,6 +366,8 @@ You can use something like this to read colors from an `~/.Xresources` file:
 
 [source,python]
 ----
+import subprocess
+
 def read_xresources(prefix):
     props = {}
     x = subprocess.run(['xrdb', '-query'], stdout=subprocess.PIPE)
@@ -376,7 +378,7 @@ def read_xresources(prefix):
     return props
 
 xresources = read_xresources('*')
-c.colors.statusbar.normal.bg = xresources['*background']
+c.colors.statusbar.normal.bg = xresources['*.background']
 ----
 
 Avoiding flake8 errors
