@@ -724,12 +724,6 @@ class AbstractTab(QWidget):
         self._progress = 0
         self._has_ssl_errors = False
         self.data.viewing_source = False
-        if self.backend == usertypes.Backend.QtWebKit:
-            obj = self.networkaccessmanager()
-        else:
-            obj = self
-        if hasattr(obj, 'netrc_used'):
-            delattr(obj, 'netrc_used')
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 

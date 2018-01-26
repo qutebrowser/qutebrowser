@@ -705,6 +705,13 @@ class WebKitTab(browsertab.AbstractTab):
         return page.userAgentForUrl(self.url())
 
     @pyqtSlot()
+    def _on_load_started(self):
+        super()._on_load_started()
+        obj = self.networkaccessmanager()
+        if hasattr(obj, 'netrc_used'):
+            delattr(obj, 'netrc_used')
+
+    @pyqtSlot()
     def _on_frame_load_finished(self):
         """Make sure we emit an appropriate status when loading finished.
 
