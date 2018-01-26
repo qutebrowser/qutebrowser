@@ -189,11 +189,10 @@ class QuickmarkManager(UrlMarkManager):
             self.changed.emit()
             log.misc.debug("Added quickmark {} for {}".format(name, url))
 
-        urlstr = url.toString(QUrl.RemoveUserInfo)
         if name in self.marks:
             message.confirm_async(
                 title="Override existing quickmark?",
-                yes_action=set_mark, default=True, url=urlstr)
+                yes_action=set_mark, default=True, url=url)
         else:
             set_mark()
 
