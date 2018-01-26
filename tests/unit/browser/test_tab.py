@@ -85,8 +85,8 @@ class Tab(browsertab.AbstractTab):
         self.zoom = Zoom(tab=self)
         self.search = browsertab.AbstractSearch(parent=self)
         self.printing = browsertab.AbstractPrinting()
-        self.elements = browsertab.AbstractElements(self)
-        self.action = browsertab.AbstractAction(self, self.win_id)
+        self.elements = browsertab.AbstractElements(tab=self)
+        self.action = browsertab.AbstractAction(tab=self)
 
     def _install_event_filter(self):
         pass
