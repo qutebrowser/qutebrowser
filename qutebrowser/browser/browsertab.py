@@ -94,7 +94,6 @@ class TabData:
         keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
                    load.
         inspector: The QWebInspector used for this webview.
-        viewing_source: Set if we're currently showing a source view.
         override_target: Override for open_target for fake clicks (like hints).
                          Only used for QtWebKit.
         pinned: Flag to pin the tab.
@@ -102,7 +101,6 @@ class TabData:
     """
 
     keep_icon = attr.ib(False)
-    viewing_source = attr.ib(False)
     inspector = attr.ib(None)
     override_target = attr.ib(None)
     pinned = attr.ib(False)
@@ -121,8 +119,10 @@ class AbstractAction:
     action_class = None
     action_base = None
 
-    def __init__(self):
+    def __init__(self, tab, win_id):
         self._widget = None
+        self._tab = tab
+        self._win_id = win_id
 
     def exit_fullscreen(self):
         """Exit the fullscreen mode."""
@@ -138,6 +138,10 @@ class AbstractAction:
         if not isinstance(member, self.action_base):
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
+
+    def show_source(self):
+        """Show the source of the current page in a new tab."""
+        raise NotImplementedError
 
 
 class AbstractPrinting:
@@ -723,7 +727,6 @@ class AbstractTab(QWidget):
     def _on_load_started(self):
         self._progress = 0
         self._has_ssl_errors = False
-        self.data.viewing_source = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 

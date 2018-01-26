@@ -23,6 +23,10 @@ import re
 import functools
 import xml.etree.ElementTree
 
+import pygments
+import pygments.lexers
+import pygments.formatters
+
 import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
@@ -49,6 +53,29 @@ class WebKitAction(browsertab.AbstractAction):
     def save_page(self):
         """Save the current page."""
         raise browsertab.UnsupportedOperationError
+
+    def show_source(self):
+
+        def show_source_cb(source):
+            """Show source as soon as it's ready."""
+            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
+            # pylint: disable=no-member
+            lexer = pygments.lexers.HtmlLexer()
+            formatter = pygments.formatters.HtmlFormatter(
+                full=True, linenos='table')
+            # pylint: enable=no-member
+            highlighted = pygments.highlight(source, lexer, formatter)
+
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._win_id)
+            new_tab = tb.tabopen(background=False, related=True)
+            # The original URL becomes the path of a view-source: URL
+            # (without a host), but query/fragment should stay.
+            url = QUrl('view-source:' + urlstr)
+            new_tab.set_html(highlighted, url)
+
+        urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
+        self._tab.dump_async(show_source_cb)
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
@@ -625,7 +652,7 @@ class WebKitTab(browsertab.AbstractTab):
         self.search = WebKitSearch(parent=self)
         self.printing = WebKitPrinting()
         self.elements = WebKitElements(self)
-        self.action = WebKitAction()
+        self.action = WebKitAction(self, win_id)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit

@@ -99,6 +99,19 @@ class WebEngineAction(browsertab.AbstractAction):
         """Save the current page."""
         self._widget.triggerPageAction(QWebEnginePage.SavePage)
 
+    def show_source(self):
+        try:
+            self._widget.triggerPageAction(QWebEnginePage.ViewSource)
+        except AttributeError:
+            # Qt < 5.8
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._win_id)
+            urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
+            # The original URL becomes the path of a view-source: URL
+            # (without a host), but query/fragment should stay.
+            url = QUrl('view-source:' + urlstr)
+            tb.tabopen(url, background=False, related=True)
+
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
 
@@ -596,7 +609,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.search = WebEngineSearch(parent=self)
         self.printing = WebEnginePrinting()
         self.elements = WebEngineElements(self)
-        self.action = WebEngineAction()
+        self.action = WebEngineAction(self, win_id)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
@@ -613,7 +626,7 @@ class WebEngineTab(browsertab.AbstractTab):
             utils.read_file('javascript/caret.js'),
         ])
         script = QWebEngineScript()
-        script.setInjectionPoint(QWebEngineScript.DocumentCreation)
+        script.setInjectionPoint(QWebEngineScript.DocumentReady)
         script.setSourceCode(js_code)
 
         page = self._widget.page()
