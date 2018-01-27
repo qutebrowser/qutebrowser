@@ -425,15 +425,23 @@ class PromptContainer(QWidget):
     @cmdutils.register(
         instance='prompt-container', scope='window',
         modes=[usertypes.KeyMode.prompt, usertypes.KeyMode.yesno])
-    def prompt_yank(self):
-        """Yank URL."""
+    def prompt_yank(self, sel=False):
+        """Yank URL to clipboard or primary selection.
+
+        Args:
+            sel: Use the primary selection instead of the clipboard.
+        """
         question = self._prompt.question
         if not question.url:
             message.error('No URL found.')
             return
         s = question.url
-        utils.set_clipboard(s)
-        message.info("Yanked to clipboard: {}".format(s))
+        target = 'primary selection'
+        if not (sel and utils.supports_selection()):
+            target = 'clipboard'
+            sel = False
+        utils.set_clipboard(s, sel)
+        message.info("Yanked to {}: {}".format(target, s))
 
 
 class LineEdit(QLineEdit):
