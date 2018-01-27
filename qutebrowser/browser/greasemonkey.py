@@ -192,16 +192,23 @@ class GreasemonkeyManager(QObject):
                 script = GreasemonkeyScript.parse(script_file.read())
                 if not script.name:
                     script.name = script_filename
-
-                if script.requires:
-                    log.greasemonkey.debug(
-                        "Deferring script until requirements are "
-                        "fulfilled: {}".format(script.name))
-                    self._get_required_scripts(script, force)
-                else:
-                    self._add_script(script)
-
+                self.add_script(script, force)
         self.scripts_reloaded.emit()
+
+    def add_script(self, script, force=False):
+        """Add a GreasemonkeyScript to this manager.
+
+        Args:
+            force: Fetch and overwrite any dependancies which are
+                   already locally cached.
+        """
+        if script.requires:
+            log.greasemonkey.debug(
+                "Deferring script until requirements are "
+                "fulfilled: {}".format(script.name))
+            self._get_required_scripts(script, force)
+        else:
+            self._add_script(script)
 
     def _add_script(self, script):
         if script.run_at == 'document-start':
