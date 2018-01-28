@@ -161,6 +161,16 @@
             ]
         },
         {
+            "name": "flatpak-xdg-open-shim",
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "git://github.com/mattdangerw/flatpak-xdg-open-shim",
+                    "commit": "7de8f1273c414f7d797d8487511861a7330b61fe"
+                }
+            ]
+        },
+        {
             "name": "qutebrowser",
             "buildsystem": "simple",
             "build-commands": [
