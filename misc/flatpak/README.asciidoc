@@ -63,6 +63,3 @@ Direct rendering and sound using pulseaudio are allowed.
 
 Known Limitations
 -----------------
-
-* It is not possible to call external commands. This includes applications to 
-  open downloaded files.
