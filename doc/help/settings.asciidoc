@@ -616,6 +616,8 @@ Default:
 * +pass:[&lt;Alt-Backspace&gt;]+: +pass:[rl-backward-kill-word]+
 * +pass:[&lt;Alt-D&gt;]+: +pass:[rl-kill-word]+
 * +pass:[&lt;Alt-F&gt;]+: +pass:[rl-forward-word]+
+* +pass:[&lt;Alt-Shift-Y&gt;]+: +pass:[prompt-yank --sel]+
+* +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+
 * +pass:[&lt;Ctrl-?&gt;]+: +pass:[rl-delete-char]+
 * +pass:[&lt;Ctrl-A&gt;]+: +pass:[rl-beginning-of-line]+
 * +pass:[&lt;Ctrl-B&gt;]+: +pass:[rl-backward-char]+
@@ -623,11 +625,10 @@ Default:
 * +pass:[&lt;Ctrl-F&gt;]+: +pass:[rl-forward-char]+
 * +pass:[&lt;Ctrl-H&gt;]+: +pass:[rl-backward-delete-char]+
 * +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
-* +pass:[&lt;Ctrl-Shift-Y&gt;]+: +pass:[prompt-yank --sel]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
 * +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
-* +pass:[&lt;Ctrl-Y&gt;]+: +pass:[prompt-yank]+
+* +pass:[&lt;Ctrl-Y&gt;]+: +pass:[rl-yank]+
 * +pass:[&lt;Down&gt;]+: +pass:[prompt-item-focus next]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
 * +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+
