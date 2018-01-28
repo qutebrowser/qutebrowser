@@ -12,7 +12,7 @@
         "--filesystem=home:ro",
         /* Allow to save downloads */
         "--filesystem=xdg-download",
-	/* Allow IPC access for performance reasons (X shared memory extension) */
+        /* Allow IPC access for performance reasons (X shared memory extension) */
         "--share=ipc",
         /* Allow network access */
         "--share=network",
