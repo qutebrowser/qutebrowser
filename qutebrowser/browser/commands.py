@@ -1349,7 +1349,8 @@ class CommandDispatcher:
         link:qute://bookmarks[bookmarks page].
 
         Args:
-            url: url to save as a bookmark. If None, use url of current page.
+            url: url to save as a bookmark. If not given, use url of current
+                 page.
             title: title of the new bookmark.
             toggle: remove the bookmark instead of raising an error if it
                     already exists.
@@ -1358,7 +1359,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError('Title must be provided if url has '
                                       'been provided')
         bookmark_manager = objreg.get('bookmark-manager')
-        if url is None:
+        if not url:
             url = self._current_url()
         else:
             try:

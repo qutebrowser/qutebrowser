@@ -51,6 +51,8 @@ Fixed
 - QtWebKit: `:view-source` now displays a valid URL.
 - URLs containing ampersands and other special chars are now shown
   correctly when filtering them in the completion.
+- `:bookmark-add "" foo` can now be used to save the current URL with a custom
+  title.
 
 v1.1.1
 ------
