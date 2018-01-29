@@ -135,7 +135,6 @@ class ExternalEditor(QObject):
             self._content = text
             self.file_updated.emit(text)
 
-
     def edit_file(self, filename):
         """Edit the file with the given filename."""
         self._filename = filename
