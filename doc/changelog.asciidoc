@@ -41,6 +41,7 @@ Changed
   a performance and stability improvement.
 - The `url.incdec_segments` option now also can take `port` as possible segment.
 - QtWebEngine: `:view-source` now uses Chromium's `view-source:` scheme.
+- Tabs now show their full title as tooltip.
 
 Fixed
 ~~~~~

@@ -148,7 +148,10 @@ class TabWidget(QTabWidget):
         fields['index'] = idx + 1
 
         title = '' if fmt is None else fmt.format(**fields)
-        self.tabBar().setTabText(idx, title)
+        tabbar = self.tabBar()
+
+        tabbar.setTabText(idx, title)
+        tabbar.setTabToolTip(idx, title)
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
