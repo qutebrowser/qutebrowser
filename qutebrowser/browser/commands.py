@@ -1217,10 +1217,18 @@ class CommandDispatcher:
 
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
+
+        def _on_proc_finished():
+            if output:
+                tb = objreg.get('tabbed-browser', scope='window',
+                                window='last-focused')
+                tb.openurl(QUrl('qute://spawn-output'), newtab=True)
+
         if userscript:
             def _selection_callback(s):
                 try:
-                    self._run_userscript(s, cmd, args, verbose)
+                    runner = self._run_userscript(s, cmd, args, verbose)
+                    runner.finished.connect(_on_proc_finished)
                 except cmdexc.CommandError as e:
                     message.error(str(e))
 
@@ -1239,11 +1247,7 @@ class CommandDispatcher:
                 proc.start_detached(cmd, args)
             else:
                 proc.start(cmd, args)
-
-        if output:
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window='last-focused')
-            tabbed_browser.openurl(QUrl('qute://spawn-output'), newtab=True)
+            proc.finished.connect(_on_proc_finished)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
@@ -1284,10 +1288,11 @@ class CommandDispatcher:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
         try:
-            userscripts.run_async(tab, cmd, *args, win_id=self._win_id,
-                                  env=env, verbose=verbose)
+            runner = userscripts.run_async(
+                tab, cmd, *args, win_id=self._win_id, env=env, verbose=verbose)
         except userscripts.Error as e:
             raise cmdexc.CommandError(e)
+        return runner
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):

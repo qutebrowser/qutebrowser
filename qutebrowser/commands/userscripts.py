@@ -446,3 +446,4 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     runner.prepare_run(cmd_path, *args, env=env, verbose=verbose)
     tab.dump_async(runner.store_html)
     tab.dump_async(runner.store_text, plain=True)
+    return runner
