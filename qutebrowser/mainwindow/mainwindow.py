@@ -39,7 +39,7 @@ from qutebrowser.browser import (commands, downloadview, hints,
 from qutebrowser.misc import crashsignal, keyhintwidget
 
 
-win_id_gen = itertools.count(0)
+win_id_gen = itertools.count(1)
 
 
 def get_window(via_ipc, force_window=False, force_tab=False,
