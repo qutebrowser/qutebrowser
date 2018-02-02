@@ -90,11 +90,12 @@ def set_up_editor_wait(quteproc, tmpdir, text):
             if sig == signal.SIGUSR1:
                 sys.exit(0)
 
+        signal.signal(signal.SIGUSR1, handle)
+        signal.signal(signal.SIGUSR2, handle)
+
         with open(r'{pidfile}', 'w') as f:
             f.write(str(os.getpid()))
 
-        signal.signal(signal.SIGUSR1, handle)
-        signal.signal(signal.SIGUSR2, handle)
         time.sleep(100)
     """.format(pidfile=pidfile, text=text)))
     editor = json.dumps([sys.executable, str(script), '{}'])

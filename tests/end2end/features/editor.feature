@@ -138,6 +138,7 @@ Feature: Opening external editors
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :open-editor
         And I save without exiting the editor
+        And I wait for "Read back: foobar" in the log
         And I run :click-element id qute-button
         Then the javascript message "text: foobar" should be logged
 
