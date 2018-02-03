@@ -263,7 +263,7 @@ class ConfigCommands:
             except configexc.ConfigFileErrors as e:
                 message.error(str(e))
 
-        ed = editor.ExternalEditor(self._config)
+        ed = editor.ExternalEditor(watch=True, parent=self._config)
         if not no_source:
             ed.file_updated.connect(on_file_updated)
 

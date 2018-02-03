@@ -1621,7 +1621,7 @@ class CommandDispatcher:
 
         caret_position = elem.caret_position()
 
-        ed = editor.ExternalEditor(self._tabbed_browser)
+        ed = editor.ExternalEditor(watch=True, parent=self._tabbed_browser)
         ed.file_updated.connect(functools.partial(
             self.on_file_updated, elem))
         ed.edit(text, caret_position)

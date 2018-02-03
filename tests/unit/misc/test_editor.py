@@ -170,18 +170,18 @@ def test_modify(qtbot, editor, initial_text, edited_text):
     with open(editor._filename, 'r', encoding='utf-8') as f:
         assert f.read() == initial_text
 
-    with qtbot.wait_signal(editor.file_updated) as blocker:
-        with open(editor._filename, 'w', encoding='utf-8') as f:
-            f.write(edited_text)
+    with open(editor._filename, 'w', encoding='utf-8') as f:
+        f.write(edited_text)
 
-    with qtbot.assert_not_emitted(editor.file_updated):
+    with qtbot.wait_signal(editor.file_updated) as blocker:
         editor._proc.finished.emit(0, QProcess.NormalExit)
 
     assert blocker.args == [edited_text]
 
 
-def test_modify_multiple(qtbot, editor):
-    """Test that multiple saves all trigger file_updated."""
+def test_modify_watch(qtbot):
+    """Test that saving triggers file_updated when watch=True."""
+    editor = editormod.ExternalEditor(watch=True)
     editor.edit('foo')
 
     with qtbot.wait_signal(editor.file_updated) as blocker:

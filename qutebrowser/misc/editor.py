@@ -41,22 +41,27 @@ class ExternalEditor(QObject):
                       closed.
         _proc: The GUIProcess of the editor.
         _watcher: A QFileSystemWatcher to watch the edited file for changes.
+                  Only set if watch=True.
     """
 
     file_updated = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, watch=False):
         super().__init__(parent)
         self._filename = None
         self._proc = None
         self._remove_file = None
-        self._watcher = QFileSystemWatcher(parent=self)
+        if watch:
+            self._watcher = QFileSystemWatcher(parent=self)
+        else:
+            self._watcher = None
         self._content = None
 
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
         assert self._remove_file is not None
-        self._watcher.removePaths(self._watcher.files())
+        if self._watcher:
+            self._watcher.removePaths(self._watcher.files())
         if self._filename is None or not self._remove_file:
             # Could not create initial file.
             return
@@ -154,8 +159,9 @@ class ExternalEditor(QObject):
         editor = config.val.editor.command
         executable = editor[0]
 
-        self._watcher.addPath(self._filename)
-        self._watcher.fileChanged.connect(self._on_file_changed)
+        if self._watcher:
+            self._watcher.addPath(self._filename)
+            self._watcher.fileChanged.connect(self._on_file_changed)
 
         args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]
         log.procs.debug("Calling \"{}\" with args {}".format(executable, args))
