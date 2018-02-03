@@ -22,7 +22,7 @@ import logging
 import unittest.mock
 
 import pytest
-from PyQt5.QtCore import QUrl, QProcess
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import configcommands
 from qutebrowser.commands import cmdexc
