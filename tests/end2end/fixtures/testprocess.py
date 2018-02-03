@@ -101,7 +101,7 @@ def pytest_runtest_makereport(item, call):
 
     if not hasattr(report.longrepr, 'addsection'):
         # In some conditions (on macOS and Windows it seems), report.longrepr
-        # is actually a tuple. This is handled similarily in pytest-qt too.
+        # is actually a tuple. This is handled similarly in pytest-qt too.
         return
 
     if item.config.getoption('--capture') == 'no':

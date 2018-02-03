@@ -193,10 +193,10 @@ class Command:
         return False
 
     def _inspect_func(self):
-        """Inspect the function to get useful informations from it.
+        """Inspect the function to get useful information from it.
 
         Sets instance attributes (desc, type_conv, name_conv) based on the
-        informations.
+        information.
 
         Return:
             How many user-visible arguments the command has.

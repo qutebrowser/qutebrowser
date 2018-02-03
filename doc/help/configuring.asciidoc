@@ -254,7 +254,7 @@ Getting the config directory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you need to get the qutebrowser config directory, you can do so by reading
-`config.configdir`. Similarily, you can get the qutebrowser data directory via
+`config.configdir`. Similarly, you can get the qutebrowser data directory via
 `config.datadir`.
 
 This gives you a https://docs.python.org/3/library/pathlib.html[`pathlib.Path`

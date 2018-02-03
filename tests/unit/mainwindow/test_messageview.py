@@ -117,7 +117,7 @@ def test_replaced_messages(view, replace1, replace2, length):
     (Qt.BackButton, 2),
 ])
 def test_click_messages(qtbot, view, button, count):
-    """Messages should dissappear when we click on them."""
+    """Messages should disappear when we click on them."""
     view.show_message(usertypes.MessageLevel.info, 'test mouse click')
     view.show_message(usertypes.MessageLevel.info, 'test mouse click 2')
     qtbot.mousePress(view, button)

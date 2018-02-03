@@ -211,7 +211,7 @@ Feature: Using hints
         And I hint with args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
 
-    ### FIXME currenly skipped, see https://github.com/qutebrowser/qutebrowser/issues/1525
+    ### FIXME currently skipped, see https://github.com/qutebrowser/qutebrowser/issues/1525
     @xfail_norun
     Scenario: Using :follow-hint inside a scrolled iframe
         When I open data/hints/iframe_scroll.html

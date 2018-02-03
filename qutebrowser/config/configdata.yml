@@ -360,7 +360,7 @@ content.headers.referer:
     When to send the Referer header.
 
     The Referer header tells websites from which website you were coming from
-    when visting them.
+    when visiting them.
 
 content.headers.user_agent:
   default: null

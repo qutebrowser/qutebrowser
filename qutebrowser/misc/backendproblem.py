@@ -191,7 +191,7 @@ def _handle_nouveau_graphics():
         text="<p>There are two ways to fix this:</p>"
              "<p><b>Forcing software rendering</b></p>"
              "<p>This allows you to use the newer QtWebEngine backend (based "
-             "on Chromium) but could have noticable performance impact "
+             "on Chromium) but could have noticeable performance impact "
              "(depending on your hardware). "
              "This sets the <i>qt.force_software_rendering = True</i> option "
              "(if you have a <i>config.py</i> file, you'll need to set this "
