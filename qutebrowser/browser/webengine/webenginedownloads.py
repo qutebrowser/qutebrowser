@@ -45,6 +45,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
         qt_item.downloadProgress.connect(self.stats.on_download_progress)
         qt_item.stateChanged.connect(self._on_state_changed)
 
+        # Ensure wrapped qt_item is deleted manually when the wrapper object
+        # is deleted. See https://github.com/qutebrowser/qutebrowser/issues/3373
+        self.destroyed.connect(self._qt_item.deleteLater)
+
     def _is_page_download(self):
         """Check if this item is a page (i.e. mhtml) download."""
         return (self._qt_item.savePageFormat() !=
