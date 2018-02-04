@@ -184,7 +184,7 @@ def test_modify_watch(qtbot):
     editor = editormod.ExternalEditor(watch=True)
     editor.edit('foo')
 
-    with qtbot.wait_signal(editor.file_updated) as blocker:
+    with qtbot.wait_signal(editor.file_updated, timeout=3000) as blocker:
         with open(editor._filename, 'w', encoding='utf-8') as f:
             f.write('bar')
     assert blocker.args == ['bar']
