@@ -860,6 +860,15 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
+    @cmdutils.argument('text')
+    def switch_buffer_or_open(self, text=None):
+        try:
+            self.buffer(index=text)
+        except cmdexc.CommandError:
+            self.openurl(url=text, tab=True)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.buffer)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def buffer(self, index=None, count=None):
