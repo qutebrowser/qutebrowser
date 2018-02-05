@@ -98,3 +98,45 @@ def url(*, info):
             model.add_category(models[category])
 
     return model
+
+
+def url_or_buffer(*, info):
+    model = completionmodel.CompletionModel(column_widths=(40, 50, 10))
+
+    def delete_buffer(data):
+        """Close the selected tab."""
+        win_id, tab_index = data[0].split('/')
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=int(win_id))
+        tabbed_browser.on_tab_close_requested(int(tab_index) - 1)
+    for win_id in objreg.window_registry:
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=win_id)
+        if tabbed_browser.shutting_down:
+            continue
+        tabs = []
+        for idx in range(tabbed_browser.count()):
+            tab = tabbed_browser.widget(idx)
+            tabs.append(("{}/{}".format(win_id, idx + 1),
+                         tab.url().toDisplayString(),
+                         tabbed_browser.page_title(idx)))
+        cat = listcategory.ListCategory("{}".format(win_id), tabs,
+                                        delete_func=delete_buffer)
+        model.add_category(cat)
+
+    quickmarks = [(url, name) for (name, url)
+                  in objreg.get('quickmark-manager').marks.items()]
+    bookmarks = objreg.get('bookmark-manager').marks.items()
+
+    if quickmarks:
+        model.add_category(listcategory.ListCategory(
+            'Quickmarks', quickmarks, delete_func=_delete_quickmark,
+            sort=False))
+    if bookmarks:
+        model.add_category(listcategory.ListCategory(
+            'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False))
+
+    if info.config.get('completion.web_history_max_items') != 0:
+        hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
+        model.add_category(hist_cat)
+    return model

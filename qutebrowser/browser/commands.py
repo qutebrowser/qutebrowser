@@ -860,7 +860,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('text')
+    @cmdutils.argument('text', completion=urlmodel.url_or_buffer)
     def switch_buffer_or_open(self, text=None):
         try:
             self.buffer(index=text)
