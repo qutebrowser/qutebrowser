@@ -65,7 +65,10 @@ def replace_variables(win_id, arglist):
             QUrl.DecodeReserved | QUrl.RemovePassword),
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
-        'suburl': lambda: '{url}'
+        'suburl': lambda: '{url}',
+        'suburl:pretty': lambda: '{url:pretty}',
+        'subclipboard': lambda: '{clipboard}',
+        'subprimary': lambda: '{primary}',
     }
     values = {}
     args = []
