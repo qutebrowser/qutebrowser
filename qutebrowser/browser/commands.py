@@ -1506,7 +1506,10 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def view_source(self, edit=False):
-        """Show the source of the current page in a new tab."""
+        """Show the source of the current page in a new tab.
+
+        Args:
+            edit: Open source in editor instead of tab."""
         tab = self._current_widget()
         try:
             current_url = self._current_url()
