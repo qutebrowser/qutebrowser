@@ -19,6 +19,9 @@
 
 """Functions that return miscellaneous completion models."""
 
+import re
+import itertools
+
 from qutebrowser.config import configdata
 from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
@@ -44,6 +47,58 @@ def helptopic(*, info):
 
     model.add_category(listcategory.ListCategory("Commands", cmdlist))
     model.add_category(listcategory.ListCategory("Settings", settings))
+    return model
+
+
+def suggest(*args, **kwargs):
+    """A CompletionModel filled with already typed suggestions."""
+    del kwargs
+    model = None
+    cols = 1
+    suggestions = []
+    raw = (args[1][1:-1]
+           if any(args[1].startswith(i) for i in ('"', "'"))
+           else args[1])
+
+    # { a\^n; | n mod 2 == 0, a != \ } -> ; isn't escaped
+    # the implementation is a little weird,
+    # so here's a little explaination:
+    # match r'(?!\\)(\\\\)*;' has to be written as
+    # r'(.*?(?<!\\)(?:\\{2})*);', because
+    # split keeps groups as additional elements
+    # of the resulting list
+    # and it also removes passive groups completely
+    # so we can't simply write
+    # r'(?!\\)(?:\\\\)*;'
+    # lookbehinds with dynamic size are also not supported
+    # so to split it correctly we match
+    # the string before our separator in a group
+    # -> list: ['', 'match without ;', ...]
+    # result contains a few empty strings in a irregular sequence
+    # so we need to sort them out
+    for row in re.split(r'(.*?(?<!\\)(?:\\{2})*);', raw):
+        if not row:
+            continue
+
+        # { a\^n, | n mod 2 == 0, a != \ } -> , isn't escaped
+        suggestions.append([
+            col.replace('\\\\', '\\')
+            .replace('\\,', ',')
+            .replace('\\;', ';')
+            for col in re.split(r'(.*?(?<!\\)(?:\\{2})*),', row)
+            if col
+        ])
+        cols = max(cols, len(suggestions[-1]))
+
+    col_size = int(100 / cols)
+    model = completionmodel.CompletionModel(
+        column_widths=tuple(itertools.chain(
+            (col_size + 100 - cols * col_size,),
+            (col_size if i + 1 < cols else 0
+             for i in range(2)))))
+    model.add_category(listcategory.ListCategory(
+        "Suggestions", suggestions))
+
     return model
 
 

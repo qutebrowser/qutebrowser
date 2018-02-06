@@ -52,6 +52,22 @@ def _get_cmd(*args, **kwargs):
     return cmdutils.cmd_dict['fun']
 
 
+@pytest.mark.parametrize('text, expected', [
+    ("", "''"),
+    ("foo foo foo", "'foo foo foo'"),
+    ("foofoofoo", "foofoofoo"),
+    ("foo'", '\'foo\'"\'"\'\''),
+    ('f"oo', '\'f"oo\''),
+    ('f\too', "'f\too'"),
+    ('f\noo', "'f\noo'"),
+    ('f\\oo', "'f\\oo'"),
+    ("foo\tfoo\nfoo - 'bar bar\" bar",
+     '\'foo\tfoo\nfoo - \'"\'"\'bar bar" bar\''),
+])
+def test_quote(text, expected):
+    assert cmdutils.quote(text) == expected
+
+
 class TestCheckOverflow:
 
     def test_good(self):

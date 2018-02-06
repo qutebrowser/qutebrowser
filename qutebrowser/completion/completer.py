@@ -108,21 +108,6 @@ class Completer(QObject):
             return None
         return func
 
-    def _quote(self, s):
-        """Quote s if it needs quoting for the commandline.
-
-        Note we don't use shlex.quote because that quotes a lot of shell
-        metachars we don't need to have quoted.
-        """
-        if not s:
-            return "''"
-        elif any(c in s for c in ' "\'\t\n\\'):
-            # use single quotes, and put single quotes into double quotes
-            # the string $'b is then quoted as '$'"'"'b'
-            return "'" + s.replace("'", "'\"'\"'") + "'"
-        else:
-            return s
-
     def _partition(self):
         """Divide the commandline text into chunks around the cursor position.
 
@@ -174,7 +159,7 @@ class Completer(QObject):
         except (KeyError, IndexError):
             maxsplit = None
         if maxsplit is None:
-            text = self._quote(text)
+            text = cmdutils.quote(text)
         model = self._model()
         if model.count() == 1 and config.val.completion.quick:
             # If we only have one item, we want to apply it immediately and go
