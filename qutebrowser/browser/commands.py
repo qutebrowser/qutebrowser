@@ -853,7 +853,7 @@ class CommandDispatcher:
             what = 'URL'  # For printing
         elif what == 'selection':
             def _selection_callback(s):
-                if not self._current_widget().caret.has_selection() or not s:
+                if not s:
                     message.info("Nothing to yank")
                     return
                 self._yank_to_target(s, sel, what, keep)
@@ -1267,7 +1267,7 @@ class CommandDispatcher:
             env['QUTE_TITLE'] = self._tabbed_browser.page_title(idx)
 
         tab = self._tabbed_browser.currentWidget()
-        if tab is not None and tab.caret.has_selection():
+        if tab is not None:
             env['QUTE_SELECTED_TEXT'] = selection
             try:
                 env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
