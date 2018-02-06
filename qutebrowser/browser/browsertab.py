@@ -806,7 +806,7 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def dump_async(self, callback, *, plain=False):
-        """Dump the current page to a file ascync.
+        """Dump the current page's html asynchronously.
 
         The given callback will be called with the result when dumping is
         complete.
