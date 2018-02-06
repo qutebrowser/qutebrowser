@@ -920,8 +920,7 @@ def yaml_dump(data, f=None):
 
 
 def pastebin_version():
-    """Pastebins version and logs to messages"""
-
+    """Pastebin the version and log the url to messages."""
     app = qutebrowser.utils.objreg.get('app')
     http_client = httpclient.HTTPClient()
 
@@ -938,9 +937,10 @@ def pastebin_version():
         qutebrowser.utils.message.info("Failed to pastebin version"
                                        " info: {}".format(text))
 
+    misc_api = pastebin.PastebinClient.MISC_API_URL
     pbclient = pastebin.PastebinClient(http_client, parent=app,
-                                       api_url=
-                                       pastebin.PastebinClient.MISC_API_URL)
+                                       api_url=misc_api)
+
     pbclient.success.connect(_on_paste_version_success)
     pbclient.error.connect(_on_paste_version_err)
 
