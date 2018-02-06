@@ -289,9 +289,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def drop_selection(self):
         self._js_call('dropSelection')
 
-    def selection(self, html=False, callback=None):
-        if html:
-            raise browsertab.UnsupportedOperationError
+    def selection(self, callback=None):
         # Not using selectedText() as WORKAROUND for
         # https://bugreports.qt.io/browse/QTBUG-53134
         # Even on Qt 5.10 selectedText() seems to work poorly, see

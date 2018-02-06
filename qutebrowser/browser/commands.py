@@ -1260,21 +1260,15 @@ class CommandDispatcher:
         """
         env = {
             'QUTE_MODE': 'command',
+            'QUTE_SELECTED_TEXT': selection,
         }
 
         idx = self._current_index()
         if idx != -1:
             env['QUTE_TITLE'] = self._tabbed_browser.page_title(idx)
 
-        tab = self._tabbed_browser.currentWidget()
-        if tab is not None:
-            env['QUTE_SELECTED_TEXT'] = selection
-            try:
-                env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
-            except browsertab.UnsupportedOperationError:
-                pass
-
         # FIXME:qtwebengine: If tab is None, run_async will fail!
+        tab = self._tabbed_browser.currentWidget()
 
         try:
             url = self._tabbed_browser.current_url()

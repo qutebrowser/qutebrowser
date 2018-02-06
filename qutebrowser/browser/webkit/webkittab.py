@@ -188,7 +188,7 @@ class WebKitCaret(browsertab.AbstractCaret):
 
         settings = self._widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-        self.selection_enabled = bool(self._selection())
+        self.selection_enabled = self._widget.hasSelection()
 
         if self._widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
@@ -360,14 +360,8 @@ class WebKitCaret(browsertab.AbstractCaret):
     def drop_selection(self):
         self._widget.triggerPageAction(QWebPage.MoveToNextChar)
 
-    def selection(self, html=False, callback=False):
-        callback(self._selection(html))
-
-    def _selection(self, html=False):
-        if html:
-            return self._widget.selectedHtml()
-        else:
-            return self._widget.selectedText()
+    def selection(self, callback):
+        callback(self._widget.selectedText())
 
     def follow_selected(self, *, tab=False):
         if QWebSettings.globalSettings().testAttribute(
@@ -377,7 +371,7 @@ class WebKitCaret(browsertab.AbstractCaret):
             self._tab.run_js_async(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
-            selection = self._selection(html=True)
+            selection = self._widget.selectedHtml()
             if not selection:
                 return
             try:

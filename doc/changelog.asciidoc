@@ -55,6 +55,12 @@ Fixed
 - `:bookmark-add "" foo` can now be used to save the current URL with a custom
   title.
 
+Removed
+~~~~~~~
+
+- `QUTE_SELECTED_HTML` is now not set for userscripts anymore except when called
+  via hints.
+
 v1.1.1
 ------
 
