@@ -289,24 +289,15 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def drop_selection(self):
         self._js_call('dropSelection')
 
-    def has_selection(self):
-        if qtutils.version_check('5.10'):
-            return self._widget.hasSelection()
-        else:
-            # WORKAROUND for
-            # https://bugreports.qt.io/browse/QTBUG-53134
-            return True
-
     def selection(self, html=False, callback=None):
         if html:
             raise browsertab.UnsupportedOperationError
-        if qtutils.version_check('5.10'):
-            callback(self._widget.selectedText())
-        else:
-            # WORKAROUND for
-            # https://bugreports.qt.io/browse/QTBUG-53134
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'getSelection'), callback)
+        # Not using selectedText() as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-53134
+        # Even on Qt 5.10 selectedText() seems to work poorly, see
+        # https://github.com/qutebrowser/qutebrowser/issues/3523
+        self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
+                               callback)
 
     def _follow_selected_cb(self, js_elem, tab=False):
         """Callback for javascript which clicks the selected element.

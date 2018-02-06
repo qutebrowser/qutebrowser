@@ -360,9 +360,6 @@ class WebKitCaret(browsertab.AbstractCaret):
     def drop_selection(self):
         self._widget.triggerPageAction(QWebPage.MoveToNextChar)
 
-    def has_selection(self):
-        return self._widget.hasSelection()
-
     def selection(self, html=False, callback=False):
         callback(self._selection(html))
 
@@ -373,8 +370,6 @@ class WebKitCaret(browsertab.AbstractCaret):
             return self._widget.selectedText()
 
     def follow_selected(self, *, tab=False):
-        if not self.has_selection():
-            return
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
@@ -383,6 +378,8 @@ class WebKitCaret(browsertab.AbstractCaret):
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
             selection = self._selection(html=True)
+            if not selection:
+                return
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
                     '<html>{}</html>'.format(selection)).find('a')

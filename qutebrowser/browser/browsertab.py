@@ -392,9 +392,6 @@ class AbstractCaret(QObject):
     def drop_selection(self):
         raise NotImplementedError
 
-    def has_selection(self):
-        raise NotImplementedError
-
     def selection(self, html=False, callback=None):
         raise NotImplementedError
 
