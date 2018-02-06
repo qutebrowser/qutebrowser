@@ -42,7 +42,7 @@ class PastebinClient(QObject):
     """
 
     API_URL = 'https://crashes.qutebrowser.org/api/'
-    MISC_API_URL = 'http://paste.the-compiler.org/api/'
+    MISC_API_URL = 'https://paste.the-compiler.org/api/'
     success = pyqtSignal(str)
     error = pyqtSignal(str)
 
@@ -58,7 +58,7 @@ class PastebinClient(QObject):
         client.error.connect(self.error)
         client.success.connect(self.on_client_success)
         self._client = client
-        self.api_url = api_url
+        self._api_url = api_url
 
     def paste(self, name, title, text, parent=None):
         """Paste the text into a pastebin and return the URL.
@@ -77,7 +77,7 @@ class PastebinClient(QObject):
         }
         if parent is not None:
             data['reply'] = parent
-        url = QUrl(urllib.parse.urljoin(self.api_url, 'create'))
+        url = QUrl(urllib.parse.urljoin(self._api_url, 'create'))
         self._client.post(url, data)
 
     @pyqtSlot(str)
