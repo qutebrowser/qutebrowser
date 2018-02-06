@@ -1515,7 +1515,7 @@ class CommandDispatcher:
             return
         if current_url.scheme() == 'view-source':
             raise cmdexc.CommandError("Already viewing source!")
-        if editor:
+        if edit:
             ed = editor.ExternalEditor(self._tabbed_browser)
 
             tab._widget.page().toHtml(ed.edit)
