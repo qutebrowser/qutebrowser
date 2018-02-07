@@ -26,6 +26,8 @@ Added
 - `:session-load` has a new `--delete` flag which deletes the
   session after loading it.
 - QtWebEngine: Retrying downloads is now supported with Qt 5.10 or newer.
+- QtWebEngine: Hinting and other features inside same-origin frames is now
+  supported.
 
 Changed
 ~~~~~~~
