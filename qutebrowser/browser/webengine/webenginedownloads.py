@@ -96,9 +96,15 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._qt_item.cancel()
 
     def retry(self):
-        # https://bugreports.qt.io/browse/QTBUG-56840
-        raise downloads.UnsupportedOperationError(
-            "Retrying downloads is unsupported with QtWebEngine")
+        state = self._qt_item.state()
+        assert state == QWebEngineDownloadItem.DownloadInterrupted, state
+
+        try:
+            self._qt_item.resume()
+        except AttributeError:
+            raise downloads.UnsupportedOperationError(
+                "Retrying downloads is unsupported with QtWebEngine on "
+                "Qt/PyQt < 5.10")
 
     def _get_open_filename(self):
         return self._filename
