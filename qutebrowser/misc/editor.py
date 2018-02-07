@@ -64,7 +64,9 @@ class ExternalEditor(QObject):
         """Clean up temporary files after the editor closed."""
         assert self._remove_file is not None
         if self._watcher:
-            self._watcher.removePaths(self._watcher.files())
+            failed = self._watcher.removePaths(self._watcher.files())
+            if failed:
+                log.procs.error("Failed to unwatch paths: {}".format(failed))
         if self._filename is None or not self._remove_file:
             # Could not create initial file.
             return
@@ -164,7 +166,9 @@ class ExternalEditor(QObject):
         executable = editor[0]
 
         if self._watcher:
-            self._watcher.addPath(self._filename)
+            ok = self._watcher.addPath(self._filename)
+            if not ok:
+                log.procs.error("Failed to watch path: {}".format(self._filename))
             self._watcher.fileChanged.connect(self._on_file_changed)
 
         args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]
