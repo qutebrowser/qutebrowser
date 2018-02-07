@@ -84,7 +84,7 @@ def set_up_editor_wait(quteproc, tmpdir, text):
         import time
         import signal
 
-        def handle(sig, frame):
+        def handle(sig, _frame):
             with open(sys.argv[1], 'w', encoding='utf-8') as f:
                 f.write({text!r})
             if sig == signal.SIGUSR1:

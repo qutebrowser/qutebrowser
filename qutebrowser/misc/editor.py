@@ -51,10 +51,7 @@ class ExternalEditor(QObject):
         self._filename = None
         self._proc = None
         self._remove_file = None
-        if watch:
-            self._watcher = QFileSystemWatcher(parent=self)
-        else:
-            self._watcher = None
+        self._watcher = QFileSystemWatcher(parent=self) if watch else None
         self._content = None
 
     def _cleanup(self):
@@ -125,10 +122,10 @@ class ExternalEditor(QObject):
         line, column = self._calc_line_and_column(text, caret_position)
         self._start_editor(line=line, column=column)
 
+    @pyqtSlot(str)
     def _on_file_changed(self, path):
-        encoding = config.val.editor.encoding
         try:
-            with open(path, 'r', encoding=encoding) as f:
+            with open(path, 'r', encoding=config.val.editor.encoding) as f:
                 text = f.read()
         except OSError as e:
             # NOTE: Do not replace this with "raise CommandError" as it's

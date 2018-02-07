@@ -1639,7 +1639,7 @@ class CommandDispatcher:
     def on_file_updated(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
 
-        Callback for GUIProcess when the editor was closed.
+        Callback for GUIProcess when the edited text was updated.
 
         Args:
             elem: The WebElementWrapper which was modified.
