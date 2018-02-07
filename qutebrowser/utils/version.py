@@ -29,6 +29,7 @@ import importlib
 import collections
 import enum
 import datetime
+import getpass
 
 import attr
 import pkg_resources
@@ -486,5 +487,5 @@ def pastebin_version():
     pbclient.success.connect(_on_paste_version_success)
     pbclient.error.connect(_on_paste_version_err)
 
-    pbclient.paste(utils.getpass.getuser(), _get_paste_title(),
+    pbclient.paste(getpass.getuser(), _get_paste_title(),
                    version())

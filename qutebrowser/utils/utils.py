@@ -33,7 +33,6 @@ import functools
 import contextlib
 import socket
 import shlex
-import getpass
 
 import attr
 from PyQt5.QtCore import Qt, QUrl
