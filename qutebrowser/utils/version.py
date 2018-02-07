@@ -455,9 +455,6 @@ def opengl_vendor():  # pragma: no cover
 
 def pastebin_version():
     """Pastebin the version and log the url to messages."""
-    def _get_paste_title():
-        return "qute version info {}".format(qutebrowser.__version__)
-
     def _yank_url(url):
         utils.set_clipboard(url)
         message.info("Version url {} yanked to clipboard.".format(url))
@@ -487,5 +484,5 @@ def pastebin_version():
     pbclient.success.connect(_on_paste_version_success)
     pbclient.error.connect(_on_paste_version_err)
 
-    pbclient.paste(getpass.getuser(), _get_paste_title(),
-                   version())
+    pbclient.paste(getpass.getuser(),
+        "qute version info {}".format(qutebrowser.__version__), version())
