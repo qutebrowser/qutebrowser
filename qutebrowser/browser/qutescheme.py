@@ -476,3 +476,10 @@ def qute_configdiff(url):
     else:
         data = config.instance.dump_userconfig().encode('utf-8')
         return 'text/plain', data
+
+
+@add_handler('pastebin-version')
+def qute_pastebin_version(url):  # transfusion: pylint: disable=unused-argument
+    """Handler that pastebins the version string."""
+    utils.pastebin_version()
+    return 'text/plain', b'Paste called.'
