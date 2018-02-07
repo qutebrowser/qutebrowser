@@ -222,13 +222,12 @@ Feature: Using hints
         # The actual check is already done above
         Then no crash should happen
 
-    ### FIXME currenly skipped, see https://github.com/qutebrowser/qutebrowser/issues/1525
-    @xfail_norun
+    @flaky  # FIXME https://github.com/qutebrowser/qutebrowser/issues/1525
     Scenario: Using :follow-hint inside a scrolled iframe
         When I open data/hints/iframe_scroll.html
         And I hint with args "all normal" and follow a
         And I run :scroll bottom
-        And I hint wht args "links normal" and follow a
+        And I hint with args "links normal" and follow a
         Then "navigation request: url http://localhost:*/data/hello2.txt, type NavigationTypeLinkClicked, *" should be logged
 
     Scenario: Opening a link inside a specific iframe
