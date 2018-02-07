@@ -931,11 +931,13 @@ def pastebin_version():
     def _on_paste_version_success(url):
         set_clipboard(url)
         message.info("Version url {} yanked to clipboard.".format(url))
+        pbclient.deleteLater()
 
     @pyqtSlot(str)
     def _on_paste_version_err(text):
         message.error("Failed to pastebin version"
                       " info: {}".format(text))
+        pbclient.deleteLater()
 
     MISC_API = pastebin.PastebinClient.MISC_API_URL
     pbclient = pastebin.PastebinClient(http_client, parent=app,
