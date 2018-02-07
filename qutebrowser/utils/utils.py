@@ -939,9 +939,9 @@ def pastebin_version():
                       " info: {}".format(text))
         pbclient.deleteLater()
 
-    MISC_API = pastebin.PastebinClient.MISC_API_URL
+    misc_api = pastebin.PastebinClient.MISC_API_URL
     pbclient = pastebin.PastebinClient(http_client, parent=app,
-                                       api_url=MISC_API)
+                                       api_url=misc_api)
 
     pbclient.success.connect(_on_paste_version_success)
     pbclient.error.connect(_on_paste_version_err)
