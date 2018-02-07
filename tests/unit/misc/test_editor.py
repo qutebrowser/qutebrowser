@@ -19,6 +19,7 @@
 
 """Tests for qutebrowser.misc.editor."""
 
+import time
 import os
 import os.path
 import logging
@@ -37,7 +38,7 @@ def patch_things(config_stub, monkeypatch, stubs):
 
 
 @pytest.fixture
-def editor(caplog):
+def editor(caplog, qtbot):
     ed = editormod.ExternalEditor()
     yield ed
     with caplog.at_level(logging.ERROR):
@@ -118,12 +119,12 @@ class TestFileHandling:
 
         os.remove(filename)
 
-    def test_unreadable(self, message_mock, editor, caplog):
+    def test_unreadable(self, message_mock, editor, caplog, qtbot):
         """Test file handling when closing with an unreadable file."""
         editor.edit("")
         filename = editor._filename
         assert os.path.exists(filename)
-        os.chmod(filename, 0o077)
+        os.chmod(filename, 0o277)
         if os.access(filename, os.R_OK):
             # Docker container or similar
             pytest.skip("File was still readable")
@@ -173,10 +174,41 @@ def test_modify(qtbot, editor, initial_text, edited_text):
     with open(editor._filename, 'w', encoding='utf-8') as f:
         f.write(edited_text)
 
-    with qtbot.wait_signal(editor.editing_finished) as blocker:
+    with qtbot.wait_signal(editor.file_updated) as blocker:
         editor._proc.finished.emit(0, QProcess.NormalExit)
 
     assert blocker.args == [edited_text]
+
+
+def _update_file(filename, contents):
+    """Update the given file and make sure its mtime changed.
+
+    This might write the file multiple times, but different systems have
+    different mtime's, so we can't be sure how long to wait otherwise.
+    """
+    old_mtime = new_mtime = os.stat(filename).st_mtime
+    while old_mtime == new_mtime:
+        time.sleep(0.1)
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(contents)
+        new_mtime = os.stat(filename).st_mtime
+
+
+def test_modify_watch(qtbot):
+    """Test that saving triggers file_updated when watch=True."""
+    editor = editormod.ExternalEditor(watch=True)
+    editor.edit('foo')
+
+    with qtbot.wait_signal(editor.file_updated, timeout=3000) as blocker:
+        _update_file(editor._filename, 'bar')
+    assert blocker.args == ['bar']
+
+    with qtbot.wait_signal(editor.file_updated) as blocker:
+        _update_file(editor._filename, 'baz')
+    assert blocker.args == ['baz']
+
+    with qtbot.assert_not_emitted(editor.file_updated):
+        editor._proc.finished.emit(0, QProcess.NormalExit)
 
 
 @pytest.mark.parametrize('text, caret_position, result', [

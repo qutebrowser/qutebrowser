@@ -22,6 +22,7 @@ import json
 import textwrap
 import os
 import signal
+import time
 
 import pytest_bdd as bdd
 bdd.scenarios('editor.feature')
@@ -70,8 +71,9 @@ def set_up_editor_empty(quteproc, tmpdir):
     set_up_editor(quteproc, tmpdir, "")
 
 
-@bdd.when(bdd.parsers.parse('I set up a fake editor that waits'))
-def set_up_editor_wait(quteproc, tmpdir):
+@bdd.when(bdd.parsers.parse('I set up a fake editor that writes "{text}" on '
+                            'save'))
+def set_up_editor_wait(quteproc, tmpdir, text):
     """Set up editor.command to a small python script inserting a text."""
     assert not utils.is_windows
     pidfile = tmpdir / 'editor_pid'
@@ -82,12 +84,20 @@ def set_up_editor_wait(quteproc, tmpdir):
         import time
         import signal
 
+        def handle(sig, _frame):
+            with open(sys.argv[1], 'w', encoding='utf-8') as f:
+                f.write({text!r})
+            if sig == signal.SIGUSR1:
+                sys.exit(0)
+
+        signal.signal(signal.SIGUSR1, handle)
+        signal.signal(signal.SIGUSR2, handle)
+
         with open(r'{pidfile}', 'w') as f:
             f.write(str(os.getpid()))
 
-        signal.signal(signal.SIGUSR1, lambda s, f: sys.exit(0))
         time.sleep(100)
-    """.format(pidfile=pidfile)))
+    """.format(pidfile=pidfile, text=text)))
     editor = json.dumps([sys.executable, str(script), '{}'])
     quteproc.set_setting('editor.command', editor)
 
@@ -101,3 +111,19 @@ def kill_editor_wait(tmpdir):
     # for posix, there IS a member so we need to ignore useless-suppression
     # pylint: disable=no-member,useless-suppression
     os.kill(pid, signal.SIGUSR1)
+
+
+@bdd.when(bdd.parsers.parse('I save without exiting the editor'))
+def save_editor_wait(tmpdir):
+    """Trigger the waiting editor to write without exiting."""
+    pidfile = tmpdir / 'editor_pid'
+    # give the "editor" process time to write its pid
+    for _ in range(10):
+        if pidfile.check():
+            break
+        time.sleep(1)
+    pid = int(pidfile.read())
+    # windows has no SIGUSR2, but we don't run this on windows anyways
+    # for posix, there IS a member so we need to ignore useless-suppression
+    # pylint: disable=no-member,useless-suppression
+    os.kill(pid, signal.SIGUSR2)

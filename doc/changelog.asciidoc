@@ -45,6 +45,8 @@ Changed
 - The `url.incdec_segments` option now also can take `port` as possible segment.
 - QtWebEngine: `:view-source` now uses Chromium's `view-source:` scheme.
 - Tabs now show their full title as tooltip.
+- When an editor is spawned with `:open-editor` and `:config-edit`, the changes
+  are now applied as soon as the file is saved in the editor.
 
 Fixed
 ~~~~~

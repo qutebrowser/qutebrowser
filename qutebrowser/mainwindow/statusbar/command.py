@@ -193,7 +193,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             if run:
                 self.command_accept()
 
-        ed.editing_finished.connect(callback)
+        ed.file_updated.connect(callback)
         ed.edit(self.text())
 
     @pyqtSlot(usertypes.KeyMode)

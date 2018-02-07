@@ -253,7 +253,7 @@ class ConfigCommands:
         Args:
             no_source: Don't re-source the config file after editing.
         """
-        def on_editing_finished():
+        def on_file_updated():
             """Source the new config when editing finished.
 
             This can't use cmdexc.CommandError as it's run async.
@@ -263,9 +263,9 @@ class ConfigCommands:
             except configexc.ConfigFileErrors as e:
                 message.error(str(e))
 
-        ed = editor.ExternalEditor(self._config)
+        ed = editor.ExternalEditor(watch=True, parent=self._config)
         if not no_source:
-            ed.editing_finished.connect(on_editing_finished)
+            ed.file_updated.connect(on_file_updated)
 
         filename = os.path.join(standarddir.config(), 'config.py')
         ed.edit_file(filename)
