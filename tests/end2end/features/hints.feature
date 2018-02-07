@@ -239,12 +239,11 @@ Feature: Using hints
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
         And I run :tab-only
-        And I hint with args "links tab" and follow a
-        And I wait until data/hello.txt is loaded
-        And I wait 0.5s
+        And I hint with args "links tab" and follow s
+        And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
             - data/hints/iframe_target.html
-            - data/hello.txt (active)
+            - data/hello2.txt (active)
 
     Scenario: Clicking on iframe with :hint all current
         When I open data/hints/iframe.html
