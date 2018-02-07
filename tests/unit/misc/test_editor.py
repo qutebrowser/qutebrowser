@@ -19,6 +19,7 @@
 
 """Tests for qutebrowser.misc.editor."""
 
+import time
 import os
 import os.path
 import logging
@@ -179,19 +180,31 @@ def test_modify(qtbot, editor, initial_text, edited_text):
     assert blocker.args == [edited_text]
 
 
+def _update_file(filename, contents):
+    """Update the given file and make sure its mtime changed.
+
+    This might write the file multiple times, but different systems have
+    different mtime's, so we can't be sure how long to wait otherwise.
+    """
+    old_mtime = new_mtime = os.stat(filename).st_mtime
+    while old_mtime == new_mtime:
+        time.sleep(0.1)
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(contents)
+        new_mtime = os.stat(filename).st_mtime
+
+
 def test_modify_watch(qtbot):
     """Test that saving triggers file_updated when watch=True."""
     editor = editormod.ExternalEditor(watch=True)
     editor.edit('foo')
 
     with qtbot.wait_signal(editor.file_updated, timeout=3000) as blocker:
-        with open(editor._filename, 'w', encoding='utf-8') as f:
-            f.write('bar')
+        _update_file(editor._filename, 'bar')
     assert blocker.args == ['bar']
 
     with qtbot.wait_signal(editor.file_updated) as blocker:
-        with open(editor._filename, 'w', encoding='utf-8') as f:
-            f.write('baz')
+        _update_file(editor._filename, 'baz')
     assert blocker.args == ['baz']
 
     with qtbot.assert_not_emitted(editor.file_updated):
