@@ -49,8 +49,8 @@ except ImportError:  # pragma: no cover
     QWebEngineProfile = None
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes
-from qutebrowser.misc import objects, earlyinit, sql
+from qutebrowser.utils import log, utils, standarddir, usertypes, message
+from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin
 from qutebrowser.browser import pdfjs
 
 
@@ -449,3 +449,32 @@ def opengl_vendor():  # pragma: no cover
         ctx.doneCurrent()
         if old_context and old_surface:
             old_context.makeCurrent(old_surface)
+
+
+def pastebin_version():
+    """Pastebin the version and log the url to messages."""
+    app = QApplication.instance()
+    http_client = httpclient.HTTPClient()
+
+    def _get_paste_title():
+        return "qute version info {}".format(qutebrowser.__version__)
+
+    def _on_paste_version_success(url):
+        utils.set_clipboard(url)
+        message.info("Version url {} yanked to clipboard.".format(url))
+        pbclient.deleteLater()
+
+    def _on_paste_version_err(text):
+        message.error("Failed to pastebin version"
+                      " info: {}".format(text))
+        pbclient.deleteLater()
+
+    misc_api = pastebin.PastebinClient.MISC_API_URL
+    pbclient = pastebin.PastebinClient(http_client, parent=app,
+                                       api_url=misc_api)
+
+    pbclient.success.connect(_on_paste_version_success)
+    pbclient.error.connect(_on_paste_version_err)
+
+    pbclient.paste(utils.getpass.getuser(), _get_paste_title(),
+                   version())

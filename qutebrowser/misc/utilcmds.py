@@ -380,4 +380,4 @@ def version(win_id, paste=False):
     tabbed_browser.openurl(QUrl('qute://version'), newtab=True)
 
     if paste:
-        utils.pastebin_version()
+        utils.version.pastebin_version()

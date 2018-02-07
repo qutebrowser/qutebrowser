@@ -481,5 +481,5 @@ def qute_configdiff(url):
 @add_handler('pastebin-version')
 def qute_pastebin_version(_url):
     """Handler that pastebins the version string."""
-    utils.pastebin_version()
+    version.pastebin_version()
     return 'text/plain', b'Paste called.'

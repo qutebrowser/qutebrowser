@@ -36,7 +36,7 @@ import shlex
 import getpass
 
 import attr
-from PyQt5.QtCore import Qt, QUrl, pyqtSlot
+from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QKeySequence, QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
@@ -49,9 +49,7 @@ except ImportError:  # pragma: no cover
     YAML_C_EXT = False
 
 import qutebrowser
-from qutebrowser.utils import qtutils, log, debug, message, version
-from qutebrowser.misc import httpclient, pastebin
-
+from qutebrowser.utils import qtutils, log, debug
 
 fake_clipboard = None
 log_clipboard = False
@@ -917,34 +915,3 @@ def yaml_dump(data, f=None):
         return None
     else:
         return yaml_data.decode('utf-8')
-
-
-def pastebin_version():
-    """Pastebin the version and log the url to messages."""
-    app = QApplication.instance()
-    http_client = httpclient.HTTPClient()
-
-    def _get_paste_title():
-        return "qute version info {}".format(qutebrowser.__version__)
-
-    @pyqtSlot(str)
-    def _on_paste_version_success(url):
-        set_clipboard(url)
-        message.info("Version url {} yanked to clipboard.".format(url))
-        pbclient.deleteLater()
-
-    @pyqtSlot(str)
-    def _on_paste_version_err(text):
-        message.error("Failed to pastebin version"
-                      " info: {}".format(text))
-        pbclient.deleteLater()
-
-    misc_api = pastebin.PastebinClient.MISC_API_URL
-    pbclient = pastebin.PastebinClient(http_client, parent=app,
-                                       api_url=misc_api)
-
-    pbclient.success.connect(_on_paste_version_success)
-    pbclient.error.connect(_on_paste_version_err)
-
-    pbclient.paste(getpass.getuser(), _get_paste_title(),
-                   version.version())
