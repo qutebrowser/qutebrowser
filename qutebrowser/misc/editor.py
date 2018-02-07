@@ -42,9 +42,15 @@ class ExternalEditor(QObject):
         _proc: The GUIProcess of the editor.
         _watcher: A QFileSystemWatcher to watch the edited file for changes.
                   Only set if watch=True.
+
+    Signals:
+        file_updated: The text in the edited file was updated.
+                      arg: The new text.
+        editing_finished: The editor process was closed.
     """
 
     file_updated = pyqtSignal(str)
+    editing_finished = pyqtSignal()
 
     def __init__(self, parent=None, watch=False):
         super().__init__(parent)
@@ -84,6 +90,7 @@ class ExternalEditor(QObject):
             return
         # do a final read to make sure we don't miss the last signal
         self._on_file_changed(self._filename)
+        self.editing_finished.emit()
         self._cleanup()
 
     @pyqtSlot(QProcess.ProcessError)
