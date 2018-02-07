@@ -65,6 +65,7 @@ class DistributionInfo:
     pretty = attr.ib()
 
 
+PASTEBIN_URL = None
 Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
                      'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
@@ -453,21 +454,30 @@ def opengl_vendor():  # pragma: no cover
 
 def pastebin_version():
     """Pastebin the version and log the url to messages."""
-    app = QApplication.instance()
-    http_client = httpclient.HTTPClient()
-
     def _get_paste_title():
         return "qute version info {}".format(qutebrowser.__version__)
 
-    def _on_paste_version_success(url):
+    def _yank_url(url):
         utils.set_clipboard(url)
         message.info("Version url {} yanked to clipboard.".format(url))
+
+    def _on_paste_version_success(url):
+        global PASTEBIN_URL
+        _yank_url(url)
         pbclient.deleteLater()
+        PASTEBIN_URL = url
 
     def _on_paste_version_err(text):
         message.error("Failed to pastebin version"
                       " info: {}".format(text))
         pbclient.deleteLater()
+
+    if PASTEBIN_URL:
+        _yank_url(PASTEBIN_URL)
+        return
+
+    app = QApplication.instance()
+    http_client = httpclient.HTTPClient()
 
     misc_api = pastebin.PastebinClient.MISC_API_URL
     pbclient = pastebin.PastebinClient(http_client, parent=app,
