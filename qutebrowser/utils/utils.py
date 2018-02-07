@@ -49,7 +49,7 @@ except ImportError:  # pragma: no cover
     YAML_C_EXT = False
 
 import qutebrowser
-from qutebrowser.utils import qtutils, log, debug
+from qutebrowser.utils import qtutils, log, debug, message, version
 from qutebrowser.misc import httpclient, pastebin
 
 
@@ -921,7 +921,7 @@ def yaml_dump(data, f=None):
 
 def pastebin_version():
     """Pastebin the version and log the url to messages."""
-    app = qutebrowser.utils.objreg.get('app')
+    app = QApplication.instance()
     http_client = httpclient.HTTPClient()
 
     def _get_paste_title():
@@ -929,20 +929,20 @@ def pastebin_version():
 
     @pyqtSlot(str)
     def _on_paste_version_success(url):
-        qutebrowser.utils.message.info("Version info pastebinned"
-                                       " to: {}".format(url))
+        set_clipboard(url)
+        message.info("Version url {} yanked to clipboard.".format(url))
 
     @pyqtSlot(str)
     def _on_paste_version_err(text):
-        qutebrowser.utils.message.info("Failed to pastebin version"
-                                       " info: {}".format(text))
+        message.error("Failed to pastebin version"
+                      " info: {}".format(text))
 
-    misc_api = pastebin.PastebinClient.MISC_API_URL
+    MISC_API = pastebin.PastebinClient.MISC_API_URL
     pbclient = pastebin.PastebinClient(http_client, parent=app,
-                                       api_url=misc_api)
+                                       api_url=MISC_API)
 
     pbclient.success.connect(_on_paste_version_success)
     pbclient.error.connect(_on_paste_version_err)
 
     pbclient.paste(getpass.getuser(), _get_paste_title(),
-                   qutebrowser.utils.version.version())
+                   version.version())
