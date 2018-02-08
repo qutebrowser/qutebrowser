@@ -145,7 +145,8 @@ class TestYaml:
         autoconfig = config_tmpdir / 'autoconfig.yml'
         autoconfig.write_text('global:\n  old: value', encoding='utf-8')
 
-        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed', {'old': 'new'})
+        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed',
+                            {'old': 'tabs.show'})
 
         yaml.load()
         yaml._save()
@@ -153,6 +154,22 @@ class TestYaml:
         lines = autoconfig.read_text('utf-8').splitlines()
         assert '  old:' not in lines
         assert '  new:' not in lines
+
+    def test_renamed_key_unknown_target(self, monkeypatch, yaml, config_tmpdir):
+        """A key marked as renamed with invalid name should raise an error."""
+        autoconfig = config_tmpdir / 'autoconfig.yml'
+        autoconfig.write_text('global:\n  old: value', encoding='utf-8')
+
+        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed',
+                            {'old': 'new'})
+
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            yaml.load()
+
+        assert len(excinfo.value.errors) == 1
+        error = excinfo.value.errors[0]
+        assert error.text == "While loading options"
+        assert str(error.exception) == "Unknown option new"
 
     @pytest.mark.parametrize('old_config', [
         None,

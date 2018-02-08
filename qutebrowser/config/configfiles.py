@@ -166,6 +166,7 @@ class YamlConfig(QObject):
         self._dirty = False
 
         self._handle_migrations()
+        self._validate()
 
     def _handle_migrations(self):
         """Handle unknown/renamed keys."""
@@ -178,9 +179,11 @@ class YamlConfig(QObject):
             elif name in configdata.MIGRATIONS.deleted:
                 log.config.debug("Removing {}".format(name))
                 del self._values[name]
-            elif name in configdata.DATA:
-                pass
-            else:
+
+    def _validate(self):
+        """Make sure all settings exist."""
+        for name in self._values:
+            if name not in configdata.DATA:
                 desc = configexc.ConfigErrorDesc(
                     "While loading options",
                     "Unknown option {}".format(name))
