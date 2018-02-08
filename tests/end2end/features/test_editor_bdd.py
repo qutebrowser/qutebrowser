@@ -85,8 +85,13 @@ def set_up_editor_wait(quteproc, tmpdir, text):
         import signal
 
         def handle(sig, _frame):
-            with open(sys.argv[1], 'w', encoding='utf-8') as f:
-                f.write({text!r})
+            filename = sys.argv[1]
+            old_mtime = new_mtime = os.stat(filename).st_mtime
+            while old_mtime == new_mtime:
+                time.sleep(0.1)
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write({text!r})
+                new_mtime = os.stat(filename).st_mtime
             if sig == signal.SIGUSR1:
                 sys.exit(0)
 
