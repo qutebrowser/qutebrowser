@@ -30,6 +30,7 @@ from qutebrowser.utils import usertypes
 def progress_widget(qtbot, config_stub):
     """Create a Progress widget and checks its initial state."""
     widget = Progress()
+    widget.enabled = True
     qtbot.add_widget(widget)
     assert not widget.isVisible()
     assert not widget.isTextVisible()
