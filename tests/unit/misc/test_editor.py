@@ -211,6 +211,45 @@ def test_modify_watch(qtbot):
         editor._proc.finished.emit(0, QProcess.NormalExit)
 
 
+def test_failing_watch(qtbot, caplog, monkeypatch):
+    """When watching failed, an error should be logged.
+
+    Also, updating should still work when closing the process.
+    """
+    editor = editormod.ExternalEditor(watch=True)
+    monkeypatch.setattr(editor._watcher, 'addPath', lambda _path: False)
+
+    with caplog.at_level(logging.ERROR):
+        editor.edit('foo')
+
+    with qtbot.assert_not_emitted(editor.file_updated):
+        _update_file(editor._filename, 'bar')
+
+    with qtbot.wait_signal(editor.file_updated) as blocker:
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+    assert blocker.args == ['bar']
+
+    message = 'Failed to watch path: {}'.format(editor._filename)
+    assert caplog.records[0].msg == message
+
+
+def test_failing_unwatch(qtbot, caplog, monkeypatch):
+    """When unwatching failed, an error should be logged."""
+    editor = editormod.ExternalEditor(watch=True)
+    monkeypatch.setattr(editor._watcher, 'addPath', lambda _path: True)
+    monkeypatch.setattr(editor._watcher, 'files', lambda: [editor._filename])
+    monkeypatch.setattr(editor._watcher, 'removePaths', lambda paths: paths)
+
+    editor.edit('foo')
+
+    with caplog.at_level(logging.ERROR):
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+
+    message = 'Failed to unwatch paths: [{!r}]'.format(editor._filename)
+    assert caplog.records[-1].msg == message
+
+
+
 @pytest.mark.parametrize('text, caret_position, result', [
     ('', 0, (1, 1)),
     ('a', 0, (1, 1)),
