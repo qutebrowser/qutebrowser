@@ -149,6 +149,14 @@ class TestKeyConfig:
         config_stub.val.bindings.commands = no_bindings
         assert key_config_stub.get_command('foobar', 'normal') is None
 
+    def test_get_command_default(self, key_config_stub, config_stub):
+        config_stub.val.bindings.default = {
+            'normal': {'x': 'message-info default'}}
+        config_stub.val.bindings.commands = {
+            'normal': {'x': 'message-info custom'}}
+        cmd = 'message-info default'
+        assert key_config_stub.get_command('x', 'normal', default=True) == cmd
+
     @pytest.mark.parametrize('bindings, expected', [
         # Simple
         ({'a': 'message-info foo', 'b': 'message-info bar'},
