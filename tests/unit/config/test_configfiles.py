@@ -127,6 +127,20 @@ class TestYaml:
         assert error.text == "While loading options"
         assert str(error.exception) == "Unknown option hello"
 
+    def test_multiple_unknown_keys(self, yaml, config_tmpdir):
+        """With multiple unknown settings, all should be shown."""
+        autoconfig = config_tmpdir / 'autoconfig.yml'
+        autoconfig.write_text('global:\n  one: 1\n  two: 2', encoding='utf-8')
+
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            yaml.load()
+
+        assert len(excinfo.value.errors) == 2
+        error1, error2 = excinfo.value.errors
+        assert error1.text == error2.text == "While loading options"
+        assert str(error1.exception) == "Unknown option one"
+        assert str(error2.exception) == "Unknown option two"
+
     def test_deleted_key(self, monkeypatch, yaml, config_tmpdir):
         """A key marked as deleted should be removed."""
         autoconfig = config_tmpdir / 'autoconfig.yml'

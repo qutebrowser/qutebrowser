@@ -182,12 +182,12 @@ class YamlConfig(QObject):
 
     def _validate(self):
         """Make sure all settings exist."""
-        for name in self._values:
-            if name not in configdata.DATA:
-                desc = configexc.ConfigErrorDesc(
-                    "While loading options",
-                    "Unknown option {}".format(name))
-                raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+        unknown = set(self._values) - set(configdata.DATA)
+        if unknown:
+            errors = [configexc.ConfigErrorDesc("While loading options",
+                                                "Unknown option {}".format(e))
+                      for e in sorted(unknown)]
+            raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
     def unset(self, name):
         """Remove the given option name if it's configured."""
