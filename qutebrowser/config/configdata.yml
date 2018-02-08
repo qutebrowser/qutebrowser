@@ -40,7 +40,9 @@ crash_count:
   type: Int
   default: 3
   desc: >-
-    Maximum times the renderer process can crash before we stop restarting it, use -1 to disable restarting.
+    Maximum number of restarts after renderer process crashes.
+
+    Use -1 to disable restarting.
 
 search.ignore_case:
   type:
