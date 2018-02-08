@@ -39,7 +39,8 @@ from qutebrowser.browser import (commands, downloadview, hints,
 from qutebrowser.misc import crashsignal, keyhintwidget
 
 
-win_id_gen = itertools.count(0)
+first_window_id = 1
+win_id_gen = itertools.count(first_window_id)
 
 
 def get_window(via_ipc, force_window=False, force_tab=False,
@@ -61,7 +62,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
 
     if not via_ipc:
         # Initial main window
-        return 0
+        return first_window_id
 
     open_target = config.val.new_instance_open_target
 
