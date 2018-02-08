@@ -36,6 +36,12 @@ history_gap_interval:
 ignore_case:
   renamed: search.ignore_case
 
+crash_count:
+  type: Int
+  default: 3
+  desc: >-
+    Maximum times the renderer process can crash before we stop restarting it, use -1 to disable restarting.
+
 search.ignore_case:
   type:
     name: String
