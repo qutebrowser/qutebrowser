@@ -45,14 +45,21 @@ def test_backforward_widget(backforward_widget, tabbed_browser_stubs,
     tabbed_browser = tabbed_browser_stubs[0]
     tabbed_browser.current_index = 1
     tabbed_browser.tabs = [tab]
+    backforward_widget.show()
     backforward_widget.on_tab_cur_url_changed(tabbed_browser)
     assert backforward_widget.text() == expected_text
     assert backforward_widget.isVisible() == bool(expected_text)
+
+    # Check that the widget stays hidden if not in the statusbar
+    backforward_widget.hide()
+    backforward_widget.on_tab_cur_url_changed(tabbed_browser)
+    assert backforward_widget.isHidden()
 
     # Check that the widget gets reset if empty.
     if can_go_back and can_go_forward:
         tab = fake_web_tab(can_go_back=False, can_go_forward=False)
         tabbed_browser.tabs = [tab]
+        backforward_widget.show()
         backforward_widget.on_tab_cur_url_changed(tabbed_browser)
         assert backforward_widget.text() == ''
         assert not backforward_widget.isVisible()
@@ -64,6 +71,7 @@ def test_none_tab(backforward_widget, tabbed_browser_stubs, fake_web_tab):
     tabbed_browser = tabbed_browser_stubs[0]
     tabbed_browser.current_index = 1
     tabbed_browser.tabs = [tab]
+    backforward_widget.show()
     backforward_widget.on_tab_cur_url_changed(tabbed_browser)
 
     assert backforward_widget.text() == '[<>]'
