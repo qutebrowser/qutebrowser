@@ -249,7 +249,6 @@ def test_failing_unwatch(qtbot, caplog, monkeypatch):
     assert caplog.records[-1].msg == message
 
 
-
 @pytest.mark.parametrize('text, caret_position, result', [
     ('', 0, (1, 1)),
     ('a', 0, (1, 1)),
