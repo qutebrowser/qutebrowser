@@ -485,4 +485,5 @@ def pastebin_version():
     pbclient.error.connect(_on_paste_version_err)
 
     pbclient.paste(getpass.getuser(),
-        "qute version info {}".format(qutebrowser.__version__), version())
+                   "qute version info {}".format(qutebrowser.__version__),
+                   version())
