@@ -8,7 +8,7 @@ graft icons
 graft doc/img
 graft misc/apparmor
 graft misc/userscripts
-recursive-include scripts *.py *.sh
+recursive-include scripts *.py *.sh *.js
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
 include LICENSE doc/* README.asciidoc
