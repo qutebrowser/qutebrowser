@@ -65,6 +65,8 @@ Fixed
   correctly when filtering them in the completion.
 - `:bookmark-add "" foo` can now be used to save the current URL with a custom
   title.
+- `:spawn -o` now waits until the process has finished before trying to show the
+  output. Previously, it incorrectly showed the previous output immediately.
 
 Removed
 ~~~~~~~
