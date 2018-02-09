@@ -28,6 +28,10 @@ Added
 - QtWebEngine: Retrying downloads is now supported with Qt 5.10 or newer.
 - QtWebEngine: Hinting and other features inside same-origin frames is now
   supported.
+- New `cycle-inputs.js` script in `scripts/` which can be used with `:jseval -f`
+  to cycle through inputs.
+- New `--no-last` flag for `:tab-focus` to not focus the last tab when focusing
+  the currently focused one.
 
 Changed
 ~~~~~~~
