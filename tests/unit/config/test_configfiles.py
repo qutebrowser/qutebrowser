@@ -172,7 +172,8 @@ class TestYaml:
     def test_merge_persist_false(self, monkeypatch, yaml, config_tmpdir):
         """Migration of tabs.persist_mode_on_change: False."""
         autoconfig = config_tmpdir / 'autoconfig.yml'
-        autoconfig.write_text('global:\n  tabs.persist_mode_on_change: False', encoding='utf-8')
+        autoconfig.write_text('global:\n  tabs.persist_mode_on_change: False',
+                              encoding='utf-8')
 
         yaml.load()
         yaml._save()
@@ -184,7 +185,8 @@ class TestYaml:
     def test_merge_persist_true(self, monkeypatch, yaml, config_tmpdir):
         """Migration of tabs.persist_mode_on_change: True."""
         autoconfig = config_tmpdir / 'autoconfig.yml'
-        autoconfig.write_text('global:\n  tabs.persist_mode_on_change: True', encoding='utf-8')
+        autoconfig.write_text('global:\n  tabs.persist_mode_on_change: True',
+                              encoding='utf-8')
 
         yaml.load()
         yaml._save()
