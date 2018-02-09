@@ -26,7 +26,7 @@ import functools
 import typing
 
 from PyQt5.QtWidgets import QApplication, QTabBar, QDialog
-from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
+from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 
