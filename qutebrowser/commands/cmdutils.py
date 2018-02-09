@@ -105,7 +105,8 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         else:
             assert isinstance(self._name, str), self._name
             name = self._name
-        log.commands.vdebug("Registering command {}".format(name))
+        log.commands.vdebug("Registering command {} (from {}:{})".format(
+            name, func.__module__, func.__qualname__))
         if name in cmd_dict:
             raise ValueError("{} is already registered!".format(name))
         cmd = command.Command(name=name, instance=self._instance,
