@@ -9,38 +9,38 @@
  * By dive on freenode <dave@dawoodfall.net>
  */
 
-"use strict";
-var inputs = document.getElementsByTagName("input");
-var types = /text|password|date|email|month|number|range|search|tel|time|url|week/;
-var hidden = /hidden/;
-var found = false;
-var i = 0;
-var k = 0;
+(function() {
+    "use strict";
+    const inputs = document.getElementsByTagName("input");
+    const types = /text|password|date|email|month|number|range|search|tel|time|url|week/;
+    const hidden = /hidden/;
+    let found = false;
 
-function ishidden(el) {
-    return hidden.test(el.attributes.value) || el.offsetParent === null;
-}
-
-for (i = 0; i < inputs.length; i++) {
-    if (inputs[i] === document.activeElement) {
-        for (k = i + 1; k < inputs.length; k++) {
-            if (!ishidden(inputs[k]) && types.test(inputs[k].type)) {
-                inputs[k].focus();
-                found = true;
-                break;
-            }
-        }
-        break;
+    function ishidden(el) {
+        return hidden.test(el.attributes.value) || el.offsetParent === null;
     }
-}
 
-if (!found) {
-    for (i = 0; i < inputs.length; i++) {
-        if (!ishidden(inputs[i]) && types.test(inputs[i].type)) {
-            inputs[i].focus();
+    for (let i = 0; i < inputs.length; i++) {
+        if (inputs[i] === document.activeElement) {
+            for (let k = i + 1; k < inputs.length; k++) {
+                if (!ishidden(inputs[k]) && types.test(inputs[k].type)) {
+                    inputs[k].focus();
+                    found = true;
+                    break;
+                }
+            }
             break;
         }
     }
-}
+
+    if (!found) {
+        for (let i = 0; i < inputs.length; i++) {
+            if (!ishidden(inputs[i]) && types.test(inputs[i].type)) {
+                inputs[i].focus();
+                break;
+            }
+        }
+    }
+})();
 
 // vim: tw=0 expandtab tabstop=4 softtabstop=4 shiftwidth=4
