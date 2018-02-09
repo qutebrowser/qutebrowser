@@ -169,7 +169,8 @@ class TestYaml:
         assert '  old:' not in lines
         assert '  new:' not in lines
 
-    def test_renamed_key_unknown_target(self, monkeypatch, yaml, config_tmpdir):
+    def test_renamed_key_unknown_target(self, monkeypatch, yaml,
+                                        config_tmpdir):
         """A key marked as renamed with invalid name should raise an error."""
         autoconfig = config_tmpdir / 'autoconfig.yml'
         autoconfig.write_text('global:\n  old: value', encoding='utf-8')
