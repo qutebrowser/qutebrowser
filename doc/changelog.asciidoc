@@ -47,6 +47,8 @@ Changed
 - Tabs now show their full title as tooltip.
 - When an editor is spawned with `:open-editor` and `:config-edit`, the changes
   are now applied as soon as the file is saved in the editor.
+- When there are multiple unknown keys in a autoconfig.yml, they now all get
+  reported in one error.
 
 Fixed
 ~~~~~
