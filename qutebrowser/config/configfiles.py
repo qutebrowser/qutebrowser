@@ -180,6 +180,14 @@ class YamlConfig(QObject):
                 log.config.debug("Removing {}".format(name))
                 del self._values[name]
 
+        persist = 'tabs.persist_mode_on_change'
+        if persist in self._values:
+            if self._values[persist]:
+                self._values['tabs.mode_on_change'] = 'persist'
+            else:
+                self._values['tabs.mode_on_change'] = 'normal'
+            del self._values[persist]
+
     def _validate(self):
         """Make sure all settings exist."""
         unknown = set(self._values) - set(configdata.DATA)
