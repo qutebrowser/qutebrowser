@@ -67,6 +67,8 @@ Fixed
   title.
 - `:spawn -o` now waits until the process has finished before trying to show the
   output. Previously, it incorrectly showed the previous output immediately.
+- QtWebEngine: Qt download objects are now cleaned up properly when a download
+  is removed.
 
 Removed
 ~~~~~~~
