@@ -129,6 +129,7 @@ class NetworkManager(QNetworkAccessManager):
         _rejected_ssl_errors: A {QUrl: [SslError]} dict of rejected errors.
         _accepted_ssl_errors: A {QUrl: [SslError]} dict of accepted errors.
         _private: Whether we're in private browsing mode.
+        netrc_used: Whether netrc authentication was performed.
 
     Signals:
         shutting_down: Emitted when the QNAM is shutting down.
@@ -159,6 +160,7 @@ class NetworkManager(QNetworkAccessManager):
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
+        self.netrc_used = False
 
     def _set_cookiejar(self):
         """Set the cookie jar of the NetworkManager correctly."""
@@ -269,8 +271,8 @@ class NetworkManager(QNetworkAccessManager):
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
         netrc = False
-        if not hasattr(self, 'netrc_used'):
-            setattr(self, 'netrc_used', True)
+        if not self.netrc_used:
+            self.netrc_used = True
             netrc = shared.netrc_authentication(reply.url(), authenticator)
         if not netrc:
             abort_on = self._get_abort_signals(reply)
