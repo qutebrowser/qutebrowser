@@ -69,6 +69,7 @@ Fixed
   output. Previously, it incorrectly showed the previous output immediately.
 - QtWebEngine: Qt download objects are now cleaned up properly when a download
   is removed.
+- Suspended pages now should always load the correct page when being un-suspended.
 
 Removed
 ~~~~~~~
