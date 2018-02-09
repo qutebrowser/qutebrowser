@@ -179,14 +179,13 @@ class YamlConfig(QObject):
             elif name in configdata.MIGRATIONS.deleted:
                 log.config.debug("Removing {}".format(name))
                 del self._values[name]
-
         persist = 'tabs.persist_mode_on_change'
         if persist in self._values:
             if self._values[persist]:
                 self._values['tabs.mode_on_change'] = 'persist'
             else:
                 self._values['tabs.mode_on_change'] = 'normal'
-            del self._values[persist]
+            self.unset(persist)
 
     def _validate(self):
         """Make sure all settings exist."""

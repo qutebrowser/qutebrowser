@@ -169,6 +169,30 @@ class TestYaml:
         assert '  old:' not in lines
         assert '  new:' not in lines
 
+    def test_merge_persist_false(self, monkeypatch, yaml, config_tmpdir):
+        """Migration of tabs.persist_mode_on_change: False."""
+        autoconfig = config_tmpdir / 'autoconfig.yml'
+        autoconfig.write_text('global:\n  tabs.persist_mode_on_change: False', encoding='utf-8')
+
+        yaml.load()
+        yaml._save()
+
+        lines = autoconfig.read_text('utf-8').splitlines()
+        assert '  tabs.persist_mode_on_change:' not in lines
+        assert '  tabs.mode_on_change: normal' in lines
+
+    def test_merge_persist_true(self, monkeypatch, yaml, config_tmpdir):
+        """Migration of tabs.persist_mode_on_change: True."""
+        autoconfig = config_tmpdir / 'autoconfig.yml'
+        autoconfig.write_text('global:\n  tabs.persist_mode_on_change: True', encoding='utf-8')
+
+        yaml.load()
+        yaml._save()
+
+        lines = autoconfig.read_text('utf-8').splitlines()
+        assert '  tabs.persist_mode_on_change:' not in lines
+        assert '  tabs.mode_on_change: persist' in lines
+
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         config_tmpdir):
         """A key marked as renamed with invalid name should raise an error."""
