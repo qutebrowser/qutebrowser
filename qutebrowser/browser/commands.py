@@ -1220,6 +1220,7 @@ class CommandDispatcher:
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
 
+        @pyqtSlot()
         def _on_proc_finished():
             if output:
                 tb = objreg.get('tabbed-browser', scope='window',
