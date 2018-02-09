@@ -519,8 +519,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*]
-     ['group'] ['target'] ['args' ['args' ...]]+
+Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*] ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
 
@@ -770,8 +769,7 @@ Do nothing.
 
 [[open]]
 === open
-Syntax: +:open [*--related*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*]
-     ['url']+
+Syntax: +:open [*--related*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*] ['url']+
 
 Open a URL in the current/[count]th tab.
 
@@ -1091,9 +1089,7 @@ Load a session.
 
 [[session-save]]
 === session-save
-Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*]
-             [*--with-private*]
-             ['name']+
+Syntax: +:session-save [*--current*] [*--quiet*] [*--force*] [*--only-active-window*] [*--with-private*] ['name']+
 
 Save a session.
 
@@ -1212,7 +1208,7 @@ The tab index to close
 
 [[tab-focus]]
 === tab-focus
-Syntax: +:tab-focus ['index']+
+Syntax: +:tab-focus [*--no-last*] ['index']+
 
 Select the tab given as argument/[count].
 
@@ -1223,6 +1219,9 @@ If neither count nor index are given, it behaves like tab-next. If both are give
  Negative indices count from the end, such that -1 is the
  last tab.
 
+
+==== optional arguments
+* +*-n*+, +*--no-last*+: Whether to avoid focusing last tab if already focused.
 
 ==== count
 The tab index to focus, starting with 1.
