@@ -196,7 +196,8 @@ class CommandParser:
             return ParseResult(cmd=None, args=None, cmdline=cmdline)
 
         args = self._split_args(cmd, argstr, keep)
-        args = [x.strip().lstrip(':').strip() if x is not ':' and x is not ' ' else x for x in args]
+        args = [x.strip().lstrip(':').strip() if x is not ':' and x is not ' '
+                else x for x in args]
         if keep and args:
             cmdline = [cmdstr, sep + args[0]] + args[1:]
         elif keep:
