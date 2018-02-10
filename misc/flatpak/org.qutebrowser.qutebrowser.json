@@ -34,6 +34,42 @@
     ],
     "modules": [
         {
+            "name": "PyQT5",
+            "buildsystem": "simple",
+            "build-commands": [
+                "python3 configure.py --confirm-license --assume-shared --verbose --sip=/app/bin/sip --sip-incdir=/app/include/python3.5 --destdir /app/lib/python3.5/site-packages --bindir /app/bin --qml-plugindir=/app/lib/plugins/PyQt5 --no-sip-files --no-stubs --no-tools --no-qml-plugin",
+                "make",
+                "make install"
+            ],
+            "ensure-writable": ["easy-install.pth"],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.9.2/PyQt5_gpl-5.9.2.tar.gz",
+                    "sha256": "c190dac598c97b0113ca5e7a37c71c623f02d1d713088addfacac4acfa4b8394"
+                }
+            ],
+            "modules": [
+                {
+                    "name": "sip",
+                    "buildsystem": "simple",
+                    "build-commands": [
+                        "python3 configure.py -d /app/lib/python3.5/site-packages -b /app/bin -e /app/include/python3.5 -v /app/share/sip",
+                        "make",
+                        "make install"
+                    ],
+                    "ensure-writable": ["easy-install.pth"],
+                    "sources": [
+                        {
+                            "type": "archive",
+                            "url": "https://sourceforge.net/projects/pyqt/files/sip/sip-4.19.6/sip-4.19.6.tar.gz",
+                            "sha256": "9dda27ae181bea782ebc8768d29f22f85ab6e5128ee3ab21f491febad707925a"
+                        }
+                    ]
+                }
+            ]
+         },
+         {
             "name": "MarkupSafe",
             "buildsystem": "simple",
             "build-commands": ["python3 setup.py install --prefix=/app"],
@@ -123,42 +159,6 @@
                     "type": "archive",
                     "url": "http://pyyaml.org/download/pyyaml/PyYAML-3.12.tar.gz",
                     "sha256": "592766c6303207a20efc445587778322d7f73b161bd994f227adaa341ba212ab"
-                }
-            ]
-        },
-        {
-            "name": "PyQT5",
-            "buildsystem": "simple",
-            "build-commands": [
-                "python3 configure.py --confirm-license --assume-shared --verbose --sip=/app/bin/sip --sip-incdir=/app/include/python3.5 --destdir /app/lib/python3.5/site-packages --bindir /app/bin --qml-plugindir=/app/lib/plugins/PyQt5 --no-sip-files --no-stubs --no-tools --no-qml-plugin",
-                "make",
-                "make install"
-            ],
-            "ensure-writable": ["easy-install.pth"],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.9.2/PyQt5_gpl-5.9.2.tar.gz",
-                    "sha256": "c190dac598c97b0113ca5e7a37c71c623f02d1d713088addfacac4acfa4b8394"
-                }
-            ],
-            "modules": [
-                {
-                    "name": "sip",
-                    "buildsystem": "simple",
-                    "build-commands": [
-                        "python3 configure.py -d /app/lib/python3.5/site-packages -b /app/bin -e /app/include/python3.5 -v /app/share/sip",
-                        "make",
-                        "make install"
-                    ],
-                    "ensure-writable": ["easy-install.pth"],
-                    "sources": [
-                        {
-                            "type": "archive",
-                            "url": "https://sourceforge.net/projects/pyqt/files/sip/sip-4.19.6/sip-4.19.6.tar.gz",
-                            "sha256": "9dda27ae181bea782ebc8768d29f22f85ab6e5128ee3ab21f491febad707925a"
-                        }
-                    ]
                 }
             ]
         },
