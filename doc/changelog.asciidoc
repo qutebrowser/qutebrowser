@@ -54,6 +54,9 @@ Changed
   are now applied as soon as the file is saved in the editor.
 - When there are multiple unknown keys in a autoconfig.yml, they now all get
   reported in one error.
+- New `tabs.mode_on_change` setting which replaces
+  `tabs.persist_mode_on_change`. It can now be set to `restore` which remembers
+  input modes (input/passthrough) per tab.
 
 Fixed
 ~~~~~
@@ -79,6 +82,8 @@ Removed
   via hints.
 - The `qutebrowser_viewsource` userscript has been removed as `:view-source
   --edit` can now be used.
+- The `tabs.persist_mode_on_change` setting has been removed and replaced by
+  `tabs.mode_on_change`.
 
 v1.1.1
 ------
