@@ -394,7 +394,9 @@ class Command:
         if isinstance(typ, tuple):
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
-        elif getattr(typ, '__origin__', None) is typing.Union:
+        elif getattr(typ, '__origin__', None) is typing.Union or (
+                hasattr(typing, 'UnionMeta') and
+                isinstance(typ, typing.UnionMeta)):
             # this is... slightly evil, I know
             # pylint: disable=no-member,useless-suppression
             try:
