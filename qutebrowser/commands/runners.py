@@ -65,11 +65,10 @@ def replace_variables(win_id, arglist):
             QUrl.DecodeReserved | QUrl.RemovePassword),
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
-        '{url}': lambda: '{url}',
-        '{url:pretty}': lambda: '{url:pretty}',
-        '{clipboard}': lambda: '{clipboard}',
-        '{primary}': lambda: '{primary}',
     }
+    for key in list(variables):
+        modified_key = '{' + key + '}'
+        variables[modified_key] = lambda: modified_key
     values = {}
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
