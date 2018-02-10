@@ -30,6 +30,11 @@ import pytest
 from PyQt5.QtCore import QProcess, qVersion
 
 
+ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
+                                  reason="Python >= 3.7 doesn't force ASCII "
+                                  "locale with LC_ALL=C")
+
+
 def _base_args(config):
     """Get the arguments to pass with every invocation."""
     args = ['--debug', '--json-logging', '--no-err-windows']
@@ -73,6 +78,7 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 
 
 @pytest.mark.linux
+@ascii_locale
 def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
@@ -107,6 +113,7 @@ def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
 
 @pytest.mark.linux
 @pytest.mark.parametrize('url', ['/föö.html', 'file:///föö.html'])
+@ascii_locale
 def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
     """Test opening non-ascii URL with LC_ALL=C set.
 
@@ -130,6 +137,7 @@ def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
 
 
 @pytest.mark.linux
+@ascii_locale
 def test_open_command_line_with_ascii_locale(request, server, tmpdir,
                                              quteproc_new):
     """Test opening file via command line with a non-ascii name with LC_ALL=C.
