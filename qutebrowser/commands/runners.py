@@ -204,6 +204,7 @@ class CommandParser:
             cmdline = [cmdstr, sep]
         else:
             cmdline = [cmdstr] + args[:]
+            
         return ParseResult(cmd=cmd, args=args, cmdline=cmdline)
 
     def _completion_match(self, cmdstr):
