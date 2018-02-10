@@ -169,23 +169,30 @@ class YamlConfig(QObject):
         self._validate()
 
     def _handle_migrations(self):
-        """Handle unknown/renamed keys."""
+        """Migrate older configs to the newest format."""
+        # Simple renamed/deleted options
         for name in list(self._values):
             if name in configdata.MIGRATIONS.renamed:
                 new_name = configdata.MIGRATIONS.renamed[name]
                 log.config.debug("Renaming {} to {}".format(name, new_name))
                 self._values[new_name] = self._values[name]
-                self.unset(name)
+                del self._values[name]
+                self._mark_changed()
             elif name in configdata.MIGRATIONS.deleted:
                 log.config.debug("Removing {}".format(name))
-                self.unset(name)
-        persist = 'tabs.persist_mode_on_change'
-        if persist in self._values:
-            if self._values[persist]:
-                self._values['tabs.mode_on_change'] = 'persist'
+                del self._values[name]
+                self._mark_changed()
+
+        # tabs.persist_mode_on_change got merged into tabs.mode_on_change
+        old = 'tabs.persist_mode_on_change'
+        new = 'tabs.mode_on_change'
+        if old in self._values:
+            if self._values[old]:
+                self._values[new] = 'persist'
             else:
-                self._values['tabs.mode_on_change'] = 'normal'
-            self.unset(persist)
+                self._values[new] = 'normal'
+            del self._values[old]
+            self._mark_changed()
 
     def _validate(self):
         """Make sure all settings exist."""
