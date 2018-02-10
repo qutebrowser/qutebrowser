@@ -432,16 +432,16 @@ class PromptContainer(QWidget):
             sel: Use the primary selection instead of the clipboard.
         """
         question = self._prompt.question
-        if not question.url:
+        if question.url is None:
             message.error('No URL found.')
             return
-        s = question.url
-        target = 'primary selection'
-        if not (sel and utils.supports_selection()):
-            target = 'clipboard'
+        if sel and utils.supports_selection():
+            target = 'primary selection'
+        else:
             sel = False
-        utils.set_clipboard(s, sel)
-        message.info("Yanked to {}: {}".format(target, s))
+            target = 'clipboard'
+        utils.set_clipboard(question.url, sel)
+        message.info("Yanked to {}: {}".format(target, question.url))
 
 
 class LineEdit(QLineEdit):

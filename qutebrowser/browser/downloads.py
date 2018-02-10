@@ -166,7 +166,7 @@ def get_filename_question(*, suggested_filename, url, parent=None):
     q.title = "Save file to:"
     q.text = "Please enter a location for <b>{}</b>".format(
         html.escape(url.toDisplayString()))
-    q.url = url.toString(QUrl.RemoveUserInfo)
+    q.url = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     q.mode = usertypes.PromptMode.download
     q.completed.connect(q.deleteLater)
     q.default = _path_suggestion(suggested_filename)

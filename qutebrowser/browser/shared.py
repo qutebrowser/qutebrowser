@@ -62,7 +62,7 @@ def authentication_required(url, authenticator, abort_on):
     else:
         msg = '<b>{}</b> needs authentication'.format(
             html.escape(url.toDisplayString()))
-    urlstr = url.toString(QUrl.RemoveUserInfo)
+    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     answer = message.ask(title="Authentication required", text=msg,
                          mode=usertypes.PromptMode.user_pwd,
                          abort_on=abort_on, url=urlstr)
@@ -80,7 +80,7 @@ def javascript_confirm(url, js_msg, abort_on):
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           html.escape(js_msg))
-    urlstr = url.toString(QUrl.RemoveUserInfo)
+    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     ans = message.ask('Javascript confirm', msg,
                       mode=usertypes.PromptMode.yesno,
                       abort_on=abort_on, url=urlstr)
@@ -97,7 +97,7 @@ def javascript_prompt(url, js_msg, default, abort_on):
 
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           html.escape(js_msg))
-    urlstr = url.toString(QUrl.RemoveUserInfo)
+    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     answer = message.ask('Javascript prompt', msg,
                          mode=usertypes.PromptMode.text,
                          default=default,
@@ -120,7 +120,7 @@ def javascript_alert(url, js_msg, abort_on):
 
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
                                           html.escape(js_msg))
-    urlstr = url.toString(QUrl.RemoveUserInfo)
+    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
                 abort_on=abort_on, url=urlstr)
 
@@ -169,7 +169,7 @@ def ignore_certificate_errors(url, errors, abort_on):
         """.strip())
         msg = err_template.render(url=url, errors=errors)
 
-        urlstr = url.toString(QUrl.RemoveUserInfo)
+        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         ignore = message.ask(title="Certificate errors - continue?", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
                              abort_on=abort_on, url=urlstr)
@@ -208,7 +208,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on):
     config_val = config.instance.get(option)
     if config_val == 'ask':
         if url.isValid():
-            urlstr = url.toString(QUrl.RemoveUserInfo)
+            urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
             text = "Allow the website at <b>{}</b> to {}?".format(
                 html.escape(url.toDisplayString()), msg)
         else:
