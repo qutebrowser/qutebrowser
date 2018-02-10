@@ -6,6 +6,7 @@ additional dependecies of qutebrowser. The platform includes Qt 5.9.
 
 To install the SDK system wide run:
 
+ sudo flatpak install flathub org.kde.Platform//5.9
  sudo flatpak install flathub org.kde.Sdk//5.9
 
 To actually build the flatpak run the following command:
