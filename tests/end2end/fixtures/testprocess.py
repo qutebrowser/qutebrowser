@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -101,7 +101,7 @@ def pytest_runtest_makereport(item, call):
 
     if not hasattr(report.longrepr, 'addsection'):
         # In some conditions (on macOS and Windows it seems), report.longrepr
-        # is actually a tuple. This is handled similarily in pytest-qt too.
+        # is actually a tuple. This is handled similarly in pytest-qt too.
         return
 
     if item.config.getoption('--capture') == 'no':

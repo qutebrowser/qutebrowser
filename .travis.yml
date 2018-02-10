@@ -21,6 +21,17 @@ matrix:
       env: TESTENV=py35-pyqt59
     - os: linux
       env: TESTENV=py36-pyqt59-cov
+    - os: linux
+      env: TESTENV=py36-pyqt510
+      # We need a newer Xvfb as a WORKAROUND for:
+      # https://bugreports.qt.io/browse/QTBUG-64928
+      sudo: required
+      addons:
+         apt:
+           sources:
+           - sourceline: "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe"
+           packages:
+           - xvfb
     - os: osx
       env: TESTENV=py36 OSX=sierra
       osx_image: xcode9.2

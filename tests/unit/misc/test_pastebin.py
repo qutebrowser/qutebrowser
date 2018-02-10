@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Anna Kobak (avk) <awerk@onet.eu>:
+# Copyright 2016-2018 Anna Kobak (avk) <awerk@onet.eu>:
 #
 # This file is part of qutebrowser.
 #

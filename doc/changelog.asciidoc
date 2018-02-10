@@ -21,7 +21,18 @@ v1.2.0 (unreleased)
 Added
 ~~~~~
 
+- QtWebEngine: Caret/visual mode is now supported.
 - A new `qute://bindings` page, opened by `:bind`, shows all keybindings.
+- `:session-load` has a new `--delete` flag which deletes the
+  session after loading it.
+- QtWebEngine: Retrying downloads is now supported with Qt 5.10 or newer.
+- QtWebEngine: Hinting and other features inside same-origin frames is now
+  supported.
+- New `cycle-inputs.js` script in `scripts/` which can be used with `:jseval -f`
+  to cycle through inputs.
+- New `--no-last` flag for `:tab-focus` to not focus the last tab when focusing
+  the currently focused one.
+- New `--edit` flag for `:view-source` to open the source in an external editor.
 
 Changed
 ~~~~~~~
@@ -31,19 +42,57 @@ Changed
 - Deleting a prefix (`:`, `/` or `?`) via backspace now leaves command mode.
 - Angular 1 elements now get hints assigned.
 - `:tab-only` with pinned tabs now still closes unpinned tabs.
+- GreaseMonkey `@include` and `@exclude` now support
+  regex matches. With QtWebEngine and Qt 5.8 and newer, Qt handles the matching,
+  but similar functionality was added in Qt 5.11.
+- The sqlite history now uses write-ahead logging which should be
+  a performance and stability improvement.
+- The `url.incdec_segments` option now also can take `port` as possible segment.
+- QtWebEngine: `:view-source` now uses Chromium's `view-source:` scheme.
+- Tabs now show their full title as tooltip.
+- When an editor is spawned with `:open-editor` and `:config-edit`, the changes
+  are now applied as soon as the file is saved in the editor.
+- When there are multiple unknown keys in a autoconfig.yml, they now all get
+  reported in one error.
+- New `tabs.mode_on_change` setting which replaces
+  `tabs.persist_mode_on_change`. It can now be set to `restore` which remembers
+  input modes (input/passthrough) per tab.
 
 Fixed
 ~~~~~
 
-- Improved fullscreen handling with Qt 5.10.
+- QtWebEngine: Improved fullscreen handling with Qt 5.10.
+- QtWebEngine: Hinting and scrolling now works properly on special
+  `view-source:` pages.
+- QtWebKit: `:view-source` now displays a valid URL.
+- URLs containing ampersands and other special chars are now shown
+  correctly when filtering them in the completion.
+- `:bookmark-add "" foo` can now be used to save the current URL with a custom
+  title.
+- `:spawn -o` now waits until the process has finished before trying to show the
+  output. Previously, it incorrectly showed the previous output immediately.
+- QtWebEngine: Qt download objects are now cleaned up properly when a download
+  is removed.
+- Suspended pages now should always load the correct page when being un-suspended.
 
-v1.1.1 (unreleased)
--------------------
+Removed
+~~~~~~~
+
+- `QUTE_SELECTED_HTML` is now not set for userscripts anymore except when called
+  via hints.
+- The `qutebrowser_viewsource` userscript has been removed as `:view-source
+  --edit` can now be used.
+- The `tabs.persist_mode_on_change` setting has been removed and replaced by
+  `tabs.mode_on_change`.
+
+v1.1.1
+------
 
 Fixed
 ~~~~~
 
 - The Makefile now actually works.
+- Fixed crashes with Qt 5.10 when closing a tab before it finished loading.
 
 v1.1.0
 ------
@@ -1124,7 +1173,7 @@ Added
 - New `:fake-key` command to send a fake keypress to a website or to
   qutebrowser.
 - New `--mhtml` argument for `:download` to download a page including all
-  ressources as MHTML file.
+  resources as MHTML file.
 - New option `tabs -> title-alignment` to change the alignment of tab titles.
 
 Changed
@@ -1324,7 +1373,7 @@ Added
 - New argument `--no-err-windows` to suppress all error windows.
 - New arguments `--top-navigate` and `--bottom-navigate` (`-t`/`-b`) for `:scroll-page` to specify a navigation action (e.g. automatically go to the next page when arriving at the bottom).
 - New flag `-d`/`--detach` for `:spawn` to detach the spawned process so it's not closed when qutebrowser is.
-- New flag `-v`/`--verbose` for `:spawn` to print informations when the process started/exited successfully.
+- New flag `-v`/`--verbose` for `:spawn` to print information when the process started/exited successfully.
 - Many new color settings (foreground setting for every background setting).
 - New setting `ui -> modal-js-dialog` to use the standard modal dialogs for javascript questions instead of using the statusbar.
 - New setting `colors -> webpage.bg` to set the background color to use for websites which don't set one.

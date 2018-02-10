@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -94,21 +94,21 @@ class TabData:
         keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
                    load.
         inspector: The QWebInspector used for this webview.
-        viewing_source: Set if we're currently showing a source view.
         override_target: Override for open_target for fake clicks (like hints).
                          Only used for QtWebKit.
         pinned: Flag to pin the tab.
         fullscreen: Whether the tab has a video shown fullscreen currently.
         netrc_used: Whether netrc authentication was performed.
+        input_mode: current input mode for the tab.
     """
 
     keep_icon = attr.ib(False)
-    viewing_source = attr.ib(False)
     inspector = attr.ib(None)
     override_target = attr.ib(None)
     pinned = attr.ib(False)
     fullscreen = attr.ib(False)
     netrc_used = attr.ib(False)
+    input_mode = attr.ib(usertypes.KeyMode.normal)
 
 
 class AbstractAction:
@@ -123,8 +123,9 @@ class AbstractAction:
     action_class = None
     action_base = None
 
-    def __init__(self):
+    def __init__(self, tab):
         self._widget = None
+        self._tab = tab
 
     def exit_fullscreen(self):
         """Exit the fullscreen mode."""
@@ -140,6 +141,10 @@ class AbstractAction:
         if not isinstance(member, self.action_base):
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
+
+    def show_source(self):
+        """Show the source of the current page in a new tab."""
+        raise NotImplementedError
 
 
 class AbstractPrinting:
@@ -247,10 +252,10 @@ class AbstractZoom(QObject):
         _default_zoom_changed: Whether the zoom was changed from the default.
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, tab, parent=None):
         super().__init__(parent)
+        self._tab = tab
         self._widget = None
-        self._win_id = win_id
         self._default_zoom_changed = False
         self._init_neighborlist()
         config.instance.changed.connect(self._on_config_changed)
@@ -326,10 +331,9 @@ class AbstractCaret(QObject):
 
     """Attribute of AbstractTab for caret browsing."""
 
-    def __init__(self, win_id, tab, mode_manager, parent=None):
+    def __init__(self, tab, mode_manager, parent=None):
         super().__init__(parent)
         self._tab = tab
-        self._win_id = win_id
         self._widget = None
         self.selection_enabled = False
         mode_manager.entered.connect(self._on_mode_entered)
@@ -392,10 +396,7 @@ class AbstractCaret(QObject):
     def drop_selection(self):
         raise NotImplementedError
 
-    def has_selection(self):
-        raise NotImplementedError
-
-    def selection(self, html=False):
+    def selection(self, callback):
         raise NotImplementedError
 
     def follow_selected(self, *, tab=False):
@@ -641,16 +642,6 @@ class AbstractTab(QWidget):
         tab_registry[self.tab_id] = self
         objreg.register('tab', self, registry=self.registry)
 
-        # self.history = AbstractHistory(self)
-        # self.scroller = AbstractScroller(self, parent=self)
-        # self.caret = AbstractCaret(win_id=win_id, tab=self,
-        #                            mode_manager=mode_manager, parent=self)
-        # self.zoom = AbstractZoom(win_id=win_id)
-        # self.search = AbstractSearch(parent=self)
-        # self.printing = AbstractPrinting()
-        # self.elements = AbstractElements(self)
-        # self.action = AbstractAction()
-
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
         self._widget = None
@@ -725,7 +716,6 @@ class AbstractTab(QWidget):
     def _on_load_started(self):
         self._progress = 0
         self._has_ssl_errors = False
-        self.data.viewing_source = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 
@@ -751,6 +741,10 @@ class AbstractTab(QWidget):
 
     @pyqtSlot(bool)
     def _on_load_finished(self, ok):
+        if sip.isdeleted(self._widget):
+            # https://github.com/qutebrowser/qutebrowser/issues/3498
+            return
+
         sess_manager = objreg.get('session-manager')
         sess_manager.save_autosave()
 
@@ -813,7 +807,7 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def dump_async(self, callback, *, plain=False):
-        """Dump the current page to a file ascync.
+        """Dump the current page's html asynchronously.
 
         The given callback will be called with the result when dumping is
         complete.

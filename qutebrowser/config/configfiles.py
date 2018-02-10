@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -166,25 +166,42 @@ class YamlConfig(QObject):
         self._dirty = False
 
         self._handle_migrations()
+        self._validate()
 
     def _handle_migrations(self):
-        """Handle unknown/renamed keys."""
+        """Migrate older configs to the newest format."""
+        # Simple renamed/deleted options
         for name in list(self._values):
             if name in configdata.MIGRATIONS.renamed:
                 new_name = configdata.MIGRATIONS.renamed[name]
                 log.config.debug("Renaming {} to {}".format(name, new_name))
                 self._values[new_name] = self._values[name]
                 del self._values[name]
+                self._mark_changed()
             elif name in configdata.MIGRATIONS.deleted:
                 log.config.debug("Removing {}".format(name))
                 del self._values[name]
-            elif name in configdata.DATA:
-                pass
+                self._mark_changed()
+
+        # tabs.persist_mode_on_change got merged into tabs.mode_on_change
+        old = 'tabs.persist_mode_on_change'
+        new = 'tabs.mode_on_change'
+        if old in self._values:
+            if self._values[old]:
+                self._values[new] = 'persist'
             else:
-                desc = configexc.ConfigErrorDesc(
-                    "While loading options",
-                    "Unknown option {}".format(name))
-                raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+                self._values[new] = 'normal'
+            del self._values[old]
+            self._mark_changed()
+
+    def _validate(self):
+        """Make sure all settings exist."""
+        unknown = set(self._values) - set(configdata.DATA)
+        if unknown:
+            errors = [configexc.ConfigErrorDesc("While loading options",
+                                                "Unknown option {}".format(e))
+                      for e in sorted(unknown)]
+            raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
     def unset(self, name):
         """Remove the given option name if it's configured."""

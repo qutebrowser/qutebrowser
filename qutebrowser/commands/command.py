@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -193,10 +193,10 @@ class Command:
         return False
 
     def _inspect_func(self):
-        """Inspect the function to get useful informations from it.
+        """Inspect the function to get useful information from it.
 
         Sets instance attributes (desc, type_conv, name_conv) based on the
-        informations.
+        information.
 
         Return:
             How many user-visible arguments the command has.

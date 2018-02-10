@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -621,6 +621,22 @@ class TestIncDecNumber:
         new_url = urlutils.incdec_number(
             base_url, incdec, segments={'host', 'path', 'query', 'anchor'})
         assert new_url == expected_url
+
+    def test_incdec_port(self):
+        """Test incdec_number with port."""
+        base_url = QUrl('http://localhost:8000')
+        new_url = urlutils.incdec_number(
+            base_url, 'increment', segments={'port'})
+        assert new_url == QUrl('http://localhost:8001')
+        new_url = urlutils.incdec_number(
+            base_url, 'decrement', segments={'port'})
+        assert new_url == QUrl('http://localhost:7999')
+
+    def test_incdec_port_default(self):
+        """Test that a default port (with url.port() == -1) is not touched."""
+        base_url = QUrl('http://localhost')
+        with pytest.raises(urlutils.IncDecError):
+            urlutils.incdec_number(base_url, 'increment', segments={'port'})
 
     @pytest.mark.parametrize('incdec', ['increment', 'decrement'])
     @pytest.mark.parametrize('value', [

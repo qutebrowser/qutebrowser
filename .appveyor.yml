@@ -7,7 +7,7 @@ environment:
     PYTHONUNBUFFERED: 1
     PYTHON: C:\Python36\python.exe
     matrix:
-    - TESTENV: py36-pyqt59
+    - TESTENV: py36-pyqt510
     - TESTENV: pylint
 
 install:

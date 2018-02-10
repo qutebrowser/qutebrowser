@@ -360,7 +360,7 @@ content.headers.referer:
     When to send the Referer header.
 
     The Referer header tells websites from which website you were coming from
-    when visting them.
+    when visiting them.
 
 content.headers.user_agent:
   default: null
@@ -1251,10 +1251,15 @@ tabs.padding:
   type: Padding
   desc: Padding (in pixels) around text for tabs.
 
-tabs.persist_mode_on_change:
-  default: false
-  type: Bool
-  desc: Stay in insert/passthrough mode when switching tabs.
+tabs.mode_on_change:
+  default: normal
+  type:
+    name: String
+    valid_values:
+      - persist: "Retain the current mode."
+      - restore: "Restore previously saved mode."
+      - normal:  "Always revert to normal mode."
+  desc: When switching tabs, what input mode is applied.
 
 tabs.position:
   default: top
@@ -1418,7 +1423,7 @@ url.default_page:
 url.incdec_segments:
   type:
     name: FlagList
-    valid_values: [host, path, query, anchor]
+    valid_values: [host, port, path, query, anchor]
   default: [path, query]
   desc: URL segments where `:navigate increment/decrement` will search for
     a number.

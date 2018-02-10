@@ -54,3 +54,5 @@ rules:
      function-paren-newline: "off"
      multiline-comment-style: "off"
      no-bitwise: "off"
+     no-ternary: "off"
+     max-lines: "off"

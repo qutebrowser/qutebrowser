@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -172,7 +172,7 @@ class WebHistory(sql.SqlTable):
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
         """Add a new history entry as slot, called from a BrowserTab."""
-        if any(url.scheme() == 'data' or
+        if any(url.scheme() in ('data', 'view-source') or
                (url.scheme(), url.host()) == ('qute', 'back')
                for url in (url, requested_url)):
             return

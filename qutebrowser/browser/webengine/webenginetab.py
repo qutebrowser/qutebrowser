@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,6 +21,7 @@
 
 import math
 import functools
+import sys
 import html as html_utils
 
 import sip
@@ -97,6 +98,19 @@ class WebEngineAction(browsertab.AbstractAction):
     def save_page(self):
         """Save the current page."""
         self._widget.triggerPageAction(QWebEnginePage.SavePage)
+
+    def show_source(self):
+        try:
+            self._widget.triggerPageAction(QWebEnginePage.ViewSource)
+        except AttributeError:
+            # Qt < 5.8
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._tab.win_id)
+            urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
+            # The original URL becomes the path of a view-source: URL
+            # (without a host), but query/fragment should stay.
+            url = QUrl('view-source:' + urlstr)
+            tb.tabopen(url, background=False, related=True)
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
@@ -201,70 +215,87 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
-        pass
+        if mode != usertypes.KeyMode.caret:
+            return
+
+        self._tab.run_js_async(
+            javascript.assemble('caret', 'setPlatform', sys.platform))
+        self._js_call('setInitialCursor')
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self):
-        pass
+        self.drop_selection()
+        self._js_call('disableCaret')
 
     def move_to_next_line(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveDown')
 
     def move_to_prev_line(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveUp')
 
     def move_to_next_char(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveRight')
 
     def move_to_prev_char(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveLeft')
 
     def move_to_end_of_word(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToEndOfWord')
 
     def move_to_next_word(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToNextWord')
 
     def move_to_prev_word(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToPreviousWord')
 
     def move_to_start_of_line(self):
-        log.stub()
+        self._js_call('moveToStartOfLine')
 
     def move_to_end_of_line(self):
-        log.stub()
+        self._js_call('moveToEndOfLine')
 
     def move_to_start_of_next_block(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToStartOfNextBlock')
 
     def move_to_start_of_prev_block(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToStartOfPrevBlock')
 
     def move_to_end_of_next_block(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToEndOfNextBlock')
 
     def move_to_end_of_prev_block(self, count=1):
-        log.stub()
+        for _ in range(count):
+            self._js_call('moveToEndOfPrevBlock')
 
     def move_to_start_of_document(self):
-        log.stub()
+        self._js_call('moveToStartOfDocument')
 
     def move_to_end_of_document(self):
-        log.stub()
+        self._js_call('moveToEndOfDocument')
 
     def toggle_selection(self):
-        log.stub()
+        self._js_call('toggleSelection')
 
     def drop_selection(self):
-        log.stub()
+        self._js_call('dropSelection')
 
-    def has_selection(self):
-        return self._widget.hasSelection()
-
-    def selection(self, html=False):
-        if html:
-            raise browsertab.UnsupportedOperationError
-        return self._widget.selectedText()
+    def selection(self, callback):
+        # Not using selectedText() as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-53134
+        # Even on Qt 5.10 selectedText() seems to work poorly, see
+        # https://github.com/qutebrowser/qutebrowser/issues/3523
+        self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
+                               callback)
 
     def _follow_selected_cb(self, js_elem, tab=False):
         """Callback for javascript which clicks the selected element.
@@ -307,6 +338,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
             js_code = javascript.assemble('webelem', 'find_selected_link')
             self._tab.run_js_async(js_code, lambda jsret:
                                    self._follow_selected_cb(jsret, tab))
+
+    def _js_call(self, command):
+        self._tab.run_js_async(
+            javascript.assemble('caret', command))
 
 
 class WebEngineScroller(browsertab.AbstractScroller):
@@ -557,13 +592,13 @@ class WebEngineTab(browsertab.AbstractTab):
                                        private=private)
         self.history = WebEngineHistory(self)
         self.scroller = WebEngineScroller(self, parent=self)
-        self.caret = WebEngineCaret(win_id=win_id, mode_manager=mode_manager,
+        self.caret = WebEngineCaret(mode_manager=mode_manager,
                                     tab=self, parent=self)
-        self.zoom = WebEngineZoom(win_id=win_id, parent=self)
+        self.zoom = WebEngineZoom(tab=self, parent=self)
         self.search = WebEngineSearch(parent=self)
         self.printing = WebEnginePrinting()
-        self.elements = WebEngineElements(self)
-        self.action = WebEngineAction()
+        self.elements = WebEngineElements(tab=self)
+        self.action = WebEngineAction(tab=self)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
@@ -577,9 +612,12 @@ class WebEngineTab(browsertab.AbstractTab):
             'window._qutebrowser = window._qutebrowser || {};',
             utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
+            utils.read_file('javascript/caret.js'),
         ])
         script = QWebEngineScript()
-        script.setInjectionPoint(QWebEngineScript.DocumentCreation)
+        # We can't use DocumentCreation here as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-66011
+        script.setInjectionPoint(QWebEngineScript.DocumentReady)
         script.setSourceCode(js_code)
 
         page = self._widget.page()
@@ -597,6 +635,9 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot()
     def _restore_zoom(self):
+        if sip.isdeleted(self._widget):
+            # https://github.com/qutebrowser/qutebrowser/issues/3498
+            return
         if self._saved_zoom is None:
             return
         self.zoom.set_factor(self._saved_zoom)

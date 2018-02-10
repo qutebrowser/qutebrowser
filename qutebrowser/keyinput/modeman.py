@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,7 +29,6 @@ from qutebrowser.keyinput import modeparsers, keyparser
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.misc import objects
 
 
 @attr.s(frozen=True)
@@ -267,10 +266,6 @@ class ModeManager(QObject):
                  usertypes.KeyMode.yesno, usertypes.KeyMode.prompt]:
             raise cmdexc.CommandError(
                 "Mode {} can't be entered manually!".format(mode))
-        elif (m == usertypes.KeyMode.caret and
-              objects.backend == usertypes.Backend.QtWebEngine):
-            raise cmdexc.CommandError("Caret mode is not supported with "
-                                      "QtWebEngine yet.")
 
         self.enter(m, 'command')
 

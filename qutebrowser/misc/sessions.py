@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -457,7 +457,8 @@ class SessionManager(QObject):
 
     @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=miscmodels.session)
-    def session_load(self, name, clear=False, temp=False, force=False):
+    def session_load(self, name, clear=False, temp=False, force=False,
+                     delete=False):
         """Load a session.
 
         Args:
@@ -466,6 +467,7 @@ class SessionManager(QObject):
             temp: Don't set the current session for :session-save.
             force: Force loading internal sessions (starting with an
                    underline).
+            delete: Delete the saved session once it has loaded.
         """
         if name.startswith('_') and not force:
             raise cmdexc.CommandError("{} is an internal session, use --force "
@@ -482,6 +484,17 @@ class SessionManager(QObject):
             if clear:
                 for win in old_windows:
                     win.close()
+            if delete:
+                try:
+                    self.delete(name)
+                except SessionError as e:
+                    log.sessions.exception("Error while deleting session!")
+                    raise cmdexc.CommandError(
+                        "Error while deleting session: {}"
+                        .format(e))
+                else:
+                    log.sessions.debug(
+                        "Loaded & deleted session {}.".format(name))
 
     @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=miscmodels.session)

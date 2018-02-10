@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -64,6 +64,10 @@ def _apply_platform_markers(config, item):
         ('no_ci', 'CI' in os.environ, "Skipped on CI."),
         ('issue2478', utils.is_windows and config.webengine,
          "Broken with QtWebEngine on Windows"),
+        ('issue3572',
+         qtutils.version_check('5.10', compiled=False, exact=True) and
+         config.webengine and 'TRAVIS' in os.environ,
+         "Broken with QtWebEngine with Qt 5.10 on Travis"),
         ('unicode_locale', sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
     ]

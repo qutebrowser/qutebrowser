@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -77,7 +77,7 @@ class Saveable:
         Args:
             is_exit: Whether we're currently exiting qutebrowser.
             explicit: Whether the user explicitly requested this save.
-            silent: Don't write informations to log.
+            silent: Don't write information to log.
             force: Force saving, no matter what.
         """
         if (self._config_opt is not None and
@@ -157,7 +157,7 @@ class SaveManager(QObject):
         Args:
             is_exit: Whether we're currently exiting qutebrowser.
             explicit: Whether this save operation was triggered explicitly.
-            silent: Don't write informations to log. Used to reduce log spam
+            silent: Don't write information to log. Used to reduce log spam
                     when autosaving.
             force: Force saving, no matter what.
         """
