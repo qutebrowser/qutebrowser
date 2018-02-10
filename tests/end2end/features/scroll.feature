@@ -286,6 +286,7 @@ Feature: Scrolling
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded
 
+    @issue3572
     Scenario: :scroll-page with --bottom-navigate and zoom
         When I run :zoom 200
         And I run :scroll-to-perc 100
