@@ -1511,7 +1511,8 @@ class CommandDispatcher:
         """Show the source of the current page in a new tab.
 
         Args:
-            edit: Open source in editor instead of tab."""
+            edit: Edit the source in the editor instead of opening a tab.
+        """
         tab = self._current_widget()
         try:
             current_url = self._current_url()

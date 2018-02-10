@@ -1326,7 +1326,12 @@ Show version information.
 
 [[view-source]]
 === view-source
+Syntax: +:view-source [*--edit*]+
+
 Show the source of the current page in a new tab.
+
+==== optional arguments
+* +*-e*+, +*--edit*+: Edit the source in the editor instead of opening a tab.
 
 [[window-only]]
 === window-only

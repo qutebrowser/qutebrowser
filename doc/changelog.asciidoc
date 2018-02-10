@@ -32,6 +32,7 @@ Added
   to cycle through inputs.
 - New `--no-last` flag for `:tab-focus` to not focus the last tab when focusing
   the currently focused one.
+- New `--edit` flag for `:view-source` to open the source in an external editor.
 
 Changed
 ~~~~~~~
@@ -76,6 +77,8 @@ Removed
 
 - `QUTE_SELECTED_HTML` is now not set for userscripts anymore except when called
   via hints.
+- The `qutebrowser_viewsource` userscript has been removed as `:view-source
+  --edit` can now be used.
 
 v1.1.1
 ------
