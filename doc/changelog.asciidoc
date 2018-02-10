@@ -76,6 +76,7 @@ Fixed
 - QtWebEngine: Qt download objects are now cleaned up properly when a download
   is removed.
 - Suspended pages now should always load the correct page when being un-suspended.
+- Compatibility with Python 3.7
 
 Removed
 ~~~~~~~
