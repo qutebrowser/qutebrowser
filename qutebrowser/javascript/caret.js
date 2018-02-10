@@ -1,4 +1,4 @@
-/* eslint-disable max-lines, max-len, max-statements, complexity,
+/* eslint-disable max-len, max-statements, complexity,
 max-params, default-case, valid-jsdoc */
 
 // Copyright 2014 The Chromium Authors. All rights reserved.

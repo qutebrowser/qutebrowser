@@ -25,6 +25,7 @@ __pycache__
 /.tox
 /testresults.html
 /.cache
+/.pytest_cache
 /.testmondata
 /.hypothesis
 /.mypy_cache

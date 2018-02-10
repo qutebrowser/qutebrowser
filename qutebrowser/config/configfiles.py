@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -166,6 +166,7 @@ class YamlConfig(QObject):
         self._dirty = False
 
         self._handle_migrations()
+        self._validate()
 
     def _handle_migrations(self):
         """Handle unknown/renamed keys."""
@@ -178,13 +179,15 @@ class YamlConfig(QObject):
             elif name in configdata.MIGRATIONS.deleted:
                 log.config.debug("Removing {}".format(name))
                 del self._values[name]
-            elif name in configdata.DATA:
-                pass
-            else:
-                desc = configexc.ConfigErrorDesc(
-                    "While loading options",
-                    "Unknown option {}".format(name))
-                raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
+    def _validate(self):
+        """Make sure all settings exist."""
+        unknown = set(self._values) - set(configdata.DATA)
+        if unknown:
+            errors = [configexc.ConfigErrorDesc("While loading options",
+                                                "Unknown option {}".format(e))
+                      for e in sorted(unknown)]
+            raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
     def unset(self, name):
         """Remove the given option name if it's configured."""

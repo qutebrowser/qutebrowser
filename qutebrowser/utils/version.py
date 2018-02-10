@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utilities to show various version informations."""
+"""Utilities to show various version information."""
 
 import re
 import sys
@@ -167,7 +167,7 @@ def _git_str_subprocess(gitpath):
 
 
 def _release_info():
-    """Try to gather distribution release informations.
+    """Try to gather distribution release information.
 
     Return:
         list of (filename, content) tuples.
@@ -335,7 +335,7 @@ def _uptime() -> datetime.timedelta:
 
 
 def version():
-    """Return a string with various version informations."""
+    """Return a string with various version information."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
     gitver = _git_str()
     if gitver is not None:

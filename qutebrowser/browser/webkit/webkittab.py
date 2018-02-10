@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,6 +22,10 @@
 import re
 import functools
 import xml.etree.ElementTree
+
+import pygments
+import pygments.lexers
+import pygments.formatters
 
 import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
@@ -49,6 +53,29 @@ class WebKitAction(browsertab.AbstractAction):
     def save_page(self):
         """Save the current page."""
         raise browsertab.UnsupportedOperationError
+
+    def show_source(self):
+
+        def show_source_cb(source):
+            """Show source as soon as it's ready."""
+            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
+            # pylint: disable=no-member
+            lexer = pygments.lexers.HtmlLexer()
+            formatter = pygments.formatters.HtmlFormatter(
+                full=True, linenos='table')
+            # pylint: enable=no-member
+            highlighted = pygments.highlight(source, lexer, formatter)
+
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._tab.win_id)
+            new_tab = tb.tabopen(background=False, related=True)
+            # The original URL becomes the path of a view-source: URL
+            # (without a host), but query/fragment should stay.
+            url = QUrl('view-source:' + urlstr)
+            new_tab.set_html(highlighted, url)
+
+        urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
+        self._tab.dump_async(show_source_cb)
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
@@ -161,7 +188,7 @@ class WebKitCaret(browsertab.AbstractCaret):
 
         settings = self._widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-        self.selection_enabled = bool(self._selection())
+        self.selection_enabled = self._widget.hasSelection()
 
         if self._widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
@@ -327,27 +354,16 @@ class WebKitCaret(browsertab.AbstractCaret):
     def toggle_selection(self):
         self.selection_enabled = not self.selection_enabled
         mainwindow = objreg.get('main-window', scope='window',
-                                window=self._win_id)
+                                window=self._tab.win_id)
         mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
 
     def drop_selection(self):
         self._widget.triggerPageAction(QWebPage.MoveToNextChar)
 
-    def has_selection(self):
-        return self._widget.hasSelection()
-
-    def selection(self, html=False, callback=False):
-        callback(self._selection(html))
-
-    def _selection(self, html=False):
-        if html:
-            return self._widget.selectedHtml()
-        else:
-            return self._widget.selectedText()
+    def selection(self, callback):
+        callback(self._widget.selectedText())
 
     def follow_selected(self, *, tab=False):
-        if not self.has_selection():
-            return
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
@@ -355,7 +371,9 @@ class WebKitCaret(browsertab.AbstractCaret):
             self._tab.run_js_async(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
-            selection = self._selection(html=True)
+            selection = self._widget.selectedHtml()
+            if not selection:
+                return
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
                     '<html>{}</html>'.format(selection)).find('a')
@@ -619,13 +637,13 @@ class WebKitTab(browsertab.AbstractTab):
             self._make_private(widget)
         self.history = WebKitHistory(self)
         self.scroller = WebKitScroller(self, parent=self)
-        self.caret = WebKitCaret(win_id=win_id, mode_manager=mode_manager,
+        self.caret = WebKitCaret(mode_manager=mode_manager,
                                  tab=self, parent=self)
-        self.zoom = WebKitZoom(win_id=win_id, parent=self)
+        self.zoom = WebKitZoom(tab=self, parent=self)
         self.search = WebKitSearch(parent=self)
         self.printing = WebKitPrinting()
-        self.elements = WebKitElements(self)
-        self.action = WebKitAction()
+        self.elements = WebKitElements(tab=self)
+        self.action = WebKitAction(tab=self)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit

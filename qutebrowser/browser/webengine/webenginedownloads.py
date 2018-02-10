@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -44,6 +44,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._qt_item = qt_item
         qt_item.downloadProgress.connect(self.stats.on_download_progress)
         qt_item.stateChanged.connect(self._on_state_changed)
+
+        # Ensure wrapped qt_item is deleted manually when the wrapper object
+        # is deleted. See https://github.com/qutebrowser/qutebrowser/issues/3373
+        self.destroyed.connect(self._qt_item.deleteLater)
 
     def _is_page_download(self):
         """Check if this item is a page (i.e. mhtml) download."""
@@ -96,9 +100,15 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._qt_item.cancel()
 
     def retry(self):
-        # https://bugreports.qt.io/browse/QTBUG-56840
-        raise downloads.UnsupportedOperationError(
-            "Retrying downloads is unsupported with QtWebEngine")
+        state = self._qt_item.state()
+        assert state == QWebEngineDownloadItem.DownloadInterrupted, state
+
+        try:
+            self._qt_item.resume()
+        except AttributeError:
+            raise downloads.UnsupportedOperationError(
+                "Retrying downloads is unsupported with QtWebEngine on "
+                "Qt/PyQt < 5.10")
 
     def _get_open_filename(self):
         return self._filename

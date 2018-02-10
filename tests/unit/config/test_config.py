@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -148,6 +148,14 @@ class TestKeyConfig:
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
         assert key_config_stub.get_command('foobar', 'normal') is None
+
+    def test_get_command_default(self, key_config_stub, config_stub):
+        config_stub.val.bindings.default = {
+            'normal': {'x': 'message-info default'}}
+        config_stub.val.bindings.commands = {
+            'normal': {'x': 'message-info custom'}}
+        cmd = 'message-info default'
+        assert key_config_stub.get_command('x', 'normal', default=True) == cmd
 
     @pytest.mark.parametrize('bindings, expected', [
         # Simple

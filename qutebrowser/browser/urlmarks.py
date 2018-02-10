@@ -1,7 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2015-2017 Antoni Boucher <bouanto@zoho.com>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Antoni Boucher <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
 #

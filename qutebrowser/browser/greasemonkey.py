@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -134,7 +134,7 @@ class GreasemonkeyManager(QObject):
     Signals:
         scripts_reloaded: Emitted when scripts are reloaded from disk.
             Any cached or already-injected scripts should be
-            considered obselete.
+            considered obsolete.
     """
 
     scripts_reloaded = pyqtSignal()

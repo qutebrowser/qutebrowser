@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -117,7 +117,7 @@ def test_replaced_messages(view, replace1, replace2, length):
     (Qt.BackButton, 2),
 ])
 def test_click_messages(qtbot, view, button, count):
-    """Messages should dissappear when we click on them."""
+    """Messages should disappear when we click on them."""
     view.show_message(usertypes.MessageLevel.info, 'test mouse click')
     view.show_message(usertypes.MessageLevel.info, 'test mouse click 2')
     qtbot.mousePress(view, button)

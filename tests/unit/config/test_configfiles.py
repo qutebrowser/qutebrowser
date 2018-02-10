@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -127,6 +127,20 @@ class TestYaml:
         assert error.text == "While loading options"
         assert str(error.exception) == "Unknown option hello"
 
+    def test_multiple_unknown_keys(self, yaml, config_tmpdir):
+        """With multiple unknown settings, all should be shown."""
+        autoconfig = config_tmpdir / 'autoconfig.yml'
+        autoconfig.write_text('global:\n  one: 1\n  two: 2', encoding='utf-8')
+
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            yaml.load()
+
+        assert len(excinfo.value.errors) == 2
+        error1, error2 = excinfo.value.errors
+        assert error1.text == error2.text == "While loading options"
+        assert str(error1.exception) == "Unknown option one"
+        assert str(error2.exception) == "Unknown option two"
+
     def test_deleted_key(self, monkeypatch, yaml, config_tmpdir):
         """A key marked as deleted should be removed."""
         autoconfig = config_tmpdir / 'autoconfig.yml'
@@ -145,7 +159,8 @@ class TestYaml:
         autoconfig = config_tmpdir / 'autoconfig.yml'
         autoconfig.write_text('global:\n  old: value', encoding='utf-8')
 
-        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed', {'old': 'new'})
+        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed',
+                            {'old': 'tabs.show'})
 
         yaml.load()
         yaml._save()
@@ -153,6 +168,23 @@ class TestYaml:
         lines = autoconfig.read_text('utf-8').splitlines()
         assert '  old:' not in lines
         assert '  new:' not in lines
+
+    def test_renamed_key_unknown_target(self, monkeypatch, yaml,
+                                        config_tmpdir):
+        """A key marked as renamed with invalid name should raise an error."""
+        autoconfig = config_tmpdir / 'autoconfig.yml'
+        autoconfig.write_text('global:\n  old: value', encoding='utf-8')
+
+        monkeypatch.setattr(configdata.MIGRATIONS, 'renamed',
+                            {'old': 'new'})
+
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            yaml.load()
+
+        assert len(excinfo.value.errors) == 1
+        error = excinfo.value.errors[0]
+        assert error.text == "While loading options"
+        assert str(error.exception) == "Unknown option new"
 
     @pytest.mark.parametrize('old_config', [
         None,

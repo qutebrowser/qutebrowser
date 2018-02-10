@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -98,6 +98,19 @@ class WebEngineAction(browsertab.AbstractAction):
     def save_page(self):
         """Save the current page."""
         self._widget.triggerPageAction(QWebEnginePage.SavePage)
+
+    def show_source(self):
+        try:
+            self._widget.triggerPageAction(QWebEnginePage.ViewSource)
+        except AttributeError:
+            # Qt < 5.8
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._tab.win_id)
+            urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
+            # The original URL becomes the path of a view-source: URL
+            # (without a host), but query/fragment should stay.
+            url = QUrl('view-source:' + urlstr)
+            tb.tabopen(url, background=False, related=True)
 
 
 class WebEnginePrinting(browsertab.AbstractPrinting):
@@ -276,24 +289,13 @@ class WebEngineCaret(browsertab.AbstractCaret):
     def drop_selection(self):
         self._js_call('dropSelection')
 
-    def has_selection(self):
-        if qtutils.version_check('5.10'):
-            return self._widget.hasSelection()
-        else:
-            # WORKAROUND for
-            # https://bugreports.qt.io/browse/QTBUG-53134
-            return True
-
-    def selection(self, html=False, callback=None):
-        if html:
-            raise browsertab.UnsupportedOperationError
-        if qtutils.version_check('5.10'):
-            callback(self._widget.selectedText())
-        else:
-            # WORKAROUND for
-            # https://bugreports.qt.io/browse/QTBUG-53134
-            self._tab.run_js_async(
-                javascript.assemble('caret', 'getSelection'), callback)
+    def selection(self, callback):
+        # Not using selectedText() as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-53134
+        # Even on Qt 5.10 selectedText() seems to work poorly, see
+        # https://github.com/qutebrowser/qutebrowser/issues/3523
+        self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
+                               callback)
 
     def _follow_selected_cb(self, js_elem, tab=False):
         """Callback for javascript which clicks the selected element.
@@ -590,13 +592,13 @@ class WebEngineTab(browsertab.AbstractTab):
                                        private=private)
         self.history = WebEngineHistory(self)
         self.scroller = WebEngineScroller(self, parent=self)
-        self.caret = WebEngineCaret(win_id=win_id, mode_manager=mode_manager,
+        self.caret = WebEngineCaret(mode_manager=mode_manager,
                                     tab=self, parent=self)
-        self.zoom = WebEngineZoom(win_id=win_id, parent=self)
+        self.zoom = WebEngineZoom(tab=self, parent=self)
         self.search = WebEngineSearch(parent=self)
         self.printing = WebEnginePrinting()
-        self.elements = WebEngineElements(self)
-        self.action = WebEngineAction()
+        self.elements = WebEngineElements(tab=self)
+        self.action = WebEngineAction(tab=self)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
@@ -613,7 +615,9 @@ class WebEngineTab(browsertab.AbstractTab):
             utils.read_file('javascript/caret.js'),
         ])
         script = QWebEngineScript()
-        script.setInjectionPoint(QWebEngineScript.DocumentCreation)
+        # We can't use DocumentCreation here as WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-66011
+        script.setInjectionPoint(QWebEngineScript.DocumentReady)
         script.setSourceCode(js_code)
 
         page = self._widget.page()

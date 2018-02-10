@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -80,14 +80,13 @@ class Tab(browsertab.AbstractTab):
                          parent=parent)
         self.history = browsertab.AbstractHistory(self)
         self.scroller = browsertab.AbstractScroller(self, parent=self)
-        self.caret = browsertab.AbstractCaret(win_id=self.win_id,
-                                              mode_manager=mode_manager,
+        self.caret = browsertab.AbstractCaret(mode_manager=mode_manager,
                                               tab=self, parent=self)
-        self.zoom = Zoom(win_id=self.win_id)
+        self.zoom = Zoom(tab=self)
         self.search = browsertab.AbstractSearch(parent=self)
         self.printing = browsertab.AbstractPrinting()
-        self.elements = browsertab.AbstractElements(self)
-        self.action = browsertab.AbstractAction()
+        self.elements = browsertab.AbstractElements(tab=self)
+        self.action = browsertab.AbstractAction(tab=self)
 
     def _install_event_filter(self):
         pass

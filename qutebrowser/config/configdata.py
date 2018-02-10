@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -54,7 +54,12 @@ class Option:
 @attr.s
 class Migrations:
 
-    """Nigrated options in configdata.yml."""
+    """Nigrated options in configdata.yml.
+
+    Attributes:
+        renamed: A dict mapping old option names to new names.
+        deleted: A list of option names which have been removed.
+    """
 
     renamed = attr.ib(default=attr.Factory(dict))
     deleted = attr.ib(default=attr.Factory(list))

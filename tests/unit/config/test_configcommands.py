@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -22,7 +22,7 @@ import logging
 import unittest.mock
 
 import pytest
-from PyQt5.QtCore import QUrl, QProcess
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import configcommands
 from qutebrowser.commands import cmdexc
@@ -330,7 +330,7 @@ class TestEdit:
             def _write_file(editor_self):
                 with open(editor_self._filename, 'w', encoding='utf-8') as f:
                     f.write(text)
-                editor_self.on_proc_closed(0, QProcess.NormalExit)
+                editor_self.file_updated.emit(text)
 
             return mocker.patch('qutebrowser.config.configcommands.editor.'
                                 'ExternalEditor._start_editor', autospec=True,
