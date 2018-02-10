@@ -1507,8 +1507,11 @@ class CommandDispatcher:
             )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def view_source(self):
-        """Show the source of the current page in a new tab."""
+    def view_source(self, edit=False):
+        """Show the source of the current page in a new tab.
+
+        Args:
+            edit: Open source in editor instead of tab."""
         tab = self._current_widget()
         try:
             current_url = self._current_url()
@@ -1518,7 +1521,11 @@ class CommandDispatcher:
         if current_url.scheme() == 'view-source':
             raise cmdexc.CommandError("Already viewing source!")
 
-        tab.action.show_source()
+        if edit:
+            ed = editor.ExternalEditor(self._tabbed_browser)
+            tab.dump_async(ed.edit)
+        else:
+            tab.action.show_source()
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
