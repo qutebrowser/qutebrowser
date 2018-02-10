@@ -175,10 +175,10 @@ class YamlConfig(QObject):
                 new_name = configdata.MIGRATIONS.renamed[name]
                 log.config.debug("Renaming {} to {}".format(name, new_name))
                 self._values[new_name] = self._values[name]
-                del self._values[name]
+                self.unset(name)
             elif name in configdata.MIGRATIONS.deleted:
                 log.config.debug("Removing {}".format(name))
-                del self._values[name]
+                self.unset(name)
         persist = 'tabs.persist_mode_on_change'
         if persist in self._values:
             if self._values[persist]:
