@@ -261,6 +261,9 @@ class FakeWebTab(browsertab.AbstractTab):
     def load_status(self):
         return self._load_status
 
+    def shutdown(self):
+        pass
+
 
 class FakeSignal:
 
