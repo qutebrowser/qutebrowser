@@ -310,7 +310,7 @@ class TestCreatingDir:
 
         assert basedir.exists()
 
-        if typ == 'download':
+        if typ == 'download' or (typ == 'runtime' and not utils.is_linux):
             assert not (basedir / typ).exists()
         else:
             assert (basedir / typ).exists()
