@@ -2,11 +2,11 @@ Flatpak
 =======
 
 The flatpak is based on the org.kde.Platform version 5.9 and ships all
-additional dependecies of qutebrowser. The platform includes QT 5.9.
+additional dependecies of qutebrowser. The platform includes Qt 5.9.
 
 To install the SDK system wide run:
 
- sudo flatpak install org.kde.Sdk/x86_64/5.9
+ sudo flatpak install flathub org.kde.Sdk//5.9
 
 To actually build the flatpak run the following command:
 
