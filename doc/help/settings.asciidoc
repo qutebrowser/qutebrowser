@@ -230,6 +230,7 @@
 |<<statusbar.hide,statusbar.hide>>|Hide the statusbar unless a message is shown.
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
 |<<statusbar.position,statusbar.position>>|Position of the status bar.
+|<<statusbar.widgets,statusbar.widgets>>|List of widgets displayed in the statusbar.
 |<<tabs.background,tabs.background>>|Open new tabs (middleclick/ctrl+click) in the background.
 |<<tabs.close_mouse_button,tabs.close_mouse_button>>|Mouse button with which to close tabs.
 |<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|How to behave when the close mouse button is pressed on the tab bar.
@@ -2682,6 +2683,31 @@ Valid values:
  * +bottom+
 
 Default: +pass:[bottom]+
+
+[[statusbar.widgets]]
+=== statusbar.widgets
+List of widgets displayed in the statusbar.
+
+Type: <<types,List of String>>
+
+Valid values:
+
+ * +url+: Current page URL.
+ * +scroll+: Percentage of the current page position like `10%`.
+ * +scroll_raw+: Raw percentage of the current page position like `10`.
+ * +history+: Display an arrow when possible to go back/forward in history.
+ * +tabs+: Current active tab, e.g. `2`.
+ * +keypress+: Display pressed keys when composing a vi command.
+ * +progress+: Progress bar for the current page loading.
+
+Default: 
+
+- +pass:[keypress]+
+- +pass:[url]+
+- +pass:[scroll]+
+- +pass:[history]+
+- +pass:[tabs]+
+- +pass:[progress]+
 
 [[tabs.background]]
 === tabs.background

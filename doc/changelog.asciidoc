@@ -33,6 +33,8 @@ Added
 - New `--no-last` flag for `:tab-focus` to not focus the last tab when focusing
   the currently focused one.
 - New `--edit` flag for `:view-source` to open the source in an external editor.
+- New `statusbar.widgets` setting to configure which widgets should be shown in
+  which order in the statusbar.
 
 Changed
 ~~~~~~~
