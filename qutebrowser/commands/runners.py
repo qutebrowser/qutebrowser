@@ -178,6 +178,7 @@ class CommandParser:
             A ParseResult tuple.
         """
         cmdstr, sep, argstr = text.partition(' ')
+        cmdstr = cmdstr and cmdstr.strip().lstrip(':').strip()
 
         if not cmdstr and not fallback:
             raise cmdexc.NoSuchCommandError("No command given")
@@ -195,13 +196,13 @@ class CommandParser:
             return ParseResult(cmd=None, args=None, cmdline=cmdline)
 
         args = self._split_args(cmd, argstr, keep)
+        args = [x.strip().lstrip(':').strip() if x is not ':' and x is not ' ' else x for x in args]
         if keep and args:
             cmdline = [cmdstr, sep + args[0]] + args[1:]
         elif keep:
             cmdline = [cmdstr, sep]
         else:
             cmdline = [cmdstr] + args[:]
-
         return ParseResult(cmd=cmd, args=args, cmdline=cmdline)
 
     def _completion_match(self, cmdstr):
