@@ -50,6 +50,7 @@ except ImportError:  # pragma: no cover
 import qutebrowser
 from qutebrowser.utils import qtutils, log, debug
 
+
 fake_clipboard = None
 log_clipboard = False
 

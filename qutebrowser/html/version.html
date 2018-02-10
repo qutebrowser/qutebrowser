@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
 {% block script %}
-var paste_version = function(){
-  xhr = new XMLHttpRequest();
+function paste_version() {
+  const xhr = new XMLHttpRequest();
   xhr.open("GET", "qute://pastebin-version");
   xhr.send();
 }
@@ -36,5 +36,5 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <a href="http://www.gnu.org/licenses/">
 http://www.gnu.org/licenses/</a> or open <a href="qute://gpl">qute://gpl</a>.
 </p>
-<button id="paste" onclick="paste_version()">Pastebin Version Info</button>
+<button id="paste" onclick="paste_version()">Yank Pastebin URL for Version Info</button>
 {% endblock %}

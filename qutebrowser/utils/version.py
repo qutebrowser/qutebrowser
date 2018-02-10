@@ -66,7 +66,7 @@ class DistributionInfo:
     pretty = attr.ib()
 
 
-PASTEBIN_URL = None
+pastebin_url = None
 Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
                      'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
@@ -460,18 +460,18 @@ def pastebin_version():
         message.info("Version url {} yanked to clipboard.".format(url))
 
     def _on_paste_version_success(url):
-        global PASTEBIN_URL
+        global pastebin_url
         _yank_url(url)
         pbclient.deleteLater()
-        PASTEBIN_URL = url
+        pastebin_url = url
 
     def _on_paste_version_err(text):
         message.error("Failed to pastebin version"
                       " info: {}".format(text))
         pbclient.deleteLater()
 
-    if PASTEBIN_URL:
-        _yank_url(PASTEBIN_URL)
+    if pastebin_url:
+        _yank_url(pastebin_url)
         return
 
     app = QApplication.instance()
