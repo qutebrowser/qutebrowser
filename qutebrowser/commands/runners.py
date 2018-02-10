@@ -162,7 +162,7 @@ class CommandParser:
             yield self.parse(sub, *args, **kwargs)
 
     def parse_all(self, *args, **kwargs):
-        """Wrapper over parse_all."""
+        """Wrapper over _parse_all_gen."""
         return list(self._parse_all_gen(*args, **kwargs))
 
     def parse(self, text, *, fallback=False, keep=False):
