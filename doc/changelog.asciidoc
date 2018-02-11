@@ -59,6 +59,7 @@ Changed
 - New `tabs.mode_on_change` setting which replaces
   `tabs.persist_mode_on_change`. It can now be set to `restore` which remembers
   input modes (input/passthrough) per tab.
+- More performance improvements when opening/closing many tabs.
 
 Fixed
 ~~~~~
