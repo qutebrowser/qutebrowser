@@ -68,7 +68,11 @@ def replace_variables(win_id, arglist):
     }
     for key in list(variables):
         modified_key = '{' + key + '}'
-        variables[modified_key] = lambda: modified_key
+
+        def key_function(modified_key):
+            return lambda: modified_key
+
+        variables[modified_key] = key_function(modified_key)
     values = {}
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
