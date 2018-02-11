@@ -6,8 +6,6 @@
     "sdk": "org.kde.Sdk",
     "command": "qutebrowser",
     "finish-args": [
-        /* Use KDE portals */
-        "--env=QT_QPA_PLATFORM=flatpak",
         /* Allow direct rendering to use OpenGL */
         "--device=dri",
         /* Allow to read all files from the home directory */
