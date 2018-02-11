@@ -110,8 +110,6 @@ class TabWidget(QTabWidget):
         tab.data.pinned = pinned
         self._update_tab_title(idx)
 
-        bar.refresh()
-
     def tab_indicator_color(self, idx):
         """Get the tab indicator color for the given index."""
         return self.tabBar().tab_indicator_color(idx)
@@ -150,8 +148,9 @@ class TabWidget(QTabWidget):
         title = '' if fmt is None else fmt.format(**fields)
         tabbar = self.tabBar()
 
-        tabbar.setTabText(idx, title)
-        tabbar.setTabToolTip(idx, title)
+        if tabbar.tabText(idx) != title:
+            tabbar.setTabText(idx, title)
+            tabbar.setTabToolTip(idx, title)
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
