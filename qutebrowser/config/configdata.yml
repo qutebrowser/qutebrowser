@@ -2360,6 +2360,8 @@ bindings.default:
       <Up>: prompt-item-focus prev
       <Tab>: prompt-item-focus next
       <Down>: prompt-item-focus next
+      <Alt-Y>: prompt-yank
+      <Alt-Shift-Y>: prompt-yank --sel
       <Ctrl-B>: rl-backward-char
       <Ctrl-F>: rl-forward-char
       <Alt-B>: rl-backward-word
@@ -2371,9 +2373,9 @@ bindings.default:
       <Alt-D>: rl-kill-word
       <Ctrl-W>: rl-unix-word-rubout
       <Alt-Backspace>: rl-backward-kill-word
-      <Ctrl-Y>: rl-yank
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
+      <Ctrl-Y>: rl-yank
       <Escape>: leave-mode
     caret:
       v: toggle-selection

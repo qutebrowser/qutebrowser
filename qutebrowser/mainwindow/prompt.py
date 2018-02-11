@@ -422,6 +422,27 @@ class PromptContainer(QWidget):
         except UnsupportedOperationError:
             pass
 
+    @cmdutils.register(
+        instance='prompt-container', scope='window',
+        modes=[usertypes.KeyMode.prompt, usertypes.KeyMode.yesno])
+    def prompt_yank(self, sel=False):
+        """Yank URL to clipboard or primary selection.
+
+        Args:
+            sel: Use the primary selection instead of the clipboard.
+        """
+        question = self._prompt.question
+        if question.url is None:
+            message.error('No URL found.')
+            return
+        if sel and utils.supports_selection():
+            target = 'primary selection'
+        else:
+            sel = False
+            target = 'clipboard'
+        utils.set_clipboard(question.url, sel)
+        message.info("Yanked to {}: {}".format(target, question.url))
+
 
 class LineEdit(QLineEdit):
 
@@ -721,6 +742,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
             ('prompt-accept', 'Accept'),
             ('leave-mode', 'Abort'),
             ('prompt-open-download', "Open download"),
+            ('prompt-yank', "Yank URL"),
         ]
         return cmds
 
@@ -811,6 +833,7 @@ class YesNoPrompt(_BasePrompt):
         cmds = [
             ('prompt-accept yes', "Yes"),
             ('prompt-accept no', "No"),
+            ('prompt-yank', "Yank URL"),
         ]
 
         if self.question.default is not None:

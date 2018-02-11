@@ -617,6 +617,8 @@ Default:
 * +pass:[&lt;Alt-Backspace&gt;]+: +pass:[rl-backward-kill-word]+
 * +pass:[&lt;Alt-D&gt;]+: +pass:[rl-kill-word]+
 * +pass:[&lt;Alt-F&gt;]+: +pass:[rl-forward-word]+
+* +pass:[&lt;Alt-Shift-Y&gt;]+: +pass:[prompt-yank --sel]+
+* +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+
 * +pass:[&lt;Ctrl-?&gt;]+: +pass:[rl-delete-char]+
 * +pass:[&lt;Ctrl-A&gt;]+: +pass:[rl-beginning-of-line]+
 * +pass:[&lt;Ctrl-B&gt;]+: +pass:[rl-backward-char]+

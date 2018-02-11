@@ -135,6 +135,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         question = usertypes.Question()
         question.title = title
         question.text = msg
+        question.url = 'file://{}'.format(self._filename)
         question.mode = usertypes.PromptMode.yesno
         question.answered_yes.connect(self._after_set_filename)
         question.answered_no.connect(no_action)
@@ -149,6 +150,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         question = usertypes.Question()
         question.title = title
         question.text = msg
+        question.url = 'file://{}'.format(os.path.dirname(self._filename))
         question.mode = usertypes.PromptMode.yesno
         question.answered_yes.connect(lambda:
                                       self._after_create_parent_question(

@@ -147,7 +147,8 @@ class BrowserPage(QWebPage):
                 title="Open external application for {}-link?".format(scheme),
                 text="URL: <b>{}</b>".format(
                     html.escape(url.toDisplayString())),
-                yes_action=functools.partial(QDesktopServices.openUrl, url))
+                yes_action=functools.partial(QDesktopServices.openUrl, url),
+                url=info.url.toString(QUrl.FullyEncoded))
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
