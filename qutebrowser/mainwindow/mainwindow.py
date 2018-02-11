@@ -34,8 +34,7 @@ from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
 from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
-from qutebrowser.browser import (commands, downloadview, hints,
-                                 qtnetworkdownloads, downloads)
+from qutebrowser.browser import commands, downloadview, hints, downloads
 from qutebrowser.misc import crashsignal, keyhintwidget
 
 
@@ -299,11 +298,7 @@ class MainWindow(QWidget):
 
     def _init_downloadmanager(self):
         log.init.debug("Initializing downloads...")
-        qtnetwork_download_manager = qtnetworkdownloads.DownloadManager(
-            self.win_id, self)
-        objreg.register('qtnetwork-download-manager',
-                        qtnetwork_download_manager,
-                        scope='window', window=self.win_id)
+        qtnetwork_download_manager = objreg.get('qtnetwork-download-manager')
 
         try:
             webengine_download_manager = objreg.get(

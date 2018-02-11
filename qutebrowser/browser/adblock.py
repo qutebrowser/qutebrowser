@@ -176,8 +176,7 @@ class HostBlocker:
                               self._config_blocked_hosts)
         self._blocked_hosts = set()
         self._done_count = 0
-        download_manager = objreg.get('qtnetwork-download-manager',
-                                      scope='window', window='last-focused')
+        download_manager = objreg.get('qtnetwork-download-manager')
         for url in config.val.content.host_blocking.lists:
             if url.scheme() == 'file':
                 filename = url.toLocalFile()

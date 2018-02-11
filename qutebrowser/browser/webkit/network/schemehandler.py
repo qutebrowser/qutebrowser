@@ -27,15 +27,7 @@ from PyQt5.QtCore import QObject
 
 class SchemeHandler(QObject):
 
-    """Abstract base class for custom scheme handlers.
-
-    Attributes:
-        _win_id: The window ID this scheme handler is associated with.
-    """
-
-    def __init__(self, win_id, parent=None):
-        super().__init__(parent)
-        self._win_id = win_id
+    """Abstract base class for custom scheme handlers."""
 
     def createRequest(self, op, request, outgoing_data):
         """Create a new request.

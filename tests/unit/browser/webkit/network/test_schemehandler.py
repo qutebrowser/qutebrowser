@@ -24,11 +24,6 @@ import pytest
 from qutebrowser.browser.webkit.network import schemehandler
 
 
-def test_init():
-    handler = schemehandler.SchemeHandler(0)
-    assert handler._win_id == 0
-
-
 def test_create_request():
     handler = schemehandler.SchemeHandler(0)
     with pytest.raises(NotImplementedError):

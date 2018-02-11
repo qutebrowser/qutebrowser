@@ -291,8 +291,7 @@ class HintActions:
         user_agent = context.tab.user_agent()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
-        download_manager = objreg.get('qtnetwork-download-manager',
-                                      scope='window', window=self._win_id)
+        download_manager = objreg.get('qtnetwork-download-manager')
         download_manager.get(url, qnam=qnam, user_agent=user_agent,
                              prompt_download_directory=prompt)
 

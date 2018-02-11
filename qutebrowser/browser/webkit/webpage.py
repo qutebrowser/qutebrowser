@@ -220,8 +220,7 @@ class BrowserPage(QWebPage):
         """Prepare the web page for being deleted."""
         self._is_shutting_down = True
         self.shutting_down.emit()
-        download_manager = objreg.get('qtnetwork-download-manager',
-                                      scope='window', window=self._win_id)
+        download_manager = objreg.get('qtnetwork-download-manager')
         nam = self.networkAccessManager()
         if download_manager.has_downloads_with_nam(nam):
             nam.setParent(download_manager)
@@ -249,8 +248,7 @@ class BrowserPage(QWebPage):
         after this slot returns.
         """
         req = QNetworkRequest(request)
-        download_manager = objreg.get('qtnetwork-download-manager',
-                                      scope='window', window=self._win_id)
+        download_manager = objreg.get('qtnetwork-download-manager')
         download_manager.get_request(req, qnam=self.networkAccessManager())
 
     @pyqtSlot('QNetworkReply*')
@@ -264,8 +262,7 @@ class BrowserPage(QWebPage):
         here: http://mimesniff.spec.whatwg.org/
         """
         inline, suggested_filename = http.parse_content_disposition(reply)
-        download_manager = objreg.get('qtnetwork-download-manager',
-                                      scope='window', window=self._win_id)
+        download_manager = objreg.get('qtnetwork-download-manager')
         if not inline:
             # Content-Disposition: attachment -> force download
             download_manager.fetch(reply,

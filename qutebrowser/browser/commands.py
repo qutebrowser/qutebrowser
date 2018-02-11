@@ -1466,8 +1466,7 @@ class CommandDispatcher:
             mhtml_: Download the current page and all assets as mhtml file.
         """
         # FIXME:qtwebengine do this with the QtWebEngine download manager?
-        download_manager = objreg.get('qtnetwork-download-manager',
-                                      scope='window', window=self._win_id)
+        download_manager = objreg.get('qtnetwork-download-manager')
         target = None
         if dest is not None:
             dest = downloads.transform_path(dest)

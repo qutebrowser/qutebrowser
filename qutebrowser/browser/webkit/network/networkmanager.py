@@ -125,7 +125,9 @@ class NetworkManager(QNetworkAccessManager):
         _scheme_handlers: A dictionary (scheme -> handler) of supported custom
                           schemes.
         _win_id: The window ID this NetworkManager is associated with.
+                 (or None for generic network managers)
         _tab_id: The tab ID this NetworkManager is associated with.
+                 (or None for generic network managers)
         _rejected_ssl_errors: A {QUrl: [SslError]} dict of rejected errors.
         _accepted_ssl_errors: A {QUrl: [SslError]} dict of accepted errors.
         _private: Whether we're in private browsing mode.
@@ -149,8 +151,8 @@ class NetworkManager(QNetworkAccessManager):
         self._tab_id = tab_id
         self._private = private
         self._scheme_handlers = {
-            'qute': webkitqutescheme.QuteSchemeHandler(win_id),
-            'file': filescheme.FileSchemeHandler(win_id),
+            'qute': webkitqutescheme.QuteSchemeHandler(),
+            'file': filescheme.FileSchemeHandler(),
         }
         self._set_cookiejar()
         self._set_cache()
@@ -194,6 +196,7 @@ class NetworkManager(QNetworkAccessManager):
         # This might be a generic network manager, e.g. one belonging to a
         # DownloadManager. In this case, just skip the webview thing.
         if self._tab_id is not None:
+            assert self._win_id is not None
             tab = objreg.get('tab', scope='tab', window=self._win_id,
                              tab=self._tab_id)
             abort_on.append(tab.load_started)
@@ -392,6 +395,7 @@ class NetworkManager(QNetworkAccessManager):
         current_url = QUrl()
 
         if self._tab_id is not None:
+            assert self._win_id is not None
             try:
                 tab = objreg.get('tab', scope='tab', window=self._win_id,
                                  tab=self._tab_id)

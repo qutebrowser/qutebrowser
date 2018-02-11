@@ -64,7 +64,7 @@ from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import config, websettings, configfiles, configinit
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
-                                 downloads, greasemonkey)
+                                 qtnetworkdownloads, downloads, greasemonkey)
 from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
@@ -490,6 +490,10 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing cache...")
     diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
     objreg.register('cache', diskcache)
+
+    log.init.debug("Initializing downloads...")
+    download_manager = qtnetworkdownloads.DownloadManager(parent=qApp)
+    objreg.register('qtnetwork-download-manager', download_manager)
 
     log.init.debug("Initializing Greasemonkey...")
     greasemonkey.init()

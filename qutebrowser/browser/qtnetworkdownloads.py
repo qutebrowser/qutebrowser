@@ -381,10 +381,10 @@ class DownloadManager(downloads.AbstractDownloadManager):
         _networkmanager: A NetworkManager for generic downloads.
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self._networkmanager = networkmanager.NetworkManager(
-            win_id=win_id, tab_id=None,
+            win_id=None, tab_id=None,
             private=config.val.content.private_browsing, parent=self)
 
     @pyqtSlot('QUrl')
