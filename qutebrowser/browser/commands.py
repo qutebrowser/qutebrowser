@@ -533,14 +533,19 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
-    def tab_give(self, win_id: int = None):
+    @cmdutils.argument('count', count=True)
+    def tab_give(self, win_id: int = None, count=None):
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
 
         Args:
             win_id: The window ID of the window to give the current tab to.
+            count: [count] overrides win_id (index starts at 1 for win_id=0)
         """
+        if count is not None:
+            win_id = count - 1
+
         if win_id == self._win_id:
             raise cmdexc.CommandError("Can't give a tab to the same window")
 
