@@ -72,8 +72,6 @@ PERFECT_FILES = [
     #  'browser/webkit/webkitelem.py'),
     # ('tests/unit/browser/webkit/test_webkitelem.py',
     #  'browser/webelem.py'),
-    ('tests/unit/browser/webkit/network/test_schemehandler.py',
-     'browser/webkit/network/schemehandler.py'),
     ('tests/unit/browser/webkit/network/test_filescheme.py',
      'browser/webkit/network/filescheme.py'),
     ('tests/unit/browser/webkit/network/test_networkreply.py',

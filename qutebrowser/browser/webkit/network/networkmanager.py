@@ -151,8 +151,8 @@ class NetworkManager(QNetworkAccessManager):
         self._tab_id = tab_id
         self._private = private
         self._scheme_handlers = {
-            'qute': webkitqutescheme.QuteSchemeHandler(),
-            'file': filescheme.FileSchemeHandler(),
+            'qute': webkitqutescheme.handler,
+            'file': filescheme.handler,
         }
         self._set_cookiejar()
         self._set_cache()
@@ -373,9 +373,9 @@ class NetworkManager(QNetworkAccessManager):
 
         scheme = req.url().scheme()
         if scheme in self._scheme_handlers:
-            result = self._scheme_handlers[scheme].createRequest(
-                op, req, outgoing_data)
+            result = self._scheme_handlers[scheme](req)
             if result is not None:
+                result.setParent(self)
                 return result
 
         for header, value in shared.custom_headers():
