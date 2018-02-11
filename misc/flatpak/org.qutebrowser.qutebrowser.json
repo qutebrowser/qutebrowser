@@ -6,6 +6,8 @@
     "sdk": "org.kde.Sdk",
     "command": "qutebrowser",
     "finish-args": [
+        /* Nested sandboxes are currently not support by flatpak */
+        "--env=QTWEBENGINE_DISABLE_SANDBOX=1",
         /* Allow direct rendering to use OpenGL and access to webcams */
         "--device=all",
         /* Allow to read all files from the home directory */
