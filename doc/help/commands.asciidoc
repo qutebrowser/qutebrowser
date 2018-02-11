@@ -1241,6 +1241,9 @@ If no win_id is given, the tab will get detached into a new window.
 ==== positional arguments
 * +'win-id'+: The window ID of the window to give the current tab to.
 
+==== count
+Overrides win_id (index starts at 1 for win_id=0).
+
 [[tab-move]]
 === tab-move
 Syntax: +:tab-move ['index']+
@@ -1322,7 +1325,12 @@ Re-open the last closed tab or tabs.
 
 [[version]]
 === version
+Syntax: +:version [*--paste*]+
+
 Show version information.
+
+==== optional arguments
+* +*-p*+, +*--paste*+: Paste to pastebin.
 
 [[view-source]]
 === view-source

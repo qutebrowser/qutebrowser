@@ -541,7 +541,7 @@ class CommandDispatcher:
 
         Args:
             win_id: The window ID of the window to give the current tab to.
-            count: [count] overrides win_id (index starts at 1 for win_id=0)
+            count: Overrides win_id (index starts at 1 for win_id=0).
         """
         if count is not None:
             win_id = count - 1
