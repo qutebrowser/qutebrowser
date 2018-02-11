@@ -110,8 +110,6 @@ class TabWidget(QTabWidget):
         tab.data.pinned = pinned
         self._update_tab_title(idx)
 
-        bar.refresh()
-
     def tab_indicator_color(self, idx):
         """Get the tab indicator color for the given index."""
         return self.tabBar().tab_indicator_color(idx)
