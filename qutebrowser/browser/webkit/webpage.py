@@ -148,7 +148,7 @@ class BrowserPage(QWebPage):
                 text="URL: <b>{}</b>".format(
                     html.escape(url.toDisplayString())),
                 yes_action=functools.partial(QDesktopServices.openUrl, url),
-                url=info.url.toString(QUrl.FullyEncoded))
+                url=info.url.toString(QUrl.RemovePassword | QUrl.FullyEncoded))
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
