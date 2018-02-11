@@ -280,7 +280,7 @@ class BookmarkManager(UrlMarkManager):
 
         if urlstr in self.marks:
             if toggle:
-                del self.marks[urlstr]
+                self.delete(urlstr)
                 return False
             else:
                 raise AlreadyExistsError("Bookmark already exists!")
