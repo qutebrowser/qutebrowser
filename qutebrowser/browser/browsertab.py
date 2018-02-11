@@ -757,10 +757,12 @@ class AbstractTab(QWidget):
             self._set_load_status(usertypes.LoadStatus.warn)
         else:
             self._set_load_status(usertypes.LoadStatus.error)
+
         self.load_finished.emit(ok)
 
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
+
         self.zoom.set_current()
 
     @pyqtSlot()
