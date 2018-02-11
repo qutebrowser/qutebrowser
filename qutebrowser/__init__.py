@@ -22,7 +22,7 @@
 import os.path
 
 __author__ = "Florian Bruhin"
-__copyright__ = "Copyright 2014-2017 Florian Bruhin (The Compiler)"
+__copyright__ = "Copyright 2014-2018 Florian Bruhin (The Compiler)"
 __license__ = "GPL"
 __maintainer__ = __author__
 __email__ = "mail@qutebrowser.org"
