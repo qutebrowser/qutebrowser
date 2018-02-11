@@ -729,9 +729,7 @@ class WebKitTab(browsertab.AbstractTab):
     @pyqtSlot()
     def _on_load_started(self):
         super()._on_load_started()
-        nam = self.networkaccessmanager()
-        if nam.netrc_used:
-            nam.netrc_used = False
+        self.networkaccessmanager().netrc_used = False
 
     @pyqtSlot()
     def _on_frame_load_finished(self):

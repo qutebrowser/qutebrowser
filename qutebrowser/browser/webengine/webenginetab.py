@@ -824,8 +824,7 @@ class WebEngineTab(browsertab.AbstractTab):
             # https://bugreports.qt.io/browse/QTBUG-61506
             self.search.clear()
         super()._on_load_started()
-        if self.data.netrc_used:
-            self.data.netrc_used = False
+        self.data.netrc_used = False
 
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
