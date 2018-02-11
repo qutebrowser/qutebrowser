@@ -136,8 +136,8 @@ class Completer(QObject):
         parser = runners.CommandParser()
         result = parser.parse(text, fallback=True, keep=True)
         parts = [x for x in result.cmdline if x]
-        cursOffset = len(text) - sum((len(x) for x in parts))
-        pos = self._cmd.cursorPosition() - len(self._cmd.prefix()) - cursOffset
+        cur_offset = len(text) - sum((len(x) for x in parts))
+        pos = self._cmd.cursorPosition() - len(self._cmd.prefix()) - cur_offset
         pos = min(pos, len(text))  # Qt treats 2-byte UTF-16 chars as 2 chars
         log.completion.debug('partitioning {} around position {}'.format(parts,
                                                                          pos))

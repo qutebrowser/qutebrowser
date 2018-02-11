@@ -177,6 +177,7 @@ class CommandParser:
         Return:
             A ParseResult tuple.
         """
+        a = text.partition(' ')
         cmdstr, sep, argstr = text.partition(' ')
         cmdstr = cmdstr and cmdstr.strip().lstrip(':').strip()
 
@@ -196,7 +197,8 @@ class CommandParser:
             return ParseResult(cmd=None, args=None, cmdline=cmdline)
 
         args = self._split_args(cmd, argstr, keep)
-        args = [x.strip().lstrip(':').strip() if x is not ':' and x is not ' '
+        args = [x.strip().lstrip(':').strip() if x != ':' and
+                x != ' ' and cmdstr != 'set-cmd-text'
                 else x for x in args]
         if keep and args:
             cmdline = [cmdstr, sep + args[0]] + args[1:]
