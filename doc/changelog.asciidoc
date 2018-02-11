@@ -36,6 +36,8 @@ Added
 - New `--edit` flag for `:view-source` to open the source in an external editor.
 - New `statusbar.widgets` setting to configure which widgets should be shown in
   which order in the statusbar.
+- New `:prompt-yank` command (bound to `Alt-y` by default) to yank URLs
+  referenced in prompts.
 
 Changed
 ~~~~~~~
