@@ -22,6 +22,7 @@ Added
 ~~~~~
 
 - QtWebEngine: Caret/visual mode is now supported.
+- QtWebEngine: Authentication via ~/.netrc is now supported.
 - A new `qute://bindings` page, opened by `:bind`, shows all keybindings.
 - `:session-load` has a new `--delete` flag which deletes the
   session after loading it.
