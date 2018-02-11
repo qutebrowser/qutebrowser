@@ -98,6 +98,7 @@ class TabData:
                          Only used for QtWebKit.
         pinned: Flag to pin the tab.
         fullscreen: Whether the tab has a video shown fullscreen currently.
+        netrc_used: Whether netrc authentication was performed.
         input_mode: current input mode for the tab.
     """
 
@@ -106,6 +107,7 @@ class TabData:
     override_target = attr.ib(None)
     pinned = attr.ib(False)
     fullscreen = attr.ib(False)
+    netrc_used = attr.ib(False)
     input_mode = attr.ib(usertypes.KeyMode.normal)
 
 
@@ -756,9 +758,9 @@ class AbstractTab(QWidget):
         else:
             self._set_load_status(usertypes.LoadStatus.error)
         self.load_finished.emit(ok)
+
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
-
         self.zoom.set_current()
 
     @pyqtSlot()

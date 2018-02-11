@@ -780,11 +780,15 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
-        # FIXME:qtwebengine support .netrc
-        answer = shared.authentication_required(
-            url, authenticator, abort_on=[self.shutting_down,
-                                          self.load_started])
-        if answer is None:
+        netrc_success = False
+        if not self.data.netrc_used:
+            self.data.netrc_used = True
+            netrc_success = shared.netrc_authentication(url, authenticator)
+        if not netrc_success:
+            abort_on = [self.shutting_down, self.load_started]
+            answer = shared.authentication_required(url, authenticator,
+                                                    abort_on)
+        if not netrc_success and answer is None:
             try:
                 # pylint: disable=no-member, useless-suppression
                 sip.assign(authenticator, QAuthenticator())
@@ -820,6 +824,8 @@ class WebEngineTab(browsertab.AbstractTab):
             # https://bugreports.qt.io/browse/QTBUG-61506
             self.search.clear()
         super()._on_load_started()
+        if self.data.netrc_used:
+            self.data.netrc_used = False
 
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
