@@ -177,7 +177,6 @@ class CommandParser:
         Return:
             A ParseResult tuple.
         """
-        a = text.partition(' ')
         cmdstr, sep, argstr = text.partition(' ')
         cmdstr = cmdstr and cmdstr.strip().lstrip(':').strip()
 
