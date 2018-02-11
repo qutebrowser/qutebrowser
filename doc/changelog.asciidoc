@@ -63,6 +63,7 @@ Changed
   `tabs.persist_mode_on_change`. It can now be set to `restore` which remembers
   input modes (input/passthrough) per tab.
 - More performance improvements when opening/closing many tabs.
+- The `:version` page now has a button to pastebin the information.
 
 Fixed
 ~~~~~
