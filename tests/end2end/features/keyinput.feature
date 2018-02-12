@@ -162,3 +162,48 @@ Feature: Keyboard input
         And I press the key "c"
         Then the message "foo 3" should be shown
         And the message "foo 3" should be shown
+
+    Scenario: tabs.mode_on_change_restore
+        Given I clean up open tabs
+        And I set tabs.mode_on_change to restore
+        When I open about:blank
+        And I run :enter-mode insert
+        And I open about:blank in a new tab
+        And I run :enter-mode passthrough
+        And I run :tab-focus 1
+        Then "Entering mode KeyMode.insert (reason: command)" should be logged
+        And "Leaving mode KeyMode.insert (reason: tab changed)" should not be logged
+        And "Entering mode KeyMode.normal (reason: restore)" should be logged
+        And "Entering mode KeyMode.passthrough (reason: command)" should be logged
+        And "Leaving mode KeyMode.passthrough (reason: tab changed)" should not be logged
+        And "Entering mode KeyMode.insert (reason: restore)" should be logged
+
+    Scenario: tabs.mode_on_change_persist
+        Given I clean up open tabs
+        And I set tabs.mode_on_change to persist
+        When I open about:blank
+        And I run :enter-mode insert
+        And I open about:blank in a new tab
+        And I run :enter-mode passthrough
+        And I run :tab-focus 1
+        Then "Entering mode KeyMode.insert (reason: command)" should be logged
+        And "Leaving mode KeyMode.insert (reason: tab changed)" should not be logged
+        And "Entering mode KeyMode.normal (reason: restore)" should not be logged
+        And "Entering mode KeyMode.passthrough (reason: command)" should be logged
+        And "Leaving mode KeyMode.passthrough (reason: tab changed)" should not be logged
+        And "Entering mode KeyMode.insert (reason: restore)" should not be logged
+
+    Scenario: tabs.mode_on_change_normal
+        Given I clean up open tabs
+        And I set tabs.mode_on_change to normal
+        When I open about:blank
+        And I run :enter-mode insert
+        And I open about:blank in a new tab
+        And I run :enter-mode passthrough
+        And I run :tab-focus 1
+        Then "Entering mode KeyMode.insert (reason: command)" should be logged
+        And "Leaving mode KeyMode.insert (reason: tab changed)" should be logged
+        And "Entering mode KeyMode.normal (reason: restore)" should not be logged
+        And "Entering mode KeyMode.passthrough (reason: command)" should be logged
+        And "Leaving mode KeyMode.passthrough (reason: tab changed)" should be logged
+        And "Entering mode KeyMode.insert (reason: restore)" should not be logged
