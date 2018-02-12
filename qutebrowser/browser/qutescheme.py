@@ -210,13 +210,12 @@ def qute_tabs(_url):
     for win_id, window in objreg.window_registry.items():
         if sip.isdeleted(window):
             continue
-        win_id_str = str(win_id)
         tabbed_browser = objreg.get('tabbed-browser',
                                     scope='window',
                                     window=win_id)
         for tab_idx in range(tabbed_browser.count()):
             tab_fields = tabbed_browser.get_tab_fields(tab_idx)
-            tabs[win_id_str].append(
+            tabs[str(win_id)].append(
                 (tab_fields['title'], tab_fields['current_url']))
 
     html = jinja.render('tabs.html',
