@@ -865,6 +865,15 @@ class CommandDispatcher:
         try:
             self.buffer(index=text)
         except cmdexc.CommandError:
+            self.openurl(url=text)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
+    @cmdutils.argument('text', completion=urlmodel.url_or_buffer)
+    def switch_buffer_or_open_tab(self, text=None):
+        try:
+            self.buffer(index=text)
+        except cmdexc.CommandError:
             self.openurl(url=text, tab=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
