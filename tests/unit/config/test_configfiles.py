@@ -550,7 +550,7 @@ class TestConfigPy:
         assert len(excinfo.value.errors) == 1
         error = excinfo.value.errors[0]
         assert isinstance(error.exception, SyntaxError)
-        assert error.text == "Syntax Error"
+        assert error.text == "Unhandled exception"
         exception_text = 'invalid syntax (config.py, line 1)'
         assert str(error.exception) == exception_text
 

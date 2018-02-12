@@ -419,7 +419,7 @@ def read_config_py(filename, raising=False):
         desc = configexc.ConfigErrorDesc("Error while compiling", e)
         raise configexc.ConfigFileErrors(basename, [desc])
     except SyntaxError as e:
-        desc = configexc.ConfigErrorDesc("Syntax Error", e,
+        desc = configexc.ConfigErrorDesc("Unhandled exception", e,
                                          traceback=traceback.format_exc())
         raise configexc.ConfigFileErrors(basename, [desc])
 
