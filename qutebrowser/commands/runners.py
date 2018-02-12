@@ -140,7 +140,6 @@ class CommandParser:
         Yields:
             ParseResult tuples.
         """
-        text = text.strip().lstrip(':').strip()
         if not text:
             raise cmdexc.NoSuchCommandError("No command given")
 
@@ -196,10 +195,6 @@ class CommandParser:
             return ParseResult(cmd=None, args=None, cmdline=cmdline)
 
         args = self._split_args(cmd, argstr, keep)
-        if cmdstr not in ['set-cmd-text', 'help', 'hint', 'set']:
-            args = [x.strip().lstrip(':').strip() if x not in [':', ' '] and
-                    x.strip().lstrip(':').strip() in cmdutils.cmd_dict
-                    else x for x in args]
         if keep and args:
             cmdline = [cmdstr, sep + args[0]] + args[1:]
         elif keep:
