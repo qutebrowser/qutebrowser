@@ -26,7 +26,7 @@ import html as html_utils
 
 import sip
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
-                          QUrl, QTimer)
+                          QUrl)
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
@@ -495,7 +495,7 @@ class WebEngineHistory(browsertab.AbstractHistory):
                 self._tab.zoom.set_factor(cur_data['zoom'])
             if ('scroll-pos' in cur_data and
                     self._tab.scroller.pos_px() == QPoint(0, 0)):
-                QTimer.singleShot(0, functools.partial(
+                self._tab.get_page().loadFinished.connect(functools.partial(
                     self._tab.scroller.to_point, cur_data['scroll-pos']))
 
 
@@ -642,6 +642,9 @@ class WebEngineTab(browsertab.AbstractTab):
             return
         self.zoom.set_factor(self._saved_zoom)
         self._saved_zoom = None
+
+    def get_page(self):
+        return self._widget.page()
 
     def openurl(self, url):
         self._saved_zoom = self.zoom.factor()
