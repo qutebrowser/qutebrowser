@@ -309,6 +309,18 @@ class TestSource:
                     "  While setting 'foo': No option 'foo'")
         assert str(excinfo.value) == expected
 
+    def test_invalid_source(self, commands, config_tmpdir):
+        pyfile = config_tmpdir / 'config.py'
+        pyfile.write_text('1/0', encoding='utf-8')
+
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            commands.config_source()
+
+        expected = ("Errors occurred while reading config.py:\n"
+                    "  Unhandled exception - ZeroDivisionError:"
+                    " division by zero")
+        assert str(excinfo.value) == expected
+
 
 class TestEdit:
 
