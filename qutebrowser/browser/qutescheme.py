@@ -34,13 +34,13 @@ import collections
 
 import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
+import sip
 
 import qutebrowser
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, urlutils)
 from qutebrowser.misc import objects
-import sip
 
 
 pyeval_output = ":pyeval was never called"
