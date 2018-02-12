@@ -45,6 +45,7 @@ def main():
         byte_io = io.BytesIO(raw_file.read())
         f = adblock.get_fileobj(byte_io)
         for line in f:
+            line = line.decode('utf-8')
             if sys.argv[1] in line:
                 print("FOUND {} in {}:".format(sys.argv[1], url))
                 print("    " + line.rstrip())
