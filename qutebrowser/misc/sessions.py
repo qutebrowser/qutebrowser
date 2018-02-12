@@ -438,7 +438,7 @@ class SessionManager(QObject):
                     tabbed_browser.set_tab_pinned(new_tab, new_tab.data.pinned)
 
             if tab_to_focus is not None:
-                tabbed_browser.currentChanged.emit(tab_to_focus)
+                tabbed_browser.setCurrentIndex(tab_to_focus)
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.activateWindow)
 
