@@ -71,6 +71,7 @@ Fixed
 - QtWebEngine: Improved fullscreen handling with Qt 5.10.
 - QtWebEngine: Hinting and scrolling now works properly on special
   `view-source:` pages.
+- QtWebEngine: Scroll positions are now restored correctly from sessions.
 - QtWebKit: `:view-source` now displays a valid URL.
 - URLs containing ampersands and other special chars are now shown
   correctly when filtering them in the completion.
