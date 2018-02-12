@@ -398,3 +398,26 @@ Feature: Saving and loading sessions
         - data/numbers/1.txt
         - data/numbers/2.txt (active) (pinned)
         - data/numbers/3.txt
+
+  # Test load/save of tabs input_mode
+
+  Scenario: session restore with tabs.mode_on_change=restore
+      Given I set tabs.mode_on_change to restore
+      When I open data/numbers/1.txt
+      And I run :enter-mode insert
+      And I open data/numbers/2.txt in a new tab
+      And I run :enter-mode passthrough
+      And I open data/numbers/3.txt in a new tab
+      And I run :session-save input_mode_session
+      And I run :session-load -c input_mode_session
+      And I wait until data/numbers/3.txt is loaded
+      And I run :tab-focus 1
+      And I run :tab-focus 2
+      And I run :tab-focus 3
+      Then "Entering mode KeyMode.insert (reason: restore)" should be logged
+      And "Entering mode KeyMode.passthrough (reason: restore)" should be logged
+      And "Entering mode KeyMode.normal (reason: restore)" should be logged
+      And the following tabs should be open:
+        - data/numbers/1.txt
+        - data/numbers/2.txt
+        - data/numbers/3.txt (active)

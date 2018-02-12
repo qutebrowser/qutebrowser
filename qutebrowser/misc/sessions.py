@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QApplication
 import yaml
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
-                               utils)
+                               usertypes, utils)
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
@@ -204,6 +204,10 @@ class SessionManager(QObject):
         data = {'history': []}
         if active:
             data['active'] = True
+
+        if config.val.tabs.mode_on_change == 'restore':
+            data['input_mode'] = tab.data.input_mode.name
+
         for idx, item in enumerate(tab.history):
             qtutils.ensure_valid(item)
             item_data = self._save_tab_item(tab, idx, item)
@@ -342,6 +346,10 @@ class SessionManager(QObject):
             itertools.dropwhile(lambda i: i[0] < lazy_index,
                                 enumerate(data['history'])))
 
+        if config.val.tabs.mode_on_change == 'restore':
+            input_mode = data.get('input_mode', usertypes.KeyMode.normal.name)
+            new_tab.data.input_mode = usertypes.KeyMode[input_mode]
+
         for i, histentry in gen:
             user_data = {}
 
@@ -428,6 +436,7 @@ class SessionManager(QObject):
                     tab_to_focus = i
                 if new_tab.data.pinned:
                     tabbed_browser.set_tab_pinned(new_tab, new_tab.data.pinned)
+
             if tab_to_focus is not None:
                 tabbed_browser.setCurrentIndex(tab_to_focus)
             if win.get('active', False):

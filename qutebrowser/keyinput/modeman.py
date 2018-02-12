@@ -267,6 +267,11 @@ class ModeManager(QObject):
             raise cmdexc.CommandError(
                 "Mode {} can't be entered manually!".format(mode))
 
+        if (config.val.tabs.mode_on_change == 'restore' and
+                m.name in ['insert', 'passthrough']):
+            window = objreg.get('main-window', scope='window',
+                                window=self._win_id)
+            window.tabbed_browser.currentWidget().data.input_mode = m
         self.enter(m, 'command')
 
     @pyqtSlot(usertypes.KeyMode, str, bool)
@@ -301,6 +306,11 @@ class ModeManager(QObject):
         """Leave the mode we're currently in."""
         if self.mode == usertypes.KeyMode.normal:
             raise ValueError("Can't leave normal mode!")
+        if config.val.tabs.mode_on_change == 'restore':
+            window = objreg.get('main-window', scope='window',
+                                window=self._win_id)
+            tab = window.tabbed_browser.currentWidget()
+            tab.data.input_mode = usertypes.KeyMode.normal
         self.leave(self.mode, 'leave current')
 
     def eventFilter(self, event):
