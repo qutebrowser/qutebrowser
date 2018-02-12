@@ -74,7 +74,7 @@ def test_config_file_errors_str(errors):
     assert str(errors).splitlines() == [
         'Errors occurred while reading config.py:',
         '  Error text 1: Exception 1',
-        '  Error text 2: Exception 2',
+        '  Error text 2 - Exception: Exception 2 ',
     ]
 
 
