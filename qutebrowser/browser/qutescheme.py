@@ -33,8 +33,8 @@ import urllib
 import collections
 
 import pkg_resources
-from PyQt5.QtCore import QUrlQuery, QUrl
 import sip
+from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
 from qutebrowser.config import config, configdata, configexc, configdiff
