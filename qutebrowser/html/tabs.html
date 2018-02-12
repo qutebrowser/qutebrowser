@@ -1,0 +1,58 @@
+{% extends "styled.html" %}
+
+{% block style %}
+{{super()}}
+h1 {
+    margin-bottom: 10px;
+}
+
+.url a {
+    color: #444;
+}
+
+th {
+    text-align: left;
+}
+
+.qmarks .name {
+    padding-left: 5px;
+}
+
+.empty-msg {
+    background-color: #f8f8f8;
+    color: #444;
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+}
+
+details {
+    margin-top: 20px;
+}
+{% endblock %}
+
+{% block content %}
+
+<h1>Tab list</h1>
+{% for win_id, tabs in tab_list_by_window.items() %}
+<h2>Window {{ win_id }}</h2>
+<table class="tabs_win{{win_id}}">
+    <tbody>
+    {% for name, url in tabs %}
+    <tr>
+        <td class="name"><a href="{{url}}">{{name}}</a></td>
+        <td class="url"><a href="{{url}}">{{url}}</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endfor %}
+<details>
+    <summary>Raw list</summary>
+<code>
+{% for win_id, tabs in tab_list_by_window.items() %}{% for name, url in tabs %}
+{{url}}</br>{% endfor %}
+{% endfor %}
+</code>
+</details>
+{% endblock %}

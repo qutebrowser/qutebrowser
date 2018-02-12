@@ -30,8 +30,10 @@ import time
 import textwrap
 import mimetypes
 import urllib
+import collections
 
 import pkg_resources
+import sip
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
@@ -198,6 +200,27 @@ def qute_bookmarks(_url):
                         title='Bookmarks',
                         bookmarks=bookmarks,
                         quickmarks=quickmarks)
+    return 'text/html', html
+
+
+@add_handler('tabs')
+def qute_tabs(_url):
+    """Handler for qute://tabs. Display information about all open tabs."""
+    tabs = collections.defaultdict(list)
+    for win_id, window in objreg.window_registry.items():
+        if sip.isdeleted(window):
+            continue
+        tabbed_browser = objreg.get('tabbed-browser',
+                                    scope='window',
+                                    window=win_id)
+        for tab in tabbed_browser.widgets():
+            if tab.url() not in [QUrl("qute://tabs/"), QUrl("qute://tabs")]:
+                urlstr = tab.url().toDisplayString()
+                tabs[str(win_id)].append((tab.title(), urlstr))
+
+    html = jinja.render('tabs.html',
+                        title='Tabs',
+                        tab_list_by_window=tabs)
     return 'text/html', html
 
 
