@@ -214,7 +214,7 @@ def qute_tabs(_url):
                                     scope='window',
                                     window=win_id)
         for tab in tabbed_browser.widgets():
-            if tab.url() != QUrl("qute://tabs/"):
+            if tab.url() not in [QUrl("qute://tabs/"), QUrl("qute://tabs")]:
                 tabs[str(win_id)].append(
                     (tab.title(), tab.url().toDisplayString()))
 
