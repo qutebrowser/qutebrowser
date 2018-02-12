@@ -38,6 +38,8 @@ Added
   which order in the statusbar.
 - New `:prompt-yank` command (bound to `Alt-y` by default) to yank URLs
   referenced in prompts.
+- The `hostblock_blame` script which was removed in v1.0 was updated for the new
+  config and re-added.
 
 Changed
 ~~~~~~~
@@ -83,6 +85,7 @@ Fixed
   is removed.
 - Suspended pages now should always load the correct page when being un-suspended.
 - Compatibility with Python 3.7
+- Exception types are now shown properly with `:config-source` and `:config-edit`.
 
 Removed
 ~~~~~~~
