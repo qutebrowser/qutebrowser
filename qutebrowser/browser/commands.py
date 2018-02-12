@@ -1086,11 +1086,14 @@ class CommandDispatcher:
                        maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.buffer)
     @cmdutils.argument('count', count=True)
-    def buffer(self, index=None, count=None):
+    @cmdutils.argument('win_id', win_id=True)
+    def buffer(self, win_id, index=None, count=None):
         """Select tab by index or url/title best match.
 
         Focuses window if necessary when index is given. If both index and
         count are given, use count.
+
+        With neither index nor count given, open the qute://tabs page.
 
         Args:
             index: The [win_id/]index of the tab to focus. Or a substring
@@ -1098,8 +1101,8 @@ class CommandDispatcher:
             count: The tab index to focus, starting with 1.
         """
         if count is None and index is None:
-            raise cmdexc.CommandError("buffer: Either a count or the argument "
-                                      "index must be specified.")
+            self.openurl('qute://tabs/', tab=True)
+            return
 
         if count is not None:
             index = str(count)
