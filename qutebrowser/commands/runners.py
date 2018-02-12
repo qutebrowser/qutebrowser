@@ -140,6 +140,7 @@ class CommandParser:
         Yields:
             ParseResult tuples.
         """
+        text = text.strip().lstrip(':').strip()
         if not text:
             raise cmdexc.NoSuchCommandError("No command given")
 
