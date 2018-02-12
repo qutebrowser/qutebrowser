@@ -34,7 +34,6 @@ from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
-from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import mainwindow
 
 
@@ -207,7 +206,7 @@ class SessionManager(QObject):
             data['active'] = True
 
         if config.val.tabs.mode_on_change == 'restore':
-            data['input_mode'] = tab.data.input_mode.value
+            data['input_mode'] = tab.data.input_mode.name
 
         for idx, item in enumerate(tab.history):
             qtutils.ensure_valid(item)
@@ -348,11 +347,8 @@ class SessionManager(QObject):
                                 enumerate(data['history'])))
 
         if config.val.tabs.mode_on_change == 'restore':
-            if 'input_mode' in data:
-                input_mode = usertypes.KeyMode(data['input_mode'])
-            else:
-                input_mode = usertypes.KeyMode.normal
-            new_tab.data.input_mode = input_mode
+            input_mode = data.get('input_mode', usertypes.KeyMode.normal.name)
+            new_tab.data.input_mode = usertypes.KeyMode[input_mode]
 
         for i, histentry in gen:
             user_data = {}
@@ -440,12 +436,9 @@ class SessionManager(QObject):
                     tab_to_focus = i
                 if new_tab.data.pinned:
                     tabbed_browser.set_tab_pinned(new_tab, new_tab.data.pinned)
-                if config.val.tabs.mode_on_change == 'restore':
-                    modeman.enter(window.win_id,
-                                  new_tab.data.input_mode,
-                                  'restore input mode for tab')
+
             if tab_to_focus is not None:
-                tabbed_browser.setCurrentIndex(tab_to_focus)
+                tabbed_browser.currentChanged.emit(tab_to_focus)
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.activateWindow)
 

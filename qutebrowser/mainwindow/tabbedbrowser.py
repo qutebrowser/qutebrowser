@@ -647,8 +647,6 @@ class TabbedBrowser(tabwidget.TabWidget):
     def on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
         mode_on_change = config.val.tabs.mode_on_change
-        modes_to_save = [usertypes.KeyMode.insert,
-                         usertypes.KeyMode.passthrough]
         if idx == -1 or self.shutting_down:
             # closing the last tab (before quitting) or shutting down
             return
@@ -657,18 +655,14 @@ class TabbedBrowser(tabwidget.TabWidget):
             log.webview.debug("on_current_changed got called with invalid "
                               "index {}".format(idx))
             return
-        if self._now_focused is not None and mode_on_change == 'restore':
-            current_mode = modeman.instance(self._win_id).mode
-            if current_mode not in modes_to_save:
-                current_mode = usertypes.KeyMode.normal
-            self._now_focused.data.input_mode = current_mode
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
 
         modes_to_leave = [usertypes.KeyMode.hint, usertypes.KeyMode.caret]
         if mode_on_change != 'persist':
-            modes_to_leave += modes_to_save
+            modes_to_leave += [usertypes.KeyMode.insert,
+                               usertypes.KeyMode.passthrough]
         for mode in modes_to_leave:
             modeman.leave(self._win_id, mode, 'tab changed', maybe=True)
         if mode_on_change == 'restore':
