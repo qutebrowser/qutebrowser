@@ -24,7 +24,6 @@ import sys
 import io
 import os
 import os.path
-import configparser
 import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
