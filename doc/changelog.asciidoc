@@ -40,6 +40,7 @@ Added
   referenced in prompts.
 - The `hostblock_blame` script which was removed in v1.0 was updated for the new
   config and re-added.
+- New `qute://tabs` page (opened via `:buffer`) which lists all tabs.
 
 Changed
 ~~~~~~~
