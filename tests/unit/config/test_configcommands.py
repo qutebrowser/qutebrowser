@@ -318,7 +318,7 @@ class TestSource:
 
         expected = ("Errors occurred while reading config.py:\n"
                     "  Unhandled exception - ZeroDivisionError:"
-                    " division by zero ")
+                    " division by zero")
         assert str(excinfo.value) == expected
 
 
