@@ -215,7 +215,8 @@ def qute_tabs(_url):
                                     window=win_id)
         for tab in tabbed_browser.widgets():
             if tab.url() != QUrl("qute://tabs/"):
-                tabs[str(win_id)].append((tab.title(), tab.url().toDisplayString()))
+                tabs[str(win_id)].append(
+                    (tab.title(), tab.url().toDisplayString()))
 
     html = jinja.render('tabs.html',
                         title='Tabs',
