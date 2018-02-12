@@ -94,8 +94,8 @@ class ConfigErrorDesc:
     def __str__(self):
         if self.traceback:
             return '{} - {}: {}'.format(self.text,
-                                         self.exception.__class__.__name__,
-                                         self.exception)
+                                        self.exception.__class__.__name__,
+                                        self.exception)
         return '{}: {}'.format(self.text, self.exception)
 
     def with_text(self, text):
