@@ -43,4 +43,12 @@ th {
     </tbody>
 </table>
 {% endfor %}
+<details>
+    <summary>Raw list</summary>
+<code>
+{% for win_id, tabs in tab_list_by_window.items() %}{% for name, url in tabs %}
+{{url}}</br>{% endfor %}
+{% endfor %}
+</code>
+</details>
 {% endblock %}
