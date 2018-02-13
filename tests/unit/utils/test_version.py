@@ -955,62 +955,53 @@ def test_opengl_vendor():
     return version.opengl_vendor()
 
 
-class HTTPPostStub(QObject):
-
-    """A stub class for HTTPClient.
-
-    Attributes:
-        url: the last url send by post()
-        data: the last data send by post()
-    """
-
-    success = pyqtSignal(str)
-    error = pyqtSignal(str)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.url = None
-        self.data = None
-
-    def post(self, url, data=None):
-        self.url = url
-        self.data = data
-
-
 @pytest.fixture
-def pbclient():
-    http_stub = HTTPPostStub()
+def pbclient(stubs):
+    http_stub = stubs.HTTPPostStub()
     client = pastebin.PastebinClient(http_stub)
     return client
 
 
-def test_pastebin_version(pbclient, monkeypatch):
-    """Test version.pastebin_version() twice."""
-    patches = {
-        '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
-        '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
-    }
-
-    for name, val in patches.items():
-        monkeypatch.setattr('qutebrowser.utils.version.' + name, val)
+def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
+    """Test version.pastebin_version() sets the url."""
+    monkeypatch.setattr('qutebrowser.utils.version.version',
+                        lambda: "dummy")
+    monkeypatch.setattr('qutebrowser.utils.utils.log_clipboard', True)
 
     version.pastebin_version(pbclient)
     pbclient.success.emit("test")
+
+    msg = message_mock.getmsg(usertypes.MessageLevel.info)
+    assert msg.text == "Version url test yanked to clipboard."
     assert version.pastebin_url == "test"
 
+    version.pastebin_url = None
+
+
+def test_pastebin_version_twice(pbclient, monkeypatch):
+    """Test whether calling pastebin_version twice sends no data."""
+    monkeypatch.setattr('qutebrowser.utils.version.version',
+                        lambda: "dummy")
+
     version.pastebin_version(pbclient)
-    assert version.pastebin_url == "test"
+    pbclient.success.emit("test")
+
+    pbclient.url = None
+    pbclient.data = None
+    version.pastebin_url = "test2"
+
+    version.pastebin_version(pbclient)
+    assert pbclient.url is None
+    assert pbclient.data is None
+    assert version.pastebin_url == "test2"
+
+    version.pastebin_url = None
 
 
 def test_pastebin_version_error(pbclient, caplog, monkeypatch):
     """Test version.pastebin_version() with errors."""
-    patches = {
-        '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
-        '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
-    }
-
-    for name, val in patches.items():
-        monkeypatch.setattr('qutebrowser.utils.version.' + name, val)
+    monkeypatch.setattr('qutebrowser.utils.version.version',
+                        lambda: "dummy")
 
     version.pastebin_url = None
     with caplog.at_level(logging.ERROR):

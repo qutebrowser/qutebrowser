@@ -23,31 +23,9 @@ from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 from qutebrowser.misc import httpclient, pastebin
 
 
-class HTTPPostStub(QObject):
-
-    """A stub class for HTTPClient.
-
-    Attributes:
-        url: the last url send by post()
-        data: the last data send by post()
-    """
-
-    success = pyqtSignal(str)
-    error = pyqtSignal(str)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.url = None
-        self.data = None
-
-    def post(self, url, data=None):
-        self.url = url
-        self.data = data
-
-
 @pytest.fixture
-def pbclient():
-    http_stub = HTTPPostStub()
+def pbclient(stubs):
+    http_stub = stubs.HTTPPostStub()
     client = pastebin.PastebinClient(http_stub)
     return client
 
