@@ -342,7 +342,7 @@ class AbstractCaret(QObject):
     def _on_mode_entered(self, mode):
         raise NotImplementedError
 
-    def _on_mode_left(self):
+    def _on_mode_left(self, mode):
         raise NotImplementedError
 
     def move_to_next_line(self, count=1):
