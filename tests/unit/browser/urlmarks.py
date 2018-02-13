@@ -19,7 +19,6 @@
 
 """Tests for the global page history."""
 
-from unittest import mock
 import pytest
 from PyQt5.QtCore import QUrl
 
@@ -46,7 +45,7 @@ def test_init(bm_file, fake_save_manager):
     fake_save_manager.add_saveable.assert_called_once_with(
         'bookmark-manager',
         bm.save,
-        mock.ANY,  # TODO: compare signal argument for equality
+        bm.changed,
         filename=str(bm_file),
     )
 
