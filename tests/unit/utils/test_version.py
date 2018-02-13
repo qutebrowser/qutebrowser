@@ -1001,7 +1001,7 @@ def test_pastebin_version(pbclient, monkeypatch):
     assert version.pastebin_url == "test"
 
 
-def test_pastebin_version_error(pbclient, monkeypatch):
+def test_pastebin_version_error(pbclient, caplog, monkeypatch):
     """Test version.pastebin_version() with errors."""
     patches = {
         '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
@@ -1012,8 +1012,8 @@ def test_pastebin_version_error(pbclient, monkeypatch):
         monkeypatch.setattr('qutebrowser.utils.version.' + name, val)
 
     version.pastebin_url = None
-    version.pastebin_version(pbclient)
-    try:
-        pbclient.error.emit("test")
-    except:
-        assert version.pastebin_url is None
+    with caplog.at_level(logging.ERROR):
+        version.pastebin_version(pbclient)
+        pbclient._client.error.emit("test")
+    assert version.pastebin_url is None
+    assert caplog.records[0].message == "Failed to pastebin version info: test"
