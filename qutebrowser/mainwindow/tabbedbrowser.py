@@ -632,6 +632,14 @@ class TabbedBrowser(tabwidget.TabWidget):
             self.window().setWindowIcon(icon)
 
     @pyqtSlot(usertypes.KeyMode)
+    def on_mode_entered(self, mode):
+        """Save input mode when tabs.mode_on_change = restore."""
+        input_modes = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
+        if (mode in input_modes and
+                config.val.tabs.mode_on_change == 'restore'):
+            self.currentWidget().data.input_mode = mode
+
+    @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
         if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
@@ -642,6 +650,8 @@ class TabbedBrowser(tabwidget.TabWidget):
             if widget is None:
                 return
             widget.setFocus()
+        elif config.val.tabs.mode_on_change == 'restore':
+            self.currentWidget().data.input_mode = usertypes.KeyMode.normal
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):

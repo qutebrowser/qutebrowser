@@ -115,6 +115,7 @@ class ModeManager(QObject):
     Attributes:
         mode: The mode we're currently in.
         _win_id: The window ID of this ModeManager
+        _prev_mode: mode before a prompt poped up
         _parsers: A dictionary of modes and their keyparsers.
         _forward_unbound_keys: If we should forward unbound keys.
         _releaseevents_to_pass: A set of KeyEvents where the keyPressEvent was
@@ -138,6 +139,7 @@ class ModeManager(QObject):
         super().__init__(parent)
         self._win_id = win_id
         self._parsers = {}
+        self._prev_mode = usertypes.KeyMode.normal
         self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = set()
 
@@ -247,6 +249,11 @@ class ModeManager(QObject):
                 return
             log.modes.debug("Overriding mode {}.".format(self.mode))
             self.left.emit(self.mode, mode, self._win_id)
+        if mode in prompt_modes:
+            # save previous mode when being prompted
+            self._prev_mode = self.mode
+        else:
+            self._prev_mode = usertypes.KeyMode.normal
         self.mode = mode
         self.entered.emit(mode, self._win_id)
 
@@ -266,12 +273,6 @@ class ModeManager(QObject):
                  usertypes.KeyMode.yesno, usertypes.KeyMode.prompt]:
             raise cmdexc.CommandError(
                 "Mode {} can't be entered manually!".format(mode))
-
-        if (config.val.tabs.mode_on_change == 'restore' and
-                m.name in ['insert', 'passthrough']):
-            window = objreg.get('main-window', scope='window',
-                                window=self._win_id)
-            window.tabbed_browser.currentWidget().data.input_mode = m
         self.enter(m, 'command')
 
     @pyqtSlot(usertypes.KeyMode, str, bool)
@@ -299,6 +300,9 @@ class ModeManager(QObject):
         self.clear_keychain()
         self.mode = usertypes.KeyMode.normal
         self.left.emit(mode, self.mode, self._win_id)
+        if mode in [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]:
+            self.enter(self._prev_mode,
+                       reason='restore mode before {}'.format(mode.name))
 
     @cmdutils.register(instance='mode-manager', name='leave-mode',
                        not_modes=[usertypes.KeyMode.normal], scope='window')
@@ -306,11 +310,6 @@ class ModeManager(QObject):
         """Leave the mode we're currently in."""
         if self.mode == usertypes.KeyMode.normal:
             raise ValueError("Can't leave normal mode!")
-        if config.val.tabs.mode_on_change == 'restore':
-            window = objreg.get('main-window', scope='window',
-                                window=self._win_id)
-            tab = window.tabbed_browser.currentWidget()
-            tab.data.input_mode = usertypes.KeyMode.normal
         self.leave(self.mode, 'leave current')
 
     def eventFilter(self, event):
