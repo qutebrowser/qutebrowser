@@ -35,7 +35,7 @@ import datetime
 import attr
 import pkg_resources
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from PyQt5.QtCore import pyqtSignal, QObject
 
 import qutebrowser
 from qutebrowser.utils import version, usertypes, utils
