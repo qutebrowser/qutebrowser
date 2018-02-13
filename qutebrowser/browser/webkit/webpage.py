@@ -80,6 +80,10 @@ class BrowserPage(QWebPage):
         self.downloadRequested.connect(self.on_download_requested)
         self.unsupportedContent.connect(self.on_unsupported_content)
         self.loadStarted.connect(self.on_load_started)
+
+        self.mainFrame().javaScriptWindowObjectCleared.connect(
+            self.handle_clear_focus)
+
         self.featurePermissionRequested.connect(
             self._on_feature_permission_requested)
         self.saveFrameStateRequested.connect(
@@ -297,6 +301,27 @@ class BrowserPage(QWebPage):
             self._ignore_load_started = False
         else:
             self.error_occurred = False
+
+    @pyqtSlot()
+    def handle_clear_focus(self):
+        # Handle clearing focus when page is loaded
+        if not config.val.input.blur_on_load.enabled:
+            return
+        code = """
+            window.addEventListener("DOMContentLoaded",
+                () => document.activeElement.blur());
+            """
+        self.mainFrame().evaluateJavaScript(code)
+
+        if config.val.input.blur_on_load.delay < 0:
+            return
+
+        code = """
+            window.addEventListener("load",
+                () => setTimeout(
+                    () => document.activeElement.blur(), {}));
+            """.format(config.val.input.blur_on_load.delay)
+        self.mainFrame().evaluateJavaScript(code)
 
     def _inject_userjs(self, frame):
         """Inject user JavaScripts into the page.
