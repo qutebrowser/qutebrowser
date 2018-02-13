@@ -35,8 +35,6 @@ import datetime
 import attr
 import pkg_resources
 import pytest
-from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtWidgets import QApplication
 
 import qutebrowser
 from qutebrowser.utils import version, usertypes, utils
@@ -1011,7 +1009,14 @@ def test_pastebin_version_error(pbclient, caplog, monkeypatch):
     assert caplog.records[0].message == "Failed to pastebin version info: test"
 
 
-def test_uptime(monkeypatch):
-    """Test _uptime runs without failing. Its effects are tested elsewhere."""
-    QApplication.instance().launch_time = datetime.datetime(1, 1, 1)
-    version._uptime()
+def test_uptime(monkeypatch, qapp):
+    """Test _uptime runs and check if microseconds are dropped."""
+    launch_time = datetime.datetime(1, 1, 1, 1, 1, 1, 1)
+    qapp.launch_time = launch_time
+
+    class FakeDateTime(datetime.datetime):
+        now = lambda x=datetime.datetime(1, 1, 1, 1, 1, 1, 2): x
+    monkeypatch.setattr('datetime.datetime', FakeDateTime)
+
+    uptime_delta = version._uptime()
+    assert uptime_delta == datetime.timedelta(0)

@@ -18,7 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.misc import httpclient, pastebin
 

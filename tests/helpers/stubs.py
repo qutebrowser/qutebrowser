@@ -585,13 +585,3 @@ class HTTPPostStub(QObject):
     def post(self, url, data=None):
         self.url = url
         self.data = data
-
-
-@pytest.fixture
-def pbclient(stubs):
-    http_stub = stubs.HTTPPostStub()
-    client = pastebin.PastebinClient(http_stub)
-    return client
-
-
-
