@@ -163,25 +163,25 @@ Feature: Keyboard input
         Then the message "foo 3" should be shown
         And the message "foo 3" should be shown
 
-    Scenario: tabs.mode_on_change_restore
-        Given I clean up open tabs
-        And I set tabs.mode_on_change to restore
+    # :test all tabs.mode_on_change modes
+
+    Scenario: mode on change normal
+        Given I run :history-clear --force
+        And I set tabs.mode_on_change to normal
         When I open about:blank
         And I run :enter-mode insert
         And I open about:blank in a new tab
         And I run :enter-mode passthrough
         And I run :tab-focus 1
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
-        And "Leaving mode KeyMode.insert (reason: tab changed)" should not be logged
-        And "Entering mode KeyMode.normal (reason: restore)" should be logged
+        And "Leaving mode KeyMode.insert (reason: tab changed)" should be logged
+        And "Entering mode KeyMode.normal (reason: restore)" should not be logged
         And "Entering mode KeyMode.passthrough (reason: command)" should be logged
-        And "Leaving mode KeyMode.passthrough (reason: tab changed)" should not be logged
-        And "Entering mode KeyMode.insert (reason: restore)" should be logged
+        And "Leaving mode KeyMode.passthrough (reason: tab changed)" should be logged
+        And "Entering mode KeyMode.insert (reason: restore)" should not be logged
 
-    # we skip this for now because the logs are still present from the previous test with qt>=5.10 
-    @qt<5.10
-    Scenario: tabs.mode_on_change_persist
-        Given I clean up open tabs
+    Scenario: mode on change persist
+        Given I run :history-clear --force
         And I set tabs.mode_on_change to persist
         When I open about:blank
         And I run :enter-mode insert
@@ -195,17 +195,17 @@ Feature: Keyboard input
         And "Leaving mode KeyMode.passthrough (reason: tab changed)" should not be logged
         And "Entering mode KeyMode.insert (reason: restore)" should not be logged
 
-    Scenario: tabs.mode_on_change_normal
-        Given I clean up open tabs
-        And I set tabs.mode_on_change to normal
+    Scenario: mode on change restore
+        Given I run :history-clear --force
+        And I set tabs.mode_on_change to restore
         When I open about:blank
         And I run :enter-mode insert
         And I open about:blank in a new tab
         And I run :enter-mode passthrough
         And I run :tab-focus 1
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
-        And "Leaving mode KeyMode.insert (reason: tab changed)" should be logged
-        And "Entering mode KeyMode.normal (reason: restore)" should not be logged
+        And "Leaving mode KeyMode.insert (reason: tab changed)" should not be logged
+        And "Entering mode KeyMode.normal (reason: restore)" should be logged
         And "Entering mode KeyMode.passthrough (reason: command)" should be logged
-        And "Leaving mode KeyMode.passthrough (reason: tab changed)" should be logged
-        And "Entering mode KeyMode.insert (reason: restore)" should not be logged
+        And "Leaving mode KeyMode.passthrough (reason: tab changed)" should not be logged
+        And "Entering mode KeyMode.insert (reason: restore)" should be logged
