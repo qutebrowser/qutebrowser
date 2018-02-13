@@ -1086,8 +1086,7 @@ class CommandDispatcher:
                        maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.buffer)
     @cmdutils.argument('count', count=True)
-    @cmdutils.argument('win_id', win_id=True)
-    def buffer(self, win_id, index=None, count=None):
+    def buffer(self, index=None, count=None):
         """Select tab by index or url/title best match.
 
         Focuses window if necessary when index is given. If both index and
