@@ -1,9 +1,9 @@
 {
     "app-id": "org.qutebrowser.qutebrowser",
     "branch": "stable",
-    "runtime": "org.kde.Platform",
-    "runtime-version": "5.9",
-    "sdk": "org.kde.Sdk",
+    "runtime": "org.freedesktop.Platform",
+    "runtime-version": "1.6",
+    "sdk": "org.freedesktop.Sdk",
     "command": "qutebrowser",
     "finish-args": [
         /* Nested sandboxes are currently not support by flatpak */
@@ -33,20 +33,19 @@
         "/lib/debug"
     ],
     "modules": [
+        "udev-175.json",
         {
-            "name": "PyQT5",
+            "name": "PyQt5",
             "buildsystem": "simple",
             "build-commands": [
-                "python3 configure.py --confirm-license --assume-shared --verbose --sip=/app/bin/sip --sip-incdir=/app/include/python3.5 --destdir /app/lib/python3.5/site-packages --bindir /app/bin --qml-plugindir=/app/lib/plugins/PyQt5 --no-sip-files --no-stubs --no-tools --no-qml-plugin",
-                "make",
-                "make install"
+                "pip3 install --prefix=/app PyQt5-5.10-5.10.0-cp35.cp36.cp37-abi3-manylinux1_x86_64.whl"
             ],
             "ensure-writable": ["easy-install.pth"],
             "sources": [
                 {
-                    "type": "archive",
-                    "url": "https://sourceforge.net/projects/pyqt/files/PyQt5/PyQt-5.9.2/PyQt5_gpl-5.9.2.tar.gz",
-                    "sha256": "c190dac598c97b0113ca5e7a37c71c623f02d1d713088addfacac4acfa4b8394"
+                    "type": "file",
+                    "url": "https://pypi.python.org/packages/ae/4b/c7315ba7a266d493ee50c4597b1b4dea2348896a49115b5192b21adf1a47/PyQt5-5.10-5.10.0-cp35.cp36.cp37-abi3-manylinux1_x86_64.whl",
+                    "sha256": "dbd1777d8e7540a6e7350482f1d7c981a073ce1b7195ac2cd21c204b3a28df57"
                 }
             ],
             "modules": [
@@ -54,22 +53,20 @@
                     "name": "sip",
                     "buildsystem": "simple",
                     "build-commands": [
-                        "python3 configure.py -d /app/lib/python3.5/site-packages -b /app/bin -e /app/include/python3.5 -v /app/share/sip",
-                        "make",
-                        "make install"
+                        "pip3 install --prefix=/app sip-4.19.7-cp35-cp35m-manylinux1_x86_64.whl"
                     ],
                     "ensure-writable": ["easy-install.pth"],
                     "sources": [
                         {
-                            "type": "archive",
-                            "url": "https://sourceforge.net/projects/pyqt/files/sip/sip-4.19.6/sip-4.19.6.tar.gz",
-                            "sha256": "9dda27ae181bea782ebc8768d29f22f85ab6e5128ee3ab21f491febad707925a"
+                            "type": "file",
+                            "url": "https://pypi.python.org/packages/65/aa/0ecb10b41090b2cd1a910d168aca4808f73b9c65d2ea7c25c852b942b2a0/sip-4.19.7-cp35-cp35m-manylinux1_x86_64.whl",
+                            "sha256": "776e169da554729f80337070348db49a6742d8aa317aec931a4d0f47b7ef535d"
                         }
                     ]
                 }
             ]
-         },
-         {
+        },
+        {
             "name": "MarkupSafe",
             "buildsystem": "simple",
             "build-commands": ["python3 setup.py install --prefix=/app"],
