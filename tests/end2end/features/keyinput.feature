@@ -178,6 +178,8 @@ Feature: Keyboard input
         And "Leaving mode KeyMode.passthrough (reason: tab changed)" should not be logged
         And "Entering mode KeyMode.insert (reason: restore)" should be logged
 
+    # we skip this for now because the logs are still present from the previous test with qt>=5.10 
+    @qt<5.10
     Scenario: tabs.mode_on_change_persist
         Given I clean up open tabs
         And I set tabs.mode_on_change to persist
