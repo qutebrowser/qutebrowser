@@ -35,9 +35,11 @@ import datetime
 import attr
 import pkg_resources
 import pytest
+from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 import qutebrowser
 from qutebrowser.utils import version, usertypes, utils
+from qutebrowser.misc import pastebin
 from qutebrowser.browser import pdfjs
 
 
@@ -950,3 +952,68 @@ def test_opengl_vendor():
     """Simply call version.opengl_vendor() and see if it doesn't crash."""
     pytest.importorskip("PyQt5.QtOpenGL")
     return version.opengl_vendor()
+
+
+class HTTPPostStub(QObject):
+
+    """A stub class for HTTPClient.
+
+    Attributes:
+        url: the last url send by post()
+        data: the last data send by post()
+    """
+
+    success = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.url = None
+        self.data = None
+
+    def post(self, url, data=None):
+        self.url = url
+        self.data = data
+
+
+@pytest.fixture
+def pbclient():
+    http_stub = HTTPPostStub()
+    client = pastebin.PastebinClient(http_stub)
+    return client
+
+
+def test_pastebin_version(pbclient, monkeypatch):
+    """Test version.pastebin_version() twice."""
+    patches = {
+        '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
+        '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
+    }
+
+    for name, val in patches.items():
+        monkeypatch.setattr('qutebrowser.utils.version.' + name, val)
+
+    version.pastebin_version(pbclient)
+    pbclient.success.emit("test")
+    assert version.pastebin_url == "test"
+
+    version.pastebin_version(pbclient)
+    assert version.pastebin_url == "test"
+
+
+def test_pastebin_version_error(pbclient, monkeypatch):
+    """Test version.pastebin_version() with errors."""
+    patches = {
+        '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
+        '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
+    }
+
+    for name, val in patches.items():
+        monkeypatch.setattr('qutebrowser.utils.version.' + name, val)
+
+    version.pastebin_url = None
+    version.pastebin_version(pbclient)
+    try:
+        pbclient.error.emit("test")
+    except:
+        assert version.pastebin_url is None
