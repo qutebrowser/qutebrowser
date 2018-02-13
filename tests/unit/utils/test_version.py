@@ -36,6 +36,7 @@ import attr
 import pkg_resources
 import pytest
 from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtWidgets import QApplication
 
 import qutebrowser
 from qutebrowser.utils import version, usertypes, utils
@@ -1017,3 +1018,9 @@ def test_pastebin_version_error(pbclient, caplog, monkeypatch):
         pbclient._client.error.emit("test")
     assert version.pastebin_url is None
     assert caplog.records[0].message == "Failed to pastebin version info: test"
+
+
+def test_uptime(monkeypatch):
+    """Test _uptime runs without failing. Its effects are tested elsewhere."""
+    QApplication.instance().launch_time = datetime.datetime(1, 1, 1)
+    version._uptime()
