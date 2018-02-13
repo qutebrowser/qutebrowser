@@ -87,6 +87,7 @@ Fixed
 - Suspended pages now should always load the correct page when being un-suspended.
 - Compatibility with Python 3.7
 - Exception types are now shown properly with `:config-source` and `:config-edit`.
+- When using `:bookmark-add --toggle`, bookmarks are now saved properly.
 
 Removed
 ~~~~~~~
