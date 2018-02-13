@@ -166,8 +166,7 @@ Feature: Keyboard input
     # :test all tabs.mode_on_change modes
 
     Scenario: mode on change normal
-        Given I run :history-clear --force
-        And I set tabs.mode_on_change to normal
+        Given I set tabs.mode_on_change to normal
         When I open about:blank
         And I run :enter-mode insert
         And I open about:blank in a new tab
@@ -181,8 +180,7 @@ Feature: Keyboard input
         And "Entering mode KeyMode.insert (reason: restore)" should not be logged
 
     Scenario: mode on change persist
-        Given I run :history-clear --force
-        And I set tabs.mode_on_change to persist
+        Given I set tabs.mode_on_change to persist
         When I open about:blank
         And I run :enter-mode insert
         And I open about:blank in a new tab
@@ -196,8 +194,7 @@ Feature: Keyboard input
         And "Entering mode KeyMode.insert (reason: restore)" should not be logged
 
     Scenario: mode on change restore
-        Given I run :history-clear --force
-        And I set tabs.mode_on_change to restore
+        Given I set tabs.mode_on_change to restore
         When I open about:blank
         And I run :enter-mode insert
         And I open about:blank in a new tab
