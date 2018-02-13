@@ -996,7 +996,7 @@ def test_pastebin_version_twice(pbclient, monkeypatch):
     version.pastebin_url = None
 
 
-def test_pastebin_version_error(pbclient, caplog, monkeypatch):
+def test_pastebin_version_error(pbclient, caplog, message_mock, monkeypatch):
     """Test version.pastebin_version() with errors."""
     monkeypatch.setattr('qutebrowser.utils.version.version',
                         lambda: "dummy")
@@ -1005,14 +1005,17 @@ def test_pastebin_version_error(pbclient, caplog, monkeypatch):
     with caplog.at_level(logging.ERROR):
         version.pastebin_version(pbclient)
         pbclient._client.error.emit("test")
+
     assert version.pastebin_url is None
-    assert caplog.records[0].message == "Failed to pastebin version info: test"
+
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    assert msg.text == "Failed to pastebin version info: test"
 
 
 def test_uptime(monkeypatch, qapp):
     """Test _uptime runs and check if microseconds are dropped."""
     launch_time = datetime.datetime(1, 1, 1, 1, 1, 1, 1)
-    qapp.launch_time = launch_time
+    monkeypatch.setattr(qapp, "launch_time", launch_time, raising=False)
 
     class FakeDateTime(datetime.datetime):
         now = lambda x=datetime.datetime(1, 1, 1, 1, 1, 1, 2): x
