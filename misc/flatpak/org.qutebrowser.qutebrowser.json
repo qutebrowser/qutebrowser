@@ -188,10 +188,9 @@
             "ensure-writable": ["easy-install.pth"],
             "sources": [
                 {
-                    "type": "git",
-                    "url": "https://github.com/qutebrowser/qutebrowser.git",
-                    "tag": "v1.1.1",
-                    "commit": "4e8abaa2d16103f42cb26919e50d59937a88ae8f"
+                    "type": "archive",
+                    "url": "https://github.com/qutebrowser/qutebrowser/archive/v1.1.1.tar.gz",
+                    "sha256": "9ac5b5c7382748481dd7fac35ffd0cfe509413880ffdc8a35eac9dafa5399166"
                 }
              ]
          }
