@@ -53,6 +53,9 @@ class UrlPattern:
             self._match_all = True
             return
 
+        if '\0' in pattern:
+            raise ValueError("May not contain NUL byte")
+
         # > If the scheme is *, then it matches either http or https, and not
         # > file, or ftp.
         # Note we deviate from that, as per-URL settings aren't security

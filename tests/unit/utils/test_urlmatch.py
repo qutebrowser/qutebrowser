@@ -45,6 +45,9 @@ from qutebrowser.utils import urlmatch
     # FIXME: should we allow this or not?
     # ("http://bar", "URLPattern::"),
 
+    # Chromium: PARSE_ERROR_INVALID_HOST
+    ("http://\0www/", "May not contain NUL byte"),
+
     # Chromium: PARSE_ERROR_INVALID_HOST_WILDCARD
     ("http://*foo/bar", "Invalid host wildcard"),
     ("http://foo.*.bar/baz", "Invalid host wildcard"),
