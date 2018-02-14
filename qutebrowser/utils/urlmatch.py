@@ -98,8 +98,17 @@ class UrlPattern:
         self._path = parsed.path
 
     def _init_host(self, parsed):
-        if self._scheme != 'about' and not parsed.hostname.strip():
-            raise ParseError("Pattern without host")
+        """Parse the host from the given URL.
+
+        Deviation from Chromium:
+        - http://:1234/ is not a valid URL because it has no host.
+        """
+        if parsed.hostname is None or not parsed.hostname.strip():
+            if self._scheme != 'about':
+                raise ParseError("Pattern without host")
+            assert self._host is None
+            return
+
         host_parts = parsed.hostname.split('.')
         if host_parts[0] == '*':
             host_parts = host_parts[1:]
@@ -110,8 +119,28 @@ class UrlPattern:
             raise ParseError("Invalid host wildcard")
 
     def _init_port(self, parsed):
-        # FIXME validation?
-        self._port = parsed.port
+        """Parse the port from the given URL.
+
+        Deviation from Chromium:
+        - file://foo:1234/bar is invalid instead of falling back to *
+        """
+        if parsed.netloc.endswith(':*'):
+            # We can't access parsed.port as it tries to run int()
+            self._port = '*'
+        elif parsed.netloc.endswith(':'):
+            raise ParseError("Empty port")
+        else:
+            try:
+                self._port = parsed.port
+            except ValueError:
+                raise ParseError("Invalid port")
+
+        allows_ports = {'https': True, 'http': True, 'ftp': True,
+                        'file': False, 'chrome': False, 'qute': False,
+                        'about': False}
+        if not allows_ports[self._scheme] and self._port is not None:
+            raise ParseError("Ports unsupported with {} scheme".format(
+                self._scheme))
 
     def __repr__(self):
         return utils.get_repr(self, pattern=self._pattern, constructor=True)
