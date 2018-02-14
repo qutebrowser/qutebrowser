@@ -678,7 +678,8 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         mm_instance = modeman.instance(self._win_id)
         current_mode = mm_instance.mode
-
+        log.modes.debug("{}: mode before tab change: {}."
+                        .format(mode_on_change, current_mode.name))
         if mode_on_change == 'normal':
             modes_to_leave += [usertypes.KeyMode.insert,
                                usertypes.KeyMode.passthrough]
@@ -689,6 +690,8 @@ class TabbedBrowser(tabwidget.TabWidget):
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
                             scope='window', window=self._win_id)
+        log.modes.debug("{}: mode after tab change: {}."
+                        .format(mode_on_change, mm_instance.mode.name))
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         QTimer.singleShot(0, self._update_window_title)

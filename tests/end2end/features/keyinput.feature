@@ -167,42 +167,39 @@ Feature: Keyboard input
 
     Scenario: mode on change normal
         Given I set tabs.mode_on_change to normal
+        And I clean up open tabs
         When I open about:blank
         And I run :enter-mode insert
         And I open about:blank in a new tab
-        And I run :enter-mode passthrough
-        And I run :tab-focus 1
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
         And "Leaving mode KeyMode.insert (reason: tab changed)" should be logged
-        And "Entering mode KeyMode.normal (reason: restore)" should not be logged
-        And "Entering mode KeyMode.passthrough (reason: command)" should be logged
-        And "Leaving mode KeyMode.passthrough (reason: tab changed)" should be logged
-        And "Entering mode KeyMode.insert (reason: restore)" should not be logged
+        And "normal: mode before tab change: insert." should be logged
+        And "normal: mode after tab change: normal." should be logged
 
     Scenario: mode on change persist
         Given I set tabs.mode_on_change to persist
+        And I clean up open tabs
         When I open about:blank
         And I run :enter-mode insert
         And I open about:blank in a new tab
-        And I run :enter-mode passthrough
-        And I run :tab-focus 1
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
-        And "Leaving mode KeyMode.insert (reason: tab changed)" should not be logged
-        And "Entering mode KeyMode.normal (reason: restore)" should not be logged
-        And "Entering mode KeyMode.passthrough (reason: command)" should be logged
-        And "Leaving mode KeyMode.passthrough (reason: tab changed)" should not be logged
-        And "Entering mode KeyMode.insert (reason: restore)" should not be logged
+        And "persist: mode before tab change: insert." should be logged
+        And "persist: mode after tab change: insert." should be logged
 
     Scenario: mode on change restore
         Given I set tabs.mode_on_change to restore
+        And I clean up open tabs
         When I open about:blank
         And I run :enter-mode insert
         And I open about:blank in a new tab
         And I run :enter-mode passthrough
         And I run :tab-focus 1
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
-        And "Leaving mode KeyMode.insert (reason: tab changed)" should not be logged
+        And "restore: mode before tab change: insert." should be logged
         And "Entering mode KeyMode.normal (reason: restore)" should be logged
+        And "restore: mode after tab change: normal." should be logged
         And "Entering mode KeyMode.passthrough (reason: command)" should be logged
-        And "Leaving mode KeyMode.passthrough (reason: tab changed)" should not be logged
+        And "restore: mode before tab change: passthrough." should be logged
         And "Entering mode KeyMode.insert (reason: restore)" should be logged
+        And "restore: mode after tab change: insert." should be logged
+
