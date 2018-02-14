@@ -44,6 +44,8 @@ class UrlPattern:
         self._match_subdomains = False
         self._scheme = None
         self._host = None
+        self._path = None
+        self._port = None
 
         # > The special pattern <all_urls> matches any URL that starts with a
         # > permitted scheme.
@@ -70,6 +72,7 @@ class UrlPattern:
         self._init_scheme(parsed)
         self._init_host(parsed)
         self._init_path(parsed)
+        self._init_port(parsed)
 
     def _init_scheme(self, parsed):
         if not parsed.scheme:
@@ -79,9 +82,9 @@ class UrlPattern:
         self._scheme = parsed.scheme
 
     def _init_path(self, parsed):
-        # FIXME store somewhere
         if self._scheme == 'about' and not parsed.path.strip():
             raise ValueError("Pattern without path")
+        self._path = parsed.path
 
     def _init_host(self, parsed):
         if self._scheme != 'about' and not parsed.netloc.strip():
@@ -94,6 +97,10 @@ class UrlPattern:
         if '*' in self._host:
             # Only * or *.foo is allowed as host.
             raise ValueError("Invalid host wildcard")
+
+    def _init_port(self, parsed):
+        # FIXME validation?
+        self._port = parsed.port
 
     def __repr__(self):
         return utils.get_repr(self, pattern=self._pattern, constructor=True)

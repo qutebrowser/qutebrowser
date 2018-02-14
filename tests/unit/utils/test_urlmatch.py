@@ -50,8 +50,6 @@ from qutebrowser.utils import urlmatch
     ("http://foo.*.bar/baz", "Invalid host wildcard"),
     ("http://fo.*.ba:123/baz", "Invalid host wildcard"),
     ("http://foo.*/bar", "Invalid host wildcard"),
-
-    # Some more tests
 ])
 def test_invalid_patterns(pattern, error):
     with pytest.raises(ValueError, match=error):
