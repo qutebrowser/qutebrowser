@@ -673,13 +673,18 @@ class TabbedBrowser(tabwidget.TabWidget):
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
 
+        prompt_modes = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
         modes_to_leave = [usertypes.KeyMode.hint, usertypes.KeyMode.caret]
+
+        mm_instance = modeman.instance(self._win_id)
+        current_mode = mm_instance.mode
+
         if mode_on_change == 'normal':
             modes_to_leave += [usertypes.KeyMode.insert,
                                usertypes.KeyMode.passthrough]
         for mode in modes_to_leave:
             modeman.leave(self._win_id, mode, 'tab changed', maybe=True)
-        if mode_on_change == 'restore':
+        if mode_on_change == 'restore' and current_mode not in prompt_modes:
             modeman.enter(self._win_id, tab.data.input_mode, 'restore')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
