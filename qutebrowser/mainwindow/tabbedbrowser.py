@@ -637,7 +637,9 @@ class TabbedBrowser(tabwidget.TabWidget):
         input_modes = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
         if (mode in input_modes and
                 config.val.tabs.mode_on_change == 'restore'):
-            self.currentWidget().data.input_mode = mode
+            tab = self.currentWidget()
+            if tab != 0:
+                tab.data.input_mode = mode
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
@@ -651,7 +653,9 @@ class TabbedBrowser(tabwidget.TabWidget):
                 return
             widget.setFocus()
         elif config.val.tabs.mode_on_change == 'restore':
-            self.currentWidget().data.input_mode = usertypes.KeyMode.normal
+            tab = self.currentWidget()
+            if tab != 0:
+                tab.data.input_mode = usertypes.KeyMode.normal
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
