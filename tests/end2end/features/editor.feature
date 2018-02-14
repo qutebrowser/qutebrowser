@@ -105,6 +105,7 @@ Feature: Opening external editors
 
     Scenario: Spawning an editor in normal mode
         When I set up a fake editor returning "foobar"
+        And I set input.blur_on_mode_leave to false
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
@@ -132,6 +133,7 @@ Feature: Opening external editors
     @qtwebengine_todo: Caret mode is not implemented yet
     Scenario: Spawning an editor in caret mode
         When I set up a fake editor returning "foobar"
+        And I set input.blur_on_mode_leave to false
         And I open data/editor.html
         And I run :click-element id qute-textarea
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
