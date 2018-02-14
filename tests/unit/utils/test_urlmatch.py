@@ -57,3 +57,30 @@ from qutebrowser.utils import urlmatch
 def test_invalid_patterns(pattern, error):
     with pytest.raises(ValueError, match=error):
         urlmatch.UrlPattern(pattern)
+
+
+@pytest.mark.parametrize('pattern, port', [
+    ("http://foo:1234/", 1234),
+    ("http://foo:1234/bar", 1234),
+    ("http://*.foo:1234/", 1234),
+    ("http://*.foo:1234/bar", 1234),
+    ("http://:1234/", 1234),
+    ("http://foo:*/", "*"),
+    ("file://foo:1234/bar", "*"),
+])
+def test_port_valid(pattern, port):
+    up = urlmatch.UrlPattern(pattern)
+    assert up._port == port
+
+
+@pytest.mark.parametrize('pattern', [
+    "http://foo:/",
+    "http://*.foo:/",
+    "http://foo:com/",
+    "http://foo:123456/",
+    "http://foo:80:80/monkey",
+    "chrome://foo:1234/bar",
+])
+def test_port_invalid(pattern):
+    with pytest.raises(ValueError, match='Invalid Port'):
+        urlmatch.UrlPattern(pattern)

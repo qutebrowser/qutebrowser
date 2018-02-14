@@ -90,9 +90,9 @@ class UrlPattern:
         self._path = parsed.path
 
     def _init_host(self, parsed):
-        if self._scheme != 'about' and not parsed.netloc.strip():
+        if self._scheme != 'about' and not parsed.hostname.strip():
             raise ValueError("Pattern without host")
-        host_parts = parsed.netloc.split('.')
+        host_parts = parsed.hostname.split('.')
         if host_parts[0] == '*':
             host_parts = host_parts[1:]
             self._match_subdomains = True
