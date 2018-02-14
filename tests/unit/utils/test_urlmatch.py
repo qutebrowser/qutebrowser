@@ -53,6 +53,14 @@ from qutebrowser.utils import urlmatch
     ("http://foo.*.bar/baz", "Invalid host wildcard"),
     ("http://fo.*.ba:123/baz", "Invalid host wildcard"),
     ("http://foo.*/bar", "Invalid host wildcard"),
+
+    # Chromium: PARSE_ERROR_INVALID_PORT
+    ("http://foo:/", "Empty port"),
+    ("http://*.foo:/", "Empty port"),
+    ("http://foo:com/", "Invalid port"),
+    ("http://foo:123456/", "Invalid port"),
+    ("http://foo:80:80/monkey", "Invalid port"),
+    ("chrome://foo:1234/bar", "Ports are unsupported with chrome scheme"),
 ])
 def test_invalid_patterns(pattern, error):
     with pytest.raises(urlmatch.ParseError, match=error):
@@ -70,19 +78,6 @@ def test_invalid_patterns(pattern, error):
     # FIXME Why is this valid in Chromium?
     # ("file://foo:1234/bar", "*"),
 ])
-def test_port_valid(pattern, port):
+def test_port(pattern, port):
     up = urlmatch.UrlPattern(pattern)
     assert up._port == port
-
-
-@pytest.mark.parametrize('pattern', [
-    "http://foo:/",
-    "http://*.foo:/",
-    "http://foo:com/",
-    "http://foo:123456/",
-    "http://foo:80:80/monkey",
-    "chrome://foo:1234/bar",
-])
-def test_port_invalid(pattern):
-    with pytest.raises(urlmatch.ParseError):
-        urlmatch.UrlPattern(pattern)

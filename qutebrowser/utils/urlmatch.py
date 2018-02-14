@@ -139,7 +139,7 @@ class UrlPattern:
                         'file': False, 'chrome': False, 'qute': False,
                         'about': False}
         if not allows_ports[self._scheme] and self._port is not None:
-            raise ParseError("Ports unsupported with {} scheme".format(
+            raise ParseError("Ports are unsupported with {} scheme".format(
                 self._scheme))
 
     def __repr__(self):
