@@ -55,7 +55,7 @@ from qutebrowser.utils import urlmatch
     ("http://foo.*/bar", "Invalid host wildcard"),
 ])
 def test_invalid_patterns(pattern, error):
-    with pytest.raises(ValueError, match=error):
+    with pytest.raises(urlmatch.ParseError, match=error):
         urlmatch.UrlPattern(pattern)
 
 
@@ -82,5 +82,5 @@ def test_port_valid(pattern, port):
     "chrome://foo:1234/bar",
 ])
 def test_port_invalid(pattern):
-    with pytest.raises(ValueError, match='Invalid Port'):
+    with pytest.raises(urlmatch.ParseError):
         urlmatch.UrlPattern(pattern)

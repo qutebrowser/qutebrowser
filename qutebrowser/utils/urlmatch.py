@@ -31,6 +31,11 @@ import urllib.parse
 from qutebrowser.utils import utils
 
 
+class ParseError(Exception):
+
+    """Raised when a pattern could not be parsed."""
+
+
 class UrlPattern:
 
     """A Chromium-like URL matching pattern."""
@@ -54,7 +59,7 @@ class UrlPattern:
             return
 
         if '\0' in pattern:
-            raise ValueError("May not contain NUL byte")
+            raise ParseError("May not contain NUL byte")
 
         # > If the scheme is *, then it matches either http or https, and not
         # > file, or ftp.
@@ -66,11 +71,14 @@ class UrlPattern:
 
         # We use urllib.parse instead of QUrl here because it can handle
         # hosts with * in them.
-        parsed = urllib.parse.urlparse(pattern)
+        try:
+            parsed = urllib.parse.urlparse(pattern)
+        except ValueError as e:
+            raise ParseError(str(e))
         # "Changed in version 3.6: Out-of-range port numbers now raise
         # ValueError, instead of returning None."
         if parsed is None:
-            raise ValueError("Failed to parse {}".format(pattern))
+            raise ParseError("Failed to parse {}".format(pattern))
 
         self._init_scheme(parsed)
         self._init_host(parsed)
@@ -79,19 +87,19 @@ class UrlPattern:
 
     def _init_scheme(self, parsed):
         if not parsed.scheme:
-            raise ValueError("No scheme given")
+            raise ParseError("No scheme given")
         if parsed.scheme not in self.SCHEMES:
-            raise ValueError("Unknown scheme {}".format(parsed.scheme))
+            raise ParseError("Unknown scheme {}".format(parsed.scheme))
         self._scheme = parsed.scheme
 
     def _init_path(self, parsed):
         if self._scheme == 'about' and not parsed.path.strip():
-            raise ValueError("Pattern without path")
+            raise ParseError("Pattern without path")
         self._path = parsed.path
 
     def _init_host(self, parsed):
         if self._scheme != 'about' and not parsed.hostname.strip():
-            raise ValueError("Pattern without host")
+            raise ParseError("Pattern without host")
         host_parts = parsed.hostname.split('.')
         if host_parts[0] == '*':
             host_parts = host_parts[1:]
@@ -99,7 +107,7 @@ class UrlPattern:
         self._host = '.'.join(host_parts)
         if '*' in self._host:
             # Only * or *.foo is allowed as host.
-            raise ValueError("Invalid host wildcard")
+            raise ParseError("Invalid host wildcard")
 
     def _init_port(self, parsed):
         # FIXME validation?
