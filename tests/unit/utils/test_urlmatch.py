@@ -103,7 +103,7 @@ class TestMatchAllPagesForGivenScheme:
 
     def test_attrs(self, up):
         assert up._scheme == 'http'
-        assert up._host == ''  # FIXME '' or None?
+        assert up._host is None
         assert up._match_subdomains
         assert not up._match_all
         assert up._path == '/*'
@@ -127,7 +127,7 @@ class TestMatchAllDomains:
 
     def test_attrs(self, up):
         assert up._scheme == 'https'
-        assert up._host == ''  # FIXME '' or None?
+        assert up._host is None
         assert up._match_subdomains
         assert not up._match_all
         assert up._path == '/foo*'
@@ -175,7 +175,7 @@ class TestMatchGlobEscaping:
 
     def test_attrs(self, up):
         assert up._scheme == 'file'
-        assert up._host == ''  # FIXME '' or None?
+        assert up._host is None
         assert not up._match_subdomains
         assert not up._match_all
         assert up._path == r'/foo-bar\*baz'

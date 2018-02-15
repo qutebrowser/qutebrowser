@@ -53,7 +53,7 @@ class UrlPattern:
                  Note that with Chromium, '*'/None only matches http/https and
                  not file/ftp. We deviate from that as per-URL settings aren't
                  security relevant.
-        _host: The host to match to, or None for any host. (FIXME true?)
+        _host: The host to match to, or None for any host.
         _path: The path to match to, or None for any path. (FIXME true?)
         _port: The port to match to as integer, or None for any port.
     """
@@ -139,6 +139,10 @@ class UrlPattern:
             host_parts = host_parts[1:]
             self._match_subdomains = True
 
+        if not host_parts:
+            self._host = None
+            return
+
         self._host = '.'.join(host_parts)
 
         if self._host.endswith('.*'):
@@ -183,6 +187,9 @@ class UrlPattern:
     def _matches_host(self, host):
         # FIXME what about multiple dots?
         host = host.rstrip('.')
+
+        if self._host is None:
+            return True
 
         # If the hosts are exactly equal, we have a match.
         if host == self._host:
