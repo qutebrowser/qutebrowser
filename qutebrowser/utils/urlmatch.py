@@ -42,9 +42,6 @@ class UrlPattern:
 
     """A Chromium-like URL matching pattern.
 
-    Class attributes:
-        SCHEMES: Schemes which are allowed in patterns.
-
     Attributes:
         _pattern: The given pattern as string.
         _match_all: Whether the pattern should match all URLs.
@@ -58,8 +55,6 @@ class UrlPattern:
         _path: The path to match to, or None for any path.
         _port: The port to match to as integer, or None for any port.
     """
-
-    SCHEMES = ['https', 'http', 'ftp', 'file', 'chrome', 'qute', 'about']
 
     def __init__(self, pattern):
         # Make sure all attributes are initialized if we exit early.
@@ -116,8 +111,6 @@ class UrlPattern:
         elif parsed.scheme == 'any':
             self._scheme = None
             return
-        elif parsed.scheme not in self.SCHEMES:
-            raise ParseError("Unknown scheme {}".format(parsed.scheme))
 
         self._scheme = parsed.scheme
 
@@ -186,8 +179,6 @@ class UrlPattern:
         return utils.get_repr(self, pattern=self._pattern, constructor=True)
 
     def _matches_scheme(self, scheme):
-        if scheme not in self.SCHEMES:
-            return False
         return self._scheme is None or self._scheme == scheme
 
     def _matches_host(self, host):
