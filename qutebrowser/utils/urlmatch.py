@@ -127,11 +127,11 @@ class UrlPattern:
         """Parse the port from the given URL.
 
         Deviation from Chromium:
-        - file://foo:1234/bar is invalid instead of falling back to *
+        - We use None instead of "*" if there's no port filter.
         """
         if parsed.netloc.endswith(':*'):
             # We can't access parsed.port as it tries to run int()
-            self._port = '*'
+            self._port = None
         elif parsed.netloc.endswith(':'):
             raise ParseError("Empty port")
         else:
@@ -146,10 +146,6 @@ class UrlPattern:
         if not allows_ports[self._scheme] and self._port is not None:
             raise ParseError("Ports are unsupported with {} scheme".format(
                 self._scheme))
-
-        if self._port is None and self._scheme == 'file':
-            # FIXME compatibility with Chromium, but is this needed?
-            self._port = '*'
 
     def __repr__(self):
         return utils.get_repr(self, pattern=self._pattern, constructor=True)

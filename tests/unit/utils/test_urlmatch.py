@@ -74,8 +74,15 @@ def test_invalid_patterns(pattern, error):
     ("http://*.foo:1234/bar", 1234),
     # FIXME Why is this valid in Chromium?
     # ("http://:1234/", 1234),
-    ("http://foo:*/", "*"),
-    ("file://foo:1234/bar", "*"),
+    ("http://foo:*/", None),
+    ("file://foo:1234/bar", None),
+
+    # Port-like strings in the path should not trigger a warning.
+    ("http://*/:1234", None),
+    ("http://*.foo/bar:1234", None),
+    ("http://foo/bar:1234/path", None),
+    # We don't implement ALLOW_WILDCARD_FOR_EFFECTIVE_TLD yet.
+    # ("http://*.foo.*/:1234", None),
 ])
 def test_port(pattern, port):
     up = urlmatch.UrlPattern(pattern)
