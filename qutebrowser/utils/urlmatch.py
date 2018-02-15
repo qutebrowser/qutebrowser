@@ -55,7 +55,7 @@ class UrlPattern:
                  not file/ftp. We deviate from that as per-URL settings aren't
                  security relevant.
         _host: The host to match to, or None for any host.
-        _path: The path to match to, or None for any path. (FIXME true?)
+        _path: The path to match to, or None for any path.
         _port: The port to match to as integer, or None for any port.
     """
 
@@ -124,7 +124,8 @@ class UrlPattern:
     def _init_path(self, parsed):
         if self._scheme == 'about' and not parsed.path.strip():
             raise ParseError("Pattern without path")
-        self._path = parsed.path
+
+        self._path = None if parsed.path == '/*' else parsed.path
 
     def _init_host(self, parsed):
         """Parse the host from the given URL.
@@ -228,6 +229,9 @@ class UrlPattern:
         return self._port is None or self._port == port
 
     def _matches_path(self, path):
+        if self._path is None:
+            return True
+
         # Match 'google.com' with 'google.com/'
         # FIXME use the no-copy approach Chromium has in URLPattern::MatchesPath
         # for performance?

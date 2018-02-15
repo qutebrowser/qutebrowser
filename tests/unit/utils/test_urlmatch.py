@@ -107,7 +107,7 @@ class TestMatchAllPagesForGivenScheme:
         assert up._host is None
         assert up._match_subdomains
         assert not up._match_all
-        assert up._path == '/*'
+        assert up._path is None
 
     @pytest.mark.parametrize('url, expected', [
         ("http://google.com", True),
@@ -202,7 +202,7 @@ class TestMatchIpAddresses:
         assert up._host == host
         assert up._match_subdomains == match_subdomains
         assert not up._match_all
-        assert up._path == '/*'
+        assert up._path is None
 
     @pytest.mark.parametrize('pattern, expected', [
         ("http://127.0.0.1/*", True),
@@ -225,7 +225,7 @@ class TestMatchChromeUrls:
         assert up._host == 'favicon'
         assert not up._match_subdomains
         assert not up._match_all
-        assert up._path == '/*'
+        assert up._path is None
 
     @pytest.mark.parametrize('url, expected', [
         ("chrome://favicon/http://google.com", True),
