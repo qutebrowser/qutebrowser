@@ -268,7 +268,7 @@ class StatusBar(QWidget):
         """Get the currently displayed tab."""
         window = objreg.get('tabbed-browser', scope='window',
                             window=self._win_id)
-        return window.currentWidget()
+        return window.widget.currentWidget()
 
     def set_mode_active(self, mode, val):
         """Setter for self.{insert,command,caret}_active.

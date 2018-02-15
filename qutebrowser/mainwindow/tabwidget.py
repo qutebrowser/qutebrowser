@@ -60,7 +60,7 @@ class TabWidget(QTabWidget):
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
         bar.tabMoved.connect(functools.partial(
-            QTimer.singleShot, 0, self._update_tab_titles))
+            QTimer.singleShot, 0, self.update_tab_titles))
         bar.currentChanged.connect(self._on_current_changed)
         bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -108,7 +108,7 @@ class TabWidget(QTabWidget):
 
         bar.set_tab_data(idx, 'pinned', pinned)
         tab.data.pinned = pinned
-        self._update_tab_title(idx)
+        self.update_tab_title(idx)
 
     def tab_indicator_color(self, idx):
         """Get the tab indicator color for the given index."""
@@ -117,13 +117,13 @@ class TabWidget(QTabWidget):
     def set_page_title(self, idx, title):
         """Set the tab title user data."""
         self.tabBar().set_tab_data(idx, 'page-title', title)
-        self._update_tab_title(idx)
+        self.update_tab_title(idx)
 
     def page_title(self, idx):
         """Get the tab title user data."""
         return self.tabBar().page_title(idx)
 
-    def _update_tab_title(self, idx, field=None):
+    def update_tab_title(self, idx, field=None):
         """Update the tab text for the given tab.
 
         Args:
@@ -197,20 +197,20 @@ class TabWidget(QTabWidget):
         fields['scroll_pos'] = scroll_pos
         return fields
 
-    def _update_tab_titles(self):
+    def update_tab_titles(self):
         """Update all texts."""
         for idx in range(self.count()):
-            self._update_tab_title(idx)
+            self.update_tab_title(idx)
 
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
         super().tabInserted(idx)
-        self._update_tab_titles()
+        self.update_tab_titles()
 
     def tabRemoved(self, idx):
         """Update titles when a tab was removed."""
         super().tabRemoved(idx)
-        self._update_tab_titles()
+        self.update_tab_titles()
 
     def addTab(self, page, icon_or_text, text_or_empty=None):
         """Override addTab to use our own text setting logic.

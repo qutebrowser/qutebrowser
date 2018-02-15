@@ -528,12 +528,12 @@ def test_session_completion(qtmodeltester, session_manager_stub):
 
 def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
                         tabbed_browser_stubs):
-    tabbed_browser_stubs[0].tabs = [
+    tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
         fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
     ]
-    tabbed_browser_stubs[1].tabs = [
+    tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     model = miscmodels.buffer()
@@ -556,12 +556,12 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
 def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
                                win_registry, tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
-    tabbed_browser_stubs[0].tabs = [
+    tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
         fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
     ]
-    tabbed_browser_stubs[1].tabs = [
+    tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     model = miscmodels.buffer()
@@ -577,19 +577,19 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
     assert model.data(idx) == '0/2'
 
     model.delete_cur_item(idx)
-    actual = [tab.url() for tab in tabbed_browser_stubs[0].tabs]
+    actual = [tab.url() for tab in tabbed_browser_stubs[0].widget.tabs]
     assert actual == [QUrl('https://github.com'),
                       QUrl('https://duckduckgo.com')]
 
 
 def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
                                  win_registry, tabbed_browser_stubs, info):
-    tabbed_browser_stubs[0].tabs = [
+    tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
         fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
     ]
-    tabbed_browser_stubs[1].tabs = [
+    tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
     ]
     info.win_id = 1
@@ -609,12 +609,12 @@ def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
 
 def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
                            info):
-    tabbed_browser_stubs[0].tabs = [
+    tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
         fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2)
     ]
-    tabbed_browser_stubs[1].tabs = [
+    tabbed_browser_stubs[1].widget.tabs = [
         fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0)
     ]
 
