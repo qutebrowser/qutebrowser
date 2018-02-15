@@ -23,6 +23,7 @@ import copy
 import contextlib
 import functools
 
+import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from qutebrowser.config import configdata, configexc
@@ -225,12 +226,25 @@ class KeyConfig:
         self._config.update_mutables(save_yaml=save_yaml)
 
 
+@attr.s
+class PerUrlSettings:
+
+    """A simple container with an URL pattern and settings for it."""
+
+    pattern = attr.ib()
+    values = attr.ib(default=attr.Factory(dict))
+
+
 class Config(QObject):
 
     """Main config object.
 
     Attributes:
         _values: A dict mapping setting names to their values.
+        _per_url_values: A mapping from UrlPattern objects to PerUrlSetting
+                         instances. Note that dict lookup is currently only
+                         useful for finding the pattern when adding values, not
+                         for getting values.
         _mutables: A dictionary of mutable objects to be checked for changes.
         _yaml: A YamlConfig object or None.
 
@@ -244,13 +258,18 @@ class Config(QObject):
         super().__init__(parent)
         self.changed.connect(_render_stylesheet.cache_clear)
         self._values = {}
+        self._per_url_values = {}
         self._mutables = {}
         self._yaml = yaml_config
 
     def __iter__(self):
-        """Iterate over Option, value tuples."""
+        """Iterate over UrlPattern, Option, value tuples."""
         for name, value in sorted(self._values.items()):
-            yield (self.get_opt(name), value)
+            yield (None, self.get_opt(name), value)
+
+        for pattern, options in sorted(self._per_url_values.items()):
+            for name, value in sorted(options.values.items()):
+                yield (pattern, self.get_opt(name), value)
 
     def init_save_manager(self, save_manager):
         """Make sure the config gets saved properly.
@@ -260,14 +279,31 @@ class Config(QObject):
         """
         self._yaml.init_save_manager(save_manager)
 
-    def _set_value(self, opt, value):
+    def _get_values(self, pattern=None, create=False):
+        """Get the appropriate _values instance for the given pattern.
+
+        With create=True, create a new one instead of returning an empty dict.
+        """
+        if pattern is None:
+            return self._values
+        elif pattern in self._per_url_values:
+            return self._per_url_values[pattern].values
+        elif create:
+            settings = PerUrlSettings(pattern)
+            self._per_url_values[pattern] = settings
+            return settings.values
+        else:
+            return {}
+
+    def _set_value(self, opt, value, pattern=None):
         """Set the given option to the given value."""
         if not isinstance(objects.backend, objects.NoBackend):
             if objects.backend not in opt.backends:
                 raise configexc.BackendError(opt.name, objects.backend)
 
         opt.typ.to_py(value)  # for validation
-        self._values[opt.name] = opt.typ.from_obj(value)
+        values = self._get_values(pattern, create=True)
+        values[opt.name] = opt.typ.from_obj(value)
 
         self.changed.emit(opt.name)
         log.config.debug("Config option changed: {} = {}".format(
@@ -276,8 +312,9 @@ class Config(QObject):
     def read_yaml(self):
         """Read the YAML settings from self._yaml."""
         self._yaml.load()
-        for name, value in self._yaml:
-            self._set_value(self.get_opt(name), value)
+        # FIXME:conf implement in self._yaml
+        for pattern, name, value in self._yaml:
+            self._set_value(self.get_opt(name), value, pattern=pattern)
 
     def get_opt(self, name):
         """Get a configdata.Option object for the given setting."""
@@ -290,16 +327,18 @@ class Config(QObject):
                 name, deleted=deleted, renamed=renamed)
             raise exception from None
 
-    def get(self, name):
+    def get(self, name, pattern=None):
         """Get the given setting converted for Python code."""
         opt = self.get_opt(name)
-        obj = self.get_obj(name, mutable=False)
+        obj = self.get_obj(name, mutable=False, pattern=pattern)
         return opt.typ.to_py(obj)
 
-    def get_obj(self, name, *, mutable=True):
+    def get_obj(self, name, *, mutable=True, pattern=None):
         """Get the given setting as object (for YAML/config.py).
 
         If mutable=True is set, watch the returned object for mutations.
+        If a pattern is given, get the per-domain setting for that pattern (if
+        any).
         """
         opt = self.get_opt(name)
         obj = None
@@ -311,7 +350,8 @@ class Config(QObject):
         # Otherwise, we return a copy of the value stored internally, so the
         # internal value can never be changed by mutating the object returned.
         else:
-            obj = copy.deepcopy(self._values.get(name, opt.default))
+            values = self._get_values(pattern)
+            obj = copy.deepcopy(values.get(name, opt.default))
             # Then we watch the returned object for changes.
             if isinstance(obj, (dict, list)):
                 if mutable:
@@ -321,22 +361,23 @@ class Config(QObject):
                 assert obj.__hash__ is not None, obj
         return obj
 
-    def get_str(self, name):
+    def get_str(self, name, *, pattern=None):
         """Get the given setting as string."""
         opt = self.get_opt(name)
-        value = self._values.get(name, opt.default)
+        values = self._get_values(pattern)
+        value = values.get(name, opt.default)
         return opt.typ.to_str(value)
 
-    def set_obj(self, name, value, *, save_yaml=False):
+    def set_obj(self, name, value, *, pattern=None, save_yaml=False):
         """Set the given setting from a YAML/config.py object.
 
         If save_yaml=True is given, store the new value to YAML.
         """
-        self._set_value(self.get_opt(name), value)
+        self._set_value(self.get_opt(name), value, pattern=pattern)
         if save_yaml:
-            self._yaml[name] = value
+            self._yaml.set_obj(name, value, pattern=pattern)
 
-    def set_str(self, name, value, *, save_yaml=False):
+    def set_str(self, name, value, *, pattern=None, save_yaml=False):
         """Set the given setting from a string.
 
         If save_yaml=True is given, store the new value to YAML.
@@ -346,21 +387,22 @@ class Config(QObject):
         log.config.debug("Setting {} (type {}) to {!r} (converted from {!r})"
                          .format(name, opt.typ.__class__.__name__, converted,
                                  value))
-        self._set_value(opt, converted)
+        self._set_value(opt, converted, pattern=pattern)
         if save_yaml:
-            self._yaml[name] = converted
+            self._yaml.set_obj(name, converted, pattern=pattern)
 
-    def unset(self, name, *, save_yaml=False):
+    def unset(self, name, *, save_yaml=False, pattern=None):
         """Set the given setting back to its default."""
         self.get_opt(name)
+        values = self._get_values(pattern)
         try:
-            del self._values[name]
+            del values[name]
         except KeyError:
             return
         self.changed.emit(name)
 
         if save_yaml:
-            self._yaml.unset(name)
+            self._yaml.unset(name, pattern=pattern)
 
     def clear(self, *, save_yaml=False):
         """Clear all settings in the config.
@@ -368,6 +410,7 @@ class Config(QObject):
         If save_yaml=True is given, also remove all customization from the YAML
         file.
         """
+        # FIXME:conf support per-URL settings?
         old_values = self._values
         self._values = {}
         for name in old_values:
@@ -398,9 +441,13 @@ class Config(QObject):
             The changed config part as string.
         """
         lines = []
-        for opt, value in self:
+        for pattern, opt, value in self:
             str_value = opt.typ.to_str(value)
-            lines.append('{} = {}'.format(opt.name, str_value))
+            if pattern is None:
+                lines.append('{} = {}'.format(opt.name, str_value))
+            else:
+                lines.append('{}: {} = {}'.format(pattern, opt.name,
+                                                  str_value))
         if not lines:
             lines = ['<Default configuration>']
         return '\n'.join(lines)

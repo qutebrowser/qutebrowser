@@ -95,6 +95,17 @@ class UrlPattern:
         self._init_path(parsed)
         self._init_port(parsed)
 
+    def _to_tuple(self):
+        """Get a pattern with information used for __eq__/__hash__."""
+        return (self._match_all, self._match_subdomains, self._scheme,
+                self._host, self._path, self._port)
+
+    def __hash__(self):
+        return hash(self._to_tuple())
+
+    def __eq__(self, other):
+        return self._to_tuple() == other._to_tuple()
+
     def _fixup_pattern(self, pattern):
         """Make sure the given pattern is parseable by urllib.parse."""
         if pattern.startswith('*:'):  # Any scheme, but *:// is unparseable
