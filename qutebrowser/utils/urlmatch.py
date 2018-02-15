@@ -113,8 +113,12 @@ class UrlPattern:
     def _init_scheme(self, parsed):
         if not parsed.scheme:
             raise ParseError("No scheme given")
-        if parsed.scheme not in self.SCHEMES:
+        elif parsed.scheme == 'any':
+            self._scheme = None
+            return
+        elif parsed.scheme not in self.SCHEMES:
             raise ParseError("Unknown scheme {}".format(parsed.scheme))
+
         self._scheme = parsed.scheme
 
     def _init_path(self, parsed):
@@ -172,7 +176,7 @@ class UrlPattern:
 
         allows_ports = {'https': True, 'http': True, 'ftp': True,
                         'file': False, 'chrome': False, 'qute': False,
-                        'about': False}
+                        'about': False, None: True}
         if not allows_ports[self._scheme] and self._port is not None:
             raise ParseError("Ports are unsupported with {} scheme".format(
                 self._scheme))
