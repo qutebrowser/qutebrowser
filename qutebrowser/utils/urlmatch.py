@@ -99,6 +99,7 @@ class UrlPattern:
             pattern = 'any:' + pattern[2:]
 
         # Chromium handles file://foo like file:///foo
+        # FIXME This doesn't actually strip the hostname correctly.
         if (pattern.startswith('file://') and
                 not pattern.startswith('file:///')):
             pattern = 'file:///' + pattern[len("file://"):]

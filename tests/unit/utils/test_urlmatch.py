@@ -281,3 +281,33 @@ class TestMatchAnything:
 ])
 def test_special_schemes(pattern, url, expected):
     assert urlmatch.UrlPattern(pattern).matches(QUrl(url)) == expected
+
+
+class TestFileScheme:
+
+    @pytest.fixture(params=[
+        'file:///foo*',
+        'file://foo*',
+        # FIXME This doesn't pass all tests
+        pytest.param('file://localhost/foo*', marks=pytest.mark.skip(
+            reason="We're not handling this correctly in all cases"))
+    ])
+    def up(self, request):
+        return urlmatch.UrlPattern(request.param)
+
+    def test_attrs(self, up):
+        assert up._scheme == 'file'
+        assert up._host is None
+        assert not up._match_subdomains
+        assert not up._match_all
+        assert up._path == '/foo*'
+
+    @pytest.mark.parametrize('url, expected', [
+        ("file://foo", False),
+        ("file://foobar", False),
+        ("file:///foo", True),
+        ("file:///foobar", True),
+        ("file://localhost/foo", True),
+    ])
+    def test_urls(self, up, url, expected):
+        assert up.matches(QUrl(url)) == expected
