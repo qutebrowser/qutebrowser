@@ -30,7 +30,7 @@ window._qutebrowser.focustools = (function() {
      * Blur page on load, and timeout seconds after fully completed load.
      */
     funcs.load = (blur_on_load, timeout) => {
-        if (blur_on_load) {
+        if (blur_on_load && document.activeElement) {
             document.activeElement.blur();
             if (timeout >= 0) {
                 window.addEventListener("load",

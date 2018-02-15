@@ -309,8 +309,8 @@ class BrowserPage(QWebPage):
             return
         code = """
             window.addEventListener("DOMContentLoaded",
-                () => document.activeElement.blur());
-            """
+                () => {{if (document.activeElement)
+                        document.activeElement.blur()}});"""
         self.mainFrame().evaluateJavaScript(code)
 
         if config.val.input.blur_on_load.delay < 0:
@@ -319,7 +319,8 @@ class BrowserPage(QWebPage):
         code = """
             window.addEventListener("load",
                 () => setTimeout(
-                    () => document.activeElement.blur(), {}));
+                    () => {{if (document.activeElement)
+                                document.activeElement.blur()}}, {}));
             """.format(config.val.input.blur_on_load.delay)
         self.mainFrame().evaluateJavaScript(code)
 
