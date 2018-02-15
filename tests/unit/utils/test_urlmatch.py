@@ -165,3 +165,25 @@ class TestMatchSubdomains:
     ])
     def test_urls(self, up, url, expected):
         assert up.matches(QUrl(url)) == expected
+
+
+class TestMatchGlobEscaping:
+
+    @pytest.fixture
+    def up(self):
+        return urlmatch.UrlPattern(r"file:///foo-bar\*baz")
+
+    def test_attrs(self, up):
+        assert up._scheme == 'file'
+        assert up._host == ''  # FIXME '' or None?
+        assert not up._match_subdomains
+        assert not up._match_all
+        assert up._path == r'/foo-bar\*baz'
+
+    @pytest.mark.parametrize('url, expected', [
+        # We use - instead of ? so it doesn't get treated as query
+        (r"file:///foo-bar\hellobaz", True),
+        (r"file:///fooXbar\hellobaz", False),
+    ])
+    def test_urls(self, up, url, expected):
+        assert up.matches(QUrl(url)) == expected
