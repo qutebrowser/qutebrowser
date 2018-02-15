@@ -127,7 +127,7 @@ class UrlPattern:
         - http://:1234/ is not a valid URL because it has no host.
         """
         if parsed.hostname is None or not parsed.hostname.strip():
-            if self._scheme not in ['about', 'file']:
+            if self._scheme not in ['about', 'file', 'data', 'javascript']:
                 raise ParseError("Pattern without host")
             assert self._host is None
             return
@@ -170,7 +170,8 @@ class UrlPattern:
 
         allows_ports = {'https': True, 'http': True, 'ftp': True,
                         'file': False, 'chrome': False, 'qute': False,
-                        'about': False, None: True}
+                        'about': False, 'data': False, 'javascript': False,
+                        None: True}
         if not allows_ports[self._scheme] and self._port is not None:
             raise ParseError("Ports are unsupported with {} scheme".format(
                 self._scheme))
