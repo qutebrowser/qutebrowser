@@ -311,3 +311,49 @@ class TestFileScheme:
     ])
     def test_urls(self, up, url, expected):
         assert up.matches(QUrl(url)) == expected
+
+
+class TestMatchSpecificPort:
+
+    @pytest.fixture
+    def up(self):
+        return urlmatch.UrlPattern("http://www.example.com:80/foo")
+
+    def test_attrs(self, up):
+        assert up._scheme == 'http'
+        assert up._host == 'www.example.com'
+        assert not up._match_subdomains
+        assert not up._match_all
+        assert up._path == '/foo'
+        assert up._port == 80
+
+    @pytest.mark.parametrize('url, expected', [
+        ("http://www.example.com:80/foo", True),
+        ("http://www.example.com/foo", True),
+        ("http://www.example.com:8080/foo", False),
+    ])
+    def test_urls(self, up, url, expected):
+        assert up.matches(QUrl(url)) == expected
+
+
+class TestExplicitPortWildcard:
+
+    @pytest.fixture
+    def up(self):
+        return urlmatch.UrlPattern("http://www.example.com:*/foo")
+
+    def test_attrs(self, up):
+        assert up._scheme == 'http'
+        assert up._host == 'www.example.com'
+        assert not up._match_subdomains
+        assert not up._match_all
+        assert up._path == '/foo'
+        assert up._port is None
+
+    @pytest.mark.parametrize('url, expected', [
+        ("http://www.example.com:80/foo", True),
+        ("http://www.example.com/foo", True),
+        ("http://www.example.com:8080/foo", True),
+    ])
+    def test_urls(self, up, url, expected):
+        assert up.matches(QUrl(url)) == expected

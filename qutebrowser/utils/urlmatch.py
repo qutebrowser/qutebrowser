@@ -42,6 +42,9 @@ class UrlPattern:
 
     """A Chromium-like URL matching pattern.
 
+    Class attributes:
+        DEFAULT_PORTS: The default ports used for schemes which support ports.
+
     Attributes:
         _pattern: The given pattern as string.
         _match_all: Whether the pattern should match all URLs.
@@ -55,6 +58,8 @@ class UrlPattern:
         _path: The path to match to, or None for any path.
         _port: The port to match to as integer, or None for any port.
     """
+
+    DEFAULT_PORTS = {'https': 443, 'http': 80, 'ftp': 21}
 
     def __init__(self, pattern):
         # Make sure all attributes are initialized if we exit early.
@@ -169,11 +174,8 @@ class UrlPattern:
             except ValueError:
                 raise ParseError("Invalid port")
 
-        allows_ports = {'https': True, 'http': True, 'ftp': True,
-                        'file': False, 'chrome': False, 'qute': False,
-                        'about': False, 'data': False, 'javascript': False,
-                        None: True}
-        if not allows_ports[self._scheme] and self._port is not None:
+        if (self._scheme not in list(self.DEFAULT_PORTS) + [None] and
+                self._port is not None):
             raise ParseError("Ports are unsupported with {} scheme".format(
                 self._scheme))
 
@@ -218,7 +220,9 @@ class UrlPattern:
 
         return host[len(host) - len(self._host) - 1] == '.'
 
-    def _matches_port(self, port):
+    def _matches_port(self, scheme, port):
+        if port == -1 and scheme in self.DEFAULT_PORTS:
+            port = self.DEFAULT_PORTS[scheme]
         return self._port is None or self._port == port
 
     def _matches_path(self, path):
@@ -249,7 +253,7 @@ class UrlPattern:
         # FIXME ignore for file:// like Chromium?
         if not self._matches_host(qurl.host()):
             return False
-        if not self._matches_port(qurl.port()):
+        if not self._matches_port(qurl.scheme(), qurl.port()):
             return False
         if not self._matches_path(qurl.path()):
             return False
