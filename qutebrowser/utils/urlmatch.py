@@ -229,8 +229,6 @@ class UrlPattern:
             return True
 
         # Match 'google.com' with 'google.com/'
-        # FIXME use the no-copy approach Chromium has in
-        # URLPattern::MatchesPath for performance?
         if path + '/*' == self._path:
             return True
 
