@@ -257,12 +257,27 @@ class TestMatchAnything:
         assert not up._match_subdomains
         assert up._match_all
 
-    @pytest.mark.parametrize('url, expected', [
-        ("http://127.0.0.1", True),
+    @pytest.mark.parametrize('url', [
+        "http://127.0.0.1",
         # We deviate from Chromium as we allow other schemes as well
-        ("chrome://favicon/http://google.com", True),
-        ("file:///foo/bar", True),
-        ("file://localhost/foo/bar", True),
+        "chrome://favicon/http://google.com",
+        "file:///foo/bar",
+        "file://localhost/foo/bar",
+        "qute://version",
+        "about:blank",
+        "data:text/html;charset=utf-8,<html>asdf</html>",
     ])
-    def test_urls(self, up, url, expected):
-        assert up.matches(QUrl(url)) == expected
+    def test_urls(self, up, url):
+        assert up.matches(QUrl(url))
+
+
+@pytest.mark.parametrize('pattern, url, expected', [
+    ("about:*", "about:blank", True),
+    ("about:blank", "about:blank", True),
+    ("about:*", "about:version", True),
+    ("data:*", "data:monkey", True),
+    ("javascript:*", "javascript:atemyhomework", True),
+    ("data:*", "about:blank", False),
+])
+def test_special_schemes(pattern, url, expected):
+    assert urlmatch.UrlPattern(pattern).matches(QUrl(url)) == expected
