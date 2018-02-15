@@ -52,7 +52,7 @@ from qutebrowser.utils import urlmatch
     ("http://*foo/bar", "Invalid host wildcard"),
     ("http://foo.*.bar/baz", "Invalid host wildcard"),
     ("http://fo.*.ba:123/baz", "Invalid host wildcard"),
-    ("http://foo.*/bar", "Invalid host wildcard"),
+    ("http://foo.*/bar", "TLD wildcards are not implemented yet"),
 
     # Chromium: PARSE_ERROR_INVALID_PORT
     ("http://foo:/", "Empty port"),

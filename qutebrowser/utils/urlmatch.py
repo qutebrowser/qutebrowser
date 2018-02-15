@@ -119,7 +119,11 @@ class UrlPattern:
             host_parts = host_parts[1:]
             self._match_subdomains = True
         self._host = '.'.join(host_parts)
-        if '*' in self._host:
+
+        if self._host.endswith('.*'):
+            # Special case to have a nicer error
+            raise ParseError("TLD wildcards are not implemented yet")
+        elif '*' in self._host:
             # Only * or *.foo is allowed as host.
             raise ParseError("Invalid host wildcard")
 
