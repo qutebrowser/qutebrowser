@@ -29,8 +29,11 @@ Currently not tested:
 - Any other features we don't need, such as .GetAsString() or set operations.
 """
 
-import pytest
+import string
 
+import pytest
+import hypothesis
+import hypothesis.strategies as hst
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import urlmatch
@@ -397,3 +400,43 @@ def test_trailing_dot_domain(pattern, url):
     [2] http://www.ietf.org/rfc/rfc1738.txt
     """
     assert urlmatch.UrlPattern(pattern).matches(QUrl(url))
+
+
+def test_urlpattern_benchmark(benchmark):
+    url = QUrl('https://www.example.com/barfoobar')
+
+    def run():
+        up = urlmatch.UrlPattern('https://*.example.com/*foo*')
+        up.matches(url)
+
+    benchmark(run)
+
+
+URL_TEXT = hst.text(alphabet=string.ascii_letters)
+
+
+@hypothesis.given(pattern=hst.builds(
+    lambda *a: ''.join(a),
+    # Scheme
+    hst.one_of(hst.just('*'), hst.just('http'), hst.just('file')),
+    # Separator
+    hst.one_of(hst.just(':'), hst.just('://')),
+    # Host
+    hst.one_of(hst.just('*'),
+               hst.builds(lambda *a: ''.join(a), hst.just('*.'), URL_TEXT),
+               URL_TEXT),
+    # Port
+    hst.one_of(hst.just(''),
+               hst.builds(lambda *a: ''.join(a), hst.just(':'),
+                          hst.integers(min_value=0,
+                                       max_value=65535).map(str))),
+    # Path
+    hst.one_of(hst.just(''),
+               hst.builds(lambda *a: ''.join(a), hst.just('/'), URL_TEXT))
+))
+def test_urlpattern_hypothesis(pattern):
+    try:
+        up = urlmatch.UrlPattern(pattern)
+    except urlmatch.ParseError:
+        return
+    up.matches(QUrl('https://www.example.com/'))
