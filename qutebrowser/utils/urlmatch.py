@@ -236,7 +236,12 @@ class UrlPattern:
         if self._match_all:
             return True
 
-        # FIXME ignore host for file:// like Chromium?
-        return (self._matches_host(qurl.host()) and
-                self._matches_port(qurl.port()) and
-                self._matches_path(qurl.path()))
+        # FIXME ignore for file:// like Chromium?
+        if not self._matches_host(qurl.host()):
+            return False
+        if not self._matches_port(qurl.port()):
+            return False
+        if not self._matches_path(qurl.path()):
+            return False
+
+        return True
