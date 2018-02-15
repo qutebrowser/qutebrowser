@@ -69,6 +69,11 @@ class UrlPattern:
             self._scheme = '*'
             pattern = 'any:' + pattern[2:]  # Make it parseable again
 
+        # Chromium handles file://foo like file:///foo
+        if (pattern.startswith('file://') and
+                not pattern.startswith('file:///')):
+            pattern = 'file:///' + pattern[len("file://"):]
+
         # We use urllib.parse instead of QUrl here because it can handle
         # hosts with * in them.
         try:
@@ -104,7 +109,7 @@ class UrlPattern:
         - http://:1234/ is not a valid URL because it has no host.
         """
         if parsed.hostname is None or not parsed.hostname.strip():
-            if self._scheme != 'about':
+            if self._scheme not in ['about', 'file']:
                 raise ParseError("Pattern without host")
             assert self._host is None
             return
@@ -141,6 +146,10 @@ class UrlPattern:
         if not allows_ports[self._scheme] and self._port is not None:
             raise ParseError("Ports are unsupported with {} scheme".format(
                 self._scheme))
+
+        if self._port is None and self._scheme == 'file':
+            # FIXME compatibility with Chromium, but is this needed?
+            self._port = '*'
 
     def __repr__(self):
         return utils.get_repr(self, pattern=self._pattern, constructor=True)

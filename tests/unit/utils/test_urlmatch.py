@@ -75,8 +75,7 @@ def test_invalid_patterns(pattern, error):
     # FIXME Why is this valid in Chromium?
     # ("http://:1234/", 1234),
     ("http://foo:*/", "*"),
-    # FIXME Why is this valid in Chromium?
-    # ("file://foo:1234/bar", "*"),
+    ("file://foo:1234/bar", "*"),
 ])
 def test_port(pattern, port):
     up = urlmatch.UrlPattern(pattern)
