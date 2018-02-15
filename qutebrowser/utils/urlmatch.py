@@ -27,7 +27,6 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 
 import ipaddress
 import fnmatch
-import contextlib
 import urllib.parse
 
 from qutebrowser.utils import utils, qtutils
@@ -196,9 +195,9 @@ class UrlPattern:
         if host == self._host:
             return True
 
-        # If we're matching subdomains, and we have no host in the match pattern,
-        # that means that we're matching all hosts, which means we have a match no
-        # matter what the test host is.
+        # If we're matching subdomains, and we have no host in the match
+        # pattern, that means that we're matching all hosts, which means we
+        # have a match no matter what the test host is.
         if self._match_subdomains and not self._host:
             return True
 
@@ -206,8 +205,8 @@ class UrlPattern:
         if not self._match_subdomains:
             return False
 
-        # We don't do subdomain matching against IP addresses, so we can give up now
-        # if the test host is an IP address.
+        # We don't do subdomain matching against IP addresses, so we can give
+        # up now if the test host is an IP address.
         if not utils.raises(ValueError, ipaddress.ip_address, host):
             return False
 
@@ -230,8 +229,8 @@ class UrlPattern:
             return True
 
         # Match 'google.com' with 'google.com/'
-        # FIXME use the no-copy approach Chromium has in URLPattern::MatchesPath
-        # for performance?
+        # FIXME use the no-copy approach Chromium has in
+        # URLPattern::MatchesPath for performance?
         if path + '/*' == self._path:
             return True
 

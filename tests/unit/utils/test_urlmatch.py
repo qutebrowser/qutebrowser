@@ -375,8 +375,10 @@ def test_ignore_missing_slashes():
     assert not pattern1.matches(url2)
 
 
-@pytest.mark.parametrize('pattern', ['*://example.com/*', '*://example.com./*'])
-@pytest.mark.parametrize('url', ['http://example.com/', 'http://example.com./'])
+@pytest.mark.parametrize('pattern', ['*://example.com/*',
+                                     '*://example.com./*'])
+@pytest.mark.parametrize('url', ['http://example.com/',
+                                 'http://example.com./'])
 def test_trailing_dot_domain(pattern, url):
     """Both patterns should match trailing dot and non trailing dot domains.
 
