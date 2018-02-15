@@ -198,14 +198,15 @@ def init_mappings(mappings):
         mapping.set(value)
 
 
-def update_mappings(mappings, option):
+def update_mappings(mappings, option, url=None, settings=None):
     """Update global settings when QWeb(Engine)Settings changed."""
     try:
         mapping = mappings[option]
     except KeyError:
         return
-    value = config.instance.get(option)
-    mapping.set(value)
+    value = config.instance.get(option, url=url)
+    # FIXME:conf handle settings != None with global/static setters
+    mapping.set(value, settings=settings)
 
 
 def init(args):

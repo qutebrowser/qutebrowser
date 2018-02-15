@@ -298,6 +298,10 @@ def init(args):
     config.instance.changed.connect(_update_settings)
 
 
+def update_for_tab(tab, url):
+    websettings.update_mappings(MAPPINGS, option, url, tab.settings())
+
+
 def shutdown():
     # FIXME:qtwebengine do we need to do something for a clean shutdown here?
     pass

@@ -118,6 +118,10 @@ def _update_settings(option):
     websettings.update_mappings(MAPPINGS, option)
 
 
+def update_for_tab(tab, url, option):
+    websettings.update_mappings(MAPPINGS, option, url, tab.settings())
+
+
 def init(_args):
     """Initialize the global QWebSettings."""
     cache_path = standarddir.cache()

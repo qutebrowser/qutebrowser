@@ -38,6 +38,9 @@ key_instance = None
 # Keeping track of all change filters to validate them later.
 change_filters = []
 
+# Sentinel
+UNSET = object()
+
 
 class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
 
@@ -279,7 +282,7 @@ class Config(QObject):
         """
         self._yaml.init_save_manager(save_manager)
 
-    def _get_values(self, pattern=None, create=False):
+    def _get_values(self, pattern=None, *, create=False):
         """Get the appropriate _values instance for the given pattern.
 
         With create=True, create a new one instead of returning an empty dict.
@@ -294,6 +297,24 @@ class Config(QObject):
             return settings.values
         else:
             return {}
+
+    def _get_values_for_url(self, url):
+        """Get a temporary values container which merges all matching values.
+
+        Note that this does *not* include global values.
+
+        Currently, this iterates linearly over all patterns. This could probably
+        be optimized by storing patterns based on their scheme/host/port and
+        then searching all possible matches in a dict before doing a full match.
+        """
+        # FIXME We could avoid the copy if there's no per-url match.
+        # values = self._values.copy()
+        values = {}
+        # FIXME:conf what order?
+        for options in self._per_url_values.values():
+            if options.pattern.matches(url):
+                values.update(options.values)
+        return values
 
     def _set_value(self, opt, value, pattern=None):
         """Set the given option to the given value."""
@@ -327,10 +348,10 @@ class Config(QObject):
                 name, deleted=deleted, renamed=renamed)
             raise exception from None
 
-    def get(self, name, pattern=None):
+    def get(self, name):
         """Get the given setting converted for Python code."""
         opt = self.get_opt(name)
-        obj = self.get_obj(name, mutable=False, pattern=pattern)
+        obj = self.get_obj(name, mutable=False)
         return opt.typ.to_py(obj)
 
     def get_obj(self, name, *, mutable=True, pattern=None):
@@ -351,6 +372,7 @@ class Config(QObject):
         # internal value can never be changed by mutating the object returned.
         else:
             values = self._get_values(pattern)
+
             obj = copy.deepcopy(values.get(name, opt.default))
             # Then we watch the returned object for changes.
             if isinstance(obj, (dict, list)):
@@ -360,6 +382,34 @@ class Config(QObject):
                 # Shouldn't be mutable (and thus hashable)
                 assert obj.__hash__ is not None, obj
         return obj
+
+    def get_for_url(self, name, url, *, maybe_unset=True):
+        """Get the given per-url setting converted for Python code.
+
+        With maybe_unset=True, if the value isn't overridden for a given domain,
+        return UNSET.
+
+        With maybe_unset=False, return the global/default value instead.
+        """
+        opt = self.get_opt(name)
+        obj = self._get_obj_for_url(opt, url=url, maybe_unset=maybe_unset)
+        return opt.typ.to_py(obj)
+
+    def _get_obj_for_url(self, opt, url, *, maybe_unset=True):
+        """Get the given setting as object (for YAML/config.py).
+
+        With maybe_unset=True, if the value isn't overridden for a given domain,
+        return UNSET.
+
+        With maybe_unset=False, return the global/default value instead.
+        """
+        values = self._get_values_for_url(url)
+        if opt in values:
+            return values[opt]
+        elif maybe_unset:
+            return UNSET
+        else:
+            return self.get_obj(opt.name, mutable=False)
 
     def get_str(self, name, *, pattern=None):
         """Get the given setting as string."""
