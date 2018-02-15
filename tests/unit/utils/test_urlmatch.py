@@ -26,6 +26,7 @@ Currently not tested:
 - The match_effective_tld attribute as it doesn't exist yet.
 - Nested filesystem:// URLs as we don't have those.
 - Unicode matching because QUrl doesn't like those URLs.
+- Any other features we don't need, such as .GetAsString() or set operations.
 """
 
 import pytest
@@ -357,3 +358,40 @@ class TestExplicitPortWildcard:
     ])
     def test_urls(self, up, url, expected):
         assert up.matches(QUrl(url)) == expected
+
+
+def test_ignore_missing_slashes():
+    pattern1 = urlmatch.UrlPattern("http://www.example.com/example")
+    pattern2 = urlmatch.UrlPattern("http://www.example.com/example/*")
+    url1 = QUrl('http://www.example.com/example')
+    url2 = QUrl('http://www.example.com/example/')
+
+    # Same patterns should match same URLs.
+    assert pattern1.matches(url1)
+    assert pattern2.matches(url1)
+    # The not terminated path should match the terminated pattern.
+    assert pattern2.matches(url1)
+    # The terminated path however should not match the unterminated pattern.
+    assert not pattern1.matches(url2)
+
+
+@pytest.mark.parametrize('pattern', ['*://example.com/*', '*://example.com./*'])
+@pytest.mark.parametrize('url', ['http://example.com/', 'http://example.com./'])
+def test_trailing_dot_domain(pattern, url):
+    """Both patterns should match trailing dot and non trailing dot domains.
+
+    More information about this not obvious behaviour can be found in [1].
+
+    RFC 1738 [2] specifies clearly that the <host> part of a URL is supposed to
+    contain a fully qualified domain name:
+
+    3.1. Common Internet Scheme Syntax
+         //<user>:<password>@<host>:<port>/<url-path>
+
+     host
+         The fully qualified domain name of a network host
+
+    [1] http://www.dns-sd.org./TrailingDotsInDomainNames.html
+    [2] http://www.ietf.org/rfc/rfc1738.txt
+    """
+    assert urlmatch.UrlPattern(pattern).matches(QUrl(url))
