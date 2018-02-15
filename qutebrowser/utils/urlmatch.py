@@ -30,7 +30,7 @@ import fnmatch
 import contextlib
 import urllib.parse
 
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, qtutils
 
 
 class ParseError(Exception):
@@ -236,6 +236,8 @@ class UrlPattern:
 
     def matches(self, qurl):
         """Check if the pattern matches the given QUrl."""
+        qtutils.ensure_valid(qurl)
+
         # FIXME do we need to check this early?
         if not self._matches_scheme(qurl.scheme()):
             return False
