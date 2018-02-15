@@ -242,13 +242,11 @@ class UrlPattern:
         """Check if the pattern matches the given QUrl."""
         qtutils.ensure_valid(qurl)
 
-        # FIXME do we need to check this early?
-        if not self._matches_scheme(qurl.scheme()):
-            return False
-
         if self._match_all:
             return True
 
+        if not self._matches_scheme(qurl.scheme()):
+            return False
         # FIXME ignore for file:// like Chromium?
         if not self._matches_host(qurl.host()):
             return False
