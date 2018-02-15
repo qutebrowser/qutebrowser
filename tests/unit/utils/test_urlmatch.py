@@ -19,8 +19,12 @@
 
 """Tests for qutebrowser.utils.urlmatch.
 
-Some data is inspired by Chromium's tests:
+The tests are mostly inspired by Chromium's:
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern_unittest.cc
+
+Currently not tested:
+- The match_effective_tld attribute as it doesn't exist yet.
+- Nested filesystem:// URLs as we don't have those.
 """
 
 import pytest
@@ -110,6 +114,54 @@ class TestMatchAllPagesForGivenScheme:
         ("http://google.com/foo", True),
         ("https://google.com", False),
         ("http://74.125.127.100/search", True),
+    ])
+    def test_urls(self, up, url, expected):
+        assert up.matches(QUrl(url)) == expected
+
+
+class TestMatchAllDomains:
+
+    @pytest.fixture
+    def up(self):
+        return urlmatch.UrlPattern("https://*/foo*")
+
+    def test_attrs(self, up):
+        assert up._scheme == 'https'
+        assert up._host == ''  # FIXME '' or None?
+        assert up._match_subdomains
+        assert not up._match_all
+        assert up._path == '/foo*'
+
+    @pytest.mark.parametrize('url, expected', [
+        ("https://google.com/foo", True),
+        ("https://google.com/foobar", True),
+        ("http://google.com/foo", False),
+        ("https://google.com/", False),
+    ])
+    def test_urls(self, up, url, expected):
+        assert up.matches(QUrl(url)) == expected
+
+
+class TestMatchSubdomains:
+
+    @pytest.fixture
+    def up(self):
+        return urlmatch.UrlPattern("http://*.google.com/foo*bar")
+
+    def test_attrs(self, up):
+        assert up._scheme == 'http'
+        assert up._host == 'google.com'
+        assert up._match_subdomains
+        assert not up._match_all
+        assert up._path == '/foo*bar'
+
+    @pytest.mark.parametrize('url, expected', [
+        ("http://google.com/foobar", True),
+        # FIXME The ?bar seems to be treated as path by GURL but as query by
+        # QUrl.
+        # ("http://www.google.com/foo?bar", True),
+        ("http://monkey.images.google.com/foooobar", True),
+        ("http://yahoo.com/foobar", False),
     ])
     def test_urls(self, up, url, expected):
         assert up.matches(QUrl(url)) == expected
