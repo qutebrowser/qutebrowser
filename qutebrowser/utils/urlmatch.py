@@ -39,7 +39,24 @@ class ParseError(Exception):
 
 class UrlPattern:
 
-    """A Chromium-like URL matching pattern."""
+    """A Chromium-like URL matching pattern.
+
+    Class attributes:
+        SCHEMES: Schemes which are allowed in patterns.
+
+    Attributes:
+        _pattern: The given pattern as string.
+        _match_all: Whether the pattern should match all URLs.
+        _match_subdomains: Whether the pattern should match subdomains of the
+                           given host.
+        _scheme: The scheme to match to, or None to match any scheme.
+                 Note that with Chromium, '*'/None only matches http/https and
+                 not file/ftp. We deviate from that as per-URL settings aren't
+                 security relevant.
+        _host: The host to match to, or None for any host. (FIXME true?)
+        _path: The path to match to, or None for any path. (FIXME true?)
+        _port: The port to match to as integer, or None for any port.
+    """
 
     SCHEMES = ['https', 'http', 'ftp', 'file', 'chrome', 'qute', 'about']
 
@@ -62,18 +79,7 @@ class UrlPattern:
         if '\0' in pattern:
             raise ParseError("May not contain NUL byte")
 
-        # > If the scheme is *, then it matches either http or https, and not
-        # > file, or ftp.
-        # Note we deviate from that, as per-URL settings aren't security
-        # relevant.
-        if pattern.startswith('*:'):  # Any scheme
-            self._scheme = '*'
-            pattern = 'any:' + pattern[2:]  # Make it parseable again
-
-        # Chromium handles file://foo like file:///foo
-        if (pattern.startswith('file://') and
-                not pattern.startswith('file:///')):
-            pattern = 'file:///' + pattern[len("file://"):]
+        pattern = self._fixup_pattern(pattern)
 
         # We use urllib.parse instead of QUrl here because it can handle
         # hosts with * in them.
@@ -90,6 +96,18 @@ class UrlPattern:
         self._init_host(parsed)
         self._init_path(parsed)
         self._init_port(parsed)
+
+    def _fixup_pattern(self, pattern):
+        """Make sure the given pattern is parseable by urllib.parse."""
+        if pattern.startswith('*:'):  # Any scheme, but *:// is unparseable
+            pattern = 'any:' + pattern[2:]
+
+        # Chromium handles file://foo like file:///foo
+        if (pattern.startswith('file://') and
+                not pattern.startswith('file:///')):
+            pattern = 'file:///' + pattern[len("file://"):]
+
+        return pattern
 
     def _init_scheme(self, parsed):
         if not parsed.scheme:
@@ -160,7 +178,7 @@ class UrlPattern:
     def _matches_scheme(self, scheme):
         if scheme not in self.SCHEMES:
             return False
-        return self._scheme == '*' or self._scheme == scheme
+        return self._scheme is None or self._scheme == scheme
 
     def _matches_host(self, host):
         # FIXME what about multiple dots?
@@ -196,9 +214,7 @@ class UrlPattern:
         return host[len(host) - len(self._host) - 1] == '.'
 
     def _matches_port(self, port):
-        if port == '-1':  # QUrl
-            port = None
-        return self._port == '*' or self._port == port
+        return self._port is None or self._port == port
 
     def _matches_path(self, path):
         # Match 'google.com' with 'google.com/'
