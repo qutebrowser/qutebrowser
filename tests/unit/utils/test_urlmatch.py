@@ -25,6 +25,7 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern_unittest.cc
 Currently not tested:
 - The match_effective_tld attribute as it doesn't exist yet.
 - Nested filesystem:// URLs as we don't have those.
+- Unicode matching because QUrl doesn't like those URLs.
 """
 
 import pytest
@@ -211,3 +212,49 @@ class TestMatchIpAddresses:
     def test_urls(self, pattern, expected):
         up = urlmatch.UrlPattern(pattern)
         assert up.matches(QUrl("http://127.0.0.1")) == expected
+
+
+class TestMatchChromeUrls:
+
+    @pytest.fixture
+    def up(self):
+        return urlmatch.UrlPattern("chrome://favicon/*")
+
+    def test_attrs(self, up):
+        assert up._scheme == 'chrome'
+        assert up._host == 'favicon'
+        assert not up._match_subdomains
+        assert not up._match_all
+        assert up._path == '/*'
+
+    @pytest.mark.parametrize('url, expected', [
+        ("chrome://favicon/http://google.com", True),
+        ("chrome://favicon/https://google.com", True),
+        ("chrome://history", False),
+    ])
+    def test_urls(self, up, url, expected):
+        assert up.matches(QUrl(url)) == expected
+
+
+class TestMatchAnything:
+
+    @pytest.fixture
+    def up(self):
+        return urlmatch.UrlPattern("*://*/*")
+
+    def test_attrs(self, up):
+        assert up._scheme is None
+        assert up._host is None
+        assert up._match_subdomains
+        assert not up._match_all
+        assert up._path == '/*'
+
+    @pytest.mark.parametrize('url, expected', [
+        ("http://127.0.0.1", True),
+        # We deviate from Chromium as we allow other schemes as well
+        ("chrome://favicon/http://google.com", True),
+        ("file:///foo/bar", True),
+        ("file://localhost/foo/bar", True),
+    ])
+    def test_urls(self, up, url, expected):
+        assert up.matches(QUrl(url)) == expected
