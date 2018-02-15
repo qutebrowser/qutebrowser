@@ -25,6 +25,8 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern_unittest.cc
 
 import pytest
 
+from PyQt5.QtCore import QUrl
+
 from qutebrowser.utils import urlmatch
 
 
@@ -87,3 +89,24 @@ def test_invalid_patterns(pattern, error):
 def test_port(pattern, port):
     up = urlmatch.UrlPattern(pattern)
     assert up._port == port
+
+
+def test_match_all_pages_for_given_scheme_attrs():
+    up = urlmatch.UrlPattern("http://*/*")
+    assert up._scheme == 'http'
+    assert up._host == ''  # FIXME '' or None?
+    assert up._match_subdomains
+    assert not up._match_all
+    assert up._path == '/*'
+
+
+@pytest.mark.parametrize('url, expected', [
+    ("http://google.com", True),
+    ("http://yahoo.com", True),
+    ("http://google.com/foo", True),
+    ("https://google.com", False),
+    ("http://74.125.127.100/search", True),
+])
+def test_match_all_pages_for_given_scheme_urls(url, expected):
+    up = urlmatch.UrlPattern("http://*/*")
+    assert up.matches(QUrl(url)) == expected

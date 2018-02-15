@@ -25,6 +25,7 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 """
 
+import fnmatch
 import contextlib
 import urllib.parse
 
@@ -114,10 +115,12 @@ class UrlPattern:
             assert self._host is None
             return
 
-        host_parts = parsed.hostname.split('.')
+        # FIXME what about multiple dots?
+        host_parts = parsed.hostname.rstrip('.').split('.')
         if host_parts[0] == '*':
             host_parts = host_parts[1:]
             self._match_subdomains = True
+
         self._host = '.'.join(host_parts)
 
         if self._host.endswith('.*'):
@@ -153,3 +156,71 @@ class UrlPattern:
 
     def __repr__(self):
         return utils.get_repr(self, pattern=self._pattern, constructor=True)
+
+    def _matches_scheme(self, scheme):
+        if scheme not in self.SCHEMES:
+            return False
+        return self._scheme == '*' or self._scheme == scheme
+
+    def _matches_host(self, host):
+        # FIXME what about multiple dots?
+        host = host.rstrip('.')
+
+        # If the hosts are exactly equal, we have a match.
+        if host == self._host:
+            return True
+
+        # If we're matching subdomains, and we have no host in the match pattern,
+        # that means that we're matching all hosts, which means we have a match no
+        # matter what the test host is.
+        if self._match_subdomains and not self._host:
+            return True
+
+        # Otherwise, we can only match if our match pattern matches subdomains.
+        if not self._match_subdomains:
+            return False
+
+        # FIXME
+        # We don't do subdomain matching against IP addresses, so we can give up now
+        # if the test host is an IP address.
+        # if (test.HostIsIPAddress())
+        #   return false;
+
+        # Check if the test host is a subdomain of our host.
+        if len(host) <= (len(self._host) + 1):
+            return False
+
+        if not host.endswith(self._host):
+            return False
+
+        return host[len(host) - len(self._host) - 1] == '.'
+
+    def _matches_port(self, port):
+        if port == '-1':  # QUrl
+            port = None
+        return self._port == '*' or self._port == port
+
+    def _matches_path(self, path):
+        # Match 'google.com' with 'google.com/'
+        # FIXME use the no-copy approach Chromium has in URLPattern::MatchesPath
+        # for performance?
+        if path + '/*' == self._path:
+            return True
+
+        # FIXME Chromium seems to have a more optimized glob matching which
+        # doesn't rely on regexes. Do we need that too?
+        return fnmatch.fnmatchcase(path, self._path)
+
+    def matches(self, qurl):
+        """Check if the pattern matches the given QUrl."""
+        # FIXME do we need to check this early?
+        if not self._matches_scheme(qurl.scheme()):
+            return False
+
+        if self._match_all:
+            return True
+
+        # FIXME ignore host for file:// like Chromium?
+        return (self._matches_host(qurl.host()) and
+                self._matches_port(qurl.port()) and
+                self._matches_path(qurl.path()))
