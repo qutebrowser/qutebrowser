@@ -25,6 +25,7 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 """
 
+import ipaddress
 import fnmatch
 import contextlib
 import urllib.parse
@@ -205,11 +206,10 @@ class UrlPattern:
         if not self._match_subdomains:
             return False
 
-        # FIXME
         # We don't do subdomain matching against IP addresses, so we can give up now
         # if the test host is an IP address.
-        # if (test.HostIsIPAddress())
-        #   return false;
+        if not utils.raises(ValueError, ipaddress.ip_address, host):
+            return False
 
         # Check if the test host is a subdomain of our host.
         if len(host) <= (len(self._host) + 1):

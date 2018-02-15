@@ -187,3 +187,27 @@ class TestMatchGlobEscaping:
     ])
     def test_urls(self, up, url, expected):
         assert up.matches(QUrl(url)) == expected
+
+
+class TestMatchIpAddresses:
+
+    @pytest.mark.parametrize('pattern, host, match_subdomains', [
+        ("http://127.0.0.1/*", "127.0.0.1", False),
+        ("http://*.0.0.1/*", "0.0.1", True),
+    ])
+    def test_attrs(self, pattern, host, match_subdomains):
+        up = urlmatch.UrlPattern(pattern)
+        assert up._scheme == 'http'
+        assert up._host == host
+        assert up._match_subdomains == match_subdomains
+        assert not up._match_all
+        assert up._path == '/*'
+
+    @pytest.mark.parametrize('pattern, expected', [
+        ("http://127.0.0.1/*", True),
+        # No subdomain matching is done with IPs
+        ("http://*.0.0.1/*", False),
+    ])
+    def test_urls(self, pattern, expected):
+        up = urlmatch.UrlPattern(pattern)
+        assert up.matches(QUrl("http://127.0.0.1")) == expected
