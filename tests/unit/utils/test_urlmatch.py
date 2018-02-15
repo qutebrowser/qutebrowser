@@ -238,16 +238,24 @@ class TestMatchChromeUrls:
 
 class TestMatchAnything:
 
-    @pytest.fixture
-    def up(self):
-        return urlmatch.UrlPattern("*://*/*")
+    @pytest.fixture(params=['*://*/*', '<all_urls>'])
+    def up(self, request):
+        return urlmatch.UrlPattern(request.param)
 
-    def test_attrs(self, up):
+    def test_attrs_common(self, up):
         assert up._scheme is None
         assert up._host is None
+        assert up._path is None
+
+    def test_attrs_wildcard(self):
+        up = urlmatch.UrlPattern('*://*/*')
         assert up._match_subdomains
         assert not up._match_all
-        assert up._path == '/*'
+
+    def test_attrs_all(self):
+        up = urlmatch.UrlPattern('<all_urls>')
+        assert not up._match_subdomains
+        assert up._match_all
 
     @pytest.mark.parametrize('url, expected', [
         ("http://127.0.0.1", True),
