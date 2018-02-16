@@ -1,13 +1,17 @@
 Flatpak
 =======
 
-The flatpak is based on the org.kde.Platform version 5.9 and ships all
-additional dependecies of qutebrowser. The platform includes Qt 5.9.
+This flatpak is based on the org.freedesktop.Platform version 1.6 and ships all
+additional dependecies of qutebrowser. Unfortunately there are some 
+performance and stability issues with the QtWebEngine shipped in the
+org.kde.Platform. Therefor we use the Qt bundled with the PyQt5 wheel package.
+The downside of the bundled Qt are the dependency on udev, larger package
+size, missing arm support and missing flatpak portal support.
 
 To install the SDK system wide run:
 
- sudo flatpak install flathub org.kde.Platform//5.9
- sudo flatpak install flathub org.kde.Sdk//5.9
+ sudo flatpak install flathub org.freedesktop.Platform//1.6
+ sudo flatpak install flathub org.freedesktop.Sdk//1.6
 
 To actually build the flatpak run the following command:
 
@@ -60,7 +64,15 @@ $HOME/.var/app/org.qutebrowser.qutebrowser/config/qutebrowser/
 The sandboxed qutebrowser can read all files from your system, but only write
 to your XDG downloads folder.
 
-Direct rendering and sound using pulseaudio are allowed.
+Direct rendering, using the webcam and sound using pulseaudio are allowed.
 
 Known Limitations
 -----------------
+
+* Require access to all devices to support video from webcams
+
+* Sandboxing each tab isn't supported since flatpak doesn't allow nested sandboxing
+
+* Missing arm packages
+
+* Large size
