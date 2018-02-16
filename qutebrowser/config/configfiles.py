@@ -32,7 +32,7 @@ import yaml
 from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 
 import qutebrowser
-from qutebrowser.config import configexc, config, configdata
+from qutebrowser.config import configexc, config, configdata, configutils
 from qutebrowser.utils import standarddir, utils, qtutils, log
 
 
@@ -88,7 +88,6 @@ class YamlConfig(QObject):
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
         self._values = {}
-        self._per_url_values = {}
         self._dirty = None
 
     def init_save_manager(self, save_manager):
@@ -100,23 +99,8 @@ class YamlConfig(QObject):
         save_manager.add_saveable('yaml-config', self._save, self.changed)
 
     def __iter__(self):
-        for name, value in sorted(self._values.items()):
-            yield (None, name, value)
-
-        for pattern, options in sorted(self._per_url_values.items()):
-            for name, value in sorted(options.values.items()):
-                yield (pattern, name, value)
-
-    def _get_values(self, pattern=None):
-        """Get the appropriate _values instance for the given pattern."""
-        if pattern is None:
-            return self._values
-        elif pattern in self._per_url_values:
-            return self._per_url_values[pattern]
-        else:
-            values = {}
-            self._per_url_values[pattern] = values
-            return values
+        for name, values in sorted(self._values.items()):
+            yield from values
 
     def _mark_changed(self):
         """Mark the YAML config as changed."""
@@ -129,7 +113,7 @@ class YamlConfig(QObject):
             return
 
         data = {'config_version': self.VERSION, 'global': self._values}
-        for pattern, values in sorted(self._per_url_values.items()):
+        for pattern, values in sorted(self._values.items()):
             data[str(pattern)] = values
 
         with qtutils.savefile_open(self._filename) as f:
@@ -155,18 +139,17 @@ class YamlConfig(QObject):
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
         try:
-            global_obj = yaml_data.pop('global')
+            settings_obj = yaml_data.pop('settings')
         except KeyError:
             desc = configexc.ConfigErrorDesc(
                 "While loading data",
-                "Toplevel object does not contain 'global' key")
+                "Toplevel object does not contain 'settings' key")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
         except TypeError:
             desc = configexc.ConfigErrorDesc("While loading data",
                                              "Toplevel object is not a dict")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
-        # FIXME:conf test this
         try:
             yaml_data.pop('config_version')
         except KeyError:
@@ -175,22 +158,38 @@ class YamlConfig(QObject):
                 "Toplevel object does not contain 'config_version' key")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
-        if not isinstance(global_obj, dict):
-            desc = configexc.ConfigErrorDesc(
-                "While loading data",
-                "'global' object is not a dict")
-            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
-
-        self._values = global_obj
-        self._per_url_values = yaml_data
+        self._load_settings_object(settings_obj)
         self._dirty = False
-
         self._handle_migrations()
         self._validate()
+
+    def _load_settings_obj(self, settings_obj):
+        """Load the settings from the settings: key."""
+        if not isinstance(settings_obj, dict):
+            desc = configexc.ConfigErrorDesc(
+                "While loading data",
+                "'settings' object is not a dict")
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
+        # FIXME:conf test this
+        self._values = {}
+        for name, yaml_values in settings_obj.items():
+            values = configutils.Values(self._config.get_opt(name))
+            if 'global' in yaml_values:
+                scoped = configutils.ScopedValue(yaml_values.pop('global'))
+                values.add(scoped)
+
+            for pattern, value in yaml_values.items():
+                scoped = configutils.ScopedValue(value, pattern)
+                values.add(scoped)
+
+            self._values[name] = values
 
     def _handle_migrations(self):
         """Migrate older configs to the newest format."""
         # FIXME:conf handle per-URL settings
+        # FIXME:conf migrate from older format with global: key
+
         # Simple renamed/deleted options
         for name in list(self._values):
             if name in configdata.MIGRATIONS.renamed:
