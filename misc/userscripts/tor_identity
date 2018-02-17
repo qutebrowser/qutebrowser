@@ -30,8 +30,15 @@
 import os
 import sys
 
-from stem import Signal
-from stem.control import Controller
+try:
+    from stem import Signal
+    from stem.control import Controller
+except ImportError:
+    if os.getenv('QUTE_FIFO'):
+        with open(os.environ['QUTE_FIFO'], 'w') as f:
+            f.write('message-error "Failed to import stem."')
+    else:
+        print('Failed to import stem.')
 
 
 password = sys.argv[1]
