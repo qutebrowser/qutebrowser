@@ -102,6 +102,13 @@ def _get_search_url(txt):
         engine = 'DEFAULT'
     template = config.val.url.searchengines[engine]
     url = qurl_from_user_input(template.format(urllib.parse.quote(term)))
+
+    if config.val.url.open_base_url:
+        try:
+            search_url = urllib.parse.urlparse(config.val.url.searchengines[term])
+            url = QUrl('{}://{}'.format(search_url.scheme, search_url.netloc))
+        except KeyError:
+            pass
     qtutils.ensure_valid(url)
     return url
 
