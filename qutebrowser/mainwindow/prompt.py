@@ -596,6 +596,8 @@ class FilenamePrompt(_BasePrompt):
         if config.val.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
+        self._to_complete = ""
+
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
         """Set the root path for the file display."""
@@ -604,6 +606,9 @@ class FilenamePrompt(_BasePrompt):
             separators += os.altsep
 
         dirname = os.path.dirname(path)
+        basename = os.path.basename(path)
+        if not tabbed:
+            self._to_complete = ""
 
         try:
             if not path:
@@ -617,6 +622,8 @@ class FilenamePrompt(_BasePrompt):
             elif os.path.isdir(dirname) and not tabbed:
                 # Input like /foo/ba -> show /foo contents
                 path = dirname
+                if self._has_completions(dirname, basename):
+                    self._to_complete = basename
             else:
                 return
         except OSError:
@@ -625,6 +632,13 @@ class FilenamePrompt(_BasePrompt):
 
         root = self._file_model.setRootPath(path)
         self._file_view.setRootIndex(root)
+
+    def _has_completions(self, path, to_complete):
+        for f in os.listdir(path):
+            cur_path = os.path.join(path, f)
+            if os.path.isdir(cur_path) and f.startswith(to_complete):
+                return True
+        return False
 
     @pyqtSlot(QModelIndex)
     def _insert_path(self, index, *, clicked=True):
@@ -696,6 +710,7 @@ class FilenamePrompt(_BasePrompt):
         assert last_index.isValid()
 
         idx = selmodel.currentIndex()
+
         if not idx.isValid():
             # No item selected yet
             idx = last_index if which == 'prev' else first_index
@@ -705,6 +720,8 @@ class FilenamePrompt(_BasePrompt):
             assert which == 'next', which
             idx = self._file_view.indexBelow(idx)
 
+        idx = self._do_completion(idx, which)
+
         # wrap around if we arrived at beginning/end
         if not idx.isValid():
             idx = last_index if which == 'prev' else first_index
@@ -712,6 +729,24 @@ class FilenamePrompt(_BasePrompt):
         selmodel.setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
         self._insert_path(idx, clicked=False)
+
+    def _do_completion(self, idx, which):
+        parent = self._file_view.rootIndex()
+        first_index = self._file_model.index(0, 0, parent)
+        row = self._file_model.rowCount(parent) - 1
+        last_index = self._file_model.index(row, 0, parent)
+
+        while not self._file_model.fileName(idx).startswith(self._to_complete):
+            if which == 'prev':
+                idx = self._file_view.indexAbove(idx)
+            else:
+                assert which == 'next', which
+                idx = self._file_view.indexBelow(idx)
+
+            # wrap around if we arrived at beginning/end
+            if not idx.isValid():
+                idx = last_index if which == 'prev' else first_index
+        return idx
 
     def _allowed_commands(self):
         return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
