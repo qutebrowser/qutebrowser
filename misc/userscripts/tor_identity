@@ -38,5 +38,8 @@ password = sys.argv[1]
 with Controller.from_port(port=9051) as controller:
     controller.authenticate(password)
     controller.signal(Signal.NEWNYM)
-    with open(os.environ['QUTE_FIFO'], 'w') as f:
-        f.write('message-info "Tor identity changed."')
+    if os.getenv('QUTE_FIFO'):
+        with open(os.environ['QUTE_FIFO'], 'w') as f:
+            f.write('message-info "Tor identity changed."')
+    else:
+        print('Tor identity changed.')
