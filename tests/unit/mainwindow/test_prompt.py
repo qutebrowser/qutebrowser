@@ -81,6 +81,14 @@ class TestFileCompletion:
             for _ in range(3):
                 qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
 
+        # foo should get completed from f
+        prompt.item_focus('next')
+        assert prompt._lineedit.text() == str(testdir / 'foo')
+
+        # Deleting /[foo]
+        for _ in range(3):
+            qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
+
         # We should now show / again, so tabbing twice gives us .. -> bar
         prompt.item_focus('next')
         prompt.item_focus('next')

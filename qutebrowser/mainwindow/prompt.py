@@ -596,6 +596,8 @@ class FilenamePrompt(_BasePrompt):
         if config.val.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
+        self._to_complete = ''
+
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
         """Set the root path for the file display."""
@@ -604,6 +606,9 @@ class FilenamePrompt(_BasePrompt):
             separators += os.altsep
 
         dirname = os.path.dirname(path)
+        basename = os.path.basename(path)
+        if not tabbed:
+            self._to_complete = ''
 
         try:
             if not path:
@@ -617,6 +622,7 @@ class FilenamePrompt(_BasePrompt):
             elif os.path.isdir(dirname) and not tabbed:
                 # Input like /foo/ba -> show /foo contents
                 path = dirname
+                self._to_complete = basename
             else:
                 return
         except OSError:
@@ -634,7 +640,11 @@ class FilenamePrompt(_BasePrompt):
             index: The QModelIndex of the selected element.
             clicked: Whether the element was clicked.
         """
-        path = os.path.normpath(self._file_model.filePath(index))
+        if index == QModelIndex():
+            path = os.path.join(self._file_model.rootPath(), self._to_complete)
+        else:
+            path = os.path.normpath(self._file_model.filePath(index))
+
         if clicked:
             path += os.sep
         else:
@@ -696,6 +706,7 @@ class FilenamePrompt(_BasePrompt):
         assert last_index.isValid()
 
         idx = selmodel.currentIndex()
+
         if not idx.isValid():
             # No item selected yet
             idx = last_index if which == 'prev' else first_index
@@ -709,9 +720,23 @@ class FilenamePrompt(_BasePrompt):
         if not idx.isValid():
             idx = last_index if which == 'prev' else first_index
 
+        idx = self._do_completion(idx, which)
+
         selmodel.setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
         self._insert_path(idx, clicked=False)
+
+    def _do_completion(self, idx, which):
+        filename = self._file_model.fileName(idx)
+        while not filename.startswith(self._to_complete) and idx.isValid():
+            if which == 'prev':
+                idx = self._file_view.indexAbove(idx)
+            else:
+                assert which == 'next', which
+                idx = self._file_view.indexBelow(idx)
+            filename = self._file_model.fileName(idx)
+
+        return idx
 
     def _allowed_commands(self):
         return [('prompt-accept', 'Accept'), ('leave-mode', 'Abort')]
