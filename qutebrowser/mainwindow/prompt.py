@@ -649,6 +649,9 @@ class FilenamePrompt(_BasePrompt):
             clicked: Whether the element was clicked.
         """
         path = os.path.normpath(self._file_model.filePath(index))
+        if index == QModelIndex():
+            path = self._file_model.rootPath() + os.sep + self._to_complete
+
         if clicked:
             path += os.sep
         else:
@@ -720,22 +723,17 @@ class FilenamePrompt(_BasePrompt):
             assert which == 'next', which
             idx = self._file_view.indexBelow(idx)
 
-        idx = self._do_completion(idx, which)
-
         # wrap around if we arrived at beginning/end
         if not idx.isValid():
             idx = last_index if which == 'prev' else first_index
+
+        idx = self._do_completion(idx, which)
 
         selmodel.setCurrentIndex(
             idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
-        parent = self._file_view.rootIndex()
-        first_index = self._file_model.index(0, 0, parent)
-        row = self._file_model.rowCount(parent) - 1
-        last_index = self._file_model.index(row, 0, parent)
-
         while not self._file_model.fileName(idx).startswith(self._to_complete):
             if which == 'prev':
                 idx = self._file_view.indexAbove(idx)
@@ -745,7 +743,8 @@ class FilenamePrompt(_BasePrompt):
 
             # wrap around if we arrived at beginning/end
             if not idx.isValid():
-                idx = last_index if which == 'prev' else first_index
+                idx = QModelIndex()
+                break
         return idx
 
     def _allowed_commands(self):
