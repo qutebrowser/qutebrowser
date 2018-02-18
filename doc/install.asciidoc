@@ -277,6 +277,11 @@ PS C:\> Install-Package qutebrowser
 ----
 C:\> choco install qutebrowser
 ----
+* Scoop's client
+----
+C:\> scoop bucket add extras
+C:\> scoop install qutebrowser
+----
 
 Manual install
 ~~~~~~~~~~~~~~
