@@ -299,7 +299,7 @@ def init(args):
 
 
 def update_for_tab(tab, url):
-    websettings.update_mappings(MAPPINGS, option, url, tab.settings())
+    websettings.update_for_tab(MAPPINGS, tab, url)
 
 
 def shutdown():

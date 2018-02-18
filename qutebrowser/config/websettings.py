@@ -24,7 +24,7 @@
 
 from PyQt5.QtGui import QFont
 
-from qutebrowser.config import config
+from qutebrowser.config import config, configutils
 from qutebrowser.utils import log, utils, debug, usertypes
 from qutebrowser.misc import objects
 
@@ -198,15 +198,25 @@ def init_mappings(mappings):
         mapping.set(value)
 
 
-def update_mappings(mappings, option, url=None, settings=None):
+def update_mappings(mappings, option):
     """Update global settings when QWeb(Engine)Settings changed."""
     try:
         mapping = mappings[option]
     except KeyError:
         return
-    value = config.instance.get(option, url=url)
-    # FIXME:conf handle settings != None with global/static setters
-    mapping.set(value, settings=settings)
+    value = config.instance.get(option)
+    mapping.set(value)
+
+
+def update_for_tab(mappings, tab, url):
+    """Update settings customized for the given tab."""
+    for opt, values in config.instance:
+        value = values.get_for_url(url, fallback=False)
+        if value is not configutils.UNSET and opt.name in mappings:
+            # FIXME:conf handle settings != None with global/static setters
+            mapping = mappings[opt.name]
+            # FIXME:conf have a proper API for this.
+            mapping.set(value, settings=tab._widget.settings())
 
 
 def init(args):

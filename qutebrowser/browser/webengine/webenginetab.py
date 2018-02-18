@@ -906,7 +906,7 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadFinished.connect(self._restore_zoom)
             page.loadFinished.connect(self._on_load_finished)
 
-        self.on_url_changed.connect(
+        self.url_changed.connect(
             functools.partial(webenginesettings.update_for_tab, self))
 
     def event_target(self):

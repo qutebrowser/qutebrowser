@@ -36,7 +36,8 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
-from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
+from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
+                                        webkitsettings)
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
 
 
@@ -780,7 +781,7 @@ class WebKitTab(browsertab.AbstractTab):
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
 
-        self.on_url_changed.connect(
+        self.url_changed.connect(
             functools.partial(webkitsettings.update_for_tab, self))
 
     def event_target(self):

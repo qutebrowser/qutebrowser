@@ -191,8 +191,8 @@ class ConfigCommands:
 
         with self._handle_config_error():
             opt = self._config.get_opt(option)
-            old_value = self._config.get_obj(option, mutable=False,
-                                             pattern=pattern)
+            old_value = self._config.get_obj_for_pattern(option,
+                                                         pattern=pattern)
 
         if not values and isinstance(opt.typ, configtypes.Bool):
             values = ['true', 'false']
@@ -318,7 +318,7 @@ class ConfigCommands:
             commented = True
         else:
             options = list(self._config)
-            bindings = dict(self._config.get_obj('bindings.commands'))
+            bindings = dict(self._config.get_mutable_obj('bindings.commands'))
             commented = False
 
         writer = configfiles.ConfigPyWriter(options, bindings,

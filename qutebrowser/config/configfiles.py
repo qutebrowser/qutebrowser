@@ -87,8 +87,11 @@ class YamlConfig(QObject):
         super().__init__(parent)
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
-        self._values = {}
         self._dirty = None
+
+        self._values = {}
+        for name, opt in configdata.DATA.items():
+            self._values[name] = configutils.Values(opt)
 
     def init_save_manager(self, save_manager):
         """Make sure the config gets saved properly.
@@ -163,7 +166,7 @@ class YamlConfig(QObject):
         self._handle_migrations()
         self._validate()
 
-    def _load_settings_obj(self, settings_obj):
+    def _load_settings_object(self, settings_obj):
         """Load the settings from the settings: key."""
         if not isinstance(settings_obj, dict):
             desc = configexc.ConfigErrorDesc(
@@ -172,16 +175,13 @@ class YamlConfig(QObject):
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
         # FIXME:conf test this
-        self._values = {}
         for name, yaml_values in settings_obj.items():
             values = configutils.Values(self._config.get_opt(name))
             if 'global' in yaml_values:
-                scoped = configutils.ScopedValue(yaml_values.pop('global'))
-                values.add(scoped)
+                values.add(yaml_values.pop('global'))
 
             for pattern, value in yaml_values.items():
-                scoped = configutils.ScopedValue(value, pattern)
-                values.add(scoped)
+                values.add(value, pattern)
 
             self._values[name] = values
 
@@ -230,16 +230,11 @@ class YamlConfig(QObject):
 
     def set_obj(self, name, value, *, pattern=None):
         """Set the given setting to the given value."""
-        values = self._get_values(pattern)
-        values[name] = value
+        self._values[name].add(value, pattern)
 
     def unset(self, name, *, pattern=None):
         """Remove the given option name if it's configured."""
-        values = self._get_values(pattern)
-        try:
-            del values[name]
-        except KeyError:
-            return
+        self._values[name].remove(pattern)
         self._mark_changed()
 
     def clear(self):
@@ -294,7 +289,7 @@ class ConfigAPI:
 
     def get(self, name):
         with self._handle_error('getting', name):
-            return self._config.get_obj(name)
+            return self._config.get_mutable_obj(name)
 
     def set(self, name, value):
         with self._handle_error('setting', name):

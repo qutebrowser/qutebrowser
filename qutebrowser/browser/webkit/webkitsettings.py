@@ -118,8 +118,8 @@ def _update_settings(option):
     websettings.update_mappings(MAPPINGS, option)
 
 
-def update_for_tab(tab, url, option):
-    websettings.update_mappings(MAPPINGS, option, url, tab.settings())
+def update_for_tab(tab, url):
+    websettings.update_for_tab(MAPPINGS, tab, url)
 
 
 def init(_args):

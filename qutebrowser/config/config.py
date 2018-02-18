@@ -190,7 +190,7 @@ class KeyConfig:
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
 
-        bindings = self._config.get_obj('bindings.commands')
+        bindings = self._config.get_mutable_obj('bindings.commands')
         if mode not in bindings:
             bindings[mode] = {}
         bindings[mode][key] = command
@@ -200,7 +200,7 @@ class KeyConfig:
         """Restore a default keybinding."""
         key = self._prepare(key, mode)
 
-        bindings_commands = self._config.get_obj('bindings.commands')
+        bindings_commands = self._config.get_mutable_obj('bindings.commands')
         try:
             del bindings_commands[mode][key]
         except KeyError:
@@ -212,7 +212,7 @@ class KeyConfig:
         """Unbind the given key in the given mode."""
         key = self._prepare(key, mode)
 
-        bindings_commands = self._config.get_obj('bindings.commands')
+        bindings_commands = self._config.get_mutable_obj('bindings.commands')
 
         if val.bindings.commands[mode].get(key, None) is not None:
             # In custom bindings -> remove it
@@ -252,15 +252,17 @@ class Config(QObject):
     def __init__(self, yaml_config, parent=None):
         super().__init__(parent)
         self.changed.connect(_render_stylesheet.cache_clear)
-        self._values = {}
         self._mutables = {}
         self._yaml = yaml_config
 
+        self._values = {}
+        for name, opt in configdata.DATA.items():
+            self._values[name] = configutils.Values(opt)
+
     def __iter__(self):
-        """Iterate over Option, ScopedValue tuples."""
+        """Iterate over Option, configutils.Values tuples."""
         for name, values in sorted(self._values.items()):
-            for scoped in values:
-                yield self.get_opt(name), scoped
+            yield self.get_opt(name), values
 
     def init_save_manager(self, save_manager):
         """Make sure the config gets saved properly.
@@ -277,8 +279,7 @@ class Config(QObject):
                 raise configexc.BackendError(opt.name, objects.backend)
 
         opt.typ.to_py(value)  # for validation
-        scoped = configutils.ScopedValue(opt.typ.from_obj(value), pattern)
-        self._values[opt.name].add(scoped)
+        self._values[opt.name].add(opt.typ.from_obj(value), pattern)
 
         self.changed.emit(opt.name)
         log.config.debug("Config option changed: {} = {}".format(
@@ -305,7 +306,7 @@ class Config(QObject):
     def get(self, name, url=None):
         """Get the given setting converted for Python code."""
         opt = self.get_opt(name)
-        obj = self.get_obj(name, mutable=False, url=url)
+        obj = self.get_obj(name, url=url)
         return opt.typ.to_py(obj)
 
     def _maybe_copy(self, value):
@@ -511,7 +512,7 @@ class ConfigContainer:
                 return self._config.get(name)
             else:
                 # access from config.py
-                return self._config.get_obj(name)
+                return self._config.get_mutable_obj(name)
 
     def __setattr__(self, attr, value):
         """Set the given option in the config."""
