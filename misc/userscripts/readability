@@ -13,7 +13,13 @@
 from __future__ import absolute_import
 import codecs, os
 
-tmpfile=os.path.expanduser('~/.local/share/qutebrowser/userscripts/readability.html')
+if 'QUTE_DATA_DIR' in os.environ:
+    tmpfile = os.path.join(os.environ['QUTE_DATA_DIR'],
+                           'userscripts/readability.html')
+else:
+    tmpfile = os.path.expanduser(
+        '~/.local/share/qutebrowser/userscripts/readability.html')
+
 if not os.path.exists(os.path.dirname(tmpfile)):
     os.makedirs(os.path.dirname(tmpfile))
 
