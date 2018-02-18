@@ -93,6 +93,13 @@ class Base:
         """
         raise NotImplementedError
 
+    def unset(self, settings=None):
+        """Unset a customized setting.
+
+        Must be overridden by subclasses.
+        """
+        raise NotImplementedError
+
 
 class Attribute(Base):
 
@@ -117,6 +124,11 @@ class Attribute(Base):
         for obj in self._get_settings(settings):
             for attribute in self._attributes:
                 obj.setAttribute(attribute, value)
+
+    def unset(self, settings=None):
+        for obj in self._get_settings(settings):
+            for attribute in self._attributes:
+                obj.resetAttribute(attribute)
 
 
 class Setter(Base):
@@ -211,12 +223,23 @@ def update_mappings(mappings, option):
 def update_for_tab(mappings, tab, url):
     """Update settings customized for the given tab."""
     for opt, values in config.instance:
+        if opt.name not in mappings:
+            continue
+
+        # FIXME:conf handle settings != None with global/static setters
+        mapping = mappings[opt.name]
+
         value = values.get_for_url(url, fallback=False)
-        if value is not configutils.UNSET and opt.name in mappings:
-            # FIXME:conf handle settings != None with global/static setters
-            mapping = mappings[opt.name]
-            # FIXME:conf have a proper API for this.
-            mapping.set(value, settings=tab._widget.settings())
+        # FIXME:conf have a proper API for this.
+        settings = tab._widget.settings()
+
+        if value is configutils.UNSET:
+            try:
+                mapping.unset(settings=settings)
+            except NotImplementedError:
+                pass
+        else:
+            mapping.set(value, settings=settings)
 
 
 def init(args):
