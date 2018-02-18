@@ -1,0 +1,80 @@
+Flatpak
+=======
+
+This flatpak is based on the org.freedesktop.Platform version 1.6 and ships all
+additional dependecies of qutebrowser. Unfortunately there are some
+performance and stability issues with the QtWebEngine shipped in the
+org.kde.Platform. Therefor we use the Qt bundled with the PyQt5 wheel package.
+
+To install the SDK system wide run:
+
+ sudo flatpak install flathub org.freedesktop.Platform//1.6
+ sudo flatpak install flathub org.freedesktop.Sdk//1.6
+
+To actually build the flatpak run the following command:
+
+ flatpak-builder --force-clean app-dir org.qutebrowser.qutebrowser.json
+
+To run the flatpak from current build:
+
+ flatpak-builder --run app-dir org.qutebrowser.qutebrowser.json qutebrowser
+
+Installing from a local repository
+----------------------------------
+
+You need at least version 0.9.1 of flatpak to build the system, e.g. from
+Debian backports.
+
+Export the flatpak application to a local repository:
+
+ flatpak build-export repo app-dir
+
+Add the local repository to your flatpak system (only required once):
+
+ flatpak --user remote-add --no-gpg-verify --if-not-exists qutebrowser-repo repo
+
+Install the flatpak from your local repository:
+
+ flatpak --user install qutebrowser-repo org.qutebrowser.qutebrowser
+
+Run the installed flatpak:
+
+ flatpak run org.qutebrowser.qutebrowser
+
+To update the flatpak from your repository run the build-export command after
+building once again. Finally execute the following command to perform the
+update from your local repo:
+
+ flatpak update org.qutebrowser.qutebrowser
+
+Or
+
+ flatpak update
+
+to update all installed flatpaks.
+
+Sandbox
+-------
+
+Your configuration gets read from 
+$HOME/.var/app/org.qutebrowser.qutebrowser/config/qutebrowser/
+
+The sandboxed qutebrowser can read all files from your system, but only write
+to your XDG downloads folder.
+
+Direct rendering, using the webcam and sound using pulseaudio are allowed.
+
+Known Limitations
+-----------------
+
+* Requires access to all devices to support video from webcams
+
+* Sandboxing each tab isn't supported since flatpak doesn't allow nested sandboxes
+
+* ARM isn't supported because of the missing PyQt wheel package
+
+* Large size of the flatpak file (100MByte)
+
+* Only printing to PDF works
+
+* The PyQt wheel package requires to ship udev in the flatpak

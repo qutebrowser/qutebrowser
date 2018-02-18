@@ -32,6 +32,7 @@ include doc/qutebrowser.1.asciidoc
 include doc/changelog.asciidoc
 prune tests
 prune qutebrowser/3rdparty
+prune misc/flatpak
 prune misc/requirements
 prune misc/docker
 exclude pytest.ini

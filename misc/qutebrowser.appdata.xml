@@ -40,4 +40,8 @@
 	<url type="help">https://qutebrowser.org/doc/help/</url>
 	<url type="bugtracker">https://github.com/qutebrowser/qutebrowser/issues/</url>
 	<url type="donation">https://github.com/qutebrowser/qutebrowser#donating</url>
+    <releases>
+        <release version="1.1.1" date="2018-01-20" />
+        <release version="1.1.0" date="2018-01-15" />
+    </releases>
 </component>
