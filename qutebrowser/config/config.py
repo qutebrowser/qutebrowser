@@ -233,6 +233,10 @@ class Config(QObject):
 
     """Main config object.
 
+    Class attributes:
+        MUTABLE_TYPES: Types returned from the config which could potentially be
+        mutated.
+
     Attributes:
         _values: A dict mapping setting names to configutils.Values objects.
         _mutables: A dictionary of mutable objects to be checked for changes.
@@ -242,6 +246,7 @@ class Config(QObject):
         changed: Emitted with the option name when an option changed.
     """
 
+    MUTABLE_TYPES = (dict, list)
     changed = pyqtSignal(str)
 
     def __init__(self, yaml_config, parent=None):
@@ -303,34 +308,56 @@ class Config(QObject):
         obj = self.get_obj(name, mutable=False, url=url)
         return opt.typ.to_py(obj)
 
-    def get_obj(self, name, *, mutable=True, url=None):
+    def _maybe_copy(self, value):
+        """Copy the value if it could potentially be mutated."""
+        if isinstance(value, self.MUTABLE_TYPES):
+            # For mutable objects, create a copy so we don't accidentally mutate
+            # the config's internal value.
+            return copy.deepcopy(value)
+        else:
+            # Shouldn't be mutable (and thus hashable)
+            assert value.__hash__ is not None, value
+            return value
+
+    def get_obj(self, name, *, url=None):
         """Get the given setting as object (for YAML/config.py).
 
-        If mutable=True is set, watch the returned object for mutations.
+        Note that the returned values are not watched for mutation.
         If a URL is given, return the value which should be used for that URL.
         """
-        obj = None
+        value = self._values[name].get_for_url(url)
+        return self._maybe_copy(value)
+
+    def get_obj_for_pattern(self, name, *, pattern):
+        """Get the given setting as object (for YAML/config.py).
+
+        This gets the overridden value for a given pattern, or configutils.UNSET
+        if no such override exists.
+        """
+        value = self._values[name].get_for_pattern(pattern, fallback=False)
+        return self._maybe_copy(value)
+
+    def get_mutable_obj(self, name, *, pattern=None):
+        """Get an object which can be mutated, e.g. in a config.py.
+
+        If a pattern is given, return the value for that pattern.
+        Note that it's impossible to get a mutable object for an URL as we
+        wouldn't know what pattern to apply.
+        """
         # If we allow mutation, there is a chance that prior mutations already
         # entered the mutable dictionary and thus further copies are unneeded
         # until update_mutables() is called
-        if name in self._mutables and mutable:
+        if name in self._mutables:
             _copy, obj = self._mutables[name]
-        # Otherwise, we return a copy of the value stored internally, so the
-        # internal value can never be changed by mutating the object returned.
-        else:
-            if name in self._values:
-                value = self._values[name].get_any(url)
-            else:
-                value = self.get_opt(name).default
-            obj = copy.deepcopy(value)
-            # Then we watch the returned object for changes.
-            if isinstance(obj, (dict, list)):
-                if mutable:
-                    self._mutables[name] = (copy.deepcopy(obj), obj)
-            else:
-                # Shouldn't be mutable (and thus hashable)
-                assert obj.__hash__ is not None, obj
-        return obj
+            return obj
+
+        value = self._values[name].get_for_pattern(pattern)
+
+        # Watch the returned object for changes if it's mutable.
+        if isinstance(value, self.MUTABLE_TYPES):
+            self._mutables[name] = (copy.deepcopy(value), value)
+
+        return self._maybe_copy(value)
 
     def get_str(self, name, *, pattern=None):
         """Get the given setting as string.
