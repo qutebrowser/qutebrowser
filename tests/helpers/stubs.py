@@ -406,33 +406,6 @@ class InstaTimer(QObject):
         fun()
 
 
-class FakeYamlConfig:
-
-    """Fake configfiles.YamlConfig object."""
-
-    def __init__(self):
-        self.loaded = False
-        self._values = {}
-
-    def __contains__(self, item):
-        return item in self._values
-
-    def __iter__(self):
-        return iter(self._values.items())
-
-    def __setitem__(self, key, value):
-        self._values[key] = value
-
-    def __getitem__(self, key):
-        return self._values[key]
-
-    def unset(self, name):
-        self._values.pop(name, None)
-
-    def clear(self):
-        self._values = []
-
-
 class StatusBarCommandStub(QLineEdit):
 
     """Stub for the statusbar command prompt."""
