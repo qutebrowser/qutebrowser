@@ -195,6 +195,7 @@ class YamlConfig(QObject):
             if 'global' in yaml_values:
                 values.add(yaml_values.pop('global'))
 
+            # FIXME:conf what if yaml_values is not a dict...
             for pattern, value in yaml_values.items():
                 values.add(value, pattern)
 
