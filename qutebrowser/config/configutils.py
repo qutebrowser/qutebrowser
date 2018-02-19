@@ -92,7 +92,9 @@ class Values:
 
     def clear(self):
         """Clear all customization for this value."""
+        had_values = bool(self._values)
         self._values = []
+        return had_values
 
     def _get_fallback(self):
         """Get the fallback global/default value."""
