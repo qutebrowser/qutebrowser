@@ -33,8 +33,7 @@ from qutebrowser.config import config
 from qutebrowser.browser import pdfjs, shared
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
-from qutebrowser.utils import (message, usertypes, log, jinja, objreg, debug,
-                               urlutils)
+from qutebrowser.utils import message, usertypes, log, jinja, objreg
 
 
 class BrowserPage(QWebPage):

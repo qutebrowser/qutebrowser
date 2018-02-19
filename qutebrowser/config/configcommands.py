@@ -177,7 +177,8 @@ class ConfigCommands:
     @cmdutils.register(instance='config-commands', star_args_optional=True)
     @cmdutils.argument('option', completion=configmodel.option)
     @cmdutils.argument('values', completion=configmodel.value)
-    def config_cycle(self, option, *values, url=None, temp=False, print_=False):
+    def config_cycle(self, option, *values, url=None, temp=False,
+                     print_=False):
         """Cycle an option between multiple values.
 
         Args:

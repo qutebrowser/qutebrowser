@@ -102,7 +102,7 @@ class YamlConfig(QObject):
         save_manager.add_saveable('yaml-config', self._save, self.changed)
 
     def __iter__(self):
-        for name, values in sorted(self._values.items()):
+        for _name, values in sorted(self._values.items()):
             yield from values
 
     def _mark_changed(self):
@@ -217,7 +217,7 @@ class YamlConfig(QObject):
     def _validate(self):
         """Make sure all settings exist."""
         unknown = []
-        for _pattern, name, value in self:
+        for _pattern, name, _value in self:
             # FIXME:conf show pattern
             if name not in configdata.DATA:
                 unknown.append(name)

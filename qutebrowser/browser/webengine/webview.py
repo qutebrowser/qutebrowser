@@ -29,8 +29,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror, webenginesettings
 from qutebrowser.config import config
-from qutebrowser.utils import (log, debug, usertypes, jinja, urlutils, message,
-                               objreg, qtutils)
+from qutebrowser.utils import log, debug, usertypes, jinja, objreg, qtutils
 
 
 class WebEngineView(QWebEngineView):

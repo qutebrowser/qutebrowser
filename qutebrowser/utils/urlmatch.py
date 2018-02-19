@@ -104,6 +104,7 @@ class UrlPattern:
         return hash(self._to_tuple())
 
     def __eq__(self, other):
+        # pylint: disable=protected-access
         return self._to_tuple() == other._to_tuple()
 
     def _fixup_pattern(self, pattern):

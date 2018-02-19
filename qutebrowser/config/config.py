@@ -23,7 +23,6 @@ import copy
 import contextlib
 import functools
 
-import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from qutebrowser.config import configdata, configexc, configutils
@@ -234,8 +233,8 @@ class Config(QObject):
     """Main config object.
 
     Class attributes:
-        MUTABLE_TYPES: Types returned from the config which could potentially be
-        mutated.
+        MUTABLE_TYPES: Types returned from the config which could potentially
+        be mutated.
 
     Attributes:
         _values: A dict mapping setting names to configutils.Values objects.
@@ -312,8 +311,8 @@ class Config(QObject):
     def _maybe_copy(self, value):
         """Copy the value if it could potentially be mutated."""
         if isinstance(value, self.MUTABLE_TYPES):
-            # For mutable objects, create a copy so we don't accidentally mutate
-            # the config's internal value.
+            # For mutable objects, create a copy so we don't accidentally
+            # mutate the config's internal value.
             return copy.deepcopy(value)
         else:
             # Shouldn't be mutable (and thus hashable)
@@ -332,8 +331,8 @@ class Config(QObject):
     def get_obj_for_pattern(self, name, *, pattern):
         """Get the given setting as object (for YAML/config.py).
 
-        This gets the overridden value for a given pattern, or configutils.UNSET
-        if no such override exists.
+        This gets the overridden value for a given pattern, or
+        configutils.UNSET if no such override exists.
         """
         value = self._values[name].get_for_pattern(pattern, fallback=False)
         return self._maybe_copy(value)

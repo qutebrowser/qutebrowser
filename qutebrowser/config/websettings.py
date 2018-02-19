@@ -231,7 +231,7 @@ def update_for_tab(mappings, tab, url):
 
         value = values.get_for_url(url, fallback=False)
         # FIXME:conf have a proper API for this.
-        settings = tab._widget.settings()
+        settings = tab._widget.settings()  # pylint: disable=protected-access
 
         if value is configutils.UNSET:
             try:

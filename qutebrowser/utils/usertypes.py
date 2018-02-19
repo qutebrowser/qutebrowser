@@ -400,6 +400,8 @@ class AbstractCertificateErrorWrapper:
 @attr.s
 class NavigationRequest:
 
+    """A request to navigate to the given URL."""
+
     Type = enum.Enum('Type', [
         'link_clicked',
         'typed',  # QtWebEngine only
