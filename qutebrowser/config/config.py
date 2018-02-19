@@ -328,6 +328,7 @@ class Config(QObject):
         Note that the returned values are not watched for mutation.
         If a URL is given, return the value which should be used for that URL.
         """
+        self.get_opt(name)  # To make sure it exists
         value = self._values[name].get_for_url(url)
         return self._maybe_copy(value)
 
@@ -337,6 +338,7 @@ class Config(QObject):
         This gets the overridden value for a given pattern, or
         configutils.UNSET if no such override exists.
         """
+        self.get_opt(name)  # To make sure it exists
         value = self._values[name].get_for_pattern(pattern, fallback=False)
         return self._maybe_copy(value)
 
@@ -347,6 +349,8 @@ class Config(QObject):
         Note that it's impossible to get a mutable object for an URL as we
         wouldn't know what pattern to apply.
         """
+        self.get_opt(name)  # To make sure it exists
+
         # If we allow mutation, there is a chance that prior mutations already
         # entered the mutable dictionary and thus further copies are unneeded
         # until update_mutables() is called
