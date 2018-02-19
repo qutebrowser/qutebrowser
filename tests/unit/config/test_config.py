@@ -360,10 +360,6 @@ class TestConfig:
 
         assert conf.get(name) == 'always'
 
-    def test_unset_unknown(self, conf):
-        with pytest.raises(configexc.NoOptionError):
-            conf.unset('tabs')
-
     @pytest.mark.parametrize('save_yaml', [True, False])
     def test_clear(self, conf, qtbot, yaml_value, save_yaml):
         name1 = 'tabs.show'
@@ -394,9 +390,21 @@ class TestConfig:
     def test_get_opt_valid(self, conf):
         assert conf.get_opt('tabs.show') == configdata.DATA['tabs.show']
 
-    def test_get_opt_invalid(self, conf):
+    @pytest.mark.parametrize('code', [
+        lambda c: c.get_opt('tabs'),
+        lambda c: c.get('tabs'),
+        lambda c: c.get_obj('tabs'),
+        lambda c: c.get_obj_for_pattern('tabs', pattern=None),
+        lambda c: c.get_mutable_obj('tabs'),
+        lambda c: c.get_str('tabs'),
+
+        lambda c: c.set_obj('tabs', 42),
+        lambda c: c.set_str('tabs', '42'),
+        lambda c: c.unset('tabs'),
+    ])
+    def test_no_option_error(self, conf, code):
         with pytest.raises(configexc.NoOptionError):
-            conf.get_opt('tabs')
+            code(conf)
 
     def test_get(self, conf):
         """Test conf.get() with a QColor (where get/get_obj is different)."""
