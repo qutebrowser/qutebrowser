@@ -155,7 +155,7 @@ class YamlConfig(QObject):
                 "While loading data",
                 "Toplevel object does not contain 'config_version' key")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
-        except TypeError:
+        except (TypeError, AttributeError):
             desc = configexc.ConfigErrorDesc("While loading data",
                                              "Toplevel object is not a dict")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
