@@ -450,7 +450,8 @@ class Config(QObject):
                 blocks.append(str(values))
 
         if not blocks:
-            lines = ['<Default configuration>']
+            return '<Default configuration>'
+
         return '\n'.join(blocks)
 
 
