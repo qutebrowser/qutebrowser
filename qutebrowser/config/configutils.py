@@ -102,14 +102,8 @@ class Values:
         return bool(self._values)
 
     def add(self, value, pattern=None):
-        """Add a value with the given pattern to the list of values.
-
-        Currently, we just add this to the end of the list, meaning the same
-        pattern can be in there multiple times. However, that avoids doing a
-        search through all values every time a setting is set. We can still
-        optimize this later when changing the data structure as mentioned in
-        the class docstring.
-        """
+        """Add a value with the given pattern to the list of values."""
+        self.remove(pattern)
         scoped = ScopedValue(value, pattern)
         self._values.append(scoped)
 
