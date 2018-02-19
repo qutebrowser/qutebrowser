@@ -143,6 +143,8 @@ PERFECT_FILES = [
      'config/configinit.py'),
     ('tests/unit/config/test_configcommands.py',
      'config/configcommands.py'),
+    ('tests/unit/config/test_configutils.py',
+     'config/configutils.py'),
 
     ('tests/unit/utils/test_qtutils.py',
      'utils/qtutils.py'),
@@ -164,6 +166,8 @@ PERFECT_FILES = [
      'utils/error.py'),
     ('tests/unit/utils/test_javascript.py',
      'utils/javascript.py'),
+    ('tests/unit/utils/test_urlmatch.py',
+     'utils/urlmatch.py'),
 
     (None,
      'completion/models/util.py'),
