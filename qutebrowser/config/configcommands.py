@@ -313,12 +313,15 @@ class ConfigCommands:
                                       "overwrite!".format(filename))
 
         if defaults:
-            options = [(opt, opt.default)
+            options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]
             bindings = dict(configdata.DATA['bindings.default'].default)
             commented = True
         else:
-            options = list(self._config)
+            options = []
+            for values in self._config:
+                for scoped in values:
+                    options.append((scoped.pattern, values.opt, scoped.value))
             bindings = dict(self._config.get_mutable_obj('bindings.commands'))
             commented = False
 

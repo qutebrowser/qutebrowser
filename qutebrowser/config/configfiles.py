@@ -388,7 +388,8 @@ class ConfigPyWriter:
 
     def _gen_options(self):
         """Generate the options part of the config."""
-        for opt, value in self._options:
+        # FIXME:conf handle _pattern
+        for _pattern, opt, value in self._options:
             if opt.name in ['bindings.commands', 'bindings.default']:
                 continue
 
