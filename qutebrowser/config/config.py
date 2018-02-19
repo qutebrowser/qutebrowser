@@ -352,13 +352,13 @@ class Config(QObject):
             return obj
 
         value = self._values[name].get_for_pattern(pattern)
-        value = self._maybe_copy(value)
+        copy_value = self._maybe_copy(value)
 
         # Watch the returned object for changes if it's mutable.
-        if isinstance(value, self.MUTABLE_TYPES):
-            self._mutables[name] = (copy.deepcopy(value), value)
+        if isinstance(copy_value, self.MUTABLE_TYPES):
+            self._mutables[name] = (value, copy_value)  # old, new
 
-        return value
+        return copy_value
 
     def get_str(self, name, *, pattern=None):
         """Get the given setting as string.
