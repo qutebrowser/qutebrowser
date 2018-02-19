@@ -26,7 +26,8 @@ import pytest
 from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QColor
 
-from qutebrowser.config import config, configdata, configexc, configfiles
+from qutebrowser.config import (config, configdata, configexc, configfiles,
+                                configutils)
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
 
@@ -303,9 +304,15 @@ class TestKeyConfig:
 class TestConfig:
 
     @pytest.fixture
-    def conf(self, config_tmpdir):
-        yaml_config = configfiles.YamlConfig()
-        return config.Config(yaml_config)
+    def conf(self, config_stub):
+        return config_stub
+
+    @pytest.fixture
+    def yaml_value(self, conf):
+        """Fixture which provides a getter for a YAML value."""
+        def getter(option):
+            return conf._yaml._values[option].get_for_url(fallback=False)
+        return getter
 
     def test_init_save_manager(self, conf, fake_save_manager):
         conf.init_save_manager(fake_save_manager)
@@ -327,10 +334,10 @@ class TestConfig:
         monkeypatch.setattr(config.objects, 'backend', objects.NoBackend())
         opt = conf.get_opt('tabs.show')
         conf._set_value(opt, 'never')
-        assert conf._values['tabs.show'] == 'never'
+        assert conf.get_obj('tabs.show') == 'never'
 
     @pytest.mark.parametrize('save_yaml', [True, False])
-    def test_unset(self, conf, qtbot, save_yaml):
+    def test_unset(self, conf, qtbot, yaml_value, save_yaml):
         name = 'tabs.show'
         conf.set_obj(name, 'never', save_yaml=True)
         assert conf.get(name) == 'never'
@@ -340,9 +347,9 @@ class TestConfig:
 
         assert conf.get(name) == 'always'
         if save_yaml:
-            assert name not in conf._yaml
+            assert yaml_value(name) is configutils.UNSET
         else:
-            assert conf._yaml[name] == 'never'
+            assert yaml_value(name) == 'never'
 
     def test_unset_never_set(self, conf, qtbot):
         name = 'tabs.show'
@@ -358,13 +365,13 @@ class TestConfig:
             conf.unset('tabs')
 
     @pytest.mark.parametrize('save_yaml', [True, False])
-    def test_clear(self, conf, qtbot, save_yaml):
+    def test_clear(self, conf, qtbot, yaml_value, save_yaml):
         name1 = 'tabs.show'
         name2 = 'content.plugins'
         conf.set_obj(name1, 'never', save_yaml=True)
         conf.set_obj(name2, True, save_yaml=True)
-        assert conf._values[name1] == 'never'
-        assert conf._values[name2] is True
+        assert conf.get_obj(name1) == 'never'
+        assert conf.get_obj(name2) is True
 
         with qtbot.waitSignals([conf.changed, conf.changed]) as blocker:
             conf.clear(save_yaml=save_yaml)
@@ -373,16 +380,16 @@ class TestConfig:
         assert options == {name1, name2}
 
         if save_yaml:
-            assert name1 not in conf._yaml
-            assert name2 not in conf._yaml
+            assert yaml_value(name1) is configutils.UNSET
+            assert yaml_value(name2) is configutils.UNSET
         else:
-            assert conf._yaml[name1] == 'never'
-            assert conf._yaml[name2] is True
+            assert yaml_value(name1) == 'never'
+            assert yaml_value(name2) is True
 
-    def test_read_yaml(self, conf):
-        conf._yaml['content.plugins'] = True
+    def test_read_yaml(self, conf, yaml_value):
+        conf._yaml.set_obj('content.plugins', True)
         conf.read_yaml()
-        assert conf._values['content.plugins'] is True
+        assert conf.get_obj('content.plugins') is True
 
     def test_get_opt_valid(self, conf):
         assert conf.get_opt('tabs.show') == configdata.DATA['tabs.show']
@@ -399,7 +406,7 @@ class TestConfig:
     def test_get_bindings(self, config_stub, conf, value):
         """Test conf.get() with bindings which have missing keys."""
         config_stub.val.aliases = {}
-        conf._values['bindings.commands'] = value
+        conf.set_obj('bindings.commands', value)
         assert conf.get('bindings.commands')['prompt'] == {}
 
     def test_get_mutable(self, conf):
@@ -497,7 +504,7 @@ class TestConfig:
 
     def test_get_obj_unknown_mutable(self, conf):
         """Make sure we don't have unknown mutable types."""
-        conf._values['aliases'] = set()  # This would never happen
+        conf.set_obj('aliases', set())  # This would never happen
         with pytest.raises(AssertionError):
             conf.get_obj('aliases')
 
@@ -509,16 +516,17 @@ class TestConfig:
         ('set_obj', True),
         ('set_str', 'true'),
     ])
-    def test_set_valid(self, conf, qtbot, save_yaml, method, value):
+    def test_set_valid(self, conf, qtbot, yaml_value,
+                       save_yaml, method, value):
         option = 'content.plugins'
         meth = getattr(conf, method)
         with qtbot.wait_signal(conf.changed):
             meth(option, value, save_yaml=save_yaml)
-        assert conf._values[option] is True
+        assert conf.get_obj(option) is True
         if save_yaml:
-            assert conf._yaml[option] is True
+            assert yaml_value(option) is True
         else:
-            assert option not in conf._yaml
+            assert yaml_value(option) is configutils.UNSET
 
     @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
     def test_set_invalid(self, conf, qtbot, method):
@@ -581,7 +589,7 @@ class TestContainer:
 
     def test_setattr_option(self, config_stub, container):
         container.content.cookies.store = False
-        assert config_stub._values['content.cookies.store'] is False
+        assert config_stub.get_obj('content.cookies.store') is False
 
     def test_confapi_errors(self, container):
         configapi = types.SimpleNamespace(errors=[])
