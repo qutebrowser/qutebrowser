@@ -29,6 +29,8 @@ Currently not tested:
 - Any other features we don't need, such as .GetAsString() or set operations.
 """
 
+import re
+import sys
 import string
 
 import pytest
@@ -66,18 +68,24 @@ from qutebrowser.utils import urlmatch
     ("http://foo.*/bar", "TLD wildcards are not implemented yet"),
 
     # Chromium: PARSE_ERROR_INVALID_PORT
-    ("http://foo:/", "Empty port"),
-    ("http://*.foo:/", "Empty port"),
-    ("http://foo:com/", "Invalid port"),
-    ("http://foo:123456/", "Invalid port"),
-    ("http://foo:80:80/monkey", "Invalid port"),
+    ("http://foo:/", "Invalid port: Port is empty"),
+    ("http://*.foo:/", "Invalid port: Port is empty"),
+    ("http://foo:com/",
+     "Invalid port: invalid literal for int() with base 10: 'com'"),
+    pytest.param("http://foo:123456/",
+                 "Invalid port: Port out of range 0-65535",
+                 marks=pytest.mark.skipif(
+                     sys.hexversion < 0x03060000,
+                     reason="Doesn't show an error on Python 3.5")),
+    ("http://foo:80:80/monkey",
+     "Invalid port: invalid literal for int() with base 10: '80:80'"),
     ("chrome://foo:1234/bar", "Ports are unsupported with chrome scheme"),
 
     # Additional tests
     ("http://[", "Invalid IPv6 URL"),
 ])
 def test_invalid_patterns(pattern, error):
-    with pytest.raises(urlmatch.ParseError, match=error):
+    with pytest.raises(urlmatch.ParseError, match=re.escape(error)):
         urlmatch.UrlPattern(pattern)
 
 

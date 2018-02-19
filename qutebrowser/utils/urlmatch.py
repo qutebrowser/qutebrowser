@@ -87,10 +87,8 @@ class UrlPattern:
             parsed = urllib.parse.urlparse(pattern)
         except ValueError as e:
             raise ParseError(str(e))
-        # "Changed in version 3.6: Out-of-range port numbers now raise
-        # ValueError, instead of returning None."
-        if parsed is None:
-            raise ParseError("Failed to parse {}".format(pattern))
+
+        assert parsed is not None
 
         self._init_scheme(parsed)
         self._init_host(parsed)
@@ -166,12 +164,12 @@ class UrlPattern:
             # We can't access parsed.port as it tries to run int()
             self._port = None
         elif parsed.netloc.endswith(':'):
-            raise ParseError("Empty port")
+            raise ParseError("Invalid port: Port is empty")
         else:
             try:
                 self._port = parsed.port
-            except ValueError:
-                raise ParseError("Invalid port")
+            except ValueError as e:
+                raise ParseError("Invalid port: {}".format(e))
 
         if (self._scheme not in list(self.DEFAULT_PORTS) + [None] and
                 self._port is not None):
