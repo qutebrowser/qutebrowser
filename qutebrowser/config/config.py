@@ -259,9 +259,8 @@ class Config(QObject):
             self._values[name] = configutils.Values(opt)
 
     def __iter__(self):
-        """Iterate over Option, configutils.Values tuples."""
-        for name, values in sorted(self._values.items()):
-            yield self.get_opt(name), values
+        """Iterate over configutils.Values items."""
+        yield from self._values.values()
 
     def init_save_manager(self, save_manager):
         """Make sure the config gets saved properly.
@@ -287,9 +286,10 @@ class Config(QObject):
     def read_yaml(self):
         """Read the YAML settings from self._yaml."""
         self._yaml.load()
-        # FIXME:conf implement in self._yaml
-        for pattern, name, value in self._yaml:
-            self._set_value(self.get_opt(name), value, pattern=pattern)
+        for values in self._yaml:
+            for scoped in values:
+                self._set_value(values.opt, scoped.value,
+                                pattern=scoped.pattern)
 
     def get_opt(self, name):
         """Get a configdata.Option object for the given setting."""
@@ -443,17 +443,14 @@ class Config(QObject):
         Return:
             The changed config part as string.
         """
-        lines = []
-        for pattern, opt, value in self:
-            str_value = opt.typ.to_str(value)
-            if pattern is None:
-                lines.append('{} = {}'.format(opt.name, str_value))
-            else:
-                lines.append('{}: {} = {}'.format(pattern, opt.name,
-                                                  str_value))
-        if not lines:
+        blocks = []
+        for values in self:
+            if values:
+                blocks.append(str(values))
+
+        if not blocks:
             lines = ['<Default configuration>']
-        return '\n'.join(lines)
+        return '\n'.join(blocks)
 
 
 class ConfigContainer:

@@ -222,12 +222,12 @@ def update_mappings(mappings, option):
 
 def update_for_tab(mappings, tab, url):
     """Update settings customized for the given tab."""
-    for opt, values in config.instance:
-        if opt.name not in mappings:
+    for values in config.instance:
+        if values.opt.name not in mappings:
             continue
 
         # FIXME:conf handle settings != None with global/static setters
-        mapping = mappings[opt.name]
+        mapping = mappings[values.opt.name]
 
         value = values.get_for_url(url, fallback=False)
         # FIXME:conf have a proper API for this.

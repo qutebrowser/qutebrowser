@@ -102,8 +102,8 @@ class YamlConfig(QObject):
         save_manager.add_saveable('yaml-config', self._save, self.changed)
 
     def __iter__(self):
-        for _name, values in sorted(self._values.items()):
-            yield from values
+        """Iterate over configutils.Values items."""
+        yield from self._values.values()
 
     def _mark_changed(self):
         """Mark the YAML config as changed."""
@@ -183,7 +183,7 @@ class YamlConfig(QObject):
 
         # FIXME:conf test this
         for name, yaml_values in settings_obj.items():
-            values = configutils.Values(self._config.get_opt(name))
+            values = configutils.Values(configdata.DATA[name])
             if 'global' in yaml_values:
                 values.add(yaml_values.pop('global'))
 
@@ -224,10 +224,9 @@ class YamlConfig(QObject):
     def _validate(self):
         """Make sure all settings exist."""
         unknown = []
-        for _pattern, name, _value in self:
-            # FIXME:conf show pattern
-            if name not in configdata.DATA:
-                unknown.append(name)
+        for values in self:
+            if values.opt.name not in configdata.DATA:
+                unknown.append(values.opt.name)
 
         if unknown:
             errors = [configexc.ConfigErrorDesc("While loading options",

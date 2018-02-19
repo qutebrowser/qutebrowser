@@ -58,12 +58,27 @@ class Values:
     all ScopedValues for the given setting.
 
     Attributes:
-        _opt: The Option being customized.
+        opt: The Option being customized.
     """
 
     def __init__(self, opt):
-        self._opt = opt
+        self.opt = opt
         self._values = []
+
+    def __str__(self):
+        """Get the values as human-readable string."""
+        if not self:
+            return '{}: <unchanged>'.format(self.opt.name)
+
+        lines = []
+        for scoped in self._values:
+            str_value = self.opt.typ.to_str(scoped.value)
+            if scoped.pattern is None:
+                lines.append('{} = {}'.format(self.opt.name, str_value))
+            else:
+                lines.append('{}: {} = {}'.format(
+                    scoped.pattern, self.opt.name, str_value))
+        return '\n'.join(lines)
 
     def __iter__(self):
         """Yield ScopedValue elements.
@@ -107,7 +122,7 @@ class Values:
                 # default for a given URL.
                 return scoped.value
 
-        return self._opt.default
+        return self.opt.default
 
     def get_for_url(self, url=None, *, fallback=True):
         """Get a config value, falling back when needed.
