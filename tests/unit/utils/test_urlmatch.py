@@ -451,3 +451,69 @@ def test_urlpattern_hypothesis(pattern):
     except urlmatch.ParseError:
         return
     up.matches(QUrl('https://www.example.com/'))
+
+
+@pytest.mark.parametrize('text1, text2, equal', [
+    # schemes
+    ("http://en.google.com/blah/*/foo",
+     "https://en.google.com/blah/*/foo",
+     False),
+    ("https://en.google.com/blah/*/foo",
+     "https://en.google.com/blah/*/foo",
+     True),
+    ("https://en.google.com/blah/*/foo",
+     "ftp://en.google.com/blah/*/foo",
+     False),
+
+    # subdomains
+    ("https://en.google.com/blah/*/foo",
+     "https://fr.google.com/blah/*/foo",
+     False),
+    ("https://www.google.com/blah/*/foo",
+     "https://*.google.com/blah/*/foo",
+     False),
+    ("https://*.google.com/blah/*/foo",
+     "https://*.google.com/blah/*/foo",
+     True),
+
+    # domains
+    ("http://en.example.com/blah/*/foo",
+     "http://en.google.com/blah/*/foo",
+     False),
+
+    # ports
+    ("http://en.google.com:8000/blah/*/foo",
+     "http://en.google.com/blah/*/foo",
+     False),
+    ("http://fr.google.com:8000/blah/*/foo",
+     "http://fr.google.com:8000/blah/*/foo",
+     True),
+    ("http://en.google.com:8000/blah/*/foo",
+     "http://en.google.com:8080/blah/*/foo",
+     False),
+
+    # paths
+    ("http://en.google.com/blah/*/foo",
+     "http://en.google.com/blah/*",
+     False),
+    ("http://en.google.com/*",
+     "http://en.google.com/",
+     False),
+    ("http://en.google.com/*",
+     "http://en.google.com/*",
+     True),
+
+    # all_urls
+    ("<all_urls>",
+     "<all_urls>",
+     True),
+    ("<all_urls>",
+     "http://*/*",
+     False)
+])
+def test_equal(text1, text2, equal):
+    pat1 = urlmatch.UrlPattern(text1)
+    pat2 = urlmatch.UrlPattern(text2)
+
+    assert (pat1 == pat2) == equal
+    assert (hash(pat1) == hash(pat2)) == equal
