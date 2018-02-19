@@ -80,9 +80,9 @@ def cmdutils_stub(monkeypatch, stubs):
 
 
 @pytest.fixture()
-def configdata_stub(monkeypatch, configdata_init):
+def configdata_stub(config_stub, monkeypatch, configdata_init):
     """Patch the configdata module to provide fake data."""
-    return monkeypatch.setattr(configdata, 'DATA', collections.OrderedDict([
+    monkeypatch.setattr(configdata, 'DATA', collections.OrderedDict([
         ('aliases', configdata.Option(
             name='aliases',
             description='Aliases for commands.',
@@ -132,6 +132,7 @@ def configdata_stub(monkeypatch, configdata_init):
             backends=[],
             raw_backends=None)),
     ]))
+    config_stub._init_values()
 
 
 @pytest.fixture

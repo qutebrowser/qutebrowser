@@ -253,7 +253,10 @@ class Config(QObject):
         self.changed.connect(_render_stylesheet.cache_clear)
         self._mutables = {}
         self._yaml = yaml_config
+        self._init_values()
 
+    def _init_values(self):
+        """Populate the self._values dict."""
         self._values = {}
         for name, opt in configdata.DATA.items():
             self._values[name] = configutils.Values(opt)
