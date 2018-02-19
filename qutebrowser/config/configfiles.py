@@ -255,8 +255,9 @@ class YamlConfig(QObject):
 
     def unset(self, name, *, pattern=None):
         """Remove the given option name if it's configured."""
-        self._values[name].remove(pattern)
-        self._mark_changed()
+        changed = self._values[name].remove(pattern)
+        if changed:
+            self._mark_changed()
 
     def clear(self):
         """Clear all values from the YAML file."""

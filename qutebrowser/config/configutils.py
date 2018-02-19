@@ -110,7 +110,9 @@ class Values:
     def remove(self, pattern=None):
         """Remove the value with the given pattern."""
         # FIXME:conf Should this ignore patterns which weren't found?
+        old_len = len(self._values)
         self._values = [v for v in self._values if v.pattern != pattern]
+        return old_len != len(self._values)
 
     def clear(self):
         """Clear all customization for this value."""
