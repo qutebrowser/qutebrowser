@@ -73,6 +73,10 @@ class Values:
         """
         yield from self._values
 
+    def __bool__(self):
+        """Check whether this value is customized."""
+        return bool(self._values)
+
     def add(self, value, pattern=None):
         """Add a value with the given pattern to the list of values.
 
@@ -92,9 +96,7 @@ class Values:
 
     def clear(self):
         """Clear all customization for this value."""
-        had_values = bool(self._values)
         self._values = []
-        return had_values
 
     def _get_fallback(self):
         """Get the fallback global/default value."""

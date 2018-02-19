@@ -415,8 +415,8 @@ class Config(QObject):
         file.
         """
         for name, values in self._values.items():
-            cleared = values.clear()
-            if cleared:
+            if values:
+                values.clear()
                 self.changed.emit(name)
 
         if save_yaml:
