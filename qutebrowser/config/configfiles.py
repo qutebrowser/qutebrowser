@@ -149,40 +149,48 @@ class YamlConfig(QObject):
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
         try:
-            settings_obj = yaml_data.pop('settings')
-        except KeyError:
-            desc = configexc.ConfigErrorDesc(
-                "While loading data",
-                "Toplevel object does not contain 'settings' key")
-            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
-        except TypeError:
-            desc = configexc.ConfigErrorDesc("While loading data",
-                                             "Toplevel object is not a dict")
-            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
-
-        try:
             yaml_data.pop('config_version')
         except KeyError:
             desc = configexc.ConfigErrorDesc(
                 "While loading data",
                 "Toplevel object does not contain 'config_version' key")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+        except TypeError:
+            desc = configexc.ConfigErrorDesc("While loading data",
+                                             "Toplevel object is not a dict")
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
-        self._load_settings_object(settings_obj)
+        settings = self._load_settings_object(yaml_data)
         self._dirty = False
-        self._handle_migrations()
-        self._validate()
+        settings = self._handle_migrations(settings)
+        self._validate(settings)
+        self._build_values(settings)
 
-    def _load_settings_object(self, settings_obj):
-        """Load the settings from the settings: key."""
+    def _load_settings_object(self, yaml_data):
+        """Load the settings from the settings: key.
+
+        FIXME: conf migrate old settings
+        """
+        try:
+            settings_obj = yaml_data.pop('settings')
+        except KeyError:
+            desc = configexc.ConfigErrorDesc(
+                "While loading data",
+                "Toplevel object does not contain 'settings' key")
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
         if not isinstance(settings_obj, dict):
             desc = configexc.ConfigErrorDesc(
                 "While loading data",
                 "'settings' object is not a dict")
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
+        return settings_obj
+
+    def _build_values(self, settings):
+        """Build up self._values from the values in the given dict."""
         # FIXME:conf test this
-        for name, yaml_values in settings_obj.items():
+        for name, yaml_values in settings.items():
             values = configutils.Values(configdata.DATA[name])
             if 'global' in yaml_values:
                 values.add(yaml_values.pop('global'))
@@ -192,41 +200,43 @@ class YamlConfig(QObject):
 
             self._values[name] = values
 
-    def _handle_migrations(self):
+    def _handle_migrations(self, settings):
         """Migrate older configs to the newest format."""
         # FIXME:conf handle per-URL settings
         # FIXME:conf migrate from older format with global: key
 
         # Simple renamed/deleted options
-        for name in list(self._values):
+        for name in list(settings):
             if name in configdata.MIGRATIONS.renamed:
                 new_name = configdata.MIGRATIONS.renamed[name]
                 log.config.debug("Renaming {} to {}".format(name, new_name))
-                self._values[new_name] = self._values[name]
-                del self._values[name]
+                settings[new_name] = settings[name]
+                del settings[name]
                 self._mark_changed()
             elif name in configdata.MIGRATIONS.deleted:
                 log.config.debug("Removing {}".format(name))
-                del self._values[name]
+                del settings[name]
                 self._mark_changed()
 
         # tabs.persist_mode_on_change got merged into tabs.mode_on_change
         old = 'tabs.persist_mode_on_change'
         new = 'tabs.mode_on_change'
-        if old in self._values:
-            if self._values[old]:
-                self._values[new] = 'persist'
+        if old in settings:
+            if settings[old]:
+                settings[new] = 'persist'
             else:
-                self._values[new] = 'normal'
-            del self._values[old]
+                settings[new] = 'normal'
+            del settings[old]
             self._mark_changed()
 
-    def _validate(self):
+        return settings
+
+    def _validate(self, settings):
         """Make sure all settings exist."""
         unknown = []
-        for values in self:
-            if values.opt.name not in configdata.DATA:
-                unknown.append(values.opt.name)
+        for name in settings:
+            if name not in configdata.DATA:
+                unknown.append(name)
 
         if unknown:
             errors = [configexc.ConfigErrorDesc("While loading options",
