@@ -414,10 +414,8 @@ class Config(QObject):
         If save_yaml=True is given, also remove all customization from the YAML
         file.
         """
-        # FIXME:conf support per-URL settings?
-        old_values = self._values
-        self._values = {}
-        for name in old_values:
+        for name, values in self._values.items():
+            values.clear()
             self.changed.emit(name)
 
         if save_yaml:

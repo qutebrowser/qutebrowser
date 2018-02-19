@@ -239,8 +239,8 @@ class YamlConfig(QObject):
 
     def clear(self):
         """Clear all values from the YAML file."""
-        # FIXME:conf per-URL support?
-        self._values = []
+        for values in self._values.values():
+            values.clear()
         self._mark_changed()
 
 

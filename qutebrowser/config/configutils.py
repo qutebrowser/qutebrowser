@@ -90,6 +90,10 @@ class Values:
         # FIXME:conf Should this ignore patterns which weren't found?
         self._values = [v for v in self._values if v.pattern != pattern]
 
+    def clear(self):
+        """Clear all customization for this value."""
+        self._values = []
+
     def _get_fallback(self):
         """Get the fallback global/default value."""
         if self._values:
