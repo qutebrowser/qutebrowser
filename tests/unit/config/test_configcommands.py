@@ -24,7 +24,7 @@ import unittest.mock
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.config import configcommands
+from qutebrowser.config import configcommands, configutils
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
@@ -33,6 +33,14 @@ from qutebrowser.misc import objects
 @pytest.fixture
 def commands(config_stub, key_config_stub):
     return configcommands.ConfigCommands(config_stub, key_config_stub)
+
+
+@pytest.fixture
+def yaml_value(config_stub):
+    """Fixture which provides a getter for a YAML value."""
+    def getter(option):
+        return config_stub._yaml._values[option].get_for_url(fallback=False)
+    return getter
 
 
 class TestSet:
@@ -64,7 +72,7 @@ class TestSet:
          ['gvim', '-f', '{file}', '-c', 'normal {line}G{column0}l'],
          '[emacs, "{}"]', ['emacs', '{}']),
     ])
-    def test_set_simple(self, monkeypatch, commands, config_stub,
+    def test_set_simple(self, monkeypatch, commands, config_stub, yaml_value,
                         temp, option, old_value, inp, new_value):
         """Run ':set [-t] option value'.
 
@@ -76,14 +84,10 @@ class TestSet:
         commands.set(0, option, inp, temp=temp)
 
         assert config_stub.get(option) == new_value
-
-        if temp:
-            assert option not in config_stub._yaml
-        else:
-            assert config_stub._yaml[option] == new_value
+        assert yaml_value(option) == (configutils.UNSET if temp else new_value)
 
     @pytest.mark.parametrize('temp', [True, False])
-    def test_set_temp_override(self, commands, config_stub, temp):
+    def test_set_temp_override(self, commands, config_stub, yaml_value, temp):
         """Invoking :set twice.
 
         :set url.auto_search dns
@@ -96,7 +100,7 @@ class TestSet:
         commands.set(0, 'url.auto_search', 'never', temp=True)
 
         assert config_stub.val.url.auto_search == 'never'
-        assert config_stub._yaml['url.auto_search'] == 'dns'
+        assert yaml_value('url.auto_search') == 'dns'
 
     def test_set_print(self, config_stub, commands, message_mock):
         """Run ':set -p url.auto_search never'.
@@ -177,13 +181,14 @@ class TestCycle:
         # Value which is not in the list
         ('red', 'green'),
     ])
-    def test_cycling(self, commands, config_stub, initial, expected):
+    def test_cycling(self, commands, config_stub, yaml_value,
+                     initial, expected):
         """Run ':set' with multiple values."""
         opt = 'colors.statusbar.normal.bg'
         config_stub.set_obj(opt, initial)
         commands.config_cycle(opt, 'green', 'magenta', 'blue', 'yellow')
         assert config_stub.get(opt) == expected
-        assert config_stub._yaml[opt] == expected
+        assert yaml_value(opt) == expected
 
     def test_different_representation(self, commands, config_stub):
         """When using a different representation, cycling should work.
@@ -205,7 +210,7 @@ class TestCycle:
         assert not config_stub.val.auto_save.session
         commands.config_cycle('auto_save.session')
         assert config_stub.val.auto_save.session
-        assert config_stub._yaml['auto_save.session']
+        assert yaml_value('auto_save.session')
 
     @pytest.mark.parametrize('args', [
         ['url.auto_search'], ['url.auto_search', 'foo']
@@ -239,34 +244,28 @@ class TestUnsetAndClear:
     """Test :config-unset and :config-clear."""
 
     @pytest.mark.parametrize('temp', [True, False])
-    def test_unset(self, commands, config_stub, temp):
+    def test_unset(self, commands, config_stub, yaml_value, temp):
         name = 'tabs.show'
         config_stub.set_obj(name, 'never', save_yaml=True)
 
         commands.config_unset(name, temp=temp)
 
         assert config_stub.get(name) == 'always'
-        if temp:
-            assert config_stub._yaml[name] == 'never'
-        else:
-            assert name not in config_stub._yaml
+        assert yaml_value(name) == ('never' if temp else configutils.UNSET)
 
     def test_unset_unknown_option(self, commands):
         with pytest.raises(cmdexc.CommandError, match="No option 'tabs'"):
             commands.config_unset('tabs')
 
     @pytest.mark.parametrize('save', [True, False])
-    def test_clear(self, commands, config_stub, save):
+    def test_clear(self, commands, config_stub, yaml_value, save):
         name = 'tabs.show'
         config_stub.set_obj(name, 'never', save_yaml=True)
 
         commands.config_clear(save=save)
 
         assert config_stub.get(name) == 'always'
-        if save:
-            assert name not in config_stub._yaml
-        else:
-            assert config_stub._yaml[name] == 'never'
+        assert yaml_value(name) == (configutils.UNSET if save else 'never')
 
 
 class TestSource:
@@ -453,7 +452,7 @@ class TestBind:
 
     @pytest.mark.parametrize('command', ['nop', 'nope'])
     def test_bind(self, commands, config_stub, no_bindings, key_config_stub,
-                  command):
+                  yaml_value, command):
         """Simple :bind test (and aliases)."""
         config_stub.val.aliases = {'nope': 'nop'}
         config_stub.val.bindings.default = no_bindings
@@ -461,7 +460,7 @@ class TestBind:
 
         commands.bind(0, 'a', command)
         assert key_config_stub.get_command('a', 'normal') == command
-        yaml_bindings = config_stub._yaml['bindings.commands']['normal']
+        yaml_bindings = yaml_value('bindings.commands')['normal']
         assert yaml_bindings['a'] == command
 
     @pytest.mark.parametrize('key, mode, expected', [
@@ -573,7 +572,7 @@ class TestBind:
         ('c', 'c'),  # :bind then :unbind
         ('<Ctrl-X>', '<ctrl+x>')  # normalized special binding
     ])
-    def test_unbind(self, commands, key_config_stub, config_stub,
+    def test_unbind(self, commands, key_config_stub, config_stub, yaml_value,
                     key, normalized):
         config_stub.val.bindings.default = {
             'normal': {'a': 'nop', '<ctrl+x>': 'nop'},
@@ -590,7 +589,7 @@ class TestBind:
         commands.unbind(key)
         assert key_config_stub.get_command(key, 'normal') is None
 
-        yaml_bindings = config_stub._yaml['bindings.commands']['normal']
+        yaml_bindings = yaml_value('bindings.commands')['normal']
         if key in 'bc':
             # Custom binding
             assert normalized not in yaml_bindings

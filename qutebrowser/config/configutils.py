@@ -116,7 +116,7 @@ class Values:
         """Clear all customization for this value."""
         self._values = []
 
-    def _get_fallback(self):
+    def _get_fallback(self, fallback):
         """Get the fallback global/default value."""
         for scoped in self._values:
             if scoped.pattern is None:
@@ -124,7 +124,10 @@ class Values:
                 # default for a given URL.
                 return scoped.value
 
-        return self.opt.default
+        if fallback:
+            return self.opt.default
+        else:
+            return UNSET
 
     def get_for_url(self, url=None, *, fallback=True):
         """Get a config value, falling back when needed.
@@ -142,7 +145,7 @@ class Values:
             if not fallback:
                 return UNSET
 
-        return self._get_fallback()
+        return self._get_fallback(fallback)
 
     def get_for_pattern(self, pattern, *, fallback=True):
         """Get a value only if it's been overridden for the given pattern.
@@ -161,4 +164,4 @@ class Values:
             if not fallback:
                 return UNSET
 
-        return self._get_fallback()
+        return self._get_fallback(fallback)
