@@ -35,7 +35,7 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
-from qutebrowser.browser import browsertab
+from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
@@ -762,6 +762,25 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_contents_size_changed(self, size):
         self.contents_size_changed.emit(QSizeF(size))
 
+    @pyqtSlot(usertypes.NavigationRequest)
+    def _on_navigation_request(self, navigation):
+        super()._on_navigation_request(navigation)
+        log.webview.debug("target {} override {}".format(
+            self.data.open_target, self.data.override_target))
+
+        if self.data.override_target is not None:
+            target = self.data.override_target
+            self.data.override_target = None
+        else:
+            target = self.data.open_target
+
+        if (navigation.navigation_type == navigation.Type.link_clicked and
+                target != usertypes.ClickTarget.normal):
+            tab = shared.get_tab(self.win_id, target)
+            tab.openurl(navigation.url)
+            self.data.open_target = usertypes.ClickTarget.normal
+            navigation.accepted = False
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -780,6 +799,7 @@ class WebKitTab(browsertab.AbstractTab):
         page.frameCreated.connect(self._on_frame_created)
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
+        page.navigation_request.connect(self._on_navigation_request)
 
         self.url_changed.connect(
             functools.partial(webkitsettings.update_for_tab, self))

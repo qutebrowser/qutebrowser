@@ -54,10 +54,12 @@ class BrowserPage(QWebPage):
         shutting_down: Emitted when the page is currently shutting down.
         reloading: Emitted before a web page reloads.
                    arg: The URL which gets reloaded.
+        navigation_request: Emitted on acceptNavigationRequest.
     """
 
     shutting_down = pyqtSignal()
     reloading = pyqtSignal(QUrl)
+    navigation_request = pyqtSignal(usertypes.NavigationRequest)
 
     def __init__(self, win_id, tab_id, tabdata, private, parent=None):
         super().__init__(parent)
@@ -70,7 +72,6 @@ class BrowserPage(QWebPage):
         }
         self._ignore_load_started = False
         self.error_occurred = False
-        self.open_target = usertypes.ClickTarget.normal
         self._networkmanager = networkmanager.NetworkManager(
             win_id=win_id, tab_id=tab_id, private=private, parent=self)
         self.setNetworkAccessManager(self._networkmanager)
@@ -474,7 +475,7 @@ class BrowserPage(QWebPage):
                                       source, line, msg)
 
     def acceptNavigationRequest(self,
-                                _frame: QWebFrame,
+                                frame: QWebFrame,
                                 request: QNetworkRequest,
                                 typ: QWebPage.NavigationType):
         """Override acceptNavigationRequest to handle clicked links.
@@ -486,36 +487,27 @@ class BrowserPage(QWebPage):
         Checks if it should open it in a tab (middle-click or control) or not,
         and then conditionally opens the URL here or in another tab/window.
         """
-        url = request.url()
-        log.webview.debug("navigation request: url {}, type {}, "
-                          "target {} override {}".format(
-                              url.toDisplayString(),
-                              debug.qenum_key(QWebPage, typ),
-                              self.open_target,
-                              self._tabdata.override_target))
+        type_map = {
+            QWebPage.NavigationTypeLinkClicked:
+                usertypes.NavigationRequest.Type.link_clicked,
+            QWebPage.NavigationTypeFormSubmitted:
+                usertypes.NavigationRequest.Type.form_submitted,
+            QWebPage.NavigationTypeFormResubmitted:
+                usertypes.NavigationRequest.Type.form_resubmitted,
+            QWebPage.NavigationTypeBackOrForward:
+                usertypes.NavigationRequest.Type.back_forward,
+            QWebPage.NavigationTypeReload:
+                usertypes.NavigationRequest.Type.reloaded,
+            QWebPage.NavigationTypeOther:
+                usertypes.NavigationRequest.Type.other,
+        }
+        is_main_frame = frame is self.mainFrame()
+        navigation = usertypes.NavigationRequest(url=request.url(),
+                                                 navigation_type=type_map[typ],
+                                                 is_main_frame=is_main_frame)
 
-        if self._tabdata.override_target is not None:
-            target = self._tabdata.override_target
-            self._tabdata.override_target = None
-        else:
-            target = self.open_target
+        if navigation.navigation_type == navigation.Type.reloaded:
+            self.reloading.emit(navigation.url)
 
-        if typ == QWebPage.NavigationTypeReload:
-            self.reloading.emit(url)
-            return True
-        elif typ != QWebPage.NavigationTypeLinkClicked:
-            return True
-
-        if not url.isValid():
-            msg = urlutils.get_errstring(url, "Invalid link clicked")
-            message.error(msg)
-            self.open_target = usertypes.ClickTarget.normal
-            return False
-
-        if target == usertypes.ClickTarget.normal:
-            return True
-
-        tab = shared.get_tab(self._win_id, target)
-        tab.openurl(url)
-        self.open_target = usertypes.ClickTarget.normal
-        return False
+        self.navigation_request.emit(navigation)
+        return navigation.accepted

@@ -250,7 +250,7 @@ Feature: Searching on a page
         And I run :search follow
         And I wait for "search found follow" in the log
         And I run :follow-selected
-        Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, is_main_frame False" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, is_main_frame False" should be logged
 
     @qtwebkit_skip: Not supported in qtwebkit
     Scenario: Follow a tabbed searched link in an iframe

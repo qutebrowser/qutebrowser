@@ -30,7 +30,8 @@ from PyQt5.QtWidgets import QWidget, QApplication
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
-from qutebrowser.utils import utils, objreg, usertypes, log, qtutils
+from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils, urlutils,
+                               message)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import mouse, hints
 
@@ -94,6 +95,8 @@ class TabData:
         keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
                    load.
         inspector: The QWebInspector used for this webview.
+        open_target: Where to open the next link.
+                     Only used for QtWebKit.
         override_target: Override for open_target for fake clicks (like hints).
                          Only used for QtWebKit.
         pinned: Flag to pin the tab.
@@ -104,6 +107,7 @@ class TabData:
 
     keep_icon = attr.ib(False)
     inspector = attr.ib(None)
+    open_target = attr.ib(usertypes.ClickTarget.normal)
     override_target = attr.ib(None)
     pinned = attr.ib(False)
     fullscreen = attr.ib(False)
@@ -718,6 +722,22 @@ class AbstractTab(QWidget):
         self._has_ssl_errors = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
+
+    @pyqtSlot(usertypes.NavigationRequest)
+    def _on_navigation_request(self, navigation):
+        """Handle common acceptNavigationRequest code."""
+        log.webview.debug("navigation request: url {}, type {}, is_main_frame "
+                          "{}".format(navigation.url.toDisplayString(),
+                                      navigation.navigation_type,
+                                      navigation.is_main_frame))
+
+        if (navigation.navigation_type == navigation.Type.link_clicked and
+                not navigation.url.isValid()):
+            msg = urlutils.get_errstring(navigation.url,
+                                         "Invalid link clicked")
+            message.error(msg)
+            self.data.open_target = usertypes.ClickTarget.normal
+            navigation.accepted = False
 
     def handle_auto_insert_mode(self, ok):
         """Handle `input.insert_mode.auto_load` after loading finished."""

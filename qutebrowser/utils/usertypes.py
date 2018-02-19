@@ -27,6 +27,7 @@ import operator
 import collections.abc
 import enum
 
+import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
 from qutebrowser.utils import log, qtutils, utils
@@ -394,3 +395,22 @@ class AbstractCertificateErrorWrapper:
 
     def is_overridable(self):
         raise NotImplementedError
+
+
+@attr.s
+class NavigationRequest:
+
+    Type = enum.Enum('Type', [
+        'link_clicked',
+        'typed',  # QtWebEngine only
+        'form_submitted',
+        'form_resubmitted',  # QtWebKit only
+        'back_forward',
+        'reloaded',
+        'other'
+    ])
+
+    url = attr.ib()
+    navigation_type = attr.ib()
+    is_main_frame = attr.ib()
+    accepted = attr.ib(default=True)

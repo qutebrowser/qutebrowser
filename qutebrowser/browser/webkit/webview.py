@@ -262,10 +262,10 @@ class WebView(QWebView):
                 target = usertypes.ClickTarget.tab_bg
             else:
                 target = usertypes.ClickTarget.tab
-            self.page().open_target = target
+            self._tabdata.open_target = target
             log.mouse.debug("Ctrl/Middle click, setting target: {}".format(
                 target))
         else:
-            self.page().open_target = usertypes.ClickTarget.normal
+            self._tabdata.open_target = usertypes.ClickTarget.normal
             log.mouse.debug("Normal click, setting normal target")
         super().mousePressEvent(e)

@@ -207,7 +207,7 @@ Feature: Using hints
     Scenario: Using :follow-hint inside an iframe
         When I open data/hints/iframe.html
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
 
     Scenario: Using :follow-hint inside an iframe button
         When I open data/hints/iframe_button.html
@@ -228,12 +228,12 @@ Feature: Using hints
         And I hint with args "all normal" and follow a
         And I run :scroll bottom
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello2.txt, type NavigationTypeLinkClicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello2.txt, type Type.link_clicked, *" should be logged
 
     Scenario: Opening a link inside a specific iframe
         When I open data/hints/iframe_target.html
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
 
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
