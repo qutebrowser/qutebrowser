@@ -402,8 +402,9 @@ class Config(QObject):
     def unset(self, name, *, save_yaml=False, pattern=None):
         """Set the given setting back to its default."""
         self.get_opt(name)  # To check whether it exists
-        self._values[name].remove(pattern)
-        self.changed.emit(name)
+        changed = self._values[name].remove(pattern)
+        if changed:
+            self.changed.emit(name)
 
         if save_yaml:
             self._yaml.unset(name, pattern=pattern)
