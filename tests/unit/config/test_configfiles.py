@@ -27,7 +27,7 @@ import pytest
 from PyQt5.QtCore import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
-                                configtypes)
+                                configtypes, configutils)
 from qutebrowser.utils import utils, usertypes
 
 
@@ -200,12 +200,12 @@ class TestYaml:
         data = autoconfig.read()
         assert 'tabs.persist_mode_on_change' not in data
         mode = 'persist' if persist else 'normal'
-        assert data['tabs.mode_on_change'] == mode
+        assert data['tabs.mode_on_change']['global'] == mode
 
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):
         """A key marked as renamed with invalid name should raise an error."""
-        autoconfig.write_text({'old': {'global': 'value'}})
+        autoconfig.write({'old': {'global': 'value'}})
 
         monkeypatch.setattr(configdata.MIGRATIONS, 'renamed',
                             {'old': 'new'})
@@ -238,7 +238,6 @@ class TestYaml:
         with qtbot.wait_signal(yaml.changed):
             yaml.set_obj(key, value)
 
-        assert key in yaml
         assert yaml._values[key].get_for_url(fallback=False) == value
 
         yaml._save()
@@ -246,13 +245,10 @@ class TestYaml:
         yaml = configfiles.YamlConfig()
         yaml.load()
 
-        assert key in yaml
         assert yaml._values[key].get_for_url(fallback=False) == value
 
     def test_iter(self, yaml):
-        yaml.set_obj('foo', 23)
-        yaml.set_obj('bar', 42)
-        assert list(iter(yaml)) == [('bar', 42), ('foo', 23)]
+        assert list(iter(yaml)) == list(iter(yaml._values.values()))
 
     @pytest.mark.parametrize('old_config', [
         None,
@@ -274,9 +270,12 @@ class TestYaml:
 
     @pytest.mark.parametrize('line, text, exception', [
         ('%', 'While parsing', 'while scanning a directive'),
-        ('settings: 42', 'While loading data', "'settings' object is not a dict"),
-        ('foo: 42', 'While loading data',
+        ('settings: 42\nconfig_version: 1',
+         'While loading data', "'settings' object is not a dict"),
+        ('foo: 42\nconfig_version: 1', 'While loading data',
          "Toplevel object does not contain 'settings' key"),
+        ('settings: {}', 'While loading data',
+         "Toplevel object does not contain 'config_version' key"),
         ('42', 'While loading data', "Toplevel object is not a dict"),
     ])
     def test_invalid(self, yaml, autoconfig, line, text, exception):
@@ -385,7 +384,7 @@ class TestConfigPyModules:
         confpy.write_qbmodule()
         confpy.read()
         expected = {'normal': {',a': 'message-info foo'}}
-        assert config.instance._values['bindings.commands'] == expected
+        assert config.instance.get_obj('bindings.commands') == expected
         assert "qbmodule" not in sys.modules.keys()
         assert tmpdir not in sys.path
 
@@ -451,7 +450,7 @@ class TestConfigPy:
     def test_set(self, confpy, line):
         confpy.write(line)
         confpy.read()
-        assert config.instance._values['colors.hints.bg'] == 'red'
+        assert config.instance.get_obj('colors.hints.bg') == 'red'
 
     @pytest.mark.parametrize('set_first', [True, False])
     @pytest.mark.parametrize('get_line', [
@@ -478,7 +477,7 @@ class TestConfigPy:
         confpy.write(line)
         confpy.read()
         expected = {mode: {',a': 'message-info foo'}}
-        assert config.instance._values['bindings.commands'] == expected
+        assert config.instance.get_obj('bindings.commands') == expected
 
     def test_bind_freshly_defined_alias(self, confpy):
         """Make sure we can bind to a new alias.
@@ -494,14 +493,14 @@ class TestConfigPy:
         confpy.write("config.bind('H', 'message-info back')")
         confpy.read()
         expected = {'normal': {'H': 'message-info back'}}
-        assert config.instance._values['bindings.commands'] == expected
+        assert config.instance.get_obj('bindings.commands') == expected
 
     def test_bind_none(self, confpy):
         confpy.write("c.bindings.commands = None",
                      "config.bind(',x', 'nop')")
         confpy.read()
         expected = {'normal': {',x': 'nop'}}
-        assert config.instance._values['bindings.commands'] == expected
+        assert config.instance.get_obj('bindings.commands') == expected
 
     @pytest.mark.parametrize('line, key, mode', [
         ('config.unbind("o")', 'o', 'normal'),
@@ -511,14 +510,14 @@ class TestConfigPy:
         confpy.write(line)
         confpy.read()
         expected = {mode: {key: None}}
-        assert config.instance._values['bindings.commands'] == expected
+        assert config.instance.get_obj('bindings.commands') == expected
 
     def test_mutating(self, confpy):
         confpy.write('c.aliases["foo"] = "message-info foo"',
                      'c.aliases["bar"] = "message-info bar"')
         confpy.read()
-        assert config.instance._values['aliases']['foo'] == 'message-info foo'
-        assert config.instance._values['aliases']['bar'] == 'message-info bar'
+        assert config.instance.get_obj('aliases')['foo'] == 'message-info foo'
+        assert config.instance.get_obj('aliases')['bar'] == 'message-info bar'
 
     @pytest.mark.parametrize('option, value', [
         ('content.user_stylesheets', 'style.css'),
@@ -532,7 +531,7 @@ class TestConfigPy:
         (config_tmpdir / 'style.css').ensure()
         confpy.write('c.{}.append("{}")'.format(option, value))
         confpy.read()
-        assert config.instance._values[option][-1] == value
+        assert config.instance.get_obj(option)[-1] == value
 
     def test_oserror(self, tmpdir, data_tmpdir, config_tmpdir):
         with pytest.raises(configexc.ConfigFileErrors) as excinfo:
@@ -653,7 +652,7 @@ class TestConfigPy:
         confpy.write("config.source({!r})".format(arg))
         confpy.read()
 
-        assert not config.instance._values['content.javascript.enabled']
+        assert not config.instance.get_obj('content.javascript.enabled')
 
     def test_source_errors(self, tmpdir, confpy):
         subfile = tmpdir / 'config' / 'subfile.py'
@@ -697,7 +696,7 @@ class TestConfigPyWriter:
             name='opt', typ=configtypes.Int(), default='def',
             backends=[usertypes.Backend.QtWebEngine], raw_backends=None,
             description=desc)
-        options = [(opt, 'val')]
+        options = [(None, opt, 'val')]
         bindings = {'normal': {',x': 'message-info normal'},
                     'caret': {',y': 'message-info caret'}}
 
@@ -729,8 +728,8 @@ class TestConfigPyWriter:
     def test_binding_options_hidden(self):
         opt1 = configdata.DATA['bindings.default']
         opt2 = configdata.DATA['bindings.commands']
-        options = [(opt1, {'normal': {'x': 'message-info x'}}),
-                   (opt2, {})]
+        options = [(None, opt1, {'normal': {'x': 'message-info x'}}),
+                   (None, opt2, {})]
         writer = configfiles.ConfigPyWriter(options, bindings={},
                                             commented=False)
         text = '\n'.join(writer._gen_lines())
@@ -742,7 +741,7 @@ class TestConfigPyWriter:
             name='opt', typ=configtypes.Int(), default='def',
             backends=[usertypes.Backend.QtWebEngine], raw_backends=None,
             description='Hello World')
-        options = [(opt, 'val')]
+        options = [(None, opt, 'val')]
         bindings = {'normal': {',x': 'message-info normal'},
                     'caret': {',y': 'message-info caret'}}
 
@@ -768,7 +767,7 @@ class TestConfigPyWriter:
             backends=[usertypes.Backend.QtWebEngine], raw_backends=None,
             description='All colors are beautiful!')
 
-        options = [(opt1, 'ask'), (opt2, 'rgb')]
+        options = [(None, opt1, 'ask'), (None, opt2, 'rgb')]
 
         writer = configfiles.ConfigPyWriter(options, bindings={},
                                             commented=False)
@@ -819,7 +818,7 @@ class TestConfigPyWriter:
 
     def test_defaults_work(self, confpy):
         """Get a config.py with default values and run it."""
-        options = [(opt, opt.default)
+        options = [(None, opt, opt.default)
                    for _name, opt in sorted(configdata.DATA.items())]
         bindings = dict(configdata.DATA['bindings.default'].default)
         writer = configfiles.ConfigPyWriter(options, bindings, commented=False)
