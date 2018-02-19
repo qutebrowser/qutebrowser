@@ -230,6 +230,9 @@ def update_for_tab(mappings, tab, url):
         mapping = mappings[values.opt.name]
 
         value = values.get_for_url(url, fallback=False)
+        log.config.debug("Updating for {}: {} = {}".format(
+            url.toDisplayString(), values.opt.name, value))
+
         # FIXME:conf have a proper API for this.
         settings = tab._widget.settings()  # pylint: disable=protected-access
 

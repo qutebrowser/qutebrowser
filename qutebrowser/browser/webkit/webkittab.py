@@ -781,6 +781,10 @@ class WebKitTab(browsertab.AbstractTab):
             self.data.open_target = usertypes.ClickTarget.normal
             navigation.accepted = False
 
+        if (navigation.accepted and navigation.navigation_type !=
+                navigation.Type.reloaded):
+            webkitsettings.update_for_tab(self, navigation.url)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -800,9 +804,6 @@ class WebKitTab(browsertab.AbstractTab):
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.navigation_request.connect(self._on_navigation_request)
-
-        self.url_changed.connect(
-            functools.partial(webkitsettings.update_for_tab, self))
 
     def event_target(self):
         return self._widget

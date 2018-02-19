@@ -24,8 +24,17 @@
 import attr
 
 
-# Sentinel object
-UNSET = object()
+class _UnsetObject:
+
+    """Sentinel object."""
+
+    __slots__ = ()
+
+    def __repr__(self):
+        return '<UNSET>'
+
+
+UNSET = _UnsetObject()
 
 
 @attr.s

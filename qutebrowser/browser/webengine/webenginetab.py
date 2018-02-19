@@ -872,6 +872,12 @@ class WebEngineTab(browsertab.AbstractTab):
         if not ok:
             self._load_finished_fake.emit(False)
 
+    @pyqtSlot(usertypes.NavigationRequest)
+    def _on_navigation_request(self, navigation):
+        super()._on_navigation_request(navigation)
+        if navigation.accepted:
+            webenginesettings.update_for_tab(self, navigation.url)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -906,9 +912,6 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadFinished.connect(self._on_history_trigger)
             page.loadFinished.connect(self._restore_zoom)
             page.loadFinished.connect(self._on_load_finished)
-
-        self.url_changed.connect(
-            functools.partial(webenginesettings.update_for_tab, self))
 
     def event_target(self):
         return self._widget.focusProxy()
