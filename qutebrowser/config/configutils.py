@@ -124,8 +124,7 @@ class Values:
 
     def _get_fallback(self):
         """Get the fallback global/default value."""
-        if self._values:
-            scoped = self._values[-1]
+        for scoped in self._values:
             if scoped.pattern is None:
                 # It's possible that the setting is only customized from the
                 # default for a given URL.
