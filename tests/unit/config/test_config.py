@@ -422,7 +422,7 @@ class TestConfig:
                                         'bindings.commands'])
     @pytest.mark.parametrize('mutable', [True, False])
     @pytest.mark.parametrize('mutated', [True, False])
-    def test_get_obj_mutable(self, conf, config_stub, qtbot, caplog,
+    def test_get_obj_mutable(self, conf, qtbot, caplog,
                              option, mutable, mutated):
         """Make sure mutables are handled correctly.
 
@@ -439,7 +439,7 @@ class TestConfig:
         (keyhint.blacklist).
         """
         # Setting new value
-        obj = conf.get_obj(option, mutable=mutable)
+        obj = conf.get_mutable_obj(option) if mutable else conf.get_obj(option)
         with qtbot.assert_not_emitted(conf.changed):
             if option == 'content.headers.custom':
                 old = {}
@@ -461,7 +461,6 @@ class TestConfig:
                         assert obj == new
             else:
                 assert option == 'bindings.commands'
-                config_stub.val.aliases = {}
                 old = {}
                 new = {}
                 assert obj == old
@@ -492,9 +491,9 @@ class TestConfig:
     def test_get_mutable_twice(self, conf):
         """Get a mutable value twice."""
         option = 'content.headers.custom'
-        obj = conf.get_obj(option, mutable=True)
+        obj = conf.get_mutable_obj(option)
         obj['X-Foo'] = 'fooval'
-        obj2 = conf.get_obj(option, mutable=True)
+        obj2 = conf.get_mutable_obj(option)
         obj2['X-Bar'] = 'barval'
 
         conf.update_mutables()
@@ -504,9 +503,8 @@ class TestConfig:
 
     def test_get_obj_unknown_mutable(self, conf):
         """Make sure we don't have unknown mutable types."""
-        conf.set_obj('aliases', set())  # This would never happen
         with pytest.raises(AssertionError):
-            conf.get_obj('aliases')
+            conf._maybe_copy(set())
 
     def test_get_str(self, conf):
         assert conf.get_str('content.plugins') == 'false'
@@ -534,7 +532,7 @@ class TestConfig:
         with pytest.raises(configexc.ValidationError):
             with qtbot.assert_not_emitted(conf.changed):
                 meth('content.plugins', '42')
-        assert 'content.plugins' not in conf._values
+        assert not conf._values['content.plugins']
 
     @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
     def test_set_wrong_backend(self, conf, qtbot, monkeypatch, method):
@@ -543,7 +541,7 @@ class TestConfig:
         with pytest.raises(configexc.BackendError):
             with qtbot.assert_not_emitted(conf.changed):
                 meth('content.cookies.accept', 'all')
-        assert 'content.cookies.accept' not in conf._values
+        assert not conf._values['content.cookies.accept']
 
     def test_dump_userconfig(self, conf):
         conf.set_obj('content.plugins', True)
