@@ -72,6 +72,9 @@ from qutebrowser.utils import urlmatch
     ("http://foo:123456/", "Invalid port"),
     ("http://foo:80:80/monkey", "Invalid port"),
     ("chrome://foo:1234/bar", "Ports are unsupported with chrome scheme"),
+
+    # Additional tests
+    ("http://[", "Invalid IPv6 URL"),
 ])
 def test_invalid_patterns(pattern, error):
     with pytest.raises(urlmatch.ParseError, match=error):
