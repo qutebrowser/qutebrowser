@@ -222,10 +222,13 @@ class YamlConfig(QObject):
         old = 'tabs.persist_mode_on_change'
         new = 'tabs.mode_on_change'
         if old in settings:
-            if settings[old]:
-                settings[new] = 'persist'
-            else:
-                settings[new] = 'normal'
+            settings[new] = {}
+            for scope, val in settings[old].items():
+                if val:
+                    settings[new][scope] = 'persist'
+                else:
+                    settings[new][scope] = 'normal'
+
             del settings[old]
             self._mark_changed()
 
