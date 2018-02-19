@@ -186,17 +186,17 @@ class UrlPattern:
         # FIXME what about multiple dots?
         host = host.rstrip('.')
 
+        # If we have no host in the match pattern, that means that we're
+        # matching all hosts, which means we have a match no matter what the
+        # test host is.
+        # Contrary to Chromium, we don't need to check for
+        # self._match_subdomains, as we want to return True here for e.g.
+        # file:// as well.
         if self._host is None:
             return True
 
         # If the hosts are exactly equal, we have a match.
         if host == self._host:
-            return True
-
-        # If we're matching subdomains, and we have no host in the match
-        # pattern, that means that we're matching all hosts, which means we
-        # have a match no matter what the test host is.
-        if self._match_subdomains and not self._host:
             return True
 
         # Otherwise, we can only match if our match pattern matches subdomains.
