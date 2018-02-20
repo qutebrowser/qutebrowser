@@ -28,7 +28,7 @@ from PyQt5.QtCore import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
-from qutebrowser.utils import utils, usertypes
+from qutebrowser.utils import utils, usertypes, urlmatch
 
 
 @pytest.fixture(autouse=True)
@@ -500,16 +500,29 @@ class TestConfigPy:
     @pytest.mark.parametrize('line', [
         'c.colors.hints.bg = "red"',
         'config.set("colors.hints.bg", "red")',
+        'config.set("colors.hints.bg", "red", pattern=None)',
     ])
     def test_set(self, confpy, line):
         confpy.write(line)
         confpy.read()
         assert config.instance.get_obj('colors.hints.bg') == 'red'
 
+    def test_set_with_pattern(self, confpy):
+        option = 'content.javascript.enabled'
+        pattern = 'https://www.example.com/'
+
+        confpy.write('config.set({!r}, False, {!r})'.format(option, pattern))
+        confpy.read()
+
+        assert config.instance.get_obj(option)
+        assert not config.instance.get_obj_for_pattern(
+            option, pattern=urlmatch.UrlPattern(pattern))
+
     @pytest.mark.parametrize('set_first', [True, False])
     @pytest.mark.parametrize('get_line', [
         'c.colors.hints.fg',
         'config.get("colors.hints.fg")',
+        'config.get("colors.hints.fg", pattern=None)',
     ])
     def test_get(self, confpy, set_first, get_line):
         """Test whether getting options works correctly."""
@@ -521,6 +534,24 @@ class TestConfigPy:
                          'assert {} == "red"'.format(get_line))
         else:
             confpy.write('assert {} == "green"'.format(get_line))
+        confpy.read()
+
+    def test_get_with_pattern(self, confpy):
+        """Test whether we get a matching value with a pattern."""
+        option = 'content.javascript.enabled'
+        pattern = 'https://www.example.com/'
+        config.instance.set_obj(option, False,
+                                pattern=urlmatch.UrlPattern(pattern))
+        confpy.write('assert config.get({!r})'.format(option),
+                     'assert not config.get({!r}, pattern={!r})'
+                     .format(option, pattern))
+        confpy.read()
+
+    def test_get_with_pattern_no_match(self, confpy):
+        confpy.write(
+            'val = config.get("content.images", "https://www.example.com")',
+            'assert val is True',
+        )
         confpy.read()
 
     @pytest.mark.parametrize('line, mode', [
@@ -671,6 +702,21 @@ class TestConfigPy:
         expected = ("No option 'qt_args' (this option was renamed to "
                     "'qt.args')")
         assert str(error.exception) == expected
+
+    @pytest.mark.parametrize('line, action', [
+        ('config.get("content.images", "://")', 'getting'),
+        ('config.set("content.images", False, "://")', 'setting'),
+    ])
+    def test_invalid_pattern(self, confpy, line, action):
+        confpy.write(line)
+
+        error = confpy.read(error=True)
+
+        assert error.text == ("While {} 'content.images' and parsing pattern"
+                              .format(action))
+        assert isinstance(error.exception, urlmatch.ParseError)
+        assert str(error.exception) == "No scheme given"
+        assert error.traceback is None
 
     def test_multiple_errors(self, confpy):
         confpy.write("c.foo = 42", "config.set('foo', 42)", "1/0")
@@ -861,6 +907,20 @@ class TestConfigPyWriter:
             # config.load_autoconfig()
         """).lstrip()
         assert text == expected
+
+    def test_pattern(self):
+        opt = configdata.Option(
+            name='opt', typ=configtypes.BoolAsk(), default='ask',
+            backends=[usertypes.Backend.QtWebEngine], raw_backends=None,
+            description='Hello World')
+        options = [
+            (urlmatch.UrlPattern('https://www.example.com/'), opt, 'ask'),
+        ]
+        writer = configfiles.ConfigPyWriter(options=options, bindings={},
+                                            commented=False)
+        text = '\n'.join(writer._gen_lines())
+        expected = "config.set('opt', 'ask', 'https://www.example.com/')"
+        assert expected in text
 
     def test_write(self, tmpdir):
         pyfile = tmpdir / 'config.py'

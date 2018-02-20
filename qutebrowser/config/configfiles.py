@@ -33,7 +33,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 
 import qutebrowser
 from qutebrowser.config import configexc, config, configdata, configutils
-from qutebrowser.utils import standarddir, utils, qtutils, log
+from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
 
 
 # The StateConfig instance
@@ -308,6 +308,9 @@ class ConfigAPI:
         except configexc.Error as e:
             text = "While {} '{}'".format(action, name)
             self.errors.append(configexc.ConfigErrorDesc(text, e))
+        except urlmatch.ParseError as e:
+            text = "While {} '{}' and parsing pattern".format(action, name)
+            self.errors.append(configexc.ConfigErrorDesc(text, e))
 
     def finalize(self):
         """Do work which needs to be done after reading config.py."""
@@ -317,13 +320,15 @@ class ConfigAPI:
         with self._handle_error('reading', 'autoconfig.yml'):
             read_autoconfig()
 
-    def get(self, name):
+    def get(self, name, pattern=None):
         with self._handle_error('getting', name):
-            return self._config.get_mutable_obj(name)
+            urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
+            return self._config.get_mutable_obj(name, pattern=urlpattern)
 
-    def set(self, name, value):
+    def set(self, name, value, pattern=None):
         with self._handle_error('setting', name):
-            self._config.set_obj(name, value)
+            urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
+            self._config.set_obj(name, value, pattern=urlpattern)
 
     def bind(self, key, command, mode='normal'):
         with self._handle_error('binding', key):
@@ -401,8 +406,7 @@ class ConfigPyWriter:
 
     def _gen_options(self):
         """Generate the options part of the config."""
-        # FIXME:conf handle _pattern
-        for _pattern, opt, value in self._options:
+        for pattern, opt, value in self._options:
             if opt.name in ['bindings.commands', 'bindings.default']:
                 continue
 
@@ -421,7 +425,11 @@ class ConfigPyWriter:
                     except KeyError:
                         yield self._line("#   - {}".format(val))
 
-            yield self._line('c.{} = {!r}'.format(opt.name, value))
+            if pattern is None:
+                yield self._line('c.{} = {!r}'.format(opt.name, value))
+            else:
+                yield self._line('config.set({!r}, {!r}, {!r})'.format(
+                    opt.name, value, str(pattern)))
             yield ''
 
     def _gen_bindings(self):
