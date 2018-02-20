@@ -274,7 +274,7 @@ Set all settings back to their default.
 
 [[config-cycle]]
 === config-cycle
-Syntax: +:config-cycle [*--url* 'url'] [*--temp*] [*--print*]
+Syntax: +:config-cycle [*--pattern* 'pattern'] [*--temp*] [*--print*]
              'option' ['values' ['values' ...]]+
 
 Cycle an option between multiple values.
@@ -284,7 +284,7 @@ Cycle an option between multiple values.
 * +'values'+: The values to cycle through.
 
 ==== optional arguments
-* +*-u*+, +*--url*+: The URL pattern to use.
+* +*-u*+, +*--pattern*+: The URL pattern to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
 
@@ -1112,7 +1112,7 @@ Save a session.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] [*--print*] [*--url* 'url'] ['option'] ['value']+
+Syntax: +:set [*--temp*] [*--print*] [*--pattern* 'pattern'] ['option'] ['value']+
 
 Set an option.
 
@@ -1125,7 +1125,7 @@ If the option name ends with '?', the value of the option is shown instead. Usin
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
-* +*-u*+, +*--url*+: The URL pattern to use.
+* +*-u*+, +*--pattern*+: The URL pattern to use.
 
 [[set-cmd-text]]
 === set-cmd-text

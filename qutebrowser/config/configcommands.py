@@ -47,16 +47,16 @@ class ConfigCommands:
         except configexc.Error as e:
             raise cmdexc.CommandError(str(e))
 
-    def _parse_pattern(self, url):
-        """Parse an URL argument to a pattern."""
-        if url is None:
+    def _parse_pattern(self, pattern):
+        """Parse a pattern string argument to a pattern."""
+        if pattern is None:
             return None
 
         try:
-            return urlmatch.UrlPattern(url)
+            return urlmatch.UrlPattern(pattern)
         except urlmatch.ParseError as e:
             raise cmdexc.CommandError("Error while parsing {}: {}"
-                                      .format(url, str(e)))
+                                      .format(pattern, str(e)))
 
     def _print_value(self, option, pattern):
         """Print the value of the given option."""
@@ -68,8 +68,9 @@ class ConfigCommands:
     @cmdutils.argument('option', completion=configmodel.option)
     @cmdutils.argument('value', completion=configmodel.value)
     @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('pattern', flag='u')
     def set(self, win_id, option=None, value=None, temp=False, print_=False,
-            *, url=None):
+            *, pattern=None):
         """Set an option.
 
         If the option name ends with '?', the value of the option is shown
@@ -81,7 +82,7 @@ class ConfigCommands:
         Args:
             option: The name of the option.
             value: The value to set.
-            url: The URL pattern to use.
+            pattern: The URL pattern to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
@@ -95,7 +96,7 @@ class ConfigCommands:
             raise cmdexc.CommandError("Toggling values was moved to the "
                                       ":config-cycle command")
 
-        pattern = self._parse_pattern(url)
+        pattern = self._parse_pattern(pattern)
 
         if option.endswith('?') and option != '?':
             self._print_value(option[:-1], pattern=pattern)
@@ -177,18 +178,19 @@ class ConfigCommands:
     @cmdutils.register(instance='config-commands', star_args_optional=True)
     @cmdutils.argument('option', completion=configmodel.option)
     @cmdutils.argument('values', completion=configmodel.value)
-    def config_cycle(self, option, *values, url=None, temp=False,
+    @cmdutils.argument('pattern', flag='u')
+    def config_cycle(self, option, *values, pattern=None, temp=False,
                      print_=False):
         """Cycle an option between multiple values.
 
         Args:
             option: The name of the option.
             values: The values to cycle through.
-            url: The URL pattern to use.
+            pattern: The URL pattern to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
-        pattern = self._parse_pattern(url)
+        pattern = self._parse_pattern(pattern)
 
         with self._handle_config_error():
             opt = self._config.get_opt(option)

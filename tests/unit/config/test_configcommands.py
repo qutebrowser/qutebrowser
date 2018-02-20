@@ -90,7 +90,7 @@ class TestSet:
         monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
         option = 'content.javascript.enabled'
 
-        commands.set(0, option, 'false', url='*://example.com')
+        commands.set(0, option, 'false', pattern='*://example.com')
         pattern = urlmatch.UrlPattern('*://example.com')
 
         assert config_stub.get(option)
@@ -102,7 +102,7 @@ class TestSet:
 
         with pytest.raises(cmdexc.CommandError,
                            match='Error while parsing :/: No scheme given'):
-            commands.set(0, option, 'false', url=':/')
+            commands.set(0, option, 'false', pattern=':/')
 
     @pytest.mark.parametrize('temp', [True, False])
     def test_set_temp_override(self, commands, config_stub, yaml_value, temp):
