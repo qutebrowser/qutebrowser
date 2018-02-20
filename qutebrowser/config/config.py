@@ -466,16 +466,21 @@ class ConfigContainer:
         _prefix: The __getattr__ chain leading up to this object.
         _configapi: If given, get values suitable for config.py and
                     add errors to the given ConfigAPI object.
+        _pattern: The URL pattern to be used.
     """
 
-    def __init__(self, config, configapi=None, prefix=''):
+    def __init__(self, config, configapi=None, prefix='', pattern=None):
         self._config = config
         self._prefix = prefix
         self._configapi = configapi
+        self._pattern = pattern
+        if configapi is None and pattern is not None:
+            raise TypeError("Can't use pattern without configapi!")
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True, config=self._config,
-                              configapi=self._configapi, prefix=self._prefix)
+                              configapi=self._configapi, prefix=self._prefix,
+                              pattern=self._pattern)
 
     @contextlib.contextmanager
     def _handle_error(self, action, name):
@@ -503,7 +508,7 @@ class ConfigContainer:
         if configdata.is_valid_prefix(name):
             return ConfigContainer(config=self._config,
                                    configapi=self._configapi,
-                                   prefix=name)
+                                   prefix=name, pattern=self._pattern)
 
         with self._handle_error('getting', name):
             if self._configapi is None:
@@ -511,7 +516,8 @@ class ConfigContainer:
                 return self._config.get(name)
             else:
                 # access from config.py
-                return self._config.get_mutable_obj(name)
+                return self._config.get_mutable_obj(
+                    name, pattern=self._pattern)
 
     def __setattr__(self, attr, value):
         """Set the given option in the config."""
@@ -521,7 +527,7 @@ class ConfigContainer:
 
         name = self._join(attr)
         with self._handle_error('setting', name):
-            self._config.set_obj(name, value)
+            self._config.set_obj(name, value, pattern=self._pattern)
 
     def _join(self, attr):
         """Get the prefix joined with the given attribute."""

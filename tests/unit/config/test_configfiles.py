@@ -507,16 +507,28 @@ class TestConfigPy:
         confpy.read()
         assert config.instance.get_obj('colors.hints.bg') == 'red'
 
-    def test_set_with_pattern(self, confpy):
+    @pytest.mark.parametrize('template', [
+        "config.set({opt!r}, False, {pattern!r})",
+        "with config.pattern({pattern!r}) as p: p.{opt} = False",
+    ])
+    def test_set_with_pattern(self, confpy, template):
         option = 'content.javascript.enabled'
         pattern = 'https://www.example.com/'
 
-        confpy.write('config.set({!r}, False, {!r})'.format(option, pattern))
+        confpy.write(template.format(opt=option, pattern=pattern))
         confpy.read()
 
         assert config.instance.get_obj(option)
         assert not config.instance.get_obj_for_pattern(
             option, pattern=urlmatch.UrlPattern(pattern))
+
+    def test_set_context_manager_global(self, confpy):
+        """When "with config.pattern" is used, "c." should still be global."""
+        option = 'content.javascript.enabled'
+        confpy.write('with config.pattern("https://www.example.com/") as p:'
+                     '    c.{} = False'.format(option))
+        confpy.read()
+        assert not config.instance.get_obj(option)
 
     @pytest.mark.parametrize('set_first', [True, False])
     @pytest.mark.parametrize('get_line', [
@@ -703,20 +715,21 @@ class TestConfigPy:
                     "'qt.args')")
         assert str(error.exception) == expected
 
-    @pytest.mark.parametrize('line, action', [
-        ('config.get("content.images", "://")', 'getting'),
-        ('config.set("content.images", False, "://")', 'setting'),
+    @pytest.mark.parametrize('line, text', [
+        ('config.get("content.images", "://")',
+         "While getting 'content.images' and parsing pattern"),
+        ('config.set("content.images", False, "://")',
+         "While setting 'content.images' and parsing pattern"),
+        ('with config.pattern("://"): pass',
+         "Unhandled exception"),
     ])
-    def test_invalid_pattern(self, confpy, line, action):
+    def test_invalid_pattern(self, confpy, line, text):
         confpy.write(line)
-
         error = confpy.read(error=True)
 
-        assert error.text == ("While {} 'content.images' and parsing pattern"
-                              .format(action))
+        assert error.text == text
         assert isinstance(error.exception, urlmatch.ParseError)
         assert str(error.exception) == "No scheme given"
-        assert error.traceback is None
 
     def test_multiple_errors(self, confpy):
         confpy.write("c.foo = 42", "config.set('foo', 42)", "1/0")

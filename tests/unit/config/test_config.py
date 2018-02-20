@@ -637,6 +637,12 @@ class TestContainer:
         assert error.text == "While getting 'tabs.foobar'"
         assert str(error.exception) == "No option 'tabs.foobar'"
 
+    def test_pattern_no_configapi(self, config_stub):
+        pattern = urlmatch.UrlPattern('https://example.com/')
+        with pytest.raises(TypeError,
+                           match="Can't use pattern without configapi!"):
+            config.ConfigContainer(config_stub, pattern=pattern)
+
 
 class StyleObj(QObject):
 

@@ -185,6 +185,15 @@ https://developer.chrome.com/apps/match_patterns[URL pattern]:
 config.set('content.images', False, '*://example.com/')
 ----
 
+Alternatively, you can use `with config.pattern(...) as p:` to get a shortcut
+similar to `c.` which is scoped to the given domain:
+
+[source,python]
+----
+with config.pattern('*://example.com/') as p:
+    p.content.images = False
+----
+
 Binding keys
 ~~~~~~~~~~~~
 

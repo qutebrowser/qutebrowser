@@ -348,6 +348,16 @@ class ConfigAPI:
         except configexc.ConfigFileErrors as e:
             self.errors += e.errors
 
+    @contextlib.contextmanager
+    def pattern(self, pattern):
+        """Get a ConfigContainer for the given pattern."""
+        # We need to propagate the exception so we don't need to return
+        # something.
+        urlpattern = urlmatch.UrlPattern(pattern)
+        container = config.ConfigContainer(config=self._config, configapi=self,
+                                           pattern=urlpattern)
+        yield container
+
 
 class ConfigPyWriter:
 
