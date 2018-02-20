@@ -186,8 +186,8 @@ class TestEarlyInit:
 
         if config_py and load_autoconfig and not invalid_yaml:
             expected = [
-                'colors.hints.fg = magenta',
                 'colors.hints.bg = red',
+                'colors.hints.fg = magenta',
             ]
         elif config_py:
             expected = ['colors.hints.bg = red']

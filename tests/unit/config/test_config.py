@@ -530,7 +530,7 @@ class TestConfig:
         """Make sure mutable types are only copied once."""
         spy = mocker.spy(config.copy, 'deepcopy')
         conf.get_mutable_obj('bindings.commands')
-        spy.assert_called_once()
+        spy.assert_called_once_with(mocker.ANY)
 
     def test_get_obj_for_pattern(self, conf):
         pattern = urlmatch.UrlPattern('*://example.com')

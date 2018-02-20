@@ -447,7 +447,7 @@ class Config(QObject):
             The changed config part as string.
         """
         blocks = []
-        for values in self:
+        for values in sorted(self, key=lambda v: v.opt.name):
             if values:
                 blocks.append(str(values))
 
