@@ -23,12 +23,12 @@ import types
 import unittest.mock
 
 import pytest
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, QUrl
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import (config, configdata, configexc, configfiles,
                                 configutils)
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.misc import objects
 
 
@@ -410,6 +410,14 @@ class TestConfig:
         """Test conf.get() with a QColor (where get/get_obj is different)."""
         assert conf.get('colors.completion.category.fg') == QColor('white')
 
+    def test_get_for_url(self, conf):
+        """Test conf.get() with an URL/pattern."""
+        pattern = urlmatch.UrlPattern('*://example.com')
+        name = 'content.javascript.enabled'
+        conf.set_obj(name, False, pattern=pattern)
+        assert conf.get(name, url=QUrl('https://example.com/')) is True
+
+
     @pytest.mark.parametrize('value', [{}, {'normal': {'a': 'nop'}}])
     def test_get_bindings(self, config_stub, conf, value):
         """Test conf.get() with bindings which have missing keys."""
@@ -513,6 +521,30 @@ class TestConfig:
         """Make sure we don't have unknown mutable types."""
         with pytest.raises(AssertionError):
             conf._maybe_copy(set())
+
+    def test_copy_non_mutable(self, conf, mocker):
+        """Make sure no copies are done for non-mutable types."""
+        spy = mocker.spy(config.copy, 'deepcopy')
+        conf.get_mutable_obj('content.plugins')
+        assert not spy.called
+
+    def test_copy_mutable(self, conf, mocker):
+        """Make sure mutable types are only copied once."""
+        spy = mocker.spy(config.copy, 'deepcopy')
+        conf.get_mutable_obj('bindings.commands')
+        spy.assert_called_once()
+
+    def test_get_obj_for_pattern(self, conf):
+        pattern = urlmatch.UrlPattern('*://example.com')
+        name = 'content.javascript.enabled'
+        conf.set_obj(name, False, pattern=pattern)
+        assert conf.get_obj_for_pattern(name, pattern=pattern) is False
+
+    def test_get_obj_for_pattern_no_match(self, conf):
+        pattern = urlmatch.UrlPattern('*://example.com')
+        name = 'content.javascript.enabled'
+        value = conf.get_obj_for_pattern(name, pattern=pattern)
+        assert value is configutils.UNSET
 
     def test_get_str(self, conf):
         assert conf.get_str('content.plugins') == 'false'

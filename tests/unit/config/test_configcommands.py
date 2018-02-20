@@ -26,7 +26,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import configcommands, configutils
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.misc import objects
 
 
@@ -85,6 +85,24 @@ class TestSet:
 
         assert config_stub.get(option) == new_value
         assert yaml_value(option) == (configutils.UNSET if temp else new_value)
+
+    def test_set_with_pattern(self, monkeypatch, commands, config_stub):
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
+        option = 'content.javascript.enabled'
+
+        commands.set(0, option, 'false', url='*://example.com')
+        pattern = urlmatch.UrlPattern('*://example.com')
+
+        assert config_stub.get(option)
+        assert not config_stub.get_obj_for_pattern(option, pattern=pattern)
+
+    def test_set_invalid_pattern(self, monkeypatch, commands):
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
+        option = 'content.javascript.enabled'
+
+        with pytest.raises(cmdexc.CommandError,
+                           match='Error while parsing :/: No scheme given'):
+            commands.set(0, option, 'false', url=':/')
 
     @pytest.mark.parametrize('temp', [True, False])
     def test_set_temp_override(self, commands, config_stub, yaml_value, temp):
