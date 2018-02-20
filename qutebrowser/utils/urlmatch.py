@@ -141,7 +141,13 @@ class UrlPattern:
         if self._scheme == 'about' and not parsed.path.strip():
             raise ParseError("Pattern without path")
 
-        self._path = None if parsed.path == '/*' else parsed.path
+        if parsed.path == '/*':
+            self._path = None
+        elif parsed.path == '':
+            # We want to make it possible to leave off a trailing slash.
+            self._path = '/'
+        else:
+            self._path = parsed.path
 
     def _init_host(self, parsed):
         """Parse the host from the given URL.

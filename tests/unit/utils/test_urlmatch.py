@@ -389,6 +389,13 @@ def test_ignore_missing_slashes():
     assert not pattern1.matches(url2)
 
 
+def test_trailing_slash():
+    """Contrary to Chromium, we allow to leave off a trailing slash."""
+    url = QUrl('http://www.example.com/')
+    pattern = urlmatch.UrlPattern('http://www.example.com')
+    assert pattern.matches(url)
+
+
 @pytest.mark.parametrize('pattern', ['*://example.com/*',
                                      '*://example.com./*'])
 @pytest.mark.parametrize('url', ['http://example.com/',
