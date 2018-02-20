@@ -134,6 +134,29 @@ class YamlConfig(QObject):
             """.lstrip('\n')))
             utils.yaml_dump(data, f)
 
+    def _pop_object(self, yaml_data, key, typ):
+        """Get a global object from the given data."""
+        if not isinstance(yaml_data, dict):
+            desc = configexc.ConfigErrorDesc("While loading data",
+                                             "Toplevel object is not a dict")
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
+        if key not in yaml_data:
+            desc = configexc.ConfigErrorDesc(
+                "While loading data",
+                "Toplevel object does not contain '{}' key".format(key))
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
+        data = yaml_data.pop(key)
+
+        if not isinstance(data, typ):
+            desc = configexc.ConfigErrorDesc(
+                "While loading data",
+                "'{}' object is not a {}".format(key, typ.__name__))
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+
+        return data
+
     def load(self):
         """Load configuration from the configured YAML file."""
         try:
@@ -148,44 +171,18 @@ class YamlConfig(QObject):
             desc = configexc.ConfigErrorDesc("While parsing", e)
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
-        try:
-            yaml_data.pop('config_version')
-        except KeyError:
-            desc = configexc.ConfigErrorDesc(
-                "While loading data",
-                "Toplevel object does not contain 'config_version' key")
-            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
-        except (TypeError, AttributeError):
-            desc = configexc.ConfigErrorDesc("While loading data",
-                                             "Toplevel object is not a dict")
-            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
+        config_version = self._pop_object(yaml_data, 'config_version', int)
 
         settings = self._load_settings_object(yaml_data)
+
         self._dirty = False
         settings = self._handle_migrations(settings)
         self._validate(settings)
         self._build_values(settings)
 
     def _load_settings_object(self, yaml_data):
-        """Load the settings from the settings: key.
-
-        FIXME: conf migrate old settings
-        """
-        try:
-            settings_obj = yaml_data.pop('settings')
-        except KeyError:
-            desc = configexc.ConfigErrorDesc(
-                "While loading data",
-                "Toplevel object does not contain 'settings' key")
-            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
-
-        if not isinstance(settings_obj, dict):
-            desc = configexc.ConfigErrorDesc(
-                "While loading data",
-                "'settings' object is not a dict")
-            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
-
-        return settings_obj
+        """Load the settings from the settings: key."""
+        return self._pop_object(yaml_data, 'settings', dict)
 
     def _build_values(self, settings):
         """Build up self._values from the values in the given dict."""
