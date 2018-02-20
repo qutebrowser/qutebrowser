@@ -396,7 +396,7 @@ def test_ignore_missing_slashes():
 def test_trailing_dot_domain(pattern, url):
     """Both patterns should match trailing dot and non trailing dot domains.
 
-    More information about this not obvious behaviour can be found in [1].
+    More information about this not obvious behavior can be found in [1].
 
     RFC 1738 [2] specifies clearly that the <host> part of a URL is supposed to
     contain a fully qualified domain name:
