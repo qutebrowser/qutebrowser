@@ -376,8 +376,6 @@ class Config(QObject):
         opt = self.get_opt(name)
         values = self._values[name]
         value = values.get_for_pattern(pattern)
-        if value is configutils.UNSET:
-            return value
         return opt.typ.to_str(value)
 
     def set_obj(self, name, value, *, pattern=None, save_yaml=False):
