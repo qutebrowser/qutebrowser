@@ -765,6 +765,9 @@ class WebKitTab(browsertab.AbstractTab):
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
+        if not navigation.accepted:
+            return
+
         log.webview.debug("target {} override {}".format(
             self.data.open_target, self.data.override_target))
 
@@ -781,8 +784,7 @@ class WebKitTab(browsertab.AbstractTab):
             self.data.open_target = usertypes.ClickTarget.normal
             navigation.accepted = False
 
-        if (navigation.accepted and navigation.navigation_type !=
-                navigation.Type.reloaded):
+        if navigation.navigation_type != navigation.Type.reloaded:
             webkitsettings.update_for_tab(self, navigation.url)
 
     def _connect_signals(self):
