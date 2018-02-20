@@ -169,6 +169,10 @@ def test_get_matching_pattern(values, pattern):
     assert values.get_for_pattern(pattern, fallback=False) == 'example value'
 
 
+def test_get_pattern_none(values, pattern):
+    assert values.get_for_pattern(None, fallback=False) == 'global value'
+
+
 def test_get_unset_pattern(empty_values, pattern):
     value = empty_values.get_for_pattern(pattern, fallback=False)
     assert value is configutils.UNSET
