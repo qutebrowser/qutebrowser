@@ -72,9 +72,9 @@ class Values:
         opt: The Option being customized.
     """
 
-    def __init__(self, opt):
+    def __init__(self, opt, values=None):
         self.opt = opt
-        self._values = []
+        self._values = values or []
 
     def __repr__(self):
         return utils.get_repr(self, opt=self.opt, values=self._values,
