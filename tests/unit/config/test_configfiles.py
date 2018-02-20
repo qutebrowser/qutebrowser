@@ -297,6 +297,12 @@ class TestYaml:
         ('settings: {}', 'While loading data',
          "Toplevel object does not contain 'config_version' key"),
         ('42', 'While loading data', "Toplevel object is not a dict"),
+        ('settings: {"content.images": 42}\nconfig_version: 2',
+         "While parsing 'content.images'", "value is not a dict"),
+        ('settings: {"content.images": {"https://": true}}\nconfig_version: 2',
+         "While parsing pattern 'https://' for 'content.images'", "Pattern without host"),
+        ('settings: {"content.images": {true: true}}\nconfig_version: 2',
+         "While parsing 'content.images'", "pattern is not of type string"),
     ])
     def test_invalid(self, yaml, autoconfig, line, text, exception):
         autoconfig.write_raw(line)

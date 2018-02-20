@@ -201,16 +201,36 @@ class YamlConfig(QObject):
 
     def _build_values(self, settings):
         """Build up self._values from the values in the given dict."""
+        errors = []
         for name, yaml_values in settings.items():
+            if not isinstance(yaml_values, dict):
+                errors.append(configexc.ConfigErrorDesc(
+                    "While parsing {!r}".format(name), "value is not a dict"))
+                continue
+
             values = configutils.Values(configdata.DATA[name])
             if 'global' in yaml_values:
                 values.add(yaml_values.pop('global'))
 
-            # FIXME:conf what if yaml_values is not a dict...
             for pattern, value in yaml_values.items():
-                values.add(value, pattern)
+                if not isinstance(pattern, str):
+                    errors.append(configexc.ConfigErrorDesc(
+                        "While parsing {!r}".format(name),
+                        "pattern is not of type string"))
+                    continue
+                try:
+                    urlpattern = urlmatch.UrlPattern(pattern)
+                except urlmatch.ParseError as e:
+                    errors.append(configexc.ConfigErrorDesc(
+                        "While parsing pattern {!r} for {!r}"
+                        .format(pattern, name), e))
+                    continue
+                values.add(value, urlpattern)
 
             self._values[name] = values
+
+        if errors:
+            raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
     def _handle_migrations(self, settings):
         """Migrate older configs to the newest format."""
