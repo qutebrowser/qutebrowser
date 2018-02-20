@@ -330,6 +330,20 @@ class TestYaml:
             }
         }
 
+    def test_read_newer_version(self, yaml, autoconfig):
+        autoconfig.write_toplevel({
+            'config_version': 999,
+            'settings': {},
+        })
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            yaml.load()
+
+        assert len(excinfo.value.errors) == 1
+        error = excinfo.value.errors[0]
+        assert error.text == "While reading"
+        msg = "Can't read config from incompatible newer version"
+        assert error.exception == msg
+
     def test_oserror(self, yaml, autoconfig):
         autoconfig.fobj.ensure()
         autoconfig.fobj.chmod(0)

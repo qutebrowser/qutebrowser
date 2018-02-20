@@ -172,13 +172,18 @@ class YamlConfig(QObject):
             raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
 
         config_version = self._pop_object(yaml_data, 'config_version', int)
-
         if config_version == 1:
             settings = self._load_legacy_settings_object(yaml_data)
             self._mark_changed()
+        elif config_version > self.VERSION:
+            desc = configexc.ConfigErrorDesc(
+                "While reading",
+                "Can't read config from incompatible newer version")
+            raise configexc.ConfigFileErrors('autoconfig.yml', [desc])
         else:
             settings = self._load_settings_object(yaml_data)
             self._dirty = False
+
         settings = self._handle_migrations(settings)
         self._validate(settings)
         self._build_values(settings)
