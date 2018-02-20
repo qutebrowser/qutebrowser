@@ -875,7 +875,7 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
-        if navigation.accepted:
+        if navigation.accepted and navigation.is_main_frame:
             webenginesettings.update_for_tab(self, navigation.url)
 
     def _connect_signals(self):

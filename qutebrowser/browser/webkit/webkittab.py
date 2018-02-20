@@ -784,7 +784,7 @@ class WebKitTab(browsertab.AbstractTab):
             self.data.open_target = usertypes.ClickTarget.normal
             navigation.accepted = False
 
-        if navigation.navigation_type != navigation.Type.reloaded:
+        if navigation.is_main_frame:
             webkitsettings.update_for_tab(self, navigation.url)
 
     def _connect_signals(self):
