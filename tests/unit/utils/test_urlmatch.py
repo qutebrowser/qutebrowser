@@ -517,3 +517,16 @@ def test_equal(text1, text2, equal):
 
     assert (pat1 == pat2) == equal
     assert (hash(pat1) == hash(pat2)) == equal
+
+
+def test_repr():
+    pat = urlmatch.UrlPattern('https://www.example.com/')
+    expected = ("qutebrowser.utils.urlmatch.UrlPattern("
+                "pattern='https://www.example.com/')")
+    assert repr(pat) == expected
+
+
+def test_str():
+    text = 'https://www.example.com/'
+    pat = urlmatch.UrlPattern(text)
+    assert str(pat) == text

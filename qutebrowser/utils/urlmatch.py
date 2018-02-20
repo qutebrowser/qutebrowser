@@ -107,6 +107,12 @@ class UrlPattern:
         # pylint: disable=protected-access
         return self._to_tuple() == other._to_tuple()
 
+    def __repr__(self):
+        return utils.get_repr(self, pattern=self._pattern, constructor=True)
+
+    def __str__(self):
+        return self._pattern
+
     def _fixup_pattern(self, pattern):
         """Make sure the given pattern is parseable by urllib.parse."""
         if pattern.startswith('*:'):  # Any scheme, but *:// is unparseable
@@ -187,9 +193,6 @@ class UrlPattern:
                 self._port is not None):
             raise ParseError("Ports are unsupported with {} scheme".format(
                 self._scheme))
-
-    def __repr__(self):
-        return utils.get_repr(self, pattern=self._pattern, constructor=True)
 
     def _matches_scheme(self, scheme):
         return self._scheme is None or self._scheme == scheme

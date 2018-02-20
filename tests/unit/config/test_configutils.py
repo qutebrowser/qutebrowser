@@ -55,6 +55,14 @@ def test_repr(opt, values):
     assert repr(values) == expected
 
 
+def test_str(values):
+    expected = [
+        'example.option = global value',
+        '*://www.example.com/: example.option = example value',
+    ]
+    assert str(values) == '\n'.join(expected)
+
+
 def test_str_empty(opt):
     values = configutils.Values(opt)
     assert str(values) == 'example.option: <unchanged>'
