@@ -1448,8 +1448,7 @@ url.incdec_segments:
 url.open_base_url:
   type: Bool
   default: false
-  desc: Invoking `:open {shortcut}` (without argument), where {shortcut} is a search engine shortcut
-    will open the base url of the shortcut instead of using the default search engine.
+  desc: Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
 
 url.searchengines:
   default:
