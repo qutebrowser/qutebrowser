@@ -581,6 +581,14 @@ class TestConfig:
                 meth('content.cookies.accept', 'all')
         assert not conf._values['content.cookies.accept']
 
+    @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
+    def test_set_no_pattern(self, conf, method, qtbot):
+        meth = getattr(conf, method)
+        pattern = urlmatch.UrlPattern('https://www.example.com/')
+        with pytest.raises(configexc.NoPatternError):
+            with qtbot.assert_not_emitted(conf.changed):
+                meth('colors.statusbar.normal.bg', '#abcdef', pattern=pattern)
+
     def test_dump_userconfig(self, conf):
         conf.set_obj('content.plugins', True)
         conf.set_obj('content.headers.custom', {'X-Foo': 'bar'})

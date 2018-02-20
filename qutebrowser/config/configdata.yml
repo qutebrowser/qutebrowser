@@ -240,6 +240,7 @@ content.cache.appcache:
   default: true
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: >-
     Enable support for the HTML 5 web application cache feature.
 
@@ -298,12 +299,14 @@ content.dns_prefetch:
   default: true
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: Try to pre-fetch DNS entries to speed up browsing.
 
 content.frame_flattening:
   default: false
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: >-
     Expand each subframe to its contents.
 
@@ -459,12 +462,14 @@ content.host_blocking.whitelist:
 content.hyperlink_auditing:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Enable hyperlink auditing (`<a ping>`).
 
 content.images:
   default: true
   type: Bool
   desc: Load images automatically in web pages.
+  supports_pattern: true
 
 content.javascript.alert:
   default: true
@@ -474,6 +479,7 @@ content.javascript.alert:
 content.javascript.can_access_clipboard:
   default: false
   type: Bool
+  supports_pattern: true
   desc: >-
     Allow JavaScript to read from or write to the clipboard.
 
@@ -484,16 +490,19 @@ content.javascript.can_close_tabs:
   default: false
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: Allow JavaScript to close tabs.
 
 content.javascript.can_open_tabs_automatically:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Allow JavaScript to open new tabs without user interaction.
 
 content.javascript.enabled:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Enable JavaScript.
 
 content.javascript.log:
@@ -536,16 +545,19 @@ content.javascript.prompt:
 content.local_content_can_access_remote_urls:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Allow locally loaded documents to access remote URLs.
 
 content.local_content_can_access_file_urls:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Allow locally loaded documents to access other local URLs.
 
 content.local_storage:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Enable support for HTML 5 local storage and Web SQL.
 
 content.media_capture:
@@ -583,6 +595,7 @@ content.pdfjs:
 content.plugins:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Enable plugins in Web pages.
 
 content.print_element_backgrounds:
@@ -591,6 +604,7 @@ content.print_element_backgrounds:
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.8
+  supports_pattern: true
   desc: >-
     Draw the background color and images also when the page is printed.
 
@@ -631,11 +645,13 @@ content.user_stylesheets:
 content.webgl:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Enable WebGL.
 
 content.xss_auditing:
   type: Bool
   default: false
+  supports_pattern: true
   desc: >-
     Monitor load requests for cross-site scripting attempts.
 
@@ -978,6 +994,7 @@ input.insert_mode.plugins:
 input.links_included_in_focus_chain:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Include hyperlinks in the keyboard focus chain when tabbing.
 
 input.partial_timeout:
@@ -1003,6 +1020,7 @@ input.rocker_gestures:
 input.spatial_navigation:
   default: false
   type: Bool
+  supports_pattern: true
   desc: >-
     Enable spatial navigation.
 
@@ -1083,6 +1101,7 @@ scrolling.bar:
 scrolling.smooth:
   type: Bool
   default: false
+  supports_pattern: true
   desc: >-
     Enable smooth scrolling for web pages.
 
@@ -1557,6 +1576,7 @@ zoom.text_only:
   type: Bool
   default: false
   backend: QtWebKit
+  supports_pattern: true
   desc: Apply the zoom factor on a frame only to the text or to all content.
 
 ## colors

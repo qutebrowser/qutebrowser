@@ -38,7 +38,8 @@ def test_unset_object_repr():
 def opt():
     return configdata.Option(name='example.option', typ=configtypes.String(),
                              default='default value', backends=None,
-                             raw_backends=None, description=None)
+                             raw_backends=None, description=None,
+                             supports_pattern=True)
 
 
 @pytest.fixture

@@ -104,6 +104,16 @@ class TestSet:
                            match='Error while parsing :/: No scheme given'):
             commands.set(0, option, 'false', pattern=':/')
 
+    def test_set_no_pattern(self, monkeypatch, commands):
+        """Run ':set --pattern=*://* colors.statusbar.normal.bg #abcdef.
+
+        Should show an error as patterns are unsupported.
+        """
+        with pytest.raises(cmdexc.CommandError,
+                           match='does not support URL patterns'):
+            commands.set(0, 'colors.statusbar.normal.bg', '#abcdef',
+                         pattern='*://*')
+
     @pytest.mark.parametrize('temp', [True, False])
     def test_set_temp_override(self, commands, config_stub, yaml_value, temp):
         """Invoking :set twice.

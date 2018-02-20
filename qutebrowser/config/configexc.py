@@ -40,6 +40,15 @@ class BackendError(Error):
                          "backend!".format(name, backend.name))
 
 
+class NoPatternError(Error):
+
+    """Raised when the given setting does not support URL patterns."""
+
+    def __init__(self, name):
+        super().__init__("The {} setting does not support URL patterns!"
+                         .format(name))
+
+
 class ValidationError(Error):
 
     """Raised when a value for a config type was invalid.

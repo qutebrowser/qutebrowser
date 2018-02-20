@@ -225,8 +225,9 @@ def update_for_tab(mappings, tab, url):
     for values in config.instance:
         if values.opt.name not in mappings:
             continue
+        if not values.opt.supports_pattern:
+            continue
 
-        # FIXME:conf handle settings != None with global/static setters
         mapping = mappings[values.opt.name]
 
         value = values.get_for_url(url, fallback=False)
@@ -237,10 +238,7 @@ def update_for_tab(mappings, tab, url):
         settings = tab._widget.settings()  # pylint: disable=protected-access
 
         if value is configutils.UNSET:
-            try:
-                mapping.unset(settings=settings)
-            except NotImplementedError:
-                pass
+            mapping.unset(settings=settings)
         else:
             mapping.set(value, settings=settings)
 

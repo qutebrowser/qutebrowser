@@ -24,6 +24,7 @@
 import attr
 
 from qutebrowser.utils import utils
+from qutebrowser.config import configexc
 
 
 class _UnsetObject:
@@ -107,8 +108,14 @@ class Values:
         """Check whether this value is customized."""
         return bool(self._values)
 
+    def _check_pattern_support(self, arg):
+        """Make sure patterns are supported if one was given."""
+        if arg is not None and not self.opt.supports_pattern:
+            raise configexc.NoPatternError(self.opt.name)
+
     def add(self, value, pattern=None):
         """Add a value with the given pattern to the list of values."""
+        self._check_pattern_support(pattern)
         self.remove(pattern)
         scoped = ScopedValue(value, pattern)
         self._values.append(scoped)
@@ -119,6 +126,7 @@ class Values:
         If a matching pattern was removed, True is returned.
         If no matching pattern was found, False is returned.
         """
+        self._check_pattern_support(pattern)
         old_len = len(self._values)
         self._values = [v for v in self._values if v.pattern != pattern]
         return old_len != len(self._values)
@@ -146,6 +154,7 @@ class Values:
           With fallback=True, the global/default setting is returned.
           With fallback=False, UNSET is returned.
         """
+        self._check_pattern_support(url)
         if url is not None:
             for scoped in reversed(self._values):
                 if scoped.pattern is not None and scoped.pattern.matches(url):
@@ -165,6 +174,7 @@ class Values:
           With fallback=True, the global/default setting is returned.
           With fallback=False, UNSET is returned.
         """
+        self._check_pattern_support(pattern)
         if pattern is not None:
             for scoped in reversed(self._values):
                 if scoped.pattern == pattern:

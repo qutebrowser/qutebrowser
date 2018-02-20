@@ -280,6 +280,7 @@ class Config(QObject):
                 raise configexc.BackendError(opt.name, objects.backend)
 
         opt.typ.to_py(value)  # for validation
+
         self._values[opt.name].add(opt.typ.from_obj(value), pattern)
 
         self.changed.emit(opt.name)
