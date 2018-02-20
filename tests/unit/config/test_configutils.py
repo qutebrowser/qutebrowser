@@ -201,7 +201,7 @@ def test_get_non_matching_fallback_pattern(values, other_pattern):
 def test_get_equivalent_patterns(empty_values):
     """With multiple matching pattern, the last added should win."""
     pat1 = urlmatch.UrlPattern('https://www.example.com/')
-    pat2 = urlmatch.UrlPattern('https://www.example.com')
+    pat2 = urlmatch.UrlPattern('*://www.example.com/')
     empty_values.add('pat1 value', pat1)
     empty_values.add('pat2 value', pat2)
 

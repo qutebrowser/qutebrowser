@@ -411,10 +411,10 @@ class TestConfig:
 
     def test_get_for_url(self, conf):
         """Test conf.get() with an URL/pattern."""
-        pattern = urlmatch.UrlPattern('*://example.com')
+        pattern = urlmatch.UrlPattern('*://example.com/')
         name = 'content.javascript.enabled'
         conf.set_obj(name, False, pattern=pattern)
-        assert conf.get(name, url=QUrl('https://example.com/')) is True
+        assert conf.get(name, url=QUrl('https://example.com/')) is False
 
     @pytest.mark.parametrize('value', [{}, {'normal': {'a': 'nop'}}])
     def test_get_bindings(self, config_stub, conf, value):
