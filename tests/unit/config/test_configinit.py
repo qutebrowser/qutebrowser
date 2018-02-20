@@ -123,19 +123,19 @@ class TestEarlyInit:
                 'settings:',
                 '  colors.foobar:',
                 '    global: magenta',
-                'config_version: 1',
+                'config_version: 2',
             ],
             'wrong-type': [
                 'settings:',
                 '  tabs.position:',
                 '    global: true',
-                'config_version: 1',
+                'config_version: 2',
             ],
             False: [
                 'settings:',
                 '  colors.hints.fg:',
                 '    global: magenta',
-                'config_version: 1',
+                'config_version: 2',
             ],
         }
         text = '\n'.join(yaml_lines[invalid_yaml])
@@ -240,7 +240,7 @@ class TestEarlyInit:
             args.temp_settings = settings
         elif method == 'auto':
             autoconfig_file = config_tmpdir / 'autoconfig.yml'
-            lines = (["config_version: 1", "settings:"] +
+            lines = (["config_version: 2", "settings:"] +
                      ["  {}:\n    global:\n      '{}'".format(k, v)
                       for k, v in settings])
             autoconfig_file.write_text('\n'.join(lines), 'utf-8', ensure=True)

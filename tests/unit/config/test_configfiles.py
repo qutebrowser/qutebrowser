@@ -45,19 +45,25 @@ class AutoConfigHelper:
     def __init__(self, config_tmpdir):
         self.fobj = config_tmpdir / 'autoconfig.yml'
 
-    def write(self, values):
-        data = {'config_version': 1, 'settings': values}
+    def write_toplevel(self, data):
         with self.fobj.open('w', encoding='utf-8') as f:
             utils.yaml_dump(data, f)
+
+    def write(self, values):
+        data = {'config_version': 2, 'settings': values}
+        self.write_toplevel(data)
 
     def write_raw(self, text):
         self.fobj.write_text(text, encoding='utf-8', ensure=True)
 
-    def read(self):
+    def read_toplevel(self):
         with self.fobj.open('r', encoding='utf-8') as f:
             data = utils.yaml_load(f)
-            assert data['config_version'] == 1
-            return data['settings']
+            assert data['config_version'] == 2
+            return data
+
+    def read(self):
+        return self.read_toplevel()['settings']
 
     def read_raw(self):
         return self.fobj.read_text('utf-8')
@@ -284,9 +290,9 @@ class TestYaml:
 
     @pytest.mark.parametrize('line, text, exception', [
         ('%', 'While parsing', 'while scanning a directive'),
-        ('settings: 42\nconfig_version: 1',
+        ('settings: 42\nconfig_version: 2',
          'While loading data', "'settings' object is not a dict"),
-        ('foo: 42\nconfig_version: 1', 'While loading data',
+        ('foo: 42\nconfig_version: 2', 'While loading data',
          "Toplevel object does not contain 'settings' key"),
         ('settings: {}', 'While loading data',
          "Toplevel object does not contain 'config_version' key"),
@@ -303,6 +309,26 @@ class TestYaml:
         assert error.text == text
         assert str(error.exception).splitlines()[0] == exception
         assert error.traceback is None
+
+    def test_legacy_migration(self, yaml, autoconfig, qtbot):
+        autoconfig.write_toplevel({
+            'config_version': 1,
+            'global': {'content.javascript.enabled': True},
+        })
+        with qtbot.wait_signal(yaml.changed):
+            yaml.load()
+
+        yaml._save()
+
+        data = autoconfig.read_toplevel()
+        assert data == {
+            'config_version': 2,
+            'settings': {
+                'content.javascript.enabled': {
+                    'global': True,
+                }
+            }
+        }
 
     def test_oserror(self, yaml, autoconfig):
         autoconfig.fobj.ensure()

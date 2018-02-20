@@ -80,7 +80,7 @@ class YamlConfig(QObject):
         VERSION: The current version number of the config file.
     """
 
-    VERSION = 1
+    VERSION = 2
     changed = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -173,9 +173,12 @@ class YamlConfig(QObject):
 
         config_version = self._pop_object(yaml_data, 'config_version', int)
 
-        settings = self._load_settings_object(yaml_data)
-
-        self._dirty = False
+        if config_version == 1:
+            settings = self._load_legacy_settings_object(yaml_data)
+            self._mark_changed()
+        else:
+            settings = self._load_settings_object(yaml_data)
+            self._dirty = False
         settings = self._handle_migrations(settings)
         self._validate(settings)
         self._build_values(settings)
@@ -184,9 +187,15 @@ class YamlConfig(QObject):
         """Load the settings from the settings: key."""
         return self._pop_object(yaml_data, 'settings', dict)
 
+    def _load_legacy_settings_object(self, yaml_data):
+        data = self._pop_object(yaml_data, 'global', dict)
+        settings = {}
+        for name, value in data.items():
+            settings[name] = {'global': value}
+        return settings
+
     def _build_values(self, settings):
         """Build up self._values from the values in the given dict."""
-        # FIXME:conf test this
         for name, yaml_values in settings.items():
             values = configutils.Values(configdata.DATA[name])
             if 'global' in yaml_values:
@@ -200,9 +209,6 @@ class YamlConfig(QObject):
 
     def _handle_migrations(self, settings):
         """Migrate older configs to the newest format."""
-        # FIXME:conf handle per-URL settings
-        # FIXME:conf migrate from older format with global: key
-
         # Simple renamed/deleted options
         for name in list(settings):
             if name in configdata.MIGRATIONS.renamed:
