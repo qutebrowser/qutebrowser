@@ -23,6 +23,8 @@
 
 import attr
 
+from qutebrowser.utils import utils
+
 
 class _UnsetObject:
 
@@ -73,6 +75,10 @@ class Values:
     def __init__(self, opt):
         self.opt = opt
         self._values = []
+
+    def __repr__(self):
+        return utils.get_repr(self, opt=self.opt, values=self._values,
+                              constructor=True)
 
     def __str__(self):
         """Get the values as human-readable string."""
