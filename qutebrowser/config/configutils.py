@@ -114,8 +114,11 @@ class Values:
         self._values.append(scoped)
 
     def remove(self, pattern=None):
-        """Remove the value with the given pattern."""
-        # FIXME:conf Should this ignore patterns which weren't found?
+        """Remove the value with the given pattern.
+
+        If a matching pattern was removed, True is returned.
+        If no matching pattern was found, False is returned.
+        """
         old_len = len(self._values)
         self._values = [v for v in self._values if v.pattern != pattern]
         return old_len != len(self._values)
@@ -128,8 +131,6 @@ class Values:
         """Get the fallback global/default value."""
         for scoped in self._values:
             if scoped.pattern is None:
-                # It's possible that the setting is only customized from the
-                # default for a given URL.
                 return scoped.value
 
         if fallback:
