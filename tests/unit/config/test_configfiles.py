@@ -105,7 +105,13 @@ class TestYaml:
 
     @pytest.mark.parametrize('old_config', [
         None,
-        {'colors.hints.fg': {'global': 'magenta'}}
+        # Only global
+        {'colors.hints.fg': {'global': 'magenta'}},
+        # Global and for pattern
+        {'content.javascript.enabled':
+         {'global': True, 'https://example.com/': False}},
+        # Only for pattern
+        {'content.images': {'https://example.com/': False}},
     ])
     @pytest.mark.parametrize('insert', [True, False])
     def test_yaml_config(self, yaml, autoconfig, old_config, insert):
@@ -130,8 +136,16 @@ class TestYaml:
 
         print(lines)
 
-        if old_config is not None:
+        if old_config is None:
+            pass
+        elif 'colors.hints.fg' in old_config:
             assert data['colors.hints.fg'] == {'global': 'magenta'}
+        elif 'content.javascript.enabled' in old_config:
+            expected = {'global': True, 'https://example.com/': False}
+            assert data['content.javascript.enabled'] == expected
+        elif 'content.images' in old_config:
+            assert data['content.images'] == {'https://example.com/': False}
+
         if insert:
             assert data['tabs.show'] == {'global': 'never'}
 
