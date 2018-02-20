@@ -55,8 +55,8 @@ from qutebrowser.utils import urlmatch
     ("http:// /", "Pattern without host"),
 
     # Chromium: PARSE_ERROR_EMPTY_PATH
-    # FIXME: should we allow this or not?
-    # ("http://bar", "URLPattern::"),
+    # We deviate from Chromium and allow this for ease of use
+    # ("http://bar", "..."),
 
     # Chromium: PARSE_ERROR_INVALID_HOST
     ("http://\0www/", "May not contain NUL byte"),
@@ -94,7 +94,7 @@ def test_invalid_patterns(pattern, error):
     ("http://foo:1234/bar", 1234),
     ("http://*.foo:1234/", 1234),
     ("http://*.foo:1234/bar", 1234),
-    # FIXME Why is this valid in Chromium?
+    # https://bugs.chromium.org/p/chromium/issues/detail?id=812543
     # ("http://:1234/", 1234),
     ("http://foo:*/", None),
     ("file://foo:1234/bar", None),
