@@ -27,7 +27,7 @@ import pytest
 from PyQt5.QtCore import QSettings
 
 from qutebrowser.config import (config, configfiles, configexc, configdata,
-                                configtypes, configutils)
+                                configtypes)
 from qutebrowser.utils import utils, usertypes
 
 

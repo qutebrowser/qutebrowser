@@ -40,6 +40,7 @@ def opt():
                              default='default value', backends=None,
                              raw_backends=None, description=None)
 
+
 @pytest.fixture
 def pattern():
     return urlmatch.UrlPattern('*://www.example.com/')

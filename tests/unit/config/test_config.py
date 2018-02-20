@@ -26,8 +26,7 @@ import pytest
 from PyQt5.QtCore import QObject, QUrl
 from PyQt5.QtGui import QColor
 
-from qutebrowser.config import (config, configdata, configexc, configfiles,
-                                configutils)
+from qutebrowser.config import config, configdata, configexc, configutils
 from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.misc import objects
 
@@ -416,7 +415,6 @@ class TestConfig:
         name = 'content.javascript.enabled'
         conf.set_obj(name, False, pattern=pattern)
         assert conf.get(name, url=QUrl('https://example.com/')) is True
-
 
     @pytest.mark.parametrize('value', [{}, {'normal': {'a': 'nop'}}])
     def test_get_bindings(self, config_stub, conf, value):
