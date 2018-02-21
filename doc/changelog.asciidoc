@@ -67,6 +67,7 @@ Changed
   input modes (input/passthrough) per tab.
 - More performance improvements when opening/closing many tabs.
 - The `:version` page now has a button to pastebin the information.
+- Replacements like `{url}` can now be replaced as `{{url}}`.
 
 Fixed
 ~~~~~
