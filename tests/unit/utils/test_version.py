@@ -38,6 +38,7 @@ import pytest
 
 import qutebrowser
 from qutebrowser.utils import version, usertypes, utils
+from qutebrowser.misc import pastebin
 from qutebrowser.browser import pdfjs
 
 
@@ -950,3 +951,75 @@ def test_opengl_vendor():
     """Simply call version.opengl_vendor() and see if it doesn't crash."""
     pytest.importorskip("PyQt5.QtOpenGL")
     return version.opengl_vendor()
+
+
+@pytest.fixture
+def pbclient(stubs):
+    http_stub = stubs.HTTPPostStub()
+    client = pastebin.PastebinClient(http_stub)
+    return client
+
+
+def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
+    """Test version.pastebin_version() sets the url."""
+    monkeypatch.setattr('qutebrowser.utils.version.version',
+                        lambda: "dummy")
+    monkeypatch.setattr('qutebrowser.utils.utils.log_clipboard', True)
+
+    version.pastebin_version(pbclient)
+    pbclient.success.emit("test")
+
+    msg = message_mock.getmsg(usertypes.MessageLevel.info)
+    assert msg.text == "Version url test yanked to clipboard."
+    assert version.pastebin_url == "test"
+
+    version.pastebin_url = None
+
+
+def test_pastebin_version_twice(pbclient, monkeypatch):
+    """Test whether calling pastebin_version twice sends no data."""
+    monkeypatch.setattr('qutebrowser.utils.version.version',
+                        lambda: "dummy")
+
+    version.pastebin_version(pbclient)
+    pbclient.success.emit("test")
+
+    pbclient.url = None
+    pbclient.data = None
+    version.pastebin_url = "test2"
+
+    version.pastebin_version(pbclient)
+    assert pbclient.url is None
+    assert pbclient.data is None
+    assert version.pastebin_url == "test2"
+
+    version.pastebin_url = None
+
+
+def test_pastebin_version_error(pbclient, caplog, message_mock, monkeypatch):
+    """Test version.pastebin_version() with errors."""
+    monkeypatch.setattr('qutebrowser.utils.version.version',
+                        lambda: "dummy")
+
+    version.pastebin_url = None
+    with caplog.at_level(logging.ERROR):
+        version.pastebin_version(pbclient)
+        pbclient._client.error.emit("test")
+
+    assert version.pastebin_url is None
+
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    assert msg.text == "Failed to pastebin version info: test"
+
+
+def test_uptime(monkeypatch, qapp):
+    """Test _uptime runs and check if microseconds are dropped."""
+    launch_time = datetime.datetime(1, 1, 1, 1, 1, 1, 1)
+    monkeypatch.setattr(qapp, "launch_time", launch_time, raising=False)
+
+    class FakeDateTime(datetime.datetime):
+        now = lambda x=datetime.datetime(1, 1, 1, 1, 1, 1, 2): x
+    monkeypatch.setattr('datetime.datetime', FakeDateTime)
+
+    uptime_delta = version._uptime()
+    assert uptime_delta == datetime.timedelta(0)

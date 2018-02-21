@@ -453,7 +453,7 @@ def opengl_vendor():  # pragma: no cover
             old_context.makeCurrent(old_surface)
 
 
-def pastebin_version():
+def pastebin_version(pbclient=None):
     """Pastebin the version and log the url to messages."""
     def _yank_url(url):
         utils.set_clipboard(url)
@@ -478,8 +478,8 @@ def pastebin_version():
     http_client = httpclient.HTTPClient()
 
     misc_api = pastebin.PastebinClient.MISC_API_URL
-    pbclient = pastebin.PastebinClient(http_client, parent=app,
-                                       api_url=misc_api)
+    pbclient = pbclient or pastebin.PastebinClient(http_client, parent=app,
+                                                   api_url=misc_api)
 
     pbclient.success.connect(_on_paste_version_success)
     pbclient.error.connect(_on_paste_version_err)
