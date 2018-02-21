@@ -223,7 +223,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('setInitialCursor')
 
     @pyqtSlot(usertypes.KeyMode)
-    def _on_mode_left(self):
+    def _on_mode_left(self, mode):
+        if mode != usertypes.KeyMode.caret:
+            return
+
         self.drop_selection()
         self._js_call('disableCaret')
 

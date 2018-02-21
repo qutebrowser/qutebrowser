@@ -205,8 +205,8 @@ class WebKitCaret(browsertab.AbstractCaret):
                 self._widget.page().currentFrame().evaluateJavaScript(
                     utils.read_file('javascript/position_caret.js'))
 
-    @pyqtSlot()
-    def _on_mode_left(self):
+    @pyqtSlot(usertypes.KeyMode)
+    def _on_mode_left(self, _mode):
         settings = self._widget.settings()
         if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
             if self.selection_enabled and self._widget.hasSelection():
