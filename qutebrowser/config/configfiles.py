@@ -319,6 +319,7 @@ class ConfigAPI:
 
     @contextlib.contextmanager
     def _handle_error(self, action, name):
+        """Catch config-related exceptions and save them in self.errors."""
         try:
             yield
         except configexc.ConfigFileErrors as e:
@@ -337,24 +338,29 @@ class ConfigAPI:
         self._config.update_mutables()
 
     def load_autoconfig(self):
+        """Load the autoconfig.yml file which is used for :set/:bind/etc."""
         with self._handle_error('reading', 'autoconfig.yml'):
             read_autoconfig()
 
     def get(self, name, pattern=None):
+        """Get a setting value from the config, optionally with a pattern."""
         with self._handle_error('getting', name):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             return self._config.get_mutable_obj(name, pattern=urlpattern)
 
     def set(self, name, value, pattern=None):
+        """Set a setting value in the config, optionally with a pattern."""
         with self._handle_error('setting', name):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             self._config.set_obj(name, value, pattern=urlpattern)
 
     def bind(self, key, command, mode='normal'):
+        """Bind a key to a command, with an optional key mode."""
         with self._handle_error('binding', key):
             self._keyconfig.bind(key, command, mode=mode)
 
     def unbind(self, key, mode='normal'):
+        """Unbind a key from a command, with an optional key mode."""
         with self._handle_error('unbinding', key):
             self._keyconfig.unbind(key, mode=mode)
 
