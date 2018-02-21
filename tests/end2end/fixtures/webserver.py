@@ -23,7 +23,7 @@ import re
 import sys
 import json
 import os.path
-import http.client
+from http import HTTPStatus
 
 import attr
 import pytest
@@ -65,28 +65,28 @@ class Request(testprocess.Line):
         # WORKAROUND for https://github.com/PyCQA/pylint/issues/399 (?)
         # pylint: disable=no-member
         path_to_statuses = {
-            '/favicon.ico': [http.client.NOT_FOUND],
-            '/does-not-exist': [http.client.NOT_FOUND],
-            '/does-not-exist-2': [http.client.NOT_FOUND],
-            '/404': [http.client.NOT_FOUND],
+            '/favicon.ico': [HTTPStatus.NOT_FOUND],
+            '/does-not-exist': [HTTPStatus.NOT_FOUND],
+            '/does-not-exist-2': [HTTPStatus.NOT_FOUND],
+            '/404': [HTTPStatus.NOT_FOUND],
 
-            '/redirect-later': [http.client.FOUND],
-            '/redirect-self': [http.client.FOUND],
-            '/redirect-to': [http.client.FOUND],
-            '/relative-redirect': [http.client.FOUND],
-            '/absolute-redirect': [http.client.FOUND],
+            '/redirect-later': [HTTPStatus.FOUND],
+            '/redirect-self': [HTTPStatus.FOUND],
+            '/redirect-to': [HTTPStatus.FOUND],
+            '/relative-redirect': [HTTPStatus.FOUND],
+            '/absolute-redirect': [HTTPStatus.FOUND],
 
-            '/cookies/set': [http.client.FOUND],
+            '/cookies/set': [HTTPStatus.FOUND],
 
-            '/500-inline': [http.client.INTERNAL_SERVER_ERROR],
+            '/500-inline': [HTTPStatus.INTERNAL_SERVER_ERROR],
         }
         for i in range(15):
-            path_to_statuses['/redirect/{}'.format(i)] = [http.client.FOUND]
+            path_to_statuses['/redirect/{}'.format(i)] = [HTTPStatus.FOUND]
         for suffix in ['', '1', '2', '3', '4', '5', '6']:
             key = '/basic-auth/user{}/password{}'.format(suffix, suffix)
-            path_to_statuses[key] = [http.client.UNAUTHORIZED, http.client.OK]
+            path_to_statuses[key] = [HTTPStatus.UNAUTHORIZED, HTTPStatus.OK]
 
-        default_statuses = [http.client.OK, http.client.NOT_MODIFIED]
+        default_statuses = [HTTPStatus.OK, HTTPStatus.NOT_MODIFIED]
         # pylint: enable=no-member
 
         sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
