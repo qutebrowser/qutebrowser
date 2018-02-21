@@ -957,7 +957,8 @@ def test_opengl_vendor():
 def pbclient(stubs):
     http_stub = stubs.HTTPPostStub()
     client = pastebin.PastebinClient(http_stub)
-    return client
+    yield client
+    version.pastebin_url = None
 
 
 def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
@@ -972,8 +973,6 @@ def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
     msg = message_mock.getmsg(usertypes.MessageLevel.info)
     assert msg.text == "Version url test yanked to clipboard."
     assert version.pastebin_url == "test"
-
-    version.pastebin_url = None
 
 
 def test_pastebin_version_twice(pbclient, monkeypatch):
@@ -992,8 +991,6 @@ def test_pastebin_version_twice(pbclient, monkeypatch):
     assert pbclient.url is None
     assert pbclient.data is None
     assert version.pastebin_url == "test2"
-
-    version.pastebin_url = None
 
 
 def test_pastebin_version_error(pbclient, caplog, message_mock, monkeypatch):
