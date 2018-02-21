@@ -181,6 +181,7 @@ class CommandParser:
             A ParseResult tuple.
         """
         cmdstr, sep, argstr = text.partition(' ')
+        cmdstr = cmdstr and cmdstr.strip().lstrip(':').strip()
 
         if not cmdstr and not fallback:
             raise cmdexc.NoSuchCommandError("No command given")
