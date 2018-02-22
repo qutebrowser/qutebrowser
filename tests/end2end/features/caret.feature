@@ -320,3 +320,25 @@ Feature: Caret mode
         And the following tabs should be open:
             - data/caret.html
             - data/hello.txt (active)
+
+    # Search + caret mode
+
+    Scenario: yanking a searched line
+        When I run :leave-mode
+        And I run :search fiv
+        And I wait for "search found fiv" in the log
+        And I run :enter-mode caret
+        And I run :move-to-end-of-line
+        And I run :yank selection
+        Then the clipboard should contain "five six"
+
+    Scenario: yanking a searched line with multiple matches
+        When I run :leave-mode
+        And I run :search w
+        And I wait for "search found w" in the log
+        And I run :search-next
+        And I wait for "next_result found w" in the log
+        And I run :enter-mode caret
+        And I run :move-to-end-of-line
+        And I run :yank selection
+        Then the clipboard should contain "wei drei"
