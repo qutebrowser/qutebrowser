@@ -323,6 +323,8 @@ Feature: Caret mode
 
     # Search + caret mode
 
+    # https://bugreports.qt.io/browse/QTBUG-60673
+    @qt!=5.8.0 @qt!=5.9.0 @qt!=5.9.1 @qt!=5.9.2 @qt!=5.9.3 @qt!=5.9.4
     Scenario: yanking a searched line
         When I run :leave-mode
         And I run :search fiv
@@ -332,6 +334,7 @@ Feature: Caret mode
         And I run :yank selection
         Then the clipboard should contain "five six"
 
+    @qt!=5.8.0 @qt!=5.9.0 @qt!=5.9.1 @qt!=5.9.2 @qt!=5.9.3 @qt!=5.9.4
     Scenario: yanking a searched line with multiple matches
         When I run :leave-mode
         And I run :search w
