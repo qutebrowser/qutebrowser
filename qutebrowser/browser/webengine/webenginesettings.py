@@ -199,9 +199,10 @@ def _update_stylesheet():
 
 def _init_focustools(profile):
     """Initialize focus tools."""
-    old_script = profile.scripts().findScript('_qute_focustools')
+    scripts = profile.scripts()
+    old_script = scripts.findScript('_qute_focustools')
     if not old_script.isNull():
-        profile.scripts().remove(old_script)
+        scripts.remove(old_script)
 
     if config.val.input.blur_on_load.enabled:
         source = '\n'.join([
@@ -219,7 +220,7 @@ def _init_focustools(profile):
         script.setWorldId(QWebEngineScript.ApplicationWorld)
         script.setRunsOnSubFrames(True)
         script.setSourceCode(source)
-        profile.scripts().insert(script)
+        scripts.insert(script)
 
 
 def _set_http_headers(profile):

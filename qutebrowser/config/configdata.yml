@@ -1012,7 +1012,6 @@ input.spatial_navigation:
     Right key, heuristics determine whether there is an element he might be
     trying to reach towards the right and which element he probably wants.
 
-# TODO set to false before merging!
 input.blur_on_load.enabled:
   default: true
   type: Bool
@@ -1031,7 +1030,6 @@ input.blur_on_load.delay:
 
     Only useful if input.blur_on_load.enabled is true.
 
-# TODO set to false before merging!
 input.blur_on_mode_leave:
   default: true
   type: Bool

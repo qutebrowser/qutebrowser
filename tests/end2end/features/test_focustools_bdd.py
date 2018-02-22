@@ -26,19 +26,19 @@ bdd.scenarios('focustools.feature')
 
 @bdd.then(bdd.parsers.parse("no element should be focused"))
 def check_not_focused(quteproc):
-    """Make sure the completion model was set to something."""
-    quteproc.send_cmd(':jseval document.activeElement == document.body',
-                      escape=False)
-    message = quteproc.wait_for(loglevel=logging.INFO, category='message',
-                                message='*')
-    assert message.message == "True"
+    """Make sure no element is currently focused."""
+    quteproc.send_cmd(
+        ':jseval if (document.activeElement == document.body)'
+        '            console.log("no focused element found");',
+        escape=False)
+    quteproc.wait_for_js('no focused element found')
 
 
 @bdd.then(bdd.parsers.parse("an element should be focused"))
 def check_focused(quteproc):
-    """Make sure the completion model was set to something."""
-    quteproc.send_cmd(':jseval document.activeElement == document.body',
-                      escape=False)
-    message = quteproc.wait_for(loglevel=logging.INFO, category='message',
-                                message='*')
-    assert message.message == "False"
+    """Make sure an element is currently focused."""
+    quteproc.send_cmd(
+        ':jseval if (document.activeElement != document.body)'
+        '            console.log("focused element found");',
+        escape=False)
+    quteproc.wait_for_js('focused element found')

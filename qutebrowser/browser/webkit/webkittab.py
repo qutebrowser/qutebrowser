@@ -33,6 +33,7 @@ from PyQt5.QtPrintSupport import QPrinter
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
+from qutebrowser.config import config
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
 
 
@@ -734,6 +735,32 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_contents_size_changed(self, size):
         self.contents_size_changed.emit(QSizeF(size))
 
+    @pyqtSlot()
+    def handle_clear_focus(self):
+        """Handle clearing focus when the page is first loaded."""
+        if not config.val.input.blur_on_load.enabled:
+            return
+        code = """
+            window.addEventListener("DOMContentLoaded", () => {{
+                if (document.activeElement)
+                    document.activeElement.blur()
+                }});
+        """
+        self.mainFrame().evaluateJavaScript(code)
+
+        if config.val.input.blur_on_load.delay < 0:
+            return
+
+        code = """
+            window.addEventListener("load", () => setTimeout(
+                () => {{
+                    if (document.activeElement)
+                        document.activeElement.blur()}},
+                {}));
+            """.format(config.val.input.blur_on_load.delay)
+        self.mainFrame().evaluateJavaScript(code)
+
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -752,6 +779,8 @@ class WebKitTab(browsertab.AbstractTab):
         page.frameCreated.connect(self._on_frame_created)
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
+
+        frame.javaScriptWindowObjectCleared.connect(self.handle_clear_focus)
 
     def event_target(self):
         return self._widget
