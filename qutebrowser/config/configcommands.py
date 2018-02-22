@@ -62,7 +62,11 @@ class ConfigCommands:
         """Print the value of the given option."""
         with self._handle_config_error():
             value = self._config.get_str(option, pattern=pattern)
-        message.info("{} = {}".format(option, value))
+
+        text = "{} = {}".format(option, value)
+        if pattern is not None:
+            text += " for {}".format(pattern)
+        message.info(text)
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.option)
