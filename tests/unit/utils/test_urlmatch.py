@@ -53,6 +53,7 @@ from qutebrowser.utils import urlmatch
     ("http://", "Pattern without host"),
     ("http:///", "Pattern without host"),
     ("http:// /", "Pattern without host"),
+    ("http://:1234/", "Pattern without host"),
 
     # Chromium: PARSE_ERROR_EMPTY_PATH
     # We deviate from Chromium and allow this for ease of use
@@ -94,8 +95,8 @@ def test_invalid_patterns(pattern, error):
     ("http://foo:1234/bar", 1234),
     ("http://*.foo:1234/", 1234),
     ("http://*.foo:1234/bar", 1234),
-    # https://bugs.chromium.org/p/chromium/issues/detail?id=812543
-    # ("http://:1234/", 1234),
+    ("http://*:1234/", 1234),
+    ("http://*:*/", None),
     ("http://foo:*/", None),
     ("file://foo:1234/bar", None),
 
@@ -253,7 +254,7 @@ class TestMatchChromeUrls:
 
 class TestMatchAnything:
 
-    @pytest.fixture(params=['*://*/*', '<all_urls>'])
+    @pytest.fixture(params=['*://*/*', '*://*:*/*', '<all_urls>'])
     def up(self, request):
         return urlmatch.UrlPattern(request.param)
 
