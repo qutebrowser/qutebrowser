@@ -48,6 +48,7 @@ def root():
 
 
 @app.route('/data/<path:path>')
+@app.route('/data2/<path:path>')  # for per-URL settings
 def send_data(path):
     """Send a given data file to qutebrowser.
 
