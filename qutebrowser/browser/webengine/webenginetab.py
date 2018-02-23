@@ -183,6 +183,11 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
+        # When duplicate searching, don't search again (webkit behavior)
+        if self.text == text and self.search_displayed:
+            log.webview.debug("Ignoring duplicate search request")
+            return
+
         self.text = text
         self._flags = QWebEnginePage.FindFlags(0)
         if self._is_case_sensitive(ignore_case):
