@@ -47,6 +47,10 @@ class AbstractSettings:
         """
         raise NotImplementedError
 
+    def test_attribute(self, name):
+        """Get the value for the given attribute."""
+        return self._settings.testAttribute(self._ATTRIBUTES[name])
+
     def set_font_size(self, name, value):
         """Set the given QWebSettings/QWebEngineSettings font size."""
         assert value is not configutils.UNSET

@@ -730,6 +730,15 @@ class WebEngineTab(browsertab.AbstractTab):
         self.send_event(press_evt)
         self.send_event(release_evt)
 
+    def _show_error_page(self, url, error):
+        """Show an error page in the tab."""
+        url_string = url.toDisplayString()
+        error_page = jinja.render(
+            'error.html',
+            title="Error loading page: {}".format(url_string),
+            url=url_string, error=error)
+        self.set_html(error_page)
+
     @pyqtSlot()
     def _on_history_trigger(self):
         try:
@@ -778,13 +787,7 @@ class WebEngineTab(browsertab.AbstractTab):
                 sip.assign(authenticator, QAuthenticator())
                 # pylint: enable=no-member, useless-suppression
             except AttributeError:
-                url_string = url.toDisplayString()
-                error_page = jinja.render(
-                    'error.html',
-                    title="Error loading page: {}".format(url_string),
-                    url=url_string, error="Proxy authentication required",
-                    icon='')
-                self.set_html(error_page)
+                self._show_error_page(url, "Proxy authentication required")
 
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
@@ -804,12 +807,7 @@ class WebEngineTab(browsertab.AbstractTab):
             except AttributeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html
-                url_string = url.toDisplayString()
-                error_page = jinja.render(
-                    'error.html',
-                    title="Error loading page: {}".format(url_string),
-                    url=url_string, error="Authentication required")
-                self.set_html(error_page)
+                self._show_error_page(url, "Authentication required")
 
     @pyqtSlot('QWebEngineFullScreenRequest')
     def _on_fullscreen_requested(self, request):
@@ -873,6 +871,9 @@ class WebEngineTab(browsertab.AbstractTab):
         """
         if not ok:
             self._load_finished_fake.emit(False)
+            if not self.settings.test_attribute('content.javascript.enabled'):
+                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
+                self._show_error_page(self.url(), error="")
 
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
