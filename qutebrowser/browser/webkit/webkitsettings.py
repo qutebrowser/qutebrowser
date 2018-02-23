@@ -121,13 +121,6 @@ class WebKitSettings(websettings.AbstractSettings):
         QWebSettings.FantasyFont: QFont.Fantasy,
     }
 
-    def set_attribute(self, name, value):
-        for attribute in self._ATTRIBUTES[name]:
-            if value is configutils.UNSET:
-                self._settings.resetAttribute(attribute)
-            else:
-                self._settings.setAttribute(attribute, value)
-
 
 def _set_user_stylesheet(settings):
     """Set the generated user-stylesheet."""

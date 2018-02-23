@@ -76,35 +76,35 @@ class WebEngineSettings(websettings.AbstractSettings):
 
     _ATTRIBUTES = {
         'content.xss_auditing':
-            QWebEngineSettings.XSSAuditingEnabled,
+            [QWebEngineSettings.XSSAuditingEnabled],
         'content.images':
-            QWebEngineSettings.AutoLoadImages,
+            [QWebEngineSettings.AutoLoadImages],
         'content.javascript.enabled':
-            QWebEngineSettings.JavascriptEnabled,
+            [QWebEngineSettings.JavascriptEnabled],
         'content.javascript.can_open_tabs_automatically':
-            QWebEngineSettings.JavascriptCanOpenWindows,
+            [QWebEngineSettings.JavascriptCanOpenWindows],
         'content.javascript.can_access_clipboard':
-            QWebEngineSettings.JavascriptCanAccessClipboard,
+            [QWebEngineSettings.JavascriptCanAccessClipboard],
         'content.plugins':
-            QWebEngineSettings.PluginsEnabled,
+            [QWebEngineSettings.PluginsEnabled],
         'content.hyperlink_auditing':
-            QWebEngineSettings.HyperlinkAuditingEnabled,
+            [QWebEngineSettings.HyperlinkAuditingEnabled],
         'content.local_content_can_access_remote_urls':
-            QWebEngineSettings.LocalContentCanAccessRemoteUrls,
+            [QWebEngineSettings.LocalContentCanAccessRemoteUrls],
         'content.local_content_can_access_file_urls':
-            QWebEngineSettings.LocalContentCanAccessFileUrls,
+            [QWebEngineSettings.LocalContentCanAccessFileUrls],
         'content.webgl':
-            QWebEngineSettings.WebGLEnabled,
+            [QWebEngineSettings.WebGLEnabled],
         'content.local_storage':
-            QWebEngineSettings.LocalStorageEnabled,
+            [QWebEngineSettings.LocalStorageEnabled],
 
         'input.spatial_navigation':
-            QWebEngineSettings.SpatialNavigationEnabled,
+            [QWebEngineSettings.SpatialNavigationEnabled],
         'input.links_included_in_focus_chain':
-            QWebEngineSettings.LinksIncludedInFocusChain,
+            [QWebEngineSettings.LinksIncludedInFocusChain],
 
         'scrolling.smooth':
-            QWebEngineSettings.ScrollAnimatorEnabled,
+            [QWebEngineSettings.ScrollAnimatorEnabled],
 
         # Missing QtWebEngine attributes:
         # - ScreenCaptureEnabled
@@ -162,14 +162,7 @@ class WebEngineSettings(websettings.AbstractSettings):
             except AttributeError:
                 continue
 
-            self._ATTRIBUTES[name] = value
-
-    def set_attribute(self, name, value):
-        attribute = self._ATTRIBUTES[name]
-        if value is configutils.UNSET:
-            self._settings.resetAttribute(attribute)
-        else:
-            self._settings.setAttribute(attribute, value)
+            self._ATTRIBUTES[name] = [value]
 
 
 def _init_stylesheet(profile):

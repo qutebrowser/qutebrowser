@@ -45,7 +45,11 @@ class AbstractSettings:
 
         If the value is configutils.UNSET, the value is reset instead.
         """
-        raise NotImplementedError
+        for attribute in self._ATTRIBUTES[name]:
+            if value is configutils.UNSET:
+                self._settings.resetAttribute(attribute)
+            else:
+                self._settings.setAttribute(attribute, value)
 
     def test_attribute(self, name):
         """Get the value for the given attribute."""
