@@ -185,7 +185,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
                result_cb=None):
         # When duplicate searching, don't search again (webkit behavior)
         if self.text == text and self.search_displayed:
-            log.webview.debug("Ignoring duplicate search request")
+            log.webview.debug("Ignoring duplicate search request"
+                              " for {}".format(text))
             return
 
         self.text = text
