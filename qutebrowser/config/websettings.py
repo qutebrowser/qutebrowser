@@ -44,54 +44,91 @@ class AbstractSettings:
         """Set the given QWebSettings/QWebEngineSettings attribute.
 
         If the value is configutils.UNSET, the value is reset instead.
+
+        Return:
+            True if there was a change, False otherwise.
         """
+        old_value = self.test_attribute(name)
+
         for attribute in self._ATTRIBUTES[name]:
             if value is configutils.UNSET:
                 self._settings.resetAttribute(attribute)
+                new_value = self.test_attribute(name)
             else:
                 self._settings.setAttribute(attribute, value)
+                new_value = value
+
+        return old_value != new_value
 
     def test_attribute(self, name):
-        """Get the value for the given attribute."""
-        return self._settings.testAttribute(self._ATTRIBUTES[name])
+        """Get the value for the given attribute.
+
+        If the setting resolves to a list of attributes, only the first
+        attribute is tested.
+        """
+        return self._settings.testAttribute(self._ATTRIBUTES[name][0])
 
     def set_font_size(self, name, value):
-        """Set the given QWebSettings/QWebEngineSettings font size."""
+        """Set the given QWebSettings/QWebEngineSettings font size.
+
+        Return:
+            True if there was a change, False otherwise.
+        """
         assert value is not configutils.UNSET
-        self._settings.setFontSize(self._FONT_SIZES[name], value)
+        family = self._FONT_SIZES[name]
+        old_value = self._settings.fontSize(family)
+        self._settings.setFontSize(family, value)
+        return old_value != value
 
     def set_font_family(self, name, value):
         """Set the given QWebSettings/QWebEngineSettings font family.
 
         With None (the default), QFont is used to get the default font for the
         family.
+
+        Return:
+            True if there was a change, False otherwise.
         """
         assert value is not configutils.UNSET
+        family = self._FONT_FAMILIES[name]
         if value is None:
             font = QFont()
-            font.setStyleHint(self._FONT_TO_QFONT[self._FONT_FAMILIES[name]])
+            font.setStyleHint(self._FONT_TO_QFONT[family])
             value = font.defaultFamily()
 
-        self._settings.setFontFamily(self._FONT_FAMILIES[name], value)
+        old_value = self._settings.fontFamily(family)
+        self._settings.setFontFamily(family, value)
+
+        return value != old_value
 
     def set_default_text_encoding(self, encoding):
-        """Set the default text encoding to use."""
+        """Set the default text encoding to use.
+
+        Return:
+            True if there was a change, False otherwise.
+        """
         assert encoding is not configutils.UNSET
+        old_value = self._settings.defaultTextEncoding()
         self._settings.setDefaultTextEncoding(encoding)
+        return old_value != encoding
 
     def _update_setting(self, setting, value):
         """Update the given setting/value.
 
         Unknown settings are ignored.
+
+        Return:
+            True if there was a change, False otherwise.
         """
         if setting in self._ATTRIBUTES:
-            self.set_attribute(setting, value)
+            return self.set_attribute(setting, value)
         elif setting in self._FONT_SIZES:
-            self.set_font_size(setting, value)
+            return self.set_font_size(setting, value)
         elif setting in self._FONT_FAMILIES:
-            self.set_font_family(setting, value)
+            return self.set_font_family(setting, value)
         elif setting == 'content.default_encoding':
-            self.set_default_text_encoding(value)
+            return self.set_default_text_encoding(value)
+        return False
 
     def update_setting(self, setting):
         """Update the given setting."""
@@ -99,16 +136,25 @@ class AbstractSettings:
         self._update_setting(setting, value)
 
     def update_for_url(self, url):
-        """Update settings customized for the given tab."""
+        """Update settings customized for the given tab.
+
+        Return:
+            A list of settings which actually changed.
+        """
+        changed_settings = []
         for values in config.instance:
             if not values.opt.supports_pattern:
                 continue
 
             value = values.get_for_url(url, fallback=False)
-            log.config.debug("Updating for {}: {} = {}".format(
-                url.toDisplayString(), values.opt.name, value))
 
-            self._update_setting(values.opt.name, value)
+            changed = self._update_setting(values.opt.name, value)
+            if changed:
+                log.config.debug("Changed for {}: {} = {}".format(
+                    url.toDisplayString(), values.opt.name, value))
+                changed_settings.append(values.opt.name)
+
+        return changed_settings
 
     def init_settings(self):
         """Set all supported settings correctly."""

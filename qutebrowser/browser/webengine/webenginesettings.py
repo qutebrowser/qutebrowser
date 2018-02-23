@@ -47,7 +47,10 @@ global_settings = None
 
 class _SettingsWrapper:
 
-    """Expose a QWebEngineSettings interface which acts on all profiles."""
+    """Expose a QWebEngineSettings interface which acts on all profiles.
+
+    For read operations, the default profile value is always used.
+    """
 
     def __init__(self):
         self._settings = [default_profile.settings(),
@@ -68,6 +71,18 @@ class _SettingsWrapper:
     def setDefaultTextEncoding(self, *args, **kwargs):
         for settings in self._settings:
             settings.setDefaultTextEncoding(*args, **kwargs)
+
+    def testAttribute(self, *args, **kwargs):
+        return self._settings[0].testAttribute(*args, **kwargs)
+
+    def fontSize(self, *args, **kwargs):
+        return self._settings[0].fontSize(*args, **kwargs)
+
+    def fontFamily(self, *args, **kwargs):
+        return self._settings[0].fontFamily(*args, **kwargs)
+
+    def defaultTextEncoding(self, *args, **kwargs):
+        return self._settings[0].defaultTextEncoding(*args, **kwargs)
 
 
 class WebEngineSettings(websettings.AbstractSettings):
