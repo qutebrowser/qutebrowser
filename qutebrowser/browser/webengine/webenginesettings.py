@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# We get various "abstract but not overridden" warnings
-# pylint: disable=abstract-method
-
 """Bridge from QWebEngineSettings to our own settings.
 
 Module attributes:
@@ -36,7 +33,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import spell
-from qutebrowser.config import config, websettings
+from qutebrowser.config import config, websettings, configutils
 from qutebrowser.utils import (utils, standarddir, javascript, qtutils,
                                message, log, objreg)
 
@@ -44,116 +41,135 @@ from qutebrowser.utils import (utils, standarddir, javascript, qtutils,
 default_profile = None
 # The QWebEngineProfile used for private (off-the-record) windows
 private_profile = None
+# The global WebEngineSettings object
+global_settings = None
 
 
-class Base(websettings.Base):
+class _SettingsWrapper:
 
-    """Base settings class with appropriate _get_global_settings."""
+    """Expose a QWebEngineSettings interface which acts on all profiles."""
 
-    def _get_global_settings(self):
-        return [default_profile.settings(), private_profile.settings()]
+    def __init__(self):
+        self._settings = [default_profile.settings(),
+                          private_profile.settings()]
+
+    def setAttribute(self, *args, **kwargs):
+        for settings in self._settings:
+            settings.setAttribute(*args, **kwargs)
+
+    def setFontFamily(self, *args, **kwargs):
+        for settings in self._settings:
+            settings.setFontFamily(*args, **kwargs)
+
+    def setFontSize(self, *args, **kwargs):
+        for settings in self._settings:
+            settings.setFontSize(*args, **kwargs)
+
+    def setDefaultTextEncoding(self, *args, **kwargs):
+        for settings in self._settings:
+            settings.setDefaultTextEncoding(*args, **kwargs)
 
 
-class Attribute(Base, websettings.Attribute):
+class WebEngineSettings(websettings.AbstractSettings):
 
-    """A setting set via QWebEngineSettings::setAttribute."""
+    """A wrapper for the config for QWebEngineSettings."""
 
-    ENUM_BASE = QWebEngineSettings
+    _ATTRIBUTES = {
+        'content.xss_auditing':
+            QWebEngineSettings.XSSAuditingEnabled,
+        'content.images':
+            QWebEngineSettings.AutoLoadImages,
+        'content.javascript.enabled':
+            QWebEngineSettings.JavascriptEnabled,
+        'content.javascript.can_open_tabs_automatically':
+            QWebEngineSettings.JavascriptCanOpenWindows,
+        'content.javascript.can_access_clipboard':
+            QWebEngineSettings.JavascriptCanAccessClipboard,
+        'content.plugins':
+            QWebEngineSettings.PluginsEnabled,
+        'content.hyperlink_auditing':
+            QWebEngineSettings.HyperlinkAuditingEnabled,
+        'content.local_content_can_access_remote_urls':
+            QWebEngineSettings.LocalContentCanAccessRemoteUrls,
+        'content.local_content_can_access_file_urls':
+            QWebEngineSettings.LocalContentCanAccessFileUrls,
+        'content.webgl':
+            QWebEngineSettings.WebGLEnabled,
+        'content.local_storage':
+            QWebEngineSettings.LocalStorageEnabled,
 
+        'input.spatial_navigation':
+            QWebEngineSettings.SpatialNavigationEnabled,
+        'input.links_included_in_focus_chain':
+            QWebEngineSettings.LinksIncludedInFocusChain,
 
-class Setter(Base, websettings.Setter):
+        'scrolling.smooth':
+            QWebEngineSettings.ScrollAnimatorEnabled,
 
-    """A setting set via a QWebEngineSettings setter method."""
+        # Missing QtWebEngine attributes:
+        # - ScreenCaptureEnabled
+        # - Accelerated2dCanvasEnabled
+        # - AutoLoadIconsForPage
+        # - TouchIconsEnabled
+        # - FocusOnNavigationEnabled (5.8)
+        # - AllowRunningInsecureContent (5.8)
+    }
 
-    pass
+    _FONT_SIZES = {
+        'fonts.web.size.minimum':
+            QWebEngineSettings.MinimumFontSize,
+        'fonts.web.size.minimum_logical':
+            QWebEngineSettings.MinimumLogicalFontSize,
+        'fonts.web.size.default':
+            QWebEngineSettings.DefaultFontSize,
+        'fonts.web.size.default_fixed':
+            QWebEngineSettings.DefaultFixedFontSize,
+    }
 
+    _FONT_FAMILIES = {
+        'fonts.web.family.standard': QWebEngineSettings.StandardFont,
+        'fonts.web.family.fixed': QWebEngineSettings.FixedFont,
+        'fonts.web.family.serif': QWebEngineSettings.SerifFont,
+        'fonts.web.family.sans_serif': QWebEngineSettings.SansSerifFont,
+        'fonts.web.family.cursive': QWebEngineSettings.CursiveFont,
+        'fonts.web.family.fantasy': QWebEngineSettings.FantasyFont,
 
-class FontFamilySetter(Base, websettings.FontFamilySetter):
+        # Missing QtWebEngine fonts:
+        # - PictographFont
+    }
 
-    """A setter for a font family.
+    # Mapping from WebEngineSettings::initDefaults in
+    # qtwebengine/src/core/web_engine_settings.cpp
+    _FONT_TO_QFONT = {
+        QWebEngineSettings.StandardFont: QFont.Serif,
+        QWebEngineSettings.FixedFont: QFont.Monospace,
+        QWebEngineSettings.SerifFont: QFont.Serif,
+        QWebEngineSettings.SansSerifFont: QFont.SansSerif,
+        QWebEngineSettings.CursiveFont: QFont.Cursive,
+        QWebEngineSettings.FantasyFont: QFont.Fantasy,
+    }
 
-    Gets the default value from QFont.
-    """
-
-    def __init__(self, font):
-        # Mapping from WebEngineSettings::initDefaults in
-        # qtwebengine/src/core/web_engine_settings.cpp
-        font_to_qfont = {
-            QWebEngineSettings.StandardFont: QFont.Serif,
-            QWebEngineSettings.FixedFont: QFont.Monospace,
-            QWebEngineSettings.SerifFont: QFont.Serif,
-            QWebEngineSettings.SansSerifFont: QFont.SansSerif,
-            QWebEngineSettings.CursiveFont: QFont.Cursive,
-            QWebEngineSettings.FantasyFont: QFont.Fantasy,
+    def __init__(self, settings):
+        super().__init__(settings)
+        # Attributes which don't exist in all Qt versions.
+        new_attributes = {
+            # Qt 5.8
+            'content.print_element_backgrounds': 'PrintElementBackgrounds',
         }
-        super().__init__(setter=QWebEngineSettings.setFontFamily, font=font,
-                         qfont=font_to_qfont[font])
+        for name, attribute in new_attributes.items():
+            try:
+                value = getattr(QWebEngineSettings, attribute)
+            except AttributeError:
+                continue
 
+            self._ATTRIBUTES[name] = value
 
-class DefaultProfileSetter(websettings.Base):
-
-    """A setting set on the QWebEngineProfile."""
-
-    def __init__(self, setter, converter=None, default=websettings.UNSET):
-        super().__init__(default)
-        self._setter = setter
-        self._converter = converter
-
-    def __repr__(self):
-        return utils.get_repr(self, setter=self._setter, constructor=True)
-
-    def _set(self, value, settings=None):
-        if settings is not None:
-            raise ValueError("'settings' may not be set with "
-                             "DefaultProfileSetters!")
-
-        setter = getattr(default_profile, self._setter)
-        if self._converter is not None:
-            value = self._converter(value)
-
-        setter(value)
-
-
-class PersistentCookiePolicy(DefaultProfileSetter):
-
-    """The content.cookies.store setting is different from other settings."""
-
-    def __init__(self):
-        super().__init__('setPersistentCookiesPolicy')
-
-    def _set(self, value, settings=None):
-        if settings is not None:
-            raise ValueError("'settings' may not be set with "
-                             "PersistentCookiePolicy!")
-        setter = getattr(QWebEngineProfile.defaultProfile(), self._setter)
-        setter(
-            QWebEngineProfile.AllowPersistentCookies if value else
-            QWebEngineProfile.NoPersistentCookies
-        )
-
-
-class DictionaryLanguageSetter(DefaultProfileSetter):
-
-    """Sets paths to dictionary files based on language codes."""
-
-    def __init__(self):
-        super().__init__('setSpellCheckLanguages', default=[])
-
-    def _find_installed(self, code):
-        local_filename = spell.local_filename(code)
-        if not local_filename:
-            message.warning(
-                "Language {} is not installed - see scripts/dictcli.py "
-                "in qutebrowser's sources".format(code))
-        return local_filename
-
-    def _set(self, value, settings=None):
-        if settings is not None:
-            raise ValueError("'settings' may not be set with "
-                             "DictionaryLanguageSetter!")
-        filenames = [self._find_installed(code) for code in value]
-        log.config.debug("Found dicts: {}".format(filenames))
-        super()._set([f for f in filenames if f], settings)
+    def set_attribute(self, name, value):
+        attribute = self._ATTRIBUTES[name]
+        if value is configutils.UNSET:
+            self._settings.resetAttribute(attribute)
+        else:
+            self._settings.setAttribute(attribute, value)
 
 
 def _init_stylesheet(profile):
@@ -210,9 +226,47 @@ def _set_http_headers(profile):
         profile.setHttpAcceptLanguage(accept_language)
 
 
+def _set_http_cache_size(profile):
+    """Initialize the HTTP cache size for the given profile."""
+    size = config.val.content.cache.size
+    if size is None:
+        size = 0
+    else:
+        size = qtutils.check_overflow(size, 'int', fatal=False)
+
+    # 0: automatically managed by QtWebEngine
+    profile.setHttpCacheMaximumSize(size)
+
+
+def _set_persistent_cookie_policy(profile):
+    """Set the HTTP Cookie size for the given profile."""
+    if config.val.content.cookies.store:
+        value = QWebEngineProfile.AllowPersistentCookies
+    else:
+        value = QWebEngineProfile.NoPersistentCookies
+    profile.setPersistentCookiesPolicy(value)
+
+
+def _set_dictionary_language(profile):
+    filenames = []
+    for code in config.val.spellcheck.languages or []:
+        local_filename = spell.local_filename(code)
+        if not local_filename:
+            message.warning(
+                "Language {} is not installed - see scripts/dictcli.py "
+                "in qutebrowser's sources".format(code))
+            continue
+
+        filenames.append(local_filename)
+
+    log.config.debug("Found dicts: {}".format(filenames))
+    profile.setSpellCheckLanguages(filenames)
+
+
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
-    websettings.update_mappings(MAPPINGS, option)
+    global_settings.update_setting(option)
+
     if option in ['scrolling.bar', 'content.user_stylesheets']:
         _init_stylesheet(default_profile)
         _init_stylesheet(private_profile)
@@ -221,27 +275,46 @@ def _update_settings(option):
                     'content.headers.accept_language']:
         _set_http_headers(default_profile)
         _set_http_headers(private_profile)
+    elif option == 'content.cache.size':
+        _set_http_cache_size(default_profile)
+        _set_http_cache_size(private_profile)
+    elif (option == 'content.cookies.store' and
+          # https://bugreports.qt.io/browse/QTBUG-58650
+          qtutils.version_check('5.9', compiled=False)):
+        _set_persistent_cookie_policy(default_profile)
+        # We're not touching the private profile's cookie policy.
+    elif option == 'spellcheck.languages' and qtutils.version_check('5.8'):
+        _set_dictionary_language(default_profile)
+        _set_dictionary_language(private_profile)
+
+
+def _init_profile(profile):
+    """Init the given profile."""
+    _init_stylesheet(profile)
+    _set_http_headers(profile)
+    _set_http_cache_size(profile)
+    profile.settings().setAttribute(
+        QWebEngineSettings.FullScreenSupportEnabled, True)
+    if qtutils.version_check('5.8'):
+        profile.setSpellCheckEnabled(True)
+        _set_dictionary_language(profile)
 
 
 def _init_profiles():
     """Init the two used QWebEngineProfiles."""
     global default_profile, private_profile
+
     default_profile = QWebEngineProfile.defaultProfile()
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
     default_profile.setPersistentStoragePath(
         os.path.join(standarddir.data(), 'webengine'))
-    _init_stylesheet(default_profile)
-    _set_http_headers(default_profile)
+    _init_profile(default_profile)
+    _set_persistent_cookie_policy(default_profile)
 
     private_profile = QWebEngineProfile()
     assert private_profile.isOffTheRecord()
-    _init_stylesheet(private_profile)
-    _set_http_headers(private_profile)
-
-    if qtutils.version_check('5.8'):
-        default_profile.setSpellCheckEnabled(True)
-        private_profile.setSpellCheckEnabled(True)
+    _init_profile(private_profile)
 
 
 def inject_userscripts():
@@ -287,115 +360,13 @@ def init(args):
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
 
     _init_profiles()
-
-    # We need to do this here as a WORKAROUND for
-    # https://bugreports.qt.io/browse/QTBUG-58650
-    if not qtutils.version_check('5.9', compiled=False):
-        PersistentCookiePolicy().set(config.val.content.cookies.store)
-    Attribute(QWebEngineSettings.FullScreenSupportEnabled).set(True)
-
-    websettings.init_mappings(MAPPINGS)
     config.instance.changed.connect(_update_settings)
 
-
-def update_for_tab(tab, url):
-    websettings.update_for_tab(MAPPINGS, tab, url)
+    global global_settings
+    global_settings = WebEngineSettings(_SettingsWrapper())
+    global_settings.init_settings()
 
 
 def shutdown():
     # FIXME:qtwebengine do we need to do something for a clean shutdown here?
     pass
-
-
-# Missing QtWebEngine attributes:
-# - ScreenCaptureEnabled
-# - Accelerated2dCanvasEnabled
-# - AutoLoadIconsForPage
-# - TouchIconsEnabled
-# - FocusOnNavigationEnabled (5.8)
-# - AllowRunningInsecureContent (5.8)
-#
-# Missing QtWebEngine fonts:
-# - PictographFont
-
-
-MAPPINGS = {
-    'content.images':
-        Attribute(QWebEngineSettings.AutoLoadImages),
-    'content.javascript.enabled':
-        Attribute(QWebEngineSettings.JavascriptEnabled),
-    'content.javascript.can_open_tabs_automatically':
-        Attribute(QWebEngineSettings.JavascriptCanOpenWindows),
-    'content.javascript.can_access_clipboard':
-        Attribute(QWebEngineSettings.JavascriptCanAccessClipboard),
-    'content.plugins':
-        Attribute(QWebEngineSettings.PluginsEnabled),
-    'content.hyperlink_auditing':
-        Attribute(QWebEngineSettings.HyperlinkAuditingEnabled),
-    'content.local_content_can_access_remote_urls':
-        Attribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls),
-    'content.local_content_can_access_file_urls':
-        Attribute(QWebEngineSettings.LocalContentCanAccessFileUrls),
-    'content.webgl':
-        Attribute(QWebEngineSettings.WebGLEnabled),
-    'content.local_storage':
-        Attribute(QWebEngineSettings.LocalStorageEnabled),
-    'content.cache.size':
-        # 0: automatically managed by QtWebEngine
-        DefaultProfileSetter('setHttpCacheMaximumSize', default=0,
-                             converter=lambda val:
-                             qtutils.check_overflow(val, 'int', fatal=False)),
-    'content.xss_auditing':
-        Attribute(QWebEngineSettings.XSSAuditingEnabled),
-    'content.default_encoding':
-        Setter(QWebEngineSettings.setDefaultTextEncoding),
-
-    'input.spatial_navigation':
-        Attribute(QWebEngineSettings.SpatialNavigationEnabled),
-    'input.links_included_in_focus_chain':
-        Attribute(QWebEngineSettings.LinksIncludedInFocusChain),
-
-    'fonts.web.family.standard':
-        FontFamilySetter(QWebEngineSettings.StandardFont),
-    'fonts.web.family.fixed':
-        FontFamilySetter(QWebEngineSettings.FixedFont),
-    'fonts.web.family.serif':
-        FontFamilySetter(QWebEngineSettings.SerifFont),
-    'fonts.web.family.sans_serif':
-        FontFamilySetter(QWebEngineSettings.SansSerifFont),
-    'fonts.web.family.cursive':
-        FontFamilySetter(QWebEngineSettings.CursiveFont),
-    'fonts.web.family.fantasy':
-        FontFamilySetter(QWebEngineSettings.FantasyFont),
-    'fonts.web.size.minimum':
-        Setter(QWebEngineSettings.setFontSize,
-               args=[QWebEngineSettings.MinimumFontSize]),
-    'fonts.web.size.minimum_logical':
-        Setter(QWebEngineSettings.setFontSize,
-               args=[QWebEngineSettings.MinimumLogicalFontSize]),
-    'fonts.web.size.default':
-        Setter(QWebEngineSettings.setFontSize,
-               args=[QWebEngineSettings.DefaultFontSize]),
-    'fonts.web.size.default_fixed':
-        Setter(QWebEngineSettings.setFontSize,
-               args=[QWebEngineSettings.DefaultFixedFontSize]),
-
-    'scrolling.smooth':
-        Attribute(QWebEngineSettings.ScrollAnimatorEnabled),
-}
-
-try:
-    MAPPINGS['content.print_element_backgrounds'] = Attribute(
-        QWebEngineSettings.PrintElementBackgrounds)
-except AttributeError:
-    # Added in Qt 5.8
-    pass
-
-
-if qtutils.version_check('5.8'):
-    MAPPINGS['spellcheck.languages'] = DictionaryLanguageSetter()
-
-
-if qtutils.version_check('5.9', compiled=False):
-    # https://bugreports.qt.io/browse/QTBUG-58650
-    MAPPINGS['content.cookies.store'] = PersistentCookiePolicy()

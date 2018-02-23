@@ -17,230 +17,96 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# We get various "abstract but not overridden" warnings
-# pylint: disable=abstract-method
-
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
 from PyQt5.QtGui import QFont
 
 from qutebrowser.config import config, configutils
-from qutebrowser.utils import log, utils, debug, usertypes
+from qutebrowser.utils import log, usertypes
 from qutebrowser.misc import objects
 
 UNSET = object()
 
 
-class Base:
+class AbstractSettings:
 
-    """Base class for QWeb(Engine)Settings wrappers."""
+    """Abstract base class for settings set via QWeb(Engine)Settings."""
 
-    def __init__(self, default=UNSET):
-        self._default = default
+    _ATTRIBUTES = None
+    _FONT_SIZES = None
+    _FONT_FAMILIES = None
+    _FONT_TO_QFONT = None
 
-    def _get_global_settings(self):
-        """Get a list of global QWeb(Engine)Settings to use."""
+    def __init__(self, settings):
+        self._settings = settings
+
+    def set_attribute(self, name, value):
+        """Set the given QWebSettings/QWebEngineSettings attribute.
+
+        If the value is configutils.UNSET, the value is reset instead.
+        """
         raise NotImplementedError
 
-    def _get_settings(self, settings):
-        """Get a list of QWeb(Engine)Settings objects to use.
+    def set_font_size(self, name, value):
+        """Set the given QWebSettings/QWebEngineSettings font size."""
+        assert value is not configutils.UNSET
+        self._settings.setFontSize(self._FONT_SIZES[name], value)
 
-        Args:
-            settings: The QWeb(Engine)Settings instance to use, or None to use
-                      the global instance.
+    def set_font_family(self, name, value):
+        """Set the given QWebSettings/QWebEngineSettings font family.
 
-        Return:
-            A list of QWeb(Engine)Settings objects. The first one should be
-            used for reading.
+        With None (the default), QFont is used to get the default font for the
+        family.
         """
-        if settings is None:
-            return self._get_global_settings()
-        else:
-            return [settings]
-
-    def set(self, value, settings=None):
-        """Set the value of this setting.
-
-        Args:
-            value: The value to set, or None to restore the default.
-            settings: The QWeb(Engine)Settings instance to use, or None to use
-                      the global instance.
-        """
+        assert value is not configutils.UNSET
         if value is None:
-            self.set_default(settings=settings)
-        else:
-            self._set(value, settings=settings)
+            font = QFont()
+            font.setStyleHint(self._FONT_TO_QFONT[self._FONT_FAMILIES[name]])
+            value = font.defaultFamily()
 
-    def set_default(self, settings=None):
-        """Set the default value for this setting.
+        self._settings.setFontFamily(self._FONT_FAMILIES[name], value)
 
-        Not implemented for most settings.
+    def set_default_text_encoding(self, encoding):
+        """Set the default text encoding to use."""
+        assert encoding is not configutils.UNSET
+        self._settings.setDefaultTextEncoding(encoding)
+
+    def _update_setting(self, setting, value):
+        """Update the given setting/value.
+
+        Unknown settings are ignored.
         """
-        if self._default is UNSET:
-            raise ValueError("No default set for {!r}".format(self))
-        else:
-            self._set(self._default, settings=settings)
+        if setting in self._ATTRIBUTES:
+            self.set_attribute(setting, value)
+        elif setting in self._FONT_SIZES:
+            self.set_font_size(setting, value)
+        elif setting in self._FONT_FAMILIES:
+            self.set_font_family(setting, value)
+        elif setting == 'content.default_encoding':
+            self.set_default_text_encoding(value)
 
-    def _set(self, value, settings):
-        """Inner function to set the value of this setting.
+    def update_setting(self, setting):
+        """Update the given setting."""
+        value = config.instance.get(setting)
+        self._update_setting(setting, value)
 
-        Must be overridden by subclasses.
+    def update_for_url(self, url):
+        """Update settings customized for the given tab."""
+        for values in config.instance:
+            if not values.opt.supports_pattern:
+                continue
 
-        Args:
-            value: The value to set.
-            settings: The QWeb(Engine)Settings instance to use, or None to use
-                      the global instance.
-        """
-        raise NotImplementedError
+            value = values.get_for_url(url, fallback=False)
+            log.config.debug("Updating for {}: {} = {}".format(
+                url.toDisplayString(), values.opt.name, value))
 
-    def unset(self, settings=None):
-        """Unset a customized setting.
+            self._update_setting(values.opt.name, value)
 
-        Must be overridden by subclasses.
-        """
-        raise NotImplementedError
-
-
-class Attribute(Base):
-
-    """A setting set via QWeb(Engine)Settings::setAttribute.
-
-    Attributes:
-        self._attributes: A list of QWeb(Engine)Settings::WebAttribute members.
-    """
-
-    ENUM_BASE = None
-
-    def __init__(self, *attributes, default=UNSET):
-        super().__init__(default=default)
-        self._attributes = list(attributes)
-
-    def __repr__(self):
-        attributes = [debug.qenum_key(self.ENUM_BASE, attr)
-                      for attr in self._attributes]
-        return utils.get_repr(self, attributes=attributes, constructor=True)
-
-    def _set(self, value, settings=None):
-        for obj in self._get_settings(settings):
-            for attribute in self._attributes:
-                obj.setAttribute(attribute, value)
-
-    def unset(self, settings=None):
-        for obj in self._get_settings(settings):
-            for attribute in self._attributes:
-                obj.resetAttribute(attribute)
-
-
-class Setter(Base):
-
-    """A setting set via a QWeb(Engine)Settings setter method.
-
-    This will pass the QWeb(Engine)Settings instance ("self") as first argument
-    to the methods, so self._setter is the *unbound* method.
-
-    Attributes:
-        _setter: The unbound QWeb(Engine)Settings method to set this value.
-        _args: An iterable of the arguments to pass to the setter (before the
-               value).
-        _unpack: Whether to unpack args (True) or pass them directly (False).
-    """
-
-    def __init__(self, setter, args=(), unpack=False, default=UNSET):
-        super().__init__(default=default)
-        self._setter = setter
-        self._args = args
-        self._unpack = unpack
-
-    def __repr__(self):
-        return utils.get_repr(self, setter=self._setter, args=self._args,
-                              unpack=self._unpack, constructor=True)
-
-    def _set(self, value, settings=None):
-        for obj in self._get_settings(settings):
-            args = [obj]
-            args.extend(self._args)
-            if self._unpack:
-                args.extend(value)
-            else:
-                args.append(value)
-            self._setter(*args)
-
-
-class StaticSetter(Setter):
-
-    """A setting set via a static QWeb(Engine)Settings method.
-
-    self._setter is the *bound* method.
-    """
-
-    def _set(self, value, settings=None):
-        if settings is not None:
-            raise ValueError("'settings' may not be set with StaticSetters!")
-        args = list(self._args)
-        if self._unpack:
-            args.extend(value)
-        else:
-            args.append(value)
-        self._setter(*args)
-
-
-class FontFamilySetter(Setter):
-
-    """A setter for a font family.
-
-    Gets the default value from QFont.
-    """
-
-    def __init__(self, setter, font, qfont):
-        super().__init__(setter=setter, args=[font])
-        self._qfont = qfont
-
-    def set_default(self, settings=None):
-        font = QFont()
-        font.setStyleHint(self._qfont)
-        value = font.defaultFamily()
-        self._set(value, settings=settings)
-
-
-def init_mappings(mappings):
-    """Initialize all settings based on a settings mapping."""
-    for option, mapping in mappings.items():
-        value = config.instance.get(option)
-        log.config.vdebug("Setting {} to {!r}".format(option, value))
-        mapping.set(value)
-
-
-def update_mappings(mappings, option):
-    """Update global settings when QWeb(Engine)Settings changed."""
-    try:
-        mapping = mappings[option]
-    except KeyError:
-        return
-    value = config.instance.get(option)
-    mapping.set(value)
-
-
-def update_for_tab(mappings, tab, url):
-    """Update settings customized for the given tab."""
-    for values in config.instance:
-        if values.opt.name not in mappings:
-            continue
-        if not values.opt.supports_pattern:
-            continue
-
-        mapping = mappings[values.opt.name]
-
-        value = values.get_for_url(url, fallback=False)
-        log.config.debug("Updating for {}: {} = {}".format(
-            url.toDisplayString(), values.opt.name, value))
-
-        # FIXME:conf have a proper API for this.
-        settings = tab._widget.settings()  # pylint: disable=protected-access
-
-        if value is configutils.UNSET:
-            mapping.unset(settings=settings)
-        else:
-            mapping.set(value, settings=settings)
+    def init_settings(self):
+        """Set all supported settings correctly."""
+        for setting in (list(self._ATTRIBUTES) + list(self._FONT_SIZES) +
+                        list(self._FONT_FAMILIES)):
+            self.update_setting(setting)
 
 
 def init(args):

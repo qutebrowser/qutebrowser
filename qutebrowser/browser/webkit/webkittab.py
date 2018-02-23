@@ -645,6 +645,8 @@ class WebKitTab(browsertab.AbstractTab):
         self.printing = WebKitPrinting()
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
+        # We're assigning settings in _set_widget
+        self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit
@@ -785,7 +787,7 @@ class WebKitTab(browsertab.AbstractTab):
             navigation.accepted = False
 
         if navigation.is_main_frame:
-            webkitsettings.update_for_tab(self, navigation.url)
+            self.settings.update_for_url(navigation.url)
 
     def _connect_signals(self):
         view = self._widget

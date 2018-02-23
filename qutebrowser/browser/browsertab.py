@@ -675,6 +675,7 @@ class AbstractTab(QWidget):
         self.printing._widget = widget
         self.action._widget = widget
         self.elements._widget = widget
+        self.settings._settings = widget.settings()
 
         self._install_event_filter()
         self.zoom.set_default()

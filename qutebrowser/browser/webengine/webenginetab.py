@@ -604,6 +604,8 @@ class WebEngineTab(browsertab.AbstractTab):
         self.printing = WebEnginePrinting()
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
+        # We're assigning settings in _set_widget
+        self.settings = webenginesettings.WebEngineSettings(settings=None)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
@@ -876,7 +878,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
         if navigation.accepted and navigation.is_main_frame:
-            webenginesettings.update_for_tab(self, navigation.url)
+            self.settings.update_for_url(navigation.url)
 
     def _connect_signals(self):
         view = self._widget
