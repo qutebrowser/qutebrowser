@@ -879,10 +879,16 @@ class WebEngineTab(browsertab.AbstractTab):
         if not ok and not self.settings.test_attribute('content.javascript.enabled'):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
             self._show_error_page(self.url(), error="")
-        elif ok and self._reload_url is not None:
+
+    @pyqtSlot(QUrl)
+    def _on_url_changed(self, url):
+        super()._on_url_changed(url)
+        if self._reload_url is not None:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
-            QTimer.singleShot(100, lambda url=self._reload_url:
-                              self.openurl(url))
+            log.config.debug(
+                "Reloading {} on {} because of config change".format(
+                    self._reload_url.toDisplayString(), url.toDisplayString()))
+            self.reload()
             self._reload_url = None
 
     @pyqtSlot(usertypes.NavigationRequest)
@@ -891,7 +897,6 @@ class WebEngineTab(browsertab.AbstractTab):
         if navigation.accepted and navigation.is_main_frame:
             changed = self.settings.update_for_url(navigation.url)
             if changed & {'content.plugins', 'content.javascript.enabled'}:
-                navigation.accepted = False
                 self._reload_url = navigation.url
 
     def _connect_signals(self):
