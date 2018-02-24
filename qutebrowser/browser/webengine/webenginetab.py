@@ -22,6 +22,7 @@
 import math
 import functools
 import sys
+import re
 import html as html_utils
 
 import sip
@@ -873,12 +874,27 @@ class WebEngineTab(browsertab.AbstractTab):
         if not ok:
             self._load_finished_fake.emit(False)
 
+    def _error_page_workaround(self, html):
+        """Check if we're displaying a Chromium error page.
+
+        This gets only called if we got loadFinished(False) without JavaScript,
+        so we can display at least some error page.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
+        Needs to check the page content as a WORKAROUND for
+        https://bugreports.qt.io/browse/QTBUG-66661
+        """
+        match = re.search(r'"errorCode":"([^"]*)"', html)
+        if match is None:
+            return
+        self._show_error_page(self.url(), error=match.group(1))
+
     @pyqtSlot(bool)
     def _on_load_finished(self, ok):
+        """Display a static error page if JavaScript is disabled."""
         super()._on_load_finished(ok)
         if not ok and not self.settings.test_attribute('content.javascript.enabled'):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
-            self._show_error_page(self.url(), error="")
+            self.dump_async(self._error_page_workaround)
 
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url):
