@@ -26,7 +26,7 @@ import html as html_utils
 
 import sip
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
-                          QUrl)
+                          QUrl, QTimer)
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
@@ -612,6 +612,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._init_js()
         self._child_event_filter = None
         self._saved_zoom = None
+        self._reload_url = None
 
     def _init_js(self):
         js_code = '\n'.join([
@@ -871,15 +872,27 @@ class WebEngineTab(browsertab.AbstractTab):
         """
         if not ok:
             self._load_finished_fake.emit(False)
-            if not self.settings.test_attribute('content.javascript.enabled'):
-                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
-                self._show_error_page(self.url(), error="")
+
+    @pyqtSlot(bool)
+    def _on_load_finished(self, ok):
+        super()._on_load_finished(ok)
+        if not ok and not self.settings.test_attribute('content.javascript.enabled'):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
+            self._show_error_page(self.url(), error="")
+        elif ok and self._reload_url is not None:
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
+            QTimer.singleShot(100, lambda url=self._reload_url:
+                              self.openurl(url))
+            self._reload_url = None
 
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
         if navigation.accepted and navigation.is_main_frame:
-            self.settings.update_for_url(navigation.url)
+            changed = self.settings.update_for_url(navigation.url)
+            if changed & {'content.plugins', 'content.javascript.enabled'}:
+                navigation.accepted = False
+                self._reload_url = navigation.url
 
     def _connect_signals(self):
         view = self._widget

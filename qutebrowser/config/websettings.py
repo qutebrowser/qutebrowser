@@ -139,9 +139,9 @@ class AbstractSettings:
         """Update settings customized for the given tab.
 
         Return:
-            A list of settings which actually changed.
+            A set of settings which actually changed.
         """
-        changed_settings = []
+        changed_settings = set()
         for values in config.instance:
             if not values.opt.supports_pattern:
                 continue
@@ -152,7 +152,7 @@ class AbstractSettings:
             if changed:
                 log.config.debug("Changed for {}: {} = {}".format(
                     url.toDisplayString(), values.opt.name, value))
-                changed_settings.append(values.opt.name)
+                changed_settings.add(values.opt.name)
 
         return changed_settings
 
