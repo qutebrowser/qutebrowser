@@ -331,13 +331,13 @@ window._qutebrowser.webelem = (function() {
 
     // Function for returning a selection to python (so we can click it)
     funcs.find_selected_link = () => {
-        const elem = window.getSelection().anchorNode;
+        const elem = window.getSelection().baseNode;
         if (elem) {
             return serialize_elem(elem.parentNode);
         }
 
         const serialized_frame_elem = run_frames((frame) => {
-            const node = frame.window.getSelection().anchorNode;
+            const node = frame.window.getSelection().baseNode;
             if (node) {
                 return serialize_elem(node.parentNode, frame);
             }
