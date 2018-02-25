@@ -914,7 +914,9 @@ class WebEngineTab(browsertab.AbstractTab):
         super()._on_navigation_request(navigation)
         if navigation.accepted and navigation.is_main_frame:
             changed = self.settings.update_for_url(navigation.url)
-            if changed & {'content.plugins', 'content.javascript.enabled'}:
+            if (changed & {'content.plugins', 'content.javascript.enabled'} and
+                    navigation.navigation_type != navigation.Type.link_clicked):
+                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
                 self._reload_url = navigation.url
 
     def _connect_signals(self):
