@@ -21,6 +21,17 @@ v1.2.0 (unreleased)
 Added
 ~~~~~
 
+- Initial implementation of per-domain settings:
+  * `:set` and `:config-cycle` now have a `-u`/`--pattern` argument taking a
+    https://developer.chrome.com/extensions/match_patterns[URL match pattern]
+    for supported settings.
+  * `config.set` in `config.py` now takes a third argument which is the pattern.
+  * New `with config.pattern('...') as p:` context manager for `config.py` to
+    use the shorthand syntax with a pattern.
+  * New `tsh` keybinding to toggle scripts for the current host. With a capital
+    `S`, the toggle is saved. With a capital `H`, subdomains are included.
+  * New `tsu` keybinding to toggle scripts for the current URL. With a capital
+    `S`, the toggle is saved.
 - QtWebEngine: Caret/visual mode is now supported.
 - QtWebEngine: Authentication via ~/.netrc is now supported.
 - A new `qute://bindings` page, opened by `:bind`, shows all keybindings.
