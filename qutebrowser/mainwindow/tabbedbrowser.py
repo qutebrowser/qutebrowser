@@ -373,12 +373,10 @@ class TabbedBrowser(tabwidget.TabWidget):
 
         for entry in reversed(self._undo_stack.pop()):
             if use_current_tab:
-                self.openurl(entry.url, newtab=False)
                 newtab = self.widget(0)
                 use_current_tab = False
             else:
-                newtab = self.tabopen(entry.url, background=False,
-                                      idx=entry.index)
+                newtab = self.tabopen(background=False, idx=entry.index)
 
             newtab.history.deserialize(entry.history)
             self.set_tab_pinned(newtab, entry.pinned)
