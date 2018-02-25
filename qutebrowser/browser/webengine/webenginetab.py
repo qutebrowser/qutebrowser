@@ -471,7 +471,8 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return self._history.itemAt(i)
 
     def _go_to_item(self, item):
-        return self._history.goToItem(item)
+        self._tab.predicted_navigation.emit(item.url())
+        self._history.goToItem(item)
 
     def serialize(self):
         if not qtutils.version_check('5.9', compiled=False):
@@ -903,6 +904,11 @@ class WebEngineTab(browsertab.AbstractTab):
             QTimer.singleShot(100, lambda url=self._reload_url: self.openurl(url))
             self._reload_url = None
 
+    @pyqtSlot(QUrl)
+    def _on_predicted_navigation(self, url):
+        """If we know we're going to visit an URL soon, change the settings."""
+        self.settings.update_for_url(url)
+
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
@@ -945,6 +951,8 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadFinished.connect(self._on_history_trigger)
             page.loadFinished.connect(self._restore_zoom)
             page.loadFinished.connect(self._on_load_finished)
+
+        self.predicted_navigation.connect(self._on_predicted_navigation)
 
     def event_target(self):
         return self._widget.focusProxy()

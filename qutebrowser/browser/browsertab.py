@@ -616,6 +616,7 @@ class AbstractTab(QWidget):
                                      process terminated.
                                      arg 0: A TerminationStatus member.
                                      arg 1: The exit code.
+        predicted_navigation: Emitted before we tell Qt to open a URL.
     """
 
     window_close_requested = pyqtSignal()
@@ -633,6 +634,7 @@ class AbstractTab(QWidget):
     add_history_item = pyqtSignal(QUrl, QUrl, str)  # url, requested url, title
     fullscreen_requested = pyqtSignal(bool)
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
+    predicted_navigation = pyqtSignal(QUrl)
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         self.private = private
@@ -662,6 +664,9 @@ class AbstractTab(QWidget):
         hintmanager = hints.HintManager(win_id, self.tab_id, parent=self)
         objreg.register('hintmanager', hintmanager, scope='tab',
                         window=self.win_id, tab=self.tab_id)
+
+        self.predicted_navigation.connect(
+            lambda url: self.title_changed.emit(url.toDisplayString()))
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
@@ -811,7 +816,7 @@ class AbstractTab(QWidget):
 
     def _openurl_prepare(self, url):
         qtutils.ensure_valid(url)
-        self.title_changed.emit(url.toDisplayString())
+        self.predicted_navigation.emit(url)
 
     def openurl(self, url):
         raise NotImplementedError
