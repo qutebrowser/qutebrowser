@@ -894,14 +894,17 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_load_finished(self, ok):
         """Display a static error page if JavaScript is disabled."""
         super()._on_load_finished(ok)
-        if not ok and not self.settings.test_attribute('content.javascript.enabled'):
+        js_enabled = self.settings.test_attribute('content.javascript.enabled')
+        if not ok and not js_enabled:
             self.dump_async(self._error_page_workaround)
+
         if ok and self._reload_url is not None:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
             log.config.debug(
                 "Reloading {} because of config change".format(
                     self._reload_url.toDisplayString()))
-            QTimer.singleShot(100, lambda url=self._reload_url: self.openurl(url))
+            QTimer.singleShot(100, lambda url=self._reload_url:
+                              self.openurl(url))
             self._reload_url = None
 
     @pyqtSlot(QUrl)
@@ -914,8 +917,9 @@ class WebEngineTab(browsertab.AbstractTab):
         super()._on_navigation_request(navigation)
         if navigation.accepted and navigation.is_main_frame:
             changed = self.settings.update_for_url(navigation.url)
-            if (changed & {'content.plugins', 'content.javascript.enabled'} and
-                    navigation.navigation_type != navigation.Type.link_clicked):
+            needs_reload = {'content.plugins', 'content.javascript.enabled'}
+            if (changed & needs_reload and navigation.navigation_type !=
+                    navigation.Type.link_clicked):
                 # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
                 self._reload_url = navigation.url
 

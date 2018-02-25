@@ -29,7 +29,7 @@ import os.path
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebKit import QWebSettings
 
-from qutebrowser.config import config, websettings, configutils
+from qutebrowser.config import config, websettings
 from qutebrowser.utils import standarddir, urlutils
 from qutebrowser.browser import shared
 
