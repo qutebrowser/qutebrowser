@@ -76,6 +76,7 @@ Fixed
 - QtWebEngine: Hinting and scrolling now works properly on special
   `view-source:` pages.
 - QtWebEngine: Scroll positions are now restored correctly from sessions.
+- QtWebEngine: Crash with Qt 5.10.1 when using :undo on some tabs.
 - QtWebKit: `:view-source` now displays a valid URL.
 - URLs containing ampersands and other special chars are now shown
   correctly when filtering them in the completion.
