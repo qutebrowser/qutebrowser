@@ -895,16 +895,12 @@ class WebEngineTab(browsertab.AbstractTab):
         super()._on_load_finished(ok)
         if not ok and not self.settings.test_attribute('content.javascript.enabled'):
             self.dump_async(self._error_page_workaround)
-
-    @pyqtSlot(QUrl)
-    def _on_url_changed(self, url):
-        super()._on_url_changed(url)
-        if self._reload_url is not None:
+        if ok and self._reload_url is not None:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
             log.config.debug(
-                "Reloading {} on {} because of config change".format(
-                    self._reload_url.toDisplayString(), url.toDisplayString()))
-            self.reload()
+                "Reloading {} because of config change".format(
+                    self._reload_url.toDisplayString()))
+            QTimer.singleShot(100, lambda url=self._reload_url: self.openurl(url))
             self._reload_url = None
 
     @pyqtSlot(usertypes.NavigationRequest)
