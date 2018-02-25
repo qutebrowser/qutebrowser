@@ -167,3 +167,9 @@ Feature: Javascript stuff
         And I wait for "[*] JavaScript is enabled" in the log
         And I open data/javascript/enabled.html
         Then the page should contain the plaintext "JavaScript is disabled"
+
+    @qtwebkit_skip
+    Scenario: Error pages without JS enabled
+        When I set content.javascript.enabled to false
+        And I open 500
+        Then "Showing error page for* 500" should be logged

@@ -179,6 +179,14 @@ def internal_error_attachment():
     return response
 
 
+@app.route('/500')
+def internal_error():
+    """A normal 500 error."""
+    r = flask.make_response()
+    r.status_code = 500
+    return r
+
+
 @app.route('/cookies')
 def view_cookies():
     """Show cookies."""

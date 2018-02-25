@@ -735,6 +735,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def _show_error_page(self, url, error):
         """Show an error page in the tab."""
+        log.misc.debug("Showing error page for {}".format(error))
         url_string = url.toDisplayString()
         error_page = jinja.render(
             'error.html',
