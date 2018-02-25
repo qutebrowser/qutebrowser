@@ -183,7 +183,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
-        # When duplicate searching, don't search again (webkit behavior)
+        # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
                               " for {}".format(text))
