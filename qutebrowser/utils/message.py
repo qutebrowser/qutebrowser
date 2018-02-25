@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -87,7 +87,8 @@ def info(message, *, replace=False):
     global_bridge.show(usertypes.MessageLevel.info, message, replace)
 
 
-def _build_question(title, text=None, *, mode, default=None, abort_on=()):
+def _build_question(title, text=None, *, mode, default=None, abort_on=(),
+                    url=None):
     """Common function for ask/ask_async."""
     if not isinstance(mode, usertypes.PromptMode):
         raise TypeError("Mode {} is no PromptMode member!".format(mode))
@@ -96,6 +97,7 @@ def _build_question(title, text=None, *, mode, default=None, abort_on=()):
     question.text = text
     question.mode = mode
     question.default = default
+    question.url = url
     for sig in abort_on:
         sig.connect(question.abort)
     return question

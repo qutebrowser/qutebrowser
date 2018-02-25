@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -87,8 +87,6 @@ class Completer(QObject):
             # cursor on a flag or after an explicit split (--)
             return None
         log.completion.debug("Before removing flags: {}".format(before_cursor))
-        before_cursor = [x for x in before_cursor if not x.startswith('-')]
-        log.completion.debug("After removing flags: {}".format(before_cursor))
         if not before_cursor:
             # '|' or 'set|'
             log.completion.debug('Starting command completion')
@@ -99,6 +97,9 @@ class Completer(QObject):
             log.completion.debug("No completion for unknown command: {}"
                                  .format(before_cursor[0]))
             return None
+
+        before_cursor = [x for x in before_cursor if not x.startswith('-')]
+        log.completion.debug("After removing flags: {}".format(before_cursor))
         argpos = len(before_cursor) - 1
         try:
             func = cmd.get_pos_arg_info(argpos).completion

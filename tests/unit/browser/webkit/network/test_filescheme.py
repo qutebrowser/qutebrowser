@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Antoni Boucher (antoyo) <bouanto@zoho.com>
+# Copyright 2015-2018 Antoni Boucher (antoyo) <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
 #
@@ -248,8 +248,7 @@ class TestFileSchemeHandler:
     def test_dir(self, tmpdir):
         url = QUrl.fromLocalFile(str(tmpdir))
         req = QNetworkRequest(url)
-        handler = filescheme.FileSchemeHandler(win_id=0)
-        reply = handler.createRequest(None, req, None)
+        reply = filescheme.handler(req)
         # The URL will always use /, even on Windows - so we force this here
         # too.
         tmpdir_path = str(tmpdir).replace(os.sep, '/')
@@ -260,17 +259,15 @@ class TestFileSchemeHandler:
         filename.ensure()
         url = QUrl.fromLocalFile(str(filename))
         req = QNetworkRequest(url)
-        handler = filescheme.FileSchemeHandler(win_id=0)
-        reply = handler.createRequest(None, req, None)
+        reply = filescheme.handler(req)
         assert reply is None
 
     def test_unicode_encode_error(self, mocker):
         url = QUrl('file:///tmp/foo')
         req = QNetworkRequest(url)
-        handler = filescheme.FileSchemeHandler(win_id=0)
 
         err = UnicodeEncodeError('ascii', '', 0, 2, 'foo')
         mocker.patch('os.path.isdir', side_effect=err)
 
-        reply = handler.createRequest(None, req, None)
+        reply = filescheme.handler(req)
         assert reply is None

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,6 +23,10 @@ import re
 import functools
 import xml.etree.ElementTree
 
+import pygments
+import pygments.lexers
+import pygments.formatters
+
 import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
@@ -31,8 +35,9 @@ from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
-from qutebrowser.browser import browsertab
-from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
+from qutebrowser.browser import browsertab, shared
+from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
+                                        webkitsettings)
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
 
 
@@ -49,6 +54,29 @@ class WebKitAction(browsertab.AbstractAction):
     def save_page(self):
         """Save the current page."""
         raise browsertab.UnsupportedOperationError
+
+    def show_source(self):
+
+        def show_source_cb(source):
+            """Show source as soon as it's ready."""
+            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
+            # pylint: disable=no-member
+            lexer = pygments.lexers.HtmlLexer()
+            formatter = pygments.formatters.HtmlFormatter(
+                full=True, linenos='table')
+            # pylint: enable=no-member
+            highlighted = pygments.highlight(source, lexer, formatter)
+
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._tab.win_id)
+            new_tab = tb.tabopen(background=False, related=True)
+            # The original URL becomes the path of a view-source: URL
+            # (without a host), but query/fragment should stay.
+            url = QUrl('view-source:' + urlstr)
+            new_tab.set_html(highlighted, url)
+
+        urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
+        self._tab.dump_async(show_source_cb)
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
@@ -161,7 +189,7 @@ class WebKitCaret(browsertab.AbstractCaret):
 
         settings = self._widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-        self.selection_enabled = bool(self.selection())
+        self.selection_enabled = self._widget.hasSelection()
 
         if self._widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
@@ -174,12 +202,12 @@ class WebKitCaret(browsertab.AbstractCaret):
             #
             # Note: We can't use hasSelection() here, as that's always
             # true in caret mode.
-            if not self.selection():
+            if not self.selection_enabled:
                 self._widget.page().currentFrame().evaluateJavaScript(
                     utils.read_file('javascript/position_caret.js'))
 
-    @pyqtSlot()
-    def _on_mode_left(self):
+    @pyqtSlot(usertypes.KeyMode)
+    def _on_mode_left(self, _mode):
         settings = self._widget.settings()
         if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
             if self.selection_enabled and self._widget.hasSelection():
@@ -327,23 +355,16 @@ class WebKitCaret(browsertab.AbstractCaret):
     def toggle_selection(self):
         self.selection_enabled = not self.selection_enabled
         mainwindow = objreg.get('main-window', scope='window',
-                                window=self._win_id)
+                                window=self._tab.win_id)
         mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
 
     def drop_selection(self):
         self._widget.triggerPageAction(QWebPage.MoveToNextChar)
 
-    def has_selection(self):
-        return self._widget.hasSelection()
-
-    def selection(self, html=False):
-        if html:
-            return self._widget.selectedHtml()
-        return self._widget.selectedText()
+    def selection(self, callback):
+        callback(self._widget.selectedText())
 
     def follow_selected(self, *, tab=False):
-        if not self.has_selection():
-            return
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
@@ -351,7 +372,9 @@ class WebKitCaret(browsertab.AbstractCaret):
             self._tab.run_js_async(
                 'window.getSelection().anchorNode.parentNode.click()')
         else:
-            selection = self.selection(html=True)
+            selection = self._widget.selectedHtml()
+            if not selection:
+                return
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
                     '<html>{}</html>'.format(selection)).find('a')
@@ -495,7 +518,8 @@ class WebKitHistory(browsertab.AbstractHistory):
         return self._history.itemAt(i)
 
     def _go_to_item(self, item):
-        return self._history.goToItem(item)
+        self._tab.predicted_navigation.emit(item.url())
+        self._history.goToItem(item)
 
     def serialize(self):
         return qtutils.serialize(self._history)
@@ -615,13 +639,15 @@ class WebKitTab(browsertab.AbstractTab):
             self._make_private(widget)
         self.history = WebKitHistory(self)
         self.scroller = WebKitScroller(self, parent=self)
-        self.caret = WebKitCaret(win_id=win_id, mode_manager=mode_manager,
+        self.caret = WebKitCaret(mode_manager=mode_manager,
                                  tab=self, parent=self)
-        self.zoom = WebKitZoom(win_id=win_id, parent=self)
+        self.zoom = WebKitZoom(tab=self, parent=self)
         self.search = WebKitSearch(parent=self)
         self.printing = WebKitPrinting()
-        self.elements = WebKitElements(self)
-        self.action = WebKitAction()
+        self.elements = WebKitElements(tab=self)
+        self.action = WebKitAction(tab=self)
+        # We're assigning settings in _set_widget
+        self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit
@@ -705,6 +731,11 @@ class WebKitTab(browsertab.AbstractTab):
         return page.userAgentForUrl(self.url())
 
     @pyqtSlot()
+    def _on_load_started(self):
+        super()._on_load_started()
+        self.networkaccessmanager().netrc_used = False
+
+    @pyqtSlot()
     def _on_frame_load_finished(self):
         """Make sure we emit an appropriate status when loading finished.
 
@@ -734,6 +765,31 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_contents_size_changed(self, size):
         self.contents_size_changed.emit(QSizeF(size))
 
+    @pyqtSlot(usertypes.NavigationRequest)
+    def _on_navigation_request(self, navigation):
+        super()._on_navigation_request(navigation)
+        if not navigation.accepted:
+            return
+
+        log.webview.debug("target {} override {}".format(
+            self.data.open_target, self.data.override_target))
+
+        if self.data.override_target is not None:
+            target = self.data.override_target
+            self.data.override_target = None
+        else:
+            target = self.data.open_target
+
+        if (navigation.navigation_type == navigation.Type.link_clicked and
+                target != usertypes.ClickTarget.normal):
+            tab = shared.get_tab(self.win_id, target)
+            tab.openurl(navigation.url)
+            self.data.open_target = usertypes.ClickTarget.normal
+            navigation.accepted = False
+
+        if navigation.is_main_frame:
+            self.settings.update_for_url(navigation.url)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -752,6 +808,7 @@ class WebKitTab(browsertab.AbstractTab):
         page.frameCreated.connect(self._on_frame_created)
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
+        page.navigation_request.connect(self._on_navigation_request)
 
     def event_target(self):
         return self._widget

@@ -44,8 +44,8 @@ Documentation
 In addition to the topics mentioned in this README, the following documents are
 available:
 
-* https://qutebrowser.org/img/cheatsheet-big.png[Key binding cheatsheet]: +
-image:https://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://qutebrowser.org/img/cheatsheet-big.png"]
+* https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png[Key binding cheatsheet]: +
+image:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
 * https://www.shortcutfoo.com/app/dojos/qutebrowser[Free training course] to remember those key bindings
 * link:doc/faq.asciidoc[Frequently asked questions]
@@ -114,7 +114,7 @@ The following software and libraries are required to run qutebrowser:
 * http://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
 * http://pygments.org/[pygments]
-* http://pyyaml.org/wiki/PyYAML[PyYAML]
+* https://github.com/yaml/pyyaml[PyYAML]
 * http://www.attrs.org/[attrs]
 
 The following libraries are optional:

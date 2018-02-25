@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,12 +26,9 @@ import functools
 import typing
 
 from PyQt5.QtWidgets import QApplication, QTabBar, QDialog
-from PyQt5.QtCore import Qt, QUrl, QEvent, QUrlQuery
+from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
-import pygments
-import pygments.lexers
-import pygments.formatters
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configdata
@@ -39,7 +36,7 @@ from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils, debug, standarddir)
+                               objreg, utils, standarddir)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess
 from qutebrowser.completion.models import urlmodel, miscmodels
@@ -536,14 +533,19 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
-    def tab_give(self, win_id: int = None):
+    @cmdutils.argument('count', count=True)
+    def tab_give(self, win_id: int = None, count=None):
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
 
         Args:
             win_id: The window ID of the window to give the current tab to.
+            count: Overrides win_id (index starts at 1 for win_id=0).
         """
+        if count is not None:
+            win_id = count - 1
+
         if win_id == self._win_id:
             raise cmdexc.CommandError("Can't give a tab to the same window")
 
@@ -638,7 +640,13 @@ class CommandDispatcher:
                 - `next`: Open a _next_ link.
                 - `up`: Go up a level in the current URL.
                 - `increment`: Increment the last number in the URL.
+                  Uses the
+                  link:settings.html#url.incdec_segments[url.incdec_segments]
+                  config option.
                 - `decrement`: Decrement the last number in the URL.
+                  Uses the
+                  link:settings.html#url.incdec_segments[url.incdec_segments]
+                  config option.
 
             tab: Open in a new tab.
             bg: Open in a background tab.
@@ -849,14 +857,21 @@ class CommandDispatcher:
             s = self._yank_url(what)
             what = 'URL'  # For printing
         elif what == 'selection':
+            def _selection_callback(s):
+                if not s:
+                    message.info("Nothing to yank")
+                    return
+                self._yank_to_target(s, sel, what, keep)
+
             caret = self._current_widget().caret
-            s = caret.selection()
-            if not caret.has_selection() or not s:
-                message.info("Nothing to yank")
-                return
+            caret.selection(callback=_selection_callback)
+            return
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
+        self._yank_to_target(s, sel, what, keep)
+
+    def _yank_to_target(self, s, sel, what, keep):
         if sel and utils.supports_selection():
             target = "primary selection"
         else:
@@ -953,22 +968,25 @@ class CommandDispatcher:
                         (prev and i < cur_idx) or
                         (next_ and i > cur_idx))
 
-        # Check to see if we are closing any pinned tabs
-        if not force:
-            for i, tab in enumerate(self._tabbed_browser.widgets()):
-                if _to_close(i) and tab.data.pinned:
-                    self._tabbed_browser.tab_close_prompt_if_pinned(
-                        tab,
-                        force,
-                        lambda: self.tab_only(
-                            prev=prev, next_=next_, force=True))
-                    return
-
+        # close as many tabs as we can
         first_tab = True
+        pinned_tabs_cleanup = False
         for i, tab in enumerate(self._tabbed_browser.widgets()):
             if _to_close(i):
-                self._tabbed_browser.close_tab(tab, new_undo=first_tab)
-                first_tab = False
+                if force or not tab.data.pinned:
+                    self._tabbed_browser.close_tab(tab, new_undo=first_tab)
+                    first_tab = False
+                else:
+                    pinned_tabs_cleanup = tab
+
+        # Check to see if we would like to close any pinned tabs
+        if pinned_tabs_cleanup:
+            self._tabbed_browser.tab_close_prompt_if_pinned(
+                pinned_tabs_cleanup,
+                force,
+                lambda: self.tab_only(
+                    prev=prev, next_=next_, force=True),
+                text="Are you sure you want to close pinned tabs?")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def undo(self):
@@ -1074,14 +1092,16 @@ class CommandDispatcher:
         Focuses window if necessary when index is given. If both index and
         count are given, use count.
 
+        With neither index nor count given, open the qute://tabs page.
+
         Args:
             index: The [win_id/]index of the tab to focus. Or a substring
                    in which case the closest match will be focused.
             count: The tab index to focus, starting with 1.
         """
         if count is None and index is None:
-            raise cmdexc.CommandError("buffer: Either a count or the argument "
-                                      "index must be specified.")
+            self.openurl('qute://tabs/', tab=True)
+            return
 
         if count is not None:
             index = str(count)
@@ -1096,7 +1116,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last'])
     @cmdutils.argument('count', count=True)
-    def tab_focus(self, index: typing.Union[str, int] = None, count=None):
+    def tab_focus(self, index: typing.Union[str, int] = None,
+                  count=None, no_last=False):
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -1108,13 +1129,14 @@ class CommandDispatcher:
                    Negative indices count from the end, such that -1 is the
                    last tab.
             count: The tab index to focus, starting with 1.
+            no_last: Whether to avoid focusing last tab if already focused.
         """
         index = count if count is not None else index
 
         if index == 'last':
             self._tab_focus_last()
             return
-        elif index == self._current_index() + 1:
+        elif not no_last and index == self._current_index() + 1:
             self._tab_focus_last(show_error=False)
             return
         elif index is None:
@@ -1204,9 +1226,29 @@ class CommandDispatcher:
 
         log.procs.debug("Executing {} with args {}, userscript={}".format(
             cmd, args, userscript))
+
+        @pyqtSlot()
+        def _on_proc_finished():
+            if output:
+                tb = objreg.get('tabbed-browser', scope='window',
+                                window='last-focused')
+                tb.openurl(QUrl('qute://spawn-output'), newtab=True)
+
         if userscript:
+            def _selection_callback(s):
+                try:
+                    runner = self._run_userscript(s, cmd, args, verbose)
+                    runner.finished.connect(_on_proc_finished)
+                except cmdexc.CommandError as e:
+                    message.error(str(e))
+
             # ~ expansion is handled by the userscript module.
-            self._run_userscript(cmd, *args, verbose=verbose)
+            # dirty hack for async call because of:
+            # https://bugreports.qt.io/browse/QTBUG-53134
+            # until it fixed or blocked async call implemented:
+            # https://github.com/qutebrowser/qutebrowser/issues/3327
+            caret = self._current_widget().caret
+            caret.selection(callback=_selection_callback)
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
@@ -1215,18 +1257,14 @@ class CommandDispatcher:
                 proc.start_detached(cmd, args)
             else:
                 proc.start(cmd, args)
-
-        if output:
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window='last-focused')
-            tabbed_browser.openurl(QUrl('qute://spawn-output'), newtab=True)
+            proc.finished.connect(_on_proc_finished)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def home(self):
         """Open main startpage in current tab."""
         self.openurl(config.val.url.start_pages[0])
 
-    def _run_userscript(self, cmd, *args, verbose=False):
+    def _run_userscript(self, selection, cmd, args, verbose):
         """Run a userscript given as argument.
 
         Args:
@@ -1236,21 +1274,15 @@ class CommandDispatcher:
         """
         env = {
             'QUTE_MODE': 'command',
+            'QUTE_SELECTED_TEXT': selection,
         }
 
         idx = self._current_index()
         if idx != -1:
             env['QUTE_TITLE'] = self._tabbed_browser.page_title(idx)
 
-        tab = self._tabbed_browser.currentWidget()
-        if tab is not None and tab.caret.has_selection():
-            env['QUTE_SELECTED_TEXT'] = tab.caret.selection()
-            try:
-                env['QUTE_SELECTED_HTML'] = tab.caret.selection(html=True)
-            except browsertab.UnsupportedOperationError:
-                pass
-
         # FIXME:qtwebengine: If tab is None, run_async will fail!
+        tab = self._tabbed_browser.currentWidget()
 
         try:
             url = self._tabbed_browser.current_url()
@@ -1260,10 +1292,11 @@ class CommandDispatcher:
             env['QUTE_URL'] = url.toString(QUrl.FullyEncoded)
 
         try:
-            userscripts.run_async(tab, cmd, *args, win_id=self._win_id,
-                                  env=env, verbose=verbose)
+            runner = userscripts.run_async(
+                tab, cmd, *args, win_id=self._win_id, env=env, verbose=verbose)
         except userscripts.Error as e:
             raise cmdexc.CommandError(e)
+        return runner
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def quickmark_save(self):
@@ -1325,7 +1358,8 @@ class CommandDispatcher:
         link:qute://bookmarks[bookmarks page].
 
         Args:
-            url: url to save as a bookmark. If None, use url of current page.
+            url: url to save as a bookmark. If not given, use url of current
+                 page.
             title: title of the new bookmark.
             toggle: remove the bookmark instead of raising an error if it
                     already exists.
@@ -1334,7 +1368,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError('Title must be provided if url has '
                                       'been provided')
         bookmark_manager = objreg.get('bookmark-manager')
-        if url is None:
+        if not url:
             url = self._current_url()
         else:
             try:
@@ -1434,8 +1468,7 @@ class CommandDispatcher:
             mhtml_: Download the current page and all assets as mhtml file.
         """
         # FIXME:qtwebengine do this with the QtWebEngine download manager?
-        download_manager = objreg.get('qtnetwork-download-manager',
-                                      scope='window', window=self._win_id)
+        download_manager = objreg.get('qtnetwork-download-manager')
         target = None
         if dest is not None:
             dest = downloads.transform_path(dest)
@@ -1480,34 +1513,26 @@ class CommandDispatcher:
             )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def view_source(self):
-        """Show the source of the current page in a new tab."""
-        tab = self._current_widget()
-        if tab.data.viewing_source:
-            raise cmdexc.CommandError("Already viewing source!")
+    def view_source(self, edit=False):
+        """Show the source of the current page in a new tab.
 
+        Args:
+            edit: Edit the source in the editor instead of opening a tab.
+        """
+        tab = self._current_widget()
         try:
             current_url = self._current_url()
         except cmdexc.CommandError as e:
             message.error(str(e))
             return
+        if current_url.scheme() == 'view-source':
+            raise cmdexc.CommandError("Already viewing source!")
 
-        def show_source_cb(source):
-            """Show source as soon as it's ready."""
-            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
-            # pylint: disable=no-member
-            lexer = pygments.lexers.HtmlLexer()
-            formatter = pygments.formatters.HtmlFormatter(
-                full=True, linenos='table',
-                title='Source for {}'.format(current_url.toDisplayString()))
-            # pylint: enable=no-member
-            highlighted = pygments.highlight(source, lexer, formatter)
-
-            new_tab = self._tabbed_browser.tabopen()
-            new_tab.set_html(highlighted)
-            new_tab.data.viewing_source = True
-
-        tab.dump_async(show_source_cb)
+        if edit:
+            ed = editor.ExternalEditor(self._tabbed_browser)
+            tab.dump_async(ed.edit)
+        else:
+            tab.action.show_source()
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
@@ -1613,9 +1638,11 @@ class CommandDispatcher:
 
         caret_position = elem.caret_position()
 
-        ed = editor.ExternalEditor(self._tabbed_browser)
-        ed.editing_finished.connect(functools.partial(
-            self.on_editing_finished, elem))
+        ed = editor.ExternalEditor(watch=True, parent=self._tabbed_browser)
+        ed.file_updated.connect(functools.partial(
+            self.on_file_updated, elem))
+        ed.editing_finished.connect(lambda: mainwindow.raise_window(
+            objreg.last_focused_window(), alert=False))
         ed.edit(text, caret_position)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -1628,10 +1655,10 @@ class CommandDispatcher:
         tab = self._current_widget()
         tab.elements.find_focused(self._open_editor_cb)
 
-    def on_editing_finished(self, elem, text):
+    def on_file_updated(self, elem, text):
         """Write the editor text into the form field and clean up tempfile.
 
-        Callback for GUIProcess when the editor was closed.
+        Callback for GUIProcess when the edited text was updated.
 
         Args:
             elem: The WebElementWrapper which was modified.
@@ -2137,7 +2164,7 @@ class CommandDispatcher:
         ed = editor.ExternalEditor(self._tabbed_browser)
 
         # Passthrough for openurl args (e.g. -t, -b, -w)
-        ed.editing_finished.connect(functools.partial(
+        ed.file_updated.connect(functools.partial(
             self._open_if_changed, old_url=old_url, bg=bg, tab=tab,
             window=window, private=private, related=related))
 
@@ -2195,11 +2222,4 @@ class CommandDispatcher:
             return
 
         window = self._tabbed_browser.window()
-        if window.isFullScreen():
-            window.setWindowState(
-                window.state_before_fullscreen & ~Qt.WindowFullScreen)
-        else:
-            window.state_before_fullscreen = window.windowState()
-            window.showFullScreen()
-        log.misc.debug('state before fullscreen: {}'.format(
-            debug.qflags_key(Qt, window.state_before_fullscreen)))
+        window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)

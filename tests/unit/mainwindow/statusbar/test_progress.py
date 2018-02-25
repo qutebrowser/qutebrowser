@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,6 +30,7 @@ from qutebrowser.utils import usertypes
 def progress_widget(qtbot, config_stub):
     """Create a Progress widget and checks its initial state."""
     widget = Progress()
+    widget.enabled = True
     qtbot.add_widget(widget)
     assert not widget.isVisible()
     assert not widget.isTextVisible()

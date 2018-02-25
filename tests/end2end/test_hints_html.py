@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -106,7 +106,7 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
         quteproc.set_setting('hints.find_implementation', find_implementation)
     quteproc.send_cmd(':zoom {}'.format(zoom_level))
     # follow hint
-    quteproc.send_cmd(':hint links normal')
+    quteproc.send_cmd(':hint all normal')
     quteproc.wait_for(message='hints: a', category='hints')
     quteproc.send_cmd(':follow-hint a')
     quteproc.wait_for_load_finished('data/' + parsed.target)

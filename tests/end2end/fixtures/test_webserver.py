@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,6 +22,7 @@
 import json
 import urllib.request
 import urllib.error
+from http import HTTPStatus
 
 import pytest
 
@@ -52,11 +53,38 @@ def test_server(server, qtbot, path, content, expected):
 
 
 @pytest.mark.parametrize('line, verb, path, equal', [
-    ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/', True),
-    ({'verb': 'GET', 'path': '/foo/', 'status': 200}, 'GET', '/foo', True),
+    ({'verb': 'GET', 'path': '/', 'status': HTTPStatus.OK}, 'GET', '/', True),
+    ({'verb': 'GET', 'path': '/foo/', 'status': HTTPStatus.OK},
+     'GET', '/foo', True),
+    ({'verb': 'GET', 'path': '/relative-redirect', 'status': HTTPStatus.FOUND},
+     'GET', '/relative-redirect', True),
+    ({'verb': 'GET', 'path': '/absolute-redirect', 'status': HTTPStatus.FOUND},
+     'GET', '/absolute-redirect', True),
+    ({'verb': 'GET', 'path': '/redirect-to', 'status': HTTPStatus.FOUND},
+     'GET', '/redirect-to', True),
+    ({'verb': 'GET', 'path': '/redirect-self', 'status': HTTPStatus.FOUND},
+     'GET', '/redirect-self', True),
+    ({'verb': 'GET', 'path': '/content-size', 'status': HTTPStatus.OK},
+     'GET', '/content-size', True),
+    ({'verb': 'GET', 'path': '/twenty-mb', 'status': HTTPStatus.OK},
+     'GET', '/twenty-mb', True),
+    ({'verb': 'GET', 'path': '/500-inline',
+      'status': HTTPStatus.INTERNAL_SERVER_ERROR}, 'GET', '/500-inline', True),
+    ({'verb': 'GET', 'path': '/basic-auth/user1/password1',
+      'status': HTTPStatus.UNAUTHORIZED},
+     'GET', '/basic-auth/user1/password1', True),
+    ({'verb': 'GET', 'path': '/drip', 'status': HTTPStatus.OK},
+     'GET', '/drip', True),
+    ({'verb': 'GET', 'path': '/404', 'status': HTTPStatus.NOT_FOUND},
+     'GET', '/404', True),
 
-    ({'verb': 'GET', 'path': '/', 'status': 200}, 'GET', '/foo', False),
-    ({'verb': 'POST', 'path': '/', 'status': 200}, 'GET', '/', False),
+    ({'verb': 'GET', 'path': '/', 'status': HTTPStatus.OK},
+     'GET', '/foo', False),
+    ({'verb': 'POST', 'path': '/', 'status': HTTPStatus.OK},
+     'GET', '/', False),
+    ({'verb': 'GET', 'path': '/basic-auth/user/password',
+      'status': HTTPStatus.UNAUTHORIZED},
+     'GET', '/basic-auth/user/passwd', False),
 ])
 def test_expected_request(server, line, verb, path, equal):
     expected = server.ExpectedRequest(verb, path)

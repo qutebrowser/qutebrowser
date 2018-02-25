@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Daniel Schadt
+# Copyright 2015-2018 Daniel Schadt
 #
 # This file is part of qutebrowser.
 #
@@ -23,7 +23,7 @@ import pytest
 
 from PyQt5.QtGui import QIcon, QPixmap
 
-from qutebrowser.mainwindow import tabwidget
+from qutebrowser.mainwindow import tabwidget, tabbedbrowser
 from qutebrowser.utils import usertypes
 
 
@@ -34,6 +34,14 @@ class TestTabWidget:
     @pytest.fixture
     def widget(self, qtbot, monkeypatch, config_stub):
         w = tabwidget.TabWidget(0)
+        qtbot.addWidget(w)
+        monkeypatch.setattr(tabwidget.objects, 'backend',
+                            usertypes.Backend.QtWebKit)
+        return w
+
+    @pytest.fixture
+    def browser(self, qtbot, monkeypatch, config_stub):
+        w = tabbedbrowser.TabbedBrowser(win_id=0, private=False)
         qtbot.addWidget(w)
         monkeypatch.setattr(tabwidget.objects, 'backend',
                             usertypes.Backend.QtWebKit)
@@ -53,15 +61,29 @@ class TestTabWidget:
         with qtbot.waitExposed(widget):
             widget.show()
 
+    @pytest.mark.parametrize("num_tabs", [4, 10])
     def test_update_tab_titles_benchmark(self, benchmark, widget,
-                                         qtbot, fake_web_tab):
+                                         qtbot, fake_web_tab, num_tabs):
         """Benchmark for update_tab_titles."""
-        widget.addTab(fake_web_tab(), 'foobar')
-        widget.addTab(fake_web_tab(), 'foobar2')
-        widget.addTab(fake_web_tab(), 'foobar3')
-        widget.addTab(fake_web_tab(), 'foobar4')
+        for i in range(num_tabs):
+            widget.addTab(fake_web_tab(), 'foobar' + str(i))
 
         with qtbot.waitExposed(widget):
             widget.show()
 
         benchmark(widget._update_tab_titles)
+
+    @pytest.mark.parametrize("num_tabs", [4, 10])
+    def test_add_remove_tab_benchmark(self, benchmark, browser,
+                                      qtbot, fake_web_tab, num_tabs):
+        """Benchmark for addTab and removeTab."""
+        def _run_bench():
+            for i in range(num_tabs):
+                browser.addTab(fake_web_tab(), 'foobar' + str(i))
+
+            with qtbot.waitExposed(browser):
+                browser.show()
+
+            browser.shutdown()
+
+        benchmark(_run_bench)

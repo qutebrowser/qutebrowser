@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,8 +30,10 @@ import time
 import textwrap
 import mimetypes
 import urllib
+import collections
 
 import pkg_resources
+import sip
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
@@ -198,6 +200,27 @@ def qute_bookmarks(_url):
                         title='Bookmarks',
                         bookmarks=bookmarks,
                         quickmarks=quickmarks)
+    return 'text/html', html
+
+
+@add_handler('tabs')
+def qute_tabs(_url):
+    """Handler for qute://tabs. Display information about all open tabs."""
+    tabs = collections.defaultdict(list)
+    for win_id, window in objreg.window_registry.items():
+        if sip.isdeleted(window):
+            continue
+        tabbed_browser = objreg.get('tabbed-browser',
+                                    scope='window',
+                                    window=win_id)
+        for tab in tabbed_browser.widgets():
+            if tab.url() not in [QUrl("qute://tabs/"), QUrl("qute://tabs")]:
+                urlstr = tab.url().toDisplayString()
+                tabs[str(win_id)].append((tab.title(), urlstr))
+
+    html = jinja.render('tabs.html',
+                        title='Tabs',
+                        tab_list_by_window=tabs)
     return 'text/html', html
 
 
@@ -435,6 +458,22 @@ def qute_settings(url):
     return 'text/html', html
 
 
+@add_handler('bindings')
+def qute_bindings(_url):
+    """Handler for qute://bindings. View keybindings."""
+    bindings = {}
+    defaults = config.val.bindings.default
+    modes = set(defaults.keys()).union(config.val.bindings.commands)
+    modes.remove('normal')
+    modes = ['normal'] + sorted(list(modes))
+    for mode in modes:
+        bindings[mode] = config.key_instance.get_bindings_for(mode)
+
+    html = jinja.render('bindings.html', title='Bindings',
+                        bindings=bindings)
+    return 'text/html', html
+
+
 @add_handler('back')
 def qute_back(url):
     """Handler for qute://back.
@@ -460,3 +499,10 @@ def qute_configdiff(url):
     else:
         data = config.instance.dump_userconfig().encode('utf-8')
         return 'text/plain', data
+
+
+@add_handler('pastebin-version')
+def qute_pastebin_version(_url):
+    """Handler that pastebins the version string."""
+    version.pastebin_version()
+    return 'text/plain', b'Paste called.'

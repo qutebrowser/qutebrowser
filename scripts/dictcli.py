@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017 Michal Siedlaczek <michal.siedlaczek@gmail.com>
+# Copyright 2017-2018 Michal Siedlaczek <michal.siedlaczek@gmail.com>
 
 # This file is part of qutebrowser.
 #

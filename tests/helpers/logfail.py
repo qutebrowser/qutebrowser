@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,7 +22,6 @@
 import logging
 
 import pytest
-import _pytest.logging
 
 
 class LogFailHandler(logging.Handler):
@@ -40,17 +39,8 @@ class LogFailHandler(logging.Handler):
         if logger.name == 'messagemock':
             return
 
-        for h in root_logger.handlers:
-            if isinstance(h, _pytest.logging.LogCaptureHandler):
-                capture_handler = h
-                break
-        else:
-            # The LogCaptureHandler is not available anymore during fixture
-            # teardown, so we ignore logging messages emitted there..
-            return
-
         if (logger.level == record.levelno or
-                capture_handler.level == record.levelno):
+                root_logger.level == record.levelno):
             # caplog.at_level(...) was used with the level of this message,
             # i.e.  it was expected.
             return

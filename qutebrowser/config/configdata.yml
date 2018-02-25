@@ -240,6 +240,7 @@ content.cache.appcache:
   default: true
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: >-
     Enable support for the HTML 5 web application cache feature.
 
@@ -298,12 +299,14 @@ content.dns_prefetch:
   default: true
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: Try to pre-fetch DNS entries to speed up browsing.
 
 content.frame_flattening:
   default: false
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: >-
     Expand each subframe to its contents.
 
@@ -360,7 +363,7 @@ content.headers.referer:
     When to send the Referer header.
 
     The Referer header tells websites from which website you were coming from
-    when visting them.
+    when visiting them.
 
 content.headers.user_agent:
   default: null
@@ -459,12 +462,14 @@ content.host_blocking.whitelist:
 content.hyperlink_auditing:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Enable hyperlink auditing (`<a ping>`).
 
 content.images:
   default: true
   type: Bool
   desc: Load images automatically in web pages.
+  supports_pattern: true
 
 content.javascript.alert:
   default: true
@@ -474,6 +479,7 @@ content.javascript.alert:
 content.javascript.can_access_clipboard:
   default: false
   type: Bool
+  supports_pattern: true
   desc: >-
     Allow JavaScript to read from or write to the clipboard.
 
@@ -484,16 +490,19 @@ content.javascript.can_close_tabs:
   default: false
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: Allow JavaScript to close tabs.
 
 content.javascript.can_open_tabs_automatically:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Allow JavaScript to open new tabs without user interaction.
 
 content.javascript.enabled:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Enable JavaScript.
 
 content.javascript.log:
@@ -536,16 +545,19 @@ content.javascript.prompt:
 content.local_content_can_access_remote_urls:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Allow locally loaded documents to access remote URLs.
 
 content.local_content_can_access_file_urls:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Allow locally loaded documents to access other local URLs.
 
 content.local_storage:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Enable support for HTML 5 local storage and Web SQL.
 
 content.media_capture:
@@ -583,6 +595,7 @@ content.pdfjs:
 content.plugins:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Enable plugins in Web pages.
 
 content.print_element_backgrounds:
@@ -591,6 +604,7 @@ content.print_element_backgrounds:
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.8
+  supports_pattern: true
   desc: >-
     Draw the background color and images also when the page is printed.
 
@@ -631,11 +645,13 @@ content.user_stylesheets:
 content.webgl:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Enable WebGL.
 
 content.xss_auditing:
   type: Bool
   default: false
+  supports_pattern: true
   desc: >-
     Monitor load requests for cross-site scripting attempts.
 
@@ -978,6 +994,7 @@ input.insert_mode.plugins:
 input.links_included_in_focus_chain:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Include hyperlinks in the keyboard focus chain when tabbing.
 
 input.partial_timeout:
@@ -1003,6 +1020,7 @@ input.rocker_gestures:
 input.spatial_navigation:
   default: false
   type: Bool
+  supports_pattern: true
   desc: >-
     Enable spatial navigation.
 
@@ -1083,6 +1101,7 @@ scrolling.bar:
 scrolling.smooth:
   type: Bool
   default: false
+  supports_pattern: true
   desc: >-
     Enable smooth scrolling for web pages.
 
@@ -1171,6 +1190,23 @@ statusbar.position:
   default: bottom
   desc: Position of the status bar.
 
+statusbar.widgets:
+  type:
+    name: List
+    valtype:
+      name: String
+      valid_values:
+        - url: "Current page URL."
+        - scroll: "Percentage of the current page position like `10%`."
+        - scroll_raw: "Raw percentage of the current page position like `10`."
+        - history: "Display an arrow when possible to go back/forward in history."
+        - tabs: "Current active tab, e.g. `2`."
+        - keypress: "Display pressed keys when composing a vi command."
+        - progress: "Progress bar for the current page loading."
+    none_ok: true
+  default: ['keypress', 'url', 'scroll', 'history', 'tabs', 'progress']
+  desc: List of widgets displayed in the statusbar.
+
 ## tabs
 
 tabs.background:
@@ -1251,10 +1287,15 @@ tabs.padding:
   type: Padding
   desc: Padding (in pixels) around text for tabs.
 
-tabs.persist_mode_on_change:
-  default: false
-  type: Bool
-  desc: Stay in insert/passthrough mode when switching tabs.
+tabs.mode_on_change:
+  default: normal
+  type:
+    name: String
+    valid_values:
+      - persist: "Retain the current mode."
+      - restore: "Restore previously saved mode."
+      - normal:  "Always revert to normal mode."
+  desc: When switching tabs, what input mode is applied.
 
 tabs.position:
   default: top
@@ -1418,7 +1459,7 @@ url.default_page:
 url.incdec_segments:
   type:
     name: FlagList
-    valid_values: [host, path, query, anchor]
+    valid_values: [host, port, path, query, anchor]
   default: [path, query]
   desc: URL segments where `:navigate increment/decrement` will search for
     a number.
@@ -1535,6 +1576,7 @@ zoom.text_only:
   type: Bool
   default: false
   backend: QtWebKit
+  supports_pattern: true
   desc: Apply the zoom factor on a frame only to the text or to all content.
 
 ## colors
@@ -2287,6 +2329,12 @@ bindings.default:
       <Ctrl-p>: tab-pin
       q: record-macro
       "@": run-macro
+      tsh: config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload
+      tSh: config-cycle -p -u *://{url:host}/* content.javascript.enabled ;; reload
+      tsH: config-cycle -p -t -u *://*.{url:host}/* content.javascript.enabled ;; reload
+      tSH: config-cycle -p -u *://*.{url:host}/* content.javascript.enabled ;; reload
+      tsu: config-cycle -p -t -u {url} content.javascript.enabled ;; reload
+      tSu: config-cycle -p -u {url} content.javascript.enabled ;; reload
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text {primary}
@@ -2338,6 +2386,8 @@ bindings.default:
       <Up>: prompt-item-focus prev
       <Tab>: prompt-item-focus next
       <Down>: prompt-item-focus next
+      <Alt-Y>: prompt-yank
+      <Alt-Shift-Y>: prompt-yank --sel
       <Ctrl-B>: rl-backward-char
       <Ctrl-F>: rl-forward-char
       <Alt-B>: rl-backward-word
@@ -2349,9 +2399,9 @@ bindings.default:
       <Alt-D>: rl-kill-word
       <Ctrl-W>: rl-unix-word-rubout
       <Alt-Backspace>: rl-backward-kill-word
-      <Ctrl-Y>: rl-yank
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
+      <Ctrl-Y>: rl-yank
       <Escape>: leave-mode
     caret:
       v: toggle-selection

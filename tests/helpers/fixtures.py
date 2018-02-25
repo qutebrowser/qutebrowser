@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -42,7 +42,8 @@ from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 import helpers.utils
-from qutebrowser.config import config, configdata, configtypes, configexc
+from qutebrowser.config import (config, configdata, configtypes, configexc,
+                                configfiles)
 from qutebrowser.utils import objreg, standarddir
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql
@@ -193,9 +194,9 @@ def configdata_init():
 
 
 @pytest.fixture
-def config_stub(stubs, monkeypatch, configdata_init):
+def config_stub(stubs, monkeypatch, configdata_init, config_tmpdir):
     """Fixture which provides a fake config object."""
-    yaml_config = stubs.FakeYamlConfig()
+    yaml_config = configfiles.YamlConfig()
 
     conf = config.Config(yaml_config=yaml_config)
     monkeypatch.setattr(config, 'instance', conf)

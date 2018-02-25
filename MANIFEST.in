@@ -8,7 +8,7 @@ graft icons
 graft doc/img
 graft misc/apparmor
 graft misc/userscripts
-recursive-include scripts *.py *.sh
+recursive-include scripts *.py *.sh *.js
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
 include LICENSE doc/* README.asciidoc
@@ -23,7 +23,7 @@ include qutebrowser/config/configdata.yml
 
 prune www
 prune scripts/dev
-prune scripts/testbrowser_cpp
+prune scripts/testbrowser/cpp
 prune .github
 exclude scripts/asciidoc2html.py
 exclude doc/notes

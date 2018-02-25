@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017 Jay Kamat
+# Copyright 2017-2018 Jay Kamat
 #
 # This file is part of qutebrowser.
 #

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,7 +26,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
-from qutebrowser.utils import objreg, utils, message, standarddir
+from qutebrowser.utils import objreg, utils, message, standarddir, urlmatch
 from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
 from qutebrowser.keyinput import keyutils
@@ -48,25 +48,46 @@ class ConfigCommands:
         except configexc.Error as e:
             raise cmdexc.CommandError(str(e))
 
-    def _print_value(self, option):
+    def _parse_pattern(self, pattern):
+        """Parse a pattern string argument to a pattern."""
+        if pattern is None:
+            return None
+
+        try:
+            return urlmatch.UrlPattern(pattern)
+        except urlmatch.ParseError as e:
+            raise cmdexc.CommandError("Error while parsing {}: {}"
+                                      .format(pattern, str(e)))
+
+    def _print_value(self, option, pattern):
         """Print the value of the given option."""
         with self._handle_config_error():
-            value = self._config.get_str(option)
-        message.info("{} = {}".format(option, value))
+            value = self._config.get_str(option, pattern=pattern)
+
+        text = "{} = {}".format(option, value)
+        if pattern is not None:
+            text += " for {}".format(pattern)
+        message.info(text)
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.option)
     @cmdutils.argument('value', completion=configmodel.value)
     @cmdutils.argument('win_id', win_id=True)
-    def set(self, win_id, option=None, value=None, temp=False, print_=False):
+    @cmdutils.argument('pattern', flag='u')
+    def set(self, win_id, option=None, value=None, temp=False, print_=False,
+            *, pattern=None):
         """Set an option.
 
         If the option name ends with '?', the value of the option is shown
         instead.
 
+        Using :set without any arguments opens a page where settings can be
+        changed interactively.
+
         Args:
             option: The name of the option.
             value: The value to set.
+            pattern: The URL pattern to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
@@ -80,8 +101,10 @@ class ConfigCommands:
             raise cmdexc.CommandError("Toggling values was moved to the "
                                       ":config-cycle command")
 
+        pattern = self._parse_pattern(pattern)
+
         if option.endswith('?') and option != '?':
-            self._print_value(option[:-1])
+            self._print_value(option[:-1], pattern=pattern)
             return
 
         with self._handle_config_error():
@@ -89,27 +112,39 @@ class ConfigCommands:
                 raise cmdexc.CommandError("set: The following arguments "
                                           "are required: value")
             else:
-                self._config.set_str(option, value, save_yaml=not temp)
+                self._config.set_str(option, value, pattern=pattern,
+                                     save_yaml=not temp)
 
         if print_:
-            self._print_value(option)
+            self._print_value(option, pattern=pattern)
 
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
     @cmdutils.argument('command', completion=configmodel.bind)
-    def bind(self, key, command=None, *, mode='normal', default=False):
+    @cmdutils.argument('win_id', win_id=True)
+    def bind(self, win_id, key=None, command=None, *, mode='normal',
+             default=False):
         """Bind a key to a command.
+
+        If no command is given, show the current binding for the given key.
+        Using :bind without any arguments opens a page showing all keybindings.
 
         Args:
             key: The keychain or special key (inside `<...>`) to bind.
-            command: The command to execute, with optional args, or None to
-                     print the current binding.
+            command: The command to execute, with optional args.
             mode: A comma-separated list of modes to bind the key in
                   (default: `normal`). See `:help bindings.commands` for the
                   available modes.
             default: If given, restore a default binding.
         """
+        if key is None:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+            tabbed_browser.openurl(QUrl('qute://bindings'), newtab=True)
+            return
+
         seq = keyutils.KeySequence.parse(key)
+
         if command is None:
             if default:
                 # :bind --default: Restore default
@@ -151,18 +186,24 @@ class ConfigCommands:
     @cmdutils.register(instance='config-commands', star_args_optional=True)
     @cmdutils.argument('option', completion=configmodel.option)
     @cmdutils.argument('values', completion=configmodel.value)
-    def config_cycle(self, option, *values, temp=False, print_=False):
+    @cmdutils.argument('pattern', flag='u')
+    def config_cycle(self, option, *values, pattern=None, temp=False,
+                     print_=False):
         """Cycle an option between multiple values.
 
         Args:
             option: The name of the option.
             values: The values to cycle through.
+            pattern: The URL pattern to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
+        pattern = self._parse_pattern(pattern)
+
         with self._handle_config_error():
             opt = self._config.get_opt(option)
-            old_value = self._config.get_obj(option, mutable=False)
+            old_value = self._config.get_obj_for_pattern(option,
+                                                         pattern=pattern)
 
         if not values and isinstance(opt.typ, configtypes.Bool):
             values = ['true', 'false']
@@ -184,10 +225,11 @@ class ConfigCommands:
             value = values[0]
 
         with self._handle_config_error():
-            self._config.set_obj(option, value, save_yaml=not temp)
+            self._config.set_obj(option, value, pattern=pattern,
+                                 save_yaml=not temp)
 
         if print_:
-            self._print_value(option)
+            self._print_value(option, pattern=pattern)
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.customized_option)
@@ -243,7 +285,7 @@ class ConfigCommands:
         Args:
             no_source: Don't re-source the config file after editing.
         """
-        def on_editing_finished():
+        def on_file_updated():
             """Source the new config when editing finished.
 
             This can't use cmdexc.CommandError as it's run async.
@@ -253,9 +295,9 @@ class ConfigCommands:
             except configexc.ConfigFileErrors as e:
                 message.error(str(e))
 
-        ed = editor.ExternalEditor(self._config)
+        ed = editor.ExternalEditor(watch=True, parent=self._config)
         if not no_source:
-            ed.editing_finished.connect(on_editing_finished)
+            ed.file_updated.connect(on_file_updated)
 
         filename = os.path.join(standarddir.config(), 'config.py')
         ed.edit_file(filename)
@@ -281,13 +323,16 @@ class ConfigCommands:
                                       "overwrite!".format(filename))
 
         if defaults:
-            options = [(opt, opt.default)
+            options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]
             bindings = dict(configdata.DATA['bindings.default'].default)
             commented = True
         else:
-            options = list(self._config)
-            bindings = dict(self._config.get_obj('bindings.commands'))
+            options = []
+            for values in self._config:
+                for scoped in values:
+                    options.append((scoped.pattern, values.opt, scoped.value))
+            bindings = dict(self._config.get_mutable_obj('bindings.commands'))
             commented = False
 
         writer = configfiles.ConfigPyWriter(options, bindings,

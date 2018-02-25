@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,6 +28,11 @@ import re
 import pytest
 
 from PyQt5.QtCore import QProcess, qVersion
+
+
+ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
+                                  reason="Python >= 3.7 doesn't force ASCII "
+                                  "locale with LC_ALL=C")
 
 
 def _base_args(config):
@@ -73,6 +78,7 @@ def temp_basedir_env(tmpdir, short_tmpdir):
 
 
 @pytest.mark.linux
+@ascii_locale
 def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
     """Test downloads with LC_ALL=C set.
 
@@ -107,6 +113,7 @@ def test_downloads_with_ascii_locale(request, server, tmpdir, quteproc_new):
 
 @pytest.mark.linux
 @pytest.mark.parametrize('url', ['/föö.html', 'file:///föö.html'])
+@ascii_locale
 def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
     """Test opening non-ascii URL with LC_ALL=C set.
 
@@ -130,6 +137,7 @@ def test_open_with_ascii_locale(request, server, tmpdir, quteproc_new, url):
 
 
 @pytest.mark.linux
+@ascii_locale
 def test_open_command_line_with_ascii_locale(request, server, tmpdir,
                                              quteproc_new):
     """Test opening file via command line with a non-ascii name with LC_ALL=C.

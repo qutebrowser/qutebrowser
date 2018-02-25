@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utilities to show various version informations."""
+"""Utilities to show various version information."""
 
 import re
 import sys
@@ -29,6 +29,7 @@ import importlib
 import collections
 import enum
 import datetime
+import getpass
 
 import attr
 import pkg_resources
@@ -49,8 +50,8 @@ except ImportError:  # pragma: no cover
     QWebEngineProfile = None
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes
-from qutebrowser.misc import objects, earlyinit, sql
+from qutebrowser.utils import log, utils, standarddir, usertypes, message
+from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin
 from qutebrowser.browser import pdfjs
 
 
@@ -65,6 +66,7 @@ class DistributionInfo:
     pretty = attr.ib()
 
 
+pastebin_url = None
 Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
                      'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
@@ -167,7 +169,7 @@ def _git_str_subprocess(gitpath):
 
 
 def _release_info():
-    """Try to gather distribution release informations.
+    """Try to gather distribution release information.
 
     Return:
         list of (filename, content) tuples.
@@ -335,7 +337,7 @@ def _uptime() -> datetime.timedelta:
 
 
 def version():
-    """Return a string with various version informations."""
+    """Return a string with various version information."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
     gitver = _git_str()
     if gitver is not None:
@@ -449,3 +451,39 @@ def opengl_vendor():  # pragma: no cover
         ctx.doneCurrent()
         if old_context and old_surface:
             old_context.makeCurrent(old_surface)
+
+
+def pastebin_version(pbclient=None):
+    """Pastebin the version and log the url to messages."""
+    def _yank_url(url):
+        utils.set_clipboard(url)
+        message.info("Version url {} yanked to clipboard.".format(url))
+
+    def _on_paste_version_success(url):
+        global pastebin_url
+        _yank_url(url)
+        pbclient.deleteLater()
+        pastebin_url = url
+
+    def _on_paste_version_err(text):
+        message.error("Failed to pastebin version"
+                      " info: {}".format(text))
+        pbclient.deleteLater()
+
+    if pastebin_url:
+        _yank_url(pastebin_url)
+        return
+
+    app = QApplication.instance()
+    http_client = httpclient.HTTPClient()
+
+    misc_api = pastebin.PastebinClient.MISC_API_URL
+    pbclient = pbclient or pastebin.PastebinClient(http_client, parent=app,
+                                                   api_url=misc_api)
+
+    pbclient.success.connect(_on_paste_version_success)
+    pbclient.error.connect(_on_paste_version_err)
+
+    pbclient.paste(getpass.getuser(),
+                   "qute version info {}".format(qutebrowser.__version__),
+                   version())

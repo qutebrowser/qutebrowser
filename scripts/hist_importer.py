@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2017 Josefson Souza <josefson.br@gmail.com>
+# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2018 Josefson Souza <josefson.br@gmail.com>
 
 # This file is part of qutebrowser.
 #
@@ -100,16 +100,23 @@ def clean(history):
     """Clean up records from source database.
 
     Receives a list of record and sanityze them in order for them to be
-    properly imported to qutebrowser. Sanitation requires addiing a 4th
+    properly imported to qutebrowser. Sanitation requires adding a 4th
     attribute 'redirect' which is filled with '0's, and also purging all
     records that have a NULL/None datetime attribute.
 
     Args:
         history: List of records (datetime, url, title) from source database.
     """
-    nulls = [record for record in history if record[0] is None]
-    for null_datetime in nulls:
-        history.remove(null_datetime)
+    # replace missing titles with an empty string
+    for index, record in enumerate(history):
+        if record[1] is None:
+            cleaned = list(record)
+            cleaned[1] = ''
+            history[index] = tuple(cleaned)
+
+    nulls = [record for record in history if None in record]
+    for null_record in nulls:
+        history.remove(null_record)
     history = [list(record) for record in history]
     for record in history:
         record.append('0')
@@ -142,7 +149,8 @@ def run():
     source, dest = args.source, args.dest
     query = {
         'firefox': 'select url,title,last_visit_date/1000000 as date '
-                   'from moz_places',
+                   'from moz_places where url like "http%" or url '
+                   'like "ftp%" or url like "file://%"',
         'chrome': 'select url,title,last_visit_time/10000000 as date '
                   'from urls',
     }

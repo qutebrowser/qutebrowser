@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,6 +20,7 @@
 """Download manager."""
 
 import io
+import os.path
 import shutil
 import functools
 
@@ -198,21 +199,23 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _ask_confirm_question(self, title, msg):
         no_action = functools.partial(self.cancel, remove_data=False)
+        url = 'file://{}'.format(self._filename)
         message.confirm_async(title=title, text=msg,
                               yes_action=self._after_set_filename,
                               no_action=no_action, cancel_action=no_action,
-                              abort_on=[self.cancelled, self.error])
+                              abort_on=[self.cancelled, self.error], url=url)
 
     def _ask_create_parent_question(self, title, msg,
                                     force_overwrite, remember_directory):
         no_action = functools.partial(self.cancel, remove_data=False)
+        url = 'file://{}'.format(os.path.dirname(self._filename))
         message.confirm_async(title=title, text=msg,
                               yes_action=(lambda:
                                           self._after_create_parent_question(
                                               force_overwrite,
                                               remember_directory)),
                               no_action=no_action, cancel_action=no_action,
-                              abort_on=[self.cancelled, self.error])
+                              abort_on=[self.cancelled, self.error], url=url)
 
     def _set_fileobj(self, fileobj, *, autoclose=True):
         """Set the file object to write the download to.
@@ -378,10 +381,10 @@ class DownloadManager(downloads.AbstractDownloadManager):
         _networkmanager: A NetworkManager for generic downloads.
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self._networkmanager = networkmanager.NetworkManager(
-            win_id=win_id, tab_id=None,
+            win_id=None, tab_id=None,
             private=config.val.content.private_browsing, parent=self)
 
     @pyqtSlot('QUrl')

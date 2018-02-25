@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -46,6 +46,7 @@ class Progress(QProgressBar):
     def __init__(self, parent=None):
         super().__init__(parent)
         config.set_register_stylesheet(self)
+        self.enabled = False
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setTextVisible(False)
         self.hide()
@@ -57,12 +58,12 @@ class Progress(QProgressBar):
     def on_load_started(self):
         """Clear old error and show progress, used as slot to loadStarted."""
         self.setValue(0)
-        self.show()
+        self.setVisible(self.enabled)
 
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
         self.setValue(tab.progress())
-        if tab.load_status() == usertypes.LoadStatus.loading:
+        if self.enabled and tab.load_status() == usertypes.LoadStatus.loading:
             self.show()
         else:
             self.hide()

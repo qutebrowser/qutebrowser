@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,46 +24,36 @@ import mimetypes
 from PyQt5.QtNetwork import QNetworkReply
 
 from qutebrowser.browser import pdfjs, qutescheme
-from qutebrowser.browser.webkit.network import schemehandler, networkreply
+from qutebrowser.browser.webkit.network import networkreply
 from qutebrowser.utils import log, usertypes, qtutils
 
 
-class QuteSchemeHandler(schemehandler.SchemeHandler):
+def handler(request):
+    """Scheme handler for qute:// URLs.
 
-    """Scheme handler for qute:// URLs."""
+    Args:
+        request: QNetworkRequest to answer to.
 
-    def createRequest(self, _op, request, _outgoing_data):
-        """Create a new request.
+    Return:
+        A QNetworkReply.
+    """
+    try:
+        mimetype, data = qutescheme.data_for_url(request.url())
+    except qutescheme.NoHandlerFound:
+        errorstr = "No handler found for {}!".format(
+            request.url().toDisplayString())
+        return networkreply.ErrorNetworkReply(
+            request, errorstr, QNetworkReply.ContentNotFoundError)
+    except qutescheme.QuteSchemeOSError as e:
+        return networkreply.ErrorNetworkReply(
+            request, str(e), QNetworkReply.ContentNotFoundError)
+    except qutescheme.QuteSchemeError as e:
+        return networkreply.ErrorNetworkReply(request, e.errorstring, e.error)
+    except qutescheme.Redirect as e:
+        qtutils.ensure_valid(e.url)
+        return networkreply.RedirectNetworkReply(e.url)
 
-        Args:
-             request: const QNetworkRequest & req
-             _op: Operation op
-             _outgoing_data: QIODevice * outgoingData
-
-        Return:
-            A QNetworkReply.
-        """
-        try:
-            mimetype, data = qutescheme.data_for_url(request.url())
-        except qutescheme.NoHandlerFound:
-            errorstr = "No handler found for {}!".format(
-                request.url().toDisplayString())
-            return networkreply.ErrorNetworkReply(
-                request, errorstr, QNetworkReply.ContentNotFoundError,
-                self.parent())
-        except qutescheme.QuteSchemeOSError as e:
-            return networkreply.ErrorNetworkReply(
-                request, str(e), QNetworkReply.ContentNotFoundError,
-                self.parent())
-        except qutescheme.QuteSchemeError as e:
-            return networkreply.ErrorNetworkReply(request, e.errorstring,
-                                                  e.error, self.parent())
-        except qutescheme.Redirect as e:
-            qtutils.ensure_valid(e.url)
-            return networkreply.RedirectNetworkReply(e.url, self.parent())
-
-        return networkreply.FixedDataNetworkReply(request, data, mimetype,
-                                                  self.parent())
+    return networkreply.FixedDataNetworkReply(request, data, mimetype)
 
 
 @qutescheme.add_handler('pdfjs', backend=usertypes.Backend.QtWebKit)

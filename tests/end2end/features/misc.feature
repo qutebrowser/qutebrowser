@@ -436,6 +436,11 @@ Feature: Various utility commands.
         And I run :message-info {clipboard}bar{url}
         Then the message "foobarhttp://localhost:*/hello.txt" should be shown
 
+    Scenario: escaping {{url}} variable
+        When I open data/hello.txt
+        And I run :message-info foo{{url}}bar
+        Then the message "foo{url}bar" should be shown
+
     @xfail_norun
     Scenario: {url} in clipboard should not be expanded
         When I open data/hello.txt

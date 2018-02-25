@@ -225,15 +225,11 @@ Feature: Searching on a page
         Then the following tabs should be open:
             - data/search.html (active)
 
-    # Following a link selected via JS doesn't work in Qt 5.10 anymore.
-    @qt!=5.10
     Scenario: Follow a manually selected link
         When I run :jseval --file (testdata)/search_select.js
         And I run :follow-selected
         Then data/hello.txt should be loaded
 
-    # Following a link selected via JS doesn't work in Qt 5.10 anymore.
-    @qt!=5.10
     Scenario: Follow a manually selected link in a new tab
         When I run :window-only
         And I run :jseval --file (testdata)/search_select.js
@@ -241,4 +237,25 @@ Feature: Searching on a page
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/search.html
+            - data/hello.txt (active)
+
+    @qtwebkit_skip: Not supported in qtwebkit
+    Scenario: Follow a searched link in an iframe
+        When I open data/iframe_search.html
+        And I run :tab-only
+        And I run :search follow
+        And I wait for "search found follow" in the log
+        And I run :follow-selected
+        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, is_main_frame False" should be logged
+
+    @qtwebkit_skip: Not supported in qtwebkit
+    Scenario: Follow a tabbed searched link in an iframe
+        When I open data/iframe_search.html
+        And I run :tab-only
+        And I run :search follow
+        And I wait for "search found follow" in the log
+        And I run :follow-selected -t
+        And I wait until data/hello.txt is loaded
+        Then the following tabs should be open:
+            - data/iframe_search.html
             - data/hello.txt (active)

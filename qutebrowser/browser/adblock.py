@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -176,8 +176,7 @@ class HostBlocker:
                               self._config_blocked_hosts)
         self._blocked_hosts = set()
         self._done_count = 0
-        download_manager = objreg.get('qtnetwork-download-manager',
-                                      scope='window', window='last-focused')
+        download_manager = objreg.get('qtnetwork-download-manager')
         for url in config.val.content.host_blocking.lists:
             if url.scheme() == 'file':
                 filename = url.toLocalFile()

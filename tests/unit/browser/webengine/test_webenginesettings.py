@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -32,7 +32,8 @@ def init_profiles(qapp, config_stub, cache_tmpdir, data_tmpdir):
 def test_big_cache_size(config_stub):
     """Make sure a too big cache size is handled correctly."""
     config_stub.val.content.cache.size = 2 ** 63 - 1
-    webenginesettings._update_settings('content.cache.size')
+    profile = webenginesettings.default_profile
 
-    size = webenginesettings.default_profile.httpCacheMaximumSize()
-    assert size == 2 ** 31 - 1
+    webenginesettings._set_http_cache_size(profile)
+
+    assert profile.httpCacheMaximumSize() == 2 ** 31 - 1

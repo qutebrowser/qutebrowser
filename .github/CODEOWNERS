@@ -8,3 +8,5 @@ tests/unit/completion/*  @rcorre
 tests/unit/misc/test_sql.py  @rcorre
 
 qutebrowser/config/configdata.yml  @mschilli87
+
+qutebrowser/javascript/caret.js @artur-shaik

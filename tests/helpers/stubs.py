@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -261,6 +261,9 @@ class FakeWebTab(browsertab.AbstractTab):
     def load_status(self):
         return self._load_status
 
+    def shutdown(self):
+        pass
+
 
 class FakeSignal:
 
@@ -403,33 +406,6 @@ class InstaTimer(QObject):
         fun()
 
 
-class FakeYamlConfig:
-
-    """Fake configfiles.YamlConfig object."""
-
-    def __init__(self):
-        self.loaded = False
-        self._values = {}
-
-    def __contains__(self, item):
-        return item in self._values
-
-    def __iter__(self):
-        return iter(self._values.items())
-
-    def __setitem__(self, key, value):
-        self._values[key] = value
-
-    def __getitem__(self, key):
-        return self._values[key]
-
-    def unset(self, name):
-        self._values.pop(name, None)
-
-    def clear(self):
-        self._values = []
-
-
 class StatusBarCommandStub(QLineEdit):
 
     """Stub for the statusbar command prompt."""
@@ -560,3 +536,25 @@ class ApplicationStub(QObject):
     """Stub to insert as the app object in objreg."""
 
     new_window = pyqtSignal(mainwindow.MainWindow)
+
+
+class HTTPPostStub(QObject):
+
+    """A stub class for HTTPClient.
+
+    Attributes:
+        url: the last url send by post()
+        data: the last data send by post()
+    """
+
+    success = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.url = None
+        self.data = None
+
+    def post(self, url, data=None):
+        self.url = url
+        self.data = data

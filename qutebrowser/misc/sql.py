@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -114,6 +114,11 @@ def init(db_path):
         error = database.lastError()
         raise SqliteError("Failed to open sqlite database at {}: {}"
                           .format(db_path, error.text()), error)
+
+    # Enable write-ahead-logging and reduce disk write frequency
+    # see https://sqlite.org/pragma.html and issues #2930 and #3507
+    Query("PRAGMA journal_mode=WAL").run()
+    Query("PRAGMA synchronous=NORMAL").run()
 
 
 def close():

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -63,7 +63,7 @@ def pytest_runtest_makereport(item, call):
     if (not hasattr(report.longrepr, 'addsection') or
             not hasattr(report, 'scenario')):
         # In some conditions (on macOS and Windows it seems), report.longrepr
-        # is actually a tuple. This is handled similarily in pytest-qt too.
+        # is actually a tuple. This is handled similarly in pytest-qt too.
         #
         # Since this hook is invoked for any test, we also need to skip it for
         # non-BDD ones.
@@ -389,7 +389,7 @@ def clear_ssl_errors(request, quteproc):
 def path_should_be_loaded(quteproc, path):
     """Make sure the given path was loaded according to the log.
 
-    This is usally the better check compared to "should be requested" as the
+    This is usually the better check compared to "should be requested" as the
     page could be loaded from local cache.
     """
     quteproc.wait_for_load_finished(path)

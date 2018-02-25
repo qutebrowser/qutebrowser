@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,9 +19,7 @@
 
 """Our own QNetworkAccessManager."""
 
-import os
 import collections
-import netrc
 import html
 
 import attr
@@ -127,10 +125,13 @@ class NetworkManager(QNetworkAccessManager):
         _scheme_handlers: A dictionary (scheme -> handler) of supported custom
                           schemes.
         _win_id: The window ID this NetworkManager is associated with.
+                 (or None for generic network managers)
         _tab_id: The tab ID this NetworkManager is associated with.
+                 (or None for generic network managers)
         _rejected_ssl_errors: A {QUrl: [SslError]} dict of rejected errors.
         _accepted_ssl_errors: A {QUrl: [SslError]} dict of accepted errors.
         _private: Whether we're in private browsing mode.
+        netrc_used: Whether netrc authentication was performed.
 
     Signals:
         shutting_down: Emitted when the QNAM is shutting down.
@@ -150,8 +151,8 @@ class NetworkManager(QNetworkAccessManager):
         self._tab_id = tab_id
         self._private = private
         self._scheme_handlers = {
-            'qute': webkitqutescheme.QuteSchemeHandler(win_id),
-            'file': filescheme.FileSchemeHandler(win_id),
+            'qute': webkitqutescheme.handler,
+            'file': filescheme.handler,
         }
         self._set_cookiejar()
         self._set_cache()
@@ -161,6 +162,7 @@ class NetworkManager(QNetworkAccessManager):
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
+        self.netrc_used = False
 
     def _set_cookiejar(self):
         """Set the cookie jar of the NetworkManager correctly."""
@@ -194,6 +196,7 @@ class NetworkManager(QNetworkAccessManager):
         # This might be a generic network manager, e.g. one belonging to a
         # DownloadManager. In this case, just skip the webview thing.
         if self._tab_id is not None:
+            assert self._win_id is not None
             tab = objreg.get('tab', scope='tab', window=self._win_id,
                              tab=self._tab_id)
             abort_on.append(tab.load_started)
@@ -270,28 +273,12 @@ class NetworkManager(QNetworkAccessManager):
     @pyqtSlot('QNetworkReply*', 'QAuthenticator*')
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
-        user, password = None, None
-        if not hasattr(reply, "netrc_used") and 'HOME' in os.environ:
-            # We'll get an OSError by netrc if 'HOME' isn't available in
-            # os.environ. We don't want to log that, so we prevent it
-            # altogether.
-            reply.netrc_used = True
-            try:
-                net = netrc.netrc(config.val.content.netrc_file)
-                authenticators = net.authenticators(reply.url().host())
-                if authenticators is not None:
-                    (user, _account, password) = authenticators
-            except FileNotFoundError:
-                log.misc.debug("No .netrc file found")
-            except OSError:
-                log.misc.exception("Unable to read the netrc file")
-            except netrc.NetrcParseError:
-                log.misc.exception("Error when parsing the netrc file")
-
-        if user is not None:
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
-        else:
+        netrc_success = False
+        if not self.netrc_used:
+            self.netrc_used = True
+            netrc_success = shared.netrc_authentication(reply.url(),
+                                                        authenticator)
+        if not netrc_success:
             abort_on = self._get_abort_signals(reply)
             shared.authentication_required(reply.url(), authenticator,
                                            abort_on=abort_on)
@@ -386,9 +373,9 @@ class NetworkManager(QNetworkAccessManager):
 
         scheme = req.url().scheme()
         if scheme in self._scheme_handlers:
-            result = self._scheme_handlers[scheme].createRequest(
-                op, req, outgoing_data)
+            result = self._scheme_handlers[scheme](req)
             if result is not None:
+                result.setParent(self)
                 return result
 
         for header, value in shared.custom_headers():
@@ -408,6 +395,7 @@ class NetworkManager(QNetworkAccessManager):
         current_url = QUrl()
 
         if self._tab_id is not None:
+            assert self._win_id is not None
             try:
                 tab = objreg.get('tab', scope='tab', window=self._win_id,
                                  tab=self._tab_id)
