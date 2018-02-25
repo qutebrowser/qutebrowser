@@ -171,5 +171,5 @@ Feature: Javascript stuff
     @qtwebkit_skip
     Scenario: Error pages without JS enabled
         When I set content.javascript.enabled to false
-        And I open 500
+        And I open 500 without waiting
         Then "Showing error page for* 500" should be logged
