@@ -128,68 +128,7 @@ def key_to_string(key):
 
 def keyevent_to_string(e):
     """Convert a QKeyEvent to a meaningful name."""
-    return key_with_modifiers_to_string(e.key(), e.modifiers())
-
-
-def key_with_modifiers_to_string(key, modifiers):
-    """Convert a Qt.Key with modifiers to a meaningful name.
-
-    Return:
-        A name of the key (combination) as a string or
-        None if only modifiers are pressed..
-    """
-    if utils.is_mac:
-        # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the user
-        # can use it in the config as expected. See:
-        # https://github.com/qutebrowser/qutebrowser/issues/110
-        # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
-        modmask2str = collections.OrderedDict([
-            (Qt.MetaModifier, 'Ctrl'),
-            (Qt.AltModifier, 'Alt'),
-            (Qt.ControlModifier, 'Meta'),
-            (Qt.ShiftModifier, 'Shift'),
-        ])
-    else:
-        modmask2str = collections.OrderedDict([
-            (Qt.ControlModifier, 'Ctrl'),
-            (Qt.AltModifier, 'Alt'),
-            (Qt.MetaModifier, 'Meta'),
-            (Qt.ShiftModifier, 'Shift'),
-        ])
-
-    modifier_keys = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
-                     Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
-                     Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
-                     Qt.Key_Direction_R)
-    if key in modifier_keys:
-        # Only modifier pressed
-        return None
-    parts = []
-
-    for (mask, s) in modmask2str.items():
-        if modifiers & mask and s not in parts:
-            parts.append(s)
-
-    key_string = key_to_string(key)
-
-    # FIXME needed?
-    if len(key_string) == 1:
-        category = unicodedata.category(key_string)
-        is_control_char = (category == 'Cc')
-    else:
-        is_control_char = False
-
-    if modifiers == Qt.ShiftModifier and not is_control_char:
-        parts = []
-
-    parts.append(key_string)
-    normalized = normalize_keystr('+'.join(parts))
-    if len(normalized) > 1:
-        # "special" binding
-        return '<{}>'.format(normalized)
-    else:
-        # "normal" binding
-        return normalized
+    return str(KeyInfo(e.key(), e.modifiers()))
 
 
 class KeyParseError(Exception):
@@ -239,6 +178,80 @@ def normalize_keystr(keystr):
     return keystr
 
 
+@attr.s
+class KeyInfo:
+
+    """A key with optional modifiers.
+
+    Attributes:
+        key: A Qt::Key member.
+        modifiers: A Qt::KeyboardModifiers enum value.
+    """
+
+    key = attr.ib()
+    modifiers = attr.ib()
+
+    def __str__(self):
+        """Convert this KeyInfo to a meaningful name.
+
+        Return:
+            A name of the key (combination) as a string or
+            an empty string if only modifiers are pressed.
+        """
+        if utils.is_mac:
+            # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the user
+            # can use it in the config as expected. See:
+            # https://github.com/qutebrowser/qutebrowser/issues/110
+            # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
+            modmask2str = collections.OrderedDict([
+                (Qt.MetaModifier, 'Ctrl'),
+                (Qt.AltModifier, 'Alt'),
+                (Qt.ControlModifier, 'Meta'),
+                (Qt.ShiftModifier, 'Shift'),
+            ])
+        else:
+            modmask2str = collections.OrderedDict([
+                (Qt.ControlModifier, 'Ctrl'),
+                (Qt.AltModifier, 'Alt'),
+                (Qt.MetaModifier, 'Meta'),
+                (Qt.ShiftModifier, 'Shift'),
+            ])
+
+        modifier_keys = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
+                        Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
+                        Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
+                        Qt.Key_Direction_R)
+        if self.key in modifier_keys:
+            # Only modifier pressed
+            return ''
+        parts = []
+
+        for (mask, s) in modmask2str.items():
+            if self.modifiers & mask and s not in parts:
+                parts.append(s)
+
+        key_string = key_to_string(self.key)
+
+        # FIXME needed?
+        if len(key_string) == 1:
+            category = unicodedata.category(key_string)
+            is_control_char = (category == 'Cc')
+        else:
+            is_control_char = False
+
+        if self.modifiers == Qt.ShiftModifier and not is_control_char:
+            parts = []
+
+        parts.append(key_string)
+        normalized = normalize_keystr('+'.join(parts))
+        if len(normalized) > 1:
+            # "special" binding
+            return '<{}>'.format(normalized)
+        else:
+            # "normal" binding
+            return normalized
+
+
 class KeySequence:
 
     def __init__(self, *args):
@@ -248,16 +261,20 @@ class KeySequence:
         # FIXME handle more than 4 keys
 
     def __str__(self):
+        parts = []
+        for info in self._sequence:
+            parts.append(str(info))
+        return ''.join(parts)
+
+    def __iter__(self):
+        """Iterate over KeyInfo objects."""
         modifier_mask = int(Qt.ShiftModifier | Qt.ControlModifier |
                             Qt.AltModifier | Qt.MetaModifier |
                             Qt.KeypadModifier | Qt.GroupSwitchModifier)
-        parts = []
         for key in self._sequence:
-            part = key_with_modifiers_to_string(
+            yield KeyInfo(
                 key=int(key) & ~modifier_mask,
-                modifiers=int(key) & modifier_mask)
-            parts.append(part)
-        return ''.join(parts)
+                modifiers=Qt.KeyboardModifiers(int(key) & modifier_mask))
 
     def __repr__(self):
         return utils.get_repr(self, keys=str(self))
