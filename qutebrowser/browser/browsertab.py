@@ -30,7 +30,8 @@ from PyQt5.QtWidgets import QWidget, QApplication
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
-from qutebrowser.utils import utils, objreg, usertypes, log, qtutils
+from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
+                               urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import mouse, hints
 
@@ -94,6 +95,8 @@ class TabData:
         keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
                    load.
         inspector: The QWebInspector used for this webview.
+        open_target: Where to open the next link.
+                     Only used for QtWebKit.
         override_target: Override for open_target for fake clicks (like hints).
                          Only used for QtWebKit.
         pinned: Flag to pin the tab.
@@ -104,6 +107,7 @@ class TabData:
 
     keep_icon = attr.ib(False)
     inspector = attr.ib(None)
+    open_target = attr.ib(usertypes.ClickTarget.normal)
     override_target = attr.ib(None)
     pinned = attr.ib(False)
     fullscreen = attr.ib(False)
@@ -612,6 +616,7 @@ class AbstractTab(QWidget):
                                      process terminated.
                                      arg 0: A TerminationStatus member.
                                      arg 1: The exit code.
+        predicted_navigation: Emitted before we tell Qt to open a URL.
     """
 
     window_close_requested = pyqtSignal()
@@ -629,6 +634,7 @@ class AbstractTab(QWidget):
     add_history_item = pyqtSignal(QUrl, QUrl, str)  # url, requested url, title
     fullscreen_requested = pyqtSignal(bool)
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
+    predicted_navigation = pyqtSignal(QUrl)
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         self.private = private
@@ -659,6 +665,9 @@ class AbstractTab(QWidget):
         objreg.register('hintmanager', hintmanager, scope='tab',
                         window=self.win_id, tab=self.tab_id)
 
+        self.predicted_navigation.connect(
+            lambda url: self.title_changed.emit(url.toDisplayString()))
+
     def _set_widget(self, widget):
         # pylint: disable=protected-access
         self._widget = widget
@@ -671,6 +680,7 @@ class AbstractTab(QWidget):
         self.printing._widget = widget
         self.action._widget = widget
         self.elements._widget = widget
+        self.settings._settings = widget.settings()
 
         self._install_event_filter()
         self.zoom.set_default()
@@ -718,6 +728,22 @@ class AbstractTab(QWidget):
         self._has_ssl_errors = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
+
+    @pyqtSlot(usertypes.NavigationRequest)
+    def _on_navigation_request(self, navigation):
+        """Handle common acceptNavigationRequest code."""
+        log.webview.debug("navigation request: url {}, type {}, is_main_frame "
+                          "{}".format(navigation.url.toDisplayString(),
+                                      navigation.navigation_type,
+                                      navigation.is_main_frame))
+
+        if (navigation.navigation_type == navigation.Type.link_clicked and
+                not navigation.url.isValid()):
+            msg = urlutils.get_errstring(navigation.url,
+                                         "Invalid link clicked")
+            message.error(msg)
+            self.data.open_target = usertypes.ClickTarget.normal
+            navigation.accepted = False
 
     def handle_auto_insert_mode(self, ok):
         """Handle `input.insert_mode.auto_load` after loading finished."""
@@ -790,7 +816,7 @@ class AbstractTab(QWidget):
 
     def _openurl_prepare(self, url):
         qtutils.ensure_valid(url)
-        self.title_changed.emit(url.toDisplayString())
+        self.predicted_navigation.emit(url)
 
     def openurl(self, url):
         raise NotImplementedError

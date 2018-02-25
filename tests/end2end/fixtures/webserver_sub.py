@@ -49,6 +49,7 @@ def root():
 
 
 @app.route('/data/<path:path>')
+@app.route('/data2/<path:path>')  # for per-URL settings
 def send_data(path):
     """Send a given data file to qutebrowser.
 
@@ -177,6 +178,14 @@ def internal_error_attachment():
     })
     response.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
     return response
+
+
+@app.route('/500')
+def internal_error():
+    """A normal 500 error."""
+    r = flask.make_response()
+    r.status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+    return r
 
 
 @app.route('/cookies')

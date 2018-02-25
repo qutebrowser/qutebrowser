@@ -29,8 +29,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror, webenginesettings
 from qutebrowser.config import config
-from qutebrowser.utils import (log, debug, usertypes, jinja, urlutils, message,
-                               objreg, qtutils)
+from qutebrowser.utils import log, debug, usertypes, jinja, objreg, qtutils
 
 
 class WebEngineView(QWebEngineView):
@@ -124,10 +123,12 @@ class WebEnginePage(QWebEnginePage):
     Signals:
         certificate_error: Emitted on certificate errors.
         shutting_down: Emitted when the page is shutting down.
+        navigation_request: Emitted on acceptNavigationRequest.
     """
 
     certificate_error = pyqtSignal()
     shutting_down = pyqtSignal()
+    navigation_request = pyqtSignal(usertypes.NavigationRequest)
 
     def __init__(self, *, theme_color, profile, parent=None):
         super().__init__(profile, parent)
@@ -288,21 +289,26 @@ class WebEnginePage(QWebEnginePage):
                                 url: QUrl,
                                 typ: QWebEnginePage.NavigationType,
                                 is_main_frame: bool):
-        """Override acceptNavigationRequest to handle clicked links.
-
-        This only show an error on invalid links - everything else is handled
-        in createWindow.
-        """
-        log.webview.debug("navigation request: url {}, type {}, is_main_frame "
-                          "{}".format(url.toDisplayString(),
-                                      debug.qenum_key(QWebEnginePage, typ),
-                                      is_main_frame))
-        if (typ == QWebEnginePage.NavigationTypeLinkClicked and
-                not url.isValid()):
-            msg = urlutils.get_errstring(url, "Invalid link clicked")
-            message.error(msg)
-            return False
-        return True
+        """Override acceptNavigationRequest to forward it to the tab API."""
+        type_map = {
+            QWebEnginePage.NavigationTypeLinkClicked:
+                usertypes.NavigationRequest.Type.link_clicked,
+            QWebEnginePage.NavigationTypeTyped:
+                usertypes.NavigationRequest.Type.typed,
+            QWebEnginePage.NavigationTypeFormSubmitted:
+                usertypes.NavigationRequest.Type.form_submitted,
+            QWebEnginePage.NavigationTypeBackForward:
+                usertypes.NavigationRequest.Type.back_forward,
+            QWebEnginePage.NavigationTypeReload:
+                usertypes.NavigationRequest.Type.reloaded,
+            QWebEnginePage.NavigationTypeOther:
+                usertypes.NavigationRequest.Type.other,
+        }
+        navigation = usertypes.NavigationRequest(url=url,
+                                                 navigation_type=type_map[typ],
+                                                 is_main_frame=is_main_frame)
+        self.navigation_request.emit(navigation)
+        return navigation.accepted
 
     @pyqtSlot('QUrl')
     def _inject_userjs(self, url):

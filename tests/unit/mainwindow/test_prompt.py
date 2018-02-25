@@ -56,22 +56,25 @@ class TestFileCompletion:
     def test_simple_completion(self, tmpdir, get_prompt, steps, where,
                                subfolder):
         """Simply trying to tab through items."""
+        testdir = tmpdir / 'test'
         for directory in 'abc':
-            (tmpdir / directory).ensure(dir=True)
+            (testdir / directory).ensure(dir=True)
 
-        prompt = get_prompt(str(tmpdir) + os.sep)
+        prompt = get_prompt(str(testdir) + os.sep)
 
         for _ in range(steps):
             prompt.item_focus(where)
 
-        assert prompt._lineedit.text() == str(tmpdir / subfolder)
+        assert prompt._lineedit.text() == str(testdir / subfolder)
 
     def test_backspacing_path(self, qtbot, tmpdir, get_prompt):
         """When we start deleting a path we want to see the subdir."""
-        for directory in ['bar', 'foo']:
-            (tmpdir / directory).ensure(dir=True)
+        testdir = tmpdir / 'test'
 
-        prompt = get_prompt(str(tmpdir / 'foo') + os.sep)
+        for directory in ['bar', 'foo']:
+            (testdir / directory).ensure(dir=True)
+
+        prompt = get_prompt(str(testdir / 'foo') + os.sep)
 
         # Deleting /f[oo/]
         with qtbot.wait_signal(prompt._file_model.directoryLoaded):
@@ -81,7 +84,7 @@ class TestFileCompletion:
         # We should now show / again, so tabbing twice gives us .. -> bar
         prompt.item_focus('next')
         prompt.item_focus('next')
-        assert prompt._lineedit.text() == str(tmpdir / 'bar')
+        assert prompt._lineedit.text() == str(testdir / 'bar')
 
     @pytest.mark.linux
     def test_root_path(self, get_prompt):

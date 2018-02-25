@@ -54,6 +54,12 @@ def test_backend_error():
     assert str(e) == expected
 
 
+def test_no_pattern_error():
+    e = configexc.NoPatternError('foo')
+    expected = "The foo setting does not support URL patterns!"
+    assert str(e) == expected
+
+
 def test_desc_with_text():
     """Test ConfigErrorDesc.with_text."""
     old = configexc.ConfigErrorDesc("Error text", Exception("Exception text"))

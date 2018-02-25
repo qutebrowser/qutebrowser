@@ -100,14 +100,15 @@ class TestEarlyInit:
 
         # Check config values
         if config_py:
-            assert config.instance._values == {'colors.hints.bg': 'red'}
+            expected = 'colors.hints.bg = red'
         else:
-            assert config.instance._values == {}
+            expected = '<Default configuration>'
+        assert config.instance.dump_userconfig() == expected
 
     @pytest.mark.parametrize('load_autoconfig', [True, False])  # noqa
     @pytest.mark.parametrize('config_py', [True, 'error', False])
-    @pytest.mark.parametrize('invalid_yaml', ['42', 'unknown', 'wrong-type',
-                                              False])
+    @pytest.mark.parametrize('invalid_yaml', ['42', 'list', 'unknown',
+                                              'wrong-type', False])
     def test_autoconfig_yml(self, init_patch, config_tmpdir, caplog, args,
                             load_autoconfig, config_py, invalid_yaml):
         """Test interaction between config.py and autoconfig.yml."""
@@ -115,14 +116,30 @@ class TestEarlyInit:
         autoconfig_file = config_tmpdir / 'autoconfig.yml'
         config_py_file = config_tmpdir / 'config.py'
 
-        yaml_text = {
+        yaml_lines = {
             '42': '42',
-            'unknown': 'global:\n  colors.foobar: magenta\n',
-            'wrong-type': 'global:\n  tabs.position: true\n',
-            False: 'global:\n  colors.hints.fg: magenta\n',
+            'list': '[1, 2]',
+            'unknown': [
+                'settings:',
+                '  colors.foobar:',
+                '    global: magenta',
+                'config_version: 2',
+            ],
+            'wrong-type': [
+                'settings:',
+                '  tabs.position:',
+                '    global: true',
+                'config_version: 2',
+            ],
+            False: [
+                'settings:',
+                '  colors.hints.fg:',
+                '    global: magenta',
+                'config_version: 2',
+            ],
         }
-        autoconfig_file.write_text(yaml_text[invalid_yaml], 'utf-8',
-                                   ensure=True)
+        text = '\n'.join(yaml_lines[invalid_yaml])
+        autoconfig_file.write_text(text, 'utf-8', ensure=True)
 
         if config_py:
             config_py_lines = ['c.colors.hints.bg = "red"']
@@ -141,7 +158,7 @@ class TestEarlyInit:
 
         if load_autoconfig or not config_py:
             suffix = ' (autoconfig.yml)' if config_py else ''
-            if invalid_yaml == '42':
+            if invalid_yaml in ['42', 'list']:
                 error = ("While loading data{}: Toplevel object is not a dict"
                          .format(suffix))
                 expected_errors.append(error)
@@ -165,17 +182,21 @@ class TestEarlyInit:
         assert actual_errors == expected_errors
 
         # Check config values
+        dump = config.instance.dump_userconfig()
+
         if config_py and load_autoconfig and not invalid_yaml:
-            assert config.instance._values == {
-                'colors.hints.bg': 'red',
-                'colors.hints.fg': 'magenta',
-            }
+            expected = [
+                'colors.hints.bg = red',
+                'colors.hints.fg = magenta',
+            ]
         elif config_py:
-            assert config.instance._values == {'colors.hints.bg': 'red'}
+            expected = ['colors.hints.bg = red']
         elif invalid_yaml:
-            assert config.instance._values == {}
+            expected = ['<Default configuration>']
         else:
-            assert config.instance._values == {'colors.hints.fg': 'magenta'}
+            expected = ['colors.hints.fg = magenta']
+
+        assert dump == '\n'.join(expected)
 
     def test_invalid_change_filter(self, init_patch, args):
         config.change_filter('foobar')
@@ -185,7 +206,7 @@ class TestEarlyInit:
     def test_temp_settings_valid(self, init_patch, args):
         args.temp_settings = [('colors.completion.fg', 'magenta')]
         configinit.early_init(args)
-        assert config.instance._values['colors.completion.fg'] == 'magenta'
+        assert config.instance.get_obj('colors.completion.fg') == 'magenta'
 
     def test_temp_settings_invalid(self, caplog, init_patch, message_mock,
                                    args):
@@ -198,7 +219,6 @@ class TestEarlyInit:
         msg = message_mock.getmsg()
         assert msg.level == usertypes.MessageLevel.error
         assert msg.text == "set: NoOptionError - No option 'foo'"
-        assert 'colors.completion.fg' not in config.instance._values
 
     @pytest.mark.parametrize('settings, size, family', [
         # Only fonts.monospace customized
@@ -220,8 +240,9 @@ class TestEarlyInit:
             args.temp_settings = settings
         elif method == 'auto':
             autoconfig_file = config_tmpdir / 'autoconfig.yml'
-            lines = ["global:"] + ["  {}: '{}'".format(k, v)
-                                   for k, v in settings]
+            lines = (["config_version: 2", "settings:"] +
+                     ["  {}:\n    global:\n      '{}'".format(k, v)
+                      for k, v in settings])
             autoconfig_file.write_text('\n'.join(lines), 'utf-8', ensure=True)
         elif method == 'py':
             config_py_file = config_tmpdir / 'config.py'

@@ -48,6 +48,7 @@ class Option:
     backends = attr.ib()
     raw_backends = attr.ib()
     description = attr.ib()
+    supports_pattern = attr.ib(default=False)
     restart = attr.ib(default=False)
 
 
@@ -197,7 +198,8 @@ def _read_yaml(yaml_data):
     migrations = Migrations()
     data = utils.yaml_load(yaml_data)
 
-    keys = {'type', 'default', 'desc', 'backend', 'restart'}
+    keys = {'type', 'default', 'desc', 'backend', 'restart',
+            'supports_pattern'}
 
     for name, option in data.items():
         if set(option.keys()) == {'renamed'}:
@@ -223,7 +225,9 @@ def _read_yaml(yaml_data):
             backends=_parse_yaml_backends(name, backends),
             raw_backends=backends if isinstance(backends, dict) else None,
             description=option['desc'],
-            restart=option.get('restart', False))
+            restart=option.get('restart', False),
+            supports_pattern=option.get('supports_pattern', False),
+        )
 
     # Make sure no key shadows another.
     for key1 in parsed:

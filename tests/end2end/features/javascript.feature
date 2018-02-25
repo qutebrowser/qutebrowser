@@ -151,3 +151,25 @@ Feature: Javascript stuff
         And I run :greasemonkey-reload
         And I open data/hints/iframe.html
         Then the javascript message "Script is running on /data/hints/html/wrapped.html" should not be logged
+
+    Scenario: Per-URL localstorage setting
+        When I set content.local_storage to false
+        And I run :set -u http://localhost:*/data2/* content.local_storage true
+        And I open data/javascript/localstorage.html
+        And I wait for "[*] local storage is not working" in the log
+        And I open data2/javascript/localstorage.html
+        Then the javascript message "local storage is working" should be logged
+
+    Scenario: Per-URL JavaScript setting
+        When I set content.javascript.enabled to false
+        And I run :set -u http://localhost:*/data2/* content.javascript.enabled true
+        And I open data2/javascript/enabled.html
+        And I wait for "[*] JavaScript is enabled" in the log
+        And I open data/javascript/enabled.html
+        Then the page should contain the plaintext "JavaScript is disabled"
+
+    @qtwebkit_skip
+    Scenario: Error pages without JS enabled
+        When I set content.javascript.enabled to false
+        And I open 500 without waiting
+        Then "Showing error page for* 500" should be logged

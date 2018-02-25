@@ -419,6 +419,8 @@ def _generate_setting_option(f, opt):
     f.write(opt.description + "\n")
     if opt.restart:
         f.write("This setting requires a restart.\n")
+    if opt.supports_pattern:
+        f.write("\nThis setting supports URL patterns.\n")
     f.write("\n")
     typ = opt.typ.get_name().replace(',', '&#44;')
     f.write('Type: <<types,{typ}>>\n'.format(typ=typ))
