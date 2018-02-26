@@ -256,7 +256,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
         """
         self._read_config()
         self.bindings.update({keyutils.KeySequence.parse(s):
-                              'follow-hint ' + s for s in strings})
+                              'follow-hint -s ' + s for s in strings})
         if not preserve_filter:
             self._filtertext = ''
 
