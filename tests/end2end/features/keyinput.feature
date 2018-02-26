@@ -54,7 +54,7 @@ Feature: Keyboard input
 
     Scenario: :fake-key with an unparsable key
         When I run :fake-key <blub>
-        Then the error "Could not parse 'blub': Got unknown key." should be shown
+        Then the error "Could not parse '<blub>': Got unknown key." should be shown
 
     Scenario: :fake-key sending key to the website
         When I open data/keyinput/log.html
