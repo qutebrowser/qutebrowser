@@ -251,6 +251,13 @@ class KeyInfo:
             # "normal" binding
             return normalized
 
+    def text(self):
+        """Get the text which would be displayed when pressing this key."""
+        text = QKeySequence(self.key).toString()
+        if not self.modifiers & Qt.ShiftModifier:
+            text = text.lower()
+        return text
+
 
 class KeySequence:
 
@@ -327,6 +334,7 @@ class KeySequence:
     @classmethod
     def parse(cls, keystr):
         """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
+        # FIXME have multiple sequences in self!
         s = ', '.join(_parse_keystring(keystr))
         new = cls(s)
         assert len(new) > 0

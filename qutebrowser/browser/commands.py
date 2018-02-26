@@ -34,7 +34,7 @@ from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configdata
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
-from qutebrowser.keyinput import modeman
+from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, standarddir)
 from qutebrowser.utils.usertypes import KeyMode
@@ -2111,17 +2111,15 @@ class CommandDispatcher:
             keystring: The keystring to send.
             global_: If given, the keys are sent to the qutebrowser UI.
         """
-        # FIXME: rewrite
         try:
-            keyinfos = utils.parse_keystring(keystring)
-        except utils.KeyParseError as e:
+            sequence = keyutils.KeySequence.parse(keystring)
+        except keyutils.KeyParseError as e:
             raise cmdexc.CommandError(str(e))
 
-        for keyinfo in keyinfos:
-            press_event = QKeyEvent(QEvent.KeyPress, keyinfo.key,
-                                    keyinfo.modifiers, keyinfo.text)
-            release_event = QKeyEvent(QEvent.KeyRelease, keyinfo.key,
-                                      keyinfo.modifiers, keyinfo.text)
+        for keyinfo in sequence:
+            args = (keyinfo.key, keyinfo.modifiers, keyinfo.text())
+            press_event = QKeyEvent(QEvent.KeyPress, *args)
+            release_event = QKeyEvent(QEvent.KeyRelease, *args)
 
             if global_:
                 window = QApplication.focusWindow()
