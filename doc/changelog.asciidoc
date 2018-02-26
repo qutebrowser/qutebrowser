@@ -102,6 +102,7 @@ Fixed
 - Compatibility with Python 3.7
 - Exception types are now shown properly with `:config-source` and `:config-edit`.
 - When using `:bookmark-add --toggle`, bookmarks are now saved properly.
+- Crash when opening an invalid URL from an application on macOS.
 
 Removed
 ~~~~~~~
