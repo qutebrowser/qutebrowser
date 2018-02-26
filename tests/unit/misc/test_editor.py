@@ -177,7 +177,7 @@ def test_modify(qtbot, editor, initial_text, edited_text):
     with qtbot.wait_signal(editor.file_updated) as blocker:
         editor._proc.finished.emit(0, QProcess.NormalExit)
 
-    assert blocker.args == [edited_text]
+    assert blocker.args[0] == edited_text
 
 
 def _update_file(filename, contents):
@@ -201,11 +201,11 @@ def test_modify_watch(qtbot):
 
     with qtbot.wait_signal(editor.file_updated, timeout=3000) as blocker:
         _update_file(editor._filename, 'bar')
-    assert blocker.args == ['bar']
+    assert blocker.args[0] == 'bar'
 
     with qtbot.wait_signal(editor.file_updated) as blocker:
         _update_file(editor._filename, 'baz')
-    assert blocker.args == ['baz']
+    assert blocker.args[0] == 'baz'
 
     with qtbot.assert_not_emitted(editor.file_updated):
         editor._proc.finished.emit(0, QProcess.NormalExit)
@@ -227,7 +227,7 @@ def test_failing_watch(qtbot, caplog, monkeypatch):
 
     with qtbot.wait_signal(editor.file_updated) as blocker:
         editor._proc.finished.emit(0, QProcess.NormalExit)
-    assert blocker.args == ['bar']
+    assert blocker.args[0] == 'bar'
 
     message = 'Failed to watch path: {}'.format(editor._filename)
     assert caplog.records[0].msg == message
@@ -247,6 +247,18 @@ def test_failing_unwatch(qtbot, caplog, monkeypatch):
 
     message = 'Failed to unwatch paths: [{!r}]'.format(editor._filename)
     assert caplog.records[-1].msg == message
+
+
+def test_callback_error(qtbot, editor, caplog):
+    """Test that a backup is kept if the callback fails."""
+    def fail(data, backup_needed):
+        backup_needed()
+
+    editor.file_updated.connect(fail)
+    editor.edit('')
+
+    editor._proc.finished.emit(0, QProcess.NormalExit)
+    assert os.path.exists(editor._filename)
 
 
 @pytest.mark.parametrize('text, caret_position, result', [
