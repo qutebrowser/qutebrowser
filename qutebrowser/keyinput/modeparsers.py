@@ -27,6 +27,7 @@ import traceback
 import enum
 
 from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtGui import QKeySequence
 
 from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
@@ -73,9 +74,9 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         if self._inhibited:
             self._debug_log("Ignoring key '{}', because the normal mode is "
                             "currently inhibited.".format(txt))
-            return self.Match.none
+            return QKeySequence.NoMatch
         match = super()._handle_single_key(e)
-        if match == self.Match.partial:
+        if match == QKeySequence.PartialMatch:
             timeout = config.val.input.partial_timeout
             if timeout != 0:
                 self._partial_timer.setInterval(timeout)
@@ -97,9 +98,9 @@ class NormalKeyParser(keyparser.CommandKeyParser):
     def _clear_partial_match(self):
         """Clear a partial keystring after a timeout."""
         self._debug_log("Clearing partial keystring {}".format(
-            self._keystring))
-        self._keystring = ''
-        self.keystring_updated.emit(self._keystring)
+            self._sequence))
+        self._sequence = keyutils.KeySequence()
+        self.keystring_updated.emit(str(self._sequence))
 
     @pyqtSlot()
     def _clear_inhibited(self):
@@ -174,28 +175,28 @@ class HintKeyParser(keyparser.CommandKeyParser):
                                  window=self._win_id, tab='current')
         if e.key() == Qt.Key_Backspace:
             log.keyboard.debug("Got backspace, mode {}, filtertext '{}', "
-                               "keystring '{}'".format(self._last_press,
-                                                       self._filtertext,
-                                                       self._keystring))
+                               "sequence '{}'".format(self._last_press,
+                                                      self._filtertext,
+                                                      self._sequence))
             if self._last_press == LastPress.filtertext and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
                 hintmanager.filter_hints(self._filtertext)
                 return True
-            elif self._last_press == LastPress.keystring and self._keystring:
-                self._keystring = self._keystring[:-1]
-                self.keystring_updated.emit(self._keystring)
-                if not self._keystring and self._filtertext:
+            elif self._last_press == LastPress.keystring and self._sequence:
+                self._sequence = self._sequence.remove_last()
+                self.keystring_updated.emit(str(self._sequence))
+                if not self._sequence and self._filtertext:
                     # Switch back to hint filtering mode (this can happen only
                     # in numeric mode after the number has been deleted).
                     hintmanager.filter_hints(self._filtertext)
                     self._last_press = LastPress.filtertext
                 return True
             else:
-                return super()._handle_special_key(e)
+                return False
         elif hintmanager.current_mode() != 'number':
-            return super()._handle_special_key(e)
+            return False
         elif not e.text():
-            return super()._handle_special_key(e)
+            return False
         else:
             self._filtertext += e.text()
             hintmanager.filter_hints(self._filtertext)
@@ -212,17 +213,17 @@ class HintKeyParser(keyparser.CommandKeyParser):
             True if the match has been handled, False otherwise.
         """
         # FIXME rewrite this
-        match = self._handle_single_key(e)
-        if match == self.Match.partial:
-            self.keystring_updated.emit(self._keystring)
+        match = super().handle(e)
+        if match == QKeySequence.PartialMatch:
+            self.keystring_updated.emit(str(self._sequence))
             self._last_press = LastPress.keystring
             return True
-        elif match == self.Match.definitive:
+        elif match == QKeySequence.ExactMatch:
             self._last_press = LastPress.none
             return True
-        elif match == self.Match.other:
+        elif match is None:  # FIXME
             return None
-        elif match == self.Match.none:
+        elif match == QKeySequence.NoMatch:
             # We couldn't find a keychain so we check if it's a special key.
             return self._handle_special_key(e)
         else:
@@ -248,7 +249,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
             preserve_filter: Whether to keep the current value of
                              `self._filtertext`.
         """
-        self.bindings = {s: s for s in strings}
+        self.bindings = {keyutils.KeySequence(s): s for s in strings}
         if not preserve_filter:
             self._filtertext = ''
 

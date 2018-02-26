@@ -118,7 +118,7 @@ class BaseKeyParser(QObject):
             e: the KeyPressEvent from Qt.
 
         Return:
-            A self.Match member.
+            A QKeySequence match or None.
         """
         key = e.key()
         txt = keyutils.keyevent_to_string(e)
@@ -186,8 +186,10 @@ class BaseKeyParser(QObject):
                          - The found binding with Match.definitive.
         """
         assert sequence
+        assert not isinstance(sequence, str)
 
         for seq, cmd in self.bindings.items():
+            assert not isinstance(seq, str), seq
             match = sequence.matches(seq)
             if match != QKeySequence.NoMatch:
                 return (match, cmd)
@@ -238,6 +240,7 @@ class BaseKeyParser(QObject):
         self.bindings = {}
 
         for key, cmd in config.key_instance.get_bindings_for(modename).items():
+            assert not isinstance(key, str), key
             assert cmd
             self.bindings[key] = cmd
 

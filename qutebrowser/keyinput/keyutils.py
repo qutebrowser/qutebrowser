@@ -352,6 +352,7 @@ class KeySequence:
 
         modifiers = ev.modifiers()
         if (modifiers == Qt.ShiftModifier and
+                ev.text() and
                 unicodedata.category(ev.text()) != 'Lu'):
             modifiers = Qt.KeyboardModifiers()
 
@@ -361,6 +362,17 @@ class KeySequence:
         else:
             new._sequences.append(QKeySequence(ev.key() | int(modifiers)))
 
+        new._validate()
+        return new
+
+    def remove_last(self):
+        """Create a new KeySequence with the last key removed."""
+        new = self.__class__()
+        new._sequences = self._sequeces[:]
+        if len(new._sequences[-1]) == 1:
+            del new._sequences[-1]
+        else:
+            new._sequences[-1] = QKeySequence(*new._sequences[-1][:-1])
         new._validate()
         return new
 
