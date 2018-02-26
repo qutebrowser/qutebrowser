@@ -60,8 +60,8 @@ class NormalKeyParser(keyparser.CommandKeyParser):
     def __repr__(self):
         return utils.get_repr(self)
 
-    def _handle_single_key(self, e):
-        """Override _handle_single_key to abort if the key is a startchar.
+    def handle(self, e):
+        """Override to abort if the key is a startchar.
 
         Args:
             e: the KeyPressEvent from Qt.
@@ -69,13 +69,14 @@ class NormalKeyParser(keyparser.CommandKeyParser):
         Return:
             A self.Match member.
         """
-        # FIXME rewrite this
         txt = e.text().strip()
         if self._inhibited:
             self._debug_log("Ignoring key '{}', because the normal mode is "
                             "currently inhibited.".format(txt))
             return QKeySequence.NoMatch
-        match = super()._handle_single_key(e)
+
+        match = super().handle(e)
+
         if match == QKeySequence.PartialMatch:
             timeout = config.val.input.partial_timeout
             if timeout != 0:
