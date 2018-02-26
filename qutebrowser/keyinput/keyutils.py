@@ -356,8 +356,9 @@ class KeySequence:
         """
         # pylint: disable=protected-access
         modifiers = ev.modifiers()
+
         if (modifiers == Qt.ShiftModifier and
-                ev.text() and
+                len(ev.text()) == 1 and
                 unicodedata.category(ev.text()) != 'Lu'):
             modifiers = Qt.KeyboardModifiers()
 
