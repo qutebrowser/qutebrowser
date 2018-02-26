@@ -34,5 +34,11 @@ Feature: Using focustools
         And I open data/autofocus.html
         Then an element should be focused
 
+    Scenario: Clear autofocusable elements on second page load
+        When I set input.blur_on_load.enabled to true
+        And I open data/input.html
+        And I open data/autofocus.html
+        Then no element should be focused
+
 
     # TODO test delayed autofocusable elements as well

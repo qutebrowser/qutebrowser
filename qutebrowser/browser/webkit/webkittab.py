@@ -771,13 +771,14 @@ class WebKitTab(browsertab.AbstractTab):
         """Handle clearing focus when the page is first loaded."""
         if not config.val.input.blur_on_load.enabled:
             return
+        frame = self._widget.page().mainFrame()
         code = """
             window.addEventListener("DOMContentLoaded", () => {{
                 if (document.activeElement)
                     document.activeElement.blur()
                 }});
         """
-        self.mainFrame().evaluateJavaScript(code)
+        frame.evaluateJavaScript(code)
 
         if config.val.input.blur_on_load.delay < 0:
             return
@@ -786,10 +787,10 @@ class WebKitTab(browsertab.AbstractTab):
             window.addEventListener("load", () => setTimeout(
                 () => {{
                     if (document.activeElement)
-                        document.activeElement.blur()}},
+                        document.activeElement.blur();}},
                 {}));
             """.format(config.val.input.blur_on_load.delay)
-        self.mainFrame().evaluateJavaScript(code)
+        frame.evaluateJavaScript(code)
 
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
