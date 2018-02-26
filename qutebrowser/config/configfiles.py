@@ -33,6 +33,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 
 import qutebrowser
 from qutebrowser.config import configexc, config, configdata, configutils
+from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
 
 
@@ -357,12 +358,14 @@ class ConfigAPI:
     def bind(self, key, command, mode='normal'):
         """Bind a key to a command, with an optional key mode."""
         with self._handle_error('binding', key):
-            self._keyconfig.bind(key, command, mode=mode)
+            seq = keyutils.KeySequence.parse(key)
+            self._keyconfig.bind(seq, command, mode=mode)
 
     def unbind(self, key, mode='normal'):
         """Unbind a key from a command, with an optional key mode."""
         with self._handle_error('unbinding', key):
-            self._keyconfig.unbind(key, mode=mode)
+            seq = keyutils.KeySequence.parse(key)
+            self._keyconfig.unbind(seq, mode=mode)
 
     def source(self, filename):
         """Read the given config file from disk."""
