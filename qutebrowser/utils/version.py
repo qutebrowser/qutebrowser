@@ -486,4 +486,5 @@ def pastebin_version(pbclient=None):
 
     pbclient.paste(getpass.getuser(),
                    "qute version info {}".format(qutebrowser.__version__),
-                   version())
+                   version(),
+                   private=True)

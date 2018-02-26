@@ -79,6 +79,20 @@ def test_paste_without_parent(data, pbclient):
     assert http_stub.url == QUrl('https://crashes.qutebrowser.org/api/create')
 
 
+def test_paste_private(pbclient):
+    data = {
+        "name": "the name",
+        "title": "the title",
+        "text": "some Text",
+        "apikey": "ihatespam",
+        "private": "1",
+    }
+    http_stub = pbclient._client
+    pbclient.paste(data["name"], data["title"], data["text"], private=True)
+    assert pbclient._client.data == data
+    assert http_stub.url == QUrl('https://crashes.qutebrowser.org/api/create')
+
+
 @pytest.mark.parametrize('http', [
     "http://paste.the-compiler.org/view/ges83nt3",
     "http://paste.the-compiler.org/view/3gjnwg4"
