@@ -137,7 +137,11 @@ class KeyParseError(Exception):
     """Raised by _parse_single_key/parse_keystring on parse errors."""
 
     def __init__(self, keystr, error):
-        super().__init__("Could not parse {!r}: {}".format(keystr, error))
+        if keystr is None:
+            msg = "Could not parse keystring: {}".format(error)
+        else:
+            msg = "Could not parse {!r}: {}".format(keystr, error)
+        super().__init__(msg)
 
 
 def _parse_keystring(keystr):
@@ -322,9 +326,10 @@ class KeySequence:
     def _iter_keys(self):
         return itertools.chain.from_iterable(self._sequences)
 
-    def _validate(self):
+    def _validate(self, keystr=None):
         for info in self:
-            assert info.key != Qt.Key_unknown
+            if info.key == Qt.Key_unknown:
+                raise KeyParseError(keystr, "Got unknown key!")
 
     def matches(self, other):
         # FIXME test this
@@ -376,5 +381,5 @@ class KeySequence:
             sequence = QKeySequence(', '.join(sub))
             new._sequences.append(sequence)
         assert len(new) > 0
-        new._validate()
+        new._validate(keystr)
         return new
