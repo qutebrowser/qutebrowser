@@ -22,13 +22,36 @@
 import re
 import sys
 import inspect
+import os
 import os.path
 import collections
 import enum
+import sphinx
 
 import qutebrowser
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import log, utils, standarddir
 
+
+class Documentation:
+
+    # check outdated
+
+    def __init__(self):
+        print(self._src_path())
+        print(self._html_path())
+        os.makedirs(self._html_path(), exist_ok=True)
+        sphinx.build_main(['qb-sphinx', self._src_path(), self._html_path()])
+
+    def request(self, path):
+        path = os.path.join(self._html_path(), path)
+        with open(path, 'rb') as f:
+            return 'text/html', f.read() # TODO throws FileNotFoundError (< OSError)
+
+    def _html_path(self):
+        return os.path.join(qutebrowser.utils.standarddir.data(), 'doc')
+
+    def _src_path(self):
+        return os.path.join(qutebrowser.basedir, 'doc', 'help')
 
 def is_git_repo():
     """Check if we're running from a git repository."""

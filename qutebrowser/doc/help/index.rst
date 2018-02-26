@@ -1,0 +1,71 @@
+qutebrowser help
+================
+
+Documentation
+-------------
+
+The following help pages are currently available:
+
+-  link:../quickstart.html[Quick start guide]
+-  link:../faq.html[Frequently asked questions]
+-  link:../changelog.html[Change Log]
+-  link:commands.html[Documentation of commands]
+-  link:configuring.html[Configuring qutebrowser]
+-  link:settings.html[Documentation of settings]
+-  link:../userscripts.html[How to write userscripts]
+-  link:../contributing.html[Contributing to qutebrowser]
+
+Getting help
+------------
+
+You can get help in the IRC channel
+irc://irc.freenode.org/#qutebrowser[``#qutebrowser``] on
+http://freenode.net/[Freenode]
+(https://webchat.freenode.net/?channels=#qutebrowser[webchat]), or by
+writing a message to the
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist]
+at mailto:qutebrowser@lists.qutebrowser.org[].
+
+Bugs
+----
+
+If you found a bug or have a feature request, you can report it in
+several ways:
+
+-  Use the built-in ``:report`` command or the automatic crash dialog.
+-  Open an issue in the Github issue tracker.
+-  Write a mail to the
+   https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist]
+   at mailto:qutebrowser@lists.qutebrowser.org[].
+
+License
+-------
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program. If not, see http://www.gnu.org/licenses/.
+
+
+Complete TOC
+------------
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

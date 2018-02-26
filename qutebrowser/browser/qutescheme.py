@@ -361,55 +361,9 @@ def qute_help(url):
         urlpath = 'index.html'
     else:
         urlpath = urlpath.lstrip('/')
-    if not docutils.docs_up_to_date(urlpath):
-        message.error("Your documentation is outdated! Please re-run "
-                      "scripts/asciidoc2html.py.")
 
-    path = 'html/doc/{}'.format(urlpath)
-    if not urlpath.endswith('.html'):
-        try:
-            bdata = utils.read_file(path, binary=True)
-        except OSError as e:
-            raise QuteSchemeOSError(e)
-        mimetype, _encoding = mimetypes.guess_type(urlpath)
-        assert mimetype is not None, url
-        return mimetype, bdata
-
-    try:
-        data = utils.read_file(path)
-    except OSError:
-        # No .html around, let's see if we find the asciidoc
-        asciidoc_path = path.replace('.html', '.asciidoc')
-        if asciidoc_path.startswith('html/doc/'):
-            asciidoc_path = asciidoc_path.replace('html/doc/', '../doc/help/')
-
-        try:
-            asciidoc = utils.read_file(asciidoc_path)
-        except OSError:
-            asciidoc = None
-
-        if asciidoc is None:
-            raise
-
-        preamble = textwrap.dedent("""
-            There was an error loading the documentation!
-
-            This most likely means the documentation was not generated
-            properly. If you are running qutebrowser from the git repository,
-            please (re)run scripts/asciidoc2html.py and reload this page.
-
-            If you're running a released version this is a bug, please use
-            :report to report it.
-
-            Falling back to the plaintext version.
-
-            ---------------------------------------------------------------
-
-
-        """)
-        return 'text/plain', (preamble + asciidoc).encode('utf-8')
-    else:
-        return 'text/html', data
+    doc = docutils.Documentation()
+    return doc.request(urlpath)
 
 
 @add_handler('backend-warning')
