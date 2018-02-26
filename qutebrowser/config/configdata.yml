@@ -2379,8 +2379,6 @@ bindings.default:
       <Escape>: leave-mode
     prompt:
       <Return>: prompt-accept
-      y: prompt-accept yes
-      n: prompt-accept no
       <Ctrl-X>: prompt-open-download
       <Shift-Tab>: prompt-item-focus prev
       <Up>: prompt-item-focus prev
@@ -2402,6 +2400,14 @@ bindings.default:
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
       <Ctrl-Y>: rl-yank
+      <Escape>: leave-mode
+    # FIXME can we do migrations?
+    yesno:
+      <Return>: prompt-accept
+      y: prompt-accept yes
+      n: prompt-accept no
+      <Alt-Y>: prompt-yank
+      <Alt-Shift-Y>: prompt-yank --sel
       <Escape>: leave-mode
     caret:
       v: toggle-selection
@@ -2438,7 +2444,7 @@ bindings.default:
     none_ok: true
     keytype: String  # section name
     fixed_keys: ['normal', 'insert', 'hint', 'passthrough', 'command',
-                 'prompt', 'caret', 'register']
+                 'prompt', 'yesno', 'caret', 'register']
     valtype:
       name: Dict
       none_ok: true
@@ -2462,7 +2468,7 @@ bindings.commands:
     none_ok: true
     keytype: String  # section name
     fixed_keys: ['normal', 'insert', 'hint', 'passthrough', 'command',
-                 'prompt', 'caret', 'register']
+                 'prompt', 'yesno', 'caret', 'register']
     valtype:
       name: Dict
       none_ok: true
@@ -2534,10 +2540,8 @@ bindings.commands:
 
     * prompt: Entered when there's a prompt to display, like for download
       locations or when invoked from JavaScript.
-      +
-      You can bind normal keys in this mode, but they will be only active when
-      a yes/no-prompt is asked. For other prompt modes, you can only bind
-      special keys.
+
+    * yesno: Entered when there's a yes/no prompt displayed.
 
     * caret: Entered when pressing the `v` mode, used to select text using the
       keyboard.

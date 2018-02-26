@@ -133,9 +133,7 @@ class PromptKeyParser(keyparser.CommandKeyParser):
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent, supports_count=False,
                          supports_chains=True)
-        # We don't want an extra section for this in the config, so we just
-        # abuse the prompt section.
-        self._read_config('prompt')
+        self._read_config('yesno')
 
     def __repr__(self):
         return utils.get_repr(self)
