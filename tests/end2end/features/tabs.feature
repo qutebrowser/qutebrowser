@@ -248,6 +248,18 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt
 
+    Scenario: :tab-focus with current tab number and --no-last
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-focus 3
+        And I run :tab-focus --no-last 3
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
     Scenario: :tab-focus with -1
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -892,7 +904,7 @@ Feature: Tab management
 
     Scenario: :buffer without args or count
         When I run :buffer
-        Then the error "buffer: Either a count or the argument index must be specified." should be shown
+        Then qute://tabs should be loaded
 
     Scenario: :buffer with a matching title
         When I open data/title.html
@@ -1183,7 +1195,7 @@ Feature: Tab management
         And I run :tab-pin
         And I run :tab-next
         And I run :tab-only
-        And I wait for "*want to close a pinned tab*" in the log
+        And I wait for "*want to close pinned tabs*" in the log
         And I run :prompt-accept yes
         Then the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
@@ -1195,7 +1207,7 @@ Feature: Tab management
         And I run :tab-pin
         And I run :tab-next
         And I run :tab-only
-        And I wait for "*want to close a pinned tab*" in the log
+        And I wait for "*want to close pinned tabs*" in the log
         And I run :prompt-accept no
         Then the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)

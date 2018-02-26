@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,7 +23,6 @@ import re
 import os
 import json
 import fnmatch
-import functools
 import glob
 
 import attr
@@ -135,7 +134,7 @@ class GreasemonkeyManager(QObject):
     Signals:
         scripts_reloaded: Emitted when scripts are reloaded from disk.
             Any cached or already-injected scripts should be
-            considered obselete.
+            considered obsolete.
     """
 
     scripts_reloaded = pyqtSignal()
@@ -178,10 +177,10 @@ class GreasemonkeyManager(QObject):
                 elif script.run_at == 'document-idle':
                     self._run_idle.append(script)
                 else:
-                    log.greasemonkey.warning("Script {} has invalid run-at "
-                                             "defined, defaulting to "
-                                             "document-end"
-                                             .format(script_path))
+                    if script.run_at:
+                        log.greasemonkey.warning(
+                            "Script {} has invalid run-at defined, "
+                            "defaulting to document-end".format(script_path))
                     # Default as per
                     # https://wiki.greasespot.net/Metadata_Block#.40run-at
                     self._run_end.append(script)
@@ -196,11 +195,23 @@ class GreasemonkeyManager(QObject):
         """
         if url.scheme() not in self.greaseable_schemes:
             return MatchingScripts(url, [], [], [])
-        match = functools.partial(fnmatch.fnmatch,
-                                  url.toString(QUrl.FullyEncoded))
+
+        string_url = url.toString(QUrl.FullyEncoded)
+
+        def _match(pattern):
+            # For include and exclude rules if they start and end with '/' they
+            # should be treated as a (ecma syntax) regular expression.
+            if pattern.startswith('/') and pattern.endswith('/'):
+                matches = re.search(pattern[1:-1], string_url, flags=re.I)
+                return matches is not None
+
+            # Otherwise they are glob expressions.
+            return fnmatch.fnmatch(string_url, pattern)
+
         tester = (lambda script:
-                  any(match(pat) for pat in script.includes) and
-                  not any(match(pat) for pat in script.excludes))
+                  any(_match(pat) for pat in script.includes) and
+                  not any(_match(pat) for pat in script.excludes))
+
         return MatchingScripts(
             url,
             [script for script in self._run_start if tester(script)],

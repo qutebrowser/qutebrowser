@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -446,3 +446,4 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     runner.prepare_run(cmd_path, *args, env=env, verbose=verbose)
     tab.dump_async(runner.store_html)
     tab.dump_async(runner.store_text, plain=True)
+    return runner

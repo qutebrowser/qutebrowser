@@ -37,7 +37,7 @@ is available in the repositories:
 Archlinux
 ^^^^^^^^^
 
-For Archlinux, no debug informations are provided. You can either compile Qt
+For Archlinux, no debug information is provided. You can either compile Qt
 yourself (which will take a few hours even on a modern machine) or use
 debugging symbols compiled/packaged by me (x86_64 only).
 

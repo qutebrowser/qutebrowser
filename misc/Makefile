@@ -21,5 +21,5 @@ install: doc/qutebrowser.1.html
 		$(wildcard misc/userscripts/*)
 	install -Dm755 -t "$(DESTDIR)/usr/share/qutebrowser/scripts/" \
 		$(filter-out scripts/__init__.py scripts/__pycache__ scripts/dev \
-		  scripts/testbrowser_cpp scripts/asciidoc2html.py scripts/setupcommon.py \
+		  scripts/testbrowser scripts/asciidoc2html.py scripts/setupcommon.py \
 			scripts/link_pyqt.py,$(wildcard scripts/*))

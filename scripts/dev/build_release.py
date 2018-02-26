@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -328,6 +328,14 @@ def build_sdist():
     return artifacts
 
 
+def test_makefile():
+    """Make sure the Makefile works correctly."""
+    utils.print_title("Testing makefile")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        subprocess.run(['make', '-f', 'misc/Makefile',
+                        'DESTDIR={}'.format(tmpdir), 'install'], check=True)
+
+
 def read_github_token():
     """Read the GitHub API token from disk."""
     token_file = os.path.join(os.path.expanduser('~'), '.gh_token')
@@ -403,6 +411,7 @@ def main():
     elif sys.platform == 'darwin':
         artifacts = build_mac()
     else:
+        test_makefile()
         artifacts = build_sdist()
         upload_to_pypi = True
 

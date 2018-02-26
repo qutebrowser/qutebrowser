@@ -1,7 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2015-2017 Antoni Boucher <bouanto@zoho.com>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Antoni Boucher <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
 #
@@ -161,7 +161,7 @@ class QuickmarkManager(UrlMarkManager):
             "Add quickmark:", usertypes.PromptMode.text,
             functools.partial(self.quickmark_add, urlstr),
             text="Please enter a quickmark name for<br/><b>{}</b>".format(
-                html.escape(url.toDisplayString())))
+                html.escape(url.toDisplayString())), url=urlstr)
 
     @cmdutils.register(instance='quickmark-manager')
     def quickmark_add(self, url, name):
@@ -192,7 +192,7 @@ class QuickmarkManager(UrlMarkManager):
         if name in self.marks:
             message.confirm_async(
                 title="Override existing quickmark?",
-                yes_action=set_mark, default=True)
+                yes_action=set_mark, default=True, url=url)
         else:
             set_mark()
 
@@ -280,7 +280,7 @@ class BookmarkManager(UrlMarkManager):
 
         if urlstr in self.marks:
             if toggle:
-                del self.marks[urlstr]
+                self.delete(urlstr)
                 return False
             else:
                 raise AlreadyExistsError("Bookmark already exists!")

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 lamarpavel
+# Copyright 2015-2018 lamarpavel
 #
 # This file is part of qutebrowser.
 #

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -72,8 +72,6 @@ PERFECT_FILES = [
     #  'browser/webkit/webkitelem.py'),
     # ('tests/unit/browser/webkit/test_webkitelem.py',
     #  'browser/webelem.py'),
-    ('tests/unit/browser/webkit/network/test_schemehandler.py',
-     'browser/webkit/network/schemehandler.py'),
     ('tests/unit/browser/webkit/network/test_filescheme.py',
      'browser/webkit/network/filescheme.py'),
     ('tests/unit/browser/webkit/network/test_networkreply.py',
@@ -145,6 +143,8 @@ PERFECT_FILES = [
      'config/configinit.py'),
     ('tests/unit/config/test_configcommands.py',
      'config/configcommands.py'),
+    ('tests/unit/config/test_configutils.py',
+     'config/configutils.py'),
 
     ('tests/unit/utils/test_qtutils.py',
      'utils/qtutils.py'),
@@ -166,6 +166,8 @@ PERFECT_FILES = [
      'utils/error.py'),
     ('tests/unit/utils/test_javascript.py',
      'utils/javascript.py'),
+    ('tests/unit/utils/test_urlmatch.py',
+     'utils/urlmatch.py'),
 
     (None,
      'completion/models/util.py'),

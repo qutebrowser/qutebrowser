@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -80,9 +80,9 @@ def cmdutils_stub(monkeypatch, stubs):
 
 
 @pytest.fixture()
-def configdata_stub(monkeypatch, configdata_init):
+def configdata_stub(config_stub, monkeypatch, configdata_init):
     """Patch the configdata module to provide fake data."""
-    return monkeypatch.setattr(configdata, 'DATA', collections.OrderedDict([
+    monkeypatch.setattr(configdata, 'DATA', collections.OrderedDict([
         ('aliases', configdata.Option(
             name='aliases',
             description='Aliases for commands.',
@@ -132,6 +132,7 @@ def configdata_stub(monkeypatch, configdata_init):
             backends=[],
             raw_backends=None)),
     ]))
+    config_stub._init_values()
 
 
 @pytest.fixture

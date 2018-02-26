@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -64,7 +64,7 @@ from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import config, websettings, configfiles, configinit
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
-                                 downloads, greasemonkey)
+                                 qtnetworkdownloads, downloads, greasemonkey)
 from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
@@ -491,6 +491,10 @@ def _init_modules(args, crash_handler):
     diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
     objreg.register('cache', diskcache)
 
+    log.init.debug("Initializing downloads...")
+    download_manager = qtnetworkdownloads.DownloadManager(parent=qApp)
+    objreg.register('qtnetwork-download-manager', download_manager)
+
     log.init.debug("Initializing Greasemonkey...")
     greasemonkey.init()
 
@@ -872,10 +876,6 @@ class EventFilter(QObject):
         super().__init__(parent)
         self._activated = True
         self._handlers = {
-            QEvent.MouseButtonDblClick: self._handle_mouse_event,
-            QEvent.MouseButtonPress: self._handle_mouse_event,
-            QEvent.MouseButtonRelease: self._handle_mouse_event,
-            QEvent.MouseMove: self._handle_mouse_event,
             QEvent.KeyPress: self._handle_key_event,
             QEvent.KeyRelease: self._handle_key_event,
         }
@@ -899,19 +899,6 @@ class EventFilter(QObject):
         except objreg.RegistryUnavailableError:
             # No window available yet, or not a MainWindow
             return False
-
-    def _handle_mouse_event(self, _event):
-        """Handle a mouse event.
-
-        Args:
-            _event: The QEvent which is about to be delivered.
-
-        Return:
-            True if the event should be filtered, False if it's passed through.
-        """
-        # Mouse cursor shown (overrideCursor None) -> don't filter event
-        # Mouse cursor hidden (overrideCursor not None) -> filter event
-        return qApp.overrideCursor() is not None
 
     def eventFilter(self, obj, event):
         """Handle an event.

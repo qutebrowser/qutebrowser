@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2017 Jan Verbeek (blyxxyz) <ring@openmailbox.org>
+# Copyright 2016-2018 Jan Verbeek (blyxxyz) <ring@openmailbox.org>
 #
 # This file is part of qutebrowser.
 #

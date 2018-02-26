@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -784,18 +784,25 @@ class QuteProc(testprocess.Process):
         be compared.
         """
         __tracebackhide__ = lambda e: e.errisinstance(pytest.fail.Exception)
-        # Translate ... to ellipsis in YAML.
-        loader = yaml.SafeLoader(expected)
-        loader.add_constructor('!ellipsis', lambda loader, node: ...)
-        loader.add_implicit_resolver('!ellipsis', re.compile(r'\.\.\.'), None)
-
         data = self.get_session()
-        expected = loader.get_data()
+        expected = yaml.load(expected, Loader=YamlLoader)
         outcome = testutils.partial_compare(data, expected)
         if not outcome:
             msg = "Session comparison failed: {}".format(outcome.error)
             msg += '\nsee stdout for details'
             pytest.fail(msg)
+
+
+class YamlLoader(yaml.SafeLoader):
+
+    """Custom YAML loader used in compare_session."""
+
+    pass
+
+
+# Translate ... to ellipsis in YAML.
+YamlLoader.add_constructor('!ellipsis', lambda loader, node: ...)
+YamlLoader.add_implicit_resolver('!ellipsis', re.compile(r'\.\.\.'), None)
 
 
 def _xpath_escape(text):

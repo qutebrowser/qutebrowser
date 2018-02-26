@@ -63,6 +63,10 @@ customizable.
 Using the link:commands.html#set[`:set`] command and command completion, you
 can quickly set settings interactively, for example `:set tabs.position left`.
 
+Some settings are also customizable for a given
+https://developer.chrome.com/apps/match_patterns[URL pattern] by doing e.g.
+`:set --pattern=*://example.com/ content.images false`.
+
 To get more help about a setting, use e.g. `:help tabs.position`.
 
 To bind and unbind keys, you can use the link:commands.html#bind[`:bind`] and
@@ -147,7 +151,6 @@ prefix to preserve backslashes) or a Python regex object:
 If you want to read a setting, you can use the `c` object to do so as well:
 `c.colors.tabs.even.bg = c.colors.tabs.odd.bg`.
 
-
 Using strings for setting names
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -169,6 +172,26 @@ To read a setting, use the `config.get` method:
 # Equivalent to:
 # color = c.colors.completion.fg
 color = config.get('colors.completion.fg')
+----
+
+Per-domain settings
+~~~~~~~~~~~~~~~~~~~
+
+Using `config.set`, some settings are also customizable for a given
+https://developer.chrome.com/apps/match_patterns[URL pattern]:
+
+[source,python]
+----
+config.set('content.images', False, '*://example.com/')
+----
+
+Alternatively, you can use `with config.pattern(...) as p:` to get a shortcut
+similar to `c.` which is scoped to the given domain:
+
+[source,python]
+----
+with config.pattern('*://example.com/') as p:
+    p.content.images = False
 ----
 
 Binding keys
@@ -254,7 +277,7 @@ Getting the config directory
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you need to get the qutebrowser config directory, you can do so by reading
-`config.configdir`. Similarily, you can get the qutebrowser data directory via
+`config.configdir`. Similarly, you can get the qutebrowser data directory via
 `config.datadir`.
 
 This gives you a https://docs.python.org/3/library/pathlib.html[`pathlib.Path`
@@ -264,7 +287,7 @@ get a string:
 .config.py:
 [source,python]
 ----
-print(str(config.configdir / 'config.py')
+print(str(config.configdir / 'config.py'))
 ----
 
 Handling errors
@@ -366,6 +389,8 @@ You can use something like this to read colors from an `~/.Xresources` file:
 
 [source,python]
 ----
+import subprocess
+
 def read_xresources(prefix):
     props = {}
     x = subprocess.run(['xrdb', '-query'], stdout=subprocess.PIPE)
@@ -376,7 +401,7 @@ def read_xresources(prefix):
     return props
 
 xresources = read_xresources('*')
-c.colors.statusbar.normal.bg = xresources['*background']
+c.colors.statusbar.normal.bg = xresources['*.background']
 ----
 
 Avoiding flake8 errors

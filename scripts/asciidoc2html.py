@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -85,9 +85,9 @@ class AsciiDoc:
 
         # patch image links to use local copy
         replacements = [
-            ("https://qutebrowser.org/img/cheatsheet-big.png",
+            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png",
              "qute://help/img/cheatsheet-big.png"),
-            ("https://qutebrowser.org/img/cheatsheet-small.png",
+            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png",
              "qute://help/img/cheatsheet-small.png")
         ]
         asciidoc_args = ['-a', 'source-highlighter=pygments']

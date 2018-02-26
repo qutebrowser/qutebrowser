@@ -33,7 +33,7 @@ rules:
      no-extra-parens: off
      id-length: ["error", {"exceptions": ["i", "k", "x", "y"]}]
      object-shorthand: "off"
-     max-statements: ["error", {"max": 30}]
+     max-statements: ["error", {"max": 40}]
      quotes: ["error", "double", {"avoidEscape": true}]
      object-property-newline: ["error", {"allowMultiplePropertiesPerLine": true}]
      comma-dangle: ["error", "always-multiline"]
@@ -54,3 +54,5 @@ rules:
      function-paren-newline: "off"
      multiline-comment-style: "off"
      no-bitwise: "off"
+     no-ternary: "off"
+     max-lines: "off"

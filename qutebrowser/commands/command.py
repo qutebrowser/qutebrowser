@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -193,10 +193,10 @@ class Command:
         return False
 
     def _inspect_func(self):
-        """Inspect the function to get useful informations from it.
+        """Inspect the function to get useful information from it.
 
         Sets instance attributes (desc, type_conv, name_conv) based on the
-        informations.
+        information.
 
         Return:
             How many user-visible arguments the command has.
@@ -394,11 +394,12 @@ class Command:
         if isinstance(typ, tuple):
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
-        elif type(typ) is type(typing.Union):  # noqa: E721
+        elif getattr(typ, '__origin__', None) is typing.Union or (
+                # Older Python 3.5 patch versions
+                # pylint: disable=no-member,useless-suppression
+                hasattr(typing, 'UnionMeta') and
+                isinstance(typ, typing.UnionMeta)):
             # this is... slightly evil, I know
-            # We also can't use isinstance here because typing.Union doesn't
-            # support that.
-            # pylint: disable=no-member,useless-suppression
             try:
                 types = list(typ.__args__)
             except AttributeError:

@@ -104,11 +104,9 @@ class FakeDownloadManager:
 def download_stub(win_registry, tmpdir):
     """Register a FakeDownloadManager."""
     stub = FakeDownloadManager(tmpdir)
-    objreg.register('qtnetwork-download-manager', stub,
-                    scope='window', window='last-focused')
+    objreg.register('qtnetwork-download-manager', stub)
     yield
-    objreg.delete('qtnetwork-download-manager', scope='window',
-                  window='last-focused')
+    objreg.delete('qtnetwork-download-manager')
 
 
 def create_zipfile(directory, files, zipname='test'):

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,6 +26,10 @@ class Backforward(textbase.TextBase):
 
     """Shows navigation indicator (if you can go backward and/or forward)."""
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.enabled = False
+
     def on_tab_cur_url_changed(self, tabs):
         """Called on URL changes."""
         tab = tabs.currentWidget()
@@ -45,4 +49,4 @@ class Backforward(textbase.TextBase):
         if text:
             text = '[' + text + ']'
         self.setText(text)
-        self.setVisible(bool(text))
+        self.setVisible(bool(text) and self.enabled)

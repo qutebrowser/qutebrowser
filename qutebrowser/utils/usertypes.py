@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,6 +27,7 @@ import operator
 import collections.abc
 import enum
 
+import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
 from qutebrowser.utils import log, qtutils, utils
@@ -266,6 +267,7 @@ class Question(QObject):
                  For user_pwd, a default username as string.
         title: The question title to show.
         text: The prompt text to display to the user.
+        url: Any URL referenced in prompts.
         answer: The value the user entered (as password for user_pwd).
         is_aborted: Whether the question was aborted.
         interrupted: Whether the question was interrupted by another one.
@@ -296,6 +298,7 @@ class Question(QObject):
         self.default = None
         self.title = None
         self.text = None
+        self.url = None
         self.answer = None
         self.is_aborted = False
         self.interrupted = False
@@ -392,3 +395,24 @@ class AbstractCertificateErrorWrapper:
 
     def is_overridable(self):
         raise NotImplementedError
+
+
+@attr.s
+class NavigationRequest:
+
+    """A request to navigate to the given URL."""
+
+    Type = enum.Enum('Type', [
+        'link_clicked',
+        'typed',  # QtWebEngine only
+        'form_submitted',
+        'form_resubmitted',  # QtWebKit only
+        'back_forward',
+        'reloaded',
+        'other'
+    ])
+
+    url = attr.ib()
+    navigation_type = attr.ib()
+    is_main_frame = attr.ib()
+    accepted = attr.ib(default=True)

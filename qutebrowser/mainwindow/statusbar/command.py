@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -193,7 +193,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             if run:
                 self.command_accept()
 
-        ed.editing_finished.connect(callback)
+        ed.file_updated.connect(callback)
         ed.edit(self.text())
 
     @pyqtSlot(usertypes.KeyMode)
@@ -232,6 +232,12 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Enter/Shift+Enter/etc. will cause QLineEdit to think it's finished
         without command_accept to be called.
         """
+        text = self.text()
+        if text in modeparsers.STARTCHARS and e.key() == Qt.Key_Backspace:
+            e.accept()
+            modeman.leave(self._win_id, usertypes.KeyMode.command,
+                          'prefix deleted')
+            return
         if e.key() == Qt.Key_Return:
             e.ignore()
             return

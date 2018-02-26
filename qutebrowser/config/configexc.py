@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -38,6 +38,15 @@ class BackendError(Error):
     def __init__(self, name, backend):
         super().__init__("The {} setting is not available with the {} "
                          "backend!".format(name, backend.name))
+
+
+class NoPatternError(Error):
+
+    """Raised when the given setting does not support URL patterns."""
+
+    def __init__(self, name):
+        super().__init__("The {} setting does not support URL patterns!"
+                         .format(name))
 
 
 class ValidationError(Error):
@@ -92,6 +101,10 @@ class ConfigErrorDesc:
     traceback = attr.ib(None)
 
     def __str__(self):
+        if self.traceback:
+            return '{} - {}: {}'.format(self.text,
+                                        self.exception.__class__.__name__,
+                                        self.exception)
         return '{}: {}'.format(self.text, self.exception)
 
     def with_text(self, text):

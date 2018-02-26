@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -301,6 +301,7 @@ class TestCreatingDir:
         """Test --basedir."""
         basedir = tmpdir / 'basedir'
         assert not basedir.exists()
+
         args = types.SimpleNamespace(basedir=str(basedir))
         standarddir._init_dirs(args)
 
@@ -309,8 +310,13 @@ class TestCreatingDir:
 
         assert basedir.exists()
 
-        if utils.is_posix:
-            assert basedir.stat().mode & 0o777 == 0o700
+        if typ == 'download' or (typ == 'runtime' and not utils.is_linux):
+            assert not (basedir / typ).exists()
+        else:
+            assert (basedir / typ).exists()
+
+            if utils.is_posix:
+                assert (basedir / typ).stat().mode & 0o777 == 0o700
 
     @pytest.mark.parametrize('typ', DIR_TYPES)
     def test_exists_race_condition(self, mocker, tmpdir, typ):

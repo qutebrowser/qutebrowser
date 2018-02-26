@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -32,6 +32,7 @@ class Percentage(textbase.TextBase):
         """Constructor. Set percentage to 0%."""
         super().__init__(parent)
         self.set_perc(0, 0)
+        self.raw = False
 
     @pyqtSlot(int, int)
     def set_perc(self, x, y):  # pylint: disable=unused-argument
@@ -48,7 +49,8 @@ class Percentage(textbase.TextBase):
         elif y is None:
             self.setText('[???]')
         else:
-            self.setText('[{:2}%]'.format(y))
+            text = '[{:02}]' if self.raw else '[{:02}%]'
+            self.setText(text.format(y))
 
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""

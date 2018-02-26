@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -182,26 +182,13 @@ class StatusBar(QWidget):
         self.cmd.hide_cmd.connect(self._hide_cmd_widget)
         self._hide_cmd_widget()
 
-        self.keystring = keystring.KeyString()
-        self._hbox.addWidget(self.keystring)
-
         self.url = url.UrlText()
-        self._hbox.addWidget(self.url)
-
         self.percentage = percentage.Percentage()
-        self._hbox.addWidget(self.percentage)
-
         self.backforward = backforward.Backforward()
-        self._hbox.addWidget(self.backforward)
-
         self.tabindex = tabindex.TabIndex()
-        self._hbox.addWidget(self.tabindex)
-
-        # We add a parent to Progress here because it calls self.show() based
-        # on some signals, and if that happens before it's added to the layout,
-        # it will quickly blink up as independent window.
+        self.keystring = keystring.KeyString()
         self.prog = progress.Progress(self)
-        self._hbox.addWidget(self.prog)
+        self._draw_widgets()
 
         config.instance.changed.connect(self._on_config_changed)
         QTimer.singleShot(0, self.maybe_hide)
@@ -215,6 +202,48 @@ class StatusBar(QWidget):
             self.maybe_hide()
         elif option == 'statusbar.padding':
             self._set_hbox_padding()
+        elif option == 'statusbar.widgets':
+            self._draw_widgets()
+
+    def _draw_widgets(self):
+        """Draw statusbar widgets."""
+        # Start with widgets hidden and show them when needed
+        for widget in [self.url, self.percentage,
+                       self.backforward, self.tabindex,
+                       self.keystring, self.prog]:
+            widget.hide()
+            self._hbox.removeWidget(widget)
+
+        tab = self._current_tab()
+
+        # Read the list and set widgets accordingly
+        for segment in config.val.statusbar.widgets:
+            if segment == 'url':
+                self._hbox.addWidget(self.url)
+                self.url.show()
+            elif segment == 'scroll':
+                self._hbox.addWidget(self.percentage)
+                self.percentage.show()
+            elif segment == 'scroll_raw':
+                self._hbox.addWidget(self.percentage)
+                self.percentage.raw = True
+                self.percentage.show()
+            elif segment == 'history':
+                self._hbox.addWidget(self.backforward)
+                self.backforward.enabled = True
+                if tab:
+                    self.backforward.on_tab_changed(tab)
+            elif segment == 'tabs':
+                self._hbox.addWidget(self.tabindex)
+                self.tabindex.show()
+            elif segment == 'keypress':
+                self._hbox.addWidget(self.keystring)
+                self.keystring.show()
+            elif segment == 'progress':
+                self._hbox.addWidget(self.prog)
+                self.prog.enabled = True
+                if tab:
+                    self.prog.on_tab_changed(tab)
 
     @pyqtSlot()
     def maybe_hide(self):

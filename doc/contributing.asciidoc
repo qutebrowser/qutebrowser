@@ -44,8 +44,8 @@ be easy to solve]
 If you prefer C++ or Javascript to Python, see the relevant issues which involve
 work in those languages:
 
-* https://github.com/qutebrowser/qutebrowser/issues?utf8=%E2%9C%93&q=is%3Aopen%20is%3Aissue%20label%3Ac%2B%2B[C++] (mostly work on Qt, the library behind qutebrowser)
-* https://github.com/qutebrowser/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3Ajavascript[JavaScript]
+* https://github.com/qutebrowser/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3A%22language%3A+c%2B%2B%22[C++] (mostly work on Qt, the library behind qutebrowser)
+* https://github.com/qutebrowser/qutebrowser/issues?q=is%3Aopen+is%3Aissue+label%3A%22language%3A+javascript%22[JavaScript]
 
 There are also some things to do if you don't want to write code:
 
@@ -375,7 +375,7 @@ The following logging levels are available for every logger:
 |error     |There was an issue and some kind of operation was abandoned.
 |warning   |There was an issue but the operation can continue running.
 |info      |General informational messages.
-|debug     |Verbose debugging informations.
+|debug     |Verbose debugging information.
 |=======================================================================
 
 [[commands]]

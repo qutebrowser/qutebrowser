@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2015-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -54,6 +54,12 @@ def test_backend_error():
     assert str(e) == expected
 
 
+def test_no_pattern_error():
+    e = configexc.NoPatternError('foo')
+    expected = "The foo setting does not support URL patterns!"
+    assert str(e) == expected
+
+
 def test_desc_with_text():
     """Test ConfigErrorDesc.with_text."""
     old = configexc.ConfigErrorDesc("Error text", Exception("Exception text"))
@@ -74,7 +80,7 @@ def test_config_file_errors_str(errors):
     assert str(errors).splitlines() == [
         'Errors occurred while reading config.py:',
         '  Error text 1: Exception 1',
-        '  Error text 2: Exception 2',
+        '  Error text 2 - Exception: Exception 2',
     ]
 
 

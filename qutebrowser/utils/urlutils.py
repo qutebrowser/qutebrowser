@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -537,7 +537,7 @@ def incdec_number(url, incdec, count=1, segments=None):
         incdec: Either 'increment' or 'decrement'
         count: The number to increment or decrement by
         segments: A set of URL segments to search. Valid segments are:
-                  'host', 'path', 'query', 'anchor'.
+                  'host', 'port', 'path', 'query', 'anchor'.
                   Default: {'path', 'query'}
 
     Return:
@@ -550,7 +550,7 @@ def incdec_number(url, incdec, count=1, segments=None):
 
     if segments is None:
         segments = {'path', 'query'}
-    valid_segments = {'host', 'path', 'query', 'anchor'}
+    valid_segments = {'host', 'port', 'path', 'query', 'anchor'}
     if segments - valid_segments:
         extra_elements = segments - valid_segments
         raise IncDecError("Invalid segments: {}".format(
@@ -561,6 +561,8 @@ def incdec_number(url, incdec, count=1, segments=None):
     # Order as they appear in a URL
     segment_modifiers = [
         ('host', url.host, url.setHost),
+        ('port', lambda: str(url.port()) if url.port() > 0 else '',
+         lambda x: url.setPort(int(x))),
         ('path', url.path, url.setPath),
         ('query', url.query, url.setQuery),
         ('anchor', url.fragment, url.setFragment),

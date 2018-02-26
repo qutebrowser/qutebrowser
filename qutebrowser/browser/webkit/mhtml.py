@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2017 Daniel Schadt
+# Copyright 2015-2018 Daniel Schadt
 #
 # This file is part of qutebrowser.
 #
@@ -254,7 +254,6 @@ class _Downloader:
         _finished_file: A flag indicating if the file has already been
                         written.
         _used: A flag indicating if the downloader has already been used.
-        _win_id: The window this downloader belongs to.
     """
 
     def __init__(self, tab, target):
@@ -265,7 +264,6 @@ class _Downloader:
         self.pending_downloads = set()
         self._finished_file = False
         self._used = False
-        self._win_id = tab.win_id
 
     def run(self):
         """Download and save the page.
@@ -365,8 +363,7 @@ class _Downloader:
             self.writer.add_file(urlutils.encoded_url(url), b'')
             return
 
-        download_manager = objreg.get('qtnetwork-download-manager',
-                                      scope='window', window=self._win_id)
+        download_manager = objreg.get('qtnetwork-download-manager')
         target = downloads.FileObjDownloadTarget(_NoCloseBytesIO())
         item = download_manager.get(url, target=target,
                                     auto_remove=True)
