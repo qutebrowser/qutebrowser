@@ -264,16 +264,13 @@ class KeySequence:
 
     _MAX_LEN = 4
 
-    def __init__(self, strings=None):
+    def __init__(self, *keys):
         self._sequences = []
-        if strings is None:
-            strings = []
-
-        for sub in utils.chunk(strings, 4):
-            # Catch old API usage FIXME
-            assert all(isinstance(s, str) for s in sub)
-            sequence = QKeySequence(', '.join(sub))
+        for sub in utils.chunk(keys, self._MAX_LEN):
+            sequence = QKeySequence(*sub)
             self._sequences.append(sequence)
+        if keys:
+            assert len(self) > 0
         self._validate()
 
     def __str__(self):
@@ -287,7 +284,7 @@ class KeySequence:
         modifier_mask = int(Qt.ShiftModifier | Qt.ControlModifier |
                             Qt.AltModifier | Qt.MetaModifier |
                             Qt.KeypadModifier | Qt.GroupSwitchModifier)
-        for key in itertools.chain.from_iterable(self._sequences):
+        for key in self._iter_keys():
             yield KeyInfo(
                 key=int(key) & ~modifier_mask,
                 modifiers=Qt.KeyboardModifiers(int(key) & modifier_mask))
@@ -313,6 +310,13 @@ class KeySequence:
 
     def __len__(self):
         return sum(len(seq) for seq in self._sequences)
+
+    def __getitem__(self, item):
+        keys = list(self._iter_keys())
+        return self.__class__(*keys[item])
+
+    def _iter_keys(self):
+        return itertools.chain.from_iterable(self._sequences)
 
     def _validate(self):
         for info in self:
@@ -347,39 +351,25 @@ class KeySequence:
         FIXME: create test cases!
         """
         # pylint: disable=protected-access
-        new = self.__class__()
-        new._sequences = self._sequences[:]
-
         modifiers = ev.modifiers()
         if (modifiers == Qt.ShiftModifier and
                 ev.text() and
                 unicodedata.category(ev.text()) != 'Lu'):
             modifiers = Qt.KeyboardModifiers()
 
-        if new._sequences and len(new._sequences[-1]) < self._MAX_LEN:
-            new._sequences[-1] = QKeySequence(*new._sequences[-1],
-                                              ev.key() | int(modifiers))
-        else:
-            new._sequences.append(QKeySequence(ev.key() | int(modifiers)))
+        keys = list(self._iter_keys())
+        keys.append(ev.key() | int(modifiers))
 
-        new._validate()
-        return new
-
-    def remove_last(self):
-        """Create a new KeySequence with the last key removed."""
-        new = self.__class__()
-        new._sequences = self._sequeces[:]
-        if len(new._sequences[-1]) == 1:
-            del new._sequences[-1]
-        else:
-            new._sequences[-1] = QKeySequence(*new._sequences[-1][:-1])
-        new._validate()
-        return new
+        return self.__class__(*keys)
 
     @classmethod
     def parse(cls, keystr):
         """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
-        parts = list(_parse_keystring(keystr))
-        new = cls(parts)
+        new = cls()
+        strings = list(_parse_keystring(keystr))
+        for sub in utils.chunk(strings, cls._MAX_LEN):
+            sequence = QKeySequence(', '.join(sub))
+            new._sequences.append(sequence)
         assert len(new) > 0
+        new._validate()
         return new

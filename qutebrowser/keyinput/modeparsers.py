@@ -183,7 +183,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
                 hintmanager.filter_hints(self._filtertext)
                 return True
             elif self._last_press == LastPress.keystring and self._sequence:
-                self._sequence = self._sequence.remove_last()
+                self._sequence = self._sequence[:-1]
                 self.keystring_updated.emit(str(self._sequence))
                 if not self._sequence and self._filtertext:
                     # Switch back to hint filtering mode (this can happen only
@@ -254,7 +254,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
                              `self._filtertext`.
         """
         self._read_config()
-        self.bindings.update({keyutils.KeySequence(s):
+        self.bindings.update({keyutils.KeySequence.parse(s):
                               'follow-hint ' + s for s in strings})
         if not preserve_filter:
             self._filtertext = ''
