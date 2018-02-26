@@ -170,6 +170,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
             True if event has been handled, False otherwise.
         """
         # FIXME rewrite this
+        # FIXME should backspacing be a more generic hint feature?
         log.keyboard.debug("Got special key 0x{:x} text {}".format(
             e.key(), e.text()))
         hintmanager = objreg.get('hintmanager', scope='tab',

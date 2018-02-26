@@ -338,7 +338,7 @@ Feature: Using hints
         And I set hints.auto_follow to unique-match
         And I set hints.auto_follow_timeout to 0
         And I hint with args "all"
-        And I press the keys "ten pos"
+        And I press the keys "ten p"
         Then data/numbers/11.txt should be loaded
 
     Scenario: Scattering is ignored with number hints
