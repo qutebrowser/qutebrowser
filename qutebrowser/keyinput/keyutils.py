@@ -324,8 +324,12 @@ class KeySequence:
         return sum(len(seq) for seq in self._sequences)
 
     def __getitem__(self, item):
-        keys = list(self._iter_keys())
-        return self.__class__(*keys[item])
+        if isinstance(item, slice):
+            keys = list(self._iter_keys())
+            return self.__class__(*keys[item])
+        else:
+            infos = list(self)
+            return infos[item]
 
     def _iter_keys(self):
         return itertools.chain.from_iterable(self._sequences)
