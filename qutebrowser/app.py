@@ -840,7 +840,11 @@ class Application(QApplication):
     def event(self, e):
         """Handle macOS FileOpen events."""
         if e.type() == QEvent.FileOpen:
-            open_url(e.url(), no_raise=True)
+            url = e.url()
+            if url.isValid():
+                open_url(url, no_raise=True)
+            else:
+                message.error("Invalid URL: {}".format(url.errorString()))
         else:
             return super().event(e)
 
