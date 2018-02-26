@@ -68,6 +68,11 @@ def _apply_platform_markers(config, item):
          qtutils.version_check('5.10', compiled=False, exact=True) and
          config.webengine and 'TRAVIS' in os.environ,
          "Broken with QtWebEngine with Qt 5.10 on Travis"),
+        ('qtbug60673',
+         qtutils.version_check('5.8') and
+         not qtutils.version_check('5.10') and
+         config.webengine,
+         "Broken on webengine due to qtbug60673"),
         ('unicode_locale', sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
     ]
