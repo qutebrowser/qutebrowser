@@ -263,6 +263,10 @@ class KeyInfo:
     def text(self):
         """Get the text which would be displayed when pressing this key."""
         text = QKeySequence(self.key).toString()
+        if len(text) > 1:
+            # Special key?
+            return ''
+
         if not self.modifiers & Qt.ShiftModifier:
             text = text.lower()
         return text
