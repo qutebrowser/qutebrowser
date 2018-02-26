@@ -233,24 +233,28 @@ class KeyInfo:
 
         key_string = key_to_string(self.key)
 
-        # FIXME needed?
         if len(key_string) == 1:
             category = unicodedata.category(key_string)
-            is_control_char = (category == 'Cc')
+            is_special_char = (category == 'Cc')
         else:
-            is_control_char = False
+            is_special_char = False
 
-        if self.modifiers == Qt.ShiftModifier and not is_control_char:
-            parts = []
+        if not is_special_char:
+            if self.modifiers == Qt.ShiftModifier:
+                parts = []
+                key_string = key_string.upper()
+            else:
+                key_string = key_string.lower()
 
         parts.append(key_string)
-        normalized = normalize_keystr('+'.join(parts))
-        if len(normalized) > 1:
+        part_string = '+'.join(parts)
+
+        if len(part_string) > 1:
             # "special" binding
-            return '<{}>'.format(normalized)
+            return '<{}>'.format(part_string)
         else:
             # "normal" binding
-            return normalized
+            return part_string
 
     def text(self):
         """Get the text which would be displayed when pressing this key."""
