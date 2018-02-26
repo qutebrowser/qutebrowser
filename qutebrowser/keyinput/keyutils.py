@@ -263,7 +263,9 @@ class KeyInfo:
     def text(self):
         """Get the text which would be displayed when pressing this key."""
         text = QKeySequence(self.key).toString()
-        if len(text) > 1:
+        if self.key == Qt.Key_Space:
+            return ' '
+        elif len(text) > 1:
             # Special key?
             return ''
 
