@@ -61,6 +61,7 @@ class BaseKeyParser(QObject):
         _sequence: The currently entered key sequence
         _modename: The name of the input mode associated with this keyparser.
         _supports_count: Whether count is supported
+        # FIXME is this still needed?
         _supports_chains: Whether keychains are supported
 
     Signals:
@@ -138,7 +139,7 @@ class BaseKeyParser(QObject):
         #     self._debug_log("Ignoring, no text char")
         #     return QKeySequence.NoMatch
 
-        if txt.isdigit():
+        if txt.isdigit() and self._supports_count:
             assert len(txt) == 1, txt
             self._count += txt
             return None

@@ -213,8 +213,9 @@ class HintKeyParser(keyparser.CommandKeyParser):
             True if the match has been handled, False otherwise.
         """
         # FIXME rewrite this
-        match = super().handle(e)
+        match = self._handle_key(e)
         if match == QKeySequence.PartialMatch:
+            # FIXME do we need to check self._sequence here?
             self.keystring_updated.emit(str(self._sequence))
             self._last_press = LastPress.keystring
             return True
@@ -229,17 +230,20 @@ class HintKeyParser(keyparser.CommandKeyParser):
         else:
             raise ValueError("Got invalid match type {}!".format(match))
 
-    def execute(self, cmdstr, keytype, count=None):
-        """Handle a completed keychain."""
-        if not isinstance(keytype, self.Type):
-            raise TypeError("Type {} is no Type member!".format(keytype))
-        if keytype == self.Type.chain:
-            hintmanager = objreg.get('hintmanager', scope='tab',
-                                     window=self._win_id, tab='current')
-            hintmanager.handle_partial_key(cmdstr)
-        else:
-            # execute as command
-            super().execute(cmdstr, keytype, count)
+        return match != QKeySequence.NoMatch
+
+    # FIXME why is this needed?
+    # def execute(self, cmdstr, keytype, count=None):
+    #     """Handle a completed keychain."""
+    #     if not isinstance(keytype, self.Type):
+    #         raise TypeError("Type {} is no Type member!".format(keytype))
+    #     if keytype == self.Type.chain:
+    #         hintmanager = objreg.get('hintmanager', scope='tab',
+    #                                  window=self._win_id, tab='current')
+    #         hintmanager.handle_partial_key(cmdstr)
+    #     else:
+    #         # execute as command
+    #         super().execute(cmdstr, keytype, count)
 
     def update_bindings(self, strings, preserve_filter=False):
         """Update bindings when the hint strings changed.
@@ -249,7 +253,9 @@ class HintKeyParser(keyparser.CommandKeyParser):
             preserve_filter: Whether to keep the current value of
                              `self._filtertext`.
         """
-        self.bindings = {keyutils.KeySequence(s): s for s in strings}
+        self._read_config()
+        self.bindings.update({keyutils.KeySequence(s):
+                              'follow-hint ' + s for s in strings})
         if not preserve_filter:
             self._filtertext = ''
 
