@@ -218,7 +218,6 @@ class WebEngineCaret(browsertab.AbstractCaret):
         if mode != usertypes.KeyMode.caret:
             return
 
-        # Clear search, replace with blue selection
         if self._tab.search.search_displayed:
             # We are currently in search mode.
             # convert the search to a blue selection so we can operate on it
