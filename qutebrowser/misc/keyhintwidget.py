@@ -107,7 +107,7 @@ class KeyHintView(QLabel):
 
         bindings_dict = config.key_instance.get_bindings_for(modename)
         bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
-                    if k.matches(keyutils.KeySequence.parse(prefix)) and  # FIXME
+                    if keyutils.KeySequence.parse(prefix).matches(k) and
                     not blacklisted(k) and
                     (takes_count(v) or not countstr)]
 
@@ -121,7 +121,7 @@ class KeyHintView(QLabel):
         suffix_color = html.escape(config.val.colors.keyhint.suffix.fg)
 
         text = ''
-        for key, cmd in bindings:
+        for seq, cmd in bindings:
             text += (
                 "<tr>"
                 "<td>{}</td>"
@@ -131,7 +131,7 @@ class KeyHintView(QLabel):
             ).format(
                 html.escape(prefix),
                 suffix_color,
-                html.escape(key[len(prefix):]),
+                html.escape(str(seq[len(prefix):])),
                 html.escape(cmd)
             )
         text = '<table>{}</table>'.format(text)
