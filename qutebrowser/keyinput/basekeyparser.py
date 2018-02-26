@@ -125,7 +125,7 @@ class BaseKeyParser(QObject):
         txt = keyutils.keyevent_to_string(e)
         self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
 
-        if txt is None:
+        if not txt:
             self._debug_log("Ignoring, no text char")
             return QKeySequence.NoMatch
 
