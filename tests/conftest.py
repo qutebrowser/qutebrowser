@@ -72,7 +72,8 @@ def _apply_platform_markers(config, item):
          qtutils.version_check('5.8') and
          not qtutils.version_check('5.10') and
          config.webengine,
-         "Broken on webengine due to qtbug60673"),
+         "Broken on webengine due to "
+         "https://bugreports.qt.io/browse/QTBUG-60673"),
         ('unicode_locale', sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
     ]
