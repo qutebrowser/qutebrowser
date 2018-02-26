@@ -21,6 +21,7 @@
 
 import unicodedata
 import collections
+import itertools
 
 import attr
 from PyQt5.QtCore import Qt
@@ -261,15 +262,23 @@ class KeyInfo:
 
 class KeySequence:
 
-    def __init__(self, *args):
-        self._sequence = QKeySequence(*args)
-        for key in self._sequence:
-            assert key != Qt.Key_unknown
-        # FIXME handle more than 4 keys
+    _MAX_LEN = 4
+
+    def __init__(self, strings=None):
+        self._sequences = []
+        if strings is None:
+            strings = []
+
+        for sub in utils.chunk(strings, 4):
+            # Catch old API usage FIXME
+            assert all(isinstance(s, str) for s in sub)
+            sequence = QKeySequence(', '.join(sub))
+            self._sequences.append(sequence)
+        self._validate()
 
     def __str__(self):
         parts = []
-        for info in self._sequence:
+        for info in self:
             parts.append(str(info))
         return ''.join(parts)
 
@@ -278,7 +287,7 @@ class KeySequence:
         modifier_mask = int(Qt.ShiftModifier | Qt.ControlModifier |
                             Qt.AltModifier | Qt.MetaModifier |
                             Qt.KeypadModifier | Qt.GroupSwitchModifier)
-        for key in self._sequence:
+        for key in itertools.chain.from_iterable(self._sequences):
             yield KeyInfo(
                 key=int(key) & ~modifier_mask,
                 modifiers=Qt.KeyboardModifiers(int(key) & modifier_mask))
@@ -287,26 +296,38 @@ class KeySequence:
         return utils.get_repr(self, keys=str(self))
 
     def __lt__(self, other):
-        return self._sequence < other._sequence
+        return self._sequences < other._sequences
 
     def __gt__(self, other):
-        return self._sequence > other._sequence
+        return self._sequences > other._sequences
 
     def __eq__(self, other):
-        return self._sequence == other._sequence
+        return self._sequences == other._sequences
 
     def __ne__(self, other):
-        return self._sequence != other._sequence
+        return self._sequences != other._sequences
 
     def __hash__(self):
-        return hash(self._sequence)
+        # FIXME is this correct?
+        return hash(tuple(self._sequences))
 
     def __len__(self):
-        return len(self._sequence)
+        return sum(len(seq) for seq in self._sequences)
+
+    def _validate(self):
+        for info in self:
+            assert info.key != Qt.Key_unknown
 
     def matches(self, other):
+        # FIXME test this
         # pylint: disable=protected-access
-        return self._sequence.matches(other._sequence)
+        assert self._sequences
+        assert other._sequences
+        for seq1, seq2 in zip(self._sequences, other._sequences):
+            match = seq1.matches(seq2)
+            if match != QKeySequence.ExactMatch:
+                return match
+        return QKeySequence.ExactMatch
 
     def append_event(self, ev):
         """Create a new KeySequence object with the given QKeyEvent added.
@@ -325,17 +346,28 @@ class KeySequence:
 
         FIXME: create test cases!
         """
+        # pylint: disable=protected-access
+        new = self.__class__()
+        new._sequences = self._sequences[:]
+
         modifiers = ev.modifiers()
         if (modifiers == Qt.ShiftModifier and
                 unicodedata.category(ev.text()) != 'Lu'):
             modifiers = Qt.KeyboardModifiers()
-        return self.__class__(*self._sequence, modifiers | ev.key())
+
+        if new._sequences and len(new._sequences[-1]) < self._MAX_LEN:
+            new._sequences[-1] = QKeySequence(*new._sequences[-1],
+                                              ev.key() | int(modifiers))
+        else:
+            new._sequences.append(QKeySequence(ev.key() | int(modifiers)))
+
+        new._validate()
+        return new
 
     @classmethod
     def parse(cls, keystr):
         """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
-        # FIXME have multiple sequences in self!
-        s = ', '.join(_parse_keystring(keystr))
-        new = cls(s)
+        parts = list(_parse_keystring(keystr))
+        new = cls(parts)
         assert len(new) > 0
         return new

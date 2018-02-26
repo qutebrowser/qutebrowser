@@ -659,3 +659,13 @@ def yaml_dump(data, f=None):
         return None
     else:
         return yaml_data.decode('utf-8')
+
+
+def chunk(elems, n):
+    """Yield successive n-sized chunks from elems.
+
+    If elems % n != 0, the last chunk will be smaller.
+    """
+    # FIXME test this
+    for i in range(0, len(elems), n):
+        yield elems[i:i + n]
