@@ -147,14 +147,9 @@ class BaseKeyParser(QObject):
         sequence = self._sequence.append_event(e)
         match, binding = self._match_key(sequence)
         if match == QKeySequence.NoMatch:
-            mappings = config.val.bindings.key_mappings
-            mapped = mappings.get(txt, None)
+            mapped = config.val.bindings.key_mappings.get(sequence, None)
             if mapped is not None:
-                # FIXME
-                raise Exception
-                txt = mapped
-                sequence = self._sequence.append_event(e)
-                match, binding = self._match_key(sequence)
+                match, binding = self._match_key(mapped)
 
         self._sequence = self._sequence.append_event(e)
         if match == QKeySequence.ExactMatch:
