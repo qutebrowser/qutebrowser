@@ -147,8 +147,14 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
-        self.search_displayed = True
+        # Don't go to next entry on duplicate search
+        if self.text == text and self.search_displayed:
+            log.webview.debug("Ignoring duplicate search request"
+                              " for {}".format(text))
+            return
+
         self.text = text
+        self.search_displayed = True
         self._flags = QWebPage.FindWrapsAroundDocument
         if self._is_case_sensitive(ignore_case):
             self._flags |= QWebPage.FindCaseSensitively
