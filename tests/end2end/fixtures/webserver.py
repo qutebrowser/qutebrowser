@@ -62,8 +62,6 @@ class Request(testprocess.Line):
 
     def _check_status(self):
         """Check if the http status is what we expected."""
-        # WORKAROUND for https://github.com/PyCQA/pylint/issues/399 (?)
-        # pylint: disable=no-member
         path_to_statuses = {
             '/favicon.ico': [HTTPStatus.NOT_FOUND],
             '/does-not-exist': [HTTPStatus.NOT_FOUND],
@@ -88,7 +86,6 @@ class Request(testprocess.Line):
             path_to_statuses[key] = [HTTPStatus.UNAUTHORIZED, HTTPStatus.OK]
 
         default_statuses = [HTTPStatus.OK, HTTPStatus.NOT_MODIFIED]
-        # pylint: enable=no-member
 
         sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
         expected_statuses = path_to_statuses.get(sanitized, default_statuses)
