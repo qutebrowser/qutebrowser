@@ -394,6 +394,9 @@ class KeySequence:
         for sub in utils.chunk(strings, cls._MAX_LEN):
             sequence = QKeySequence(', '.join(sub))
             new._sequences.append(sequence)
-        assert len(new) > 0
+
+        if keystr:
+            assert len(new) > 0
+
         new._validate(keystr)
         return new
