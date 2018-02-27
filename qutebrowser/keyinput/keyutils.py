@@ -290,6 +290,9 @@ class KeySequence:
     This internally uses chained QKeySequence objects and exposes a nicer
     interface over it.
 
+    NOTE: While private members of this class are in theory mutable, they must
+    not be mutated in order to ensure consistent hashing.
+
     Attributes:
         _sequences: A list of QKeySequence
 
@@ -344,7 +347,6 @@ class KeySequence:
         return self._sequences != other._sequences
 
     def __hash__(self):
-        # FIXME is this correct?
         return hash(tuple(self._sequences))
 
     def __len__(self):
@@ -371,7 +373,6 @@ class KeySequence:
 
     def matches(self, other):
         """Check whether the given KeySequence matches with this one."""
-        # FIXME test this
         # pylint: disable=protected-access
         assert self._sequences
         assert other._sequences
@@ -396,8 +397,6 @@ class KeySequence:
         In addition, Shift also *is* relevant when other modifiers are
         involved.
         Shift-Ctrl-X should not be equivalent to Ctrl-X.
-
-        FIXME: create test cases!
         """
         modifiers = ev.modifiers()
 
@@ -416,7 +415,6 @@ class KeySequence:
         """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
         # pylint: disable=protected-access
         # FIXME: test stuff like <a, a>
-        # FIXME make sure all callers handle KeyParseError
         new = cls()
         strings = list(_parse_keystring(keystr))
         for sub in utils.chunk(strings, cls._MAX_LEN):
