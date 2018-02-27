@@ -557,12 +557,18 @@ class TestBind:
         # :bind --default foobar
         ('bind', ['foobar'], {'default': True},
          "Can't find binding 'foobar' in normal mode"),
+        # :bind <blub> nop
+        ('bind', ['<blub>', 'nop'], {},
+         "Could not parse '<blub>': Got unknown key!"),
         # :unbind foobar
         ('unbind', ['foobar'], {},
          "Can't find binding 'foobar' in normal mode"),
         # :unbind --mode=wrongmode x
         ('unbind', ['x'], {'mode': 'wrongmode'},
          'Invalid mode wrongmode!'),
+        # :unbind <blub>
+        ('unbind', ['<blub>'], {},
+         "Could not parse '<blub>': Got unknown key!"),
     ])
     def test_bind_invalid(self, commands,
                           command, args, kwargs, expected):

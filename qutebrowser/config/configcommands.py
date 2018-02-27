@@ -59,6 +59,13 @@ class ConfigCommands:
             raise cmdexc.CommandError("Error while parsing {}: {}"
                                       .format(pattern, str(e)))
 
+    def _parse_key(self, key):
+        """Parse a key argument."""
+        try:
+            return keyutils.KeySequence.parse(key)
+        except keyutils.KeyParseError as e:
+            raise cmdexc.CommandError(str(e))
+
     def _print_value(self, option, pattern):
         """Print the value of the given option."""
         with self._handle_config_error():
@@ -143,7 +150,7 @@ class ConfigCommands:
             tabbed_browser.openurl(QUrl('qute://bindings'), newtab=True)
             return
 
-        seq = keyutils.KeySequence.parse(key)
+        seq = self._parse_key(key)
 
         if command is None:
             if default:
@@ -176,7 +183,7 @@ class ConfigCommands:
                   See `:help bindings.commands` for the available modes.
         """
         with self._handle_config_error():
-            self._keyconfig.unbind(keyutils.KeySequence.parse(key), mode=mode,
+            self._keyconfig.unbind(self._parse_key(key), mode=mode,
                                    save_yaml=True)
 
     @cmdutils.register(instance='config-commands', star_args_optional=True)
