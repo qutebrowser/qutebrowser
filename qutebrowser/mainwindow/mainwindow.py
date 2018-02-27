@@ -485,6 +485,7 @@ class MainWindow(QWidget):
 
         # command input / completion
         mode_manager.left.connect(self.tabbed_browser.on_mode_left)
+        mode_manager.entered.connect(self.tabbed_browser.on_mode_entered)
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)

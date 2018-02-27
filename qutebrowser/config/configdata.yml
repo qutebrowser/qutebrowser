@@ -1054,6 +1054,12 @@ input.blur_on_mode_leave:
   desc: >-
     Clear focus on page when leaving insert mode.
 
+input.focus_on_mode_enter:
+  default: true
+  type: Bool
+  desc: >-
+    Refocus last focused element when leaving insert mode.
+
 ## keyhint
 
 keyhint.blacklist:

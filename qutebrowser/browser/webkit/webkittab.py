@@ -39,7 +39,8 @@ from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
 from qutebrowser.config import config
-from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
+from qutebrowser.utils import (qtutils, objreg, usertypes, utils, log, debug,
+                               javascript)
 
 
 class WebKitAction(browsertab.AbstractAction):
@@ -766,31 +767,25 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_contents_size_changed(self, size):
         self.contents_size_changed.emit(QSizeF(size))
 
+
+    @pyqtSlot()
+    def init_focustools(self):
+        """Initialize focustools.js in the main frame."""
+        frame = self._widget.page().mainFrame()
+        frame.evaluateJavaScript(
+            'window._qutebrowser = window._qutebrowser || {};')
+        frame.evaluateJavaScript(
+            utils.read_file('javascript/focustools.js'))
+
     @pyqtSlot()
     def handle_clear_focus(self):
         """Handle clearing focus when the page is first loaded."""
         if not config.val.input.blur_on_load.enabled:
             return
-        frame = self._widget.page().mainFrame()
-        code = """
-            window.addEventListener("DOMContentLoaded", () => {{
-                if (document.activeElement)
-                    document.activeElement.blur()
-                }});
-        """
-        frame.evaluateJavaScript(code)
-
-        if config.val.input.blur_on_load.delay < 0:
-            return
-
-        code = """
-            window.addEventListener("load", () => setTimeout(
-                () => {{
-                    if (document.activeElement)
-                        document.activeElement.blur();}},
-                {}));
-            """.format(config.val.input.blur_on_load.delay)
-        frame.evaluateJavaScript(code)
+        code = javascript.assemble('focustools', 'load',
+                                   config.val.input.blur_on_load.enabled,
+                                   config.val.input.blur_on_load.delay)
+        self.run_js_async(code)
 
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
@@ -837,7 +832,8 @@ class WebKitTab(browsertab.AbstractTab):
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.navigation_request.connect(self._on_navigation_request)
 
-        frame.javaScriptWindowObjectCleared.connect(self.handle_clear_focus)
+        frame.initialLayoutCompleted.connect(self.init_focustools)
+        frame.initialLayoutCompleted.connect(self.handle_clear_focus)
 
     def event_target(self):
         return self._widget

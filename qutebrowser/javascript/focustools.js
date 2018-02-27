@@ -25,20 +25,57 @@
 
 window._qutebrowser.focustools = (function() {
     const funcs = {};
+    let lastFocusedElement = null;
+
+    /*
+     * Basic function for blurring the page.
+     */
+    funcs.blur = () => {
+        if (document && document.activeElement) {
+            document.activeElement.blur();
+        }
+    };
 
     /*
      * Blur page on load, and timeout seconds after fully completed load.
      */
     funcs.load = (blur_on_load, timeout) => {
-        if (blur_on_load && document.activeElement) {
-            document.activeElement.blur();
+        if (blur_on_load) {
+
+            // add a DOM event listener if we haven't loaded that yet
+            if (document.readyState === "complete") {
+                funcs.blur();
+            } else {
+                window.addEventListener("DOMContentLoaded", () => {
+                    funcs.blur();
+                });
+            }
+
             if (timeout >= 0) {
                 window.addEventListener("load",
                     () => setTimeout(
-                        () => document.activeElement.blur(), timeout));
+                        () => funcs.blur(), timeout));
             }
         }
     };
+
+    funcs.installFocusHandler = () => {
+        document.body.addEventListener("blur", (event) => {
+            lastFocusedElement = event.srcElement;
+        }, true);
+    };
+
+    funcs.focusLastElement = () => {
+        if (document
+            // No element focused currently
+            && document.activeElement == document.body
+            && lastFocusedElement) {
+            // TODO verify lastFocusedElement is still here!
+            lastFocusedElement.focus();
+        }
+    }
+
+    funcs.installFocusHandler();
 
     return funcs;
 })();
