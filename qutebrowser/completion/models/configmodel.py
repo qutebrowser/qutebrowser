@@ -36,8 +36,10 @@ def option(*, info):
 def customized_option(*, info):
     """A CompletionModel filled with set settings and their descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
-    options = ((opt.name, opt.description, info.config.get_str(opt.name))
-               for opt, _value in info.config)
+    options = ((values.opt.name, values.opt.description,
+                info.config.get_str(values.opt.name))
+               for values in info.config
+               if values)
     model.add_category(listcategory.ListCategory("Customized options",
                                                  options))
     return model
