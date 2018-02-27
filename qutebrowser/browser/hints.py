@@ -927,7 +927,7 @@ class HintManager(QObject):
             raise cmdexc.CommandError("No hint {}!".format(keystring))
 
         if select:
-            self._handle_auto_follow(keystring)
+            self.handle_partial_key(keystring)
         else:
             self._fire(keystring)
 
