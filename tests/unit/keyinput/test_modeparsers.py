@@ -56,8 +56,7 @@ class TestsNormalKeyParser:
         # Then start the real chain
         keyparser.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
-        keyparser.execute.assert_called_with(
-            'message-info ba', keyparser.Type.chain, None)
+        keyparser.execute.assert_called_with('message-info ba', None)
         assert not keyparser._sequence
 
     def test_partial_keychain_timeout(self, keyparser, config_stub,

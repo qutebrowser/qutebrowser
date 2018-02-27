@@ -39,7 +39,7 @@ class CommandKeyParser(BaseKeyParser):
         super().__init__(win_id, parent, supports_count, supports_chains)
         self._commandrunner = runners.CommandRunner(win_id)
 
-    def execute(self, cmdstr, _keytype, count=None):
+    def execute(self, cmdstr, count=None):
         try:
             self._commandrunner.run(cmdstr, count)
         except cmdexc.Error as e:

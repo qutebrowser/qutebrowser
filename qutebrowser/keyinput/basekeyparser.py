@@ -19,8 +19,6 @@
 
 """Base class for vim-like key sequence parser."""
 
-import enum
-
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtGui import QKeySequence
 
@@ -42,10 +40,6 @@ class BaseKeyParser(QObject):
                      future.
             definitive: Keychain matches exactly.
             none: No more matches possible.
-
-        Types: type of a key binding.
-            chain: execute() was called via a chain-like key binding
-            special: execute() was called via a special key binding
 
         do_log: Whether to log keypresses or not.
         passthrough: Whether unbound keys should be passed through with this
@@ -75,8 +69,6 @@ class BaseKeyParser(QObject):
     request_leave = pyqtSignal(usertypes.KeyMode, str, bool)
     do_log = True
     passthrough = False
-
-    Type = enum.Enum('Type', ['chain', 'special'])
 
     def __init__(self, win_id, parent=None, supports_count=None,
                  supports_chains=False):
@@ -157,7 +149,7 @@ class BaseKeyParser(QObject):
                 self._sequence))
             count = int(self._count) if self._count else None
             self.clear_keystring()
-            self.execute(binding, self.Type.chain, count)
+            self.execute(binding, count)
         elif match == QKeySequence.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
                 self._sequence, txt))
@@ -248,13 +240,11 @@ class BaseKeyParser(QObject):
     #                              "because keychains are not supported there."
     #                             .format(key, modename))
 
-    def execute(self, cmdstr, keytype, count=None):
+    def execute(self, cmdstr, count=None):
         """Handle a completed keychain.
 
         Args:
             cmdstr: The command to execute as a string.
-            # FIXME do we still need this?
-            keytype: Type.chain or Type.special
             count: The count if given.
         """
         raise NotImplementedError

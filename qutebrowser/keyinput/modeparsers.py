@@ -232,19 +232,6 @@ class HintKeyParser(keyparser.CommandKeyParser):
 
         return match != QKeySequence.NoMatch
 
-    # FIXME why is this needed?
-    # def execute(self, cmdstr, keytype, count=None):
-    #     """Handle a completed keychain."""
-    #     if not isinstance(keytype, self.Type):
-    #         raise TypeError("Type {} is no Type member!".format(keytype))
-    #     if keytype == self.Type.chain:
-    #         hintmanager = objreg.get('hintmanager', scope='tab',
-    #                                  window=self._win_id, tab='current')
-    #         hintmanager.handle_partial_key(cmdstr)
-    #     else:
-    #         # execute as command
-    #         super().execute(cmdstr, keytype, count)
-
     def update_bindings(self, strings, preserve_filter=False):
         """Update bindings when the hint strings changed.
 
