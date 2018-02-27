@@ -27,7 +27,13 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.config import configcommands, configutils
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import usertypes, urlmatch
+from qutebrowser.keyinput import keyutils
 from qutebrowser.misc import objects
+
+
+# Alias because we need this a lot in here.
+def keyseq(s):
+    return keyutils.KeySequence.parse(s)
 
 
 @pytest.fixture
@@ -415,7 +421,7 @@ class TestWritePy:
     def test_custom(self, commands, config_stub, key_config_stub, tmpdir):
         confpy = tmpdir / 'config.py'
         config_stub.val.content.javascript.enabled = True
-        key_config_stub.bind(',x', 'message-info foo', mode='normal')
+        key_config_stub.bind(keyseq(',x'), 'message-info foo', mode='normal')
 
         commands.config_write_py(str(confpy))
 
@@ -496,7 +502,7 @@ class TestBind:
         config_stub.val.bindings.commands = no_bindings
 
         commands.bind(0, 'a', command)
-        assert key_config_stub.get_command('a', 'normal') == command
+        assert key_config_stub.get_command(keyseq('a'), 'normal') == command
         yaml_bindings = yaml_value('bindings.commands')['normal']
         assert yaml_bindings['a'] == command
 
@@ -509,7 +515,7 @@ class TestBind:
         ('c', 'normal', "c is bound to 'message-info c' in normal mode"),
         # Special key
         ('<Ctrl-X>', 'normal',
-         "<ctrl+x> is bound to 'message-info C-x' in normal mode"),
+         "<Ctrl+x> is bound to 'message-info C-x' in normal mode"),
         # unbound
         ('x', 'normal', "x is unbound in normal mode"),
         # non-default mode
@@ -569,7 +575,8 @@ class TestBind:
         }
 
         commands.bind(0, key, 'message-info foo', mode='normal')
-        assert key_config_stub.get_command(key, 'normal') == 'message-info foo'
+        command = key_config_stub.get_command(keyseq(key), 'normal')
+        assert command == 'message-info foo'
 
     def test_bind_none(self, commands, config_stub):
         config_stub.val.bindings.commands = None
@@ -581,11 +588,13 @@ class TestBind:
         bound_cmd = 'message-info bound'
         config_stub.val.bindings.default = {'normal': {'a': default_cmd}}
         config_stub.val.bindings.commands = {'normal': {'a': bound_cmd}}
-        assert key_config_stub.get_command('a', mode='normal') == bound_cmd
+        command = key_config_stub.get_command(keyseq('a'), mode='normal')
+        assert command == bound_cmd
 
         commands.bind(0, 'a', mode='normal', default=True)
 
-        assert key_config_stub.get_command('a', mode='normal') == default_cmd
+        command = key_config_stub.get_command(keyseq('a'), mode='normal')
+        assert command == default_cmd
 
     @pytest.mark.parametrize('key, mode, expected', [
         ('foobar', 'normal', "Can't find binding 'foobar' in normal mode"),
@@ -607,7 +616,7 @@ class TestBind:
         ('a', 'a'),  # default bindings
         ('b', 'b'),  # custom bindings
         ('c', 'c'),  # :bind then :unbind
-        ('<Ctrl-X>', '<ctrl+x>')  # normalized special binding
+        ('<Ctrl-X>', '<Ctrl+x>')  # normalized special binding
     ])
     def test_unbind(self, commands, key_config_stub, config_stub, yaml_value,
                     key, normalized):
@@ -624,7 +633,7 @@ class TestBind:
             commands.bind(0, key, 'nop')
 
         commands.unbind(key)
-        assert key_config_stub.get_command(key, 'normal') is None
+        assert key_config_stub.get_command(keyseq(key), 'normal') is None
 
         yaml_bindings = yaml_value('bindings.commands')['normal']
         if key in 'bc':
