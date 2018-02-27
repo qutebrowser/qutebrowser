@@ -88,69 +88,6 @@ class BaseKeyParser(QObject):
         if self.do_log:
             log.keyboard.debug(message)
 
-    def _handle_key(self, e):
-        """Handle a new keypress.
-
-        Separate the keypress into count/command, then check if it matches
-        any possible command, and either run the command, ignore it, or
-        display an error.
-
-        Args:
-            e: the KeyPressEvent from Qt.
-
-        Return:
-            A QKeySequence match or None.
-        """
-        key = e.key()
-        txt = keyutils.keyevent_to_string(e)
-        self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
-
-        if not txt:
-            self._debug_log("Ignoring, no text char")
-            return QKeySequence.NoMatch
-
-        # if len(txt) == 1:
-        #     category = unicodedata.category(txt)
-        #     is_control_char = (category == 'Cc')
-        # else:
-        #     is_control_char = False
-
-        # if (not txt) or is_control_char:
-        #     self._debug_log("Ignoring, no text char")
-        #     return QKeySequence.NoMatch
-
-        if (txt.isdigit() and self._supports_count and not
-                (not self._count and txt == '0')):
-            assert len(txt) == 1, txt
-            self._count += txt
-            return None
-
-        sequence = self._sequence.append_event(e)
-        match, binding = self._match_key(sequence)
-        if match == QKeySequence.NoMatch:
-            mappings = config.val.bindings.key_mappings
-            mapped = mappings.get(sequence, None)
-            if mapped is not None:
-                match, binding = self._match_key(mapped)
-
-        self._sequence = self._sequence.append_event(e)
-        if match == QKeySequence.ExactMatch:
-            self._debug_log("Definitive match for '{}'.".format(
-                self._sequence))
-            count = int(self._count) if self._count else None
-            self.clear_keystring()
-            self.execute(binding, count)
-        elif match == QKeySequence.PartialMatch:
-            self._debug_log("No match for '{}' (added {})".format(
-                self._sequence, txt))
-        elif match == QKeySequence.NoMatch:
-            self._debug_log("Giving up with '{}', no matches".format(
-                self._sequence))
-            self.clear_keystring()
-        else:
-            raise utils.Unreachable("Invalid match value {!r}".format(match))
-        return match
-
     def _match_key(self, sequence):
         """Try to match a given keystring with any bound keychain.
 
@@ -175,21 +112,70 @@ class BaseKeyParser(QObject):
         return (QKeySequence.NoMatch, None)
 
     def handle(self, e):
-        """Handle a new keypress and call the respective handlers.
+        """Handle a new keypress.
+
+        Separate the keypress into count/command, then check if it matches
+        any possible command, and either run the command, ignore it, or
+        display an error.
 
         Args:
-            e: the KeyPressEvent from Qt
+            e: the KeyPressEvent from Qt.
 
         Return:
-            True if the event was handled, False otherwise.
+            A QKeySequence match.
         """
-        match = self._handle_key(e)
+        key = e.key()
+        txt = keyutils.keyevent_to_string(e)
+        self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
 
-        # don't emit twice if the keystring was cleared in self.clear_keystring
-        if self._sequence:
+        if not txt:
+            self._debug_log("Ignoring, no text char")
+            return QKeySequence.NoMatch
+
+        # if len(txt) == 1:
+        #     category = unicodedata.category(txt)
+        #     is_control_char = (category == 'Cc')
+        # else:
+        #     is_control_char = False
+
+        # if (not txt) or is_control_char:
+        #     self._debug_log("Ignoring, no text char")
+        #     return QKeySequence.NoMatch
+
+        if (txt.isdigit() and self._supports_count and not
+                (not self._count and txt == '0')):
+            assert len(txt) == 1, txt
+            self._count += txt
+            return QKeySequence.ExactMatch
+
+        sequence = self._sequence.append_event(e)
+        match, binding = self._match_key(sequence)
+        if match == QKeySequence.NoMatch:
+            mappings = config.val.bindings.key_mappings
+            mapped = mappings.get(sequence, None)
+            if mapped is not None:
+                match, binding = self._match_key(mapped)
+
+        self._sequence = self._sequence.append_event(e)
+
+        if match == QKeySequence.ExactMatch:
+            self._debug_log("Definitive match for '{}'.".format(
+                self._sequence))
+            count = int(self._count) if self._count else None
+            self.clear_keystring()
+            self.execute(binding, count)
+        elif match == QKeySequence.PartialMatch:
+            self._debug_log("No match for '{}' (added {})".format(
+                self._sequence, txt))
             self.keystring_updated.emit(self._count + str(self._sequence))
+        elif match == QKeySequence.NoMatch:
+            self._debug_log("Giving up with '{}', no matches".format(
+                self._sequence))
+            self.clear_keystring()
+        else:
+            raise utils.Unreachable("Invalid match value {!r}".format(match))
 
-        return match != QKeySequence.NoMatch
+        return match
 
     @config.change_filter('bindings')
     def _on_config_changed(self):

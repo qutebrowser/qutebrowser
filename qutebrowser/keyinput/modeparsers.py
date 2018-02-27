@@ -153,8 +153,8 @@ class HintKeyParser(keyparser.CommandKeyParser):
         self._read_config('hint')
         self.keystring_updated.connect(self.on_keystring_updated)
 
-    def _handle_special_key(self, e):
-        """Override _handle_special_key to handle string filtering.
+    def _handle_filter_key(self, e):
+        """Handle keys for string filtering.
 
         Return True if the keypress has been handled, and False if not.
 
@@ -162,10 +162,8 @@ class HintKeyParser(keyparser.CommandKeyParser):
             e: the KeyPressEvent from Qt.
 
         Return:
-            True if event has been handled, False otherwise.
+            A QKeySequence match.
         """
-        # FIXME rewrite this
-        # FIXME should backspacing be a more generic hint feature?
         log.keyboard.debug("Got special key 0x{:x} text {}".format(
             e.key(), e.text()))
         hintmanager = objreg.get('hintmanager', scope='tab',
@@ -178,7 +176,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
             if self._last_press == LastPress.filtertext and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
                 hintmanager.filter_hints(self._filtertext)
-                return True
+                return QKeySequence.ExactMatch
             elif self._last_press == LastPress.keystring and self._sequence:
                 self._sequence = self._sequence[:-1]
                 self.keystring_updated.emit(str(self._sequence))
@@ -187,18 +185,18 @@ class HintKeyParser(keyparser.CommandKeyParser):
                     # in numeric mode after the number has been deleted).
                     hintmanager.filter_hints(self._filtertext)
                     self._last_press = LastPress.filtertext
-                return True
+                return QKeySequence.ExactMatch
             else:
-                return False
+                return QKeySequence.NoMatch
         elif hintmanager.current_mode() != 'number':
-            return False
+            return QKeySequence.NoMatch
         elif not e.text():
-            return False
+            return QKeySequence.NoMatch
         else:
             self._filtertext += e.text()
             hintmanager.filter_hints(self._filtertext)
             self._last_press = LastPress.filtertext
-            return True
+            return QKeySequence.ExactMatch
 
     def handle(self, e):
         """Handle a new keypress and call the respective handlers.
@@ -209,25 +207,18 @@ class HintKeyParser(keyparser.CommandKeyParser):
         Returns:
             True if the match has been handled, False otherwise.
         """
-        # FIXME rewrite this
-        match = self._handle_key(e)
+        match = super().handle(e)
         if match == QKeySequence.PartialMatch:
-            # FIXME do we need to check self._sequence here?
-            self.keystring_updated.emit(str(self._sequence))
             self._last_press = LastPress.keystring
-            return True
         elif match == QKeySequence.ExactMatch:
             self._last_press = LastPress.none
-            return True
-        elif match is None:  # FIXME
-            return None
         elif match == QKeySequence.NoMatch:
             # We couldn't find a keychain so we check if it's a special key.
-            return self._handle_special_key(e)
+            return self._handle_filter_key(e)
         else:
             raise ValueError("Got invalid match type {}!".format(match))
 
-        return match != QKeySequence.NoMatch
+        return match
 
     def update_bindings(self, strings, preserve_filter=False):
         """Update bindings when the hint strings changed.
@@ -285,15 +276,16 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
         Return:
             True if event has been handled, False otherwise.
         """
-        # FIXME rewrite this
-        if super().handle(e):
-            return True
+        match = super().handle(e)
+        if match:
+            return match
 
         key = e.text()
 
         if key == '' or keyutils.keyevent_to_string(e) is None:
             # this is not a proper register key, let it pass and keep going
-            return False
+            # FIXME can we simplify this when we refactor keyutils.py?
+            return QKeySequence.NoMatch
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
@@ -315,5 +307,4 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
             message.error(str(err), stack=traceback.format_exc())
 
         self.request_leave.emit(self._mode, "valid register key", True)
-
-        return True
+        return QKeySequence.ExactMatch
