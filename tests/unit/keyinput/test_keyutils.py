@@ -110,8 +110,8 @@ class TestKeyEventToString:
     ('xyz', keyutils.KeySequence(Qt.Key_X, Qt.Key_Y, Qt.Key_Z)),
     ('<Control-x><Meta-y>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X,
                                                  Qt.MetaModifier | Qt.Key_Y)),
-    # FIXME
-    # ('<Ctrl-x>, <Ctrl-y>', keyutils.KeyParseError),
+     ('<blub>', keyutils.KeyParseError),
+     ('\U00010000', keyutils.KeyParseError),
 ])
 def test_parse(keystr, expected):
     if expected is keyutils.KeyParseError:
