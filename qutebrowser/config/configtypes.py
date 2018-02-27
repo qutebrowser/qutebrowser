@@ -1652,7 +1652,8 @@ class Key(BaseType):
         self._basic_py_validation(value, str)
         if not value:
             return None
-        #if utils.is_special_key(value):
-        #    value = '<{}>'.format(utils.normalize_keystr(value[1:-1]))
-        #return value
-        return keyutils.KeySequence.parse(value)
+
+        try:
+            return keyutils.KeySequence.parse(value)
+        except keyutils.KeyParseError as e:
+            raise configexc.ValidationError(value, str(e))

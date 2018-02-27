@@ -2064,6 +2064,10 @@ class TestKey:
     def test_to_py_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
 
+    def test_to_py_invalid(self, klass):
+        with pytest.raises(configexc.ValidationError):
+            klass().to_py('\U00010000')
+
 
 @pytest.mark.parametrize('first, second, equal', [
     (re.compile('foo'), RegexEq('foo'), True),
