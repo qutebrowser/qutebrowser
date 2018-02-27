@@ -136,8 +136,8 @@ class KeyConfig:
     def __init__(self, config):
         self._config = config
 
-    def _prepare(self, key, mode):
-        """Make sure the given mode exists."""
+    def _validate(self, key, mode):
+        """Validate the given key and mode."""
         # Catch old usage of this code
         assert isinstance(key, keyutils.KeySequence), key
         if mode not in configdata.DATA['bindings.default'].default:
@@ -170,7 +170,7 @@ class KeyConfig:
 
     def get_command(self, key, mode, default=False):
         """Get the command for a given key (or None)."""
-        self._prepare(key, mode)
+        self._validate(key, mode)
         if default:
             bindings = dict(val.bindings.default[mode])
         else:
@@ -184,7 +184,7 @@ class KeyConfig:
                 "Can't add binding '{}' with empty command in {} "
                 'mode'.format(key, mode))
 
-        self._prepare(key, mode)
+        self._validate(key, mode)
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
 
@@ -196,7 +196,7 @@ class KeyConfig:
 
     def bind_default(self, key, *, mode='normal', save_yaml=False):
         """Restore a default keybinding."""
-        self._prepare(key, mode)
+        self._validate(key, mode)
 
         bindings_commands = self._config.get_mutable_obj('bindings.commands')
         try:
@@ -208,7 +208,7 @@ class KeyConfig:
 
     def unbind(self, key, *, mode='normal', save_yaml=False):
         """Unbind the given key in the given mode."""
-        self._prepare(key, mode)
+        self._validate(key, mode)
 
         bindings_commands = self._config.get_mutable_obj('bindings.commands')
 

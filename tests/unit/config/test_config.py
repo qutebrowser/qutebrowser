@@ -103,15 +103,13 @@ class TestKeyConfig:
         """Get a dict with no bindings."""
         return {'normal': {}}
 
-    def test_prepare_invalid_mode(self, key_config_stub):
-        """Make sure prepare checks the mode."""
+    def test_validate_invalid_mode(self, key_config_stub):
         with pytest.raises(configexc.KeybindingError):
-            assert key_config_stub._prepare(keyseq('x'), 'abnormal')
+            assert key_config_stub._validate(keyseq('x'), 'abnormal')
 
-    def test_prepare_invalid_type(self, key_config_stub):
-        """Make sure prepare checks the type."""
+    def test_validate_invalid_type(self, key_config_stub):
         with pytest.raises(AssertionError):
-            assert key_config_stub._prepare('x', 'normal')
+            assert key_config_stub._validate('x', 'normal')
 
     @pytest.mark.parametrize('commands, expected', [
         # Unbinding default key
