@@ -91,7 +91,7 @@ def _bind_current_default(key, info):
         else:
             data.append((cmd_text, '(Current) {}'.format(cmd.desc), key))
 
-    cmd_text = info.keyconf.get_command(seq, 'normal')
+    cmd_text = info.keyconf.get_command(seq, 'normal', default=True)
     if cmd_text:
         parser = runners.CommandParser()
         cmd = parser.parse(cmd_text).cmd
