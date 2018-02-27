@@ -333,6 +333,9 @@ class ConfigAPI:
         except urlmatch.ParseError as e:
             text = "While {} '{}' and parsing pattern".format(action, name)
             self.errors.append(configexc.ConfigErrorDesc(text, e))
+        except keyutils.KeyParseError as e:
+            text = "While {} '{}' and parsing key".format(action, name)
+            self.errors.append(configexc.ConfigErrorDesc(text, e))
 
     def finalize(self):
         """Do work which needs to be done after reading config.py."""

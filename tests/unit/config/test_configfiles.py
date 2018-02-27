@@ -29,6 +29,7 @@ from PyQt5.QtCore import QSettings
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
 from qutebrowser.utils import utils, usertypes, urlmatch
+from qutebrowser.keyinput import keyutils
 
 
 @pytest.fixture(autouse=True)
@@ -698,6 +699,20 @@ class TestConfigPy:
         assert isinstance(error.exception, AttributeError)
         message = "'ConfigAPI' object has no attribute 'val'"
         assert str(error.exception) == message
+
+    @pytest.mark.parametrize('line', [
+        'config.bind("<blub>", "nop")',
+        'config.bind("\U00010000", "nop")',
+        'config.unbind("<blub>")',
+        'config.unbind("\U00010000")',
+    ])
+    def test_invalid_keys(self, confpy, line):
+        confpy.write(line)
+        error = confpy.read(error=True)
+        assert error.text.endswith("and parsing key")
+        assert isinstance(error.exception, keyutils.KeyParseError)
+        assert str(error.exception).startswith("Could not parse")
+        assert str(error.exception).endswith("Got unknown key!")
 
     @pytest.mark.parametrize('line', ["c.foo = 42", "config.set('foo', 42)"])
     def test_config_error(self, confpy, line):
