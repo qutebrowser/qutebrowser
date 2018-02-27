@@ -25,8 +25,13 @@ from unittest import mock
 from PyQt5.QtCore import Qt
 import pytest
 
-from qutebrowser.keyinput import basekeyparser
+from qutebrowser.keyinput import basekeyparser, keyutils
 from qutebrowser.utils import utils
+
+
+# Alias because we need this a lot in here.
+def keyseq(s):
+    return keyutils.KeySequence.parse(s)
 
 
 @pytest.fixture
@@ -80,18 +85,24 @@ class TestDebugLog:
         assert not caplog.records
 
 
-@pytest.mark.parametrize('input_key, supports_count, expected', [
+@pytest.mark.parametrize('input_key, supports_count, count, command', [
     # (input_key, supports_count, expected)
-    ('10', True, (10, '')),
-    ('10foo', True, (10, 'foo')),
-    ('-1foo', True, (None, '-1foo')),
-    ('10e4foo', True, (10, 'e4foo')),
-    ('foo', True, (None, 'foo')),
-    ('10foo', False, (None, '10foo')),
+    ('10', True, '10', ''),
+    ('10g', True, '10', 'g'),
+    ('10e4g', True, '4', 'g'),
+    ('g', True, '', 'g'),
+    ('10g', False, '', 'g'),
 ])
-def test_split_count(config_stub, input_key, supports_count, expected):
+def test_split_count(config_stub, key_config_stub,
+                     input_key, supports_count, count, command):
     kp = basekeyparser.BaseKeyParser(0, supports_count=supports_count)
-    assert kp._split_count(input_key) == expected
+    kp._read_config('normal')
+
+    for info in keyseq(input_key):
+        kp._handle_key(info.to_event())
+
+    assert kp._count == count
+    assert kp._sequence == keyseq(command)
 
 
 @pytest.mark.usefixtures('keyinput_bindings')
@@ -106,18 +117,18 @@ class TestReadConfig:
         """Test reading config with _modename set."""
         keyparser._modename = 'normal'
         keyparser._read_config()
-        assert 'a' in keyparser.bindings
+        assert keyseq('a') in keyparser.bindings
 
     def test_read_config_valid(self, keyparser):
         """Test reading config."""
         keyparser._read_config('prompt')
-        assert 'ccc' in keyparser.bindings
-        assert 'ctrl+a' in keyparser.special_bindings
+        assert keyseq('ccc') in keyparser.bindings
+        assert keyseq('<ctrl+a>') in keyparser.bindings
         keyparser._read_config('command')
-        assert 'ccc' not in keyparser.bindings
-        assert 'ctrl+a' not in keyparser.special_bindings
-        assert 'foo' in keyparser.bindings
-        assert 'ctrl+x' in keyparser.special_bindings
+        assert keyseq('ccc') not in keyparser.bindings
+        assert keyseq('<ctrl+a>') not in keyparser.bindings
+        assert keyseq('foo') in keyparser.bindings
+        assert keyseq('<ctrl+x>') in keyparser.bindings
 
     def test_read_config_modename_none(self, keyparser):
         assert keyparser._modename is None
@@ -134,15 +145,18 @@ class TestReadConfig:
                          mode, changed_mode, expected):
         keyparser._read_config(mode)
         # Sanity checks
-        assert 'a' in keyparser.bindings
-        assert 'new' not in keyparser.bindings
+        assert keyseq('a') in keyparser.bindings
+        assert keyseq('new') not in keyparser.bindings
 
-        key_config_stub.bind('new', 'message-info new', mode=changed_mode)
+        key_config_stub.bind(keyseq('new'), 'message-info new',
+                             mode=changed_mode)
 
-        assert 'a' in keyparser.bindings
-        assert ('new' in keyparser.bindings) == expected
+        assert keyseq('a') in keyparser.bindings
+        assert (keyseq('new') in keyparser.bindings) == expected
 
+    # FIXME do we still need this?
     @pytest.mark.parametrize('warn_on_keychains', [True, False])
+    @pytest.mark.skip(reason='unneeded?')
     def test_warn_on_keychains(self, caplog, warn_on_keychains):
         """Test _warn_on_keychains."""
         kp = basekeyparser.BaseKeyParser(
@@ -168,27 +182,28 @@ class TestSpecialKeys:
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
         keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         keyparser.execute.assert_called_once_with(
-            'message-info ctrla', keyparser.Type.special, None)
+            'message-info ctrla', keyparser.Type.chain, None)
 
     def test_valid_key_count(self, fake_keyevent_factory, keyparser):
         modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
-        keyparser.handle(fake_keyevent_factory(5, text='5'))
+        keyparser.handle(fake_keyevent_factory(Qt.Key_5, text='5'))
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier, text='A'))
         keyparser.execute.assert_called_once_with(
-            'message-info ctrla', keyparser.Type.special, 5)
+            'message-info ctrla', keyparser.Type.chain, 5)
 
     def test_invalid_key(self, fake_keyevent_factory, keyparser):
         keyparser.handle(fake_keyevent_factory(
             Qt.Key_A, (Qt.ControlModifier | Qt.AltModifier)))
         assert not keyparser.execute.called
 
+    @pytest.mark.skip(reason='unneeded?')
     def test_keychain(self, fake_keyevent_factory, keyparser):
         keyparser.handle(fake_keyevent_factory(Qt.Key_B))
         keyparser.handle(fake_keyevent_factory(Qt.Key_A))
         assert not keyparser.execute.called
 
     def test_no_binding(self, monkeypatch, fake_keyevent_factory, keyparser):
-        monkeypatch.setattr(utils, 'keyevent_to_string', lambda binding: None)
+        monkeypatch.setattr(keyutils, 'keyevent_to_string', lambda binding: None)
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, Qt.NoModifier))
         assert not keyparser.execute.called
 
@@ -197,7 +212,7 @@ class TestSpecialKeys:
 
         keyparser.handle(fake_keyevent_factory(Qt.Key_B, modifier))
         keyparser.execute.assert_called_once_with(
-            'message-info ctrla', keyparser.Type.special, None)
+            'message-info ctrla', keyparser.Type.chain, None)
 
     def test_binding_and_mapping(self, config_stub, fake_keyevent_factory,
                                  keyparser):
@@ -206,7 +221,7 @@ class TestSpecialKeys:
 
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
         keyparser.execute.assert_called_once_with(
-            'message-info ctrla', keyparser.Type.special, None)
+            'message-info ctrla', keyparser.Type.chain, None)
 
 
 class TestKeyChain:
@@ -225,14 +240,14 @@ class TestKeyChain:
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
         keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
         keyparser.execute.assert_called_once_with(
-            'message-info ctrla', keyparser.Type.special, None)
-        assert keyparser._keystring == ''
+            'message-info ctrla', keyparser.Type.chain, None)
+        assert not keyparser._sequence
 
     def test_invalid_special_key(self, fake_keyevent_factory, keyparser):
         keyparser.handle(fake_keyevent_factory(
             Qt.Key_A, (Qt.ControlModifier | Qt.AltModifier)))
         assert not keyparser.execute.called
-        assert keyparser._keystring == ''
+        assert not keyparser._sequence
 
     def test_valid_keychain(self, handle_text, keyparser):
         # Press 'x' which is ignored because of no match
@@ -241,13 +256,13 @@ class TestKeyChain:
                     (Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
         keyparser.execute.assert_called_with(
             'message-info ba', keyparser.Type.chain, None)
-        assert keyparser._keystring == ''
+        assert not keyparser._sequence
 
     def test_0_press(self, handle_text, keyparser):
         handle_text((Qt.Key_0, '0'))
         keyparser.execute.assert_called_once_with(
             'message-info 0', keyparser.Type.chain, None)
-        assert keyparser._keystring == ''
+        assert not keyparser._sequence
 
     def test_ambiguous_keychain(self, handle_text, keyparser):
         handle_text((Qt.Key_A, 'a'))
@@ -256,7 +271,7 @@ class TestKeyChain:
     def test_invalid_keychain(self, handle_text, keyparser):
         handle_text((Qt.Key_B, 'b'))
         handle_text((Qt.Key_C, 'c'))
-        assert keyparser._keystring == ''
+        assert not keyparser._sequence
 
     def test_mapping(self, config_stub, handle_text, keyparser):
         handle_text((Qt.Key_X, 'x'))
@@ -282,34 +297,34 @@ class TestCount:
         handle_text((Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
         keyparser.execute.assert_called_once_with(
             'message-info ba', keyparser.Type.chain, None)
-        assert keyparser._keystring == ''
+        assert not keyparser._sequence
 
     def test_count_0(self, handle_text, keyparser):
         handle_text((Qt.Key_0, '0'), (Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
         calls = [mock.call('message-info 0', keyparser.Type.chain, None),
                  mock.call('message-info ba', keyparser.Type.chain, None)]
         keyparser.execute.assert_has_calls(calls)
-        assert keyparser._keystring == ''
+        assert not keyparser._sequence
 
     def test_count_42(self, handle_text, keyparser):
         handle_text((Qt.Key_4, '4'), (Qt.Key_2, '2'), (Qt.Key_B, 'b'),
                     (Qt.Key_A, 'a'))
         keyparser.execute.assert_called_once_with(
             'message-info ba', keyparser.Type.chain, 42)
-        assert keyparser._keystring == ''
+        assert not keyparser._sequence
 
     def test_count_42_invalid(self, handle_text, keyparser):
         # Invalid call with ccx gets ignored
         handle_text((Qt.Key_4, '4'), (Qt.Key_2, '2'), (Qt.Key_C, 'c'),
                     (Qt.Key_C, 'c'), (Qt.Key_X, 'x'))
         assert not keyparser.execute.called
-        assert keyparser._keystring == ''
+        assert not keyparser._sequence
         # Valid call with ccc gets the correct count
         handle_text((Qt.Key_6, '2'), (Qt.Key_2, '3'), (Qt.Key_C, 'c'),
                     (Qt.Key_C, 'c'), (Qt.Key_C, 'c'))
         keyparser.execute.assert_called_once_with(
             'message-info ccc', keyparser.Type.chain, 23)
-        assert keyparser._keystring == ''
+        assert not keyparser._sequence
 
 
 def test_clear_keystring(qtbot, keyparser):
@@ -317,4 +332,4 @@ def test_clear_keystring(qtbot, keyparser):
     keyparser._keystring = 'test'
     with qtbot.waitSignal(keyparser.keystring_updated):
         keyparser.clear_keystring()
-    assert keyparser._keystring == ''
+    assert not keyparser._sequence

@@ -253,6 +253,7 @@ class BaseKeyParser(QObject):
 
         Args:
             cmdstr: The command to execute as a string.
+            # FIXME do we still need this?
             keytype: Type.chain or Type.special
             count: The count if given.
         """
