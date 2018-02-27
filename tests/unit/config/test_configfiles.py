@@ -607,7 +607,7 @@ class TestConfigPy:
 
     @pytest.mark.parametrize('line, key, mode', [
         ('config.unbind("o")', 'o', 'normal'),
-        ('config.unbind("y", mode="prompt")', 'y', 'prompt'),
+        ('config.unbind("y", mode="yesno")', 'y', 'yesno'),
     ])
     def test_unbind(self, confpy, line, key, mode):
         confpy.write(line)
