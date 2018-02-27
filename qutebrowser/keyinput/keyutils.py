@@ -30,7 +30,7 @@ from PyQt5.QtGui import QKeySequence, QKeyEvent
 from qutebrowser.utils import utils
 
 
-def key_to_string(key):
+def _key_to_string(key):
     """Convert a Qt::Key member to a meaningful name.
 
     Args:
@@ -127,11 +127,6 @@ def key_to_string(key):
             return name
 
 
-def keyevent_to_string(e):
-    """Convert a QKeyEvent to a meaningful name."""
-    return str(KeyInfo(e.key(), e.modifiers()))
-
-
 class KeyParseError(Exception):
 
     """Raised by _parse_single_key/parse_keystring on parse errors."""
@@ -150,7 +145,7 @@ def _parse_keystring(keystr):
     for c in keystr:
         if c == '>':
             assert special
-            yield normalize_keystr(key)
+            yield _normalize_keystr(key)
             key = ''
             special = False
         elif c == '<':
@@ -165,7 +160,7 @@ def _parse_keystring(keystr):
             yield 'Shift+' + c if c.isupper() else c
 
 
-def normalize_keystr(keystr):
+def _normalize_keystr(keystr):
     """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
 
     Args:
@@ -200,6 +195,10 @@ class KeyInfo:
 
     key = attr.ib()
     modifiers = attr.ib()
+
+    @classmethod
+    def from_event(cls, e):
+        return cls(e.key(), e.modifiers())
 
     def __str__(self):
         """Convert this KeyInfo to a meaningful name.
@@ -240,7 +239,7 @@ class KeyInfo:
             if self.modifiers & mask and s not in parts:
                 parts.append(s)
 
-        key_string = key_to_string(self.key)
+        key_string = _key_to_string(self.key)
 
         if len(key_string) == 1:
             category = unicodedata.category(key_string)

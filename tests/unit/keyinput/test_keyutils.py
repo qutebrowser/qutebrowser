@@ -38,14 +38,14 @@ class TestKeyToString:
     ])
     def test_normal(self, key, expected):
         """Test a special key where QKeyEvent::toString works incorrectly."""
-        assert keyutils.key_to_string(key) == expected
+        assert keyutils._key_to_string(key) == expected
 
     def test_missing(self, monkeypatch):
         """Test with a missing key."""
         monkeypatch.delattr(keyutils.Qt, 'Key_Blue')
         # We don't want to test the key which is actually missing - we only
         # want to know if the mapping still behaves properly.
-        assert keyutils.key_to_string(Qt.Key_A) == 'A'
+        assert keyutils._key_to_string(Qt.Key_A) == 'A'
 
     def test_all(self):
         """Make sure there's some sensible output for all keys."""
@@ -53,7 +53,7 @@ class TestKeyToString:
             if not isinstance(value, Qt.Key):
                 continue
             print(name)
-            string = keyutils.key_to_string(value)
+            string = keyutils._key_to_string(value)
             assert string
             string.encode('utf-8')  # make sure it's encodable
 
@@ -66,37 +66,38 @@ class TestKeyEventToString:
         """Test keyeevent when only control is pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_Control,
                                     modifiers=Qt.ControlModifier)
-        assert not keyutils.keyevent_to_string(evt)
+        assert not str(keyutils.KeyInfo.from_event(evt))
 
     def test_only_hyper_l(self, fake_keyevent_factory):
         """Test keyeevent when only Hyper_L is pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_Hyper_L,
                                     modifiers=Qt.MetaModifier)
-        assert not keyutils.keyevent_to_string(evt)
+        assert not str(keyutils.KeyInfo.from_event(evt))
 
     def test_only_key(self, fake_keyevent_factory):
         """Test with a simple key pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_A)
-        assert keyutils.keyevent_to_string(evt) == 'a'
+        assert str(keyutils.KeyInfo.from_event(evt)) == 'a'
 
     def test_key_and_modifier(self, fake_keyevent_factory):
         """Test with key and modifier pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
         expected = '<Meta+a>' if utils.is_mac else '<Ctrl+a>'
-        assert keyutils.keyevent_to_string(evt) == expected
+        assert str(keyutils.KeyInfo.from_event(evt)) == expected
 
     def test_key_and_modifiers(self, fake_keyevent_factory):
         """Test with key and multiple modifiers pressed."""
         evt = fake_keyevent_factory(
             key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
                                      Qt.MetaModifier | Qt.ShiftModifier))
-        assert keyutils.keyevent_to_string(evt) == '<Ctrl+Alt+Meta+Shift+a>'
+        s = str(keyutils.KeyInfo.from_event(evt))
+        assert s == '<Ctrl+Alt+Meta+Shift+a>'
 
     @pytest.mark.fake_os('mac')
     def test_mac(self, fake_keyevent_factory):
         """Test with a simulated mac."""
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        assert keyutils.keyevent_to_string(evt) == '<Meta+a>'
+        assert str(keyutils.KeyInfo.from_event(evt)) == '<Meta+a>'
 
 
 @pytest.mark.parametrize('keystr, expected', [

@@ -125,7 +125,7 @@ class BaseKeyParser(QObject):
             A QKeySequence match.
         """
         key = e.key()
-        txt = keyutils.keyevent_to_string(e)
+        txt = str(keyutils.KeyInfo.from_event(e))
         self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
 
         if not txt:

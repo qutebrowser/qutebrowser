@@ -282,7 +282,7 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
 
         key = e.text()
 
-        if key == '' or keyutils.keyevent_to_string(e) is None:
+        if key == '' or not str(keyutils.KeyInfo.from_event(e)):
             # this is not a proper register key, let it pass and keep going
             # FIXME can we simplify this when we refactor keyutils.py?
             return QKeySequence.NoMatch
