@@ -157,16 +157,15 @@ class KeyConfig:
         """Get a dict of commands to a list of bindings for the mode."""
         cmd_to_keys = {}
         bindings = self.get_bindings_for(mode)
-        for key, full_cmd in sorted(bindings.items()):
+        for seq, full_cmd in sorted(bindings.items()):
             for cmd in full_cmd.split(';;'):
                 cmd = cmd.strip()
                 cmd_to_keys.setdefault(cmd, [])
-                # put special bindings last
-                # FIXME update
-                # if utils.is_special_key(key):
-                #     cmd_to_keys[cmd].append(key)
-                # else:
-                cmd_to_keys[cmd].insert(0, str(key))
+                # Put bindings involving modifiers last
+                if any(info.modifiers for info in seq):
+                    cmd_to_keys[cmd].append(str(seq))
+                else:
+                    cmd_to_keys[cmd].insert(0, str(seq))
         return cmd_to_keys
 
     def get_command(self, key, mode, default=False):
