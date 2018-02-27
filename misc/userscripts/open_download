@@ -52,7 +52,7 @@ die() {
 if ! [ -d "$DOWNLOAD_DIR" ] ; then
     die "Download directory »$DOWNLOAD_DIR« not found!"
 fi
-if ! which "${ROFI_CMD}" > /dev/null ; then
+if ! command -v "${ROFI_CMD}" > /dev/null ; then
     die "Rofi command »${ROFI_CMD}« not found in PATH!"
 fi
 
