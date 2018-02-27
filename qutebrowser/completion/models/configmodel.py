@@ -80,9 +80,16 @@ def bind(key, *, info):
     """
     model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
     data = []
-    seq = keyutils.KeySequence.parse(key)
 
-    cmd_text = info.keyconf.get_command(seq, 'normal')
+    try:
+        seq = keyutils.KeySequence.parse(key)
+    except keyutils.KeyParseError as e:
+        seq = None
+        cmd_text = None
+        data.append(('', str(e), key))
+
+    if seq:
+        cmd_text = info.keyconf.get_command(seq, 'normal')
     if cmd_text:
         parser = runners.CommandParser()
         try:
@@ -92,7 +99,8 @@ def bind(key, *, info):
         else:
             data.append((cmd_text, '(Current) {}'.format(cmd.desc), key))
 
-    cmd_text = info.keyconf.get_command(seq, 'normal', default=True)
+    if seq:
+        cmd_text = info.keyconf.get_command(seq, 'normal')
     if cmd_text:
         parser = runners.CommandParser()
         cmd = parser.parse(cmd_text).cmd
