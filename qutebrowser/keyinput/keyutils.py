@@ -396,6 +396,7 @@ class KeySequence:
             new._sequences.append(sequence)
 
         if keystr:
+            # FIXME fails with "<ctrl-x"
             assert len(new) > 0
 
         new._validate(keystr)

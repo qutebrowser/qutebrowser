@@ -20,6 +20,7 @@
 import pytest
 from PyQt5.QtCore import Qt
 
+from qutebrowser.utils import utils
 from qutebrowser.keyinput import keyutils
 
 
@@ -65,13 +66,13 @@ class TestKeyEventToString:
         """Test keyeevent when only control is pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_Control,
                                     modifiers=Qt.ControlModifier)
-        assert keyutils.keyevent_to_string(evt) is None
+        assert not keyutils.keyevent_to_string(evt)
 
     def test_only_hyper_l(self, fake_keyevent_factory):
         """Test keyeevent when only Hyper_L is pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_Hyper_L,
                                     modifiers=Qt.MetaModifier)
-        assert keyutils.keyevent_to_string(evt) is None
+        assert not keyutils.keyevent_to_string(evt)
 
     def test_only_key(self, fake_keyevent_factory):
         """Test with a simple key pressed."""
@@ -81,7 +82,7 @@ class TestKeyEventToString:
     def test_key_and_modifier(self, fake_keyevent_factory):
         """Test with key and modifier pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        expected = 'meta+a' if keyutils.is_mac else 'ctrl+a'
+        expected = '<Meta+a>' if utils.is_mac else '<Ctrl+a>'
         assert keyutils.keyevent_to_string(evt) == expected
 
     def test_key_and_modifiers(self, fake_keyevent_factory):
@@ -89,13 +90,13 @@ class TestKeyEventToString:
         evt = fake_keyevent_factory(
             key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
                                      Qt.MetaModifier | Qt.ShiftModifier))
-        assert keyutils.keyevent_to_string(evt) == 'ctrl+alt+meta+shift+a'
+        assert keyutils.keyevent_to_string(evt) == '<Ctrl+Alt+Meta+Shift+a>'
 
     @pytest.mark.fake_os('mac')
     def test_mac(self, fake_keyevent_factory):
         """Test with a simulated mac."""
         evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        assert keyutils.keyevent_to_string(evt) == 'meta+a'
+        assert keyutils.keyevent_to_string(evt) == '<Meta+a>'
 
 
 @pytest.mark.parametrize('keystr, expected', [
@@ -115,21 +116,21 @@ class TestKeyEventToString:
 def test_parse(keystr, expected):
     if expected is keyutils.KeyParseError:
         with pytest.raises(keyutils.KeyParseError):
-            keyutils._parse_single_key(keystr)
+            keyutils.KeySequence.parse(keystr)
     else:
-        assert keyutils._parse_single_key(keystr) == expected
+        assert keyutils.KeySequence.parse(keystr) == expected
 
 
-@pytest.mark.parametrize('orig, repl', [
-    ('Control+x', 'ctrl+x'),
-    ('Windows+x', 'meta+x'),
-    ('Mod1+x', 'alt+x'),
-    ('Mod4+x', 'meta+x'),
-    ('Control--', 'ctrl+-'),
-    ('Windows++', 'meta++'),
-    ('ctrl-x', 'ctrl+x'),
-    ('control+x', 'ctrl+x')
+@pytest.mark.parametrize('orig, normalized', [
+    ('<Control+x>', '<ctrl+x>'),
+    ('<Windows+x>', '<meta+x>'),
+    ('<Mod1+x>', '<alt+x>'),
+    ('<Mod4+x>', '<meta+x>'),
+    ('<Control-->', '<ctrl+->'),
+    ('<Windows++>', '<meta++>'),
+    ('<ctrl-x>', '<ctrl+x>'),
+    ('<control+x>', '<ctrl+x>')
 ])
-def test_normalize_keystr(orig, repl):
-    assert keyutils.KeySequence(orig) == repl
-
+def test_normalize_keystr(orig, normalized):
+    expected = keyutils.KeySequence.parse(normalized)
+    assert keyutils.KeySequence.parse(orig) == expected
