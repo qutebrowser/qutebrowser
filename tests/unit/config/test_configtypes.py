@@ -37,6 +37,7 @@ from PyQt5.QtNetwork import QNetworkProxy
 from qutebrowser.config import configtypes, configexc
 from qutebrowser.utils import debug, utils, qtutils
 from qutebrowser.browser.network import pac
+from qutebrowser.keyinput import keyutils
 from tests.helpers import utils as testutils
 
 
@@ -2058,8 +2059,8 @@ class TestKey:
         return configtypes.Key
 
     @pytest.mark.parametrize('val, expected', [
-        ('gC', 'gC'),
-        ('<Control-x>', '<ctrl+x>')
+        ('gC', keyutils.KeySequence.parse('gC')),
+        ('<Control-x>', keyutils.KeySequence.parse('<ctrl+x>')),
     ])
     def test_to_py_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
