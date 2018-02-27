@@ -28,7 +28,7 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.completion import completer
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import configdata, configtypes
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, usertypes
 from qutebrowser.browser import history
 from qutebrowser.commands import cmdutils
 
@@ -91,7 +91,8 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
                 valtype=configtypes.Command(),
             ),
             default={'q': 'quit'},
-            backends=[],
+            backends=[usertypes.Backend.QtWebKit,
+                      usertypes.Backend.QtWebEngine],
             raw_backends=None)),
         ('bindings.default', configdata.Option(
             name='bindings.default',
@@ -129,6 +130,13 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
                     ('d', 'scroll down'),
                 ])
             },
+            backends=[],
+            raw_backends=None)),
+        ('content.javascript.enabled', configdata.Option(
+            name='content.javascript.enabled',
+            description='Enable/Disable JavaScript',
+            typ=configtypes.Bool(),
+            default=True,
             backends=[],
             raw_backends=None)),
     ]))
@@ -248,6 +256,7 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
             ('aliases', 'Aliases for commands.', None),
             ('bindings.commands', 'Default keybindings', None),
             ('bindings.default', 'Default keybindings', None),
+            ('content.javascript.enabled', 'Enable/Disable JavaScript', None),
         ]
     })
 
@@ -648,8 +657,64 @@ def test_setting_option_completion(qtmodeltester, config_stub,
                 '"I": "invalid", "d": "scroll down"}}')),
             ('bindings.default', 'Default keybindings',
              '{"normal": {"<ctrl+q>": "quit", "d": "tab-close"}}'),
+            ('content.javascript.enabled', 'Enable/Disable JavaScript',
+             'true'),
         ]
     })
+
+
+def test_setting_customized_option_completion(qtmodeltester, config_stub,
+                                              configdata_stub, info):
+    info.config.set_obj('aliases', {'foo': 'nop'})
+
+    model = configmodel.customized_option(info=info)
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Customized options": [
+            ('aliases', 'Aliases for commands.', '{"foo": "nop"}'),
+        ]
+    })
+
+
+def test_setting_value_completion(qtmodeltester, config_stub, configdata_stub,
+                                  info):
+    model = configmodel.value(optname='content.javascript.enabled', info=info)
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Current/Default": [
+            ('true', 'Current value', None),
+            ('true', 'Default value', None),
+        ],
+        "Completions": [
+            ('false', '', None),
+            ('true', '', None),
+        ],
+    })
+
+
+def test_setting_value_no_completions(qtmodeltester, config_stub,
+                                      configdata_stub, info):
+    model = configmodel.value(optname='aliases', info=info)
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Current/Default": [
+            ('{"q": "quit"}', 'Current value', None),
+            ('{"q": "quit"}', 'Default value', None),
+        ],
+    })
+
+
+def test_setting_value_completion_invalid(info):
+    assert configmodel.value(optname='foobarbaz', info=info) is None
 
 
 def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,

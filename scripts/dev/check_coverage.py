@@ -173,6 +173,8 @@ PERFECT_FILES = [
      'completion/models/util.py'),
     ('tests/unit/completion/test_models.py',
      'completion/models/urlmodel.py'),
+    ('tests/unit/completion/test_models.py',
+     'completion/models/configmodel.py'),
     ('tests/unit/completion/test_histcategory.py',
      'completion/models/histcategory.py'),
     ('tests/unit/completion/test_listcategory.py',
