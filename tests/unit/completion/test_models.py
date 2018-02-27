@@ -99,7 +99,7 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
             typ=configtypes.Dict(
                 keytype=configtypes.String(),
                 valtype=configtypes.Dict(
-                    keytype=configtypes.String(),
+                    keytype=configtypes.Key(),
                     valtype=configtypes.Command(),
                 ),
             ),
@@ -117,7 +117,7 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
             typ=configtypes.Dict(
                 keytype=configtypes.String(),
                 valtype=configtypes.Dict(
-                    keytype=configtypes.String(),
+                    keytype=configtypes.Key(),
                     valtype=configtypes.Command(),
                 ),
             ),
