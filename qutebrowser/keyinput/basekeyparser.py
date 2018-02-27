@@ -139,7 +139,8 @@ class BaseKeyParser(QObject):
         #     self._debug_log("Ignoring, no text char")
         #     return QKeySequence.NoMatch
 
-        if txt.isdigit() and self._supports_count:
+        if (txt.isdigit() and self._supports_count and not
+                (not self._count and txt == '0')):
             assert len(txt) == 1, txt
             self._count += txt
             return None
