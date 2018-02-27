@@ -84,7 +84,7 @@ def test_split_count(config_stub, key_config_stub,
     kp._read_config('normal')
 
     for info in keyseq(input_key):
-        kp._handle_key(info.to_event())
+        kp.handle(info.to_event())
 
     assert kp._count == count
     assert kp._sequence == keyseq(command)
