@@ -154,17 +154,13 @@ class ConfigCommands:
                 return
 
             # No --default -> print binding
-            #if utils.is_special_key(key):
-            #    # self._keyconfig.get_command does this, but we also need it
-            #    # normalized for the output below
-            #    key = utils.normalize_keystr(key)
             with self._handle_config_error():
                 cmd = self._keyconfig.get_command(seq, mode)
             if cmd is None:
-                message.info("{} is unbound in {} mode".format(key, mode))
+                message.info("{} is unbound in {} mode".format(seq, mode))
             else:
                 message.info("{} is bound to '{}' in {} mode".format(
-                    key, cmd, mode))
+                    seq, cmd, mode))
             return
 
         with self._handle_config_error():
