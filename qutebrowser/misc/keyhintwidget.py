@@ -30,7 +30,6 @@ import re
 
 from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
-from PyQt5.QtGui import QKeySequence
 
 from qutebrowser.config import config
 from qutebrowser.utils import utils, usertypes

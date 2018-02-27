@@ -203,7 +203,8 @@ class TestSpecialKeys:
         assert not keyparser.execute.called
 
     def test_no_binding(self, monkeypatch, fake_keyevent_factory, keyparser):
-        monkeypatch.setattr(keyutils, 'keyevent_to_string', lambda binding: None)
+        monkeypatch.setattr(keyutils, 'keyevent_to_string',
+                            lambda binding: None)
         keyparser.handle(fake_keyevent_factory(Qt.Key_A, Qt.NoModifier))
         assert not keyparser.execute.called
 

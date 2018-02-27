@@ -18,7 +18,6 @@
 
 """Tests for qutebrowser.config.config."""
 
-import copy
 import types
 import unittest.mock
 

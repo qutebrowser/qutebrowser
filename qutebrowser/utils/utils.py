@@ -26,18 +26,15 @@ import re
 import sys
 import enum
 import json
-import collections
 import datetime
 import traceback
 import functools
 import contextlib
 import socket
 import shlex
-import unicodedata
 
-import attr
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QKeySequence, QColor, QClipboard, QDesktopServices
+from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
 import yaml
@@ -49,7 +46,7 @@ except ImportError:  # pragma: no cover
     YAML_C_EXT = False
 
 import qutebrowser
-from qutebrowser.utils import qtutils, log, debug
+from qutebrowser.utils import qtutils, log
 
 
 fake_clipboard = None

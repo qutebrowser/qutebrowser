@@ -26,7 +26,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
-from qutebrowser.utils import objreg, utils, message, standarddir, urlmatch
+from qutebrowser.utils import objreg, message, standarddir, urlmatch
 from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
 from qutebrowser.keyinput import keyutils

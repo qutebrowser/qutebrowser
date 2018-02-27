@@ -20,8 +20,6 @@
 """Base class for vim-like key sequence parser."""
 
 import enum
-import re
-import unicodedata
 
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtGui import QKeySequence
@@ -148,7 +146,8 @@ class BaseKeyParser(QObject):
         sequence = self._sequence.append_event(e)
         match, binding = self._match_key(sequence)
         if match == QKeySequence.NoMatch:
-            mapped = config.val.bindings.key_mappings.get(sequence, None)
+            mappings = config.val.bindings.key_mappings
+            mapped = mappings.get(sequence, None)
             if mapped is not None:
                 match, binding = self._match_key(mapped)
 
@@ -241,13 +240,13 @@ class BaseKeyParser(QObject):
             assert cmd
             self.bindings[key] = cmd
 
-    def _parse_key_command(self, modename, key, cmd):
-        """Parse the keys and their command and store them in the object."""
-        # FIXME
-        # elif self._warn_on_keychains:
-        #     log.keyboard.warning("Ignoring keychain '{}' in mode '{}' because "
-        #                          "keychains are not supported there."
-        #                         .format(key, modename))
+    # FIXME
+    # def _parse_key_command(self, modename, key, cmd):
+    #     """Parse the keys and their command and store them in the object."""
+    #     elif self._warn_on_keychains:
+    #         log.keyboard.warning("Ignoring keychain '{}' in mode '{}' "
+    #                              "because keychains are not supported there."
+    #                             .format(key, modename))
 
     def execute(self, cmdstr, keytype, count=None):
         """Handle a completed keychain.

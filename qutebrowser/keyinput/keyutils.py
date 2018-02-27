@@ -27,7 +27,7 @@ import attr
 from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QKeySequence, QKeyEvent
 
-from qutebrowser.utils import utils, debug
+from qutebrowser.utils import utils
 
 
 def key_to_string(key):
@@ -209,8 +209,8 @@ class KeyInfo:
             an empty string if only modifiers are pressed.
         """
         if utils.is_mac:
-            # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the user
-            # can use it in the config as expected. See:
+            # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the
+            # user can use it in the config as expected. See:
             # https://github.com/qutebrowser/qutebrowser/issues/110
             # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
             modmask2str = collections.OrderedDict([
@@ -228,9 +228,9 @@ class KeyInfo:
             ])
 
         modifier_keys = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
-                        Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
-                        Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
-                        Qt.Key_Direction_R)
+                         Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
+                         Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
+                         Qt.Key_Direction_R)
         if self.key in modifier_keys:
             # Only modifier pressed
             return ''
@@ -285,6 +285,18 @@ class KeyInfo:
 
 class KeySequence:
 
+    """A sequence of key presses.
+
+    This internally uses chained QKeySequence objects and exposes a nicer
+    interface over it.
+
+    Attributes:
+        _sequences: A list of QKeySequence
+
+    Class attributes:
+        _MAX_LEN: The maximum amount of keys in a QKeySequence.
+    """
+
     _MAX_LEN = 4
 
     def __init__(self, *keys):
@@ -293,7 +305,7 @@ class KeySequence:
             sequence = QKeySequence(*sub)
             self._sequences.append(sequence)
         if keys:
-            assert len(self) > 0
+            assert self
         self._validate()
 
     def __str__(self):
@@ -316,15 +328,19 @@ class KeySequence:
         return utils.get_repr(self, keys=str(self))
 
     def __lt__(self, other):
+        # pylint: disable=protected-access
         return self._sequences < other._sequences
 
     def __gt__(self, other):
+        # pylint: disable=protected-access
         return self._sequences > other._sequences
 
     def __eq__(self, other):
+        # pylint: disable=protected-access
         return self._sequences == other._sequences
 
     def __ne__(self, other):
+        # pylint: disable=protected-access
         return self._sequences != other._sequences
 
     def __hash__(self):
@@ -333,6 +349,9 @@ class KeySequence:
 
     def __len__(self):
         return sum(len(seq) for seq in self._sequences)
+
+    def __bool__(self):
+        return bool(self._sequences)
 
     def __getitem__(self, item):
         if isinstance(item, slice):
@@ -351,6 +370,7 @@ class KeySequence:
                 raise KeyParseError(keystr, "Got unknown key!")
 
     def matches(self, other):
+        """Check whether the given KeySequence matches with this one."""
         # FIXME test this
         # pylint: disable=protected-access
         assert self._sequences
@@ -369,16 +389,16 @@ class KeySequence:
         We don't care about a shift modifier with symbols (Shift-: should match
         a : binding even though we typed it with a shift on an US-keyboard)
 
-        However, we *do* care about Shift being involved if we got an upper-case
-        letter, as Shift-A should match a Shift-A binding, but not an "a"
-        binding.
+        However, we *do* care about Shift being involved if we got an
+        upper-case letter, as Shift-A should match a Shift-A binding, but not
+        an "a" binding.
 
-        In addition, Shift also *is* relevant when other modifiers are involved.
+        In addition, Shift also *is* relevant when other modifiers are
+        involved.
         Shift-Ctrl-X should not be equivalent to Ctrl-X.
 
         FIXME: create test cases!
         """
-        # pylint: disable=protected-access
         modifiers = ev.modifiers()
 
         if (modifiers == Qt.ShiftModifier and
@@ -394,6 +414,7 @@ class KeySequence:
     @classmethod
     def parse(cls, keystr):
         """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
+        # pylint: disable=protected-access
         # FIXME: test stuff like <a, a>
         new = cls()
         strings = list(_parse_keystring(keystr))
@@ -402,7 +423,8 @@ class KeySequence:
             new._sequences.append(sequence)
 
         if keystr:
-            assert len(new) > 0, keystr
+            assert new, keystr
 
+        # pylint: disable=protected-access
         new._validate(keystr)
         return new
