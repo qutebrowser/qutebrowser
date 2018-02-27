@@ -26,6 +26,7 @@ For command arguments, there are also some variables you can use:
 
 - `{url}` expands to the URL of the current page
 - `{url:pretty}` expands to the URL in decoded format
+- `{url:host}` expands to the host part of the URL
 - `{clipboard}` expands to the clipboard contents
 - `{primary}` expands to the primary selection contents
 
