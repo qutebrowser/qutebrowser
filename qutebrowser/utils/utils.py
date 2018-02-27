@@ -663,6 +663,7 @@ def chunk(elems, n):
 
     If elems % n != 0, the last chunk will be smaller.
     """
-    # FIXME test this
+    if n < 1:
+        raise ValueError("n needs to be at least 1!")
     for i in range(0, len(elems), n):
         yield elems[i:i + n]

@@ -787,3 +787,19 @@ class TestYaml:
         with tmpfile.open('w', encoding='utf-8') as f:
             utils.yaml_dump([1, 2], f)
         assert tmpfile.read() == '- 1\n- 2\n'
+
+
+@pytest.mark.parametrize('elems, n, expected', [
+    ([], 1, []),
+    ([1], 1, [[1]]),
+    ([1, 2], 2, [[1, 2]]),
+    ([1, 2, 3, 4], 2, [[1, 2], [3, 4]]),
+])
+def test_chunk(elems, n, expected):
+    assert list(utils.chunk(elems, n)) == expected
+
+
+@pytest.mark.parametrize('n', [-1, 0])
+def test_chunk_invalid(n):
+    with pytest.raises(ValueError):
+        list(utils.chunk([], n))
