@@ -108,7 +108,7 @@ class KeyHintView(QLabel):
         bindings_dict = config.key_instance.get_bindings_for(modename)
         bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
                     if keyutils.KeySequence.parse(prefix).matches(k) and
-                    not blacklisted(k) and
+                    not blacklisted(str(k)) and
                     (takes_count(v) or not countstr)]
 
         if not bindings:
