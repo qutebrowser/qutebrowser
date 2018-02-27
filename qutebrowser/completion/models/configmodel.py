@@ -72,24 +72,16 @@ def value(optname, *_values, info):
     return model
 
 
-def bind(key, *, info):
-    """A CompletionModel filled with all bindable commands and descriptions.
-
-    Args:
-        key: the key being bound.
-    """
-    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
+def _bind_current_default(key, info):
+    """Get current/default data for the given key."""
     data = []
-
     try:
         seq = keyutils.KeySequence.parse(key)
     except keyutils.KeyParseError as e:
-        seq = None
-        cmd_text = None
         data.append(('', str(e), key))
+        return data
 
-    if seq:
-        cmd_text = info.keyconf.get_command(seq, 'normal')
+    cmd_text = info.keyconf.get_command(seq, 'normal')
     if cmd_text:
         parser = runners.CommandParser()
         try:
@@ -99,12 +91,23 @@ def bind(key, *, info):
         else:
             data.append((cmd_text, '(Current) {}'.format(cmd.desc), key))
 
-    if seq:
-        cmd_text = info.keyconf.get_command(seq, 'normal')
+    cmd_text = info.keyconf.get_command(seq, 'normal')
     if cmd_text:
         parser = runners.CommandParser()
         cmd = parser.parse(cmd_text).cmd
         data.append((cmd_text, '(Default) {}'.format(cmd.desc), key))
+
+    return data
+
+
+def bind(key, *, info):
+    """A CompletionModel filled with all bindable commands and descriptions.
+
+    Args:
+        key: the key being bound.
+    """
+    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
+    data = _bind_current_default(key, info)
 
     if data:
         model.add_category(listcategory.ListCategory("Current/Default", data))
