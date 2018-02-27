@@ -24,8 +24,8 @@ import collections
 import itertools
 
 import attr
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence
+from PyQt5.QtCore import Qt, QEvent
+from PyQt5.QtGui import QKeySequence, QKeyEvent
 
 from qutebrowser.utils import utils, debug
 
@@ -272,6 +272,10 @@ class KeyInfo:
         if not self.modifiers & Qt.ShiftModifier:
             text = text.lower()
         return text
+
+    def to_event(self, typ=QEvent.KeyPress):
+        """Get a QKeyEvent from this KeyInfo."""
+        return QKeyEvent(typ, self.key, self.modifiers, self.text())
 
 
 class KeySequence:

@@ -27,7 +27,6 @@ import typing
 
 from PyQt5.QtWidgets import QApplication, QTabBar, QDialog
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
-from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
@@ -2117,9 +2116,8 @@ class CommandDispatcher:
             raise cmdexc.CommandError(str(e))
 
         for keyinfo in sequence:
-            args = (keyinfo.key, keyinfo.modifiers, keyinfo.text())
-            press_event = QKeyEvent(QEvent.KeyPress, *args)
-            release_event = QKeyEvent(QEvent.KeyRelease, *args)
+            press_event = keyinfo.to_event(QEvent.KeyPress)
+            release_event = keyinfo.to_event(QEvent.KeyRelease)
 
             if global_:
                 window = QApplication.focusWindow()
