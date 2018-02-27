@@ -320,7 +320,7 @@ class TestCount:
         assert not keyparser.execute.called
         assert not keyparser._sequence
         # Valid call with ccc gets the correct count
-        handle_text((Qt.Key_6, '2'), (Qt.Key_2, '3'), (Qt.Key_C, 'c'),
+        handle_text((Qt.Key_2, '2'), (Qt.Key_3, '3'), (Qt.Key_C, 'c'),
                     (Qt.Key_C, 'c'), (Qt.Key_C, 'c'))
         keyparser.execute.assert_called_once_with(
             'message-info ccc', keyparser.Type.chain, 23)
@@ -329,7 +329,7 @@ class TestCount:
 
 def test_clear_keystring(qtbot, keyparser):
     """Test that the keystring is cleared and the signal is emitted."""
-    keyparser._keystring = 'test'
+    keyparser._sequence = keyseq('test')
     with qtbot.waitSignal(keyparser.keystring_updated):
         keyparser.clear_keystring()
     assert not keyparser._sequence
