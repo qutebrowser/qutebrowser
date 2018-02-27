@@ -149,6 +149,7 @@ def _parse_keystring(keystr):
     special = False
     for c in keystr:
         if c == '>':
+            assert special
             yield normalize_keystr(key)
             key = ''
             special = False
@@ -157,6 +158,10 @@ def _parse_keystring(keystr):
         elif special:
             key += c
         else:
+            yield 'Shift+' + c if c.isupper() else c
+    if special:
+        yield '<'
+        for c in key:
             yield 'Shift+' + c if c.isupper() else c
 
 
@@ -389,6 +394,7 @@ class KeySequence:
     @classmethod
     def parse(cls, keystr):
         """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
+        # FIXME: test stuff like <a, a>
         new = cls()
         strings = list(_parse_keystring(keystr))
         for sub in utils.chunk(strings, cls._MAX_LEN):
@@ -396,8 +402,7 @@ class KeySequence:
             new._sequences.append(sequence)
 
         if keystr:
-            # FIXME fails with "<ctrl-x"
-            assert len(new) > 0
+            assert len(new) > 0, keystr
 
         new._validate(keystr)
         return new
