@@ -19,7 +19,6 @@
 
 """Tests for BaseKeyParser."""
 
-import logging
 from unittest import mock
 
 from PyQt5.QtCore import Qt
@@ -37,8 +36,7 @@ def keyseq(s):
 @pytest.fixture
 def keyparser(key_config_stub):
     """Fixture providing a BaseKeyParser supporting count/chains."""
-    kp = basekeyparser.BaseKeyParser(
-        0, supports_count=True, supports_chains=True)
+    kp = basekeyparser.BaseKeyParser(0, supports_count=True)
     kp.execute = mock.Mock()
     yield kp
 
@@ -54,19 +52,6 @@ def handle_text(fake_keyevent_factory, keyparser):
         for enumval, text in args:
             keyparser.handle(fake_keyevent_factory(enumval, text=text))
     return func
-
-
-@pytest.mark.parametrize('count, chains, count_expected, chains_expected', [
-    (True, False, True, False),
-    (False, True, False, True),
-    (None, True, True, True),
-])
-def test_supports_args(config_stub, count, chains, count_expected,
-                       chains_expected):
-    kp = basekeyparser.BaseKeyParser(
-        0, supports_count=count, supports_chains=chains)
-    assert kp._supports_count == count_expected
-    assert kp._supports_chains == chains_expected
 
 
 class TestDebugLog:
@@ -153,20 +138,6 @@ class TestReadConfig:
 
         assert keyseq('a') in keyparser.bindings
         assert (keyseq('new') in keyparser.bindings) == expected
-
-    # FIXME do we still need this?
-    @pytest.mark.parametrize('warn_on_keychains', [True, False])
-    @pytest.mark.skip(reason='unneeded?')
-    def test_warn_on_keychains(self, caplog, warn_on_keychains):
-        """Test _warn_on_keychains."""
-        kp = basekeyparser.BaseKeyParser(
-            0, supports_count=False, supports_chains=False)
-        kp._warn_on_keychains = warn_on_keychains
-
-        with caplog.at_level(logging.WARNING):
-            kp._read_config('normal')
-
-        assert bool(caplog.records) == warn_on_keychains
 
 
 class TestSpecialKeys:

@@ -48,13 +48,9 @@ class BaseKeyParser(QObject):
     Attributes:
         bindings: Bound key bindings
         _win_id: The window ID this keyparser is associated with.
-        _warn_on_keychains: Whether a warning should be logged when binding
-                            keychains in a section which does not support them.
         _sequence: The currently entered key sequence
         _modename: The name of the input mode associated with this keyparser.
         _supports_count: Whether count is supported
-        # FIXME is this still needed?
-        _supports_chains: Whether keychains are supported
 
     Signals:
         keystring_updated: Emitted when the keystring is updated.
@@ -70,24 +66,18 @@ class BaseKeyParser(QObject):
     do_log = True
     passthrough = False
 
-    def __init__(self, win_id, parent=None, supports_count=None,
-                 supports_chains=False):
+    def __init__(self, win_id, parent=None, supports_count=True):
         super().__init__(parent)
         self._win_id = win_id
         self._modename = None
         self._sequence = keyutils.KeySequence()
         self._count = ''
-        if supports_count is None:
-            supports_count = supports_chains
         self._supports_count = supports_count
-        self._supports_chains = supports_chains
-        self._warn_on_keychains = True
         self.bindings = {}
         config.instance.changed.connect(self._on_config_changed)
 
     def __repr__(self):
-        return utils.get_repr(self, supports_count=self._supports_count,
-                              supports_chains=self._supports_chains)
+        return utils.get_repr(self, supports_count=self._supports_count)
 
     def _debug_log(self, message):
         """Log a message to the debug log if logging is active.
@@ -195,10 +185,6 @@ class BaseKeyParser(QObject):
         """
         match = self._handle_key(e)
 
-        # FIXME
-        # if handled or not self._supports_chains:
-        #     return handled
-
         # don't emit twice if the keystring was cleared in self.clear_keystring
         if self._sequence:
             self.keystring_updated.emit(self._count + str(self._sequence))
@@ -231,14 +217,6 @@ class BaseKeyParser(QObject):
             assert not isinstance(key, str), key
             assert cmd
             self.bindings[key] = cmd
-
-    # FIXME
-    # def _parse_key_command(self, modename, key, cmd):
-    #     """Parse the keys and their command and store them in the object."""
-    #     elif self._warn_on_keychains:
-    #         log.keyboard.warning("Ignoring keychain '{}' in mode '{}' "
-    #                              "because keychains are not supported there."
-    #                             .format(key, modename))
 
     def execute(self, cmdstr, count=None):
         """Handle a completed keychain.

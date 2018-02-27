@@ -48,8 +48,7 @@ class NormalKeyParser(keyparser.CommandKeyParser):
     """
 
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=True,
-                         supports_chains=True)
+        super().__init__(win_id, parent, supports_count=True)
         self._read_config('normal')
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
@@ -131,8 +130,7 @@ class PromptKeyParser(keyparser.CommandKeyParser):
     """KeyParser for yes/no prompts."""
 
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=False,
-                         supports_chains=True)
+        super().__init__(win_id, parent, supports_count=False)
         self._read_config('yesno')
 
     def __repr__(self):
@@ -149,8 +147,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
     """
 
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=False,
-                         supports_chains=True)
+        super().__init__(win_id, parent, supports_count=False)
         self._filtertext = ''
         self._last_press = LastPress.none
         self._read_config('hint')
@@ -261,8 +258,7 @@ class CaretKeyParser(keyparser.CommandKeyParser):
     passthrough = True
 
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=True,
-                         supports_chains=True)
+        super().__init__(win_id, parent, supports_count=True)
         self._read_config('caret')
 
 
@@ -276,8 +272,7 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
     """
 
     def __init__(self, win_id, mode, parent=None):
-        super().__init__(win_id, parent, supports_count=False,
-                         supports_chains=False)
+        super().__init__(win_id, parent, supports_count=False)
         self._mode = mode
         self._read_config('register')
 
