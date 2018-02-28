@@ -20,13 +20,27 @@
 import pytest
 from PyQt5.QtCore import Qt
 
+from tests.unit.keyinput import key_data
 from qutebrowser.utils import utils
 from qutebrowser.keyinput import keyutils
 
 
-class TestKeyToString:
+@pytest.fixture(params=sorted(list(key_data.KEYS.items())))
+def qt_key(request):
+    attr, key = request.param
+    member = getattr(Qt, 'Key_' + attr, None)
+    if member is None:
+        pytest.skip("Did not find key {}".format(attr))
 
-    """Test key_to_string."""
+    key.member = member
+    return key
+
+
+def test_new_to_string(qt_key):
+    assert keyutils._key_to_string(qt_key.member) == qt_key.name
+
+
+class TestKeyToString:
 
     @pytest.mark.parametrize('key, expected', [
         (Qt.Key_Blue, 'Blue'),
