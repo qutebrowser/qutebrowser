@@ -142,3 +142,19 @@ def test_parse(keystr, expected):
 def test_normalize_keystr(orig, normalized):
     expected = keyutils.KeySequence.parse(normalized)
     assert keyutils.KeySequence.parse(orig) == expected
+
+
+@pytest.mark.parametrize('key, printable', [
+    (Qt.Key_Control, False),
+    (Qt.Key_X, True)
+])
+def test_is_printable(key, printable):
+    assert keyutils.is_printable(key) == printable
+
+
+@pytest.mark.parametrize('key, ismodifier', [
+    (Qt.Key_Control, True),
+    (Qt.Key_X, False)
+])
+def test_is_modifier_key(key, ismodifier):
+    assert keyutils.is_modifier_key(key) == ismodifier
