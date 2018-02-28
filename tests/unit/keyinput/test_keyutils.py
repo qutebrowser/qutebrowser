@@ -25,7 +25,7 @@ from qutebrowser.utils import utils
 from qutebrowser.keyinput import keyutils
 
 
-@pytest.fixture(params=key_data.KEYS)
+@pytest.fixture(params=key_data.KEYS, ids=lambda k: k.attribute)
 def qt_key(request):
     key = request.param
     member = getattr(Qt, 'Key_' + key.attribute, None)
