@@ -39,6 +39,7 @@ def _key_to_string(key):
     Return:
         A name of the key as a string.
     """
+    return QKeySequence(key).toString()  # FIXME
     special_names_str = {
         # Some keys handled in a weird way by QKeySequence::toString.
         # See https://bugreports.qt.io/browse/QTBUG-40030

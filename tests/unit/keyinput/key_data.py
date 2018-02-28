@@ -120,7 +120,7 @@ KEYS = [
     Key('Ampersand', '&'),
     Key('Apostrophe', "'"),
     Key('ParenLeft', '('),
-    Key('ParenRight', '),')
+    Key('ParenRight', ')'),
     Key('Asterisk', '*'),
     Key('Plus', '+'),
     Key('Comma', ','),
@@ -144,7 +144,6 @@ KEYS = [
     Key('Greater', '>'),
     Key('Question', '?'),
     Key('At', '@'),
-    Key('At'),
     Key('A'),
     Key('B'),
     Key('C'),
@@ -260,10 +259,9 @@ KEYS = [
     Key('SingleCandidate', '\u17c4\udd3c'),  # FIXME
     Key('MultipleCandidate', 'Multiple Candidate'),
     Key('PreviousCandidate', 'Previous Candidate'),
-    Key('Mode_switch', '\u17c4\udd7e'),  # FIXME
 
     ### Misc Functions
-    Key('Mode_switch'),  # Character set switch
+    Key('Mode_switch', '\u17c4\udd7e'),  # FIXME Character set switch
     # Key('script_switch'),  # Alias for mode_switch
 
     ### Japanese keyboard support
@@ -391,22 +389,22 @@ KEYS = [
     Key('OpenUrl', 'Open URL'),
     Key('LaunchMail', 'Launch Mail'),
     Key('LaunchMedia', 'Launch Media'),
-    Key('Launch0', 'Launch (0),')
-    Key('Launch1', 'Launch (1),')
-    Key('Launch2', 'Launch (2),')
-    Key('Launch3', 'Launch (3),')
-    Key('Launch4', 'Launch (4),')
-    Key('Launch5', 'Launch (5),')
-    Key('Launch6', 'Launch (6),')
-    Key('Launch7', 'Launch (7),')
-    Key('Launch8', 'Launch (8),')
-    Key('Launch9', 'Launch (9),')
-    Key('LaunchA', 'Launch (A),')
-    Key('LaunchB', 'Launch (B),')
-    Key('LaunchC', 'Launch (C),')
-    Key('LaunchD', 'Launch (D),')
-    Key('LaunchE', 'Launch (E),')
-    Key('LaunchF', 'Launch (F),')
+    Key('Launch0', 'Launch (0)'),
+    Key('Launch1', 'Launch (1)'),
+    Key('Launch2', 'Launch (2)'),
+    Key('Launch3', 'Launch (3)'),
+    Key('Launch4', 'Launch (4)'),
+    Key('Launch5', 'Launch (5)'),
+    Key('Launch6', 'Launch (6)'),
+    Key('Launch7', 'Launch (7)'),
+    Key('Launch8', 'Launch (8)'),
+    Key('Launch9', 'Launch (9)'),
+    Key('LaunchA', 'Launch (A)'),
+    Key('LaunchB', 'Launch (B)'),
+    Key('LaunchC', 'Launch (C)'),
+    Key('LaunchD', 'Launch (D)'),
+    Key('LaunchE', 'Launch (E)'),
+    Key('LaunchF', 'Launch (F)'),
     Key('MonBrightnessUp', 'Monitor Brightness Up'),
     Key('MonBrightnessDown', 'Monitor Brightness Down'),
     Key('KeyboardLightOnOff', 'Keyboard Light On/Off'),
