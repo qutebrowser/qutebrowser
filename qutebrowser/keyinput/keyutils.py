@@ -252,13 +252,13 @@ class KeyInfo:
 
     def text(self):
         """Get the text which would be displayed when pressing this key."""
-        text = QKeySequence(self.key).toString()
         if self.key == Qt.Key_Space:
             return ' '
-        elif len(text) > 1:
-            # Special key?
+        elif self.key > 0xff:
+            # Unprintable keys
             return ''
 
+        text = QKeySequence(self.key).toString()
         if not self.modifiers & Qt.ShiftModifier:
             text = text.lower()
         return text
