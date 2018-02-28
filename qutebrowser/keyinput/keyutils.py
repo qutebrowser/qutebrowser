@@ -34,6 +34,14 @@ def is_printable(key):
     return key <= 0xff
 
 
+def is_modifier_key(key):
+    # FIXME docs
+    return key in (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
+                   Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
+                   Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
+                   Qt.Key_Direction_R)
+
+
 def _key_to_string(key):
     """Convert a Qt::Key member to a meaningful name.
 
@@ -216,13 +224,9 @@ class KeyInfo:
                 (Qt.ShiftModifier, 'Shift'),
             ])
 
-        modifier_keys = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
-                         Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
-                         Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
-                         Qt.Key_Direction_R)
-        if self.key in modifier_keys:
-            # Only modifier pressed
+        if is_modifier_key(self.key):
             return ''
+
         parts = []
 
         for (mask, s) in modmask2str.items():
