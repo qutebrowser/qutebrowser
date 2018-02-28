@@ -35,6 +35,14 @@ def qt_key(request):
     return key
 
 
+@pytest.mark.parametrize('upper', [False, True])
+def test_key_text(qt_key, upper):
+    modifiers = Qt.ShiftModifier if upper else Qt.KeyboardModifiers()
+    info = keyutils.KeyInfo(qt_key.member, modifiers=modifiers)
+    expected = qt_key.uppertext if upper else qt_key.text
+    assert info.text() == expected
+
+
 class TestKeyToString:
 
     def test_to_string(self, qt_key):
