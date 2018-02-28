@@ -15,6 +15,21 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.1.2
+------
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now bundle Qt 5.10.1 which includes security fixes from
+  Chromium up to version 64.0.3282.140.
+
+Fixed
+~~~~~
+
+- QtWebEngine: Crash with Qt 5.10.1 when using :undo on some tabs.
+- Compatibility with Python 3.7
+
 v1.1.1
 ------
 
@@ -1103,7 +1118,7 @@ Added
 - New `:fake-key` command to send a fake keypress to a website or to
   qutebrowser.
 - New `--mhtml` argument for `:download` to download a page including all
-  ressources as MHTML file.
+  resources as MHTML file.
 - New option `tabs -> title-alignment` to change the alignment of tab titles.
 
 Changed
@@ -1303,7 +1318,7 @@ Added
 - New argument `--no-err-windows` to suppress all error windows.
 - New arguments `--top-navigate` and `--bottom-navigate` (`-t`/`-b`) for `:scroll-page` to specify a navigation action (e.g. automatically go to the next page when arriving at the bottom).
 - New flag `-d`/`--detach` for `:spawn` to detach the spawned process so it's not closed when qutebrowser is.
-- New flag `-v`/`--verbose` for `:spawn` to print informations when the process started/exited successfully.
+- New flag `-v`/`--verbose` for `:spawn` to print information when the process started/exited successfully.
 - Many new color settings (foreground setting for every background setting).
 - New setting `ui -> modal-js-dialog` to use the standard modal dialogs for javascript questions instead of using the statusbar.
 - New setting `colors -> webpage.bg` to set the background color to use for websites which don't set one.
