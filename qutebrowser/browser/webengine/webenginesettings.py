@@ -292,7 +292,7 @@ def _update_settings(option):
           qtutils.version_check('5.9', compiled=False)):
         _set_persistent_cookie_policy(default_profile)
         # We're not touching the private profile's cookie policy.
-    elif option == 'spellcheck.languages' and qtutils.version_check('5.8'):
+    elif option == 'spellcheck.languages':
         _set_dictionary_language(default_profile)
         _set_dictionary_language(private_profile, warn=False)
 
