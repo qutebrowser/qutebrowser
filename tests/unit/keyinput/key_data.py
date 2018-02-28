@@ -34,9 +34,9 @@ class Key:
 # From enum Key in qt5/qtbase/src/corelib/global/qnamespace.h
 KEYS = [
     ### misc keys
-    Key('Escape', 'Esc'),
+    Key('Escape'),  # qutebrowser has a different name from Qt
     Key('Tab'),
-    Key('Backtab'),
+    Key('Backtab', 'Tab'),  # qutebrowser has a different name from Qt
     Key('Backspace'),
     Key('Return'),
     Key('Enter'),
@@ -56,10 +56,10 @@ KEYS = [
     Key('PageUp', 'PgUp'),
     Key('PageDown', 'PgDown'),
     ### modifiers
-    Key('Shift', '\u17c0\udc20'),  # FIXME
-    Key('Control', '\u17c0\udc21'),  # FIXME
-    Key('Meta', '\u17c0\udc22'),  # FIXME
-    Key('Alt', '\u17c0\udc23'),  # FIXME
+    Key('Shift'),
+    Key('Control'),
+    Key('Meta'),
+    Key('Alt'),
     Key('CapsLock'),
     Key('NumLock'),
     Key('ScrollLock'),
@@ -101,17 +101,17 @@ KEYS = [
     Key('F34'),
     Key('F35'),
     ### extra keys
-    Key('Super_L', '\u17c0\udc53'),  # FIXME
-    Key('Super_R', '\u17c0\udc54'),  # FIXME
+    Key('Super_L', 'Super L'),
+    Key('Super_R', 'Super R'),
     Key('Menu'),
-    Key('Hyper_L', '\u17c0\udc56'),  # FIXME
-    Key('Hyper_R', '\u17c0\udc57'),  # FIXME
+    Key('Hyper_L', 'Hyper L'),
+    Key('Hyper_R', 'Hyper R'),
     Key('Help'),
-    Key('Direction_L', '\u17c0\udc59'),  # FIXME
-    Key('Direction_R', '\u17c0\udc60'),  # FIXME
+    Key('Direction_L', 'Direction L'),
+    Key('Direction_R', 'Direction R'),
     ### 7 bit printable ASCII
     Key('Space'),
-    Key('Any', 'Space'),  # FIXME
+    Key('Any', 'Space'),  # Same value
     Key('Exclam', '!'),
     Key('QuoteDbl', '"'),
     Key('NumberSign', '#'),
@@ -253,15 +253,15 @@ KEYS = [
     ### you are writing your own input method
 
     ### International & multi-key character composition
-    Key('AltGr', '\u17c4\udd03'),  # FIXME
-    Key('Multi_key', '\u17c4\udd20'),  # FIXME Multi-key character compose
+    Key('AltGr'),
+    Key('Multi_key', 'Multi key'),  # Multi-key character compose
     Key('Codeinput', 'Code input'),
-    Key('SingleCandidate', '\u17c4\udd3c'),  # FIXME
+    Key('SingleCandidate', 'Single Candidate'),
     Key('MultipleCandidate', 'Multiple Candidate'),
     Key('PreviousCandidate', 'Previous Candidate'),
 
     ### Misc Functions
-    Key('Mode_switch', '\u17c4\udd7e'),  # FIXME Character set switch
+    Key('Mode_switch', 'Mode switch'),  # Character set switch
     # Key('script_switch'),  # Alias for mode_switch
 
     ### Japanese keyboard support
@@ -309,25 +309,25 @@ KEYS = [
     # Key('Hangul_switch', 'Hangul switch'),  # Alias for mode_switch
 
     # dead keys (X keycode - 0xED00 to avoid the conflict),
-    Key('Dead_Grave', '\u17c4\ude50'),  # FIXME
-    Key('Dead_Acute', '\u17c4\ude51'),  # FIXME
-    Key('Dead_Circumflex', '\u17c4\ude52'),  # FIXME
-    Key('Dead_Tilde', '\u17c4\ude53'),  # FIXME
-    Key('Dead_Macron', '\u17c4\ude54'),  # FIXME
-    Key('Dead_Breve', '\u17c4\ude55'),  # FIXME
-    Key('Dead_Abovedot', '\u17c4\ude56'),  # FIXME
-    Key('Dead_Diaeresis', '\u17c4\ude57'),  # FIXME
-    Key('Dead_Abovering', '\u17c4\ude58'),  # FIXME
-    Key('Dead_Doubleacute', '\u17c4\ude59'),  # FIXME
-    Key('Dead_Caron', '\u17c4\ude5a'),  # FIXME
-    Key('Dead_Cedilla', '\u17c4\ude5b'),  # FIXME
-    Key('Dead_Ogonek', '\u17c4\ude5c'),  # FIXME
-    Key('Dead_Iota', '\u17c4\ude5d'),  # FIXME
-    Key('Dead_Voiced_Sound', '\u17c4\ude5e'),  # FIXME
-    Key('Dead_Semivoiced_Sound', '\u17c4\ude5f'),  # FIXME
-    Key('Dead_Belowdot', '\u17c4\ude60'),  # FIXME
-    Key('Dead_Hook', '\u17c4\ude61'),  # FIXME
-    Key('Dead_Horn', '\u17c4\ude62'),  # FIXME
+    Key('Dead_Grave', '`'),
+    Key('Dead_Acute', '´'),
+    Key('Dead_Circumflex', '^'),
+    Key('Dead_Tilde', '~'),
+    Key('Dead_Macron', '¯'),
+    Key('Dead_Breve', '˘'),
+    Key('Dead_Abovedot', '˙'),
+    Key('Dead_Diaeresis', '¨'),
+    Key('Dead_Abovering', '˚'),
+    Key('Dead_Doubleacute', '˝'),
+    Key('Dead_Caron', 'ˇ'),
+    Key('Dead_Cedilla', '¸'),
+    Key('Dead_Ogonek', '˛'),
+    Key('Dead_Iota', 'Iota'),
+    Key('Dead_Voiced_Sound', 'Voiced Sound'),
+    Key('Dead_Semivoiced_Sound', 'Semivoiced Sound'),
+    Key('Dead_Belowdot', 'Belowdot'),
+    Key('Dead_Hook', 'Hook'),
+    Key('Dead_Horn', 'Horn'),
 
     # Not in Qt 5.10, so data may be wrong!
     Key('Dead_Stroke'),
@@ -415,7 +415,7 @@ KEYS = [
     Key('Eject'),
     Key('ScreenSaver', 'Screensaver'),
     Key('WWW'),
-    Key('Memo', '\u17c0\udcbc'),  # FIXME
+    Key('Memo', 'Memo'),
     Key('LightBulb'),
     Key('Shop'),
     Key('History'),
@@ -431,7 +431,7 @@ KEYS = [
     Key('Book'),
     Key('CD'),
     Key('Calculator'),
-    Key('ToDoList', '\u17c0\udccc'),  # FIXME
+    Key('ToDoList', 'To Do List'),
     Key('ClearGrab', 'Clear Grab'),
     Key('Close'),
     Key('Copy'),
@@ -455,7 +455,7 @@ KEYS = [
     Key('Option'),
     Key('Paste'),
     Key('Phone'),
-    Key('Calendar', '\u17c0\udce4'),  # FIXME
+    Key('Calendar'),
     Key('Reply'),
     Key('Reload'),
     Key('RotateWindows', 'Rotate Windows'),
@@ -496,10 +496,10 @@ KEYS = [
     Key('TopMenu', 'Top Menu'),
     Key('PowerDown', 'Power Down'),
     Key('Suspend'),
-    Key('ContrastAdjust', '\u17c0\udd0d'),  # FIXME
+    Key('ContrastAdjust', 'Contrast Adjust'),
 
-    Key('LaunchG', '\u17c0\udd0e'),  # FIXME
-    Key('LaunchH', '\u17c0\udd0f'),  # FIXME
+    Key('LaunchG', 'Launch (G)'),
+    Key('LaunchH', 'Launch (H)'),
 
     Key('TouchpadToggle', 'Touchpad Toggle'),
     Key('TouchpadOn', 'Touchpad On'),
@@ -528,7 +528,7 @@ KEYS = [
     Key('Undo'),
     Key('Redo'),
 
-    Key('MediaLast', '\u17ff\udfff'),  # FIXME
+    Key('MediaLast', 'Media Last'),
 
     ### Keypad navigation keys
     Key('Select'),
@@ -562,5 +562,5 @@ KEYS = [
     Key('Camera', 'Camera Shutter'),
     Key('CameraFocus', 'Camera Focus'),
 
-    Key('unknown', ''),  # FIXME
+    Key('unknown', 'Unknown'),
 ]

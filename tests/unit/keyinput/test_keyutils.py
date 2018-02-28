@@ -35,43 +35,26 @@ def qt_key(request):
     return key
 
 
-def test_new_to_string(qt_key):
-    name = qt_key.attribute if qt_key.name is None else qt_key.name
-    assert keyutils._key_to_string(qt_key.member) == name
-
-
 class TestKeyToString:
 
-    @pytest.mark.parametrize('key, expected', [
-        (Qt.Key_Blue, 'Blue'),
-        (Qt.Key_Backtab, 'Tab'),
-        (Qt.Key_Escape, 'Escape'),
-        (Qt.Key_A, 'A'),
-        (Qt.Key_degree, '°'),
-        (Qt.Key_Meta, 'Meta'),
-    ])
-    @pytest.mark.skipif(True, reason='FIXME')
-    def test_normal(self, key, expected):
-        """Test a special key where QKeyEvent::toString works incorrectly."""
-        assert keyutils._key_to_string(key) == expected
+    def test_to_string(self, qt_key):
+        name = qt_key.attribute if qt_key.name is None else qt_key.name
+        assert keyutils._key_to_string(qt_key.member) == name
 
     def test_missing(self, monkeypatch):
-        """Test with a missing key."""
         monkeypatch.delattr(keyutils.Qt, 'Key_Blue')
         # We don't want to test the key which is actually missing - we only
         # want to know if the mapping still behaves properly.
         assert keyutils._key_to_string(Qt.Key_A) == 'A'
 
-    @pytest.mark.skipif(True, reason='FIXME')
     def test_all(self):
-        """Make sure there's some sensible output for all keys."""
-        for name, value in sorted(vars(Qt).items()):
-            if not isinstance(value, Qt.Key):
-                continue
-            print(name)
-            string = keyutils._key_to_string(value)
-            assert string
-            string.encode('utf-8')  # make sure it's encodable
+        """Make sure all possible keys are in key_data.KEYS."""
+        key_names = {name[len("Key_"):]
+                     for name, value in sorted(vars(Qt).items())
+                     if isinstance(value, Qt.Key)}
+        key_data_names = {key.attribute for key in sorted(key_data.KEYS)}
+        diff = key_names - key_data_names
+        assert not diff
 
 
 class TestKeyEventToString:

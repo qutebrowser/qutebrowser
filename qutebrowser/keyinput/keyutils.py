@@ -39,69 +39,63 @@ def _key_to_string(key):
     Return:
         A name of the key as a string.
     """
-    return QKeySequence(key).toString()  # FIXME
     special_names_str = {
         # Some keys handled in a weird way by QKeySequence::toString.
         # See https://bugreports.qt.io/browse/QTBUG-40030
         # Most are unlikely to be ever needed, but you never know ;)
         # For dead/combining keys, we return the corresponding non-combining
         # key, as that's easier to add to the config.
-        'Key_Blue': 'Blue',
-        'Key_Calendar': 'Calendar',
-        'Key_ChannelDown': 'Channel Down',
-        'Key_ChannelUp': 'Channel Up',
-        'Key_ContrastAdjust': 'Contrast Adjust',
-        'Key_Dead_Abovedot': '˙',
-        'Key_Dead_Abovering': '˚',
-        'Key_Dead_Acute': '´',
-        'Key_Dead_Belowdot': 'Belowdot',
-        'Key_Dead_Breve': '˘',
-        'Key_Dead_Caron': 'ˇ',
-        'Key_Dead_Cedilla': '¸',
-        'Key_Dead_Circumflex': '^',
-        'Key_Dead_Diaeresis': '¨',
-        'Key_Dead_Doubleacute': '˝',
-        'Key_Dead_Grave': '`',
-        'Key_Dead_Hook': 'Hook',
-        'Key_Dead_Horn': 'Horn',
-        'Key_Dead_Iota': 'Iota',
-        'Key_Dead_Macron': '¯',
-        'Key_Dead_Ogonek': '˛',
-        'Key_Dead_Semivoiced_Sound': 'Semivoiced Sound',
-        'Key_Dead_Tilde': '~',
-        'Key_Dead_Voiced_Sound': 'Voiced Sound',
-        'Key_Exit': 'Exit',
-        'Key_Green': 'Green',
-        'Key_Guide': 'Guide',
-        'Key_Info': 'Info',
-        'Key_LaunchG': 'LaunchG',
-        'Key_LaunchH': 'LaunchH',
-        'Key_MediaLast': 'MediaLast',
-        'Key_Memo': 'Memo',
-        'Key_MicMute': 'Mic Mute',
-        'Key_Mode_switch': 'Mode switch',
-        'Key_Multi_key': 'Multi key',
-        'Key_PowerDown': 'Power Down',
-        'Key_Red': 'Red',
-        'Key_Settings': 'Settings',
-        'Key_SingleCandidate': 'Single Candidate',
-        'Key_ToDoList': 'Todo List',
-        'Key_TouchpadOff': 'Touchpad Off',
-        'Key_TouchpadOn': 'Touchpad On',
-        'Key_TouchpadToggle': 'Touchpad toggle',
-        'Key_Yellow': 'Yellow',
-        'Key_Alt': 'Alt',
-        'Key_AltGr': 'AltGr',
-        'Key_Control': 'Control',
-        'Key_Direction_L': 'Direction L',
-        'Key_Direction_R': 'Direction R',
-        'Key_Hyper_L': 'Hyper L',
-        'Key_Hyper_R': 'Hyper R',
-        'Key_Meta': 'Meta',
-        'Key_Shift': 'Shift',
-        'Key_Super_L': 'Super L',
-        'Key_Super_R': 'Super R',
-        'Key_unknown': 'Unknown',
+
+        'Super_L': 'Super L',
+        'Super_R': 'Super R',
+        'Hyper_L': 'Hyper L',
+        'Hyper_R': 'Hyper R',
+        'Direction_L': 'Direction L',
+        'Direction_R': 'Direction R',
+
+        'Shift': 'Shift',
+        'Control': 'Control',
+        'Meta': 'Meta',
+        'Alt': 'Alt',
+
+        'AltGr': 'AltGr',
+        'Multi_key': 'Multi key',
+        'SingleCandidate': 'Single Candidate',
+        'Mode_switch': 'Mode switch',
+        'Dead_Grave': '`',
+        'Dead_Acute': '´',
+        'Dead_Circumflex': '^',
+        'Dead_Tilde': '~',
+        'Dead_Macron': '¯',
+        'Dead_Breve': '˘',
+        'Dead_Abovedot': '˙',
+        'Dead_Diaeresis': '¨',
+        'Dead_Abovering': '˚',
+        'Dead_Doubleacute': '˝',
+        'Dead_Caron': 'ˇ',
+        'Dead_Cedilla': '¸',
+        'Dead_Ogonek': '˛',
+        'Dead_Iota': 'Iota',
+        'Dead_Voiced_Sound': 'Voiced Sound',
+        'Dead_Semivoiced_Sound': 'Semivoiced Sound',
+        'Dead_Belowdot': 'Belowdot',
+        'Dead_Hook': 'Hook',
+        'Dead_Horn': 'Horn',
+
+        'Memo': 'Memo',
+        'ToDoList': 'To Do List',
+        'Calendar': 'Calendar',
+        'ContrastAdjust': 'Contrast Adjust',
+        'LaunchG': 'Launch (G)',
+        'LaunchH': 'Launch (H)',
+
+        'MediaLast': 'Media Last',
+
+        'unknown': 'Unknown',
+
+        # For some keys, we just want a different name
+        'Backtab': 'Tab',
+        'Escape': 'Escape',
     }
     # We now build our real special_names dict from the string mapping above.
     # The reason we don't do this directly is that certain Qt versions don't
@@ -109,23 +103,14 @@ def _key_to_string(key):
     special_names = {}
     for k, v in special_names_str.items():
         try:
-            special_names[getattr(Qt, k)] = v
+            special_names[getattr(Qt, 'Key_' + k)] = v
         except AttributeError:
             pass
-    # Now we check if the key is any special one - if not, we use
-    # QKeySequence::toString.
-    try:
+
+    if key in special_names:
         return special_names[key]
-    except KeyError:
-        name = QKeySequence(key).toString()
-        morphings = {
-            'Backtab': 'Tab',
-            'Esc': 'Escape',
-        }
-        if name in morphings:
-            return morphings[name]
-        else:
-            return name
+
+    return QKeySequence(key).toString()
 
 
 class KeyParseError(Exception):
