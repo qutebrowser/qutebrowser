@@ -105,7 +105,6 @@ def _key_to_string(key):
         'unknown': 'Unknown',
 
         # For some keys, we just want a different name
-        'Backtab': 'Tab',
         'Escape': 'Escape',
     }
     # We now build our real special_names dict from the string mapping above.
@@ -384,8 +383,15 @@ class KeySequence:
         In addition, Shift also *is* relevant when other modifiers are
         involved.
         Shift-Ctrl-X should not be equivalent to Ctrl-X.
+
+        We also change Qt.Key_Backtab to Key_Tab here because nobody would
+        configure "Shift-Backtab" in their config.
         """
+        key = ev.key()
         modifiers = ev.modifiers()
+
+        if modifiers & Qt.ShiftModifier and key == Qt.Key_Backtab:
+            key = Qt.Key_Tab
 
         if (modifiers == Qt.ShiftModifier and
                 is_printable(ev.key()) and
@@ -393,7 +399,7 @@ class KeySequence:
             modifiers = Qt.KeyboardModifiers()
 
         keys = list(self._iter_keys())
-        keys.append(ev.key() | int(modifiers))
+        keys.append(key | int(modifiers))
 
         return self.__class__(*keys)
 

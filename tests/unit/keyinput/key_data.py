@@ -51,7 +51,7 @@ KEYS = [
     ### misc keys
     Key('Escape'),  # qutebrowser has a different name from Qt
     Key('Tab'),
-    Key('Backtab', 'Tab'),  # qutebrowser has a different name from Qt
+    Key('Backtab'),
     Key('Backspace'),
     Key('Return'),
     Key('Enter'),
