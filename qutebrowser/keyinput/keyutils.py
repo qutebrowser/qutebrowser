@@ -30,6 +30,10 @@ from PyQt5.QtGui import QKeySequence, QKeyEvent
 from qutebrowser.utils import utils
 
 
+def is_printable(key):
+    return key <= 0xff
+
+
 def _key_to_string(key):
     """Convert a Qt::Key member to a meaningful name.
 
@@ -227,7 +231,7 @@ class KeyInfo:
 
         key_string = _key_to_string(self.key)
 
-        if len(key_string) == 1:
+        if is_printable(self.key) and self.key != Qt.Key_Space:
             category = unicodedata.category(key_string)
             is_special_char = (category == 'Cc')
         else:
@@ -254,8 +258,7 @@ class KeyInfo:
         """Get the text which would be displayed when pressing this key."""
         if self.key == Qt.Key_Space:
             return ' '
-        elif self.key > 0xff:
-            # Unprintable keys
+        elif not is_printable(self.key):
             return ''
 
         text = QKeySequence(self.key).toString()
@@ -386,7 +389,7 @@ class KeySequence:
         modifiers = ev.modifiers()
 
         if (modifiers == Qt.ShiftModifier and
-                len(ev.text()) == 1 and
+                is_printable(ev.key()) and
                 unicodedata.category(ev.text()) != 'Lu'):
             modifiers = Qt.KeyboardModifiers()
 

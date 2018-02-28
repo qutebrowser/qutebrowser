@@ -280,12 +280,11 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
         if match:
             return match
 
-        key = e.text()
-
-        if key == '' or not str(keyutils.KeyInfo.from_event(e)):
+        if not keyutils.is_printable(e.key()):
             # this is not a proper register key, let it pass and keep going
-            # FIXME can we simplify this when we refactor keyutils.py?
             return QKeySequence.NoMatch
+
+        key = e.text()
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
