@@ -255,14 +255,15 @@ def _set_persistent_cookie_policy(profile):
     profile.setPersistentCookiesPolicy(value)
 
 
-def _set_dictionary_language(profile):
+def _set_dictionary_language(profile, warn=True):
     filenames = []
     for code in config.val.spellcheck.languages or []:
         local_filename = spell.local_filename(code)
         if not local_filename:
-            message.warning(
-                "Language {} is not installed - see scripts/dictcli.py "
-                "in qutebrowser's sources".format(code))
+            if warn:
+                message.warning(
+                    "Language {} is not installed - see scripts/dictcli.py "
+                    "in qutebrowser's sources".format(code))
             continue
 
         filenames.append(local_filename)
@@ -293,7 +294,7 @@ def _update_settings(option):
         # We're not touching the private profile's cookie policy.
     elif option == 'spellcheck.languages' and qtutils.version_check('5.8'):
         _set_dictionary_language(default_profile)
-        _set_dictionary_language(private_profile)
+        _set_dictionary_language(private_profile, warn=False)
 
 
 def _init_profile(profile):
