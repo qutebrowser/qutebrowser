@@ -19,7 +19,6 @@
 
 """Our own QKeySequence-like class and related utilities."""
 
-import unicodedata
 import collections
 import itertools
 
@@ -235,12 +234,9 @@ class KeyInfo:
 
         key_string = _key_to_string(self.key)
 
-        if is_printable(self.key) and self.key != Qt.Key_Space:
-            is_special_char = unicodedata.category(key_string) == 'Cc'
-        else:
-            is_special_char = False
-
-        if not is_special_char:
+        if is_printable(self.key):
+            # FIXME Add a test to make sure Tab doesn;t become TAB
+            assert len(key_string) == 1 or self.key == Qt.Key_Space, key_string
             if self.modifiers == Qt.ShiftModifier:
                 parts = []
                 key_string = key_string.upper()
