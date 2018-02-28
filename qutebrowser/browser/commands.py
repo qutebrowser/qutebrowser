@@ -1513,7 +1513,8 @@ class CommandDispatcher:
             )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def view_source(self, edit=False):
+    @cmdutils.argument('pygment')
+    def view_source(self, edit=False, pygment=False):
         """Show the source of the current page in a new tab.
 
         Args:
@@ -1532,7 +1533,7 @@ class CommandDispatcher:
             ed = editor.ExternalEditor(self._tabbed_browser)
             tab.dump_async(ed.edit)
         else:
-            tab.action.show_source()
+            tab.action.show_source(pygment)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)

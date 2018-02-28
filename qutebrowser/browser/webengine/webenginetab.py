@@ -100,7 +100,11 @@ class WebEngineAction(browsertab.AbstractAction):
         """Save the current page."""
         self._widget.triggerPageAction(QWebEnginePage.SavePage)
 
-    def show_source(self):
+    def show_source(self, pygment):
+        if pygment:
+            self._show_source_pygment()
+            return
+
         try:
             self._widget.triggerPageAction(QWebEnginePage.ViewSource)
         except AttributeError:
