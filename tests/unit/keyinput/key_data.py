@@ -34,14 +34,14 @@ class Key:
 # From enum Key in qt5/qtbase/src/corelib/global/qnamespace.h
 KEYS = [
     ### misc keys
-    Key('Escape'),
+    Key('Escape', 'Esc'),
     Key('Tab'),
     Key('Backtab'),
     Key('Backspace'),
     Key('Return'),
     Key('Enter'),
-    Key('Insert'),
-    Key('Delete'),
+    Key('Insert', 'Ins'),
+    Key('Delete', 'Del'),
     Key('Pause'),
     Key('Print'),  # print screen
     Key('SysReq'),
@@ -53,13 +53,13 @@ KEYS = [
     Key('Up'),
     Key('Right'),
     Key('Down'),
-    Key('PageUp'),
-    Key('PageDown'),
+    Key('PageUp', 'PgUp'),
+    Key('PageDown', 'PgDown'),
     ### modifiers
-    Key('Shift'),
-    Key('Control'),
-    Key('Meta'),
-    Key('Alt'),
+    Key('Shift', '\u17c0\udc20'),  # FIXME
+    Key('Control', '\u17c0\udc21'),  # FIXME
+    Key('Meta', '\u17c0\udc22'),  # FIXME
+    Key('Alt', '\u17c0\udc23'),  # FIXME
     Key('CapsLock'),
     Key('NumLock'),
     Key('ScrollLock'),
@@ -101,32 +101,32 @@ KEYS = [
     Key('F34'),
     Key('F35'),
     ### extra keys
-    Key('Super_L'),
-    Key('Super_R'),
+    Key('Super_L', '\u17c0\udc53'),  # FIXME
+    Key('Super_R', '\u17c0\udc54'),  # FIXME
     Key('Menu'),
-    Key('Hyper_L'),
-    Key('Hyper_R'),
+    Key('Hyper_L', '\u17c0\udc56'),  # FIXME
+    Key('Hyper_R', '\u17c0\udc57'),  # FIXME
     Key('Help'),
-    Key('Direction_L'),
-    Key('Direction_R'),
+    Key('Direction_L', '\u17c0\udc59'),  # FIXME
+    Key('Direction_R', '\u17c0\udc60'),  # FIXME
     ### 7 bit printable ASCII
     Key('Space'),
-    Key('Any'),
-    Key('Exclam'),
-    Key('QuoteDbl'),
-    Key('NumberSign'),
-    Key('Dollar'),
-    Key('Percent'),
-    Key('Ampersand'),
-    Key('Apostrophe'),
-    Key('ParenLeft'),
-    Key('ParenRight'),
-    Key('Asterisk'),
-    Key('Plus'),
-    Key('Comma'),
-    Key('Minus'),
-    Key('Period'),
-    Key('Slash'),
+    Key('Any', 'Space'),  # FIXME
+    Key('Exclam', '!'),
+    Key('QuoteDbl', '"'),
+    Key('NumberSign', '#'),
+    Key('Dollar', '$'),
+    Key('Percent', '%'),
+    Key('Ampersand', '&'),
+    Key('Apostrophe', "'"),
+    Key('ParenLeft', '('),
+    Key('ParenRight', '),')
+    Key('Asterisk', '*'),
+    Key('Plus', '+'),
+    Key('Comma', ','),
+    Key('Minus', '-'),
+    Key('Period', '.'),
+    Key('Slash', '/'),
     Key('0'),
     Key('1'),
     Key('2'),
@@ -137,12 +137,13 @@ KEYS = [
     Key('7'),
     Key('8'),
     Key('9'),
-    Key('Colon'),
-    Key('Semicolon'),
-    Key('Less'),
-    Key('Equal'),
-    Key('Greater'),
-    Key('Question'),
+    Key('Colon', ':'),
+    Key('Semicolon', ';'),
+    Key('Less', '<'),
+    Key('Equal', '='),
+    Key('Greater', '>'),
+    Key('Question', '?'),
+    Key('At', '@'),
     Key('At'),
     Key('A'),
     Key('B'),
@@ -170,95 +171,96 @@ KEYS = [
     Key('X'),
     Key('Y'),
     Key('Z'),
-    Key('BracketLeft'),
-    Key('Backslash'),
-    Key('BracketRight'),
-    Key('AsciiCircum'),
-    Key('Underscore'),
-    Key('QuoteLeft'),
-    Key('BraceLeft'),
-    Key('Bar'),
-    Key('BraceRight'),
-    Key('AsciiTilde'),
+    Key('BracketLeft', '['),
+    Key('Backslash', '\\'),
+    Key('BracketRight', ']'),
+    Key('AsciiCircum', '^'),
+    Key('Underscore', '_'),
+    Key('QuoteLeft', '`'),
+    Key('BraceLeft', '{'),
+    Key('Bar', '|'),
+    Key('BraceRight', '}'),
+    Key('AsciiTilde', '~'),
 
-    Key('nobreakspace'),
-    Key('exclamdown'),
-    Key('cent'),
-    Key('sterling'),
-    Key('currency'),
-    Key('yen'),
-    Key('brokenbar'),
-    Key('section'),
-    Key('diaeresis'),
-    Key('copyright'),
-    Key('ordfeminine'),
-    Key('guillemotleft'),    # left angle quotation mark
-    Key('notsign'),
-    Key('hyphen'),
-    Key('registered'),
-    Key('macron'),
-    Key('degree'),
-    Key('plusminus'),
-    Key('twosuperior'),
-    Key('threesuperior'),
-    Key('acute'),
-    Key('mu'),
-    Key('paragraph'),
-    Key('periodcentered'),
-    Key('cedilla'),
-    Key('onesuperior'),
-    Key('masculine'),
-    Key('guillemotright'),    # right angle quotation mark
-    Key('onequarter'),
-    Key('onehalf'),
-    Key('threequarters'),
-    Key('questiondown'),
-    Key('Agrave'),
-    Key('Aacute'),
-    Key('Acircumflex'),
-    Key('Atilde'),
-    Key('Adiaeresis'),
-    Key('Aring'),
-    Key('AE'),
-    Key('Ccedilla'),
-    Key('Egrave'),
-    Key('Eacute'),
-    Key('Ecircumflex'),
-    Key('Ediaeresis'),
-    Key('Igrave'),
-    Key('Iacute'),
-    Key('Icircumflex'),
-    Key('Idiaeresis'),
-    Key('ETH'),
-    Key('Ntilde'),
-    Key('Ograve'),
-    Key('Oacute'),
-    Key('Ocircumflex'),
-    Key('Otilde'),
-    Key('Odiaeresis'),
-    Key('multiply'),
-    Key('Ooblique'),
-    Key('Ugrave'),
-    Key('Uacute'),
-    Key('Ucircumflex'),
-    Key('Udiaeresis'),
-    Key('Yacute'),
-    Key('THORN'),
-    Key('ssharp'),
-    Key('division'),
-    Key('ydiaeresis'),
+    Key('nobreakspace', ' '),
+    Key('exclamdown', '¡'),
+    Key('cent', '¢'),
+    Key('sterling', '£'),
+    Key('currency', '¤'),
+    Key('yen', '¥'),
+    Key('brokenbar', '¦'),
+    Key('section', '§'),
+    Key('diaeresis', '¨'),
+    Key('copyright', '©'),
+    Key('ordfeminine', 'ª'),
+    Key('guillemotleft', '«'),
+    Key('notsign', '¬'),
+    Key('hyphen', '­'),
+    Key('registered', '®'),
+    Key('macron', '¯'),
+    Key('degree', '°'),
+    Key('plusminus', '±'),
+    Key('twosuperior', '²'),
+    Key('threesuperior', '³'),
+    Key('acute', '´'),
+    Key('mu', 'Μ'),
+    Key('paragraph', '¶'),
+    Key('periodcentered', '·'),
+    Key('cedilla', '¸'),
+    Key('onesuperior', '¹'),
+    Key('masculine', 'º'),
+    Key('guillemotright', '»'),
+    Key('onequarter', '¼'),
+    Key('onehalf', '½'),
+    Key('threequarters', '¾'),
+    Key('questiondown', '¿'),
+    Key('Agrave', 'À'),
+    Key('Aacute', 'Á'),
+    Key('Acircumflex', 'Â'),
+    Key('Atilde', 'Ã'),
+    Key('Adiaeresis', 'Ä'),
+    Key('Aring', 'Å'),
+    Key('AE', 'Æ'),
+    Key('Ccedilla', 'Ç'),
+    Key('Egrave', 'È'),
+    Key('Eacute', 'É'),
+    Key('Ecircumflex', 'Ê'),
+    Key('Ediaeresis', 'Ë'),
+    Key('Igrave', 'Ì'),
+    Key('Iacute', 'Í'),
+    Key('Icircumflex', 'Î'),
+    Key('Idiaeresis', 'Ï'),
+    Key('ETH', 'Ð'),
+    Key('Ntilde', 'Ñ'),
+    Key('Ograve', 'Ò'),
+    Key('Oacute', 'Ó'),
+    Key('Ocircumflex', 'Ô'),
+    Key('Otilde', 'Õ'),
+    Key('Odiaeresis', 'Ö'),
+    Key('multiply', '×'),
+    Key('Ooblique', 'Ø'),
+    Key('Ugrave', 'Ù'),
+    Key('Uacute', 'Ú'),
+    Key('Ucircumflex', 'Û'),
+    Key('Udiaeresis', 'Ü'),
+    Key('Yacute', 'Ý'),
+    Key('THORN', 'Þ'),
+    Key('ssharp', 'ß'),
+    Key('division', '÷'),
+    Key('ydiaeresis', 'Ÿ'),
 
     ### International input method support (X keycode - 0xEE00, the
     ### definition follows Qt/Embedded 2.3.7) Only interesting if
     ### you are writing your own input method
 
     ### International & multi-key character composition
-    Key('AltGr'),
-    Key('Multi_key'),  # Multi-key character compose
-    Key('Codeinput'),
-    Key('SingleCandidate'),
-    Key('MultipleCandidate'),
-    Key('PreviousCandidate'),
+    Key('AltGr', '\u17c4\udd03'),  # FIXME
+    Key('Multi_key', '\u17c4\udd20'),  # FIXME Multi-key character compose
+    Key('Codeinput', 'Code input'),
+    Key('SingleCandidate', '\u17c4\udd3c'),  # FIXME
+    Key('MultipleCandidate', 'Multiple Candidate'),
+    Key('PreviousCandidate', 'Previous Candidate'),
+    Key('Mode_switch', '\u17c4\udd7e'),  # FIXME
 
     ### Misc Functions
     Key('Mode_switch'),  # Character set switch
@@ -272,17 +274,16 @@ KEYS = [
     Key('Romaji'),  # to Romaji
     Key('Hiragana'),  # to Hiragana
     Key('Katakana'),  # to Katakana
-    # Hiragana/Katakana toggle
-    Key('Hiragana_Katakana'),
+    Key('Hiragana_Katakana', 'Hiragana Katakana'),  # Hiragana/Katakana toggle
     Key('Zenkaku'),  # to Zenkaku
     Key('Hankaku'),  # to Hankaku
-    Key('Zenkaku_Hankaku'),  # Zenkaku/Hankaku toggle
+    Key('Zenkaku_Hankaku', 'Zenkaku Hankaku'),  # Zenkaku/Hankaku toggle
     Key('Touroku'),  # Add to Dictionary
     Key('Massyo'),  # Delete from Dictionary
-    Key('Kana_Lock'),  # Kana Lock
-    Key('Kana_Shift'),  # Kana Shift
-    Key('Eisu_Shift'),  # Alphanumeric Shift
-    Key('Eisu_toggle'),  # Alphanumeric toggle
+    Key('Kana_Lock', 'Kana Lock'),
+    Key('Kana_Shift', 'Kana Shift'),
+    Key('Eisu_Shift', 'Eisu Shift'),  # Alphanumeric Shift
+    Key('Eisu_toggle', 'Eisu toggle'),  # Alphanumeric toggle
     # Key('Kanji_Bangou'),  # Codeinput
     # Key('Zen_Koho'),  # Multiple/All Candidate(s)
     # Key('Mae_Koho'),  # Previous Candidate
@@ -292,43 +293,43 @@ KEYS = [
     ### In fact, many Korean users need only 2 keys, Key_Hangul and
     ### Key_Hangul_Hanja. But rest of the keys are good for future.
 
-    Key('Hangul'),  # Hangul start/stop(toggle)
-    Key('Hangul_Start'),  # Hangul start
-    Key('Hangul_End'),  # Hangul end, English start
-    Key('Hangul_Hanja'),  # Start Hangul->Hanja Conversion
-    Key('Hangul_Jamo'),  # Hangul Jamo mode
-    Key('Hangul_Romaja'),  # Hangul Romaja mode
-    # Key('Hangul_Codeinput'),# Hangul code input mode
-    Key('Hangul_Jeonja'),  # Jeonja mode
-    Key('Hangul_Banja'),  # Banja mode
-    Key('Hangul_PreHanja'),  # Pre Hanja conversion
-    Key('Hangul_PostHanja'),  # Post Hanja conversion
-    # Key('Hangul_SingleCandidate'),  # Single candidate
-    # Key('Hangul_MultipleCandidate'),  # Multiple candidate
-    # Key('Hangul_PreviousCandidate'),  # Previous candidate
-    Key('Hangul_Special'),  # Special symbols
-    # Key('Hangul_switch'),  # Alias for mode_switch
+    Key('Hangul'),  # Hangul start/stop(toggle),
+    Key('Hangul_Start', 'Hangul Start'),  # Hangul start
+    Key('Hangul_End', 'Hangul End'),  # Hangul end, English start
+    Key('Hangul_Hanja', 'Hangul Hanja'),  # Start Hangul->Hanja Conversion
+    Key('Hangul_Jamo', 'Hangul Jamo'),  # Hangul Jamo mode
+    Key('Hangul_Romaja', 'Hangul Romaja'),  # Hangul Romaja mode
+    # Key('Hangul_Codeinput', 'Hangul Codeinput'),# Hangul code input mode
+    Key('Hangul_Jeonja', 'Hangul Jeonja'),  # Jeonja mode
+    Key('Hangul_Banja', 'Hangul Banja'),  # Banja mode
+    Key('Hangul_PreHanja', 'Hangul PreHanja'),  # Pre Hanja conversion
+    Key('Hangul_PostHanja', 'Hangul PostHanja'),  # Post Hanja conversion
+    # Key('Hangul_SingleCandidate', 'Hangul SingleCandidate'),  # Single candidate
+    # Key('Hangul_MultipleCandidate', 'Hangul MultipleCandidate'),  # Multiple candidate
+    # Key('Hangul_PreviousCandidate', 'Hangul PreviousCandidate'),  # Previous candidate
+    Key('Hangul_Special', 'Hangul Special'),  # Special symbols
+    # Key('Hangul_switch', 'Hangul switch'),  # Alias for mode_switch
 
-    # dead keys (X keycode - 0xED00 to avoid the conflict)
-    Key('Dead_Grave'),
-    Key('Dead_Acute'),
-    Key('Dead_Circumflex'),
-    Key('Dead_Tilde'),
-    Key('Dead_Macron'),
-    Key('Dead_Breve'),
-    Key('Dead_Abovedot'),
-    Key('Dead_Diaeresis'),
-    Key('Dead_Abovering'),
-    Key('Dead_Doubleacute'),
-    Key('Dead_Caron'),
-    Key('Dead_Cedilla'),
-    Key('Dead_Ogonek'),
-    Key('Dead_Iota'),
-    Key('Dead_Voiced_Sound'),
-    Key('Dead_Semivoiced_Sound'),
-    Key('Dead_Belowdot'),
-    Key('Dead_Hook'),
-    Key('Dead_Horn'),
+    # dead keys (X keycode - 0xED00 to avoid the conflict),
+    Key('Dead_Grave', '\u17c4\ude50'),  # FIXME
+    Key('Dead_Acute', '\u17c4\ude51'),  # FIXME
+    Key('Dead_Circumflex', '\u17c4\ude52'),  # FIXME
+    Key('Dead_Tilde', '\u17c4\ude53'),  # FIXME
+    Key('Dead_Macron', '\u17c4\ude54'),  # FIXME
+    Key('Dead_Breve', '\u17c4\ude55'),  # FIXME
+    Key('Dead_Abovedot', '\u17c4\ude56'),  # FIXME
+    Key('Dead_Diaeresis', '\u17c4\ude57'),  # FIXME
+    Key('Dead_Abovering', '\u17c4\ude58'),  # FIXME
+    Key('Dead_Doubleacute', '\u17c4\ude59'),  # FIXME
+    Key('Dead_Caron', '\u17c4\ude5a'),  # FIXME
+    Key('Dead_Cedilla', '\u17c4\ude5b'),  # FIXME
+    Key('Dead_Ogonek', '\u17c4\ude5c'),  # FIXME
+    Key('Dead_Iota', '\u17c4\ude5d'),  # FIXME
+    Key('Dead_Voiced_Sound', '\u17c4\ude5e'),  # FIXME
+    Key('Dead_Semivoiced_Sound', '\u17c4\ude5f'),  # FIXME
+    Key('Dead_Belowdot', '\u17c4\ude60'),  # FIXME
+    Key('Dead_Hook', '\u17c4\ude61'),  # FIXME
+    Key('Dead_Horn', '\u17c4\ude62'),  # FIXME
 
     # Not in Qt 5.10, so data may be wrong!
     Key('Dead_Stroke'),
@@ -367,160 +368,161 @@ KEYS = [
     Key('Forward'),
     Key('Stop'),
     Key('Refresh'),
-    Key('VolumeDown'),
-    Key('VolumeMute'),
-    Key('VolumeUp'),
-    Key('BassBoost'),
-    Key('BassUp'),
-    Key('BassDown'),
-    Key('TrebleUp'),
-    Key('TrebleDown'),
-    Key('MediaPlay'),
-    Key('MediaStop'),
-    Key('MediaPrevious'),
-    Key('MediaNext'),
-    Key('MediaRecord'),
-    Key('MediaPause'),
-    Key('MediaTogglePlayPause'),
-    Key('HomePage'),
+    Key('VolumeDown', 'Volume Down'),
+    Key('VolumeMute', 'Volume Mute'),
+    Key('VolumeUp', 'Volume Up'),
+    Key('BassBoost', 'Bass Boost'),
+    Key('BassUp', 'Bass Up'),
+    Key('BassDown', 'Bass Down'),
+    Key('TrebleUp', 'Treble Up'),
+    Key('TrebleDown', 'Treble Down'),
+    Key('MediaPlay', 'Media Play'),
+    Key('MediaStop', 'Media Stop'),
+    Key('MediaPrevious', 'Media Previous'),
+    Key('MediaNext', 'Media Next'),
+    Key('MediaRecord', 'Media Record'),
+    Key('MediaPause', 'Media Pause'),
+    Key('MediaTogglePlayPause', 'Toggle Media Play/Pause'),
+    Key('HomePage', 'Home Page'),
     Key('Favorites'),
     Key('Search'),
     Key('Standby'),
-    Key('OpenUrl'),
-    Key('LaunchMail'),
-    Key('LaunchMedia'),
-    Key('Launch0'),
-    Key('Launch1'),
-    Key('Launch2'),
-    Key('Launch3'),
-    Key('Launch4'),
-    Key('Launch5'),
-    Key('Launch6'),
-    Key('Launch7'),
-    Key('Launch8'),
-    Key('Launch9'),
-    Key('LaunchA'),
-    Key('LaunchB'),
-    Key('LaunchC'),
-    Key('LaunchD'),
-    Key('LaunchE'),
-    Key('LaunchF'),
-    Key('MonBrightnessUp'),
-    Key('MonBrightnessDown'),
-    Key('KeyboardLightOnOff'),
-    Key('KeyboardBrightnessUp'),
-    Key('KeyboardBrightnessDown'),
-    Key('PowerOff'),
-    Key('WakeUp'),
+
+    Key('OpenUrl', 'Open URL'),
+    Key('LaunchMail', 'Launch Mail'),
+    Key('LaunchMedia', 'Launch Media'),
+    Key('Launch0', 'Launch (0),')
+    Key('Launch1', 'Launch (1),')
+    Key('Launch2', 'Launch (2),')
+    Key('Launch3', 'Launch (3),')
+    Key('Launch4', 'Launch (4),')
+    Key('Launch5', 'Launch (5),')
+    Key('Launch6', 'Launch (6),')
+    Key('Launch7', 'Launch (7),')
+    Key('Launch8', 'Launch (8),')
+    Key('Launch9', 'Launch (9),')
+    Key('LaunchA', 'Launch (A),')
+    Key('LaunchB', 'Launch (B),')
+    Key('LaunchC', 'Launch (C),')
+    Key('LaunchD', 'Launch (D),')
+    Key('LaunchE', 'Launch (E),')
+    Key('LaunchF', 'Launch (F),')
+    Key('MonBrightnessUp', 'Monitor Brightness Up'),
+    Key('MonBrightnessDown', 'Monitor Brightness Down'),
+    Key('KeyboardLightOnOff', 'Keyboard Light On/Off'),
+    Key('KeyboardBrightnessUp', 'Keyboard Brightness Up'),
+    Key('KeyboardBrightnessDown', 'Keyboard Brightness Down'),
+    Key('PowerOff', 'Power Off'),
+    Key('WakeUp', 'Wake Up'),
     Key('Eject'),
-    Key('ScreenSaver'),
+    Key('ScreenSaver', 'Screensaver'),
     Key('WWW'),
-    Key('Memo'),
+    Key('Memo', '\u17c0\udcbc'),  # FIXME
     Key('LightBulb'),
     Key('Shop'),
     Key('History'),
-    Key('AddFavorite'),
-    Key('HotLinks'),
-    Key('BrightnessAdjust'),
+    Key('AddFavorite', 'Add Favorite'),
+    Key('HotLinks', 'Hot Links'),
+    Key('BrightnessAdjust', 'Adjust Brightness'),
     Key('Finance'),
     Key('Community'),
-    Key('AudioRewind'),  # Media rewind
-    Key('BackForward'),
-    Key('ApplicationLeft'),
-    Key('ApplicationRight'),
+    Key('AudioRewind', 'Media Rewind'),
+    Key('BackForward', 'Back Forward'),
+    Key('ApplicationLeft', 'Application Left'),
+    Key('ApplicationRight', 'Application Right'),
     Key('Book'),
     Key('CD'),
     Key('Calculator'),
-    Key('ToDoList'),
-    Key('ClearGrab'),
+    Key('ToDoList', '\u17c0\udccc'),  # FIXME
+    Key('ClearGrab', 'Clear Grab'),
     Key('Close'),
     Key('Copy'),
     Key('Cut'),
     Key('Display'),  # Output switch key
     Key('DOS'),
     Key('Documents'),
-    Key('Excel'),
-    Key('Explorer'),
+    Key('Excel', 'Spreadsheet'),
+    Key('Explorer', 'Browser'),
     Key('Game'),
     Key('Go'),
     Key('iTouch'),
-    Key('LogOff'),
+    Key('LogOff', 'Logoff'),
     Key('Market'),
     Key('Meeting'),
-    Key('MenuKB'),
-    Key('MenuPB'),
-    Key('MySites'),
+    Key('MenuKB', 'Keyboard Menu'),
+    Key('MenuPB', 'Menu PB'),
+    Key('MySites', 'My Sites'),
     Key('News'),
-    Key('OfficeHome'),
+    Key('OfficeHome', 'Home Office'),
     Key('Option'),
     Key('Paste'),
     Key('Phone'),
-    Key('Calendar'),
+    Key('Calendar', '\u17c0\udce4'),  # FIXME
     Key('Reply'),
     Key('Reload'),
-    Key('RotateWindows'),
-    Key('RotationPB'),
-    Key('RotationKB'),
+    Key('RotateWindows', 'Rotate Windows'),
+    Key('RotationPB', 'Rotation PB'),
+    Key('RotationKB', 'Rotation KB'),
     Key('Save'),
     Key('Send'),
-    Key('Spell'),
-    Key('SplitScreen'),
+    Key('Spell', 'Spellchecker'),
+    Key('SplitScreen', 'Split Screen'),
     Key('Support'),
-    Key('TaskPane'),
+    Key('TaskPane', 'Task Panel'),
     Key('Terminal'),
     Key('Tools'),
     Key('Travel'),
     Key('Video'),
-    Key('Word'),
-    Key('Xfer'),
-    Key('ZoomIn'),
-    Key('ZoomOut'),
+    Key('Word', 'Word Processor'),
+    Key('Xfer', 'XFer'),
+    Key('ZoomIn', 'Zoom In'),
+    Key('ZoomOut', 'Zoom Out'),
     Key('Away'),
     Key('Messenger'),
     Key('WebCam'),
-    Key('MailForward'),
+    Key('MailForward', 'Mail Forward'),
     Key('Pictures'),
     Key('Music'),
     Key('Battery'),
     Key('Bluetooth'),
-    Key('WLAN'),
-    Key('UWB'),
-    Key('AudioForward'),  # Media fast-forward
-    Key('AudioRepeat'),  # Toggle repeat mode
-    Key('AudioRandomPlay'),  # Toggle shuffle mode
+    Key('WLAN', 'Wireless'),
+    Key('UWB', 'Ultra Wide Band'),
+    Key('AudioForward', 'Media Fast Forward'),
+    Key('AudioRepeat', 'Audio Repeat'),  # Toggle repeat mode
+    Key('AudioRandomPlay', 'Audio Random Play'),  # Toggle shuffle mode
     Key('Subtitle'),
-    Key('AudioCycleTrack'),
+    Key('AudioCycleTrack', 'Audio Cycle Track'),
     Key('Time'),
     Key('Hibernate'),
     Key('View'),
-    Key('TopMenu'),
-    Key('PowerDown'),
+    Key('TopMenu', 'Top Menu'),
+    Key('PowerDown', 'Power Down'),
     Key('Suspend'),
-    Key('ContrastAdjust'),
+    Key('ContrastAdjust', '\u17c0\udd0d'),  # FIXME
 
-    Key('LaunchG'),
-    Key('LaunchH'),
+    Key('LaunchG', '\u17c0\udd0e'),  # FIXME
+    Key('LaunchH', '\u17c0\udd0f'),  # FIXME
 
-    Key('TouchpadToggle'),
-    Key('TouchpadOn'),
-    Key('TouchpadOff'),
+    Key('TouchpadToggle', 'Touchpad Toggle'),
+    Key('TouchpadOn', 'Touchpad On'),
+    Key('TouchpadOff', 'Touchpad Off'),
 
-    Key('MicMute'),
+    Key('MicMute', 'Microphone Mute'),
 
     Key('Red'),
     Key('Green'),
     Key('Yellow'),
     Key('Blue'),
 
-    Key('ChannelUp'),
-    Key('ChannelDown'),
+    Key('ChannelUp', 'Channel Up'),
+    Key('ChannelDown', 'Channel Down'),
 
     Key('Guide'),
     Key('Info'),
     Key('Settings'),
 
-    Key('MicVolumeUp'),
-    Key('MicVolumeDown'),
+    Key('MicVolumeUp', 'Microphone Volume Up'),
+    Key('MicVolumeDown', 'Microphone Volume Down'),
 
     Key('New'),
     Key('Open'),
@@ -528,7 +530,7 @@ KEYS = [
     Key('Undo'),
     Key('Redo'),
 
-    Key('MediaLast'),
+    Key('MediaLast', '\u17ff\udfff'),  # FIXME
 
     ### Keypad navigation keys
     Key('Select'),
@@ -555,12 +557,12 @@ KEYS = [
     Key('Call'),  # set absolute state to in a call (do not toggle state)
     Key('Hangup'),  # set absolute state to hang up (do not toggle state)
     Key('Flip'),
-    Key('ToggleCallHangup'),  # a toggle key for answering, or hanging up, based on current call state
-    Key('VoiceDial'),
-    Key('LastNumberRedial'),
+    Key('ToggleCallHangup', 'Toggle Call/Hangup'),  # a toggle key for answering, or hanging up, based on current call state
+    Key('VoiceDial', 'Voice Dial'),
+    Key('LastNumberRedial', 'Last Number Redial'),
 
-    Key('Camera'),
-    Key('CameraFocus'),
+    Key('Camera', 'Camera Shutter'),
+    Key('CameraFocus', 'Camera Focus'),
 
-    Key('unknown'),
+    Key('unknown', ''),  # FIXME
 ]
