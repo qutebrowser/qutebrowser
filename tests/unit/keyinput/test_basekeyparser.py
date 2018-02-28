@@ -165,15 +165,10 @@ class TestSpecialKeys:
             Qt.Key_A, (Qt.ControlModifier | Qt.AltModifier)))
         assert not keyparser.execute.called
 
-    @pytest.mark.skip(reason='unneeded?')
-    def test_keychain(self, fake_keyevent_factory, keyparser):
-        keyparser.handle(fake_keyevent_factory(Qt.Key_B))
-        keyparser.handle(fake_keyevent_factory(Qt.Key_A))
-        assert not keyparser.execute.called
-
-    def test_no_binding(self, monkeypatch, fake_keyevent_factory, keyparser):
+    def test_only_modifiers(self, monkeypatch, fake_keyevent_factory,
+                            keyparser):
         monkeypatch.setattr(keyutils.KeyInfo, '__str__', lambda _self: '')
-        keyparser.handle(fake_keyevent_factory(Qt.Key_A, Qt.NoModifier))
+        keyparser.handle(fake_keyevent_factory(Qt.Key_Shift, Qt.NoModifier))
         assert not keyparser.execute.called
 
     def test_mapping(self, config_stub, fake_keyevent_factory, keyparser):

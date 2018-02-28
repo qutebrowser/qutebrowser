@@ -17,13 +17,27 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import attr
+# pylint: disable=line-too-long
 
-from PyQt5.QtCore import Qt
+
+"""Data used by test_keyutils.py to test all keys."""
+
+
+import attr
 
 
 @attr.s
 class Key:
+
+    """A key with expected values.
+
+    Attributes:
+        attribute: The name of the Qt::Key attribute ('Foo' -> Qt.Key_Foo)
+        name: The name returned by str(KeyInfo) with that key.
+        text: The text returned by KeyInfo.text().
+        uppertext: The text returned by KeyInfo.text() with shift.
+        member: Filled by the test fixture, the numeric value.
+    """
 
     attribute = attr.ib()
     name = attr.ib(None)  # default: name == attribute
@@ -289,7 +303,7 @@ KEYS = [
 
     ### Korean keyboard support
     ###
-    ### In fact, many Korean users need only 2 keys, Key_Hangul and
+    ### In fact, many users from Korea need only 2 keys, Key_Hangul and
     ### Key_Hangul_Hanja. But rest of the keys are good for future.
 
     Key('Hangul'),  # Hangul start/stop(toggle),
