@@ -1497,12 +1497,15 @@ Drop selection and keep selection mode enabled.
 
 [[follow-hint]]
 === follow-hint
-Syntax: +:follow-hint ['keystring']+
+Syntax: +:follow-hint [*--select*] ['keystring']+
 
 Follow a hint.
 
 ==== positional arguments
 * +'keystring'+: The hint to follow.
+
+==== optional arguments
+* +*-s*+, +*--select*+: Only select the given hint, don't necessarily follow it.
 
 [[leave-mode]]
 === leave-mode
