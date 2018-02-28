@@ -236,8 +236,7 @@ class KeyInfo:
         key_string = _key_to_string(self.key)
 
         if is_printable(self.key) and self.key != Qt.Key_Space:
-            category = unicodedata.category(key_string)
-            is_special_char = (category == 'Cc')
+            is_special_char = unicodedata.category(key_string) == 'Cc'
         else:
             is_special_char = False
 
@@ -394,7 +393,7 @@ class KeySequence:
 
         if (modifiers == Qt.ShiftModifier and
                 is_printable(ev.key()) and
-                unicodedata.category(ev.text()) != 'Lu'):
+                not ev.text().isupper()):
             modifiers = Qt.KeyboardModifiers()
 
         keys = list(self._iter_keys())
