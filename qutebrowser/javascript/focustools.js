@@ -60,17 +60,21 @@ window._qutebrowser.focustools = (function() {
     };
 
     funcs.installFocusHandler = () => {
-        document.body.addEventListener("blur", (event) => {
-            lastFocusedElement = event.srcElement;
-        }, true);
+        if (document && document.body) {
+            document.body.addEventListener("blur", (event) => {
+                lastFocusedElement = event.srcElement;
+            }, true);
+        }
+
     };
 
     funcs.focusLastElement = () => {
-        if (document
+        if (document && document.body
             // No element focused currently
             && document.activeElement == document.body
-            && lastFocusedElement) {
-            // TODO verify lastFocusedElement is still here!
+            && lastFocusedElement
+            // Check if the element is still in the DOM
+            && !document.body.contains(lastFocusedElement)) {
             lastFocusedElement.focus();
         }
     }
