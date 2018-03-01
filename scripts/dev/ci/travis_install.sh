@@ -101,5 +101,8 @@ case $TESTENV in
     *)
         pip_install pip
         pip_install -r misc/requirements/requirements-tox.txt
+        if [[ $TESTENV == *-cov ]]; then
+            pip_install -r misc/requirements/requirements-codecov.txt
+        fi
         ;;
 esac
