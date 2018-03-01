@@ -29,22 +29,24 @@ from qutebrowser.keyinput import keyutils
 @pytest.fixture(params=key_data.KEYS, ids=lambda k: k.attribute)
 def qt_key(request):
     key = request.param
-    member = getattr(Qt, 'Key_' + key.attribute, None)
-    if member is None:
+    if key.member is None:
         pytest.skip("Did not find key {}".format(key.attribute))
-    key.member = member
     return key
 
 
-@pytest.mark.parametrize('upper', [False, True])
-def test_key_text(qt_key, upper):
-    modifiers = Qt.ShiftModifier if upper else Qt.KeyboardModifiers()
-    info = keyutils.KeyInfo(qt_key.member, modifiers=modifiers)
-    expected = qt_key.uppertext if upper else qt_key.text
-    assert info.text() == expected
+@pytest.fixture(params=[key for key in key_data.KEYS if key.qtest],
+                ids=lambda k: k.attribute)
+def qtest_key(request):
+    return request.param
 
 
 class KeyTestWidget(QWidget):
+
+    """Widget to get the text of QKeyPressEvents.
+
+    This is done so we can check QTest::keyToAscii (qasciikey.cpp) as we can't
+    call that directly, only via QTest::keyPress.
+    """
 
     got_text = pyqtSignal()
 
@@ -53,22 +55,28 @@ class KeyTestWidget(QWidget):
         self.got_text.emit()
 
 
-@pytest.fixture
-def key_test(qtbot):
-    w = KeyTestWidget()
-    qtbot.add_widget(w)
-    return w
+class TestKeyText:
 
+    @pytest.mark.parametrize('upper', [False, True])
+    def test_key_text(self, qt_key, upper):
+        modifiers = Qt.ShiftModifier if upper else Qt.KeyboardModifiers()
+        info = keyutils.KeyInfo(qt_key.member, modifiers=modifiers)
+        expected = qt_key.uppertext if upper else qt_key.text
+        assert info.text() == expected
 
-def test_key_test_qtest(qt_key, qtbot, key_test):
-    if not qt_key.qtest:
-        pytest.skip("Unsupported by QtTest")
+    @pytest.fixture
+    def key_test(self, qtbot):
+        w = KeyTestWidget()
+        qtbot.add_widget(w)
+        return w
 
-    with qtbot.wait_signal(key_test.got_text):
-        qtbot.keyPress(key_test, qt_key.member)
+    def test_key_test_qtest(self, qtest_key, qtbot, key_test):
+        with qtbot.wait_signal(key_test.got_text):
+            qtbot.keyPress(key_test, qtest_key.member)
 
-    info = keyutils.KeyInfo(qt_key.member, modifiers=Qt.KeyboardModifiers())
-    assert info.text() == key_test.text.lower()
+        info = keyutils.KeyInfo(qtest_key.member,
+                                modifiers=Qt.KeyboardModifiers())
+        assert info.text() == key_test.text.lower()
 
 
 class TestKeyToString:

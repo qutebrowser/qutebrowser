@@ -24,6 +24,7 @@
 
 
 import attr
+from PyQt5.QtCore import Qt
 
 
 @attr.s
@@ -45,6 +46,9 @@ class Key:
     uppertext = attr.ib('')
     member = attr.ib(None)
     qtest = attr.ib(True)
+
+    def __attrs_post_init__(self):
+        self.member = getattr(Qt, 'Key_' + self.attribute, None)
 
 
 # From enum Key in qt5/qtbase/src/corelib/global/qnamespace.h
