@@ -18,7 +18,8 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtWidgets import QWidget
 
 from tests.unit.keyinput import key_data
 from qutebrowser.utils import utils
@@ -41,6 +42,33 @@ def test_key_text(qt_key, upper):
     info = keyutils.KeyInfo(qt_key.member, modifiers=modifiers)
     expected = qt_key.uppertext if upper else qt_key.text
     assert info.text() == expected
+
+
+class KeyTestWidget(QWidget):
+
+    got_text = pyqtSignal()
+
+    def keyPressEvent(self, e):
+        self.text = e.text()
+        self.got_text.emit()
+
+
+@pytest.fixture
+def key_test(qtbot):
+    w = KeyTestWidget()
+    qtbot.add_widget(w)
+    return w
+
+
+def test_key_test_qtest(qt_key, qtbot, key_test):
+    if not qt_key.qtest:
+        pytest.skip("Unsupported by QtTest")
+
+    with qtbot.wait_signal(key_test.got_text):
+        qtbot.keyPress(key_test, qt_key.member)
+
+    info = keyutils.KeyInfo(qt_key.member, modifiers=Qt.KeyboardModifiers())
+    assert info.text() == key_test.text.lower()
 
 
 class TestKeyToString:

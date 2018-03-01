@@ -44,17 +44,18 @@ class Key:
     text = attr.ib('')
     uppertext = attr.ib('')
     member = attr.ib(None)
+    qtest = attr.ib(True)
 
 
 # From enum Key in qt5/qtbase/src/corelib/global/qnamespace.h
 KEYS = [
     ### misc keys
-    Key('Escape'),  # qutebrowser has a different name from Qt
-    Key('Tab'),
-    Key('Backtab'),
-    Key('Backspace'),
-    Key('Return'),
-    Key('Enter'),
+    Key('Escape', text='\x1b', uppertext='\x1b'),
+    Key('Tab', text='\t', uppertext='\t'),
+    Key('Backtab', qtest=False),  # Qt assumes VT (vertical tab)
+    Key('Backspace', text='\b', uppertext='\b'),
+    Key('Return', text='\r', uppertext='\r'),
+    Key('Enter', text='\r', uppertext='\r'),
     Key('Insert', 'Ins'),
     Key('Delete', 'Del'),
     Key('Pause'),
@@ -217,7 +218,7 @@ KEYS = [
     Key('twosuperior', '²', text='²', uppertext='²'),
     Key('threesuperior', '³', text='³', uppertext='³'),
     Key('acute', '´', text='´', uppertext='´'),
-    Key('mu', 'Μ', text='μ', uppertext='Μ'),
+    Key('mu', 'Μ', text='μ', uppertext='Μ', qtest=False),  # Qt assumes U+00B5 instead of U+03BC
     Key('paragraph', '¶', text='¶', uppertext='¶'),
     Key('periodcentered', '·', text='·', uppertext='·'),
     Key('cedilla', '¸', text='¸', uppertext='¸'),
@@ -268,113 +269,113 @@ KEYS = [
     ### you are writing your own input method
 
     ### International & multi-key character composition
-    Key('AltGr'),
-    Key('Multi_key', 'Multi key'),  # Multi-key character compose
-    Key('Codeinput', 'Code input'),
-    Key('SingleCandidate', 'Single Candidate'),
-    Key('MultipleCandidate', 'Multiple Candidate'),
-    Key('PreviousCandidate', 'Previous Candidate'),
+    Key('AltGr', qtest=False),
+    Key('Multi_key', 'Multi key', qtest=False),  # Multi-key character compose
+    Key('Codeinput', 'Code input', qtest=False),
+    Key('SingleCandidate', 'Single Candidate', qtest=False),
+    Key('MultipleCandidate', 'Multiple Candidate', qtest=False),
+    Key('PreviousCandidate', 'Previous Candidate', qtest=False),
 
     ### Misc Functions
-    Key('Mode_switch', 'Mode switch'),  # Character set switch
+    Key('Mode_switch', 'Mode switch', qtest=False),  # Character set switch
     # Key('script_switch'),  # Alias for mode_switch
 
     ### Japanese keyboard support
-    Key('Kanji'),  # Kanji, Kanji convert
-    Key('Muhenkan'),  # Cancel Conversion
-    # Key('Henkan_Mode'),  # Start/Stop Conversion
-    Key('Henkan'),  # Alias for Henkan_Mode
-    Key('Romaji'),  # to Romaji
-    Key('Hiragana'),  # to Hiragana
-    Key('Katakana'),  # to Katakana
-    Key('Hiragana_Katakana', 'Hiragana Katakana'),  # Hiragana/Katakana toggle
-    Key('Zenkaku'),  # to Zenkaku
-    Key('Hankaku'),  # to Hankaku
-    Key('Zenkaku_Hankaku', 'Zenkaku Hankaku'),  # Zenkaku/Hankaku toggle
-    Key('Touroku'),  # Add to Dictionary
-    Key('Massyo'),  # Delete from Dictionary
-    Key('Kana_Lock', 'Kana Lock'),
-    Key('Kana_Shift', 'Kana Shift'),
-    Key('Eisu_Shift', 'Eisu Shift'),  # Alphanumeric Shift
-    Key('Eisu_toggle', 'Eisu toggle'),  # Alphanumeric toggle
-    # Key('Kanji_Bangou'),  # Codeinput
-    # Key('Zen_Koho'),  # Multiple/All Candidate(s)
-    # Key('Mae_Koho'),  # Previous Candidate
+    Key('Kanji', qtest=False),  # Kanji, Kanji convert
+    Key('Muhenkan', qtest=False),  # Cancel Conversion
+    # Key('Henkan_Mode', qtest=False),  # Start/Stop Conversion
+    Key('Henkan', qtest=False),  # Alias for Henkan_Mode
+    Key('Romaji', qtest=False),  # to Romaji
+    Key('Hiragana', qtest=False),  # to Hiragana
+    Key('Katakana', qtest=False),  # to Katakana
+    Key('Hiragana_Katakana', 'Hiragana Katakana', qtest=False),  # Hiragana/Katakana toggle
+    Key('Zenkaku', qtest=False),  # to Zenkaku
+    Key('Hankaku', qtest=False),  # to Hankaku
+    Key('Zenkaku_Hankaku', 'Zenkaku Hankaku', qtest=False),  # Zenkaku/Hankaku toggle
+    Key('Touroku', qtest=False),  # Add to Dictionary
+    Key('Massyo', qtest=False),  # Delete from Dictionary
+    Key('Kana_Lock', 'Kana Lock', qtest=False),
+    Key('Kana_Shift', 'Kana Shift', qtest=False),
+    Key('Eisu_Shift', 'Eisu Shift', qtest=False),  # Alphanumeric Shift
+    Key('Eisu_toggle', 'Eisu toggle', qtest=False),  # Alphanumeric toggle
+    # Key('Kanji_Bangou', qtest=False),  # Codeinput
+    # Key('Zen_Koho', qtest=False),  # Multiple/All Candidate(s)
+    # Key('Mae_Koho', qtest=False),  # Previous Candidate
 
     ### Korean keyboard support
     ###
     ### In fact, many users from Korea need only 2 keys, Key_Hangul and
     ### Key_Hangul_Hanja. But rest of the keys are good for future.
 
-    Key('Hangul'),  # Hangul start/stop(toggle),
-    Key('Hangul_Start', 'Hangul Start'),  # Hangul start
-    Key('Hangul_End', 'Hangul End'),  # Hangul end, English start
-    Key('Hangul_Hanja', 'Hangul Hanja'),  # Start Hangul->Hanja Conversion
-    Key('Hangul_Jamo', 'Hangul Jamo'),  # Hangul Jamo mode
-    Key('Hangul_Romaja', 'Hangul Romaja'),  # Hangul Romaja mode
-    # Key('Hangul_Codeinput', 'Hangul Codeinput'),# Hangul code input mode
-    Key('Hangul_Jeonja', 'Hangul Jeonja'),  # Jeonja mode
-    Key('Hangul_Banja', 'Hangul Banja'),  # Banja mode
-    Key('Hangul_PreHanja', 'Hangul PreHanja'),  # Pre Hanja conversion
-    Key('Hangul_PostHanja', 'Hangul PostHanja'),  # Post Hanja conversion
-    # Key('Hangul_SingleCandidate', 'Hangul SingleCandidate'),  # Single candidate
-    # Key('Hangul_MultipleCandidate', 'Hangul MultipleCandidate'),  # Multiple candidate
-    # Key('Hangul_PreviousCandidate', 'Hangul PreviousCandidate'),  # Previous candidate
-    Key('Hangul_Special', 'Hangul Special'),  # Special symbols
-    # Key('Hangul_switch', 'Hangul switch'),  # Alias for mode_switch
+    Key('Hangul', qtest=False),  # Hangul start/stop(toggle),
+    Key('Hangul_Start', 'Hangul Start', qtest=False),  # Hangul start
+    Key('Hangul_End', 'Hangul End', qtest=False),  # Hangul end, English start
+    Key('Hangul_Hanja', 'Hangul Hanja', qtest=False),  # Start Hangul->Hanja Conversion
+    Key('Hangul_Jamo', 'Hangul Jamo', qtest=False),  # Hangul Jamo mode
+    Key('Hangul_Romaja', 'Hangul Romaja', qtest=False),  # Hangul Romaja mode
+    # Key('Hangul_Codeinput', 'Hangul Codeinput', qtest=False),# Hangul code input mode
+    Key('Hangul_Jeonja', 'Hangul Jeonja', qtest=False),  # Jeonja mode
+    Key('Hangul_Banja', 'Hangul Banja', qtest=False),  # Banja mode
+    Key('Hangul_PreHanja', 'Hangul PreHanja', qtest=False),  # Pre Hanja conversion
+    Key('Hangul_PostHanja', 'Hangul PostHanja', qtest=False),  # Post Hanja conversion
+    # Key('Hangul_SingleCandidate', 'Hangul SingleCandidate', qtest=False),  # Single candidate
+    # Key('Hangul_MultipleCandidate', 'Hangul MultipleCandidate', qtest=False),  # Multiple candidate
+    # Key('Hangul_PreviousCandidate', 'Hangul PreviousCandidate', qtest=False),  # Previous candidate
+    Key('Hangul_Special', 'Hangul Special', qtest=False),  # Special symbols
+    # Key('Hangul_switch', 'Hangul switch', qtest=False),  # Alias for mode_switch
 
-    # dead keys (X keycode - 0xED00 to avoid the conflict),
-    Key('Dead_Grave', '`'),
-    Key('Dead_Acute', '´'),
-    Key('Dead_Circumflex', '^'),
-    Key('Dead_Tilde', '~'),
-    Key('Dead_Macron', '¯'),
-    Key('Dead_Breve', '˘'),
-    Key('Dead_Abovedot', '˙'),
-    Key('Dead_Diaeresis', '¨'),
-    Key('Dead_Abovering', '˚'),
-    Key('Dead_Doubleacute', '˝'),
-    Key('Dead_Caron', 'ˇ'),
-    Key('Dead_Cedilla', '¸'),
-    Key('Dead_Ogonek', '˛'),
-    Key('Dead_Iota', 'Iota'),
-    Key('Dead_Voiced_Sound', 'Voiced Sound'),
-    Key('Dead_Semivoiced_Sound', 'Semivoiced Sound'),
-    Key('Dead_Belowdot', 'Belowdot'),
-    Key('Dead_Hook', 'Hook'),
-    Key('Dead_Horn', 'Horn'),
+    # dead keys (X keycode - 0xED00 to avoid the conflict, qtest=False),
+    Key('Dead_Grave', '`', qtest=False),
+    Key('Dead_Acute', '´', qtest=False),
+    Key('Dead_Circumflex', '^', qtest=False),
+    Key('Dead_Tilde', '~', qtest=False),
+    Key('Dead_Macron', '¯', qtest=False),
+    Key('Dead_Breve', '˘', qtest=False),
+    Key('Dead_Abovedot', '˙', qtest=False),
+    Key('Dead_Diaeresis', '¨', qtest=False),
+    Key('Dead_Abovering', '˚', qtest=False),
+    Key('Dead_Doubleacute', '˝', qtest=False),
+    Key('Dead_Caron', 'ˇ', qtest=False),
+    Key('Dead_Cedilla', '¸', qtest=False),
+    Key('Dead_Ogonek', '˛', qtest=False),
+    Key('Dead_Iota', 'Iota', qtest=False),
+    Key('Dead_Voiced_Sound', 'Voiced Sound', qtest=False),
+    Key('Dead_Semivoiced_Sound', 'Semivoiced Sound', qtest=False),
+    Key('Dead_Belowdot', 'Belowdot', qtest=False),
+    Key('Dead_Hook', 'Hook', qtest=False),
+    Key('Dead_Horn', 'Horn', qtest=False),
 
     # Not in Qt 5.10, so data may be wrong!
-    Key('Dead_Stroke'),
-    Key('Dead_Abovecomma'),
-    Key('Dead_Abovereversedcomma'),
-    Key('Dead_Doublegrave'),
-    Key('Dead_Belowring'),
-    Key('Dead_Belowmacron'),
-    Key('Dead_Belowcircumflex'),
-    Key('Dead_Belowtilde'),
-    Key('Dead_Belowbreve'),
-    Key('Dead_Belowdiaeresis'),
-    Key('Dead_Invertedbreve'),
-    Key('Dead_Belowcomma'),
-    Key('Dead_Currency'),
-    Key('Dead_a'),
-    Key('Dead_A'),
-    Key('Dead_e'),
-    Key('Dead_E'),
-    Key('Dead_i'),
-    Key('Dead_I'),
-    Key('Dead_o'),
-    Key('Dead_O'),
-    Key('Dead_u'),
-    Key('Dead_U'),
-    Key('Dead_Small_Schwa'),
-    Key('Dead_Capital_Schwa'),
-    Key('Dead_Greek'),
-    Key('Dead_Lowline'),
-    Key('Dead_Aboveverticalline'),
-    Key('Dead_Belowverticalline'),
-    Key('Dead_Longsolidusoverlay'),
+    Key('Dead_Stroke', qtest=False),
+    Key('Dead_Abovecomma', qtest=False),
+    Key('Dead_Abovereversedcomma', qtest=False),
+    Key('Dead_Doublegrave', qtest=False),
+    Key('Dead_Belowring', qtest=False),
+    Key('Dead_Belowmacron', qtest=False),
+    Key('Dead_Belowcircumflex', qtest=False),
+    Key('Dead_Belowtilde', qtest=False),
+    Key('Dead_Belowbreve', qtest=False),
+    Key('Dead_Belowdiaeresis', qtest=False),
+    Key('Dead_Invertedbreve', qtest=False),
+    Key('Dead_Belowcomma', qtest=False),
+    Key('Dead_Currency', qtest=False),
+    Key('Dead_a', qtest=False),
+    Key('Dead_A', qtest=False),
+    Key('Dead_e', qtest=False),
+    Key('Dead_E', qtest=False),
+    Key('Dead_i', qtest=False),
+    Key('Dead_I', qtest=False),
+    Key('Dead_o', qtest=False),
+    Key('Dead_O', qtest=False),
+    Key('Dead_u', qtest=False),
+    Key('Dead_U', qtest=False),
+    Key('Dead_Small_Schwa', qtest=False),
+    Key('Dead_Capital_Schwa', qtest=False),
+    Key('Dead_Greek', qtest=False),
+    Key('Dead_Lowline', qtest=False),
+    Key('Dead_Aboveverticalline', qtest=False),
+    Key('Dead_Belowverticalline', qtest=False),
+    Key('Dead_Longsolidusoverlay', qtest=False),
 
     ### multimedia/internet keys - ignored by default - see QKeyEvent c'tor
     Key('Back'),
@@ -394,8 +395,8 @@ KEYS = [
     Key('MediaPrevious', 'Media Previous'),
     Key('MediaNext', 'Media Next'),
     Key('MediaRecord', 'Media Record'),
-    Key('MediaPause', 'Media Pause'),
-    Key('MediaTogglePlayPause', 'Toggle Media Play/Pause'),
+    Key('MediaPause', 'Media Pause', qtest=False),
+    Key('MediaTogglePlayPause', 'Toggle Media Play/Pause', qtest=False),
     Key('HomePage', 'Home Page'),
     Key('Favorites'),
     Key('Search'),
@@ -420,162 +421,162 @@ KEYS = [
     Key('LaunchD', 'Launch (D)'),
     Key('LaunchE', 'Launch (E)'),
     Key('LaunchF', 'Launch (F)'),
-    Key('MonBrightnessUp', 'Monitor Brightness Up'),
-    Key('MonBrightnessDown', 'Monitor Brightness Down'),
-    Key('KeyboardLightOnOff', 'Keyboard Light On/Off'),
-    Key('KeyboardBrightnessUp', 'Keyboard Brightness Up'),
-    Key('KeyboardBrightnessDown', 'Keyboard Brightness Down'),
-    Key('PowerOff', 'Power Off'),
-    Key('WakeUp', 'Wake Up'),
-    Key('Eject'),
-    Key('ScreenSaver', 'Screensaver'),
-    Key('WWW'),
-    Key('Memo', 'Memo'),
-    Key('LightBulb'),
-    Key('Shop'),
-    Key('History'),
-    Key('AddFavorite', 'Add Favorite'),
-    Key('HotLinks', 'Hot Links'),
-    Key('BrightnessAdjust', 'Adjust Brightness'),
-    Key('Finance'),
-    Key('Community'),
-    Key('AudioRewind', 'Media Rewind'),
-    Key('BackForward', 'Back Forward'),
-    Key('ApplicationLeft', 'Application Left'),
-    Key('ApplicationRight', 'Application Right'),
-    Key('Book'),
-    Key('CD'),
-    Key('Calculator'),
-    Key('ToDoList', 'To Do List'),
-    Key('ClearGrab', 'Clear Grab'),
-    Key('Close'),
-    Key('Copy'),
-    Key('Cut'),
-    Key('Display'),  # Output switch key
-    Key('DOS'),
-    Key('Documents'),
-    Key('Excel', 'Spreadsheet'),
-    Key('Explorer', 'Browser'),
-    Key('Game'),
-    Key('Go'),
-    Key('iTouch'),
-    Key('LogOff', 'Logoff'),
-    Key('Market'),
-    Key('Meeting'),
-    Key('MenuKB', 'Keyboard Menu'),
-    Key('MenuPB', 'Menu PB'),
-    Key('MySites', 'My Sites'),
-    Key('News'),
-    Key('OfficeHome', 'Home Office'),
-    Key('Option'),
-    Key('Paste'),
-    Key('Phone'),
-    Key('Calendar'),
-    Key('Reply'),
-    Key('Reload'),
-    Key('RotateWindows', 'Rotate Windows'),
-    Key('RotationPB', 'Rotation PB'),
-    Key('RotationKB', 'Rotation KB'),
-    Key('Save'),
-    Key('Send'),
-    Key('Spell', 'Spellchecker'),
-    Key('SplitScreen', 'Split Screen'),
-    Key('Support'),
-    Key('TaskPane', 'Task Panel'),
-    Key('Terminal'),
-    Key('Tools'),
-    Key('Travel'),
-    Key('Video'),
-    Key('Word', 'Word Processor'),
-    Key('Xfer', 'XFer'),
-    Key('ZoomIn', 'Zoom In'),
-    Key('ZoomOut', 'Zoom Out'),
-    Key('Away'),
-    Key('Messenger'),
-    Key('WebCam'),
-    Key('MailForward', 'Mail Forward'),
-    Key('Pictures'),
-    Key('Music'),
-    Key('Battery'),
-    Key('Bluetooth'),
-    Key('WLAN', 'Wireless'),
-    Key('UWB', 'Ultra Wide Band'),
-    Key('AudioForward', 'Media Fast Forward'),
-    Key('AudioRepeat', 'Audio Repeat'),  # Toggle repeat mode
-    Key('AudioRandomPlay', 'Audio Random Play'),  # Toggle shuffle mode
-    Key('Subtitle'),
-    Key('AudioCycleTrack', 'Audio Cycle Track'),
-    Key('Time'),
-    Key('Hibernate'),
-    Key('View'),
-    Key('TopMenu', 'Top Menu'),
-    Key('PowerDown', 'Power Down'),
-    Key('Suspend'),
-    Key('ContrastAdjust', 'Contrast Adjust'),
+    Key('MonBrightnessUp', 'Monitor Brightness Up', qtest=False),
+    Key('MonBrightnessDown', 'Monitor Brightness Down', qtest=False),
+    Key('KeyboardLightOnOff', 'Keyboard Light On/Off', qtest=False),
+    Key('KeyboardBrightnessUp', 'Keyboard Brightness Up', qtest=False),
+    Key('KeyboardBrightnessDown', 'Keyboard Brightness Down', qtest=False),
+    Key('PowerOff', 'Power Off', qtest=False),
+    Key('WakeUp', 'Wake Up', qtest=False),
+    Key('Eject', qtest=False),
+    Key('ScreenSaver', 'Screensaver', qtest=False),
+    Key('WWW', qtest=False),
+    Key('Memo', 'Memo', qtest=False),
+    Key('LightBulb', qtest=False),
+    Key('Shop', qtest=False),
+    Key('History', qtest=False),
+    Key('AddFavorite', 'Add Favorite', qtest=False),
+    Key('HotLinks', 'Hot Links', qtest=False),
+    Key('BrightnessAdjust', 'Adjust Brightness', qtest=False),
+    Key('Finance', qtest=False),
+    Key('Community', qtest=False),
+    Key('AudioRewind', 'Media Rewind', qtest=False),
+    Key('BackForward', 'Back Forward', qtest=False),
+    Key('ApplicationLeft', 'Application Left', qtest=False),
+    Key('ApplicationRight', 'Application Right', qtest=False),
+    Key('Book', qtest=False),
+    Key('CD', qtest=False),
+    Key('Calculator', qtest=False),
+    Key('ToDoList', 'To Do List', qtest=False),
+    Key('ClearGrab', 'Clear Grab', qtest=False),
+    Key('Close', qtest=False),
+    Key('Copy', qtest=False),
+    Key('Cut', qtest=False),
+    Key('Display', qtest=False),  # Output switch key
+    Key('DOS', qtest=False),
+    Key('Documents', qtest=False),
+    Key('Excel', 'Spreadsheet', qtest=False),
+    Key('Explorer', 'Browser', qtest=False),
+    Key('Game', qtest=False),
+    Key('Go', qtest=False),
+    Key('iTouch', qtest=False),
+    Key('LogOff', 'Logoff', qtest=False),
+    Key('Market', qtest=False),
+    Key('Meeting', qtest=False),
+    Key('MenuKB', 'Keyboard Menu', qtest=False),
+    Key('MenuPB', 'Menu PB', qtest=False),
+    Key('MySites', 'My Sites', qtest=False),
+    Key('News', qtest=False),
+    Key('OfficeHome', 'Home Office', qtest=False),
+    Key('Option', qtest=False),
+    Key('Paste', qtest=False),
+    Key('Phone', qtest=False),
+    Key('Calendar', qtest=False),
+    Key('Reply', qtest=False),
+    Key('Reload', qtest=False),
+    Key('RotateWindows', 'Rotate Windows', qtest=False),
+    Key('RotationPB', 'Rotation PB', qtest=False),
+    Key('RotationKB', 'Rotation KB', qtest=False),
+    Key('Save', qtest=False),
+    Key('Send', qtest=False),
+    Key('Spell', 'Spellchecker', qtest=False),
+    Key('SplitScreen', 'Split Screen', qtest=False),
+    Key('Support', qtest=False),
+    Key('TaskPane', 'Task Panel', qtest=False),
+    Key('Terminal', qtest=False),
+    Key('Tools', qtest=False),
+    Key('Travel', qtest=False),
+    Key('Video', qtest=False),
+    Key('Word', 'Word Processor', qtest=False),
+    Key('Xfer', 'XFer', qtest=False),
+    Key('ZoomIn', 'Zoom In', qtest=False),
+    Key('ZoomOut', 'Zoom Out', qtest=False),
+    Key('Away', qtest=False),
+    Key('Messenger', qtest=False),
+    Key('WebCam', qtest=False),
+    Key('MailForward', 'Mail Forward', qtest=False),
+    Key('Pictures', qtest=False),
+    Key('Music', qtest=False),
+    Key('Battery', qtest=False),
+    Key('Bluetooth', qtest=False),
+    Key('WLAN', 'Wireless', qtest=False),
+    Key('UWB', 'Ultra Wide Band', qtest=False),
+    Key('AudioForward', 'Media Fast Forward', qtest=False),
+    Key('AudioRepeat', 'Audio Repeat', qtest=False),  # Toggle repeat mode
+    Key('AudioRandomPlay', 'Audio Random Play', qtest=False),  # Toggle shuffle mode
+    Key('Subtitle', qtest=False),
+    Key('AudioCycleTrack', 'Audio Cycle Track', qtest=False),
+    Key('Time', qtest=False),
+    Key('Hibernate', qtest=False),
+    Key('View', qtest=False),
+    Key('TopMenu', 'Top Menu', qtest=False),
+    Key('PowerDown', 'Power Down', qtest=False),
+    Key('Suspend', qtest=False),
+    Key('ContrastAdjust', 'Contrast Adjust', qtest=False),
 
-    Key('LaunchG', 'Launch (G)'),
-    Key('LaunchH', 'Launch (H)'),
+    Key('LaunchG', 'Launch (G)', qtest=False),
+    Key('LaunchH', 'Launch (H)', qtest=False),
 
-    Key('TouchpadToggle', 'Touchpad Toggle'),
-    Key('TouchpadOn', 'Touchpad On'),
-    Key('TouchpadOff', 'Touchpad Off'),
+    Key('TouchpadToggle', 'Touchpad Toggle', qtest=False),
+    Key('TouchpadOn', 'Touchpad On', qtest=False),
+    Key('TouchpadOff', 'Touchpad Off', qtest=False),
 
-    Key('MicMute', 'Microphone Mute'),
+    Key('MicMute', 'Microphone Mute', qtest=False),
 
-    Key('Red'),
-    Key('Green'),
-    Key('Yellow'),
-    Key('Blue'),
+    Key('Red', qtest=False),
+    Key('Green', qtest=False),
+    Key('Yellow', qtest=False),
+    Key('Blue', qtest=False),
 
-    Key('ChannelUp', 'Channel Up'),
-    Key('ChannelDown', 'Channel Down'),
+    Key('ChannelUp', 'Channel Up', qtest=False),
+    Key('ChannelDown', 'Channel Down', qtest=False),
 
-    Key('Guide'),
-    Key('Info'),
-    Key('Settings'),
+    Key('Guide', qtest=False),
+    Key('Info', qtest=False),
+    Key('Settings', qtest=False),
 
-    Key('MicVolumeUp', 'Microphone Volume Up'),
-    Key('MicVolumeDown', 'Microphone Volume Down'),
+    Key('MicVolumeUp', 'Microphone Volume Up', qtest=False),
+    Key('MicVolumeDown', 'Microphone Volume Down', qtest=False),
 
-    Key('New'),
-    Key('Open'),
-    Key('Find'),
-    Key('Undo'),
-    Key('Redo'),
+    Key('New', qtest=False),
+    Key('Open', qtest=False),
+    Key('Find', qtest=False),
+    Key('Undo', qtest=False),
+    Key('Redo', qtest=False),
 
-    Key('MediaLast', 'Media Last'),
+    Key('MediaLast', 'Media Last', qtest=False),
 
     ### Keypad navigation keys
-    Key('Select'),
-    Key('Yes'),
-    Key('No'),
+    Key('Select', qtest=False),
+    Key('Yes', qtest=False),
+    Key('No', qtest=False),
 
     ### Newer misc keys
-    Key('Cancel'),
-    Key('Printer'),
-    Key('Execute'),
-    Key('Sleep'),
-    Key('Play'),  # Not the same as Key_MediaPlay
-    Key('Zoom'),
-    # Key('Jisho'),  # IME: Dictionary key
-    # Key('Oyayubi_Left'),  # IME: Left Oyayubi key
-    # Key('Oyayubi_Right'),  # IME: Right Oyayubi key
-    Key('Exit'),
+    Key('Cancel', qtest=False),
+    Key('Printer', qtest=False),
+    Key('Execute', qtest=False),
+    Key('Sleep', qtest=False),
+    Key('Play', qtest=False),  # Not the same as Key_MediaPlay
+    Key('Zoom', qtest=False),
+    # Key('Jisho', qtest=False),  # IME: Dictionary key
+    # Key('Oyayubi_Left', qtest=False),  # IME: Left Oyayubi key
+    # Key('Oyayubi_Right', qtest=False),  # IME: Right Oyayubi key
+    Key('Exit', qtest=False),
 
     # Device keys
-    Key('Context1'),
-    Key('Context2'),
-    Key('Context3'),
-    Key('Context4'),
-    Key('Call'),  # set absolute state to in a call (do not toggle state)
-    Key('Hangup'),  # set absolute state to hang up (do not toggle state)
-    Key('Flip'),
-    Key('ToggleCallHangup', 'Toggle Call/Hangup'),  # a toggle key for answering, or hanging up, based on current call state
-    Key('VoiceDial', 'Voice Dial'),
-    Key('LastNumberRedial', 'Last Number Redial'),
+    Key('Context1', qtest=False),
+    Key('Context2', qtest=False),
+    Key('Context3', qtest=False),
+    Key('Context4', qtest=False),
+    Key('Call', qtest=False),  # set absolute state to in a call (do not toggle state)
+    Key('Hangup', qtest=False),  # set absolute state to hang up (do not toggle state)
+    Key('Flip', qtest=False),
+    Key('ToggleCallHangup', 'Toggle Call/Hangup', qtest=False),  # a toggle key for answering, or hanging up, based on current call state
+    Key('VoiceDial', 'Voice Dial', qtest=False),
+    Key('LastNumberRedial', 'Last Number Redial', qtest=False),
 
-    Key('Camera', 'Camera Shutter'),
-    Key('CameraFocus', 'Camera Focus'),
+    Key('Camera', 'Camera Shutter', qtest=False),
+    Key('CameraFocus', 'Camera Focus', qtest=False),
 
-    Key('unknown', 'Unknown'),
+    Key('unknown', 'Unknown', qtest=False),
 ]
