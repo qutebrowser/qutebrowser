@@ -29,8 +29,9 @@ def check_not_focused(quteproc):
     """Make sure no element is currently focused."""
     quteproc.send_cmd(
         ':jseval if (document.activeElement == document.body)'
-        '            console.log("no focused element found");',
-        escape=False)
+        '            console.log("no focused element found");'
+        '        else'
+        '            console.log(document.activeElement);')
     quteproc.wait_for_js('no focused element found')
 
 
@@ -39,6 +40,7 @@ def check_focused(quteproc):
     """Make sure an element is currently focused."""
     quteproc.send_cmd(
         ':jseval if (document.activeElement != document.body)'
-        '            console.log("focused element found");',
-        escape=False)
+        '            console.log("focused element found");'
+        '        else'
+        '            console.log(document.activeElement);')
     quteproc.wait_for_js('focused element found')
