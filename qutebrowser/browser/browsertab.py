@@ -150,15 +150,15 @@ class AbstractAction:
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
 
-    def show_source(self, pygment=False):
+    def show_source(self, pygments=False):
         """Show the source of the current page in a new tab."""
         raise NotImplementedError
 
-    def _show_source_pygment(self):
+    def _show_source_pygments(self):
 
         def show_source_cb(source):
-            """show source as soon as it's ready."""
-            # workaround for https://github.com/pycqa/pylint/issues/491
+            """Show source as soon as it's ready."""
+            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
             # pylint: disable=no-member
             lexer = pygments.lexers.HtmlLexer()
             formatter = pygments.formatters.HtmlFormatter(
