@@ -33,14 +33,6 @@ def is_printable(key):
     return key <= 0xff
 
 
-def is_modifier_key(key):
-    # FIXME docs
-    return key in (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
-                   Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R,
-                   Qt.Key_Hyper_L, Qt.Key_Hyper_R, Qt.Key_Direction_L,
-                   Qt.Key_Direction_R)
-
-
 def _key_to_string(key):
     """Convert a Qt::Key member to a meaningful name.
 
@@ -203,10 +195,18 @@ class KeyInfo:
             A name of the key (combination) as a string.
         """
         key_string = _key_to_string(self.key)
+        modifier_map = {
+            Qt.Key_Shift: Qt.ShiftModifier,
+            Qt.Key_Control: Qt.ControlModifier,
+            Qt.Key_Alt: Qt.AltModifier,
+            Qt.Key_Meta: Qt.MetaModifier,
+            Qt.Key_Mode_switch: Qt.GroupSwitchModifier,
+        }
+        modifiers = int(self.modifiers)
 
-        if is_modifier_key(self.key):
+        if self.key in modifier_map:
             # Don't return e.g. <Shift+Shift>
-            return '<{}>'.format(key_string)
+            modifiers &= ~modifier_map[self.key]
         elif is_printable(self.key):
             # "normal" binding
             # FIXME Add a test to make sure Tab doesn't become TAB
@@ -220,7 +220,7 @@ class KeyInfo:
                 key_string = key_string.lower()
 
         # "special" binding
-        modifier_string = QKeySequence(self.modifiers).toString()
+        modifier_string = QKeySequence(modifiers).toString()
         return '<{}{}>'.format(modifier_string, key_string)
 
     def text(self):

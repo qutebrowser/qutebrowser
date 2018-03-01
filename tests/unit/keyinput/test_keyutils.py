@@ -115,12 +115,6 @@ class TestKeyEventToString:
                                     modifiers=Qt.ControlModifier)
         assert str(keyutils.KeyInfo.from_event(evt)) == '<Control>'
 
-    def test_only_hyper_l(self, fake_keyevent_factory):
-        """Test keyeevent when only Hyper_L is pressed."""
-        evt = fake_keyevent_factory(key=Qt.Key_Hyper_L,
-                                    modifiers=Qt.MetaModifier)
-        assert str(keyutils.KeyInfo.from_event(evt)) == '<Hyper L>'
-
     def test_only_key(self, fake_keyevent_factory):
         """Test with a simple key pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_A)
@@ -140,6 +134,18 @@ class TestKeyEventToString:
         s = str(keyutils.KeyInfo.from_event(evt))
         assert s == '<Meta+Ctrl+Alt+Shift+a>'
 
+    def test_modifier_key(self, fake_keyevent_factory):
+        evt = fake_keyevent_factory(key=Qt.Key_Shift,
+                                    modifiers=Qt.ShiftModifier)
+        s = str(keyutils.KeyInfo.from_event(evt))
+        assert s == '<Shift>'
+
+    def test_modifier_key_with_modifiers(self, fake_keyevent_factory):
+        evt = fake_keyevent_factory(key=Qt.Key_Shift,
+                                    modifiers=(Qt.ShiftModifier |
+                                               Qt.ControlModifier))
+        s = str(keyutils.KeyInfo.from_event(evt))
+        assert s == '<Ctrl+Shift>'
 
 @pytest.mark.parametrize('keystr, expected', [
     ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
@@ -184,11 +190,3 @@ def test_normalize_keystr(orig, normalized):
 ])
 def test_is_printable(key, printable):
     assert keyutils.is_printable(key) == printable
-
-
-@pytest.mark.parametrize('key, ismodifier', [
-    (Qt.Key_Control, True),
-    (Qt.Key_X, False)
-])
-def test_is_modifier_key(key, ismodifier):
-    assert keyutils.is_modifier_key(key) == ismodifier
