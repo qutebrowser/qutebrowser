@@ -23,10 +23,6 @@ import re
 import functools
 import xml.etree.ElementTree
 
-import pygments
-import pygments.lexers
-import pygments.formatters
-
 import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
@@ -55,8 +51,8 @@ class WebKitAction(browsertab.AbstractAction):
         """Save the current page."""
         raise browsertab.UnsupportedOperationError
 
-    def show_source(self, pygment):
-        self._show_source_pygment()
+    def show_source(self, pygments=False):
+        self._show_source_pygments()
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
