@@ -203,54 +203,26 @@ class KeyInfo:
             A name of the key (combination) as a string or
             an empty string if only modifiers are pressed.
         """
-        if utils.is_mac:
-            # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the
-            # user can use it in the config as expected. See:
-            # https://github.com/qutebrowser/qutebrowser/issues/110
-            # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
-            modmask2str = collections.OrderedDict([
-                (Qt.MetaModifier, 'Ctrl'),
-                (Qt.AltModifier, 'Alt'),
-                (Qt.ControlModifier, 'Meta'),
-                (Qt.ShiftModifier, 'Shift'),
-            ])
-        else:
-            modmask2str = collections.OrderedDict([
-                (Qt.ControlModifier, 'Ctrl'),
-                (Qt.AltModifier, 'Alt'),
-                (Qt.MetaModifier, 'Meta'),
-                (Qt.ShiftModifier, 'Shift'),
-            ])
-
         if is_modifier_key(self.key):
             return ''
-
-        parts = []
-
-        for (mask, s) in modmask2str.items():
-            if self.modifiers & mask and s not in parts:
-                parts.append(s)
 
         key_string = _key_to_string(self.key)
 
         if is_printable(self.key):
-            # FIXME Add a test to make sure Tab doesn;t become TAB
+            # "normal" binding
+            # FIXME Add a test to make sure Tab doesn't become TAB
             assert len(key_string) == 1 or self.key == Qt.Key_Space, key_string
             if self.modifiers == Qt.ShiftModifier:
-                parts = []
-                key_string = key_string.upper()
+                return key_string.upper()
+            elif self.modifiers == Qt.NoModifier:
+                return key_string.lower()
             else:
+                # Use special binding syntax, but <Ctrl-a> instead of <Ctrl-A>
                 key_string = key_string.lower()
 
-        parts.append(key_string)
-        part_string = '+'.join(parts)
-
-        if len(part_string) > 1:
-            # "special" binding
-            return '<{}>'.format(part_string)
-        else:
-            # "normal" binding
-            return part_string
+        # "special" binding
+        modifier_string = QKeySequence(self.modifiers).toString()
+        return '<{}{}>'.format(modifier_string, key_string)
 
     def text(self):
         """Get the text which would be displayed when pressing this key."""

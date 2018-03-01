@@ -138,13 +138,7 @@ class TestKeyEventToString:
             key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
                                      Qt.MetaModifier | Qt.ShiftModifier))
         s = str(keyutils.KeyInfo.from_event(evt))
-        assert s == '<Ctrl+Alt+Meta+Shift+a>'
-
-    @pytest.mark.fake_os('mac')
-    def test_mac(self, fake_keyevent_factory):
-        """Test with a simulated mac."""
-        evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        assert str(keyutils.KeyInfo.from_event(evt)) == '<Meta+a>'
+        assert s == '<Meta+Ctrl+Alt+Shift+a>'
 
 
 @pytest.mark.parametrize('keystr, expected', [
