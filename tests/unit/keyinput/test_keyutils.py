@@ -50,6 +50,10 @@ class KeyTestWidget(QWidget):
 
     got_text = pyqtSignal()
 
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.text = None
+
     def keyPressEvent(self, e):
         self.text = e.text()
         self.got_text.emit()
