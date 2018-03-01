@@ -128,10 +128,6 @@ class BaseKeyParser(QObject):
         txt = str(keyutils.KeyInfo.from_event(e))
         self._debug_log("Got key: 0x{:x} / text: '{}'".format(key, txt))
 
-        if keyutils.is_modifier_key(key):
-            self._debug_log("Ignoring, only modifier")
-            return QKeySequence.NoMatch
-
         if (txt.isdigit() and self._supports_count and not
                 (not self._count and txt == '0')):
             assert len(txt) == 1, txt

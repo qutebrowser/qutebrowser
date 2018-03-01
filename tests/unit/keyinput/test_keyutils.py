@@ -113,13 +113,13 @@ class TestKeyEventToString:
         """Test keyeevent when only control is pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_Control,
                                     modifiers=Qt.ControlModifier)
-        assert not str(keyutils.KeyInfo.from_event(evt))
+        assert str(keyutils.KeyInfo.from_event(evt)) == '<Control>'
 
     def test_only_hyper_l(self, fake_keyevent_factory):
         """Test keyeevent when only Hyper_L is pressed."""
         evt = fake_keyevent_factory(key=Qt.Key_Hyper_L,
                                     modifiers=Qt.MetaModifier)
-        assert not str(keyutils.KeyInfo.from_event(evt))
+        assert str(keyutils.KeyInfo.from_event(evt)) == '<Hyper L>'
 
     def test_only_key(self, fake_keyevent_factory):
         """Test with a simple key pressed."""

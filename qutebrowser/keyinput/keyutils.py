@@ -200,15 +200,14 @@ class KeyInfo:
         """Convert this KeyInfo to a meaningful name.
 
         Return:
-            A name of the key (combination) as a string or
-            an empty string if only modifiers are pressed.
+            A name of the key (combination) as a string.
         """
-        if is_modifier_key(self.key):
-            return ''
-
         key_string = _key_to_string(self.key)
 
-        if is_printable(self.key):
+        if is_modifier_key(self.key):
+            # Don't return e.g. <Shift+Shift>
+            return '<{}>'.format(key_string)
+        elif is_printable(self.key):
             # "normal" binding
             # FIXME Add a test to make sure Tab doesn't become TAB
             assert len(key_string) == 1 or self.key == Qt.Key_Space, key_string
