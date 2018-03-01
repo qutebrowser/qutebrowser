@@ -254,8 +254,17 @@ class KeyInfo:
 
     def text(self):
         """Get the text which would be displayed when pressing this key."""
-        if self.key == Qt.Key_Space:
-            return ' '
+        control = {
+            Qt.Key_Space: ' ',
+            Qt.Key_Tab: '\t',
+            Qt.Key_Backspace: '\b',
+            Qt.Key_Return: '\r',
+            Qt.Key_Enter: '\r',
+            Qt.Key_Escape: '\x1b',
+        }
+
+        if self.key in control:
+            return control[self.key]
         elif not is_printable(self.key):
             return ''
 
