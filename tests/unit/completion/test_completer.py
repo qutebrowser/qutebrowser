@@ -200,7 +200,7 @@ def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
     _set_cmd_prompt(status_command_stub, txt)
     completer_obj.schedule_completion_update()
     if kind is None:
-        assert completion_widget_stub.set_pattern.call_count == 0
+        assert not completion_widget_stub.set_pattern.called
     else:
         assert completion_widget_stub.set_model.call_count == 1
         model = completion_widget_stub.set_model.call_args[0][0]
@@ -323,11 +323,11 @@ def test_min_chars(status_command_stub, completer_obj, completion_widget_stub,
     # Test #3635, where min_chars could crash the first update
     _set_cmd_prompt(status_command_stub, ':set c|')
     completer_obj.schedule_completion_update()
-    assert completion_widget_stub.set_model.call_count == 0
+    assert not completion_widget_stub.set_model.called
 
     _set_cmd_prompt(status_command_stub, ':set co|')
     completer_obj.schedule_completion_update()
-    assert completion_widget_stub.set_model.call_count == 0
+    assert not completion_widget_stub.set_model.called
 
     _set_cmd_prompt(status_command_stub, ':set com|')
     completer_obj.schedule_completion_update()
