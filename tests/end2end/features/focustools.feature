@@ -12,8 +12,17 @@ Feature: Using focustools
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
-        # The actual check is already done above
         Then no element should be focused
+
+    Scenario: Refocus cleared element on mode enter
+        When I open data/hints/input.html
+        And I set input.blur_on_mode_leave to true
+        And I set input.focus_on_mode_enter to true
+        And I hint with args "inputs" and follow a
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :leave-mode
+        And I run :enter-mode insert
+        Then an element should be focused
 
     Scenario: Don't clear focus on mode leave
         When I open data/hints/input.html
@@ -21,8 +30,8 @@ Feature: Using focustools
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
-        # The actual check is already done above
         Then an element should be focused
+
 
     Scenario: Clear autofocusable elements on page load
         When I set input.blur_on_load.enabled to true

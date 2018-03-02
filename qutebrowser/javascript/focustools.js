@@ -26,6 +26,7 @@
 window._qutebrowser.focustools = (function() {
     const funcs = {};
     let lastFocusedElement = null;
+    let handlerInstalled = false;
 
     /*
      * Basic function for blurring the page.
@@ -41,7 +42,6 @@ window._qutebrowser.focustools = (function() {
      */
     funcs.load = (blur_on_load, timeout) => {
         if (blur_on_load) {
-
             // add a DOM event listener if we haven't loaded that yet
             if (document.readyState === "complete") {
                 funcs.blur();
@@ -60,12 +60,12 @@ window._qutebrowser.focustools = (function() {
     };
 
     funcs.installFocusHandler = () => {
-        if (document && document.body) {
+        if (document && document.body && !handlerInstalled) {
             document.body.addEventListener("blur", (event) => {
                 lastFocusedElement = event.srcElement;
             }, true);
+            handlerInstalled = true;
         }
-
     };
 
     funcs.focusLastElement = () => {
@@ -73,8 +73,8 @@ window._qutebrowser.focustools = (function() {
             // No element focused currently
             && document.activeElement == document.body
             && lastFocusedElement
-            // Check if the element is still in the DOM
-            && !document.body.contains(lastFocusedElement)) {
+            // Check if the element is still in the DO
+            && document.body.contains(lastFocusedElement)) {
             lastFocusedElement.focus();
         }
     }

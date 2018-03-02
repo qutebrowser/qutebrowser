@@ -664,7 +664,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             return
         tab = self.currentWidget()
         if tab:
-            log.modes.debug("Entering insert mode, focusing"
+            log.modes.debug("Entering insert mode, focusing "
                             "last focused element.")
             code = javascript.assemble('focustools', 'focusLastElement')
             tab.run_js_async(code)
