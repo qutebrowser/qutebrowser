@@ -66,7 +66,7 @@ def _apply_platform_markers(config, item):
          "Broken with QtWebEngine on Windows"),
         ('issue3572',
          (qtutils.version_check('5.10', compiled=False, exact=True) or
-          qtutils.version_check('5.10.1', compiled=False, exact=True) and
+          qtutils.version_check('5.10.1', compiled=False, exact=True)) and
          config.webengine and 'TRAVIS' in os.environ,
          "Broken with QtWebEngine with Qt 5.10 on Travis"),
         ('qtbug60673',
