@@ -1046,6 +1046,8 @@ input.blur_on_load.delay:
     Delay (in milliseconds) after load finished before sending a second blur
     event.
 
+    Does not send a second blur if the value is negative.
+
     Only useful if input.blur_on_load.enabled is true.
 
 input.blur_on_mode_leave:
@@ -1054,11 +1056,15 @@ input.blur_on_mode_leave:
   desc: >-
     Clear focus on page when leaving insert mode.
 
+    See `input.focus_on_mode_enter` for the opposite.
+
 input.focus_on_mode_enter:
   default: true
   type: Bool
   desc: >-
     Refocus last focused element when leaving insert mode.
+
+    See `input.blur_on_mode_leave` for the opposite.
 
 ## keyhint
 

@@ -69,15 +69,15 @@ window._qutebrowser.focustools = (function() {
     };
 
     funcs.focusLastElement = () => {
-        if (document && document.body
+        if (document && document.body &&
             // No element focused currently
-            && document.activeElement == document.body
-            && lastFocusedElement
+            document.activeElement === document.body &&
+            lastFocusedElement &&
             // Check if the element is still in the DO
-            && document.body.contains(lastFocusedElement)) {
+            document.body.contains(lastFocusedElement)) {
             lastFocusedElement.focus();
         }
-    }
+    };
 
     funcs.installFocusHandler();
 
