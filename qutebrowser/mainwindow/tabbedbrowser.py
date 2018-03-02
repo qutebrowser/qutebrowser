@@ -660,7 +660,7 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     def _handle_focus_on_mode_enter(self, mode):
         if (not config.val.input.focus_on_mode_enter or
-            mode != usertypes.KeyMode.insert):
+                mode != usertypes.KeyMode.insert):
             return
         tab = self.currentWidget()
         if tab:

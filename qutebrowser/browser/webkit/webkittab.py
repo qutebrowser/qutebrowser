@@ -767,7 +767,6 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_contents_size_changed(self, size):
         self.contents_size_changed.emit(QSizeF(size))
 
-
     @pyqtSlot()
     def init_focustools(self):
         """Initialize focustools.js in the main frame."""
