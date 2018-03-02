@@ -153,7 +153,7 @@ class WebKitSearch(browsertab.AbstractSearch):
                               " for {}".format(text))
             return
 
-        # Clear old search results, this is done automatically on other backends
+        # Clear old search results, this is done automatically on QtWebEngine.
         self.clear()
 
         self.text = text
