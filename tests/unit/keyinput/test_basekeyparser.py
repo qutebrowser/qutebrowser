@@ -241,6 +241,17 @@ class TestKeyChain:
         handle_text((Qt.Key_B, 'b'))
         assert not keyparser.execute.called
 
+    def test_binding_with_shift(self, keyparser, fake_keyevent_factory):
+        """Simulate a binding which involves shift."""
+        keyparser.handle(
+            fake_keyevent_factory(Qt.Key_Y, text='y'))
+        keyparser.handle(
+            fake_keyevent_factory(Qt.Key_Shift, Qt.ShiftModifier, text=''))
+        keyparser.handle(
+            fake_keyevent_factory(Qt.Key_Y, Qt.ShiftModifier, text='Y'))
+
+        keyparser.execute.assert_called_once_with('yank -s', None)
+
 
 class TestCount:
 

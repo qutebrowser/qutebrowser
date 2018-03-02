@@ -200,3 +200,12 @@ def test_normalize_keystr(orig, normalized):
 ])
 def test_is_printable(key, printable):
     assert keyutils.is_printable(key) == printable
+
+
+@pytest.mark.parametrize('key, ismodifier', [
+    (Qt.Key_Control, True),
+    (Qt.Key_X, False),
+    (Qt.Key_Super_L, False),  # Modifier but not in _MODIFIER_MAP
+])
+def test_is_modifier_key(key, ismodifier):
+    assert keyutils.is_modifier_key(key) == ismodifier

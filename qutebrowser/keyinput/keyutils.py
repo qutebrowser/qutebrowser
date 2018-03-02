@@ -29,8 +29,27 @@ from PyQt5.QtGui import QKeySequence, QKeyEvent
 from qutebrowser.utils import utils
 
 
+# Map Qt::Key values to their Qt::KeyboardModifier value.
+_MODIFIER_MAP = {
+    Qt.Key_Shift: Qt.ShiftModifier,
+    Qt.Key_Control: Qt.ControlModifier,
+    Qt.Key_Alt: Qt.AltModifier,
+    Qt.Key_Meta: Qt.MetaModifier,
+    Qt.Key_Mode_switch: Qt.GroupSwitchModifier,
+}
+
+
 def is_printable(key):
     return key <= 0xff
+
+
+def is_modifier_key(key):
+    """Test whether the given key is a modifier.
+
+    This only considers keys which are part of Qt::KeyboardModifiers, i.e. which
+    would interrupt a key chain like "yY" when handled.
+    """
+    return key in _MODIFIER_MAP
 
 
 def _key_to_string(key):
@@ -195,18 +214,11 @@ class KeyInfo:
             A name of the key (combination) as a string.
         """
         key_string = _key_to_string(self.key)
-        modifier_map = {
-            Qt.Key_Shift: Qt.ShiftModifier,
-            Qt.Key_Control: Qt.ControlModifier,
-            Qt.Key_Alt: Qt.AltModifier,
-            Qt.Key_Meta: Qt.MetaModifier,
-            Qt.Key_Mode_switch: Qt.GroupSwitchModifier,
-        }
         modifiers = int(self.modifiers)
 
-        if self.key in modifier_map:
+        if self.key in _MODIFIER_MAP:
             # Don't return e.g. <Shift+Shift>
-            modifiers &= ~modifier_map[self.key]
+            modifiers &= ~_MODIFIER_MAP[self.key]
         elif is_printable(self.key):
             # "normal" binding
             # FIXME Add a test to make sure Tab doesn't become TAB
