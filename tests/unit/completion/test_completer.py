@@ -313,3 +313,22 @@ def test_quickcomplete_flicker(status_command_stub, completer_obj,
     completer_obj.on_selection_changed('http://example.com')
     completer_obj.schedule_completion_update()
     assert not completion_widget_stub.set_model.called
+
+
+def test_min_chars(status_command_stub, completer_obj, completion_widget_stub,
+                   config_stub, key_config_stub):
+    """Test that an update is delayed until min_chars characters are input."""
+    config_stub.val.completion.min_chars = 3
+
+    # Test #3635, where min_chars could crash the first update
+    _set_cmd_prompt(status_command_stub, ':set c|')
+    completer_obj.schedule_completion_update()
+    assert completion_widget_stub.set_model.call_count == 0
+
+    _set_cmd_prompt(status_command_stub, ':set co|')
+    completer_obj.schedule_completion_update()
+    assert completion_widget_stub.set_model.call_count == 0
+
+    _set_cmd_prompt(status_command_stub, ':set com|')
+    completer_obj.schedule_completion_update()
+    assert completion_widget_stub.set_model.call_count == 1
