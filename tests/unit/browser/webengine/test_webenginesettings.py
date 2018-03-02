@@ -26,6 +26,7 @@ pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
 from qutebrowser.browser.webengine import webenginesettings
 from qutebrowser.utils import usertypes, qtutils
+from qutebrowser.misc import objects
 
 
 @pytest.fixture(autouse=True)
@@ -48,6 +49,7 @@ def test_big_cache_size(config_stub):
 @pytest.mark.skipif(
     not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: None)
     config_stub.val.spellcheck.languages = ['af-ZA']
@@ -64,6 +66,7 @@ def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
 @pytest.mark.skipif(
     not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_existing_dict(config_stub, monkeypatch):
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: 'en-US-8-0')
     config_stub.val.spellcheck.languages = ['en-US']
