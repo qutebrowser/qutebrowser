@@ -153,6 +153,9 @@ class WebKitSearch(browsertab.AbstractSearch):
                               " for {}".format(text))
             return
 
+        # Clear old search results, this is done automatically on other backends
+        self.clear()
+
         self.text = text
         self.search_displayed = True
         self._flags = QWebPage.FindWrapsAroundDocument
