@@ -186,14 +186,17 @@ def test_normalize_keystr(orig, normalized):
 
 @pytest.mark.parametrize('key, printable', [
     (Qt.Key_Control, False),
-    (Qt.Key_Space, False),
     (Qt.Key_Escape, False),
     (Qt.Key_Tab, False),
+    (Qt.Key_Backtab, False),
     (Qt.Key_Backspace, False),
     (Qt.Key_Return, False),
     (Qt.Key_Enter, False),
+    (Qt.Key_X | Qt.ControlModifier, False),  # Wrong usage
+
+    (Qt.Key_Space, True),
     (Qt.Key_ydiaeresis, True),
-    (Qt.Key_X, True)
+    (Qt.Key_X, True),
 ])
 def test_is_printable(key, printable):
     assert keyutils.is_printable(key) == printable
