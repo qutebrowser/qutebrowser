@@ -276,7 +276,8 @@ class BookmarkManager(UrlMarkManager):
             errstr = urlutils.get_errstring(url)
             raise InvalidUrlError(errstr)
 
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded |
+                              QUrl.StripTrailingSlash)
 
         if urlstr in self.marks:
             if toggle:
