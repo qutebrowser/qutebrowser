@@ -21,16 +21,13 @@
 import os
 import os.path
 import zipfile
-import shutil
 import logging
-import contextlib
 
 import pytest
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from PyQt5.QtCore import QUrl
 
-from qutebrowser.browser import adblock, downloads
-from qutebrowser.utils import objreg
+from qutebrowser.browser import adblock
 
 pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
@@ -68,59 +65,6 @@ class BaseDirStub:
 def basedir(fake_args):
     """Register a Fake basedir."""
     fake_args.basedir = None
-
-
-class FakeDownloadItem(QObject):
-
-    """Mock browser.downloads.DownloadItem."""
-
-    finished = pyqtSignal()
-
-    def __init__(self, fileobj, name, parent=None):
-        super().__init__(parent)
-        self.fileobj = fileobj
-        self.name = name
-        self.successful = True
-
-
-class FakeDownloadManager:
-
-    """Mock browser.downloads.DownloadManager."""
-
-    def __init__(self, tmpdir):
-        self._tmpdir = tmpdir
-
-    @contextlib.contextmanager
-    def _open_fileobj(self, target):
-        """Ensure a DownloadTarget's fileobj attribute is available."""
-        if isinstance(target, downloads.FileDownloadTarget):
-            target.fileobj = open(target.filename, 'wb')
-            try:
-                yield target.fileobj
-            finally:
-                target.fileobj.close()
-        else:
-            yield target.fileobj
-
-    def get(self, url, target, **kwargs):
-        """Return a FakeDownloadItem instance with a fileobj.
-
-        The content is copied from the file the given url links to.
-        """
-        with self._open_fileobj(target):
-            download_item = FakeDownloadItem(target.fileobj, name=url.path())
-            with (self._tmpdir / url.path()).open('rb') as fake_url_file:
-                shutil.copyfileobj(fake_url_file, download_item.fileobj)
-        return download_item
-
-
-@pytest.fixture
-def download_stub(win_registry, tmpdir):
-    """Register a FakeDownloadManager."""
-    stub = FakeDownloadManager(tmpdir)
-    objreg.register('qtnetwork-download-manager', stub)
-    yield
-    objreg.delete('qtnetwork-download-manager')
 
 
 def create_zipfile(directory, files, zipname='test'):

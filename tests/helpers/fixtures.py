@@ -523,3 +523,12 @@ class ModelValidator:
 @pytest.fixture
 def model_validator(qtmodeltester):
     return ModelValidator(qtmodeltester)
+
+
+@pytest.fixture
+def download_stub(win_registry, tmpdir, stubs):
+    """Register a FakeDownloadManager."""
+    stub = stubs.FakeDownloadManager(tmpdir)
+    objreg.register('qtnetwork-download-manager', stub)
+    yield
+    objreg.delete('qtnetwork-download-manager')

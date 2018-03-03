@@ -22,6 +22,8 @@
 """Fake objects/stubs."""
 
 from unittest import mock
+import contextlib
+import shutil
 
 import attr
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl
@@ -29,7 +31,7 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
-from qutebrowser.browser import browsertab
+from qutebrowser.browser import browsertab, downloads
 from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import mainwindow
 
@@ -558,3 +560,47 @@ class HTTPPostStub(QObject):
     def post(self, url, data=None):
         self.url = url
         self.data = data
+
+
+class FakeDownloadItem(QObject):
+
+    """Mock browser.downloads.DownloadItem."""
+
+    finished = pyqtSignal()
+
+    def __init__(self, fileobj, name, parent=None):
+        super().__init__(parent)
+        self.fileobj = fileobj
+        self.name = name
+        self.successful = True
+
+
+class FakeDownloadManager:
+
+    """Mock browser.downloads.DownloadManager."""
+
+    def __init__(self, tmpdir):
+        self._tmpdir = tmpdir
+
+    @contextlib.contextmanager
+    def _open_fileobj(self, target):
+        """Ensure a DownloadTarget's fileobj attribute is available."""
+        if isinstance(target, downloads.FileDownloadTarget):
+            target.fileobj = open(target.filename, 'wb')
+            try:
+                yield target.fileobj
+            finally:
+                target.fileobj.close()
+        else:
+            yield target.fileobj
+
+    def get(self, url, target, **kwargs):
+        """Return a FakeDownloadItem instance with a fileobj.
+
+        The content is copied from the file the given url links to.
+        """
+        with self._open_fileobj(target):
+            download_item = FakeDownloadItem(target.fileobj, name=url.path())
+            with (self._tmpdir / url.path()).open('rb') as fake_url_file:
+                shutil.copyfileobj(fake_url_file, download_item.fileobj)
+        return download_item
