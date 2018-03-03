@@ -122,6 +122,8 @@ class TestKeyToString:
     (Qt.Key_A, Qt.NoModifier, 'a'),
     (Qt.Key_A, Qt.ShiftModifier, 'A'),
 
+    (Qt.Key_Space, Qt.NoModifier, '<Space>'),
+    (Qt.Key_Space, Qt.ShiftModifier, '<Shift+Space>'),
     (Qt.Key_Tab, Qt.ShiftModifier, '<Shift+Tab>'),
     (Qt.Key_A, Qt.ControlModifier, '<Ctrl+a>'),
     (Qt.Key_A, Qt.ControlModifier | Qt.ShiftModifier, '<Ctrl+Shift+a>'),
@@ -180,9 +182,9 @@ def test_normalize_keystr(orig, normalized):
     (Qt.Key_Backspace, False),
     (Qt.Key_Return, False),
     (Qt.Key_Enter, False),
+    (Qt.Key_Space, False),
     (Qt.Key_X | Qt.ControlModifier, False),  # Wrong usage
 
-    (Qt.Key_Space, True),  # FIXME broken with upper/lower!
     (Qt.Key_ydiaeresis, True),
     (Qt.Key_X, True),
 ])

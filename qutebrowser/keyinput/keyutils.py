@@ -40,7 +40,7 @@ _MODIFIER_MAP = {
 
 
 def is_printable(key):
-    return key <= 0xff
+    return key <= 0xff and key != Qt.Key_Space
 
 
 def is_modifier_key(key):
@@ -221,7 +221,7 @@ class KeyInfo:
             modifiers &= ~_MODIFIER_MAP[self.key]
         elif is_printable(self.key):
             # "normal" binding
-            assert len(key_string) == 1 or self.key == Qt.Key_Space, key_string
+            assert len(key_string) == 1, key_string
             if self.modifiers == Qt.ShiftModifier:
                 return key_string.upper()
             elif self.modifiers == Qt.NoModifier:
