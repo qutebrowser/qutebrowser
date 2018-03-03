@@ -41,7 +41,7 @@ class Key:
     """
 
     attribute = attr.ib()
-    name = attr.ib(None)  # default: name == attribute
+    name = attr.ib(None)
     text = attr.ib('')
     uppertext = attr.ib('')
     member = attr.ib(None)
@@ -49,6 +49,8 @@ class Key:
 
     def __attrs_post_init__(self):
         self.member = getattr(Qt, 'Key_' + self.attribute, None)
+        if self.name is None:
+            self.name = self.attribute
 
 
 # From enum Key in qt5/qtbase/src/corelib/global/qnamespace.h

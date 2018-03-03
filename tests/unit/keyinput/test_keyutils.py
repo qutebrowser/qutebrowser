@@ -28,6 +28,10 @@ from qutebrowser.keyinput import keyutils
 
 @pytest.fixture(params=key_data.KEYS, ids=lambda k: k.attribute)
 def qt_key(request):
+    """Get all existing keys from key_data.py.
+
+    Keys which don't exist with this Qt version result in skipped tests.
+    """
     key = request.param
     if key.member is None:
         pytest.skip("Did not find key {}".format(key.attribute))
@@ -37,10 +41,21 @@ def qt_key(request):
 @pytest.fixture(params=[key for key in key_data.KEYS if key.qtest],
                 ids=lambda k: k.attribute)
 def qtest_key(request):
+    """Get keys from key_data.py which can be used with QTest."""
     return request.param
 
 
-class KeyTestWidget(QWidget):
+def test_key_data():
+    """Make sure all possible keys are in key_data.KEYS."""
+    key_names = {name[len("Key_"):]
+                 for name, value in sorted(vars(Qt).items())
+                 if isinstance(value, Qt.Key)}
+    key_data_names = {key.attribute for key in sorted(key_data.KEYS)}
+    diff = key_names - key_data_names
+    assert not diff
+
+
+class KeyTesterWidget(QWidget):
 
     """Widget to get the text of QKeyPressEvents.
 
@@ -59,35 +74,42 @@ class KeyTestWidget(QWidget):
         self.got_text.emit()
 
 
-class TestKeyText:
+class TestKeyInfoText:
 
     @pytest.mark.parametrize('upper', [False, True])
-    def test_key_text(self, qt_key, upper):
+    def test_text(self, qt_key, upper):
+        """Test KeyInfo.text() with all possible keys.
+
+        See key_data.py for inputs and expected values.
+        """
         modifiers = Qt.ShiftModifier if upper else Qt.KeyboardModifiers()
         info = keyutils.KeyInfo(qt_key.member, modifiers=modifiers)
         expected = qt_key.uppertext if upper else qt_key.text
         assert info.text() == expected
 
     @pytest.fixture
-    def key_test(self, qtbot):
-        w = KeyTestWidget()
+    def key_tester(self, qtbot):
+        w = KeyTesterWidget()
         qtbot.add_widget(w)
         return w
 
-    def test_key_test_qtest(self, qtest_key, qtbot, key_test):
-        with qtbot.wait_signal(key_test.got_text):
-            qtbot.keyPress(key_test, qtest_key.member)
+    def test_text_qtest(self, qtest_key, qtbot, key_tester):
+        """Make sure KeyInfo.text() lines up with QTest::keyToAscii.
+
+        See key_data.py for inputs and expected values.
+        """
+        with qtbot.wait_signal(key_tester.got_text):
+            qtbot.keyPress(key_tester, qtest_key.member)
 
         info = keyutils.KeyInfo(qtest_key.member,
                                 modifiers=Qt.KeyboardModifiers())
-        assert info.text() == key_test.text.lower()
+        assert info.text() == key_tester.text.lower()
 
 
 class TestKeyToString:
 
     def test_to_string(self, qt_key):
-        name = qt_key.attribute if qt_key.name is None else qt_key.name
-        assert keyutils._key_to_string(qt_key.member) == name
+        assert keyutils._key_to_string(qt_key.member) == qt_key.name
 
     def test_missing(self, monkeypatch):
         monkeypatch.delattr(keyutils.Qt, 'Key_Blue')
@@ -95,57 +117,24 @@ class TestKeyToString:
         # want to know if the mapping still behaves properly.
         assert keyutils._key_to_string(Qt.Key_A) == 'A'
 
-    def test_all(self):
-        """Make sure all possible keys are in key_data.KEYS."""
-        key_names = {name[len("Key_"):]
-                     for name, value in sorted(vars(Qt).items())
-                     if isinstance(value, Qt.Key)}
-        key_data_names = {key.attribute for key in sorted(key_data.KEYS)}
-        diff = key_names - key_data_names
-        assert not diff
 
+@pytest.mark.parametrize('key, modifiers, expected', [
+    (Qt.Key_A, Qt.NoModifier, 'a'),
+    (Qt.Key_A, Qt.ShiftModifier, 'A'),
 
-class TestKeyEventToString:
+    (Qt.Key_Tab, Qt.ShiftModifier, '<Shift+Tab>'),
+    (Qt.Key_A, Qt.ControlModifier, '<Ctrl+a>'),
+    (Qt.Key_A, Qt.ControlModifier | Qt.ShiftModifier, '<Ctrl+Shift+a>'),
+    (Qt.Key_A,
+     Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier | Qt.ShiftModifier,
+     '<Meta+Ctrl+Alt+Shift+a>'),
 
-    """Test keyevent_to_string."""
+    (Qt.Key_Shift, Qt.ShiftModifier, '<Shift>'),
+    (Qt.Key_Shift, Qt.ShiftModifier | Qt.ControlModifier, '<Ctrl+Shift>'),
+])
+def test_key_info_str(key, modifiers, expected):
+    assert str(keyutils.KeyInfo(key, modifiers)) == expected
 
-    def test_only_control(self, fake_keyevent_factory):
-        """Test keyeevent when only control is pressed."""
-        evt = fake_keyevent_factory(key=Qt.Key_Control,
-                                    modifiers=Qt.ControlModifier)
-        assert str(keyutils.KeyInfo.from_event(evt)) == '<Control>'
-
-    def test_only_key(self, fake_keyevent_factory):
-        """Test with a simple key pressed."""
-        evt = fake_keyevent_factory(key=Qt.Key_A)
-        assert str(keyutils.KeyInfo.from_event(evt)) == 'a'
-
-    def test_key_and_modifier(self, fake_keyevent_factory):
-        """Test with key and modifier pressed."""
-        evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        expected = '<Meta+a>' if utils.is_mac else '<Ctrl+a>'
-        assert str(keyutils.KeyInfo.from_event(evt)) == expected
-
-    def test_key_and_modifiers(self, fake_keyevent_factory):
-        """Test with key and multiple modifiers pressed."""
-        evt = fake_keyevent_factory(
-            key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
-                                     Qt.MetaModifier | Qt.ShiftModifier))
-        s = str(keyutils.KeyInfo.from_event(evt))
-        assert s == '<Meta+Ctrl+Alt+Shift+a>'
-
-    def test_modifier_key(self, fake_keyevent_factory):
-        evt = fake_keyevent_factory(key=Qt.Key_Shift,
-                                    modifiers=Qt.ShiftModifier)
-        s = str(keyutils.KeyInfo.from_event(evt))
-        assert s == '<Shift>'
-
-    def test_modifier_key_with_modifiers(self, fake_keyevent_factory):
-        evt = fake_keyevent_factory(key=Qt.Key_Shift,
-                                    modifiers=(Qt.ShiftModifier |
-                                               Qt.ControlModifier))
-        s = str(keyutils.KeyInfo.from_event(evt))
-        assert s == '<Ctrl+Shift>'
 
 @pytest.mark.parametrize('keystr, expected', [
     ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
@@ -170,18 +159,17 @@ def test_parse(keystr, expected):
 
 
 @pytest.mark.parametrize('orig, normalized', [
-    ('<Control+x>', '<ctrl+x>'),
-    ('<Windows+x>', '<meta+x>'),
-    ('<Mod1+x>', '<alt+x>'),
-    ('<Mod4+x>', '<meta+x>'),
-    ('<Control-->', '<ctrl+->'),
-    ('<Windows++>', '<meta++>'),
-    ('<ctrl-x>', '<ctrl+x>'),
-    ('<control+x>', '<ctrl+x>')
+    ('<Control+x>', '<Ctrl+x>'),
+    ('<Windows+x>', '<Meta+x>'),
+    ('<Mod1+x>', '<Alt+x>'),
+    ('<Mod4+x>', '<Meta+x>'),
+    ('<Control-->', '<Ctrl+->'),
+    ('<Windows++>', '<Meta++>'),
+    ('<ctrl-x>', '<Ctrl+x>'),
+    ('<control+x>', '<Ctrl+x>')
 ])
 def test_normalize_keystr(orig, normalized):
-    expected = keyutils.KeySequence.parse(normalized)
-    assert keyutils.KeySequence.parse(orig) == expected
+    assert str(keyutils.KeySequence.parse(orig)) == normalized
 
 
 @pytest.mark.parametrize('key, printable', [
@@ -194,7 +182,7 @@ def test_normalize_keystr(orig, normalized):
     (Qt.Key_Enter, False),
     (Qt.Key_X | Qt.ControlModifier, False),  # Wrong usage
 
-    (Qt.Key_Space, True),
+    (Qt.Key_Space, True),  # FIXME broken with upper/lower!
     (Qt.Key_ydiaeresis, True),
     (Qt.Key_X, True),
 ])

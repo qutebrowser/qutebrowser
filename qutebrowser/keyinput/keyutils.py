@@ -221,7 +221,6 @@ class KeyInfo:
             modifiers &= ~_MODIFIER_MAP[self.key]
         elif is_printable(self.key):
             # "normal" binding
-            # FIXME Add a test to make sure Tab doesn't become TAB
             assert len(key_string) == 1 or self.key == Qt.Key_Space, key_string
             if self.modifiers == Qt.ShiftModifier:
                 return key_string.upper()
