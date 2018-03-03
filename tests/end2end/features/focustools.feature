@@ -43,10 +43,7 @@ Feature: Using focustools
         And I open data/autofocus.html
         Then an element should be focused
 
-    # Assume blur_on_load delay is 0
     Scenario: Clear delayed focused elements on page load
         When I set input.blur_on_load.enabled to true
         And I open data/autofocus_delayed.html
-        # Focus is cleared and page finishes loading at the same time
-        And I wait 0.5s
         Then no element should be focused

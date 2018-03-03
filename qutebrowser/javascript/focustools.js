@@ -43,18 +43,20 @@ window._qutebrowser.focustools = (function() {
     funcs.load = (blur_on_load, timeout) => {
         if (blur_on_load) {
             // add a DOM event listener if we haven't loaded that yet
-            if (document.readyState === "complete") {
+            if (document.readyState === "complete" ||
+                document.readyState === "interactive") {
                 funcs.blur();
             } else {
-                window.addEventListener("DOMContentLoaded", () => {
-                    funcs.blur();
-                });
+                window.addEventListener("DOMContentLoaded", funcs.blur);
             }
 
             if (timeout >= 0) {
-                window.addEventListener("load",
-                    () => setTimeout(
-                        () => funcs.blur(), timeout));
+                if (document.readyState === "complete") {
+                    setTimeout(funcs.blur, timeout);
+                } else {
+                    window.addEventListener("load",
+                        () => setTimeout(funcs.blur, timeout));
+                }
             }
         }
     };
@@ -73,7 +75,7 @@ window._qutebrowser.focustools = (function() {
             // No element focused currently
             document.activeElement === document.body &&
             lastFocusedElement &&
-            // Check if the element is still in the DO
+            // Check if the element is still in the DOM
             document.body.contains(lastFocusedElement)) {
             lastFocusedElement.focus();
         }
