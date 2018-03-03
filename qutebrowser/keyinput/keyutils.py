@@ -151,10 +151,14 @@ def _parse_keystring(keystr):
     special = False
     for c in keystr:
         if c == '>':
-            assert special
-            yield _normalize_keystr(key)
-            key = ''
-            special = False
+            if special:
+                yield _normalize_keystr(key)
+                key = ''
+                special = False
+            else:
+                yield '>'
+                for c in key:
+                    yield 'Shift+' + c if c.isupper() else c
         elif c == '<':
             special = True
         elif special:

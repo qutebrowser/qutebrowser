@@ -139,6 +139,31 @@ def test_key_info_str(key, modifiers, expected):
 
 
 @pytest.mark.parametrize('keystr, expected', [
+    ('foo', "Could not parse 'foo': error"),
+    (None, "Could not parse keystring: error"),
+])
+def test_key_parse_error(keystr, expected):
+    exc = keyutils.KeyParseError(keystr, "error")
+    assert str(exc) == expected
+
+
+@pytest.mark.parametrize('keystr, parts', [
+    ('a', ['a']),
+    ('ab', ['a', 'b']),
+    ('a<', ['a', '<']),
+    ('a>', ['a', '>']),
+    ('<a', ['<', 'a']),
+    ('>a', ['>', 'a']),
+    ('aA', ['a', 'Shift+A']),
+    ('a<Ctrl+a>b', ['a', 'ctrl+a', 'b']),
+    ('<Ctrl+a>a', ['ctrl+a', 'a']),
+    ('a<Ctrl+a>', ['a', 'ctrl+a']),
+])
+def test_parse_keystr(keystr, parts):
+    assert list(keyutils._parse_keystring(keystr)) == parts
+
+
+@pytest.mark.parametrize('keystr, expected', [
     ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
     ('<Meta-x>', keyutils.KeySequence(Qt.MetaModifier | Qt.Key_X)),
     ('<Ctrl-Alt-y>',
