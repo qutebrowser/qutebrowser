@@ -18,7 +18,8 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import Qt, QEvent, pyqtSignal
+from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QWidget
 
 from tests.unit.keyinput import key_data
@@ -112,7 +113,7 @@ class TestKeyToString:
         assert keyutils._key_to_string(qt_key.member) == qt_key.name
 
     def test_missing(self, monkeypatch):
-        monkeypatch.delattr(keyutils.Qt, 'Key_Blue')
+        monkeypatch.delattr(keyutils.Qt, 'Key_AltGr')
         # We don't want to test the key which is actually missing - we only
         # want to know if the mapping still behaves properly.
         assert keyutils._key_to_string(Qt.Key_A) == 'A'
@@ -197,6 +198,21 @@ def test_parse(keystr, expected):
 ])
 def test_normalize_keystr(orig, normalized):
     assert str(keyutils.KeySequence.parse(orig)) == normalized
+
+
+def test_key_info_from_event():
+    ev = QKeyEvent(QEvent.KeyPress, Qt.Key_A, Qt.ShiftModifier, 'A')
+    info = keyutils.KeyInfo.from_event(ev)
+    assert info.key == Qt.Key_A
+    assert info.modifiers == Qt.ShiftModifier
+
+
+def test_key_info_to_event():
+    info = keyutils.KeyInfo(Qt.Key_A, Qt.ShiftModifier)
+    ev = info.to_event()
+    assert ev.key() == Qt.Key_A
+    assert ev.modifiers() == Qt.ShiftModifier
+    assert ev.text() == 'A'
 
 
 @pytest.mark.parametrize('key, printable', [

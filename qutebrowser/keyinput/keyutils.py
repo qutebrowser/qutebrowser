@@ -157,8 +157,7 @@ def _parse_keystring(keystr):
                 special = False
             else:
                 yield '>'
-                for c in key:
-                    yield 'Shift+' + c if c.isupper() else c
+                assert not key, key
         elif c == '<':
             special = True
         elif special:
