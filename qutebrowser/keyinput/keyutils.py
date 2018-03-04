@@ -433,7 +433,6 @@ class KeySequence:
     def parse(cls, keystr):
         """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
         # pylint: disable=protected-access
-        # FIXME: test stuff like <a, a>
         new = cls()
         strings = list(_parse_keystring(keystr))
         for sub in utils.chunk(strings, cls._MAX_LEN):

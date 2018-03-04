@@ -2401,7 +2401,6 @@ bindings.default:
       <Ctrl-H>: rl-backward-delete-char
       <Ctrl-Y>: rl-yank
       <Escape>: leave-mode
-    # FIXME can we do migrations?
     yesno:
       <Return>: prompt-accept
       y: prompt-accept yes
