@@ -25,7 +25,6 @@ from PyQt5.QtGui import QKeyEvent, QKeySequence
 from PyQt5.QtWidgets import QWidget
 
 from tests.unit.keyinput import key_data
-from qutebrowser.utils import utils
 from qutebrowser.keyinput import keyutils
 
 
@@ -348,7 +347,7 @@ class TestKeySequence:
         ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
         ('<Meta-x>', keyutils.KeySequence(Qt.MetaModifier | Qt.Key_X)),
         ('<Ctrl-Alt-y>',
-        keyutils.KeySequence(Qt.ControlModifier | Qt.AltModifier | Qt.Key_Y)),
+         keyutils.KeySequence(Qt.ControlModifier | Qt.AltModifier | Qt.Key_Y)),
         ('x', keyutils.KeySequence(Qt.Key_X)),
         ('X', keyutils.KeySequence(Qt.ShiftModifier | Qt.Key_X)),
         ('<Escape>', keyutils.KeySequence(Qt.Key_Escape)),

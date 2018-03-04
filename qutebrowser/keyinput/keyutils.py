@@ -19,7 +19,6 @@
 
 """Our own QKeySequence-like class and related utilities."""
 
-import collections
 import itertools
 
 import attr
@@ -46,8 +45,8 @@ def is_printable(key):
 def is_modifier_key(key):
     """Test whether the given key is a modifier.
 
-    This only considers keys which are part of Qt::KeyboardModifiers, i.e. which
-    would interrupt a key chain like "yY" when handled.
+    This only considers keys which are part of Qt::KeyboardModifiers, i.e.
+    which would interrupt a key chain like "yY" when handled.
     """
     return key in _MODIFIER_MAP
 
@@ -363,14 +362,15 @@ class KeySequence:
     def matches(self, other):
         """Check whether the given KeySequence matches with this one.
 
-        We store multiple QKeySequences with <= 4 keys each, so we need to match
-        those pair-wise, and account for an unequal amount of sequences as well.
+        We store multiple QKeySequences with <= 4 keys each, so we need to
+        match those pair-wise, and account for an unequal amount of sequences
+        as well.
         """
         # pylint: disable=protected-access
 
         if len(self._sequences) > len(other._sequences):
-            # If we entered more sequences than there are in the config, there's
-            # no way there can be a match.
+            # If we entered more sequences than there are in the config,
+            # there's no way there can be a match.
             return QKeySequence.NoMatch
 
         for entered, configured in zip(self._sequences, other._sequences):
@@ -385,14 +385,14 @@ class KeySequence:
         # PartialMatch, as more keypresses can still follow and new sequences
         # will appear which we didn't check above.
         #
-        # If there's the same amount of sequences configured and entered, that's
-        # an EqualMatch.
+        # If there's the same amount of sequences configured and entered,
+        # that's an EqualMatch.
         if len(self._sequences) == len(other._sequences):
             return QKeySequence.ExactMatch
         elif len(self._sequences) < len(other._sequences):
             return QKeySequence.PartialMatch
-        else:  # pragma: no cover
-            assert False, (self, other)
+        else:
+            raise utils.Unreachable("self={!r} other={!r}".format(self, other))
 
     def append_event(self, ev):
         """Create a new KeySequence object with the given QKeyEvent added.
