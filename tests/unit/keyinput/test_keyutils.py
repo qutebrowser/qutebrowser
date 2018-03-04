@@ -21,7 +21,7 @@ import operator
 
 import pytest
 from PyQt5.QtCore import Qt, QEvent, pyqtSignal
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtGui import QKeyEvent, QKeySequence
 from PyQt5.QtWidgets import QWidget
 
 from tests.unit.keyinput import key_data
@@ -291,6 +291,34 @@ class TestKeySequence:
         assert s1[3:5] == s2
         assert seq[3:5] == expected
 
+    @pytest.mark.parametrize('entered, configured, expected', [
+        # config: abcd
+        ('abc', 'abcd', QKeySequence.PartialMatch),
+        ('abcd', 'abcd', QKeySequence.ExactMatch),
+        ('ax', 'abcd', QKeySequence.NoMatch),
+        ('abcdef', 'abcd', QKeySequence.NoMatch),
+
+        # config: abcd ef
+        ('abc', 'abcdef', QKeySequence.PartialMatch),
+        ('abcde', 'abcdef', QKeySequence.PartialMatch),
+        ('abcd', 'abcdef', QKeySequence.PartialMatch),
+        ('abcdx', 'abcdef', QKeySequence.NoMatch),
+        ('ax', 'abcdef', QKeySequence.NoMatch),
+        ('abcdefg', 'abcdef', QKeySequence.NoMatch),
+        ('abcdef', 'abcdef', QKeySequence.ExactMatch),
+
+        # other examples
+        ('ab', 'a', QKeySequence.NoMatch),
+
+        # empty strings
+        ('', '', QKeySequence.ExactMatch),
+        ('', 'a', QKeySequence.PartialMatch),
+        ('a', '', QKeySequence.NoMatch),
+    ])
+    def test_matches(self, entered, configured, expected):
+        entered = keyutils.KeySequence.parse(entered)
+        configured = keyutils.KeySequence.parse(configured)
+        assert entered.matches(configured) == expected
 
     @pytest.mark.parametrize('keystr, expected', [
         ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),

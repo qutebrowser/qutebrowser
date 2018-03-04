@@ -361,15 +361,38 @@ class KeySequence:
                 raise KeyParseError(keystr, "Got unknown key!")
 
     def matches(self, other):
-        """Check whether the given KeySequence matches with this one."""
+        """Check whether the given KeySequence matches with this one.
+
+        We store multiple QKeySequences with <= 4 keys each, so we need to match
+        those pair-wise, and account for an unequal amount of sequences as well.
+        """
         # pylint: disable=protected-access
-        assert self._sequences
-        assert other._sequences
-        for seq1, seq2 in zip(self._sequences, other._sequences):
-            match = seq1.matches(seq2)
+
+        if len(self._sequences) > len(other._sequences):
+            # If we entered more sequences than there are in the config, there's
+            # no way there can be a match.
+            return QKeySequence.NoMatch
+
+        for entered, configured in zip(self._sequences, other._sequences):
+            # If we get NoMatch/PartialMatch in a sequence, we can abort there.
+            match = entered.matches(configured)
             if match != QKeySequence.ExactMatch:
                 return match
-        return QKeySequence.ExactMatch
+
+        # We checked all common sequences and they had an ExactMatch.
+        #
+        # If there's still more sequences configured than entered, that's a
+        # PartialMatch, as more keypresses can still follow and new sequences
+        # will appear which we didn't check above.
+        #
+        # If there's the same amount of sequences configured and entered, that's
+        # an EqualMatch.
+        if len(self._sequences) == len(other._sequences):
+            return QKeySequence.ExactMatch
+        elif len(self._sequences) < len(other._sequences):
+            return QKeySequence.PartialMatch
+        else:
+            assert False, (self, other)
 
     def append_event(self, ev):
         """Create a new KeySequence object with the given QKeyEvent added.
