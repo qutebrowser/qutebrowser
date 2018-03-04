@@ -52,10 +52,18 @@ Added
 - The `hostblock_blame` script which was removed in v1.0 was updated for the new
   config and re-added.
 - New `qute://tabs` page (opened via `:buffer`) which lists all tabs.
+- New `--select` flag for `:follow-hint` which acts like the given string was entered but doesn't necessary follow the hint.
 
 Changed
 ~~~~~~~
 
+- Complete refactoring of key input handling, with various effects:
+  * emacs-like keychains such as `<Ctrl-X><Ctrl-C>` can now be bound.
+  * Key chains can now be bound in any mode (this allows binding unused keys in
+    hint mode).
+  * Yes/no prompts don't use keybindings from the `prompt` section anymore, they
+    have their own `yesno` section instead.
+  * Trying to bind invalid keys now shows an error.
 - The `hist_importer.py` script now only imports URL schemes qutebrowser can
   handle.
 - Deleting a prefix (`:`, `/` or `?`) via backspace now leaves command mode.
