@@ -138,15 +138,16 @@ class BaseKeyParser(QObject):
             self._count += txt
             return QKeySequence.ExactMatch
 
-        sequence = self._sequence.append_event(e)
-        match, binding = self._match_key(sequence)
+        self._sequence = self._sequence.append_event(e)
+        match, binding = self._match_key(self._sequence)
         if match == QKeySequence.NoMatch:
             mappings = config.val.bindings.key_mappings
-            mapped = mappings.get(sequence, None)
+            mapped = mappings.get(self._sequence, None)
             if mapped is not None:
+                self._debug_log("Mapped {} -> {}".format(
+                    self._sequence, mapped))
                 match, binding = self._match_key(mapped)
-
-        self._sequence = self._sequence.append_event(e)
+                self._sequence = mapped
 
         if match == QKeySequence.ExactMatch:
             self._debug_log("Definitive match for '{}'.".format(
