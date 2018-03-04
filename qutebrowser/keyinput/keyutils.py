@@ -356,6 +356,7 @@ class KeySequence:
 
     def _validate(self, keystr=None):
         for info in self:
+            assert Qt.Key_Space <= info.key <= Qt.Key_unknown, info.key
             if info.key == Qt.Key_unknown:
                 raise KeyParseError(keystr, "Got unknown key!")
 
