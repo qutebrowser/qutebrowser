@@ -21,6 +21,11 @@
 
 import pytest
 
+from PyQt5.QtCore import QEvent, Qt
+from PyQt5.QtGui import QKeyEvent
+
+from qutebrowser.keyinput import keyutils
+
 
 BINDINGS = {'prompt': {'<Ctrl-a>': 'message-info ctrla',
                        'a': 'message-info a',
@@ -33,8 +38,6 @@ BINDINGS = {'prompt': {'<Ctrl-a>': 'message-info ctrla',
                         '<Ctrl+X>': 'message-info ctrlx'},
             'normal': {'a': 'message-info a', 'ba': 'message-info ba'}}
 MAPPINGS = {
-    '<Ctrl+a>': 'a',
-    '<Ctrl+b>': '<Ctrl+a>',
     'x': 'a',
     'b': 'a',
 }
@@ -46,3 +49,14 @@ def keyinput_bindings(config_stub, key_config_stub):
     config_stub.val.bindings.default = {}
     config_stub.val.bindings.commands = dict(BINDINGS)
     config_stub.val.bindings.key_mappings = dict(MAPPINGS)
+
+
+@pytest.fixture
+def fake_keyevent():
+    """Fixture that when called will return a mock instance of a QKeyEvent."""
+    def func(key, modifiers=Qt.NoModifier, typ=QEvent.KeyPress):
+        """Generate a new fake QKeyPressEvent."""
+        text = keyutils.KeyInfo(key, modifiers).text()
+        return QKeyEvent(QKeyEvent.KeyPress, key, modifiers, text)
+
+    return func

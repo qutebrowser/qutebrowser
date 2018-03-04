@@ -49,25 +49,25 @@ class TestsNormalKeyParser:
         kp.execute = mock.Mock()
         return kp
 
-    def test_keychain(self, keyparser, fake_keyevent_factory):
+    def test_keychain(self, keyparser, fake_keyevent):
         """Test valid keychain."""
         # Press 'x' which is ignored because of no match
-        keyparser.handle(fake_keyevent_factory(Qt.Key_X, text='x'))
+        keyparser.handle(fake_keyevent(Qt.Key_X))
         # Then start the real chain
-        keyparser.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
-        keyparser.handle(fake_keyevent_factory(Qt.Key_A, text='a'))
+        keyparser.handle(fake_keyevent(Qt.Key_B))
+        keyparser.handle(fake_keyevent(Qt.Key_A))
         keyparser.execute.assert_called_with('message-info ba', None)
         assert not keyparser._sequence
 
     def test_partial_keychain_timeout(self, keyparser, config_stub,
-                                      fake_keyevent_factory):
+                                      fake_keyevent):
         """Test partial keychain timeout."""
         config_stub.val.input.partial_timeout = 100
         timer = keyparser._partial_timer
         assert not timer.isActive()
         # Press 'b' for a partial match.
         # Then we check if the timer has been set up correctly
-        keyparser.handle(fake_keyevent_factory(Qt.Key_B, text='b'))
+        keyparser.handle(fake_keyevent(Qt.Key_B))
         assert timer.isSingleShot()
         assert timer.interval() == 100
         assert timer.isActive()

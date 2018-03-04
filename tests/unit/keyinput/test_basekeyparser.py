@@ -42,15 +42,15 @@ def keyparser(key_config_stub):
 
 
 @pytest.fixture
-def handle_text(fake_keyevent_factory, keyparser):
+def handle_text(fake_keyevent, keyparser):
     """Helper function to handle multiple fake keypresses.
 
     Automatically uses the keyparser of the current test via the keyparser
     fixture.
     """
     def func(*args):
-        for enumval, text in args:
-            keyparser.handle(fake_keyevent_factory(enumval, text=text))
+        for enumval in args:
+            keyparser.handle(fake_keyevent(enumval))
     return func
 
 
@@ -76,6 +76,7 @@ class TestDebugLog:
     ('10g', True, '10', 'g'),
     ('10e4g', True, '4', 'g'),
     ('g', True, '', 'g'),
+    ('0', True, '', ''),
     ('10g', False, '', 'g'),
 ])
 def test_split_count(config_stub, key_config_stub,
@@ -140,115 +141,65 @@ class TestReadConfig:
         assert (keyseq('new') in keyparser.bindings) == expected
 
 
-class TestSpecialKeys:
-
-    """Check execute() with special keys."""
+class TestHandle:
 
     @pytest.fixture(autouse=True)
     def read_config(self, keyinput_bindings, keyparser):
         keyparser._read_config('prompt')
 
-    def test_valid_key(self, fake_keyevent_factory, keyparser):
+    def test_valid_key(self, fake_keyevent, keyparser):
         modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
-        keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
-        keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
-        keyparser.execute.assert_called_once_with('message-info ctrla', None)
-
-    def test_valid_key_count(self, fake_keyevent_factory, keyparser):
-        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
-        keyparser.handle(fake_keyevent_factory(Qt.Key_5, text='5'))
-        keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier, text='A'))
-        keyparser.execute.assert_called_once_with('message-info ctrla', 5)
-
-    def test_invalid_key(self, fake_keyevent_factory, keyparser):
-        keyparser.handle(fake_keyevent_factory(
-            Qt.Key_A, (Qt.ControlModifier | Qt.AltModifier)))
-        assert not keyparser.execute.called
-
-    def test_only_modifiers(self, monkeypatch, fake_keyevent_factory,
-                            keyparser):
-        monkeypatch.setattr(keyutils.KeyInfo, '__str__', lambda _self: '')
-        keyparser.handle(fake_keyevent_factory(Qt.Key_Shift, Qt.NoModifier))
-        assert not keyparser.execute.called
-
-    def test_mapping(self, config_stub, fake_keyevent_factory, keyparser):
-        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
-
-        keyparser.handle(fake_keyevent_factory(Qt.Key_B, modifier))
-        keyparser.execute.assert_called_once_with('message-info ctrla', None)
-
-    def test_binding_and_mapping(self, config_stub, fake_keyevent_factory,
-                                 keyparser):
-        """with a conflicting binding/mapping, the binding should win."""
-        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
-
-        keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
-        keyparser.execute.assert_called_once_with('message-info ctrla', None)
-
-
-class TestKeyChain:
-
-    """Test execute() with keychain support."""
-
-    @pytest.fixture(autouse=True)
-    def read_config(self, keyinput_bindings, keyparser):
-        keyparser._read_config('prompt')
-
-    def test_valid_special_key(self, fake_keyevent_factory, keyparser):
-        if utils.is_mac:
-            modifier = Qt.MetaModifier
-        else:
-            modifier = Qt.ControlModifier
-        keyparser.handle(fake_keyevent_factory(Qt.Key_A, modifier))
-        keyparser.handle(fake_keyevent_factory(Qt.Key_X, modifier))
+        keyparser.handle(fake_keyevent(Qt.Key_A, modifier))
+        keyparser.handle(fake_keyevent(Qt.Key_X, modifier))
         keyparser.execute.assert_called_once_with('message-info ctrla', None)
         assert not keyparser._sequence
 
-    def test_invalid_special_key(self, fake_keyevent_factory, keyparser):
-        keyparser.handle(fake_keyevent_factory(
-            Qt.Key_A, (Qt.ControlModifier | Qt.AltModifier)))
+    def test_valid_key_count(self, fake_keyevent, keyparser):
+        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
+        keyparser.handle(fake_keyevent(Qt.Key_5))
+        keyparser.handle(fake_keyevent(Qt.Key_A, modifier))
+        keyparser.execute.assert_called_once_with('message-info ctrla', 5)
+
+    @pytest.mark.parametrize('keys', [
+        [(Qt.Key_B, Qt.NoModifier), (Qt.Key_C, Qt.NoModifier)],
+        [(Qt.Key_A, Qt.ControlModifier | Qt.AltModifier)],
+        # Only modifier
+        [(Qt.Key_Shift, Qt.ShiftModifier)],
+    ])
+    def test_invalid_keys(self, fake_keyevent, keyparser, keys):
+        for key, modifiers in keys:
+            keyparser.handle(fake_keyevent(key, modifiers))
         assert not keyparser.execute.called
         assert not keyparser._sequence
 
     def test_valid_keychain(self, handle_text, keyparser):
         # Press 'x' which is ignored because of no match
-        handle_text((Qt.Key_X, 'x'),
+        handle_text(Qt.Key_X,
                     # Then start the real chain
-                    (Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
+                    Qt.Key_B, Qt.Key_A)
         keyparser.execute.assert_called_with('message-info ba', None)
         assert not keyparser._sequence
 
     def test_0_press(self, handle_text, keyparser):
-        handle_text((Qt.Key_0, '0'))
+        handle_text(Qt.Key_0)
         keyparser.execute.assert_called_once_with('message-info 0', None)
         assert not keyparser._sequence
 
-    def test_ambiguous_keychain(self, handle_text, keyparser):
-        handle_text((Qt.Key_A, 'a'))
-        assert keyparser.execute.called
-
-    def test_invalid_keychain(self, handle_text, keyparser):
-        handle_text((Qt.Key_B, 'b'))
-        handle_text((Qt.Key_C, 'c'))
-        assert not keyparser._sequence
-
     def test_mapping(self, config_stub, handle_text, keyparser):
-        handle_text((Qt.Key_X, 'x'))
+        handle_text(Qt.Key_X)
         keyparser.execute.assert_called_once_with('message-info a', None)
 
     def test_binding_and_mapping(self, config_stub, handle_text, keyparser):
         """with a conflicting binding/mapping, the binding should win."""
-        handle_text((Qt.Key_B, 'b'))
+        handle_text(Qt.Key_B)
         assert not keyparser.execute.called
 
-    def test_binding_with_shift(self, keyparser, fake_keyevent_factory):
+    def test_binding_with_shift(self, keyparser, fake_keyevent):
         """Simulate a binding which involves shift."""
-        keyparser.handle(
-            fake_keyevent_factory(Qt.Key_Y, text='y'))
-        keyparser.handle(
-            fake_keyevent_factory(Qt.Key_Shift, Qt.ShiftModifier, text=''))
-        keyparser.handle(
-            fake_keyevent_factory(Qt.Key_Y, Qt.ShiftModifier, text='Y'))
+        for key, modifiers in [(Qt.Key_Y, Qt.NoModifier),
+                               (Qt.Key_Shift, Qt.ShiftModifier),
+                               (Qt.Key_Y, Qt.ShiftModifier)]:
+            keyparser.handle(fake_keyevent(key, modifiers))
 
         keyparser.execute.assert_called_once_with('yank -s', None)
 
@@ -263,32 +214,29 @@ class TestCount:
 
     def test_no_count(self, handle_text, keyparser):
         """Test with no count added."""
-        handle_text((Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
+        handle_text(Qt.Key_B, Qt.Key_A)
         keyparser.execute.assert_called_once_with('message-info ba', None)
         assert not keyparser._sequence
 
     def test_count_0(self, handle_text, keyparser):
-        handle_text((Qt.Key_0, '0'), (Qt.Key_B, 'b'), (Qt.Key_A, 'a'))
+        handle_text(Qt.Key_0, Qt.Key_B, Qt.Key_A)
         calls = [mock.call('message-info 0', None),
                  mock.call('message-info ba', None)]
         keyparser.execute.assert_has_calls(calls)
         assert not keyparser._sequence
 
     def test_count_42(self, handle_text, keyparser):
-        handle_text((Qt.Key_4, '4'), (Qt.Key_2, '2'), (Qt.Key_B, 'b'),
-                    (Qt.Key_A, 'a'))
+        handle_text(Qt.Key_4, Qt.Key_2, Qt.Key_B, Qt.Key_A)
         keyparser.execute.assert_called_once_with('message-info ba', 42)
         assert not keyparser._sequence
 
     def test_count_42_invalid(self, handle_text, keyparser):
         # Invalid call with ccx gets ignored
-        handle_text((Qt.Key_4, '4'), (Qt.Key_2, '2'), (Qt.Key_C, 'c'),
-                    (Qt.Key_C, 'c'), (Qt.Key_X, 'x'))
+        handle_text(Qt.Key_4, Qt.Key_2, Qt.Key_C, Qt.Key_C, Qt.Key_X)
         assert not keyparser.execute.called
         assert not keyparser._sequence
         # Valid call with ccc gets the correct count
-        handle_text((Qt.Key_2, '2'), (Qt.Key_3, '3'), (Qt.Key_C, 'c'),
-                    (Qt.Key_C, 'c'), (Qt.Key_C, 'c'))
+        handle_text(Qt.Key_2, Qt.Key_3, Qt.Key_C, Qt.Key_C, Qt.Key_C)
         keyparser.execute.assert_called_once_with('message-info ccc', 23)
         assert not keyparser._sequence
 
@@ -296,6 +244,15 @@ class TestCount:
 def test_clear_keystring(qtbot, keyparser):
     """Test that the keystring is cleared and the signal is emitted."""
     keyparser._sequence = keyseq('test')
+    keyparser._count = '23'
     with qtbot.waitSignal(keyparser.keystring_updated):
         keyparser.clear_keystring()
     assert not keyparser._sequence
+    assert not keyparser._count
+
+
+def test_clear_keystring_empty(qtbot, keyparser):
+    """Test that no signal is emitted when clearing an empty keystring.."""
+    keyparser._sequence = keyseq('')
+    with qtbot.assert_not_emitted(keyparser.keystring_updated):
+        keyparser.clear_keystring()
