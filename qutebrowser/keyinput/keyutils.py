@@ -318,6 +318,14 @@ class KeySequence:
         # pylint: disable=protected-access
         return self._sequences > other._sequences
 
+    def __le__(self, other):
+        # pylint: disable=protected-access
+        return self._sequences <= other._sequences
+
+    def __ge__(self, other):
+        # pylint: disable=protected-access
+        return self._sequences >= other._sequences
+
     def __eq__(self, other):
         # pylint: disable=protected-access
         return self._sequences == other._sequences
