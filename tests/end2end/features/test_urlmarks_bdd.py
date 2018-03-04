@@ -54,7 +54,7 @@ def _check_marks(quteproc, quickmarks, expected, contains):
     assert matched_line == contains, lines
 
 
-@bdd.then(bdd.parsers.parse('the bookmark file should contain "{line}"'))
+@bdd.then(bdd.parsers.parse("the bookmark file should contain '{line}'"))
 def bookmark_file_contains(quteproc, line):
     _check_marks(quteproc, quickmarks=False, expected=line, contains=True)
 

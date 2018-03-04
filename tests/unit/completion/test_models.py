@@ -21,6 +21,7 @@
 
 import collections
 from datetime import datetime
+from unittest import mock
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -29,7 +30,7 @@ from qutebrowser.completion import completer
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import objreg, usertypes
-from qutebrowser.browser import history
+from qutebrowser.browser import history, urlmarks
 from qutebrowser.commands import cmdutils
 
 
@@ -156,14 +157,14 @@ def quickmarks(quickmark_manager_stub):
 
 
 @pytest.fixture
-def bookmarks(bookmark_manager_stub):
+def bookmarks(bookmark_manager_mock):
     """Pre-populate the bookmark-manager stub with some quickmarks."""
-    bookmark_manager_stub.marks = collections.OrderedDict([
-        ('https://github.com', 'GitHub'),
-        ('https://python.org', 'Welcome to Python.org'),
-        ('http://qutebrowser.org', 'qutebrowser | qutebrowser'),
-    ])
-    return bookmark_manager_stub
+    bookmark_manager_mock.__iter__ = mock.Mock(return_value=iter([
+        urlmarks.Bookmark('https://github.com', 'GitHub', []),
+        urlmarks.Bookmark('https://python.org', 'Welcome to Python.org', []),
+        urlmarks.Bookmark('http://qutebrowser.org', 'qutebrowser', []),
+    ]))
+    return bookmark_manager_mock
 
 
 @pytest.fixture
@@ -308,9 +309,9 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
 
     _check_completions(model, {
         "Bookmarks": [
-            ('https://github.com', 'GitHub', None),
-            ('https://python.org', 'Welcome to Python.org', None),
-            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
+            ('https://github.com', 'GitHub', '[]'),
+            ('https://python.org', 'Welcome to Python.org', '[]'),
+            ('http://qutebrowser.org', 'qutebrowser', '[]'),
         ]
     })
 
@@ -330,10 +331,8 @@ def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
     parent = model.index(0, 0)
     idx = model.index(row, 0, parent)
 
-    before = set(bookmarks.marks.keys())
     model.delete_cur_item(idx)
-    after = set(bookmarks.marks.keys())
-    assert before.difference(after) == {removed}
+    assert bookmarks.delete.called_once_with(removed)
 
 
 @pytest.fixture(autouse=True)
@@ -363,9 +362,9 @@ def test_url_completion(qtmodeltester, web_history_populated,
             ('https://duckduckgo.com', 'ddg', None),
         ],
         "Bookmarks": [
-            ('https://github.com', 'GitHub', None),
-            ('https://python.org', 'Welcome to Python.org', None),
-            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
+            ('https://github.com', 'GitHub', '[]'),
+            ('https://python.org', 'Welcome to Python.org', '[]'),
+            ('http://qutebrowser.org', 'qutebrowser', '[]'),
         ],
         "History": [
             ('https://github.com', 'https://github.com', '2016-05-01'),
@@ -385,9 +384,9 @@ def test_url_completion_no_quickmarks(qtmodeltester, web_history_populated,
 
     _check_completions(model, {
         "Bookmarks": [
-            ('https://github.com', 'GitHub', None),
-            ('https://python.org', 'Welcome to Python.org', None),
-            ('http://qutebrowser.org', 'qutebrowser | qutebrowser', None),
+            ('https://github.com', 'GitHub', '[]'),
+            ('https://python.org', 'Welcome to Python.org', '[]'),
+            ('http://qutebrowser.org', 'qutebrowser', '[]'),
         ],
         "History": [
             ('https://github.com', 'https://github.com', '2016-05-01'),
@@ -398,7 +397,7 @@ def test_url_completion_no_quickmarks(qtmodeltester, web_history_populated,
 
 
 def test_url_completion_no_bookmarks(qtmodeltester, web_history_populated,
-                                     quickmarks, bookmark_manager_stub, info):
+                                     quickmarks, bookmark_manager_mock, info):
     """Test that the bookmarks category is gone with no bookmarks."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
@@ -438,7 +437,7 @@ def test_url_completion_no_bookmarks(qtmodeltester, web_history_populated,
     ('foobar', '', '%', 0),
 ])
 def test_url_completion_pattern(web_history, quickmark_manager_stub,
-                                bookmark_manager_stub, info,
+                                bookmark_manager_mock, info,
                                 url, title, pattern, rowcount):
     """Test that url completion filters by url and title."""
     web_history.add_url(QUrl(url), title)
@@ -459,15 +458,8 @@ def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
     parent = model.index(1, 0)
     idx = model.index(1, 0, parent)
 
-    # sanity checks
-    assert model.data(parent) == "Bookmarks"
-    assert model.data(idx) == 'https://python.org'
-    assert 'https://github.com' in bookmarks.marks
-
-    len_before = len(bookmarks.marks)
     model.delete_cur_item(idx)
-    assert 'https://python.org' not in bookmarks.marks
-    assert len_before == len(bookmarks.marks) + 1
+    assert bookmarks.delete.called_once_with('https://python.org')
 
 
 def test_url_completion_delete_quickmark(qtmodeltester, info, qtbot,
@@ -867,7 +859,7 @@ def test_bind_completion_changed(cmdutils_stub, config_stub, key_config_stub,
 
 def test_url_completion_benchmark(benchmark, info,
                                   quickmark_manager_stub,
-                                  bookmark_manager_stub,
+                                  bookmark_manager_mock,
                                   web_history):
     """Benchmark url completion."""
     r = range(100000)
@@ -883,9 +875,9 @@ def test_url_completion_benchmark(benchmark, info,
         ('title{}'.format(i), 'example.com/{}'.format(i))
         for i in range(1000)])
 
-    bookmark_manager_stub.marks = collections.OrderedDict([
-        ('example.com/{}'.format(i), 'title{}'.format(i))
-        for i in range(1000)])
+    bookmark_manager_mock.__iter__ = mock.Mock(return_value=iter([
+        urlmarks.Bookmark('example.com/{}'.format(i), 'title{}'.format(i), [])
+        for i in range(1000)]))
 
     def bench():
         model = urlmodel.url(info=info)

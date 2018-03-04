@@ -51,10 +51,11 @@ th {
 {% if bookmarks|length %}
 <table class="bmarks">
     <tbody>
-    {% for url, title in bookmarks %}
+    {% for url, title, tags in bookmarks %}
     <tr>
         <td class="name"><a href="{{url}}">{{title | default(url, true)}}</a></td>
         <td class="url"><a href="{{url}}">{{url}}</a></td>
+        <td class="tags">{{tags}}</td>
     </tr>
     {% endfor %}
     </tbody>

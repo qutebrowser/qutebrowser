@@ -44,7 +44,7 @@ import helpers.utils
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles)
 from qutebrowser.utils import objreg, standarddir, utils
-from qutebrowser.browser import greasemonkey
+from qutebrowser.browser import greasemonkey, urlmarks
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql
 from qutebrowser.keyinput import modeman
@@ -286,11 +286,12 @@ def quickmark_manager_stub(stubs):
 
 
 @pytest.fixture
-def bookmark_manager_stub(stubs):
-    """Fixture which provides a fake bookmark manager object."""
-    stub = stubs.BookmarkManagerStub()
-    objreg.register('bookmark-manager', stub)
-    yield stub
+def bookmark_manager_mock():
+    """Fixture which provides a mocked bookmark manager object."""
+    m = unittest.mock.Mock(spec=urlmarks.BookmarkManager)
+    m.__iter__ = unittest.mock.Mock(return_value=iter([]))
+    objreg.register('bookmark-manager', m)
+    yield m
     objreg.delete('bookmark-manager')
 
 

@@ -191,8 +191,7 @@ def data_for_url(url):
 @add_handler('bookmarks')
 def qute_bookmarks(_url):
     """Handler for qute://bookmarks. Display all quickmarks / bookmarks."""
-    bookmarks = sorted(objreg.get('bookmark-manager').marks.items(),
-                       key=lambda x: x[1])  # Sort by title
+    bookmarks = sorted(objreg.get('bookmark-manager'), key=lambda x: x.title)
     quickmarks = sorted(objreg.get('quickmark-manager').marks.items(),
                         key=lambda x: x[0])  # Sort by name
 

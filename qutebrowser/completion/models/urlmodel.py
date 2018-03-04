@@ -58,7 +58,8 @@ def url(*, info):
 
     quickmarks = [(url, name) for (name, url)
                   in objreg.get('quickmark-manager').marks.items()]
-    bookmarks = objreg.get('bookmark-manager').marks.items()
+    bookmarks = [(m.url, m.title, str(m.tags)) for m in
+                 objreg.get('bookmark-manager')]
 
     if quickmarks:
         model.add_category(listcategory.ListCategory(

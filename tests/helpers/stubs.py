@@ -443,13 +443,6 @@ class UrlMarkManagerStub(QObject):
         self.removed.emit(key)
 
 
-class BookmarkManagerStub(UrlMarkManagerStub):
-
-    """Stub for the bookmark-manager object."""
-
-    pass
-
-
 class QuickmarkManagerStub(UrlMarkManagerStub):
 
     """Stub for the quickmark-manager object."""

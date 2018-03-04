@@ -1386,7 +1386,7 @@ class CommandDispatcher:
         if not title:
             title = self._current_title()
         try:
-            was_added = bookmark_manager.add(url, title, toggle=toggle)
+            was_added = bookmark_manager.add(url, title, [], toggle=toggle)
         except urlmarks.Error as e:
             raise cmdexc.CommandError(str(e))
         else:
