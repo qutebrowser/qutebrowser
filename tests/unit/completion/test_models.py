@@ -100,13 +100,13 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
             typ=configtypes.Dict(
                 keytype=configtypes.String(),
                 valtype=configtypes.Dict(
-                    keytype=configtypes.String(),
+                    keytype=configtypes.Key(),
                     valtype=configtypes.Command(),
                 ),
             ),
             default={
                 'normal': collections.OrderedDict([
-                    ('<ctrl+q>', 'quit'),
+                    ('<Ctrl+q>', 'quit'),
                     ('d', 'tab-close'),
                 ])
             },
@@ -118,13 +118,13 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
             typ=configtypes.Dict(
                 keytype=configtypes.String(),
                 valtype=configtypes.Dict(
-                    keytype=configtypes.String(),
+                    keytype=configtypes.Key(),
                     valtype=configtypes.Command(),
                 ),
             ),
             default={
                 'normal': collections.OrderedDict([
-                    ('<ctrl+q>', 'quit'),
+                    ('<Ctrl+q>', 'quit'),
                     ('ZQ', 'quit'),
                     ('I', 'invalid'),
                     ('d', 'scroll down'),
@@ -223,7 +223,7 @@ def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
         "Commands": [
             ('open', 'open a url', ''),
             ('q', "Alias for 'quit'", ''),
-            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('quit', 'quit qutebrowser', 'ZQ, <Ctrl+q>'),
             ('tab-close', 'Close the current tab.', ''),
         ]
     })
@@ -248,7 +248,7 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
     _check_completions(model, {
         "Commands": [
             (':open', 'open a url', ''),
-            (':quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            (':quit', 'quit qutebrowser', 'ZQ, <Ctrl+q>'),
             (':scroll', 'Scroll the current tab in the given direction.', ''),
             (':tab-close', 'Close the current tab.', ''),
         ],
@@ -653,10 +653,10 @@ def test_setting_option_completion(qtmodeltester, config_stub,
         "Options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
             ('bindings.commands', 'Default keybindings', (
-                '{"normal": {"<ctrl+q>": "quit", "ZQ": "quit", '
+                '{"normal": {"<Ctrl+q>": "quit", "ZQ": "quit", '
                 '"I": "invalid", "d": "scroll down"}}')),
             ('bindings.default', 'Default keybindings',
-             '{"normal": {"<ctrl+q>": "quit", "d": "tab-close"}}'),
+             '{"normal": {"<Ctrl+q>": "quit", "d": "tab-close"}}'),
             ('content.javascript.enabled', 'Enable/Disable JavaScript',
              'true'),
         ]
@@ -739,7 +739,7 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
         "Commands": [
             ('open', 'open a url', ''),
             ('q', "Alias for 'quit'", ''),
-            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('quit', 'quit qutebrowser', 'ZQ, <Ctrl+q>'),
             ('scroll', 'Scroll the current tab in the given direction.', ''),
             ('tab-close', 'Close the current tab.', ''),
         ],
@@ -759,7 +759,7 @@ def test_bind_completion_invalid(cmdutils_stub, config_stub, key_config_stub,
         "Commands": [
             ('open', 'open a url', ''),
             ('q', "Alias for 'quit'", ''),
-            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('quit', 'quit qutebrowser', 'ZQ, <Ctrl+q>'),
             ('scroll', 'Scroll the current tab in the given direction.', ''),
             ('tab-close', 'Close the current tab.', ''),
         ],
@@ -778,7 +778,7 @@ def test_bind_completion_no_binding(qtmodeltester, cmdutils_stub, config_stub,
         "Commands": [
             ('open', 'open a url', ''),
             ('q', "Alias for 'quit'", ''),
-            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('quit', 'quit qutebrowser', 'ZQ, <Ctrl+q>'),
             ('scroll', 'Scroll the current tab in the given direction.', ''),
             ('tab-close', 'Close the current tab.', ''),
         ],
@@ -800,7 +800,7 @@ def test_bind_completion_changed(cmdutils_stub, config_stub, key_config_stub,
         "Commands": [
             ('open', 'open a url', ''),
             ('q', "Alias for 'quit'", ''),
-            ('quit', 'quit qutebrowser', 'ZQ, <ctrl+q>'),
+            ('quit', 'quit qutebrowser', 'ZQ, <Ctrl+q>'),
             ('scroll', 'Scroll the current tab in the given direction.', ''),
             ('tab-close', 'Close the current tab.', ''),
         ],

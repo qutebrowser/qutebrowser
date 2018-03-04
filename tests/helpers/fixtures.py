@@ -35,8 +35,7 @@ import types
 import attr
 import pytest
 import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QEvent, QSize, Qt
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 
@@ -352,21 +351,6 @@ def webview(qtbot, webpage):
 def webframe(webpage):
     """Convenience fixture to get a mainFrame of a QWebPage."""
     return webpage.mainFrame()
-
-
-@pytest.fixture
-def fake_keyevent_factory():
-    """Fixture that when called will return a mock instance of a QKeyEvent."""
-    def fake_keyevent(key, modifiers=0, text='', typ=QEvent.KeyPress):
-        """Generate a new fake QKeyPressEvent."""
-        evtmock = unittest.mock.create_autospec(QKeyEvent, instance=True)
-        evtmock.key.return_value = key
-        evtmock.modifiers.return_value = modifiers
-        evtmock.text.return_value = text
-        evtmock.type.return_value = typ
-        return evtmock
-
-    return fake_keyevent
 
 
 @pytest.fixture

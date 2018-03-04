@@ -154,7 +154,8 @@ Bind a key to a command.
 If no command is given, show the current binding for the given key. Using :bind without any arguments opens a page showing all keybindings.
 
 ==== positional arguments
-* +'key'+: The keychain or special key (inside `<...>`) to bind.
+* +'key'+: The keychain to bind. Examples of valid keychains are `gC`, `<Ctrl-X>` or `<Ctrl-C>a`.
+
 * +'command'+: The command to execute, with optional args.
 
 ==== optional arguments
@@ -1317,7 +1318,8 @@ Syntax: +:unbind [*--mode* 'mode'] 'key'+
 Unbind a keychain.
 
 ==== positional arguments
-* +'key'+: The keychain or special key (inside <...>) to unbind.
+* +'key'+: The keychain to unbind. See the help for `:bind` for the correct syntax for keychains.
+
 
 ==== optional arguments
 * +*-m*+, +*--mode*+: A mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
@@ -1498,12 +1500,15 @@ Drop selection and keep selection mode enabled.
 
 [[follow-hint]]
 === follow-hint
-Syntax: +:follow-hint ['keystring']+
+Syntax: +:follow-hint [*--select*] ['keystring']+
 
 Follow a hint.
 
 ==== positional arguments
 * +'keystring'+: The hint to follow.
+
+==== optional arguments
+* +*-s*+, +*--select*+: Only select the given hint, don't necessarily follow it.
 
 [[leave-mode]]
 === leave-mode

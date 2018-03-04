@@ -26,7 +26,6 @@ import re
 import sys
 import enum
 import json
-import collections
 import datetime
 import traceback
 import functools
@@ -34,9 +33,8 @@ import contextlib
 import socket
 import shlex
 
-import attr
-from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QKeySequence, QColor, QClipboard, QDesktopServices
+from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
 import yaml
@@ -48,7 +46,7 @@ except ImportError:  # pragma: no cover
     YAML_C_EXT = False
 
 import qutebrowser
-from qutebrowser.utils import qtutils, log, debug
+from qutebrowser.utils import qtutils, log
 
 
 fake_clipboard = None
@@ -283,263 +281,6 @@ def format_size(size, base=1024, suffix=''):
             return '{:.02f}{}{}'.format(size, p, suffix)
         size /= base
     return '{:.02f}{}{}'.format(size, prefixes[-1], suffix)
-
-
-def key_to_string(key):
-    """Convert a Qt::Key member to a meaningful name.
-
-    Args:
-        key: A Qt::Key member.
-
-    Return:
-        A name of the key as a string.
-    """
-    special_names_str = {
-        # Some keys handled in a weird way by QKeySequence::toString.
-        # See https://bugreports.qt.io/browse/QTBUG-40030
-        # Most are unlikely to be ever needed, but you never know ;)
-        # For dead/combining keys, we return the corresponding non-combining
-        # key, as that's easier to add to the config.
-        'Key_Blue': 'Blue',
-        'Key_Calendar': 'Calendar',
-        'Key_ChannelDown': 'Channel Down',
-        'Key_ChannelUp': 'Channel Up',
-        'Key_ContrastAdjust': 'Contrast Adjust',
-        'Key_Dead_Abovedot': '˙',
-        'Key_Dead_Abovering': '˚',
-        'Key_Dead_Acute': '´',
-        'Key_Dead_Belowdot': 'Belowdot',
-        'Key_Dead_Breve': '˘',
-        'Key_Dead_Caron': 'ˇ',
-        'Key_Dead_Cedilla': '¸',
-        'Key_Dead_Circumflex': '^',
-        'Key_Dead_Diaeresis': '¨',
-        'Key_Dead_Doubleacute': '˝',
-        'Key_Dead_Grave': '`',
-        'Key_Dead_Hook': 'Hook',
-        'Key_Dead_Horn': 'Horn',
-        'Key_Dead_Iota': 'Iota',
-        'Key_Dead_Macron': '¯',
-        'Key_Dead_Ogonek': '˛',
-        'Key_Dead_Semivoiced_Sound': 'Semivoiced Sound',
-        'Key_Dead_Tilde': '~',
-        'Key_Dead_Voiced_Sound': 'Voiced Sound',
-        'Key_Exit': 'Exit',
-        'Key_Green': 'Green',
-        'Key_Guide': 'Guide',
-        'Key_Info': 'Info',
-        'Key_LaunchG': 'LaunchG',
-        'Key_LaunchH': 'LaunchH',
-        'Key_MediaLast': 'MediaLast',
-        'Key_Memo': 'Memo',
-        'Key_MicMute': 'Mic Mute',
-        'Key_Mode_switch': 'Mode switch',
-        'Key_Multi_key': 'Multi key',
-        'Key_PowerDown': 'Power Down',
-        'Key_Red': 'Red',
-        'Key_Settings': 'Settings',
-        'Key_SingleCandidate': 'Single Candidate',
-        'Key_ToDoList': 'Todo List',
-        'Key_TouchpadOff': 'Touchpad Off',
-        'Key_TouchpadOn': 'Touchpad On',
-        'Key_TouchpadToggle': 'Touchpad toggle',
-        'Key_Yellow': 'Yellow',
-        'Key_Alt': 'Alt',
-        'Key_AltGr': 'AltGr',
-        'Key_Control': 'Control',
-        'Key_Direction_L': 'Direction L',
-        'Key_Direction_R': 'Direction R',
-        'Key_Hyper_L': 'Hyper L',
-        'Key_Hyper_R': 'Hyper R',
-        'Key_Meta': 'Meta',
-        'Key_Shift': 'Shift',
-        'Key_Super_L': 'Super L',
-        'Key_Super_R': 'Super R',
-        'Key_unknown': 'Unknown',
-    }
-    # We now build our real special_names dict from the string mapping above.
-    # The reason we don't do this directly is that certain Qt versions don't
-    # have all the keys, so we want to ignore AttributeErrors.
-    special_names = {}
-    for k, v in special_names_str.items():
-        try:
-            special_names[getattr(Qt, k)] = v
-        except AttributeError:
-            pass
-    # Now we check if the key is any special one - if not, we use
-    # QKeySequence::toString.
-    try:
-        return special_names[key]
-    except KeyError:
-        name = QKeySequence(key).toString()
-        morphings = {
-            'Backtab': 'Tab',
-            'Esc': 'Escape',
-        }
-        if name in morphings:
-            return morphings[name]
-        else:
-            return name
-
-
-def keyevent_to_string(e):
-    """Convert a QKeyEvent to a meaningful name.
-
-    Args:
-        e: A QKeyEvent.
-
-    Return:
-        A name of the key (combination) as a string or
-        None if only modifiers are pressed..
-    """
-    if is_mac:
-        # Qt swaps Ctrl/Meta on macOS, so we switch it back here so the user
-        # can use it in the config as expected. See:
-        # https://github.com/qutebrowser/qutebrowser/issues/110
-        # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
-        modmask2str = collections.OrderedDict([
-            (Qt.MetaModifier, 'Ctrl'),
-            (Qt.AltModifier, 'Alt'),
-            (Qt.ControlModifier, 'Meta'),
-            (Qt.ShiftModifier, 'Shift'),
-        ])
-    else:
-        modmask2str = collections.OrderedDict([
-            (Qt.ControlModifier, 'Ctrl'),
-            (Qt.AltModifier, 'Alt'),
-            (Qt.MetaModifier, 'Meta'),
-            (Qt.ShiftModifier, 'Shift'),
-        ])
-    modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
-                 Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R, Qt.Key_Hyper_L,
-                 Qt.Key_Hyper_R, Qt.Key_Direction_L, Qt.Key_Direction_R)
-    if e.key() in modifiers:
-        # Only modifier pressed
-        return None
-    mod = e.modifiers()
-    parts = []
-    for (mask, s) in modmask2str.items():
-        if mod & mask and s not in parts:
-            parts.append(s)
-    parts.append(key_to_string(e.key()))
-    return normalize_keystr('+'.join(parts))
-
-
-@attr.s(repr=False)
-class KeyInfo:
-
-    """Stores information about a key, like used in a QKeyEvent.
-
-    Attributes:
-        key: Qt::Key
-        modifiers: Qt::KeyboardModifiers
-        text: str
-    """
-
-    key = attr.ib()
-    modifiers = attr.ib()
-    text = attr.ib()
-
-    def __repr__(self):
-        if self.modifiers is None:
-            modifiers = None
-        else:
-            #modifiers = qflags_key(Qt, self.modifiers)
-            modifiers = hex(int(self.modifiers))
-        return get_repr(self, constructor=True,
-                        key=debug.qenum_key(Qt, self.key),
-                        modifiers=modifiers, text=self.text)
-
-
-class KeyParseError(Exception):
-
-    """Raised by _parse_single_key/parse_keystring on parse errors."""
-
-    def __init__(self, keystr, error):
-        super().__init__("Could not parse {!r}: {}".format(keystr, error))
-
-
-def is_special_key(keystr):
-    """True if keystr is a 'special' keystring (e.g. <ctrl-x> or <space>)."""
-    return keystr.startswith('<') and keystr.endswith('>')
-
-
-def _parse_single_key(keystr):
-    """Convert a single key string to a (Qt.Key, Qt.Modifiers, text) tuple."""
-    if is_special_key(keystr):
-        # Special key
-        keystr = keystr[1:-1]
-    elif len(keystr) == 1:
-        # vim-like key
-        pass
-    else:
-        raise KeyParseError(keystr, "Expecting either a single key or a "
-                            "<Ctrl-x> like keybinding.")
-
-    seq = QKeySequence(normalize_keystr(keystr), QKeySequence.PortableText)
-    if len(seq) != 1:
-        raise KeyParseError(keystr, "Got {} keys instead of 1.".format(
-            len(seq)))
-    result = seq[0]
-
-    if result == Qt.Key_unknown:
-        raise KeyParseError(keystr, "Got unknown key.")
-
-    modifier_mask = int(Qt.ShiftModifier | Qt.ControlModifier |
-                        Qt.AltModifier | Qt.MetaModifier | Qt.KeypadModifier |
-                        Qt.GroupSwitchModifier)
-    assert Qt.Key_unknown & ~modifier_mask == Qt.Key_unknown
-
-    modifiers = result & modifier_mask
-    key = result & ~modifier_mask
-
-    if len(keystr) == 1 and keystr.isupper():
-        modifiers |= Qt.ShiftModifier
-
-    assert key != 0, key
-    key = Qt.Key(key)
-    modifiers = Qt.KeyboardModifiers(modifiers)
-
-    # Let's hope this is accurate...
-    if len(keystr) == 1 and not modifiers:
-        text = keystr
-    elif len(keystr) == 1 and modifiers == Qt.ShiftModifier:
-        text = keystr.upper()
-    else:
-        text = ''
-
-    return KeyInfo(key, modifiers, text)
-
-
-def parse_keystring(keystr):
-    """Parse a keystring like <Ctrl-x> or xyz and return a KeyInfo list."""
-    if is_special_key(keystr):
-        return [_parse_single_key(keystr)]
-    else:
-        return [_parse_single_key(char) for char in keystr]
-
-
-def normalize_keystr(keystr):
-    """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
-
-    Args:
-        keystr: The key combination as a string.
-
-    Return:
-        The normalized keystring.
-    """
-    keystr = keystr.lower()
-    replacements = (
-        ('control', 'ctrl'),
-        ('windows', 'meta'),
-        ('mod1', 'alt'),
-        ('mod4', 'meta'),
-    )
-    for (orig, repl) in replacements:
-        keystr = keystr.replace(orig, repl)
-    for mod in ['ctrl', 'meta', 'alt', 'shift']:
-        keystr = keystr.replace(mod + '-', mod + '+')
-    return keystr
 
 
 class FakeIOStream(io.TextIOBase):
@@ -915,3 +656,14 @@ def yaml_dump(data, f=None):
         return None
     else:
         return yaml_data.decode('utf-8')
+
+
+def chunk(elems, n):
+    """Yield successive n-sized chunks from elems.
+
+    If elems % n != 0, the last chunk will be smaller.
+    """
+    if n < 1:
+        raise ValueError("n needs to be at least 1!")
+    for i in range(0, len(elems), n):
+        yield elems[i:i + n]

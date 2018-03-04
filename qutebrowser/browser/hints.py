@@ -909,20 +909,27 @@ class HintManager(QObject):
 
     @cmdutils.register(instance='hintmanager', scope='tab',
                        modes=[usertypes.KeyMode.hint])
-    def follow_hint(self, keystring=None):
+    def follow_hint(self, select=False, keystring=None):
         """Follow a hint.
 
         Args:
+            select: Only select the given hint, don't necessarily follow it.
             keystring: The hint to follow, or None.
         """
         if keystring is None:
             if self._context.to_follow is None:
                 raise cmdexc.CommandError("No hint to follow")
+            elif select:
+                raise cmdexc.CommandError("Can't use --select without hint.")
             else:
                 keystring = self._context.to_follow
         elif keystring not in self._context.labels:
             raise cmdexc.CommandError("No hint {}!".format(keystring))
-        self._fire(keystring)
+
+        if select:
+            self.handle_partial_key(keystring)
+        else:
+            self._fire(keystring)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):

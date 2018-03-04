@@ -34,12 +34,11 @@ class CommandKeyParser(BaseKeyParser):
         _commandrunner: CommandRunner instance.
     """
 
-    def __init__(self, win_id, parent=None, supports_count=None,
-                 supports_chains=False):
-        super().__init__(win_id, parent, supports_count, supports_chains)
+    def __init__(self, win_id, parent=None, supports_count=None):
+        super().__init__(win_id, parent, supports_count)
         self._commandrunner = runners.CommandRunner(win_id)
 
-    def execute(self, cmdstr, _keytype, count=None):
+    def execute(self, cmdstr, count=None):
         try:
             self._commandrunner.run(cmdstr, count)
         except cmdexc.Error as e:
@@ -59,7 +58,7 @@ class PassthroughKeyParser(CommandKeyParser):
     do_log = False
     passthrough = True
 
-    def __init__(self, win_id, mode, parent=None, warn=True):
+    def __init__(self, win_id, mode, parent=None):
         """Constructor.
 
         Args:
@@ -67,11 +66,9 @@ class PassthroughKeyParser(CommandKeyParser):
             parent: Qt parent.
             warn: Whether to warn if an ignored key was bound.
         """
-        super().__init__(win_id, parent, supports_chains=False)
-        self._warn_on_keychains = warn
+        super().__init__(win_id, parent)
         self._read_config(mode)
         self._mode = mode
 
     def __repr__(self):
-        return utils.get_repr(self, mode=self._mode,
-                              warn=self._warn_on_keychains)
+        return utils.get_repr(self, mode=self._mode)

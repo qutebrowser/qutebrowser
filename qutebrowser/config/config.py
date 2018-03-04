@@ -28,6 +28,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from qutebrowser.config import configdata, configexc, configutils
 from qutebrowser.utils import utils, log, jinja
 from qutebrowser.misc import objects
+from qutebrowser.keyinput import keyutils
 
 # An easy way to access the config from other code via config.val.foo
 val = None
@@ -135,14 +136,12 @@ class KeyConfig:
     def __init__(self, config):
         self._config = config
 
-    def _prepare(self, key, mode):
-        """Make sure the given mode exists and normalize the key."""
+    def _validate(self, key, mode):
+        """Validate the given key and mode."""
+        # Catch old usage of this code
+        assert isinstance(key, keyutils.KeySequence), key
         if mode not in configdata.DATA['bindings.default'].default:
             raise configexc.KeybindingError("Invalid mode {}!".format(mode))
-        if utils.is_special_key(key):
-            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
-            return utils.normalize_keystr(key)
-        return key
 
     def get_bindings_for(self, mode):
         """Get the combined bindings for the given mode."""
@@ -158,20 +157,20 @@ class KeyConfig:
         """Get a dict of commands to a list of bindings for the mode."""
         cmd_to_keys = {}
         bindings = self.get_bindings_for(mode)
-        for key, full_cmd in sorted(bindings.items()):
+        for seq, full_cmd in sorted(bindings.items()):
             for cmd in full_cmd.split(';;'):
                 cmd = cmd.strip()
                 cmd_to_keys.setdefault(cmd, [])
-                # put special bindings last
-                if utils.is_special_key(key):
-                    cmd_to_keys[cmd].append(key)
+                # Put bindings involving modifiers last
+                if any(info.modifiers for info in seq):
+                    cmd_to_keys[cmd].append(str(seq))
                 else:
-                    cmd_to_keys[cmd].insert(0, key)
+                    cmd_to_keys[cmd].insert(0, str(seq))
         return cmd_to_keys
 
     def get_command(self, key, mode, default=False):
         """Get the command for a given key (or None)."""
-        key = self._prepare(key, mode)
+        self._validate(key, mode)
         if default:
             bindings = dict(val.bindings.default[mode])
         else:
@@ -185,23 +184,23 @@ class KeyConfig:
                 "Can't add binding '{}' with empty command in {} "
                 'mode'.format(key, mode))
 
-        key = self._prepare(key, mode)
+        self._validate(key, mode)
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
 
         bindings = self._config.get_mutable_obj('bindings.commands')
         if mode not in bindings:
             bindings[mode] = {}
-        bindings[mode][key] = command
+        bindings[mode][str(key)] = command
         self._config.update_mutables(save_yaml=save_yaml)
 
     def bind_default(self, key, *, mode='normal', save_yaml=False):
         """Restore a default keybinding."""
-        key = self._prepare(key, mode)
+        self._validate(key, mode)
 
         bindings_commands = self._config.get_mutable_obj('bindings.commands')
         try:
-            del bindings_commands[mode][key]
+            del bindings_commands[mode][str(key)]
         except KeyError:
             raise configexc.KeybindingError(
                 "Can't find binding '{}' in {} mode".format(key, mode))
@@ -209,18 +208,18 @@ class KeyConfig:
 
     def unbind(self, key, *, mode='normal', save_yaml=False):
         """Unbind the given key in the given mode."""
-        key = self._prepare(key, mode)
+        self._validate(key, mode)
 
         bindings_commands = self._config.get_mutable_obj('bindings.commands')
 
         if val.bindings.commands[mode].get(key, None) is not None:
             # In custom bindings -> remove it
-            del bindings_commands[mode][key]
+            del bindings_commands[mode][str(key)]
         elif key in val.bindings.default[mode]:
             # In default bindings -> shadow it with None
             if mode not in bindings_commands:
                 bindings_commands[mode] = {}
-            bindings_commands[mode][key] = None
+            bindings_commands[mode][str(key)] = None
         else:
             raise configexc.KeybindingError(
                 "Can't find binding '{}' in {} mode".format(key, mode))

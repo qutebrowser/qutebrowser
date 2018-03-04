@@ -27,14 +27,13 @@ import typing
 
 from PyQt5.QtWidgets import QApplication, QTabBar, QDialog
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
-from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configdata
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
-from qutebrowser.keyinput import modeman
+from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, standarddir)
 from qutebrowser.utils.usertypes import KeyMode
@@ -2112,15 +2111,13 @@ class CommandDispatcher:
             global_: If given, the keys are sent to the qutebrowser UI.
         """
         try:
-            keyinfos = utils.parse_keystring(keystring)
-        except utils.KeyParseError as e:
+            sequence = keyutils.KeySequence.parse(keystring)
+        except keyutils.KeyParseError as e:
             raise cmdexc.CommandError(str(e))
 
-        for keyinfo in keyinfos:
-            press_event = QKeyEvent(QEvent.KeyPress, keyinfo.key,
-                                    keyinfo.modifiers, keyinfo.text)
-            release_event = QKeyEvent(QEvent.KeyRelease, keyinfo.key,
-                                      keyinfo.modifiers, keyinfo.text)
+        for keyinfo in sequence:
+            press_event = keyinfo.to_event(QEvent.KeyPress)
+            release_event = keyinfo.to_event(QEvent.KeyRelease)
 
             if global_:
                 window = QApplication.focusWindow()

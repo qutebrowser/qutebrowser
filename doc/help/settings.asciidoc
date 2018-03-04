@@ -322,7 +322,7 @@ While it's possible to add bindings with this setting, it's recommended to use `
 This setting is a dictionary containing mode names and dictionaries mapping keys to commands:
 `{mode: {key: command}}`
 If you want to map a key to another key, check the `bindings.key_mappings` setting instead.
-For special keys (can't be part of a keychain), enclose them in `<`...`>`. For modifiers, you can use either `-` or `+` as delimiters, and these names:
+For modifiers, you can use either `-` or `+` as delimiters, and these names:
 
   * Control: `Control`, `Ctrl`
 
@@ -358,11 +358,8 @@ The following modes are available:
 
 * prompt: Entered when there's a prompt to display, like for download
   locations or when invoked from JavaScript.
-  +
-  You can bind normal keys in this mode, but they will be only active when
-  a yes/no-prompt is asked. For other prompt modes, you can only bind
-  special keys.
 
+* yesno: Entered when there's a yes/no prompt displayed.
 * caret: Entered when pressing the `v` mode, used to select text using the
   keyboard.
 
@@ -642,11 +639,17 @@ Default:
 * +pass:[&lt;Shift-Tab&gt;]+: +pass:[prompt-item-focus prev]+
 * +pass:[&lt;Tab&gt;]+: +pass:[prompt-item-focus next]+
 * +pass:[&lt;Up&gt;]+: +pass:[prompt-item-focus prev]+
-* +pass:[n]+: +pass:[prompt-accept no]+
-* +pass:[y]+: +pass:[prompt-accept yes]+
 - +pass:[register]+:
 
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+- +pass:[yesno]+:
+
+* +pass:[&lt;Alt-Shift-Y&gt;]+: +pass:[prompt-yank --sel]+
+* +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+
+* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+
+* +pass:[n]+: +pass:[prompt-accept no]+
+* +pass:[y]+: +pass:[prompt-accept yes]+
 
 [[bindings.key_mappings]]
 === bindings.key_mappings

@@ -71,8 +71,7 @@ def init(win_id, parent):
         KM.passthrough: keyparser.PassthroughKeyParser(win_id, 'passthrough',
                                                        modeman),
         KM.command: keyparser.PassthroughKeyParser(win_id, 'command', modeman),
-        KM.prompt: keyparser.PassthroughKeyParser(win_id, 'prompt', modeman,
-                                                  warn=False),
+        KM.prompt: keyparser.PassthroughKeyParser(win_id, 'prompt', modeman),
         KM.yesno: modeparsers.PromptKeyParser(win_id, modeman),
         KM.caret: modeparsers.CaretKeyParser(win_id, modeman),
         KM.set_mark: modeparsers.RegisterKeyParser(win_id, KM.set_mark,
@@ -158,7 +157,7 @@ class ModeManager(QObject):
         if curmode != usertypes.KeyMode.insert:
             log.modes.debug("got keypress in mode {} - delegating to "
                             "{}".format(curmode, utils.qualname(parser)))
-        handled = parser.handle(event)
+        match = parser.handle(event)
 
         is_non_alnum = (
             event.modifiers() not in [Qt.NoModifier, Qt.ShiftModifier] or
@@ -166,7 +165,7 @@ class ModeManager(QObject):
 
         forward_unbound_keys = config.val.input.forward_unbound_keys
 
-        if handled:
+        if match:
             filter_this = True
         elif (parser.passthrough or forward_unbound_keys == 'all' or
               (forward_unbound_keys == 'auto' and is_non_alnum)):
@@ -179,10 +178,10 @@ class ModeManager(QObject):
 
         if curmode != usertypes.KeyMode.insert:
             focus_widget = QApplication.instance().focusWidget()
-            log.modes.debug("handled: {}, forward_unbound_keys: {}, "
+            log.modes.debug("match: {}, forward_unbound_keys: {}, "
                             "passthrough: {}, is_non_alnum: {} --> "
                             "filter: {} (focused: {!r})".format(
-                                handled, forward_unbound_keys,
+                                match, forward_unbound_keys,
                                 parser.passthrough, is_non_alnum, filter_this,
                                 focus_widget))
         return filter_this

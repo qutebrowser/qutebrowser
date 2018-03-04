@@ -62,6 +62,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
 from qutebrowser.utils import standarddir, utils, qtutils, urlutils
+from qutebrowser.keyinput import keyutils
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -1651,6 +1652,8 @@ class Key(BaseType):
         self._basic_py_validation(value, str)
         if not value:
             return None
-        if utils.is_special_key(value):
-            value = '<{}>'.format(utils.normalize_keystr(value[1:-1]))
-        return value
+
+        try:
+            return keyutils.KeySequence.parse(value)
+        except keyutils.KeyParseError as e:
+            raise configexc.ValidationError(value, str(e))
