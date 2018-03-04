@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import operator
+
 import pytest
 from PyQt5.QtCore import Qt, QEvent, pyqtSignal
 from PyQt5.QtGui import QKeyEvent
@@ -164,40 +166,153 @@ def test_parse_keystr(keystr, parts):
     assert list(keyutils._parse_keystring(keystr)) == parts
 
 
-@pytest.mark.parametrize('keystr, expected', [
-    ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
-    ('<Meta-x>', keyutils.KeySequence(Qt.MetaModifier | Qt.Key_X)),
-    ('<Ctrl-Alt-y>',
-     keyutils.KeySequence(Qt.ControlModifier | Qt.AltModifier | Qt.Key_Y)),
-    ('x', keyutils.KeySequence(Qt.Key_X)),
-    ('X', keyutils.KeySequence(Qt.ShiftModifier | Qt.Key_X)),
-    ('<Escape>', keyutils.KeySequence(Qt.Key_Escape)),
-    ('xyz', keyutils.KeySequence(Qt.Key_X, Qt.Key_Y, Qt.Key_Z)),
-    ('<Control-x><Meta-y>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X,
-                                                 Qt.MetaModifier | Qt.Key_Y)),
-    ('<blub>', keyutils.KeyParseError),
-    ('\U00010000', keyutils.KeyParseError),
-])
-def test_parse(keystr, expected):
-    if expected is keyutils.KeyParseError:
+class TestKeySequence:
+
+    def test_init(self):
+        seq = keyutils.KeySequence(Qt.Key_A, Qt.Key_B, Qt.Key_C, Qt.Key_D,
+                                   Qt.Key_E)
+        assert len(seq._sequences) == 2
+        assert len(seq._sequences[0]) == 4
+        assert len(seq._sequences[1]) == 1
+
+    def test_init_empty(self):
+        seq = keyutils.KeySequence()
+        assert not seq
+
+    def test_init_unknown(self):
         with pytest.raises(keyutils.KeyParseError):
-            keyutils.KeySequence.parse(keystr)
-    else:
-        assert keyutils.KeySequence.parse(keystr) == expected
+            keyutils.KeySequence(Qt.Key_unknown)
+
+    def test_init_invalid(self):
+        with pytest.raises(AssertionError):
+            keyutils.KeySequence(-1)
+
+    @pytest.mark.parametrize('orig, normalized', [
+        ('<Control+x>', '<Ctrl+x>'),
+        ('<Windows+x>', '<Meta+x>'),
+        ('<Mod1+x>', '<Alt+x>'),
+        ('<Mod4+x>', '<Meta+x>'),
+        ('<Control-->', '<Ctrl+->'),
+        ('<Windows++>', '<Meta++>'),
+        ('<ctrl-x>', '<Ctrl+x>'),
+        ('<control+x>', '<Ctrl+x>'),
+        ('<a>b', 'ab'),
+    ])
+    def test_str_normalization(self, orig, normalized):
+        assert str(keyutils.KeySequence.parse(orig)) == normalized
+
+    def test_iter(self):
+        seq = keyutils.KeySequence(Qt.Key_A | Qt.ControlModifier,
+                                   Qt.Key_B | Qt.ShiftModifier,
+                                   Qt.Key_C,
+                                   Qt.Key_D,
+                                   Qt.Key_E)
+        expected = [keyutils.KeyInfo(Qt.Key_A, Qt.ControlModifier),
+                    keyutils.KeyInfo(Qt.Key_B, Qt.ShiftModifier),
+                    keyutils.KeyInfo(Qt.Key_C, Qt.NoModifier),
+                    keyutils.KeyInfo(Qt.Key_D, Qt.NoModifier),
+                    keyutils.KeyInfo(Qt.Key_E, Qt.NoModifier)]
+        assert list(seq) == expected
+
+    def test_repr(self):
+        seq = keyutils.KeySequence(Qt.Key_A | Qt.ControlModifier,
+                                   Qt.Key_B | Qt.ShiftModifier)
+        assert repr(seq) == ("<qutebrowser.keyinput.keyutils.KeySequence "
+                             "keys='<Ctrl+a>B'>")
+
+    @pytest.mark.parametrize('sequences, expected', [
+        (['a', ''], ['', 'a']),
+        (['abcdf', 'abcd', 'abcde'], ['abcd', 'abcde', 'abcdf']),
+    ])
+    def test_sorting(self, sequences, expected):
+        result = sorted(keyutils.KeySequence.parse(seq) for seq in sequences)
+        expected_result = [keyutils.KeySequence.parse(seq) for seq in expected]
+        assert result == expected_result
+
+    @pytest.mark.parametrize('seq1, seq2, op, result', [
+        ('a', 'a', operator.eq, True),
+        ('a', '<a>', operator.eq, True),
+        ('a', '<Shift-a>', operator.eq, False),
+        ('a', 'b', operator.lt, True),
+        ('a', 'b', operator.le, True),
+    ])
+    def test_operators(self, seq1, seq2, op, result):
+        seq1 = keyutils.KeySequence.parse(seq1)
+        seq2 = keyutils.KeySequence.parse(seq2)
+        assert op(seq1, seq2) == result
+
+        opposite = {
+            operator.lt: operator.ge,
+            operator.gt: operator.le,
+            operator.le: operator.gt,
+            operator.ge: operator.lt,
+            operator.eq: operator.ne,
+            operator.ne: operator.eq,
+        }
+        assert opposite[op](seq1, seq2) != result
+
+    @pytest.mark.parametrize('seq1, seq2, equal', [
+        ('a', 'a', True),
+        ('a', 'A', False),
+        ('a', '<a>', True),
+        ('abcd', 'abcde', False),
+    ])
+    def test_hash(self, seq1, seq2, equal):
+        seq1 = keyutils.KeySequence.parse(seq1)
+        seq2 = keyutils.KeySequence.parse(seq2)
+        assert (hash(seq1) == hash(seq2)) == equal
+
+    @pytest.mark.parametrize('seq, length', [
+        ('', 0),
+        ('a', 1),
+        ('A', 1),
+        ('<Ctrl-a>', 1),
+        ('abcde', 5)
+    ])
+    def test_len(self, seq, length):
+        assert len(keyutils.KeySequence.parse(seq)) == length
+
+    def test_bool(self):
+        seq1 = keyutils.KeySequence.parse('abcd')
+        seq2 = keyutils.KeySequence()
+        assert seq1
+        assert not seq2
+
+    def test_getitem(self):
+        seq = keyutils.KeySequence.parse('ab')
+        expected = keyutils.KeyInfo(Qt.Key_B, Qt.NoModifier)
+        assert seq[1] == expected
+
+    def test_getitem_slice(self):
+        s1 = 'abcdef'
+        s2 = 'de'
+        seq = keyutils.KeySequence.parse(s1)
+        expected = keyutils.KeySequence.parse(s2)
+        assert s1[3:5] == s2
+        assert seq[3:5] == expected
 
 
-@pytest.mark.parametrize('orig, normalized', [
-    ('<Control+x>', '<Ctrl+x>'),
-    ('<Windows+x>', '<Meta+x>'),
-    ('<Mod1+x>', '<Alt+x>'),
-    ('<Mod4+x>', '<Meta+x>'),
-    ('<Control-->', '<Ctrl+->'),
-    ('<Windows++>', '<Meta++>'),
-    ('<ctrl-x>', '<Ctrl+x>'),
-    ('<control+x>', '<Ctrl+x>')
-])
-def test_normalize_keystr(orig, normalized):
-    assert str(keyutils.KeySequence.parse(orig)) == normalized
+    @pytest.mark.parametrize('keystr, expected', [
+        ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
+        ('<Meta-x>', keyutils.KeySequence(Qt.MetaModifier | Qt.Key_X)),
+        ('<Ctrl-Alt-y>',
+        keyutils.KeySequence(Qt.ControlModifier | Qt.AltModifier | Qt.Key_Y)),
+        ('x', keyutils.KeySequence(Qt.Key_X)),
+        ('X', keyutils.KeySequence(Qt.ShiftModifier | Qt.Key_X)),
+        ('<Escape>', keyutils.KeySequence(Qt.Key_Escape)),
+        ('xyz', keyutils.KeySequence(Qt.Key_X, Qt.Key_Y, Qt.Key_Z)),
+        ('<Control-x><Meta-y>',
+         keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X,
+                              Qt.MetaModifier | Qt.Key_Y)),
+        ('<blub>', keyutils.KeyParseError),
+        ('\U00010000', keyutils.KeyParseError),
+    ])
+    def test_parse(self, keystr, expected):
+        if expected is keyutils.KeyParseError:
+            with pytest.raises(keyutils.KeyParseError):
+                keyutils.KeySequence.parse(keystr)
+        else:
+            assert keyutils.KeySequence.parse(keystr) == expected
 
 
 def test_key_info_from_event():
