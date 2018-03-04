@@ -151,7 +151,7 @@ def _parse_keystring(keystr):
     for c in keystr:
         if c == '>':
             if special:
-                yield _normalize_keystr(key)
+                yield _parse_special_key(key)
                 key = ''
                 special = False
             else:
@@ -162,14 +162,14 @@ def _parse_keystring(keystr):
         elif special:
             key += c
         else:
-            yield 'Shift+' + c if c.isupper() else c
+            yield _parse_single_key(c)
     if special:
         yield '<'
         for c in key:
-            yield 'Shift+' + c if c.isupper() else c
+            yield _parse_single_key(c)
 
 
-def _normalize_keystr(keystr):
+def _parse_special_key(keystr):
     """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
 
     Args:
@@ -187,9 +187,15 @@ def _normalize_keystr(keystr):
     )
     for (orig, repl) in replacements:
         keystr = keystr.replace(orig, repl)
+
     for mod in ['ctrl', 'meta', 'alt', 'shift']:
         keystr = keystr.replace(mod + '-', mod + '+')
     return keystr
+
+
+def _parse_single_key(keystr):
+    """Get a keystring for QKeySequence for a single key."""
+    return 'Shift+' + keystr if keystr.isupper() else keystr
 
 
 @attr.s
