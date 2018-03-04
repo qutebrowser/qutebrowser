@@ -185,6 +185,12 @@ class TestHandle:
         keyparser.execute.assert_called_once_with('message-info 0', None)
         assert not keyparser._sequence
 
+    def test_umlauts(self, handle_text, keyparser, config_stub):
+        config_stub.val.bindings.commands = {'normal': {'ü': 'message-info ü'}}
+        keyparser._read_config('normal')
+        handle_text(Qt.Key_Udiaeresis)
+        keyparser.execute.assert_called_once_with('message-info ü', None)
+
     def test_mapping(self, config_stub, handle_text, keyparser):
         handle_text(Qt.Key_X)
         keyparser.execute.assert_called_once_with('message-info a', None)
