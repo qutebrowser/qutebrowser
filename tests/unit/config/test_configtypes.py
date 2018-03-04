@@ -2061,13 +2061,16 @@ class TestKey:
     @pytest.mark.parametrize('val, expected', [
         ('gC', keyutils.KeySequence.parse('gC')),
         ('<Control-x>', keyutils.KeySequence.parse('<ctrl+x>')),
+        ('<alt-1>', keyutils.KeySequence.parse('<alt+1>')),
+        ('0', keyutils.KeySequence.parse('0')),
     ])
     def test_to_py_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
 
-    def test_to_py_invalid(self, klass):
+    @pytest.mark.parametrize('val', ['\U00010000', '<blub>', '1', 'a1'])
+    def test_to_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            klass().to_py('\U00010000')
+            klass().to_py(val)
 
 
 @pytest.mark.parametrize('first, second, equal', [

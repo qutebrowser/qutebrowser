@@ -1654,6 +1654,13 @@ class Key(BaseType):
             return None
 
         try:
-            return keyutils.KeySequence.parse(value)
+            seq = keyutils.KeySequence.parse(value)
         except keyutils.KeyParseError as e:
             raise configexc.ValidationError(value, str(e))
+
+        for info in seq:
+            if Qt.Key_1 <= info.key <= Qt.Key_9 and not info.modifiers:
+                raise configexc.ValidationError(
+                    value, "Numbers are reserved for counts!")
+
+        return seq
