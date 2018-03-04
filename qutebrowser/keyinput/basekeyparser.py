@@ -102,14 +102,17 @@ class BaseKeyParser(QObject):
         """
         assert sequence
         assert not isinstance(sequence, str)
+        result = QKeySequence.NoMatch
 
         for seq, cmd in self.bindings.items():
             assert not isinstance(seq, str), seq
             match = sequence.matches(seq)
-            if match != QKeySequence.NoMatch:
+            if match == QKeySequence.ExactMatch:
                 return (match, cmd)
+            elif match == QKeySequence.PartialMatch:
+                result = QKeySequence.PartialMatch
 
-        return (QKeySequence.NoMatch, None)
+        return (result, None)
 
     def handle(self, e):
         """Handle a new keypress.

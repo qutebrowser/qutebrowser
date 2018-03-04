@@ -203,6 +203,19 @@ class TestHandle:
 
         keyparser.execute.assert_called_once_with('yank -s', None)
 
+    def test_partial_before_full_match(self, keyparser, fake_keyevent,
+                                       config_stub):
+        """Make sure full matches always take precedence over partial ones."""
+        config_stub.val.bindings.commands = {
+            'normal': {
+                'ab': 'message-info bar',
+                'a': 'message-info foo'
+            }
+        }
+        keyparser._read_config('normal')
+        keyparser.handle(fake_keyevent(Qt.Key_A))
+        keyparser.execute.assert_called_once_with('message-info foo', None)
+
 
 class TestCount:
 
