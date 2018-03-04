@@ -164,7 +164,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
         Return:
             A QKeySequence match.
         """
-        log.keyboard.debug("Got special key 0x{:x} text {}".format(
+        log.keyboard.debug("Got filter key 0x{:x} text {}".format(
             e.key(), e.text()))
         hintmanager = objreg.get('hintmanager', scope='tab',
                                  window=self._win_id, tab='current')

@@ -2490,7 +2490,6 @@ bindings.commands:
     If you want to map a key to another key, check the `bindings.key_mappings`
     setting instead.
 
-    For special keys (can't be part of a keychain), enclose them in `<`...`>`.
     For modifiers, you can use either `-` or `+` as delimiters, and these
     names:
 

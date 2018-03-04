@@ -322,7 +322,7 @@ While it's possible to add bindings with this setting, it's recommended to use `
 This setting is a dictionary containing mode names and dictionaries mapping keys to commands:
 `{mode: {key: command}}`
 If you want to map a key to another key, check the `bindings.key_mappings` setting instead.
-For special keys (can't be part of a keychain), enclose them in `<`...`>`. For modifiers, you can use either `-` or `+` as delimiters, and these names:
+For modifiers, you can use either `-` or `+` as delimiters, and these names:
 
   * Control: `Control`, `Ctrl`
 

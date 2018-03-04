@@ -137,7 +137,8 @@ class ConfigCommands:
         Using :bind without any arguments opens a page showing all keybindings.
 
         Args:
-            key: The keychain or special key (inside `<...>`) to bind.
+            key: The keychain to bind. Examples of valid keychains are `gC`,
+                 `<Ctrl-X>` or `<Ctrl-C>a`.
             command: The command to execute, with optional args.
             mode: A comma-separated list of modes to bind the key in
                   (default: `normal`). See `:help bindings.commands` for the
@@ -178,7 +179,8 @@ class ConfigCommands:
         """Unbind a keychain.
 
         Args:
-            key: The keychain or special key (inside <...>) to unbind.
+            key: The keychain to unbind. See the help for `:bind` for the
+                  correct syntax for keychains.
             mode: A mode to unbind the key in (default: `normal`).
                   See `:help bindings.commands` for the available modes.
         """
