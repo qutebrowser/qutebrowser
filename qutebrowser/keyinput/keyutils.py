@@ -184,6 +184,8 @@ def _parse_special_key(keystr):
         ('windows', 'meta'),
         ('mod1', 'alt'),
         ('mod4', 'meta'),
+        ('less', '<'),
+        ('greater', '>'),
     )
     for (orig, repl) in replacements:
         keystr = keystr.replace(orig, repl)

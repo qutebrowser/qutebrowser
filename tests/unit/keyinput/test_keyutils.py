@@ -355,6 +355,20 @@ class TestKeySequence:
         ('<Control-x><Meta-y>',
          keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X,
                               Qt.MetaModifier | Qt.Key_Y)),
+
+        ('>', keyutils.KeySequence(Qt.Key_Greater)),
+        ('<', keyutils.KeySequence(Qt.Key_Less)),
+        ('a>', keyutils.KeySequence(Qt.Key_A, Qt.Key_Greater)),
+        ('a<', keyutils.KeySequence(Qt.Key_A, Qt.Key_Less)),
+        ('>a', keyutils.KeySequence(Qt.Key_Greater, Qt.Key_A)),
+        ('<a', keyutils.KeySequence(Qt.Key_Less, Qt.Key_A)),
+        ('<alt+greater>',
+         keyutils.KeySequence(Qt.Key_Greater | Qt.AltModifier)),
+        ('<alt+less>',
+         keyutils.KeySequence(Qt.Key_Less | Qt.AltModifier)),
+
+        ('<alt+<>', keyutils.KeyParseError),
+        ('<alt+>>', keyutils.KeyParseError),
         ('<blub>', keyutils.KeyParseError),
         ('\U00010000', keyutils.KeyParseError),
     ])
