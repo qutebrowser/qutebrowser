@@ -86,6 +86,8 @@ PERFECT_FILES = [
 
     ('tests/unit/keyinput/test_basekeyparser.py',
      'keyinput/basekeyparser.py'),
+    ('tests/unit/keyinput/test_keyutils.py',
+     'keyinput/keyutils.py'),
 
     ('tests/unit/misc/test_autoupdate.py',
      'misc/autoupdate.py'),

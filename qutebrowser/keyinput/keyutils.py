@@ -391,7 +391,7 @@ class KeySequence:
             return QKeySequence.ExactMatch
         elif len(self._sequences) < len(other._sequences):
             return QKeySequence.PartialMatch
-        else:
+        else:  # pragma: no cover
             assert False, (self, other)
 
     def append_event(self, ev):

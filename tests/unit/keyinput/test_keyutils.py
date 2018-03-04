@@ -320,6 +320,30 @@ class TestKeySequence:
         configured = keyutils.KeySequence.parse(configured)
         assert entered.matches(configured) == expected
 
+    @pytest.mark.parametrize('old, key, modifiers, text, expected', [
+        ('a', Qt.Key_B, Qt.NoModifier, 'b', 'ab'),
+        ('a', Qt.Key_B, Qt.ShiftModifier, 'B', 'aB'),
+        ('a', Qt.Key_B, Qt.ControlModifier | Qt.ShiftModifier, 'B',
+         'a<Ctrl+Shift+b>'),
+
+        # Modifier stripping with symbols
+        ('', Qt.Key_Colon, Qt.NoModifier, ':', ':'),
+        ('', Qt.Key_Colon, Qt.ShiftModifier, ':', ':'),
+        ('', Qt.Key_Colon, Qt.ControlModifier | Qt.ShiftModifier, ':',
+         '<Ctrl+Shift+:>'),
+
+        # Handling of Backtab
+        ('', Qt.Key_Backtab, Qt.NoModifier, '', '<Backtab>'),
+        ('', Qt.Key_Backtab, Qt.ShiftModifier, '', '<Shift+Tab>'),
+        ('', Qt.Key_Backtab, Qt.ControlModifier | Qt.ShiftModifier, '',
+         '<Control+Shift+Tab>'),
+    ])
+    def test_append_event(self, old, key, modifiers, text, expected):
+        seq = keyutils.KeySequence.parse(old)
+        event = QKeyEvent(QKeyEvent.KeyPress, key, modifiers, text)
+        new = seq.append_event(event)
+        assert new == keyutils.KeySequence.parse(expected)
+
     @pytest.mark.parametrize('keystr, expected', [
         ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
         ('<Meta-x>', keyutils.KeySequence(Qt.MetaModifier | Qt.Key_X)),
