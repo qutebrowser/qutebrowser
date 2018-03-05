@@ -444,7 +444,6 @@ def test_key_info_to_event():
     (Qt.Key_Return, False),
     (Qt.Key_Enter, False),
     (Qt.Key_Space, False),
-    (Qt.Key_X | Qt.ControlModifier, False),  # Wrong usage
     (0x0, False),  # Used by Qt for unknown keys
 
     (Qt.Key_ydiaeresis, True),
@@ -461,3 +460,16 @@ def test_is_printable(key, printable):
 ])
 def test_is_modifier_key(key, ismodifier):
     assert keyutils.is_modifier_key(key) == ismodifier
+
+
+@pytest.mark.parametrize('code', [
+    lambda a: keyutils._assert_plain_key(a),
+    lambda a: keyutils._assert_plain_modifier(a),
+    lambda a: keyutils.is_printable(a),
+    lambda a: keyutils.is_modifier_key(a),
+    lambda a: keyutils._key_to_string(a),
+    lambda a: keyutils._modifiers_to_string(a),
+])
+def test_non_plain(code):
+    with pytest.raises(AssertionError):
+        code(Qt.Key_X | Qt.ControlModifier)

@@ -38,7 +38,18 @@ _MODIFIER_MAP = {
 }
 
 
+def _assert_plain_key(key):
+    """Make sure this is a key without KeyboardModifiers mixed in."""
+    assert not key & Qt.KeyboardModifierMask, hex(key)
+
+
+def _assert_plain_modifier(key):
+    """Make sure this is a modifier without a key mixed in."""
+    assert not key & ~Qt.KeyboardModifierMask, hex(key)
+
+
 def is_printable(key):
+    _assert_plain_key(key)
     return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
 
@@ -48,6 +59,7 @@ def is_modifier_key(key):
     This only considers keys which are part of Qt::KeyboardModifiers, i.e.
     which would interrupt a key chain like "yY" when handled.
     """
+    _assert_plain_key(key)
     return key in _MODIFIER_MAP
 
 
@@ -73,6 +85,7 @@ def _key_to_string(key):
     Return:
         A name of the key as a string.
     """
+    _assert_plain_key(key)
     special_names_str = {
         # Some keys handled in a weird way by QKeySequence::toString.
         # See https://bugreports.qt.io/browse/QTBUG-40030
@@ -155,6 +168,7 @@ def _modifiers_to_string(modifiers):
     Handles Qt.GroupSwitchModifier because Qt doesn't handle that as a
     modifier.
     """
+    _assert_plain_modifier(modifiers)
     if modifiers & Qt.GroupSwitchModifier:
         modifiers &= ~Qt.GroupSwitchModifier
         result = 'AltGr+'
@@ -445,6 +459,9 @@ class KeySequence:
         """Create a new KeySequence object with the given QKeyEvent added."""
         key = ev.key()
         modifiers = ev.modifiers()
+
+        _assert_plain_key(key)
+        _assert_plain_modifier(modifiers)
 
         if key == 0x0:
             raise KeyParseError(None, "Got nil key!")
