@@ -648,6 +648,8 @@ class TestModuleVersions:
             name: The name of the module to check.
             has_version: Whether a __version__ attribute is expected.
         """
+        if name == 'cssutils':
+            pytest.importorskip(name)
         module = importlib.import_module(name)
         assert hasattr(module, '__version__') == has_version
 
