@@ -147,8 +147,8 @@ class BaseKeyParser(QObject):
 
         try:
             sequence = self._sequence.append_event(e)
-        except keyutils.KeyParseError as e:
-            self._debug_log("{} Aborting keychain.".format(e))
+        except keyutils.KeyParseError as ex:
+            self._debug_log("{} Aborting keychain.".format(ex))
             self.clear_keystring()
             return QKeySequence.NoMatch
 
