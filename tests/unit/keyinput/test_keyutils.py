@@ -462,14 +462,14 @@ def test_is_modifier_key(key, ismodifier):
     assert keyutils.is_modifier_key(key) == ismodifier
 
 
-@pytest.mark.parametrize('code', [
-    lambda a: keyutils._assert_plain_key(a),
-    lambda a: keyutils._assert_plain_modifier(a),
-    lambda a: keyutils.is_printable(a),
-    lambda a: keyutils.is_modifier_key(a),
-    lambda a: keyutils._key_to_string(a),
-    lambda a: keyutils._modifiers_to_string(a),
+@pytest.mark.parametrize('func', [
+    keyutils._assert_plain_key,
+    keyutils._assert_plain_modifier,
+    keyutils.is_printable,
+    keyutils.is_modifier_key,
+    keyutils._key_to_string,
+    keyutils._modifiers_to_string,
 ])
-def test_non_plain(code):
+def test_non_plain(func):
     with pytest.raises(AssertionError):
-        code(Qt.Key_X | Qt.ControlModifier)
+        func(Qt.Key_X | Qt.ControlModifier)
