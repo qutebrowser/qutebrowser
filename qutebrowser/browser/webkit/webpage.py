@@ -22,6 +22,7 @@
 import html
 import functools
 
+import sip
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
@@ -302,6 +303,10 @@ class BrowserPage(QWebPage):
         Args:
             frame: The QWebFrame to inject the user scripts into.
         """
+        if sip.isdeleted(frame):
+            log.greasemonkey.debug("_inject_userjs called for deleted frame!")
+            return
+
         url = frame.url()
         if url.isEmpty():
             url = frame.requestedUrl()
