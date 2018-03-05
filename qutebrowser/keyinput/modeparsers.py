@@ -59,11 +59,13 @@ class NormalKeyParser(keyparser.CommandKeyParser):
     def __repr__(self):
         return utils.get_repr(self)
 
-    def handle(self, e):
+    def handle(self, e, *, dry_run=False):
         """Override to abort if the key is a startchar.
 
         Args:
             e: the KeyPressEvent from Qt.
+            dry_run: Don't actually execute anything, only check whether there
+                     would be a match.
 
         Return:
             A self.Match member.
@@ -74,9 +76,9 @@ class NormalKeyParser(keyparser.CommandKeyParser):
                             "currently inhibited.".format(txt))
             return QKeySequence.NoMatch
 
-        match = super().handle(e)
+        match = super().handle(e, dry_run=dry_run)
 
-        if match == QKeySequence.PartialMatch:
+        if match == QKeySequence.PartialMatch and not dry_run:
             timeout = config.val.input.partial_timeout
             if timeout != 0:
                 self._partial_timer.setInterval(timeout)
@@ -198,16 +200,21 @@ class HintKeyParser(keyparser.CommandKeyParser):
             self._last_press = LastPress.filtertext
             return QKeySequence.ExactMatch
 
-    def handle(self, e):
+    def handle(self, e, *, dry_run=False):
         """Handle a new keypress and call the respective handlers.
 
         Args:
             e: the KeyPressEvent from Qt
+            dry_run: Don't actually execute anything, only check whether there
+                     would be a match.
 
         Returns:
             True if the match has been handled, False otherwise.
         """
-        match = super().handle(e)
+        match = super().handle(e, dry_run=dry_run)
+        if dry_run:
+            return match
+
         if match == QKeySequence.PartialMatch:
             self._last_press = LastPress.keystring
         elif match == QKeySequence.ExactMatch:
@@ -267,17 +274,19 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
         self._mode = mode
         self._read_config('register')
 
-    def handle(self, e):
+    def handle(self, e, *, dry_run=False):
         """Override handle to always match the next key and use the register.
 
         Args:
             e: the KeyPressEvent from Qt.
+            dry_run: Don't actually execute anything, only check whether there
+                     would be a match.
 
         Return:
             True if event has been handled, False otherwise.
         """
-        match = super().handle(e)
-        if match:
+        match = super().handle(e, dry_run=dry_run)
+        if match or dry_run:
             return match
 
         if not keyutils.is_printable(e.key()):

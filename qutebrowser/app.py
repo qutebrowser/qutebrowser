@@ -882,6 +882,7 @@ class EventFilter(QObject):
         self._handlers = {
             QEvent.KeyPress: self._handle_key_event,
             QEvent.KeyRelease: self._handle_key_event,
+            QEvent.ShortcutOverride: self._handle_key_event,
         }
 
     def _handle_key_event(self, event):

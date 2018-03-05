@@ -143,11 +143,12 @@ class ModeManager(QObject):
     def __repr__(self):
         return utils.get_repr(self, mode=self.mode)
 
-    def _eventFilter_keypress(self, event):
+    def _eventFilter_keypress(self, event, *, dry_run=False):
         """Handle filtering of KeyPress events.
 
         Args:
             event: The KeyPress to examine.
+            dry_run: Don't actually handle the key, only filter it.
 
         Return:
             True if event should be filtered, False otherwise.
@@ -157,7 +158,7 @@ class ModeManager(QObject):
         if curmode != usertypes.KeyMode.insert:
             log.modes.debug("got keypress in mode {} - delegating to "
                             "{}".format(curmode, utils.qualname(parser)))
-        match = parser.handle(event)
+        match = parser.handle(event, dry_run=dry_run)
 
         is_non_alnum = (
             event.modifiers() not in [Qt.NoModifier, Qt.ShiftModifier] or
@@ -173,17 +174,17 @@ class ModeManager(QObject):
         else:
             filter_this = True
 
-        if not filter_this:
+        if not filter_this and not dry_run:
             self._releaseevents_to_pass.add(KeyEvent.from_event(event))
 
         if curmode != usertypes.KeyMode.insert:
             focus_widget = QApplication.instance().focusWidget()
             log.modes.debug("match: {}, forward_unbound_keys: {}, "
-                            "passthrough: {}, is_non_alnum: {} --> "
-                            "filter: {} (focused: {!r})".format(
+                            "passthrough: {}, is_non_alnum: {}, dry_run: {} "
+                            "--> filter: {} (focused: {!r})".format(
                                 match, forward_unbound_keys,
-                                parser.passthrough, is_non_alnum, filter_this,
-                                focus_widget))
+                                parser.passthrough, is_non_alnum, dry_run,
+                                filter_this, focus_widget))
         return filter_this
 
     def _eventFilter_keyrelease(self, event):
@@ -320,6 +321,8 @@ class ModeManager(QObject):
         handlers = {
             QEvent.KeyPress: self._eventFilter_keypress,
             QEvent.KeyRelease: self._eventFilter_keyrelease,
+            QEvent.ShortcutOverride:
+                functools.partial(self._eventFilter_keypress, dry_run=True),
         }
         handler = handlers[event.type()]
         return handler(event)
