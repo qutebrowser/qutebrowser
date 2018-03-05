@@ -203,14 +203,14 @@ class TestKeySequence:
         seq = keyutils.KeySequence()
         assert not seq
 
-    def test_init_unknown(self):
+    @pytest.mark.parametrize('key', [Qt.Key_unknown, -1])
+    def test_init_unknown(self, key):
         with pytest.raises(keyutils.KeyParseError):
-            keyutils.KeySequence(Qt.Key_unknown)
+            keyutils.KeySequence(key)
 
-    @pytest.mark.parametrize('key', [0, -1])
-    def test_init_invalid(self, key):
+    def test_init_invalid(self):
         with pytest.raises(AssertionError):
-            keyutils.KeySequence(-1)
+            keyutils.KeySequence(0)
 
     @pytest.mark.parametrize('orig, normalized', [
         ('<Control+x>', '<Ctrl+x>'),
