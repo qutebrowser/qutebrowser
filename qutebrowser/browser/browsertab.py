@@ -732,8 +732,9 @@ class AbstractTab(QWidget):
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         """Handle common acceptNavigationRequest code."""
+        url = utils.elide(navigation.url.toDisplayString(), 100)
         log.webview.debug("navigation request: url {}, type {}, is_main_frame "
-                          "{}".format(navigation.url.toDisplayString(),
+                          "{}".format(url,
                                       navigation.navigation_type,
                                       navigation.is_main_frame))
 
