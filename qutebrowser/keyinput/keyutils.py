@@ -231,6 +231,10 @@ class KeyInfo:
             modifiers &= ~_MODIFIER_MAP[self.key]
         elif is_printable(self.key):
             # "normal" binding
+            if not key_string:
+                raise ValueError("Got empty string for key 0x{:x}!"
+                                 .format(self.key))
+
             assert len(key_string) == 1, key_string
             if self.modifiers == Qt.ShiftModifier:
                 return key_string.upper()
