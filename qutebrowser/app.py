@@ -900,7 +900,7 @@ class EventFilter(QObject):
             return False
         try:
             man = objreg.get('mode-manager', scope='window', window='current')
-            return man.eventFilter(event)
+            return man.handle_event(event)
         except objreg.RegistryUnavailableError:
             # No window available yet, or not a MainWindow
             return False

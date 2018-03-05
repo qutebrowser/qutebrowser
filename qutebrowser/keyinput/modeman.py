@@ -143,7 +143,7 @@ class ModeManager(QObject):
     def __repr__(self):
         return utils.get_repr(self, mode=self.mode)
 
-    def _eventFilter_keypress(self, event, *, dry_run=False):
+    def _handle_keypress(self, event, *, dry_run=False):
         """Handle filtering of KeyPress events.
 
         Args:
@@ -187,7 +187,7 @@ class ModeManager(QObject):
                                 filter_this, focus_widget))
         return filter_this
 
-    def _eventFilter_keyrelease(self, event):
+    def _handle_keyrelease(self, event):
         """Handle filtering of KeyRelease events.
 
         Args:
@@ -303,7 +303,7 @@ class ModeManager(QObject):
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode, 'leave current')
 
-    def eventFilter(self, event):
+    def handle_event(self, event):
         """Filter all events based on the currently set mode.
 
         Also calls the real keypress handler.
@@ -319,10 +319,10 @@ class ModeManager(QObject):
             return False
 
         handlers = {
-            QEvent.KeyPress: self._eventFilter_keypress,
-            QEvent.KeyRelease: self._eventFilter_keyrelease,
+            QEvent.KeyPress: self._handle_keypress,
+            QEvent.KeyRelease: self._handle_keyrelease,
             QEvent.ShortcutOverride:
-                functools.partial(self._eventFilter_keypress, dry_run=True),
+                functools.partial(self._handle_keypress, dry_run=True),
         }
         handler = handlers[event.type()]
         return handler(event)

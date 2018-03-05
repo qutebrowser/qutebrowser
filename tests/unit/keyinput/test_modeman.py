@@ -54,4 +54,4 @@ def modeman(mode_manager):
 def test_non_alphanumeric(key, modifiers, filtered, fake_keyevent, modeman):
     """Make sure non-alphanumeric keys are passed through correctly."""
     evt = fake_keyevent(key=key, modifiers=modifiers)
-    assert modeman.eventFilter(evt) == filtered
+    assert modeman.handle_event(evt) == filtered
