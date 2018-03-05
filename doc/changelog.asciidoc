@@ -101,6 +101,7 @@ Fixed
   second result when pressing Enter.
 - QtWebEngine: Keys like `Ctrl-V` or `Shift-Insert` are now correctly
   handled/filtered with Qt 5.10.
+- QtWebEngine: Fixed hangs/segfaults on exit with Qt 5.10.1.
 - QtWebKit: `:view-source` now displays a valid URL.
 - URLs containing ampersands and other special chars are now shown
   correctly when filtering them in the completion.
