@@ -34,7 +34,7 @@ class FakeKeyparser(QObject):
         super().__init__()
         self.passthrough = False
 
-    def handle(self, evt):
+    def handle(self, evt, *, dry_run=False):
         return False
 
 
