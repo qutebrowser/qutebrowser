@@ -51,6 +51,19 @@ def is_modifier_key(key):
     return key in _MODIFIER_MAP
 
 
+def _check_valid_utf8(s, data):
+    """Make sure the given string is valid UTF-8.
+
+    Makes sure there are no chars where Qt did fall back to weird UTF-16
+    surrogates.
+    """
+    try:
+        s.encode('utf-8')
+    except UnicodeEncodeError as e:  # pragma: no cover
+        raise ValueError("Invalid encoding in 0x{:x} -> {}: {}"
+                         .format(data, s, e))
+
+
 def _key_to_string(key):
     """Convert a Qt::Key member to a meaningful name.
 
@@ -131,7 +144,27 @@ def _key_to_string(key):
     if key in special_names:
         return special_names[key]
 
-    return QKeySequence(key).toString()
+    result = QKeySequence(key).toString()
+    _check_valid_utf8(result, key)
+    return result
+
+
+def _modifiers_to_string(modifiers):
+    """Convert the given Qt::KeyboardModifiers to a string.
+
+    Handles Qt.GroupSwitchModifier because Qt doesn't handle that as a
+    modifier.
+    """
+    if modifiers & Qt.GroupSwitchModifier:
+        modifiers &= ~Qt.GroupSwitchModifier
+        result = 'AltGr+'
+    else:
+        result = ''
+
+    result += QKeySequence(modifiers).toString()
+
+    _check_valid_utf8(result, modifiers)
+    return result
 
 
 class KeyParseError(Exception):
@@ -191,7 +224,7 @@ def _parse_special_key(keystr):
     for (orig, repl) in replacements:
         keystr = keystr.replace(orig, repl)
 
-    for mod in ['ctrl', 'meta', 'alt', 'shift']:
+    for mod in ['ctrl', 'meta', 'alt', 'shift', 'num']:
         keystr = keystr.replace(mod + '-', mod + '+')
     return keystr
 
@@ -246,7 +279,7 @@ class KeyInfo:
                 key_string = key_string.lower()
 
         # "special" binding
-        modifier_string = QKeySequence(modifiers).toString()
+        modifier_string = _modifiers_to_string(modifiers)
         return '<{}{}>'.format(modifier_string, key_string)
 
     def text(self):
@@ -411,33 +444,32 @@ class KeySequence:
             raise utils.Unreachable("self={!r} other={!r}".format(self, other))
 
     def append_event(self, ev):
-        """Create a new KeySequence object with the given QKeyEvent added.
-
-        We need to do some sophisticated checking of modifiers here:
-
-        We don't care about a shift modifier with symbols (Shift-: should match
-        a : binding even though we typed it with a shift on an US-keyboard)
-
-        However, we *do* care about Shift being involved if we got an
-        upper-case letter, as Shift-A should match a Shift-A binding, but not
-        an "a" binding.
-
-        In addition, Shift also *is* relevant when other modifiers are
-        involved.
-        Shift-Ctrl-X should not be equivalent to Ctrl-X.
-
-        We also change Qt.Key_Backtab to Key_Tab here because nobody would
-        configure "Shift-Backtab" in their config.
-        """
+        """Create a new KeySequence object with the given QKeyEvent added."""
         key = ev.key()
         modifiers = ev.modifiers()
 
         if key == 0x0:
             raise KeyParseError(None, "Got nil key!")
 
+        # We always remove Qt.GroupSwitchModifier because QKeySequence has no
+        # way to mention that in a binding anyways...
+        modifiers &= ~Qt.GroupSwitchModifier
+
+        # We change Qt.Key_Backtab to Key_Tab here because nobody would
+        # configure "Shift-Backtab" in their config.
         if modifiers & Qt.ShiftModifier and key == Qt.Key_Backtab:
             key = Qt.Key_Tab
 
+        # We don't care about a shift modifier with symbols (Shift-: should
+        # match a : binding even though we typed it with a shift on an
+        # US-keyboard)
+        #
+        # However, we *do* care about Shift being involved if we got an
+        # upper-case letter, as Shift-A should match a Shift-A binding, but not
+        # an "a" binding.
+        #
+        # In addition, Shift also *is* relevant when other modifiers are
+        # involved. Shift-Ctrl-X should not be equivalent to Ctrl-X.
         if (modifiers == Qt.ShiftModifier and
                 is_printable(ev.key()) and
                 not ev.text().isupper()):

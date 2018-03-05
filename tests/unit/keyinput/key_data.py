@@ -37,7 +37,7 @@ class Key:
         name: The name returned by str(KeyInfo) with that key.
         text: The text returned by KeyInfo.text().
         uppertext: The text returned by KeyInfo.text() with shift.
-        member: Filled by the test fixture, the numeric value.
+        member: The numeric value.
     """
 
     attribute = attr.ib()
@@ -50,6 +50,28 @@ class Key:
     def __attrs_post_init__(self):
         if self.attribute:
             self.member = getattr(Qt, 'Key_' + self.attribute, None)
+        if self.name is None:
+            self.name = self.attribute
+
+
+@attr.s
+class Modifier:
+
+    """A modifier with expected values.
+
+    Attributes:
+        attribute: The name of the Qt::KeyboardModifier attribute
+                   ('Shift' -> Qt.ShiftModifier)
+        name: The name returned by str(KeyInfo) with that modifier.
+        member: The numeric value.
+    """
+
+    attribute = attr.ib()
+    name = attr.ib(None)
+    member = attr.ib(None)
+
+    def __attrs_post_init__(self):
+        self.member = getattr(Qt, self.attribute + 'Modifier')
         if self.name is None:
             self.name = self.attribute
 
@@ -588,4 +610,14 @@ KEYS = [
     Key('unknown', 'Unknown', qtest=False),
     # 0x0 is used by Qt for unknown keys...
     Key(attribute='', name='nil', member=0x0, qtest=False),
+]
+
+
+MODIFIERS = [
+    Modifier('Shift'),
+    Modifier('Control', 'Ctrl'),
+    Modifier('Alt'),
+    Modifier('Meta'),
+    Modifier('Keypad', 'Num'),
+    Modifier('GroupSwitch', 'AltGr'),
 ]

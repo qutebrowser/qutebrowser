@@ -40,6 +40,14 @@ def qt_key(request):
     return key
 
 
+@pytest.fixture(params=key_data.MODIFIERS, ids=lambda m: m.attribute)
+def qt_mod(request):
+    """Get all existing modifiers from key_data.py."""
+    mod = request.param
+    assert mod.member is not None
+    return mod
+
+
 @pytest.fixture(params=[key for key in key_data.KEYS if key.qtest],
                 ids=lambda k: k.attribute)
 def qtest_key(request):
@@ -47,13 +55,24 @@ def qtest_key(request):
     return request.param
 
 
-def test_key_data():
+def test_key_data_keys():
     """Make sure all possible keys are in key_data.KEYS."""
     key_names = {name[len("Key_"):]
                  for name, value in sorted(vars(Qt).items())
                  if isinstance(value, Qt.Key)}
     key_data_names = {key.attribute for key in sorted(key_data.KEYS)}
     diff = key_names - key_data_names
+    assert not diff
+
+
+def test_key_data_modifiers():
+    """Make sure all possible modifiers are in key_data.MODIFIERS."""
+    mod_names = {name[:-len("Modifier")]
+                 for name, value in sorted(vars(Qt).items())
+                 if isinstance(value, Qt.KeyboardModifier) and
+                 value not in [Qt.NoModifier, Qt.KeyboardModifierMask]}
+    mod_data_names = {mod.attribute for mod in sorted(key_data.MODIFIERS)}
+    diff = mod_names - mod_data_names
     assert not diff
 
 
@@ -113,6 +132,10 @@ class TestKeyToString:
     def test_to_string(self, qt_key):
         assert keyutils._key_to_string(qt_key.member) == qt_key.name
 
+    def test_modifiers_to_string(self, qt_mod):
+        expected = qt_mod.name + '+'
+        assert keyutils._modifiers_to_string(qt_mod.member) == expected
+
     def test_missing(self, monkeypatch):
         monkeypatch.delattr(keyutils.Qt, 'Key_AltGr')
         # We don't want to test the key which is actually missing - we only
@@ -160,6 +183,8 @@ def test_key_parse_error(keystr, expected):
     ('a<Ctrl+a>b', ['a', 'ctrl+a', 'b']),
     ('<Ctrl+a>a', ['ctrl+a', 'a']),
     ('a<Ctrl+a>', ['a', 'ctrl+a']),
+    ('<Ctrl-a>', ['ctrl+a']),
+    ('<Num-a>', ['num+a']),
 ])
 def test_parse_keystr(keystr, parts):
     assert list(keyutils._parse_keystring(keystr)) == parts
@@ -337,6 +362,9 @@ class TestKeySequence:
         ('', Qt.Key_Backtab, Qt.ShiftModifier, '', '<Shift+Tab>'),
         ('', Qt.Key_Backtab, Qt.ControlModifier | Qt.ShiftModifier, '',
          '<Control+Shift+Tab>'),
+
+        # Stripping of Qt.GroupSwitchModifier
+        ('', Qt.Key_A, Qt.GroupSwitchModifier, 'a', 'a'),
     ])
     def test_append_event(self, old, key, modifiers, text, expected):
         seq = keyutils.KeySequence.parse(old)
@@ -352,8 +380,6 @@ class TestKeySequence:
             seq.append_event(event)
 
     @pytest.mark.parametrize('keystr, expected', [
-        ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
-        ('<Meta-x>', keyutils.KeySequence(Qt.MetaModifier | Qt.Key_X)),
         ('<Ctrl-Alt-y>',
          keyutils.KeySequence(Qt.ControlModifier | Qt.AltModifier | Qt.Key_Y)),
         ('x', keyutils.KeySequence(Qt.Key_X)),
@@ -363,6 +389,12 @@ class TestKeySequence:
         ('<Control-x><Meta-y>',
          keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X,
                               Qt.MetaModifier | Qt.Key_Y)),
+
+        ('<Shift-x>', keyutils.KeySequence(Qt.ShiftModifier | Qt.Key_X)),
+        ('<Alt-x>', keyutils.KeySequence(Qt.AltModifier | Qt.Key_X)),
+        ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
+        ('<Meta-x>', keyutils.KeySequence(Qt.MetaModifier | Qt.Key_X)),
+        ('<Num-x>', keyutils.KeySequence(Qt.KeypadModifier | Qt.Key_X)),
 
         ('>', keyutils.KeySequence(Qt.Key_Greater)),
         ('<', keyutils.KeySequence(Qt.Key_Less)),
