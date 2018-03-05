@@ -11,7 +11,7 @@ fields==5.0.0
 Flask==0.12.2
 glob2==0.6
 hunter==2.0.2
-hypothesis==3.46.0
+hypothesis==3.48.0
 itsdangerous==0.24
 # Jinja2==2.10
 Mako==1.0.7
@@ -28,7 +28,7 @@ pytest-benchmark==3.1.1
 pytest-cov==2.5.1
 pytest-faulthandler==1.4.1
 pytest-instafail==0.3.0
-pytest-mock==1.7.0
+pytest-mock==1.7.1
 pytest-qt==2.3.1
 pytest-repeat==0.4.1
 pytest-rerunfailures==4.0
