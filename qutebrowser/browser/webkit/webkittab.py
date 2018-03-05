@@ -30,7 +30,7 @@ import pygments.formatters
 import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
@@ -743,6 +743,8 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_load_started(self):
         super()._on_load_started()
         self.networkaccessmanager().netrc_used = False
+        # Make sure the icon is cleared when navigating to a page without one.
+        self.icon_changed.emit(QIcon())
 
     @pyqtSlot()
     def _on_frame_load_finished(self):

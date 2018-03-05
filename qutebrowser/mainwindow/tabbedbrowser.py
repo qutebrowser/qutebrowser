@@ -552,7 +552,6 @@ class TabbedBrowser(tabwidget.TabWidget):
         if tab.data.keep_icon:
             tab.data.keep_icon = False
         else:
-            self.setTabIcon(idx, QIcon())
             if (config.val.tabs.tabs_are_windows and
                     config.val.tabs.favicons.show):
                 self.window().setWindowIcon(self.default_window_icon)
