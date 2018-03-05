@@ -579,11 +579,17 @@ Default:
 * +pass:[sk]+: +pass:[set-cmd-text -s :bind]+
 * +pass:[sl]+: +pass:[set-cmd-text -s :set -t]+
 * +pass:[ss]+: +pass:[set-cmd-text -s :set]+
+* +pass:[tPH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.plugins ;; reload]+
+* +pass:[tPh]+: +pass:[config-cycle -p -u *://{url:host}/* content.plugins ;; reload]+
+* +pass:[tPu]+: +pass:[config-cycle -p -u {url} content.plugins ;; reload]+
 * +pass:[tSH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tSh]+: +pass:[config-cycle -p -u *://{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tSu]+: +pass:[config-cycle -p -u {url} content.javascript.enabled ;; reload]+
 * +pass:[th]+: +pass:[back -t]+
 * +pass:[tl]+: +pass:[forward -t]+
+* +pass:[tpH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.plugins ;; reload]+
+* +pass:[tph]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.plugins ;; reload]+
+* +pass:[tpu]+: +pass:[config-cycle -p -t -u {url} content.plugins ;; reload]+
 * +pass:[tsH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tsh]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tsu]+: +pass:[config-cycle -p -t -u {url} content.javascript.enabled ;; reload]+
