@@ -48,7 +48,8 @@ class Key:
     qtest = attr.ib(True)
 
     def __attrs_post_init__(self):
-        self.member = getattr(Qt, 'Key_' + self.attribute, None)
+        if self.attribute:
+            self.member = getattr(Qt, 'Key_' + self.attribute, None)
         if self.name is None:
             self.name = self.attribute
 
@@ -585,4 +586,6 @@ KEYS = [
     Key('CameraFocus', 'Camera Focus', qtest=False),
 
     Key('unknown', 'Unknown', qtest=False),
+    # 0x0 is used by Qt for unknown keys...
+    Key(attribute='', name='nil', member=0x0, qtest=False),
 ]

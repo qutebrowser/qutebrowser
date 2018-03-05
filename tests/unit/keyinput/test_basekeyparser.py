@@ -182,6 +182,11 @@ class TestHandle:
         keyparser.handle(fake_keyevent(Qt.Key_1), dry_run=True)
         assert not keyparser._count
 
+    def test_invalid_key(self, fake_keyevent, keyparser):
+        keyparser.handle(fake_keyevent(Qt.Key_B))
+        keyparser.handle(fake_keyevent(0x0))
+        assert not keyparser._sequence
+
     def test_valid_keychain(self, handle_text, keyparser):
         # Press 'x' which is ignored because of no match
         handle_text(Qt.Key_X,

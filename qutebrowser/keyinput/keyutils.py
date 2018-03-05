@@ -39,7 +39,7 @@ _MODIFIER_MAP = {
 
 
 def is_printable(key):
-    return key <= 0xff and key != Qt.Key_Space
+    return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
 
 def is_modifier_key(key):
@@ -126,6 +126,7 @@ def _key_to_string(key):
             special_names[getattr(Qt, 'Key_' + k)] = v
         except AttributeError:
             pass
+        special_names[0x0] = 'nil'
 
     if key in special_names:
         return special_names[key]
@@ -231,7 +232,7 @@ class KeyInfo:
             modifiers &= ~_MODIFIER_MAP[self.key]
         elif is_printable(self.key):
             # "normal" binding
-            if not key_string:
+            if not key_string:  # pragma: no cover
                 raise ValueError("Got empty string for key 0x{:x}!"
                                  .format(self.key))
 
@@ -371,6 +372,9 @@ class KeySequence:
             if info.key == Qt.Key_unknown:
                 raise KeyParseError(keystr, "Got unknown key!")
 
+        for seq in self._sequences:
+            assert seq
+
     def matches(self, other):
         """Check whether the given KeySequence matches with this one.
 
@@ -427,6 +431,9 @@ class KeySequence:
         """
         key = ev.key()
         modifiers = ev.modifiers()
+
+        if key == 0x0:
+            raise KeyParseError(None, "Got nil key!")
 
         if modifiers & Qt.ShiftModifier and key == Qt.Key_Backtab:
             key = Qt.Key_Tab

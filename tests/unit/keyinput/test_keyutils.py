@@ -182,7 +182,8 @@ class TestKeySequence:
         with pytest.raises(keyutils.KeyParseError):
             keyutils.KeySequence(Qt.Key_unknown)
 
-    def test_init_invalid(self):
+    @pytest.mark.parametrize('key', [0, -1])
+    def test_init_invalid(self, key):
         with pytest.raises(AssertionError):
             keyutils.KeySequence(-1)
 
@@ -343,6 +344,13 @@ class TestKeySequence:
         new = seq.append_event(event)
         assert new == keyutils.KeySequence.parse(expected)
 
+    @pytest.mark.parametrize('key', [Qt.Key_unknown, 0x0])
+    def test_append_event_invalid(self, key):
+        seq = keyutils.KeySequence()
+        event = QKeyEvent(QKeyEvent.KeyPress, key, Qt.NoModifier, '')
+        with pytest.raises(keyutils.KeyParseError):
+            seq.append_event(event)
+
     @pytest.mark.parametrize('keystr, expected', [
         ('<Control-x>', keyutils.KeySequence(Qt.ControlModifier | Qt.Key_X)),
         ('<Meta-x>', keyutils.KeySequence(Qt.MetaModifier | Qt.Key_X)),
@@ -405,6 +413,7 @@ def test_key_info_to_event():
     (Qt.Key_Enter, False),
     (Qt.Key_Space, False),
     (Qt.Key_X | Qt.ControlModifier, False),  # Wrong usage
+    (0x0, False),  # Used by Qt for unknown keys
 
     (Qt.Key_ydiaeresis, True),
     (Qt.Key_X, True),

@@ -145,7 +145,13 @@ class BaseKeyParser(QObject):
                 self._count += txt
             return QKeySequence.ExactMatch
 
-        sequence = self._sequence.append_event(e)
+        try:
+            sequence = self._sequence.append_event(e)
+        except keyutils.KeyParseError as e:
+            self._debug_log("{} Aborting keychain.".format(e))
+            self.clear_keystring()
+            return QKeySequence.NoMatch
+
         match, binding = self._match_key(sequence)
         if match == QKeySequence.NoMatch:
             mappings = config.val.bindings.key_mappings
