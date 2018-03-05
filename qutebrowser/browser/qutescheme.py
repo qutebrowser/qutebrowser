@@ -263,8 +263,6 @@ def qute_history(url):
 
         return 'text/html', json.dumps(history_data(start_time, offset))
     else:
-        if not config.val.content.javascript.enabled:
-            return 'text/plain', b'JavaScript is required for qute://history'
         return 'text/html', jinja.render(
             'history.html',
             title='History',
