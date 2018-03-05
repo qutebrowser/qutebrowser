@@ -147,7 +147,7 @@ def preload_resources():
     for subdir, pattern in [('html', '*.html'), ('javascript', '*.js')]:
         path = resource_filename(subdir)
         for full_path in glob.glob(os.path.join(path, pattern)):
-            sub_path = os.path.join(subdir, os.path.basename(full_path))
+            sub_path = '/'.join([subdir, os.path.basename(full_path)])
             _resource_cache[sub_path] = read_file(sub_path)
 
 
