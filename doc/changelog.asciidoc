@@ -117,6 +117,8 @@ Fixed
 - Crash when opening an invalid URL from an application on macOS.
 - Crash with an empty `completion.timestamp_format`.
 - Crash when `completion.min_chars` is set in some cases.
+- HTML/JS resource files are now read into RAM on start to avoid crashes when
+  changing qutebrowser versions while it's open.
 
 Removed
 ~~~~~~~

@@ -22,12 +22,10 @@
 import os
 import os.path
 import contextlib
-import traceback
 import mimetypes
 import html
 
 import jinja2
-import jinja2.exceptions
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, urlutils, log
@@ -125,14 +123,7 @@ class Environment(jinja2.Environment):
 
 def render(template, **kwargs):
     """Render the given template and pass the given arguments to it."""
-    try:
-        return environment.get_template(template).render(**kwargs)
-    except jinja2.exceptions.UndefinedError:
-        log.misc.exception("UndefinedError while rendering " + template)
-        err_path = os.path.join('html', 'undef_error.html')
-        err_template = utils.read_file(err_path)
-        tb = traceback.format_exc()
-        return err_template.format(pagename=template, traceback=tb)
+    return environment.get_template(template).render(**kwargs)
 
 
 environment = Environment()

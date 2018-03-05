@@ -32,6 +32,7 @@ import functools
 import contextlib
 import socket
 import shlex
+import glob
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
@@ -51,6 +52,7 @@ from qutebrowser.utils import qtutils, log
 
 fake_clipboard = None
 log_clipboard = False
+_resource_cache = {}
 
 is_mac = sys.platform.startswith('darwin')
 is_linux = sys.platform.startswith('linux')
@@ -140,6 +142,15 @@ def compact_text(text, elidelength=None):
     return out
 
 
+def preload_resources():
+    """Load resource files into the cache."""
+    for subdir, pattern in [('html', '*.html'), ('javascript', '*.js')]:
+        path = resource_filename(subdir)
+        for full_path in glob.glob(os.path.join(path, pattern)):
+            sub_path = os.path.join(subdir, os.path.basename(full_path))
+            _resource_cache[sub_path] = read_file(sub_path)
+
+
 def read_file(filename, binary=False):
     """Get the contents of a file contained with qutebrowser.
 
@@ -151,6 +162,9 @@ def read_file(filename, binary=False):
     Return:
         The file contents as string.
     """
+    if not binary and filename in _resource_cache:
+        return _resource_cache[filename]
+
     if hasattr(sys, 'frozen'):
         # PyInstaller doesn't support pkg_resources :(
         # https://github.com/pyinstaller/pyinstaller/wiki/FAQ#misc

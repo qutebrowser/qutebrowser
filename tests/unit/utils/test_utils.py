@@ -133,6 +133,14 @@ class TestReadFile:
         content = utils.read_file(os.path.join('utils', 'testfile'))
         assert content.splitlines()[0] == "Hello World!"
 
+    @pytest.mark.parametrize('filename', ['javascript/scroll.js',
+                                          'html/error.html'])
+    def test_read_cached_file(self, mocker, filename):
+        utils.preload_resources()
+        m = mocker.patch('pkg_resources.resource_string')
+        utils.read_file(filename)
+        m.assert_not_called()
+
     def test_readfile_binary(self):
         """Read a test file in binary mode."""
         content = utils.read_file(os.path.join('utils', 'testfile'),
