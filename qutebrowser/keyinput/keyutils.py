@@ -344,13 +344,11 @@ class KeySequence:
 
     def __iter__(self):
         """Iterate over KeyInfo objects."""
-        modifier_mask = int(Qt.ShiftModifier | Qt.ControlModifier |
-                            Qt.AltModifier | Qt.MetaModifier |
-                            Qt.KeypadModifier | Qt.GroupSwitchModifier)
-        for key in self._iter_keys():
-            yield KeyInfo(
-                key=int(key) & ~modifier_mask,
-                modifiers=Qt.KeyboardModifiers(int(key) & modifier_mask))
+        for key_and_modifiers in self._iter_keys():
+            key = int(key_and_modifiers) & ~Qt.KeyboardModifierMask
+            modifiers = Qt.KeyboardModifiers(int(key_and_modifiers) &
+                                             Qt.KeyboardModifierMask)
+            yield KeyInfo(key=key, modifiers=modifiers)
 
     def __repr__(self):
         return utils.get_repr(self, keys=str(self))
