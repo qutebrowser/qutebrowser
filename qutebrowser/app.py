@@ -772,6 +772,8 @@ class Quitter:
                         pre_text="Error while saving {}".format(key))
         # Disable storage so removing tempdir will work
         websettings.shutdown()
+        # Disable application proxy factory to fix segfaults with Qt 5.10.1
+        proxy.shutdown()
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactivating crash log...")
         objreg.get('crash-handler').destroy_crashlogfile()
