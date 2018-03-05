@@ -766,6 +766,27 @@ def test_bind_completion_invalid(cmdutils_stub, config_stub, key_config_stub,
     })
 
 
+def test_bind_completion_invalid_binding(cmdutils_stub, config_stub,
+                                         key_config_stub, configdata_stub,
+                                         info):
+    """Test command completion with an invalid key binding."""
+    model = configmodel.bind('<blub>', info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "Current/Default": [
+            ('', "Could not parse '<blub>': Got unknown key!", '<blub>'),
+        ],
+        "Commands": [
+            ('open', 'open a url', ''),
+            ('q', "Alias for 'quit'", ''),
+            ('quit', 'quit qutebrowser', 'ZQ, <Ctrl+q>'),
+            ('scroll', 'Scroll the current tab in the given direction.', ''),
+            ('tab-close', 'Close the current tab.', ''),
+        ],
+    })
+
+
 def test_bind_completion_no_binding(qtmodeltester, cmdutils_stub, config_stub,
                                     key_config_stub, configdata_stub, info):
     """Test keybinding completion with no current or default binding."""
