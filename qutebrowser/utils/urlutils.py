@@ -105,8 +105,10 @@ def _get_search_url(txt):
 
     if config.val.url.open_base_url and \
             term in config.val.url.searchengines.keys():
-        search_url = urllib.parse.urlparse(config.val.url.searchengines[term])
-        url = QUrl('{}://{}'.format(search_url.scheme, search_url.netloc))
+        url = qurl_from_user_input(config.val.url.searchengines[term])
+        url.setPath(None)
+        url.setFragment(None)
+        url.setQuery(None)
     qtutils.ensure_valid(url)
     return url
 
