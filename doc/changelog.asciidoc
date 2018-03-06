@@ -53,6 +53,8 @@ Added
   config and re-added.
 - New `qute://tabs` page (opened via `:buffer`) which lists all tabs.
 - New `--select` flag for `:follow-hint` which acts like the given string was entered but doesn't necessary follow the hint.
+- `@requires` and the GreaseMonkey 4.0 API are now supported for GreaseMonkey
+  userscripts.
 
 Changed
 ~~~~~~~
