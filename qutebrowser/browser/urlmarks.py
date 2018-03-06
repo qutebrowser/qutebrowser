@@ -277,14 +277,17 @@ class BookmarkManager(UrlMarkManager):
             raise InvalidUrlError(errstr)
 
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr_noslash = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded |
+                                      QUrl.StripTrailingSlash)
+        # Check if both the slashed and slashless version is here
+        for urlstr_check in [urlstr_noslash, urlstr_noslash + '/']:
+            if urlstr_check in self.marks:
+                if toggle:
+                    self.delete(urlstr_check)
+                    return False
+                else:
+                    raise AlreadyExistsError("Bookmark already exists!")
 
-        if urlstr in self.marks:
-            if toggle:
-                self.delete(urlstr)
-                return False
-            else:
-                raise AlreadyExistsError("Bookmark already exists!")
-        else:
-            self.marks[urlstr] = title
-            self.changed.emit()
-            return True
+        self.marks[urlstr] = title
+        self.changed.emit()
+        return True

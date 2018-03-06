@@ -31,6 +31,22 @@ Feature: quickmarks and bookmarks
         And I run :bookmark-add
         Then the error "Bookmark already exists!" should be shown
 
+    Scenario: Saving a duplicate bookmark with differing slashes
+        Given I have a fresh instance
+        When I open data/title.html
+        And I run :bookmark-add
+        And I open data/title.html/
+        And I run :bookmark-add
+        Then the error "Bookmark already exists!" should be shown
+
+    Scenario: Saving a duplicate bookmark with differing slashes reverse
+        Given I have a fresh instance
+        When I open data/title.html/
+        And I run :bookmark-add
+        And I open data/title.html
+        And I run :bookmark-add
+        Then the error "Bookmark already exists!" should be shown
+
     Scenario: Loading a bookmark
         When I run :tab-only
         And I run :bookmark-load http://localhost:(port)/data/numbers/1.txt
