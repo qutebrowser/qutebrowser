@@ -703,10 +703,6 @@ class WebEngineTab(browsertab.AbstractTab):
     def shutdown(self):
         self.shutting_down.emit()
         self.action.exit_fullscreen()
-        if qtutils.version_check('5.8', exact=True, compiled=False):
-            # WORKAROUND for
-            # https://bugreports.qt.io/browse/QTBUG-58563
-            self.search.clear()
         self._widget.shutdown()
 
     def reload(self, *, force=False):
