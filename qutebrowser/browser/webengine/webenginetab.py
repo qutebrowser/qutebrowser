@@ -942,6 +942,9 @@ class WebEngineTab(browsertab.AbstractTab):
             'content.plugins',
             'content.javascript.enabled',
             'content.javascript.can_access_clipboard',
+            'content.javascript.can_access_clipboard',
+            'content.print_element_backgrounds',
+            'input.spatial_navigation',
             'input.spatial_navigation',
         }
         assert needs_reload.issubset(configdata.DATA)
