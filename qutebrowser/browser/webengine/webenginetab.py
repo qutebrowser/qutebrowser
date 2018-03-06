@@ -940,7 +940,8 @@ class WebEngineTab(browsertab.AbstractTab):
         super()._on_navigation_request(navigation)
         if navigation.accepted and navigation.is_main_frame:
             changed = self.settings.update_for_url(navigation.url)
-            needs_reload = {'content.plugins', 'content.javascript.enabled'}
+            needs_reload = {'content.plugins', 'content.javascript.enabled',
+                            'content.javascript.can_access_clipboard'}
             if (changed & needs_reload and navigation.navigation_type !=
                     navigation.Type.link_clicked):
                 # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
