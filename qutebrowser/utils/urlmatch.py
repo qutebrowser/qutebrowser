@@ -42,7 +42,7 @@ class UrlPattern:
     """A Chromium-like URL matching pattern.
 
     Class attributes:
-        DEFAULT_PORTS: The default ports used for schemes which support ports.
+        _DEFAULT_PORTS: The default ports used for schemes which support ports.
         _SCHEMES_WITHOUT_HOST: Schemes which don't need a host.
 
     Attributes:
@@ -59,7 +59,7 @@ class UrlPattern:
         _port: The port to match to as integer, or None for any port.
     """
 
-    DEFAULT_PORTS = {'https': 443, 'http': 80, 'ftp': 21}
+    _DEFAULT_PORTS = {'https': 443, 'http': 80, 'ftp': 21}
     _SCHEMES_WITHOUT_HOST = ['about', 'file', 'data', 'javascript']
 
     def __init__(self, pattern):
@@ -213,7 +213,7 @@ class UrlPattern:
             except ValueError as e:
                 raise ParseError("Invalid port: {}".format(e))
 
-        if (self._scheme not in list(self.DEFAULT_PORTS) + [None] and
+        if (self._scheme not in list(self._DEFAULT_PORTS) + [None] and
                 self._port is not None):
             raise ParseError("Ports are unsupported with {} scheme".format(
                 self._scheme))
@@ -257,8 +257,8 @@ class UrlPattern:
         return host[len(host) - len(self._host) - 1] == '.'
 
     def _matches_port(self, scheme, port):
-        if port == -1 and scheme in self.DEFAULT_PORTS:
-            port = self.DEFAULT_PORTS[scheme]
+        if port == -1 and scheme in self._DEFAULT_PORTS:
+            port = self._DEFAULT_PORTS[scheme]
         return self._port is None or self._port == port
 
     def _matches_path(self, path):
