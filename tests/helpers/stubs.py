@@ -266,6 +266,9 @@ class FakeWebTab(browsertab.AbstractTab):
     def shutdown(self):
         pass
 
+    def icon(self):
+        return self.windowIcon()
+
 
 class FakeSignal:
 

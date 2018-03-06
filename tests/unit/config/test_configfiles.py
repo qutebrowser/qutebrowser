@@ -233,6 +233,22 @@ class TestYaml:
         data = autoconfig.read()
         assert 'bindings.default' not in data
 
+    @pytest.mark.parametrize('show',
+                             [True, False, 'always', 'never', 'pinned'])
+    def test_tabs_favicons_show(self, yaml, autoconfig, show):
+        """Tests for migration of tabs.favicons.show."""
+        autoconfig.write({'tabs.favicons.show': {'global': show}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        if isinstance(show, bool):
+            when = 'always' if show else 'never'
+        else:
+            when = show
+        assert data['tabs.favicons.show']['global'] == when
+
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):
         """A key marked as renamed with invalid name should raise an error."""
