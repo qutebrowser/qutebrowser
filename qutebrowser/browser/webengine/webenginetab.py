@@ -28,7 +28,7 @@ import html as html_utils
 import sip
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
                           QUrl, QTimer)
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
@@ -922,6 +922,13 @@ class WebEngineTab(browsertab.AbstractTab):
             QTimer.singleShot(100, lambda url=self._reload_url:
                               self.openurl(url))
             self._reload_url = None
+
+        if not qtutils.version_check('5.10', compiled=False):
+            # We can't do this when we have the loadFinished workaround as that
+            # sometimes clears icons without loading a new page.
+            # In general, this is handled by Qt, but when loading takes long,
+            # the old icon is still displayed.
+            self.icon_changed.emit(QIcon())
 
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):
