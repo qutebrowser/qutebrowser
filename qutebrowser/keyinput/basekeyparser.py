@@ -55,6 +55,10 @@ class BaseKeyParser(QObject):
     Signals:
         keystring_updated: Emitted when the keystring is updated.
                            arg: New keystring.
+        bindings_matched: Emitted when matched bindings are found.
+                          arg 0: Whether the count was entered.
+                          arg 1: Matching sequence.
+                          arg 2: Matched bindings dictionary.
         request_leave: Emitted to request leaving a mode.
                        arg 0: Mode to leave.
                        arg 1: Reason for leaving.
@@ -62,6 +66,7 @@ class BaseKeyParser(QObject):
     """
 
     keystring_updated = pyqtSignal(str)
+    bindings_matched = pyqtSignal(bool, keyutils.KeySequence, dict)
     request_leave = pyqtSignal(usertypes.KeyMode, str, bool)
     do_log = True
     passthrough = False
@@ -95,24 +100,27 @@ class BaseKeyParser(QObject):
             sequence: The command string to find.
 
         Return:
-            A tuple (matchtype, binding).
+            A tuple (matchtype, bindings).
                 matchtype: Match.definitive, Match.partial or Match.none.
-                binding: - None with Match.partial/Match.none.
-                         - The found binding with Match.definitive.
+                bindings: - Empty dict for Match.none.
+                          - Dict of found bindings for Match.partial.
+                          - Dict with one binding for Match.definitive.
         """
         assert sequence
         assert not isinstance(sequence, str)
         result = QKeySequence.NoMatch
+        bindings = {}
 
         for seq, cmd in self.bindings.items():
             assert not isinstance(seq, str), seq
             match = sequence.matches(seq)
             if match == QKeySequence.ExactMatch:
-                return (match, cmd)
+                return (match, {seq: cmd})
             elif match == QKeySequence.PartialMatch:
                 result = QKeySequence.PartialMatch
+                bindings[seq] = cmd
 
-        return (result, None)
+        return (result, bindings)
 
     def handle(self, e, *, dry_run=False):
         """Handle a new keypress.
@@ -153,14 +161,20 @@ class BaseKeyParser(QObject):
             self.clear_keystring()
             return QKeySequence.NoMatch
 
-        match, binding = self._match_key(sequence)
-        if match == QKeySequence.NoMatch:
-            mapped = sequence.with_mappings(config.val.bindings.key_mappings)
-            if sequence != mapped:
-                self._debug_log("Mapped {} -> {}".format(
-                    sequence, mapped))
-                match, binding = self._match_key(mapped)
-                sequence = mapped
+        match, bindings = self._match_key(sequence)
+        mapped = sequence.with_mappings(config.val.bindings.key_mappings)
+        mapped_match = None
+
+        if sequence != mapped and match != QKeySequence.ExactMatch:
+            self._debug_log("Mapped {} -> {}".format(
+                sequence, mapped))
+            mapped_match, mapped_bindings = self._match_key(mapped)
+            if (match == QKeySequence.NoMatch or
+                    mapped_match == QKeySequence.ExactMatch):
+                match = mapped_match
+                bindings = mapped_bindings
+            else:
+                bindings = {**bindings, **mapped_bindings}
 
         if dry_run:
             return match
@@ -168,15 +182,20 @@ class BaseKeyParser(QObject):
         self._sequence = sequence
 
         if match == QKeySequence.ExactMatch:
+            if mapped_match is not None:
+                key_seq = mapped
+            else:
+                key_seq = sequence
             self._debug_log("Definitive match for '{}'.".format(
-                sequence))
+                key_seq))
             count = int(self._count) if self._count else None
             self.clear_keystring()
-            self.execute(binding, count)
+            self.execute(bindings[key_seq], count)
         elif match == QKeySequence.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
                 sequence, txt))
             self.keystring_updated.emit(self._count + str(sequence))
+            self.bindings_matched.emit(bool(self._count), sequence, bindings)
         elif match == QKeySequence.NoMatch:
             self._debug_log("Giving up with '{}', no matches".format(
                 sequence))
@@ -230,3 +249,5 @@ class BaseKeyParser(QObject):
             self._sequence = keyutils.KeySequence()
             self._count = ''
             self.keystring_updated.emit('')
+            self.bindings_matched.emit(bool(self._count),
+                    keyutils.KeySequence(), {})
