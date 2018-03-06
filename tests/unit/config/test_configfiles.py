@@ -301,7 +301,8 @@ class TestYaml:
         ('settings: {"content.images": 42}\nconfig_version: 2',
          "While parsing 'content.images'", "value is not a dict"),
         ('settings: {"content.images": {"https://": true}}\nconfig_version: 2',
-         "While parsing pattern 'https://' for 'content.images'", "Pattern without host"),
+         "While parsing pattern 'https://' for 'content.images'",
+         "Pattern without host"),
         ('settings: {"content.images": {true: true}}\nconfig_version: 2',
          "While parsing 'content.images'", "pattern is not of type string"),
     ])
@@ -737,11 +738,11 @@ class TestConfigPy:
         assert str(error.exception) == expected
 
     @pytest.mark.parametrize('line, text', [
-        ('config.get("content.images", "://")',
+        ('config.get("content.images", "http://")',
          "While getting 'content.images' and parsing pattern"),
-        ('config.set("content.images", False, "://")',
+        ('config.set("content.images", False, "http://")',
          "While setting 'content.images' and parsing pattern"),
-        ('with config.pattern("://"): pass',
+        ('with config.pattern("http://"): pass',
          "Unhandled exception"),
     ])
     def test_invalid_pattern(self, confpy, line, text):
@@ -750,7 +751,7 @@ class TestConfigPy:
 
         assert error.text == text
         assert isinstance(error.exception, urlmatch.ParseError)
-        assert str(error.exception) == "No scheme given"
+        assert str(error.exception) == "Pattern without host"
 
     def test_multiple_errors(self, confpy):
         confpy.write("c.foo = 42", "config.set('foo', 42)", "1/0")
