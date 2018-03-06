@@ -155,9 +155,8 @@ class BaseKeyParser(QObject):
 
         match, binding = self._match_key(sequence)
         if match == QKeySequence.NoMatch:
-            mappings = config.val.bindings.key_mappings
-            mapped = mappings.get(sequence, None)
-            if mapped is not None:
+            mapped = sequence.with_mappings(config.val.bindings.key_mappings)
+            if sequence != mapped:
                 self._debug_log("Mapped {} -> {}".format(
                     sequence, mapped))
                 match, binding = self._match_key(mapped)

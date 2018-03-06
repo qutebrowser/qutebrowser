@@ -377,6 +377,12 @@ class TestKeySequence:
         with pytest.raises(keyutils.KeyParseError):
             seq.append_event(event)
 
+    def test_with_mappings(self):
+        seq = keyutils.KeySequence.parse('foobar')
+        mappings = {keyutils.KeySequence('b'): keyutils.KeySequence('t')}
+        seq2 = seq.with_mappings(mappings)
+        assert seq2 == keyutils.KeySequence.parse('footar')
+
     @pytest.mark.parametrize('keystr, expected', [
         ('<Ctrl-Alt-y>',
          keyutils.KeySequence(Qt.ControlModifier | Qt.AltModifier | Qt.Key_Y)),
@@ -441,6 +447,11 @@ def test_key_info_to_event():
     assert ev.key() == Qt.Key_A
     assert ev.modifiers() == Qt.ShiftModifier
     assert ev.text() == 'A'
+
+
+def test_key_info_to_int():
+    info = keyutils.KeyInfo(Qt.Key_A, Qt.ShiftModifier)
+    assert info.to_int() == Qt.Key_A | Qt.ShiftModifier
 
 
 @pytest.mark.parametrize('key, printable', [

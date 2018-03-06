@@ -321,6 +321,10 @@ class KeyInfo:
         """Get a QKeyEvent from this KeyInfo."""
         return QKeyEvent(typ, self.key, self.modifiers, self.text())
 
+    def to_int(self):
+        """Get the key as an integer (with key/modifiers)."""
+        return int(self.key) | int(self.modifiers)
+
 
 class KeySequence:
 
@@ -493,6 +497,18 @@ class KeySequence:
         keys = list(self._iter_keys())
         keys.append(key | int(modifiers))
 
+        return self.__class__(*keys)
+
+    def with_mappings(self, mappings):
+        """Get a new KeySequence with the given mappings applied."""
+        keys = []
+        for key in self._iter_keys():
+            key_seq = KeySequence(key)
+            if key_seq in mappings:
+                new_seq = mappings[key_seq]
+                assert len(new_seq) == 1
+                key = new_seq[0].to_int()
+            keys.append(key)
         return self.__class__(*keys)
 
     @classmethod

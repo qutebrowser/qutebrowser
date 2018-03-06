@@ -212,6 +212,14 @@ class TestHandle:
         handle_text(Qt.Key_B)
         assert not keyparser.execute.called
 
+    def test_mapping_in_key_chain(self, config_stub, handle_text, keyparser):
+        """A mapping should work even as part of a keychain."""
+        config_stub.val.bindings.commands = {'normal':
+                                             {'aa': 'message-info aa'}}
+        keyparser._read_config('normal')
+        handle_text(Qt.Key_A, Qt.Key_X)
+        keyparser.execute.assert_called_once_with('message-info aa', None)
+
     def test_binding_with_shift(self, keyparser, fake_keyevent):
         """Simulate a binding which involves shift."""
         for key, modifiers in [(Qt.Key_Y, Qt.NoModifier),
