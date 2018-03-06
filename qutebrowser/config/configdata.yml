@@ -2161,6 +2161,7 @@ bindings.key_mappings:
     <Ctrl-Enter>: <Ctrl-Return>
   type:
     name: Dict
+    none_ok: true
     keytype: Key
     valtype: Key
   desc: >-

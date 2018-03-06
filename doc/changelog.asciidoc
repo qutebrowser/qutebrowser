@@ -127,6 +127,7 @@ Fixed
 - Crash when `completion.min_chars` is set in some cases.
 - HTML/JS resource files are now read into RAM on start to avoid crashes when
   changing qutebrowser versions while it's open.
+- Setting `bindings.key_mappings` to an empty value is now allowed.
 
 Removed
 ~~~~~~~
