@@ -895,3 +895,7 @@ class AbstractTab(QWidget):
 
     def is_deleted(self):
         return sip.isdeleted(self._widget)
+
+    def should_show_icon(self):
+        return (config.val.tabs.favicons.show == 'always' or
+                config.val.tabs.favicons.show == 'pinned' and self.data.pinned)

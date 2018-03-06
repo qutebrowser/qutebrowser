@@ -526,15 +526,8 @@ class TabbedBrowser(tabwidget.TabWidget):
 
     def _update_favicons(self):
         """Update favicons when config was changed."""
-        for i, tab in enumerate(self.widgets()):
-            if config.val.tabs.favicons.show:
-                self.setTabIcon(i, tab.icon())
-                if config.val.tabs.tabs_are_windows:
-                    self.window().setWindowIcon(tab.icon())
-            else:
-                self.setTabIcon(i, QIcon())
-                if config.val.tabs.tabs_are_windows:
-                    self.window().setWindowIcon(self.default_window_icon)
+        for tab in self.widgets():
+            super()._update_tab_favicon(tab)
 
     @pyqtSlot()
     def on_load_started(self, tab):
@@ -552,8 +545,7 @@ class TabbedBrowser(tabwidget.TabWidget):
         if tab.data.keep_icon:
             tab.data.keep_icon = False
         else:
-            if (config.val.tabs.tabs_are_windows and
-                    config.val.tabs.favicons.show):
+            if config.val.tabs.tabs_are_windows and tab.should_show_icon():
                 self.window().setWindowIcon(self.default_window_icon)
         if idx == self.currentIndex():
             self._update_window_title()
@@ -617,7 +609,7 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab: The WebView where the title was changed.
             icon: The new icon
         """
-        if not config.val.tabs.favicons.show:
+        if not tab.should_show_icon():
             return
         try:
             idx = self._tab_index(tab)

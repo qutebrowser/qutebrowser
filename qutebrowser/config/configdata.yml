@@ -1252,9 +1252,14 @@ tabs.favicons.scale:
     `tabs.padding`.
 
 tabs.favicons.show:
-  default: true
-  type: Bool
-  desc: Show favicons in the tab bar.
+  default: always
+  type:
+    name: String
+    valid_values:
+      - always: Always show favicons.
+      - never: Always hide favicons.
+      - pinned: Show favicons only on pinned tabs.
+  desc: When to show favicons in the tab bar.
 
 tabs.last_close:
   default: ignore
