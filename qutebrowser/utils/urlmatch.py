@@ -43,6 +43,7 @@ class UrlPattern:
 
     Class attributes:
         DEFAULT_PORTS: The default ports used for schemes which support ports.
+        _SCHEMES_WITHOUT_HOST: Schemes which don't need a host.
 
     Attributes:
         _pattern: The given pattern as string.
@@ -59,6 +60,7 @@ class UrlPattern:
     """
 
     DEFAULT_PORTS = {'https': 443, 'http': 80, 'ftp': 21}
+    _SCHEMES_WITHOUT_HOST = ['about', 'file', 'data', 'javascript']
 
     def __init__(self, pattern):
         # Make sure all attributes are initialized if we exit early.
@@ -120,6 +122,10 @@ class UrlPattern:
         if pattern.startswith('*:'):  # Any scheme, but *:// is unparseable
             pattern = 'any:' + pattern[2:]
 
+        schemes = tuple(s + ':' for s in self._SCHEMES_WITHOUT_HOST)
+        if '://' not in pattern and not pattern.startswith(schemes):
+            pattern = 'any://' + pattern
+
         # Chromium handles file://foo like file:///foo
         # FIXME This doesn't actually strip the hostname correctly.
         if (pattern.startswith('file://') and
@@ -129,15 +135,24 @@ class UrlPattern:
         return pattern
 
     def _init_scheme(self, parsed):
-        if not parsed.scheme:
-            raise ParseError("No scheme given")
-        elif parsed.scheme == 'any':
+        """Parse the scheme from the given URL.
+
+        Deviation from Chromium:
+        - We assume * when no scheme has been given.
+        """
+        assert parsed.scheme, parsed
+        if parsed.scheme == 'any':
             self._scheme = None
             return
 
         self._scheme = parsed.scheme
 
     def _init_path(self, parsed):
+        """Parse the path from the given URL.
+
+        Deviation from Chromium:
+        - We assume * when no path has been given.
+        """
         if self._scheme == 'about' and not parsed.path.strip():
             raise ParseError("Pattern without path")
 
@@ -157,7 +172,7 @@ class UrlPattern:
         - http://:1234/ is not a valid URL because it has no host.
         """
         if parsed.hostname is None or not parsed.hostname.strip():
-            if self._scheme not in ['about', 'file', 'data', 'javascript']:
+            if self._scheme not in self._SCHEMES_WITHOUT_HOST:
                 raise ParseError("Pattern without host")
             assert self._host is None
             return
