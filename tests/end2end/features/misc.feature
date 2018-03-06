@@ -166,7 +166,7 @@ Feature: Various utility commands.
     @qtwebkit_skip
     Scenario: Inspector without --enable-webengine-inspector
         When I run :inspector
-        Then the error "Debugging is not enabled. See 'qutebrowser --help' for details." should be shown
+        Then the error "QtWebEngine inspector is not enabled. See 'qutebrowser --help' for details." should be shown
 
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
