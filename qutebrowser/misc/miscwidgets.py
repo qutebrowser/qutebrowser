@@ -25,8 +25,8 @@ from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
 from PyQt5.QtGui import QValidator, QPainter
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, qtutils, log, usertypes
-from qutebrowser.misc import cmdhistory, objects
+from qutebrowser.utils import utils
+from qutebrowser.misc import cmdhistory
 
 
 class MinimalLineEditMixin:

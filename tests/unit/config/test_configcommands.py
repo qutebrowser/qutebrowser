@@ -107,9 +107,9 @@ class TestSet:
         monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
         option = 'content.javascript.enabled'
 
-        with pytest.raises(
-                cmdexc.CommandError,
-                match='Error while parsing http://: Pattern without host'):
+        with pytest.raises(cmdexc.CommandError,
+                           match=('Error while parsing http://: Pattern '
+                                  'without host')):
             commands.set(0, option, 'false', pattern='http://')
 
     def test_set_no_pattern(self, monkeypatch, commands):
