@@ -108,6 +108,17 @@ class TabWidget(QTabWidget):
 
         bar.set_tab_data(idx, 'pinned', pinned)
         tab.data.pinned = pinned
+
+        if config.val.tabs.favicons.show == 'pinned':
+            if pinned:
+                self.setTabIcon(idx, tab.icon())
+                if config.val.tabs.tabs_are_windows:
+                    self.window().setWindowIcon(tab.icon())
+            else:
+                self.setTabIcon(idx, QIcon())
+                if config.val.tabs.tabs_are_windows:
+                    self.window().setWindowIcon(self.default_window_icon)
+
         self._update_tab_title(idx)
 
     def tab_indicator_color(self, idx):
@@ -889,7 +900,7 @@ class TabBarStyle(QCommonStyle):
         # reserve space for favicon when tab bar is vertical (issue #1968)
         position = config.val.tabs.position
         if (position in [QTabWidget.East, QTabWidget.West] and
-                config.val.tabs.favicons.show):
+                config.val.tabs.favicons.show != 'never'):
             tab_icon_size = icon_size
         else:
             actual_size = opt.icon.actualSize(icon_size, icon_mode, icon_state)

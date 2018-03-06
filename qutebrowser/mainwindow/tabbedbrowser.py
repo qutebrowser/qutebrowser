@@ -527,7 +527,9 @@ class TabbedBrowser(tabwidget.TabWidget):
     def _update_favicons(self):
         """Update favicons when config was changed."""
         for i, tab in enumerate(self.widgets()):
-            if config.val.tabs.favicons.show:
+            if (config.val.tabs.favicons.show == 'always' or
+                    config.val.tabs.favicons.show == 'pinned' and
+                    tab.data.pinned):
                 self.setTabIcon(i, tab.icon())
                 if config.val.tabs.tabs_are_windows:
                     self.window().setWindowIcon(tab.icon())
@@ -553,7 +555,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab.data.keep_icon = False
         else:
             if (config.val.tabs.tabs_are_windows and
-                    config.val.tabs.favicons.show):
+                    config.val.tabs.favicons.show == 'always' or
+                    config.val.tabs.favicons.show == 'pinned' and
+                    tab.data.pinned):
                 self.window().setWindowIcon(self.default_window_icon)
         if idx == self.currentIndex():
             self._update_window_title()
@@ -617,7 +621,9 @@ class TabbedBrowser(tabwidget.TabWidget):
             tab: The WebView where the title was changed.
             icon: The new icon
         """
-        if not config.val.tabs.favicons.show:
+        if (config.val.tabs.favicons.show == 'never' or
+                config.val.tabs.favicons.show == 'pinned' and
+                not tab.data.pinned):
             return
         try:
             idx = self._tab_index(tab)
