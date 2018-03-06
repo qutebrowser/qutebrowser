@@ -19,6 +19,8 @@
 
 import operator
 
+import hypothesis
+from hypothesis import strategies
 import pytest
 from PyQt5.QtCore import Qt, QEvent, pyqtSignal
 from PyQt5.QtGui import QKeyEvent, QKeySequence
@@ -203,14 +205,10 @@ class TestKeySequence:
         seq = keyutils.KeySequence()
         assert not seq
 
-    @pytest.mark.parametrize('key', [Qt.Key_unknown, -1])
+    @pytest.mark.parametrize('key', [Qt.Key_unknown, -1, '\x1f', 0])
     def test_init_unknown(self, key):
         with pytest.raises(keyutils.KeyParseError):
             keyutils.KeySequence(key)
-
-    def test_init_invalid(self):
-        with pytest.raises(AssertionError):
-            keyutils.KeySequence(0)
 
     @pytest.mark.parametrize('orig, normalized', [
         ('<Control+x>', '<Ctrl+x>'),
@@ -410,6 +408,7 @@ class TestKeySequence:
         ('<alt+<>', keyutils.KeyParseError),
         ('<alt+>>', keyutils.KeyParseError),
         ('<blub>', keyutils.KeyParseError),
+        ('<>', keyutils.KeyParseError),
         ('\U00010000', keyutils.KeyParseError),
     ])
     def test_parse(self, keystr, expected):
@@ -418,6 +417,15 @@ class TestKeySequence:
                 keyutils.KeySequence.parse(keystr)
         else:
             assert keyutils.KeySequence.parse(keystr) == expected
+
+    @hypothesis.given(strategies.text())
+    def test_parse_hypothesis(self, keystr):
+        try:
+            seq = keyutils.KeySequence.parse(keystr)
+        except keyutils.KeyParseError:
+            pass
+        else:
+            str(seq)
 
 
 def test_key_info_from_event():

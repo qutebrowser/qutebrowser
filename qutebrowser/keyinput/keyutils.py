@@ -413,12 +413,12 @@ class KeySequence:
 
     def _validate(self, keystr=None):
         for info in self:
-            assert Qt.Key_Space <= info.key <= Qt.Key_unknown, info.key
-            if info.key == Qt.Key_unknown:
-                raise KeyParseError(keystr, "Got unknown key!")
+            if info.key < Qt.Key_Space or info.key >= Qt.Key_unknown:
+                raise KeyParseError(keystr, "Got invalid key!")
 
         for seq in self._sequences:
-            assert seq
+            if not seq:
+                raise KeyParseError(keystr, "Got invalid key!")
 
     def matches(self, other):
         """Check whether the given KeySequence matches with this one.
