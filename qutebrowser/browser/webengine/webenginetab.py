@@ -938,8 +938,12 @@ class WebEngineTab(browsertab.AbstractTab):
         if not navigation.accepted or not navigation.is_main_frame:
             return
 
-        needs_reload = {'content.plugins', 'content.javascript.enabled',
-                        'content.javascript.can_access_clipboard'}
+        needs_reload = {
+            'content.plugins',
+            'content.javascript.enabled',
+            'content.javascript.can_access_clipboard',
+            'input.spatial_navigation',
+        }
         assert needs_reload.issubset(configdata.DATA)
 
         changed = self.settings.update_for_url(navigation.url)
