@@ -775,7 +775,7 @@ def test_bind_completion_invalid_binding(cmdutils_stub, config_stub,
 
     _check_completions(model, {
         "Current/Default": [
-            ('', "Could not parse '<blub>': Got unknown key!", '<blub>'),
+            ('', "Could not parse '<blub>': Got invalid key!", '<blub>'),
         ],
         "Commands": [
             ('open', 'open a url', ''),

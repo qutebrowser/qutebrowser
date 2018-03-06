@@ -712,7 +712,7 @@ class TestConfigPy:
         assert error.text.endswith("and parsing key")
         assert isinstance(error.exception, keyutils.KeyParseError)
         assert str(error.exception).startswith("Could not parse")
-        assert str(error.exception).endswith("Got unknown key!")
+        assert str(error.exception).endswith("Got invalid key!")
 
     @pytest.mark.parametrize('line', ["c.foo = 42", "config.set('foo', 42)"])
     def test_config_error(self, confpy, line):
