@@ -33,6 +33,7 @@ from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
+from qutebrowser.config import configdata
 from qutebrowser.browser import browsertab, mouse, shared
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
@@ -938,14 +939,18 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
-        if navigation.accepted and navigation.is_main_frame:
-            changed = self.settings.update_for_url(navigation.url)
-            needs_reload = {'content.plugins', 'content.javascript.enabled',
-                            'content.javascript.can_access_clipboard'}
-            if (changed & needs_reload and navigation.navigation_type !=
-                    navigation.Type.link_clicked):
-                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
-                self._reload_url = navigation.url
+        if not navigation.accepted or not navigation.is_main_frame:
+            return
+
+        needs_reload = {'content.plugins', 'content.javascript.enabled',
+                        'content.javascript.can_access_clipboard'}
+        assert needs_reload.issubset(configdata.DATA)
+
+        changed = self.settings.update_for_url(navigation.url)
+        if (changed & needs_reload and navigation.navigation_type !=
+                navigation.Type.link_clicked):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
+            self._reload_url = navigation.url
 
     def _connect_signals(self):
         view = self._widget
