@@ -88,6 +88,7 @@ Changed
 - The `:version` page now has a button to pastebin the information.
 - Replacements like `{url}` can now be replaced as `{{url}}`.
 - Entering caret browsing with QtWebEngine now works directly after a search.
+- `<summary>`/`<details>` elements now get hints assigned.
 
 Fixed
 ~~~~~
