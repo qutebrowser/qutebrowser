@@ -144,8 +144,9 @@ class UrlPattern:
         if parsed.path == '/*':
             self._path = None
         elif parsed.path == '':
-            # We want to make it possible to leave off a trailing slash.
-            self._path = '/'
+            # When the user doesn't add a trailing slash, we assume the pattern
+            # matches any path.
+            self._path = None
         else:
             self._path = parsed.path
 

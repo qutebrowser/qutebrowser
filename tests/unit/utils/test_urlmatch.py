@@ -112,6 +112,16 @@ def test_port(pattern, port):
     assert up._port == port
 
 
+@pytest.mark.parametrize('pattern, path', [
+    ("http://foo/", '/'),
+    ("http://foo", None),
+    ("http://foo/*", None),
+])
+def test_parse_path(pattern, path):
+    up = urlmatch.UrlPattern(pattern)
+    assert up._path == path
+
+
 class TestMatchAllPagesForGivenScheme:
 
     @pytest.fixture
