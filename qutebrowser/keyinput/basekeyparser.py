@@ -139,13 +139,6 @@ class BaseKeyParser(QObject):
             self._debug_log("Ignoring, only modifier")
             return QKeySequence.NoMatch
 
-        if (txt.isdigit() and self._supports_count and not
-                (not self._count and txt == '0')):
-            assert len(txt) == 1, txt
-            if not dry_run:
-                self._count += txt
-            return QKeySequence.ExactMatch
-
         try:
             sequence = self._sequence.append_event(e)
         except keyutils.KeyParseError as ex:
@@ -153,7 +146,10 @@ class BaseKeyParser(QObject):
             self.clear_keystring()
             return QKeySequence.NoMatch
 
+        # First, try a straightforward match
         match, binding = self._match_key(sequence)
+
+        # If that doesn't match, try a key_mapping
         if match == QKeySequence.NoMatch:
             mapped = sequence.with_mappings(config.val.bindings.key_mappings)
             if sequence != mapped:
@@ -161,6 +157,16 @@ class BaseKeyParser(QObject):
                     sequence, mapped))
                 match, binding = self._match_key(mapped)
                 sequence = mapped
+
+        # If that doesn't match either, try treating it as count.
+        if (match == QKeySequence.NoMatch and
+                txt.isdigit() and
+                self._supports_count and
+                not (not self._count and txt == '0')):
+            assert len(txt) == 1, txt
+            if not dry_run:
+                self._count += txt
+            return QKeySequence.ExactMatch
 
         if dry_run:
             return match

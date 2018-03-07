@@ -192,9 +192,11 @@ class TestHandle:
         keyparser.execute.assert_called_with('message-info ba', None)
         assert not keyparser._sequence
 
-    def test_0_press(self, handle_text, keyparser):
-        handle_text(Qt.Key_0)
-        keyparser.execute.assert_called_once_with('message-info 0', None)
+    @pytest.mark.parametrize('key, number', [(Qt.Key_0, 0), (Qt.Key_1, 1)])
+    def test_number_press(self, handle_text, keyparser, key, number):
+        handle_text(key)
+        command = 'message-info {}'.format(number)
+        keyparser.execute.assert_called_once_with(command, None)
         assert not keyparser._sequence
 
     def test_umlauts(self, handle_text, keyparser, config_stub):

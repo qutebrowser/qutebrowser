@@ -2063,11 +2063,13 @@ class TestKey:
         ('<Control-x>', keyutils.KeySequence.parse('<ctrl+x>')),
         ('<alt-1>', keyutils.KeySequence.parse('<alt+1>')),
         ('0', keyutils.KeySequence.parse('0')),
+        ('1', keyutils.KeySequence.parse('1')),
+        ('a1', keyutils.KeySequence.parse('a1')),
     ])
     def test_to_py_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
 
-    @pytest.mark.parametrize('val', ['\U00010000', '<blub>', '1', 'a1'])
+    @pytest.mark.parametrize('val', ['\U00010000', '<blub>'])
     def test_to_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
