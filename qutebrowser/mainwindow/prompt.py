@@ -596,7 +596,7 @@ class FilenamePrompt(_BasePrompt):
         if config.val.prompt.filebrowser:
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
-        self._to_complete = ""
+        self._to_complete = ''
 
     @pyqtSlot(str)
     def _set_fileview_root(self, path, *, tabbed=False):
@@ -608,7 +608,7 @@ class FilenamePrompt(_BasePrompt):
         dirname = os.path.dirname(path)
         basename = os.path.basename(path)
         if not tabbed:
-            self._to_complete = ""
+            self._to_complete = ''
 
         try:
             if not path:
@@ -650,7 +650,7 @@ class FilenamePrompt(_BasePrompt):
         """
         path = os.path.normpath(self._file_model.filePath(index))
         if index == QModelIndex():
-            path = self._file_model.rootPath() + os.sep + self._to_complete
+            path = os.path.joint(self._file_model.rootPath(), self._to_complete)
 
         if clicked:
             path += os.sep
