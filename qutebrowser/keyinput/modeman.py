@@ -236,6 +236,7 @@ class ModeManager(QObject):
         if mode not in self._parsers:
             raise ValueError("No keyparser for mode {}".format(mode))
         prompt_modes = (usertypes.KeyMode.prompt, usertypes.KeyMode.yesno)
+        input_modes = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
         if self.mode == mode or (self.mode in prompt_modes and
                                  mode in prompt_modes):
             log.modes.debug("Ignoring request as we're in mode {} "
@@ -249,7 +250,8 @@ class ModeManager(QObject):
                 return
             log.modes.debug("Overriding mode {}.".format(self.mode))
             self.left.emit(self.mode, mode, self._win_id)
-        if mode in prompt_modes:
+        if (mode in prompt_modes and self.mode in input_modes and
+                config.val.tabs.mode_on_change == 'restore'):
             # save previous mode when being prompted
             self._prev_mode = self.mode
         else:
@@ -273,6 +275,7 @@ class ModeManager(QObject):
                  usertypes.KeyMode.yesno, usertypes.KeyMode.prompt]:
             raise cmdexc.CommandError(
                 "Mode {} can't be entered manually!".format(mode))
+
         self.enter(m, 'command')
 
     @pyqtSlot(usertypes.KeyMode, str, bool)
