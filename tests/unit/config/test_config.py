@@ -621,6 +621,34 @@ class TestConfig:
                 meth('content.cookies.accept', 'all')
         assert not conf._values['content.cookies.accept']
 
+    @pytest.mark.parametrize('method, value', [
+        ('set_obj', {}),
+        ('set_str', '{}'),
+    ])
+    def test_set_no_autoconfig_save(self, conf, qtbot, yaml_value,
+                                    method, value):
+        meth = getattr(conf, method)
+        option = 'bindings.default'
+        with pytest.raises(configexc.NoAutoconfigError):
+            with qtbot.assert_not_emitted(conf.changed):
+                meth(option, value, save_yaml=True)
+
+        assert not conf._values[option]
+        assert yaml_value(option) is configutils.UNSET
+
+    @pytest.mark.parametrize('method, value', [
+        ('set_obj', {}),
+        ('set_str', '{}'),
+    ])
+    def test_set_no_autoconfig_no_save(self, conf, qtbot, yaml_value,
+                                       method, value):
+        meth = getattr(conf, method)
+        option = 'bindings.default'
+        with qtbot.wait_signal(conf.changed):
+            meth(option, value)
+
+        assert conf._values[option]
+
     @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
     def test_set_no_pattern(self, conf, method, qtbot):
         meth = getattr(conf, method)

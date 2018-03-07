@@ -223,6 +223,16 @@ class TestYaml:
         mode = 'persist' if persist else 'normal'
         assert data['tabs.mode_on_change']['global'] == mode
 
+    def test_bindings_default(self, yaml, autoconfig):
+        """Make sure bindings.default gets removed from autoconfig.yml."""
+        autoconfig.write({'bindings.default': {'global': '{}'}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert 'bindings.default' not in data
+
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):
         """A key marked as renamed with invalid name should raise an error."""

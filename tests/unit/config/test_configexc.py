@@ -48,6 +48,12 @@ def test_no_option_error_clash():
         configexc.NoOptionError('opt', deleted=True, renamed='foo')
 
 
+def test_no_autoconfig_error():
+    e = configexc.NoAutoconfigError('opt')
+    expected = "The opt setting can only be set in config.py!"
+    assert str(e) == expected
+
+
 def test_backend_error():
     e = configexc.BackendError('foo', usertypes.Backend.QtWebKit)
     expected = "The foo setting is not available with the QtWebKit backend!"

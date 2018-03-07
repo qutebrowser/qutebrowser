@@ -262,6 +262,12 @@ class YamlConfig(QObject):
             del settings[old]
             self._mark_changed()
 
+        # bindings.default can't be set in autoconfig.yml anymore, so ignore
+        # old values.
+        if 'bindings.default' in settings:
+            del settings['bindings.default']
+            self._mark_changed()
+
         return settings
 
     def _validate(self, settings):

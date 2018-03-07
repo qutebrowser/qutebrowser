@@ -376,6 +376,8 @@ Default keybindings. If you want to add bindings, modify `bindings.commands` ins
 The main purpose of this setting is that you can set it to an empty dictionary if you want to load no default keybindings at all.
 If you want to preserve default bindings (and get new bindings when there is an update), use `config.bind()` in `config.py` or the `:bind` command, and leave this setting alone.
 
+This setting can only be set in config.py.
+
 Type: <<types,Dict>>
 
 Default: 

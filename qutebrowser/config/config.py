@@ -286,6 +286,11 @@ class Config(QObject):
         log.config.debug("Config option changed: {} = {}".format(
             opt.name, value))
 
+    def _check_yaml(self, opt, save_yaml):
+        """Make sure the given option may be set in autoconfig.yml."""
+        if save_yaml and opt.no_autoconfig:
+            raise configexc.NoAutoconfigError(opt.name)
+
     def read_yaml(self):
         """Read the YAML settings from self._yaml."""
         self._yaml.load()
@@ -383,7 +388,9 @@ class Config(QObject):
 
         If save_yaml=True is given, store the new value to YAML.
         """
-        self._set_value(self.get_opt(name), value, pattern=pattern)
+        opt = self.get_opt(name)
+        self._check_yaml(opt, save_yaml)
+        self._set_value(opt, value, pattern=pattern)
         if save_yaml:
             self._yaml.set_obj(name, value, pattern=pattern)
 
@@ -393,6 +400,7 @@ class Config(QObject):
         If save_yaml=True is given, store the new value to YAML.
         """
         opt = self.get_opt(name)
+        self._check_yaml(opt, save_yaml)
         converted = opt.typ.from_str(value)
         log.config.debug("Setting {} (type {}) to {!r} (converted from {!r})"
                          .format(name, opt.typ.__class__.__name__, converted,
@@ -403,7 +411,8 @@ class Config(QObject):
 
     def unset(self, name, *, save_yaml=False, pattern=None):
         """Set the given setting back to its default."""
-        self.get_opt(name)  # To check whether it exists
+        opt = self.get_opt(name)
+        self._check_yaml(opt, save_yaml)
         changed = self._values[name].remove(pattern)
         if changed:
             self.changed.emit(name)

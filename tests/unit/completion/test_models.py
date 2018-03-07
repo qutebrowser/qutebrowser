@@ -111,7 +111,8 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
                 ])
             },
             backends=[],
-            raw_backends=None)),
+            raw_backends=None,
+            no_autoconfig=True)),
         ('bindings.commands', configdata.Option(
             name='bindings.commands',
             description='Default keybindings',
@@ -655,8 +656,6 @@ def test_setting_option_completion(qtmodeltester, config_stub,
             ('bindings.commands', 'Default keybindings', (
                 '{"normal": {"<Ctrl+q>": "quit", "ZQ": "quit", '
                 '"I": "invalid", "d": "scroll down"}}')),
-            ('bindings.default', 'Default keybindings',
-             '{"normal": {"<Ctrl+q>": "quit", "d": "tab-close"}}'),
             ('content.javascript.enabled', 'Enable/Disable JavaScript',
              'true'),
         ]

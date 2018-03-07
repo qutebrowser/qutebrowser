@@ -71,6 +71,8 @@ Changed
   * Yes/no prompts don't use keybindings from the `prompt` section anymore, they
     have their own `yesno` section instead.
   * Trying to bind invalid keys now shows an error.
+  * The `bindings.default` setting can now only be set in a `config.py`, and
+    existing values in `autoconfig.yml` are ignored.
 - Improvements for GreaseMonkey support:
   * `@include` and `@exclude` now support regex matches. With QtWebEngine and Qt
     5.8 and newer, Qt handles the matching, but similar functionality will be

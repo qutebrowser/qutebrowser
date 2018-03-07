@@ -29,7 +29,8 @@ def option(*, info):
     """A CompletionModel filled with settings and their descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
     options = ((opt.name, opt.description, info.config.get_str(opt.name))
-               for opt in configdata.DATA.values())
+               for opt in configdata.DATA.values()
+               if not opt.no_autoconfig)
     model.add_category(listcategory.ListCategory("Options", options))
     return model
 

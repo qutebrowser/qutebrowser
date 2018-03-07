@@ -2177,6 +2177,7 @@ bindings.key_mappings:
     `bindings.commands`), the mapping is ignored.
 
 bindings.default:
+  no_autoconfig: true
   default:
     normal:
       <Escape>: clear-keychain ;; search ;; fullscreen --leave

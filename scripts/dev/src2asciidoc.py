@@ -421,6 +421,8 @@ def _generate_setting_option(f, opt):
         f.write("This setting requires a restart.\n")
     if opt.supports_pattern:
         f.write("\nThis setting supports URL patterns.\n")
+    if opt.no_autoconfig:
+        f.write("\nThis setting can only be set in config.py.\n")
     f.write("\n")
     typ = opt.typ.get_name().replace(',', '&#44;')
     f.write('Type: <<types,{typ}>>\n'.format(typ=typ))
