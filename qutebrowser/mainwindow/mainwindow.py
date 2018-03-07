@@ -446,7 +446,7 @@ class MainWindow(QWidget):
 
         # key hint popup
         for mode, parser in keyparsers.items():
-            parser.keystring_updated.connect(functools.partial(
+            parser.bindings_matched.connect(functools.partial(
                 self._keyhint.update_keyhint, mode.name))
 
         # messages

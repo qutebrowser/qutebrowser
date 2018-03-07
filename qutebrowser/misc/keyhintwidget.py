@@ -81,15 +81,16 @@ class KeyHintView(QLabel):
         self.update_geometry.emit()
         super().showEvent(e)
 
-    @pyqtSlot(str)
-    def update_keyhint(self, modename, prefix):
+    @pyqtSlot(str, dict)
+    def update_keyhint(self, modename, hascount, prefix, bindings):
         """Show hints for the given prefix (or hide if prefix is empty).
 
         Args:
-            prefix: The current partial keystring.
+            hascount: Whether the count was entered.
+            prefix: The current partial keysequence.
+            bindings: Dict of bindings to show
         """
-        countstr, prefix = re.fullmatch(r'(\d*)(.*)', prefix).groups()
-        if not prefix:
+        if len(prefix) == 0:
             self._show_timer.stop()
             self.hide()
             return
@@ -104,11 +105,9 @@ class KeyHintView(QLabel):
             cmd = cmdutils.cmd_dict.get(cmdname)
             return cmd and cmd.takes_count()
 
-        bindings_dict = config.key_instance.get_bindings_for(modename)
-        bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
-                    if keyutils.KeySequence.parse(prefix).matches(k) and
-                    not blacklisted(str(k)) and
-                    (takes_count(v) or not countstr)]
+        bindings = [(k, v) for (k, v) in sorted(bindings.items())
+                    if not blacklisted(str(k)) and
+                    (takes_count(v) or not hascount)]
 
         if not bindings:
             self._show_timer.stop()
@@ -128,7 +127,7 @@ class KeyHintView(QLabel):
                 "<td style='padding-left: 2ex'>{}</td>"
                 "</tr>"
             ).format(
-                html.escape(prefix),
+                html.escape(str(seq[0:len(prefix)])),
                 suffix_color,
                 html.escape(str(seq[len(prefix):])),
                 html.escape(cmd)
