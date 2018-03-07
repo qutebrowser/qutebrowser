@@ -201,6 +201,7 @@
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
 |<<history_gap_interval,history_gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
 |<<input.forward_unbound_keys,input.forward_unbound_keys>>|Which unbound keys to forward to the webview in normal mode.
+|<<input.insert_mode.auto_enter,input.insert_mode.auto_enter>>|Enter insert mode if an editable element is clicked.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
 |<<input.insert_mode.auto_load,input.insert_mode.auto_load>>|Automatically enter insert mode if an editable element is focused after loading the page.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
@@ -2399,6 +2400,14 @@ Valid values:
  * +none+: Don't forward any keys.
 
 Default: +pass:[auto]+
+
+[[input.insert_mode.auto_enter]]
+=== input.insert_mode.auto_enter
+Enter insert mode if an editable element is clicked.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[input.insert_mode.auto_leave]]
 === input.insert_mode.auto_leave

@@ -981,6 +981,11 @@ input.insert_mode.auto_load:
   desc: Automatically enter insert mode if an editable element is focused after
     loading the page.
 
+input.insert_mode.auto_enter:
+  default: true
+  type: Bool
+  desc: Enter insert mode if an editable element is clicked.
+
 input.insert_mode.auto_leave:
   default: true
   type: Bool

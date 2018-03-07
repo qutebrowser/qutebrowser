@@ -54,6 +54,10 @@ Added
   * `tabs.mode_on_change` which replaces `tabs.persist_mode_on_change`. It can
     now be set to `restore` which remembers input modes (input/passthrough)
     per tab.
+  * `input.insert_mode.auto_enter` which makes it possible to disable entering
+    insert mode automatically when an editable element was clicked. Together
+    with `input.forward_unbound_keys`, this should allow for emacs-like
+    "modeless" keybindings.
 - New `:prompt-yank` command (bound to `Alt-y` by default) to yank URLs
   referenced in prompts.
 - The `hostblock_blame` script which was removed in v1.0 was updated for the new
