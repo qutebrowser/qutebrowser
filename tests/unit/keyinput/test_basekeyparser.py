@@ -281,6 +281,14 @@ class TestCount:
         keyparser.execute.assert_called_once_with('message-info ccc', 23)
         assert not keyparser._sequence
 
+    def test_count_keystring_update(self, qtbot, handle_text, keyparser):
+        """Make sure the keystring is updated correctly when entering count."""
+        with qtbot.waitSignals([keyparser.keystring_updated, keyparser.keystring_updated]) as blocker:
+            handle_text(Qt.Key_4, Qt.Key_2)
+        sig1, sig2 = blocker.all_signals_and_args
+        assert sig1.args == ('4',)
+        assert sig2.args == ('42',)
+
 
 def test_clear_keystring(qtbot, keyparser):
     """Test that the keystring is cleared and the signal is emitted."""

@@ -166,6 +166,7 @@ class BaseKeyParser(QObject):
             assert len(txt) == 1, txt
             if not dry_run:
                 self._count += txt
+                self.keystring_updated.emit(self._count + str(self._sequence))
             return QKeySequence.ExactMatch
 
         if dry_run:
