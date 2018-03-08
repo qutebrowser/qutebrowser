@@ -176,7 +176,7 @@ class TestHandle:
         assert keyparser._sequence
 
     def test_dry_run_count(self, fake_keyevent, keyparser):
-        keyparser.handle(fake_keyevent(Qt.Key_1), dry_run=True)
+        keyparser.handle(fake_keyevent(Qt.Key_9), dry_run=True)
         assert not keyparser._count
 
     def test_invalid_key(self, fake_keyevent, keyparser):
@@ -283,7 +283,8 @@ class TestCount:
 
     def test_count_keystring_update(self, qtbot, handle_text, keyparser):
         """Make sure the keystring is updated correctly when entering count."""
-        with qtbot.waitSignals([keyparser.keystring_updated, keyparser.keystring_updated]) as blocker:
+        with qtbot.waitSignals([keyparser.keystring_updated,
+                                keyparser.keystring_updated]) as blocker:
             handle_text(Qt.Key_4, Qt.Key_2)
         sig1, sig2 = blocker.all_signals_and_args
         assert sig1.args == ('4',)
