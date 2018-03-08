@@ -727,13 +727,14 @@ class FilenamePrompt(_BasePrompt):
 
     def _do_completion(self, idx, which):
         filename = self._file_model.fileName(idx)
-        while not filename.startswith(self._to_complete) \
+        while (not filename.startswith(self._to_complete)) \
                 and idx.isValid():
             if which == 'prev':
                 idx = self._file_view.indexAbove(idx)
             else:
                 assert which == 'next', which
                 idx = self._file_view.indexBelow(idx)
+            filename = self._file_model.fileName(idx)
 
         return idx
 
