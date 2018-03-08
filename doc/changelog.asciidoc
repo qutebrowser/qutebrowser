@@ -134,7 +134,7 @@ Fixed
 - HTML/JS resource files are now read into RAM on start to avoid crashes when
   changing qutebrowser versions while it's open.
 - Setting `bindings.key_mappings` to an empty value is now allowed.
-- Binding to an empty command now shows an error rather than crashing.
+- Bindings to an empty commands are now ignored rather than crashing.
 
 Removed
 ~~~~~~~

@@ -161,6 +161,12 @@ class TestKeyConfig:
         for key, command in expected.items():
             assert key_config_stub.get_command(key, 'normal') == command
 
+    def test_get_bindings_for_empty_command(self, key_config_stub,
+                                            config_stub):
+        config_stub.val.bindings.commands = {'normal': {',x': ''}}
+        bindings = key_config_stub.get_bindings_for('normal')
+        assert keyseq(',x') not in bindings
+
     def test_get_command_unbound(self, key_config_stub, config_stub,
                                  no_bindings):
         config_stub.val.bindings.default = no_bindings

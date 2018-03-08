@@ -115,6 +115,12 @@ class TestReadConfig:
         assert keyseq('foo') in keyparser.bindings
         assert keyseq('<ctrl+x>') in keyparser.bindings
 
+    def test_read_config_empty_binding(self, keyparser, config_stub):
+        """Make sure setting an empty binding doesn't crash."""
+        keyparser._read_config('normal')
+        config_stub.val.bindings.commands = {'normal': {'co': ''}}
+        # The config is re-read automatically
+
     def test_read_config_modename_none(self, keyparser):
         assert keyparser._modename is None
 

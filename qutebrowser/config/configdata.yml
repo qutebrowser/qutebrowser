@@ -2485,7 +2485,9 @@ bindings.commands:
       name: Dict
       none_ok: true
       keytype: Key
-      valtype: Command
+      valtype:
+        name: Command
+        none_ok: true  # needed for :unbind
   desc: >-
     Keybindings mapping keys to commands in different modes.
 
