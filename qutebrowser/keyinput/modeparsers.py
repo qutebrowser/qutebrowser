@@ -155,6 +155,7 @@ class PassthroughKeyParser(CommandKeyParser):
 
     Attributes:
         _mode: The mode this keyparser is for.
+        _orig_sequence: Cuerrent sequence with no key_mappings applied
         _ignore_next_key: Whether to pass the next key through
     """
 
@@ -171,6 +172,7 @@ class PassthroughKeyParser(CommandKeyParser):
         """
         super().__init__(win_id, parent)
         self._read_config(mode)
+        self._orig_sequence = keyutils.KeySequence()
         self._mode = mode
         self._ignore_next_key = False
 
@@ -192,10 +194,13 @@ class PassthroughKeyParser(CommandKeyParser):
             self._ignore_next_key = self._ignore_next_key and dry_run
             return QKeySequence.NoMatch
 
-        sequence = self._sequence
+        orig_sequence = self._orig_sequence.append_event(e)
         match = super().handle(e, dry_run=dry_run)
 
-        if dry_run or len(sequence) == 0 or match != QKeySequence.NoMatch:
+        if not dry_run and match == QKeySequence.PartialMatch:
+            self._orig_sequence = orig_sequence
+
+        if dry_run or len(orig_sequence) == 1 or match != QKeySequence.NoMatch:
             return match
 
         window = QApplication.focusWindow()
@@ -203,13 +208,19 @@ class PassthroughKeyParser(CommandKeyParser):
             return match
 
         self._ignore_next_key = True
-        for keyinfo in sequence.append_event(e):
+        for keyinfo in orig_sequence:
             press_event = keyinfo.to_event(QEvent.KeyPress)
             release_event = keyinfo.to_event(QEvent.KeyRelease)
             QApplication.postEvent(window, press_event)
             QApplication.postEvent(window, release_event)
 
         return QKeySequence.ExactMatch
+
+    def clear_keystring(self):
+        """Override to also clear the original sequence."""
+        if self._orig_sequence:
+            self._orig_sequence = keyutils.KeySequence()
+        super().clear_keystring()
 
 
 class PromptKeyParser(CommandKeyParser):
