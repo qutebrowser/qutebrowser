@@ -734,17 +734,14 @@ class FilenamePrompt(_BasePrompt):
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
-        while not self._file_model.fileName(idx).startswith(self._to_complete):
+        while not self._file_model.fileName(idx).startswith(self._to_complete) \
+                and idx.isValid():
             if which == 'prev':
                 idx = self._file_view.indexAbove(idx)
             else:
                 assert which == 'next', which
                 idx = self._file_view.indexBelow(idx)
 
-            # wrap around if we arrived at beginning/end
-            if not idx.isValid():
-                idx = QModelIndex()
-                break
         return idx
 
     def _allowed_commands(self):
