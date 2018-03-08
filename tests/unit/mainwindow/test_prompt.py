@@ -87,7 +87,7 @@ class TestFileCompletion:
 
         # Deleting /[foo]
         for _ in range(3):
-                qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
+            qtbot.keyPress(prompt._lineedit, Qt.Key_Backspace)
 
         # We should now show / again, so tabbing twice gives us .. -> bar
         prompt.item_focus('next')
