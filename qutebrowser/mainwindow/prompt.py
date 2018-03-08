@@ -622,6 +622,7 @@ class FilenamePrompt(_BasePrompt):
             elif os.path.isdir(dirname) and not tabbed:
                 # Input like /foo/ba -> show /foo contents
                 path = dirname
+                self._to_complete = basename
             else:
                 return
         except OSError:
@@ -725,7 +726,8 @@ class FilenamePrompt(_BasePrompt):
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
-        while not self._file_model.fileName(idx).startswith(self._to_complete) \
+        filename = self._file_model.fileName(idx)
+        while not filename.startswith(self._to_complete) \
                 and idx.isValid():
             if which == 'prev':
                 idx = self._file_view.indexAbove(idx)
