@@ -622,8 +622,6 @@ class FilenamePrompt(_BasePrompt):
             elif os.path.isdir(dirname) and not tabbed:
                 # Input like /foo/ba -> show /foo contents
                 path = dirname
-                if self._has_completions(dirname, basename):
-                    self._to_complete = basename
             else:
                 return
         except OSError:
@@ -632,15 +630,6 @@ class FilenamePrompt(_BasePrompt):
 
         root = self._file_model.setRootPath(path)
         self._file_view.setRootIndex(root)
-
-    def _has_completions(self, path, to_complete):
-        parent = self._file_view.rootIndex()
-        idx = self._file_model.index(0, 0, parent)
-        while idx.isValid():
-            if self._file_model.fileName(idx).startswith(to_complete):
-                return True
-            idx = self._file_view.indexBelow(idx)
-        return False
 
     @pyqtSlot(QModelIndex)
     def _insert_path(self, index, *, clicked=True):
