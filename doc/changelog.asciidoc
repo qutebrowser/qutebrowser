@@ -116,6 +116,7 @@ Fixed
   * Fixed hangs/segfaults on exit with Qt 5.10.1.
   * Fixed favicons sometimes getting cleared with Qt 5.10.
   * Qt download objects are now cleaned up properly when a download is removed.
+  * JavaScript messages are now not double-HTML escaped anymore on Qt < 5.11
 - QtWebKit bugfixes:
   * Fixed GreaseMonkey-related crashes.
   * `:view-source` now displays a valid URL.

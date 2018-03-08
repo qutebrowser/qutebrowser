@@ -243,10 +243,12 @@ class WebEnginePage(QWebEnginePage):
         """Override javaScriptConfirm to use qutebrowser prompts."""
         if self._is_shutting_down:
             return False
+        escape_msg = qtutils.version_check('5.11')  # QTBUG-66104
         try:
             return shared.javascript_confirm(url, js_msg,
                                              abort_on=[self.loadStarted,
-                                                       self.shutting_down])
+                                                       self.shutting_down],
+                                             escape_msg=escape_msg)
         except shared.CallSuper:
             return super().javaScriptConfirm(url, js_msg)
 
@@ -256,12 +258,14 @@ class WebEnginePage(QWebEnginePage):
         # https://www.riverbankcomputing.com/pipermail/pyqt/2016-November/038293.html
         def javaScriptPrompt(self, url, js_msg, default):
             """Override javaScriptPrompt to use qutebrowser prompts."""
+            escape_msg = qtutils.version_check('5.11')  # QTBUG-66104
             if self._is_shutting_down:
                 return (False, "")
             try:
                 return shared.javascript_prompt(url, js_msg, default,
                                                 abort_on=[self.loadStarted,
-                                                          self.shutting_down])
+                                                          self.shutting_down],
+                                                escape_msg=escape_msg)
             except shared.CallSuper:
                 return super().javaScriptPrompt(url, js_msg, default)
 
@@ -269,10 +273,12 @@ class WebEnginePage(QWebEnginePage):
         """Override javaScriptAlert to use qutebrowser prompts."""
         if self._is_shutting_down:
             return
+        escape_msg = qtutils.version_check('5.11')  # QTBUG-66104
         try:
             shared.javascript_alert(url, js_msg,
                                     abort_on=[self.loadStarted,
-                                              self.shutting_down])
+                                              self.shutting_down],
+                                    escape_msg=escape_msg)
         except shared.CallSuper:
             super().javaScriptAlert(url, js_msg)
 
