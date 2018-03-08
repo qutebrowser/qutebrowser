@@ -32,7 +32,7 @@ When qutebrowser was created, the newer
 http://webkitgtk.org/reference/webkit2gtk/stable/index.html[WebKit2 API] lacked
 basic features like proxy support, and almost no projects have started porting
 to WebKit2. In the meantime, this situation has improved a bit, but there are
-stil only a few project which have some kind of WebKit2 support (see the
+still only a few projects which have some kind of WebKit2 support (see the
 https://github.com/qutebrowser/qutebrowser#similar-projects[list of
 alternatives]).
 +
@@ -69,6 +69,31 @@ But isn't Python too slow for a browser?::
     while running. Also, most of the heavy lifting of qutebrowser is done by Qt
     and WebKit in C++, with the
     https://wiki.python.org/moin/GlobalInterpreterLock[GIL] released.
+
+Is qutebrowser secure?::
+    Most security issues are in the backend (which handles networking,
+    rendering, JavaScript, etc.) and not qutebrowser itself.
++
+qutebrowser uses http://wiki.qt.io/QtWebEngine[QtWebEngine] by default.
+QtWebEngine is based on Google's https://www.chromium.org/Home[Chromium]. While
+Qt only updates to a new Chromium release on every minor Qt release (all ~6
+months), every patch release backports security fixes from newer Chromium
+versions. In other words: As long as you're using an up-to-date Qt, you should
+be recieving security updates on a regular basis, without qutebrowser having to
+do anything. Chromium's process isolation and
+https://chromium.googlesource.com/chromium/src/+/master/docs/design/sandbox.md[sandboxing]
+features are also enabled as a second line of defense.
++
+http://wiki.qt.io/QtWebKit[QtWebKit] is also supported as an alternative
+backend, but hasn't seen new releases
+https://github.com/annulen/webkit/releases[in a while]. It also doesn't have any
+process isolation or sandboxing.
++
+Security issues in qutebrowser's code happen very rarely (as per March 2018,
+there has been one security issue caused by qutebrowser in over four years) and
+are fixed timely. To report security bugs, please contact me directly at
+mail@qutebrowser.org, GPG ID
+https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 
 Is there an adblocker?::
     There is a host-based adblocker which takes /etc/hosts-like lists. A "real"

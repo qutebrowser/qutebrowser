@@ -91,7 +91,7 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
 For security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
-https://www.the-compiler.org/pubkey.asc[0xFD55A072].
+https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 
 Requirements
 ------------
