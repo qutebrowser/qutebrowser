@@ -2485,9 +2485,7 @@ bindings.commands:
       name: Dict
       none_ok: true
       keytype: Key
-      valtype:
-        name: Command
-        none_ok: true
+      valtype: Command
   desc: >-
     Keybindings mapping keys to commands in different modes.
 
