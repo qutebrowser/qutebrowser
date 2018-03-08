@@ -190,15 +190,12 @@ def data_for_url(url):
 
 @add_handler('bookmarks')
 def qute_bookmarks(_url):
-    """Handler for qute://bookmarks. Display all quickmarks / bookmarks."""
+    """Handler for qute://bookmarks. Display all bookmarks."""
     bookmarks = sorted(objreg.get('bookmark-manager'), key=lambda x: x.title)
-    quickmarks = sorted(objreg.get('quickmark-manager').marks.items(),
-                        key=lambda x: x[0])  # Sort by name
 
     html = jinja.render('bookmarks.html',
                         title='Bookmarks',
-                        bookmarks=bookmarks,
-                        quickmarks=quickmarks)
+                        bookmarks=bookmarks)
     return 'text/html', html
 
 

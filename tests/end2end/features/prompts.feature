@@ -100,6 +100,7 @@ Feature: Prompts
         Then the javascript message "Alert done" should be logged
         And the javascript message "notification permission granted" should be logged
 
+    # TODO: what can we use other than quickmark-save here?
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: Async question interrupted by async one
         When I set content.notifications to ask
@@ -398,6 +399,7 @@ Feature: Prompts
         Then the javascript message "confirm reply: false" should be logged
         And qutebrowser should quit
 
+    # TODO: what can I use instead of quickmark-save?
     Scenario: Using :prompt-open-download with a prompt which does not support it
         When I open data/hello.txt
         And I run :quickmark-save

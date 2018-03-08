@@ -29,23 +29,6 @@ th {
 
 {% block content %}
 
-<h1>Quickmarks</h1>
-
-{% if quickmarks|length %}
-<table class="qmarks">
-    <tbody>
-    {% for name, url in quickmarks %}
-    <tr>
-        <td class="name"><a href="{{url}}">{{name}}</a></td>
-        <td class="url"><a href="{{url}}">{{url}}</a></td>
-    </tr>
-    {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<span class="empty-msg">You have no quickmarks</span>
-{% endif %}
-
 <h1 id="bookmarks">Bookmarks</h1>
 
 {% if bookmarks|length %}

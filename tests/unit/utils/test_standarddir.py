@@ -407,15 +407,12 @@ class TestMoveWindowsAndMacOS:
     def test_move_macos(self, files):
         """Test moving configs on macOS."""
         (files.auto_config_dir / 'autoconfig.yml').ensure()
-        (files.auto_config_dir / 'quickmarks').ensure()
         files.config_dir.ensure(dir=True)
 
         standarddir._move_macos()
 
         assert (files.auto_config_dir / 'autoconfig.yml').exists()
         assert not (files.config_dir / 'autoconfig.yml').exists()
-        assert not (files.auto_config_dir / 'quickmarks').exists()
-        assert (files.config_dir / 'quickmarks').exists()
 
     def test_move_windows(self, files):
         """Test moving configs on Windows."""

@@ -2299,10 +2299,6 @@ bindings.default:
       PP: open -t -- {primary}
       wp: open -w -- {clipboard}
       wP: open -w -- {primary}
-      m: quickmark-save
-      b: set-cmd-text -s :quickmark-load
-      B: set-cmd-text -s :quickmark-load -t
-      wb: set-cmd-text -s :quickmark-load -w
       M: bookmark-add
       gb: set-cmd-text -s :bookmark-load
       gB: set-cmd-text -s :bookmark-load -t

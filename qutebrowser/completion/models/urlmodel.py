@@ -42,29 +42,16 @@ def _delete_bookmark(data):
     bookmark_manager.delete(urlstr)
 
 
-def _delete_quickmark(data):
-    name = data[_TEXTCOL]
-    quickmark_manager = objreg.get('quickmark-manager')
-    log.completion.debug('Deleting quickmark {}'.format(name))
-    quickmark_manager.delete(name)
-
-
 def url(*, info):
-    """A model which combines bookmarks, quickmarks and web history URLs.
+    """A model which combines bookmarks and web history URLs.
 
     Used for the `open` command.
     """
     model = completionmodel.CompletionModel(column_widths=(40, 50, 10))
 
-    quickmarks = [(url, name) for (name, url)
-                  in objreg.get('quickmark-manager').marks.items()]
     bookmarks = [(m.url, m.title, str(m.tags)) for m in
                  objreg.get('bookmark-manager')]
 
-    if quickmarks:
-        model.add_category(listcategory.ListCategory(
-            'Quickmarks', quickmarks, delete_func=_delete_quickmark,
-            sort=False))
     if bookmarks:
         model.add_category(listcategory.ListCategory(
             'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False))

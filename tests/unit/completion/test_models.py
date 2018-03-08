@@ -146,19 +146,8 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
 
 
 @pytest.fixture
-def quickmarks(quickmark_manager_stub):
-    """Pre-populate the quickmark-manager stub with some quickmarks."""
-    quickmark_manager_stub.marks = collections.OrderedDict([
-        ('aw', 'https://wiki.archlinux.org'),
-        ('wiki', 'https://wikipedia.org'),
-        ('ddg', 'https://duckduckgo.com'),
-    ])
-    return quickmark_manager_stub
-
-
-@pytest.fixture
 def bookmarks(bookmark_manager_mock):
-    """Pre-populate the bookmark-manager stub with some quickmarks."""
+    """Pre-populate the bookmark-manager stub with some bookmarks."""
     bookmark_manager_mock.__iter__ = mock.Mock(return_value=iter([
         urlmarks.Bookmark('https://github.com', 'GitHub', []),
         urlmarks.Bookmark('https://python.org', 'Welcome to Python.org', []),
@@ -263,43 +252,6 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
     })
 
 
-def test_quickmark_completion(qtmodeltester, quickmarks):
-    """Test the results of quickmark completion."""
-    model = miscmodels.quickmark()
-    model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
-
-    _check_completions(model, {
-        "Quickmarks": [
-            ('aw', 'https://wiki.archlinux.org', None),
-            ('wiki', 'https://wikipedia.org', None),
-            ('ddg', 'https://duckduckgo.com', None),
-        ]
-    })
-
-
-@pytest.mark.parametrize('row, removed', [
-    (0, 'aw'),
-    (1, 'wiki'),
-    (2, 'ddg'),
-])
-def test_quickmark_completion_delete(qtmodeltester, quickmarks, row, removed):
-    """Test deleting a quickmark from the quickmark completion model."""
-    model = miscmodels.quickmark()
-    model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
-
-    parent = model.index(0, 0)
-    idx = model.index(row, 0, parent)
-
-    before = set(quickmarks.marks.keys())
-    model.delete_cur_item(idx)
-    after = set(quickmarks.marks.keys())
-    assert before.difference(after) == {removed}
-
-
 def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
     model = miscmodels.bookmark()
@@ -322,7 +274,7 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
     (2, 'http://qutebrowser.org'),
 ])
 def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
-    """Test deleting a quickmark from the quickmark completion model."""
+    """Test deleting a bookmark from the bookmark completion model."""
     model = miscmodels.bookmark()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -341,42 +293,14 @@ def url_args(fake_args):
     fake_args.debug_flags = []
 
 
-def test_url_completion(qtmodeltester, web_history_populated,
-                        quickmarks, bookmarks, info):
+def test_url_completion(qtmodeltester, web_history_populated, bookmarks, info):
     """Test the results of url completion.
 
     Verify that:
-        - quickmarks, bookmarks, and urls are included
+        - bookmarks and urls are included
         - entries are sorted by access time
         - only the most recent entry is included for each url
     """
-    model = urlmodel.url(info=info)
-    model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
-
-    _check_completions(model, {
-        "Quickmarks": [
-            ('https://wiki.archlinux.org', 'aw', None),
-            ('https://wikipedia.org', 'wiki', None),
-            ('https://duckduckgo.com', 'ddg', None),
-        ],
-        "Bookmarks": [
-            ('https://github.com', 'GitHub', '[]'),
-            ('https://python.org', 'Welcome to Python.org', '[]'),
-            ('http://qutebrowser.org', 'qutebrowser', '[]'),
-        ],
-        "History": [
-            ('https://github.com', 'https://github.com', '2016-05-01'),
-            ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
-            ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
-        ],
-    })
-
-
-def test_url_completion_no_quickmarks(qtmodeltester, web_history_populated,
-                                      quickmark_manager_stub, bookmarks, info):
-    """Test that the quickmark category is gone with no quickmarks."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -397,7 +321,7 @@ def test_url_completion_no_quickmarks(qtmodeltester, web_history_populated,
 
 
 def test_url_completion_no_bookmarks(qtmodeltester, web_history_populated,
-                                     quickmarks, bookmark_manager_mock, info):
+                                     bookmark_manager_mock, info):
     """Test that the bookmarks category is gone with no bookmarks."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
@@ -405,11 +329,6 @@ def test_url_completion_no_bookmarks(qtmodeltester, web_history_populated,
     qtmodeltester.check(model)
 
     _check_completions(model, {
-        "Quickmarks": [
-            ('https://wiki.archlinux.org', 'aw', None),
-            ('https://wikipedia.org', 'wiki', None),
-            ('https://duckduckgo.com', 'ddg', None),
-        ],
         "History": [
             ('https://github.com', 'https://github.com', '2016-05-01'),
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
@@ -436,8 +355,7 @@ def test_url_completion_no_bookmarks(qtmodeltester, web_history_populated,
     ('foo%bar', '', '%', 1),
     ('foobar', '', '%', 0),
 ])
-def test_url_completion_pattern(web_history, quickmark_manager_stub,
-                                bookmark_manager_mock, info,
+def test_url_completion_pattern(web_history, bookmark_manager_mock, info,
                                 url, title, pattern, rowcount):
     """Test that url completion filters by url and title."""
     web_history.add_url(QUrl(url), title)
@@ -448,22 +366,7 @@ def test_url_completion_pattern(web_history, quickmark_manager_stub,
 
 
 def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
-                                        web_history, quickmarks, info):
-    """Test deleting a bookmark from the url completion model."""
-    model = urlmodel.url(info=info)
-    model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
-    qtmodeltester.check(model)
-
-    parent = model.index(1, 0)
-    idx = model.index(1, 0, parent)
-
-    model.delete_cur_item(idx)
-    assert bookmarks.delete.called_once_with('https://python.org')
-
-
-def test_url_completion_delete_quickmark(qtmodeltester, info, qtbot,
-                                         quickmarks, web_history, bookmarks):
+                                        web_history, info):
     """Test deleting a bookmark from the url completion model."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
@@ -471,29 +374,21 @@ def test_url_completion_delete_quickmark(qtmodeltester, info, qtbot,
     qtmodeltester.check(model)
 
     parent = model.index(0, 0)
-    idx = model.index(0, 0, parent)
+    idx = model.index(1, 0, parent)
 
-    # sanity checks
-    assert model.data(parent) == "Quickmarks"
-    assert model.data(idx) == 'https://wiki.archlinux.org'
-    assert 'ddg' in quickmarks.marks
-
-    len_before = len(quickmarks.marks)
     model.delete_cur_item(idx)
-    assert 'aw' not in quickmarks.marks
-    assert len_before == len(quickmarks.marks) + 1
+    assert bookmarks.delete.called_once_with('https://python.org')
 
 
-def test_url_completion_delete_history(qtmodeltester, info,
-                                       web_history_populated,
-                                       quickmarks, bookmarks):
+def test_url_completion_delete_history(qtmodeltester, info, bookmarks,
+                                       web_history_populated):
     """Test deleting a history entry."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    parent = model.index(2, 0)
+    parent = model.index(1, 0)
     idx = model.index(1, 0, parent)
 
     # sanity checks
@@ -505,13 +400,12 @@ def test_url_completion_delete_history(qtmodeltester, info,
     assert 'https://python.org' not in web_history_populated
 
 
-def test_url_completion_zero_limit(config_stub, web_history, quickmarks, info,
-                                   bookmarks):
+def test_url_completion_zero_limit(config_stub, web_history, info, bookmarks):
     """Make sure there's no history if the limit was set to zero."""
     config_stub.val.completion.web_history_max_items = 0
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    category = model.index(2, 0)  # "History" normally
+    category = model.index(1, 0)  # "History" normally
     assert model.data(category) is None
 
 
@@ -857,9 +751,7 @@ def test_bind_completion_changed(cmdutils_stub, config_stub, key_config_stub,
     })
 
 
-def test_url_completion_benchmark(benchmark, info,
-                                  quickmark_manager_stub,
-                                  bookmark_manager_mock,
+def test_url_completion_benchmark(benchmark, info, bookmark_manager_mock,
                                   web_history):
     """Benchmark url completion."""
     r = range(100000)
@@ -870,10 +762,6 @@ def test_url_completion_benchmark(benchmark, info,
     }
 
     web_history.completion.insert_batch(entries)
-
-    quickmark_manager_stub.marks = collections.OrderedDict([
-        ('title{}'.format(i), 'example.com/{}'.format(i))
-        for i in range(1000)])
 
     bookmark_manager_mock.__iter__ = mock.Mock(return_value=iter([
         urlmarks.Bookmark('example.com/{}'.format(i), 'title{}'.format(i), [])

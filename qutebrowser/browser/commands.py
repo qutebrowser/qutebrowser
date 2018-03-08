@@ -318,7 +318,7 @@ class CommandDispatcher:
                     curtab.openurl(cur_url)
 
     def _parse_url(self, url, *, force_search=False):
-        """Parse a URL or quickmark or search query.
+        """Parse a URL or search query.
 
         Args:
             url: The URL to parse.
@@ -329,15 +329,12 @@ class CommandDispatcher:
             A URL that can be opened.
         """
         try:
-            return objreg.get('quickmark-manager').get(url)
-        except urlmarks.Error:
-            try:
-                return urlutils.fuzzy_url(url, force_search=force_search)
-            except urlutils.InvalidUrlError as e:
-                # We don't use cmdexc.CommandError here as this can be
-                # called async from edit_url
-                message.error(str(e))
-                return None
+            return urlutils.fuzzy_url(url, force_search=force_search)
+        except urlutils.InvalidUrlError as e:
+            # We don't use cmdexc.CommandError here as this can be
+            # called async from edit_url
+            message.error(str(e))
+            return None
 
     def _parse_url_input(self, url):
         """Parse a URL or newline-separated list of URLs.
@@ -1305,53 +1302,6 @@ class CommandDispatcher:
         except userscripts.Error as e:
             raise cmdexc.CommandError(e)
         return runner
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    def quickmark_save(self):
-        """Save the current page as a quickmark."""
-        quickmark_manager = objreg.get('quickmark-manager')
-        quickmark_manager.prompt_save(self._current_url())
-
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0)
-    @cmdutils.argument('name', completion=miscmodels.quickmark)
-    def quickmark_load(self, name, tab=False, bg=False, window=False):
-        """Load a quickmark.
-
-        Args:
-            name: The name of the quickmark to load.
-            tab: Load the quickmark in a new tab.
-            bg: Load the quickmark in a new background tab.
-            window: Load the quickmark in a new window.
-        """
-        try:
-            url = objreg.get('quickmark-manager').get(name)
-        except urlmarks.Error as e:
-            raise cmdexc.CommandError(str(e))
-        self._open(url, tab, bg, window)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0)
-    @cmdutils.argument('name', completion=miscmodels.quickmark)
-    def quickmark_del(self, name=None):
-        """Delete a quickmark.
-
-        Args:
-            name: The name of the quickmark to delete. If not given, delete the
-                  quickmark for the current page (choosing one arbitrarily
-                  if there are more than one).
-        """
-        quickmark_manager = objreg.get('quickmark-manager')
-        if name is None:
-            url = self._current_url()
-            try:
-                name = quickmark_manager.get_by_qurl(url)
-            except urlmarks.DoesNotExistError as e:
-                raise cmdexc.CommandError(str(e))
-        try:
-            quickmark_manager.delete(name)
-        except KeyError:
-            raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def bookmark_add(self, url=None, title=None, toggle=False):

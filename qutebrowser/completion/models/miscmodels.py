@@ -47,23 +47,6 @@ def helptopic(*, info):
     return model
 
 
-def quickmark(*, info=None):  # pylint: disable=unused-argument
-    """A CompletionModel filled with all quickmarks."""
-    def delete(data):
-        """Delete a quickmark from the completion menu."""
-        name = data[0]
-        quickmark_manager = objreg.get('quickmark-manager')
-        log.completion.debug('Deleting quickmark {}'.format(name))
-        quickmark_manager.delete(name)
-
-    model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
-    marks = objreg.get('quickmark-manager').marks.items()
-    model.add_category(listcategory.ListCategory('Quickmarks', marks,
-                                                 delete_func=delete,
-                                                 sort=False))
-    return model
-
-
 def bookmark(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with all bookmarks."""
     def delete(data):

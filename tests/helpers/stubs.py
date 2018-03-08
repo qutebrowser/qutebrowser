@@ -427,30 +427,6 @@ class StatusBarCommandStub(QLineEdit):
         return self.text()[0]
 
 
-class UrlMarkManagerStub(QObject):
-
-    """Stub for the quickmark-manager or bookmark-manager object."""
-
-    added = pyqtSignal(str, str)
-    removed = pyqtSignal(str)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.marks = {}
-
-    def delete(self, key):
-        del self.marks[key]
-        self.removed.emit(key)
-
-
-class QuickmarkManagerStub(UrlMarkManagerStub):
-
-    """Stub for the quickmark-manager object."""
-
-    def quickmark_del(self, key):
-        self.delete(key)
-
-
 class HostBlockerStub:
 
     """Stub for the host-blocker object."""

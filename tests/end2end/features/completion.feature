@@ -38,10 +38,6 @@ Feature: Using completion
         When I run :set-cmd-text -s :help
         Then the completion model should be helptopic
 
-    Scenario: Using quickmark completion
-        When I run :set-cmd-text -s :quickmark-load
-        Then the completion model should be quickmark
-
     Scenario: Using bookmark completion
         When I run :set-cmd-text -s :bookmark-load
         Then the completion model should be bookmark
