@@ -634,10 +634,12 @@ class FilenamePrompt(_BasePrompt):
         self._file_view.setRootIndex(root)
 
     def _has_completions(self, path, to_complete):
-        for f in os.listdir(path):
-            cur_path = os.path.join(path, f)
-            if os.path.isdir(cur_path) and f.startswith(to_complete):
+        parent = self._file_view.rootIndex()
+        idx = self._file_model.index(0, 0, parent)
+        while idx.isValid():
+            if self._file_model.fileName(idx).startswith(to_complete):
                 return True
+            idx = self._file_view.indexBelow(idx)
         return False
 
     @pyqtSlot(QModelIndex)
