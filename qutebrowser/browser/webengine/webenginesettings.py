@@ -120,14 +120,6 @@ class WebEngineSettings(websettings.AbstractSettings):
 
         'scrolling.smooth':
             [QWebEngineSettings.ScrollAnimatorEnabled],
-
-        # Missing QtWebEngine attributes:
-        # - ScreenCaptureEnabled
-        # - Accelerated2dCanvasEnabled
-        # - AutoLoadIconsForPage
-        # - TouchIconsEnabled
-        # - FocusOnNavigationEnabled (5.8)
-        # - AllowRunningInsecureContent (5.8)
     }
 
     _FONT_SIZES = {
@@ -148,9 +140,6 @@ class WebEngineSettings(websettings.AbstractSettings):
         'fonts.web.family.sans_serif': QWebEngineSettings.SansSerifFont,
         'fonts.web.family.cursive': QWebEngineSettings.CursiveFont,
         'fonts.web.family.fantasy': QWebEngineSettings.FantasyFont,
-
-        # Missing QtWebEngine fonts:
-        # - PictographFont
     }
 
     # Mapping from WebEngineSettings::initDefaults in
@@ -377,5 +366,4 @@ def init(args):
 
 
 def shutdown():
-    # FIXME:qtwebengine do we need to do something for a clean shutdown here?
     pass
