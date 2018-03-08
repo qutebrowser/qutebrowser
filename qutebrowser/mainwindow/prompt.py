@@ -650,7 +650,7 @@ class FilenamePrompt(_BasePrompt):
         """
         path = os.path.normpath(self._file_model.filePath(index))
         if index == QModelIndex():
-            path = os.path.joint(self._file_model.rootPath(), self._to_complete)
+            path = os.path.join(self._file_model.rootPath(), self._to_complete)
 
         if clicked:
             path += os.sep
