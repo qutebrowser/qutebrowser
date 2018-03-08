@@ -520,7 +520,6 @@ Default:
 * +pass:[=]+: +pass:[zoom]+
 * +pass:[?]+: +pass:[set-cmd-text ?]+
 * +pass:[@]+: +pass:[run-macro]+
-* +pass:[B]+: +pass:[set-cmd-text -s :quickmark-load -t]+
 * +pass:[D]+: +pass:[tab-close -o]+
 * +pass:[F]+: +pass:[hint all tab]+
 * +pass:[G]+: +pass:[scroll-to-perc]+
@@ -545,7 +544,6 @@ Default:
 * +pass:[]]]+: +pass:[navigate next]+
 * +pass:[`]+: +pass:[enter-mode set_mark]+
 * +pass:[ad]+: +pass:[download-cancel]+
-* +pass:[b]+: +pass:[set-cmd-text -s :quickmark-load]+
 * +pass:[cd]+: +pass:[download-clear]+
 * +pass:[co]+: +pass:[tab-only]+
 * +pass:[d]+: +pass:[tab-close]+
@@ -573,7 +571,6 @@ Default:
 * +pass:[j]+: +pass:[scroll down]+
 * +pass:[k]+: +pass:[scroll up]+
 * +pass:[l]+: +pass:[scroll right]+
-* +pass:[m]+: +pass:[quickmark-save]+
 * +pass:[n]+: +pass:[search-next]+
 * +pass:[o]+: +pass:[set-cmd-text -s :open]+
 * +pass:[pP]+: +pass:[open -- {primary}]+
@@ -603,7 +600,6 @@ Default:
 * +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
 * +pass:[wO]+: +pass:[set-cmd-text :open -w {url:pretty}]+
 * +pass:[wP]+: +pass:[open -w -- {primary}]+
-* +pass:[wb]+: +pass:[set-cmd-text -s :quickmark-load -w]+
 * +pass:[wf]+: +pass:[hint all window]+
 * +pass:[wh]+: +pass:[back -w]+
 * +pass:[wi]+: +pass:[inspector]+

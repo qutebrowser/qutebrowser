@@ -76,10 +76,6 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<open,open>>|Open a URL in the current/[count]th tab.
 |<<open-editor,open-editor>>|Open an external editor with the currently selected form field.
 |<<print,print>>|Print the current/[count]th tab.
-|<<quickmark-add,quickmark-add>>|Add a new quickmark.
-|<<quickmark-del,quickmark-del>>|Delete a quickmark.
-|<<quickmark-load,quickmark-load>>|Load a quickmark.
-|<<quickmark-save,quickmark-save>>|Save the current page as a quickmark.
 |<<quit,quit>>|Quit qutebrowser.
 |<<record-macro,record-macro>>|Start or stop recording a macro.
 |<<reload,reload>>|Reload the current/[count]th tab.
@@ -824,53 +820,6 @@ Print the current/[count]th tab.
 
 ==== count
 The tab index to print.
-
-[[quickmark-add]]
-=== quickmark-add
-Syntax: +:quickmark-add 'url' 'name'+
-
-Add a new quickmark.
-
-You can view all saved quickmarks on the link:qute://bookmarks[bookmarks page].
-
-==== positional arguments
-* +'url'+: The url to add as quickmark.
-* +'name'+: The name for the new quickmark.
-
-[[quickmark-del]]
-=== quickmark-del
-Syntax: +:quickmark-del ['name']+
-
-Delete a quickmark.
-
-==== positional arguments
-* +'name'+: The name of the quickmark to delete. If not given, delete the quickmark for the current page (choosing one arbitrarily
- if there are more than one).
-
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
-
-[[quickmark-load]]
-=== quickmark-load
-Syntax: +:quickmark-load [*--tab*] [*--bg*] [*--window*] 'name'+
-
-Load a quickmark.
-
-==== positional arguments
-* +'name'+: The name of the quickmark to load.
-
-==== optional arguments
-* +*-t*+, +*--tab*+: Load the quickmark in a new tab.
-* +*-b*+, +*--bg*+: Load the quickmark in a new background tab.
-* +*-w*+, +*--window*+: Load the quickmark in a new window.
-
-==== note
-* This command does not split arguments after the last argument and handles quotes literally.
-
-[[quickmark-save]]
-=== quickmark-save
-Save the current page as a quickmark.
 
 [[quit]]
 === quit
