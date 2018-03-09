@@ -359,7 +359,8 @@ class TabBar(QTabBar):
         if option in ["tabs.indicator.padding",
                       "tabs.padding",
                       "tabs.indicator.width",
-                      "tabs.min_width"]:
+                      "tabs.min_width",
+                      "tabs.pinned.shrink"]:
             self._minimum_tab_size_hint_helper.cache_clear()
 
     def _on_show_switching_delay_changed(self):
@@ -529,7 +530,8 @@ class TabBar(QTabBar):
         width = (text_width + icon_width +
                  padding_h + indicator_width)
         min_width = config.val.tabs.min_width
-        if not pinned and not self.vertical and min_width > 0:
+        if (not self.vertical and min_width > 0 and
+                not pinned or not config.val.tabs.pinned.shrink):
             width = max(min_width, width)
         return QSize(width, height)
 

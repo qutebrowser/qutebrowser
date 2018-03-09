@@ -1411,10 +1411,13 @@ tabs.min_width:
   type:
     name: Int
     minval: -1
+    maxval: maxint
   desc: >-
-    Minimum width (in pixels) of tabs (-1 to use text contents for min width).
+    Minimum width (in pixels) of tabs (-1 to use min text contents size for min width).
 
     This setting only applies when tabs are horizontal.
+
+    This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
 
 tabs.width.indicator:
   renamed: tabs.indicator.width
