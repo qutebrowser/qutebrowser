@@ -477,7 +477,7 @@ class TabBar(QTabBar):
         Args:
             index: The index of the tab to get a size hint for.
             ellipsis: Whether to use ellipsis to calculate width
-                     instead of the tab's text.
+                     instead of the tab's text. Forced to true for pinned tabs.
         Return:
             A QSize of the smallest tab size we can make.
         """
@@ -489,6 +489,11 @@ class TabBar(QTabBar):
         else:
             icon_width = min(icon.actualSize(self.iconSize()).width(),
                              self.iconSize().width()) + icon_padding
+
+        pinned = self._tab_pinned(index)
+        if pinned:
+            # Never consider ellipsis an option for pinned tabs
+            ellipsis = False
         return self._minimum_tab_size_hint_helper(self.tabText(index),
                                                   icon_width,
                                                   ellipsis)
