@@ -264,8 +264,7 @@ class HintKeyParser(CommandKeyParser):
         if dry_run:
             return dry_run_match
 
-        if (not keyutils.is_printable(e.key()) and
-                dry_run_match == QKeySequence.NoMatch):
+        if keyutils.is_special(e.key(), e.modifiers()):
             log.keyboard.debug("Got special key, clearing keychain")
             self.clear_keystring()
 
@@ -346,7 +345,7 @@ class RegisterKeyParser(CommandKeyParser):
         if match or dry_run:
             return match
 
-        if not keyutils.is_printable(e.key()):
+        if keyutils.is_special(e.key(), e.modifiers()):
             # this is not a proper register key, let it pass and keep going
             return QKeySequence.NoMatch
 

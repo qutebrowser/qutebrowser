@@ -469,7 +469,19 @@ def test_key_info_to_int():
     (Qt.Key_X, True),
 ])
 def test_is_printable(key, printable):
-    assert keyutils.is_printable(key) == printable
+    assert keyutils._is_printable(key) == printable
+    assert keyutils.is_special(key, Qt.NoModifier) != printable
+
+
+@pytest.mark.parametrize('key, modifiers, special', [
+    (Qt.Key_Escape, Qt.NoModifier, True),
+    (Qt.Key_Escape, Qt.ShiftModifier, True),
+    (Qt.Key_Escape, Qt.ControlModifier, True),
+    (Qt.Key_X, Qt.ControlModifier, True),
+    (Qt.Key_X, Qt.NoModifier, False),
+])
+def test_is_special(key, modifiers, special):
+    assert keyutils.is_special(key, modifiers) == special
 
 
 @pytest.mark.parametrize('key, ismodifier', [
@@ -484,7 +496,7 @@ def test_is_modifier_key(key, ismodifier):
 @pytest.mark.parametrize('func', [
     keyutils._assert_plain_key,
     keyutils._assert_plain_modifier,
-    keyutils.is_printable,
+    keyutils._is_printable,
     keyutils.is_modifier_key,
     keyutils._key_to_string,
     keyutils._modifiers_to_string,
