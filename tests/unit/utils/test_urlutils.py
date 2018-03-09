@@ -277,25 +277,17 @@ class TestFuzzyUrl:
 def test_special_urls(url, special):
     assert urlutils.is_special_url(QUrl(url)) == special
 
-@pytest.mark.parametrize('url, host, query, open_base_url', [
-    ('testfoo', 'www.example.com', 'q=testfoo', False),
-    ('test testfoo', 'www.qutebrowser.org', 'q=testfoo', False),
-    ('test testfoo bar foo', 'www.qutebrowser.org', 'q=testfoo bar foo', False),
-    ('test testfoo ', 'www.qutebrowser.org', 'q=testfoo', False),
-    ('!python testfoo', 'www.example.com', 'q=%21python testfoo', False),
-    ('blub testfoo', 'www.example.com', 'q=blub testfoo', False),
-    ('stripped ', 'www.example.com', 'q=stripped', False),
-    ('test-with-dash testfoo', 'www.example.org', 'q=testfoo', False),
-    ('testfoo', 'www.example.com', 'q=testfoo', True),
-    ('test testfoo', 'www.qutebrowser.org', 'q=testfoo', True),
-    ('test testfoo bar foo', 'www.qutebrowser.org', 'q=testfoo bar foo', True),
-    ('test testfoo ', 'www.qutebrowser.org', 'q=testfoo', True),
-    ('!python testfoo', 'www.example.com', 'q=%21python testfoo', True),
-    ('blub testfoo', 'www.example.com', 'q=blub testfoo', True),
-    ('stripped ', 'www.example.com', 'q=stripped', True),
-    ('test-with-dash testfoo', 'www.example.org', 'q=testfoo', True),
-    ('test', 'www.qutebrowser.org', '', True),
-    ('test-with-dash', 'www.example.org', '', True),
+@pytest.mark.parametrize('open_base_url', [True, False])
+
+@pytest.mark.parametrize('url, host, query', [
+    ('testfoo', 'www.example.com', 'q=testfoo'),
+    ('test testfoo', 'www.qutebrowser.org', 'q=testfoo'),
+    ('test testfoo bar foo', 'www.qutebrowser.org', 'q=testfoo bar foo'),
+    ('test testfoo ', 'www.qutebrowser.org', 'q=testfoo'),
+    ('!python testfoo', 'www.example.com', 'q=%21python testfoo'),
+    ('blub testfoo', 'www.example.com', 'q=blub testfoo'),
+    ('stripped ', 'www.example.com', 'q=stripped'),
+    ('test-with-dash testfoo', 'www.example.org', 'q=testfoo'),
 ])
 def test_get_search_url(config_stub, url, host, query, open_base_url):
     """Test _get_search_url().
@@ -308,12 +300,27 @@ def test_get_search_url(config_stub, url, host, query, open_base_url):
     config_stub.val.url.open_base_url = open_base_url
     url = urlutils._get_search_url(url)
     if open_base_url and query == '':
-        assert url.path() == ''
-        assert url.fragment() == ''
+        assert not url.path()
+        assert not url.fragment()
 
     assert url.host() == host
     assert url.query() == query
 
+
+@pytest.mark.parametrize('url, host, query', [
+    ('test', 'www.qutebrowser.org', ''),
+    ('test-with-dash', 'www.example.org', ''),
+])
+
+def test_get_search_url_open_base_url(config_stub, url, host, query):
+    """Test _get_search_url() with url.open_base_url_enabled.
+
+    Args:
+        url: The "URL" to enter.
+        host: The expected search machine host.
+        query: The expected search query.
+    """
+    test_get_search_url(config_stub, url, host, query, True)
 
 @pytest.mark.parametrize('url', ['\n', ' ', '\n '])
 def test_get_search_url_invalid(url):
