@@ -259,7 +259,6 @@ class HintKeyParser(CommandKeyParser):
         Returns:
             True if the match has been handled, False otherwise.
         """
-
         dry_run_match = super().handle(e, dry_run=True)
         if dry_run:
             return dry_run_match
