@@ -433,7 +433,8 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.run_js_async(js_code)
 
     def delta(self, x=0, y=0):
-        self._tab.run_js_async(javascript.assemble('window', 'scrollBy', x, y))
+        js_code = javascript.assemble('scroll', 'delta_px', x, y)
+        self._tab.run_js_async(js_code)
 
     def delta_page(self, x=0, y=0):
         js_code = javascript.assemble('scroll', 'delta_page', x, y)
@@ -636,8 +637,8 @@ class WebEngineTab(browsertab.AbstractTab):
         js_code = '\n'.join([
             '"use strict";',
             'window._qutebrowser = window._qutebrowser || {};',
-            utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
+            utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/caret.js'),
         ])
         script = QWebEngineScript()

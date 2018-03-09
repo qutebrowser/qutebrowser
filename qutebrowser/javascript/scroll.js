@@ -22,53 +22,99 @@
 window._qutebrowser.scroll = (function() {
     const funcs = {};
 
-    funcs.to_perc = (x, y) => {
-        let x_px = window.scrollX;
-        let y_px = window.scrollY;
+    // TODO how do I clone this function in a cleaner way?
+    const call_if_frame = window._qutebrowser.webelem.call_if_frame;
+
+    // Helper function which scrolls the document 'doc' and window 'win' to x, y
+    function scroll_to_perc(x, y, win = window, doc = document) {
+        let x_px = win.scrollX;
+        let y_px = win.scrollY;
 
         const width = Math.max(
-            document.body.scrollWidth,
-            document.body.offsetWidth,
-            document.documentElement.scrollWidth,
-            document.documentElement.offsetWidth
+            doc.body.scrollWidth,
+            doc.body.offsetWidth,
+            doc.documentElement.scrollWidth,
+            doc.documentElement.offsetWidth
         );
         const height = Math.max(
-            document.body.scrollHeight,
-            document.body.offsetHeight,
-            document.documentElement.scrollHeight,
-            document.documentElement.offsetHeight
+            doc.body.scrollHeight,
+            doc.body.offsetHeight,
+            doc.documentElement.scrollHeight,
+            doc.documentElement.offsetHeight
         );
 
         if (x !== undefined) {
-            x_px = (width - window.innerWidth) / 100 * x;
+            x_px = (width - win.innerWidth) / 100 * x;
         }
 
         if (y !== undefined) {
-            y_px = (height - window.innerHeight) / 100 * y;
+            y_px = (height - win.innerHeight) / 100 * y;
         }
 
         /*
         console.log(JSON.stringify({
             "x": x,
-            "window.scrollX": window.scrollX,
-            "window.innerWidth": window.innerWidth,
-            "elem.scrollWidth": document.documentElement.scrollWidth,
+            "win.scrollX": win.scrollX,
+            "win.innerWidth": win.innerWidth,
+            "elem.scrollWidth": doc.documentElement.scrollWidth,
             "x_px": x_px,
             "y": y,
-            "window.scrollY": window.scrollY,
-            "window.innerHeight": window.innerHeight,
-            "elem.scrollHeight": document.documentElement.scrollHeight,
+            "win.scrollY": win.scrollY,
+            "win.innerHeight": win.innerHeight,
+            "elem.scrollHeight": doc.documentElement.scrollHeight,
             "y_px": y_px,
         }));
         */
 
-        window.scroll(x_px, y_px);
+        win.scroll(x_px, y_px);
+    }
+
+    funcs.to_perc = (x, y) => {
+        const elem = document.activeElement;
+        // If we are in a frame, scroll that frame
+        const scrolled = call_if_frame(elem,
+            (frame_win) => scroll_to_perc(x, y, frame_win, frame_win.document));
+
+        if (!scrolled) {
+            // Scroll root window
+            scroll_to_perc(x, y);
+        }
     };
 
+    // Scroll a provided window by x,y
+    function scroll_window(x, y, win = window, page = true) {
+        if (page) {
+            const dx = win.innerWidth * x;
+            const dy = win.innerHeight * y;
+            win.scrollBy(dx, dy);
+        } else {
+            win.scrollBy(x, y);
+        }
+        return true;
+    }
+
     funcs.delta_page = (x, y) => {
-        const dx = window.innerWidth * x;
-        const dy = window.innerHeight * y;
-        window.scrollBy(dx, dy);
+        const elem = document.activeElement;
+        // If we are in a frame, scroll that frame
+        const scrolled = call_if_frame(elem,
+            (frame_win) => scroll_window(x, y, frame_win));
+
+        if (!scrolled) {
+            // Scroll root window
+            scroll_window(x, y);
+        }
+    };
+
+    funcs.delta_px = (x, y) => {
+        const elem = document.activeElement;
+        // If we are in a frame, scroll that frame
+        const scrolled = call_if_frame(elem,
+            (frame_win) => scroll_window(x, y, frame_win, false));
+
+        if (!scrolled) {
+            // Scroll root window
+            scroll_window(x, y, window, false);
+        }
     };
 
     return funcs;

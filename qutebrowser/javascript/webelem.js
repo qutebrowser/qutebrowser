@@ -282,12 +282,13 @@ window._qutebrowser.webelem = (function() {
         if ("contentWindow" in elem) {
             const frame = elem.contentWindow;
             if (iframe_same_domain(frame) &&
-                "frameElement" in elem.contentWindow) {
+                "frameElement" in frame) {
                 return func(frame);
             }
         }
         return null;
     }
+    funcs.call_if_frame = call_if_frame;
 
     funcs.find_focused = () => {
         const elem = document.activeElement;
