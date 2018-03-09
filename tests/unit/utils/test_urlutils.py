@@ -299,7 +299,7 @@ def test_get_search_url(config_stub, url, host, query, open_base_url):
     """
     config_stub.val.url.open_base_url = open_base_url
     url = urlutils._get_search_url(url)
-    if open_base_url and query == '':
+    if open_base_url and not query:
         assert not url.path()
         assert not url.fragment()
 
