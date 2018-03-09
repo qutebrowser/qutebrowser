@@ -478,7 +478,8 @@ class TabBar(QTabBar):
         Args:
             index: The index of the tab to get a size hint for.
             ellipsis: Whether to use ellipsis to calculate width
-                     instead of the tab's text. Forced to true for pinned tabs.
+                     instead of the tab's text.
+                     Forced to false for pinned tabs.
         Return:
             A QSize of the smallest tab size we can make.
         """
