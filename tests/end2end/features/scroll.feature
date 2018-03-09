@@ -231,7 +231,7 @@ Feature: Scrolling
     Scenario: :scroll-to-perc with count and argument
         When I run :scroll-to-perc 0 with count 50
         Then the page should be scrolled vertically
-        
+
     # https://github.com/qutebrowser/qutebrowser/issues/1821
     @issue3572
     Scenario: :scroll-to-perc without doctype
@@ -332,3 +332,23 @@ Feature: Scrolling
         And I run :tab-next
         And I run :jseval --world main checkAnchor()
         Then "[*] [PASS] Positions equal: *" should be logged
+
+    ## frame scrolling
+
+    Scenario: Scrolling pixel-wise in a frame
+        When I open data/scroll/frame.html
+        And I run :tab-only
+        And I run :hint
+        And I run :follow-hint a
+        And I run :scroll-px 0 100
+        Then the javascript message "scroll y px: 100" should be logged
+
+    Scenario: Scrolling to a position in a frame
+        When I open data/scroll/frame.html
+        And I run :tab-only
+        And I run :hint
+        And I run :follow-hint a
+        And I run :scroll-px 0 100
+        And I run :scroll-to-perc 0
+        Then the javascript message "scroll y px: 100" should be logged
+        And the javascript message "scroll y px: 0" should be logged
