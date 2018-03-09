@@ -259,9 +259,18 @@ class HintKeyParser(CommandKeyParser):
         Returns:
             True if the match has been handled, False otherwise.
         """
-        match = super().handle(e, dry_run=dry_run)
+
+        dry_run_match = super().handle(e, dry_run=True)
         if dry_run:
-            return match
+            return dry_run_match
+
+        if (not keyutils.is_printable(e.key()) and
+                dry_run_match == QKeySequence.NoMatch):
+            log.keyboard.debug("Got special key, clearing keychain")
+            self.clear_keystring()
+
+        assert not dry_run
+        match = super().handle(e)
 
         if match == QKeySequence.PartialMatch:
             self._last_press = LastPress.keystring
