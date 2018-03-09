@@ -1406,6 +1406,16 @@ tabs.width:
   desc: "Width (in pixels or as percentage of the window) of the tab bar if
     it's vertical."
 
+tabs.min_width:
+  default: -1
+  type:
+    name: Int
+    minval: -1
+  desc: >-
+    Minimum width (in pixels) of tabs (-1 to use text contents for min width).
+
+    This setting only applies when tabs are horizontal.
+
 tabs.width.indicator:
   renamed: tabs.indicator.width
 
