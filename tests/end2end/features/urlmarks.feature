@@ -29,6 +29,19 @@ Feature: Bookmarks
         And I run :bookmark-add
         Then the error "Bookmark already exists!" should be shown
 
+    Scenario: Tagging a bookmark
+        Given I have a fresh instance
+        When I run :bookmark-add http://example.com Example
+        And I run :bookmark-tag http://example.com foo bar
+        Then the bookmark file should contain '{"url": "http://example.com", "title": "Example", "tags": ["foo", "bar"]}'
+
+    Scenario: Removing tags from a bookmark
+        Given I have a fresh instance
+        When I run :bookmark-add http://example.com Example
+        And I run :bookmark-tag http://example.com foo bar baz
+        And I run :bookmark-tag http://example.com -r foo baz
+        Then the bookmark file should contain '{"url": "http://example.com", "title": "Example", "tags": ["bar"]}'
+
     Scenario: Loading a bookmark
         When I run :tab-only
         And I run :bookmark-load http://localhost:(port)/data/numbers/1.txt

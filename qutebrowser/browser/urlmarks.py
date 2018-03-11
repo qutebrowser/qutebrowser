@@ -27,16 +27,12 @@ to a file on shutdown, so it makes sense to keep them as strings here.
 
 import os
 import os.path
-import html
-import functools
 import collections
 import json
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
-from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
-                               standarddir, objreg, log)
-from qutebrowser.commands import cmdutils
+from qutebrowser.utils import urlutils, standarddir, objreg
 from qutebrowser.misc import lineparser
 
 
@@ -156,6 +152,14 @@ class BookmarkManager(QObject):
         """Save the marks to disk."""
         self._lineparser.data = [json.dumps(m._asdict()) for m in self]
         self._lineparser.save()
+
+    def get(self, url):
+        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        return self._marks.get(urlstr)
+
+    def update(self, mark):
+        self._marks[mark.url] = mark
+        self.changed.emit()
 
     def delete(self, key):
         """Delete a bookmark.

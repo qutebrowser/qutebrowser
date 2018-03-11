@@ -83,3 +83,50 @@ class TestBookmarkAdd:
         bookmark_manager_mock.add.assert_called_with(
             QUrl('http://example.com'), 'Example Site', [], toggle=True)
         assert message_mock.getmsg().text == 'Removed bookmark http://example.com'
+
+
+class TestBookmarkTag:
+
+    def test_append(self, command_dispatcher, bookmark_manager_mock):
+        bookmark_manager_mock.get.return_value = urlmarks.Bookmark(
+            url=QUrl('http://example.com'),
+            title='Example',
+            tags=['foo']
+        )
+
+        command_dispatcher.bookmark_tag('http://example.com', 'bar', 'baz')
+
+        bookmark_manager_mock.get.assert_called_with(
+            QUrl('http://example.com'))
+        bookmark_manager_mock.update.assert_called_with(urlmarks.Bookmark(
+            url=QUrl('http://example.com'),
+            title='Example',
+            tags=['foo', 'bar', 'baz']
+        ))
+
+    def test_remove(self, command_dispatcher, bookmark_manager_mock):
+        bookmark_manager_mock.get.return_value = urlmarks.Bookmark(
+            url=QUrl('http://example.com'),
+            title='Example',
+            tags=['foo', 'bar', 'baz']
+        )
+        command_dispatcher.bookmark_tag(
+            'http://example.com', 'foo', 'baz', remove=True)
+        bookmark_manager_mock.get.assert_called_with(
+            QUrl('http://example.com'))
+        bookmark_manager_mock.update.assert_called_with(urlmarks.Bookmark(
+            url=QUrl('http://example.com'),
+            title='Example',
+            tags=['bar']
+        ))
+
+    def test_nonexistant(self, command_dispatcher, bookmark_manager_mock):
+        bookmark_manager_mock.get.return_value = None
+
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            command_dispatcher.bookmark_tag('http://example.com', 'foo')
+
+        assert str(excinfo.value) == \
+                'Bookmark http://example.com does not exist'
+        bookmark_manager_mock.get.assert_called_with(
+            QUrl('http://example.com'))

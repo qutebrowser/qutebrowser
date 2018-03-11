@@ -137,3 +137,34 @@ def test_save(bm_file, fake_save_manager, qtbot):
         '{"url": "http://example.com/notitle", "title": "", "tags": []}',
         '{"url": "http://example.com/tags", "title": "", "tags": ["a", "b"]}',
     ]
+
+
+def test_get(bm_file, fake_save_manager, qtbot):
+    bm = urlmarks.BookmarkManager()
+
+    bm.add(QUrl('http://example.com'), 'Example Site', ['a', 'b'])
+
+    assert bm.get('http://example.com') == urlmarks.Bookmark(
+        url='http://example.com',
+        title='Example Site',
+        tags=['a', 'b'],
+    )
+
+    assert bm.get('http://example.com/nope') is None
+
+
+def test_update(bm_file, fake_save_manager, qtbot):
+    bm = urlmarks.BookmarkManager()
+
+    bm.add(QUrl('http://example.com'), 'Example Site', ['a', 'b'])
+
+    newmark = urlmarks.Bookmark(
+        url='http://example.com',
+        title='New Title',
+        tags=['one', 'two'],
+    )
+
+    with qtbot.wait_signal(bm.changed):
+        bm.update(newmark)
+
+    assert bm.get('http://example.com') == newmark

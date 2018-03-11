@@ -1343,6 +1343,38 @@ class CommandDispatcher:
             msg = "Bookmarked {}" if was_added else "Removed bookmark {}"
             message.info(msg.format(url.toDisplayString()))
 
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('url', completion=miscmodels.bookmark)
+    def bookmark_tag(self, url, *tags, remove=False):
+        """Modify bookmark tags for the given url.
+
+        The given url will be bookmarked if it is not already.
+
+        Args:
+            url: url to save as a bookmark.
+            tags: One or more tags to add.
+            remove: Remove tags instead of adding.
+        """
+        bookmark_manager = objreg.get('bookmark-manager')
+        try:
+            url = urlutils.fuzzy_url(url)
+        except urlutils.InvalidUrlError as e:
+            raise cmdexc.CommandError(e)
+
+        mark = bookmark_manager.get(url)
+        if not mark:
+            raise cmdexc.CommandError("Bookmark {} does not exist".format(
+                url.toDisplayString()))
+
+        if remove:
+            for t in tags:
+                mark.tags.remove(t)
+        else:
+            mark.tags.extend(tags)
+
+        bookmark_manager.update(mark)
+
+
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('url', completion=miscmodels.bookmark)
