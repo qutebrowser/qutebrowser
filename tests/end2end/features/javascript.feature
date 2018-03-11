@@ -130,6 +130,7 @@ Feature: Javascript stuff
         And I run :tab-next
         Then the window sizes should be the same
 
+    @flaky
     Scenario: Have a GreaseMonkey script run at page start
         When I have a GreaseMonkey file saved for document-start with noframes unset
         And I run :greasemonkey-reload
