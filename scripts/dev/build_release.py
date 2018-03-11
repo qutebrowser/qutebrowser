@@ -24,6 +24,7 @@
 import os
 import os.path
 import sys
+import time
 import glob
 import shutil
 import plistlib
@@ -195,6 +196,7 @@ def build_mac():
                                       'MacOS', 'qutebrowser')
                 smoke_test(binary)
             finally:
+                time.sleep(5)
                 subprocess.run(['hdiutil', 'detach', tmpdir])
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
