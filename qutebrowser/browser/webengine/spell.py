@@ -24,16 +24,14 @@ import os
 import re
 
 from PyQt5.QtCore import QLibraryInfo
-from qutebrowser.utils import log
+from qutebrowser.utils import log, message
+
+dict_version_re = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
 
 
 def version(filename):
     """Extract the version number from the dictionary file name."""
-    version_re = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
-    match = version_re.fullmatch(filename)
-    if match is None:
-        raise ValueError('the given dictionary file name is malformed: {}'
-                         .format(filename))
+    match = dict_version_re.match(filename)
     return tuple(int(n) for n in match.group('version').split('-'))
 
 
@@ -46,7 +44,7 @@ def dictionary_dir():
 def local_files(code):
     """Return all installed dictionaries for the given code."""
     pathname = os.path.join(dictionary_dir(), '{}*.bdic'.format(code))
-    matching_dicts = glob.glob(pathname)
+    matching_dicts = filter(dict_version_re.match, glob.glob(pathname))
     files = []
     for matching_dict in sorted(matching_dicts, key=version, reverse=True):
         filename = os.path.basename(matching_dict)
