@@ -213,8 +213,9 @@
 |<<keyhint.delay,keyhint.delay>>|Time (in milliseconds) from pressing a key to seeing the keyhint dialog.
 |<<keyhint.radius,keyhint.radius>>|Rounding radius (in pixels) for the edges of the keyhint dialog.
 |<<messages.timeout,messages.timeout>>|Duration (in milliseconds) to show messages in the statusbar for.
-|<<new_instance_open_target,new_instance_open_target>>|How to open links in an existing instance if a new one is launched.
-|<<new_instance_open_target_window,new_instance_open_target_window>>|Which window to choose when opening links as new tabs.
+|<<new_instance_open.behavior,new_instance_open.behavior>>|How to draw attention to the window in which the opened link is shown.
+|<<new_instance_open.target,new_instance_open.target>>|How to open links in an existing instance if a new one is launched.
+|<<new_instance_open.target_window,new_instance_open.target_window>>|Which window to choose when opening links as new tabs.
 |<<prompt.filebrowser,prompt.filebrowser>>|Show a filebrowser in upload/download prompts.
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
@@ -2506,28 +2507,40 @@ Type: <<types,Int>>
 
 Default: +pass:[2000]+
 
-[[new_instance_open_target]]
-=== new_instance_open_target
-How to open links in an existing instance if a new one is launched.
-This happens when e.g. opening a link from a terminal.
-See `new_instance_open_target_window` to customize in which window the link is opened in.
+[[new_instance_open.behavior]]
+=== new_instance_open.behavior
+How to draw attention to the window in which the opened link is shown.
 
 Type: <<types,String>>
 
 Valid values:
 
- * +tab+: Open a new tab in the existing window and activate the window.
- * +tab-bg+: Open a new background tab in the existing window and activate the window.
- * +tab-silent+: Open a new tab in the existing window without activating the window.
- * +tab-bg-silent+: Open a new background tab in the existing window without activating the window.
+ * +activate+: Activate the window in which the link is shown. Note that it depends on the OS and window manager how this is handeled exactly.
+ * +mark+: Mark the window in which the link is shown as urgent.
+ * +silent+: Do not draw any attention to the window.
+
+Default: +pass:[activate]+
+
+[[new_instance_open.target]]
+=== new_instance_open.target
+How to open links in an existing instance if a new one is launched.
+This happens when e.g. opening a link from a terminal.
+See `new_instance_open.target_window` to customize in which window the link is opened in. See `new_instance_open.behavior` to customize how and whether the window draws the attention of the user.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +tab+: Open a new tab in the existing window.
+ * +tab-bg+: Open a new background tab in the existing window.
  * +window+: Open in a new window.
 
 Default: +pass:[tab]+
 
-[[new_instance_open_target_window]]
-=== new_instance_open_target_window
+[[new_instance_open.target_window]]
+=== new_instance_open.target_window
 Which window to choose when opening links as new tabs.
-When `new_instance_open_target` is not set to `window`, this is ignored.
+When `new_instance_open.target` is not set to `window`, this is ignored.
 
 Type: <<types,String>>
 

@@ -1641,7 +1641,7 @@ class CommandDispatcher:
         ed.file_updated.connect(functools.partial(
             self.on_file_updated, elem))
         ed.editing_finished.connect(lambda: mainwindow.raise_window(
-            objreg.last_focused_window(), alert=False))
+            objreg.last_focused_window()))
         ed.edit(text, caret_position)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')

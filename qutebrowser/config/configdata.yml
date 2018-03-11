@@ -51,17 +51,12 @@ search.incremental:
   default: True
   desc: Find text on a page incrementally, renewing the search for each typed character.
 
-new_instance_open_target:
+new_instance_open.target:
   type:
     name: String
     valid_values:
-      - tab: Open a new tab in the existing window and activate the window.
-      - tab-bg: Open a new background tab in the existing window and activate
-          the window.
-      - tab-silent: Open a new tab in the existing window without activating
-          the window.
-      - tab-bg-silent: Open a new background tab in the existing window without
-          activating the window.
+      - tab: Open a new tab in the existing window.
+      - tab-bg: Open a new background tab in the existing window.
       - window: Open in a new window.
   default: tab
   desc: >-
@@ -69,10 +64,24 @@ new_instance_open_target:
 
     This happens when e.g. opening a link from a terminal.
 
-    See `new_instance_open_target_window` to customize in which window the link
+    See `new_instance_open.target_window` to customize in which window the link
     is opened in.
+    See `new_instance_open.behavior` to customize how and whether the window
+    draws the attention of the user.
 
-new_instance_open_target_window:
+new_instance_open.behavior:
+  type:
+    name: String
+    valid_values:
+      - activate: Activate the window in which the link is shown. Note that it
+          depends on the OS and window manager how this is handeled exactly.
+      - mark: Mark the window in which the link is shown as urgent.
+      - silent: Do not draw any attention to the window.
+  default: activate
+  desc: >-
+    How to draw attention to the window in which the opened link is shown.
+
+new_instance_open.target_window:
   type:
     name: String
     valid_values:
@@ -84,7 +93,7 @@ new_instance_open_target_window:
   desc: >-
     Which window to choose when opening links as new tabs.
 
-    When `new_instance_open_target` is not set to `window`, this is ignored.
+    When `new_instance_open.target` is not set to `window`, this is ignored.
 
 session_default_name:
   renamed: session.default_name
