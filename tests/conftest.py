@@ -246,6 +246,8 @@ def apply_fake_os(monkeypatch, request):
     elif name == 'linux':
         linux = True
         posix = True
+    elif name == 'posix':
+        posix = True
     else:
         raise ValueError("Invalid fake_os {}".format(name))
 
