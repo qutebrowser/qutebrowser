@@ -22,7 +22,7 @@ Fixed
 ~~~~~
 
 - qutebrowser now starts properly when the PyQt5 QOpenGLFunctions package wasn't found.
-
+- The keybinding cheatsheet on the quickstart page is now loaded from a local `qute://` URL again.
 
 v1.2.0
 ------
