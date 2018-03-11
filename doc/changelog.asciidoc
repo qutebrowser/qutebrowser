@@ -18,11 +18,24 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.3.0 (unreleased)
 -------------------
 
+Changed
+~~~~~~~
+
+- `:version` now shows OS information for POSIX OS other than Linux/macOS.
+
+v1.2.1 (unreleased)
+-------------------
+
 Fixed
 ~~~~~
 
-- qutebrowser now starts properly when the PyQt5 QOpenGLFunctions package wasn't found.
-- The keybinding cheatsheet on the quickstart page is now loaded from a local `qute://` URL again.
+- qutebrowser now starts properly when the PyQt5 QOpenGLFunctions package wasn't
+  found.
+- The keybinding cheatsheet on the quickstart page is now loaded from a local
+  `qute://` URL again.
+- With "tox -e mkvenv-pypi", PyQt 5.10.0 is used again instead of Qt 5.10.1,
+  because of an issue with Qt 5.10.1 which causes qutebrowser to fail to start
+  ("Could not find QtWebEngineProcess").
 
 v1.2.0
 ------
