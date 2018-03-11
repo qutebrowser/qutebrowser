@@ -453,7 +453,13 @@ def opengl_vendor():  # pragma: no cover
         vp = QOpenGLVersionProfile()
         vp.setVersion(2, 0)
 
-        vf = ctx.versionFunctions(vp)
+        try:
+            vf = ctx.versionFunctions(vp)
+        except ImportError as e:
+            log.init.debug("opengl_vendor: Importing version functions "
+                           "failed: {}".format(e))
+            return None
+
         if vf is None:
             log.init.debug("opengl_vendor: Getting version functions failed!")
             return None
