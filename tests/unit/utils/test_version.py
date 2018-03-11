@@ -713,7 +713,7 @@ class TestOsInfo:
         uname_tuple = ('PosixOS', 'localhost', '1.0', '1.0', 'i386', 'i386')
         monkeypatch.setattr(version.platform, 'uname', lambda: uname_tuple)
         ret = version._os_info()
-        expected = ['OS Version: %s' % ' '.join(uname_tuple)]
+        expected = ['OS Version: PosixOS localhost 1.0 1.0 i386 i386']
         assert ret == expected
 
     @pytest.mark.fake_os('unknown')
