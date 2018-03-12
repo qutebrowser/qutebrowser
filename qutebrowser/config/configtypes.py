@@ -506,6 +506,16 @@ class ListOrValue(BaseType):
         self.listtype = List(valtype, none_ok=none_ok, *args, **kwargs)
         self.valtype = valtype
 
+    def _val_and_type(self, value):
+        """Get the value and type to use for to_str/to_doc/from_str."""
+        if isinstance(value, list):
+            if len(value) == 1:
+                return value[0], self.valtype
+            else:
+                return value, self.listtype
+        else:
+            return value, self.valtype
+
     def get_name(self):
         return self.listtype.get_name() + ', or ' + self.valtype.get_name()
 
@@ -533,25 +543,15 @@ class ListOrValue(BaseType):
         if value is None:
             return ''
 
-        if isinstance(value, list):
-            if len(value) == 1:
-                return self.valtype.to_str(value[0])
-            else:
-                return self.listtype.to_str(value)
-        else:
-            return self.valtype.to_str(value)
+        val, typ = self._val_and_type(value)
+        return typ.to_str(val)
 
     def to_doc(self, value, indent=0):
         if value is None:
             return 'empty'
 
-        if isinstance(value, list):
-            if len(value) == 1:
-                return self.valtype.to_doc(value[0], indent)
-            else:
-                return self.listtype.to_doc(value, indent)
-        else:
-            return self.valtype.to_doc(value, indent)
+        val, typ = self._val_and_type(value)
+        return typ.to_doc(val)
 
 
 class FlagList(List):
