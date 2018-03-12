@@ -339,6 +339,24 @@ class TestKeyConfig:
         key_config_stub.unbind(seq)
         assert key_config_stub.get_command(seq, mode='normal') is None
 
+    def test_unbind_old_syntax(self, yaml_config_stub, key_config_stub,
+                               config_stub):
+        """Test unbinding bindings added before the keybinding refactoring.
+
+        We used to normalize keys differently, so we can have <ctrl+q> in the
+        config.
+
+        See https://github.com/qutebrowser/qutebrowser/issues/3699
+        """
+        bindings = {'normal': {'<ctrl+q>': 'nop'}}
+        yaml_config_stub.set_obj('bindings.commands', bindings)
+        config_stub.read_yaml()
+
+        key_config_stub.unbind(keyutils.KeySequence.parse('<ctrl+q>'),
+                               save_yaml=True)
+
+        assert config.instance.get_obj('bindings.commands') == {'normal': {}}
+
     def test_empty_command(self, key_config_stub):
         """Try binding a key to an empty command."""
         message = "Can't add binding 'x' with empty command in normal mode"

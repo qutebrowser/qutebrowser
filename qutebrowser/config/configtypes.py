@@ -1650,6 +1650,9 @@ class Key(BaseType):
 
     """A name of a key."""
 
+    def from_obj(self, value):
+        return str(keyutils.KeySequence.parse(value))
+
     def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
