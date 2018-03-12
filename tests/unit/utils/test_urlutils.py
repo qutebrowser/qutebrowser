@@ -277,8 +277,8 @@ class TestFuzzyUrl:
 def test_special_urls(url, special):
     assert urlutils.is_special_url(QUrl(url)) == special
 
-@pytest.mark.parametrize('open_base_url', [True, False])
 
+@pytest.mark.parametrize('open_base_url', [True, False])
 @pytest.mark.parametrize('url, host, query', [
     ('testfoo', 'www.example.com', 'q=testfoo'),
     ('test testfoo', 'www.qutebrowser.org', 'q=testfoo'),
@@ -311,7 +311,6 @@ def test_get_search_url(config_stub, url, host, query, open_base_url):
     ('test', 'www.qutebrowser.org', ''),
     ('test-with-dash', 'www.example.org', ''),
 ])
-
 def test_get_search_url_open_base_url(config_stub, url, host, query):
     """Test _get_search_url() with url.open_base_url_enabled.
 
@@ -321,6 +320,7 @@ def test_get_search_url_open_base_url(config_stub, url, host, query):
         query: The expected search query.
     """
     test_get_search_url(config_stub, url, host, query, True)
+
 
 @pytest.mark.parametrize('url', ['\n', ' ', '\n '])
 def test_get_search_url_invalid(url):
