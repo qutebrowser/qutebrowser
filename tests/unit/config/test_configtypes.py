@@ -537,8 +537,11 @@ class FromObjType(configtypes.BaseType):
 
     """Config type to test from_obj for List/Dict."""
 
-    def from_obj(self, obj):
-        return int(obj)
+    def from_obj(self, value):
+        return int(value)
+
+    def to_py(self, value):
+        return value
 
 
 class TestList:

@@ -1651,6 +1651,7 @@ class Key(BaseType):
     """A name of a key."""
 
     def from_obj(self, value):
+        """Make sure key sequences are always normalized."""
         return str(keyutils.KeySequence.parse(value))
 
     def to_py(self, value):
