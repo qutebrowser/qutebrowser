@@ -51,11 +51,23 @@ Download the https://packages.debian.org/sid/all/qutebrowser/download[qutebrowse
 https://packages.debian.org/sid/all/python3-pypeg2/download[PyPEG2]
 package from the Debian repositories.
 
+----
+# wget http://ftp.debian.org/debian/pool/main/p/pypeg2/python3-pypeg2_2.15.2-1_all.deb 
+# wget http://ftp.debian.org/debian/pool/main/q/qutebrowser/qutebrowser-qtwebengine_1.2.0-1_all.deb http://ftp.debian.org/debian/pool/main/q/qutebrowser/qutebrowser_1.2.0-1_all.deb
+----
+
 Install the packages:
 
 ----
 # apt install ./python3-pypeg2_*_all.deb
-# apt install ./qutebrowser_*_all.deb
+# apt install ./qutebrowser*.deb
+----
+
+Alternatively if you prefer qtwebkit
+
+----
+# wget http://ftp.debian.org/debian/pool/main/q/qutebrowser/qutebrowser-qtwebkit_1.2.0-1_all.deb http://ftp.debian.org/debian/pool/main/q/qutebrowser/qutebrowser_1.2.0-1_all.deb
+# apt install ./qutebrowser*.deb
 ----
 
 Debian Testing / Ubuntu 18.04
