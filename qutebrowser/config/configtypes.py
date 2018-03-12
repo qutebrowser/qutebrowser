@@ -451,7 +451,7 @@ class List(BaseType):
     def from_obj(self, value):
         if value is None:
             return []
-        return value
+        return [self.valtype.from_obj(v) for v in value]
 
     def to_py(self, value):
         self._basic_py_validation(value, list)
@@ -1199,7 +1199,9 @@ class Dict(BaseType):
     def from_obj(self, value):
         if value is None:
             return {}
-        return value
+
+        return {self.keytype.from_obj(key): self.valtype.from_obj(val)
+                for key, val in value.items()}
 
     def _fill_fixed_keys(self, value):
         """Fill missing fixed keys with a None-value."""
