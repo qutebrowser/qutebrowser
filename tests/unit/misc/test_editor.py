@@ -157,6 +157,25 @@ class TestFileHandling:
         with pytest.raises(ValueError):
             editor.edit("")
 
+    def test_backup(self, qtbot, message_mock):
+        editor = editormod.ExternalEditor(watch=True)
+        editor.edit('foo')
+        with qtbot.wait_signal(editor.file_updated) as blocker:
+            _update_file(editor._filename, 'bar')
+
+        editor.backup()
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.info)
+        prefix = 'Editor backup at '
+        assert msg.text.startswith(prefix)
+        fname = msg.text[len(prefix):]
+
+        with qtbot.wait_signal(editor.editing_finished) as blocker:
+            editor._proc.finished.emit(0, QProcess.NormalExit)
+
+        with open(fname, 'r') as f:
+            assert f.read() == 'bar'
+
 
 @pytest.mark.parametrize('initial_text, edited_text', [
     ('', 'Hello'),
