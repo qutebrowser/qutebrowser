@@ -20,6 +20,7 @@
 """Launcher for an external editor."""
 
 import os
+import types
 import tempfile
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QProcess,
@@ -35,6 +36,7 @@ class ExternalEditor(QObject):
     """Class to simplify editing a text in an external editor.
 
     Attributes:
+        _backup_needed: Whether to keep a backup of the edited file.
         _text: The current text before the editor is opened.
         _filename: The name of the file to be edited.
         _remove_file: Whether the file should be removed when the editor is
@@ -49,11 +51,12 @@ class ExternalEditor(QObject):
         editing_finished: The editor process was closed.
     """
 
-    file_updated = pyqtSignal(str)
+    file_updated = pyqtSignal(str, types.MethodType)
     editing_finished = pyqtSignal()
 
     def __init__(self, parent=None, watch=False):
         super().__init__(parent)
+        self._backup_needed = False
         self._filename = None
         self._proc = None
         self._remove_file = None
@@ -72,6 +75,10 @@ class ExternalEditor(QObject):
 
         if self._filename is None or not self._remove_file:
             # Could not create initial file.
+            return
+
+        if self._backup_needed:
+            message.info("Backup at {}".format(self._filename))
             return
 
         try:
@@ -147,7 +154,9 @@ class ExternalEditor(QObject):
         log.procs.debug("Read back: {}".format(text))
         if self._content != text:
             self._content = text
-            self.file_updated.emit(text)
+            # clear _backup_needed, file_updated will set it again if needed
+            self._backup_needed = False
+            self.file_updated.emit(text, self.backup_cb)
 
     def edit_file(self, filename):
         """Edit the file with the given filename."""
@@ -243,3 +252,6 @@ class ExternalEditor(QObject):
             arg = arg.replace(old, new)
 
         return arg
+
+    def backup_cb(self):
+        self._backup_needed = True

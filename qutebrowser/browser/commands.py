@@ -53,7 +53,6 @@ class CommandDispatcher:
     cmdutils.register() decorators are run, currentWidget() will return None.
 
     Attributes:
-        _editor: The ExternalEditor object.
         _win_id: The window ID the CommandDispatcher is associated with.
         _tabbed_browser: The TabbedBrowser used.
     """
@@ -1654,7 +1653,7 @@ class CommandDispatcher:
         tab = self._current_widget()
         tab.elements.find_focused(self._open_editor_cb)
 
-    def on_file_updated(self, elem, text):
+    def on_file_updated(self, elem, text, backup):
         """Write the editor text into the form field and clean up tempfile.
 
         Callback for GUIProcess when the edited text was updated.
@@ -1662,12 +1661,15 @@ class CommandDispatcher:
         Args:
             elem: The WebElementWrapper which was modified.
             text: The new text to insert.
+            backup: Callable to request a backup.
         """
         try:
             elem.set_value(text)
         except webelem.OrphanedError as e:
+            backup()
             message.error('Edited element vanished')
         except webelem.Error as e:
+            backup()
             raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
