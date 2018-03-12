@@ -533,6 +533,14 @@ class FlagListSubclass(configtypes.FlagList):
                 'foo', 'bar', 'baz')
 
 
+class FromObjType(configtypes.BaseType):
+
+    """Config type to test from_obj for List/Dict."""
+
+    def from_obj(self, obj):
+        return int(obj)
+
+
 class TestList:
 
     """Test List and FlagList."""
@@ -646,6 +654,12 @@ class TestList:
         typ = configtypes.List(valtype=valtype)
         with pytest.raises(AssertionError):
             typ.to_doc([['foo']])
+
+    def test_from_obj_sub(self):
+        """Make sure the list calls from_obj() on sub-types."""
+        typ = configtypes.List(valtype=FromObjType())
+        value = typ.from_obj(['1', '2'])
+        assert value == [1, 2]
 
 
 class TestFlagList:
@@ -1664,6 +1678,13 @@ class TestDict:
         doc = typ.to_doc(val)
         print(doc)
         assert doc == expected
+
+    def test_from_obj_sub(self):
+        """Make sure the dict calls from_obj() on sub-types."""
+        typ = configtypes.Dict(keytype=configtypes.String(),
+                               valtype=FromObjType())
+        value = typ.from_obj({'1': '2'})
+        assert value == {'1': 2}
 
 
 def unrequired_class(**kwargs):
