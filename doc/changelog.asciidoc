@@ -36,6 +36,8 @@ Fixed
 - With "tox -e mkvenv-pypi", PyQt 5.10.0 is used again instead of Qt 5.10.1,
   because of an issue with Qt 5.10.1 which causes qutebrowser to fail to start
   ("Could not find QtWebEngineProcess").
+- Unbinding keys which were bound in older qutebrowser versions now doesn't
+  crash anymore.
 
 v1.2.0
 ------
