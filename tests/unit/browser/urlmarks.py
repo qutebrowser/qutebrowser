@@ -72,16 +72,16 @@ def test_add(bm_file, fake_save_manager, qtbot):
     with qtbot.wait_signal(bm.changed):
         bm.add(QUrl('http://example.com/notitle'), '', [])
     assert list(bm) == [
-        urlmarks.Bookmark('http://example.com', 'Example Site', []),
         urlmarks.Bookmark('http://example.com/notitle', '', []),
+        urlmarks.Bookmark('http://example.com', 'Example Site', []),
     ]
 
     with qtbot.wait_signal(bm.changed):
         bm.add(QUrl('http://example.com/tagged'), '', ['some', 'tag'])
     assert list(bm) == [
-        urlmarks.Bookmark('http://example.com', 'Example Site', []),
-        urlmarks.Bookmark('http://example.com/notitle', '', []),
         urlmarks.Bookmark('http://example.com/tagged', '', ['some', 'tag']),
+        urlmarks.Bookmark('http://example.com/notitle', '', []),
+        urlmarks.Bookmark('http://example.com', 'Example Site', []),
     ]
 
 
@@ -120,8 +120,8 @@ def test_delete(bm_file, fake_save_manager, qtbot):
     with qtbot.wait_signal(bm.changed):
         bm.delete('http://example.com/bar')
     assert list(bm) == [
-        urlmarks.Bookmark('http://example.com/foo', 'Foo', []),
         urlmarks.Bookmark('http://example.com/baz', 'Baz', []),
+        urlmarks.Bookmark('http://example.com/foo', 'Foo', []),
     ]
 
 
@@ -133,9 +133,9 @@ def test_save(bm_file, fake_save_manager, qtbot):
     bm.add(QUrl('http://example.com/tags'), '', ['a', 'b'])
     bm.save()
     assert bm_file.read().splitlines() == [
-        '{"url": "http://example.com", "title": "Example Site", "tags": []}',
-        '{"url": "http://example.com/notitle", "title": "", "tags": []}',
         '{"url": "http://example.com/tags", "title": "", "tags": ["a", "b"]}',
+        '{"url": "http://example.com/notitle", "title": "", "tags": []}',
+        '{"url": "http://example.com", "title": "Example Site", "tags": []}',
     ]
 
 
@@ -144,13 +144,13 @@ def test_get(bm_file, fake_save_manager, qtbot):
 
     bm.add(QUrl('http://example.com'), 'Example Site', ['a', 'b'])
 
-    assert bm.get('http://example.com') == urlmarks.Bookmark(
+    assert bm.get(QUrl('http://example.com')) == urlmarks.Bookmark(
         url='http://example.com',
         title='Example Site',
         tags=['a', 'b'],
     )
 
-    assert bm.get('http://example.com/nope') is None
+    assert bm.get(QUrl('http://example.com/nope')) is None
 
 
 def test_update(bm_file, fake_save_manager, qtbot):
@@ -167,4 +167,4 @@ def test_update(bm_file, fake_save_manager, qtbot):
     with qtbot.wait_signal(bm.changed):
         bm.update(newmark)
 
-    assert bm.get('http://example.com') == newmark
+    assert bm.get(QUrl('http://example.com')) == newmark

@@ -145,6 +145,8 @@ class BookmarkManager(QObject):
                 raise AlreadyExistsError("Bookmark already exists!")
         else:
             self._marks[urlstr] = Bookmark(urlstr, title or '', tags or [])
+            # place new marks at the end
+            self._marks.move_to_end(urlstr, last=False)
             self.changed.emit()
             return True
 
@@ -154,6 +156,11 @@ class BookmarkManager(QObject):
         self._lineparser.save()
 
     def get(self, url):
+        """Get a bookmark, or None if no such mark exists.
+
+        Args:
+            url: The QUrl of the mark to find.
+        """
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         return self._marks.get(urlstr)
 
