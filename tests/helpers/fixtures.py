@@ -193,11 +193,15 @@ def configdata_init():
 
 
 @pytest.fixture
-def config_stub(stubs, monkeypatch, configdata_init, config_tmpdir):
-    """Fixture which provides a fake config object."""
-    yaml_config = configfiles.YamlConfig()
+def yaml_config_stub(config_tmpdir):
+    """Fixture which provides a YamlConfig object."""
+    return configfiles.YamlConfig()
 
-    conf = config.Config(yaml_config=yaml_config)
+
+@pytest.fixture
+def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
+    """Fixture which provides a fake config object."""
+    conf = config.Config(yaml_config=yaml_config_stub)
     monkeypatch.setattr(config, 'instance', conf)
 
     container = config.ConfigContainer(conf)
