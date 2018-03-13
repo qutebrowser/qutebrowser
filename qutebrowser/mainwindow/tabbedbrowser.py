@@ -111,7 +111,7 @@ class TabbedBrowser(QWidget):
 
     def __init__(self, *, win_id, private, parent=None):
         super().__init__(parent)
-        self.widget = tabwidget.TabWidget(win_id, parent)
+        self.widget = tabwidget.TabWidget(win_id, parent=self)
         self._win_id = win_id
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1

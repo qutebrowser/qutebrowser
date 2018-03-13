@@ -472,6 +472,7 @@ class SessionManagerStub:
     def list_sessions(self):
         return self.sessions
 
+
 class TabbedBrowserStub(QObject):
 
     """Stub for the tabbed-browser object."""
@@ -493,6 +494,7 @@ class TabbedBrowserStub(QObject):
 
     def openurl(self, url, *, newtab):
         self.opened_url = url
+
 
 class TabWidgetStub(QObject):
 
@@ -538,6 +540,7 @@ class TabWidgetStub(QObject):
         if idx == -1:
             return None
         return self.tabs[idx - 1]
+
 
 class ApplicationStub(QObject):
 
