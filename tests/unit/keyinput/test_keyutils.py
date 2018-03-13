@@ -377,6 +377,15 @@ class TestKeySequence:
         with pytest.raises(keyutils.KeyParseError):
             seq.append_event(event)
 
+    def test_strip_modifiers(self):
+        seq = keyutils.KeySequence(Qt.Key_0,
+                                   Qt.Key_1 | Qt.KeypadModifier,
+                                   Qt.Key_A | Qt.ControlModifier)
+        expected = keyutils.KeySequence(Qt.Key_0,
+                                        Qt.Key_1,
+                                        Qt.Key_A | Qt.ControlModifier)
+        assert seq.strip_modifiers() == expected
+
     def test_with_mappings(self):
         seq = keyutils.KeySequence.parse('foobar')
         mappings = {keyutils.KeySequence('b'): keyutils.KeySequence('t')}
