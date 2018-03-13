@@ -108,11 +108,43 @@ class BaseKeyParser(QObject):
             assert not isinstance(seq, str), seq
             match = sequence.matches(seq)
             if match == QKeySequence.ExactMatch:
-                return (match, cmd)
+                return match, cmd
             elif match == QKeySequence.PartialMatch:
                 result = QKeySequence.PartialMatch
 
-        return (result, None)
+        return result, None
+
+    def _match_without_modifiers(self, sequence):
+        """Try to match a key with optional modifiers stripped."""
+        self._debug_log("Trying match without modifiers")
+        sequence = sequence.strip_modifiers()
+        match, binding = self._match_key(sequence)
+        return match, binding, sequence
+
+    def _match_key_mapping(self, sequence):
+        """Try to match a key in bindings.key_mappings."""
+        self._debug_log("Trying match with key_mappings")
+        mapped = sequence.with_mappings(config.val.bindings.key_mappings)
+        if sequence != mapped:
+            self._debug_log("Mapped {} -> {}".format(
+                sequence, mapped))
+            match, binding = self._match_key(mapped)
+            sequence = mapped
+            return match, binding, sequence
+        return QKeySequence.NoMatch, None, sequence
+
+    def _match_count(self, sequence, dry_run):
+        """Try to match a key as count."""
+        txt = str(sequence[-1])  # To account for sequences changed above.
+        if (txt.isdigit() and self._supports_count and
+                not (not self._count and txt == '0')):
+            self._debug_log("Trying match as count")
+            assert len(txt) == 1, txt
+            if not dry_run:
+                self._count += txt
+                self.keystring_updated.emit(self._count + str(self._sequence))
+            return True
+        return False
 
     def handle(self, e, *, dry_run=False):
         """Handle a new keypress.
@@ -146,38 +178,15 @@ class BaseKeyParser(QObject):
             self.clear_keystring()
             return QKeySequence.NoMatch
 
-        # First, try a straightforward match
-        self._debug_log("Trying simple match")
         match, binding = self._match_key(sequence)
-
-        # Then try without optional modifiers
         if match == QKeySequence.NoMatch:
-            self._debug_log("Trying match without modifiers")
-            sequence = sequence.strip_modifiers()
-            match, binding = self._match_key(sequence)
-
-        # If that doesn't match, try a key_mapping
+            match, binding, sequence = self._match_without_modifiers(sequence)
         if match == QKeySequence.NoMatch:
-            self._debug_log("Trying match with key_mappings")
-            mapped = sequence.with_mappings(config.val.bindings.key_mappings)
-            if sequence != mapped:
-                self._debug_log("Mapped {} -> {}".format(
-                    sequence, mapped))
-                match, binding = self._match_key(mapped)
-                sequence = mapped
-
-        # If that doesn't match either, try treating it as count.
-        txt = str(sequence[-1])  # To account for sequences changed above.
-        if (match == QKeySequence.NoMatch and
-                txt.isdigit() and
-                self._supports_count and
-                not (not self._count and txt == '0')):
-            self._debug_log("Trying match as count")
-            assert len(txt) == 1, txt
-            if not dry_run:
-                self._count += txt
-                self.keystring_updated.emit(self._count + str(self._sequence))
-            return QKeySequence.ExactMatch
+            match, binding, sequence = self._match_key_mapping(sequence)
+        if match == QKeySequence.NoMatch:
+            was_count = self._match_count(sequence, dry_run)
+            if was_count:
+                return QKeySequence.ExactMatch
 
         if dry_run:
             return match
