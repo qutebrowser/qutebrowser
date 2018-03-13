@@ -40,6 +40,7 @@ Fixed
   ("Could not find QtWebEngineProcess").
 - Unbinding keys which were bound in older qutebrowser versions now doesn't
   crash anymore.
+- Fixed a crash when reloading a page which wasn't fully loaded with v1.2.0
 
 v1.2.0
 ------
