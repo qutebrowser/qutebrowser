@@ -706,7 +706,9 @@ class WebEngineTab(browsertab.AbstractTab):
         self._widget.shutdown()
 
     def reload(self, *, force=False):
-        self.predicted_navigation.emit(self.url())
+        if self.url().isValid():
+            self.predicted_navigation.emit(self.url())
+
         if force:
             action = QWebEnginePage.ReloadAndBypassCache
         else:
@@ -931,6 +933,7 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):
         """If we know we're going to visit an URL soon, change the settings."""
+        qtutils.ensure_valid(url)
         self.settings.update_for_url(url)
 
     @pyqtSlot(usertypes.NavigationRequest)
