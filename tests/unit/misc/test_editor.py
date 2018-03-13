@@ -183,14 +183,15 @@ class TestFileHandling:
         # content has not changed, so no backup should be created
         assert not message_mock.messages
 
-    def test_backup(self, qtbot, message_mock, mocker):
+    def test_backup_error(self, qtbot, message_mock, mocker, caplog):
         editor = editormod.ExternalEditor(watch=True)
         editor.edit('foo')
         with qtbot.wait_signal(editor.file_updated):
             _update_file(editor._filename, 'bar')
 
         mocker.patch('tempfile.NamedTemporaryFile', side_effect=OSError)
-        editor.backup()
+        with caplog.at_level(logging.ERROR):
+            editor.backup()
 
         msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith('Failed to create editor backup:')
