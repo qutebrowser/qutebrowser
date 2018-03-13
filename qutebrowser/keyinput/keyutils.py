@@ -510,6 +510,12 @@ class KeySequence:
 
         return self.__class__(*keys)
 
+    def strip_modifiers(self):
+        """Strip optional modifiers from keys."""
+        modifiers = Qt.KeypadModifier
+        keys = [key & ~modifiers for key in self._iter_keys()]
+        return self.__class__(*keys)
+
     def with_mappings(self, mappings):
         """Get a new KeySequence with the given mappings applied."""
         keys = []

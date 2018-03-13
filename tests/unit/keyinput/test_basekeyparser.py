@@ -198,10 +198,31 @@ class TestHandle:
         keyparser.execute.assert_called_with('message-info ba', None)
         assert not keyparser._sequence
 
-    @pytest.mark.parametrize('key, number', [(Qt.Key_0, 0), (Qt.Key_1, 1)])
-    def test_number_press(self, handle_text, keyparser, key, number):
-        handle_text(key)
+    @pytest.mark.parametrize('key, modifiers, number', [
+        (Qt.Key_0, Qt.NoModifier, 0),
+        (Qt.Key_1, Qt.NoModifier, 1),
+        (Qt.Key_1, Qt.KeypadModifier, 1),
+    ])
+    def test_number_press(self, fake_keyevent, keyparser,
+                          key, modifiers, number):
+        keyparser.handle(fake_keyevent(key, modifiers))
         command = 'message-info {}'.format(number)
+        keyparser.execute.assert_called_once_with(command, None)
+        assert not keyparser._sequence
+
+    @pytest.mark.parametrize('modifiers, text', [
+        (Qt.NoModifier, '2'),
+        (Qt.KeypadModifier, 'num-2'),
+    ])
+    def test_number_press_keypad(self, fake_keyevent, keyparser, config_stub,
+                                 modifiers, text):
+        """Make sure a <Num+2> binding overrides the 2 binding."""
+        config_stub.val.bindings.commands = {'normal': {
+            '2': 'message-info 2',
+            '<Num+2>': 'message-info num-2'}}
+        keyparser._read_config('normal')
+        keyparser.handle(fake_keyevent(Qt.Key_2, modifiers))
+        command = 'message-info {}'.format(text)
         keyparser.execute.assert_called_once_with(command, None)
         assert not keyparser._sequence
 
@@ -214,6 +235,15 @@ class TestHandle:
     def test_mapping(self, config_stub, handle_text, keyparser):
         handle_text(Qt.Key_X)
         keyparser.execute.assert_called_once_with('message-info a', None)
+
+    def test_mapping_keypad(self, config_stub, fake_keyevent, keyparser):
+        """Make sure falling back to non-numpad keys works with mappings."""
+        config_stub.val.bindings.commands = {'normal': {'a': 'nop'}}
+        config_stub.val.bindings.key_mappings = {'1': 'a'}
+        keyparser._read_config('normal')
+
+        keyparser.handle(fake_keyevent(Qt.Key_1, Qt.KeypadModifier))
+        keyparser.execute.assert_called_once_with('nop', None)
 
     def test_binding_and_mapping(self, config_stub, handle_text, keyparser):
         """with a conflicting binding/mapping, the binding should win."""
@@ -295,6 +325,15 @@ class TestCount:
         sig1, sig2 = blocker.all_signals_and_args
         assert sig1.args == ('4',)
         assert sig2.args == ('42',)
+
+    def test_numpad(self, fake_keyevent, keyparser):
+        """Make sure we can enter a count via numpad."""
+        for key, modifiers in [(Qt.Key_4, Qt.KeypadModifier),
+                               (Qt.Key_2, Qt.KeypadModifier),
+                               (Qt.Key_B, Qt.NoModifier),
+                               (Qt.Key_A, Qt.NoModifier)]:
+            keyparser.handle(fake_keyevent(key, modifiers))
+        keyparser.execute.assert_called_once_with('message-info ba', 42)
 
 
 def test_clear_keystring(qtbot, keyparser):
