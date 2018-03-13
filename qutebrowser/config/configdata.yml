@@ -74,7 +74,7 @@ new_instance_open.behavior:
     name: String
     valid_values:
       - activate: Activate the window in which the link is shown. Note that it
-          depends on the OS and window manager how this is handeled exactly.
+          depends on the OS and window manager how this is handled exactly.
       - mark: Mark the window in which the link is shown as urgent.
       - silent: Do not draw any attention to the window.
   default: activate
