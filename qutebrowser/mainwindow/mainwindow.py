@@ -49,7 +49,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         via_ipc: Whether the request was made via IPC.
         force_window: Whether to force opening in a window.
         force_tab: Whether to force opening in a tab.
-        force_target: Override the new_instance_open.target config
+        force_target: Override the new_instance.target config
         no_raise: suppress target window raising
 
     Return:
@@ -62,8 +62,8 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         # Initial main window
         return 0
 
-    open_target = config.val.new_instance_open.target
-    open_behavior = config.val.new_instance_open.behavior
+    open_target = config.val.new_instance.target
+    open_behavior = config.val.new_instance.behavior
 
     # Apply any target overrides, ordered by precedence
     if force_target is not None:
@@ -111,7 +111,7 @@ def mark_window(window):
 def get_target_window():
     """Get the target window for new tabs, or None if none exist."""
     try:
-        win_mode = config.val.new_instance_open.target_window
+        win_mode = config.val.new_instance.target_window
         if win_mode == 'last-focused':
             return objreg.last_focused_window()
         elif win_mode == 'first-opened':

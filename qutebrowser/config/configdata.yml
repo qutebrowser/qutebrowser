@@ -51,7 +51,7 @@ search.incremental:
   default: True
   desc: Find text on a page incrementally, renewing the search for each typed character.
 
-new_instance_open.target:
+new_instance.target:
   type:
     name: String
     valid_values:
@@ -69,7 +69,7 @@ new_instance_open.target:
     See `new_instance_open.behavior` to customize how and whether the window
     draws the attention of the user.
 
-new_instance_open.behavior:
+new_instance.behavior:
   type:
     name: String
     valid_values:
@@ -81,7 +81,7 @@ new_instance_open.behavior:
   desc: >-
     How to draw attention to the window in which the opened link is shown.
 
-new_instance_open.target_window:
+new_instance.target_window:
   type:
     name: String
     valid_values:

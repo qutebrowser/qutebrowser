@@ -306,14 +306,14 @@ def open_url(url, target=None, no_raise=False, via_ipc=True):
 
     Args:
         url: An URL to open.
-        target: same as new_instance_open.target (used as a default).
+        target: same as new_instance.target (used as a default).
         no_raise: suppress target window raising.
         via_ipc: Whether the arguments were transmitted over IPC.
 
     Return:
         ID of a window that was used to open URL
     """
-    target = target or config.val.new_instance_open.target
+    target = target or config.val.new_instance.target
     background = target == 'tab-bg'
     win_id = mainwindow.get_window(via_ipc, force_target=target,
                                    no_raise=no_raise)

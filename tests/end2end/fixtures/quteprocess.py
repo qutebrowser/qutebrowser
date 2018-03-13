@@ -546,7 +546,7 @@ class QuteProc(testprocess.Process):
         settings = [
             ('messages.timeout', '0'),
             ('auto_save.interval', '0'),
-            ('new_instance_open.target_window', 'last-opened')
+            ('new_instance.target_window', 'last-opened')
         ]
         if not self.request.config.webengine:
             settings.append(('content.ssl_strict', 'false'))
