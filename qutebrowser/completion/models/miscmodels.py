@@ -117,11 +117,11 @@ def _buffer(skip_win_id=None):
         if tabbed_browser.shutting_down:
             continue
         tabs = []
-        for idx in range(tabbed_browser.count()):
-            tab = tabbed_browser.widget(idx)
+        for idx in range(tabbed_browser.widget.count()):
+            tab = tabbed_browser.widget.widget(idx)
             tabs.append(("{}/{}".format(win_id, idx + 1),
                          tab.url().toDisplayString(),
-                         tabbed_browser.page_title(idx)))
+                         tabbed_browser.widget.page_title(idx)))
         cat = listcategory.ListCategory("{}".format(win_id), tabs,
                                         delete_func=delete_buffer)
         model.add_category(cat)

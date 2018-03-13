@@ -340,7 +340,7 @@ def _open_startpage(win_id=None):
     for cur_win_id in list(window_ids):  # Copying as the dict could change
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=cur_win_id)
-        if tabbed_browser.count() == 0:
+        if tabbed_browser.widget.count() == 0:
             log.init.debug("Opening start pages")
             for url in config.val.url.start_pages:
                 tabbed_browser.tabopen(url)

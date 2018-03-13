@@ -472,36 +472,49 @@ class SessionManagerStub:
     def list_sessions(self):
         return self.sessions
 
-
 class TabbedBrowserStub(QObject):
 
     """Stub for the tabbed-browser object."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.widget = TabWidgetStub()
+        self.shutting_down = False
+        self.opened_url = None
+
+    def on_tab_close_requested(self, idx):
+        del self.widget.tabs[idx]
+
+    def widgets(self):
+        return self.widget.tabs
+
+    def tabopen(self, url):
+        self.opened_url = url
+
+    def openurl(self, url, *, newtab):
+        self.opened_url = url
+
+class TabWidgetStub(QObject):
+
+    """Stub for the tab-widget object."""
 
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.tabs = []
-        self.shutting_down = False
         self._qtabbar = QTabBar()
         self.index_of = None
         self.current_index = None
-        self.opened_url = None
 
     def count(self):
         return len(self.tabs)
-
-    def widgets(self):
-        return self.tabs
 
     def widget(self, i):
         return self.tabs[i]
 
     def page_title(self, i):
         return self.tabs[i].title()
-
-    def on_tab_close_requested(self, idx):
-        del self.tabs[idx]
 
     def tabBar(self):
         return self._qtabbar
@@ -525,13 +538,6 @@ class TabbedBrowserStub(QObject):
         if idx == -1:
             return None
         return self.tabs[idx - 1]
-
-    def tabopen(self, url):
-        self.opened_url = url
-
-    def openurl(self, url, *, newtab):
-        self.opened_url = url
-
 
 class ApplicationStub(QObject):
 
