@@ -41,6 +41,8 @@ Fixed
 - Unbinding keys which were bound in older qutebrowser versions now doesn't
   crash anymore.
 - Fixed a crash when reloading a page which wasn't fully loaded with v1.2.0
+- Keys on the numeric keypad now fall back to the same bindings without `Num+`
+  if no `Num+` binding was found.
 
 v1.2.0
 ------
