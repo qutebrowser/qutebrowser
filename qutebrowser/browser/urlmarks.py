@@ -164,6 +164,15 @@ class BookmarkManager(QObject):
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         return self._marks.get(urlstr)
 
+    def get_tagged(self, tags):
+        """Get all bookmarks that have all the provided tags.
+
+        Args:
+            tags: List of tags to filter by.
+        """
+        return (m for m in self._marks.values()
+                if all(t in m.tags for t in tags))
+
     def update(self, mark):
         self._marks[mark.url] = mark
         self.changed.emit()

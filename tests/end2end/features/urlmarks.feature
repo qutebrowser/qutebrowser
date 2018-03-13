@@ -43,8 +43,11 @@ Feature: Bookmarks
         Then the bookmark file should contain '{"url": "http://example.com", "title": "Example", "tags": ["bar"]}'
 
     Scenario: Loading a bookmark
+        Given I have a fresh instance
         When I run :tab-only
-        And I run :bookmark-load http://localhost:(port)/data/numbers/1.txt
+        And I run :bookmark-add http://localhost:(port)/data/numbers/1.txt Example
+        And I run :bookmark-tag http://localhost:(port)/data/numbers/1.txt one
+        And I run :bookmark-load one
         Then data/numbers/1.txt should be loaded
         And the following tabs should be open:
             - data/numbers/1.txt (active)
@@ -52,7 +55,9 @@ Feature: Bookmarks
     Scenario: Loading a bookmark in a new tab
         Given I open about:blank
         When I run :tab-only
-        And I run :bookmark-load -t http://localhost:(port)/data/numbers/2.txt
+        And I run :bookmark-add http://localhost:(port)/data/numbers/2.txt Example
+        And I run :bookmark-tag http://localhost:(port)/data/numbers/2.txt two
+        And I run :bookmark-load -t two
         Then data/numbers/2.txt should be loaded
         And the following tabs should be open:
             - about:blank
@@ -61,7 +66,9 @@ Feature: Bookmarks
     Scenario: Loading a bookmark in a background tab
         Given I open about:blank
         When I run :tab-only
-        And I run :bookmark-load -b http://localhost:(port)/data/numbers/3.txt
+        And I run :bookmark-add http://localhost:(port)/data/numbers/3.txt Example
+        And I run :bookmark-tag http://localhost:(port)/data/numbers/3.txt three
+        And I run :bookmark-load -b three
         Then data/numbers/3.txt should be loaded
         And the following tabs should be open:
             - about:blank (active)
@@ -70,7 +77,9 @@ Feature: Bookmarks
     Scenario: Loading a bookmark in a new window
         Given I open about:blank
         When I run :tab-only
-        And I run :bookmark-load -w http://localhost:(port)/data/numbers/4.txt
+        And I run :bookmark-add http://localhost:(port)/data/numbers/4.txt Example
+        And I run :bookmark-tag http://localhost:(port)/data/numbers/4.txt four
+        And I run :bookmark-load -w four
         And I wait until data/numbers/4.txt is loaded
         Then the session should look like:
             windows:
@@ -86,7 +95,11 @@ Feature: Bookmarks
                   url: http://localhost:*/data/numbers/4.txt
 
     Scenario: Loading a bookmark with -t and -b
-        When I run :bookmark-load -t -b about:blank
+        Given I open about:blank
+        When I run :tab-only
+        And I run :bookmark-add http://localhost:(port)/data/numbers/5.txt Example
+        And I run :bookmark-tag http://localhost:(port)/data/numbers/5.txt five
+        And I run :bookmark-load -t -b five
         Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
     Scenario: Deleting a bookmark which does not exist
@@ -94,10 +107,9 @@ Feature: Bookmarks
         Then the error "Bookmark 'doesnotexist' not found!" should be shown
 
     Scenario: Deleting a bookmark
-        When I open data/numbers/5.txt
-        And I run :bookmark-add
-        And I run :bookmark-del http://localhost:(port)/data/numbers/5.txt
-        Then the bookmark file should not contain "http://localhost:*/data/numbers/5.txt "
+        When I run :bookmark-add data/numbers/6.txt six
+        And I run :bookmark-del http://localhost:(port)/data/numbers/6.txt
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/6.txt "
 
     Scenario: Deleting the current page's bookmark if it doesn't exist
         When I open data/hello.txt
@@ -105,21 +117,21 @@ Feature: Bookmarks
         Then the error "Bookmark 'http://localhost:(port)/data/hello.txt' not found!" should be shown
 
     Scenario: Deleting the current page's bookmark
-        When I open data/numbers/6.txt
-        And I run :bookmark-add
-        And I run :bookmark-del
-        Then the bookmark file should not contain "http://localhost:*/data/numbers/6.txt "
-
-    Scenario: Toggling a bookmark
         When I open data/numbers/7.txt
         And I run :bookmark-add
-        And I run :bookmark-add --toggle
+        And I run :bookmark-del
         Then the bookmark file should not contain "http://localhost:*/data/numbers/7.txt "
 
-    Scenario: Loading a bookmark with --delete
-        When I run :bookmark-add http://localhost:(port)/data/numbers/8.txt "eight"
-        And I run :bookmark-load -d http://localhost:(port)/data/numbers/8.txt
+    Scenario: Toggling a bookmark
+        When I open data/numbers/8.txt
+        And I run :bookmark-add
+        And I run :bookmark-add --toggle
         Then the bookmark file should not contain "http://localhost:*/data/numbers/8.txt "
+
+    Scenario: Loading a bookmark with --delete
+        When I run :bookmark-add http://localhost:(port)/data/numbers/9.txt "nine"
+        And I run :bookmark-load -d http://localhost:(port)/data/numbers/9.txt
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/9.txt "
 
     Scenario: Listing bookmarks
         Given I have a fresh instance

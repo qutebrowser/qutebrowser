@@ -153,6 +153,31 @@ def test_get(bm_file, fake_save_manager, qtbot):
     assert bm.get(QUrl('http://example.com/nope')) is None
 
 
+def test_get_tagged(bm_file, fake_save_manager, qtbot):
+    bm = urlmarks.BookmarkManager()
+
+    bm.add(QUrl('http://example.com/1'), 'Example', ['foo', 'bar'])
+    bm.add(QUrl('http://example.com/2'), 'Example', ['foo', 'baz'])
+    bm.add(QUrl('http://example.com/3'), 'Example', ['foo', 'baz', 'biz'])
+    bm.add(QUrl('http://example.com/4'), 'Example', [])
+
+    assert [m.url for m in bm.get_tagged(['foo'])] == [
+        'http://example.com/3',
+        'http://example.com/2',
+        'http://example.com/1',
+    ]
+
+    assert [m.url for m in bm.get_tagged(['bar'])] == [
+        'http://example.com/1',
+    ]
+
+    assert [m.url for m in bm.get_tagged(['baz', 'biz'])] == [
+        'http://example.com/3',
+    ]
+
+    assert list(bm.get_tagged(['nope'])) == []
+
+
 def test_update(bm_file, fake_save_manager, qtbot):
     bm = urlmarks.BookmarkManager()
 

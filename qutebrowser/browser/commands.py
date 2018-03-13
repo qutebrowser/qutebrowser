@@ -1374,28 +1374,37 @@ class CommandDispatcher:
 
         bookmark_manager.update(mark)
 
-
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('url', completion=miscmodels.bookmark)
-    def bookmark_load(self, url, tab=False, bg=False, window=False,
-                      delete=False):
-        """Load a bookmark.
+    @cmdutils.argument('open_all', flag='a')
+    def bookmark_load(self, *tags, tab=False, bg=False, window=False,
+                      delete=False, open_all=False):
+        """Load one or more bookmark matching the given tags.
+
+        Includes only bookmarks that have all the given tags.
 
         Args:
-            url: The url of the bookmark to load.
+            tags: Tags to filter by.
+            open_all: Open all matching bookmarks, not just the first.
             tab: Load the bookmark in a new tab.
             bg: Load the bookmark in a new background tab.
             window: Load the bookmark in a new window.
             delete: Whether to delete the bookmark afterwards.
         """
-        try:
-            qurl = urlutils.fuzzy_url(url)
-        except urlutils.InvalidUrlError as e:
-            raise cmdexc.CommandError(e)
-        self._open(qurl, tab, bg, window)
-        if delete:
-            self.bookmark_del(url)
+        if not tags:
+            raise cmdexc.CommandError("No tags provided")
+        if open_all and not (tab or bg or window):
+            raise cmdexc.CommandError("-a requires one of -t/-b/-w")
+
+        bookmark_manager = objreg.get('bookmark-manager')
+        marks = bookmark_manager.get_tagged(tags)
+
+        for m in marks:
+            self._open(QUrl(m.url), tab, bg, window)
+            if delete:
+                bookmark_manager.delete(m.url)
+            if not open_all:
+                return
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
