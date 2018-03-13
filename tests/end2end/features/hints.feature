@@ -249,6 +249,11 @@ Feature: Using hints
         And I hint with args "all current" and follow a
         Then no crash should happen
 
+    Scenario: No error when hinting ranged input in frames
+        When I open data/hints/issue3711_frame.html
+        And I hint with args "all current" and follow a
+        Then no crash should happen
+
     ### hints.auto_follow.timeout
 
     @not_mac @flaky
