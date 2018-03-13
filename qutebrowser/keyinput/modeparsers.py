@@ -156,7 +156,6 @@ class PassthroughKeyParser(CommandKeyParser):
     Attributes:
         _mode: The mode this keyparser is for.
         _orig_sequence: Current sequence with no key_mappings applied.
-        _ignore_next_key: Whether to pass the next key through.
     """
 
     do_log = False
@@ -174,7 +173,6 @@ class PassthroughKeyParser(CommandKeyParser):
         self._read_config(mode)
         self._orig_sequence = keyutils.KeySequence()
         self._mode = mode
-        self._ignore_next_key = False
 
     def __repr__(self):
         return utils.get_repr(self, mode=self._mode)
@@ -190,8 +188,8 @@ class PassthroughKeyParser(CommandKeyParser):
         Return:
             A self.Match member.
         """
-        if keyutils.is_modifier_key(e.key()) or self._ignore_next_key:
-            self._ignore_next_key = self._ignore_next_key and dry_run
+        if (keyutils.is_modifier_key(e.key()) or
+                getattr(e, "ignore_event", False)):
             return QKeySequence.NoMatch
 
         orig_sequence = self._orig_sequence.append_event(e)
@@ -207,9 +205,12 @@ class PassthroughKeyParser(CommandKeyParser):
         if window is None:
             return match
 
-        self._ignore_next_key = True
+        first = True
         for keyinfo in orig_sequence:
             press_event = keyinfo.to_event(QEvent.KeyPress)
+            if first:
+                press_event.ignore_event = True
+                first = False
             release_event = keyinfo.to_event(QEvent.KeyRelease)
             QApplication.postEvent(window, press_event)
             QApplication.postEvent(window, release_event)
