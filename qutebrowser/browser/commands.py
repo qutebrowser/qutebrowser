@@ -1668,8 +1668,8 @@ class CommandDispatcher:
             message.error('Edited element vanished')
             ed.backup()
         except webelem.Error as e:
+            message.error(str(e))
             ed.backup()
-            raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', maxsplit=0,
                        scope='window')

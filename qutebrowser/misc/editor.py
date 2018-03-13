@@ -113,7 +113,7 @@ class ExternalEditor(QObject):
         if self._filename is not None:
             raise ValueError("Already editing a file!")
         try:
-            self._filename = self._create_tempfile(text)
+            self._filename = self._create_tempfile(text, 'qutebrowser-editor-')
         except OSError as e:
             message.error("Failed to create initial file: {}".format(e))
             return
@@ -128,19 +128,20 @@ class ExternalEditor(QObject):
         if not self._content:
             return
         try:
-            fname = self._create_tempfile(self._content)
+            fname = self._create_tempfile(self._content,
+                                          'qutebrowser-editor-backup-')
             message.info('Editor backup at {}'.format(fname))
         except OSError as e:
             message.error('Failed to create editor backup: {}'.format(e))
 
-    def _create_tempfile(self, text):
+    def _create_tempfile(self, text, prefix):
         # Close while the external process is running, as otherwise systems
         # with exclusive write access (e.g. Windows) may fail to update
         # the file from the external editor, see
         # https://github.com/qutebrowser/qutebrowser/issues/1767
         with tempfile.NamedTemporaryFile(
                 # pylint: disable=bad-continuation
-                mode='w', prefix='qutebrowser-editor-',
+                mode='w', prefix=prefix,
                 encoding=config.val.editor.encoding,
                 delete=False) as fobj:
                 # pylint: enable=bad-continuation
