@@ -114,7 +114,7 @@ class BaseKeyParser(QObject):
 
         return (result, None)
 
-    def handle(self, e, *, dry_run=False):
+    def handle(self, e, *, dry_run=False):  # noqa
         """Handle a new keypress.
 
         Separate the keypress into count/command, then check if it matches
