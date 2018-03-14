@@ -8,6 +8,7 @@ graft icons
 graft doc/img
 graft misc/apparmor
 graft misc/userscripts
+graft misc/requirements
 recursive-include scripts *.py *.sh *.js
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
@@ -32,8 +33,6 @@ include doc/qutebrowser.1.asciidoc
 include doc/changelog.asciidoc
 prune tests
 prune qutebrowser/3rdparty
-prune misc/requirements
-prune misc/docker
 exclude pytest.ini
 exclude qutebrowser.rcc
 exclude qutebrowser/javascript/.eslintrc.yaml
