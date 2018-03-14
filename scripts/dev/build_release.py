@@ -361,7 +361,7 @@ def github_upload(artifacts, tag):
     repo = gh.repository('qutebrowser', 'qutebrowser')
 
     release = None  # to satisfy pylint
-    for release in repo.iter_releases():
+    for release in repo.releases():
         if release.tag_name == tag:
             break
     else:
