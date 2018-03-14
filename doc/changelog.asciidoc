@@ -51,6 +51,8 @@ Fixed
 - Keys on the numeric keypad now fall back to the same bindings without `Num+`
   if no `Num+` binding was found.
 - Fixed hinting on some pages with Qt < 5.10.
+- Titles are now displayed correctly again for tabs which are cloned or loaded
+  from sessions.
 
 v1.2.0
 ------
