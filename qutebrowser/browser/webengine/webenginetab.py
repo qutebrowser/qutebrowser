@@ -640,17 +640,21 @@ class WebEngineTab(browsertab.AbstractTab):
             utils.read_file('javascript/webelem.js'),
             utils.read_file('javascript/caret.js'),
         ])
+        scripts = self._widget.page().scripts()
+
         script = QWebEngineScript()
-        # We can't use DocumentCreation here as WORKAROUND for
-        # https://bugreports.qt.io/browse/QTBUG-66011
-        script.setInjectionPoint(QWebEngineScript.DocumentReady)
+        script.setInjectionPoint(QWebEngineScript.DocumentCreation)
         script.setSourceCode(js_code)
-
-        page = self._widget.page()
         script.setWorldId(QWebEngineScript.ApplicationWorld)
-
         # FIXME:qtwebengine  what about runsOnSubFrames?
-        page.scripts().insert(script)
+        scripts.insert(script)
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66011
+        script2 = QWebEngineScript()
+        script2.setInjectionPoint(QWebEngineScript.DocumentReady)
+        script2.setSourceCode(js_code)
+        script2.setWorldId(QWebEngineScript.ApplicationWorld)
+        scripts.insert(script2)
 
     def _install_event_filter(self):
         self._widget.focusProxy().installEventFilter(self._mouse_event_filter)
