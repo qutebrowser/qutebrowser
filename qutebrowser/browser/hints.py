@@ -694,7 +694,8 @@ class HintManager(QObject):
         if rapid:
             if target in [Target.tab_bg, Target.window, Target.run,
                           Target.hover, Target.userscript, Target.spawn,
-                          Target.download, Target.normal, Target.current]:
+                          Target.download, Target.normal, Target.current,
+                          Target.yank, Target.yank_primary]:
                 pass
             elif target == Target.tab and config.val.tabs.background:
                 pass
