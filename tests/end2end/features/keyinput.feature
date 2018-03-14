@@ -163,7 +163,7 @@ Feature: Keyboard input
         Then the message "foo 3" should be shown
         And the message "foo 3" should be shown
 
-    # :test all tabs.mode_on_change modes
+    # test all tabs.mode_on_change modes
 
     Scenario: mode on change normal
         Given I set tabs.mode_on_change to normal
@@ -173,8 +173,8 @@ Feature: Keyboard input
         And I open about:blank in a new tab
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
         And "Leaving mode KeyMode.insert (reason: tab changed)" should be logged
-        And "normal: mode before tab change: insert." should be logged
-        And "normal: mode after tab change: normal." should be logged
+        And "Mode before tab change: insert (mode_on_change = normal)" should be logged
+        And "Mode after tab change: normal (mode_on_change = normal)" should be logged
 
     Scenario: mode on change persist
         Given I set tabs.mode_on_change to persist
@@ -183,8 +183,9 @@ Feature: Keyboard input
         And I run :enter-mode insert
         And I open about:blank in a new tab
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
-        And "persist: mode before tab change: insert." should be logged
-        And "persist: mode after tab change: insert." should be logged
+        And "Leaving mode KeyMode.insert (reason: tab changed)" should not be logged
+        And "Mode before tab change: insert (mode_on_change = persist)" should be logged
+        And "Mode after tab change: insert (mode_on_change = persist)" should be logged
 
     Scenario: mode on change restore
         Given I set tabs.mode_on_change to restore
@@ -195,11 +196,11 @@ Feature: Keyboard input
         And I run :enter-mode passthrough
         And I run :tab-focus 1
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
-        And "restore: mode before tab change: insert." should be logged
+        And "Mode before tab change: insert (mode_on_change = restore)" should be logged
         And "Entering mode KeyMode.normal (reason: restore)" should be logged
-        And "restore: mode after tab change: normal." should be logged
+        And "Mode after tab change: normal (mode_on_change = restore)" should be logged
         And "Entering mode KeyMode.passthrough (reason: command)" should be logged
-        And "restore: mode before tab change: passthrough." should be logged
+        And "Mode before tab change: passthrough (mode_on_change = restore)" should be logged
         And "Entering mode KeyMode.insert (reason: restore)" should be logged
-        And "restore: mode after tab change: insert." should be logged
+        And "Mode after tab change: insert (mode_on_change = restore)" should be logged
 
