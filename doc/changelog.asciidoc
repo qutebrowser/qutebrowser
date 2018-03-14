@@ -32,8 +32,8 @@ Fixed
 
 - Using hints before a page is fully loaded is now possible again.
 
-v1.2.1 (unreleased)
--------------------
+v1.2.1
+------
 
 Fixed
 ~~~~~
@@ -53,6 +53,7 @@ Fixed
 - Fixed hinting on some pages with Qt < 5.10.
 - Titles are now displayed correctly again for tabs which are cloned or loaded
   from sessions.
+- Shortcuts now correctly use `Ctrl` instead of `Command` on macOS again.
 
 v1.2.0
 ------
