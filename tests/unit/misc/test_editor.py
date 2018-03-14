@@ -157,6 +157,45 @@ class TestFileHandling:
         with pytest.raises(ValueError):
             editor.edit("")
 
+    def test_backup(self, qtbot, message_mock):
+        editor = editormod.ExternalEditor(watch=True)
+        editor.edit('foo')
+        with qtbot.wait_signal(editor.file_updated):
+            _update_file(editor._filename, 'bar')
+
+        editor.backup()
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.info)
+        prefix = 'Editor backup at '
+        assert msg.text.startswith(prefix)
+        fname = msg.text[len(prefix):]
+
+        with qtbot.wait_signal(editor.editing_finished):
+            editor._proc.finished.emit(0, QProcess.NormalExit)
+
+        with open(fname, 'r', encoding='utf-8') as f:
+            assert f.read() == 'bar'
+
+    def test_backup_no_content(self, qtbot, message_mock):
+        editor = editormod.ExternalEditor(watch=True)
+        editor.edit('foo')
+        editor.backup()
+        # content has not changed, so no backup should be created
+        assert not message_mock.messages
+
+    def test_backup_error(self, qtbot, message_mock, mocker, caplog):
+        editor = editormod.ExternalEditor(watch=True)
+        editor.edit('foo')
+        with qtbot.wait_signal(editor.file_updated):
+            _update_file(editor._filename, 'bar')
+
+        mocker.patch('tempfile.NamedTemporaryFile', side_effect=OSError)
+        with caplog.at_level(logging.ERROR):
+            editor.backup()
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text.startswith('Failed to create editor backup:')
+
 
 @pytest.mark.parametrize('initial_text, edited_text', [
     ('', 'Hello'),
