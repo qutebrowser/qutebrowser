@@ -24,6 +24,8 @@ Changed
 - The file dialog for downloads now has basic tab completion based on the
   entered text.
 - `:version` now shows OS information for POSIX OS other than Linux/macOS.
+- When there's an error inserting the text from an external editor, a backup
+  file is now saved.
 
 Fixed
 ~~~~~
