@@ -25,6 +25,7 @@ from PyQt5.QtCore import Qt
 import pytest
 
 from qutebrowser.keyinput import basekeyparser, keyutils
+from qutebrowser.utils import utils
 
 
 # Alias because we need this a lot in here.
@@ -153,14 +154,16 @@ class TestHandle:
         keyparser._read_config('prompt')
 
     def test_valid_key(self, fake_keyevent, keyparser):
-        keyparser.handle(fake_keyevent(Qt.Key_A, Qt.ControlModifier))
-        keyparser.handle(fake_keyevent(Qt.Key_X, Qt.ControlModifier))
+        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
+        keyparser.handle(fake_keyevent(Qt.Key_A, modifier))
+        keyparser.handle(fake_keyevent(Qt.Key_X, modifier))
         keyparser.execute.assert_called_once_with('message-info ctrla', None)
         assert not keyparser._sequence
 
     def test_valid_key_count(self, fake_keyevent, keyparser):
+        modifier = Qt.MetaModifier if utils.is_mac else Qt.ControlModifier
         keyparser.handle(fake_keyevent(Qt.Key_5))
-        keyparser.handle(fake_keyevent(Qt.Key_A, Qt.ControlModifier))
+        keyparser.handle(fake_keyevent(Qt.Key_A, modifier))
         keyparser.execute.assert_called_once_with('message-info ctrla', 5)
 
     @pytest.mark.parametrize('keys', [

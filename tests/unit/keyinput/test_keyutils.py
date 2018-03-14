@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import QWidget
 
 from tests.unit.keyinput import key_data
 from qutebrowser.keyinput import keyutils
+from qutebrowser.utils import utils
 
 
 @pytest.fixture(params=key_data.KEYS, ids=lambda k: k.attribute)
@@ -346,20 +347,28 @@ class TestKeySequence:
     @pytest.mark.parametrize('old, key, modifiers, text, expected', [
         ('a', Qt.Key_B, Qt.NoModifier, 'b', 'ab'),
         ('a', Qt.Key_B, Qt.ShiftModifier, 'B', 'aB'),
-        ('a', Qt.Key_B, Qt.ControlModifier | Qt.ShiftModifier, 'B',
-         'a<Ctrl+Shift+b>'),
+        ('a', Qt.Key_B, Qt.AltModifier | Qt.ShiftModifier, 'B',
+         'a<Alt+Shift+b>'),
 
         # Modifier stripping with symbols
         ('', Qt.Key_Colon, Qt.NoModifier, ':', ':'),
         ('', Qt.Key_Colon, Qt.ShiftModifier, ':', ':'),
-        ('', Qt.Key_Colon, Qt.ControlModifier | Qt.ShiftModifier, ':',
-         '<Ctrl+Shift+:>'),
+        ('', Qt.Key_Colon, Qt.AltModifier | Qt.ShiftModifier, ':',
+         '<Alt+Shift+:>'),
+
+        # Swapping Control/Meta on macOS
+        ('', Qt.Key_A, Qt.ControlModifier, '',
+         '<Meta+A>' if utils.is_mac else '<Ctrl+A>'),
+        ('', Qt.Key_A, Qt.ControlModifier | Qt.ShiftModifier, '',
+         '<Meta+Shift+A>' if utils.is_mac else '<Ctrl+Shift+A>'),
+        ('', Qt.Key_A, Qt.MetaModifier, '',
+         '<Ctrl+A>' if utils.is_mac else '<Meta+A>'),
 
         # Handling of Backtab
         ('', Qt.Key_Backtab, Qt.NoModifier, '', '<Backtab>'),
         ('', Qt.Key_Backtab, Qt.ShiftModifier, '', '<Shift+Tab>'),
-        ('', Qt.Key_Backtab, Qt.ControlModifier | Qt.ShiftModifier, '',
-         '<Control+Shift+Tab>'),
+        ('', Qt.Key_Backtab, Qt.AltModifier | Qt.ShiftModifier, '',
+         '<Alt+Shift+Tab>'),
 
         # Stripping of Qt.GroupSwitchModifier
         ('', Qt.Key_A, Qt.GroupSwitchModifier, 'a', 'a'),
@@ -369,6 +378,27 @@ class TestKeySequence:
         event = QKeyEvent(QKeyEvent.KeyPress, key, modifiers, text)
         new = seq.append_event(event)
         assert new == keyutils.KeySequence.parse(expected)
+
+    @pytest.mark.fake_os('mac')
+    @pytest.mark.parametrize('modifiers, expected', [
+        (Qt.ControlModifier,
+         Qt.MetaModifier),
+        (Qt.MetaModifier,
+         Qt.ControlModifier),
+        (Qt.ControlModifier | Qt.MetaModifier,
+         Qt.ControlModifier | Qt.MetaModifier),
+        (Qt.ControlModifier | Qt.ShiftModifier,
+         Qt.MetaModifier | Qt.ShiftModifier),
+        (Qt.MetaModifier | Qt.ShiftModifier,
+         Qt.ControlModifier | Qt.ShiftModifier),
+        (Qt.ShiftModifier, Qt.ShiftModifier),
+    ])
+    def test_fake_mac(self, fake_keyevent, modifiers, expected):
+        """Make sure Control/Meta are swapped with a simulated Mac."""
+        seq = keyutils.KeySequence()
+        event = fake_keyevent(key=Qt.Key_A, modifiers=modifiers)
+        new = seq.append_event(event)
+        assert new[0] == keyutils.KeyInfo(Qt.Key_A, expected)
 
     @pytest.mark.parametrize('key', [Qt.Key_unknown, 0x0])
     def test_append_event_invalid(self, key):
