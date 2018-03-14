@@ -1413,7 +1413,7 @@ tabs.min_width:
     minval: -1
     maxval: maxint
   desc: >-
-    Minimum width (in pixels) of tabs (-1 to use min text contents size for min width).
+    Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
 
     This setting only applies when tabs are horizontal.
 
