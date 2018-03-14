@@ -25,6 +25,11 @@ Changed
   entered text.
 - `:version` now shows OS information for POSIX OS other than Linux/macOS.
 
+Fixed
+~~~~~
+
+- Using hints before a page is fully loaded is now possible again.
+
 v1.2.1 (unreleased)
 -------------------
 
