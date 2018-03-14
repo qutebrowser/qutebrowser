@@ -212,6 +212,35 @@ Why takes it longer to open an URL in qutebrowser than in chromium?::
     qutebrowser if it is not running already. Also check if you want
     to use webengine as backend in line 17 and change it to your
     needs.
+
+How do I make qutebrowser use greasemonkey scripts?::
+    There is currently no UI elements to handle managing greasemonkey scripts.
+    All management of what scripts are installed or disabled is done in the
+    filesystem by you. qutebrowser reads all files that have an extension of
+    `.js` from the `<data>/greasemonkey/` folder and attempts to load them.
+    Where `<data>` is the qutebrowser data directory shown in the `Paths`
+    section of the page displayed by `:version`. If you want to disable a
+    script just rename it, for example, to have `.disabled` on the end, after
+    the `.js` extension. To reload scripts from that directory run the command
+    `:greasemonkey-reload`.
++
+Troubleshooting: to check that your script is being loaded when
+`:greasemonkey-reload` runs you can start qutebrowser with the `--debug`
+argument and check the messages on the program's standard output with the
+`greasemonkey` facility. If there are javascript errors with your script you
+may also see messages with the `js` facility.
++
+Note that there are some missing features which you may run into:
+
+. Some scripts expect `GM_xmlhttpRequest` to ignore Cross Origin Resource
+  Sharing restrictions, this is currently not supported so scripts making
+  requests to third party sites will often fail to function correctly.
+. If your backend is a QtWebEngine version 5.8, 5.9 or 5.10 regular expressions
+  are not supported in `@include` or `@exclude` rules. If your script uses them
+  you can re-write them to use glob expressions or convert them to `@match`
+  rules. See https://wiki.greasespot.net/Metadata_Block[the wiki] for more info.
+. Any greasemonkey API function to do with adding UI elements is not currently
+  supported. That means context menu extentensions and background pages.
     
 == Troubleshooting
 
