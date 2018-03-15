@@ -665,8 +665,7 @@ class AbstractTab(QWidget):
         objreg.register('hintmanager', hintmanager, scope='tab',
                         window=self.win_id, tab=self.tab_id)
 
-        self.predicted_navigation.connect(
-            lambda url: self.title_changed.emit(url.toDisplayString()))
+        self.predicted_navigation.connect(self._on_predicted_navigation)
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
@@ -714,6 +713,14 @@ class AbstractTab(QWidget):
         recipient = self.event_target()
         evt.posted = True
         QApplication.postEvent(recipient, evt)
+
+    @pyqtSlot(QUrl)
+    def _on_predicted_navigation(self, url):
+        """Adjust the title if we are going to visit an URL soon."""
+        qtutils.ensure_valid(url)
+        url_string = url.toDisplayString()
+        log.webview.debug("Predicted navigation: {}".format(url_string))
+        self.title_changed.emit(url_string)
 
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url):

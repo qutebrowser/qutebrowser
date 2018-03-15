@@ -930,7 +930,7 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):
         """If we know we're going to visit an URL soon, change the settings."""
-        qtutils.ensure_valid(url)
+        super()._on_predicted_navigation(url)
         self.settings.update_for_url(url)
 
     @pyqtSlot(usertypes.NavigationRequest)
