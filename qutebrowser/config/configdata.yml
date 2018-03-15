@@ -95,6 +95,9 @@ new_instance.target_window:
 
     When `new_instance_open.target` is not set to `window`, this is ignored.
 
+new_instance_open_target_window:
+  renamed: new_instance.target_window
+
 session_default_name:
   renamed: session.default_name
 
