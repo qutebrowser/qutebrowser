@@ -225,6 +225,22 @@ class TestYaml:
         assert 'tabs.persist_mode_on_change' not in data
         assert data['tabs.mode_on_change']['global'] == expected
 
+    @pytest.mark.parametrize('target', ['tab', 'tab-silent'])
+    def test_merge_new_instance(self, yaml, autoconfig, target):
+        """Tests for migration of new_instance_open_target."""
+        autoconfig.write({'new_instance_open_target': {'global': target}})
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert 'new_instance_open_target' not in data
+        migrated_target = target.replace('-silent', '')
+        assert data['new_instance.target']['global'] == migrated_target
+        if target.endswith('-silent'):
+            assert data['new_instance.behavior']['global'] == 'silent'
+        else:
+            assert 'new_instance.behavior' not in data.keys()
+
     def test_bindings_default(self, yaml, autoconfig):
         """Make sure bindings.default gets removed from autoconfig.yml."""
         autoconfig.write({'bindings.default': {'global': '{}'}})
