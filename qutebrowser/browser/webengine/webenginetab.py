@@ -669,9 +669,15 @@ class WebEngineTab(browsertab.AbstractTab):
         self.zoom.set_factor(self._saved_zoom)
         self._saved_zoom = None
 
-    def openurl(self, url):
+    def openurl(self, url, *, predict=True):
+        """Open the given URL in this tab.
+
+        Arguments:
+            url: The QUrl to open.
+            predict: If set to False, predicted_navigation is not emitted.
+        """
         self._saved_zoom = self.zoom.factor()
-        self._openurl_prepare(url)
+        self._openurl_prepare(url, predict=predict)
         self._widget.load(url)
 
     def url(self, requested=False):
@@ -914,10 +920,10 @@ class WebEngineTab(browsertab.AbstractTab):
         if ok and self._reload_url is not None:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
             log.config.debug(
-                "Reloading {} because of config change".format(
+                "Loading {} again because of config change".format(
                     self._reload_url.toDisplayString()))
             QTimer.singleShot(100, lambda url=self._reload_url:
-                              self.openurl(url))
+                              self.openurl(url, predict=False))
             self._reload_url = None
 
         if not qtutils.version_check('5.10', compiled=False):

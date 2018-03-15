@@ -822,9 +822,10 @@ class AbstractTab(QWidget):
     def load_status(self):
         return self._load_status
 
-    def _openurl_prepare(self, url):
+    def _openurl_prepare(self, url, *, predict=True):
         qtutils.ensure_valid(url)
-        self.predicted_navigation.emit(url)
+        if predict:
+            self.predicted_navigation.emit(url)
 
     def openurl(self, url):
         raise NotImplementedError
