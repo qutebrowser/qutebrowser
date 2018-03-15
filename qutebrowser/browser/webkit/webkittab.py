@@ -537,6 +537,9 @@ class WebKitHistory(browsertab.AbstractHistory):
         return qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
+        if items:
+            self._tab.predicted_navigation.emit(items[-1].url)
+
         stream, _data, user_data = tabhistory.serialize(items)
         qtutils.deserialize_stream(stream, self._history)
         for i, data in enumerate(user_data):
