@@ -44,8 +44,8 @@ Documentation
 In addition to the topics mentioned in this README, the following documents are
 available:
 
-* https://qutebrowser.org/img/cheatsheet-big.png[Key binding cheatsheet]: +
-image:https://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://qutebrowser.org/img/cheatsheet-big.png"]
+* https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png[Key binding cheatsheet]: +
+image:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png"]
 * link:doc/quickstart.asciidoc[Quick start guide]
 * https://www.shortcutfoo.com/app/dojos/qutebrowser[Free training course] to remember those key bindings
 * link:doc/faq.asciidoc[Frequently asked questions]
@@ -91,7 +91,7 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[].
 
 For security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
-https://www.the-compiler.org/pubkey.asc[0xFD55A072].
+https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 
 Requirements
 ------------

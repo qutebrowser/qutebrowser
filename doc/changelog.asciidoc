@@ -15,84 +15,197 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.2.0 (unreleased)
+v1.3.0 (unreleased)
 -------------------
-
-Added
-~~~~~
-
-- QtWebEngine: Caret/visual mode is now supported.
-- QtWebEngine: Authentication via ~/.netrc is now supported.
-- A new `qute://bindings` page, opened by `:bind`, shows all keybindings.
-- `:session-load` has a new `--delete` flag which deletes the
-  session after loading it.
-- QtWebEngine: Retrying downloads is now supported with Qt 5.10 or newer.
-- QtWebEngine: Hinting and other features inside same-origin frames is now
-  supported.
-- New `cycle-inputs.js` script in `scripts/` which can be used with `:jseval -f`
-  to cycle through inputs.
-- New `--no-last` flag for `:tab-focus` to not focus the last tab when focusing
-  the currently focused one.
-- New `--edit` flag for `:view-source` to open the source in an external editor.
-- New `statusbar.widgets` setting to configure which widgets should be shown in
-  which order in the statusbar.
-- New `:prompt-yank` command (bound to `Alt-y` by default) to yank URLs
-  referenced in prompts.
 
 Changed
 ~~~~~~~
 
-- The `hist_importer.py` script now only imports URL schemes qutebrowser can
-  handle.
-- Deleting a prefix (`:`, `/` or `?`) via backspace now leaves command mode.
-- Angular 1 elements now get hints assigned.
-- `:tab-only` with pinned tabs now still closes unpinned tabs.
-- GreaseMonkey `@include` and `@exclude` now support
-  regex matches. With QtWebEngine and Qt 5.8 and newer, Qt handles the matching,
-  but similar functionality was added in Qt 5.11.
-- The sqlite history now uses write-ahead logging which should be
-  a performance and stability improvement.
-- The `url.incdec_segments` option now also can take `port` as possible segment.
-- QtWebEngine: `:view-source` now uses Chromium's `view-source:` scheme.
-- Tabs now show their full title as tooltip.
-- When an editor is spawned with `:open-editor` and `:config-edit`, the changes
-  are now applied as soon as the file is saved in the editor.
-- When there are multiple unknown keys in a autoconfig.yml, they now all get
-  reported in one error.
-- New `tabs.mode_on_change` setting which replaces
-  `tabs.persist_mode_on_change`. It can now be set to `restore` which remembers
-  input modes (input/passthrough) per tab.
-- More performance improvements when opening/closing many tabs.
-- The `:version` page now has a button to pastebin the information.
+- The file dialog for downloads now has basic tab completion based on the
+  entered text.
+- `:version` now shows OS information for POSIX OS other than Linux/macOS.
+- When there's an error inserting the text from an external editor, a backup
+  file is now saved.
 
 Fixed
 ~~~~~
 
-- QtWebEngine: Improved fullscreen handling with Qt 5.10.
-- QtWebEngine: Hinting and scrolling now works properly on special
-  `view-source:` pages.
-- QtWebEngine: Scroll positions are now restored correctly from sessions.
-- QtWebKit: `:view-source` now displays a valid URL.
-- URLs containing ampersands and other special chars are now shown
-  correctly when filtering them in the completion.
+- Using hints before a page is fully loaded is now possible again.
+- Tab titles for tabs loaded from sessions should now really be correct instead
+  of showing the URL.
+- Loading URLs with customized settings from a session now avoids an additional
+  reload.
+- The window icon and title now get set correctly again.
+
+v1.2.1
+------
+
+Fixed
+~~~~~
+
+- qutebrowser now starts properly when the PyQt5 QOpenGLFunctions package wasn't
+  found.
+- The keybinding cheatsheet on the quickstart page is now loaded from a local
+  `qute://` URL again.
+- With "tox -e mkvenv-pypi", PyQt 5.10.0 is used again instead of Qt 5.10.1,
+  because of an issue with Qt 5.10.1 which causes qutebrowser to fail to start
+  ("Could not find QtWebEngineProcess").
+- Unbinding keys which were bound in older qutebrowser versions now doesn't
+  crash anymore.
+- Fixed a crash when reloading a page which wasn't fully loaded with v1.2.0
+- Keys on the numeric keypad now fall back to the same bindings without `Num+`
+  if no `Num+` binding was found.
+- Fixed hinting on some pages with Qt < 5.10.
+- Titles are now displayed correctly again for tabs which are cloned or loaded
+  from sessions.
+- Shortcuts now correctly use `Ctrl` instead of `Command` on macOS again.
+
+v1.2.0
+------
+
+Added
+~~~~~
+
+- Initial implementation of per-domain settings:
+  * `:set` and `:config-cycle` now have a `-u`/`--pattern` argument taking a
+    https://developer.chrome.com/extensions/match_patterns[URL match pattern]
+    for supported settings.
+  * `config.set` in `config.py` now takes a third argument which is the pattern.
+  * New `with config.pattern('...') as p:` context manager for `config.py` to
+    use the shorthand syntax with a pattern.
+  * New `tsh` keybinding to toggle scripts for the current host. With a capital
+    `S`, the toggle is saved. With a capital `H`, subdomains are included. With
+    `u` instead of `h`, the exact current URL is used.
+  * New `tph` keybinding to toggle plugins, with the same additional binding
+    described above.
+- New QtWebEngine features:
+  * Caret/visual mode
+  * Authentication via ~/.netrc
+  * Retrying downloads with Qt 5.10 or newer
+  * Hinting and other features inside same-origin frames
+- New flags for existing commands:
+  * `:session-load` has a new `--delete` flag which deletes the
+    session after loading it.
+  * New `--no-last` flag for `:tab-focus` to not focus the last tab when focusing
+    the currently focused one.
+  * New `--edit` flag for `:view-source` to open the source in an external editor.
+  * New `--select` flag for `:follow-hint` which acts like the given string was entered but doesn't necessary follow the hint.
+- New special pages:
+  * `qute://bindings` (opened via `:bind`) which shows all keybindings.
+  * `qute://tabs` (opened via `:buffer`) which lists all tabs.
+- New settings:
+  * `statusbar.widgets` to configure which widgets should be shown in which
+    order in the statusbar.
+  * `tabs.mode_on_change` which replaces `tabs.persist_mode_on_change`. It can
+    now be set to `restore` which remembers input modes (input/passthrough)
+    per tab.
+  * `input.insert_mode.auto_enter` which makes it possible to disable entering
+    insert mode automatically when an editable element was clicked. Together
+    with `input.forward_unbound_keys`, this should allow for emacs-like
+    "modeless" keybindings.
+- New `:prompt-yank` command (bound to `Alt-y` by default) to yank URLs
+  referenced in prompts.
+- The `hostblock_blame` script which was removed in v1.0 was updated for the new
+  config and re-added.
+- New `cycle-inputs.js` script in `scripts/` which can be used with `:jseval -f`
+  to cycle through inputs.
+
+Changed
+~~~~~~~
+
+- Complete refactoring of key input handling, with various effects:
+  * emacs-like keychains such as `<Ctrl-X><Ctrl-C>` can now be bound.
+  * Key chains can now be bound in any mode (this allows binding unused keys in
+    hint mode).
+  * Yes/no prompts don't use keybindings from the `prompt` section anymore, they
+    have their own `yesno` section instead.
+  * Trying to bind invalid keys now shows an error.
+  * The `bindings.default` setting can now only be set in a `config.py`, and
+    existing values in `autoconfig.yml` are ignored.
+- Improvements for GreaseMonkey support:
+  * `@include` and `@exclude` now support regex matches. With QtWebEngine and Qt
+    5.8 and newer, Qt handles the matching, but similar functionality will be
+    added in Qt 5.11.
+  * Support for `@requires`
+  * Support for the GreaseMonkey 4.0 API
+- The sqlite history now uses write-ahead logging which should be
+  a performance and stability improvement.
+- When an editor is spawned with `:open-editor` and `:config-edit`, the changes
+  are now applied as soon as the file is saved in the editor.
+- The `hist_importer.py` script now only imports URL schemes qutebrowser can
+  handle.
+- Deleting a prefix (`:`, `/` or `?`) via backspace now leaves command mode.
+- Angular 1 elements and `<summary>`/`<details>` now get hints assigned.
+- `:tab-only` with pinned tabs now still closes unpinned tabs.
+- The `url.incdec_segments` option now also can take `port` as possible segment.
+- QtWebEngine: `:view-source` now uses Chromium's `view-source:` scheme.
+- Tabs now show their full title as tooltip.
+- When there are multiple unknown keys in a autoconfig.yml, they now all get
+  reported in one error.
+- More performance improvements when opening/closing many tabs.
+- The `:version` page now has a button to pastebin the information.
+- Replacements like `{url}` can now be escaped as `{{url}}`.
+
+Fixed
+~~~~~
+
+- QtWebEngine bugfixes:
+  * Improved fullscreen handling with Qt 5.10.
+  * Hinting and scrolling now works properly on special `view-source:` pages.
+  * Scroll positions are now restored correctly from sessions.
+  * `:follow-selected` should now work in more cases with Qt > 5.10.
+  * Incremental search now flickers less and doesn't move to the second result
+    when pressing Enter.
+  * Keys like `Ctrl-V` or `Shift-Insert` are now correctly handled/filtered with
+    Qt 5.10.
+  * Fixed hangs/segfaults on exit with Qt 5.10.1.
+  * Fixed favicons sometimes getting cleared with Qt 5.10.
+  * Qt download objects are now cleaned up properly when a download is removed.
+  * JavaScript messages are now not double-HTML escaped anymore on Qt < 5.11
+- QtWebKit bugfixes:
+  * Fixed GreaseMonkey-related crashes.
+  * `:view-source` now displays a valid URL.
+- URLs containing ampersands and other special chars are now shown correctly
+  when filtering them in the completion.
 - `:bookmark-add "" foo` can now be used to save the current URL with a custom
   title.
 - `:spawn -o` now waits until the process has finished before trying to show the
   output. Previously, it incorrectly showed the previous output immediately.
-- QtWebEngine: Qt download objects are now cleaned up properly when a download
-  is removed.
 - Suspended pages now should always load the correct page when being un-suspended.
-- Compatibility with Python 3.7
+- Exception types are now shown properly with `:config-source` and `:config-edit`.
+- When using `:bookmark-add --toggle`, bookmarks are now saved properly.
+- Crash when opening an invalid URL from an application on macOS.
+- Crash with an empty `completion.timestamp_format`.
+- Crash when `completion.min_chars` is set in some cases.
+- HTML/JS resource files are now read into RAM on start to avoid crashes when
+  changing qutebrowser versions while it's open.
+- Setting `bindings.key_mappings` to an empty value is now allowed.
+- Bindings to an empty commands are now ignored rather than crashing.
 
 Removed
 ~~~~~~~
 
 - `QUTE_SELECTED_HTML` is now not set for userscripts anymore except when called
   via hints.
-- The `qutebrowser_viewsource` userscript has been removed as `:view-source
-  --edit` can now be used.
+- The `qutebrowser_viewsource` userscript has been removed as
+  `:view-source --edit` can now be used.
 - The `tabs.persist_mode_on_change` setting has been removed and replaced by
   `tabs.mode_on_change`.
+
+v1.1.2
+------
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now bundle Qt 5.10.1 which includes security fixes from
+  Chromium up to version 64.0.3282.140.
+
+Fixed
+~~~~~
+
+- QtWebEngine: Crash with Qt 5.10.1 when using :undo on some tabs.
+- Compatibility with Python 3.7
 
 v1.1.1
 ------

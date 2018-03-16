@@ -327,7 +327,7 @@ class MainWindow(QWidget):
                                                 self.tabbed_browser)
         objreg.register('command-dispatcher', dispatcher, scope='window',
                         window=self.win_id)
-        self.tabbed_browser.destroyed.connect(
+        self.tabbed_browser.widget.destroyed.connect(
             functools.partial(objreg.delete, 'command-dispatcher',
                               scope='window', window=self.win_id))
 
@@ -347,10 +347,10 @@ class MainWindow(QWidget):
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
-        self._vbox.removeWidget(self.tabbed_browser)
+        self._vbox.removeWidget(self.tabbed_browser.widget)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
-        widgets = [self.tabbed_browser]
+        widgets = [self.tabbed_browser.widget]
 
         downloads_position = config.val.downloads.position
         if downloads_position == 'top':
@@ -469,7 +469,7 @@ class MainWindow(QWidget):
 
         self.tabbed_browser.cur_scroll_perc_changed.connect(
             status.percentage.set_perc)
-        self.tabbed_browser.tab_index_changed.connect(
+        self.tabbed_browser.widget.tab_index_changed.connect(
             status.tabindex.on_tab_index_changed)
 
         self.tabbed_browser.cur_url_changed.connect(status.url.set_url)
@@ -518,7 +518,7 @@ class MainWindow(QWidget):
         super().resizeEvent(e)
         self._update_overlay_geometries()
         self._downloadview.updateGeometry()
-        self.tabbed_browser.tabBar().refresh()
+        self.tabbed_browser.widget.tabBar().refresh()
 
     def showEvent(self, e):
         """Extend showEvent to register us as the last-visible-main-window.
@@ -547,7 +547,7 @@ class MainWindow(QWidget):
         if crashsignal.is_crashing:
             e.accept()
             return
-        tab_count = self.tabbed_browser.count()
+        tab_count = self.tabbed_browser.widget.count()
         download_model = objreg.get('download-model', scope='window',
                                     window=self.win_id)
         download_count = download_model.running_downloads()

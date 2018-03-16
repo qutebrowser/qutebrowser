@@ -24,6 +24,7 @@
 import os
 import os.path
 import sys
+import time
 import glob
 import shutil
 import plistlib
@@ -195,6 +196,7 @@ def build_mac():
                                       'MacOS', 'qutebrowser')
                 smoke_test(binary)
             finally:
+                time.sleep(5)
                 subprocess.run(['hdiutil', 'detach', tmpdir])
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
@@ -359,7 +361,7 @@ def github_upload(artifacts, tag):
     repo = gh.repository('qutebrowser', 'qutebrowser')
 
     release = None  # to satisfy pylint
-    for release in repo.iter_releases():
+    for release in repo.releases():
         if release.tag_name == tag:
             break
     else:

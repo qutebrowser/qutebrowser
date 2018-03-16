@@ -632,12 +632,6 @@ Feature: Tab management
 
     # https://github.com/qutebrowser/qutebrowser/issues/2289
 
-    @qtwebkit_skip @qt==5.8.0
-    Scenario: Cloning a tab with a special URL
-        When I open chrome://gpu
-        And I run :tab-clone
-        Then the error "Can't serialize special URL!" should be shown
-
     @qtwebkit_skip @qt<5.9
     Scenario: Cloning a tab with a view-source URL
         When I open /
@@ -904,7 +898,7 @@ Feature: Tab management
 
     Scenario: :buffer without args or count
         When I run :buffer
-        Then the error "buffer: Either a count or the argument index must be specified." should be shown
+        Then qute://tabs should be loaded
 
     Scenario: :buffer with a matching title
         When I open data/title.html

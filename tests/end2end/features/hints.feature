@@ -207,7 +207,7 @@ Feature: Using hints
     Scenario: Using :follow-hint inside an iframe
         When I open data/hints/iframe.html
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
 
     Scenario: Using :follow-hint inside an iframe button
         When I open data/hints/iframe_button.html
@@ -228,12 +228,12 @@ Feature: Using hints
         And I hint with args "all normal" and follow a
         And I run :scroll bottom
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello2.txt, type NavigationTypeLinkClicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello2.txt, type Type.link_clicked, *" should be logged
 
     Scenario: Opening a link inside a specific iframe
         When I open data/hints/iframe_target.html
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
 
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
@@ -246,6 +246,11 @@ Feature: Using hints
 
     Scenario: Clicking on iframe with :hint all current
         When I open data/hints/iframe.html
+        And I hint with args "all current" and follow a
+        Then no crash should happen
+
+    Scenario: No error when hinting ranged input in frames
+        When I open data/hints/issue3711_frame.html
         And I hint with args "all current" and follow a
         Then no crash should happen
 
@@ -338,7 +343,7 @@ Feature: Using hints
         And I set hints.auto_follow to unique-match
         And I set hints.auto_follow_timeout to 0
         And I hint with args "all"
-        And I press the keys "ten pos"
+        And I press the keys "ten p"
         Then data/numbers/11.txt should be loaded
 
     Scenario: Scattering is ignored with number hints

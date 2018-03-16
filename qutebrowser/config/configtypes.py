@@ -62,6 +62,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
 from qutebrowser.utils import standarddir, utils, qtutils, urlutils
+from qutebrowser.keyinput import keyutils
 
 
 SYSTEM_PROXY = object()  # Return value for Proxy type
@@ -450,7 +451,7 @@ class List(BaseType):
     def from_obj(self, value):
         if value is None:
             return []
-        return value
+        return [self.valtype.from_obj(v) for v in value]
 
     def to_py(self, value):
         self._basic_py_validation(value, list)
@@ -505,6 +506,16 @@ class ListOrValue(BaseType):
         self.listtype = List(valtype, none_ok=none_ok, *args, **kwargs)
         self.valtype = valtype
 
+    def _val_and_type(self, value):
+        """Get the value and type to use for to_str/to_doc/from_str."""
+        if isinstance(value, list):
+            if len(value) == 1:
+                return value[0], self.valtype
+            else:
+                return value, self.listtype
+        else:
+            return value, self.valtype
+
     def get_name(self):
         return self.listtype.get_name() + ', or ' + self.valtype.get_name()
 
@@ -532,25 +543,15 @@ class ListOrValue(BaseType):
         if value is None:
             return ''
 
-        if isinstance(value, list):
-            if len(value) == 1:
-                return self.valtype.to_str(value[0])
-            else:
-                return self.listtype.to_str(value)
-        else:
-            return self.valtype.to_str(value)
+        val, typ = self._val_and_type(value)
+        return typ.to_str(val)
 
     def to_doc(self, value, indent=0):
         if value is None:
             return 'empty'
 
-        if isinstance(value, list):
-            if len(value) == 1:
-                return self.valtype.to_doc(value[0], indent)
-            else:
-                return self.listtype.to_doc(value, indent)
-        else:
-            return self.valtype.to_doc(value, indent)
+        val, typ = self._val_and_type(value)
+        return typ.to_doc(val)
 
 
 class FlagList(List):
@@ -1198,7 +1199,9 @@ class Dict(BaseType):
     def from_obj(self, value):
         if value is None:
             return {}
-        return value
+
+        return {self.keytype.from_obj(key): self.valtype.from_obj(val)
+                for key, val in value.items()}
 
     def _fill_fixed_keys(self, value):
         """Fill missing fixed keys with a None-value."""
@@ -1647,10 +1650,16 @@ class Key(BaseType):
 
     """A name of a key."""
 
+    def from_obj(self, value):
+        """Make sure key sequences are always normalized."""
+        return str(keyutils.KeySequence.parse(value))
+
     def to_py(self, value):
         self._basic_py_validation(value, str)
         if not value:
             return None
-        if utils.is_special_key(value):
-            value = '<{}>'.format(utils.normalize_keystr(value[1:-1]))
-        return value
+
+        try:
+            return keyutils.KeySequence.parse(value)
+        except keyutils.KeyParseError as e:
+            raise configexc.ValidationError(value, str(e))

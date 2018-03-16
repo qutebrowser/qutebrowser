@@ -205,3 +205,20 @@ def test_remove_rows_fetch(hist):
     hist.delete('url', '298')
     cat.removeRows(297, 1)
     assert cat.rowCount() == 299
+
+
+@pytest.mark.parametrize('fmt, expected', [
+    ('%Y-%m-%d', '2018-02-27'),
+    ('%m/%d/%Y %H:%M', '02/27/2018 08:30'),
+    ('', ''),
+])
+def test_timestamp_fmt(fmt, expected, model_validator, config_stub, init_sql):
+    """Validate the filtering and sorting results of set_pattern."""
+    config_stub.val.completion.timestamp_format = fmt
+    hist = sql.SqlTable('CompletionHistory', ['url', 'title', 'last_atime'])
+    atime = datetime.datetime(2018, 2, 27, 8, 30)
+    hist.insert({'url': 'foo', 'title': '', 'last_atime': atime.timestamp()})
+    cat = histcategory.HistoryCategory()
+    model_validator.set_model(cat)
+    cat.set_pattern('')
+    model_validator.validate([('foo', '', expected)])

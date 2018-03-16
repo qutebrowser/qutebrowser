@@ -106,7 +106,7 @@ class TestFullscreenNotification:
 
     @pytest.mark.parametrize('bindings, text', [
         ({'<escape>': 'fullscreen --leave'},
-         "Press Escape to exit fullscreen."),
+         "Press <Escape> to exit fullscreen."),
         ({'<escape>': 'fullscreen'}, "Page is now fullscreen."),
         ({'a': 'fullscreen --leave'}, "Press a to exit fullscreen."),
         ({}, "Page is now fullscreen."),

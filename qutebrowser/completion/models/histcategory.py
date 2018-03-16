@@ -80,7 +80,7 @@ class HistoryCategory(QSqlQueryModel):
             for i in range(len(words)))
 
         # replace ' in timestamp-format to avoid breaking the query
-        timestamp_format = config.val.completion.timestamp_format
+        timestamp_format = config.val.completion.timestamp_format or ''
         timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
                    .format(timestamp_format.replace("'", "`")))
 

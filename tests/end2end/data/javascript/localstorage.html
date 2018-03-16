@@ -7,8 +7,10 @@
               try {
                   localStorage.qute_test = "foo";
                   elem.innerHTML = "working";
+                  console.log("local storage is working");
               } catch (e) {
                   elem.innerHTML = "not working";
+                  console.log("local storage is not working");
               }
           }
       </script>

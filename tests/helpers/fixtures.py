@@ -35,14 +35,14 @@ import types
 import attr
 import pytest
 import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QEvent, QSize, Qt
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 import helpers.utils
-from qutebrowser.config import config, configdata, configtypes, configexc
+from qutebrowser.config import (config, configdata, configtypes, configexc,
+                                configfiles)
 from qutebrowser.utils import objreg, standarddir
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql
@@ -193,11 +193,15 @@ def configdata_init():
 
 
 @pytest.fixture
-def config_stub(stubs, monkeypatch, configdata_init):
-    """Fixture which provides a fake config object."""
-    yaml_config = stubs.FakeYamlConfig()
+def yaml_config_stub(config_tmpdir):
+    """Fixture which provides a YamlConfig object."""
+    return configfiles.YamlConfig()
 
-    conf = config.Config(yaml_config=yaml_config)
+
+@pytest.fixture
+def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
+    """Fixture which provides a fake config object."""
+    conf = config.Config(yaml_config=yaml_config_stub)
     monkeypatch.setattr(config, 'instance', conf)
 
     container = config.ConfigContainer(conf)
@@ -354,21 +358,6 @@ def webframe(webpage):
 
 
 @pytest.fixture
-def fake_keyevent_factory():
-    """Fixture that when called will return a mock instance of a QKeyEvent."""
-    def fake_keyevent(key, modifiers=0, text='', typ=QEvent.KeyPress):
-        """Generate a new fake QKeyPressEvent."""
-        evtmock = unittest.mock.create_autospec(QKeyEvent, instance=True)
-        evtmock.key.return_value = key
-        evtmock.modifiers.return_value = modifiers
-        evtmock.text.return_value = text
-        evtmock.type.return_value = typ
-        return evtmock
-
-    return fake_keyevent
-
-
-@pytest.fixture
 def cookiejar_and_cache(stubs):
     """Fixture providing a fake cookie jar and cache."""
     jar = QNetworkCookieJar()
@@ -522,3 +511,12 @@ class ModelValidator:
 @pytest.fixture
 def model_validator(qtmodeltester):
     return ModelValidator(qtmodeltester)
+
+
+@pytest.fixture
+def download_stub(win_registry, tmpdir, stubs):
+    """Register a FakeDownloadManager."""
+    stub = stubs.FakeDownloadManager(tmpdir)
+    objreg.register('qtnetwork-download-manager', stub)
+    yield stub
+    objreg.delete('qtnetwork-download-manager')

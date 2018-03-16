@@ -31,6 +31,15 @@ class Error(Exception):
     pass
 
 
+class NoAutoconfigError(Error):
+
+    """Raised when this option can't be set in autoconfig.yml."""
+
+    def __init__(self, name):
+        super().__init__("The {} setting can only be set in config.py!"
+                         .format(name))
+
+
 class BackendError(Error):
 
     """Raised when this setting is unavailable with the current backend."""
@@ -38,6 +47,15 @@ class BackendError(Error):
     def __init__(self, name, backend):
         super().__init__("The {} setting is not available with the {} "
                          "backend!".format(name, backend.name))
+
+
+class NoPatternError(Error):
+
+    """Raised when the given setting does not support URL patterns."""
+
+    def __init__(self, name):
+        super().__init__("The {} setting does not support URL patterns!"
+                         .format(name))
 
 
 class ValidationError(Error):
@@ -92,6 +110,10 @@ class ConfigErrorDesc:
     traceback = attr.ib(None)
 
     def __str__(self):
+        if self.traceback:
+            return '{} - {}: {}'.format(self.text,
+                                        self.exception.__class__.__name__,
+                                        self.exception)
         return '{}: {}'.format(self.text, self.exception)
 
     def with_text(self, text):

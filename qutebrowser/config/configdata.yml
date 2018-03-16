@@ -240,6 +240,7 @@ content.cache.appcache:
   default: true
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: >-
     Enable support for the HTML 5 web application cache feature.
 
@@ -298,12 +299,14 @@ content.dns_prefetch:
   default: true
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: Try to pre-fetch DNS entries to speed up browsing.
 
 content.frame_flattening:
   default: false
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: >-
     Expand each subframe to its contents.
 
@@ -459,12 +462,14 @@ content.host_blocking.whitelist:
 content.hyperlink_auditing:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Enable hyperlink auditing (`<a ping>`).
 
 content.images:
   default: true
   type: Bool
   desc: Load images automatically in web pages.
+  supports_pattern: true
 
 content.javascript.alert:
   default: true
@@ -474,6 +479,7 @@ content.javascript.alert:
 content.javascript.can_access_clipboard:
   default: false
   type: Bool
+  supports_pattern: true
   desc: >-
     Allow JavaScript to read from or write to the clipboard.
 
@@ -484,16 +490,19 @@ content.javascript.can_close_tabs:
   default: false
   type: Bool
   backend: QtWebKit
+  supports_pattern: true
   desc: Allow JavaScript to close tabs.
 
 content.javascript.can_open_tabs_automatically:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Allow JavaScript to open new tabs without user interaction.
 
 content.javascript.enabled:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Enable JavaScript.
 
 content.javascript.log:
@@ -536,16 +545,19 @@ content.javascript.prompt:
 content.local_content_can_access_remote_urls:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Allow locally loaded documents to access remote URLs.
 
 content.local_content_can_access_file_urls:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Allow locally loaded documents to access other local URLs.
 
 content.local_storage:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Enable support for HTML 5 local storage and Web SQL.
 
 content.media_capture:
@@ -583,6 +595,7 @@ content.pdfjs:
 content.plugins:
   default: false
   type: Bool
+  supports_pattern: true
   desc: Enable plugins in Web pages.
 
 content.print_element_backgrounds:
@@ -591,6 +604,7 @@ content.print_element_backgrounds:
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.8
+  supports_pattern: true
   desc: >-
     Draw the background color and images also when the page is printed.
 
@@ -631,11 +645,13 @@ content.user_stylesheets:
 content.webgl:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Enable WebGL.
 
 content.xss_auditing:
   type: Bool
   default: false
+  supports_pattern: true
   desc: >-
     Monitor load requests for cross-site scripting attempts.
 
@@ -965,6 +981,11 @@ input.insert_mode.auto_load:
   desc: Automatically enter insert mode if an editable element is focused after
     loading the page.
 
+input.insert_mode.auto_enter:
+  default: true
+  type: Bool
+  desc: Enter insert mode if an editable element is clicked.
+
 input.insert_mode.auto_leave:
   default: true
   type: Bool
@@ -978,6 +999,7 @@ input.insert_mode.plugins:
 input.links_included_in_focus_chain:
   default: true
   type: Bool
+  supports_pattern: true
   desc: Include hyperlinks in the keyboard focus chain when tabbing.
 
 input.partial_timeout:
@@ -1003,6 +1025,7 @@ input.rocker_gestures:
 input.spatial_navigation:
   default: false
   type: Bool
+  supports_pattern: true
   desc: >-
     Enable spatial navigation.
 
@@ -1083,6 +1106,7 @@ scrolling.bar:
 scrolling.smooth:
   type: Bool
   default: false
+  supports_pattern: true
   desc: >-
     Enable smooth scrolling for web pages.
 
@@ -1557,6 +1581,7 @@ zoom.text_only:
   type: Bool
   default: false
   backend: QtWebKit
+  supports_pattern: true
   desc: Apply the zoom factor on a frame only to the text or to all content.
 
 ## colors
@@ -2141,6 +2166,7 @@ bindings.key_mappings:
     <Ctrl-Enter>: <Ctrl-Return>
   type:
     name: Dict
+    none_ok: true
     keytype: Key
     valtype: Key
   desc: >-
@@ -2156,6 +2182,7 @@ bindings.key_mappings:
     `bindings.commands`), the mapping is ignored.
 
 bindings.default:
+  no_autoconfig: true
   default:
     normal:
       <Escape>: clear-keychain ;; search ;; fullscreen --leave
@@ -2309,6 +2336,18 @@ bindings.default:
       <Ctrl-p>: tab-pin
       q: record-macro
       "@": run-macro
+      tsh: config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload
+      tSh: config-cycle -p -u *://{url:host}/* content.javascript.enabled ;; reload
+      tsH: config-cycle -p -t -u *://*.{url:host}/* content.javascript.enabled ;; reload
+      tSH: config-cycle -p -u *://*.{url:host}/* content.javascript.enabled ;; reload
+      tsu: config-cycle -p -t -u {url} content.javascript.enabled ;; reload
+      tSu: config-cycle -p -u {url} content.javascript.enabled ;; reload
+      tph: config-cycle -p -t -u *://{url:host}/* content.plugins ;; reload
+      tPh: config-cycle -p -u *://{url:host}/* content.plugins ;; reload
+      tpH: config-cycle -p -t -u *://*.{url:host}/* content.plugins ;; reload
+      tPH: config-cycle -p -u *://*.{url:host}/* content.plugins ;; reload
+      tpu: config-cycle -p -t -u {url} content.plugins ;; reload
+      tPu: config-cycle -p -u {url} content.plugins ;; reload
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text {primary}
@@ -2353,8 +2392,6 @@ bindings.default:
       <Escape>: leave-mode
     prompt:
       <Return>: prompt-accept
-      y: prompt-accept yes
-      n: prompt-accept no
       <Ctrl-X>: prompt-open-download
       <Shift-Tab>: prompt-item-focus prev
       <Up>: prompt-item-focus prev
@@ -2376,6 +2413,13 @@ bindings.default:
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
       <Ctrl-Y>: rl-yank
+      <Escape>: leave-mode
+    yesno:
+      <Return>: prompt-accept
+      y: prompt-accept yes
+      n: prompt-accept no
+      <Alt-Y>: prompt-yank
+      <Alt-Shift-Y>: prompt-yank --sel
       <Escape>: leave-mode
     caret:
       v: toggle-selection
@@ -2412,7 +2456,7 @@ bindings.default:
     none_ok: true
     keytype: String  # section name
     fixed_keys: ['normal', 'insert', 'hint', 'passthrough', 'command',
-                 'prompt', 'caret', 'register']
+                 'prompt', 'yesno', 'caret', 'register']
     valtype:
       name: Dict
       none_ok: true
@@ -2436,14 +2480,14 @@ bindings.commands:
     none_ok: true
     keytype: String  # section name
     fixed_keys: ['normal', 'insert', 'hint', 'passthrough', 'command',
-                 'prompt', 'caret', 'register']
+                 'prompt', 'yesno', 'caret', 'register']
     valtype:
       name: Dict
       none_ok: true
       keytype: Key
       valtype:
         name: Command
-        none_ok: true
+        none_ok: true  # needed for :unbind
   desc: >-
     Keybindings mapping keys to commands in different modes.
 
@@ -2459,7 +2503,6 @@ bindings.commands:
     If you want to map a key to another key, check the `bindings.key_mappings`
     setting instead.
 
-    For special keys (can't be part of a keychain), enclose them in `<`...`>`.
     For modifiers, you can use either `-` or `+` as delimiters, and these
     names:
 
@@ -2508,10 +2551,8 @@ bindings.commands:
 
     * prompt: Entered when there's a prompt to display, like for download
       locations or when invoked from JavaScript.
-      +
-      You can bind normal keys in this mode, but they will be only active when
-      a yes/no-prompt is asked. For other prompt modes, you can only bind
-      special keys.
+
+    * yesno: Entered when there's a yes/no prompt displayed.
 
     * caret: Entered when pressing the `v` mode, used to select text using the
       keyboard.

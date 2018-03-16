@@ -86,6 +86,8 @@ PERFECT_FILES = [
 
     ('tests/unit/keyinput/test_basekeyparser.py',
      'keyinput/basekeyparser.py'),
+    ('tests/unit/keyinput/test_keyutils.py',
+     'keyinput/keyutils.py'),
 
     ('tests/unit/misc/test_autoupdate.py',
      'misc/autoupdate.py'),
@@ -143,6 +145,8 @@ PERFECT_FILES = [
      'config/configinit.py'),
     ('tests/unit/config/test_configcommands.py',
      'config/configcommands.py'),
+    ('tests/unit/config/test_configutils.py',
+     'config/configutils.py'),
 
     ('tests/unit/utils/test_qtutils.py',
      'utils/qtutils.py'),
@@ -164,11 +168,15 @@ PERFECT_FILES = [
      'utils/error.py'),
     ('tests/unit/utils/test_javascript.py',
      'utils/javascript.py'),
+    ('tests/unit/utils/test_urlmatch.py',
+     'utils/urlmatch.py'),
 
     (None,
      'completion/models/util.py'),
     ('tests/unit/completion/test_models.py',
      'completion/models/urlmodel.py'),
+    ('tests/unit/completion/test_models.py',
+     'completion/models/configmodel.py'),
     ('tests/unit/completion/test_histcategory.py',
      'completion/models/histcategory.py'),
     ('tests/unit/completion/test_listcategory.py',

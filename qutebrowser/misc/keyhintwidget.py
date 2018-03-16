@@ -34,6 +34,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
 from qutebrowser.config import config
 from qutebrowser.utils import utils, usertypes
 from qutebrowser.commands import cmdutils
+from qutebrowser.keyinput import keyutils
 
 
 class KeyHintView(QLabel):
@@ -105,9 +106,8 @@ class KeyHintView(QLabel):
 
         bindings_dict = config.key_instance.get_bindings_for(modename)
         bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
-                    if k.startswith(prefix) and
-                    not utils.is_special_key(k) and
-                    not blacklisted(k) and
+                    if keyutils.KeySequence.parse(prefix).matches(k) and
+                    not blacklisted(str(k)) and
                     (takes_count(v) or not countstr)]
 
         if not bindings:
@@ -120,7 +120,7 @@ class KeyHintView(QLabel):
         suffix_color = html.escape(config.val.colors.keyhint.suffix.fg)
 
         text = ''
-        for key, cmd in bindings:
+        for seq, cmd in bindings:
             text += (
                 "<tr>"
                 "<td>{}</td>"
@@ -130,7 +130,7 @@ class KeyHintView(QLabel):
             ).format(
                 html.escape(prefix),
                 suffix_color,
-                html.escape(key[len(prefix):]),
+                html.escape(str(seq[len(prefix):])),
                 html.escape(cmd)
             )
         text = '<table>{}</table>'.format(text)

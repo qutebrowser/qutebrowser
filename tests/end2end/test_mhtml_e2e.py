@@ -26,6 +26,8 @@ import collections
 
 import pytest
 
+from qutebrowser.utils import qtutils
+
 
 def collect_tests():
     basedir = os.path.dirname(__file__)
@@ -51,6 +53,11 @@ def normalize_line(line):
     line = line.replace('Content-Type: application/x-javascript',
                         'Content-Type: application/javascript')
 
+    # Added with Qt 5.11
+    if (line.startswith('Snapshot-Content-Location: ') and
+            not qtutils.version_check('5.11', compiled=False)):
+        line = None
+
     return line
 
 
@@ -74,7 +81,8 @@ class DownloadDir:
 
     def compare_mhtml(self, filename):
         with open(filename, 'r', encoding='utf-8') as f:
-            expected_data = [normalize_line(line) for line in f]
+            expected_data = [normalize_line(line) for line in f
+                             if normalize_line(line) is not None]
         actual_data = self.read_file()
         actual_data = [normalize_line(line) for line in actual_data]
         assert actual_data == expected_data

@@ -110,6 +110,44 @@
         }
     }
 
+    // Stub these two so that the gm4 polyfill script doesn't try to
+    // create broken versions as attributes of window.
+    function GM_getResourceText(caption, commandFunc, accessKey) {
+        console.error(`${GM_info.script.name} called unimplemented GM_getResourceText`);
+    }
+
+    function GM_registerMenuCommand(caption, commandFunc, accessKey) {
+        console.error(`${GM_info.script.name} called unimplemented GM_registerMenuCommand`);
+    }
+
+    // Mock the greasemonkey 4.0 async API.
+    const GM = {};
+    GM.info = GM_info;
+    const entries = {
+        'log': GM_log,
+        'addStyle': GM_addStyle,
+        'deleteValue': GM_deleteValue,
+        'getValue': GM_getValue,
+        'listValues': GM_listValues,
+        'openInTab': GM_openInTab,
+        'setValue': GM_setValue,
+        'xmlHttpRequest': GM_xmlhttpRequest,
+    }
+    for (newKey in entries) {
+        let old = entries[newKey];
+        if (old && (typeof GM[newKey] == 'undefined')) {
+            GM[newKey] = function(...args) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        resolve(old(...args));
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            };
+        }
+    };
+
     const unsafeWindow = window;
 
     // ====== The actual user script source ====== //

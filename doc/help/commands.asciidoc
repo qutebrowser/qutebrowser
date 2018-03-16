@@ -14,6 +14,7 @@ For command arguments, there are also some variables you can use:
 
 - `{url}` expands to the URL of the current page
 - `{url:pretty}` expands to the URL in decoded format
+- `{url:host}` expands to the host part of the URL
 - `{clipboard}` expands to the clipboard contents
 - `{primary}` expands to the primary selection contents
 
@@ -153,7 +154,8 @@ Bind a key to a command.
 If no command is given, show the current binding for the given key. Using :bind without any arguments opens a page showing all keybindings.
 
 ==== positional arguments
-* +'key'+: The keychain or special key (inside `<...>`) to bind.
+* +'key'+: The keychain to bind. Examples of valid keychains are `gC`, `<Ctrl-X>` or `<Ctrl-C>a`.
+
 * +'command'+: The command to execute, with optional args.
 
 ==== optional arguments
@@ -221,7 +223,7 @@ Syntax: +:buffer ['index']+
 
 Select tab by index or url/title best match.
 
-Focuses window if necessary when index is given. If both index and count are given, use count.
+Focuses window if necessary when index is given. If both index and count are given, use count. With neither index nor count given, open the qute://tabs page.
 
 ==== positional arguments
 * +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
@@ -274,7 +276,8 @@ Set all settings back to their default.
 
 [[config-cycle]]
 === config-cycle
-Syntax: +:config-cycle [*--temp*] [*--print*] 'option' ['values' ['values' ...]]+
+Syntax: +:config-cycle [*--pattern* 'pattern'] [*--temp*] [*--print*]
+             'option' ['values' ['values' ...]]+
 
 Cycle an option between multiple values.
 
@@ -283,6 +286,7 @@ Cycle an option between multiple values.
 * +'values'+: The values to cycle through.
 
 ==== optional arguments
+* +*-u*+, +*--pattern*+: The URL pattern to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
 
@@ -495,9 +499,15 @@ Toggle fullscreen mode.
 
 [[greasemonkey-reload]]
 === greasemonkey-reload
+Syntax: +:greasemonkey-reload [*--force*]+
+
 Re-read Greasemonkey scripts from disk.
 
 The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data directory (see `:version`).
+
+==== optional arguments
+* +*-f*+, +*--force*+: For any scripts that have required dependencies, re-download them.
+
 
 [[help]]
 === help
@@ -1110,7 +1120,7 @@ Save a session.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] [*--print*] ['option'] ['value']+
+Syntax: +:set [*--temp*] [*--print*] [*--pattern* 'pattern'] ['option'] ['value']+
 
 Set an option.
 
@@ -1123,6 +1133,7 @@ If the option name ends with '?', the value of the option is shown instead. Usin
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
+* +*-u*+, +*--pattern*+: The URL pattern to use.
 
 [[set-cmd-text]]
 === set-cmd-text
@@ -1313,7 +1324,8 @@ Syntax: +:unbind [*--mode* 'mode'] 'key'+
 Unbind a keychain.
 
 ==== positional arguments
-* +'key'+: The keychain or special key (inside <...>) to unbind.
+* +'key'+: The keychain to unbind. See the help for `:bind` for the correct syntax for keychains.
+
 
 ==== optional arguments
 * +*-m*+, +*--mode*+: A mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
@@ -1494,12 +1506,15 @@ Drop selection and keep selection mode enabled.
 
 [[follow-hint]]
 === follow-hint
-Syntax: +:follow-hint ['keystring']+
+Syntax: +:follow-hint [*--select*] ['keystring']+
 
 Follow a hint.
 
 ==== positional arguments
 * +'keystring'+: The hint to follow.
+
+==== optional arguments
+* +*-s*+, +*--select*+: Only select the given hint, don't necessarily follow it.
 
 [[leave-mode]]
 === leave-mode

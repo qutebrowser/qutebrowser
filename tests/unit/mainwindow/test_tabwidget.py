@@ -71,7 +71,7 @@ class TestTabWidget:
         with qtbot.waitExposed(widget):
             widget.show()
 
-        benchmark(widget._update_tab_titles)
+        benchmark(widget.update_tab_titles)
 
     @pytest.mark.parametrize("num_tabs", [4, 10])
     def test_add_remove_tab_benchmark(self, benchmark, browser,
@@ -79,7 +79,7 @@ class TestTabWidget:
         """Benchmark for addTab and removeTab."""
         def _run_bench():
             for i in range(num_tabs):
-                browser.addTab(fake_web_tab(), 'foobar' + str(i))
+                browser.widget.addTab(fake_web_tab(), 'foobar' + str(i))
 
             with qtbot.waitExposed(browser):
                 browser.show()

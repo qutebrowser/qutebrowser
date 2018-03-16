@@ -30,13 +30,14 @@ import pygments.formatters
 import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
-from qutebrowser.browser import browsertab
-from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
+from qutebrowser.browser import browsertab, shared
+from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
+                                        webkitsettings)
 from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
 
 
@@ -146,8 +147,17 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
-        self.search_displayed = True
+        # Don't go to next entry on duplicate search
+        if self.text == text and self.search_displayed:
+            log.webview.debug("Ignoring duplicate search request"
+                              " for {}".format(text))
+            return
+
+        # Clear old search results, this is done automatically on QtWebEngine.
+        self.clear()
+
         self.text = text
+        self.search_displayed = True
         self._flags = QWebPage.FindWrapsAroundDocument
         if self._is_case_sensitive(ignore_case):
             self._flags |= QWebPage.FindCaseSensitively
@@ -205,8 +215,8 @@ class WebKitCaret(browsertab.AbstractCaret):
                 self._widget.page().currentFrame().evaluateJavaScript(
                     utils.read_file('javascript/position_caret.js'))
 
-    @pyqtSlot()
-    def _on_mode_left(self):
+    @pyqtSlot(usertypes.KeyMode)
+    def _on_mode_left(self, _mode):
         settings = self._widget.settings()
         if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
             if self.selection_enabled and self._widget.hasSelection():
@@ -517,7 +527,8 @@ class WebKitHistory(browsertab.AbstractHistory):
         return self._history.itemAt(i)
 
     def _go_to_item(self, item):
-        return self._history.goToItem(item)
+        self._tab.predicted_navigation.emit(item.url())
+        self._history.goToItem(item)
 
     def serialize(self):
         return qtutils.serialize(self._history)
@@ -526,6 +537,9 @@ class WebKitHistory(browsertab.AbstractHistory):
         return qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
+        if items:
+            self._tab.predicted_navigation.emit(items[-1].url)
+
         stream, _data, user_data = tabhistory.serialize(items)
         qtutils.deserialize_stream(stream, self._history)
         for i, data in enumerate(user_data):
@@ -644,6 +658,8 @@ class WebKitTab(browsertab.AbstractTab):
         self.printing = WebKitPrinting()
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
+        # We're assigning settings in _set_widget
+        self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit
@@ -655,8 +671,8 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def openurl(self, url):
-        self._openurl_prepare(url)
+    def openurl(self, url, *, predict=True):
+        self._openurl_prepare(url, predict=predict)
         self._widget.openurl(url)
 
     def url(self, requested=False):
@@ -730,6 +746,8 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_load_started(self):
         super()._on_load_started()
         self.networkaccessmanager().netrc_used = False
+        # Make sure the icon is cleared when navigating to a page without one.
+        self.icon_changed.emit(QIcon())
 
     @pyqtSlot()
     def _on_frame_load_finished(self):
@@ -761,6 +779,31 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_contents_size_changed(self, size):
         self.contents_size_changed.emit(QSizeF(size))
 
+    @pyqtSlot(usertypes.NavigationRequest)
+    def _on_navigation_request(self, navigation):
+        super()._on_navigation_request(navigation)
+        if not navigation.accepted:
+            return
+
+        log.webview.debug("target {} override {}".format(
+            self.data.open_target, self.data.override_target))
+
+        if self.data.override_target is not None:
+            target = self.data.override_target
+            self.data.override_target = None
+        else:
+            target = self.data.open_target
+
+        if (navigation.navigation_type == navigation.Type.link_clicked and
+                target != usertypes.ClickTarget.normal):
+            tab = shared.get_tab(self.win_id, target)
+            tab.openurl(navigation.url)
+            self.data.open_target = usertypes.ClickTarget.normal
+            navigation.accepted = False
+
+        if navigation.is_main_frame:
+            self.settings.update_for_url(navigation.url)
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -779,6 +822,7 @@ class WebKitTab(browsertab.AbstractTab):
         page.frameCreated.connect(self._on_frame_created)
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
+        page.navigation_request.connect(self._on_navigation_request)
 
     def event_target(self):
         return self._widget

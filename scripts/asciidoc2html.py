@@ -85,9 +85,9 @@ class AsciiDoc:
 
         # patch image links to use local copy
         replacements = [
-            ("https://qutebrowser.org/img/cheatsheet-big.png",
+            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png",
              "qute://help/img/cheatsheet-big.png"),
-            ("https://qutebrowser.org/img/cheatsheet-small.png",
+            ("https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png",
              "qute://help/img/cheatsheet-small.png")
         ]
         asciidoc_args = ['-a', 'source-highlighter=pygments']
