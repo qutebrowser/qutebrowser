@@ -40,20 +40,10 @@ window._qutebrowser.webelem = (function() {
     const funcs = {};
     const elements = [];
 
-    function get_frame_offset(frame) {
-        if (frame === null) {
-            // Dummy object with zero offset
-            return {
-                "top": 0,
-                "right": 0,
-                "bottom": 0,
-                "left": 0,
-                "height": 0,
-                "width": 0,
-            };
-        }
-        return frame.frameElement.getBoundingClientRect();
-    }
+    const get_frame_offset = window._qutebrowser.utils.get_frame_offset;
+    const iframe_same_domain = window._qutebrowser.utils.iframe_same_domain;
+    const run_frames = window._qutebrowser.utils.run_frames;
+    const call_if_frame = window._qutebrowser.utils.call_if_frame;
 
     // Add an offset rect to a base rect, for use with frames
     function add_offset_rect(base, offset) {
@@ -203,17 +193,6 @@ window._qutebrowser.webelem = (function() {
         return true;
     }
 
-    // Returns true if the iframe is accessible without
-    // cross domain errors, else false.
-    function iframe_same_domain(frame) {
-        try {
-            frame.document; // eslint-disable-line no-unused-expressions
-            return true;
-        } catch (err) {
-            return false;
-        }
-    }
-
     funcs.find_css = (selector, only_visible) => {
         const elems = document.querySelectorAll(selector);
         const subelem_frames = window.frames;
@@ -243,20 +222,6 @@ window._qutebrowser.webelem = (function() {
         return out;
     };
 
-    // Runs a function in a frame until the result is not null, then return
-    function run_frames(func) {
-        for (let i = 0; i < window.frames.length; ++i) {
-            const frame = window.frames[i];
-            if (iframe_same_domain(frame)) {
-                const result = func(frame);
-                if (result) {
-                    return result;
-                }
-            }
-        }
-        return null;
-    }
-
     funcs.find_id = (id) => {
         const elem = document.getElementById(id);
         if (elem) {
@@ -274,21 +239,6 @@ window._qutebrowser.webelem = (function() {
 
         return null;
     };
-
-    // Check if elem is an iframe, and if so, return the result of func on it.
-    // If no iframes match, return null
-    function call_if_frame(elem, func) {
-        // Check if elem is a frame, and if so, call func on the window
-        if ("contentWindow" in elem) {
-            const frame = elem.contentWindow;
-            if (iframe_same_domain(frame) &&
-                "frameElement" in frame) {
-                return func(frame);
-            }
-        }
-        return null;
-    }
-    funcs.call_if_frame = call_if_frame;
 
     funcs.find_focused = () => {
         const elem = document.activeElement;

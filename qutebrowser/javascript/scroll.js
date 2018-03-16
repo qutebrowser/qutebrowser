@@ -22,8 +22,7 @@
 window._qutebrowser.scroll = (function() {
     const funcs = {};
 
-    // TODO how do I clone this function in a cleaner way?
-    const call_if_frame = window._qutebrowser.webelem.call_if_frame;
+    const call_if_frame = window._qutebrowser.utils.call_if_frame;
 
     // Helper function which scrolls the document 'doc' and window 'win' to x, y
     function scroll_to_perc(x, y, win = window, doc = document) {

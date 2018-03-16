@@ -637,8 +637,9 @@ class WebEngineTab(browsertab.AbstractTab):
         js_code = '\n'.join([
             '"use strict";',
             'window._qutebrowser = window._qutebrowser || {};',
-            utils.read_file('javascript/webelem.js'),
+            utils.read_file('javascript/utils.js'),
             utils.read_file('javascript/scroll.js'),
+            utils.read_file('javascript/webelem.js'),
             utils.read_file('javascript/caret.js'),
         ])
         script = QWebEngineScript()
