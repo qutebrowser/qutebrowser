@@ -196,7 +196,7 @@ class TabbedBrowser(QWidget):
         fields['id'] = self._win_id
 
         title = title_format.format(**fields)
-        self.window().setWindowTitle(title)
+        self.widget.window().setWindowTitle(title)
 
     def _connect_tab_signals(self, tab):
         """Set up the needed signals for tab."""
@@ -532,11 +532,11 @@ class TabbedBrowser(QWidget):
             if config.val.tabs.favicons.show:
                 self.widget.setTabIcon(i, tab.icon())
                 if config.val.tabs.tabs_are_windows:
-                    self.window().setWindowIcon(tab.icon())
+                    self.widget.window().setWindowIcon(tab.icon())
             else:
                 self.widget.setTabIcon(i, QIcon())
                 if config.val.tabs.tabs_are_windows:
-                    self.window().setWindowIcon(self.default_window_icon)
+                    self.widget.window().setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()
     def on_load_started(self, tab):
@@ -556,7 +556,7 @@ class TabbedBrowser(QWidget):
         else:
             if (config.val.tabs.tabs_are_windows and
                     config.val.tabs.favicons.show):
-                self.window().setWindowIcon(self.default_window_icon)
+                self.widget.window().setWindowIcon(self.default_window_icon)
         if idx == self.widget.currentIndex():
             self._update_window_title()
 
@@ -628,7 +628,7 @@ class TabbedBrowser(QWidget):
             return
         self.widget.setTabIcon(idx, icon)
         if config.val.tabs.tabs_are_windows:
-            self.window().setWindowIcon(icon)
+            self.widget.window().setWindowIcon(icon)
 
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
