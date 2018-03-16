@@ -35,6 +35,7 @@ Fixed
   of showing the URL.
 - Loading URLs with customized settings from a session now avoids an additional
   reload.
+- The window icon and title now get set correctly again.
 
 v1.2.1
 ------
