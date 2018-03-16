@@ -25,7 +25,7 @@
 [[ $QUTE_MODE == 'hints' ]] && title=$QUTE_SELECTED_TEXT || title=$QUTE_TITLE
 
 # try to add the task and grab the output
-if msg="$(task add "$title" "$*" 2>&1)"; then
+if msg="$(task add "$title" "$*" 2>&1 | head -n 1)"; then
     # annotate the new task with the url, send the output back to the browser
     task +LATEST annotate "$QUTE_URL"
     echo "message-info '$msg'" >> "$QUTE_FIFO"
