@@ -32,6 +32,10 @@ dict_version_re = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
 def version(filename):
     """Extract the version number from the dictionary file name."""
     match = dict_version_re.match(filename)
+    if match is None:
+        message.warning(
+            "Found a dictionary with a malformed name: {}".format(filename))
+        return None
     return tuple(int(n) for n in match.group('version').split('-'))
 
 
@@ -42,15 +46,23 @@ def dictionary_dir():
 
 
 def local_files(code):
-    """Return all installed dictionaries for the given code."""
+    """Return all installed dictionaries for the given code.
+
+    The returned dictionaries are sorted by version, therefore the latest will
+    be the first element. The list will be empty if no dictionaries are found.
+    """
     pathname = os.path.join(dictionary_dir(), '{}*.bdic'.format(code))
-    matching_dicts = filter(dict_version_re.match, glob.glob(pathname))
-    files = []
-    for matching_dict in sorted(matching_dicts, key=version, reverse=True):
-        filename = os.path.basename(matching_dict)
-        log.config.debug('Found file for dict {}: {}'.format(code, filename))
-        files.append(filename)
-    return files
+    matching_dicts = glob.glob(pathname)
+    versioned_dicts = []
+    for matching_dict in matching_dicts:
+        parsed_version = version(matching_dict)
+        if parsed_version is not None:
+            filename = os.path.basename(matching_dict)
+            log.config.debug('Found file for dict {}: {}'
+                             .format(code, filename))
+            versioned_dicts.append((parsed_version, filename))
+    return [filename for version, filename
+            in sorted(versioned_dicts, reverse=True)]
 
 
 def local_filename(code):

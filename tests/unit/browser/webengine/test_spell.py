@@ -17,15 +17,20 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
+import logging
+
 from qutebrowser.browser.webengine import spell
+from qutebrowser.utils import usertypes
 
 
-def test_version():
+def test_version(message_mock, caplog):
     assert spell.version('en-US-8-0.bdic') == (8, 0)
     assert spell.version('pl-PL-3-0.bdic') == (3, 0)
-    with pytest.raises(ValueError):
-        spell.version('malformed_filename')
+    with caplog.at_level(logging.WARNING):
+        assert spell.version('malformed_filename') is None
+    msg = message_mock.getmsg(usertypes.MessageLevel.warning)
+    expected = ("Found a dictionary with a malformed name: malformed_filename")
+    assert msg.text == expected
 
 
 def test_local_filename_dictionary_does_not_exist(tmpdir, monkeypatch):
