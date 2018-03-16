@@ -299,19 +299,15 @@ def test_get_search_url(config_stub, url, host, query, open_base_url):
     """
     config_stub.val.url.open_base_url = open_base_url
     url = urlutils._get_search_url(url)
-    if open_base_url and not query:
-        assert not url.path()
-        assert not url.fragment()
-
     assert url.host() == host
     assert url.query() == query
 
 
-@pytest.mark.parametrize('url, host, query', [
-    ('test', 'www.qutebrowser.org', ''),
-    ('test-with-dash', 'www.example.org', ''),
+@pytest.mark.parametrize('url, host', [
+    ('test', 'www.qutebrowser.org'),
+    ('test-with-dash', 'www.example.org'),
 ])
-def test_get_search_url_open_base_url(config_stub, url, host, query):
+def test_get_search_url_open_base_url(config_stub, url, host):
     """Test _get_search_url() with url.open_base_url_enabled.
 
     Args:
@@ -319,7 +315,12 @@ def test_get_search_url_open_base_url(config_stub, url, host, query):
         host: The expected search machine host.
         query: The expected search query.
     """
-    test_get_search_url(config_stub, url, host, query, True)
+    config_stub.val.url.open_base_url = True
+    url = urlutils._get_search_url(url)
+    assert not url.path()
+    assert not url.fragment()
+    assert not url.query()
+    assert url.host() == host
 
 
 @pytest.mark.parametrize('url', ['\n', ' ', '\n '])
