@@ -827,7 +827,7 @@ class AbstractTab(QWidget):
         if predict:
             self.predicted_navigation.emit(url)
 
-    def openurl(self, url):
+    def openurl(self, url, *, predict=True):
         raise NotImplementedError
 
     def reload(self, *, force=False):

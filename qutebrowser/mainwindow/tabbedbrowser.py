@@ -536,7 +536,8 @@ class TabbedBrowser(QWidget):
             else:
                 self.widget.setTabIcon(i, QIcon())
                 if config.val.tabs.tabs_are_windows:
-                    self.widget.window().setWindowIcon(self.default_window_icon)
+                    window = self.widget.window()
+                    window.setWindowIcon(self.default_window_icon)
 
     @pyqtSlot()
     def on_load_started(self, tab):
