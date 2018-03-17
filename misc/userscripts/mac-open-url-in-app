@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Basic userscript to open the current URL in a different app.
+# To open the current page in Chrome, you would run
+# :spawn --userscript mac-open-url-in-app "Google Chrome.app"
+#
+# The whole app name needs to be given. E.g. "Google Chrome.app"
+# and not just "chrome.app" or "chrome"
+#
+# The idea behind this script is that you can easily add aliases
+# for any app you want rather than having a userscript for each
+# one.
+#
+# E.g., you can create these two aliases:
+# 'safari': 'spawn --userscript mac-open-url-in-app Safari.app',
+# 'chrome': 'spawn --userscript mac-open-url-in-app "Google Chrome.app"'
+
+if [ ! "$1" ]; then
+    echo "message-error 'You need to pass an app name.'" >> "$QUTE_FIFO"
+elif [ ! -d "/Applications/$1" ] && [ ! -d "~/Applications/$1" ]; then
+    echo "message-error 'This application cannot be found.'" >> "$QUTE_FIFO"
+else
+    open -a "$1" "${QUTE_URL}"
+fi
