@@ -1325,7 +1325,10 @@ tabs.show:
 
 tabs.show_switching_delay:
   default: 800
-  type: Int
+  type:
+    name: Int
+    minval: -2147483648
+    maxval: 2147483647
   desc: "Duration (in milliseconds) to show the tab bar before hiding it when
     tabs.show is set to 'switching'."
 
