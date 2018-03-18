@@ -325,7 +325,7 @@ window._qutebrowser.caret = (function() {
                 if (color &&
                     (style.opacity < 1 &&
                         (color.alpha *= style.opacity),
-                        color.alpha !== 0 &&
+                    color.alpha !== 0 &&
                         (el.push(color), color.alpha === 1))) {
                     iter = !0;
                     break;
