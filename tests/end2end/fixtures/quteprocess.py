@@ -101,6 +101,9 @@ def is_ignored_lowlevel_message(message):
         '  Error: No such file or directory',
         # Qt 5.7.1
         'qt.network.ssl: QSslSocket: cannot call unresolved function *',
+        # Qt 5.11
+        # DevTools listening on ws://127.0.0.1:37945/devtools/browser/...
+        'DevTools listening on *',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -169,7 +172,7 @@ def is_ignored_chromium_message(line):
         # /tmp/pytest-of-florian/pytest-32/test_webengine_download_suffix0/
         # downloads/download.bin: Operation not supported
         ('Could not set extended attribute user.xdg.* on file *: '
-         'Operation not supported'),
+         'Operation not supported*'),
         # [5947:5947:0605/192837.856931:ERROR:render_process_impl.cc(112)]
         # WebFrame LEAKED 1 TIMES
         'WebFrame LEAKED 1 TIMES',
