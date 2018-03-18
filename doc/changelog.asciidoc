@@ -36,6 +36,7 @@ Fixed
 - Loading URLs with customized settings from a session now avoids an additional
   reload.
 - The window icon and title now get set correctly again.
+- The `tabs.switching_delay` setting now has a correct maximum value limit set.
 
 v1.2.1
 ------
