@@ -193,8 +193,8 @@ class ProfileSetter:
                          subframes=False):
         """Inject the given script to run early on a page load.
 
-        This runs the script both on DocumentCreation and DocumentReady as on some
-        internal pages, DocumentCreation will not work.
+        This runs the script both on DocumentCreation and DocumentReady as on
+        some internal pages, DocumentCreation will not work.
 
         That is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66011
         """
@@ -279,14 +279,15 @@ class ProfileSetter:
         self._profile.setPersistentCookiesPolicy(value)
 
     def set_dictionary_language(self, warn=True):
+        """Load the given dictionaries."""
         filenames = []
         for code in config.val.spellcheck.languages or []:
             local_filename = spell.local_filename(code)
             if not local_filename:
                 if warn:
-                    message.warning(
-                        "Language {} is not installed - see scripts/dictcli.py "
-                        "in qutebrowser's sources".format(code))
+                    message.warning("Language {} is not installed - see "
+                                    "scripts/dictcli.py in qutebrowser's "
+                                    "sources".format(code))
                 continue
 
             filenames.append(local_filename)
