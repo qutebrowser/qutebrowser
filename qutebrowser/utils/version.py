@@ -317,8 +317,10 @@ def _chromium_version():
     Qt 5.8:  Chromium 53
     Qt 5.9:  Chromium 56
     Qt 5.10: Chromium 61
-    Qt 5.11: Chromium 63
-    Qt 5.12: Chromium 65 (?)
+    Qt 5.11: Chromium 65
+    Qt 5.12: Chromium 69 (?)
+
+    Also see https://www.chromium.org/developers/calendar
     """
     if QWebEngineProfile is None:
         # This should never happen
