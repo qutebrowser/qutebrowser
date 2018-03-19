@@ -174,3 +174,15 @@ Feature: Javascript stuff
         When I set content.javascript.enabled to false
         And I open 500 without waiting
         Then "Showing error page for* 500" should be logged
+
+    Scenario: Using JS after window.open
+        When I open data/hello.txt
+        And I set content.javascript.can_open_tabs_automatically to true
+        And I run :jseval window.open('about:blank')
+        And I open data/hello.txt
+        And I run :tab-only
+        And I open data/hints/html/simple.html
+        And I run :hint all
+        And I wait for "hints: a" in the log
+        And I run :leave-mode
+        Then "There was an error while getting hint elements" should not be logged

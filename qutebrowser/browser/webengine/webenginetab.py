@@ -33,7 +33,7 @@ from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
-from qutebrowser.config import configdata
+from qutebrowser.config import configdata, config
 from qutebrowser.browser import browsertab, mouse, shared
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
@@ -72,10 +72,6 @@ def init():
     download_manager.install(webenginesettings.default_profile)
     download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
-
-    greasemonkey = objreg.get('greasemonkey')
-    greasemonkey.scripts_reloaded.connect(webenginesettings.inject_userscripts)
-    webenginesettings.inject_userscripts()
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
@@ -633,6 +629,119 @@ class WebEngineTab(browsertab.AbstractTab):
         self._child_event_filter = None
         self._saved_zoom = None
         self._reload_url = None
+        config.instance.changed.connect(self._on_config_changed)
+        self._init_js()
+
+    @pyqtSlot(str)
+    def _on_config_changed(self, option):
+        if option in ['scrolling.bar', 'content.user_stylesheets']:
+            self._init_stylesheet()
+            self._update_stylesheet()
+
+    def _update_stylesheet(self):
+        """Update the custom stylesheet in existing tabs."""
+        css = shared.get_user_stylesheet()
+        code = javascript.assemble('stylesheet', 'set_css', css)
+        self.run_js_async(code)
+
+    def _inject_early_js(self, name, js_code, *,
+                         world=QWebEngineScript.ApplicationWorld,
+                         subframes=False):
+        """Inject the given script to run early on a page load.
+
+        This runs the script both on DocumentCreation and DocumentReady as on
+        some internal pages, DocumentCreation will not work.
+
+        That is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66011
+        """
+        scripts = self._widget.page().scripts()
+        for injection in ['creation', 'ready']:
+            injection_points = {
+                'creation': QWebEngineScript.DocumentCreation,
+                'ready': QWebEngineScript.DocumentReady,
+            }
+            script = QWebEngineScript()
+            script.setInjectionPoint(injection_points[injection])
+            script.setSourceCode(js_code)
+            script.setWorldId(world)
+            script.setRunsOnSubFrames(subframes)
+            script.setName('_qute_{}_{}'.format(name, injection))
+            scripts.insert(script)
+
+    def _remove_early_js(self, name):
+        """Remove an early QWebEngineScript."""
+        scripts = self._widget.page().scripts()
+        for injection in ['creation', 'ready']:
+            full_name = '_qute_{}_{}'.format(name, injection)
+            script = scripts.findScript(full_name)
+            if not script.isNull():
+                scripts.remove(script)
+
+    def _init_js(self):
+        """Initialize global qutebrowser JavaScript."""
+        js_code = javascript.wrap_global(
+            'scripts',
+            utils.read_file('javascript/scroll.js'),
+            utils.read_file('javascript/webelem.js'),
+            utils.read_file('javascript/caret.js'),
+        )
+        # FIXME:qtwebengine what about subframes=True?
+        self._inject_early_js('js', js_code, subframes=True)
+        self._init_stylesheet()
+
+        greasemonkey = objreg.get('greasemonkey')
+        greasemonkey.scripts_reloaded.connect(self._inject_userscripts)
+        self._inject_userscripts()
+
+    def _init_stylesheet(self):
+        """Initialize custom stylesheets.
+
+        Partially inspired by QupZilla:
+        https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
+        """
+        self._remove_early_js('stylesheet')
+        css = shared.get_user_stylesheet()
+        js_code = javascript.wrap_global(
+            'stylesheet',
+            utils.read_file('javascript/stylesheet.js'),
+            javascript.assemble('stylesheet', 'set_css', css),
+        )
+        self._inject_early_js('stylesheet', js_code, subframes=True)
+
+    def _inject_userscripts(self):
+        """Register user JavaScript files with the global profiles."""
+        # The Greasemonkey metadata block support in QtWebEngine only starts at
+        # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
+        # response to urlChanged.
+        if not qtutils.version_check('5.8'):
+            return
+
+        # Since we are inserting scripts into profile.scripts they won't
+        # just get replaced by new gm scripts like if we were injecting them
+        # ourselves so we need to remove all gm scripts, while not removing
+        # any other stuff that might have been added. Like the one for
+        # stylesheets.
+        greasemonkey = objreg.get('greasemonkey')
+        scripts = self._widget.page().scripts()
+        for script in scripts.toList():
+            if script.name().startswith("GM-"):
+                log.greasemonkey.debug('Removing script: {}'
+                                       .format(script.name()))
+                removed = scripts.remove(script)
+                assert removed, script.name()
+
+        # Then add the new scripts.
+        for script in greasemonkey.all_scripts():
+            # @run-at (and @include/@exclude/@match) is parsed by
+            # QWebEngineScript.
+            new_script = QWebEngineScript()
+            new_script.setWorldId(QWebEngineScript.MainWorld)
+            new_script.setSourceCode(script.code())
+            new_script.setName("GM-{}".format(script.name))
+            new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
+            log.greasemonkey.debug('adding script: {}'
+                                   .format(new_script.name()))
+            scripts.insert(new_script)
 
     def _install_event_filter(self):
         self._widget.focusProxy().installEventFilter(self._mouse_event_filter)
