@@ -83,6 +83,8 @@ PERFECT_FILES = [
      'browser/webengine/certificateerror.py'),
     # ('tests/unit/browser/test_tab.py',
     #  'browser/tab.py'),
+    ('tests/unit/browser/test_urlmarks.py',
+     'browser/urlmarks.py'),
 
     ('tests/unit/keyinput/test_basekeyparser.py',
      'keyinput/basekeyparser.py'),

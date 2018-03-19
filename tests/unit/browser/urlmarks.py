@@ -39,6 +39,7 @@ def test_init(bm_file, fake_save_manager):
     bm_file.write('\n'.join([
         '{"url": "http://example.com", "title": "Example Site"}',
         '{"url": "http://example.com/foo", "tags": ["one", "two"]}',
+        '',
         '{"url": "http://example.com/bar", "title": "Bar", "tags": ["three"]}',
         '{"url": "http://example.com/notitle"}',
         '{"url": "http://example.com/foo", "tags": ["three", "four"]}',
@@ -58,6 +59,12 @@ def test_init(bm_file, fake_save_manager):
         urlmarks.Bookmark('http://example.com/bar', 'Bar', ['three']),
         urlmarks.Bookmark('http://example.com/notitle', '', []),
     ]
+
+
+def test_init_empty(config_tmpdir, fake_save_manager):
+    bm = urlmarks.BookmarkManager()
+    path = config_tmpdir / 'bookmarks' / 'urls'
+    path.ensure()
 
 
 def test_add(bm_file, fake_save_manager, qtbot):
@@ -83,6 +90,9 @@ def test_add(bm_file, fake_save_manager, qtbot):
         urlmarks.Bookmark('http://example.com/notitle', '', []),
         urlmarks.Bookmark('http://example.com', 'Example Site', []),
     ]
+
+    with pytest.raises(urlmarks.InvalidUrlError):
+        bm.add(QUrl('ht tp://example.com'), '', [])
 
 
 def test_add_toggle(bm_file, fake_save_manager, qtbot):
