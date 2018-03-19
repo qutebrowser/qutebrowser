@@ -1361,18 +1361,14 @@ class CommandDispatcher:
         except urlutils.InvalidUrlError as e:
             raise cmdexc.CommandError(e)
 
-        mark = bookmark_manager.get(url)
-        if not mark:
-            raise cmdexc.CommandError("Bookmark {} does not exist".format(
-                url.toDisplayString()))
+        try:
+            if remove:
+                bookmark_manager.untag(url, tags)
+            else:
+                bookmark_manager.tag(url, tags)
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(str(e))
 
-        if remove:
-            for t in tags:
-                mark.tags.remove(t)
-        else:
-            mark.tags.extend(tags)
-
-        bookmark_manager.update(mark)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)

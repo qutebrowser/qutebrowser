@@ -101,7 +101,7 @@ def test_add_toggle(bm_file, fake_save_manager, qtbot):
     assert 'http://example.com' in bm
 
 
-def test_add_dupe(bm_file, fake_save_manager, qtbot):
+def test_add_dupe(bm_file, fake_save_manager):
     bm = urlmarks.BookmarkManager()
 
     bm.add(QUrl('http://example.com'), '', [])
@@ -125,7 +125,7 @@ def test_delete(bm_file, fake_save_manager, qtbot):
     ]
 
 
-def test_save(bm_file, fake_save_manager, qtbot):
+def test_save(bm_file, fake_save_manager):
     bm = urlmarks.BookmarkManager()
 
     bm.add(QUrl('http://example.com'), 'Example Site', [])
@@ -139,7 +139,7 @@ def test_save(bm_file, fake_save_manager, qtbot):
     ]
 
 
-def test_get(bm_file, fake_save_manager, qtbot):
+def test_get(bm_file, fake_save_manager):
     bm = urlmarks.BookmarkManager()
 
     bm.add(QUrl('http://example.com'), 'Example Site', ['a', 'b'])
@@ -150,7 +150,8 @@ def test_get(bm_file, fake_save_manager, qtbot):
         tags=['a', 'b'],
     )
 
-    assert bm.get(QUrl('http://example.com/nope')) is None
+    with pytest.raises(urlmarks.DoesNotExistError):
+        bm.get(QUrl('http://example.com/nope'))
 
 
 def test_get_tagged(bm_file, fake_save_manager, qtbot):
@@ -178,18 +179,35 @@ def test_get_tagged(bm_file, fake_save_manager, qtbot):
     assert list(bm.get_tagged(['nope'])) == []
 
 
-def test_update(bm_file, fake_save_manager, qtbot):
+@pytest.mark.parametrize('old, add, new', [
+    ([], ['foo', 'bar'], ['foo', 'bar']),
+    (['baz'], ['foo', 'bar'], ['baz', 'foo', 'bar']),
+    (['baz', 'bar'], ['foo', 'bar'], ['baz', 'bar', 'foo']),
+    ([], ['foo', 'foo'], ['foo']),
+])
+def test_tag(bm_file, fake_save_manager, qtbot, old, add, new):
     bm = urlmarks.BookmarkManager()
-
-    bm.add(QUrl('http://example.com'), 'Example Site', ['a', 'b'])
-
-    newmark = urlmarks.Bookmark(
-        url='http://example.com',
-        title='New Title',
-        tags=['one', 'two'],
-    )
+    url = QUrl('http://example.com')
+    bm.add(url, 'Example Site', old)
 
     with qtbot.wait_signal(bm.changed):
-        bm.update(newmark)
+        bm.tag(url, add)
 
-    assert bm.get(QUrl('http://example.com')) == newmark
+    assert bm.get(url).tags == new
+
+
+@pytest.mark.parametrize('old, remove, new', [
+    ([], ['foo', 'bar'], []),
+    (['baz'], ['foo', 'bar'], ['baz']),
+    (['baz', 'bar'], ['foo', 'bar'], ['baz']),
+    (['baz', 'bar', 'foo'], ['bar'], ['baz', 'foo']),
+])
+def test_untag(bm_file, fake_save_manager, qtbot, old, remove, new):
+    bm = urlmarks.BookmarkManager()
+    url = QUrl('http://example.com')
+    bm.add(url, 'Example Site', old)
+
+    with qtbot.wait_signal(bm.changed):
+        bm.untag(url, remove)
+
+    assert bm.get(url).tags == new

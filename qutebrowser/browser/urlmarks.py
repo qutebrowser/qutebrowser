@@ -162,7 +162,10 @@ class BookmarkManager(QObject):
             url: The QUrl of the mark to find.
         """
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-        return self._marks.get(urlstr)
+        mark = self._marks.get(urlstr)
+        if not mark:
+            raise DoesNotExistError('No bookmark with url {}'.format(urlstr))
+        return mark
 
     def get_tagged(self, tags):
         """Get all bookmarks that have all the provided tags.
@@ -173,8 +176,30 @@ class BookmarkManager(QObject):
         return (m for m in self._marks.values()
                 if all(t in m.tags for t in tags))
 
-    def update(self, mark):
-        self._marks[mark.url] = mark
+    def tag(self, url, tags):
+        """Remove tags from a mark.
+
+        Args:
+            url: QUrl of the mark to modify.
+            tags: List of tags to remove.
+        """
+        mark = self.get(url)
+        mark.tags.extend((t for t in tags if t not in mark.tags))
+        self.changed.emit()
+
+    def untag(self, url, tags):
+        """Remove tags from a mark.
+
+        Args:
+            url: QUrl of the mark to modify.
+            tags: List of tags to remove.
+        """
+        mark = self.get(url)
+        for t in tags:
+            try:
+                mark.tags.remove(t)
+            except ValueError:
+                pass
         self.changed.emit()
 
     def delete(self, key):
