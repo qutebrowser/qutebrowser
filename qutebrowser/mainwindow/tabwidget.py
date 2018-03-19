@@ -562,6 +562,12 @@ class TabBar(QTabBar):
         Return:
             A QSize.
         """
+        if self.count() == 0:
+            # This happens on startup on macOS.
+            # We return it directly rather than setting `size' because we don't
+            # want to ensure it's valid in this special case.
+            return QSize()
+
         minimum_size = self.minimumTabSizeHint(index)
         height = minimum_size.height()
         if self.vertical:
@@ -574,11 +580,6 @@ class TabBar(QTabBar):
             else:
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)
-        elif self.count() == 0:
-            # This happens on startup on macOS.
-            # We return it directly rather than setting `size' because we don't
-            # want to ensure it's valid in this special case.
-            return QSize()
         else:
             if config.val.tabs.pinned.shrink:
                 pinned = self._tab_pinned(index)
