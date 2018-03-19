@@ -20,6 +20,9 @@
 """Utilities related to javascript interaction."""
 
 
+from qutebrowser.utils import jinja
+
+
 def string_escape(text):
     """Escape values special to javascript in strings.
 
@@ -70,3 +73,9 @@ def assemble(module, function, *args):
         parts = ['window', '_qutebrowser', module, function]
     code = '"use strict";\n{}({});'.format('.'.join(parts), js_args)
     return code
+
+
+def wrap_global(name, *sources):
+    """Wrap a script using window._qutebrowser."""
+    template = jinja.js_environment.get_template('global_wrapper.js')
+    return template.render(code='\n'.join(sources), name=name)

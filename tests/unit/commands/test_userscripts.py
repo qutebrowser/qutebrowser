@@ -97,10 +97,11 @@ def test_custom_env(qtbot, monkeypatch, py_proc, runner):
             f.write('\n')
     """)
 
-    with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
-        runner.prepare_run(cmd, *args, env=env)
-        runner.store_html('')
-        runner.store_text('')
+    with qtbot.waitSignal(runner.finished, timeout=10000):
+        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+            runner.prepare_run(cmd, *args, env=env)
+            runner.store_html('')
+            runner.store_text('')
 
     data = blocker.args[0]
     ret_env = json.loads(data)

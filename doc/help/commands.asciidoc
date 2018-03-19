@@ -93,6 +93,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<scroll,scroll>>|Scroll the current tab in the given direction.
 |<<scroll-page,scroll-page>>|Scroll the frame page-wise.
 |<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
+|<<scroll-to-anchor,scroll-to-anchor>>|Scroll to the given anchor in the document.
 |<<scroll-to-perc,scroll-to-perc>>|Scroll to a specific percentage of the page.
 |<<search,search>>|Search for a text on the current page. With no text, clear results.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
@@ -1023,6 +1024,15 @@ Scroll the current tab by 'count * dx/dy' pixels.
 
 ==== count
 multiplier
+
+[[scroll-to-anchor]]
+=== scroll-to-anchor
+Syntax: +:scroll-to-anchor 'name'+
+
+Scroll to the given anchor in the document.
+
+==== positional arguments
+* +'name'+: The anchor to scroll to.
 
 [[scroll-to-perc]]
 === scroll-to-perc

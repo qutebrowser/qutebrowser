@@ -28,7 +28,7 @@
 if msg="$(task add "$title" "$*" 2>&1)"; then
     # annotate the new task with the url, send the output back to the browser
     task +LATEST annotate "$QUTE_URL"
-    echo "message-info '$msg'" >> "$QUTE_FIFO"
+    echo "message-info '$(echo "$msg" | head -n 1)'" >> "$QUTE_FIFO"
 else
-    echo "message-error '$msg'" >> "$QUTE_FIFO"
+    echo "message-error '$(echo "$msg" | head -n 1)'" >> "$QUTE_FIFO"
 fi

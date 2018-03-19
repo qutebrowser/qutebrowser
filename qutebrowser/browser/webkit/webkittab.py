@@ -196,9 +196,10 @@ class WebKitCaret(browsertab.AbstractCaret):
         if mode != usertypes.KeyMode.caret:
             return
 
+        self.selection_enabled = self._widget.hasSelection()
+        self.selection_toggled.emit(self.selection_enabled)
         settings = self._widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-        self.selection_enabled = self._widget.hasSelection()
 
         if self._widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
@@ -363,9 +364,7 @@ class WebKitCaret(browsertab.AbstractCaret):
 
     def toggle_selection(self):
         self.selection_enabled = not self.selection_enabled
-        mainwindow = objreg.get('main-window', scope='window',
-                                window=self._tab.win_id)
-        mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
+        self.selection_toggled.emit(self.selection_enabled)
 
     def drop_selection(self):
         self._widget.triggerPageAction(QWebPage.MoveToNextChar)
@@ -426,6 +425,9 @@ class WebKitScroller(browsertab.AbstractScroller):
 
     def to_point(self, point):
         self._widget.page().mainFrame().setScrollPosition(point)
+
+    def to_anchor(self, name):
+        self._widget.page().mainFrame().scrollToAnchor(name)
 
     def delta(self, x=0, y=0):
         qtutils.check_overflow(x, 'int')
@@ -537,6 +539,9 @@ class WebKitHistory(browsertab.AbstractHistory):
         return qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
+        if items:
+            self._tab.predicted_navigation.emit(items[-1].url)
+
         stream, _data, user_data = tabhistory.serialize(items)
         qtutils.deserialize_stream(stream, self._history)
         for i, data in enumerate(user_data):
@@ -668,8 +673,8 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def openurl(self, url):
-        self._openurl_prepare(url)
+    def openurl(self, url, *, predict=True):
+        self._openurl_prepare(url, predict=predict)
         self._widget.openurl(url)
 
     def url(self, requested=False):
@@ -701,7 +706,6 @@ class WebKitTab(browsertab.AbstractTab):
         self._widget.shutdown()
 
     def reload(self, *, force=False):
-        self.predicted_navigation.emit(self.url())
         if force:
             action = QWebPage.ReloadAndBypassCache
         else:

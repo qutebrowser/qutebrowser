@@ -22,6 +22,7 @@
 from unittest import mock
 
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QKeySequence
 
 import pytest
 
@@ -29,12 +30,6 @@ from qutebrowser.keyinput import modeparsers, keyutils
 
 
 class TestsNormalKeyParser:
-
-    """Tests for NormalKeyParser.
-
-    Attributes:
-        kp: The NormalKeyParser to be tested.
-    """
 
     @pytest.fixture(autouse=True)
     def patch_stuff(self, monkeypatch, stubs, keyinput_bindings):
@@ -81,3 +76,23 @@ class TestsNormalKeyParser:
         assert not keyparser.execute.called
         assert not keyparser._sequence
         keystring_updated_mock.assert_called_once_with('')
+
+
+class TestHintKeyParser:
+
+    @pytest.fixture
+    def keyparser(self, config_stub, key_config_stub):
+        kp = modeparsers.HintKeyParser(0)
+        kp.execute = mock.Mock()
+        kp.keystring_updated.disconnect()  # Don't try to update HintManager
+        return kp
+
+    def test_simple_hint_match(self, keyparser, fake_keyevent):
+        keyparser.update_bindings(['aa', 'as'])
+
+        match = keyparser.handle(fake_keyevent(Qt.Key_A))
+        assert match == QKeySequence.PartialMatch
+        match = keyparser.handle(fake_keyevent(Qt.Key_S))
+        assert match == QKeySequence.ExactMatch
+
+        keyparser.execute.assert_called_with('follow-hint -s as', None)

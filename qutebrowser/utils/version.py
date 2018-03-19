@@ -269,6 +269,8 @@ def _os_info():
         else:
             versioninfo = '.'.join(versioninfo)
         osver = ', '.join([e for e in [release, versioninfo, machine] if e])
+    elif utils.is_posix:
+        osver = ' '.join(platform.uname())
     else:
         osver = '?'
     lines.append('OS Version: {}'.format(osver))
@@ -315,8 +317,10 @@ def _chromium_version():
     Qt 5.8:  Chromium 53
     Qt 5.9:  Chromium 56
     Qt 5.10: Chromium 61
-    Qt 5.11: Chromium 63
-    Qt 5.12: Chromium 65 (?)
+    Qt 5.11: Chromium 65
+    Qt 5.12: Chromium 69 (?)
+
+    Also see https://www.chromium.org/developers/calendar
     """
     if QWebEngineProfile is None:
         # This should never happen
@@ -453,7 +457,13 @@ def opengl_vendor():  # pragma: no cover
         vp = QOpenGLVersionProfile()
         vp.setVersion(2, 0)
 
-        vf = ctx.versionFunctions(vp)
+        try:
+            vf = ctx.versionFunctions(vp)
+        except ImportError as e:
+            log.init.debug("opengl_vendor: Importing version functions "
+                           "failed: {}".format(e))
+            return None
+
         if vf is None:
             log.init.debug("opengl_vendor: Getting version functions failed!")
             return None

@@ -15,8 +15,60 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.2.0 (unreleased)
+v1.3.0 (unreleased)
 -------------------
+
+Added
+~~~~~
+
+- New `:scroll-to-anchor` command to scroll to an anchor in the document.
+
+Changed
+~~~~~~~
+
+- The file dialog for downloads now has basic tab completion based on the
+  entered text.
+- `:version` now shows OS information for POSIX OS other than Linux/macOS.
+- When there's an error inserting the text from an external editor, a backup
+  file is now saved.
+
+Fixed
+~~~~~
+
+- Using hints before a page is fully loaded is now possible again.
+- Tab titles for tabs loaded from sessions should now really be correct instead
+  of showing the URL.
+- Loading URLs with customized settings from a session now avoids an additional
+  reload.
+- The window icon and title now get set correctly again.
+- The `tabs.switching_delay` setting now has a correct maximum value limit set.
+- The `taskadd` script now works properly when there's multi-line output.
+
+v1.2.1
+------
+
+Fixed
+~~~~~
+
+- qutebrowser now starts properly when the PyQt5 QOpenGLFunctions package wasn't
+  found.
+- The keybinding cheatsheet on the quickstart page is now loaded from a local
+  `qute://` URL again.
+- With "tox -e mkvenv-pypi", PyQt 5.10.0 is used again instead of Qt 5.10.1,
+  because of an issue with Qt 5.10.1 which causes qutebrowser to fail to start
+  ("Could not find QtWebEngineProcess").
+- Unbinding keys which were bound in older qutebrowser versions now doesn't
+  crash anymore.
+- Fixed a crash when reloading a page which wasn't fully loaded with v1.2.0
+- Keys on the numeric keypad now fall back to the same bindings without `Num+`
+  if no `Num+` binding was found.
+- Fixed hinting on some pages with Qt < 5.10.
+- Titles are now displayed correctly again for tabs which are cloned or loaded
+  from sessions.
+- Shortcuts now correctly use `Ctrl` instead of `Command` on macOS again.
+
+v1.2.0
+------
 
 Added
 ~~~~~

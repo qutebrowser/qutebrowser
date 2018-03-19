@@ -25,7 +25,7 @@ import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.keyinput import modeparsers, keyparser
+from qutebrowser.keyinput import modeparsers
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
@@ -65,23 +65,30 @@ def init(win_id, parent):
     modeman = ModeManager(win_id, parent)
     objreg.register('mode-manager', modeman, scope='window', window=win_id)
     keyparsers = {
-        KM.normal: modeparsers.NormalKeyParser(win_id, modeman),
-        KM.hint: modeparsers.HintKeyParser(win_id, modeman),
-        KM.insert: keyparser.PassthroughKeyParser(win_id, 'insert', modeman),
-        KM.passthrough: keyparser.PassthroughKeyParser(win_id, 'passthrough',
-                                                       modeman),
-        KM.command: keyparser.PassthroughKeyParser(win_id, 'command', modeman),
-        KM.prompt: keyparser.PassthroughKeyParser(win_id, 'prompt', modeman),
-        KM.yesno: modeparsers.PromptKeyParser(win_id, modeman),
-        KM.caret: modeparsers.CaretKeyParser(win_id, modeman),
-        KM.set_mark: modeparsers.RegisterKeyParser(win_id, KM.set_mark,
-                                                   modeman),
-        KM.jump_mark: modeparsers.RegisterKeyParser(win_id, KM.jump_mark,
-                                                    modeman),
-        KM.record_macro: modeparsers.RegisterKeyParser(win_id, KM.record_macro,
-                                                       modeman),
-        KM.run_macro: modeparsers.RegisterKeyParser(win_id, KM.run_macro,
-                                                    modeman),
+        KM.normal:
+            modeparsers.NormalKeyParser(win_id, modeman),
+        KM.hint:
+            modeparsers.HintKeyParser(win_id, modeman),
+        KM.insert:
+            modeparsers.PassthroughKeyParser(win_id, 'insert', modeman),
+        KM.passthrough:
+            modeparsers.PassthroughKeyParser(win_id, 'passthrough', modeman),
+        KM.command:
+            modeparsers.PassthroughKeyParser(win_id, 'command', modeman),
+        KM.prompt:
+            modeparsers.PassthroughKeyParser(win_id, 'prompt', modeman),
+        KM.yesno:
+            modeparsers.PromptKeyParser(win_id, modeman),
+        KM.caret:
+            modeparsers.CaretKeyParser(win_id, modeman),
+        KM.set_mark:
+            modeparsers.RegisterKeyParser(win_id, KM.set_mark, modeman),
+        KM.jump_mark:
+            modeparsers.RegisterKeyParser(win_id, KM.jump_mark, modeman),
+        KM.record_macro:
+            modeparsers.RegisterKeyParser(win_id, KM.record_macro, modeman),
+        KM.run_macro:
+            modeparsers.RegisterKeyParser(win_id, KM.run_macro, modeman),
     }
     objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
     modeman.destroyed.connect(

@@ -29,9 +29,9 @@ import enum
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QKeySequence
 
-from qutebrowser.commands import cmdexc
+from qutebrowser.commands import runners, cmdexc
 from qutebrowser.config import config
-from qutebrowser.keyinput import keyparser, keyutils
+from qutebrowser.keyinput import basekeyparser, keyutils
 from qutebrowser.utils import usertypes, log, message, objreg, utils
 
 
@@ -39,7 +39,26 @@ STARTCHARS = ":/?"
 LastPress = enum.Enum('LastPress', ['none', 'filtertext', 'keystring'])
 
 
-class NormalKeyParser(keyparser.CommandKeyParser):
+class CommandKeyParser(basekeyparser.BaseKeyParser):
+
+    """KeyChainParser for command bindings.
+
+    Attributes:
+        _commandrunner: CommandRunner instance.
+    """
+
+    def __init__(self, win_id, parent=None, supports_count=None):
+        super().__init__(win_id, parent, supports_count)
+        self._commandrunner = runners.CommandRunner(win_id)
+
+    def execute(self, cmdstr, count=None):
+        try:
+            self._commandrunner.run(cmdstr, count)
+        except cmdexc.Error as e:
+            message.error(str(e), stack=traceback.format_exc())
+
+
+class NormalKeyParser(CommandKeyParser):
 
     """KeyParser for normal mode with added STARTCHARS detection and more.
 
@@ -127,7 +146,36 @@ class NormalKeyParser(keyparser.CommandKeyParser):
             pass
 
 
-class PromptKeyParser(keyparser.CommandKeyParser):
+class PassthroughKeyParser(CommandKeyParser):
+
+    """KeyChainParser which passes through normal keys.
+
+    Used for insert/passthrough modes.
+
+    Attributes:
+        _mode: The mode this keyparser is for.
+    """
+
+    do_log = False
+    passthrough = True
+
+    def __init__(self, win_id, mode, parent=None):
+        """Constructor.
+
+        Args:
+            mode: The mode this keyparser is for.
+            parent: Qt parent.
+            warn: Whether to warn if an ignored key was bound.
+        """
+        super().__init__(win_id, parent)
+        self._read_config(mode)
+        self._mode = mode
+
+    def __repr__(self):
+        return utils.get_repr(self, mode=self._mode)
+
+
+class PromptKeyParser(CommandKeyParser):
 
     """KeyParser for yes/no prompts."""
 
@@ -139,7 +187,7 @@ class PromptKeyParser(keyparser.CommandKeyParser):
         return utils.get_repr(self)
 
 
-class HintKeyParser(keyparser.CommandKeyParser):
+class HintKeyParser(CommandKeyParser):
 
     """KeyChainParser for hints.
 
@@ -211,9 +259,16 @@ class HintKeyParser(keyparser.CommandKeyParser):
         Returns:
             True if the match has been handled, False otherwise.
         """
-        match = super().handle(e, dry_run=dry_run)
+        dry_run_match = super().handle(e, dry_run=True)
         if dry_run:
-            return match
+            return dry_run_match
+
+        if keyutils.is_special(e.key(), e.modifiers()):
+            log.keyboard.debug("Got special key, clearing keychain")
+            self.clear_keystring()
+
+        assert not dry_run
+        match = super().handle(e)
 
         if match == QKeySequence.PartialMatch:
             self._last_press = LastPress.keystring
@@ -249,7 +304,7 @@ class HintKeyParser(keyparser.CommandKeyParser):
         hintmanager.handle_partial_key(keystr)
 
 
-class CaretKeyParser(keyparser.CommandKeyParser):
+class CaretKeyParser(CommandKeyParser):
 
     """KeyParser for caret mode."""
 
@@ -260,7 +315,7 @@ class CaretKeyParser(keyparser.CommandKeyParser):
         self._read_config('caret')
 
 
-class RegisterKeyParser(keyparser.CommandKeyParser):
+class RegisterKeyParser(CommandKeyParser):
 
     """KeyParser for modes that record a register key.
 
@@ -289,7 +344,7 @@ class RegisterKeyParser(keyparser.CommandKeyParser):
         if match or dry_run:
             return match
 
-        if not keyutils.is_printable(e.key()):
+        if keyutils.is_special(e.key(), e.modifiers()):
             # this is not a proper register key, let it pass and keep going
             return QKeySequence.NoMatch
 

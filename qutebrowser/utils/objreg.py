@@ -171,7 +171,7 @@ def _get_tab_registry(win_id, tab_id):
 
     if tab_id == 'current':
         tabbed_browser = get('tabbed-browser', scope='window', window=win_id)
-        tab = tabbed_browser.currentWidget()
+        tab = tabbed_browser.widget.currentWidget()
         if tab is None:
             raise RegistryUnavailableError('window')
         tab_id = tab.tab_id

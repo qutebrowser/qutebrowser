@@ -324,9 +324,8 @@ window._qutebrowser.caret = (function() {
                 const color = axs.color.parseColor(style.backgroundColor);
                 if (color &&
                     (style.opacity < 1 &&
-                        (color.alpha *= style.opacity),
-                        color.alpha !== 0 &&
-                        (el.push(color), color.alpha === 1))) {
+                     (color.alpha *= style.opacity), color.alpha !== 0 &&
+                     (el.push(color), color.alpha === 1))) {
                     iter = !0;
                     break;
                 }
@@ -1270,13 +1269,14 @@ window._qutebrowser.caret = (function() {
     funcs.setInitialCursor = () => {
         if (!CaretBrowsing.initiated) {
             CaretBrowsing.setInitialCursor();
-            return;
+            return CaretBrowsing.selectionEnabled;
         }
 
         if (window.getSelection().toString().length === 0) {
             positionCaret();
         }
         CaretBrowsing.toggle();
+        return CaretBrowsing.selectionEnabled;
     };
 
     funcs.setPlatform = (platform) => {
@@ -1362,6 +1362,7 @@ window._qutebrowser.caret = (function() {
 
     funcs.toggleSelection = () => {
         CaretBrowsing.selectionEnabled = !CaretBrowsing.selectionEnabled;
+        return CaretBrowsing.selectionEnabled;
     };
 
     return funcs;
