@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""pylint conftest file for javascript test."""
+"""pytest conftest file for javascript tests."""
 
 import os
 import os.path
@@ -41,11 +41,18 @@ class JSTester:
         _jinja_env: The jinja2 environment used to get templates.
     """
 
-    def __init__(self, tab, qtbot):
+    def __init__(self, tab, qtbot, config_stub):
         self.tab = tab
         self.qtbot = qtbot
         loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
+        # Make sure logging via JS fails tests
+        config_stub.val.content.javascript.log = {
+            'error': 'error',
+            'info': 'error',
+            'unknown': 'error',
+            'warning': 'error'
+        }
 
     def load(self, path, **kwargs):
         """Load and display the given jinja test data.
@@ -109,18 +116,18 @@ class JSTester:
 
 
 @pytest.fixture
-def js_tester_webkit(webkit_tab, qtbot):
+def js_tester_webkit(webkit_tab, qtbot, config_stub):
     """Fixture to test javascript snippets in webkit."""
-    return JSTester(webkit_tab, qtbot)
+    return JSTester(webkit_tab, qtbot, config_stub)
 
 
 @pytest.fixture
-def js_tester_webengine(webengine_tab, qtbot):
+def js_tester_webengine(webengine_tab, qtbot, config_stub):
     """Fixture to test javascript snippets in webengine."""
-    return JSTester(webengine_tab, qtbot)
+    return JSTester(webengine_tab, qtbot, config_stub)
 
 
 @pytest.fixture
-def js_tester(web_tab, qtbot):
+def js_tester(web_tab, qtbot, config_stub):
     """Fixture to test javascript snippets with both backends."""
-    return JSTester(web_tab, qtbot)
+    return JSTester(web_tab, qtbot, config_stub)
