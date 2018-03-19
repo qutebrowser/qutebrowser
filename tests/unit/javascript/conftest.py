@@ -21,7 +21,6 @@
 
 import os
 import os.path
-import logging
 
 import pytest
 import jinja2
@@ -29,7 +28,7 @@ import jinja2
 from PyQt5.QtCore import QUrl
 
 import helpers.utils
-from qutebrowser.utils import utils, usertypes
+from qutebrowser.utils import utils
 
 
 class JSTester:

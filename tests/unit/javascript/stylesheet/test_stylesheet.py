@@ -27,11 +27,6 @@ QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
 
 from qutebrowser.utils import javascript
 
-try:
-    from qutebrowser.browser.webengine import webenginesettings
-except ImportError:
-    webenginesettings = None
-
 
 DEFAULT_BODY_BG = "rgba(0, 0, 0, 0)"
 GREEN_BODY_BG = "rgb(0, 255, 0)"

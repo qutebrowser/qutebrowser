@@ -23,7 +23,6 @@ import pytest
 
 import helpers.utils
 
-from PyQt5.QtCore import Qt
 QWebSettings = pytest.importorskip("PyQt5.QtWebKit").QWebSettings
 QWebPage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
 

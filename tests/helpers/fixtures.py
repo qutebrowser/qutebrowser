@@ -50,17 +50,6 @@ from qutebrowser.misc import savemanager, sql
 from qutebrowser.keyinput import modeman
 
 
-try:
-    from PyQt5.QtWebKitWidgets import QWebView
-except ImportError:
-    QWebView = None
-
-try:
-    from PyQt5.QtWebEngineWidgets import QWebEngineView
-except ImportError:
-    QWebEngineView = None
-
-
 class WinRegistryHelper:
 
     """Helper class for win_registry."""
