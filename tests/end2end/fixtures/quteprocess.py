@@ -197,8 +197,8 @@ def is_ignored_chromium_message(line):
         'No URLRequestContext for NSS HTTP handler. host: *',
 
         # https://bugreports.qt.io/browse/QTBUG-66661
-        # [23359:23359:0319/115812.168578:WARNING:render_frame_host_impl.cc(2744)]
-        # OnDidStopLoading was called twice.
+        # [23359:23359:0319/115812.168578:WARNING:
+        # render_frame_host_impl.cc(2744)] OnDidStopLoading was called twice.
         'OnDidStopLoading was called twice.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
