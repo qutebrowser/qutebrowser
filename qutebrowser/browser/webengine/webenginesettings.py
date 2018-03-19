@@ -169,65 +169,130 @@ class WebEngineSettings(websettings.AbstractSettings):
             self._ATTRIBUTES[name] = [value]
 
 
-def _inject_early_js(profile, name, js_code, *,
-                     world=QWebEngineScript.ApplicationWorld, subframes=False):
-    """Inject the given script to run early on a page load.
+class ProfileSetter:
 
-    This runs the script both on DocumentCreation and DocumentReady as on some
-    internal pages, DocumentCreation will not work.
+    """Helper to set various settings on a profile."""
 
-    That is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66011
-    """
-    for injection in ['creation', 'ready']:
-        injection_points = {
-            'creation': QWebEngineScript.DocumentCreation,
-            'ready': QWebEngineScript.DocumentReady,
-        }
-        script = QWebEngineScript()
-        script.setInjectionPoint(injection_points[injection])
-        script.setSourceCode(js_code)
-        script.setWorldId(world)
-        script.setRunsOnSubFrames(subframes)
-        script.setName('_qute_{}_{}'.format(name, injection))
-        profile.scripts().insert(script)
+    def __init__(self, profile):
+        self._profile = profile
 
+    def init_profile(self):
+        """Initialize settings on the given profile."""
+        self._init_js()
+        self.init_stylesheet()
+        self.set_http_headers()
+        self.set_http_cache_size()
+        self._profile.settings().setAttribute(
+            QWebEngineSettings.FullScreenSupportEnabled, True)
+        if qtutils.version_check('5.8'):
+            self._profile.setSpellCheckEnabled(True)
+            self.set_dictionary_language()
 
-def _remove_early_js(profile, name):
-    """Remove an early QWebEngineScript."""
-    scripts = profile.scripts()
-    for injection in ['creation', 'ready']:
-        full_name = '_qute_{}_{}'.format(name, injection)
-        script = scripts.findScript(full_name)
-        if not script.isNull():
-            scripts.remove(script)
+    def _inject_early_js(self, name, js_code, *,
+                         world=QWebEngineScript.ApplicationWorld,
+                         subframes=False):
+        """Inject the given script to run early on a page load.
 
+        This runs the script both on DocumentCreation and DocumentReady as on some
+        internal pages, DocumentCreation will not work.
 
-def _init_stylesheet(profile):
-    """Initialize custom stylesheets.
+        That is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66011
+        """
+        for injection in ['creation', 'ready']:
+            injection_points = {
+                'creation': QWebEngineScript.DocumentCreation,
+                'ready': QWebEngineScript.DocumentReady,
+            }
+            script = QWebEngineScript()
+            script.setInjectionPoint(injection_points[injection])
+            script.setSourceCode(js_code)
+            script.setWorldId(world)
+            script.setRunsOnSubFrames(subframes)
+            script.setName('_qute_{}_{}'.format(name, injection))
+            self._profile.scripts().insert(script)
 
-    Partially inspired by QupZilla:
-    https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
-    """
-    _remove_early_js(profile, 'stylesheet')
-    css = shared.get_user_stylesheet()
-    js_code = javascript.wrap_global(
-        'stylesheet',
-        utils.read_file('javascript/stylesheet.js'),
-        javascript.assemble('stylesheet', 'set_css', css),
-    )
-    _inject_early_js(profile, 'stylesheet', js_code, subframes=True)
+    def _remove_early_js(self, name):
+        """Remove an early QWebEngineScript."""
+        scripts = self._profile.scripts()
+        for injection in ['creation', 'ready']:
+            full_name = '_qute_{}_{}'.format(name, injection)
+            script = scripts.findScript(full_name)
+            if not script.isNull():
+                scripts.remove(script)
 
+    def _init_js(self):
+        """Initialize global qutebrowser JavaScript."""
+        js_code = javascript.wrap_global(
+            'scripts',
+            utils.read_file('javascript/scroll.js'),
+            utils.read_file('javascript/webelem.js'),
+            utils.read_file('javascript/caret.js'),
+        )
+        # FIXME:qtwebengine what about subframes=True?
+        self._inject_early_js('js', js_code, subframes=True)
 
-def _init_js(profile):
-    """Initialize global qutebrowser JavaScript."""
-    js_code = javascript.wrap_global(
-        'scripts',
-        utils.read_file('javascript/scroll.js'),
-        utils.read_file('javascript/webelem.js'),
-        utils.read_file('javascript/caret.js'),
-    )
-    # FIXME:qtwebengine what about subframes=True?
-    _inject_early_js(profile, 'js', js_code, subframes=True)
+    def init_stylesheet(self):
+        """Initialize custom stylesheets.
+
+        Partially inspired by QupZilla:
+        https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
+        """
+        self._remove_early_js('stylesheet')
+        css = shared.get_user_stylesheet()
+        js_code = javascript.wrap_global(
+            'stylesheet',
+            utils.read_file('javascript/stylesheet.js'),
+            javascript.assemble('stylesheet', 'set_css', css),
+        )
+        self._inject_early_js('stylesheet', js_code, subframes=True)
+
+    def set_http_headers(self):
+        """Set the user agent and accept-language for the given profile.
+
+        We override those per request in the URL interceptor (to allow for
+        per-domain values), but this one still gets used for things like
+        window.navigator.userAgent/.languages in JS.
+        """
+        self._profile.setHttpUserAgent(config.val.content.headers.user_agent)
+        accept_language = config.val.content.headers.accept_language
+        if accept_language is not None:
+            self._profile.setHttpAcceptLanguage(accept_language)
+
+    def set_http_cache_size(self):
+        """Initialize the HTTP cache size for the given profile."""
+        size = config.val.content.cache.size
+        if size is None:
+            size = 0
+        else:
+            size = qtutils.check_overflow(size, 'int', fatal=False)
+
+        # 0: automatically managed by QtWebEngine
+        self._profile.setHttpCacheMaximumSize(size)
+
+    def set_persistent_cookie_policy(self):
+        """Set the HTTP Cookie size for the given profile."""
+        assert not self._profile.isOffTheRecord()
+        if config.val.content.cookies.store:
+            value = QWebEngineProfile.AllowPersistentCookies
+        else:
+            value = QWebEngineProfile.NoPersistentCookies
+        self._profile.setPersistentCookiesPolicy(value)
+
+    def set_dictionary_language(self, warn=True):
+        filenames = []
+        for code in config.val.spellcheck.languages or []:
+            local_filename = spell.local_filename(code)
+            if not local_filename:
+                if warn:
+                    message.warning(
+                        "Language {} is not installed - see scripts/dictcli.py "
+                        "in qutebrowser's sources".format(code))
+                continue
+
+            filenames.append(local_filename)
+
+        log.config.debug("Found dicts: {}".format(filenames))
+        self._profile.setSpellCheckLanguages(filenames)
 
 
 def _update_stylesheet():
@@ -244,93 +309,29 @@ def _update_stylesheet():
             tab.run_js_async(code)
 
 
-def _set_http_headers(profile):
-    """Set the user agent and accept-language for the given profile.
-
-    We override those per request in the URL interceptor (to allow for
-    per-domain values), but this one still gets used for things like
-    window.navigator.userAgent/.languages in JS.
-    """
-    profile.setHttpUserAgent(config.val.content.headers.user_agent)
-    accept_language = config.val.content.headers.accept_language
-    if accept_language is not None:
-        profile.setHttpAcceptLanguage(accept_language)
-
-
-def _set_http_cache_size(profile):
-    """Initialize the HTTP cache size for the given profile."""
-    size = config.val.content.cache.size
-    if size is None:
-        size = 0
-    else:
-        size = qtutils.check_overflow(size, 'int', fatal=False)
-
-    # 0: automatically managed by QtWebEngine
-    profile.setHttpCacheMaximumSize(size)
-
-
-def _set_persistent_cookie_policy(profile):
-    """Set the HTTP Cookie size for the given profile."""
-    if config.val.content.cookies.store:
-        value = QWebEngineProfile.AllowPersistentCookies
-    else:
-        value = QWebEngineProfile.NoPersistentCookies
-    profile.setPersistentCookiesPolicy(value)
-
-
-def _set_dictionary_language(profile, warn=True):
-    filenames = []
-    for code in config.val.spellcheck.languages or []:
-        local_filename = spell.local_filename(code)
-        if not local_filename:
-            if warn:
-                message.warning(
-                    "Language {} is not installed - see scripts/dictcli.py "
-                    "in qutebrowser's sources".format(code))
-            continue
-
-        filenames.append(local_filename)
-
-    log.config.debug("Found dicts: {}".format(filenames))
-    profile.setSpellCheckLanguages(filenames)
-
-
 def _update_settings(option):
     """Update global settings when qwebsettings changed."""
     global_settings.update_setting(option)
 
     if option in ['scrolling.bar', 'content.user_stylesheets']:
-        _init_stylesheet(default_profile)
-        _init_stylesheet(private_profile)
+        default_profile.setter.init_stylesheet()
+        private_profile.setter.init_stylesheet()
         _update_stylesheet()
     elif option in ['content.headers.user_agent',
                     'content.headers.accept_language']:
-        _set_http_headers(default_profile)
-        _set_http_headers(private_profile)
+        default_profile.setter.set_http_headers()
+        private_profile.setter.set_http_headers()
     elif option == 'content.cache.size':
-        _set_http_cache_size(default_profile)
-        _set_http_cache_size(private_profile)
+        default_profile.setter.set_http_cache_size()
+        private_profile.setter.set_http_cache_size()
     elif (option == 'content.cookies.store' and
           # https://bugreports.qt.io/browse/QTBUG-58650
           qtutils.version_check('5.9', compiled=False)):
-        _set_persistent_cookie_policy(default_profile)
+        default_profile.setter.set_persistent_cookie_policy()
         # We're not touching the private profile's cookie policy.
     elif option == 'spellcheck.languages':
-        _set_dictionary_language(default_profile)
-        _set_dictionary_language(private_profile, warn=False)
-
-
-def _init_profile(profile):
-    """Init the given profile."""
-    _init_js(profile)
-    _init_stylesheet(profile)
-    _set_http_headers(profile)
-    _set_http_cache_size(profile)
-    profile.settings().setAttribute(
-        QWebEngineSettings.FullScreenSupportEnabled, True)
-    if qtutils.version_check('5.8'):
-        profile.setSpellCheckEnabled(True)
-        _set_dictionary_language(profile)
+        default_profile.setter.set_dictionary_language()
+        private_profile.setter.set_dictionary_language(warn=False)
 
 
 def _init_profiles():
@@ -338,16 +339,18 @@ def _init_profiles():
     global default_profile, private_profile
 
     default_profile = QWebEngineProfile.defaultProfile()
+    default_profile.setter = ProfileSetter(default_profile)
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
     default_profile.setPersistentStoragePath(
         os.path.join(standarddir.data(), 'webengine'))
-    _init_profile(default_profile)
-    _set_persistent_cookie_policy(default_profile)
+    default_profile.setter.init_profile()
+    default_profile.setter.set_persistent_cookie_policy()
 
     private_profile = QWebEngineProfile()
+    private_profile.setter = ProfileSetter(private_profile)
     assert private_profile.isOffTheRecord()
-    _init_profile(private_profile)
+    private_profile.setter.init_profile()
 
 
 def inject_userscripts():
