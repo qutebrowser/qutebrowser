@@ -104,12 +104,12 @@ class GreasemonkeyScript:
         browser's debugger/inspector will not match up to the line
         numbers in the source script directly.
         """
-        return jinja.js_environment.get_template(
-            'greasemonkey_wrapper.js').render(
-                scriptName="/".join([self.namespace or '', self.name]),
-                scriptInfo=self._meta_json(),
-                scriptMeta=self.script_meta,
-                scriptSource=self._code)
+        template = jinja.js_environment.get_template('greasemonkey_wrapper.js')
+        return template.render(
+            scriptName="/".join([self.namespace or '', self.name]),
+            scriptInfo=self._meta_json(),
+            scriptMeta=self.script_meta,
+            scriptSource=self._code)
 
     def _meta_json(self):
         return json.dumps({
