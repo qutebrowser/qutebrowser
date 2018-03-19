@@ -230,7 +230,14 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
         self._tab.run_js_async(
             javascript.assemble('caret', 'setPlatform', sys.platform))
-        self._js_call('setInitialCursor', self.selection_toggled.emit)
+        self._js_call('setInitialCursor', self._selection_cb)
+
+    def _selection_cb(self, enabled):
+        """Emit selection_toggled based on setInitialCursor."""
+        if enabled is None:
+            log.webview.debug("Ignoring selection status None")
+            return
+        self.selection_toggled.emit(enabled)
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, mode):
