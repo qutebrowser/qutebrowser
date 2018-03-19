@@ -37,6 +37,7 @@ Fixed
   reload.
 - The window icon and title now get set correctly again.
 - The `tabs.switching_delay` setting now has a correct maximum value limit set.
+- The `taskadd` script now works properly when there's multi-line output.
 
 v1.2.1
 ------
