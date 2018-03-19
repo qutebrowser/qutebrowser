@@ -169,31 +169,65 @@ class WebEngineSettings(websettings.AbstractSettings):
             self._ATTRIBUTES[name] = [value]
 
 
+def _inject_early_js(profile, name, js_code, *,
+                     world=QWebEngineScript.ApplicationWorld, subframes=False):
+    """Inject the given script to run early on a page load.
+
+    This runs the script both on DocumentCreation and DocumentReady as on some
+    internal pages, DocumentCreation will not work.
+
+    That is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66011
+    """
+    for injection in ['creation', 'ready']:
+        injection_points = {
+            'creation': QWebEngineScript.DocumentCreation,
+            'ready': QWebEngineScript.DocumentReady,
+        }
+        script = QWebEngineScript()
+        script.setInjectionPoint(injection_points[injection])
+        script.setSourceCode(js_code)
+        script.setWorldId(world)
+        script.setRunsOnSubFrames(subframes)
+        script.setName('_qute_{}_{}'.format(name, injection))
+        profile.scripts().insert(script)
+
+
+def _remove_early_js(profile, name):
+    """Remove an early QWebEngineScript."""
+    scripts = profile.scripts()
+    for injection in ['creation', 'ready']:
+        full_name = '_qute_{}_{}'.format(name, injection)
+        script = scripts.findScript(full_name)
+        if not script.isNull():
+            scripts.remove(script)
+
+
 def _init_stylesheet(profile):
     """Initialize custom stylesheets.
 
     Partially inspired by QupZilla:
     https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
     """
-    old_script = profile.scripts().findScript('_qute_stylesheet')
-    if not old_script.isNull():
-        profile.scripts().remove(old_script)
-
+    _remove_early_js(profile, 'stylesheet')
     css = shared.get_user_stylesheet()
-    source = '\n'.join([
-        '"use strict";',
-        'window._qutebrowser = window._qutebrowser || {};',
+    js_code = javascript.wrap_global(
+        'stylesheet',
         utils.read_file('javascript/stylesheet.js'),
         javascript.assemble('stylesheet', 'set_css', css),
-    ])
+    )
+    _inject_early_js(profile, 'stylesheet', js_code, subframes=True)
 
-    script = QWebEngineScript()
-    script.setName('_qute_stylesheet')
-    script.setInjectionPoint(QWebEngineScript.DocumentCreation)
-    script.setWorldId(QWebEngineScript.ApplicationWorld)
-    script.setRunsOnSubFrames(True)
-    script.setSourceCode(source)
-    profile.scripts().insert(script)
+
+def _init_js(profile):
+    """Initialize global qutebrowser JavaScript."""
+    js_code = javascript.wrap_global(
+        'scripts',
+        utils.read_file('javascript/scroll.js'),
+        utils.read_file('javascript/webelem.js'),
+        utils.read_file('javascript/caret.js'),
+    )
+    # FIXME:qtwebengine what about subframes=True?
+    _inject_early_js(profile, 'js', js_code, subframes=True)
 
 
 def _update_stylesheet():
@@ -288,6 +322,7 @@ def _update_settings(option):
 
 def _init_profile(profile):
     """Init the given profile."""
+    _init_js(profile)
     _init_stylesheet(profile)
     _set_http_headers(profile)
     _set_http_cache_size(profile)

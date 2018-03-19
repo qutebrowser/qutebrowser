@@ -630,30 +630,9 @@ class WebEngineTab(browsertab.AbstractTab):
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
-        self._init_js()
         self._child_event_filter = None
         self._saved_zoom = None
         self._reload_url = None
-
-    def _init_js(self):
-        js_code = '\n'.join([
-            '"use strict";',
-            'window._qutebrowser = window._qutebrowser || {};',
-            utils.read_file('javascript/scroll.js'),
-            utils.read_file('javascript/webelem.js'),
-            utils.read_file('javascript/caret.js'),
-        ])
-        script = QWebEngineScript()
-        # We can't use DocumentCreation here as WORKAROUND for
-        # https://bugreports.qt.io/browse/QTBUG-66011
-        script.setInjectionPoint(QWebEngineScript.DocumentReady)
-        script.setSourceCode(js_code)
-
-        page = self._widget.page()
-        script.setWorldId(QWebEngineScript.ApplicationWorld)
-
-        # FIXME:qtwebengine  what about runsOnSubFrames?
-        page.scripts().insert(script)
 
     def _install_event_filter(self):
         self._widget.focusProxy().installEventFilter(self._mouse_event_filter)
