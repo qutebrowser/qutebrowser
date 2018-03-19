@@ -769,6 +769,15 @@ class CommandDispatcher:
         self._current_widget().scroller.to_perc(x, y)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    def scroll_to_anchor(self, name):
+        """Scroll to the given anchor in the document.
+
+        Args:
+            name: The anchor to scroll to.
+        """
+        self._current_widget().scroller.to_anchor(name)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     @cmdutils.argument('top_navigate', metavar='ACTION',
                        choices=('prev', 'decrement'))

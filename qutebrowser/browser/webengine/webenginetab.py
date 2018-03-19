@@ -427,6 +427,11 @@ class WebEngineScroller(browsertab.AbstractScroller):
         js_code = javascript.assemble('window', 'scroll', point.x(), point.y())
         self._tab.run_js_async(js_code)
 
+    def to_anchor(self, name):
+        url = self._tab.url()
+        url.setFragment(name)
+        self._tab.openurl(url)
+
     def delta(self, x=0, y=0):
         self._tab.run_js_async(javascript.assemble('window', 'scrollBy', x, y))
 

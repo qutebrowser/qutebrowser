@@ -426,6 +426,9 @@ class WebKitScroller(browsertab.AbstractScroller):
     def to_point(self, point):
         self._widget.page().mainFrame().setScrollPosition(point)
 
+    def to_anchor(self, name):
+        self._widget.page().mainFrame().scrollToAnchor(name)
+
     def delta(self, x=0, y=0):
         qtutils.check_overflow(x, 'int')
         qtutils.check_overflow(y, 'int')

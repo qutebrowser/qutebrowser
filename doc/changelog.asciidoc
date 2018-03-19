@@ -18,6 +18,11 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.3.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- New `:scroll-to-anchor` command to scroll to an anchor in the document.
+
 Changed
 ~~~~~~~
 

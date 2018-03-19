@@ -446,6 +446,9 @@ class AbstractScroller(QObject):
     def to_point(self, point):
         raise NotImplementedError
 
+    def to_anchor(self, name):
+        raise NotImplementedError
+
     def delta(self, x=0, y=0):
         raise NotImplementedError
 

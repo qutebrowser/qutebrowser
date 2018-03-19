@@ -86,7 +86,7 @@ def test_simple(caret_tester):
 def test_scrolled_down(caret_tester):
     """Test with multiple text blocks with the viewport scrolled down."""
     caret_tester.js.load('position_caret/scrolled_down.html')
-    caret_tester.js.scroll_anchor('anchor')
+    caret_tester.js.tab.scroller.to_anchor('anchor')
     caret_tester.check_scrolled()
     caret_tester.check()
 
@@ -103,6 +103,6 @@ def test_invisible(caret_tester, style):
 def test_scrolled_down_img(caret_tester):
     """Test with an image at the top with the viewport scrolled down."""
     caret_tester.js.load('position_caret/scrolled_down_img.html')
-    caret_tester.js.scroll_anchor('anchor')
+    caret_tester.js.tab.scroller.to_anchor('anchor')
     caret_tester.check_scrolled()
     caret_tester.check()

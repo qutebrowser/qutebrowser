@@ -108,16 +108,6 @@ class JSTester:
         self.tab.run_js_async(source, callback_checker.callback, world=world)
         callback_checker.check(expected)
 
-    def scroll_anchor(self, name):
-        """Scroll the main frame to the given anchor."""
-        # FIXME This might be useful in the tab API?
-        assert self.tab.backend == usertypes.Backend.QtWebKit
-        page = self.tab._widget.page()
-        old_pos = page.mainFrame().scrollPosition()
-        page.mainFrame().scrollToAnchor(name)
-        new_pos = page.mainFrame().scrollPosition()
-        assert old_pos != new_pos
-
 
 @pytest.fixture
 def js_tester_webkit(webkit_tab, qtbot):
