@@ -24,8 +24,8 @@ import pytest
 import helpers.utils
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebPage
+QWebSettings = pytest.importorskip("PyQt5.QtWebKit").QWebSettings
+QWebPage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
 
 
 @pytest.fixture(autouse=True)
@@ -66,9 +66,9 @@ class CaretTester:
 
 
 @pytest.fixture
-def caret_tester(js_tester):
+def caret_tester(js_tester_webkit):
     """Helper fixture to test caret browsing positions."""
-    caret_tester = CaretTester(js_tester)
+    caret_tester = CaretTester(js_tester_webkit)
     # Showing webview here is necessary for test_scrolled_down_img to
     # succeed in some cases, see #1988
     caret_tester.js.tab.show()
@@ -83,6 +83,7 @@ def test_simple(caret_tester):
 
 
 @pytest.mark.integration
+@pytest.mark.no_xvfb
 def test_scrolled_down(caret_tester):
     """Test with multiple text blocks with the viewport scrolled down."""
     caret_tester.js.load('position_caret/scrolled_down.html')
@@ -100,6 +101,7 @@ def test_invisible(caret_tester, style):
 
 
 @pytest.mark.integration
+@pytest.mark.no_xvfb
 def test_scrolled_down_img(caret_tester):
     """Test with an image at the top with the viewport scrolled down."""
     caret_tester.js.load('position_caret/scrolled_down_img.html')
