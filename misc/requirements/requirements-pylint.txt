@@ -3,7 +3,7 @@
 astroid==1.6.1
 certifi==2018.1.18
 chardet==3.0.4
-github3.py==0.9.6
+github3.py==1.0.1
 idna==2.6
 isort==4.3.4
 lazy-object-proxy==1.3.1
