@@ -324,9 +324,8 @@ window._qutebrowser.caret = (function() {
                 const color = axs.color.parseColor(style.backgroundColor);
                 if (color &&
                     (style.opacity < 1 &&
-                        (color.alpha *= style.opacity),
-                        color.alpha !== 0 &&
-                        (el.push(color), color.alpha === 1))) {
+                     (color.alpha *= style.opacity), color.alpha !== 0 &&
+                     (el.push(color), color.alpha === 1))) {
                     iter = !0;
                     break;
                 }
