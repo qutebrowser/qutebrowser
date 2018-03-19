@@ -21,8 +21,7 @@
 
 import pytest
 
-# FIXME:qtwebengine Make these tests use the tab API
-pytest.importorskip('PyQt5.QtWebKit')
+import helpers.utils
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWebKit import QWebSettings
@@ -53,24 +52,26 @@ class CaretTester:
     def check(self):
         """Check whether the caret is before the MARKER text."""
         self.js.run_file('position_caret.js')
-        self.js.webview.triggerPageAction(QWebPage.SelectNextWord)
-        assert self.js.webview.selectedText().rstrip() == "MARKER"
+        self.js.tab.caret.toggle_selection()
+        self.js.tab.caret.move_to_next_word()
+
+        callback_checker = helpers.utils.CallbackChecker(self.js.qtbot)
+        self.js.tab.caret.selection(lambda text:
+                                    callback_checker.callback(text.rstrip()))
+        callback_checker.check('MARKER')
 
     def check_scrolled(self):
         """Check if the page is scrolled down."""
-        frame = self.js.webview.page().mainFrame()
-        minimum = frame.scrollBarMinimum(Qt.Vertical)
-        value = frame.scrollBarValue(Qt.Vertical)
-        assert value > minimum
+        assert not self.js.tab.scroller.at_top()
 
 
 @pytest.fixture
-def caret_tester(js_tester_webkit):
+def caret_tester(js_tester):
     """Helper fixture to test caret browsing positions."""
-    caret_tester = CaretTester(js_tester_webkit)
+    caret_tester = CaretTester(js_tester)
     # Showing webview here is necessary for test_scrolled_down_img to
     # succeed in some cases, see #1988
-    caret_tester.js.webview.show()
+    caret_tester.js.tab.show()
     return caret_tester
 
 

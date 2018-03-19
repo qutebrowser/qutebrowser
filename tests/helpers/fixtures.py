@@ -43,10 +43,22 @@ import helpers.stubs as stubsmod
 import helpers.utils
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles)
-from qutebrowser.utils import objreg, standarddir
+from qutebrowser.utils import objreg, standarddir, utils
+from qutebrowser.browser import greasemonkey
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql
 from qutebrowser.keyinput import modeman
+
+
+try:
+    from PyQt5.QtWebKitWidgets import QWebView
+except ImportError:
+    QWebView = None
+
+try:
+    from PyQt5.QtWebEngineWidgets import QWebEngineView
+except ImportError:
+    QWebEngineView = None
 
 
 class WinRegistryHelper:
@@ -141,6 +153,47 @@ def tab_registry(win_registry):
 def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
     """Fixture providing the FakeWebTab *class*."""
     return stubs.FakeWebTab
+
+
+@pytest.fixture
+def greasemonkey_manager(data_tmpdir):
+    gm_manager = greasemonkey.GreasemonkeyManager()
+    objreg.register('greasemonkey', gm_manager)
+    yield
+    objreg.delete('greasemonkey')
+
+
+@pytest.fixture
+def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
+               session_manager_stub, greasemonkey_manager):
+    webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
+    tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
+                              private=False)
+    qtbot.add_widget(tab)
+    return tab
+
+
+@pytest.fixture
+def webengine_tab(qtbot, tab_registry, fake_args, mode_manager,
+                  session_manager_stub, greasemonkey_manager,
+                  redirect_webengine_data):
+    webenginetab = pytest.importorskip(
+        'qutebrowser.browser.webengine.webenginetab')
+    tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
+                                    private=False)
+    qtbot.add_widget(tab)
+    return tab
+
+
+@pytest.fixture(params=['webkit', 'webengine'])
+def web_tab(request):
+    """A WebKitTab/WebEngineTab."""
+    if request.param == 'webkit':
+        return request.getfixturevalue('webkit_tab')
+    elif request.param == 'webengine':
+        return request.getfixturevalue('webengine_tab')
+    else:
+        raise utils.Unreachable
 
 
 def _generate_cmdline_tests():

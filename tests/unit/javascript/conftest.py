@@ -27,91 +27,9 @@ import pytest
 import jinja2
 
 from PyQt5.QtCore import QUrl
-try:
-    from PyQt5.QtWebKit import QWebSettings
-    from PyQt5.QtWebKitWidgets import QWebPage
-except ImportError:
-    # FIXME:qtwebengine Make these tests use the tab API
-    QWebSettings = None
-    QWebPage = None
-
-try:
-    from PyQt5.QtWebEngineWidgets import (QWebEnginePage,
-                                          QWebEngineSettings,
-                                          QWebEngineScript)
-except ImportError:
-    QWebEnginePage = None
-    QWebEngineSettings = None
-    QWebEngineScript = None
 
 import helpers.utils
-import qutebrowser.utils.debug
-from qutebrowser.utils import utils
-
-
-if QWebPage is None:
-    TestWebPage = None
-else:
-    class TestWebPage(QWebPage):
-
-        """QWebPage subclass which overrides some test methods.
-
-        Attributes:
-            _logger: The logger used for alerts.
-        """
-
-        def __init__(self, parent=None):
-            super().__init__(parent)
-            self._logger = logging.getLogger('js-tests')
-
-        def javaScriptAlert(self, _frame, msg):
-            """Log javascript alerts."""
-            self._logger.info("js alert: {}".format(msg))
-
-        def javaScriptConfirm(self, _frame, msg):
-            """Fail tests on js confirm() as that should never happen."""
-            pytest.fail("js confirm: {}".format(msg))
-
-        def javaScriptPrompt(self, _frame, msg, _default):
-            """Fail tests on js prompt() as that should never happen."""
-            pytest.fail("js prompt: {}".format(msg))
-
-        def javaScriptConsoleMessage(self, msg, line, source):
-            """Fail tests on js console messages as they're used for errors."""
-            pytest.fail("js console ({}:{}): {}".format(source, line, msg))
-
-if QWebEnginePage is None:
-    TestWebEnginePage = None
-else:
-    class TestWebEnginePage(QWebEnginePage):
-
-        """QWebEnginePage which overrides javascript logging methods.
-
-        Attributes:
-            _logger: The logger used for alerts.
-        """
-
-        def __init__(self, parent=None):
-            super().__init__(parent)
-            self._logger = logging.getLogger('js-tests')
-
-        def javaScriptAlert(self, _frame, msg):
-            """Log javascript alerts."""
-            self._logger.info("js alert: {}".format(msg))
-
-        def javaScriptConfirm(self, _frame, msg):
-            """Fail tests on js confirm() as that should never happen."""
-            pytest.fail("js confirm: {}".format(msg))
-
-        def javaScriptPrompt(self, _frame, msg, _default):
-            """Fail tests on js prompt() as that should never happen."""
-            pytest.fail("js prompt: {}".format(msg))
-
-        def javaScriptConsoleMessage(self, level, msg, line, source):
-            """Fail tests on js console messages as they're used for errors."""
-            pytest.fail("[{}] js console ({}:{}): {}".format(
-                qutebrowser.utils.debug.qenum_key(
-                    QWebEnginePage, level), source, line, msg))
+from qutebrowser.utils import utils, usertypes
 
 
 class JSTester:
@@ -119,14 +37,14 @@ class JSTester:
     """Common subclass providing basic functionality for all JS testers.
 
     Attributes:
-        webview: The webview which is used.
-        _qtbot: The QtBot fixture from pytest-qt.
+        tab: The tab object which is used.
+        qtbot: The QtBot fixture from pytest-qt.
         _jinja_env: The jinja2 environment used to get templates.
     """
 
-    def __init__(self, webview, qtbot):
-        self.webview = webview
-        self._qtbot = qtbot
+    def __init__(self, tab, qtbot):
+        self.tab = tab
+        self.qtbot = qtbot
         loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
 
@@ -139,9 +57,9 @@ class JSTester:
             **kwargs: Passed to jinja's template.render().
         """
         template = self._jinja_env.get_template(path)
-        with self._qtbot.waitSignal(self.webview.loadFinished,
-                                    timeout=2000) as blocker:
-            self.webview.setHtml(template.render(**kwargs))
+        with self.qtbot.waitSignal(self.tab.load_finished,
+                                   timeout=2000) as blocker:
+            self.tab.set_html(template.render(**kwargs))
         assert blocker.args == [True]
 
     def load_file(self, path: str, force: bool = False):
@@ -161,77 +79,13 @@ class JSTester:
             url: The QUrl to load.
             force: Whether to force loading even if the file is invalid.
         """
-        with self._qtbot.waitSignal(self.webview.loadFinished,
-                                    timeout=2000) as blocker:
-            self.webview.load(url)
+        with self.qtbot.waitSignal(self.tab.load_finished,
+                                   timeout=2000) as blocker:
+            self.tab.openurl(url)
         if not force:
             assert blocker.args == [True]
 
-
-class JSWebKitTester(JSTester):
-
-    """Object returned by js_tester which provides test data and a webview.
-
-    Attributes:
-        webview: The webview which is used.
-        _qtbot: The QtBot fixture from pytest-qt.
-        _jinja_env: The jinja2 environment used to get templates.
-    """
-
-    def __init__(self, webview, qtbot):
-        super().__init__(webview, qtbot)
-        self.webview.setPage(TestWebPage(self.webview))
-
-    def scroll_anchor(self, name):
-        """Scroll the main frame to the given anchor."""
-        page = self.webview.page()
-        old_pos = page.mainFrame().scrollPosition()
-        page.mainFrame().scrollToAnchor(name)
-        new_pos = page.mainFrame().scrollPosition()
-        assert old_pos != new_pos
-
-    def run_file(self, filename):
-        """Run a javascript file.
-
-        Args:
-            filename: The javascript filename, relative to
-                      qutebrowser/javascript.
-
-        Return:
-            The javascript return value.
-        """
-        source = utils.read_file(os.path.join('javascript', filename))
-        return self.run(source)
-
-    def run(self, source):
-        """Run the given javascript source.
-
-        Args:
-            source: The source to run as a string.
-
-        Return:
-            The javascript return value.
-        """
-        assert self.webview.settings().testAttribute(
-            QWebSettings.JavascriptEnabled)
-        return self.webview.page().mainFrame().evaluateJavaScript(source)
-
-
-class JSWebEngineTester(JSTester):
-
-    """Object returned by js_tester_webengine which provides a webview.
-
-    Attributes:
-        webview: The webview which is used.
-        _qtbot: The QtBot fixture from pytest-qt.
-        _jinja_env: The jinja2 environment used to get templates.
-    """
-
-    def __init__(self, webview, qtbot):
-        super().__init__(webview, qtbot)
-        self.webview.setPage(TestWebEnginePage(self.webview))
-
-    def run_file(self, filename: str, expected) -> None:
+    def run_file(self, filename: str, expected=None) -> None:
         """Run a javascript file.
 
         Args:
@@ -250,24 +104,34 @@ class JSWebEngineTester(JSTester):
             expected: The value expected return from the javascript execution
             world: The scope the javascript will run in
         """
-        if world is None:
-            world = QWebEngineScript.ApplicationWorld
-
-        callback_checker = helpers.utils.CallbackChecker(self._qtbot)
-        assert self.webview.settings().testAttribute(
-            QWebEngineSettings.JavascriptEnabled)
-        self.webview.page().runJavaScript(source, world,
-                                          callback_checker.callback)
+        callback_checker = helpers.utils.CallbackChecker(self.qtbot)
+        self.tab.run_js_async(source, callback_checker.callback, world=world)
         callback_checker.check(expected)
 
+    def scroll_anchor(self, name):
+        """Scroll the main frame to the given anchor."""
+        # FIXME This might be useful in the tab API?
+        assert self.tab.backend == usertypes.Backend.QtWebKit
+        page = self.tab._widget.page()
+        old_pos = page.mainFrame().scrollPosition()
+        page.mainFrame().scrollToAnchor(name)
+        new_pos = page.mainFrame().scrollPosition()
+        assert old_pos != new_pos
+
 
 @pytest.fixture
-def js_tester_webkit(webview, qtbot):
+def js_tester_webkit(webkit_tab, qtbot):
     """Fixture to test javascript snippets in webkit."""
-    return JSWebKitTester(webview, qtbot)
+    return JSTester(webkit_tab, qtbot)
 
 
 @pytest.fixture
-def js_tester_webengine(callback_checker, webengineview, qtbot):
+def js_tester_webengine(webengine_tab, qtbot):
     """Fixture to test javascript snippets in webengine."""
-    return JSWebEngineTester(webengineview, qtbot)
+    return JSTester(webengine_tab, qtbot)
+
+
+@pytest.fixture
+def js_tester(web_tab, qtbot):
+    """Fixture to test javascript snippets with both backends."""
+    return JSTester(web_tab, qtbot)

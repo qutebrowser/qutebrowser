@@ -472,6 +472,9 @@ class SessionManagerStub:
     def list_sessions(self):
         return self.sessions
 
+    def save_autosave(self):
+        pass
+
 
 class TabbedBrowserStub(QObject):
 
