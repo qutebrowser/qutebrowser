@@ -56,8 +56,9 @@ class StylesheetTester:
         """Initialize the stylesheet with a provided css file."""
         css_path = os.path.join(os.path.dirname(__file__), css_file)
         self.config_stub.val.content.user_stylesheets = css_path
-        p = QWebEngineProfile.defaultProfile()
-        webenginesettings._init_stylesheet(p)
+        profile = QWebEngineProfile.defaultProfile()
+        setter = webenginesettings.ProfileSetter(profile)
+        setter.init_stylesheet()
 
     def set_css(self, css):
         """Set document style to `css` via stylesheet.js."""

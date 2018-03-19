@@ -40,9 +40,7 @@ def test_big_cache_size(config_stub):
     """Make sure a too big cache size is handled correctly."""
     config_stub.val.content.cache.size = 2 ** 63 - 1
     profile = webenginesettings.default_profile
-
-    webenginesettings._set_http_cache_size(profile)
-
+    profile.setter.set_http_cache_size()
     assert profile.httpCacheMaximumSize() == 2 ** 31 - 1
 
 
