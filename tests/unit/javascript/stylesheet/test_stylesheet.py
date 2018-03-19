@@ -51,7 +51,6 @@ class StylesheetTester:
         """Initialize the stylesheet with a provided css file."""
         css_path = os.path.join(os.path.dirname(__file__), css_file)
         self.config_stub.val.content.user_stylesheets = css_path
-        self.js.tab._init_stylesheet()
 
     def set_css(self, css):
         """Set document style to `css` via stylesheet.js."""
@@ -83,8 +82,8 @@ def stylesheet_tester(js_tester_webengine, config_stub):
                                   'stylesheet/simple_bg_set_red.html'])
 def test_set_delayed(stylesheet_tester, page):
     """Test a delayed invocation of set_css."""
-    stylesheet_tester.init_stylesheet("none.css")
     stylesheet_tester.js.load(page)
+    stylesheet_tester.init_stylesheet("none.css")
     stylesheet_tester.set_css("body {background-color: rgb(0, 255, 0);}")
     stylesheet_tester.check_set("rgb(0, 255, 0)")
 
@@ -93,8 +92,8 @@ def test_set_delayed(stylesheet_tester, page):
                                   'stylesheet/simple_bg_set_red.html'])
 def test_set_clear_bg(stylesheet_tester, page):
     """Test setting and clearing the stylesheet."""
-    stylesheet_tester.init_stylesheet()
     stylesheet_tester.js.load('stylesheet/simple.html')
+    stylesheet_tester.init_stylesheet()
     stylesheet_tester.check_set(GREEN_BODY_BG)
     stylesheet_tester.set_css("")
     stylesheet_tester.check_set(DEFAULT_BODY_BG)
@@ -102,16 +101,16 @@ def test_set_clear_bg(stylesheet_tester, page):
 
 def test_set_xml(stylesheet_tester):
     """Test stylesheet is applied without altering xml files."""
-    stylesheet_tester.init_stylesheet()
     stylesheet_tester.js.load_file('stylesheet/simple.xml')
+    stylesheet_tester.init_stylesheet()
     stylesheet_tester.check_set(GREEN_BODY_BG)
     stylesheet_tester.check_eq('"html"', "document.documentElement.nodeName")
 
 
 def test_set_svg(stylesheet_tester):
     """Test stylesheet is applied for svg files."""
-    stylesheet_tester.init_stylesheet()
     stylesheet_tester.js.load_file('../../../misc/cheatsheet.svg')
+    stylesheet_tester.init_stylesheet()
     stylesheet_tester.check_set(GREEN_BODY_BG,
                                 document_element="document.documentElement")
     stylesheet_tester.check_eq('"svg"', "document.documentElement.nodeName")
@@ -119,14 +118,14 @@ def test_set_svg(stylesheet_tester):
 
 def test_set_error(stylesheet_tester):
     """Test stylesheet modifies file not found error pages."""
-    stylesheet_tester.init_stylesheet()
     stylesheet_tester.js.load_file('non-existent.html', force=True)
+    stylesheet_tester.init_stylesheet()
     stylesheet_tester.check_set(GREEN_BODY_BG)
 
 
 def test_appendchild(stylesheet_tester):
-    stylesheet_tester.init_stylesheet()
     stylesheet_tester.js.load('stylesheet/simple.html')
+    stylesheet_tester.init_stylesheet()
     js_test_file_path = ('../../tests/unit/javascript/stylesheet/'
                          'test_appendchild.js')
     stylesheet_tester.js.run_file(js_test_file_path, {})
