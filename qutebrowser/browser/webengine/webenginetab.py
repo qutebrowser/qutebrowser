@@ -230,7 +230,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
         self._tab.run_js_async(
             javascript.assemble('caret', 'setPlatform', sys.platform))
-        self._js_call('setInitialCursor')
+        self._js_call('setInitialCursor', self.selection_toggled.emit)
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_left(self, mode):
@@ -297,7 +297,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('moveToEndOfDocument')
 
     def toggle_selection(self):
-        self._js_call('toggleSelection')
+        self._js_call('toggleSelection', self.selection_toggled.emit)
 
     def drop_selection(self):
         self._js_call('dropSelection')
@@ -352,9 +352,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
             self._tab.run_js_async(js_code, lambda jsret:
                                    self._follow_selected_cb(jsret, tab))
 
-    def _js_call(self, command):
-        self._tab.run_js_async(
-            javascript.assemble('caret', command))
+    def _js_call(self, command, callback=None):
+        self._tab.run_js_async(javascript.assemble('caret', command), callback)
 
 
 class WebEngineScroller(browsertab.AbstractScroller):

@@ -479,6 +479,10 @@ class MainWindow(QWidget):
         self.tabbed_browser.cur_link_hovered.connect(status.url.set_hover_url)
         self.tabbed_browser.cur_load_status_changed.connect(
             status.url.on_load_status_changed)
+
+        self.tabbed_browser.cur_caret_selection_toggled.connect(
+            status.on_caret_selection_toggled)
+
         self.tabbed_browser.cur_fullscreen_requested.connect(
             self._on_fullscreen_requested)
         self.tabbed_browser.cur_fullscreen_requested.connect(status.maybe_hide)

@@ -333,7 +333,14 @@ class AbstractZoom(QObject):
 
 class AbstractCaret(QObject):
 
-    """Attribute of AbstractTab for caret browsing."""
+    """Attribute of AbstractTab for caret browsing.
+
+    Signals:
+        selection_toggled: Emitted when the selection was toggled.
+                           arg: Whether the selection is now active.
+    """
+
+    selection_toggled = pyqtSignal(bool)
 
     def __init__(self, tab, mode_manager, parent=None):
         super().__init__(parent)

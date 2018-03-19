@@ -1269,13 +1269,14 @@ window._qutebrowser.caret = (function() {
     funcs.setInitialCursor = () => {
         if (!CaretBrowsing.initiated) {
             CaretBrowsing.setInitialCursor();
-            return;
+            return CaretBrowsing.selectionEnabled;
         }
 
         if (window.getSelection().toString().length === 0) {
             positionCaret();
         }
         CaretBrowsing.toggle();
+        return CaretBrowsing.selectionEnabled;
     };
 
     funcs.setPlatform = (platform) => {
@@ -1361,6 +1362,7 @@ window._qutebrowser.caret = (function() {
 
     funcs.toggleSelection = () => {
         CaretBrowsing.selectionEnabled = !CaretBrowsing.selectionEnabled;
+        return CaretBrowsing.selectionEnabled;
     };
 
     return funcs;

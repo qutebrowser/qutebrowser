@@ -196,9 +196,10 @@ class WebKitCaret(browsertab.AbstractCaret):
         if mode != usertypes.KeyMode.caret:
             return
 
+        self.selection_enabled = self._widget.hasSelection()
+        self.selection_toggled.emit(self.selection_enabled)
         settings = self._widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-        self.selection_enabled = self._widget.hasSelection()
 
         if self._widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
@@ -363,9 +364,7 @@ class WebKitCaret(browsertab.AbstractCaret):
 
     def toggle_selection(self):
         self.selection_enabled = not self.selection_enabled
-        mainwindow = objreg.get('main-window', scope='window',
-                                window=self._tab.win_id)
-        mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
+        self.selection_toggled.emit(self.selection_enabled)
 
     def drop_selection(self):
         self._widget.triggerPageAction(QWebPage.MoveToNextChar)
