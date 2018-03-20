@@ -393,10 +393,9 @@ class TestQtArgs:
                             lambda version, compiled: False)
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        parsed = parser.parse_args()
+        parsed = parser.parse_args([])
         expected = [sys.argv[0], '--disable-shared-workers']
         assert configinit.qt_args(parsed) == expected
-
 
 
 @pytest.mark.parametrize('arg, confval, used', [
