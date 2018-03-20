@@ -786,10 +786,9 @@ class WebKitTab(browsertab.AbstractTab):
     @pyqtSlot()
     def init_focustools(self):
         """Initialize focustools.js in the main frame."""
-        frame = self._widget.page().mainFrame()
-        frame.evaluateJavaScript(
+        self.run_js_async(
             'window._qutebrowser = window._qutebrowser || {};')
-        frame.evaluateJavaScript(
+        self.run_js_async(
             utils.read_file('javascript/focustools.js'))
 
     @pyqtSlot()
