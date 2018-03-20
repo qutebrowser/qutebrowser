@@ -117,11 +117,12 @@ def test_set_svg(stylesheet_tester):
     stylesheet_tester.check_eq('"svg"', "document.documentElement.nodeName")
 
 
-def test_set_error(stylesheet_tester):
+def test_set_error(stylesheet_tester, config_stub):
     """Test stylesheet modifies file not found error pages."""
-    stylesheet_tester.js.tab.openurl(QUrl('about:blank'))
-    stylesheet_tester.js.load_file('non-existent.html', force=True)
+    config_stub.changed.disconnect()  # This test is flaky otherwise...
     stylesheet_tester.init_stylesheet()
+    stylesheet_tester.js.tab._init_stylesheet()
+    stylesheet_tester.js.load_file('non-existent.html', force=True)
     stylesheet_tester.check_set(GREEN_BODY_BG)
 
 
