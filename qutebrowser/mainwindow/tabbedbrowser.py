@@ -654,7 +654,7 @@ class TabbedBrowser(QWidget):
 
     def _handle_clear_on_mode_leave(self, mode):
         """Handle clearing page focus when leaving insert mode."""
-        if (not config.val.input.blur_on_mode_leave or
+        if (not config.val.input.focus.blur_on_mode_leave or
                 mode != usertypes.KeyMode.insert):
             return
         tab = self.widget.currentWidget()
@@ -664,7 +664,7 @@ class TabbedBrowser(QWidget):
             tab.run_js_async(code)
 
     def _handle_focus_on_mode_enter(self, mode):
-        if (not config.val.input.focus_on_mode_enter or
+        if (not config.val.input.focus.focus_on_mode_enter or
                 mode != usertypes.KeyMode.insert):
             return
         tab = self.widget.currentWidget()

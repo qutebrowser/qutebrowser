@@ -795,11 +795,10 @@ class WebKitTab(browsertab.AbstractTab):
     @pyqtSlot()
     def handle_clear_focus(self):
         """Handle clearing focus when the page is first loaded."""
-        if not config.val.input.blur_on_load.enabled:
+        if not config.val.input.focus.blur_on_load_enabled:
             return
         code = javascript.assemble('focustools', 'load',
-                                   config.val.input.blur_on_load.enabled,
-                                   config.val.input.blur_on_load.delay)
+                                   config.val.input.focus.blur_on_load_enabled)
         self.run_js_async(code)
 
     @pyqtSlot(usertypes.NavigationRequest)

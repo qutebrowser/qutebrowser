@@ -1035,7 +1035,7 @@ input.spatial_navigation:
     Right key, heuristics determine whether there is an element he might be
     trying to reach towards the right and which element he probably wants.
 
-input.blur_on_load.enabled:
+input.focus.blur_on_load_enabled:
   default: true
   type: Bool
   desc: >-
@@ -1043,7 +1043,7 @@ input.blur_on_load.enabled:
 
     This prevents the page from stealing focus on page load.
 
-input.blur_on_mode_leave:
+input.focus.blur_on_mode_leave:
   default: true
   type: Bool
   desc: >-
@@ -1051,11 +1051,11 @@ input.blur_on_mode_leave:
 
     See `input.focus_on_mode_enter` for the opposite.
 
-input.focus_on_mode_enter:
+input.focus.focus_on_mode_enter:
   default: true
   type: Bool
   desc: >-
-    Refocus last focused element when leaving insert mode.
+    Refocus last focused element when entering insert mode.
 
     See `input.blur_on_mode_leave` for the opposite.
 

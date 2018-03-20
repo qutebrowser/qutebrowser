@@ -648,8 +648,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
             self._init_stylesheet()
             self._update_stylesheet()
-        elif option in ['input.blur_on_load.enabled',
-                        'input.blur_on_load.delay']:
+        elif option in ['input.focus.blur_on_load_enabled']:
             self._init_focustools()
 
     def _update_stylesheet(self):
@@ -765,7 +764,7 @@ class WebEngineTab(browsertab.AbstractTab):
             'focustools',
             utils.read_file('javascript/focustools.js'),
             javascript.assemble('focustools', 'load',
-                                config.val.input.blur_on_load.enabled),
+                                config.val.input.focus.blur_on_load_enabled),
         )
         self._inject_early_js('focustools', js_code, subframes=False)
 

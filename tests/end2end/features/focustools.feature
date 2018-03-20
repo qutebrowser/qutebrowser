@@ -8,7 +8,7 @@ Feature: Using focustools
 
     Scenario: Clear focus on mode leave
         When I open data/hints/input.html
-        And I set input.blur_on_mode_leave to true
+        And I set input.focus.blur_on_mode_leave to true
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
@@ -16,8 +16,8 @@ Feature: Using focustools
 
     Scenario: Refocus cleared element on mode enter
         When I open data/hints/input.html
-        And I set input.blur_on_mode_leave to true
-        And I set input.focus_on_mode_enter to true
+        And I set input.focus.blur_on_mode_leave to true
+        And I set input.focus.focus_on_mode_enter to true
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
@@ -26,7 +26,7 @@ Feature: Using focustools
 
     Scenario: Don't clear focus on mode leave
         When I open data/hints/input.html
-        And I set input.blur_on_mode_leave to false
+        And I set input.focus.blur_on_mode_leave to false
         And I hint with args "inputs" and follow a
         And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
@@ -34,16 +34,16 @@ Feature: Using focustools
 
 
     Scenario: Clear autofocusable elements on page load
-        When I set input.blur_on_load.enabled to true
+        When I set input.focus.blur_on_load_enabled to true
         And I open data/autofocus.html
         Then no element should be focused
 
     Scenario: Don't clear autofocusable elements on page load
-        When I set input.blur_on_load.enabled to false
+        When I set input.focus.blur_on_load_enabled to false
         And I open data/autofocus.html
         Then an element should be focused
 
     Scenario: Clear delayed focused elements on page load
-        When I set input.blur_on_load.enabled to true
+        When I set input.focus.blur_on_load_enabled to true
         And I open data/autofocus_delayed.html
         Then no element should be focused
