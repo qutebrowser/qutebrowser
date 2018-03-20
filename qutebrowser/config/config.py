@@ -28,6 +28,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from qutebrowser.config import configdata, configexc, configutils
 from qutebrowser.utils import utils, log, jinja
 from qutebrowser.misc import objects
+from qutebrowser.keyinput import keyutils
 
 # An easy way to access the config from other code via config.val.foo
 val = None
@@ -135,20 +136,18 @@ class KeyConfig:
     def __init__(self, config):
         self._config = config
 
-    def _prepare(self, key, mode):
-        """Make sure the given mode exists and normalize the key."""
+    def _validate(self, key, mode):
+        """Validate the given key and mode."""
+        # Catch old usage of this code
+        assert isinstance(key, keyutils.KeySequence), key
         if mode not in configdata.DATA['bindings.default'].default:
             raise configexc.KeybindingError("Invalid mode {}!".format(mode))
-        if utils.is_special_key(key):
-            # <Ctrl-t>, <ctrl-T>, and <ctrl-t> should be considered equivalent
-            return utils.normalize_keystr(key)
-        return key
 
     def get_bindings_for(self, mode):
         """Get the combined bindings for the given mode."""
         bindings = dict(val.bindings.default[mode])
         for key, binding in val.bindings.commands[mode].items():
-            if binding is None:
+            if not binding:
                 bindings.pop(key, None)
             else:
                 bindings[key] = binding
@@ -158,20 +157,20 @@ class KeyConfig:
         """Get a dict of commands to a list of bindings for the mode."""
         cmd_to_keys = {}
         bindings = self.get_bindings_for(mode)
-        for key, full_cmd in sorted(bindings.items()):
+        for seq, full_cmd in sorted(bindings.items()):
             for cmd in full_cmd.split(';;'):
                 cmd = cmd.strip()
                 cmd_to_keys.setdefault(cmd, [])
-                # put special bindings last
-                if utils.is_special_key(key):
-                    cmd_to_keys[cmd].append(key)
+                # Put bindings involving modifiers last
+                if any(info.modifiers for info in seq):
+                    cmd_to_keys[cmd].append(str(seq))
                 else:
-                    cmd_to_keys[cmd].insert(0, key)
+                    cmd_to_keys[cmd].insert(0, str(seq))
         return cmd_to_keys
 
     def get_command(self, key, mode, default=False):
         """Get the command for a given key (or None)."""
-        key = self._prepare(key, mode)
+        self._validate(key, mode)
         if default:
             bindings = dict(val.bindings.default[mode])
         else:
@@ -185,23 +184,23 @@ class KeyConfig:
                 "Can't add binding '{}' with empty command in {} "
                 'mode'.format(key, mode))
 
-        key = self._prepare(key, mode)
+        self._validate(key, mode)
         log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
             key, command, mode))
 
         bindings = self._config.get_mutable_obj('bindings.commands')
         if mode not in bindings:
             bindings[mode] = {}
-        bindings[mode][key] = command
+        bindings[mode][str(key)] = command
         self._config.update_mutables(save_yaml=save_yaml)
 
     def bind_default(self, key, *, mode='normal', save_yaml=False):
         """Restore a default keybinding."""
-        key = self._prepare(key, mode)
+        self._validate(key, mode)
 
         bindings_commands = self._config.get_mutable_obj('bindings.commands')
         try:
-            del bindings_commands[mode][key]
+            del bindings_commands[mode][str(key)]
         except KeyError:
             raise configexc.KeybindingError(
                 "Can't find binding '{}' in {} mode".format(key, mode))
@@ -209,18 +208,18 @@ class KeyConfig:
 
     def unbind(self, key, *, mode='normal', save_yaml=False):
         """Unbind the given key in the given mode."""
-        key = self._prepare(key, mode)
+        self._validate(key, mode)
 
         bindings_commands = self._config.get_mutable_obj('bindings.commands')
 
         if val.bindings.commands[mode].get(key, None) is not None:
             # In custom bindings -> remove it
-            del bindings_commands[mode][key]
+            del bindings_commands[mode][str(key)]
         elif key in val.bindings.default[mode]:
             # In default bindings -> shadow it with None
             if mode not in bindings_commands:
                 bindings_commands[mode] = {}
-            bindings_commands[mode][key] = None
+            bindings_commands[mode][str(key)] = None
         else:
             raise configexc.KeybindingError(
                 "Can't find binding '{}' in {} mode".format(key, mode))
@@ -286,6 +285,11 @@ class Config(QObject):
         self.changed.emit(opt.name)
         log.config.debug("Config option changed: {} = {}".format(
             opt.name, value))
+
+    def _check_yaml(self, opt, save_yaml):
+        """Make sure the given option may be set in autoconfig.yml."""
+        if save_yaml and opt.no_autoconfig:
+            raise configexc.NoAutoconfigError(opt.name)
 
     def read_yaml(self):
         """Read the YAML settings from self._yaml."""
@@ -384,7 +388,9 @@ class Config(QObject):
 
         If save_yaml=True is given, store the new value to YAML.
         """
-        self._set_value(self.get_opt(name), value, pattern=pattern)
+        opt = self.get_opt(name)
+        self._check_yaml(opt, save_yaml)
+        self._set_value(opt, value, pattern=pattern)
         if save_yaml:
             self._yaml.set_obj(name, value, pattern=pattern)
 
@@ -394,6 +400,7 @@ class Config(QObject):
         If save_yaml=True is given, store the new value to YAML.
         """
         opt = self.get_opt(name)
+        self._check_yaml(opt, save_yaml)
         converted = opt.typ.from_str(value)
         log.config.debug("Setting {} (type {}) to {!r} (converted from {!r})"
                          .format(name, opt.typ.__class__.__name__, converted,
@@ -404,7 +411,8 @@ class Config(QObject):
 
     def unset(self, name, *, save_yaml=False, pattern=None):
         """Set the given setting back to its default."""
-        self.get_opt(name)  # To check whether it exists
+        opt = self.get_opt(name)
+        self._check_yaml(opt, save_yaml)
         changed = self._values[name].remove(pattern)
         if changed:
             self.changed.emit(name)

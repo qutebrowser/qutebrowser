@@ -981,6 +981,11 @@ input.insert_mode.auto_load:
   desc: Automatically enter insert mode if an editable element is focused after
     loading the page.
 
+input.insert_mode.auto_enter:
+  default: true
+  type: Bool
+  desc: Enter insert mode if an editable element is clicked.
+
 input.insert_mode.auto_leave:
   default: true
   type: Bool
@@ -1356,7 +1361,10 @@ tabs.show:
 
 tabs.show_switching_delay:
   default: 800
-  type: Int
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
   desc: "Duration (in milliseconds) to show the tab bar before hiding it when
     tabs.show is set to 'switching'."
 
@@ -2197,6 +2205,7 @@ bindings.key_mappings:
     <Ctrl-Enter>: <Ctrl-Return>
   type:
     name: Dict
+    none_ok: true
     keytype: Key
     valtype: Key
   desc: >-
@@ -2212,6 +2221,7 @@ bindings.key_mappings:
     `bindings.commands`), the mapping is ignored.
 
 bindings.default:
+  no_autoconfig: true
   default:
     normal:
       <Escape>: clear-keychain ;; search ;; fullscreen --leave
@@ -2371,6 +2381,12 @@ bindings.default:
       tSH: config-cycle -p -u *://*.{url:host}/* content.javascript.enabled ;; reload
       tsu: config-cycle -p -t -u {url} content.javascript.enabled ;; reload
       tSu: config-cycle -p -u {url} content.javascript.enabled ;; reload
+      tph: config-cycle -p -t -u *://{url:host}/* content.plugins ;; reload
+      tPh: config-cycle -p -u *://{url:host}/* content.plugins ;; reload
+      tpH: config-cycle -p -t -u *://*.{url:host}/* content.plugins ;; reload
+      tPH: config-cycle -p -u *://*.{url:host}/* content.plugins ;; reload
+      tpu: config-cycle -p -t -u {url} content.plugins ;; reload
+      tPu: config-cycle -p -u {url} content.plugins ;; reload
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text {primary}
@@ -2415,8 +2431,6 @@ bindings.default:
       <Escape>: leave-mode
     prompt:
       <Return>: prompt-accept
-      y: prompt-accept yes
-      n: prompt-accept no
       <Ctrl-X>: prompt-open-download
       <Shift-Tab>: prompt-item-focus prev
       <Up>: prompt-item-focus prev
@@ -2438,6 +2452,13 @@ bindings.default:
       <Ctrl-?>: rl-delete-char
       <Ctrl-H>: rl-backward-delete-char
       <Ctrl-Y>: rl-yank
+      <Escape>: leave-mode
+    yesno:
+      <Return>: prompt-accept
+      y: prompt-accept yes
+      n: prompt-accept no
+      <Alt-Y>: prompt-yank
+      <Alt-Shift-Y>: prompt-yank --sel
       <Escape>: leave-mode
     caret:
       v: toggle-selection
@@ -2474,7 +2495,7 @@ bindings.default:
     none_ok: true
     keytype: String  # section name
     fixed_keys: ['normal', 'insert', 'hint', 'passthrough', 'command',
-                 'prompt', 'caret', 'register']
+                 'prompt', 'yesno', 'caret', 'register']
     valtype:
       name: Dict
       none_ok: true
@@ -2498,14 +2519,14 @@ bindings.commands:
     none_ok: true
     keytype: String  # section name
     fixed_keys: ['normal', 'insert', 'hint', 'passthrough', 'command',
-                 'prompt', 'caret', 'register']
+                 'prompt', 'yesno', 'caret', 'register']
     valtype:
       name: Dict
       none_ok: true
       keytype: Key
       valtype:
         name: Command
-        none_ok: true
+        none_ok: true  # needed for :unbind
   desc: >-
     Keybindings mapping keys to commands in different modes.
 
@@ -2521,7 +2542,6 @@ bindings.commands:
     If you want to map a key to another key, check the `bindings.key_mappings`
     setting instead.
 
-    For special keys (can't be part of a keychain), enclose them in `<`...`>`.
     For modifiers, you can use either `-` or `+` as delimiters, and these
     names:
 
@@ -2570,10 +2590,8 @@ bindings.commands:
 
     * prompt: Entered when there's a prompt to display, like for download
       locations or when invoked from JavaScript.
-      +
-      You can bind normal keys in this mode, but they will be only active when
-      a yes/no-prompt is asked. For other prompt modes, you can only bind
-      special keys.
+
+    * yesno: Entered when there's a yes/no prompt displayed.
 
     * caret: Entered when pressing the `v` mode, used to select text using the
       keyboard.

@@ -52,6 +52,12 @@ Feature: Searching on a page
         And I wait for "search didn't find blub" in the log
         Then the warning "Text 'blub' not found on page!" should be shown
 
+    Scenario: Searching text duplicates
+        When I run :search foo
+        And I wait for "search found foo" in the log
+        And I run :search foo
+        Then "Ignoring duplicate search request for foo" should be logged
+
     ## search.ignore_case
 
     Scenario: Searching text with search.ignore_case = always

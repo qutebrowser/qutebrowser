@@ -128,3 +128,33 @@ def test_load_emits_signal(qtbot):
     gm_manager = greasemonkey.GreasemonkeyManager()
     with qtbot.wait_signal(gm_manager.scripts_reloaded):
         gm_manager.load_scripts()
+
+
+def test_required_scripts_are_included(download_stub, tmpdir):
+    test_require_script = textwrap.dedent("""
+        // ==UserScript==
+        // @name qutebrowser test userscript
+        // @namespace invalid.org
+        // @include http://localhost:*/data/title.html
+        // @match http://trolol*
+        // @exclude https://badhost.xxx/*
+        // @run-at document-start
+        // @require http://localhost/test.js
+        // ==/UserScript==
+        console.log("Script is running.");
+    """)
+    _save_script(test_require_script, 'requiring.user.js')
+    with open(str(tmpdir / 'test.js'), 'w', encoding='UTF-8') as f:
+        f.write("REQUIRED SCRIPT")
+
+    gm_manager = greasemonkey.GreasemonkeyManager()
+    assert len(gm_manager._in_progress_dls) == 1
+    for download in gm_manager._in_progress_dls:
+        download.finished.emit()
+
+    scripts = gm_manager.all_scripts()
+    assert len(scripts) == 1
+    assert "REQUIRED SCRIPT" in scripts[0].code()
+    # Additionally check that the base script is still being parsed correctly
+    assert "Script is running." in scripts[0].code()
+    assert scripts[0].excludes

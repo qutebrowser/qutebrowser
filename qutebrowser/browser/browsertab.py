@@ -333,7 +333,14 @@ class AbstractZoom(QObject):
 
 class AbstractCaret(QObject):
 
-    """Attribute of AbstractTab for caret browsing."""
+    """Attribute of AbstractTab for caret browsing.
+
+    Signals:
+        selection_toggled: Emitted when the selection was toggled.
+                           arg: Whether the selection is now active.
+    """
+
+    selection_toggled = pyqtSignal(bool)
 
     def __init__(self, tab, mode_manager, parent=None):
         super().__init__(parent)
@@ -437,6 +444,9 @@ class AbstractScroller(QObject):
         raise NotImplementedError
 
     def to_point(self, point):
+        raise NotImplementedError
+
+    def to_anchor(self, name):
         raise NotImplementedError
 
     def delta(self, x=0, y=0):
@@ -665,8 +675,7 @@ class AbstractTab(QWidget):
         objreg.register('hintmanager', hintmanager, scope='tab',
                         window=self.win_id, tab=self.tab_id)
 
-        self.predicted_navigation.connect(
-            lambda url: self.title_changed.emit(url.toDisplayString()))
+        self.predicted_navigation.connect(self._on_predicted_navigation)
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
@@ -716,6 +725,14 @@ class AbstractTab(QWidget):
         QApplication.postEvent(recipient, evt)
 
     @pyqtSlot(QUrl)
+    def _on_predicted_navigation(self, url):
+        """Adjust the title if we are going to visit an URL soon."""
+        qtutils.ensure_valid(url)
+        url_string = url.toDisplayString()
+        log.webview.debug("Predicted navigation: {}".format(url_string))
+        self.title_changed.emit(url_string)
+
+    @pyqtSlot(QUrl)
     def _on_url_changed(self, url):
         """Update title when URL has changed and no title is available."""
         if url.isValid() and not self.title():
@@ -732,8 +749,9 @@ class AbstractTab(QWidget):
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         """Handle common acceptNavigationRequest code."""
+        url = utils.elide(navigation.url.toDisplayString(), 100)
         log.webview.debug("navigation request: url {}, type {}, is_main_frame "
-                          "{}".format(navigation.url.toDisplayString(),
+                          "{}".format(url,
                                       navigation.navigation_type,
                                       navigation.is_main_frame))
 
@@ -814,11 +832,12 @@ class AbstractTab(QWidget):
     def load_status(self):
         return self._load_status
 
-    def _openurl_prepare(self, url):
+    def _openurl_prepare(self, url, *, predict=True):
         qtutils.ensure_valid(url)
-        self.predicted_navigation.emit(url)
+        if predict:
+            self.predicted_navigation.emit(url)
 
-    def openurl(self, url):
+    def openurl(self, url, *, predict=True):
         raise NotImplementedError
 
     def reload(self, *, force=False):

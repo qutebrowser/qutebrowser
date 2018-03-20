@@ -22,6 +22,8 @@
 """Fake objects/stubs."""
 
 from unittest import mock
+import contextlib
+import shutil
 
 import attr
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl
@@ -29,7 +31,7 @@ from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
-from qutebrowser.browser import browsertab
+from qutebrowser.browser import browsertab, downloads
 from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import mainwindow
 
@@ -470,36 +472,54 @@ class SessionManagerStub:
     def list_sessions(self):
         return self.sessions
 
+    def save_autosave(self):
+        pass
+
 
 class TabbedBrowserStub(QObject):
 
     """Stub for the tabbed-browser object."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.widget = TabWidgetStub()
+        self.shutting_down = False
+        self.opened_url = None
+
+    def on_tab_close_requested(self, idx):
+        del self.widget.tabs[idx]
+
+    def widgets(self):
+        return self.widget.tabs
+
+    def tabopen(self, url):
+        self.opened_url = url
+
+    def openurl(self, url, *, newtab):
+        self.opened_url = url
+
+
+class TabWidgetStub(QObject):
+
+    """Stub for the tab-widget object."""
 
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.tabs = []
-        self.shutting_down = False
         self._qtabbar = QTabBar()
         self.index_of = None
         self.current_index = None
-        self.opened_url = None
 
     def count(self):
         return len(self.tabs)
-
-    def widgets(self):
-        return self.tabs
 
     def widget(self, i):
         return self.tabs[i]
 
     def page_title(self, i):
         return self.tabs[i].title()
-
-    def on_tab_close_requested(self, idx):
-        del self.tabs[idx]
 
     def tabBar(self):
         return self._qtabbar
@@ -523,12 +543,6 @@ class TabbedBrowserStub(QObject):
         if idx == -1:
             return None
         return self.tabs[idx - 1]
-
-    def tabopen(self, url):
-        self.opened_url = url
-
-    def openurl(self, url, *, newtab):
-        self.opened_url = url
 
 
 class ApplicationStub(QObject):
@@ -558,3 +572,49 @@ class HTTPPostStub(QObject):
     def post(self, url, data=None):
         self.url = url
         self.data = data
+
+
+class FakeDownloadItem(QObject):
+
+    """Mock browser.downloads.DownloadItem."""
+
+    finished = pyqtSignal()
+
+    def __init__(self, fileobj, name, parent=None):
+        super().__init__(parent)
+        self.fileobj = fileobj
+        self.name = name
+        self.successful = False
+
+
+class FakeDownloadManager:
+
+    """Mock browser.downloads.DownloadManager."""
+
+    def __init__(self, tmpdir):
+        self._tmpdir = tmpdir
+        self.downloads = []
+
+    @contextlib.contextmanager
+    def _open_fileobj(self, target):
+        """Ensure a DownloadTarget's fileobj attribute is available."""
+        if isinstance(target, downloads.FileDownloadTarget):
+            target.fileobj = open(target.filename, 'wb')
+            try:
+                yield target.fileobj
+            finally:
+                target.fileobj.close()
+        else:
+            yield target.fileobj
+
+    def get(self, url, target, **kwargs):
+        """Return a FakeDownloadItem instance with a fileobj.
+
+        The content is copied from the file the given url links to.
+        """
+        with self._open_fileobj(target):
+            download_item = FakeDownloadItem(target.fileobj, name=url.path())
+            with (self._tmpdir / url.path()).open('rb') as fake_url_file:
+                shutil.copyfileobj(fake_url_file, download_item.fileobj)
+        self.downloads.append(download_item)
+        return download_item

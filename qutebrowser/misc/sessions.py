@@ -246,7 +246,7 @@ class SessionManager(QObject):
             if tabbed_browser.private:
                 win_data['private'] = True
             for i, tab in enumerate(tabbed_browser.widgets()):
-                active = i == tabbed_browser.currentIndex()
+                active = i == tabbed_browser.widget.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active))
             data['windows'].append(win_data)
         return data
@@ -427,11 +427,12 @@ class SessionManager(QObject):
                 if tab.get('active', False):
                     tab_to_focus = i
                 if new_tab.data.pinned:
-                    tabbed_browser.set_tab_pinned(new_tab, new_tab.data.pinned)
+                    tabbed_browser.widget.set_tab_pinned(new_tab,
+                                                         new_tab.data.pinned)
             if tab_to_focus is not None:
-                tabbed_browser.setCurrentIndex(tab_to_focus)
+                tabbed_browser.widget.setCurrentIndex(tab_to_focus)
             if win.get('active', False):
-                QTimer.singleShot(0, tabbed_browser.activateWindow)
+                QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
         if data['windows']:
             self.did_load = True

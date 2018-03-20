@@ -31,6 +31,15 @@ class Error(Exception):
     pass
 
 
+class NoAutoconfigError(Error):
+
+    """Raised when this option can't be set in autoconfig.yml."""
+
+    def __init__(self, name):
+        super().__init__("The {} setting can only be set in config.py!"
+                         .format(name))
+
+
 class BackendError(Error):
 
     """Raised when this setting is unavailable with the current backend."""

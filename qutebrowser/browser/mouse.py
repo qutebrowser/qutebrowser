@@ -151,8 +151,9 @@ class MouseEventFilter(QObject):
 
         if elem.is_editable():
             log.mouse.debug("Clicked editable element!")
-            modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
-                          'click', only_if_normal=True)
+            if config.val.input.insert_mode.auto_enter:
+                modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
+                              'click', only_if_normal=True)
         else:
             log.mouse.debug("Clicked non-editable element!")
             if config.val.input.insert_mode.auto_leave:

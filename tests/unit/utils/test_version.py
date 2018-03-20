@@ -648,6 +648,8 @@ class TestModuleVersions:
             name: The name of the module to check.
             has_version: Whether a __version__ attribute is expected.
         """
+        if name == 'cssutils':
+            pytest.importorskip(name)
         module = importlib.import_module(name)
         assert hasattr(module, '__version__') == has_version
 
@@ -705,6 +707,15 @@ class TestOsInfo:
         expected = ['OS Version: {}'.format(mac_ver_str)]
         assert ret == expected
 
+    @pytest.mark.fake_os('posix')
+    def test_posix_fake(self, monkeypatch):
+        """Test with a fake posix platform."""
+        uname_tuple = ('PosixOS', 'localhost', '1.0', '1.0', 'i386', 'i386')
+        monkeypatch.setattr(version.platform, 'uname', lambda: uname_tuple)
+        ret = version._os_info()
+        expected = ['OS Version: PosixOS localhost 1.0 1.0 i386 i386']
+        assert ret == expected
+
     @pytest.mark.fake_os('unknown')
     def test_unknown_fake(self):
         """Test with a fake unknown platform."""
@@ -725,6 +736,11 @@ class TestOsInfo:
     @pytest.mark.mac
     def test_mac_real(self):
         """Make sure there are no exceptions with a real macOS."""
+        version._os_info()
+
+    @pytest.mark.posix
+    def test_posix_real(self):
+        """Make sure there are no exceptions with a real posix."""
         version._os_info()
 
 
@@ -947,7 +963,7 @@ def test_version_output(params, stubs, monkeypatch):
     assert version.version() == expected
 
 
-def test_opengl_vendor():
+def test_opengl_vendor(qapp):
     """Simply call version.opengl_vendor() and see if it doesn't crash."""
     pytest.importorskip("PyQt5.QtOpenGL")
     return version.opengl_vendor()

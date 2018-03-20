@@ -34,7 +34,7 @@ class FakeKeyparser(QObject):
         super().__init__()
         self.passthrough = False
 
-    def handle(self, evt):
+    def handle(self, evt, *, dry_run=False):
         return False
 
 
@@ -44,15 +44,14 @@ def modeman(mode_manager):
     return mode_manager
 
 
-@pytest.mark.parametrize('key, modifiers, text, filtered', [
-    (Qt.Key_A, Qt.NoModifier, 'a', True),
-    (Qt.Key_Up, Qt.NoModifier, '', False),
+@pytest.mark.parametrize('key, modifiers, filtered', [
+    (Qt.Key_A, Qt.NoModifier, True),
+    (Qt.Key_Up, Qt.NoModifier, False),
     # https://github.com/qutebrowser/qutebrowser/issues/1207
-    (Qt.Key_A, Qt.ShiftModifier, 'A', True),
-    (Qt.Key_A, Qt.ShiftModifier | Qt.ControlModifier, 'x', False),
+    (Qt.Key_A, Qt.ShiftModifier, True),
+    (Qt.Key_A, Qt.ShiftModifier | Qt.ControlModifier, False),
 ])
-def test_non_alphanumeric(key, modifiers, text, filtered,
-                          fake_keyevent_factory, modeman):
+def test_non_alphanumeric(key, modifiers, filtered, fake_keyevent, modeman):
     """Make sure non-alphanumeric keys are passed through correctly."""
-    evt = fake_keyevent_factory(key=key, modifiers=modifiers, text=text)
-    assert modeman.eventFilter(evt) == filtered
+    evt = fake_keyevent(key=key, modifiers=modifiers)
+    assert modeman.handle_event(evt) == filtered

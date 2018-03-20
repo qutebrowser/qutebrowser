@@ -74,14 +74,15 @@ def authentication_required(url, authenticator, abort_on):
     return answer
 
 
-def javascript_confirm(url, js_msg, abort_on):
+def javascript_confirm(url, js_msg, abort_on, *, escape_msg=True):
     """Display a javascript confirm prompt."""
     log.js.debug("confirm: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
         raise CallSuper
 
+    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          html.escape(js_msg))
+                                          js_msg)
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     ans = message.ask('Javascript confirm', msg,
                       mode=usertypes.PromptMode.yesno,
@@ -89,7 +90,7 @@ def javascript_confirm(url, js_msg, abort_on):
     return bool(ans)
 
 
-def javascript_prompt(url, js_msg, default, abort_on):
+def javascript_prompt(url, js_msg, default, abort_on, *, escape_msg=True):
     """Display a javascript prompt."""
     log.js.debug("prompt: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
@@ -97,8 +98,9 @@ def javascript_prompt(url, js_msg, default, abort_on):
     if not config.val.content.javascript.prompt:
         return (False, "")
 
+    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          html.escape(js_msg))
+                                          js_msg)
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     answer = message.ask('Javascript prompt', msg,
                          mode=usertypes.PromptMode.text,
@@ -111,7 +113,7 @@ def javascript_prompt(url, js_msg, default, abort_on):
         return (True, answer)
 
 
-def javascript_alert(url, js_msg, abort_on):
+def javascript_alert(url, js_msg, abort_on, *, escape_msg=True):
     """Display a javascript alert."""
     log.js.debug("alert: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
@@ -120,8 +122,9 @@ def javascript_alert(url, js_msg, abort_on):
     if not config.val.content.javascript.alert:
         return
 
+    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          html.escape(js_msg))
+                                          js_msg)
     urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
                 abort_on=abort_on, url=urlstr)

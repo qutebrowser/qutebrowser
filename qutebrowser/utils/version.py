@@ -269,6 +269,8 @@ def _os_info():
         else:
             versioninfo = '.'.join(versioninfo)
         osver = ', '.join([e for e in [release, versioninfo, machine] if e])
+    elif utils.is_posix:
+        osver = ' '.join(platform.uname())
     else:
         osver = '?'
     lines.append('OS Version: {}'.format(osver))
@@ -305,7 +307,21 @@ def _pdfjs_version():
 
 
 def _chromium_version():
-    """Get the Chromium version for QtWebEngine."""
+    """Get the Chromium version for QtWebEngine.
+
+    This can also be checked by looking at this file with the right Qt tag:
+    https://github.com/qt/qtwebengine/blob/dev/tools/scripts/version_resolver.py#L41
+
+    Quick reference:
+    Qt 5.7:  Chromium 49
+    Qt 5.8:  Chromium 53
+    Qt 5.9:  Chromium 56
+    Qt 5.10: Chromium 61
+    Qt 5.11: Chromium 65
+    Qt 5.12: Chromium 69 (?)
+
+    Also see https://www.chromium.org/developers/calendar
+    """
     if QWebEngineProfile is None:
         # This should never happen
         return 'unavailable'
@@ -441,7 +457,13 @@ def opengl_vendor():  # pragma: no cover
         vp = QOpenGLVersionProfile()
         vp.setVersion(2, 0)
 
-        vf = ctx.versionFunctions(vp)
+        try:
+            vf = ctx.versionFunctions(vp)
+        except ImportError as e:
+            log.init.debug("opengl_vendor: Importing version functions "
+                           "failed: {}".format(e))
+            return None
+
         if vf is None:
             log.init.debug("opengl_vendor: Getting version functions failed!")
             return None
@@ -486,4 +508,5 @@ def pastebin_version(pbclient=None):
 
     pbclient.paste(getpass.getuser(),
                    "qute version info {}".format(qutebrowser.__version__),
-                   version())
+                   version(),
+                   private=True)

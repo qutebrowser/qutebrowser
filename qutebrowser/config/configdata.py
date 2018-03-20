@@ -50,6 +50,7 @@ class Option:
     description = attr.ib()
     supports_pattern = attr.ib(default=False)
     restart = attr.ib(default=False)
+    no_autoconfig = attr.ib(default=False)
 
 
 @attr.s
@@ -199,7 +200,7 @@ def _read_yaml(yaml_data):
     data = utils.yaml_load(yaml_data)
 
     keys = {'type', 'default', 'desc', 'backend', 'restart',
-            'supports_pattern'}
+            'supports_pattern', 'no_autoconfig'}
 
     for name, option in data.items():
         if set(option.keys()) == {'renamed'}:
@@ -227,6 +228,7 @@ def _read_yaml(yaml_data):
             description=option['desc'],
             restart=option.get('restart', False),
             supports_pattern=option.get('supports_pattern', False),
+            no_autoconfig=option.get('no_autoconfig', False),
         )
 
     # Make sure no key shadows another.

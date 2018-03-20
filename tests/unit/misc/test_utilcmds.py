@@ -153,6 +153,6 @@ def tabbed_browser(stubs, win_registry):
     objreg.delete('tabbed-browser', scope='window', window=0)
 
 
-def test_version(tabbed_browser):
+def test_version(tabbed_browser, qapp):
     utilcmds.version(win_id=0)
     assert tabbed_browser.opened_url == QUrl('qute://version')

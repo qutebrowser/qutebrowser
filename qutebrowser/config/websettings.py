@@ -22,7 +22,7 @@
 from PyQt5.QtGui import QFont
 
 from qutebrowser.config import config, configutils
-from qutebrowser.utils import log, usertypes
+from qutebrowser.utils import log, usertypes, urlmatch, qtutils
 from qutebrowser.misc import objects
 
 UNSET = object()
@@ -141,6 +141,7 @@ class AbstractSettings:
         Return:
             A set of settings which actually changed.
         """
+        qtutils.ensure_valid(url)
         changed_settings = set()
         for values in config.instance:
             if not values.opt.supports_pattern:
@@ -171,6 +172,11 @@ def init(args):
     else:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.init(args)
+
+    # Make sure special URLs always get JS support
+    for pattern in ['file://*', 'chrome://*/*', 'qute://*/*']:
+        config.instance.set_obj('content.javascript.enabled', True,
+                                pattern=urlmatch.UrlPattern(pattern))
 
 
 def shutdown():

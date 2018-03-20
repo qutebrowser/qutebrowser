@@ -26,9 +26,10 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import configmodel
-from qutebrowser.utils import objreg, utils, message, standarddir, urlmatch
+from qutebrowser.utils import objreg, message, standarddir, urlmatch
 from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
+from qutebrowser.keyinput import keyutils
 
 
 class ConfigCommands:
@@ -57,6 +58,13 @@ class ConfigCommands:
         except urlmatch.ParseError as e:
             raise cmdexc.CommandError("Error while parsing {}: {}"
                                       .format(pattern, str(e)))
+
+    def _parse_key(self, key):
+        """Parse a key argument."""
+        try:
+            return keyutils.KeySequence.parse(key)
+        except keyutils.KeyParseError as e:
+            raise cmdexc.CommandError(str(e))
 
     def _print_value(self, option, pattern):
         """Print the value of the given option."""
@@ -129,7 +137,8 @@ class ConfigCommands:
         Using :bind without any arguments opens a page showing all keybindings.
 
         Args:
-            key: The keychain or special key (inside `<...>`) to bind.
+            key: The keychain to bind. Examples of valid keychains are `gC`,
+                 `<Ctrl-X>` or `<Ctrl-C>a`.
             command: The command to execute, with optional args.
             mode: A comma-separated list of modes to bind the key in
                   (default: `normal`). See `:help bindings.commands` for the
@@ -142,42 +151,42 @@ class ConfigCommands:
             tabbed_browser.openurl(QUrl('qute://bindings'), newtab=True)
             return
 
+        seq = self._parse_key(key)
+
         if command is None:
             if default:
                 # :bind --default: Restore default
                 with self._handle_config_error():
-                    self._keyconfig.bind_default(key, mode=mode,
+                    self._keyconfig.bind_default(seq, mode=mode,
                                                  save_yaml=True)
                 return
 
             # No --default -> print binding
-            if utils.is_special_key(key):
-                # self._keyconfig.get_command does this, but we also need it
-                # normalized for the output below
-                key = utils.normalize_keystr(key)
             with self._handle_config_error():
-                cmd = self._keyconfig.get_command(key, mode)
+                cmd = self._keyconfig.get_command(seq, mode)
             if cmd is None:
-                message.info("{} is unbound in {} mode".format(key, mode))
+                message.info("{} is unbound in {} mode".format(seq, mode))
             else:
                 message.info("{} is bound to '{}' in {} mode".format(
-                    key, cmd, mode))
+                    seq, cmd, mode))
             return
 
         with self._handle_config_error():
-            self._keyconfig.bind(key, command, mode=mode, save_yaml=True)
+            self._keyconfig.bind(seq, command, mode=mode, save_yaml=True)
 
     @cmdutils.register(instance='config-commands')
     def unbind(self, key, *, mode='normal'):
         """Unbind a keychain.
 
         Args:
-            key: The keychain or special key (inside <...>) to unbind.
+            key: The keychain to unbind. See the help for `:bind` for the
+                  correct syntax for keychains.
             mode: A mode to unbind the key in (default: `normal`).
                   See `:help bindings.commands` for the available modes.
         """
         with self._handle_config_error():
-            self._keyconfig.unbind(key, mode=mode, save_yaml=True)
+            self._keyconfig.unbind(self._parse_key(key), mode=mode,
+                                   save_yaml=True)
 
     @cmdutils.register(instance='config-commands', star_args_optional=True)
     @cmdutils.argument('option', completion=configmodel.option)

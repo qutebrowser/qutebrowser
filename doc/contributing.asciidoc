@@ -670,10 +670,11 @@ qutebrowser release
 ~~~~~~~~~~~~~~~~~~~
 
 * Make sure there are no unstaged changes and the tests are green.
+* Make sure all issues with the related milestone are closed.
 * Run `x=... y=...` to set the respective shell variables.
 
-* Adjust `__version_info__` in `qutebrowser/__init__.py`.
 * Update changelog (remove *(unreleased)*).
+* Adjust `__version_info__` in `qutebrowser/__init__.py`.
 * Commit.
 
 * Create annotated git tag (`git tag -s "v1.$x.$y" -m "Release v1.$x.$y"`).
@@ -683,7 +684,7 @@ qutebrowser release
 * Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones
 as closed.
 
-* Linux: Run `git checkout v1.$x.$y && python3 scripts/dev/build_release.py --upload v1.$x.$y`.
+* Linux: Run `git checkout v1.$x.$y && ./.venv/bin/python3 scripts/dev/build_release.py --upload v1.$x.$y`.
 * Windows: Run `git checkout v1.X.Y; C:\Python36-32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
 * macOS: Run `git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
 * On server: Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).

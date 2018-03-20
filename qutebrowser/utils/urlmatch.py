@@ -42,7 +42,8 @@ class UrlPattern:
     """A Chromium-like URL matching pattern.
 
     Class attributes:
-        DEFAULT_PORTS: The default ports used for schemes which support ports.
+        _DEFAULT_PORTS: The default ports used for schemes which support ports.
+        _SCHEMES_WITHOUT_HOST: Schemes which don't need a host.
 
     Attributes:
         _pattern: The given pattern as string.
@@ -58,7 +59,8 @@ class UrlPattern:
         _port: The port to match to as integer, or None for any port.
     """
 
-    DEFAULT_PORTS = {'https': 443, 'http': 80, 'ftp': 21}
+    _DEFAULT_PORTS = {'https': 443, 'http': 80, 'ftp': 21}
+    _SCHEMES_WITHOUT_HOST = ['about', 'file', 'data', 'javascript']
 
     def __init__(self, pattern):
         # Make sure all attributes are initialized if we exit early.
@@ -120,6 +122,10 @@ class UrlPattern:
         if pattern.startswith('*:'):  # Any scheme, but *:// is unparseable
             pattern = 'any:' + pattern[2:]
 
+        schemes = tuple(s + ':' for s in self._SCHEMES_WITHOUT_HOST)
+        if '://' not in pattern and not pattern.startswith(schemes):
+            pattern = 'any://' + pattern
+
         # Chromium handles file://foo like file:///foo
         # FIXME This doesn't actually strip the hostname correctly.
         if (pattern.startswith('file://') and
@@ -129,23 +135,33 @@ class UrlPattern:
         return pattern
 
     def _init_scheme(self, parsed):
-        if not parsed.scheme:
-            raise ParseError("No scheme given")
-        elif parsed.scheme == 'any':
+        """Parse the scheme from the given URL.
+
+        Deviation from Chromium:
+        - We assume * when no scheme has been given.
+        """
+        assert parsed.scheme, parsed
+        if parsed.scheme == 'any':
             self._scheme = None
             return
 
         self._scheme = parsed.scheme
 
     def _init_path(self, parsed):
+        """Parse the path from the given URL.
+
+        Deviation from Chromium:
+        - We assume * when no path has been given.
+        """
         if self._scheme == 'about' and not parsed.path.strip():
             raise ParseError("Pattern without path")
 
         if parsed.path == '/*':
             self._path = None
         elif parsed.path == '':
-            # We want to make it possible to leave off a trailing slash.
-            self._path = '/'
+            # When the user doesn't add a trailing slash, we assume the pattern
+            # matches any path.
+            self._path = None
         else:
             self._path = parsed.path
 
@@ -156,7 +172,7 @@ class UrlPattern:
         - http://:1234/ is not a valid URL because it has no host.
         """
         if parsed.hostname is None or not parsed.hostname.strip():
-            if self._scheme not in ['about', 'file', 'data', 'javascript']:
+            if self._scheme not in self._SCHEMES_WITHOUT_HOST:
                 raise ParseError("Pattern without host")
             assert self._host is None
             return
@@ -197,7 +213,7 @@ class UrlPattern:
             except ValueError as e:
                 raise ParseError("Invalid port: {}".format(e))
 
-        if (self._scheme not in list(self.DEFAULT_PORTS) + [None] and
+        if (self._scheme not in list(self._DEFAULT_PORTS) + [None] and
                 self._port is not None):
             raise ParseError("Ports are unsupported with {} scheme".format(
                 self._scheme))
@@ -241,8 +257,8 @@ class UrlPattern:
         return host[len(host) - len(self._host) - 1] == '.'
 
     def _matches_port(self, scheme, port):
-        if port == -1 and scheme in self.DEFAULT_PORTS:
-            port = self.DEFAULT_PORTS[scheme]
+        if port == -1 and scheme in self._DEFAULT_PORTS:
+            port = self._DEFAULT_PORTS[scheme]
         return self._port is None or self._port == port
 
     def _matches_path(self, path):

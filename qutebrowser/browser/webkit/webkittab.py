@@ -30,7 +30,7 @@ import pygments.formatters
 import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
@@ -149,8 +149,17 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
-        self.search_displayed = True
+        # Don't go to next entry on duplicate search
+        if self.text == text and self.search_displayed:
+            log.webview.debug("Ignoring duplicate search request"
+                              " for {}".format(text))
+            return
+
+        # Clear old search results, this is done automatically on QtWebEngine.
+        self.clear()
+
         self.text = text
+        self.search_displayed = True
         self._flags = QWebPage.FindWrapsAroundDocument
         if self._is_case_sensitive(ignore_case):
             self._flags |= QWebPage.FindCaseSensitively
@@ -189,9 +198,10 @@ class WebKitCaret(browsertab.AbstractCaret):
         if mode != usertypes.KeyMode.caret:
             return
 
+        self.selection_enabled = self._widget.hasSelection()
+        self.selection_toggled.emit(self.selection_enabled)
         settings = self._widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-        self.selection_enabled = self._widget.hasSelection()
 
         if self._widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
@@ -356,9 +366,7 @@ class WebKitCaret(browsertab.AbstractCaret):
 
     def toggle_selection(self):
         self.selection_enabled = not self.selection_enabled
-        mainwindow = objreg.get('main-window', scope='window',
-                                window=self._tab.win_id)
-        mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
+        self.selection_toggled.emit(self.selection_enabled)
 
     def drop_selection(self):
         self._widget.triggerPageAction(QWebPage.MoveToNextChar)
@@ -419,6 +427,9 @@ class WebKitScroller(browsertab.AbstractScroller):
 
     def to_point(self, point):
         self._widget.page().mainFrame().setScrollPosition(point)
+
+    def to_anchor(self, name):
+        self._widget.page().mainFrame().scrollToAnchor(name)
 
     def delta(self, x=0, y=0):
         qtutils.check_overflow(x, 'int')
@@ -530,6 +541,9 @@ class WebKitHistory(browsertab.AbstractHistory):
         return qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
+        if items:
+            self._tab.predicted_navigation.emit(items[-1].url)
+
         stream, _data, user_data = tabhistory.serialize(items)
         qtutils.deserialize_stream(stream, self._history)
         for i, data in enumerate(user_data):
@@ -661,8 +675,8 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def openurl(self, url):
-        self._openurl_prepare(url)
+    def openurl(self, url, *, predict=True):
+        self._openurl_prepare(url, predict=predict)
         self._widget.openurl(url)
 
     def url(self, requested=False):
@@ -736,6 +750,8 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_load_started(self):
         super()._on_load_started()
         self.networkaccessmanager().netrc_used = False
+        # Make sure the icon is cleared when navigating to a page without one.
+        self.icon_changed.emit(QIcon())
 
     @pyqtSlot()
     def _on_frame_load_finished(self):

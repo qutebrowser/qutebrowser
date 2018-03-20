@@ -129,6 +129,7 @@ Feature: Opening external editors
         And I run :tab-close
         And I kill the waiting editor
         Then the error "Edited element vanished" should be shown
+        And the message "Editor backup at *" should be shown
 
     # Could not get signals working on Windows
     @posix

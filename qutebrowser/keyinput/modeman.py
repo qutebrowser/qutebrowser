@@ -25,7 +25,7 @@ import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.keyinput import modeparsers, keyparser
+from qutebrowser.keyinput import modeparsers
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
@@ -65,24 +65,30 @@ def init(win_id, parent):
     modeman = ModeManager(win_id, parent)
     objreg.register('mode-manager', modeman, scope='window', window=win_id)
     keyparsers = {
-        KM.normal: modeparsers.NormalKeyParser(win_id, modeman),
-        KM.hint: modeparsers.HintKeyParser(win_id, modeman),
-        KM.insert: keyparser.PassthroughKeyParser(win_id, 'insert', modeman),
-        KM.passthrough: keyparser.PassthroughKeyParser(win_id, 'passthrough',
-                                                       modeman),
-        KM.command: keyparser.PassthroughKeyParser(win_id, 'command', modeman),
-        KM.prompt: keyparser.PassthroughKeyParser(win_id, 'prompt', modeman,
-                                                  warn=False),
-        KM.yesno: modeparsers.PromptKeyParser(win_id, modeman),
-        KM.caret: modeparsers.CaretKeyParser(win_id, modeman),
-        KM.set_mark: modeparsers.RegisterKeyParser(win_id, KM.set_mark,
-                                                   modeman),
-        KM.jump_mark: modeparsers.RegisterKeyParser(win_id, KM.jump_mark,
-                                                    modeman),
-        KM.record_macro: modeparsers.RegisterKeyParser(win_id, KM.record_macro,
-                                                       modeman),
-        KM.run_macro: modeparsers.RegisterKeyParser(win_id, KM.run_macro,
-                                                    modeman),
+        KM.normal:
+            modeparsers.NormalKeyParser(win_id, modeman),
+        KM.hint:
+            modeparsers.HintKeyParser(win_id, modeman),
+        KM.insert:
+            modeparsers.PassthroughKeyParser(win_id, 'insert', modeman),
+        KM.passthrough:
+            modeparsers.PassthroughKeyParser(win_id, 'passthrough', modeman),
+        KM.command:
+            modeparsers.PassthroughKeyParser(win_id, 'command', modeman),
+        KM.prompt:
+            modeparsers.PassthroughKeyParser(win_id, 'prompt', modeman),
+        KM.yesno:
+            modeparsers.PromptKeyParser(win_id, modeman),
+        KM.caret:
+            modeparsers.CaretKeyParser(win_id, modeman),
+        KM.set_mark:
+            modeparsers.RegisterKeyParser(win_id, KM.set_mark, modeman),
+        KM.jump_mark:
+            modeparsers.RegisterKeyParser(win_id, KM.jump_mark, modeman),
+        KM.record_macro:
+            modeparsers.RegisterKeyParser(win_id, KM.record_macro, modeman),
+        KM.run_macro:
+            modeparsers.RegisterKeyParser(win_id, KM.run_macro, modeman),
     }
     objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
     modeman.destroyed.connect(
@@ -144,11 +150,12 @@ class ModeManager(QObject):
     def __repr__(self):
         return utils.get_repr(self, mode=self.mode)
 
-    def _eventFilter_keypress(self, event):
+    def _handle_keypress(self, event, *, dry_run=False):
         """Handle filtering of KeyPress events.
 
         Args:
             event: The KeyPress to examine.
+            dry_run: Don't actually handle the key, only filter it.
 
         Return:
             True if event should be filtered, False otherwise.
@@ -158,7 +165,7 @@ class ModeManager(QObject):
         if curmode != usertypes.KeyMode.insert:
             log.modes.debug("got keypress in mode {} - delegating to "
                             "{}".format(curmode, utils.qualname(parser)))
-        handled = parser.handle(event)
+        match = parser.handle(event, dry_run=dry_run)
 
         is_non_alnum = (
             event.modifiers() not in [Qt.NoModifier, Qt.ShiftModifier] or
@@ -166,7 +173,7 @@ class ModeManager(QObject):
 
         forward_unbound_keys = config.val.input.forward_unbound_keys
 
-        if handled:
+        if match:
             filter_this = True
         elif (parser.passthrough or forward_unbound_keys == 'all' or
               (forward_unbound_keys == 'auto' and is_non_alnum)):
@@ -174,20 +181,20 @@ class ModeManager(QObject):
         else:
             filter_this = True
 
-        if not filter_this:
+        if not filter_this and not dry_run:
             self._releaseevents_to_pass.add(KeyEvent.from_event(event))
 
         if curmode != usertypes.KeyMode.insert:
             focus_widget = QApplication.instance().focusWidget()
-            log.modes.debug("handled: {}, forward_unbound_keys: {}, "
-                            "passthrough: {}, is_non_alnum: {} --> "
-                            "filter: {} (focused: {!r})".format(
-                                handled, forward_unbound_keys,
-                                parser.passthrough, is_non_alnum, filter_this,
-                                focus_widget))
+            log.modes.debug("match: {}, forward_unbound_keys: {}, "
+                            "passthrough: {}, is_non_alnum: {}, dry_run: {} "
+                            "--> filter: {} (focused: {!r})".format(
+                                match, forward_unbound_keys,
+                                parser.passthrough, is_non_alnum, dry_run,
+                                filter_this, focus_widget))
         return filter_this
 
-    def _eventFilter_keyrelease(self, event):
+    def _handle_keyrelease(self, event):
         """Handle filtering of KeyRelease events.
 
         Args:
@@ -304,7 +311,7 @@ class ModeManager(QObject):
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode, 'leave current')
 
-    def eventFilter(self, event):
+    def handle_event(self, event):
         """Filter all events based on the currently set mode.
 
         Also calls the real keypress handler.
@@ -320,8 +327,10 @@ class ModeManager(QObject):
             return False
 
         handlers = {
-            QEvent.KeyPress: self._eventFilter_keypress,
-            QEvent.KeyRelease: self._eventFilter_keyrelease,
+            QEvent.KeyPress: self._handle_keypress,
+            QEvent.KeyRelease: self._handle_keyrelease,
+            QEvent.ShortcutOverride:
+                functools.partial(self._handle_keypress, dry_run=True),
         }
         handler = handlers[event.type()]
         return handler(event)

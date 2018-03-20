@@ -60,7 +60,7 @@ class PastebinClient(QObject):
         self._client = client
         self._api_url = api_url
 
-    def paste(self, name, title, text, parent=None):
+    def paste(self, name, title, text, parent=None, private=False):
         """Paste the text into a pastebin and return the URL.
 
         Args:
@@ -68,6 +68,7 @@ class PastebinClient(QObject):
             title: The post title.
             text: The text to post.
             parent: The parent paste to reply to.
+            private: Whether to paste privately.
         """
         data = {
             'text': text,
@@ -77,6 +78,9 @@ class PastebinClient(QObject):
         }
         if parent is not None:
             data['reply'] = parent
+        if private:
+            data['private'] = '1'
+
         url = QUrl(urllib.parse.urljoin(self._api_url, 'create'))
         self._client.post(url, data)
 

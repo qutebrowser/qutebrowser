@@ -29,6 +29,7 @@ from PyQt5.QtCore import QSettings
 from qutebrowser.config import (config, configfiles, configexc, configdata,
                                 configtypes)
 from qutebrowser.utils import utils, usertypes, urlmatch
+from qutebrowser.keyinput import keyutils
 
 
 @pytest.fixture(autouse=True)
@@ -222,6 +223,16 @@ class TestYaml:
         mode = 'persist' if persist else 'normal'
         assert data['tabs.mode_on_change']['global'] == mode
 
+    def test_bindings_default(self, yaml, autoconfig):
+        """Make sure bindings.default gets removed from autoconfig.yml."""
+        autoconfig.write({'bindings.default': {'global': '{}'}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert 'bindings.default' not in data
+
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):
         """A key marked as renamed with invalid name should raise an error."""
@@ -300,7 +311,8 @@ class TestYaml:
         ('settings: {"content.images": 42}\nconfig_version: 2',
          "While parsing 'content.images'", "value is not a dict"),
         ('settings: {"content.images": {"https://": true}}\nconfig_version: 2',
-         "While parsing pattern 'https://' for 'content.images'", "Pattern without host"),
+         "While parsing pattern 'https://' for 'content.images'",
+         "Pattern without host"),
         ('settings: {"content.images": {true: true}}\nconfig_version: 2',
          "While parsing 'content.images'", "pattern is not of type string"),
     ])
@@ -607,7 +619,7 @@ class TestConfigPy:
 
     @pytest.mark.parametrize('line, key, mode', [
         ('config.unbind("o")', 'o', 'normal'),
-        ('config.unbind("y", mode="prompt")', 'y', 'prompt'),
+        ('config.unbind("y", mode="yesno")', 'y', 'yesno'),
     ])
     def test_unbind(self, confpy, line, key, mode):
         confpy.write(line)
@@ -699,6 +711,20 @@ class TestConfigPy:
         message = "'ConfigAPI' object has no attribute 'val'"
         assert str(error.exception) == message
 
+    @pytest.mark.parametrize('line', [
+        'config.bind("<blub>", "nop")',
+        'config.bind("\U00010000", "nop")',
+        'config.unbind("<blub>")',
+        'config.unbind("\U00010000")',
+    ])
+    def test_invalid_keys(self, confpy, line):
+        confpy.write(line)
+        error = confpy.read(error=True)
+        assert error.text.endswith("and parsing key")
+        assert isinstance(error.exception, keyutils.KeyParseError)
+        assert str(error.exception).startswith("Could not parse")
+        assert str(error.exception).endswith("Got invalid key!")
+
     @pytest.mark.parametrize('line', ["c.foo = 42", "config.set('foo', 42)"])
     def test_config_error(self, confpy, line):
         confpy.write(line)
@@ -722,11 +748,11 @@ class TestConfigPy:
         assert str(error.exception) == expected
 
     @pytest.mark.parametrize('line, text', [
-        ('config.get("content.images", "://")',
+        ('config.get("content.images", "http://")',
          "While getting 'content.images' and parsing pattern"),
-        ('config.set("content.images", False, "://")',
+        ('config.set("content.images", False, "http://")',
          "While setting 'content.images' and parsing pattern"),
-        ('with config.pattern("://"): pass',
+        ('with config.pattern("http://"): pass',
          "Unhandled exception"),
     ])
     def test_invalid_pattern(self, confpy, line, text):
@@ -735,7 +761,7 @@ class TestConfigPy:
 
         assert error.text == text
         assert isinstance(error.exception, urlmatch.ParseError)
-        assert str(error.exception) == "No scheme given"
+        assert str(error.exception) == "Pattern without host"
 
     def test_multiple_errors(self, confpy):
         confpy.write("c.foo = 42", "config.set('foo', 42)", "1/0")

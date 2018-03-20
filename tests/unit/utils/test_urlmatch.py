@@ -43,11 +43,11 @@ from qutebrowser.utils import urlmatch
 
 @pytest.mark.parametrize('pattern, error', [
     # Chromium: PARSE_ERROR_MISSING_SCHEME_SEPARATOR
-    ("http", "No scheme given"),
-    ("http:", "Pattern without host"),
-    ("http:/", "Pattern without host"),
+    # ("http", "No scheme given"),
+    ("http:", "Invalid port: Port is empty"),
+    ("http:/", "Invalid port: Port is empty"),
     ("about://", "Pattern without path"),
-    ("http:/bar", "Pattern without host"),
+    ("http:/bar", "Invalid port: Port is empty"),
 
     # Chromium: PARSE_ERROR_EMPTY_HOST
     ("http://", "Pattern without host"),
@@ -110,6 +110,33 @@ def test_invalid_patterns(pattern, error):
 def test_port(pattern, port):
     up = urlmatch.UrlPattern(pattern)
     assert up._port == port
+
+
+@pytest.mark.parametrize('pattern, path', [
+    ("http://foo/", '/'),
+    ("http://foo/*", None),
+])
+def test_parse_path(pattern, path):
+    up = urlmatch.UrlPattern(pattern)
+    assert up._path == path
+
+
+@pytest.mark.parametrize('pattern, scheme, host, path', [
+    ("http://example.com", 'http', 'example.com', None),  # no path
+    ("example.com/path", None, 'example.com', '/path'),  # no scheme
+    ("example.com", None, 'example.com', None),  # no scheme and no path
+    ("example.com:1234", None, 'example.com', None),  # no scheme/path but port
+    ("data:monkey", 'data', None, 'monkey'),  # existing scheme
+])
+def test_lightweight_patterns(pattern, scheme, host, path):
+    """Make sure we can leave off parts of an URL.
+
+    This is a deviation from Chromium to make patterns more user-friendly.
+    """
+    up = urlmatch.UrlPattern(pattern)
+    assert up._scheme == scheme
+    assert up._host == host
+    assert up._path == path
 
 
 class TestMatchAllPagesForGivenScheme:
@@ -254,7 +281,7 @@ class TestMatchChromeUrls:
 
 class TestMatchAnything:
 
-    @pytest.fixture(params=['*://*/*', '*://*:*/*', '<all_urls>'])
+    @pytest.fixture(params=['*://*/*', '*://*:*/*', '<all_urls>', '*://*'])
     def up(self, request):
         return urlmatch.UrlPattern(request.param)
 

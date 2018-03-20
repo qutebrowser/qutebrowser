@@ -238,11 +238,14 @@ class FileDownloadTarget(_DownloadTarget):
 
     Attributes:
         filename: Filename where the download should be saved.
+        force_overwrite: Whether to overwrite the target without
+                         prompting the user.
     """
 
-    def __init__(self, filename):
+    def __init__(self, filename, force_overwrite=False):
         # pylint: disable=super-init-not-called
         self.filename = filename
+        self.force_overwrite = force_overwrite
 
     def suggested_filename(self):
         return os.path.basename(self.filename)
@@ -738,7 +741,8 @@ class AbstractDownloadItem(QObject):
         if isinstance(target, FileObjDownloadTarget):
             self._set_fileobj(target.fileobj, autoclose=False)
         elif isinstance(target, FileDownloadTarget):
-            self._set_filename(target.filename)
+            self._set_filename(
+                target.filename, force_overwrite=target.force_overwrite)
         elif isinstance(target, OpenFileDownloadTarget):
             try:
                 fobj = temp_download_manager.get_tmpfile(self.basename)

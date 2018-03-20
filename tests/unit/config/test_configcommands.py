@@ -19,6 +19,7 @@
 """Tests for qutebrowser.config.configcommands."""
 
 import logging
+import functools
 import unittest.mock
 
 import pytest
@@ -27,7 +28,13 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.config import configcommands, configutils
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import usertypes, urlmatch
+from qutebrowser.keyinput import keyutils
 from qutebrowser.misc import objects
+
+
+# Alias because we need this a lot in here.
+def keyseq(s):
+    return keyutils.KeySequence.parse(s)
 
 
 @pytest.fixture
@@ -101,8 +108,9 @@ class TestSet:
         option = 'content.javascript.enabled'
 
         with pytest.raises(cmdexc.CommandError,
-                           match='Error while parsing :/: No scheme given'):
-            commands.set(0, option, 'false', pattern=':/')
+                           match=('Error while parsing http://: Pattern '
+                                  'without host')):
+            commands.set(0, option, 'false', pattern='http://')
 
     def test_set_no_pattern(self, monkeypatch, commands):
         """Run ':set --pattern=*://* colors.statusbar.normal.bg #abcdef.
@@ -363,7 +371,8 @@ class TestEdit:
     """Tests for :config-edit."""
 
     pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
-                                         'config_stub', 'key_config_stub')
+                                         'config_stub', 'key_config_stub',
+                                         'qapp')
 
     def test_no_source(self, commands, mocker):
         mock = mocker.patch('qutebrowser.config.configcommands.editor.'
@@ -415,7 +424,7 @@ class TestWritePy:
     def test_custom(self, commands, config_stub, key_config_stub, tmpdir):
         confpy = tmpdir / 'config.py'
         config_stub.val.content.javascript.enabled = True
-        key_config_stub.bind(',x', 'message-info foo', mode='normal')
+        key_config_stub.bind(keyseq(',x'), 'message-info foo', mode='normal')
 
         commands.config_write_py(str(confpy))
 
@@ -496,7 +505,7 @@ class TestBind:
         config_stub.val.bindings.commands = no_bindings
 
         commands.bind(0, 'a', command)
-        assert key_config_stub.get_command('a', 'normal') == command
+        assert key_config_stub.get_command(keyseq('a'), 'normal') == command
         yaml_bindings = yaml_value('bindings.commands')['normal']
         assert yaml_bindings['a'] == command
 
@@ -509,7 +518,7 @@ class TestBind:
         ('c', 'normal', "c is bound to 'message-info c' in normal mode"),
         # Special key
         ('<Ctrl-X>', 'normal',
-         "<ctrl+x> is bound to 'message-info C-x' in normal mode"),
+         "<Ctrl+x> is bound to 'message-info C-x' in normal mode"),
         # unbound
         ('x', 'normal', "x is unbound in normal mode"),
         # non-default mode
@@ -537,23 +546,45 @@ class TestBind:
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == expected
 
-    def test_bind_invalid_mode(self, commands):
-        """Run ':bind --mode=wrongmode a nop'.
+    @pytest.mark.parametrize('command, args, kwargs, expected', [
+        # :bind --mode=wrongmode a nop
+        ('bind', ['a', 'nop'], {'mode': 'wrongmode'},
+         'Invalid mode wrongmode!'),
+        # :bind --mode=wrongmode a
+        ('bind', ['a'], {'mode': 'wrongmode'},
+         'Invalid mode wrongmode!'),
+        # :bind --default --mode=wrongmode a
+        ('bind', ['a'], {'mode': 'wrongmode', 'default': True},
+         'Invalid mode wrongmode!'),
+        # :bind --default foobar
+        ('bind', ['foobar'], {'default': True},
+         "Can't find binding 'foobar' in normal mode"),
+        # :bind <blub> nop
+        ('bind', ['<blub>', 'nop'], {},
+         "Could not parse '<blub>': Got invalid key!"),
+        # :unbind foobar
+        ('unbind', ['foobar'], {},
+         "Can't find binding 'foobar' in normal mode"),
+        # :unbind --mode=wrongmode x
+        ('unbind', ['x'], {'mode': 'wrongmode'},
+         'Invalid mode wrongmode!'),
+        # :unbind <blub>
+        ('unbind', ['<blub>'], {},
+         "Could not parse '<blub>': Got invalid key!"),
+    ])
+    def test_bind_invalid(self, commands,
+                          command, args, kwargs, expected):
+        """Run various wrong :bind/:unbind invocations.
 
         Should show an error.
         """
-        with pytest.raises(cmdexc.CommandError,
-                           match='Invalid mode wrongmode!'):
-            commands.bind(0, 'a', 'nop', mode='wrongmode')
+        if command == 'bind':
+            func = functools.partial(commands.bind, 0)
+        elif command == 'unbind':
+            func = commands.unbind
 
-    def test_bind_print_invalid_mode(self, commands):
-        """Run ':bind --mode=wrongmode a'.
-
-        Should show an error.
-        """
-        with pytest.raises(cmdexc.CommandError,
-                           match='Invalid mode wrongmode!'):
-            commands.bind(0, 'a', mode='wrongmode')
+        with pytest.raises(cmdexc.CommandError, match=expected):
+            func(*args, **kwargs)
 
     @pytest.mark.parametrize('key', ['a', 'b', '<Ctrl-X>'])
     def test_bind_duplicate(self, commands, config_stub, key_config_stub, key):
@@ -569,7 +600,8 @@ class TestBind:
         }
 
         commands.bind(0, key, 'message-info foo', mode='normal')
-        assert key_config_stub.get_command(key, 'normal') == 'message-info foo'
+        command = key_config_stub.get_command(keyseq(key), 'normal')
+        assert command == 'message-info foo'
 
     def test_bind_none(self, commands, config_stub):
         config_stub.val.bindings.commands = None
@@ -581,23 +613,13 @@ class TestBind:
         bound_cmd = 'message-info bound'
         config_stub.val.bindings.default = {'normal': {'a': default_cmd}}
         config_stub.val.bindings.commands = {'normal': {'a': bound_cmd}}
-        assert key_config_stub.get_command('a', mode='normal') == bound_cmd
+        command = key_config_stub.get_command(keyseq('a'), mode='normal')
+        assert command == bound_cmd
 
         commands.bind(0, 'a', mode='normal', default=True)
 
-        assert key_config_stub.get_command('a', mode='normal') == default_cmd
-
-    @pytest.mark.parametrize('key, mode, expected', [
-        ('foobar', 'normal', "Can't find binding 'foobar' in normal mode"),
-        ('x', 'wrongmode', "Invalid mode wrongmode!"),
-    ])
-    def test_bind_default_invalid(self, commands, key, mode, expected):
-        """Run ':bind --default foobar' / ':bind --default x wrongmode'.
-
-        Should show an error.
-        """
-        with pytest.raises(cmdexc.CommandError, match=expected):
-            commands.bind(0, key, mode=mode, default=True)
+        command = key_config_stub.get_command(keyseq('a'), mode='normal')
+        assert command == default_cmd
 
     def test_unbind_none(self, commands, config_stub):
         config_stub.val.bindings.commands = None
@@ -607,7 +629,7 @@ class TestBind:
         ('a', 'a'),  # default bindings
         ('b', 'b'),  # custom bindings
         ('c', 'c'),  # :bind then :unbind
-        ('<Ctrl-X>', '<ctrl+x>')  # normalized special binding
+        ('<Ctrl-X>', '<Ctrl+x>')  # normalized special binding
     ])
     def test_unbind(self, commands, key_config_stub, config_stub, yaml_value,
                     key, normalized):
@@ -624,7 +646,7 @@ class TestBind:
             commands.bind(0, key, 'nop')
 
         commands.unbind(key)
-        assert key_config_stub.get_command(key, 'normal') is None
+        assert key_config_stub.get_command(keyseq(key), 'normal') is None
 
         yaml_bindings = yaml_value('bindings.commands')['normal']
         if key in 'bc':
@@ -632,15 +654,3 @@ class TestBind:
             assert normalized not in yaml_bindings
         else:
             assert yaml_bindings[normalized] is None
-
-    @pytest.mark.parametrize('key, mode, expected', [
-        ('foobar', 'normal', "Can't find binding 'foobar' in normal mode"),
-        ('x', 'wrongmode', "Invalid mode wrongmode!"),
-    ])
-    def test_unbind_invalid(self, commands, key, mode, expected):
-        """Run ':unbind foobar' / ':unbind x wrongmode'.
-
-        Should show an error.
-        """
-        with pytest.raises(cmdexc.CommandError, match=expected):
-            commands.unbind(key, mode=mode)

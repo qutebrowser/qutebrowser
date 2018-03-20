@@ -33,6 +33,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QSettings
 
 import qutebrowser
 from qutebrowser.config import configexc, config, configdata, configutils
+from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
 
 
@@ -261,6 +262,12 @@ class YamlConfig(QObject):
             del settings[old]
             self._mark_changed()
 
+        # bindings.default can't be set in autoconfig.yml anymore, so ignore
+        # old values.
+        if 'bindings.default' in settings:
+            del settings['bindings.default']
+            self._mark_changed()
+
         return settings
 
     def _validate(self, settings):
@@ -332,6 +339,9 @@ class ConfigAPI:
         except urlmatch.ParseError as e:
             text = "While {} '{}' and parsing pattern".format(action, name)
             self.errors.append(configexc.ConfigErrorDesc(text, e))
+        except keyutils.KeyParseError as e:
+            text = "While {} '{}' and parsing key".format(action, name)
+            self.errors.append(configexc.ConfigErrorDesc(text, e))
 
     def finalize(self):
         """Do work which needs to be done after reading config.py."""
@@ -357,12 +367,14 @@ class ConfigAPI:
     def bind(self, key, command, mode='normal'):
         """Bind a key to a command, with an optional key mode."""
         with self._handle_error('binding', key):
-            self._keyconfig.bind(key, command, mode=mode)
+            seq = keyutils.KeySequence.parse(key)
+            self._keyconfig.bind(seq, command, mode=mode)
 
     def unbind(self, key, mode='normal'):
         """Unbind a key from a command, with an optional key mode."""
         with self._handle_error('unbinding', key):
-            self._keyconfig.unbind(key, mode=mode)
+            seq = keyutils.KeySequence.parse(key)
+            self._keyconfig.unbind(seq, mode=mode)
 
     def source(self, filename):
         """Read the given config file from disk."""
