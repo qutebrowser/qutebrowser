@@ -24,6 +24,7 @@ Added
 - New `:scroll-to-anchor` command to scroll to an anchor in the document.
 - New `url.open_base_url` option to open the base URL of a searchengine when no
   search term is given.
+- New `tabs.min_width` setting to configure the minimal width for tabs.
 
 Changed
 ~~~~~~~
