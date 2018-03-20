@@ -24,6 +24,7 @@ import pytest
 
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
 QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import javascript
 
@@ -118,6 +119,7 @@ def test_set_svg(stylesheet_tester):
 
 def test_set_error(stylesheet_tester):
     """Test stylesheet modifies file not found error pages."""
+    stylesheet_tester.js.tab.openurl(QUrl('about:blank'))
     stylesheet_tester.js.load_file('non-existent.html', force=True)
     stylesheet_tester.init_stylesheet()
     stylesheet_tester.check_set(GREEN_BODY_BG)
