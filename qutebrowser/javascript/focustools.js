@@ -44,17 +44,10 @@ window._qutebrowser.focustools = (function() {
     };
 
     /*
-     * Blur page on load, and timeout seconds after fully completed load.
+     * Blur page on load, and set up handlers so we can detect future events.
      */
     funcs.load = (blur_on_load) => {
         if (blur_on_load) {
-            // add a DOM event listener if we haven't loaded that yet
-            if (document.readyState === "complete" ||
-                document.readyState === "interactive") {
-                funcs.blur();
-            } else {
-                window.addEventListener("DOMContentLoaded", funcs.blur);
-            }
             funcs.installHandlers();
         }
     };

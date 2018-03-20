@@ -1049,7 +1049,7 @@ input.focus.blur_on_mode_leave:
   desc: >-
     Clear focus on page when leaving insert mode.
 
-    See `input.focus_on_mode_enter` for the opposite.
+    See `input.focus.focus_on_mode_enter` for the opposite.
 
 input.focus.focus_on_mode_enter:
   default: true
@@ -1057,7 +1057,7 @@ input.focus.focus_on_mode_enter:
   desc: >-
     Refocus last focused element when entering insert mode.
 
-    See `input.blur_on_mode_leave` for the opposite.
+    See `input.focus.blur_on_mode_leave` for the opposite.
 
 ## keyhint
 
