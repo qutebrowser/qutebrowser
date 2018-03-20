@@ -779,7 +779,7 @@ class WebEngineTab(browsertab.AbstractTab):
             script.setName('_qute_focustools')
             script.setInjectionPoint(QWebEngineScript.DocumentReady)
             script.setWorldId(QWebEngineScript.ApplicationWorld)
-            script.setRunsOnSubFrames(True)
+            script.setRunsOnSubFrames(False)
             script.setSourceCode(source)
             scripts.insert(script)
 
