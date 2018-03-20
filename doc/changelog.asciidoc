@@ -29,6 +29,11 @@ Added
 Changed
 ~~~~~~~
 
+- QtWebEngine: Support for JavaScript Shared Web Workers have been disabled on
+  Qt versions older than 5.11 because of security issues in in Chromium.
+  You can get the same effect in earlier versions via
+  `:set qt.args ['disable-shared-workers']`. An equivalent workaround is also
+  contained in Qt 5.9.5 and 5.10.1.
 - The file dialog for downloads now has basic tab completion based on the
   entered text.
 - `:version` now shows OS information for POSIX OS other than Linux/macOS.
