@@ -215,14 +215,14 @@ class TestHandle:
 
     @pytest.mark.parametrize('modifiers, text', [
         (Qt.NoModifier, '2'),
-        (Qt.KeypadModifier, 'num-2'),
+        (Qt.KeypadModifier, '2'),
     ])
     def test_number_press_keypad(self, fake_keyevent, keyparser, config_stub,
                                  modifiers, text):
-        """Make sure a <Num+2> binding overrides the 2 binding."""
+        """Make sure a <Num+2> binding yields the 2 binding."""
         config_stub.val.bindings.commands = {'normal': {
             '2': 'message-info 2',
-            '<Num+2>': 'message-info num-2'}}
+            '<Num+2>': 'message-info 2'}}
         keyparser._read_config('normal')
         keyparser.handle(fake_keyevent(Qt.Key_2, modifiers))
         command = 'message-info {}'.format(text)
