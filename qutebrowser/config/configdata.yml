@@ -1041,19 +1041,7 @@ input.blur_on_load.enabled:
   desc: >-
     Clear focus on page during page load.
 
-    This prevents the page from stealing focus on page load, similar to how
-    js vim plugins preserve their own focus.
-
-input.blur_on_load.delay:
-  default: 0
-  type: Int
-  desc: >-
-    Delay (in milliseconds) after load finished before sending a second blur
-    event.
-
-    Does not send a second blur if the value is negative.
-
-    Only useful if input.blur_on_load.enabled is true.
+    This prevents the page from stealing focus on page load.
 
 input.blur_on_mode_leave:
   default: true

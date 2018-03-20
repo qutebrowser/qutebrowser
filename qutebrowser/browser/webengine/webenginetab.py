@@ -760,29 +760,14 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def _init_focustools(self):
         """Initialize focus tools."""
-        scripts = self._widget.page().scripts()
-        old_script = scripts.findScript('_qute_focustools')
-        if not old_script.isNull():
-            scripts.remove(old_script)
-
-        if config.val.input.blur_on_load.enabled:
-            source = '\n'.join([
-                '"use strict";',
-                'window._qutebrowser = window._qutebrowser || {};',
-                utils.read_file('javascript/focustools.js'),
-                javascript.assemble('focustools', 'load',
-                                    config.val.input.blur_on_load.enabled,
-                                    config.val.input.blur_on_load.delay),
-            ])
-
-            script = QWebEngineScript()
-            script.setName('_qute_focustools')
-            script.setInjectionPoint(QWebEngineScript.DocumentReady)
-            script.setWorldId(QWebEngineScript.ApplicationWorld)
-            script.setRunsOnSubFrames(False)
-            script.setSourceCode(source)
-            scripts.insert(script)
-
+        self._remove_early_js('focustools')
+        js_code = javascript.wrap_global(
+            'focustools',
+            utils.read_file('javascript/focustools.js'),
+            javascript.assemble('focustools', 'load',
+                                config.val.input.blur_on_load.enabled),
+        )
+        self._inject_early_js('focustools', js_code, subframes=False)
 
     def _install_event_filter(self):
         self._widget.focusProxy().installEventFilter(self._mouse_event_filter)

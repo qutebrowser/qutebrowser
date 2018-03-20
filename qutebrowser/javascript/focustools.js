@@ -1,5 +1,5 @@
 /**
- * Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
@@ -27,12 +27,18 @@ window._qutebrowser.focustools = (function() {
     const funcs = {};
     let lastFocusedElement = null;
     let handlerInstalled = false;
+    // Lets us know if the user did something on the page, if so, stop blurring.
+    let userInteracted = false;
 
     /*
      * Basic function for blurring the page.
      */
     funcs.blur = () => {
         if (document && document.activeElement) {
+            // If we have something focused, store it (in case js is disabled)
+            if (document.activeElement !== document.body) {
+                lastFocusedElement = document.activeElement;
+            }
             document.activeElement.blur();
         }
     };
@@ -40,7 +46,7 @@ window._qutebrowser.focustools = (function() {
     /*
      * Blur page on load, and timeout seconds after fully completed load.
      */
-    funcs.load = (blur_on_load, timeout) => {
+    funcs.load = (blur_on_load) => {
         if (blur_on_load) {
             // add a DOM event listener if we haven't loaded that yet
             if (document.readyState === "complete" ||
@@ -49,28 +55,45 @@ window._qutebrowser.focustools = (function() {
             } else {
                 window.addEventListener("DOMContentLoaded", funcs.blur);
             }
-
-            if (timeout >= 0) {
-                if (document.readyState === "complete") {
-                    setTimeout(funcs.blur, timeout);
-                } else {
-                    window.addEventListener("load",
-                        () => setTimeout(funcs.blur, timeout));
-                }
-            }
+            funcs.installHandlers();
         }
     };
 
-    funcs.installFocusHandler = () => {
-        if (document && document.body && !handlerInstalled) {
+    funcs.installHandlers = () => {
+        if (document.readyState !== "complete" &&
+            document.readyState !== "interactive") {
+            window.addEventListener("DOMContentLoaded", funcs.installHandlers);
+        } else if (document && document.body && !handlerInstalled) {
+            // Listen for future blur events; store the last focused element.
             document.body.addEventListener("blur", (event) => {
                 lastFocusedElement = event.srcElement;
             }, true);
+
+            // Blur right now in case anything managed to beat us.
+            funcs.blur();
+
+            // Blur any future focus events unless userInteracted is set
+            // https://github.com/philc/vimium/pull/1480/files for inspiration.
+            document.body.addEventListener("focus", (event) => {
+                if (!userInteracted) {
+                    event.target.blur();
+                }
+            }, true);
+
+            // Set userInteracted if we get any mouse/keypresses
+            document.body.addEventListener("mousedown", () => {
+                userInteracted = true;
+            }, true);
+            document.body.addEventListener("keydown", () => {
+                userInteracted = true;
+            }, true);
+
             handlerInstalled = true;
         }
     };
 
     funcs.focusLastElement = () => {
+        userInteracted = true;
         if (document && document.body &&
             // No element focused currently
             document.activeElement === document.body &&
@@ -81,7 +104,10 @@ window._qutebrowser.focustools = (function() {
         }
     };
 
-    funcs.installFocusHandler();
+    // Expose userInteracted so we can receive qb's js click/focus events
+    funcs.setUserInteracted = () => {
+        userInteracted = true;
+    };
 
     return funcs;
 })();
