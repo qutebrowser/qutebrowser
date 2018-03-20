@@ -60,10 +60,12 @@ class StylesheetTester:
     def check_set(self, value, css_style="background-color",
                   document_element="document.body"):
         """Check whether the css in ELEMENT is set to VALUE."""
-        self.js.run("window.getComputedStyle({}, null)"
-                    ".getPropertyValue('{}');"
-                    .format(document_element,
-                            javascript.string_escape(css_style)), value)
+        self.js.run("console.log({document});"
+                    "window.getComputedStyle({document}, null)"
+                    ".getPropertyValue('{prop}');".format(
+                        document=document_element,
+                        prop=javascript.string_escape(css_style)),
+                    value)
 
     def check_eq(self, one, two, true=True):
         """Check if one and two are equal."""

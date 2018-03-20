@@ -46,10 +46,10 @@ class JSTester:
         self.qtbot = qtbot
         loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
-        # Make sure logging via JS fails tests
+        # Make sure error logging via JS fails tests
         config_stub.val.content.javascript.log = {
+            'info': 'info',
             'error': 'error',
-            'info': 'error',
             'unknown': 'error',
             'warning': 'error'
         }
