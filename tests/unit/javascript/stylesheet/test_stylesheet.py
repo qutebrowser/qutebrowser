@@ -24,7 +24,6 @@ import pytest
 
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
 QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
-from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import javascript
 
@@ -117,6 +116,7 @@ def test_set_svg(stylesheet_tester):
     stylesheet_tester.check_eq('"svg"', "document.documentElement.nodeName")
 
 
+@pytest.mark.flaky
 def test_set_error(stylesheet_tester, config_stub):
     """Test stylesheet modifies file not found error pages."""
     config_stub.changed.disconnect()  # This test is flaky otherwise...
