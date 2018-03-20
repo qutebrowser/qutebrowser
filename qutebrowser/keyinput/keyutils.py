@@ -58,7 +58,7 @@ def is_special(key, modifiers):
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
     return not (_is_printable(key) and
-                modifiers in [Qt.ShiftModifier, Qt.NoModifier])
+                modifiers in [Qt.ShiftModifier, Qt.NoModifier, Qt.KeypadModifier])
 
 
 def is_modifier_key(key):
@@ -298,6 +298,8 @@ class KeyInfo:
             elif self.modifiers == Qt.NoModifier:
                 assert not is_special(self.key, self.modifiers)
                 return key_string.lower()
+            elif self.modifiers == Qt.KeypadModifier:
+                assert not is_special(self.key, self.modifiers)
             else:
                 # Use special binding syntax, but <Ctrl-a> instead of <Ctrl-A>
                 key_string = key_string.lower()
