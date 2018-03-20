@@ -1472,6 +1472,11 @@ url.incdec_segments:
   desc: URL segments where `:navigate increment/decrement` will search for
     a number.
 
+url.open_base_url:
+  type: Bool
+  default: false
+  desc: Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
+
 url.searchengines:
   default:
     DEFAULT: https://duckduckgo.com/?q={}
