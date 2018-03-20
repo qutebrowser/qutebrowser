@@ -22,6 +22,8 @@ Added
 ~~~~~
 
 - New `:scroll-to-anchor` command to scroll to an anchor in the document.
+- New `url.open_base_url` option to open the base URL of a searchengine when no
+  search term is given.
 
 Changed
 ~~~~~~~
@@ -43,6 +45,9 @@ Fixed
 - The window icon and title now get set correctly again.
 - The `tabs.switching_delay` setting now has a correct maximum value limit set.
 - The `taskadd` script now works properly when there's multi-line output.
+- QtWebEngine: Worked around issues with GreaseMonkey/stylesheets not being
+  loaded correctly in some situations.
+- The statusbar now more closely reflects the caret mode state.
 
 v1.2.1
 ------
