@@ -358,7 +358,9 @@ class TabBar(QTabBar):
         # Clear _minimum_tab_size_hint_helper cache when appropriate
         if option in ["tabs.indicator.padding",
                       "tabs.padding",
-                      "tabs.indicator.width"]:
+                      "tabs.indicator.width",
+                      "tabs.min_width",
+                      "tabs.pinned.shrink"]:
             self._minimum_tab_size_hint_helper.cache_clear()
 
     def _on_show_switching_delay_changed(self):
@@ -477,7 +479,8 @@ class TabBar(QTabBar):
         Args:
             index: The index of the tab to get a size hint for.
             ellipsis: Whether to use ellipsis to calculate width
-                     instead of the tab's text.
+                      instead of the tab's text.
+                      Forced to False for pinned tabs.
         Return:
             A QSize of the smallest tab size we can make.
         """
@@ -489,14 +492,19 @@ class TabBar(QTabBar):
         else:
             icon_width = min(icon.actualSize(self.iconSize()).width(),
                              self.iconSize().width()) + icon_padding
+
+        pinned = self._tab_pinned(index)
+        if pinned:
+            # Never consider ellipsis an option for pinned tabs
+            ellipsis = False
         return self._minimum_tab_size_hint_helper(self.tabText(index),
-                                                  icon_width,
-                                                  ellipsis)
+                                                  icon_width, ellipsis,
+                                                  pinned)
 
     @functools.lru_cache(maxsize=2**9)
     def _minimum_tab_size_hint_helper(self, tab_text: str,
                                       icon_width: int,
-                                      ellipsis: bool) -> QSize:
+                                      ellipsis: bool, pinned: bool) -> QSize:
         """Helper function to cache tab results.
 
         Config values accessed in here should be added to _on_config_changed to
@@ -521,6 +529,10 @@ class TabBar(QTabBar):
         height = self.fontMetrics().height() + padding_v
         width = (text_width + icon_width +
                  padding_h + indicator_width)
+        min_width = config.val.tabs.min_width
+        if (not self.vertical and min_width > 0 and
+                not pinned or not config.val.tabs.pinned.shrink):
+            width = max(min_width, width)
         return QSize(width, height)
 
     def _pinned_statistics(self) -> (int, int):
@@ -550,6 +562,12 @@ class TabBar(QTabBar):
         Return:
             A QSize.
         """
+        if self.count() == 0:
+            # This happens on startup on macOS.
+            # We return it directly rather than setting `size' because we don't
+            # want to ensure it's valid in this special case.
+            return QSize()
+
         minimum_size = self.minimumTabSizeHint(index)
         height = minimum_size.height()
         if self.vertical:
@@ -562,11 +580,6 @@ class TabBar(QTabBar):
             else:
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)
-        elif self.count() == 0:
-            # This happens on startup on macOS.
-            # We return it directly rather than setting `size' because we don't
-            # want to ensure it's valid in this special case.
-            return QSize()
         else:
             if config.val.tabs.pinned.shrink:
                 pinned = self._tab_pinned(index)
