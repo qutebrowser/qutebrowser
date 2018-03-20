@@ -128,11 +128,14 @@ def test_delete(bm_file, fake_save_manager, qtbot):
     bm.save()
 
     with qtbot.wait_signal(bm.changed):
-        bm.delete('http://example.com/bar')
+        bm.delete(QUrl('http://example.com/bar'))
     assert list(bm) == [
         urlmarks.Bookmark('http://example.com/baz', 'Baz', []),
         urlmarks.Bookmark('http://example.com/foo', 'Foo', []),
     ]
+
+    with pytest.raises(urlmarks.DoesNotExistError):
+        bm.delete(QUrl('http://example.com/nope'))
 
 
 def test_save(bm_file, fake_save_manager):
@@ -221,3 +224,17 @@ def test_untag(bm_file, fake_save_manager, qtbot, old, remove, new):
         bm.untag(url, remove)
 
     assert bm.get(url).tags == new
+
+
+def test_invalid_url(bm_file, fake_save_manager):
+    bm = urlmarks.BookmarkManager()
+    url = QUrl('ht tp://example.com')
+
+    with pytest.raises(urlmarks.InvalidUrlError):
+        bm.add(url, 'title', [])
+    with pytest.raises(urlmarks.InvalidUrlError):
+        bm.tag(url, ['one', 'two'])
+    with pytest.raises(urlmarks.InvalidUrlError):
+        bm.untag(url, ['one', 'two'])
+    with pytest.raises(urlmarks.InvalidUrlError):
+        bm.delete(url)

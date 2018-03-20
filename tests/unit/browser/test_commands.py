@@ -24,7 +24,7 @@ from PyQt5.QtCore import QUrl
 import pytest
 
 from qutebrowser.commands import cmdexc
-from qutebrowser.browser import commands, urlmarks
+from qutebrowser.browser import commands, urlmarks, browsertab
 from qutebrowser.mainwindow import tabbedbrowser
 
 pytestmark = pytest.mark.usefixtures('redirect_webengine_data')
@@ -32,6 +32,14 @@ pytestmark = pytest.mark.usefixtures('redirect_webengine_data')
 @pytest.fixture
 def tabbed_browser():
     return mock.Mock(spec=tabbedbrowser.TabbedBrowser)
+
+
+@pytest.fixture
+def current_tab(tabbed_browser):
+        tab = mock.Mock(spec=browsertab.AbstractTab)
+        tabbed_browser.currentWidget.return_value = tab
+        return tab
+
 
 @pytest.fixture
 def command_dispatcher(tabbed_browser, config_stub):
@@ -44,13 +52,11 @@ class TestBookmarkAdd:
     def test_add(self, command_dispatcher, bookmark_manager_mock):
         command_dispatcher.bookmark_add('example.com', 'Example Site')
         bookmark_manager_mock.add.assert_called_with(
-            QUrl('http://example.com'), 'Example Site', [], toggle=False)
+            QUrl('example.com'), 'Example Site', [], toggle=False)
 
     def test_no_url_or_title(self, command_dispatcher, tabbed_browser,
-                             bookmark_manager_mock):
-        tab = mock.Mock()
-        tab.title.return_value = 'Example Site'
-        tabbed_browser.currentWidget.return_value = tab
+                             bookmark_manager_mock, current_tab):
+        current_tab.title.return_value = 'Example Site'
         tabbed_browser.current_url.return_value = QUrl('example.com')
         command_dispatcher.bookmark_add()
         bookmark_manager_mock.add.assert_called_with(
@@ -71,18 +77,20 @@ class TestBookmarkAdd:
     def test_toggle_on(self, command_dispatcher, bookmark_manager_mock,
                        message_mock):
         bookmark_manager_mock.add.return_value = True
-        command_dispatcher.bookmark_add('example.com', 'Example Site', toggle=True)
+        command_dispatcher.bookmark_add('example.com', 'Example Site',
+                                        toggle=True)
         bookmark_manager_mock.add.assert_called_with(
-            QUrl('http://example.com'), 'Example Site', [], toggle=True)
-        assert message_mock.getmsg().text == 'Bookmarked http://example.com'
+            QUrl('example.com'), 'Example Site', [], toggle=True)
+        assert message_mock.getmsg().text == 'Bookmarked example.com'
 
     def test_toggle_off(self, command_dispatcher, bookmark_manager_mock,
                         message_mock):
         bookmark_manager_mock.add.return_value = False
-        command_dispatcher.bookmark_add('example.com', 'Example Site', toggle=True)
+        command_dispatcher.bookmark_add('example.com', 'Example Site',
+                                        toggle=True)
         bookmark_manager_mock.add.assert_called_with(
-            QUrl('http://example.com'), 'Example Site', [], toggle=True)
-        assert message_mock.getmsg().text == 'Removed bookmark http://example.com'
+            QUrl('example.com'), 'Example Site', [], toggle=True)
+        assert message_mock.getmsg().text == 'Removed bookmark example.com'
 
 
 class TestBookmarkTag:
@@ -125,10 +133,8 @@ class TestBookmarkLoad:
         assert str(excinfo.value) == 'No tags provided'
 
     @pytest.mark.parametrize('delete', [True, False])
-    def test_open(self, command_dispatcher, bookmark_manager_mock,
-                  tabbed_browser, delete):
-        tab = mock.Mock()
-        tabbed_browser.currentWidget.return_value = tab
+    def test_load(self, command_dispatcher, bookmark_manager_mock,
+                  tabbed_browser, current_tab, delete):
         bookmark_manager_mock.get_tagged.return_value = [
             urlmarks.Bookmark(url='example.com/1', title='', tags=[]),
             urlmarks.Bookmark(url='example.com/2', title='', tags=[]),
@@ -137,7 +143,7 @@ class TestBookmarkLoad:
         command_dispatcher.bookmark_load('foo', delete=delete)
 
         bookmark_manager_mock.get_tagged.assert_called_once_with(('foo',))
-        tab.openurl.assert_called_once_with(QUrl('example.com/1'))
+        current_tab.openurl.assert_called_once_with(QUrl('example.com/1'))
 
         if delete:
             bookmark_manager_mock.delete.assert_called_once_with(
@@ -150,7 +156,7 @@ class TestBookmarkLoad:
     ])
     @pytest.mark.parametrize('open_all', [True, False])
     @pytest.mark.parametrize('delete', [True, False])
-    def test_open_tab(self, command_dispatcher, bookmark_manager_mock,
+    def test_tab(self, command_dispatcher, bookmark_manager_mock,
                       tabbed_browser, in_args, out_args, open_all, delete):
         bookmark_manager_mock.get_tagged.return_value = [
             urlmarks.Bookmark(url='example.com/1', title='', tags=[]),
@@ -184,7 +190,7 @@ class TestBookmarkLoad:
                 )
 
     @pytest.mark.parametrize('private', [True, False])
-    def test_open_window(self, command_dispatcher, bookmark_manager_mock,
+    def test_window(self, command_dispatcher, bookmark_manager_mock,
                          mocker, tabbed_browser, private):
         tabbed_browser.private = private
         m = mocker.patch('qutebrowser.browser.commands.mainwindow.MainWindow')
@@ -211,8 +217,29 @@ class TestBookmarkLoad:
             command_dispatcher.bookmark_load('foo', **args)
         assert str(excinfo.value) == 'Only one of -t/-b/-w/-p can be given!'
 
-
     def test_open_all_invalid(self, command_dispatcher):
         with pytest.raises(cmdexc.CommandError) as excinfo:
             command_dispatcher.bookmark_load('foo', open_all=True)
         assert str(excinfo.value) == '-a requires one of -t/-b/-w'
+
+
+class TestBookmarkDel:
+
+    def test_delete(self, command_dispatcher, bookmark_manager_mock):
+        url = 'http://example.com'
+        command_dispatcher.bookmark_del(url)
+        bookmark_manager_mock.delete.assert_called_once_with(QUrl(url))
+
+    def test_no_args(self, command_dispatcher, bookmark_manager_mock,
+                     tabbed_browser):
+        url = QUrl('http://example.com')
+        tabbed_browser.current_url.return_value = url
+        command_dispatcher.bookmark_del()
+        bookmark_manager_mock.delete.assert_called_once_with(url)
+
+    def test_not_found(self, command_dispatcher, bookmark_manager_mock):
+        bookmark_manager_mock.delete.side_effect = urlmarks.DoesNotExistError(
+            'No bookmark with url http://example.com')
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            command_dispatcher.bookmark_del('http://example.com')
+        assert str(excinfo.value) == 'No bookmark with url http://example.com'

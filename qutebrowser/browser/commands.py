@@ -1326,15 +1326,8 @@ class CommandDispatcher:
             raise cmdexc.CommandError('Title must be provided if url has '
                                       'been provided')
         bookmark_manager = objreg.get('bookmark-manager')
-        if not url:
-            url = self._current_url()
-        else:
-            try:
-                url = urlutils.fuzzy_url(url)
-            except urlutils.InvalidUrlError as e:
-                raise cmdexc.CommandError(e)
-        if not title:
-            title = self._current_title()
+        url = QUrl(url or self._current_url())
+        title = title or self._current_title()
         try:
             was_added = bookmark_manager.add(url, title, [], toggle=toggle)
         except urlmarks.Error as e:
@@ -1356,11 +1349,7 @@ class CommandDispatcher:
             remove: Remove tags instead of adding.
         """
         bookmark_manager = objreg.get('bookmark-manager')
-        try:
-            url = urlutils.fuzzy_url(url)
-        except urlutils.InvalidUrlError as e:
-            raise cmdexc.CommandError(e)
-
+        url = QUrl(url or self._current_url())
         try:
             if remove:
                 bookmark_manager.untag(url, tags)
@@ -1412,13 +1401,11 @@ class CommandDispatcher:
             url: The url of the bookmark to delete. If not given, use the
                  current page's url.
         """
-        if url is None:
-            url = self._current_url().toString(QUrl.RemovePassword |
-                                               QUrl.FullyEncoded)
+        url = QUrl(url or self._current_url())
         try:
             objreg.get('bookmark-manager').delete(url)
-        except KeyError:
-            raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def follow_selected(self, *, tab=False):

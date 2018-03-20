@@ -18,9 +18,8 @@ Feature: Bookmarks
         Then the error "Title must be provided if url has been provided" should be shown
 
     Scenario: Saving a bookmark with an invalid url
-        When I set url.auto_search to never
-        And I run :bookmark-add foo! "some example title"
-        Then the error "Invalid URL" should be shown
+        When I run :bookmark-add "ht tp://example.com" "some example title"
+        Then the error "Invalid URL *" should be shown
 
     Scenario: Saving a duplicate bookmark
         Given I have a fresh instance

@@ -135,11 +135,11 @@ class BookmarkManager(QObject):
             errstr = urlutils.get_errstring(url)
             raise InvalidUrlError(errstr)
 
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = self._urlstr(url)
 
         if urlstr in self._marks:
             if toggle:
-                self.delete(urlstr)
+                self.delete(url)
                 return False
             else:
                 raise AlreadyExistsError("Bookmark already exists!")
@@ -161,10 +161,10 @@ class BookmarkManager(QObject):
         Args:
             url: The QUrl of the mark to find.
         """
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+        urlstr = self._urlstr(url)
         mark = self._marks.get(urlstr)
         if not mark:
-            raise DoesNotExistError('No bookmark with url {}'.format(urlstr))
+            raise DoesNotExistError("Bookmark '{}' not found!".format(urlstr))
         return mark
 
     def get_tagged(self, tags):
@@ -206,7 +206,17 @@ class BookmarkManager(QObject):
         """Delete a bookmark.
 
         Args:
-            key: The url of the bookmark to delete.
+            key: The QUrl of the bookmark to delete.
         """
-        del self._marks[key]
+        urlstr = self._urlstr(key)
+        try:
+            del self._marks[urlstr]
+        except KeyError:
+            raise DoesNotExistError("Bookmark '{}' not found!".format(urlstr))
         self.changed.emit()
+
+    def _urlstr(self, url):
+        """Convert a QUrl into the string format used as a key."""
+        if not url.isValid():
+            raise InvalidUrlError(urlutils.get_errstring(url))
+        return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
