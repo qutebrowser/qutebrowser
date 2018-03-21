@@ -301,7 +301,7 @@ class KeyInfo:
                 return key_string.lower()
             elif self.modifiers == Qt.KeypadModifier:
                 assert not is_special(self.key, self.modifiers)
-                return key_string.lower()
+                return "<Num+{}>".format(key_string)
             else:
                 # Use special binding syntax, but <Ctrl-a> instead of <Ctrl-A>
                 key_string = key_string.lower()
