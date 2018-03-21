@@ -96,3 +96,11 @@ class TestHintKeyParser:
         assert match == QKeySequence.ExactMatch
 
         keyparser.execute.assert_called_with('follow-hint -s as', None)
+
+    def test_numberkey_hint_match(self, keyparser, fake_keyevent):
+        keyparser.update_bindings(['21', '22'])
+
+        match = keyparser.handle(fake_keyevent(Qt.Key_2, Qt.KeypadModifier))
+        assert match == QKeySequence.PartialMatch
+        match = keyparser.handle(fake_keyevent(Qt.Key_2, Qt.KeypadModifier))
+        assert match == QKeySequence.ExactMatch
