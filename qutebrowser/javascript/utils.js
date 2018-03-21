@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
@@ -18,41 +18,13 @@
  */
 
 /**
- * The connection for web elements between Python and Javascript works like
- * this:
- *
- * - Python calls into Javascript and invokes a function to find elements (one
- *   of the find_* functions).
- * - Javascript gets the requested element, and calls serialize_elem on it.
- * - serialize_elem saves the javascript element object in "elements", gets some
- *   attributes from the element, and assigns an ID (index into 'elements') to
- *   it.
- * - Python gets this information and constructs a Python wrapper object with
- *   the information it got right away, and the ID.
- * - When Python wants to modify an element, it calls javascript again with the
- *   element ID.
- * - Javascript gets the element from the elements array, and modifies it.
+ * General utilities used by multiple qutebrowser js files.
  */
 
 "use strict";
 
 window._qutebrowser.utils = (function() {
     const funcs = {};
-
-    funcs.get_frame_offset = (frame) => {
-        if (frame === null) {
-            // Dummy object with zero offset
-            return {
-                "top": 0,
-                "right": 0,
-                "bottom": 0,
-                "left": 0,
-                "height": 0,
-                "width": 0,
-            };
-        }
-        return frame.frameElement.getBoundingClientRect();
-    };
 
     // Returns true if the iframe is accessible without
     // cross domain errors, else false.
@@ -65,20 +37,6 @@ window._qutebrowser.utils = (function() {
         }
     }
     funcs.iframe_same_domain = iframe_same_domain;
-
-    // Runs a function in a frame until the result is not null, then return
-    funcs.run_frames = (func) => {
-        for (let i = 0; i < window.frames.length; ++i) {
-            const frame = window.frames[i];
-            if (iframe_same_domain(frame)) {
-                const result = func(frame);
-                if (result) {
-                    return result;
-                }
-            }
-        }
-        return null;
-    };
 
     // Check if elem is an iframe, and if so, return the result of func on it.
     // If no iframes match, return null

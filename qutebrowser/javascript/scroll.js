@@ -22,7 +22,7 @@
 window._qutebrowser.scroll = (function() {
     const funcs = {};
 
-    const call_if_frame = window._qutebrowser.utils.call_if_frame;
+    const utils = window._qutebrowser.utils;
 
     // Helper function which scrolls the document 'doc' and window 'win' to x, y
     function scroll_to_perc(x, y, win = window, doc = document) {
@@ -71,7 +71,7 @@ window._qutebrowser.scroll = (function() {
     funcs.to_perc = (x, y) => {
         const elem = document.activeElement;
         // If we are in a frame, scroll that frame
-        const scrolled = call_if_frame(elem,
+        const scrolled = utils.call_if_frame(elem,
             (frame_win) => scroll_to_perc(x, y, frame_win, frame_win.document));
 
         if (!scrolled) {
@@ -95,7 +95,7 @@ window._qutebrowser.scroll = (function() {
     funcs.delta_page = (x, y) => {
         const elem = document.activeElement;
         // If we are in a frame, scroll that frame
-        const scrolled = call_if_frame(elem,
+        const scrolled = utils.call_if_frame(elem,
             (frame_win) => scroll_window(x, y, frame_win));
 
         if (!scrolled) {
@@ -107,7 +107,7 @@ window._qutebrowser.scroll = (function() {
     funcs.delta_px = (x, y) => {
         const elem = document.activeElement;
         // If we are in a frame, scroll that frame
-        const scrolled = call_if_frame(elem,
+        const scrolled = utils.call_if_frame(elem,
             (frame_win) => scroll_window(x, y, frame_win, false));
 
         if (!scrolled) {

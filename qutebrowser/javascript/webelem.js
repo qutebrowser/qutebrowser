@@ -40,10 +40,22 @@ window._qutebrowser.webelem = (function() {
     const funcs = {};
     const elements = [];
 
-    const get_frame_offset = window._qutebrowser.utils.get_frame_offset;
-    const iframe_same_domain = window._qutebrowser.utils.iframe_same_domain;
-    const run_frames = window._qutebrowser.utils.run_frames;
-    const call_if_frame = window._qutebrowser.utils.call_if_frame;
+    const utils = window._qutebrowser.utils;
+
+    function get_frame_offset(frame) {
+        if (frame === null) {
+            // Dummy object with zero offset
+            return {
+                "top": 0,
+                "right": 0,
+                "bottom": 0,
+                "left": 0,
+                "height": 0,
+                "width": 0,
+            };
+        }
+        return frame.frameElement.getBoundingClientRect();
+    }
 
     // Add an offset rect to a base rect, for use with frames
     function add_offset_rect(base, offset) {
@@ -205,7 +217,7 @@ window._qutebrowser.webelem = (function() {
 
         // Recurse into frames and add them
         for (let i = 0; i < subelem_frames.length; i++) {
-            if (iframe_same_domain(subelem_frames[i])) {
+            if (utils.iframe_same_domain(subelem_frames[i])) {
                 const frame = subelem_frames[i];
                 const subelems = frame.document.
                     querySelectorAll(selector);
@@ -220,6 +232,20 @@ window._qutebrowser.webelem = (function() {
 
         return out;
     };
+
+    // Runs a function in a frame until the result is not null, then return
+    function run_frames(func) {
+        for (let i = 0; i < window.frames.length; ++i) {
+            const frame = window.frames[i];
+            if (utils.iframe_same_domain(frame)) {
+                const result = func(frame);
+                if (result) {
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
 
     funcs.find_id = (id) => {
         const elem = document.getElementById(id);
@@ -249,7 +275,7 @@ window._qutebrowser.webelem = (function() {
         }
 
         // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = call_if_frame(elem,
+        const frame_elem = utils.call_if_frame(elem,
             (frame) => serialize_elem(frame.document.activeElement, frame));
 
         if (frame_elem !== null) {
@@ -263,7 +289,7 @@ window._qutebrowser.webelem = (function() {
 
 
         // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = call_if_frame(elem,
+        const frame_elem = utils.call_if_frame(elem,
             (frame) => {
                 // Subtract offsets due to being in an iframe
                 const frame_offset_rect =
