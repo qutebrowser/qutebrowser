@@ -54,6 +54,7 @@ Fixed
 - QtWebEngine: Worked around issues with GreaseMonkey/stylesheets not being
   loaded correctly in some situations.
 - The statusbar now more closely reflects the caret mode state.
+- The icon on Windows should now be displayed in a higher resolution.
 
 v1.2.1
 ------
