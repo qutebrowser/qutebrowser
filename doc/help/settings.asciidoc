@@ -3293,7 +3293,7 @@ See the setting's valid values for more information on allowed values.
 |TextAlignment|Alignment of text.
 |TimestampTemplate|An strftime-like template for timestamps.
 
-See https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior for reference.
+See https://sqlite.org/lang_datefunc.html for reference.
 |UniqueCharString|A string which may not contain duplicate chars.
 |Url|A URL as a string.
 |VerticalPosition|The position of the download bar.
