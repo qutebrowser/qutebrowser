@@ -47,16 +47,25 @@ Debian Stretch / Ubuntu 17.04 and 17.10
 Those versions come with QtWebEngine in the repositories. This makes it possible
 to install qutebrowser via the Debian package.
 
-Download the https://packages.debian.org/sid/all/qutebrowser/download[qutebrowser] and
-https://packages.debian.org/sid/all/python3-pypeg2/download[PyPEG2]
-package from the Debian repositories.
+You'll need to download three packages:
 
-Install the packages:
+- https://packages.debian.org/sid/all/python3-pypeg2/download[PyPEG2] (a library
+  used by qutebrowser which is not in the earlier repositories)
+- https://packages.debian.org/sid/all/qutebrowser/download[qutebrowser] itself
+- Either https://packages.debian.org/sid/all/qutebrowser-qtwebengine/download[qutebrowser-qtwebengine]
+  or https://packages.debian.org/sid/all/qutebrowser-qtwebkit/download[qutebrowser-qtwebkit]
+  (or both) depending on the backend you want to use. QtWebEngine is the
+  default/recommended choice.
+
+After downloading, install the packages:
 
 ----
 # apt install ./python3-pypeg2_*_all.deb
-# apt install ./qutebrowser_*_all.deb
+# apt install ./qutebrowser*.deb
 ----
+
+For an update after the initial install, you only need to download/install the
+qutebrowser package.
 
 Debian Testing / Ubuntu 18.04
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
