@@ -299,15 +299,13 @@ class KeyInfo:
             elif self.modifiers == Qt.NoModifier:
                 assert not is_special(self.key, self.modifiers)
                 return key_string.lower()
-            elif self.modifiers == Qt.KeypadModifier:
-                assert not is_special(self.key, self.modifiers)
-                return "<Num+{}>".format(key_string)
             else:
                 # Use special binding syntax, but <Ctrl-a> instead of <Ctrl-A>
                 key_string = key_string.lower()
 
         # "special" binding
-        assert is_special(self.key, self.modifiers)
+        assert (is_special(self.key, self.modifiers) or
+                self.modifiers == Qt.KeypadModifier)
         modifier_string = _modifiers_to_string(modifiers)
         return '<{}{}>'.format(modifier_string, key_string)
 
