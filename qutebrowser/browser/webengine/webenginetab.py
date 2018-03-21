@@ -340,6 +340,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
             elem.click(click_type)
 
     def follow_selected(self, *, tab=False):
+        # Tell focustools the user is triggering this focus event.
+        self._tab.run_js_async(
+            javascript.assemble('focustools', "setUserInteracted"))
+
         if self._tab.search.search_displayed:
             # We are currently in search mode.
             # let's click the link via a fake-click

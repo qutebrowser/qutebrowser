@@ -350,6 +350,7 @@ window._qutebrowser.webelem = (function() {
     };
 
     funcs.insert_text = (id, text) => {
+        setUserInteracted();
         const elem = elements[id];
         elem.focus();
         document.execCommand("insertText", false, text);

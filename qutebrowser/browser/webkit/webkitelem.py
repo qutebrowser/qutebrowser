@@ -306,6 +306,9 @@ class WebKitElement(webelem.AbstractWebElement):
             self._tab.caret.move_to_end_of_document()
 
     def _click_editable(self, click_target):
+        # set UserInteracted in focustools so our focus event goes through
+        self._elem.evaluateJavaScript(
+            'window._qutebrowser.focustools.setUserInteracted();')
         ok = self._elem.evaluateJavaScript('this.focus(); true;')
         if ok:
             self._move_text_cursor()
@@ -318,6 +321,9 @@ class WebKitElement(webelem.AbstractWebElement):
         attribute = QWebSettings.JavascriptCanOpenWindows
         could_open_windows = settings.testAttribute(attribute)
         settings.setAttribute(attribute, True)
+        # set UserInteracted in focustools so our focus event goes through
+        self._elem.evaluateJavaScript(
+            'window._qutebrowser.focustools.setUserInteracted();')
         ok = self._elem.evaluateJavaScript('this.click(); true;')
         settings.setAttribute(attribute, could_open_windows)
         if not ok:
