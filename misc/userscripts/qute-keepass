@@ -80,6 +80,7 @@ group.add_argument('--username-only', '-e',
 group.add_argument('--password-only', '-w',
                    action='store_true', help='Only insert password')
 
+CMD_DELAY = 50
 
 class ExitCodes(enum.IntEnum):
     """Stores various exit codes groups to use."""
@@ -191,15 +192,18 @@ def run(args):
 
     insert_mode = ';; enter-mode insert' if args.insert_mode else ''
     if args.username_only:
-        qute_command('fake-key {}{}'.format(username, insert_mode))
+        qute_command('insert-text {}{}'.format(username, insert_mode))
     elif args.password_only:
-        qute_command('fake-key {}{}'.format(password, insert_mode))
+        qute_command('insert-text {}{}'.format(password, insert_mode))
     else:
         # Enter username and password using fake-key and <Tab> (which seems to
         # work almost universally), then switch back into insert-mode, so the
         # form can be directly submitted by hitting enter afterwards
-        qute_command('fake-key {} ;; fake-key <Tab> ;; fake-key {}{}'
-                     .format(username, password, insert_mode))
+        qute_command('insert-text {} ;;'
+                     'later {} fake-key <Tab> ;;'
+                     'later {} insert-text {}{}'
+                     .format(username, CMD_DELAY,
+                             CMD_DELAY * 2, password, insert_mode))
 
     return ExitCodes.SUCCESS
 
