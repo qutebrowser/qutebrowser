@@ -719,9 +719,19 @@ class HintManager(QObject):
             raise cmdexc.CommandError("No URL set for this page yet!")
         self._context.args = args
         self._context.group = group
-        selector = webelem.SELECTORS[self._context.group]
+        selector = self._get_selector()
         self._context.tab.elements.find_css(selector, self._start_cb,
                                             only_visible=True)
+
+    def _get_selector(self):
+        group = self._context.group
+        selector = webelem.SELECTORS[group]
+
+        url = self._context.baseurl
+        group_name = webelem.Group(group).name
+        custom = config.instance.get('hints.selectors', url)[group_name]
+
+        return ','.join([selector, *custom])
 
     def current_mode(self):
         """Return the currently active hinting mode (or None otherwise)."""

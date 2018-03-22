@@ -954,6 +954,25 @@ hints.scatter:
 
     Ignored for number hints.
 
+hints.selectors:
+  default:
+    all: []
+    links: []
+    images: []
+    urls: []
+    inputs: []
+  type:
+    name: Dict
+    fixed_keys: ['all', 'links', 'images', 'urls', 'inputs']
+    keytype: String
+    valtype:
+      name: List
+      none_ok: true
+      valtype: String
+  supports_pattern: true
+  desc: Additional CSS selectors used to determine which elements on a page
+    should have hints.
+
 hints.uppercase:
   default: false
   type: Bool
