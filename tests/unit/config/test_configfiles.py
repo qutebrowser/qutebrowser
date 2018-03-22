@@ -223,6 +223,18 @@ class TestYaml:
         mode = 'persist' if persist else 'normal'
         assert data['tabs.mode_on_change']['global'] == mode
 
+    @pytest.mark.parametrize('hide_decoration', [True, False])
+    def test_merge_persist(self, yaml, autoconfig, hide_decoration):
+        """Tests for migration of window.hide_wayland_decoration"""
+        old = {'window.hide_wayland_decoration': {'global': hide_decoration}}
+        autoconfig.write(old)
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert 'window.hide_wayland_decoration' not in data
+        assert data['window.hide_decoration']['global'] == hide_decoration
+
     def test_bindings_default(self, yaml, autoconfig):
         """Make sure bindings.default gets removed from autoconfig.yml."""
         autoconfig.write({'bindings.default': {'global': '{}'}})

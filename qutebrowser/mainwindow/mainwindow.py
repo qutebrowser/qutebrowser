@@ -169,6 +169,9 @@ class MainWindow(QWidget):
         objreg.register('message-bridge', message_bridge, scope='window',
                         window=self.win_id)
 
+        if config.val.window.hide_decoration:
+            window_flags = Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
+            self.setWindowFlags(Qt.Window | window_flags)
         self.setWindowTitle('qutebrowser')
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)

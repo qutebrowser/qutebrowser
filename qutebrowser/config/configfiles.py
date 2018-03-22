@@ -262,6 +262,20 @@ class YamlConfig(QObject):
             del settings[old]
             self._mark_changed()
 
+        # window.hide_wayland_decoration was replaced by a more system agnostic
+        # Qt based equivalent
+        old = 'window.hide_wayland_decoration'
+        new = 'window.hide_decoration'
+        if old in settings:
+            settings[new] = {}
+            for scope, val in settings[old].items():
+                if val:
+                    settings[new][scope] = True
+                else:
+                    settings[new][scope] = False
+            del settings[old]
+            self._mark_changed()
+
         # bindings.default can't be set in autoconfig.yml anymore, so ignore
         # old values.
         if 'bindings.default' in settings:
