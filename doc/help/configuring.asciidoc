@@ -242,10 +242,10 @@ To suppress loading of any default keybindings, you can set
 Loading `autoconfig.yml`
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, all customization done via `:set`, `:bind` and `:unbind` is
-temporary as soon as a `config.py` exists. The settings done that way are always
-saved in the `autoconfig.yml` file, but you'll need to explicitly load it in
-your `config.py` by doing:
+All customization done via the UI (`:set`, `:bind` and `:unbind`) is
+stored in the `autoconfig.yml` file, which is not loaded automatically as soon
+as a `config.py` exists. If you want those settings to be loaded, you'll need to
+explicitly load the `autoconfig.yml` file in your `config.py` by doing:
 
 .config.py:
 [source,python]
