@@ -224,7 +224,7 @@ class TestYaml:
         assert data['tabs.mode_on_change']['global'] == mode
 
     @pytest.mark.parametrize('hide_decoration', [True, False])
-    def test_merge_persist(self, yaml, autoconfig, hide_decoration):
+    def test_decoration_hiding(self, yaml, autoconfig, hide_decoration):
         """Tests for migration of window.hide_wayland_decoration"""
         old = {'window.hide_wayland_decoration': {'global': hide_decoration}}
         autoconfig.write(old)
