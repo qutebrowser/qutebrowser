@@ -150,6 +150,10 @@ class TabWidget(QTabWidget):
 
         if tabbar.tabText(idx) != title:
             tabbar.setTabText(idx, title)
+
+        # always show only plain title in tooltips
+        title = fields['title']
+        if tabbar.tabToolTip(idx) != title:
             tabbar.setTabToolTip(idx, title)
 
     def get_tab_fields(self, idx):
