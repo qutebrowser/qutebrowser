@@ -3157,7 +3157,7 @@ Default:
 - +pass:[utm_term]+
 - +pass:[utm_content]+
 
-[[window.hide_wayland_decoration]]
+[[window.hide_decoration]]
 === window.hide_decoration
 Hide the window decoration.
 This setting requires a restart.

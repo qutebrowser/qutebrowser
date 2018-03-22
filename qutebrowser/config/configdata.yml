@@ -1536,8 +1536,10 @@ url.yank_ignored_parameters:
 window.hide_decoration:
   type: Bool
   default: false
-  restart: true
-  desc: Hide the window decoration.
+  restart: false
+  desc: |
+    Hide the window decoration. Does require a restart for
+    Wayland users.
 
 window.title_format:
   type:

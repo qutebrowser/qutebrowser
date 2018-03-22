@@ -169,9 +169,6 @@ class MainWindow(QWidget):
         objreg.register('message-bridge', message_bridge, scope='window',
                         window=self.win_id)
 
-        if config.val.window.hide_decoration:
-            window_flags = Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
-            self.setWindowFlags(Qt.Window | window_flags)
         self.setWindowTitle('qutebrowser')
         self._vbox = QVBoxLayout(self)
         self._vbox.setContentsMargins(0, 0, 0, 0)
@@ -233,6 +230,8 @@ class MainWindow(QWidget):
         config.instance.changed.connect(self._on_config_changed)
 
         objreg.get("app").new_window.emit(self)
+        self._set_decoration(config.val.window.hide_decoration)
+
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -347,6 +346,8 @@ class MainWindow(QWidget):
         elif option == 'statusbar.position':
             self._add_widgets()
             self._update_overlay_geometries()
+        elif option == 'window.hide_decoration':
+            self._set_decoration(config.val.window.hide_decoration)
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
@@ -495,6 +496,15 @@ class MainWindow(QWidget):
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)
+
+    def _set_decoration(self, hidden):
+        """ Set the visibility of the window decoration via Qt."""
+        window_flags = Qt.Window
+        if hidden:
+            window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
+        self.setWindowFlags(window_flags)
+        self.hide()
+        self.show()
 
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
