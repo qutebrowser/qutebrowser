@@ -494,8 +494,8 @@ class TabBar(QTabBar):
                              self.iconSize().width()) + icon_padding
 
         pinned = self._tab_pinned(index)
-        if pinned:
-            # Never consider ellipsis an option for pinned tabs
+        if not self.vertical and pinned and config.val.tabs.pinned.shrink:
+            # Never consider ellipsis an option for horizontal pinned tabs
             ellipsis = False
         return self._minimum_tab_size_hint_helper(self.tabText(index),
                                                   icon_width, ellipsis,
