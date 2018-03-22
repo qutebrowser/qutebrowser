@@ -17,14 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Generic web element related code.
+"""Generic web element related code."""
 
-Module attributes:
-    Group: Enum for different kinds of groups.
-    SELECTORS: CSS selectors for different groups of elements.
-"""
-
-import enum
 import collections.abc
 
 from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer
@@ -34,25 +28,6 @@ from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
-
-
-Group = enum.Enum('Group', ['all', 'links', 'images', 'url', 'inputs'])
-
-
-SELECTORS = {
-    Group.all: ('a, area, textarea, select, input:not([type=hidden]), button, '
-                'frame, iframe, link, summary, [onclick], [onmousedown], '
-                '[role=link], [role=option], [role=button], img, '
-                # Angular 1 selectors
-                '[ng-click], [ngClick], [data-ng-click], [x-ng-click]'),
-    Group.links: 'a[href], area[href], link[href], [role=link][href]',
-    Group.images: 'img',
-    Group.url: '[src], [href]',
-    Group.inputs: ('input[type=text], input[type=email], input[type=url], '
-                   'input[type=tel], input[type=number], '
-                   'input[type=password], input[type=search], '
-                   'input:not([type]), textarea'),
-}
 
 
 class Error(Exception):

@@ -954,6 +954,60 @@ hints.scatter:
 
     Ignored for number hints.
 
+hints.selectors:
+  default:
+    all:
+      - 'a'
+      - 'area'
+      - 'textarea'
+      - 'select'
+      - 'input:not([type="hidden"])'
+      - 'button'
+      - 'frame'
+      - 'iframe'
+      - 'img'
+      - 'link'
+      - 'summary'
+      - '[onclick]'
+      - '[onmousedown]'
+      - '[role="link"]'
+      - '[role="option"]'
+      - '[role="button"]'
+      - '[ng-click]'
+      - '[ngClick]'
+      - '[data-ng-click]'
+      - '[x-ng-click]'
+    links:
+      - 'a[href]'
+      - 'area[href]'
+      - 'link[href]'
+      - '[role="link"][href]'
+    images:
+      - 'img'
+    urls:
+      - '[src]'
+      - '[href]'
+    inputs:
+      - 'input[type="text"]'
+      - 'input[type="email"]'
+      - 'input[type="url"]'
+      - 'input[type="tel"]'
+      - 'input[type="number"]'
+      - 'input[type="password"]'
+      - 'input[type="search"]'
+      - 'input:not([type])'
+      - 'textarea'
+  type:
+    name: Dict
+    keytype: String
+    valtype:
+      name: List
+      none_ok: true
+      valtype: String
+  supports_pattern: true
+  desc: CSS selectors used to determine which elements on a page should have
+    hints.
+
 hints.uppercase:
   default: false
   type: Bool
