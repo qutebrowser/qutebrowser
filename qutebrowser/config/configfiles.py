@@ -269,10 +269,7 @@ class YamlConfig(QObject):
         if old in settings:
             settings[new] = {}
             for scope, val in settings[old].items():
-                if val:
-                    settings[new][scope] = True
-                else:
-                    settings[new][scope] = False
+                settings[new][scope] = val
             del settings[old]
             self._mark_changed()
 
