@@ -500,11 +500,13 @@ class MainWindow(QWidget):
     def _set_decoration(self, hidden):
         """ Set the visibility of the window decoration via Qt."""
         window_flags = Qt.Window
+        refresh_window = self.isVisible()
         if hidden:
             window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
         self.setWindowFlags(window_flags)
-        self.hide()
-        self.show()
+        if refresh_window:
+            self.hide()
+            self.show()
 
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
