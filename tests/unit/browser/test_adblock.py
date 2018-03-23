@@ -125,7 +125,8 @@ def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
     for str_url in urls_to_check:
         url = QUrl(str_url)
         host = url.host()
-        if host in blocked and not adblock.is_whitelisted_host(host, whitelist):
+        if (host in blocked and
+           not adblock.is_whitelisted_host(host, whitelist=whitelist)):
             assert host_blocker.is_blocked(url)
         else:
             assert not host_blocker.is_blocked(url)

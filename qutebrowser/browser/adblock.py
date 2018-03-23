@@ -24,7 +24,6 @@ import os.path
 import functools
 import posixpath
 import zipfile
-import fnmatch
 import re
 
 from qutebrowser.browser import downloads
@@ -101,7 +100,7 @@ class HostBlocker:
         WHITELISTED: Hosts which never should be blocked.
     """
 
-    WHITELISTED = ('[^\.]+', '.*\.localdomain')
+    WHITELISTED = (r'[^\.]+', r'.*\.localdomain')
 
     def __init__(self):
         self._blocked_hosts = set()
@@ -269,7 +268,7 @@ class HostBlocker:
             ok = self._parse_line(line)
             if not ok:
                 try:
-                    log.misc.debug("adblock: read error for line: "
+                    log.misc.debug("adblock: read error for line: {}"
                                    .format(line.decode('utf-8')))
                 except UnicodeDecodeError:
                     log.misc.debug("invalid unicode in line {}."
