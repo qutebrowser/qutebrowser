@@ -232,7 +232,6 @@ class MainWindow(QWidget):
         objreg.get("app").new_window.emit(self)
         self._set_decoration(config.val.window.hide_decoration)
 
-
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
         if geometry is not None:
@@ -498,7 +497,7 @@ class MainWindow(QWidget):
         cmd.hide_completion.connect(completion_obj.hide)
 
     def _set_decoration(self, hidden):
-        """ Set the visibility of the window decoration via Qt."""
+        """Set the visibility of the window decoration via Qt."""
         window_flags = Qt.Window
         refresh_window = self.isVisible()
         if hidden:
