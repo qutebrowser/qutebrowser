@@ -234,16 +234,13 @@ class HostBlocker:
         parts = line.split()
         if len(parts) == 1:
             # "one host per line" format
-            host = parts[0]
-        elif len(parts) == 2:
-            # /etc/hosts format
-            host = parts[1]
+            hosts = [parts[0]]
         else:
-            log.misc.error("Failed to parse: {!r}".format(line))
-            return False
+            hosts = parts[1:]
 
-        if host not in self.WHITELISTED:
-            self._blocked_hosts.add(host)
+        for host in hosts:
+            if host not in self.WHITELISTED:
+                self._blocked_hosts.add(host)
 
         return True
 
@@ -270,6 +267,7 @@ class HostBlocker:
             line_count += 1
             ok = self._parse_line(line)
             if not ok:
+                message.error("adblock: read error occurred for line: {}".format(line))
                 error_count += 1
 
         log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
