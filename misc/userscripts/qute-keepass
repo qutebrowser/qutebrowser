@@ -17,8 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-USAGE = """This userscript allows for insertion of usernames and passwords from keepass
-databases using pykeepass. Since it is a userscript, it must be run from qutebrowser.
+# pylint: disable=bad-builtin
+
+USAGE = """This userscript allows for insertion of usernames and passwords from
+keepass databases using pykeepass. Since it is a userscript, it must be run from
+qutebrowser.
 
 A sample invocation of this script is:
 
@@ -28,14 +31,29 @@ And a sample binding
 
 :bind --mode=insert <ctrl-i> spawn --userscript qute-keepass -p ~/KeePassFiles/MainDatabase.kdbx
 
-login information is inserted by emulating key events using qutebrowser's
-fake-key command in this manner: [USERNAME]<Tab>[PASSWORD], which is compatible
-with almost all login forms.
+-p or --path is a required argument.
 
-Dependencies: pykeepass (in python3), PyQt5
+--keyfile-path allows you to specify a keepass keyfile. If you only use a
+  keyfile, also add --no-password as well. Specifying --no-password without
+  --keyfile-path will lead to an error.
+
+login information is inserted using :insert-text and :fake-key <Tab>, which
+means you must have a cursor in position before initiating this userscript. If
+you do not do this, you will get 'element not editable' errors.
+
+If keepass takes a while to open the DB, you might want to consider reducing
+the number of transform rounds in your database settings.
+
+Dependencies: pykeepass (in python3), PyQt5. Without pykeepass, you will get an
+exit code of 100.
+
+********************!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!******************
 
 WARNING: The login details are viewable as plaintext in qutebrowser's debug log
-(qute://log) and might be shared if you decide to submit a crash report!"""
+(qute://log) and could be compromised if you decide to submit a crash report!
+
+********************!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!******************
+"""
 
 import argparse
 import enum
@@ -44,7 +62,6 @@ import os
 import shlex
 import subprocess
 import sys
-
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
@@ -61,13 +78,19 @@ argument_parser = argparse.ArgumentParser(
     epilog=USAGE)
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
 argument_parser.add_argument('--path', '-p', required=True,
-                             help='Path to the keepass db')
+                             help='Path to the keepass db.')
+argument_parser.add_argument('--keyfile-path', '-k', default=None,
+                             help='Path to a keepass keyfile')
+argument_parser.add_argument('--no-password', action='store_true',
+                             help='True if no password is required.'
+                             'Only allowed with --keyfile-path')
 argument_parser.add_argument(
     '--dmenu-invocation', '-d', default='dmenu',
     help='Invocation used to execute a dmenu-provider')
 argument_parser.add_argument(
     '--dmenu-format', '-f', default='{title}: {username}',
-    help='Format string for keys to display in dmenu. Must be unique.')
+    help='Format string for keys to display in dmenu.'
+    ' Must generate a unique string.')
 argument_parser.add_argument(
     '--no-insert-mode', '-n', dest='insert_mode', action='store_false',
     help="Don't automatically enter insert mode")
@@ -82,6 +105,7 @@ group.add_argument('--password-only', '-w',
 
 CMD_DELAY = 50
 
+
 class ExitCodes(enum.IntEnum):
     """Stores various exit codes groups to use."""
     SUCCESS = 0
@@ -89,7 +113,7 @@ class ExitCodes(enum.IntEnum):
     # 1 is automatically used if Python throws an exception
     NO_CANDIDATES = 2
     USER_QUIT = 3
-    DB_OPEN_FAIL = 3
+    DB_OPEN_FAIL = 4
 
     INTERNAL_ERROR = 10
 
@@ -101,6 +125,7 @@ def qute_command(command):
 
 
 def stderr(to_print):
+    """Extra functionality to echo out errors to qb ui."""
     print(to_print, file=sys.stderr)
     qute_command('message-error "{}"'.format(to_print))
 
@@ -122,7 +147,7 @@ def get_password():
         QLineEdit.Password)
     if not ok:
         stderr('Password Prompt Rejected.')
-        return ExitCodes.USER_QUIT
+        sys.exit(ExitCodes.USER_QUIT)
     return text
 
 
@@ -130,9 +155,19 @@ def find_candidates(args, host):
     """Finds candidates that match host"""
     file_path = os.path.expanduser(args.path)
 
-    # TODO find a way to keep the db open, so we don't open it every time.
+    # TODO find a way to keep the db open, so we don't open (and query
+    # password) it every time
+
+    pw = None
+    if not args.no_password:
+        pw = get_password()
+
+    kf = args.keyfile_path
+    if kf:
+        kf = os.path.expanduser(kf)
+
     try:
-        kp = pykeepass.PyKeePass(file_path, password=get_password())
+        kp = pykeepass.PyKeePass(file_path, password=pw, keyfile=kf)
     except Exception as e:
         stderr("There was an error opening the DB: {}".format(str(e)))
 
@@ -173,13 +208,14 @@ def run(args):
 
     # Create a map so we can get turn the resulting string from dmenu back into
     # a candidate
-    candidates_map = dict(zip(map(
-        functools.partial(candidate_to_str, args), candidates), candidates))
+    candidates_strs = list(map(functools.partial(candidate_to_str, args),
+                               candidates))
+    candidates_map = dict(zip(candidates_strs, candidates))
 
     if len(candidates) == 1:
         selection = candidates.pop()
     else:
-        selection = dmenu(candidates_map.keys(),
+        selection = dmenu(candidates_strs,
                           args.dmenu_invocation,
                           args.io_encoding)
 
@@ -196,9 +232,12 @@ def run(args):
     elif args.password_only:
         qute_command('insert-text {}{}'.format(password, insert_mode))
     else:
-        # Enter username and password using fake-key and <Tab> (which seems to
-        # work almost universally), then switch back into insert-mode, so the
-        # form can be directly submitted by hitting enter afterwards
+        # Enter username and password using insert-key and fake-key <Tab>
+        # (which supports more passwords than fake-key only), then switch back
+        # into insert-mode, so the form can be directly submitted by hitting
+        # enter afterwards. It dosen't matter when we go into insert mode, but
+        # the other commands need to be be executed sequentially, so we add
+        # delays with later.
         qute_command('insert-text {} ;;'
                      'later {} fake-key <Tab> ;;'
                      'later {} insert-text {}{}'
