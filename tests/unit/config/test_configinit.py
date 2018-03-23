@@ -292,7 +292,7 @@ class TestEarlyInit:
          'QT_XCB_FORCE_SOFTWARE_OPENGL', '1'),
         ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
         ('qt.highdpi', True, 'QT_AUTO_SCREEN_SCALE_FACTOR', '1'),
-        ('window.hide_wayland_decoration', True,
+        ('window.hide_decoration', True,
          'QT_WAYLAND_DISABLE_WINDOWDECORATION', '1')
     ])
     def test_env_vars(self, monkeypatch, config_stub,
