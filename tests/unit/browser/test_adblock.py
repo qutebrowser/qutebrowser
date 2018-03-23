@@ -115,17 +115,17 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
 
 
 def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
-                whitelisted=WHITELISTED_HOSTS, urls_to_check=URLS_TO_CHECK):
+                whitelist=WHITELISTED_HOSTS, urls_to_check=URLS_TO_CHECK):
     """Test if Urls to check are blocked or not by HostBlocker.
 
-    Ensure URLs in 'blocked' and not in 'whitelisted' are blocked.
+    Ensure URLs in 'blocked' and not in 'whitelist' are blocked.
     All other URLs must not be blocked.
     """
-    whitelisted = list(whitelisted) + list(host_blocker.WHITELISTED)
+    whitelist = list(whitelist) + list(host_blocker.WHITELISTED)
     for str_url in urls_to_check:
         url = QUrl(str_url)
         host = url.host()
-        if host in blocked and host not in whitelisted:
+        if host in blocked and not adblock.is_whitelisted_host(host, whitelist):
             assert host_blocker.is_blocked(url)
         else:
             assert not host_blocker.is_blocked(url)
@@ -244,7 +244,7 @@ def test_successful_update(config_stub, basedir, download_stub,
             current_download.successful = True
             current_download.finished.emit()
     host_blocker.read_hosts()
-    assert_urls(host_blocker, whitelisted=[])
+    assert_urls(host_blocker, whitelist=[])
 
 
 def test_failed_dl_update(config_stub, basedir, download_stub,
@@ -274,7 +274,7 @@ def test_failed_dl_update(config_stub, basedir, download_stub,
         with caplog.at_level(logging.ERROR):
             current_download.finished.emit()
     host_blocker.read_hosts()
-    assert_urls(host_blocker, whitelisted=[])
+    assert_urls(host_blocker, whitelist=[])
 
 
 @pytest.mark.parametrize('location', ['content', 'comment'])
@@ -314,7 +314,7 @@ def test_invalid_utf8(config_stub, download_stub, tmpdir, data_tmpdir,
         current_download.finished.emit()
 
     host_blocker.read_hosts()
-    assert_urls(host_blocker, whitelisted=[])
+    assert_urls(host_blocker, whitelist=[])
 
 
 def test_invalid_utf8_compiled(config_stub, config_tmpdir, data_tmpdir,

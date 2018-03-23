@@ -25,6 +25,7 @@ import functools
 import posixpath
 import zipfile
 import fnmatch
+import re
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
@@ -61,14 +62,15 @@ def get_fileobj(byte_io):
     return byte_io
 
 
-def is_whitelisted_host(host):
+def is_whitelisted_host(host, whitelist=None):
     """Check if the given host is on the adblock whitelist.
 
     Args:
         host: The host of the request as string.
     """
-    for pattern in config.val.content.host_blocking.whitelist:
-        if fnmatch.fnmatch(host, pattern.lower()):
+    whitelist = whitelist or config.val.content.host_blocking.whitelist
+    for pattern in whitelist:
+        if re.fullmatch(pattern.lower(), host):
             return True
     return False
 
@@ -99,8 +101,7 @@ class HostBlocker:
         WHITELISTED: Hosts which never should be blocked.
     """
 
-    WHITELISTED = ('localhost', 'localhost.localdomain', 'broadcasthost',
-                   'local')
+    WHITELISTED = ('[^\.]+', '.*\.localdomain')
 
     def __init__(self):
         self._blocked_hosts = set()
@@ -239,7 +240,7 @@ class HostBlocker:
             hosts = parts[1:]
 
         for host in hosts:
-            if host not in self.WHITELISTED:
+            if not is_whitelisted_host(host, self.WHITELISTED):
                 self._blocked_hosts.add(host)
 
         return True
