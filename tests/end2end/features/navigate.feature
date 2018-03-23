@@ -26,7 +26,7 @@ Feature: Using :navigate
     # prev/next
 
     Scenario: Navigating to previous page
-        When I open data/navigate
+        When I open data/navigate in a new tab
         And I run :navigate prev
         Then data/navigate/prev.html should be loaded
 
