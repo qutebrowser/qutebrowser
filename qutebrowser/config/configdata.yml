@@ -425,11 +425,7 @@ content.host_blocking.enabled:
 
 content.host_blocking.lists:
   default:
-    - "https://www.malwaredomainlist.com/hostslist/hosts.txt"
-    - "http://someonewhocares.org/hosts/hosts"
-    - "http://winhelp2002.mvps.org/hosts.zip"
-    - "http://malwaredomains.lehigh.edu/files/justdomains.zip"
-    - "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&mimetype=plaintext"
+    - "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
   type:
     name: List
     valtype: Url
