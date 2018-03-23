@@ -267,7 +267,12 @@ class HostBlocker:
             line_count += 1
             ok = self._parse_line(line)
             if not ok:
-                message.error("adblock: read error occurred for line: {}".format(line))
+                try:
+                    log.misc.debug("adblock: read error for line: "
+                                   .format(line.decode('utf-8')))
+                except UnicodeDecodeError:
+                    log.misc.debug("invalid unicode in line {}."
+                                   .format(line_count))
                 error_count += 1
 
         log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
