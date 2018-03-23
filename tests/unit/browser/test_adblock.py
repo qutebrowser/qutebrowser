@@ -106,6 +106,8 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
         elif line_format == 'one_per_line':
             for host in blocked_hosts:
                 blocklist.write(host + '\n')
+        elif line_format == 'all_on_one_line':
+            blocklist.write('127.0.0.1 ' + ' '.join(blocked_hosts))
         elif line_format == 'not_correct':
             for host in blocked_hosts:
                 blocklist.write(host + ' This is not a correct hosts file\n')
@@ -126,7 +128,7 @@ def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
         url = QUrl(str_url)
         host = url.host()
         if (host in blocked and
-           not adblock.is_whitelisted_host(host, whitelist=whitelist)):
+        not adblock.is_whitelisted_host(host, whitelist=whitelist)):
             assert host_blocker.is_blocked(url)
         else:
             assert not host_blocker.is_blocked(url)
@@ -368,6 +370,23 @@ def test_config_change_initial(config_stub, basedir, download_stub,
     """
     create_blocklist(tmpdir, blocked_hosts=BLOCKLIST_HOSTS,
                      name='blocked-hosts', line_format='one_per_line')
+    config_stub.val.content.host_blocking.lists = None
+    config_stub.val.content.host_blocking.enabled = True
+    config_stub.val.content.host_blocking.whitelist = None
+
+    host_blocker = adblock.HostBlocker()
+    host_blocker.read_hosts()
+    for str_url in URLS_TO_CHECK:
+        assert not host_blocker.is_blocked(QUrl(str_url))
+
+
+def test_line_parsing_with_multiple_to_block_at_once(config_stub, basedir,
+                                                     download_stub,
+                                                     data_tmpdir, tmpdir):
+    """Test the line parser handles multiple hosts to one line."""
+    create_blocklist(tmpdir, blocked_hosts=BLOCKLIST_HOSTS,
+                     name='blocked_hosts', line_format='all_on_one_line')
+
     config_stub.val.content.host_blocking.lists = None
     config_stub.val.content.host_blocking.enabled = True
     config_stub.val.content.host_blocking.whitelist = None
