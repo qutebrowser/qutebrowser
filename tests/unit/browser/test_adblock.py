@@ -94,7 +94,6 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
         name: name to give to the blocklist file
         line_format: 'etc_hosts'  -->  /etc/hosts format
                     'one_per_line'  -->  one host per line format
-                    'all_on_one_line' --> pathological example with one line
                     'not_correct'  -->  Not a correct hosts file format.
     """
     blocklist_file = directory / name
@@ -107,8 +106,6 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
         elif line_format == 'one_per_line':
             for host in blocked_hosts:
                 blocklist.write(host + '\n')
-        elif line_format == 'all_on_one_line':
-            blocklist.write('127.0.0.1 ' + ' '.join(blocked_hosts) + '\n')
         elif line_format == 'not_correct':
             for host in blocked_hosts:
                 blocklist.write(host + ' This is not a correct hosts file\n')
