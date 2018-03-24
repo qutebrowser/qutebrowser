@@ -20,8 +20,8 @@ SetCompressor /solid lzma
 !define MUI_ABORTWARNING
 ;!define MULTIUSER_MUI
 ;!define MULTIUSER_INSTALLMODE_COMMANDLINE
-!define MUI_ICON "../icons/qutebrowser.ico"
-!define MUI_UNICON "../icons/qutebrowser.ico"
+!define MUI_ICON "../icons/qutebrowser-inst.ico"
+!define MUI_UNICON "../icons/qutebrowser-uninst.ico"
 
 !insertmacro MUI_PAGE_LICENSE "..\LICENSE"
 !insertmacro MUI_PAGE_DIRECTORY
