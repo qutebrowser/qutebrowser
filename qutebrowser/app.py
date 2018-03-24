@@ -466,9 +466,6 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing sessions...")
     sessions.init(qApp)
 
-    log.init.debug("Initializing websettings...")
-    websettings.init(args)
-
     log.init.debug("Initializing adblock...")
     host_blocker = adblock.HostBlocker()
     host_blocker.read_hosts()
@@ -495,6 +492,9 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing downloads...")
     download_manager = qtnetworkdownloads.DownloadManager(parent=qApp)
     objreg.register('qtnetwork-download-manager', download_manager)
+
+    log.init.debug("Initializing websettings...")
+    websettings.init(args)
 
     log.init.debug("Initializing Greasemonkey...")
     greasemonkey.init()
