@@ -228,16 +228,13 @@ class HostBlocker:
         parts = line.split()
         if len(parts) == 1:
             # "one host per line" format
-            host = parts[0]
-        elif len(parts) == 2:
-            # /etc/hosts format
-            host = parts[1]
+            hosts = [parts[0]]
         else:
-            log.misc.error("Failed to parse: {!r}".format(line))
-            return False
+            hosts = parts[1:]
 
-        if '.' in host and not host.endswith('.localdomain'):
-            self._blocked_hosts.add(host)
+        for host in hosts:
+            if '.' in host and not host.endswith('.localdomain'):
+                self._blocked_hosts.add(host)
 
         return True
 
