@@ -250,7 +250,7 @@ def test_successful_update(config_stub, basedir, download_stub,
 def test_parsing_multiple_hosts_on_line(config_stub, basedir, download_stub,
                                         data_tmpdir, tmpdir, win_registry,
                                         caplog):
-    """Ensure multiple hosts on a line get parsed correctly"""
+    """Ensure multiple hosts on a line get parsed correctly."""
     host_blocker = adblock.HostBlocker()
     bytes_host_line = ' '.join(BLOCKLIST_HOSTS).encode('utf-8')
     host_blocker._parse_line(bytes_host_line)
