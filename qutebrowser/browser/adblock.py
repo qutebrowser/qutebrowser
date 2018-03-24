@@ -236,7 +236,7 @@ class HostBlocker:
             log.misc.error("Failed to parse: {!r}".format(line))
             return False
 
-        if '.' not in host and not host.endswith('.localdomain'):
+        if '.' in host and not host.endswith('.localdomain'):
             self._blocked_hosts.add(host)
 
         return True

@@ -114,14 +114,14 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
     return name
 
 
-def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
+def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS[1:],
                 whitelisted=WHITELISTED_HOSTS, urls_to_check=URLS_TO_CHECK):
     """Test if Urls to check are blocked or not by HostBlocker.
 
     Ensure URLs in 'blocked' and not in 'whitelisted' are blocked.
     All other URLs must not be blocked.
     """
-    whitelisted = list(whitelisted) + list(host_blocker.WHITELISTED)
+    whitelisted = list(whitelisted)
     for str_url in urls_to_check:
         url = QUrl(str_url)
         host = url.host()
@@ -341,7 +341,7 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
     """Ensure hosts in content.host_blocking.whitelist are never blocked."""
     # Simulate adblock_update has already been run
     # by creating a file named blocked-hosts,
-    # Exclude localhost from it, since localhost is in HostBlocker.WHITELISTED
+    # Exclude localhost from it, since localhost is never blocked by list
     filtered_blocked_hosts = BLOCKLIST_HOSTS[1:]
     blocklist = create_blocklist(data_tmpdir,
                                  blocked_hosts=filtered_blocked_hosts,
