@@ -350,7 +350,7 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
     """Ensure hosts in content.host_blocking.whitelist are never blocked."""
     # Simulate adblock_update has already been run
     # by creating a file named blocked-hosts,
-    # Exclude localhost from it, since localhost is never blocked by list
+    # Exclude localhost from it as localhost is never blocked via list
     filtered_blocked_hosts = BLOCKLIST_HOSTS[1:]
     blocklist = create_blocklist(data_tmpdir,
                                  blocked_hosts=filtered_blocked_hosts,
