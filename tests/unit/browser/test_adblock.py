@@ -94,6 +94,7 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
         name: name to give to the blocklist file
         line_format: 'etc_hosts'  -->  /etc/hosts format
                     'one_per_line'  -->  one host per line format
+                    'all_on_one_line' --> pathological example with one line
                     'not_correct'  -->  Not a correct hosts file format.
     """
     blocklist_file = directory / name
@@ -106,6 +107,8 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
         elif line_format == 'one_per_line':
             for host in blocked_hosts:
                 blocklist.write(host + '\n')
+        elif line_format == 'all_on_one_line':
+            blocklist.write('127.0.0.1 ' + ' '.join(blocked_hosts) + '\n')
         elif line_format == 'not_correct':
             for host in blocked_hosts:
                 blocklist.write(host + ' This is not a correct hosts file\n')
@@ -244,6 +247,15 @@ def test_successful_update(config_stub, basedir, download_stub,
             current_download.successful = True
             current_download.finished.emit()
     host_blocker.read_hosts()
+    assert_urls(host_blocker, whitelisted=[])
+
+
+def test_parsing_multiple_hosts_on_line(config_stub, basedir, download_stub,
+                           data_tmpdir, tmpdir, win_registry, caplog):
+    """Ensure multiple hosts on a line get parsed correctly"""
+    host_blocker = adblock.HostBlocker()
+    bytes_host_line = ' '.join(BLOCKLIST_HOSTS).encode('utf-8')
+    host_blocker._parse_line(bytes_host_line)
     assert_urls(host_blocker, whitelisted=[])
 
 
