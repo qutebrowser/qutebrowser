@@ -504,7 +504,6 @@ class MainWindow(QWidget):
             window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
         self.setWindowFlags(window_flags)
         if refresh_window:
-            self.hide()
             self.show()
 
     @pyqtSlot(bool)
