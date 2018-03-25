@@ -55,6 +55,8 @@ Fixed
   loaded correctly in some situations.
 - The statusbar now more closely reflects the caret mode state.
 - The icon on Windows should now be displayed in a higher resolution.
+- The QtWebEngine development tools (inspector) now also work when JavaScript is
+  disabled globally.
 
 v1.2.1
 ------

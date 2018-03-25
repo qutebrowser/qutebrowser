@@ -22,7 +22,7 @@
 import os
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 
 from qutebrowser.browser import inspector
 
@@ -35,6 +35,8 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         super().__init__(parent)
         self.port = None
         view = QWebEngineView()
+        settings = view.settings()
+        settings.setAttribute(QWebEngineSettings.JavascriptEnabled, True)
         self._set_widget(view)
 
     def inspect(self, _page):
