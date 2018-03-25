@@ -1338,6 +1338,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('url', completion=miscmodels.bookmark)
+    @cmdutils.argument('tags', completion=miscmodels.bookmark_tag)
     def bookmark_tag(self, url, *tags, remove=False):
         """Modify bookmark tags for the given url.
 
@@ -1361,6 +1362,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
+    @cmdutils.argument('tags', completion=miscmodels.bookmark_tag)
     @cmdutils.argument('open_all', flag='a')
     def bookmark_load(self, *tags, tab=False, bg=False, window=False,
                       delete=False, open_all=False):

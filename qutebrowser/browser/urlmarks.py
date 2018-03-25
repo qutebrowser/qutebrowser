@@ -215,6 +215,13 @@ class BookmarkManager(QObject):
             raise DoesNotExistError("Bookmark '{}' not found!".format(urlstr))
         self.changed.emit()
 
+    def all_tags(self):
+        """Get the set of all defined tags."""
+        tags = set()
+        for m in self:
+            tags = tags.union(m.tags)
+        return tags
+
     def _urlstr(self, url):
         """Convert a QUrl into the string format used as a key."""
         if not url.isValid():

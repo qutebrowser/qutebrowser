@@ -65,6 +65,16 @@ def bookmark(*, info=None):  # pylint: disable=unused-argument
     return model
 
 
+def bookmark_tag(*args, info=None):  # pylint: disable=unused-argument
+    """A CompletionModel filled with all bookmark tags."""
+    model = completionmodel.CompletionModel(column_widths=(20, 80, 0))
+    bookmarks = objreg.get('bookmark-manager')
+    tags = ((t, '') for t in bookmarks.all_tags() if t not in args)
+    cat = listcategory.ListCategory('Tags', tags)
+    model.add_category(cat)
+    return model
+
+
 def session(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with session names."""
     model = completionmodel.CompletionModel()

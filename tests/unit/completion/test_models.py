@@ -149,10 +149,11 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
 def bookmarks(bookmark_manager_mock):
     """Pre-populate the bookmark-manager stub with some bookmarks."""
     bookmark_manager_mock.__iter__ = mock.Mock(return_value=iter([
-        urlmarks.Bookmark('https://github.com', 'GitHub', []),
+        urlmarks.Bookmark('https://github.com', 'GitHub', ['foo', 'bar']),
         urlmarks.Bookmark('https://python.org', 'Welcome to Python.org', []),
-        urlmarks.Bookmark('http://qutebrowser.org', 'qutebrowser', []),
+        urlmarks.Bookmark('http://qutebrowser.org', 'qutebrowser', ['baz']),
     ]))
+    bookmark_manager_mock.all_tags.return_value = set(['foo', 'bar', 'baz'])
     return bookmark_manager_mock
 
 
@@ -261,9 +262,9 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
 
     _check_completions(model, {
         "Bookmarks": [
-            ('https://github.com', 'GitHub', '[]'),
+            ('https://github.com', 'GitHub', "['foo', 'bar']"),
             ('https://python.org', 'Welcome to Python.org', '[]'),
-            ('http://qutebrowser.org', 'qutebrowser', '[]'),
+            ('http://qutebrowser.org', 'qutebrowser', "['baz']"),
         ]
     })
 
@@ -287,6 +288,22 @@ def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
     assert bookmarks.delete.called_once_with(removed)
 
 
+def test_bookmark_tag_completion(qtmodeltester, bookmarks):
+    """Test the results of bookmark completion."""
+    model = miscmodels.bookmark_tag()
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Tags": [
+            ('bar', '', None),
+            ('baz', '', None),
+            ('foo', '', None),
+        ]
+    })
+
+
 @pytest.fixture(autouse=True)
 def url_args(fake_args):
     """Prepare arguments needed to test the URL completion."""
@@ -308,9 +325,9 @@ def test_url_completion(qtmodeltester, web_history_populated, bookmarks, info):
 
     _check_completions(model, {
         "Bookmarks": [
-            ('https://github.com', 'GitHub', '[]'),
-            ('https://python.org', 'Welcome to Python.org', '[]'),
-            ('http://qutebrowser.org', 'qutebrowser', '[]'),
+            ('https://github.com', 'GitHub', "['foo', 'bar']"),
+            ('https://python.org', 'Welcome to Python.org', "[]"),
+            ('http://qutebrowser.org', 'qutebrowser', "['baz']"),
         ],
         "History": [
             ('https://github.com', 'https://github.com', '2016-05-01'),

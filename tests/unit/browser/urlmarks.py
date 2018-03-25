@@ -238,3 +238,12 @@ def test_invalid_url(bm_file, fake_save_manager):
         bm.untag(url, ['one', 'two'])
     with pytest.raises(urlmarks.InvalidUrlError):
         bm.delete(url)
+
+def all_tags(bm_file, fake_save_manager):
+    bm = urlmarks.BookmarkManager()
+    bm.add('http://example.com/foo', '', [])
+    bm.add('http://example.com/bar', '', ['bar'])
+    bm.add('http://example.com/baz', '', ['biz', 'bar', 'baz'])
+    bm.add('http://example.com/buz', '', ['buz', 'foo', 'baz'])
+
+    assert bm.all_tags == set(['foo', 'bar', 'baz', 'biz', 'buz'])
