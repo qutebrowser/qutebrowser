@@ -3,10 +3,10 @@
 
 <head>
 <script type="text/javascript">
-    var my_window;
+    let my_window;
 
     function open_modal() {
-        window.open('about:blank', 'window', 'modal');
+        my_window = window.open('about:blank', 'window', 'modal');
     }
 
     function open_normal() {
@@ -19,11 +19,13 @@
 
     function close_normal() {
         my_window.close();
+        console.log("window closed");
     }
 
     function close_twice() {
         my_window.close();
         my_window.close();
+        console.log("window closed");
     }
 </script>
 </head>
