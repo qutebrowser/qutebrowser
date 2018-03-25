@@ -22,27 +22,22 @@ Feature: Bookmarks
         Then the error "Invalid URL *" should be shown
 
     Scenario: Saving a duplicate bookmark
-        Given I have a fresh instance
-        When I open data/title.html
-        And I run :bookmark-add
-        And I run :bookmark-add
+        When I run :bookmark-add data/numbers/10.txt Ten
+        And I run :bookmark-add data/numbers/10.txt Ten
         Then the error "Bookmark already exists!" should be shown
 
     Scenario: Tagging a bookmark
-        Given I have a fresh instance
-        When I run :bookmark-add http://example.com Example
-        And I run :bookmark-tag http://example.com foo bar
-        Then the bookmark file should contain '{"url": "http://example.com", "title": "Example", "tags": ["foo", "bar"]}'
+        When I run :bookmark-add data/numbers/11.txt Eleven
+        And I run :bookmark-tag data/numbers/11.txt foo bar
+        Then the bookmark file should contain '{"url": "data/numbers/11.txt", "title": "Eleven", "tags": ["foo", "bar"]}'
 
     Scenario: Removing tags from a bookmark
-        Given I have a fresh instance
-        When I run :bookmark-add http://example.com Example
-        And I run :bookmark-tag http://example.com foo bar baz
-        And I run :bookmark-tag http://example.com -r foo baz
-        Then the bookmark file should contain '{"url": "http://example.com", "title": "Example", "tags": ["bar"]}'
+        When I run :bookmark-add data/numbers/12.txt Twelve
+        And I run :bookmark-tag data/numbers/12.txt foo bar baz
+        And I run :bookmark-tag data/numbers/12.txt -r foo baz
+        Then the bookmark file should contain '{"url": "data/numbers/12.txt", "title": "Twelve", "tags": ["bar"]}'
 
     Scenario: Loading a bookmark
-        Given I have a fresh instance
         When I run :tab-only
         And I run :bookmark-add http://localhost:(port)/data/numbers/1.txt Example
         And I run :bookmark-tag http://localhost:(port)/data/numbers/1.txt one
@@ -133,8 +128,6 @@ Feature: Bookmarks
         Then the bookmark file should not contain "http://localhost:*/data/numbers/9.txt "
 
     Scenario: Listing bookmarks
-        Given I have a fresh instance
-        When I open data/title.html in a new tab
-        And I run :bookmark-add
+        When I run :bookmark-add data/numbers/13.txt "Test title Thirteen"
         And I open qute://bookmarks
-        Then the page should contain the plaintext "Test title"
+        Then the page should contain the plaintext "Test title Thirteen"
