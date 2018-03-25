@@ -58,14 +58,14 @@ exe = EXE(pyz,
           icon=icon,
           debug=False,
           strip=False,
-          upx=True,
+          upx=False,
           console=False )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
                a.datas,
                strip=False,
-               upx=True,
+               upx=False,
                name='qutebrowser')
 
 app = BUNDLE(coll,
