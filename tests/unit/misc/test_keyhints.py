@@ -112,8 +112,10 @@ def test_suggestions_special(keyhint, config_stub):
     assert keyhint.text() == expected_text(
         ('&lt;Ctrl+c&gt;', 'yellow', 'a', 'message-info cmd-Cca'),
         ('&lt;Ctrl+c&gt;', 'yellow', 'c', 'message-info cmd-Ccc'),
-        ('&lt;Ctrl+c&gt;', 'yellow', '&lt;Ctrl+c&gt;', 'message-info cmd-CcCc'),
-        ('&lt;Ctrl+c&gt;', 'yellow', '&lt;Ctrl+x&gt;', 'message-info cmd-CcCx'))
+        ('&lt;Ctrl+c&gt;', 'yellow', '&lt;Ctrl+c&gt;',
+         'message-info cmd-CcCc'),
+        ('&lt;Ctrl+c&gt;', 'yellow', '&lt;Ctrl+x&gt;',
+         'message-info cmd-CcCx'))
 
 
 def test_suggestions_with_count(keyhint, config_stub, monkeypatch, stubs):
