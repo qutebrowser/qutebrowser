@@ -4,4 +4,4 @@ pluggy==0.6.0
 py==1.5.3
 six==1.11.0
 tox==2.9.1
-virtualenv==15.1.0
+virtualenv==15.2.0
