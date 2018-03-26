@@ -92,6 +92,30 @@ def test_suggestions(keyhint, config_stub):
         ('a', 'yellow', 'c', 'message-info cmd-ac'))
 
 
+def test_suggestions_special(keyhint, config_stub):
+    """Test that special characters work properly as prefix."""
+    bindings = {'normal': {
+        '<Ctrl-C>a': 'message-info cmd-Cca',
+        '<Ctrl-C><Ctrl-C>': 'message-info cmd-CcCc',
+        '<Ctrl-C><Ctrl-X>': 'message-info cmd-CcCx',
+        'cbb': 'message-info cmd-cbb',
+        'xd': 'message-info cmd-xd',
+        'xe': 'message-info cmd-xe',
+    }}
+    default_bindings = {'normal': {
+        '<Ctrl-C>c': 'message-info cmd-Ccc',
+    }}
+    config_stub.val.bindings.default = default_bindings
+    config_stub.val.bindings.commands = bindings
+
+    keyhint.update_keyhint('normal', '<Ctrl+c>')
+    assert keyhint.text() == expected_text(
+        ('&lt;Ctrl+c&gt;', 'yellow', 'a', 'message-info cmd-Cca'),
+        ('&lt;Ctrl+c&gt;', 'yellow', 'c', 'message-info cmd-Ccc'),
+        ('&lt;Ctrl+c&gt;', 'yellow', '&lt;Ctrl+c&gt;', 'message-info cmd-CcCc'),
+        ('&lt;Ctrl+c&gt;', 'yellow', '&lt;Ctrl+x&gt;', 'message-info cmd-CcCx'))
+
+
 def test_suggestions_with_count(keyhint, config_stub, monkeypatch, stubs):
     """Test that a count prefix filters out commands that take no count."""
     monkeypatch.setattr('qutebrowser.commands.cmdutils.cmd_dict', {
