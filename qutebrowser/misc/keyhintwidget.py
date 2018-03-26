@@ -130,7 +130,7 @@ class KeyHintView(QLabel):
             ).format(
                 html.escape(prefix),
                 suffix_color,
-                html.escape(str(seq[len(prefix):])),
+                html.escape(str(seq)[len(prefix):]),
                 html.escape(cmd)
             )
         text = '<table>{}</table>'.format(text)
