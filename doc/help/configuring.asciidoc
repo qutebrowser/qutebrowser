@@ -126,7 +126,7 @@ Note that qutebrowser does some Python magic so it's able to warn you about
 mistyped config settings. As an example, if you do `c.tabs.possition = "left"`,
 you'll get an error when starting.
 
-See the link:settings.html[settings help page] for all available settings. The
+See the link:settings.asciidoc[settings help page] for all available settings. The
 accepted values depend on the type of the option. Commonly used are:
 
 - Strings: `c.tabs.position = "left"`
@@ -202,7 +202,7 @@ preferred to use the `config.bind` command. Doing so ensures the commands are
 valid and normalizes different expressions which map to the same key.
 
 For details on how to specify keys and the available modes, see the
-link:settings.html#bindings.commands[documentation] for the `bindings.commands`
+link:settings.asciidoc#bindings.commands[documentation] for the `bindings.commands`
 setting.
 
 To bind a key:
