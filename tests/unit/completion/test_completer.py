@@ -129,12 +129,20 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
         """docstring."""
         pass
 
+    @cmdutils.argument('option', completion=miscmodels_patch.option)
+    @cmdutils.argument('values', completion=miscmodels_patch.value)
+    def config_cycle(option, *values):
+        """For testing varargs."""
+        pass
+
     cmd_utils = stubs.FakeCmdUtils({
         'set': command.Command(name='set', handler=set_command),
         'help': command.Command(name='help', handler=show_help),
         'open': command.Command(name='open', handler=openurl, maxsplit=0),
         'bind': command.Command(name='bind', handler=bind),
         'tab-detach': command.Command(name='tab-detach', handler=tab_detach),
+        'config-cycle': command.Command(name='config-cycle',
+                                        handler=config_cycle),
     })
     monkeypatch.setattr(completer, 'cmdutils', cmd_utils)
 
@@ -191,6 +199,10 @@ def _set_cmd_prompt(cmd, txt):
     ('/:help|', None, '', []),
     ('::bind|', 'command', ':bind', []),
     (':-w open |', None, '', []),
+    # varargs
+    (':config-cycle option |', 'value', '', ['option']),
+    (':config-cycle option one |', 'value', '', ['option', 'one']),
+    (':config-cycle option one two |', 'value', '', ['option', 'one', 'two']),
 ])
 def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
                            completer_obj, completion_widget_stub, config_stub,

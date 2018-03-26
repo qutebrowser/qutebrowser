@@ -123,6 +123,7 @@ class Command:
         self.pos_args = []
         self.desc = None
         self.flags_with_args = []
+        self._has_vararg = False
 
         # This is checked by future @cmdutils.argument calls so they fail
         # (as they'd be silently ignored otherwise)
@@ -170,6 +171,8 @@ class Command:
 
     def get_pos_arg_info(self, pos):
         """Get an ArgInfo tuple for the given positional parameter."""
+        if pos >= len(self.pos_args) and self._has_vararg:
+            pos = len(self.pos_args) - 1
         name = self.pos_args[pos][0]
         return self._qute_args.get(name, ArgInfo())
 
@@ -233,6 +236,8 @@ class Command:
             log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
                 param.name, typ, callsig))
             self.parser.add_argument(*args, **kwargs)
+            if param.kind == inspect.Parameter.VAR_POSITIONAL:
+                self._has_vararg = True
         return signature.parameters.values()
 
     def _param_to_argparse_kwargs(self, param, is_bool):
