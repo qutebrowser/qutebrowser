@@ -3160,7 +3160,9 @@ Default:
 [[window.hide_decoration]]
 === window.hide_decoration
 Hide the window decoration.
-This setting requires a restart.
+
+This setting requires a restart on Wayland.
+
 
 Type: <<types,Bool>>
 

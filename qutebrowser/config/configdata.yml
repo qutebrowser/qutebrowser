@@ -1539,10 +1539,10 @@ window.hide_wayland_decoration:
 window.hide_decoration:
   type: Bool
   default: false
-  restart: false
   desc: |
-    Hide the window decoration. Does require a restart for
-    Wayland users.
+    Hide the window decoration.
+
+    This setting requires a restart on Wayland.
 
 window.title_format:
   type:
