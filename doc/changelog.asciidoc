@@ -47,6 +47,7 @@ Fixed
 ~~~~~
 
 - Using hints before a page is fully loaded is now possible again.
+- Selecting hints with the number keypad now works again.
 - Tab titles for tabs loaded from sessions should now really be correct instead
   of showing the URL.
 - Loading URLs with customized settings from a session now avoids an additional
