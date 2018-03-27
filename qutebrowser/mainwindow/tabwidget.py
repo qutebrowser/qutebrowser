@@ -148,9 +148,13 @@ class TabWidget(QTabWidget):
         title = '' if fmt is None else fmt.format(**fields)
         tabbar = self.tabBar()
 
+        # Only change the tab title if it changes, setting the tab title causes
+        # a size recalculation which is slow.
         if tabbar.tabText(idx) != title:
             tabbar.setTabText(idx, title)
-            tabbar.setTabToolTip(idx, title)
+
+        # always show only plain title in tooltips
+        tabbar.setTabToolTip(idx, fields['title'])
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
