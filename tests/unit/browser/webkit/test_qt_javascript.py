@@ -22,8 +22,6 @@
 
 import pytest
 
-from PyQt5.QtCore import QUrl
-
 
 @pytest.mark.parametrize('js_enabled, expected', [(True, 2.0), (False, None)])
 def test_simple_js_webkit(webview, js_enabled, expected):
@@ -51,15 +49,13 @@ def test_element_js_webkit(webview, js_enabled, expected):
 @pytest.mark.usefixtures('redirect_webengine_data')
 @pytest.mark.parametrize('js_enabled, expected', [(True, 2.0), (False, 2.0)])
 def test_simple_js_webengine(callback_checker, webengineview, js_enabled,
-                             expected, qapp):
+                             expected):
     """With QtWebEngine, runJavaScript works even when JS is off."""
     # If we get there (because of the webengineview fixture) we can be certain
     # QtWebEngine is available
     from PyQt5.QtWebEngineWidgets import QWebEngineSettings
     webengineview.settings().setAttribute(QWebEngineSettings.JavascriptEnabled,
                                           js_enabled)
-    qapp.processEvents()
 
-    webengineview.setHtml('')
-    webengineview.page().runJavaScript('1 + 1', 1, callback_checker.callback)
+    webengineview.page().runJavaScript('1 + 1', callback_checker.callback)
     callback_checker.check(expected)
