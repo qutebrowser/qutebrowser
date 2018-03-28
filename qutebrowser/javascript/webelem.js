@@ -349,6 +349,14 @@ window._qutebrowser.webelem = (function() {
         elements[id].value = value;
     };
 
+    // Sets the userInteracted flag in focustools, to avoid focustools from
+    // blurring the page when we need focus.
+    function setUserInteracted() {
+        if (window._qutebrowser.focustools) {
+            window._qutebrowser.focustools.setUserInteracted();
+        }
+    }
+
     funcs.insert_text = (id, text) => {
         setUserInteracted();
         const elem = elements[id];
@@ -373,14 +381,6 @@ window._qutebrowser.webelem = (function() {
             elem = elem.parentElement;
         }
     };
-
-    // Sets the userInteracted flag in focustools, to avoid focustools from
-    // blurring the page
-    function setUserInteracted() {
-        if (window._qutebrowser.focustools) {
-            window._qutebrowser.focustools.setUserInteracted();
-        }
-    }
 
     funcs.click = (id) => {
         setUserInteracted();
