@@ -41,6 +41,9 @@ Changed
   file is now saved.
 - The `window.hide_wayland_decoration` setting got renamed to
   `window.hide_decoration` and now also works outside of wayland.
+- The `tabs.favicons.show` setting now can take three values: `'always'` (was
+  `True`), `'never'` (was `False`) and `'pinned'` (to only show favicons for
+  pinned tabs).
 - Hover tooltips on tabs now always show the webpage's title.
 
 Fixed
