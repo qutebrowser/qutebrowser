@@ -230,6 +230,7 @@ class HostBlocker:
             # "one host per line" format
             hosts = [parts[0]]
         else:
+            # /etc/hosts format
             hosts = parts[1:]
 
         for host in hosts:
