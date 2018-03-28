@@ -502,7 +502,7 @@ class CommandDispatcher:
         idx = new_tabbed_browser.widget.indexOf(newtab)
 
         new_tabbed_browser.widget.set_page_title(idx, cur_title)
-        if config.val.tabs.favicons.show:
+        if curtab.data.should_show_icon():
             new_tabbed_browser.widget.setTabIcon(idx, curtab.icon())
             if config.val.tabs.tabs_are_windows:
                 new_tabbed_browser.widget.window().setWindowIcon(curtab.icon())

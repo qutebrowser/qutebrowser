@@ -114,6 +114,10 @@ class TabData:
     netrc_used = attr.ib(False)
     input_mode = attr.ib(usertypes.KeyMode.normal)
 
+    def should_show_icon(self):
+        return (config.val.tabs.favicons.show == 'always' or
+                config.val.tabs.favicons.show == 'pinned' and self.pinned)
+
 
 class AbstractAction:
 

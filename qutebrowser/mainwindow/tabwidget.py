@@ -108,6 +108,7 @@ class TabWidget(QTabWidget):
 
         bar.set_tab_data(idx, 'pinned', pinned)
         tab.data.pinned = pinned
+        self.update_tab_favicon(tab)
         self.update_tab_title(idx)
 
     def tab_indicator_color(self, idx):
@@ -299,6 +300,19 @@ class TabWidget(QTabWidget):
         # It's possible for url to be invalid, but the caller will handle that.
         qtutils.ensure_valid(url)
         return url
+
+    def update_tab_favicon(self, tab: QWidget):
+        """Update favicon of the given tab."""
+        idx = self.indexOf(tab)
+
+        if tab.data.should_show_icon():
+            self.setTabIcon(idx, tab.icon())
+            if config.val.tabs.tabs_are_windows:
+                self.window().setWindowIcon(tab.icon())
+        else:
+            self.setTabIcon(idx, QIcon())
+            if config.val.tabs.tabs_are_windows:
+                self.window().setWindowIcon(self.window().windowIcon())
 
 
 class TabBar(QTabBar):
@@ -906,7 +920,7 @@ class TabBarStyle(QCommonStyle):
         # reserve space for favicon when tab bar is vertical (issue #1968)
         position = config.val.tabs.position
         if (position in [QTabWidget.East, QTabWidget.West] and
-                config.val.tabs.favicons.show):
+                config.val.tabs.favicons.show != 'never'):
             tab_icon_size = icon_size
         else:
             actual_size = opt.icon.actualSize(icon_size, icon_mode, icon_state)
