@@ -114,14 +114,16 @@ def create_blocklist(directory, blocked_hosts=BLOCKLIST_HOSTS,
     return name
 
 
-def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS[1:],
+def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
                 whitelisted=WHITELISTED_HOSTS, urls_to_check=URLS_TO_CHECK):
     """Test if Urls to check are blocked or not by HostBlocker.
 
     Ensure URLs in 'blocked' and not in 'whitelisted' are blocked.
     All other URLs must not be blocked.
+
+    localhost is an example of a special case that shouldn't be blocked.
     """
-    whitelisted = list(whitelisted)
+    whitelisted = list(whitelisted) + ['localhost']
     for str_url in urls_to_check:
         url = QUrl(str_url)
         host = url.host()
