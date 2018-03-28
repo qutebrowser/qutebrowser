@@ -120,8 +120,10 @@ def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
 
     Ensure URLs in 'blocked' and not in 'whitelisted' are blocked.
     All other URLs must not be blocked.
+
+    localhost is an example of a special case that shouldn't be blocked.
     """
-    whitelisted = list(whitelisted) + list(host_blocker.WHITELISTED)
+    whitelisted = list(whitelisted) + ['localhost']
     for str_url in urls_to_check:
         url = QUrl(str_url)
         host = url.host()
@@ -247,6 +249,16 @@ def test_successful_update(config_stub, basedir, download_stub,
     assert_urls(host_blocker, whitelisted=[])
 
 
+def test_parsing_multiple_hosts_on_line(config_stub, basedir, download_stub,
+                                        data_tmpdir, tmpdir, win_registry,
+                                        caplog):
+    """Ensure multiple hosts on a line get parsed correctly."""
+    host_blocker = adblock.HostBlocker()
+    bytes_host_line = ' '.join(BLOCKLIST_HOSTS).encode('utf-8')
+    host_blocker._parse_line(bytes_host_line)
+    assert_urls(host_blocker, whitelisted=[])
+
+
 def test_failed_dl_update(config_stub, basedir, download_stub,
                           data_tmpdir, tmpdir, win_registry, caplog):
     """One blocklist fails to download.
@@ -341,7 +353,7 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
     """Ensure hosts in content.host_blocking.whitelist are never blocked."""
     # Simulate adblock_update has already been run
     # by creating a file named blocked-hosts,
-    # Exclude localhost from it, since localhost is in HostBlocker.WHITELISTED
+    # Exclude localhost from it as localhost is never blocked via list
     filtered_blocked_hosts = BLOCKLIST_HOSTS[1:]
     blocklist = create_blocklist(data_tmpdir,
                                  blocked_hosts=filtered_blocked_hosts,
