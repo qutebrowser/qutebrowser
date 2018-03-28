@@ -19,6 +19,7 @@
 
 import logging
 
+from PyQt5.QtCore import QLibraryInfo
 from qutebrowser.browser.webengine import spell
 from qutebrowser.utils import usertypes
 
@@ -33,6 +34,11 @@ def test_version(message_mock, caplog):
     assert msg.text == expected
 
 
+def test_dictionary_dir(monkeypatch):
+    monkeypatch.setattr(QLibraryInfo, 'location', lambda _: 'datapath')
+    assert spell.dictionary_dir() == 'datapath/qtwebengine_dictionaries'
+
+
 def test_local_filename_dictionary_does_not_exist(tmpdir, monkeypatch):
     monkeypatch.setattr(
         spell, 'dictionary_dir', lambda: '/some-non-existing-dir')
@@ -44,9 +50,24 @@ def test_local_filename_dictionary_not_installed(tmpdir, monkeypatch):
     assert not spell.local_filename('en-US')
 
 
+def test_local_filename_dictionary_not_installed_with_malformed(tmpdir, monkeypatch, caplog):
+    monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
+    (tmpdir / 'en-US.bdic').ensure()
+    with caplog.at_level(logging.WARNING):
+        assert not spell.local_filename('en-US')
+
+
 def test_local_filename_dictionary_installed(tmpdir, monkeypatch):
     monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
     for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'pl-PL-3-0.bdic']:
         (tmpdir / lang_file).ensure()
     assert spell.local_filename('en-US') == 'en-US-11-0'
     assert spell.local_filename('pl-PL') == 'pl-PL-3-0'
+
+
+def test_local_filename_dictionary_installed_with_malformed(tmpdir, monkeypatch, caplog):
+    monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
+    for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'en-US.bdic']:
+        (tmpdir / lang_file).ensure()
+    with caplog.at_level(logging.WARNING):
+        assert spell.local_filename('en-US') == 'en-US-11-0'
