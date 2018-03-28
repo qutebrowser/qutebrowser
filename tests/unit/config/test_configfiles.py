@@ -211,8 +211,11 @@ class TestYaml:
         data = autoconfig.read()
         assert data == {'tabs.show': {'global': 'value'}}
 
-    @pytest.mark.parametrize('persist', [True, False])
-    def test_merge_persist(self, yaml, autoconfig, persist):
+    @pytest.mark.parametrize('persist, expected', [
+        (True, 'persist'),
+        (False, 'normal'),
+    ])
+    def test_merge_persist(self, yaml, autoconfig, persist, expected):
         """Tests for migration of tabs.persist_mode_on_change."""
         autoconfig.write({'tabs.persist_mode_on_change': {'global': persist}})
         yaml.load()
@@ -220,8 +223,7 @@ class TestYaml:
 
         data = autoconfig.read()
         assert 'tabs.persist_mode_on_change' not in data
-        mode = 'persist' if persist else 'normal'
-        assert data['tabs.mode_on_change']['global'] == mode
+        assert data['tabs.mode_on_change']['global'] == expected
 
     def test_bindings_default(self, yaml, autoconfig):
         """Make sure bindings.default gets removed from autoconfig.yml."""
@@ -233,9 +235,14 @@ class TestYaml:
         data = autoconfig.read()
         assert 'bindings.default' not in data
 
-    @pytest.mark.parametrize('show',
-                             [True, False, 'always', 'never', 'pinned'])
-    def test_tabs_favicons_show(self, yaml, autoconfig, show):
+    @pytest.mark.parametrize('show, expected', [
+        (True, 'always'),
+        (False, 'never'),
+        ('always', 'always'),
+        ('never', 'never'),
+        ('pinned', 'pinned'),
+    ])
+    def test_tabs_favicons_show(self, yaml, autoconfig, show, expected):
         """Tests for migration of tabs.favicons.show."""
         autoconfig.write({'tabs.favicons.show': {'global': show}})
 
@@ -243,11 +250,7 @@ class TestYaml:
         yaml._save()
 
         data = autoconfig.read()
-        if isinstance(show, bool):
-            when = 'always' if show else 'never'
-        else:
-            when = show
-        assert data['tabs.favicons.show']['global'] == when
+        assert data['tabs.favicons.show']['global'] == expected
 
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):

@@ -27,6 +27,7 @@ import shutil
 
 import attr
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl
+from PyQt5.QtGui import QIcon
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
@@ -267,7 +268,7 @@ class FakeWebTab(browsertab.AbstractTab):
         pass
 
     def icon(self):
-        return self.windowIcon()
+        return QIcon()
 
 
 class FakeSignal:
