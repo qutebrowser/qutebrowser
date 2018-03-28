@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Tests for qutebrowser.browser.webengine.spell module."""
+
 import logging
+import os
 
 from PyQt5.QtCore import QLibraryInfo
 from qutebrowser.browser.webengine import spell
@@ -25,6 +28,7 @@ from qutebrowser.utils import usertypes
 
 
 def test_version(message_mock, caplog):
+    """Tests parsing dictionary version from its file name."""
     assert spell.version('en-US-8-0.bdic') == (8, 0)
     assert spell.version('pl-PL-3-0.bdic') == (3, 0)
     with caplog.at_level(logging.WARNING):
@@ -36,21 +40,25 @@ def test_version(message_mock, caplog):
 
 def test_dictionary_dir(monkeypatch):
     monkeypatch.setattr(QLibraryInfo, 'location', lambda _: 'datapath')
-    assert spell.dictionary_dir() == 'datapath/qtwebengine_dictionaries'
+    assert spell.dictionary_dir() == os.path.join('datapath',
+                                                  'qtwebengine_dictionaries')
 
 
-def test_local_filename_dictionary_does_not_exist(tmpdir, monkeypatch):
+def test_local_filename_dictionary_does_not_exist(monkeypatch):
+    """Tests retrieving local filename when the dir doesn't exits."""
     monkeypatch.setattr(
         spell, 'dictionary_dir', lambda: '/some-non-existing-dir')
     assert not spell.local_filename('en-US')
 
 
 def test_local_filename_dictionary_not_installed(tmpdir, monkeypatch):
+    """Tests retrieving local filename when the dict not installed."""
     monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
     assert not spell.local_filename('en-US')
 
 
-def test_local_filename_dictionary_not_installed_with_malformed(tmpdir, monkeypatch, caplog):
+def test_local_filename_not_installed_malformed(tmpdir, monkeypatch, caplog):
+    """Tests retrieving local filename when the only file is malformed."""
     monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
     (tmpdir / 'en-US.bdic').ensure()
     with caplog.at_level(logging.WARNING):
@@ -58,6 +66,7 @@ def test_local_filename_dictionary_not_installed_with_malformed(tmpdir, monkeypa
 
 
 def test_local_filename_dictionary_installed(tmpdir, monkeypatch):
+    """Tests retrieving local filename when the dict installed."""
     monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
     for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'pl-PL-3-0.bdic']:
         (tmpdir / lang_file).ensure()
@@ -65,7 +74,9 @@ def test_local_filename_dictionary_installed(tmpdir, monkeypatch):
     assert spell.local_filename('pl-PL') == 'pl-PL-3-0'
 
 
-def test_local_filename_dictionary_installed_with_malformed(tmpdir, monkeypatch, caplog):
+def test_local_filename_installed_malformed(tmpdir, monkeypatch, caplog):
+    """Tests retrieving local filename when the dict installed and another
+    file is malformed."""
     monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
     for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'en-US.bdic']:
         (tmpdir / lang_file).ensure()
