@@ -45,6 +45,10 @@ Changed
   `True`), `'never'` (was `False`) and `'pinned'` (to only show favicons for
   pinned tabs).
 - Hover tooltips on tabs now always show the webpage's title.
+- The default value for `content.host_blocking.lists` was changed to only
+  include https://github.com/StevenBlack/hosts[Steven Black's hosts-list] which
+  combines various sources.
+
 
 Fixed
 ~~~~~
