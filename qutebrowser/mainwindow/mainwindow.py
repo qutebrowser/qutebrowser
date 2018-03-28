@@ -184,7 +184,8 @@ class MainWindow(QWidget):
             private = bool(private)
         self._private = private
         self.tabbed_browser = tabbedbrowser.TabbedBrowser(win_id=self.win_id,
-                                                          private=private)
+                                                          private=private,
+                                                          parent=self)
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
         self._init_command_dispatcher()
