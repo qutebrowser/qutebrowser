@@ -356,13 +356,29 @@ class AbstractZoom(QObject):
         self._default_zoom_changed = False
         self._init_neighborlist()
         config.instance.changed.connect(self._on_config_changed)
+        # tab._widget isn't initialised at this point so we can't use
+        # tab.url() to get the per-url default zoom.
         self._zoom_factor = float(config.val.zoom.default) / 100
+        self._tab.url_changed.connect(self._on_url_changed)
+
+    def _on_url_changed(self, url):
+        # NOTE: If a new page is requested and the request is slow to
+        # return data then this can be called while the "old" page is
+        # still displayed.
+        if self._default_zoom_changed:
+            # TODO: If someone has changed the zoom level for this tab
+            # then navigates to a tab with a custom default zoom should
+            # we change the tab zoom or expect people to press '='?
+            return
+        self.apply_default()
 
     @pyqtSlot(str)
     def _on_config_changed(self, option: str) -> None:
         if option in ['zoom.levels', 'zoom.default']:
             if not self._default_zoom_changed:
-                factor = float(config.val.zoom.default) / 100
+                default_zoom = config.instance.get('zoom.default',
+                                                   url=self._tab.url())
+                factor = float(default_zoom) / 100
                 self.set_factor(factor)
             self._init_neighborlist()
 
@@ -373,7 +389,14 @@ class AbstractZoom(QObject):
         levels = config.val.zoom.levels
         self._neighborlist = usertypes.NeighborList(
             levels, mode=usertypes.NeighborList.Modes.edge)
-        self._neighborlist.fuzzyval = config.val.zoom.default
+        try:
+            current_url = self._tab.url()
+            default_zoom = config.instance.get('zoom.default',
+                                               url=self._tab.url())
+        except AttributeError:
+            # If called from init self._tab isn't setup yet so tab.url() fails
+            default_zoom = config.val.zoom.default
+        self._neighborlist.fuzzyval = default_zoom
 
     def apply_offset(self, offset: int) -> None:
         """Increase/Decrease the zoom level by the given offset.
@@ -391,19 +414,27 @@ class AbstractZoom(QObject):
     def _set_factor_internal(self, factor: float) -> None:
         raise NotImplementedError
 
-    def set_factor(self, factor: float, *, fuzzyval: bool = True) -> None:
+    def set_factor(self, factor: float, *, fuzzyval=True,
+                   or_default: bool = False) -> None:
         """Zoom to a given zoom factor.
 
         Args:
             factor: The zoom factor as float.
             fuzzyval: Whether to set the NeighborLists fuzzyval.
+            or_default: If this tab hasn't had the default zoom factor
+                overriden then ignore the passed factor and just
+                re-apply the default one.
         """
         if fuzzyval:
             self._neighborlist.fuzzyval = int(factor * 100)
         if factor < 0:
             raise ValueError("Can't zoom to factor {}!".format(factor))
 
-        default_zoom_factor = float(config.val.zoom.default) / 100
+        default_zoom = config.instance.get('zoom.default',
+                                           url=self._tab.url())
+        default_zoom_factor = float(default_zoom) / 100
+        if or_default and not self._default_zoom_changed:
+            factor = default_zoom_factor
         self._default_zoom_changed = (factor != default_zoom_factor)
 
         self._zoom_factor = factor
@@ -413,7 +444,9 @@ class AbstractZoom(QObject):
         return self._zoom_factor
 
     def apply_default(self) -> None:
-        self._zoom_factor = float(config.val.zoom.default) / 100
+        default_zoom = config.instance.get('zoom.default',
+                                           url=self._tab.url())
+        self._zoom_factor = float(default_zoom) / 100
         self._set_factor_internal(self._zoom_factor)
 
     def reapply(self) -> None:

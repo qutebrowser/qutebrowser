@@ -85,7 +85,7 @@ def zoom(tab: apitypes.Tab,
             raise cmdutils.CommandError("zoom: Invalid int value {}"
                                         .format(level))
     else:
-        int_level = int(config.val.zoom.default)
+        int_level = int(config.get('zoom.default', url=tab.url()))
 
     try:
         tab.zoom.set_factor(int_level / 100)
