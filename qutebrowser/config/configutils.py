@@ -168,7 +168,7 @@ class Values:
           With fallback=False, UNSET is returned.
         """
         self._check_pattern_support(url)
-        if url is not None:
+        if url is not None and url.isValid():
             for scoped in reversed(self._values):
                 if scoped.pattern is not None and scoped.pattern.matches(url):
                     return scoped.value
