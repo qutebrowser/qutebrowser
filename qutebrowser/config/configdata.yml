@@ -1035,7 +1035,7 @@ input.spatial_navigation:
     Right key, heuristics determine whether there is an element he might be
     trying to reach towards the right and which element he probably wants.
 
-input.focus.blur_on_load_enabled:
+input.focus.blur_on_load:
   default: true
   type: Bool
   desc: >-

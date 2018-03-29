@@ -352,9 +352,7 @@ window._qutebrowser.webelem = (function() {
     // Sets the userInteracted flag in focustools, to avoid focustools from
     // blurring the page when we need focus.
     function setUserInteracted() {
-        if (window._qutebrowser.focustools) {
-            window._qutebrowser.focustools.setUserInteracted();
-        }
+        window._qutebrowser.focustools.setUserInteracted();
     }
 
     funcs.insert_text = (id, text) => {

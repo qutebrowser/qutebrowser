@@ -62,7 +62,7 @@ def test_auto_load(quteproc, auto_load, background, insert_mode):
 
     # Disable focustools
     quteproc.set_setting('input.focus.blur_on_mode_leave', "false")
-    quteproc.set_setting('input.focus.blur_on_load_enabled', "false")
+    quteproc.set_setting('input.focus.blur_on_load', "false")
 
     url_path = 'data/insert_mode_settings/html/autofocus.html'
     quteproc.open_path(url_path, new_bg_tab=background)

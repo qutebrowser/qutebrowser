@@ -54,16 +54,16 @@ Feature: Using focustools
 
 
     Scenario: Clear autofocusable elements on page load
-        When I set input.focus.blur_on_load_enabled to true
+        When I set input.focus.blur_on_load to true
         And I open data/autofocus.html
         Then no element should be focused
 
     Scenario: Don't clear autofocusable elements on page load
-        When I set input.focus.blur_on_load_enabled to false
+        When I set input.focus.blur_on_load to false
         And I open data/autofocus.html
         Then an element should be focused
 
     Scenario: Clear delayed focused elements on page load
-        When I set input.focus.blur_on_load_enabled to true
+        When I set input.focus.blur_on_load to true
         And I open data/autofocus_delayed.html
         Then no element should be focused

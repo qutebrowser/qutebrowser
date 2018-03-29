@@ -784,21 +784,25 @@ class WebKitTab(browsertab.AbstractTab):
         self.contents_size_changed.emit(QSizeF(size))
 
     @pyqtSlot()
-    def init_focustools(self):
-        """Initialize focustools.js in the main frame."""
-        self.run_js_async(
-            'window._qutebrowser = window._qutebrowser || {};')
-        self.run_js_async(
+    def _init_js(self):
+        """Initialize js in the main frame.
+
+        Needs to be run every page load."""
+        js_code = javascript.wrap_global(
+            'scripts',
             utils.read_file('javascript/focustools.js'))
+        self.run_js_async(js_code)
 
     @pyqtSlot()
-    def handle_clear_focus(self):
+    def _init_focustools(self):
         """Handle clearing focus when the page is first loaded."""
-        if not config.val.input.focus.blur_on_load_enabled:
+        if not config.val.input.focus.blur_on_load:
             return
-        code = javascript.assemble('focustools', 'load',
-                                   config.val.input.focus.blur_on_load_enabled)
-        self.run_js_async(code)
+        js_code = javascript.wrap_global(
+            'focustools',
+            javascript.assemble('focustools', 'load',
+                                config.val.input.focus.blur_on_load))
+        self.run_js_async(js_code)
 
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
@@ -845,8 +849,8 @@ class WebKitTab(browsertab.AbstractTab):
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.navigation_request.connect(self._on_navigation_request)
 
-        frame.initialLayoutCompleted.connect(self.init_focustools)
-        frame.initialLayoutCompleted.connect(self.handle_clear_focus)
+        frame.initialLayoutCompleted.connect(self._init_js)
+        frame.initialLayoutCompleted.connect(self._init_focustools)
 
     def event_target(self):
         return self._widget
