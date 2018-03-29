@@ -356,12 +356,12 @@ class AbstractZoom(QObject):
         self._default_zoom_changed = False
         self._init_neighborlist()
         config.instance.changed.connect(self._on_config_changed)
-        # tab._widget isn't initialised at this point so we can't use
+        # tab._widget isn't initialized at this point so we can't use
         # tab.url() to get the per-url default zoom.
         self._zoom_factor = float(config.val.zoom.default) / 100
         self._tab.url_changed.connect(self._on_url_changed)
 
-    def _on_url_changed(self, url):
+    def _on_url_changed(self):
         # NOTE: If a new page is requested and the request is slow to
         # return data then this can be called while the "old" page is
         # still displayed.
@@ -390,7 +390,6 @@ class AbstractZoom(QObject):
         self._neighborlist = usertypes.NeighborList(
             levels, mode=usertypes.NeighborList.Modes.edge)
         try:
-            current_url = self._tab.url()
             default_zoom = config.instance.get('zoom.default',
                                                url=self._tab.url())
         except AttributeError:
@@ -441,9 +440,11 @@ class AbstractZoom(QObject):
         self._set_factor_internal(factor)
 
     def factor(self) -> float:
+        """Return the current zoom level of the tab as a float."""
         return self._zoom_factor
 
     def apply_default(self) -> None:
+        """Set the zoom level of the current tab back to the default."""
         default_zoom = config.instance.get('zoom.default',
                                            url=self._tab.url())
         self._zoom_factor = float(default_zoom) / 100
