@@ -698,16 +698,15 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def _init_js(self):
         """Initialize global qutebrowser JavaScript."""
+        self._init_focustools()
         js_code = javascript.wrap_global(
             'scripts',
             utils.read_file('javascript/scroll.js'),
-            utils.read_file('javascript/focustools.js'),
             utils.read_file('javascript/webelem.js'),
             utils.read_file('javascript/caret.js'),
         )
         # FIXME:qtwebengine what about subframes=True?
         self._inject_early_js('js', js_code, subframes=True)
-        self._init_focustools()
         self._init_stylesheet()
 
         greasemonkey = objreg.get('greasemonkey')
@@ -769,6 +768,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._remove_early_js('focustools')
         js_code = javascript.wrap_global(
             'focustools',
+            utils.read_file('javascript/focustools.js'),
             javascript.assemble('focustools', 'load',
                                 config.val.input.focus.blur_on_load))
         self._inject_early_js('focustools', js_code, subframes=False)

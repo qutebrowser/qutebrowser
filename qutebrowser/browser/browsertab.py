@@ -421,6 +421,7 @@ class AbstractCaret(QObject):
         """
         raise NotImplementedError
 
+
 class AbstractScroller(QObject):
 
     """Attribute of AbstractTab to manage scroll position."""
