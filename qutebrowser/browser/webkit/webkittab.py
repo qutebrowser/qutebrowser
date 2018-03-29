@@ -404,6 +404,10 @@ class WebKitCaret(browsertab.AbstractCaret):
                 else:
                     self._tab.openurl(url)
 
+    def set_user_interacted(self):
+        self._tab.run_js_async(
+            javascript.assemble('focustools', "setUserInteracted"))
+
 
 class WebKitZoom(browsertab.AbstractZoom):
 

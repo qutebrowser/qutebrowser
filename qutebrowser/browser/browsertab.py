@@ -413,6 +413,13 @@ class AbstractCaret(QObject):
     def follow_selected(self, *, tab=False):
         raise NotImplementedError
 
+    def set_user_interacted(self):
+        """Sets the userInteracted flag on this page.
+
+        Tells focustools that the user is now in control of the page, which
+        disables automatic blurring.
+        """
+        raise NotImplementedError
 
 class AbstractScroller(QObject):
 

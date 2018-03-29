@@ -340,9 +340,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
             elem.click(click_type)
 
     def follow_selected(self, *, tab=False):
-        # Tell focustools the user is triggering this focus event.
-        self._tab.run_js_async(
-            javascript.assemble('focustools', "setUserInteracted"))
+        self.set_user_interacted()
 
         if self._tab.search.search_displayed:
             # We are currently in search mode.
@@ -362,6 +360,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
             js_code = javascript.assemble('webelem', 'find_selected_link')
             self._tab.run_js_async(js_code, lambda jsret:
                                    self._follow_selected_cb(jsret, tab))
+
+    def set_user_interacted(self):
+        self._tab.run_js_async(
+            javascript.assemble('focustools', "setUserInteracted"))
 
     def _js_call(self, command, callback=None):
         self._tab.run_js_async(javascript.assemble('caret', command), callback)
