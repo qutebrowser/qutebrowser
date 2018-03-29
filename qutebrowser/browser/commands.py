@@ -946,10 +946,10 @@ class CommandDispatcher:
                 raise cmdexc.CommandError("zoom: Invalid int value {}"
                                           .format(zoom))
 
+        tab = self._current_widget()
         level = count if count is not None else zoom
         if level is None:
-            level = config.val.zoom.default
-        tab = self._current_widget()
+            level = config.instance.get('zoom.default', url=tab.url())
 
         try:
             tab.zoom.set_factor(float(level) / 100)

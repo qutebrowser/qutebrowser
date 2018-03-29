@@ -768,7 +768,7 @@ class WebEngineTab(browsertab.AbstractTab):
             return
         if self._saved_zoom is None:
             return
-        self.zoom.set_factor(self._saved_zoom)
+        self.zoom.set_factor(self._saved_zoom, or_default=True)
         self._saved_zoom = None
 
     def openurl(self, url, *, predict=True):

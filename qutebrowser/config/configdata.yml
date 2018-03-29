@@ -1570,6 +1570,7 @@ window.title_format:
 zoom.default:
   type: Perc
   default: 100%
+  supports_pattern: true
   desc: Default zoom level.
 
 zoom.levels:
