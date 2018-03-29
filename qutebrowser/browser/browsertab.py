@@ -329,7 +329,8 @@ class AbstractZoom(QObject):
         return self._zoom_factor
 
     def set_default(self):
-        self._set_factor_internal(float(config.val.zoom.default) / 100)
+        self._zoom_factor = float(config.val.zoom.default) / 100
+        self._set_factor_internal(self._zoom_factor)
 
     def set_current(self):
         self._set_factor_internal(self._zoom_factor)
