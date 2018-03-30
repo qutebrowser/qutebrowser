@@ -70,6 +70,8 @@ Fixed
   disabled globally.
 - Building `.exe` files now works when `upx` is installed on the system.
 - The keyhint widget now shows the correct text for chained modifiers.
+- Loading GreaseMonkey scripts now also works with Jinja2 2.8 (e.g. on Debian
+  Stable).
 
 v1.2.1
 ------
