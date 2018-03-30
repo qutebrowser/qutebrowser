@@ -30,7 +30,8 @@ import textwrap
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
-from qutebrowser.utils import log, standarddir, jinja, objreg, utils
+from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
+                               javascript)
 from qutebrowser.commands import cmdutils
 from qutebrowser.browser import downloads
 
@@ -106,9 +107,10 @@ class GreasemonkeyScript:
         """
         template = jinja.js_environment.get_template('greasemonkey_wrapper.js')
         return template.render(
-            scriptName="/".join([self.namespace or '', self.name]),
+            scriptName=javascript.string_escape(
+                "/".join([self.namespace or '', self.name])),
             scriptInfo=self._meta_json(),
-            scriptMeta=self.script_meta,
+            scriptMeta=javascript.string_escape(self.script_meta),
             scriptSource=self._code)
 
     def _meta_json(self):

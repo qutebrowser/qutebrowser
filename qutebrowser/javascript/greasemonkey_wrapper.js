@@ -1,5 +1,5 @@
 (function() {
-    const _qute_script_id = "__gm_" + {{ scriptName | tojson }};
+    const _qute_script_id = "__gm_" + "{{ scriptName }}";
 
     function GM_log(text) {
         console.log(text);
@@ -7,7 +7,7 @@
 
     const GM_info = {
         'script': {{ scriptInfo }},
-        'scriptMetaStr': {{ scriptMeta | tojson }},
+        'scriptMetaStr': "{{ scriptMeta }}",
         'scriptWillUpdate': false,
         'version': "0.0.1",
         // so scripts don't expect exportFunction
