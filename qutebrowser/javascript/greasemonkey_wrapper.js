@@ -1,5 +1,5 @@
 (function() {
-    const _qute_script_id = "__gm_" + "{{ scriptName }}";
+    const _qute_script_id = "__gm_{{ scriptName }}";
 
     function GM_log(text) {
         console.log(text);
