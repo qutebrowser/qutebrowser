@@ -145,9 +145,53 @@
         }
     };
 
+    /* TamperMonkey allows assinging to `window` to change the visible global
+     * scope, without breaking other scripts. Eg if the page has set
+     * window.$ for an object for some reason (hello 4chan)
+     * - typeof $ === 'object'
+     * - typeof window.$ == 'undefined'
+     * - window.$ = function() {}
+     * - typeof $ === 'function'
+     * - typeof window.$ == 'function'
+     * Just shadowing `window` won't work because if you try to use '$'
+     * from the global scope you will still get the pages one.
+     * Additionally the userscript expects `window` to actually look
+     * like a fully featured browser window object.
+     *
+     * So let's try to use a Proxy on window and the possibly deprecated
+     * `with` function to make that proxy shadow the global scope.
+     * unsafeWindow should still be the actual global page window.
+     */
     const unsafeWindow = window;
+    let myWindow = {};
+    var windowProxyHandler = {
+      get: function(obj, prop) {
+        if (prop in myWindow)
+          return myWindow[prop];
+        if (prop in obj) {
+          if (typeof obj[prop] === 'function' && typeof obj[prop].prototype == 'undefined')
+            // Getting TypeError: Illegal Execution when callers try to execute
+            // eg addEventListener from here because they were returned
+            // unbound
+            return obj[prop].bind(obj);
+          return obj[prop];
+        }
+      },
+      set: function(target, prop, val) {
+        return myWindow[prop] = val;
+      }
+    };
+    var myProxy = new Proxy(unsafeWindow, windowProxyHandler);
 
     // ====== The actual user script source ====== //
+    with (myProxy) {
+      // can't assign window directly in with() scope because proxy doesn't
+      // allow assinging to things that a readonly on the target.
+      function blarg() {  // why can't this be anonymous?
+      var window = myProxy;
 {{ scriptSource }}
+      };
+      blarg();
+    };
     // ====== End User Script ====== //
 })();
