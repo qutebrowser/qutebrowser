@@ -223,6 +223,32 @@ def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
         completion_widget_stub.set_pattern.assert_called_once_with(pattern)
 
 
+@pytest.mark.parametrize('txt1, txt2, regen', [
+    (':config-cycle |', ':config-cycle a|', False),
+    (':config-cycle abc|', ':config-cycle abc |', True),
+    (':config-cycle abc |', ':config-cycle abc d|', False),
+    (':config-cycle abc def|', ':config-cycle abc def |', True),
+    # open has maxsplit=0, so all args just set the pattern, not the model
+    (':open |', ':open a|', False),
+    (':open abc|', ':open abc |', False),
+    (':open abc |', ':open abc d|', False),
+    (':open abc def|', ':open abc def |', False),
+])
+def test_regen_completion(txt1, txt2, regen, status_command_stub,
+                          completer_obj, completion_widget_stub, config_stub,
+                          key_config_stub):
+    """Test that the completion function is only called as needed."""
+    # set the initial state
+    _set_cmd_prompt(status_command_stub, txt1)
+    completer_obj.schedule_completion_update()
+    completion_widget_stub.set_model.reset_mock()
+
+    # "move" the cursor and check if the completion function was called
+    _set_cmd_prompt(status_command_stub, txt2)
+    completer_obj.schedule_completion_update()
+    assert completion_widget_stub.set_model.called == regen
+
+
 @pytest.mark.parametrize('before, newtxt, after', [
     (':|', 'set', ':set|'),
     (':| ', 'set', ':set|'),

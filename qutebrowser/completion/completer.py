@@ -49,7 +49,7 @@ class Completer(QObject):
         _last_cursor_pos: The old cursor position so we avoid double completion
                           updates.
         _last_text: The old command text so we avoid double completion updates.
-        _last_completion_func: The completion function used for the last text.
+        _last_before_cursor: The prior value of before_cursor.
     """
 
     def __init__(self, *, cmd, win_id, parent=None):
@@ -62,7 +62,7 @@ class Completer(QObject):
         self._timer.timeout.connect(self._update_completion)
         self._last_cursor_pos = -1
         self._last_text = None
-        self._last_completion_func = None
+        self._last_before_cursor = None
         self._cmd.update_completion.connect(self.schedule_completion_update)
 
     def __repr__(self):
@@ -228,7 +228,7 @@ class Completer(QObject):
             # FIXME complete searches
             # https://github.com/qutebrowser/qutebrowser/issues/32
             completion.set_model(None)
-            self._last_completion_func = None
+            self._last_before_cursor = None
             return
 
         before_cursor, pattern, after_cursor = self._partition()
@@ -242,11 +242,11 @@ class Completer(QObject):
         if func is None:
             log.completion.debug('Clearing completion')
             completion.set_model(None)
-            self._last_completion_func = None
+            self._last_before_cursor = None
             return
 
-        if func != self._last_completion_func:
-            self._last_completion_func = func
+        if before_cursor != self._last_before_cursor:
+            self._last_before_cursor = before_cursor
             args = (x for x in before_cursor[1:] if not x.startswith('-'))
             with debug.log_time(log.completion, 'Starting {} completion'
                                 .format(func.__name__)):
