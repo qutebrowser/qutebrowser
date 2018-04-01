@@ -161,13 +161,16 @@
      * So let's try to use a Proxy on window and the possibly deprecated
      * `with` function to make that proxy shadow the global scope.
      * unsafeWindow should still be the actual global page window.
+     *
+     * There are other Proxy functions that we may need to override.
+     * set, get and has are definitely required.
      */
     const unsafeWindow = window;
-    let myWindow = {};
-    var windowProxyHandler = {
+    const qute_gm_window_shadow = {};  // stores local changes to window
+    const qute_gm_windowProxyHandler = {
       get: function(obj, prop) {
-        if (prop in myWindow)
-          return myWindow[prop];
+        if (prop in qute_gm_window_shadow)
+          return qute_gm_window_shadow[prop];
         if (prop in obj) {
           if (typeof obj[prop] === 'function' && typeof obj[prop].prototype == 'undefined')
             // Getting TypeError: Illegal Execution when callers try to execute
@@ -178,20 +181,29 @@
         }
       },
       set: function(target, prop, val) {
-        return myWindow[prop] = val;
+        return qute_gm_window_shadow[prop] = val;
+      },
+      has: function(target, key) {
+        return key in qute_gm_window_shadow ? true :
+               key in target;
       }
     };
-    var myProxy = new Proxy(unsafeWindow, windowProxyHandler);
+    const qute_gm_window_proxy = new Proxy(unsafeWindow, qute_gm_windowProxyHandler);
 
-    // ====== The actual user script source ====== //
-    with (myProxy) {
-      // can't assign window directly in with() scope because proxy doesn't
-      // allow assinging to things that a readonly on the target.
-      function blarg() {  // why can't this be anonymous?
-      var window = myProxy;
+    with (qute_gm_window_proxy) {
+      // We can't return `this` or `qute_gm_window_proxy` from
+      // `qute_gm_window_proxy.get('window')` because the Proxy implementation
+      // does typechecking on read-only things. So we have to shadow `window`
+      // more conventionally here. Except we can't do it directly within
+      // with `with` scope because then it would get assigned to the
+      // proxy and we would get the same problem, so we have to make yet
+      // another nested scope.
+      function qute_gm_window_scope() {  // why can't this be anonymous?
+        let window = qute_gm_window_proxy;
+        // ====== The actual user script source ====== //
 {{ scriptSource }}
+        // ====== End User Script ====== //
       };
-      blarg();
+      qute_gm_window_scope();
     };
-    // ====== End User Script ====== //
 })();
