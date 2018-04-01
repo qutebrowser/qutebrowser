@@ -236,7 +236,7 @@
 |<<tabs.close_mouse_button,tabs.close_mouse_button>>|Mouse button with which to close tabs.
 |<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|How to behave when the close mouse button is pressed on the tab bar.
 |<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling factor for favicons in the tab bar.
-|<<tabs.favicons.show,tabs.favicons.show>>|Show favicons in the tab bar.
+|<<tabs.favicons.show,tabs.favicons.show>>|When to show favicons in the tab bar.
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
@@ -1655,11 +1655,7 @@ Type: <<types,List of Url>>
 
 Default: 
 
-- +pass:[https://www.malwaredomainlist.com/hostslist/hosts.txt]+
-- +pass:[http://someonewhocares.org/hosts/hosts]+
-- +pass:[http://winhelp2002.mvps.org/hosts.zip]+
-- +pass:[http://malwaredomains.lehigh.edu/files/justdomains.zip]+
-- +pass:[https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&amp;mimetype=plaintext]+
+- +pass:[https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts]+
 
 [[content.host_blocking.whitelist]]
 === content.host_blocking.whitelist
@@ -2825,11 +2821,17 @@ Default: +pass:[1.0]+
 
 [[tabs.favicons.show]]
 === tabs.favicons.show
-Show favicons in the tab bar.
+When to show favicons in the tab bar.
 
-Type: <<types,Bool>>
+Type: <<types,String>>
 
-Default: +pass:[true]+
+Valid values:
+
+ * +always+: Always show favicons.
+ * +never+: Always hide favicons.
+ * +pinned+: Show favicons only on pinned tabs.
+
+Default: +pass:[always]+
 
 [[tabs.indicator.padding]]
 === tabs.indicator.padding
