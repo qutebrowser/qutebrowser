@@ -85,6 +85,12 @@ git format-patch origin/master <1>
 <1> Replace `master` by the branch your work was based on, e.g.,
 `origin/develop`.
 
+Running/Testing Changes
+~~~~~~~~~~~~~~~~~~~~~~~
+To run qutebrowser without installing it(useful for testing out small changes) run
+`python3 -m qutebrowser --temp-basedir --no-err-windows` in the qutebrowser directory.
+
+
 Useful utilities
 ----------------
 
