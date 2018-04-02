@@ -1778,14 +1778,16 @@ class CommandDispatcher:
                             replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0)
-    def search(self, text="", reverse=False):
+                       maxsplit=0, star_args_optional=True)
+    def search(self, *text, reverse=False):
         """Search for a text on the current page. With no text, clear results.
 
         Args:
             text: The text to search for.
             reverse: Reverse search direction.
         """
+        text = ' '.join(text)
+
         self.set_mark("'")
         tab = self._current_widget()
 
