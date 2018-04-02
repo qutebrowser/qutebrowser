@@ -31,13 +31,13 @@ pytestmark = pytest.mark.usefixtures('redirect_webengine_data')
 
 @pytest.fixture
 def tabbed_browser():
-    return mock.Mock(spec=tabbedbrowser.TabbedBrowser)
+    return mock.Mock(autospec=tabbedbrowser.TabbedBrowser)
 
 
 @pytest.fixture
 def current_tab(tabbed_browser):
         tab = mock.Mock(spec=browsertab.AbstractTab)
-        tabbed_browser.currentWidget.return_value = tab
+        tabbed_browser.widget.currentWidget.return_value = tab
         return tab
 
 
