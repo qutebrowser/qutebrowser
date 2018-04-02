@@ -64,6 +64,13 @@ class AlreadyExistsError(Error):
     pass
 
 
+class NotUniqueError(Error):
+
+    """Exception emitted when a tag is not unique."""
+
+    pass
+
+
 Bookmark = collections.namedtuple('Bookmark', ['url', 'title', 'tags'])
 
 
@@ -176,13 +183,18 @@ class BookmarkManager(QObject):
         return (m for m in self._marks.values()
                 if all(t in m.tags for t in tags))
 
-    def tag(self, url, tags):
-        """Remove tags from a mark.
+    def tag(self, url, tags, unique=False):
+        """Add tags to a mark.
 
         Args:
             url: QUrl of the mark to modify.
             tags: List of tags to remove.
+            unique: Raise NotUniqueError if one of the tags is already in use.
         """
+        if unique:
+            violations = [t for t in tags if any(self.get_tagged(t))]
+            if violations:
+                raise NotUniqueError("{} are not unique".format(violations))
         mark = self.get(url)
         mark.tags.extend((t for t in tags if t not in mark.tags))
         self.changed.emit()

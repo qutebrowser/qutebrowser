@@ -1339,7 +1339,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('url', completion=miscmodels.bookmark)
     @cmdutils.argument('tags', completion=miscmodels.bookmark_tag)
-    def bookmark_tag(self, url, *tags, remove=False):
+    def bookmark_tag(self, url, *tags, remove=False, unique=False):
         """Modify bookmark tags for the given url.
 
         The given url will be bookmarked if it is not already.
@@ -1348,14 +1348,16 @@ class CommandDispatcher:
             url: url to save as a bookmark.
             tags: One or more tags to add.
             remove: Remove tags instead of adding.
+            unique: Refuse non-unique tags.
         """
         bookmark_manager = objreg.get('bookmark-manager')
         url = QUrl(url or self._current_url())
+
         try:
             if remove:
                 bookmark_manager.untag(url, tags)
             else:
-                bookmark_manager.tag(url, tags)
+                bookmark_manager.tag(url, tags, unique=unique)
         except urlmarks.Error as e:
             raise cmdexc.CommandError(str(e))
 

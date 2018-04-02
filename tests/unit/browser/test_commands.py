@@ -100,6 +100,15 @@ class TestBookmarkTag:
         bookmark_manager_mock.tag.assert_called_with(
             QUrl('http://example.com'),
             ('bar', 'baz'),
+            unique=False,
+        )
+
+    def test_tag_unique(self, command_dispatcher, bookmark_manager_mock):
+        command_dispatcher.bookmark_tag('http://example.com', 'a', unique=True)
+        bookmark_manager_mock.tag.assert_called_with(
+            QUrl('http://example.com'),
+            ('a',),
+            unique=True,
         )
 
     def test_tag_remove(self, command_dispatcher, bookmark_manager_mock):

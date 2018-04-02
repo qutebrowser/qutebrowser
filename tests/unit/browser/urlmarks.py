@@ -209,6 +209,29 @@ def test_tag(bm_file, fake_save_manager, qtbot, old, add, new):
     assert bm.get(url).tags == new
 
 
+@pytest.mark.parametrize('tags, violations', [
+    (['a'], ['a']),
+    (['b'], ['b']),
+    (['e'], []),
+    (['e', 'f'], []),
+    (['e', 'a', 'b'], ['a', 'b']),
+])
+def test_tag_unique(bm_file, fake_save_manager, qtbot, tags, violations):
+    bm = urlmarks.BookmarkManager()
+    bm.add(QUrl('http://example.com/a'), 'Example Site', ['a'])
+    bm.add(QUrl('http://example.com/b'), 'Example Site', ['b', 'c'])
+    bm.add(QUrl('http://example.com/c'), 'Example Site', ['b', 'd'])
+
+    url = QUrl('http://example.com/c')
+    if violations:
+        with pytest.raises(urlmarks.NotUniqueError) as excinfo:
+            bm.tag(url, tags, unique=True)
+        assert str(excinfo.value) == "{} are not unique".format(violations)
+    else:
+        bm.tag(url, tags, unique=True)
+        assert bm.get(url).tags == ['b', 'd'] + tags
+
+
 @pytest.mark.parametrize('old, remove, new', [
     ([], ['foo', 'bar'], []),
     (['baz'], ['foo', 'bar'], ['baz']),
