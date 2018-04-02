@@ -86,7 +86,7 @@ git format-patch origin/master <1>
 `origin/develop`.
 
 Running Development Changes
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 To run qutebrowser without installing it(useful for testing out small changes) run
 `python3 -m qutebrowser --temp-basedir --no-err-windows` in the qutebrowser directory.
 
