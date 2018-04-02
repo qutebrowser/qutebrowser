@@ -45,6 +45,12 @@ Feature: Searching on a page
         And I wait for "search found /slash" in the log
         Then "/slash" should be found
 
+    Scenario: Searching with arguments at start of search term
+        When I run :set-cmd-text -s /-r reversed
+        And I run :command-accept
+        And I wait for "search found -r reversed" in the log
+        Then "-r reversed" should be found
+
     # This doesn't work because this is QtWebKit behavior.
     @xfail_norun
     Scenario: Searching text with umlauts
