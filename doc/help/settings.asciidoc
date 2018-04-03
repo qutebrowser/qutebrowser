@@ -240,6 +240,8 @@
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
+|<<tabs.mute_messages,tabs.mute_messages>>|Mute the First Tab and Last Tab
+messages when wrap is False.
 |<<tabs.min_width,tabs.min_width>>|Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
 |<<tabs.mode_on_change,tabs.mode_on_change>>|When switching tabs, what input mode is applied.
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
@@ -257,8 +259,6 @@
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
-|<<tabs.mute_messages,tabs.mute_messages>>|Mute the First Tab and Last Tab
-messages when wrap is set to False.
 |<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
 |<<url.default_page,url.default_page>>|Page to open if :open -t/-b/-w is used without URL.
 |<<url.incdec_segments,url.incdec_segments>>|URL segments where `:navigate increment/decrement` will search for a number.
@@ -2872,6 +2872,14 @@ Valid values:
 
 Default: +pass:[ignore]+
 
+[[tabs.mute_messages]]
+=== tabs.mute_messages
+Mute First Tab and Last Tab messages when `tabs.wrap` is False.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[tabs.min_width]]
 === tabs.min_width
 Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
@@ -3075,14 +3083,6 @@ Wrap when changing tabs.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
-
-[[tabs.mute_messages]]
-=== tabs.mute_messages
-Mute First Tab and Last Tab messages when tabs.wrap is set to False.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
 
 [[url.auto_search]]
 === url.auto_search
