@@ -480,7 +480,7 @@ def qute_back(url):
     """
     html = jinja.render(
         'back.html',
-        title='Suspended: ' + urllib.parse.unquote(url.fragment()))
+        title=urllib.parse.unquote(url.fragment()) + ' (Suspended)')
     return 'text/html', html
 
 
