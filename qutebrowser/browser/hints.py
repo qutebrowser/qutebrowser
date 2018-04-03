@@ -724,6 +724,7 @@ class HintManager(QObject):
                                             only_visible=True)
 
     def _get_selector(self):
+        """Get the CSS selectors for this url and hinting group."""
         group = self._context.group
         selector = webelem.SELECTORS[group]
 
