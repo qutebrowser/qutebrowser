@@ -32,7 +32,7 @@ test_gm_script = r"""
 // @name qutebrowser test userscript
 // @namespace invalid.org
 // @include http://localhost:*/data/title.html
-// @match http://trolol*
+// @match http://*.trolol.com/*
 // @exclude https://badhost.xxx/*
 // @run-at document-start
 // ==/UserScript==
@@ -60,7 +60,7 @@ def test_all():
 
 @pytest.mark.parametrize("url, expected_matches", [
     # included
-    ('http://trololololololo.com/', 1),
+    ('http://trolol.com/', 1),
     # neither included nor excluded
     ('http://aaaaaaaaaa.com/', 0),
     # excluded

@@ -32,6 +32,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
                                javascript)
+from qutebrowser.utils.urlmatch import UrlPattern
 from qutebrowser.commands import cmdutils
 from qutebrowser.browser import downloads
 
@@ -48,6 +49,7 @@ class GreasemonkeyScript:
     def __init__(self, properties, code):
         self._code = code
         self.includes = []
+        self.matches = []
         self.excludes = []
         self.requires = []
         self.description = None
@@ -63,8 +65,10 @@ class GreasemonkeyScript:
                 self.namespace = value
             elif name == 'description':
                 self.description = value
-            elif name in ['include', 'match']:
+            elif name == 'include':
                 self.includes.append(value)
+            elif name == 'match':
+                self.matches.append(value)
             elif name in ['exclude', 'exclude_match']:
                 self.excludes.append(value)
             elif name == 'run-at':
@@ -92,7 +96,7 @@ class GreasemonkeyScript:
             props = ""
         script = cls(re.findall(cls.PROPS_REGEX, props), source)
         script.script_meta = props
-        if not script.includes:
+        if not script.includes and not script.matches:
             script.includes = ['*']
         return script
 
@@ -117,7 +121,7 @@ class GreasemonkeyScript:
         return json.dumps({
             'name': self.name,
             'description': self.description,
-            'matches': self.includes,
+            'matches': self.matches,
             'includes': self.includes,
             'excludes': self.excludes,
             'run-at': self.run_at,
@@ -324,8 +328,12 @@ class GreasemonkeyManager(QObject):
             # Otherwise they are glob expressions.
             return fnmatch.fnmatch(string_url, pattern)
 
+        def _chromium_match(pattern):
+            return UrlPattern(pattern).matches(url)
+
         tester = (lambda script:
-                  any(_match(pat) for pat in script.includes) and
+                  (any(_match(pat) for pat in script.includes) or
+                   any(_chromium_match(pat) for pat in script.matches)) and
                   not any(_match(pat) for pat in script.excludes))
 
         return MatchingScripts(
