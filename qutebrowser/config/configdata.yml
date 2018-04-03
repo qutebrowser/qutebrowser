@@ -1458,6 +1458,11 @@ tabs.wrap:
   type: Bool
   desc: Wrap when changing tabs.
 
+tabs.mute_messages:
+  default: false
+  type: Bool
+  desc: Mute the First Tab and Last Tab messages when wrap is set to False.
+
 ## url
 
 url.auto_search:
