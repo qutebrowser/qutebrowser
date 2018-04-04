@@ -249,6 +249,28 @@ def test_untag(bm_file, fake_save_manager, qtbot, old, remove, new):
     assert bm.get(url).tags == new
 
 
+@pytest.mark.parametrize('old, remove, removed', [
+    (['foo'], ['foo'], True),
+    (['foo', 'bar'], ['foo', 'bar'], True),
+    (['foo', 'bar'], ['foo'], False),
+    (['foo', 'bar'], ['foo', 'bar', 'baz'], True),
+    ([], ['foo', 'bar'], True),
+])
+def test_untag_purge(bm_file, fake_save_manager, qtbot, old, remove, removed):
+    bm = urlmarks.BookmarkManager()
+    url = QUrl('http://example.com')
+    bm.add(url, 'Example Site', old)
+
+    with qtbot.wait_signal(bm.changed):
+        bm.untag(url, remove, purge=True)
+
+    if removed:
+        with pytest.raises(urlmarks.DoesNotExistError):
+            bm.get(url)
+    else:
+        bm.get(url)
+
+
 def test_invalid_url(bm_file, fake_save_manager):
     bm = urlmarks.BookmarkManager()
     url = QUrl('ht tp://example.com')

@@ -103,7 +103,13 @@ Feature: Bookmarks
     Scenario: Deleting a bookmark
         When I run :bookmark-add data/numbers/6.txt six
         And I run :bookmark-del http://localhost:(port)/data/numbers/6.txt
-        Then the bookmark file should not contain "http://localhost:*/data/numbers/6.txt "
+        Then the bookmark file should not contain "http://localhost:*/data/numbers/6.txt"
+
+    Scenario: Purge a bookmark by tag removal
+        When I run :bookmark-add data/numbers/13.txt title
+        When I run :bookmark-tag data/numbers/13.txt thirteen
+        And I run :bookmark-tag data/numbers/13.txt -R thirteen
+        Then the bookmark file should not contain "*data/numbers/13.txt*"
 
     Scenario: Deleting the current page's bookmark if it doesn't exist
         When I open data/hello.txt

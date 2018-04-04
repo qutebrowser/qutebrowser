@@ -111,12 +111,19 @@ class TestBookmarkTag:
             unique=True,
         )
 
-    def test_tag_remove(self, command_dispatcher, bookmark_manager_mock):
+    @pytest.mark.parametrize('remove, purge', [
+        (True, False),
+        (True, True),
+        (False, True),
+    ])
+    def test_tag_remove(self, command_dispatcher, bookmark_manager_mock,
+                        remove, purge):
         command_dispatcher.bookmark_tag('http://example.com', 'bar', 'baz',
-                                        remove=True)
+                                        remove=remove, purge=purge)
         bookmark_manager_mock.untag.assert_called_with(
             QUrl('http://example.com'),
             ('bar', 'baz'),
+            purge=purge,
         )
 
     def test_error(self, command_dispatcher, bookmark_manager_mock):

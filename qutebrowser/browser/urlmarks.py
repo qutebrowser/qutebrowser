@@ -199,12 +199,13 @@ class BookmarkManager(QObject):
         mark.tags.extend((t for t in tags if t not in mark.tags))
         self.changed.emit()
 
-    def untag(self, url, tags):
+    def untag(self, url, tags, purge=False):
         """Remove tags from a mark.
 
         Args:
             url: QUrl of the mark to modify.
             tags: List of tags to remove.
+            purge: Remove the mark if it has no tags left
         """
         mark = self.get(url)
         for t in tags:
@@ -212,6 +213,8 @@ class BookmarkManager(QObject):
                 mark.tags.remove(t)
             except ValueError:
                 pass
+        if purge and not mark.tags:
+            self.delete(url)
         self.changed.emit()
 
     def delete(self, key):
