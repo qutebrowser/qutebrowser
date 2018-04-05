@@ -426,7 +426,11 @@ Creating a wrapper script
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Running `tox` does not install a system-wide `qutebrowser` script. You can
-launch qutebrowser by doing `.venv/bin/python3 -m qutebrowser`.
+launch qutebrowser by doing:
+
+----
+.venv/bin/python3 -m qutebrowser
+----
 
 You can create a simple wrapper script to start qutebrowser somewhere in your
 `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):
