@@ -1778,7 +1778,7 @@ class CommandDispatcher:
                             replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0, star_args_optional=True)
+                       maxsplit=0, star_args_optional=True, no_cmd_split=True)
     def search(self, *text, reverse=False):
         """Search for a text on the current page. With no text, clear results.
 
