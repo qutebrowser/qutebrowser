@@ -87,13 +87,20 @@ git format-patch origin/master <1>
 
 Running Development Changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-To run qutebrowser without installing it(useful for testing out small changes) run
-the following command in the qutebrowser directory:
+To run the git instance of qutebrowser with modifications (useful for testing out small changes)
+run the following commands in the qutebrowser directory:
 
 ----
 python3 -m qutebrowser --temp-basedir --no-err-windows
 ----
 
+For more information on command line flags use `qutebrowser --help` for more details.
+
+If you lack the python dependencies to run qutebrowser use:
+
+----
+pip3 install -r requirements.txt
+----
 
 Useful utilities
 ----------------
