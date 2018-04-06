@@ -362,8 +362,11 @@ def qute_help(url):
     else:
         urlpath = urlpath.lstrip('/')
 
-    doc = docutils.Documentation()
-    return doc.request(urlpath)
+    try:
+        doc = docutils.Documentation()
+        return doc.request(urlpath)
+    except OSError as e:
+        raise QuteSchemeOSError(e)
 
 
 @add_handler('backend-warning')
