@@ -62,7 +62,7 @@ def test_init(bm_file, fake_save_manager):
 
 
 def test_init_empty(config_tmpdir, fake_save_manager):
-    bm = urlmarks.BookmarkManager()
+    urlmarks.BookmarkManager()
     path = config_tmpdir / 'bookmarks' / 'urls'
     path.ensure()
 
@@ -284,6 +284,7 @@ def test_invalid_url(bm_file, fake_save_manager):
     with pytest.raises(urlmarks.InvalidUrlError):
         bm.delete(url)
 
+
 def all_tags(bm_file, fake_save_manager):
     bm = urlmarks.BookmarkManager()
     bm.add('http://example.com/foo', '', [])
@@ -291,4 +292,4 @@ def all_tags(bm_file, fake_save_manager):
     bm.add('http://example.com/baz', '', ['biz', 'bar', 'baz'])
     bm.add('http://example.com/buz', '', ['buz', 'foo', 'baz'])
 
-    assert bm.all_tags == set(['foo', 'bar', 'baz', 'biz', 'buz'])
+    assert bm.all_tags == {'foo', 'bar', 'baz', 'biz', 'buz'}

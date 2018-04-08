@@ -153,7 +153,7 @@ def bookmarks(bookmark_manager_mock):
         urlmarks.Bookmark('https://python.org', 'Welcome to Python.org', []),
         urlmarks.Bookmark('http://qutebrowser.org', 'qutebrowser', ['baz']),
     ]))
-    bookmark_manager_mock.all_tags.return_value = set(['foo', 'bar', 'baz'])
+    bookmark_manager_mock.all_tags.return_value = {['foo', 'bar', 'baz']}
     return bookmark_manager_mock
 
 

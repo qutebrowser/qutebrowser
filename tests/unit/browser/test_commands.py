@@ -29,6 +29,7 @@ from qutebrowser.mainwindow import tabbedbrowser
 
 pytestmark = pytest.mark.usefixtures('redirect_webengine_data')
 
+
 @pytest.fixture
 def tabbed_browser():
     return mock.Mock(autospec=tabbedbrowser.TabbedBrowser)
@@ -36,9 +37,9 @@ def tabbed_browser():
 
 @pytest.fixture
 def current_tab(tabbed_browser):
-        tab = mock.Mock(spec=browsertab.AbstractTab)
-        tabbed_browser.widget.currentWidget.return_value = tab
-        return tab
+    tab = mock.Mock(spec=browsertab.AbstractTab)
+    tabbed_browser.widget.currentWidget.return_value = tab
+    return tab
 
 
 @pytest.fixture
@@ -173,7 +174,7 @@ class TestBookmarkLoad:
     @pytest.mark.parametrize('open_all', [True, False])
     @pytest.mark.parametrize('delete', [True, False])
     def test_tab(self, command_dispatcher, bookmark_manager_mock,
-                      tabbed_browser, in_args, out_args, open_all, delete):
+                 tabbed_browser, in_args, out_args, open_all, delete):
         bookmark_manager_mock.get_tagged.return_value = [
             urlmarks.Bookmark(url='example.com/1', title='', tags=[]),
             urlmarks.Bookmark(url='example.com/2', title='', tags=[]),
@@ -195,7 +196,7 @@ class TestBookmarkLoad:
                     mock.call('example.com/1'),
                     mock.call('example.com/2'),
                     mock.call('example.com/3'),
-            ])
+                ])
         else:
             tabbed_browser.tabopen.assert_called_once_with(
                 QUrl('example.com/1'), **out_args,
@@ -207,7 +208,7 @@ class TestBookmarkLoad:
 
     @pytest.mark.parametrize('private', [True, False])
     def test_window(self, command_dispatcher, bookmark_manager_mock,
-                         mocker, tabbed_browser, private):
+                    mocker, tabbed_browser, private):
         tabbed_browser.private = private
         m = mocker.patch('qutebrowser.browser.commands.mainwindow.MainWindow')
         bookmark_manager_mock.get_tagged.return_value = [

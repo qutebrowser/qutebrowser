@@ -1364,7 +1364,6 @@ class CommandDispatcher:
         except urlmarks.Error as e:
             raise cmdexc.CommandError(str(e))
 
-
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('tags', completion=urlmodel.bookmark_tag)
