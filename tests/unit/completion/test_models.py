@@ -255,7 +255,7 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
 
 def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
-    model = miscmodels.bookmark()
+    model = urlmodel.bookmark()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -276,7 +276,7 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
 ])
 def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
     """Test deleting a bookmark from the bookmark completion model."""
-    model = miscmodels.bookmark()
+    model = urlmodel.bookmark()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
@@ -290,7 +290,7 @@ def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
 
 def test_bookmark_tag_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
-    model = miscmodels.bookmark_tag()
+    model = urlmodel.bookmark_tag()
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)

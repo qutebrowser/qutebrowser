@@ -1337,8 +1337,8 @@ class CommandDispatcher:
             message.info(msg.format(url.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('url', completion=miscmodels.bookmark)
-    @cmdutils.argument('tags', completion=miscmodels.bookmark_tag)
+    @cmdutils.argument('url', completion=urlmodel.bookmark)
+    @cmdutils.argument('tags', completion=urlmodel.bookmark_tag)
     @cmdutils.argument('purge', flag='R')
     def bookmark_tag(self, url, *tags, remove=False, purge=False,
                      unique=False):
@@ -1367,7 +1367,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('tags', completion=miscmodels.bookmark_tag)
+    @cmdutils.argument('tags', completion=urlmodel.bookmark_tag)
     @cmdutils.argument('open_all', flag='a')
     def bookmark_load(self, *tags, tab=False, bg=False, window=False,
                       delete=False, open_all=False):
@@ -1400,7 +1400,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('url', completion=miscmodels.bookmark)
+    @cmdutils.argument('url', completion=urlmodel.bookmark)
     def bookmark_del(self, url=None):
         """Delete a bookmark.
 

@@ -47,34 +47,6 @@ def helptopic(*, info):
     return model
 
 
-def bookmark(*, info=None):  # pylint: disable=unused-argument
-    """A CompletionModel filled with all bookmarks."""
-    def delete(data):
-        """Delete a bookmark from the completion menu."""
-        urlstr = data[0]
-        log.completion.debug('Deleting bookmark {}'.format(urlstr))
-        bookmark_manager = objreg.get('bookmark-manager')
-        bookmark_manager.delete(urlstr)
-
-    model = completionmodel.CompletionModel(column_widths=(30, 50, 20))
-    marks = ((m.url, m.title, ' '.join(m.tags))
-             for m in objreg.get('bookmark-manager'))
-    model.add_category(listcategory.ListCategory('Bookmarks', marks,
-                                                 delete_func=delete,
-                                                 sort=False))
-    return model
-
-
-def bookmark_tag(*args, info=None):  # pylint: disable=unused-argument
-    """A CompletionModel filled with all bookmark tags."""
-    model = completionmodel.CompletionModel(column_widths=(20, 80, 0))
-    bookmarks = objreg.get('bookmark-manager')
-    tags = ((t, '') for t in bookmarks.all_tags() if t not in args)
-    cat = listcategory.ListCategory('Tags', tags)
-    model.add_category(cat)
-    return model
-
-
 def session(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with session names."""
     model = completionmodel.CompletionModel()
