@@ -262,9 +262,9 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
 
     _check_completions(model, {
         "Bookmarks": [
-            ('https://github.com', 'GitHub', "['foo', 'bar']"),
-            ('https://python.org', 'Welcome to Python.org', '[]'),
-            ('http://qutebrowser.org', 'qutebrowser', "['baz']"),
+            ('https://github.com', 'GitHub', 'foo bar'),
+            ('https://python.org', 'Welcome to Python.org', ''),
+            ('http://qutebrowser.org', 'qutebrowser', 'baz'),
         ]
     })
 
@@ -325,9 +325,9 @@ def test_url_completion(qtmodeltester, web_history_populated, bookmarks, info):
 
     _check_completions(model, {
         "Bookmarks": [
-            ('https://github.com', 'GitHub', "['foo', 'bar']"),
-            ('https://python.org', 'Welcome to Python.org', "[]"),
-            ('http://qutebrowser.org', 'qutebrowser', "['baz']"),
+            ('https://github.com', 'GitHub', 'foo bar'),
+            ('https://python.org', 'Welcome to Python.org', ''),
+            ('http://qutebrowser.org', 'qutebrowser', 'baz'),
         ],
         "History": [
             ('https://github.com', 'https://github.com', '2016-05-01'),

@@ -49,7 +49,7 @@ def url(*, info):
     """
     model = completionmodel.CompletionModel(column_widths=(40, 50, 10))
 
-    bookmarks = [(m.url, m.title, str(m.tags)) for m in
+    bookmarks = [(m.url, m.title, ' '.join(m.tags)) for m in
                  objreg.get('bookmark-manager')]
 
     if bookmarks:

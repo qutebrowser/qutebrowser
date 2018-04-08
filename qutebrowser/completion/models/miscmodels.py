@@ -56,8 +56,8 @@ def bookmark(*, info=None):  # pylint: disable=unused-argument
         bookmark_manager = objreg.get('bookmark-manager')
         bookmark_manager.delete(urlstr)
 
-    model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
-    marks = ((m.url, m.title, str(m.tags))
+    model = completionmodel.CompletionModel(column_widths=(30, 50, 20))
+    marks = ((m.url, m.title, ' '.join(m.tags))
              for m in objreg.get('bookmark-manager'))
     model.add_category(listcategory.ListCategory('Bookmarks', marks,
                                                  delete_func=delete,
