@@ -332,18 +332,6 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt (active)
 
-    Scenario: :tab-prev on first tab without wrap
-        When I set tabs.wrap to false
-        And I open data/numbers/1.txt
-        And I run :tab-prev
-        Then the error "First tab" should be shown
-
-    Scenario: :tab-next with last tab without wrap
-        When I set tabs.wrap to false
-        And I open data/numbers/1.txt
-        And I run :tab-next
-        Then the error "Last tab" should be shown
-
     Scenario: :tab-prev on first tab with wrap
         When I set tabs.wrap to true
         And I open data/numbers/1.txt
