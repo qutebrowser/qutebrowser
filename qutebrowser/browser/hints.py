@@ -124,7 +124,10 @@ class HintLabel(QLabel):
             return
         no_js = config.val.hints.find_implementation != 'javascript'
         rect = self.elem.rect_on_view(no_js=no_js)
-        self.move(rect.x(), rect.y())
+        if rect.y()<0 and (rect.y()+rect.height()-15>0):
+            self.move(rect.x(), rect.y()+rect.height()-15)
+        else:
+            self.move(rect.x(), rect.y())
 
     def cleanup(self):
         """Clean up this element and hide it."""
