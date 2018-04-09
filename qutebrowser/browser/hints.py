@@ -154,6 +154,8 @@ class HintContext:
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
+        num: While in rapid hinting, count how many times the action
+             has been executed so far.
         add_history: Whether to add yanked or spawned link to the history.
         filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
@@ -166,6 +168,7 @@ class HintContext:
     baseurl = attr.ib(None)
     to_follow = attr.ib(None)
     rapid = attr.ib(False)
+    num = attr.ib(0)
     add_history = attr.ib(False)
     filterstr = attr.ib(None)
     args = attr.ib(attr.Factory(list))
@@ -240,7 +243,18 @@ class HintActions:
         if url.scheme() == 'mailto':
             flags |= QUrl.RemoveScheme
         urlstr = url.toString(flags)
-        utils.set_clipboard(urlstr, selection=sel)
+
+        new_content = urlstr
+
+        # only second and consecutive yanks are to append to the clipboard
+        if context.rapid and context.num > 1:
+            try:
+                old_content = utils.get_clipboard(selection=sel)
+            except utils.ClipboardEmptyError:
+                pass
+            else:
+                new_content = old_content + '\n' + new_content
+        utils.set_clipboard(new_content, selection=sel)
 
         msg = "Yanked URL to {}: {}".format(
             "primary selection" if sel else "clipboard",
@@ -694,7 +708,8 @@ class HintManager(QObject):
         if rapid:
             if target in [Target.tab_bg, Target.window, Target.run,
                           Target.hover, Target.userscript, Target.spawn,
-                          Target.download, Target.normal, Target.current]:
+                          Target.download, Target.normal, Target.current,
+                          Target.yank, Target.yank_primary]:
                 pass
             elif target == Target.tab and config.val.tabs.background:
                 pass
@@ -898,6 +913,7 @@ class HintManager(QObject):
         else:
             # Reset filtering
             self.filter_hints(None)
+            self._context.num += 1
             # Undo keystring highlighting
             for string, label in self._context.labels.items():
                 label.update_text('', string)
