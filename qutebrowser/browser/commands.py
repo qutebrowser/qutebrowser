@@ -1305,7 +1305,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def bookmark_add(self, url=None, title=None, toggle=False):
-        """Save the current page as a bookmark, or a specific url.
+        """Save the current page (or a specified url) as a bookmark.
 
         If no url and title are provided, then save the current page as a
         bookmark.
