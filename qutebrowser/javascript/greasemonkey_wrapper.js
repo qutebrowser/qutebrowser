@@ -100,11 +100,8 @@
 
         const head = document.getElementsByTagName("head")[0];
         if (head === undefined) {
-            document.onreadystatechange = function() {
-                if (document.readyState === "interactive") {
-                    document.getElementsByTagName("head")[0].appendChild(oStyle);
-                }
-            };
+            // no head yet, stick it whereever
+            document.documentElement.appendChild(oStyle);
         } else {
             head.appendChild(oStyle);
         }
