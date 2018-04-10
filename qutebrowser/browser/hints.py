@@ -22,6 +22,7 @@
 import collections
 import functools
 import math
+import os
 import re
 import html
 import enum
@@ -253,7 +254,7 @@ class HintActions:
             except utils.ClipboardEmptyError:
                 pass
             else:
-                new_content = old_content + '\n' + new_content
+                new_content = os.linesep.join([old_content, new_content])
         utils.set_clipboard(new_content, selection=sel)
 
         msg = "Yanked URL to {}: {}".format(
