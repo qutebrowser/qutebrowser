@@ -309,7 +309,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def _mouse_pos(self):
         """Get the position to click/hover."""
-        # Click the center of the largest square fitting into the top/left
+        # Click the midpoint of top or bottom side of the largest square fitting into the top/left
         # corner of the rectangle, this will help if part of the <a> element
         # is hidden behind other elements
         # https://github.com/qutebrowser/qutebrowser/issues/1005
@@ -319,6 +319,11 @@ class AbstractWebElement(collections.abc.MutableMapping):
         else:
             rect.setHeight(rect.width())
         pos = rect.center()
+        if rect.y()<0 and (rect.y()+rect.height()-15>0):
+            pos.setY(rect.y()+rect.height()-15) 
+        else:
+            pos.setY(rect.y())
+
         if pos.x() < 0 or pos.y() < 0:
             raise Error("Element position is out of view!")
         return pos
