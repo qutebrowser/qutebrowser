@@ -618,6 +618,29 @@ def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
     })
 
 
+def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab, app_stub,
+                                     win_registry, tabbed_browser_stubs, info):
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+    ]
+    tabbed_browser_stubs[1].widget.tabs = [
+        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
+    ]
+    info.win_id = 0
+    model = miscmodels.other_buffer(info=info)
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        '1': [
+            ('1/1', 'https://wiki.archlinux.org', 'ArchWiki'),
+        ],
+    })
+
+
 def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
                            info):
     tabbed_browser_stubs[0].widget.tabs = [
