@@ -169,6 +169,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self._reply = None
         if self.fileobj is not None:
             self.fileobj.close()
+            self._read_timer.stop()
         self.cancelled.emit()
 
     @pyqtSlot()
