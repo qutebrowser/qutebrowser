@@ -85,3 +85,38 @@ def test_auto_leave_insert_mode(quteproc):
     # Select the disabled input box to leave insert mode
     quteproc.send_cmd(':follow-hint s')
     quteproc.wait_for(message='Clicked non-editable element!')
+
+
+def _webpage_focused(quteproc):
+    quteproc.send_cmd(
+        ":debug-pyeval objreg.get("
+        "'tabbed-browser', scope='window', window='current')"
+        ".widget.currentWidget().hasFocus()")
+    quteproc.wait_for_load_finished_url('qute://pyeval')
+    ret = quteproc.get_content().strip() == "True"
+    quteproc.send_cmd(":tab-close")
+    return ret
+
+def test_blink_off(quteproc):
+    url_path = 'data/hello.txt'
+    quteproc.open_path(url_path)
+    assert not _webpage_focused(quteproc)
+
+    quteproc.send_cmd(":enter-mode insert")
+    assert _webpage_focused(quteproc)
+
+    quteproc.send_cmd(":enter-mode insert")
+    quteproc.send_cmd(":leave-mode")
+    assert not _webpage_focused(quteproc)
+
+    quteproc.set_setting('input.blink', "always")
+
+    quteproc.open_path(url_path)
+    assert _webpage_focused(quteproc)
+
+    quteproc.send_cmd(":enter-mode insert")
+    assert _webpage_focused(quteproc)
+
+    quteproc.send_cmd(":enter-mode insert")
+    quteproc.send_cmd(":leave-mode")
+    assert _webpage_focused(quteproc)

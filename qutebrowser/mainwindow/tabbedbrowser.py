@@ -632,6 +632,8 @@ class TabbedBrowser(QWidget):
         widget = self.widget.currentWidget()
         if config.val.input.blink != "always":
             self.setFocus()
+            log.modes.debug(
+                "Left mode without blink enabled, focusing: {}".format(self))
             return
         if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
                     usertypes.KeyMode.yesno]:
@@ -650,6 +652,9 @@ class TabbedBrowser(QWidget):
         if config.val.input.blink == "insert" and mode in insert_modes:
             widget = self.widget.currentWidget()
             widget.setFocus()
+            log.modes.debug(
+                "Entered mode without blink enabled, focusing {}".format(
+                widget))
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
