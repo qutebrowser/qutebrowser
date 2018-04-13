@@ -48,6 +48,8 @@ Changed
 - The default value for `content.host_blocking.lists` was changed to only
   include https://github.com/StevenBlack/hosts[Steven Black's hosts-list] which
   combines various sources.
+- Error messages when trying to wrap when `tabs.wrap` is `False` are now logged
+  to debug instead of messages.
 
 
 Fixed
@@ -72,6 +74,8 @@ Fixed
 - The keyhint widget now shows the correct text for chained modifiers.
 - Loading GreaseMonkey scripts now also works with Jinja2 2.8 (e.g. on Debian
   Stable).
+- Adding styles with GreaseMonkey on fast sites now works properly.
+- Window ID 0 is now excluded properly from `:tab-take` completion.
 
 v1.2.1
 ------
