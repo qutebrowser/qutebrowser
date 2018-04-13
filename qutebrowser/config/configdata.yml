@@ -1031,6 +1031,15 @@ input.spatial_navigation:
     Right key, heuristics determine whether there is an element he might be
     trying to reach towards the right and which element he probably wants.
 
+input.blink:
+  default: insert
+  type:
+    name: String
+    valid_values:
+      - always: Always blink when possible
+      - insert: Only blink in insert and passthrough modes.
+  desc: When the webpage cursor blinks
+
 ## keyhint
 
 keyhint.blacklist:

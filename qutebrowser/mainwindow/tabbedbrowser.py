@@ -629,6 +629,10 @@ class TabbedBrowser(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
+        widget = self.widget.currentWidget()
+        if config.val.input.blink != "always":
+            self.setFocus()
+            return
         if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
                     usertypes.KeyMode.yesno]:
             widget = self.widget.currentWidget()
@@ -638,12 +642,22 @@ class TabbedBrowser(QWidget):
                 return
             widget.setFocus()
 
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_entered(self, mode):
+        """Restore focus when entering insert mode if needed."""
+        insert_modes = [usertypes.KeyMode.insert,
+                        usertypes.KeyMode.passthrough]
+        if config.val.input.blink == "insert" and mode in insert_modes:
+            widget = self.widget.currentWidget()
+            widget.setFocus()
+
     @pyqtSlot(int)
     def on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
         mode_on_change = config.val.tabs.mode_on_change
-        modes_to_save = [usertypes.KeyMode.insert,
+        insert_modes = [usertypes.KeyMode.insert,
                          usertypes.KeyMode.passthrough]
+        modes_to_save = insert_modes
         if idx == -1 or self.shutting_down:
             # closing the last tab (before quitting) or shutting down
             return
@@ -658,6 +672,10 @@ class TabbedBrowser(QWidget):
                 current_mode = usertypes.KeyMode.normal
             self._now_focused.data.input_mode = current_mode
 
+        current_mode = modeman.instance(self._win_id).mode
+        if (config.val.input.blink == "insert"
+                and current_mode not in insert_modes):
+            return
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
 
