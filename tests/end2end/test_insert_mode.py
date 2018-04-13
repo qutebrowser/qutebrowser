@@ -97,6 +97,7 @@ def _webpage_focused(quteproc):
     quteproc.send_cmd(":tab-close")
     return ret
 
+
 def test_blink_off(quteproc):
     url_path = 'data/hello.txt'
     quteproc.open_path(url_path)
