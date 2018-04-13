@@ -956,6 +956,15 @@ class WebEngineTab(browsertab.AbstractTab):
         super()._on_load_started()
         self.data.netrc_used = False
 
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-52999
+        if config.val.input.blink != "always":
+            self.setEnabled(False)
+
+    @pyqtSlot(int)
+    def _on_load_progress(self, perc):
+        super()._on_load_progress(perc)
+        self.setEnabled(True)
+
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
         """Show an error when the renderer process terminated."""
@@ -1034,6 +1043,8 @@ class WebEngineTab(browsertab.AbstractTab):
             # In general, this is handled by Qt, but when loading takes long,
             # the old icon is still displayed.
             self.icon_changed.emit(QIcon())
+
+        self.setEnabled(True)
 
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):

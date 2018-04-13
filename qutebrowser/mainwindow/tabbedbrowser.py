@@ -666,13 +666,13 @@ class TabbedBrowser(QWidget):
             log.webview.debug("on_current_changed got called with invalid "
                               "index {}".format(idx))
             return
+
+        current_mode = modeman.instance(self._win_id).mode
         if self._now_focused is not None and mode_on_change == 'restore':
-            current_mode = modeman.instance(self._win_id).mode
             if current_mode not in modes_to_save:
                 current_mode = usertypes.KeyMode.normal
             self._now_focused.data.input_mode = current_mode
 
-        current_mode = modeman.instance(self._win_id).mode
         if (config.val.input.blink == "insert"
                 and current_mode not in insert_modes):
             return
