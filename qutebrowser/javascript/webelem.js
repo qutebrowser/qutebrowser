@@ -74,9 +74,8 @@ window._qutebrowser.webelem = (function() {
         try {
             return elem.selectionStart;
         } catch (err) {
-            if (err instanceof (frame
-                ? frame.DOMException
-                : DOMException) &&
+            if ((err instanceof DOMException ||
+                 (frame && err instanceof frame.DOMException)) &&
                 err.name === "InvalidStateError") {
                 // nothing to do, caret_position is already null
             } else {
@@ -331,13 +330,13 @@ window._qutebrowser.webelem = (function() {
 
     // Function for returning a selection to python (so we can click it)
     funcs.find_selected_link = () => {
-        const elem = window.getSelection().anchorNode;
+        const elem = window.getSelection().baseNode;
         if (elem) {
             return serialize_elem(elem.parentNode);
         }
 
         const serialized_frame_elem = run_frames((frame) => {
-            const node = frame.window.getSelection().anchorNode;
+            const node = frame.window.getSelection().baseNode;
             if (node) {
                 return serialize_elem(node.parentNode, frame);
             }

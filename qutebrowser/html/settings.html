@@ -33,7 +33,7 @@ input { width: 98%; }
         <th>Setting</th>
         <th>Value</th>
     </tr>
-  {% for option in configdata.DATA.values() %}
+  {% for option in configdata.DATA.values() if not option.no_autoconfig %}
     <tr>
       <!-- FIXME: convert to string properly -->
       <td class="setting">{{ option.name }} (Current: {{ confget(option.name) | string |truncate(100) }})

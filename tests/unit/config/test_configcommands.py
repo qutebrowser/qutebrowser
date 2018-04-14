@@ -19,20 +19,35 @@
 """Tests for qutebrowser.config.configcommands."""
 
 import logging
+import functools
 import unittest.mock
 
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.config import configcommands
+from qutebrowser.config import configcommands, configutils
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, urlmatch
+from qutebrowser.keyinput import keyutils
 from qutebrowser.misc import objects
+
+
+# Alias because we need this a lot in here.
+def keyseq(s):
+    return keyutils.KeySequence.parse(s)
 
 
 @pytest.fixture
 def commands(config_stub, key_config_stub):
     return configcommands.ConfigCommands(config_stub, key_config_stub)
+
+
+@pytest.fixture
+def yaml_value(config_stub):
+    """Fixture which provides a getter for a YAML value."""
+    def getter(option):
+        return config_stub._yaml._values[option].get_for_url(fallback=False)
+    return getter
 
 
 class TestSet:
@@ -64,7 +79,7 @@ class TestSet:
          ['gvim', '-f', '{file}', '-c', 'normal {line}G{column0}l'],
          '[emacs, "{}"]', ['emacs', '{}']),
     ])
-    def test_set_simple(self, monkeypatch, commands, config_stub,
+    def test_set_simple(self, monkeypatch, commands, config_stub, yaml_value,
                         temp, option, old_value, inp, new_value):
         """Run ':set [-t] option value'.
 
@@ -76,14 +91,39 @@ class TestSet:
         commands.set(0, option, inp, temp=temp)
 
         assert config_stub.get(option) == new_value
+        assert yaml_value(option) == (configutils.UNSET if temp else new_value)
 
-        if temp:
-            assert option not in config_stub._yaml
-        else:
-            assert config_stub._yaml[option] == new_value
+    def test_set_with_pattern(self, monkeypatch, commands, config_stub):
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
+        option = 'content.javascript.enabled'
+
+        commands.set(0, option, 'false', pattern='*://example.com')
+        pattern = urlmatch.UrlPattern('*://example.com')
+
+        assert config_stub.get(option)
+        assert not config_stub.get_obj_for_pattern(option, pattern=pattern)
+
+    def test_set_invalid_pattern(self, monkeypatch, commands):
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
+        option = 'content.javascript.enabled'
+
+        with pytest.raises(cmdexc.CommandError,
+                           match=('Error while parsing http://: Pattern '
+                                  'without host')):
+            commands.set(0, option, 'false', pattern='http://')
+
+    def test_set_no_pattern(self, monkeypatch, commands):
+        """Run ':set --pattern=*://* colors.statusbar.normal.bg #abcdef.
+
+        Should show an error as patterns are unsupported.
+        """
+        with pytest.raises(cmdexc.CommandError,
+                           match='does not support URL patterns'):
+            commands.set(0, 'colors.statusbar.normal.bg', '#abcdef',
+                         pattern='*://*')
 
     @pytest.mark.parametrize('temp', [True, False])
-    def test_set_temp_override(self, commands, config_stub, temp):
+    def test_set_temp_override(self, commands, config_stub, yaml_value, temp):
         """Invoking :set twice.
 
         :set url.auto_search dns
@@ -96,19 +136,28 @@ class TestSet:
         commands.set(0, 'url.auto_search', 'never', temp=True)
 
         assert config_stub.val.url.auto_search == 'never'
-        assert config_stub._yaml['url.auto_search'] == 'dns'
+        assert yaml_value('url.auto_search') == 'dns'
 
-    def test_set_print(self, config_stub, commands, message_mock):
-        """Run ':set -p url.auto_search never'.
+    @pytest.mark.parametrize('pattern', [None, '*://example.com'])
+    def test_set_print(self, config_stub, commands, message_mock, pattern):
+        """Run ':set -p [-u *://example.com] content.javascript.enabled false'.
 
         Should set show the value.
         """
-        assert config_stub.val.url.auto_search == 'naive'
-        commands.set(0, 'url.auto_search', 'dns', print_=True)
+        assert config_stub.val.content.javascript.enabled
+        commands.set(0, 'content.javascript.enabled', 'false', print_=True,
+                     pattern=pattern)
 
-        assert config_stub.val.url.auto_search == 'dns'
+        value = config_stub.get_obj_for_pattern(
+            'content.javascript.enabled',
+            pattern=None if pattern is None else urlmatch.UrlPattern(pattern))
+        assert not value
+
+        expected = 'content.javascript.enabled = false'
+        if pattern is not None:
+            expected += ' for {}'.format(pattern)
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
-        assert msg.text == 'url.auto_search = dns'
+        assert msg.text == expected
 
     def test_set_invalid_option(self, commands):
         """Run ':set foo bar'.
@@ -177,13 +226,14 @@ class TestCycle:
         # Value which is not in the list
         ('red', 'green'),
     ])
-    def test_cycling(self, commands, config_stub, initial, expected):
+    def test_cycling(self, commands, config_stub, yaml_value,
+                     initial, expected):
         """Run ':set' with multiple values."""
         opt = 'colors.statusbar.normal.bg'
         config_stub.set_obj(opt, initial)
         commands.config_cycle(opt, 'green', 'magenta', 'blue', 'yellow')
         assert config_stub.get(opt) == expected
-        assert config_stub._yaml[opt] == expected
+        assert yaml_value(opt) == expected
 
     def test_different_representation(self, commands, config_stub):
         """When using a different representation, cycling should work.
@@ -205,7 +255,7 @@ class TestCycle:
         assert not config_stub.val.auto_save.session
         commands.config_cycle('auto_save.session')
         assert config_stub.val.auto_save.session
-        assert config_stub._yaml['auto_save.session']
+        assert yaml_value('auto_save.session')
 
     @pytest.mark.parametrize('args', [
         ['url.auto_search'], ['url.auto_search', 'foo']
@@ -239,34 +289,28 @@ class TestUnsetAndClear:
     """Test :config-unset and :config-clear."""
 
     @pytest.mark.parametrize('temp', [True, False])
-    def test_unset(self, commands, config_stub, temp):
+    def test_unset(self, commands, config_stub, yaml_value, temp):
         name = 'tabs.show'
         config_stub.set_obj(name, 'never', save_yaml=True)
 
         commands.config_unset(name, temp=temp)
 
         assert config_stub.get(name) == 'always'
-        if temp:
-            assert config_stub._yaml[name] == 'never'
-        else:
-            assert name not in config_stub._yaml
+        assert yaml_value(name) == ('never' if temp else configutils.UNSET)
 
     def test_unset_unknown_option(self, commands):
         with pytest.raises(cmdexc.CommandError, match="No option 'tabs'"):
             commands.config_unset('tabs')
 
     @pytest.mark.parametrize('save', [True, False])
-    def test_clear(self, commands, config_stub, save):
+    def test_clear(self, commands, config_stub, yaml_value, save):
         name = 'tabs.show'
         config_stub.set_obj(name, 'never', save_yaml=True)
 
         commands.config_clear(save=save)
 
         assert config_stub.get(name) == 'always'
-        if save:
-            assert name not in config_stub._yaml
-        else:
-            assert config_stub._yaml[name] == 'never'
+        assert yaml_value(name) == (configutils.UNSET if save else 'never')
 
 
 class TestSource:
@@ -309,13 +353,26 @@ class TestSource:
                     "  While setting 'foo': No option 'foo'")
         assert str(excinfo.value) == expected
 
+    def test_invalid_source(self, commands, config_tmpdir):
+        pyfile = config_tmpdir / 'config.py'
+        pyfile.write_text('1/0', encoding='utf-8')
+
+        with pytest.raises(cmdexc.CommandError) as excinfo:
+            commands.config_source()
+
+        expected = ("Errors occurred while reading config.py:\n"
+                    "  Unhandled exception - ZeroDivisionError:"
+                    " division by zero")
+        assert str(excinfo.value) == expected
+
 
 class TestEdit:
 
     """Tests for :config-edit."""
 
     pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
-                                         'config_stub', 'key_config_stub')
+                                         'config_stub', 'key_config_stub',
+                                         'qapp')
 
     def test_no_source(self, commands, mocker):
         mock = mocker.patch('qutebrowser.config.configcommands.editor.'
@@ -367,7 +424,7 @@ class TestWritePy:
     def test_custom(self, commands, config_stub, key_config_stub, tmpdir):
         confpy = tmpdir / 'config.py'
         config_stub.val.content.javascript.enabled = True
-        key_config_stub.bind(',x', 'message-info foo', mode='normal')
+        key_config_stub.bind(keyseq(',x'), 'message-info foo', mode='normal')
 
         commands.config_write_py(str(confpy))
 
@@ -441,15 +498,15 @@ class TestBind:
 
     @pytest.mark.parametrize('command', ['nop', 'nope'])
     def test_bind(self, commands, config_stub, no_bindings, key_config_stub,
-                  command):
+                  yaml_value, command):
         """Simple :bind test (and aliases)."""
         config_stub.val.aliases = {'nope': 'nop'}
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
 
         commands.bind(0, 'a', command)
-        assert key_config_stub.get_command('a', 'normal') == command
-        yaml_bindings = config_stub._yaml['bindings.commands']['normal']
+        assert key_config_stub.get_command(keyseq('a'), 'normal') == command
+        yaml_bindings = yaml_value('bindings.commands')['normal']
         assert yaml_bindings['a'] == command
 
     @pytest.mark.parametrize('key, mode, expected', [
@@ -461,7 +518,7 @@ class TestBind:
         ('c', 'normal', "c is bound to 'message-info c' in normal mode"),
         # Special key
         ('<Ctrl-X>', 'normal',
-         "<ctrl+x> is bound to 'message-info C-x' in normal mode"),
+         "<Ctrl+x> is bound to 'message-info C-x' in normal mode"),
         # unbound
         ('x', 'normal', "x is unbound in normal mode"),
         # non-default mode
@@ -489,23 +546,45 @@ class TestBind:
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == expected
 
-    def test_bind_invalid_mode(self, commands):
-        """Run ':bind --mode=wrongmode a nop'.
+    @pytest.mark.parametrize('command, args, kwargs, expected', [
+        # :bind --mode=wrongmode a nop
+        ('bind', ['a', 'nop'], {'mode': 'wrongmode'},
+         'Invalid mode wrongmode!'),
+        # :bind --mode=wrongmode a
+        ('bind', ['a'], {'mode': 'wrongmode'},
+         'Invalid mode wrongmode!'),
+        # :bind --default --mode=wrongmode a
+        ('bind', ['a'], {'mode': 'wrongmode', 'default': True},
+         'Invalid mode wrongmode!'),
+        # :bind --default foobar
+        ('bind', ['foobar'], {'default': True},
+         "Can't find binding 'foobar' in normal mode"),
+        # :bind <blub> nop
+        ('bind', ['<blub>', 'nop'], {},
+         "Could not parse '<blub>': Got invalid key!"),
+        # :unbind foobar
+        ('unbind', ['foobar'], {},
+         "Can't find binding 'foobar' in normal mode"),
+        # :unbind --mode=wrongmode x
+        ('unbind', ['x'], {'mode': 'wrongmode'},
+         'Invalid mode wrongmode!'),
+        # :unbind <blub>
+        ('unbind', ['<blub>'], {},
+         "Could not parse '<blub>': Got invalid key!"),
+    ])
+    def test_bind_invalid(self, commands,
+                          command, args, kwargs, expected):
+        """Run various wrong :bind/:unbind invocations.
 
         Should show an error.
         """
-        with pytest.raises(cmdexc.CommandError,
-                           match='Invalid mode wrongmode!'):
-            commands.bind(0, 'a', 'nop', mode='wrongmode')
+        if command == 'bind':
+            func = functools.partial(commands.bind, 0)
+        elif command == 'unbind':
+            func = commands.unbind
 
-    def test_bind_print_invalid_mode(self, commands):
-        """Run ':bind --mode=wrongmode a'.
-
-        Should show an error.
-        """
-        with pytest.raises(cmdexc.CommandError,
-                           match='Invalid mode wrongmode!'):
-            commands.bind(0, 'a', mode='wrongmode')
+        with pytest.raises(cmdexc.CommandError, match=expected):
+            func(*args, **kwargs)
 
     @pytest.mark.parametrize('key', ['a', 'b', '<Ctrl-X>'])
     def test_bind_duplicate(self, commands, config_stub, key_config_stub, key):
@@ -521,7 +600,8 @@ class TestBind:
         }
 
         commands.bind(0, key, 'message-info foo', mode='normal')
-        assert key_config_stub.get_command(key, 'normal') == 'message-info foo'
+        command = key_config_stub.get_command(keyseq(key), 'normal')
+        assert command == 'message-info foo'
 
     def test_bind_none(self, commands, config_stub):
         config_stub.val.bindings.commands = None
@@ -533,23 +613,13 @@ class TestBind:
         bound_cmd = 'message-info bound'
         config_stub.val.bindings.default = {'normal': {'a': default_cmd}}
         config_stub.val.bindings.commands = {'normal': {'a': bound_cmd}}
-        assert key_config_stub.get_command('a', mode='normal') == bound_cmd
+        command = key_config_stub.get_command(keyseq('a'), mode='normal')
+        assert command == bound_cmd
 
         commands.bind(0, 'a', mode='normal', default=True)
 
-        assert key_config_stub.get_command('a', mode='normal') == default_cmd
-
-    @pytest.mark.parametrize('key, mode, expected', [
-        ('foobar', 'normal', "Can't find binding 'foobar' in normal mode"),
-        ('x', 'wrongmode', "Invalid mode wrongmode!"),
-    ])
-    def test_bind_default_invalid(self, commands, key, mode, expected):
-        """Run ':bind --default foobar' / ':bind --default x wrongmode'.
-
-        Should show an error.
-        """
-        with pytest.raises(cmdexc.CommandError, match=expected):
-            commands.bind(0, key, mode=mode, default=True)
+        command = key_config_stub.get_command(keyseq('a'), mode='normal')
+        assert command == default_cmd
 
     def test_unbind_none(self, commands, config_stub):
         config_stub.val.bindings.commands = None
@@ -559,9 +629,9 @@ class TestBind:
         ('a', 'a'),  # default bindings
         ('b', 'b'),  # custom bindings
         ('c', 'c'),  # :bind then :unbind
-        ('<Ctrl-X>', '<ctrl+x>')  # normalized special binding
+        ('<Ctrl-X>', '<Ctrl+x>')  # normalized special binding
     ])
-    def test_unbind(self, commands, key_config_stub, config_stub,
+    def test_unbind(self, commands, key_config_stub, config_stub, yaml_value,
                     key, normalized):
         config_stub.val.bindings.default = {
             'normal': {'a': 'nop', '<ctrl+x>': 'nop'},
@@ -576,23 +646,11 @@ class TestBind:
             commands.bind(0, key, 'nop')
 
         commands.unbind(key)
-        assert key_config_stub.get_command(key, 'normal') is None
+        assert key_config_stub.get_command(keyseq(key), 'normal') is None
 
-        yaml_bindings = config_stub._yaml['bindings.commands']['normal']
+        yaml_bindings = yaml_value('bindings.commands')['normal']
         if key in 'bc':
             # Custom binding
             assert normalized not in yaml_bindings
         else:
             assert yaml_bindings[normalized] is None
-
-    @pytest.mark.parametrize('key, mode, expected', [
-        ('foobar', 'normal', "Can't find binding 'foobar' in normal mode"),
-        ('x', 'wrongmode', "Invalid mode wrongmode!"),
-    ])
-    def test_unbind_invalid(self, commands, key, mode, expected):
-        """Run ':unbind foobar' / ':unbind x wrongmode'.
-
-        Should show an error.
-        """
-        with pytest.raises(cmdexc.CommandError, match=expected):
-            commands.unbind(key, mode=mode)

@@ -14,6 +14,7 @@ For command arguments, there are also some variables you can use:
 
 - `{url}` expands to the URL of the current page
 - `{url:pretty}` expands to the URL in decoded format
+- `{url:host}` expands to the host part of the URL
 - `{clipboard}` expands to the clipboard contents
 - `{primary}` expands to the primary selection contents
 
@@ -92,6 +93,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<scroll,scroll>>|Scroll the current tab in the given direction.
 |<<scroll-page,scroll-page>>|Scroll the frame page-wise.
 |<<scroll-px,scroll-px>>|Scroll the current tab by 'count * dx/dy' pixels.
+|<<scroll-to-anchor,scroll-to-anchor>>|Scroll to the given anchor in the document.
 |<<scroll-to-perc,scroll-to-perc>>|Scroll to a specific percentage of the page.
 |<<search,search>>|Search for a text on the current page. With no text, clear results.
 |<<search-next,search-next>>|Continue the search to the ([count]th) next term.
@@ -153,7 +155,8 @@ Bind a key to a command.
 If no command is given, show the current binding for the given key. Using :bind without any arguments opens a page showing all keybindings.
 
 ==== positional arguments
-* +'key'+: The keychain or special key (inside `<...>`) to bind.
+* +'key'+: The keychain to bind. Examples of valid keychains are `gC`, `<Ctrl-X>` or `<Ctrl-C>a`.
+
 * +'command'+: The command to execute, with optional args.
 
 ==== optional arguments
@@ -221,7 +224,7 @@ Syntax: +:buffer ['index']+
 
 Select tab by index or url/title best match.
 
-Focuses window if necessary when index is given. If both index and count are given, use count.
+Focuses window if necessary when index is given. If both index and count are given, use count. With neither index nor count given, open the qute://tabs page.
 
 ==== positional arguments
 * +'index'+: The [win_id/]index of the tab to focus. Or a substring in which case the closest match will be focused.
@@ -274,7 +277,8 @@ Set all settings back to their default.
 
 [[config-cycle]]
 === config-cycle
-Syntax: +:config-cycle [*--temp*] [*--print*] 'option' ['values' ['values' ...]]+
+Syntax: +:config-cycle [*--pattern* 'pattern'] [*--temp*] [*--print*]
+             'option' ['values' ['values' ...]]+
 
 Cycle an option between multiple values.
 
@@ -283,6 +287,7 @@ Cycle an option between multiple values.
 * +'values'+: The values to cycle through.
 
 ==== optional arguments
+* +*-u*+, +*--pattern*+: The URL pattern to use.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
 
@@ -495,9 +500,15 @@ Toggle fullscreen mode.
 
 [[greasemonkey-reload]]
 === greasemonkey-reload
+Syntax: +:greasemonkey-reload [*--force*]+
+
 Re-read Greasemonkey scripts from disk.
 
 The scripts are read from a 'greasemonkey' subdirectory in qutebrowser's data directory (see `:version`).
+
+==== optional arguments
+* +*-f*+, +*--force*+: For any scripts that have required dependencies, re-download them.
+
 
 [[help]]
 === help
@@ -1014,6 +1025,15 @@ Scroll the current tab by 'count * dx/dy' pixels.
 ==== count
 multiplier
 
+[[scroll-to-anchor]]
+=== scroll-to-anchor
+Syntax: +:scroll-to-anchor 'name'+
+
+Scroll to the given anchor in the document.
+
+==== positional arguments
+* +'name'+: The anchor to scroll to.
+
 [[scroll-to-perc]]
 === scroll-to-perc
 Syntax: +:scroll-to-perc [*--horizontal*] ['perc']+
@@ -1110,7 +1130,7 @@ Save a session.
 
 [[set]]
 === set
-Syntax: +:set [*--temp*] [*--print*] ['option'] ['value']+
+Syntax: +:set [*--temp*] [*--print*] [*--pattern* 'pattern'] ['option'] ['value']+
 
 Set an option.
 
@@ -1123,6 +1143,7 @@ If the option name ends with '?', the value of the option is shown instead. Usin
 ==== optional arguments
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
+* +*-u*+, +*--pattern*+: The URL pattern to use.
 
 [[set-cmd-text]]
 === set-cmd-text
@@ -1212,7 +1233,7 @@ The tab index to close
 
 [[tab-focus]]
 === tab-focus
-Syntax: +:tab-focus ['index']+
+Syntax: +:tab-focus [*--no-last*] ['index']+
 
 Select the tab given as argument/[count].
 
@@ -1223,6 +1244,9 @@ If neither count nor index are given, it behaves like tab-next. If both are give
  Negative indices count from the end, such that -1 is the
  last tab.
 
+
+==== optional arguments
+* +*-n*+, +*--no-last*+: Whether to avoid focusing last tab if already focused.
 
 ==== count
 The tab index to focus, starting with 1.
@@ -1237,6 +1261,9 @@ If no win_id is given, the tab will get detached into a new window.
 
 ==== positional arguments
 * +'win-id'+: The window ID of the window to give the current tab to.
+
+==== count
+Overrides win_id (index starts at 1 for win_id=0).
 
 [[tab-move]]
 === tab-move
@@ -1307,7 +1334,8 @@ Syntax: +:unbind [*--mode* 'mode'] 'key'+
 Unbind a keychain.
 
 ==== positional arguments
-* +'key'+: The keychain or special key (inside <...>) to unbind.
+* +'key'+: The keychain to unbind. See the help for `:bind` for the correct syntax for keychains.
+
 
 ==== optional arguments
 * +*-m*+, +*--mode*+: A mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
@@ -1319,11 +1347,21 @@ Re-open the last closed tab or tabs.
 
 [[version]]
 === version
+Syntax: +:version [*--paste*]+
+
 Show version information.
+
+==== optional arguments
+* +*-p*+, +*--paste*+: Paste to pastebin.
 
 [[view-source]]
 === view-source
+Syntax: +:view-source [*--edit*]+
+
 Show the source of the current page in a new tab.
+
+==== optional arguments
+* +*-e*+, +*--edit*+: Edit the source in the editor instead of opening a tab.
 
 [[window-only]]
 === window-only
@@ -1412,6 +1450,7 @@ How many steps to zoom out.
 |<<prompt-accept,prompt-accept>>|Accept the current prompt.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
+|<<prompt-yank,prompt-yank>>|Yank URL to clipboard or primary selection.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
 |<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
 |<<rl-backward-kill-word,rl-backward-kill-word>>|Remove chars from the cursor to the beginning of the word.
@@ -1477,12 +1516,15 @@ Drop selection and keep selection mode enabled.
 
 [[follow-hint]]
 === follow-hint
-Syntax: +:follow-hint ['keystring']+
+Syntax: +:follow-hint [*--select*] ['keystring']+
 
 Follow a hint.
 
 ==== positional arguments
 * +'keystring'+: The hint to follow.
+
+==== optional arguments
+* +*-s*+, +*--select*+: Only select the given hint, don't necessarily follow it.
 
 [[leave-mode]]
 === leave-mode
@@ -1616,6 +1658,15 @@ If no specific command is given, this will use the system's default application 
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
+
+[[prompt-yank]]
+=== prompt-yank
+Syntax: +:prompt-yank [*--sel*]+
+
+Yank URL to clipboard or primary selection.
+
+==== optional arguments
+* +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 
 [[rl-backward-char]]
 === rl-backward-char

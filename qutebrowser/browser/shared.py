@@ -19,7 +19,11 @@
 
 """Various utilities shared between webpage/webview subclasses."""
 
+import os
 import html
+import netrc
+
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, message, log, objreg, jinja, utils
@@ -27,7 +31,6 @@ from qutebrowser.mainwindow import mainwindow
 
 
 class CallSuper(Exception):
-
     """Raised when the caller should call the superclass instead."""
 
 
@@ -61,30 +64,33 @@ def authentication_required(url, authenticator, abort_on):
     else:
         msg = '<b>{}</b> needs authentication'.format(
             html.escape(url.toDisplayString()))
+    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     answer = message.ask(title="Authentication required", text=msg,
                          mode=usertypes.PromptMode.user_pwd,
-                         abort_on=abort_on)
+                         abort_on=abort_on, url=urlstr)
     if answer is not None:
         authenticator.setUser(answer.user)
         authenticator.setPassword(answer.password)
     return answer
 
 
-def javascript_confirm(url, js_msg, abort_on):
+def javascript_confirm(url, js_msg, abort_on, *, escape_msg=True):
     """Display a javascript confirm prompt."""
     log.js.debug("confirm: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
         raise CallSuper
 
+    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          html.escape(js_msg))
+                                          js_msg)
+    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     ans = message.ask('Javascript confirm', msg,
                       mode=usertypes.PromptMode.yesno,
-                      abort_on=abort_on)
+                      abort_on=abort_on, url=urlstr)
     return bool(ans)
 
 
-def javascript_prompt(url, js_msg, default, abort_on):
+def javascript_prompt(url, js_msg, default, abort_on, *, escape_msg=True):
     """Display a javascript prompt."""
     log.js.debug("prompt: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
@@ -92,12 +98,14 @@ def javascript_prompt(url, js_msg, default, abort_on):
     if not config.val.content.javascript.prompt:
         return (False, "")
 
+    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = '<b>{}</b> asks:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          html.escape(js_msg))
+                                          js_msg)
+    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     answer = message.ask('Javascript prompt', msg,
                          mode=usertypes.PromptMode.text,
                          default=default,
-                         abort_on=abort_on)
+                         abort_on=abort_on, url=urlstr)
 
     if answer is None:
         return (False, "")
@@ -105,7 +113,7 @@ def javascript_prompt(url, js_msg, default, abort_on):
         return (True, answer)
 
 
-def javascript_alert(url, js_msg, abort_on):
+def javascript_alert(url, js_msg, abort_on, *, escape_msg=True):
     """Display a javascript alert."""
     log.js.debug("alert: {}".format(js_msg))
     if config.val.content.javascript.modal_dialog:
@@ -114,10 +122,12 @@ def javascript_alert(url, js_msg, abort_on):
     if not config.val.content.javascript.alert:
         return
 
+    js_msg = html.escape(js_msg) if escape_msg else js_msg
     msg = 'From <b>{}</b>:<br/>{}'.format(html.escape(url.toDisplayString()),
-                                          html.escape(js_msg))
+                                          js_msg)
+    urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
     message.ask('Javascript alert', msg, mode=usertypes.PromptMode.alert,
-                abort_on=abort_on)
+                abort_on=abort_on, url=urlstr)
 
 
 def javascript_log_message(level, source, line, msg):
@@ -164,9 +174,10 @@ def ignore_certificate_errors(url, errors, abort_on):
         """.strip())
         msg = err_template.render(url=url, errors=errors)
 
+        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         ignore = message.ask(title="Certificate errors - continue?", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
-                             abort_on=abort_on)
+                             abort_on=abort_on, url=urlstr)
         if ignore is None:
             # prompt aborted
             ignore = False
@@ -202,15 +213,17 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on):
     config_val = config.instance.get(option)
     if config_val == 'ask':
         if url.isValid():
+            urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
             text = "Allow the website at <b>{}</b> to {}?".format(
                 html.escape(url.toDisplayString()), msg)
         else:
+            urlstr = None
             text = "Allow the website to {}?".format(msg)
 
         return message.confirm_async(
             yes_action=yes_action, no_action=no_action,
             cancel_action=no_action, abort_on=abort_on,
-            title='Permission request', text=text)
+            title='Permission request', text=text, url=urlstr)
     elif config_val:
         yes_action()
         return None
@@ -260,3 +273,41 @@ def get_user_stylesheet():
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     return css
+
+
+def netrc_authentication(url, authenticator):
+    """Perform authorization using netrc.
+
+    Args:
+        url: The URL the request was done for.
+        authenticator: QAuthenticator object used to set credentials provided.
+
+    Return:
+        True if netrc found credentials for the URL.
+        False otherwise.
+    """
+    if 'HOME' not in os.environ:
+        # We'll get an OSError by netrc if 'HOME' isn't available in
+        # os.environ. We don't want to log that, so we prevent it
+        # altogether.
+        return False
+    user, password = None, None
+    try:
+        net = netrc.netrc(config.val.content.netrc_file)
+        authenticators = net.authenticators(url.host())
+        if authenticators is not None:
+            (user, _account, password) = authenticators
+    except FileNotFoundError:
+        log.misc.debug("No .netrc file found")
+    except OSError:
+        log.misc.exception("Unable to read the netrc file")
+    except netrc.NetrcParseError:
+        log.misc.exception("Error when parsing the netrc file")
+
+    if user is None:
+        return False
+
+    authenticator.setUser(user)
+    authenticator.setPassword(password)
+
+    return True

@@ -25,7 +25,7 @@ Use python3 -m scripts.keytester to launch it.
 
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QHBoxLayout
 
-from qutebrowser.utils import utils
+from qutebrowser.keyinput import keyutils
 
 
 class KeyWidget(QWidget):
@@ -41,7 +41,7 @@ class KeyWidget(QWidget):
     def keyPressEvent(self, e):
         """Show pressed keys."""
         lines = [
-            str(utils.keyevent_to_string(e)),
+            str(keyutils.KeyInfo.from_event(e)),
             '',
             'key: 0x{:x}'.format(int(e.key())),
             'modifiers: 0x{:x}'.format(int(e.modifiers())),

@@ -22,7 +22,7 @@
 import os
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 
 from qutebrowser.browser import inspector
 
@@ -35,6 +35,8 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         super().__init__(parent)
         self.port = None
         view = QWebEngineView()
+        settings = view.settings()
+        settings.setAttribute(QWebEngineSettings.JavascriptEnabled, True)
         self._set_widget(view)
 
     def inspect(self, _page):
@@ -43,8 +45,8 @@ class WebEngineInspector(inspector.AbstractWebInspector):
             port = int(os.environ['QTWEBENGINE_REMOTE_DEBUGGING'])
         except KeyError:
             raise inspector.WebInspectorError(
-                "Debugging is not enabled. See 'qutebrowser --help' for "
-                "details.")
+                "QtWebEngine inspector is not enabled. See "
+                "'qutebrowser --help' for details.")
         url = QUrl('http://localhost:{}/'.format(port))
         self._widget.load(url)
         self.show()

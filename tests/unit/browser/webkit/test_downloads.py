@@ -24,7 +24,7 @@ from qutebrowser.browser import downloads, qtnetworkdownloads
 
 def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache):
     """Simple check for download model internals."""
-    manager = qtnetworkdownloads.DownloadManager(win_id=0)
+    manager = qtnetworkdownloads.DownloadManager()
     model = downloads.DownloadModel(manager)
     qtmodeltester.check(model)
 

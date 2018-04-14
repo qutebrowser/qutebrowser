@@ -15,7 +15,10 @@ Feature: Javascript stuff
         And I wait for "Changing title for idx 1 to 'about:blank'" in the log
         And I run :tab-focus 1
         And I run :click-element id close-normal
+        And I wait for "[*] window closed" in the log
         Then "Focus object changed: *" should be logged
+        And the following tabs should be open:
+            - data/javascript/window_open.html (active)
 
     @qtwebkit_skip
     Scenario: Opening/closing a modal window via JS
@@ -25,8 +28,11 @@ Feature: Javascript stuff
         And I wait for "Changing title for idx 1 to 'about:blank'" in the log
         And I run :tab-focus 1
         And I run :click-element id close-normal
+        And I wait for "[*] window closed" in the log
         Then "Focus object changed: *" should be logged
         And "Web*Dialog requested, but we don't support that!" should be logged
+        And the following tabs should be open:
+            - data/javascript/window_open.html (active)
 
     # https://github.com/qutebrowser/qutebrowser/issues/906
 
@@ -39,6 +45,7 @@ Feature: Javascript stuff
         And I wait for "Changing title for idx 2 to 'about:blank'" in the log
         And I run :tab-focus 2
         And I run :click-element id close-twice
+        And I wait for "[*] window closed" in the log
         Then "Requested to close * which does not exist!" should be logged
 
     @qtwebkit_skip @flaky
@@ -51,6 +58,7 @@ Feature: Javascript stuff
         And I run :buffer window_open.html
         And I run :click-element id close-twice
         And I wait for "Focus object changed: *" in the log
+        And I wait for "[*] window closed" in the log
         Then no crash should happen
 
     @flaky
@@ -130,6 +138,7 @@ Feature: Javascript stuff
         And I run :tab-next
         Then the window sizes should be the same
 
+    @flaky
     Scenario: Have a GreaseMonkey script run at page start
         When I have a GreaseMonkey file saved for document-start with noframes unset
         And I run :greasemonkey-reload
@@ -151,3 +160,37 @@ Feature: Javascript stuff
         And I run :greasemonkey-reload
         And I open data/hints/iframe.html
         Then the javascript message "Script is running on /data/hints/html/wrapped.html" should not be logged
+
+    Scenario: Per-URL localstorage setting
+        When I set content.local_storage to false
+        And I run :set -u http://localhost:*/data2/* content.local_storage true
+        And I open data/javascript/localstorage.html
+        And I wait for "[*] local storage is not working" in the log
+        And I open data2/javascript/localstorage.html
+        Then the javascript message "local storage is working" should be logged
+
+    Scenario: Per-URL JavaScript setting
+        When I set content.javascript.enabled to false
+        And I run :set -u http://localhost:*/data2/* content.javascript.enabled true
+        And I open data2/javascript/enabled.html
+        And I wait for "[*] JavaScript is enabled" in the log
+        And I open data/javascript/enabled.html
+        Then the page should contain the plaintext "JavaScript is disabled"
+
+    @qtwebkit_skip
+    Scenario: Error pages without JS enabled
+        When I set content.javascript.enabled to false
+        And I open 500 without waiting
+        Then "Showing error page for* 500" should be logged
+
+    Scenario: Using JS after window.open
+        When I open data/hello.txt
+        And I set content.javascript.can_open_tabs_automatically to true
+        And I run :jseval window.open('about:blank')
+        And I open data/hello.txt
+        And I run :tab-only
+        And I open data/hints/html/simple.html
+        And I run :hint all
+        And I wait for "hints: a" in the log
+        And I run :leave-mode
+        Then "There was an error while getting hint elements" should not be logged

@@ -201,6 +201,7 @@
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
 |<<history_gap_interval,history_gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
 |<<input.forward_unbound_keys,input.forward_unbound_keys>>|Which unbound keys to forward to the webview in normal mode.
+|<<input.insert_mode.auto_enter,input.insert_mode.auto_enter>>|Enter insert mode if an editable element is clicked.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
 |<<input.insert_mode.auto_load,input.insert_mode.auto_load>>|Automatically enter insert mode if an editable element is focused after loading the page.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
@@ -230,19 +231,21 @@
 |<<statusbar.hide,statusbar.hide>>|Hide the statusbar unless a message is shown.
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
 |<<statusbar.position,statusbar.position>>|Position of the status bar.
+|<<statusbar.widgets,statusbar.widgets>>|List of widgets displayed in the statusbar.
 |<<tabs.background,tabs.background>>|Open new tabs (middleclick/ctrl+click) in the background.
 |<<tabs.close_mouse_button,tabs.close_mouse_button>>|Mouse button with which to close tabs.
 |<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|How to behave when the close mouse button is pressed on the tab bar.
 |<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling factor for favicons in the tab bar.
-|<<tabs.favicons.show,tabs.favicons.show>>|Show favicons in the tab bar.
+|<<tabs.favicons.show,tabs.favicons.show>>|When to show favicons in the tab bar.
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
+|<<tabs.min_width,tabs.min_width>>|Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
+|<<tabs.mode_on_change,tabs.mode_on_change>>|When switching tabs, what input mode is applied.
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which aren't opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
-|<<tabs.persist_mode_on_change,tabs.persist_mode_on_change>>|Stay in insert/passthrough mode when switching tabs.
 |<<tabs.pinned.shrink,tabs.pinned.shrink>>|Shrink pinned tabs down to their contents.
 |<<tabs.position,tabs.position>>|Position of the tab bar.
 |<<tabs.select_on_remove,tabs.select_on_remove>>|Which tab to select when the focused tab is removed.
@@ -257,10 +260,11 @@
 |<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
 |<<url.default_page,url.default_page>>|Page to open if :open -t/-b/-w is used without URL.
 |<<url.incdec_segments,url.incdec_segments>>|URL segments where `:navigate increment/decrement` will search for a number.
+|<<url.open_base_url,url.open_base_url>>|Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
 |<<url.searchengines,url.searchengines>>|Search engines which can be used via the address bar.
 |<<url.start_pages,url.start_pages>>|Page(s) to open at the start.
 |<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|URL parameters to strip with `:yank url`.
-|<<window.hide_wayland_decoration,window.hide_wayland_decoration>>|Hide the window decoration when using wayland.
+|<<window.hide_decoration,window.hide_decoration>>|Hide the window decoration.
 |<<window.title_format,window.title_format>>|Format to use for the window title. The same placeholders like for
 |<<zoom.default,zoom.default>>|Default zoom level.
 |<<zoom.levels,zoom.levels>>|Available zoom levels.
@@ -321,7 +325,7 @@ While it's possible to add bindings with this setting, it's recommended to use `
 This setting is a dictionary containing mode names and dictionaries mapping keys to commands:
 `{mode: {key: command}}`
 If you want to map a key to another key, check the `bindings.key_mappings` setting instead.
-For special keys (can't be part of a keychain), enclose them in `<`...`>`. For modifiers, you can use either `-` or `+` as delimiters, and these names:
+For modifiers, you can use either `-` or `+` as delimiters, and these names:
 
   * Control: `Control`, `Ctrl`
 
@@ -357,11 +361,8 @@ The following modes are available:
 
 * prompt: Entered when there's a prompt to display, like for download
   locations or when invoked from JavaScript.
-  +
-  You can bind normal keys in this mode, but they will be only active when
-  a yes/no-prompt is asked. For other prompt modes, you can only bind
-  special keys.
 
+* yesno: Entered when there's a yes/no prompt displayed.
 * caret: Entered when pressing the `v` mode, used to select text using the
   keyboard.
 
@@ -377,6 +378,8 @@ Default: empty
 Default keybindings. If you want to add bindings, modify `bindings.commands` instead.
 The main purpose of this setting is that you can set it to an empty dictionary if you want to load no default keybindings at all.
 If you want to preserve default bindings (and get new bindings when there is an update), use `config.bind()` in `config.py` or the `:bind` command, and leave this setting alone.
+
+This setting can only be set in config.py.
 
 Type: <<types,Dict>>
 
@@ -581,8 +584,20 @@ Default:
 * +pass:[sk]+: +pass:[set-cmd-text -s :bind]+
 * +pass:[sl]+: +pass:[set-cmd-text -s :set -t]+
 * +pass:[ss]+: +pass:[set-cmd-text -s :set]+
+* +pass:[tPH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.plugins ;; reload]+
+* +pass:[tPh]+: +pass:[config-cycle -p -u *://{url:host}/* content.plugins ;; reload]+
+* +pass:[tPu]+: +pass:[config-cycle -p -u {url} content.plugins ;; reload]+
+* +pass:[tSH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.javascript.enabled ;; reload]+
+* +pass:[tSh]+: +pass:[config-cycle -p -u *://{url:host}/* content.javascript.enabled ;; reload]+
+* +pass:[tSu]+: +pass:[config-cycle -p -u {url} content.javascript.enabled ;; reload]+
 * +pass:[th]+: +pass:[back -t]+
 * +pass:[tl]+: +pass:[forward -t]+
+* +pass:[tpH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.plugins ;; reload]+
+* +pass:[tph]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.plugins ;; reload]+
+* +pass:[tpu]+: +pass:[config-cycle -p -t -u {url} content.plugins ;; reload]+
+* +pass:[tsH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.javascript.enabled ;; reload]+
+* +pass:[tsh]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload]+
+* +pass:[tsu]+: +pass:[config-cycle -p -t -u {url} content.javascript.enabled ;; reload]+
 * +pass:[u]+: +pass:[undo]+
 * +pass:[v]+: +pass:[enter-mode caret]+
 * +pass:[wB]+: +pass:[set-cmd-text -s :bookmark-load -w]+
@@ -616,6 +631,8 @@ Default:
 * +pass:[&lt;Alt-Backspace&gt;]+: +pass:[rl-backward-kill-word]+
 * +pass:[&lt;Alt-D&gt;]+: +pass:[rl-kill-word]+
 * +pass:[&lt;Alt-F&gt;]+: +pass:[rl-forward-word]+
+* +pass:[&lt;Alt-Shift-Y&gt;]+: +pass:[prompt-yank --sel]+
+* +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+
 * +pass:[&lt;Ctrl-?&gt;]+: +pass:[rl-delete-char]+
 * +pass:[&lt;Ctrl-A&gt;]+: +pass:[rl-beginning-of-line]+
 * +pass:[&lt;Ctrl-B&gt;]+: +pass:[rl-backward-char]+
@@ -633,11 +650,17 @@ Default:
 * +pass:[&lt;Shift-Tab&gt;]+: +pass:[prompt-item-focus prev]+
 * +pass:[&lt;Tab&gt;]+: +pass:[prompt-item-focus next]+
 * +pass:[&lt;Up&gt;]+: +pass:[prompt-item-focus prev]+
-* +pass:[n]+: +pass:[prompt-accept no]+
-* +pass:[y]+: +pass:[prompt-accept yes]+
 - +pass:[register]+:
 
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+- +pass:[yesno]+:
+
+* +pass:[&lt;Alt-Shift-Y&gt;]+: +pass:[prompt-yank --sel]+
+* +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+
+* +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+
+* +pass:[n]+: +pass:[prompt-accept no]+
+* +pass:[y]+: +pass:[prompt-accept yes]+
 
 [[bindings.key_mappings]]
 === bindings.key_mappings
@@ -1444,6 +1467,8 @@ Default:
 Enable support for the HTML 5 web application cache feature.
 An application cache acts like an HTTP cache in some sense. For documents that use the application cache via JavaScript, the loader engine will first ask the application cache for the contents, before hitting the network.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
@@ -1521,6 +1546,8 @@ This setting is only available with the QtWebKit backend.
 === content.dns_prefetch
 Try to pre-fetch DNS entries to speed up browsing.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
@@ -1531,6 +1558,8 @@ This setting is only available with the QtWebKit backend.
 === content.frame_flattening
 Expand each subframe to its contents.
 This will flatten all the frames to become one scrollable page.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -1626,11 +1655,7 @@ Type: <<types,List of Url>>
 
 Default: 
 
-- +pass:[https://www.malwaredomainlist.com/hostslist/hosts.txt]+
-- +pass:[http://someonewhocares.org/hosts/hosts]+
-- +pass:[http://winhelp2002.mvps.org/hosts.zip]+
-- +pass:[http://malwaredomains.lehigh.edu/files/justdomains.zip]+
-- +pass:[https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&amp;mimetype=plaintext]+
+- +pass:[https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts]+
 
 [[content.host_blocking.whitelist]]
 === content.host_blocking.whitelist
@@ -1648,6 +1673,8 @@ Default:
 === content.hyperlink_auditing
 Enable hyperlink auditing (`<a ping>`).
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
@@ -1655,6 +1682,8 @@ Default: +pass:[false]+
 [[content.images]]
 === content.images
 Load images automatically in web pages.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -1673,6 +1702,8 @@ Default: +pass:[true]+
 Allow JavaScript to read from or write to the clipboard.
 With QtWebEngine, writing the clipboard as response to a user interaction is always allowed.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
@@ -1680,6 +1711,8 @@ Default: +pass:[false]+
 [[content.javascript.can_close_tabs]]
 === content.javascript.can_close_tabs
 Allow JavaScript to close tabs.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -1691,6 +1724,8 @@ This setting is only available with the QtWebKit backend.
 === content.javascript.can_open_tabs_automatically
 Allow JavaScript to open new tabs without user interaction.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
@@ -1698,6 +1733,8 @@ Default: +pass:[false]+
 [[content.javascript.enabled]]
 === content.javascript.enabled
 Enable JavaScript.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -1738,6 +1775,8 @@ Default: +pass:[true]+
 === content.local_content_can_access_file_urls
 Allow locally loaded documents to access other local URLs.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
@@ -1746,6 +1785,8 @@ Default: +pass:[true]+
 === content.local_content_can_access_remote_urls
 Allow locally loaded documents to access remote URLs.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
@@ -1753,6 +1794,8 @@ Default: +pass:[false]+
 [[content.local_storage]]
 === content.local_storage
 Enable support for HTML 5 local storage and Web SQL.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -1814,6 +1857,8 @@ This setting is only available with the QtWebKit backend.
 === content.plugins
 Enable plugins in Web pages.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
@@ -1821,6 +1866,8 @@ Default: +pass:[false]+
 [[content.print_element_backgrounds]]
 === content.print_element_backgrounds
 Draw the background color and images also when the page is printed.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -1886,6 +1933,8 @@ Default: empty
 === content.webgl
 Enable WebGL.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
@@ -1902,6 +1951,8 @@ Default: +pass:[false]+
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
 Suspicious scripts will be blocked and reported in the inspector's JavaScript console. Enabling this feature might have an impact on performance.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -2348,6 +2399,14 @@ Valid values:
 
 Default: +pass:[auto]+
 
+[[input.insert_mode.auto_enter]]
+=== input.insert_mode.auto_enter
+Enter insert mode if an editable element is clicked.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[input.insert_mode.auto_leave]]
 === input.insert_mode.auto_leave
 Leave insert mode if a non-editable element is clicked.
@@ -2376,6 +2435,8 @@ Default: +pass:[false]+
 === input.links_included_in_focus_chain
 Include hyperlinks in the keyboard focus chain when tabbing.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
@@ -2402,6 +2463,8 @@ Default: +pass:[false]+
 === input.spatial_navigation
 Enable spatial navigation.
 Spatial navigation consists in the ability to navigate between focusable elements in a Web page, such as hyperlinks and form controls, by using Left, Right, Up and Down arrow keys. For example, if the user presses the Right key, heuristics determine whether there is an element he might be trying to reach towards the right and which element he probably wants.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -2547,6 +2610,8 @@ Default: +pass:[false]+
 Enable smooth scrolling for web pages.
 Note smooth scrolling does not work with the `:scroll-px` command.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
@@ -2683,6 +2748,31 @@ Valid values:
 
 Default: +pass:[bottom]+
 
+[[statusbar.widgets]]
+=== statusbar.widgets
+List of widgets displayed in the statusbar.
+
+Type: <<types,List of String>>
+
+Valid values:
+
+ * +url+: Current page URL.
+ * +scroll+: Percentage of the current page position like `10%`.
+ * +scroll_raw+: Raw percentage of the current page position like `10`.
+ * +history+: Display an arrow when possible to go back/forward in history.
+ * +tabs+: Current active tab, e.g. `2`.
+ * +keypress+: Display pressed keys when composing a vi command.
+ * +progress+: Progress bar for the current page loading.
+
+Default: 
+
+- +pass:[keypress]+
+- +pass:[url]+
+- +pass:[scroll]+
+- +pass:[history]+
+- +pass:[tabs]+
+- +pass:[progress]+
+
 [[tabs.background]]
 === tabs.background
 Open new tabs (middleclick/ctrl+click) in the background.
@@ -2731,11 +2821,17 @@ Default: +pass:[1.0]+
 
 [[tabs.favicons.show]]
 === tabs.favicons.show
-Show favicons in the tab bar.
+When to show favicons in the tab bar.
 
-Type: <<types,Bool>>
+Type: <<types,String>>
 
-Default: +pass:[true]+
+Valid values:
+
+ * +always+: Always show favicons.
+ * +never+: Always hide favicons.
+ * +pinned+: Show favicons only on pinned tabs.
+
+Default: +pass:[always]+
 
 [[tabs.indicator.padding]]
 === tabs.indicator.padding
@@ -2773,6 +2869,30 @@ Valid values:
  * +close+: Close the window.
 
 Default: +pass:[ignore]+
+
+[[tabs.min_width]]
+=== tabs.min_width
+Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
+This setting only applies when tabs are horizontal.
+This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
+
+Type: <<types,Int>>
+
+Default: +pass:[-1]+
+
+[[tabs.mode_on_change]]
+=== tabs.mode_on_change
+When switching tabs, what input mode is applied.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +persist+: Retain the current mode.
+ * +restore+: Restore previously saved mode.
+ * +normal+: Always revert to normal mode.
+
+Default: +pass:[normal]+
 
 [[tabs.mousewheel_switching]]
 === tabs.mousewheel_switching
@@ -2824,14 +2944,6 @@ Default:
 - +pass:[left]+: +pass:[5]+
 - +pass:[right]+: +pass:[5]+
 - +pass:[top]+: +pass:[0]+
-
-[[tabs.persist_mode_on_change]]
-=== tabs.persist_mode_on_change
-Stay in insert/passthrough mode when switching tabs.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
 
 [[tabs.pinned.shrink]]
 === tabs.pinned.shrink
@@ -3004,6 +3116,14 @@ Default:
 - +pass:[path]+
 - +pass:[query]+
 
+[[url.open_base_url]]
+=== url.open_base_url
+Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[url.searchengines]]
 === url.searchengines
 Search engines which can be used via the address bar.
@@ -3039,10 +3159,12 @@ Default:
 - +pass:[utm_term]+
 - +pass:[utm_content]+
 
-[[window.hide_wayland_decoration]]
-=== window.hide_wayland_decoration
-Hide the window decoration when using wayland.
-This setting requires a restart.
+[[window.hide_decoration]]
+=== window.hide_decoration
+Hide the window decoration.
+
+This setting requires a restart on Wayland.
+
 
 Type: <<types,Bool>>
 
@@ -3102,6 +3224,8 @@ Default: +pass:[512]+
 [[zoom.text_only]]
 === zoom.text_only
 Apply the zoom factor on a frame only to the text or to all content.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -3173,7 +3297,7 @@ See the setting's valid values for more information on allowed values.
 |TextAlignment|Alignment of text.
 |TimestampTemplate|An strftime-like template for timestamps.
 
-See https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior for reference.
+See https://sqlite.org/lang_datefunc.html for reference.
 |UniqueCharString|A string which may not contain duplicate chars.
 |Url|A URL as a string.
 |VerticalPosition|The position of the download bar.

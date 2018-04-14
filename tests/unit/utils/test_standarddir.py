@@ -301,6 +301,7 @@ class TestCreatingDir:
         """Test --basedir."""
         basedir = tmpdir / 'basedir'
         assert not basedir.exists()
+
         args = types.SimpleNamespace(basedir=str(basedir))
         standarddir._init_dirs(args)
 
@@ -309,8 +310,13 @@ class TestCreatingDir:
 
         assert basedir.exists()
 
-        if utils.is_posix:
-            assert basedir.stat().mode & 0o777 == 0o700
+        if typ == 'download' or (typ == 'runtime' and not utils.is_linux):
+            assert not (basedir / typ).exists()
+        else:
+            assert (basedir / typ).exists()
+
+            if utils.is_posix:
+                assert (basedir / typ).stat().mode & 0o777 == 0o700
 
     @pytest.mark.parametrize('typ', DIR_TYPES)
     def test_exists_race_condition(self, mocker, tmpdir, typ):

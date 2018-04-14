@@ -27,7 +27,7 @@ function prepare_restore() {
 		return;
 	}
 
-	document.addEventListener("visibilitychange", go_back);
+	document.addEventListener("visibilitychange", go_back, {once: true});
 }
 
 // there are three states

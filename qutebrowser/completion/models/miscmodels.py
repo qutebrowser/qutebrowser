@@ -110,18 +110,18 @@ def _buffer(skip_win_id=None):
     model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
 
     for win_id in objreg.window_registry:
-        if skip_win_id and win_id == skip_win_id:
+        if skip_win_id is not None and win_id == skip_win_id:
             continue
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
         if tabbed_browser.shutting_down:
             continue
         tabs = []
-        for idx in range(tabbed_browser.count()):
-            tab = tabbed_browser.widget(idx)
+        for idx in range(tabbed_browser.widget.count()):
+            tab = tabbed_browser.widget.widget(idx)
             tabs.append(("{}/{}".format(win_id, idx + 1),
                          tab.url().toDisplayString(),
-                         tabbed_browser.page_title(idx)))
+                         tabbed_browser.widget.page_title(idx)))
         cat = listcategory.ListCategory("{}".format(win_id), tabs,
                                         delete_func=delete_buffer)
         model.add_category(cat)

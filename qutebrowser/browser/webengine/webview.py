@@ -29,8 +29,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror, webenginesettings
 from qutebrowser.config import config
-from qutebrowser.utils import (log, debug, usertypes, jinja, urlutils, message,
-                               objreg, qtutils)
+from qutebrowser.utils import log, debug, usertypes, jinja, objreg, qtutils
 
 
 class WebEngineView(QWebEngineView):
@@ -124,10 +123,12 @@ class WebEnginePage(QWebEnginePage):
     Signals:
         certificate_error: Emitted on certificate errors.
         shutting_down: Emitted when the page is shutting down.
+        navigation_request: Emitted on acceptNavigationRequest.
     """
 
     certificate_error = pyqtSignal()
     shutting_down = pyqtSignal()
+    navigation_request = pyqtSignal(usertypes.NavigationRequest)
 
     def __init__(self, *, theme_color, profile, parent=None):
         super().__init__(profile, parent)
@@ -242,10 +243,12 @@ class WebEnginePage(QWebEnginePage):
         """Override javaScriptConfirm to use qutebrowser prompts."""
         if self._is_shutting_down:
             return False
+        escape_msg = qtutils.version_check('5.11', compiled=False)
         try:
             return shared.javascript_confirm(url, js_msg,
                                              abort_on=[self.loadStarted,
-                                                       self.shutting_down])
+                                                       self.shutting_down],
+                                             escape_msg=escape_msg)
         except shared.CallSuper:
             return super().javaScriptConfirm(url, js_msg)
 
@@ -255,12 +258,14 @@ class WebEnginePage(QWebEnginePage):
         # https://www.riverbankcomputing.com/pipermail/pyqt/2016-November/038293.html
         def javaScriptPrompt(self, url, js_msg, default):
             """Override javaScriptPrompt to use qutebrowser prompts."""
+            escape_msg = qtutils.version_check('5.11', compiled=False)
             if self._is_shutting_down:
                 return (False, "")
             try:
                 return shared.javascript_prompt(url, js_msg, default,
                                                 abort_on=[self.loadStarted,
-                                                          self.shutting_down])
+                                                          self.shutting_down],
+                                                escape_msg=escape_msg)
             except shared.CallSuper:
                 return super().javaScriptPrompt(url, js_msg, default)
 
@@ -268,10 +273,12 @@ class WebEnginePage(QWebEnginePage):
         """Override javaScriptAlert to use qutebrowser prompts."""
         if self._is_shutting_down:
             return
+        escape_msg = qtutils.version_check('5.11', compiled=False)
         try:
             shared.javascript_alert(url, js_msg,
                                     abort_on=[self.loadStarted,
-                                              self.shutting_down])
+                                              self.shutting_down],
+                                    escape_msg=escape_msg)
         except shared.CallSuper:
             super().javaScriptAlert(url, js_msg)
 
@@ -288,21 +295,26 @@ class WebEnginePage(QWebEnginePage):
                                 url: QUrl,
                                 typ: QWebEnginePage.NavigationType,
                                 is_main_frame: bool):
-        """Override acceptNavigationRequest to handle clicked links.
-
-        This only show an error on invalid links - everything else is handled
-        in createWindow.
-        """
-        log.webview.debug("navigation request: url {}, type {}, is_main_frame "
-                          "{}".format(url.toDisplayString(),
-                                      debug.qenum_key(QWebEnginePage, typ),
-                                      is_main_frame))
-        if (typ == QWebEnginePage.NavigationTypeLinkClicked and
-                not url.isValid()):
-            msg = urlutils.get_errstring(url, "Invalid link clicked")
-            message.error(msg)
-            return False
-        return True
+        """Override acceptNavigationRequest to forward it to the tab API."""
+        type_map = {
+            QWebEnginePage.NavigationTypeLinkClicked:
+                usertypes.NavigationRequest.Type.link_clicked,
+            QWebEnginePage.NavigationTypeTyped:
+                usertypes.NavigationRequest.Type.typed,
+            QWebEnginePage.NavigationTypeFormSubmitted:
+                usertypes.NavigationRequest.Type.form_submitted,
+            QWebEnginePage.NavigationTypeBackForward:
+                usertypes.NavigationRequest.Type.back_forward,
+            QWebEnginePage.NavigationTypeReload:
+                usertypes.NavigationRequest.Type.reloaded,
+            QWebEnginePage.NavigationTypeOther:
+                usertypes.NavigationRequest.Type.other,
+        }
+        navigation = usertypes.NavigationRequest(url=url,
+                                                 navigation_type=type_map[typ],
+                                                 is_main_frame=is_main_frame)
+        self.navigation_request.emit(navigation)
+        return navigation.accepted
 
     @pyqtSlot('QUrl')
     def _inject_userjs(self, url):

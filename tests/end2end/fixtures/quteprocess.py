@@ -101,6 +101,9 @@ def is_ignored_lowlevel_message(message):
         '  Error: No such file or directory',
         # Qt 5.7.1
         'qt.network.ssl: QSslSocket: cannot call unresolved function *',
+        # Qt 5.11
+        # DevTools listening on ws://127.0.0.1:37945/devtools/browser/...
+        'DevTools listening on *',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -169,7 +172,7 @@ def is_ignored_chromium_message(line):
         # /tmp/pytest-of-florian/pytest-32/test_webengine_download_suffix0/
         # downloads/download.bin: Operation not supported
         ('Could not set extended attribute user.xdg.* on file *: '
-         'Operation not supported'),
+         'Operation not supported*'),
         # [5947:5947:0605/192837.856931:ERROR:render_process_impl.cc(112)]
         # WebFrame LEAKED 1 TIMES
         'WebFrame LEAKED 1 TIMES',
@@ -192,6 +195,15 @@ def is_ignored_chromium_message(line):
         # [2734:2746:1107/131154.072032:ERROR:nss_ocsp.cc(591)] No
         # URLRequestContext for NSS HTTP handler. host: ocsp.digicert.com
         'No URLRequestContext for NSS HTTP handler. host: *',
+
+        # https://bugreports.qt.io/browse/QTBUG-66661
+        # [23359:23359:0319/115812.168578:WARNING:
+        # render_frame_host_impl.cc(2744)] OnDidStopLoading was called twice.
+        'OnDidStopLoading was called twice.',
+
+        # [30412:30412:0323/074933.387250:ERROR:node_channel.cc(899)] Dropping
+        # message on closed channel.
+        'Dropping message on closed channel.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -784,18 +796,25 @@ class QuteProc(testprocess.Process):
         be compared.
         """
         __tracebackhide__ = lambda e: e.errisinstance(pytest.fail.Exception)
-        # Translate ... to ellipsis in YAML.
-        loader = yaml.SafeLoader(expected)
-        loader.add_constructor('!ellipsis', lambda loader, node: ...)
-        loader.add_implicit_resolver('!ellipsis', re.compile(r'\.\.\.'), None)
-
         data = self.get_session()
-        expected = loader.get_data()
+        expected = yaml.load(expected, Loader=YamlLoader)
         outcome = testutils.partial_compare(data, expected)
         if not outcome:
             msg = "Session comparison failed: {}".format(outcome.error)
             msg += '\nsee stdout for details'
             pytest.fail(msg)
+
+
+class YamlLoader(yaml.SafeLoader):
+
+    """Custom YAML loader used in compare_session."""
+
+    pass
+
+
+# Translate ... to ellipsis in YAML.
+YamlLoader.add_constructor('!ellipsis', lambda loader, node: ...)
+YamlLoader.add_implicit_resolver('!ellipsis', re.compile(r'\.\.\.'), None)
 
 
 def _xpath_escape(text):

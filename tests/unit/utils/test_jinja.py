@@ -23,6 +23,7 @@ import os
 import os.path
 import logging
 
+import jinja2.exceptions
 import pytest
 from PyQt5.QtCore import QUrl
 
@@ -32,7 +33,6 @@ from qutebrowser.utils import utils, jinja
 @pytest.fixture(autouse=True)
 def patch_read_file(monkeypatch):
     """pytest fixture to patch utils.read_file."""
-    real_read_file = utils.read_file
     real_resource_filename = utils.resource_filename
 
     def _read_file(path, binary=False):
@@ -52,9 +52,6 @@ def patch_read_file(monkeypatch):
         elif path == os.path.join('html', 'undef.html'):
             assert not binary
             return """{{ does_not_exist() }}"""
-        elif path == os.path.join('html', 'undef_error.html'):
-            assert not binary
-            return real_read_file(path)
         elif path == os.path.join('html', 'attributeerror.html'):
             assert not binary
             return """{{ obj.foobar }}"""
@@ -129,15 +126,9 @@ def test_utf8():
 
 
 def test_undefined_function(caplog):
-    """Make sure we don't crash if an undefined function is called."""
-    with caplog.at_level(logging.ERROR):
-        data = jinja.render('undef.html')
-    assert 'There was an error while rendering undef.html' in data
-    assert "'does_not_exist' is undefined" in data
-    assert data.startswith('<!DOCTYPE html>')
-
-    assert len(caplog.records) == 1
-    assert caplog.records[0].msg == "UndefinedError while rendering undef.html"
+    """Make sure undefined attributes crash since we preload resources.."""
+    with pytest.raises(jinja2.exceptions.UndefinedError):
+        jinja.render('undef.html')
 
 
 def test_attribute_error():

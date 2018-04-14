@@ -21,15 +21,13 @@
 import os
 import os.path
 import zipfile
-import shutil
 import logging
 
 import pytest
 
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import adblock
-from qutebrowser.utils import objreg
 
 pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
@@ -67,48 +65,6 @@ class BaseDirStub:
 def basedir(fake_args):
     """Register a Fake basedir."""
     fake_args.basedir = None
-
-
-class FakeDownloadItem(QObject):
-
-    """Mock browser.downloads.DownloadItem."""
-
-    finished = pyqtSignal()
-
-    def __init__(self, fileobj, name, parent=None):
-        super().__init__(parent)
-        self.fileobj = fileobj
-        self.name = name
-        self.successful = True
-
-
-class FakeDownloadManager:
-
-    """Mock browser.downloads.DownloadManager."""
-
-    def __init__(self, tmpdir):
-        self._tmpdir = tmpdir
-
-    def get(self, url, target, **kwargs):
-        """Return a FakeDownloadItem instance with a fileobj.
-
-        The content is copied from the file the given url links to.
-        """
-        download_item = FakeDownloadItem(target.fileobj, name=url.path())
-        with (self._tmpdir / url.path()).open('rb') as fake_url_file:
-            shutil.copyfileobj(fake_url_file, download_item.fileobj)
-        return download_item
-
-
-@pytest.fixture
-def download_stub(win_registry, tmpdir):
-    """Register a FakeDownloadManager."""
-    stub = FakeDownloadManager(tmpdir)
-    objreg.register('qtnetwork-download-manager', stub,
-                    scope='window', window='last-focused')
-    yield
-    objreg.delete('qtnetwork-download-manager', scope='window',
-                  window='last-focused')
 
 
 def create_zipfile(directory, files, zipname='test'):
@@ -164,8 +120,10 @@ def assert_urls(host_blocker, blocked=BLOCKLIST_HOSTS,
 
     Ensure URLs in 'blocked' and not in 'whitelisted' are blocked.
     All other URLs must not be blocked.
+
+    localhost is an example of a special case that shouldn't be blocked.
     """
-    whitelisted = list(whitelisted) + list(host_blocker.WHITELISTED)
+    whitelisted = list(whitelisted) + ['localhost']
     for str_url in urls_to_check:
         url = QUrl(str_url)
         host = url.host()
@@ -250,6 +208,7 @@ def test_disabled_blocking_update(basedir, config_stub, download_stub,
     while host_blocker._in_progress:
         current_download = host_blocker._in_progress[0]
         with caplog.at_level(logging.ERROR):
+            current_download.successful = True
             current_download.finished.emit()
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
@@ -265,6 +224,8 @@ def test_no_blocklist_update(config_stub, download_stub,
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update()
     host_blocker.read_hosts()
+    for dl in download_stub.downloads:
+        dl.successful = True
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
 
@@ -282,8 +243,19 @@ def test_successful_update(config_stub, basedir, download_stub,
     while host_blocker._in_progress:
         current_download = host_blocker._in_progress[0]
         with caplog.at_level(logging.ERROR):
+            current_download.successful = True
             current_download.finished.emit()
     host_blocker.read_hosts()
+    assert_urls(host_blocker, whitelisted=[])
+
+
+def test_parsing_multiple_hosts_on_line(config_stub, basedir, download_stub,
+                                        data_tmpdir, tmpdir, win_registry,
+                                        caplog):
+    """Ensure multiple hosts on a line get parsed correctly."""
+    host_blocker = adblock.HostBlocker()
+    bytes_host_line = ' '.join(BLOCKLIST_HOSTS).encode('utf-8')
+    host_blocker._parse_line(bytes_host_line)
     assert_urls(host_blocker, whitelisted=[])
 
 
@@ -309,6 +281,8 @@ def test_failed_dl_update(config_stub, basedir, download_stub,
         # if current download is the file we want to fail, make it fail
         if current_download.name == dl_fail_blocklist.path():
             current_download.successful = False
+        else:
+            current_download.successful = True
         with caplog.at_level(logging.ERROR):
             current_download.finished.emit()
     host_blocker.read_hosts()
@@ -338,16 +312,18 @@ def test_invalid_utf8(config_stub, download_stub, tmpdir, data_tmpdir,
 
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update()
-    finished_signal = host_blocker._in_progress[0].finished
+    current_download = host_blocker._in_progress[0]
 
     if location == 'content':
         with caplog.at_level(logging.ERROR):
-            finished_signal.emit()
+            current_download.successful = True
+            current_download.finished.emit()
         expected = (r"Failed to decode: "
                     r"b'https://www.example.org/\xa0localhost")
         assert caplog.records[-2].message.startswith(expected)
     else:
-        finished_signal.emit()
+        current_download.successful = True
+        current_download.finished.emit()
 
     host_blocker.read_hosts()
     assert_urls(host_blocker, whitelisted=[])
@@ -377,7 +353,7 @@ def test_blocking_with_whitelist(config_stub, basedir, download_stub,
     """Ensure hosts in content.host_blocking.whitelist are never blocked."""
     # Simulate adblock_update has already been run
     # by creating a file named blocked-hosts,
-    # Exclude localhost from it, since localhost is in HostBlocker.WHITELISTED
+    # Exclude localhost from it as localhost is never blocked via list
     filtered_blocked_hosts = BLOCKLIST_HOSTS[1:]
     blocklist = create_blocklist(data_tmpdir,
                                  blocked_hosts=filtered_blocked_hosts,

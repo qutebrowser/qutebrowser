@@ -37,6 +37,7 @@ from PyQt5.QtNetwork import QNetworkProxy
 from qutebrowser.config import configtypes, configexc
 from qutebrowser.utils import debug, utils, qtutils
 from qutebrowser.browser.network import pac
+from qutebrowser.keyinput import keyutils
 from tests.helpers import utils as testutils
 
 
@@ -532,6 +533,17 @@ class FlagListSubclass(configtypes.FlagList):
                 'foo', 'bar', 'baz')
 
 
+class FromObjType(configtypes.BaseType):
+
+    """Config type to test from_obj for List/Dict."""
+
+    def from_obj(self, value):
+        return int(value)
+
+    def to_py(self, value):
+        return value
+
+
 class TestList:
 
     """Test List and FlagList."""
@@ -645,6 +657,12 @@ class TestList:
         typ = configtypes.List(valtype=valtype)
         with pytest.raises(AssertionError):
             typ.to_doc([['foo']])
+
+    def test_from_obj_sub(self):
+        """Make sure the list calls from_obj() on sub-types."""
+        typ = configtypes.List(valtype=FromObjType())
+        value = typ.from_obj(['1', '2'])
+        assert value == [1, 2]
 
 
 class TestFlagList:
@@ -1664,6 +1682,13 @@ class TestDict:
         print(doc)
         assert doc == expected
 
+    def test_from_obj_sub(self):
+        """Make sure the dict calls from_obj() on sub-types."""
+        typ = configtypes.Dict(keytype=configtypes.String(),
+                               valtype=FromObjType())
+        value = typ.from_obj({'1': '2'})
+        assert value == {'1': 2}
+
 
 def unrequired_class(**kwargs):
     return configtypes.File(required=False, **kwargs)
@@ -2058,11 +2083,20 @@ class TestKey:
         return configtypes.Key
 
     @pytest.mark.parametrize('val, expected', [
-        ('gC', 'gC'),
-        ('<Control-x>', '<ctrl+x>')
+        ('gC', keyutils.KeySequence.parse('gC')),
+        ('<Control-x>', keyutils.KeySequence.parse('<ctrl+x>')),
+        ('<alt-1>', keyutils.KeySequence.parse('<alt+1>')),
+        ('0', keyutils.KeySequence.parse('0')),
+        ('1', keyutils.KeySequence.parse('1')),
+        ('a1', keyutils.KeySequence.parse('a1')),
     ])
     def test_to_py_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
+
+    @pytest.mark.parametrize('val', ['\U00010000', '<blub>'])
+    def test_to_py_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().to_py(val)
 
 
 @pytest.mark.parametrize('first, second, equal', [

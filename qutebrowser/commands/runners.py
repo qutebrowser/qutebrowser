@@ -63,9 +63,13 @@ def replace_variables(win_id, arglist):
             QUrl.FullyEncoded | QUrl.RemovePassword),
         'url:pretty': lambda: _current_url(tabbed_browser).toString(
             QUrl.DecodeReserved | QUrl.RemovePassword),
+        'url:host': lambda: _current_url(tabbed_browser).host(),
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
     }
+    for key in list(variables):
+        modified_key = '{' + key + '}'
+        variables[modified_key] = lambda x=modified_key: x
     values = {}
     args = []
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -162,7 +166,7 @@ class CommandParser:
             yield self.parse(sub, *args, **kwargs)
 
     def parse_all(self, *args, **kwargs):
-        """Wrapper over parse_all."""
+        """Wrapper over _parse_all_gen."""
         return list(self._parse_all_gen(*args, **kwargs))
 
     def parse(self, text, *, fallback=False, keep=False):

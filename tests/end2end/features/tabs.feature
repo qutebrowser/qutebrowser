@@ -248,6 +248,18 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt
 
+    Scenario: :tab-focus with current tab number and --no-last
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-focus 3
+        And I run :tab-focus --no-last 3
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt (active)
+
     Scenario: :tab-focus with -1
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
@@ -324,13 +336,13 @@ Feature: Tab management
         When I set tabs.wrap to false
         And I open data/numbers/1.txt
         And I run :tab-prev
-        Then the error "First tab" should be shown
+        Then "First tab" should be logged
 
     Scenario: :tab-next with last tab without wrap
         When I set tabs.wrap to false
         And I open data/numbers/1.txt
         And I run :tab-next
-        Then the error "Last tab" should be shown
+        Then "Last tab" should be logged
 
     Scenario: :tab-prev on first tab with wrap
         When I set tabs.wrap to true
@@ -620,12 +632,6 @@ Feature: Tab management
 
     # https://github.com/qutebrowser/qutebrowser/issues/2289
 
-    @qtwebkit_skip @qt==5.8.0
-    Scenario: Cloning a tab with a special URL
-        When I open chrome://gpu
-        And I run :tab-clone
-        Then the error "Can't serialize special URL!" should be shown
-
     @qtwebkit_skip @qt<5.9
     Scenario: Cloning a tab with a view-source URL
         When I open /
@@ -892,7 +898,7 @@ Feature: Tab management
 
     Scenario: :buffer without args or count
         When I run :buffer
-        Then the error "buffer: Either a count or the argument index must be specified." should be shown
+        Then qute://tabs should be loaded
 
     Scenario: :buffer with a matching title
         When I open data/title.html

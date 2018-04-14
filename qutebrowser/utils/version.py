@@ -29,6 +29,7 @@ import importlib
 import collections
 import enum
 import datetime
+import getpass
 
 import attr
 import pkg_resources
@@ -49,8 +50,8 @@ except ImportError:  # pragma: no cover
     QWebEngineProfile = None
 
 import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes
-from qutebrowser.misc import objects, earlyinit, sql
+from qutebrowser.utils import log, utils, standarddir, usertypes, message
+from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin
 from qutebrowser.browser import pdfjs
 
 
@@ -65,6 +66,7 @@ class DistributionInfo:
     pretty = attr.ib()
 
 
+pastebin_url = None
 Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
                      'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
@@ -267,6 +269,8 @@ def _os_info():
         else:
             versioninfo = '.'.join(versioninfo)
         osver = ', '.join([e for e in [release, versioninfo, machine] if e])
+    elif utils.is_posix:
+        osver = ' '.join(platform.uname())
     else:
         osver = '?'
     lines.append('OS Version: {}'.format(osver))
@@ -303,7 +307,21 @@ def _pdfjs_version():
 
 
 def _chromium_version():
-    """Get the Chromium version for QtWebEngine."""
+    """Get the Chromium version for QtWebEngine.
+
+    This can also be checked by looking at this file with the right Qt tag:
+    https://github.com/qt/qtwebengine/blob/dev/tools/scripts/version_resolver.py#L41
+
+    Quick reference:
+    Qt 5.7:  Chromium 49
+    Qt 5.8:  Chromium 53
+    Qt 5.9:  Chromium 56
+    Qt 5.10: Chromium 61
+    Qt 5.11: Chromium 65
+    Qt 5.12: Chromium 69 (?)
+
+    Also see https://www.chromium.org/developers/calendar
+    """
     if QWebEngineProfile is None:
         # This should never happen
         return 'unavailable'
@@ -439,7 +457,13 @@ def opengl_vendor():  # pragma: no cover
         vp = QOpenGLVersionProfile()
         vp.setVersion(2, 0)
 
-        vf = ctx.versionFunctions(vp)
+        try:
+            vf = ctx.versionFunctions(vp)
+        except ImportError as e:
+            log.init.debug("opengl_vendor: Importing version functions "
+                           "failed: {}".format(e))
+            return None
+
         if vf is None:
             log.init.debug("opengl_vendor: Getting version functions failed!")
             return None
@@ -449,3 +473,40 @@ def opengl_vendor():  # pragma: no cover
         ctx.doneCurrent()
         if old_context and old_surface:
             old_context.makeCurrent(old_surface)
+
+
+def pastebin_version(pbclient=None):
+    """Pastebin the version and log the url to messages."""
+    def _yank_url(url):
+        utils.set_clipboard(url)
+        message.info("Version url {} yanked to clipboard.".format(url))
+
+    def _on_paste_version_success(url):
+        global pastebin_url
+        _yank_url(url)
+        pbclient.deleteLater()
+        pastebin_url = url
+
+    def _on_paste_version_err(text):
+        message.error("Failed to pastebin version"
+                      " info: {}".format(text))
+        pbclient.deleteLater()
+
+    if pastebin_url:
+        _yank_url(pastebin_url)
+        return
+
+    app = QApplication.instance()
+    http_client = httpclient.HTTPClient()
+
+    misc_api = pastebin.PastebinClient.MISC_API_URL
+    pbclient = pbclient or pastebin.PastebinClient(http_client, parent=app,
+                                                   api_url=misc_api)
+
+    pbclient.success.connect(_on_paste_version_success)
+    pbclient.error.connect(_on_paste_version_err)
+
+    pbclient.paste(getpass.getuser(),
+                   "qute version info {}".format(qutebrowser.__version__),
+                   version(),
+                   private=True)

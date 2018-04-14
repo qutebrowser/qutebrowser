@@ -42,6 +42,7 @@ class ExternalEditor(QObject):
         _proc: The GUIProcess of the editor.
         _watcher: A QFileSystemWatcher to watch the edited file for changes.
                   Only set if watch=True.
+        _content: The last-saved text of the editor.
 
     Signals:
         file_updated: The text in the edited file was updated.
@@ -63,10 +64,13 @@ class ExternalEditor(QObject):
     def _cleanup(self):
         """Clean up temporary files after the editor closed."""
         assert self._remove_file is not None
-        if self._watcher:
-            failed = self._watcher.removePaths(self._watcher.files())
+
+        watched_files = self._watcher.files() if self._watcher else []
+        if watched_files:
+            failed = self._watcher.removePaths(watched_files)
             if failed:
                 log.procs.error("Failed to unwatch paths: {}".format(failed))
+
         if self._filename is None or not self._remove_file:
             # Could not create initial file.
             return
@@ -109,19 +113,7 @@ class ExternalEditor(QObject):
         if self._filename is not None:
             raise ValueError("Already editing a file!")
         try:
-            # Close while the external process is running, as otherwise systems
-            # with exclusive write access (e.g. Windows) may fail to update
-            # the file from the external editor, see
-            # https://github.com/qutebrowser/qutebrowser/issues/1767
-            with tempfile.NamedTemporaryFile(
-                    # pylint: disable=bad-continuation
-                    mode='w', prefix='qutebrowser-editor-',
-                    encoding=config.val.editor.encoding,
-                    delete=False) as fobj:
-                    # pylint: enable=bad-continuation
-                if text:
-                    fobj.write(text)
-                self._filename = fobj.name
+            self._filename = self._create_tempfile(text, 'qutebrowser-editor-')
         except OSError as e:
             message.error("Failed to create initial file: {}".format(e))
             return
@@ -130,6 +122,32 @@ class ExternalEditor(QObject):
 
         line, column = self._calc_line_and_column(text, caret_position)
         self._start_editor(line=line, column=column)
+
+    def backup(self):
+        """Create a backup if the content has changed from the original."""
+        if not self._content:
+            return
+        try:
+            fname = self._create_tempfile(self._content,
+                                          'qutebrowser-editor-backup-')
+            message.info('Editor backup at {}'.format(fname))
+        except OSError as e:
+            message.error('Failed to create editor backup: {}'.format(e))
+
+    def _create_tempfile(self, text, prefix):
+        # Close while the external process is running, as otherwise systems
+        # with exclusive write access (e.g. Windows) may fail to update
+        # the file from the external editor, see
+        # https://github.com/qutebrowser/qutebrowser/issues/1767
+        with tempfile.NamedTemporaryFile(
+                # pylint: disable=bad-continuation
+                mode='w', prefix=prefix,
+                encoding=config.val.editor.encoding,
+                delete=False) as fobj:
+                # pylint: enable=bad-continuation
+            if text:
+                fobj.write(text)
+            return fobj.name
 
     @pyqtSlot(str)
     def _on_file_changed(self, path):
@@ -168,7 +186,8 @@ class ExternalEditor(QObject):
         if self._watcher:
             ok = self._watcher.addPath(self._filename)
             if not ok:
-                log.procs.error("Failed to watch path: {}".format(self._filename))
+                log.procs.error("Failed to watch path: {}"
+                                .format(self._filename))
             self._watcher.fileChanged.connect(self._on_file_changed)
 
         args = [self._sub_placeholder(arg, line, column) for arg in editor[1:]]

@@ -25,8 +25,8 @@ from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
 from PyQt5.QtGui import QValidator, QPainter
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, qtutils, log, usertypes
-from qutebrowser.misc import cmdhistory, objects
+from qutebrowser.utils import utils
+from qutebrowser.misc import cmdhistory
 
 
 class MinimalLineEditMixin:
@@ -260,16 +260,6 @@ class WrapperLayout(QLayout):
         self._widget = widget
         container.setFocusProxy(widget)
         widget.setParent(container)
-        if (qtutils.version_check('5.8.0', exact=True, compiled=False) and
-                objects.backend == usertypes.Backend.QtWebEngine and
-                container.window() and
-                container.window().windowHandle() and
-                not container.window().windowHandle().isActive()):
-            log.misc.debug("Calling QApplication::sync...")
-            # WORKAROUND for:
-            # https://bugreports.qt.io/browse/QTBUG-56652
-            # https://codereview.qt-project.org/#/c/176113/5//ALL,unified
-            QApplication.sync()
 
     def unwrap(self):
         self._widget.setParent(None)
@@ -293,8 +283,6 @@ class FullscreenNotification(QLabel):
         bindings = all_bindings.get('fullscreen --leave')
         if bindings:
             key = bindings[0]
-            if utils.is_special_key(key):
-                key = key.strip('<>').capitalize()
             self.setText("Press {} to exit fullscreen.".format(key))
         else:
             self.setText("Page is now fullscreen.")

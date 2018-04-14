@@ -394,11 +394,12 @@ class Command:
         if isinstance(typ, tuple):
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
-        elif type(typ) is type(typing.Union):  # noqa: E721
+        elif getattr(typ, '__origin__', None) is typing.Union or (
+                # Older Python 3.5 patch versions
+                # pylint: disable=no-member,useless-suppression
+                hasattr(typing, 'UnionMeta') and
+                isinstance(typ, typing.UnionMeta)):
             # this is... slightly evil, I know
-            # We also can't use isinstance here because typing.Union doesn't
-            # support that.
-            # pylint: disable=no-member,useless-suppression
             try:
                 types = list(typ.__args__)
             except AttributeError:

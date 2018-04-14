@@ -39,6 +39,7 @@ from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import config, configdata
 from qutebrowser.misc import consolewidget
+from qutebrowser.utils.version import pastebin_version
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
@@ -184,7 +185,7 @@ def debug_cache_stats():
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
     # pylint: disable=protected-access
-    tab_bar = tabbed_browser.tabBar()
+    tab_bar = tabbed_browser.widget.tabBar()
     tabbed_browser_info = tab_bar._minimum_tab_size_hint_helper.cache_info()
     # pylint: enable=protected-access
 
@@ -369,8 +370,15 @@ def nop():
 
 @cmdutils.register()
 @cmdutils.argument('win_id', win_id=True)
-def version(win_id):
-    """Show version information."""
+def version(win_id, paste=False):
+    """Show version information.
+
+    Args:
+        paste: Paste to pastebin.
+    """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     tabbed_browser.openurl(QUrl('qute://version'), newtab=True)
+
+    if paste:
+        pastebin_version()

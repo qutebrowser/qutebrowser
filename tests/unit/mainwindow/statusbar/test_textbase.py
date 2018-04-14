@@ -63,7 +63,7 @@ def test_settext_empty(mocker, qtbot):
                  autospec=True)
 
     label.setText('')
-    label.repaint.assert_called_with()
+    label.repaint.assert_called_with()  # pylint: disable=no-member
 
 
 def test_resize(qtbot):
@@ -92,7 +92,7 @@ def test_text_elide_none(mocker, qtbot):
                  'fontMetrics')
     label._update_elided_text(20)
 
-    assert not label.fontMetrics.called
+    assert not label.fontMetrics.called  # pylint: disable=no-member
 
 
 def test_unset_text(qtbot):

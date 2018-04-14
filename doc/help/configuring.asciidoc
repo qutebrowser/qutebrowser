@@ -63,6 +63,10 @@ customizable.
 Using the link:commands.html#set[`:set`] command and command completion, you
 can quickly set settings interactively, for example `:set tabs.position left`.
 
+Some settings are also customizable for a given
+https://developer.chrome.com/apps/match_patterns[URL pattern] by doing e.g.
+`:set --pattern=*://example.com/ content.images false`.
+
 To get more help about a setting, use e.g. `:help tabs.position`.
 
 To bind and unbind keys, you can use the link:commands.html#bind[`:bind`] and
@@ -147,7 +151,6 @@ prefix to preserve backslashes) or a Python regex object:
 If you want to read a setting, you can use the `c` object to do so as well:
 `c.colors.tabs.even.bg = c.colors.tabs.odd.bg`.
 
-
 Using strings for setting names
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -169,6 +172,26 @@ To read a setting, use the `config.get` method:
 # Equivalent to:
 # color = c.colors.completion.fg
 color = config.get('colors.completion.fg')
+----
+
+Per-domain settings
+~~~~~~~~~~~~~~~~~~~
+
+Using `config.set`, some settings are also customizable for a given
+https://developer.chrome.com/apps/match_patterns[URL pattern]:
+
+[source,python]
+----
+config.set('content.images', False, '*://example.com/')
+----
+
+Alternatively, you can use `with config.pattern(...) as p:` to get a shortcut
+similar to `c.` which is scoped to the given domain:
+
+[source,python]
+----
+with config.pattern('*://example.com/') as p:
+    p.content.images = False
 ----
 
 Binding keys
@@ -219,10 +242,10 @@ To suppress loading of any default keybindings, you can set
 Loading `autoconfig.yml`
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, all customization done via `:set`, `:bind` and `:unbind` is
-temporary as soon as a `config.py` exists. The settings done that way are always
-saved in the `autoconfig.yml` file, but you'll need to explicitly load it in
-your `config.py` by doing:
+All customization done via the UI (`:set`, `:bind` and `:unbind`) is
+stored in the `autoconfig.yml` file, which is not loaded automatically as soon
+as a `config.py` exists. If you want those settings to be loaded, you'll need to
+explicitly load the `autoconfig.yml` file in your `config.py` by doing:
 
 .config.py:
 [source,python]

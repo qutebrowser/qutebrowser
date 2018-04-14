@@ -22,13 +22,15 @@
 from qutebrowser.config import configdata, configexc
 from qutebrowser.completion.models import completionmodel, listcategory, util
 from qutebrowser.commands import runners, cmdexc
+from qutebrowser.keyinput import keyutils
 
 
 def option(*, info):
     """A CompletionModel filled with settings and their descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
     options = ((opt.name, opt.description, info.config.get_str(opt.name))
-               for opt in configdata.DATA.values())
+               for opt in configdata.DATA.values()
+               if not opt.no_autoconfig)
     model.add_category(listcategory.ListCategory("Options", options))
     return model
 
@@ -36,8 +38,10 @@ def option(*, info):
 def customized_option(*, info):
     """A CompletionModel filled with set settings and their descriptions."""
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
-    options = ((opt.name, opt.description, info.config.get_str(opt.name))
-               for opt, _value in info.config)
+    options = ((values.opt.name, values.opt.description,
+                info.config.get_str(values.opt.name))
+               for values in info.config
+               if values)
     model.add_category(listcategory.ListCategory("Customized options",
                                                  options))
     return model
@@ -71,16 +75,16 @@ def value(optname, *_values, info):
     return model
 
 
-def bind(key, *, info):
-    """A CompletionModel filled with all bindable commands and descriptions.
-
-    Args:
-        key: the key being bound.
-    """
-    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
+def _bind_current_default(key, info):
+    """Get current/default data for the given key."""
     data = []
+    try:
+        seq = keyutils.KeySequence.parse(key)
+    except keyutils.KeyParseError as e:
+        data.append(('', str(e), key))
+        return data
 
-    cmd_text = info.keyconf.get_command(key, 'normal')
+    cmd_text = info.keyconf.get_command(seq, 'normal')
     if cmd_text:
         parser = runners.CommandParser()
         try:
@@ -90,11 +94,23 @@ def bind(key, *, info):
         else:
             data.append((cmd_text, '(Current) {}'.format(cmd.desc), key))
 
-    cmd_text = info.keyconf.get_command(key, 'normal', default=True)
+    cmd_text = info.keyconf.get_command(seq, 'normal', default=True)
     if cmd_text:
         parser = runners.CommandParser()
         cmd = parser.parse(cmd_text).cmd
         data.append((cmd_text, '(Default) {}'.format(cmd.desc), key))
+
+    return data
+
+
+def bind(key, *, info):
+    """A CompletionModel filled with all bindable commands and descriptions.
+
+    Args:
+        key: the key being bound.
+    """
+    model = completionmodel.CompletionModel(column_widths=(20, 60, 20))
+    data = _bind_current_default(key, info)
 
     if data:
         model.add_category(listcategory.ListCategory("Current/Default", data))

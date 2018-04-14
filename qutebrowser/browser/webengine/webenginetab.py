@@ -22,16 +22,18 @@
 import math
 import functools
 import sys
+import re
 import html as html_utils
 
 import sip
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
                           QUrl, QTimer)
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
+from qutebrowser.config import configdata, config
 from qutebrowser.browser import browsertab, mouse, shared
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
@@ -70,10 +72,6 @@ def init():
     download_manager.install(webenginesettings.default_profile)
     download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
-
-    greasemonkey = objreg.get('greasemonkey')
-    greasemonkey.scripts_reloaded.connect(webenginesettings.inject_userscripts)
-    webenginesettings.inject_userscripts()
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
@@ -183,6 +181,12 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def search(self, text, *, ignore_case='never', reverse=False,
                result_cb=None):
+        # Don't go to next entry on duplicate search
+        if self.text == text and self.search_displayed:
+            log.webview.debug("Ignoring duplicate search request"
+                              " for {}".format(text))
+            return
+
         self.text = text
         self._flags = QWebEnginePage.FindFlags(0)
         if self._is_case_sensitive(ignore_case):
@@ -218,12 +222,28 @@ class WebEngineCaret(browsertab.AbstractCaret):
         if mode != usertypes.KeyMode.caret:
             return
 
+        if self._tab.search.search_displayed:
+            # We are currently in search mode.
+            # convert the search to a blue selection so we can operate on it
+            # https://bugreports.qt.io/browse/QTBUG-60673
+            self._tab.search.clear()
+
         self._tab.run_js_async(
             javascript.assemble('caret', 'setPlatform', sys.platform))
-        self._js_call('setInitialCursor')
+        self._js_call('setInitialCursor', self._selection_cb)
+
+    def _selection_cb(self, enabled):
+        """Emit selection_toggled based on setInitialCursor."""
+        if enabled is None:
+            log.webview.debug("Ignoring selection status None")
+            return
+        self.selection_toggled.emit(enabled)
 
     @pyqtSlot(usertypes.KeyMode)
-    def _on_mode_left(self):
+    def _on_mode_left(self, mode):
+        if mode != usertypes.KeyMode.caret:
+            return
+
         self.drop_selection()
         self._js_call('disableCaret')
 
@@ -284,7 +304,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('moveToEndOfDocument')
 
     def toggle_selection(self):
-        self._js_call('toggleSelection')
+        self._js_call('toggleSelection', self.selection_toggled.emit)
 
     def drop_selection(self):
         self._js_call('dropSelection')
@@ -339,9 +359,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
             self._tab.run_js_async(js_code, lambda jsret:
                                    self._follow_selected_cb(jsret, tab))
 
-    def _js_call(self, command):
-        self._tab.run_js_async(
-            javascript.assemble('caret', command))
+    def _js_call(self, command, callback=None):
+        self._tab.run_js_async(javascript.assemble('caret', command), callback)
 
 
 class WebEngineScroller(browsertab.AbstractScroller):
@@ -362,7 +381,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     def _repeated_key_press(self, key, count=1, modifier=Qt.NoModifier):
         """Send count fake key presses to this scroller's WebEngineTab."""
-        for _ in range(min(count, 5000)):
+        for _ in range(min(count, 1000)):
             self._tab.key_press(key, modifier)
 
     @pyqtSlot(QPointF)
@@ -414,6 +433,11 @@ class WebEngineScroller(browsertab.AbstractScroller):
     def to_point(self, point):
         js_code = javascript.assemble('window', 'scroll', point.x(), point.y())
         self._tab.run_js_async(js_code)
+
+    def to_anchor(self, name):
+        url = self._tab.url()
+        url.setFragment(name)
+        self._tab.openurl(url)
 
     def delta(self, x=0, y=0):
         self._tab.run_js_async(javascript.assemble('window', 'scrollBy', x, y))
@@ -470,7 +494,8 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return self._history.itemAt(i)
 
     def _go_to_item(self, item):
-        return self._history.goToItem(item)
+        self._tab.predicted_navigation.emit(item.url())
+        self._history.goToItem(item)
 
     def serialize(self):
         if not qtutils.version_check('5.9', compiled=False):
@@ -488,15 +513,23 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
+        if items:
+            self._tab.predicted_navigation.emit(items[-1].url)
+
         stream, _data, cur_data = tabhistory.serialize(items)
         qtutils.deserialize_stream(stream, self._history)
+
+        @pyqtSlot()
+        def _on_load_finished():
+            self._tab.scroller.to_point(cur_data['scroll-pos'])
+            self._tab.load_finished.disconnect(_on_load_finished)
+
         if cur_data is not None:
             if 'zoom' in cur_data:
                 self._tab.zoom.set_factor(cur_data['zoom'])
             if ('scroll-pos' in cur_data and
                     self._tab.scroller.pos_px() == QPoint(0, 0)):
-                QTimer.singleShot(0, functools.partial(
-                    self._tab.scroller.to_point, cur_data['scroll-pos']))
+                self._tab.load_finished.connect(_on_load_finished)
 
 
 class WebEngineZoom(browsertab.AbstractZoom):
@@ -599,32 +632,127 @@ class WebEngineTab(browsertab.AbstractTab):
         self.printing = WebEnginePrinting()
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
+        # We're assigning settings in _set_widget
+        self.settings = webenginesettings.WebEngineSettings(settings=None)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
-        self._init_js()
         self._child_event_filter = None
         self._saved_zoom = None
+        self._reload_url = None
+        config.instance.changed.connect(self._on_config_changed)
+        self._init_js()
+
+    @pyqtSlot(str)
+    def _on_config_changed(self, option):
+        if option in ['scrolling.bar', 'content.user_stylesheets']:
+            self._init_stylesheet()
+            self._update_stylesheet()
+
+    def _update_stylesheet(self):
+        """Update the custom stylesheet in existing tabs."""
+        css = shared.get_user_stylesheet()
+        code = javascript.assemble('stylesheet', 'set_css', css)
+        self.run_js_async(code)
+
+    def _inject_early_js(self, name, js_code, *,
+                         world=QWebEngineScript.ApplicationWorld,
+                         subframes=False):
+        """Inject the given script to run early on a page load.
+
+        This runs the script both on DocumentCreation and DocumentReady as on
+        some internal pages, DocumentCreation will not work.
+
+        That is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66011
+        """
+        scripts = self._widget.page().scripts()
+        for injection in ['creation', 'ready']:
+            injection_points = {
+                'creation': QWebEngineScript.DocumentCreation,
+                'ready': QWebEngineScript.DocumentReady,
+            }
+            script = QWebEngineScript()
+            script.setInjectionPoint(injection_points[injection])
+            script.setSourceCode(js_code)
+            script.setWorldId(world)
+            script.setRunsOnSubFrames(subframes)
+            script.setName('_qute_{}_{}'.format(name, injection))
+            scripts.insert(script)
+
+    def _remove_early_js(self, name):
+        """Remove an early QWebEngineScript."""
+        scripts = self._widget.page().scripts()
+        for injection in ['creation', 'ready']:
+            full_name = '_qute_{}_{}'.format(name, injection)
+            script = scripts.findScript(full_name)
+            if not script.isNull():
+                scripts.remove(script)
 
     def _init_js(self):
-        js_code = '\n'.join([
-            '"use strict";',
-            'window._qutebrowser = window._qutebrowser || {};',
+        """Initialize global qutebrowser JavaScript."""
+        js_code = javascript.wrap_global(
+            'scripts',
             utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
             utils.read_file('javascript/caret.js'),
-        ])
-        script = QWebEngineScript()
-        # We can't use DocumentCreation here as WORKAROUND for
-        # https://bugreports.qt.io/browse/QTBUG-66011
-        script.setInjectionPoint(QWebEngineScript.DocumentReady)
-        script.setSourceCode(js_code)
+        )
+        # FIXME:qtwebengine what about subframes=True?
+        self._inject_early_js('js', js_code, subframes=True)
+        self._init_stylesheet()
 
-        page = self._widget.page()
-        script.setWorldId(QWebEngineScript.ApplicationWorld)
+        greasemonkey = objreg.get('greasemonkey')
+        greasemonkey.scripts_reloaded.connect(self._inject_userscripts)
+        self._inject_userscripts()
 
-        # FIXME:qtwebengine  what about runsOnSubFrames?
-        page.scripts().insert(script)
+    def _init_stylesheet(self):
+        """Initialize custom stylesheets.
+
+        Partially inspired by QupZilla:
+        https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
+        """
+        self._remove_early_js('stylesheet')
+        css = shared.get_user_stylesheet()
+        js_code = javascript.wrap_global(
+            'stylesheet',
+            utils.read_file('javascript/stylesheet.js'),
+            javascript.assemble('stylesheet', 'set_css', css),
+        )
+        self._inject_early_js('stylesheet', js_code, subframes=True)
+
+    def _inject_userscripts(self):
+        """Register user JavaScript files with the global profiles."""
+        # The Greasemonkey metadata block support in QtWebEngine only starts at
+        # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
+        # response to urlChanged.
+        if not qtutils.version_check('5.8'):
+            return
+
+        # Since we are inserting scripts into profile.scripts they won't
+        # just get replaced by new gm scripts like if we were injecting them
+        # ourselves so we need to remove all gm scripts, while not removing
+        # any other stuff that might have been added. Like the one for
+        # stylesheets.
+        greasemonkey = objreg.get('greasemonkey')
+        scripts = self._widget.page().scripts()
+        for script in scripts.toList():
+            if script.name().startswith("GM-"):
+                log.greasemonkey.debug('Removing script: {}'
+                                       .format(script.name()))
+                removed = scripts.remove(script)
+                assert removed, script.name()
+
+        # Then add the new scripts.
+        for script in greasemonkey.all_scripts():
+            # @run-at (and @include/@exclude/@match) is parsed by
+            # QWebEngineScript.
+            new_script = QWebEngineScript()
+            new_script.setWorldId(QWebEngineScript.MainWorld)
+            new_script.setSourceCode(script.code())
+            new_script.setName("GM-{}".format(script.name))
+            new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
+            log.greasemonkey.debug('adding script: {}'
+                                   .format(new_script.name()))
+            scripts.insert(new_script)
 
     def _install_event_filter(self):
         self._widget.focusProxy().installEventFilter(self._mouse_event_filter)
@@ -643,9 +771,15 @@ class WebEngineTab(browsertab.AbstractTab):
         self.zoom.set_factor(self._saved_zoom)
         self._saved_zoom = None
 
-    def openurl(self, url):
+    def openurl(self, url, *, predict=True):
+        """Open the given URL in this tab.
+
+        Arguments:
+            url: The QUrl to open.
+            predict: If set to False, predicted_navigation is not emitted.
+        """
         self._saved_zoom = self.zoom.factor()
-        self._openurl_prepare(url)
+        self._openurl_prepare(url, predict=predict)
         self._widget.load(url)
 
     def url(self, requested=False):
@@ -677,10 +811,6 @@ class WebEngineTab(browsertab.AbstractTab):
     def shutdown(self):
         self.shutting_down.emit()
         self.action.exit_fullscreen()
-        if qtutils.version_check('5.8', exact=True, compiled=False):
-            # WORKAROUND for
-            # https://bugreports.qt.io/browse/QTBUG-58563
-            self.search.clear()
         self._widget.shutdown()
 
     def reload(self, *, force=False):
@@ -723,6 +853,16 @@ class WebEngineTab(browsertab.AbstractTab):
         self.send_event(press_evt)
         self.send_event(release_evt)
 
+    def _show_error_page(self, url, error):
+        """Show an error page in the tab."""
+        log.misc.debug("Showing error page for {}".format(error))
+        url_string = url.toDisplayString()
+        error_page = jinja.render(
+            'error.html',
+            title="Error loading page: {}".format(url_string),
+            url=url_string, error=error)
+        self.set_html(error_page)
+
     @pyqtSlot()
     def _on_history_trigger(self):
         try:
@@ -757,10 +897,11 @@ class WebEngineTab(browsertab.AbstractTab):
         """Called when a proxy needs authentication."""
         msg = "<b>{}</b> requires a username and password.".format(
             html_utils.escape(proxy_host))
+        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         answer = message.ask(
             title="Proxy authentication required", text=msg,
             mode=usertypes.PromptMode.user_pwd,
-            abort_on=[self.shutting_down, self.load_started])
+            abort_on=[self.shutting_down, self.load_started], url=urlstr)
         if answer is not None:
             authenticator.setUser(answer.user)
             authenticator.setPassword(answer.password)
@@ -770,21 +911,19 @@ class WebEngineTab(browsertab.AbstractTab):
                 sip.assign(authenticator, QAuthenticator())
                 # pylint: enable=no-member, useless-suppression
             except AttributeError:
-                url_string = url.toDisplayString()
-                error_page = jinja.render(
-                    'error.html',
-                    title="Error loading page: {}".format(url_string),
-                    url=url_string, error="Proxy authentication required",
-                    icon='')
-                self.set_html(error_page)
+                self._show_error_page(url, "Proxy authentication required")
 
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
-        # FIXME:qtwebengine support .netrc
-        answer = shared.authentication_required(
-            url, authenticator, abort_on=[self.shutting_down,
-                                          self.load_started])
-        if answer is None:
+        netrc_success = False
+        if not self.data.netrc_used:
+            self.data.netrc_used = True
+            netrc_success = shared.netrc_authentication(url, authenticator)
+        if not netrc_success:
+            abort_on = [self.shutting_down, self.load_started]
+            answer = shared.authentication_required(url, authenticator,
+                                                    abort_on)
+        if not netrc_success and answer is None:
             try:
                 # pylint: disable=no-member, useless-suppression
                 sip.assign(authenticator, QAuthenticator())
@@ -792,12 +931,7 @@ class WebEngineTab(browsertab.AbstractTab):
             except AttributeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html
-                url_string = url.toDisplayString()
-                error_page = jinja.render(
-                    'error.html',
-                    title="Error loading page: {}".format(url_string),
-                    url=url_string, error="Authentication required")
-                self.set_html(error_page)
+                self._show_error_page(url, "Authentication required")
 
     @pyqtSlot('QWebEngineFullScreenRequest')
     def _on_fullscreen_requested(self, request):
@@ -820,6 +954,7 @@ class WebEngineTab(browsertab.AbstractTab):
             # https://bugreports.qt.io/browse/QTBUG-61506
             self.search.clear()
         super()._on_load_started()
+        self.data.netrc_used = False
 
     @pyqtSlot(QWebEnginePage.RenderProcessTerminationStatus, int)
     def _on_render_process_terminated(self, status, exitcode):
@@ -861,6 +996,74 @@ class WebEngineTab(browsertab.AbstractTab):
         if not ok:
             self._load_finished_fake.emit(False)
 
+    def _error_page_workaround(self, html):
+        """Check if we're displaying a Chromium error page.
+
+        This gets only called if we got loadFinished(False) without JavaScript,
+        so we can display at least some error page.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
+        Needs to check the page content as a WORKAROUND for
+        https://bugreports.qt.io/browse/QTBUG-66661
+        """
+        match = re.search(r'"errorCode":"([^"]*)"', html)
+        if match is None:
+            return
+        self._show_error_page(self.url(), error=match.group(1))
+
+    @pyqtSlot(bool)
+    def _on_load_finished(self, ok):
+        """Display a static error page if JavaScript is disabled."""
+        super()._on_load_finished(ok)
+        js_enabled = self.settings.test_attribute('content.javascript.enabled')
+        if not ok and not js_enabled:
+            self.dump_async(self._error_page_workaround)
+
+        if ok and self._reload_url is not None:
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
+            log.config.debug(
+                "Loading {} again because of config change".format(
+                    self._reload_url.toDisplayString()))
+            QTimer.singleShot(100, lambda url=self._reload_url:
+                              self.openurl(url, predict=False))
+            self._reload_url = None
+
+        if not qtutils.version_check('5.10', compiled=False):
+            # We can't do this when we have the loadFinished workaround as that
+            # sometimes clears icons without loading a new page.
+            # In general, this is handled by Qt, but when loading takes long,
+            # the old icon is still displayed.
+            self.icon_changed.emit(QIcon())
+
+    @pyqtSlot(QUrl)
+    def _on_predicted_navigation(self, url):
+        """If we know we're going to visit an URL soon, change the settings."""
+        super()._on_predicted_navigation(url)
+        self.settings.update_for_url(url)
+
+    @pyqtSlot(usertypes.NavigationRequest)
+    def _on_navigation_request(self, navigation):
+        super()._on_navigation_request(navigation)
+        if not navigation.accepted or not navigation.is_main_frame:
+            return
+
+        needs_reload = {
+            'content.plugins',
+            'content.javascript.enabled',
+            'content.javascript.can_access_clipboard',
+            'content.javascript.can_access_clipboard',
+            'content.print_element_backgrounds',
+            'input.spatial_navigation',
+            'input.spatial_navigation',
+        }
+        assert needs_reload.issubset(configdata.DATA)
+
+        changed = self.settings.update_for_url(navigation.url)
+        if (changed & needs_reload and navigation.navigation_type !=
+                navigation.Type.link_clicked):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
+            self._reload_url = navigation.url
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -875,6 +1078,7 @@ class WebEngineTab(browsertab.AbstractTab):
             self._on_proxy_authentication_required)
         page.fullScreenRequested.connect(self._on_fullscreen_requested)
         page.contentsSizeChanged.connect(self.contents_size_changed)
+        page.navigation_request.connect(self._on_navigation_request)
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
@@ -894,6 +1098,8 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadFinished.connect(self._on_history_trigger)
             page.loadFinished.connect(self._restore_zoom)
             page.loadFinished.connect(self._on_load_finished)
+
+        self.predicted_navigation.connect(self._on_predicted_navigation)
 
     def event_target(self):
         return self._widget.focusProxy()

@@ -35,15 +35,16 @@ import types
 import attr
 import pytest
 import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QEvent, QSize, Qt
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 import helpers.utils
-from qutebrowser.config import config, configdata, configtypes, configexc
-from qutebrowser.utils import objreg, standarddir
+from qutebrowser.config import (config, configdata, configtypes, configexc,
+                                configfiles)
+from qutebrowser.utils import objreg, standarddir, utils
+from qutebrowser.browser import greasemonkey
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql
 from qutebrowser.keyinput import modeman
@@ -143,6 +144,47 @@ def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
     return stubs.FakeWebTab
 
 
+@pytest.fixture
+def greasemonkey_manager(data_tmpdir):
+    gm_manager = greasemonkey.GreasemonkeyManager()
+    objreg.register('greasemonkey', gm_manager)
+    yield
+    objreg.delete('greasemonkey')
+
+
+@pytest.fixture
+def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
+               session_manager_stub, greasemonkey_manager):
+    webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
+    tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
+                              private=False)
+    qtbot.add_widget(tab)
+    return tab
+
+
+@pytest.fixture
+def webengine_tab(qtbot, tab_registry, fake_args, mode_manager,
+                  session_manager_stub, greasemonkey_manager,
+                  redirect_webengine_data):
+    webenginetab = pytest.importorskip(
+        'qutebrowser.browser.webengine.webenginetab')
+    tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
+                                    private=False)
+    qtbot.add_widget(tab)
+    return tab
+
+
+@pytest.fixture(params=['webkit', 'webengine'])
+def web_tab(request):
+    """A WebKitTab/WebEngineTab."""
+    if request.param == 'webkit':
+        return request.getfixturevalue('webkit_tab')
+    elif request.param == 'webengine':
+        return request.getfixturevalue('webengine_tab')
+    else:
+        raise utils.Unreachable
+
+
 def _generate_cmdline_tests():
     """Generate testcases for test_split_binding."""
     @attr.s
@@ -193,11 +235,15 @@ def configdata_init():
 
 
 @pytest.fixture
-def config_stub(stubs, monkeypatch, configdata_init):
-    """Fixture which provides a fake config object."""
-    yaml_config = stubs.FakeYamlConfig()
+def yaml_config_stub(config_tmpdir):
+    """Fixture which provides a YamlConfig object."""
+    return configfiles.YamlConfig()
 
-    conf = config.Config(yaml_config=yaml_config)
+
+@pytest.fixture
+def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
+    """Fixture which provides a fake config object."""
+    conf = config.Config(yaml_config=yaml_config_stub)
     monkeypatch.setattr(config, 'instance', conf)
 
     container = config.ConfigContainer(conf)
@@ -354,21 +400,6 @@ def webframe(webpage):
 
 
 @pytest.fixture
-def fake_keyevent_factory():
-    """Fixture that when called will return a mock instance of a QKeyEvent."""
-    def fake_keyevent(key, modifiers=0, text='', typ=QEvent.KeyPress):
-        """Generate a new fake QKeyPressEvent."""
-        evtmock = unittest.mock.create_autospec(QKeyEvent, instance=True)
-        evtmock.key.return_value = key
-        evtmock.modifiers.return_value = modifiers
-        evtmock.text.return_value = text
-        evtmock.type.return_value = typ
-        return evtmock
-
-    return fake_keyevent
-
-
-@pytest.fixture
 def cookiejar_and_cache(stubs):
     """Fixture providing a fake cookie jar and cache."""
     jar = QNetworkCookieJar()
@@ -522,3 +553,12 @@ class ModelValidator:
 @pytest.fixture
 def model_validator(qtmodeltester):
     return ModelValidator(qtmodeltester)
+
+
+@pytest.fixture
+def download_stub(win_registry, tmpdir, stubs):
+    """Register a FakeDownloadManager."""
+    stub = stubs.FakeDownloadManager(tmpdir)
+    objreg.register('qtnetwork-download-manager', stub)
+    yield stub
+    objreg.delete('qtnetwork-download-manager')

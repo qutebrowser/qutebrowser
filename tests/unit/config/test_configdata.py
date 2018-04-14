@@ -53,8 +53,6 @@ def test_data(config_stub):
             assert isinstance(option.default, list)
 
 
-# https://github.com/qutebrowser/qutebrowser/issues/2777
-@pytest.mark.no_ci
 def test_init_benchmark(benchmark):
     benchmark(configdata.init)
 

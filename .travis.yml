@@ -15,10 +15,8 @@ matrix:
     - os: linux
       env: TESTENV=py36-pyqt571
     - os: linux
-      env: TESTENV=py36-pyqt58
-    - os: linux
       python: 3.5
-      env: TESTENV=py35-pyqt59
+      env: TESTENV=py35-pyqt571
     - os: linux
       env: TESTENV=py36-pyqt59-cov
     - os: linux

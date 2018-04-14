@@ -30,8 +30,10 @@ import time
 import textwrap
 import mimetypes
 import urllib
+import collections
 
 import pkg_resources
+import sip
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
@@ -201,6 +203,27 @@ def qute_bookmarks(_url):
     return 'text/html', html
 
 
+@add_handler('tabs')
+def qute_tabs(_url):
+    """Handler for qute://tabs. Display information about all open tabs."""
+    tabs = collections.defaultdict(list)
+    for win_id, window in objreg.window_registry.items():
+        if sip.isdeleted(window):
+            continue
+        tabbed_browser = objreg.get('tabbed-browser',
+                                    scope='window',
+                                    window=win_id)
+        for tab in tabbed_browser.widgets():
+            if tab.url() not in [QUrl("qute://tabs/"), QUrl("qute://tabs")]:
+                urlstr = tab.url().toDisplayString()
+                tabs[str(win_id)].append((tab.title(), urlstr))
+
+    html = jinja.render('tabs.html',
+                        title='Tabs',
+                        tab_list_by_window=tabs)
+    return 'text/html', html
+
+
 def history_data(start_time, offset=None):
     """Return history data.
 
@@ -240,8 +263,6 @@ def qute_history(url):
 
         return 'text/html', json.dumps(history_data(start_time, offset))
     else:
-        if not config.val.content.javascript.enabled:
-            return 'text/plain', b'JavaScript is required for qute://history'
         return 'text/html', jinja.render(
             'history.html',
             title='History',
@@ -476,3 +497,10 @@ def qute_configdiff(url):
     else:
         data = config.instance.dump_userconfig().encode('utf-8')
         return 'text/plain', data
+
+
+@add_handler('pastebin-version')
+def qute_pastebin_version(_url):
+    """Handler that pastebins the version string."""
+    version.pastebin_version()
+    return 'text/plain', b'Paste called.'

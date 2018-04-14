@@ -34,6 +34,10 @@ def init():
     QNetworkProxyFactory.setApplicationProxyFactory(proxy_factory)
 
 
+def shutdown():
+    QNetworkProxyFactory.setApplicationProxyFactory(None)
+
+
 class ProxyFactory(QNetworkProxyFactory):
 
     """Factory for proxies to be used by qutebrowser."""

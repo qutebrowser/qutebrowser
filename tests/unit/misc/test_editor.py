@@ -157,6 +157,45 @@ class TestFileHandling:
         with pytest.raises(ValueError):
             editor.edit("")
 
+    def test_backup(self, qtbot, message_mock):
+        editor = editormod.ExternalEditor(watch=True)
+        editor.edit('foo')
+        with qtbot.wait_signal(editor.file_updated):
+            _update_file(editor._filename, 'bar')
+
+        editor.backup()
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.info)
+        prefix = 'Editor backup at '
+        assert msg.text.startswith(prefix)
+        fname = msg.text[len(prefix):]
+
+        with qtbot.wait_signal(editor.editing_finished):
+            editor._proc.finished.emit(0, QProcess.NormalExit)
+
+        with open(fname, 'r', encoding='utf-8') as f:
+            assert f.read() == 'bar'
+
+    def test_backup_no_content(self, qtbot, message_mock):
+        editor = editormod.ExternalEditor(watch=True)
+        editor.edit('foo')
+        editor.backup()
+        # content has not changed, so no backup should be created
+        assert not message_mock.messages
+
+    def test_backup_error(self, qtbot, message_mock, mocker, caplog):
+        editor = editormod.ExternalEditor(watch=True)
+        editor.edit('foo')
+        with qtbot.wait_signal(editor.file_updated):
+            _update_file(editor._filename, 'bar')
+
+        mocker.patch('tempfile.NamedTemporaryFile', side_effect=OSError)
+        with caplog.at_level(logging.ERROR):
+            editor.backup()
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text.startswith('Failed to create editor backup:')
+
 
 @pytest.mark.parametrize('initial_text, edited_text', [
     ('', 'Hello'),
@@ -209,6 +248,44 @@ def test_modify_watch(qtbot):
 
     with qtbot.assert_not_emitted(editor.file_updated):
         editor._proc.finished.emit(0, QProcess.NormalExit)
+
+
+def test_failing_watch(qtbot, caplog, monkeypatch):
+    """When watching failed, an error should be logged.
+
+    Also, updating should still work when closing the process.
+    """
+    editor = editormod.ExternalEditor(watch=True)
+    monkeypatch.setattr(editor._watcher, 'addPath', lambda _path: False)
+
+    with caplog.at_level(logging.ERROR):
+        editor.edit('foo')
+
+    with qtbot.assert_not_emitted(editor.file_updated):
+        _update_file(editor._filename, 'bar')
+
+    with qtbot.wait_signal(editor.file_updated) as blocker:
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+    assert blocker.args == ['bar']
+
+    message = 'Failed to watch path: {}'.format(editor._filename)
+    assert caplog.records[0].msg == message
+
+
+def test_failing_unwatch(qtbot, caplog, monkeypatch):
+    """When unwatching failed, an error should be logged."""
+    editor = editormod.ExternalEditor(watch=True)
+    monkeypatch.setattr(editor._watcher, 'addPath', lambda _path: True)
+    monkeypatch.setattr(editor._watcher, 'files', lambda: [editor._filename])
+    monkeypatch.setattr(editor._watcher, 'removePaths', lambda paths: paths)
+
+    editor.edit('foo')
+
+    with caplog.at_level(logging.ERROR):
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+
+    message = 'Failed to unwatch paths: [{!r}]'.format(editor._filename)
+    assert caplog.records[-1].msg == message
 
 
 @pytest.mark.parametrize('text, caret_position, result', [

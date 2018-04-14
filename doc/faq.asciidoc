@@ -32,7 +32,7 @@ When qutebrowser was created, the newer
 http://webkitgtk.org/reference/webkit2gtk/stable/index.html[WebKit2 API] lacked
 basic features like proxy support, and almost no projects have started porting
 to WebKit2. In the meantime, this situation has improved a bit, but there are
-stil only a few project which have some kind of WebKit2 support (see the
+still only a few projects which have some kind of WebKit2 support (see the
 https://github.com/qutebrowser/qutebrowser#similar-projects[list of
 alternatives]).
 +
@@ -69,6 +69,31 @@ But isn't Python too slow for a browser?::
     while running. Also, most of the heavy lifting of qutebrowser is done by Qt
     and WebKit in C++, with the
     https://wiki.python.org/moin/GlobalInterpreterLock[GIL] released.
+
+Is qutebrowser secure?::
+    Most security issues are in the backend (which handles networking,
+    rendering, JavaScript, etc.) and not qutebrowser itself.
++
+qutebrowser uses http://wiki.qt.io/QtWebEngine[QtWebEngine] by default.
+QtWebEngine is based on Google's https://www.chromium.org/Home[Chromium]. While
+Qt only updates to a new Chromium release on every minor Qt release (all ~6
+months), every patch release backports security fixes from newer Chromium
+versions. In other words: As long as you're using an up-to-date Qt, you should
+be recieving security updates on a regular basis, without qutebrowser having to
+do anything. Chromium's process isolation and
+https://chromium.googlesource.com/chromium/src/+/master/docs/design/sandbox.md[sandboxing]
+features are also enabled as a second line of defense.
++
+http://wiki.qt.io/QtWebKit[QtWebKit] is also supported as an alternative
+backend, but hasn't seen new releases
+https://github.com/annulen/webkit/releases[in a while]. It also doesn't have any
+process isolation or sandboxing.
++
+Security issues in qutebrowser's code happen very rarely (as per March 2018,
+there has been one security issue caused by qutebrowser in over four years) and
+are fixed timely. To report security bugs, please contact me directly at
+mail@qutebrowser.org, GPG ID
+https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 
 Is there an adblocker?::
     There is a host-based adblocker which takes /etc/hosts-like lists. A "real"
@@ -187,6 +212,37 @@ Why takes it longer to open an URL in qutebrowser than in chromium?::
     qutebrowser if it is not running already. Also check if you want
     to use webengine as backend in line 17 and change it to your
     needs.
+
+How do I make qutebrowser use greasemonkey scripts?::
+    There is currently no UI elements to handle managing greasemonkey scripts.
+    All management of what scripts are installed or disabled is done in the
+    filesystem by you. qutebrowser reads all files that have an extension of
+    `.js` from the `<data>/greasemonkey/` folder and attempts to load them.
+    Where `<data>` is the qutebrowser data directory shown in the `Paths`
+    section of the page displayed by `:version`. If you want to disable a
+    script just rename it, for example, to have `.disabled` on the end, after
+    the `.js` extension. To reload scripts from that directory run the command
+    `:greasemonkey-reload`.
++
+Troubleshooting: to check that your script is being loaded when
+`:greasemonkey-reload` runs you can start qutebrowser with the arguments
+`--debug --logfilter greasemonkey,js` and check the messages on the
+program's standard output for errors parsing or loading your script.
+You may also see javascript errors if your script is expecting an environment
+that we fail to provide.
++
+Note that there are some missing features which you may run into:
+
+. Some scripts expect `GM_xmlhttpRequest` to ignore Cross Origin Resource
+  Sharing restrictions, this is currently not supported, so scripts making
+  requests to third party sites will often fail to function correctly.
+. If your backend is a QtWebEngine version 5.8, 5.9 or 5.10 then regular
+  expressions are not supported in `@include` or `@exclude` rules. If your
+  script uses them you can re-write them to use glob expressions or convert
+  them to `@match` rules.
+  See https://wiki.greasespot.net/Metadata_Block[the wiki] for more info.
+. Any greasemonkey API function to do with adding UI elements is not currently
+  supported. That means context menu extentensions and background pages.
     
 == Troubleshooting
 
@@ -215,6 +271,29 @@ When using QtWebEngine, qutebrowser reports "Render Process Crashed" and the con
 And then re-emerging qtwebengine with: +
     
     emerge -1 qtwebengine
+
+Unable to view DRM content (Netflix, Spotify, etc.).::
+    You will need to install `widevine` and set `qt.args` to point to it.
+    Qt 5.9 currently only supports widevine up to Chrome version 61.
++
+On Arch, simply install `qt5-webengine-widevine` from the AUR and run:
++
+----
+:set qt.args '["ppapi-widevine-path=/usr/lib/qt/plugins/ppapi/libwidevinecdmadapter.so"]'
+:restart
+----
++
+For other distributions, download the chromium tarball and widevine-cdm zip from
+https://aur.archlinux.org/packages/qt5-webengine-widevine/[the AUR page],
+extract `libwidevinecdmadapter.so` and `libwidevinecdm.so` files, respectively,
+and move them to the `ppapi` plugin directory in your Qt library directory (create it if it does not exist).
++
+Lastly, set your `qt.args` to point to that directory and restart qutebrowser:
++
+----
+:set qt.args '["ppapi-widevine-path=/usr/lib64/qt5/plugins/ppapi/libwidevinecdmadapter.so"]'
+:restart
+----
 
 My issue is not listed.::
     If you experience any segfaults or crashes, you can report the issue in

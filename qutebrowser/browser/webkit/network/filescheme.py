@@ -25,7 +25,7 @@
 
 import os
 
-from qutebrowser.browser.webkit.network import schemehandler, networkreply
+from qutebrowser.browser.webkit.network import networkreply
 from qutebrowser.utils import jinja
 
 
@@ -111,27 +111,21 @@ def dirbrowser_html(path):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
-class FileSchemeHandler(schemehandler.SchemeHandler):
+def handler(request):
+    """Handler for a file:// URL.
 
-    """Scheme handler for file: URLs."""
+    Args:
+        request: QNetworkRequest to answer to.
 
-    def createRequest(self, _op, request, _outgoing_data):
-        """Create a new request.
-
-        Args:
-             request: const QNetworkRequest & req
-             _op: Operation op
-             _outgoing_data: QIODevice * outgoingData
-
-        Return:
-            A QNetworkReply for directories, None for files.
-        """
-        path = request.url().toLocalFile()
-        try:
-            if os.path.isdir(path):
-                data = dirbrowser_html(path)
-                return networkreply.FixedDataNetworkReply(
-                    request, data, 'text/html', self.parent())
-            return None
-        except UnicodeEncodeError:
-            return None
+    Return:
+        A QNetworkReply for directories, None for files.
+    """
+    path = request.url().toLocalFile()
+    try:
+        if os.path.isdir(path):
+            data = dirbrowser_html(path)
+            return networkreply.FixedDataNetworkReply(
+                request, data, 'text/html')
+        return None
+    except UnicodeEncodeError:
+        return None
