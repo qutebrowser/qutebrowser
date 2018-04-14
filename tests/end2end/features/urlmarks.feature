@@ -13,6 +13,11 @@ Feature: Bookmarks
         Then the message "Bookmarked http://example.com" should be shown
         And the bookmark file should contain '{"url": "http://example.com", "title": "some example title", "tags": []}'
 
+    Scenario: Saving a bookmark with tags
+        When I run :bookmark-tag data/numbers/14.txt one two
+        Then the message "Bookmarked data/numbers/14.txt" should be shown
+        And the bookmark file should contain '{"url": "data/numbers/14.txt", "title": "", "tags": ["one", "two"]}'
+
     Scenario: Saving a bookmark with a url but no title
         When I run :bookmark-add http://example.com
         Then the error "Title must be provided if url has been provided" should be shown
@@ -102,8 +107,8 @@ Feature: Bookmarks
 
     Scenario: Deleting a bookmark
         When I run :bookmark-add data/numbers/6.txt six
-        And I run :bookmark-del http://localhost:(port)/data/numbers/6.txt
-        Then the bookmark file should not contain "http://localhost:*/data/numbers/6.txt"
+        And I run :bookmark-del data/numbers/6.txt
+        Then the bookmark file should not contain "*data/numbers/6.txt*"
 
     Scenario: Purge a bookmark by tag removal
         When I run :bookmark-add data/numbers/13.txt title

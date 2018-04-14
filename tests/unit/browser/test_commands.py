@@ -96,9 +96,24 @@ class TestBookmarkAdd:
 
 class TestBookmarkTag:
 
-    def test_tag(self, command_dispatcher, bookmark_manager_mock):
+    def test_tag_existing(self, command_dispatcher, bookmark_manager_mock):
+        bookmark_manager_mock.add.side_effect = urlmarks.AlreadyExistsError()
         command_dispatcher.bookmark_tag('http://example.com', 'bar', 'baz')
-        bookmark_manager_mock.tag.assert_called_with(
+        bookmark_manager_mock.add.assert_called_once_with(
+            QUrl('http://example.com'), '', [],
+        )
+        bookmark_manager_mock.tag.assert_called_once_with(
+            QUrl('http://example.com'),
+            ('bar', 'baz'),
+            unique=False,
+        )
+
+    def test_tag_new(self, command_dispatcher, bookmark_manager_mock):
+        command_dispatcher.bookmark_tag('http://example.com', 'bar', 'baz')
+        bookmark_manager_mock.add.assert_called_once_with(
+            QUrl('http://example.com'), '', [],
+        )
+        bookmark_manager_mock.tag.assert_called_once_with(
             QUrl('http://example.com'),
             ('bar', 'baz'),
             unique=False,

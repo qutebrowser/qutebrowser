@@ -1354,7 +1354,15 @@ class CommandDispatcher:
             unique: Refuse non-unique tags.
         """
         bookmark_manager = objreg.get('bookmark-manager')
-        url = QUrl(url or self._current_url())
+        url = QUrl(url)
+
+        try:
+            bookmark_manager.add(url, '', [])
+            message.info("Bookmarked {}".format(url.toDisplayString()))
+        except urlmarks.AlreadyExistsError:
+            pass
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(str(e))
 
         try:
             if remove or purge:
