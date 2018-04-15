@@ -2299,6 +2299,7 @@ bindings.default:
       PP: open -t -- {primary}
       wp: open -w -- {clipboard}
       wP: open -w -- {primary}
+      m: set-cmd-text -s :bookmark-tag {url}
       M: bookmark-add
       gb: set-cmd-text -s :bookmark-load
       gB: set-cmd-text -s :bookmark-load -t
