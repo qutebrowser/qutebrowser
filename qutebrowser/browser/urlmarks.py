@@ -124,13 +124,12 @@ class BookmarkManager(QObject):
         save_manager.add_saveable('bookmark-manager', self.save, self.changed,
                                   filename=filename)
 
-    def add(self, url, title, tags, *, toggle=False):
+    def add(self, url, title, *, toggle=False):
         """Add a new bookmark.
 
         Args:
             url: The url to add as bookmark.
             title: The title for the new bookmark.
-            tags: The tags for the new bookmark.
             toggle: remove the bookmark instead of raising an error if it
                     already exists.
 
@@ -151,7 +150,7 @@ class BookmarkManager(QObject):
             else:
                 raise AlreadyExistsError("Bookmark already exists!")
         else:
-            self._marks[urlstr] = Bookmark(urlstr, title or '', tags or [])
+            self._marks[urlstr] = Bookmark(urlstr, title or '', [])
             # place new marks at the end
             self._marks.move_to_end(urlstr, last=False)
             self.changed.emit()

@@ -1329,7 +1329,7 @@ class CommandDispatcher:
         url = QUrl(url or self._current_url())
         title = title or self._current_title()
         try:
-            was_added = bookmark_manager.add(url, title, [], toggle=toggle)
+            was_added = bookmark_manager.add(url, title, toggle=toggle)
         except urlmarks.Error as e:
             raise cmdexc.CommandError(str(e))
         else:
@@ -1357,7 +1357,7 @@ class CommandDispatcher:
         url = QUrl(url)
 
         try:
-            bookmark_manager.add(url, '', [])
+            bookmark_manager.add(url, '')
             message.info("Bookmarked {}".format(url.toDisplayString()))
         except urlmarks.AlreadyExistsError:
             pass
