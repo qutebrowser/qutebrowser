@@ -53,7 +53,7 @@ class TestBookmarkAdd:
     def test_add(self, command_dispatcher, bookmark_manager_mock):
         command_dispatcher.bookmark_add('example.com', 'Example Site')
         bookmark_manager_mock.add.assert_called_with(
-            QUrl('example.com'), 'Example Site', [], toggle=False)
+            QUrl('example.com'), 'Example Site', toggle=False)
 
     def test_no_url_or_title(self, command_dispatcher, tabbed_browser,
                              bookmark_manager_mock, current_tab):
@@ -61,7 +61,7 @@ class TestBookmarkAdd:
         tabbed_browser.current_url.return_value = QUrl('example.com')
         command_dispatcher.bookmark_add()
         bookmark_manager_mock.add.assert_called_with(
-            QUrl('example.com'), 'Example Site', [], toggle=False)
+            QUrl('example.com'), 'Example Site', toggle=False)
 
     def test_no_title(self, command_dispatcher, tabbed_browser,
                       bookmark_manager_mock):
@@ -81,7 +81,7 @@ class TestBookmarkAdd:
         command_dispatcher.bookmark_add('example.com', 'Example Site',
                                         toggle=True)
         bookmark_manager_mock.add.assert_called_with(
-            QUrl('example.com'), 'Example Site', [], toggle=True)
+            QUrl('example.com'), 'Example Site', toggle=True)
         assert message_mock.getmsg().text == 'Bookmarked example.com'
 
     def test_toggle_off(self, command_dispatcher, bookmark_manager_mock,
@@ -90,7 +90,7 @@ class TestBookmarkAdd:
         command_dispatcher.bookmark_add('example.com', 'Example Site',
                                         toggle=True)
         bookmark_manager_mock.add.assert_called_with(
-            QUrl('example.com'), 'Example Site', [], toggle=True)
+            QUrl('example.com'), 'Example Site', toggle=True)
         assert message_mock.getmsg().text == 'Removed bookmark example.com'
 
 
@@ -100,7 +100,7 @@ class TestBookmarkTag:
         bookmark_manager_mock.add.side_effect = urlmarks.AlreadyExistsError()
         command_dispatcher.bookmark_tag('http://example.com', 'bar', 'baz')
         bookmark_manager_mock.add.assert_called_once_with(
-            QUrl('http://example.com'), '', [],
+            QUrl('http://example.com'), '',
         )
         bookmark_manager_mock.tag.assert_called_once_with(
             QUrl('http://example.com'),
@@ -111,7 +111,7 @@ class TestBookmarkTag:
     def test_tag_new(self, command_dispatcher, bookmark_manager_mock):
         command_dispatcher.bookmark_tag('http://example.com', 'bar', 'baz')
         bookmark_manager_mock.add.assert_called_once_with(
-            QUrl('http://example.com'), '', [],
+            QUrl('http://example.com'), '',
         )
         bookmark_manager_mock.tag.assert_called_once_with(
             QUrl('http://example.com'),
