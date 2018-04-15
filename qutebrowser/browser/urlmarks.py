@@ -191,7 +191,7 @@ class BookmarkManager(QObject):
             unique: Raise NotUniqueError if one of the tags is already in use.
         """
         if unique:
-            violations = [t for t in tags if any(self.get_tagged(t))]
+            violations = [t for t in tags if any(self.get_tagged([t]))]
             if violations:
                 raise NotUniqueError("{} are not unique".format(violations))
         mark = self.get(url)

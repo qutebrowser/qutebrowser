@@ -18,6 +18,11 @@ Feature: Bookmarks
         Then the message "Bookmarked data/numbers/14.txt" should be shown
         And the bookmark file should contain '{"url": "data/numbers/14.txt", "title": "", "tags": ["one", "two"]}'
 
+    Scenario: Saving a bookmark with a non-unique tag and --unique
+        When I run :bookmark-tag data/numbers/15.txt one
+        And I run :bookmark-tag data/numbers/16.txt --unique one
+        Then the error "['one'] are not unique" should be shown
+
     Scenario: Saving a bookmark with a url but no title
         When I run :bookmark-add http://example.com
         Then the error "Title must be provided if url has been provided" should be shown
