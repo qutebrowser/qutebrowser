@@ -922,7 +922,8 @@ class HintManager(QObject):
         except HintingError as e:
             message.error(str(e))
 
-        self._context.first_run = False
+        if self._context is not None:
+            self._context.first_run = False
 
     @cmdutils.register(instance='hintmanager', scope='tab',
                        modes=[usertypes.KeyMode.hint])
