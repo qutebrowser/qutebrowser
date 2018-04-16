@@ -118,7 +118,7 @@ def test_set_svg(stylesheet_tester):
     stylesheet_tester.check_eq('"svg"', "document.documentElement.nodeName")
 
 
-@pytest.mark.flaky
+@pytest.mark.skip(reason="Too flaky, see #3771")
 def test_set_error(stylesheet_tester, config_stub):
     """Test stylesheet modifies file not found error pages."""
     config_stub.changed.disconnect()  # This test is flaky otherwise...
