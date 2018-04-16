@@ -295,17 +295,17 @@ def test_invalid_url(bm_file, fake_save_manager):
         bm.delete(url)
 
 
-def all_tags(bm_file, fake_save_manager):
+def test_all_tags(bm_file, fake_save_manager):
     bm = urlmarks.BookmarkManager()
-    bm.add('http://example.com/foo', '', [])
+    bm.add(QUrl('http://example.com/foo'), '')
 
-    bm.add('http://example.com/bar', '')
-    bm.tag('http://example.com/bar', ['bar'])
+    bm.add(QUrl('http://example.com/bar'), '')
+    bm.tag(QUrl('http://example.com/bar'), ['bar'])
 
-    bm.add('http://example.com/baz', '')
-    bm.tag('http://example.com/baz', ['biz', 'bar', 'baz'])
+    bm.add(QUrl('http://example.com/baz'), '')
+    bm.tag(QUrl('http://example.com/baz'), ['biz', 'bar', 'baz'])
 
-    bm.add('http://example.com/buz', '')
-    bm.tag('http://example.com/buz', ['buz', 'foo', 'baz'])
+    bm.add(QUrl('http://example.com/buz'), '')
+    bm.tag(QUrl('http://example.com/buz'), ['buz', 'foo', 'baz'])
 
-    assert bm.all_tags == {'foo', 'bar', 'baz', 'biz', 'buz'}
+    assert bm.all_tags() == {'foo', 'bar', 'baz', 'biz', 'buz'}
