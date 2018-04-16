@@ -77,6 +77,7 @@ Fixed
 - Adding styles with GreaseMonkey on fast sites now works properly.
 - Window ID 0 is now excluded properly from `:tab-take` completion.
 - A rare crash when cancelling a download has been fixed.
+- The Makefile (intended for packagers) now supports `PREFIX` properly.
 
 v1.2.1
 ------
