@@ -170,6 +170,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             self._reply = None
         if self.fileobj is not None:
             self.fileobj.close()
+            self._read_timer.stop()
         self.cancelled.emit()
 
     @pyqtSlot()
@@ -312,6 +313,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
     @pyqtSlot()
     def _on_read_timer_timeout(self):
         """Read some bytes from the QNetworkReply periodically."""
+        if self._reply is None:
+            return
         if not self._reply.isOpen():
             raise OSError("Reply is closed!")
         data = self._reply.read(1024)
