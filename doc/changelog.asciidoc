@@ -76,6 +76,7 @@ Fixed
   Stable).
 - Adding styles with GreaseMonkey on fast sites now works properly.
 - Window ID 0 is now excluded properly from `:tab-take` completion.
+- A rare crash when cancelling a download has been fixed.
 
 v1.2.1
 ------
