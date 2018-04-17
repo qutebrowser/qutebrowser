@@ -25,6 +25,7 @@ Added
 - New `url.open_base_url` option to open the base URL of a searchengine when no
   search term is given.
 - New `tabs.min_width` setting to configure the minimal width for tabs.
+- New `getbib` userscript to download bibtex information for DOIs on a page.
 
 Changed
 ~~~~~~~
