@@ -75,7 +75,6 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             '?': lambda search: search_fn(self._win_id, ["-r", "--", search]),
         }
 
-
     def prefix(self):
         """Get the currently entered command prefix."""
         text = self.text()
