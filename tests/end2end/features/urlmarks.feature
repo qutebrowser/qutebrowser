@@ -78,6 +78,19 @@ Feature: Bookmarks
             - about:blank (active)
             - data/numbers/3.txt
 
+    Scenario: Loading multiple bookmarks in tabs
+        Given I open about:blank
+        When I run :tab-only
+        And I run :bookmark-tag http://localhost:(port)/data/numbers/17.txt multi
+        And I run :bookmark-tag http://localhost:(port)/data/numbers/18.txt multi
+        And I run :bookmark-load -at multi
+        Then data/numbers/17.txt should be loaded
+        And data/numbers/18.txt should be loaded
+        And the following tabs should be open:
+            - about:blank
+            - data/numbers/18.txt
+            - data/numbers/17.txt (active)
+
     Scenario: Loading a bookmark in a new window
         Given I open about:blank
         When I run :tab-only
