@@ -510,11 +510,13 @@ def sanitize_filename(name, replacement='_'):
 
 def set_clipboard(data, selection=False):
     """Set the clipboard to some given data."""
+    global fake_clipboard
     if selection and not supports_selection():
         raise SelectionUnsupportedError
     if log_clipboard:
         what = 'primary selection' if selection else 'clipboard'
         log.misc.debug("Setting fake {}: {}".format(what, json.dumps(data)))
+        fake_clipboard = data
     else:
         mode = QClipboard.Selection if selection else QClipboard.Clipboard
         QApplication.clipboard().setText(data, mode=mode)
