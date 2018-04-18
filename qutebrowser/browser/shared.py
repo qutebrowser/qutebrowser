@@ -273,10 +273,10 @@ def get_tab(win_id, target):
     return tabbed_browser.tabopen(url=None, background=bg_tab)
 
 
-def get_user_stylesheet():
+def get_user_stylesheet(url=None):
     """Get the combined user-stylesheet."""
     css = ''
-    stylesheets = config.val.content.user_stylesheets
+    stylesheets = config.instance.get("content.user_stylesheets", url)
 
     for filename in stylesheets:
         with open(filename, 'r', encoding='utf-8') as f:
