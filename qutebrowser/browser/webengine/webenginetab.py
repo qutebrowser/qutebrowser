@@ -18,7 +18,6 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Wrapper over a QWebEngineView."""
-
 import math
 import functools
 import sys
@@ -647,11 +646,12 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_config_changed(self, option):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
             self._init_stylesheet()
-            self._update_stylesheet()
+            url = self.url(requested=True)
+            self._update_stylesheet(url=url)
 
-    def _update_stylesheet(self):
+    def _update_stylesheet(self, url=None):
         """Update the custom stylesheet in existing tabs."""
-        css = shared.get_user_stylesheet()
+        css = shared.get_user_stylesheet(url=url)
         code = javascript.assemble('stylesheet', 'set_css', css)
         self.run_js_async(code)
 
@@ -710,8 +710,9 @@ class WebEngineTab(browsertab.AbstractTab):
         Partially inspired by QupZilla:
         https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
         """
+
         self._remove_early_js('stylesheet')
-        css = shared.get_user_stylesheet()
+        css = shared.get_user_stylesheet(url=None)
         js_code = javascript.wrap_global(
             'stylesheet',
             utils.read_file('javascript/stylesheet.js'),
@@ -1034,6 +1035,9 @@ class WebEngineTab(browsertab.AbstractTab):
             # In general, this is handled by Qt, but when loading takes long,
             # the old icon is still displayed.
             self.icon_changed.emit(QIcon())
+
+        url = self.url(requested=True)
+        self._update_stylesheet(url)
 
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):
