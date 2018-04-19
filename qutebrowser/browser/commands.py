@@ -1337,7 +1337,7 @@ class CommandDispatcher:
             message.info(msg.format(url.toDisplayString()))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('url', completion=urlmodel.bookmark)
+    @cmdutils.argument('url', completion=urlmodel.url)
     @cmdutils.argument('tags', completion=urlmodel.bookmark_tag)
     @cmdutils.argument('purge', flag='R')
     def bookmark_tag(self, url, *tags, remove=False, purge=False,
