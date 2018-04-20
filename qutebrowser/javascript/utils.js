@@ -38,18 +38,16 @@ window._qutebrowser.utils = (function() {
     }
     funcs.iframe_same_domain = iframe_same_domain;
 
-    // Check if elem is an iframe, and if so, return the result of func on it.
-    // If no iframes match, return null
-    funcs.call_if_frame = (elem, func) => {
-        // Check if elem is a frame, and if so, call func on the window
+    // Return frame window if elem is in a frame, otherwise return window
+    funcs.get_frame_window = (elem) => {
         if ("contentWindow" in elem) {
             const frame = elem.contentWindow;
             if (iframe_same_domain(frame) &&
                 "frameElement" in frame) {
-                return func(frame);
+                return frame;
             }
         }
-        return null;
+        return window;
     };
 
     return funcs;

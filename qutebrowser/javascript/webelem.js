@@ -275,32 +275,24 @@ window._qutebrowser.webelem = (function() {
         }
 
         // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = utils.call_if_frame(elem,
-            (frame) => serialize_elem(frame.document.activeElement, frame));
-
-        if (frame_elem !== null) {
-            return frame_elem;
-        }
-        return serialize_elem(elem);
+        const frame_win = utils.get_frame_window(elem);
+        return serialize_elem(frame_win.document.activeElement, frame_win);
     };
 
     funcs.find_at_pos = (x, y) => {
         const elem = document.elementFromPoint(x, y);
 
-
         // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = utils.call_if_frame(elem,
-            (frame) => {
-                // Subtract offsets due to being in an iframe
-                const frame_offset_rect =
-                      frame.frameElement.getBoundingClientRect();
-                return serialize_elem(frame.document.
-                    elementFromPoint(x - frame_offset_rect.left,
-                        y - frame_offset_rect.top), frame);
-            });
+        const frame_win = utils.get_frame_window(elem);
 
-        if (frame_elem !== null) {
-            return frame_elem;
+        // In a frame
+        if (frame_win !== window) {
+            // Subtract offsets due to being in an iframe
+            const frame_offset_rect =
+                  frame_win.frameElement.getBoundingClientRect();
+            return serialize_elem(frame_win.document.
+                elementFromPoint(x - frame_offset_rect.left,
+                    y - frame_offset_rect.top), frame_win);
         }
         return serialize_elem(elem);
     };
