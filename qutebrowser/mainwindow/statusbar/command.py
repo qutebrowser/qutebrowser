@@ -19,6 +19,8 @@
 
 """The commandline in the statusbar."""
 
+import functools
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import QSizePolicy
 
@@ -69,10 +71,12 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.textChanged.connect(self.updateGeometry)
         self.textChanged.connect(self._incremental_search)
 
-        search_fn = cmdutils.cmd_dict['search'].run
+        dispatcher = objreg.get('command-dispatcher',
+                                scope='window', window=self._win_id)
+        search_fn = dispatcher.search
         self.search_prefixes = {
-            '/': lambda search: search_fn(self._win_id, ["--", search]),
-            '?': lambda search: search_fn(self._win_id, ["-r", "--", search]),
+            '/': search_fn,
+            '?': functools.partial(search_fn, reverse=True)
         }
 
     def prefix(self):
