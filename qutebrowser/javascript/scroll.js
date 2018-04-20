@@ -80,15 +80,17 @@ window._qutebrowser.scroll = (function() {
         }
     };
 
-    // Scroll a provided window by x,y
-    function scroll_window(x, y, win = window, page = true) {
-        if (page) {
-            const dx = win.innerWidth * x;
-            const dy = win.innerHeight * y;
-            win.scrollBy(dx, dy);
-        } else {
-            win.scrollBy(x, y);
-        }
+    // Scroll a provided window by x,y as a percent
+    function scroll_window(x, y, win = window) {
+        const dx = win.innerWidth * x;
+        const dy = win.innerHeight * y;
+        win.scrollBy(dx, dy);
+        return true;
+    }
+
+    // Scroll a provided win by x, y by raw pixels
+    function scroll_window_raw(x, y, win) {
+        win.scrollBy(x, y);
         return true;
     }
 
@@ -108,11 +110,11 @@ window._qutebrowser.scroll = (function() {
         const elem = document.activeElement;
         // If we are in a frame, scroll that frame
         const scrolled = utils.call_if_frame(elem,
-            (frame_win) => scroll_window(x, y, frame_win, false));
+            (frame_win) => scroll_window_raw(x, y, frame_win));
 
         if (!scrolled) {
             // Scroll root window
-            scroll_window(x, y, window, false);
+            scroll_window_raw(x, y, window);
         }
     };
 
