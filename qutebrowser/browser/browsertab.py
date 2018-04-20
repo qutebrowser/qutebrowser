@@ -743,6 +743,9 @@ class AbstractTab(QWidget):
             self.title_changed.emit(url.toDisplayString())
         self.url_changed.emit(url)
 
+        url = self.url(requested=True)
+        self._update_stylesheet(url)
+
     @pyqtSlot()
     def _on_load_started(self):
         self._progress = 0

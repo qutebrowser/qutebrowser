@@ -652,7 +652,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def _update_stylesheet(self, url=None):
         """Update the custom stylesheet in existing tabs."""
         css = shared.get_user_stylesheet(url=url)
-        code = javascript.assemble('stylesheet', 'set_css', css)
+        code = javascript.assemble('stylesheet', 'set_css', css, delay=True)
         self.run_js_async(code)
 
     def _inject_early_js(self, name, js_code, *,
@@ -1035,9 +1035,6 @@ class WebEngineTab(browsertab.AbstractTab):
             # In general, this is handled by Qt, but when loading takes long,
             # the old icon is still displayed.
             self.icon_changed.emit(QIcon())
-
-        url = self.url(requested=True)
-        self._update_stylesheet(url)
 
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):

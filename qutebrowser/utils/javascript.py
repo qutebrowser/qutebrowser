@@ -64,14 +64,28 @@ def _convert_js_arg(arg):
             arg, type(arg).__name__))
 
 
-def assemble(module, function, *args):
+def assemble(module, function, *args, delay=False):
     """Assemble a javascript file and a function call."""
     js_args = ', '.join(_convert_js_arg(arg) for arg in args)
     if module == 'window':
         parts = ['window', function]
     else:
         parts = ['window', '_qutebrowser', module, function]
-    code = '"use strict";\n{}({});'.format('.'.join(parts), js_args)
+    if delay:
+        code = '''
+        "use strict";
+        if (document.readyState !== "loading") {{
+            {parts}({args});
+        }} else {{
+            window.addEventListener("DOMContentLoaded", () => {{
+                {parts}({args});
+            }});
+        }}
+        '''
+        code = code.format(parts='.'.join(parts), args=js_args)
+    else:
+        code = '"use strict";\n{}({});'.format('.'.join(parts), js_args)
+    # print(code)
     return code
 
 
