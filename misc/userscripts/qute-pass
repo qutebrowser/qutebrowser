@@ -150,6 +150,7 @@ def main(arguments):
         stderr('Failed to match username pattern on {}!'.format(arguments.username_target))
         return ExitCodes.COULD_NOT_MATCH_USERNAME
     username = match.group(1)
+    username = username.replace('\\', '\\\\')
 
     # Match password
     match = re.match(arguments.password_pattern, secret)
@@ -157,8 +158,6 @@ def main(arguments):
         stderr('Failed to match password pattern on secret!')
         return ExitCodes.COULD_NOT_MATCH_PASSWORD
     password = match.group(1)
-
-    # Escape backslash so that they are inserted correctly
     password = password.replace('\\', '\\\\')
 
     insert_mode = ';; enter-mode insert' if arguments.insert_mode else ''
