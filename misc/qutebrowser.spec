@@ -59,7 +59,8 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=False,
-          console=False )
+          console=False,
+          version='file_version_info.txt' )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
