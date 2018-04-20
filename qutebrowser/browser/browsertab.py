@@ -813,6 +813,12 @@ class AbstractTab(QWidget):
         self.url_changed.emit(url)
 
         url = self.url(requested=True)
+
+        # Ignore blank QUrls to avoid crashes.
+        if not url.isValid():
+            log.webview.debug("Not updating per-domain stylesheets due to the QUrl being blank")
+            return
+
         self._update_stylesheet(url)
 
     @pyqtSlot()
