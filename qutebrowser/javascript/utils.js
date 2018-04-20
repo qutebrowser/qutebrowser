@@ -28,21 +28,20 @@ window._qutebrowser.utils = (function() {
 
     // Returns true if the iframe is accessible without
     // cross domain errors, else false.
-    function iframe_same_domain(frame) {
+    funcs.iframe_same_domain = (frame) => {
         try {
             frame.document; // eslint-disable-line no-unused-expressions
             return true;
         } catch (err) {
             return false;
         }
-    }
-    funcs.iframe_same_domain = iframe_same_domain;
+    };
 
     // Return frame window if elem is in a frame, otherwise return window
     funcs.get_frame_window = (elem) => {
         if ("contentWindow" in elem) {
             const frame = elem.contentWindow;
-            if (iframe_same_domain(frame) &&
+            if (funcs.iframe_same_domain(frame) &&
                 "frameElement" in frame) {
                 return frame;
             }
