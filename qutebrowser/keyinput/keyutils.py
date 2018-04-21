@@ -58,7 +58,8 @@ def is_special(key, modifiers):
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
     return not (_is_printable(key) and
-                modifiers in [Qt.ShiftModifier, Qt.NoModifier])
+                modifiers in [Qt.ShiftModifier, Qt.NoModifier,
+                              Qt.KeypadModifier])
 
 
 def is_modifier_key(key):
@@ -303,7 +304,8 @@ class KeyInfo:
                 key_string = key_string.lower()
 
         # "special" binding
-        assert is_special(self.key, self.modifiers)
+        assert (is_special(self.key, self.modifiers) or
+                self.modifiers == Qt.KeypadModifier)
         modifier_string = _modifiers_to_string(modifiers)
         return '<{}{}>'.format(modifier_string, key_string)
 
@@ -505,9 +507,27 @@ class KeySequence:
                 not ev.text().isupper()):
             modifiers = Qt.KeyboardModifiers()
 
+        # On macOS, swap Ctrl and Meta back
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-51293
+        if utils.is_mac:
+            if modifiers & Qt.ControlModifier and modifiers & Qt.MetaModifier:
+                pass
+            elif modifiers & Qt.ControlModifier:
+                modifiers &= ~Qt.ControlModifier
+                modifiers |= Qt.MetaModifier
+            elif modifiers & Qt.MetaModifier:
+                modifiers &= ~Qt.MetaModifier
+                modifiers |= Qt.ControlModifier
+
         keys = list(self._iter_keys())
         keys.append(key | int(modifiers))
 
+        return self.__class__(*keys)
+
+    def strip_modifiers(self):
+        """Strip optional modifiers from keys."""
+        modifiers = Qt.KeypadModifier
+        keys = [key & ~modifiers for key in self._iter_keys()]
         return self.__class__(*keys)
 
     def with_mappings(self, mappings):

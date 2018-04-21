@@ -30,7 +30,8 @@ import textwrap
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
-from qutebrowser.utils import log, standarddir, jinja, objreg, utils
+from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
+                               javascript)
 from qutebrowser.commands import cmdutils
 from qutebrowser.browser import downloads
 
@@ -91,7 +92,7 @@ class GreasemonkeyScript:
             props = ""
         script = cls(re.findall(cls.PROPS_REGEX, props), source)
         script.script_meta = props
-        if not props:
+        if not script.includes:
             script.includes = ['*']
         return script
 
@@ -104,12 +105,13 @@ class GreasemonkeyScript:
         browser's debugger/inspector will not match up to the line
         numbers in the source script directly.
         """
-        return jinja.js_environment.get_template(
-            'greasemonkey_wrapper.js').render(
-                scriptName="/".join([self.namespace or '', self.name]),
-                scriptInfo=self._meta_json(),
-                scriptMeta=self.script_meta,
-                scriptSource=self._code)
+        template = jinja.js_environment.get_template('greasemonkey_wrapper.js')
+        return template.render(
+            scriptName=javascript.string_escape(
+                "/".join([self.namespace or '', self.name])),
+            scriptInfo=self._meta_json(),
+            scriptMeta=javascript.string_escape(self.script_meta),
+            scriptSource=self._code)
 
     def _meta_json(self):
         return json.dumps({

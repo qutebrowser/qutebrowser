@@ -371,7 +371,8 @@ class TestEdit:
     """Tests for :config-edit."""
 
     pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
-                                         'config_stub', 'key_config_stub')
+                                         'config_stub', 'key_config_stub',
+                                         'qapp')
 
     def test_no_source(self, commands, mocker):
         mock = mocker.patch('qutebrowser.config.configcommands.editor.'

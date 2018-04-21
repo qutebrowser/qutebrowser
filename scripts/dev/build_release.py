@@ -361,7 +361,7 @@ def github_upload(artifacts, tag):
     repo = gh.repository('qutebrowser', 'qutebrowser')
 
     release = None  # to satisfy pylint
-    for release in repo.iter_releases():
+    for release in repo.releases():
         if release.tag_name == tag:
             break
     else:
@@ -401,14 +401,6 @@ def main():
 
     run_asciidoc2html(args)
     if os.name == 'nt':
-        if sys.maxsize > 2**32:
-            # WORKAROUND
-            print("Due to a python/Windows bug, this script needs to be run ")
-            print("with a 32bit Python.")
-            print()
-            print("See http://bugs.python.org/issue24493 and ")
-            print("https://github.com/pypa/virtualenv/issues/774")
-            sys.exit(1)
         artifacts = build_windows()
     elif sys.platform == 'darwin':
         artifacts = build_mac()

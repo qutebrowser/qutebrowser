@@ -76,11 +76,11 @@ class SignalFilter(QObject):
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
         try:
-            tabidx = tabbed_browser.indexOf(tab)
+            tabidx = tabbed_browser.widget.indexOf(tab)
         except RuntimeError:
             # The tab has been deleted already
             return
-        if tabidx == tabbed_browser.currentIndex():
+        if tabidx == tabbed_browser.widget.currentIndex():
             if log_signal:
                 log.signals.debug("emitting: {} (tab {})".format(
                     debug.dbg_signal(signal, args), tabidx))

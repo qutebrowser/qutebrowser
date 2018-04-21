@@ -963,7 +963,7 @@ def test_version_output(params, stubs, monkeypatch):
     assert version.version() == expected
 
 
-def test_opengl_vendor():
+def test_opengl_vendor(qapp):
     """Simply call version.opengl_vendor() and see if it doesn't crash."""
     pytest.importorskip("PyQt5.QtOpenGL")
     return version.opengl_vendor()

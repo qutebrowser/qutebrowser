@@ -239,7 +239,6 @@ class BrowserPage(QWebPage):
         printdiag.setAttribute(Qt.WA_DeleteOnClose)
         printdiag.open(lambda: frame.print(printdiag.printer()))
 
-    @pyqtSlot('QNetworkRequest')
     def on_download_requested(self, request):
         """Called when the user wants to download a link.
 

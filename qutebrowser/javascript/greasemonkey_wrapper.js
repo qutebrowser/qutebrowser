@@ -1,5 +1,5 @@
 (function() {
-    const _qute_script_id = "__gm_" + {{ scriptName | tojson }};
+    const _qute_script_id = "__gm_{{ scriptName }}";
 
     function GM_log(text) {
         console.log(text);
@@ -7,7 +7,7 @@
 
     const GM_info = {
         'script': {{ scriptInfo }},
-        'scriptMetaStr': {{ scriptMeta | tojson }},
+        'scriptMetaStr': "{{ scriptMeta }}",
         'scriptWillUpdate': false,
         'version': "0.0.1",
         // so scripts don't expect exportFunction
@@ -100,11 +100,8 @@
 
         const head = document.getElementsByTagName("head")[0];
         if (head === undefined) {
-            document.onreadystatechange = function() {
-                if (document.readyState === "interactive") {
-                    document.getElementsByTagName("head")[0].appendChild(oStyle);
-                }
-            };
+            // no head yet, stick it whereever
+            document.documentElement.appendChild(oStyle);
         } else {
             head.appendChild(oStyle);
         }

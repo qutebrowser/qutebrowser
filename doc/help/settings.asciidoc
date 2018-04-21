@@ -236,10 +236,11 @@
 |<<tabs.close_mouse_button,tabs.close_mouse_button>>|Mouse button with which to close tabs.
 |<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|How to behave when the close mouse button is pressed on the tab bar.
 |<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling factor for favicons in the tab bar.
-|<<tabs.favicons.show,tabs.favicons.show>>|Show favicons in the tab bar.
+|<<tabs.favicons.show,tabs.favicons.show>>|When to show favicons in the tab bar.
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
+|<<tabs.min_width,tabs.min_width>>|Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
 |<<tabs.mode_on_change,tabs.mode_on_change>>|When switching tabs, what input mode is applied.
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
@@ -259,10 +260,11 @@
 |<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
 |<<url.default_page,url.default_page>>|Page to open if :open -t/-b/-w is used without URL.
 |<<url.incdec_segments,url.incdec_segments>>|URL segments where `:navigate increment/decrement` will search for a number.
+|<<url.open_base_url,url.open_base_url>>|Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
 |<<url.searchengines,url.searchengines>>|Search engines which can be used via the address bar.
 |<<url.start_pages,url.start_pages>>|Page(s) to open at the start.
 |<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|URL parameters to strip with `:yank url`.
-|<<window.hide_wayland_decoration,window.hide_wayland_decoration>>|Hide the window decoration when using wayland.
+|<<window.hide_decoration,window.hide_decoration>>|Hide the window decoration.
 |<<window.title_format,window.title_format>>|Format to use for the window title. The same placeholders like for
 |<<zoom.default,zoom.default>>|Default zoom level.
 |<<zoom.levels,zoom.levels>>|Available zoom levels.
@@ -1653,11 +1655,7 @@ Type: <<types,List of Url>>
 
 Default: 
 
-- +pass:[https://www.malwaredomainlist.com/hostslist/hosts.txt]+
-- +pass:[http://someonewhocares.org/hosts/hosts]+
-- +pass:[http://winhelp2002.mvps.org/hosts.zip]+
-- +pass:[http://malwaredomains.lehigh.edu/files/justdomains.zip]+
-- +pass:[https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&amp;mimetype=plaintext]+
+- +pass:[https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts]+
 
 [[content.host_blocking.whitelist]]
 === content.host_blocking.whitelist
@@ -2823,11 +2821,17 @@ Default: +pass:[1.0]+
 
 [[tabs.favicons.show]]
 === tabs.favicons.show
-Show favicons in the tab bar.
+When to show favicons in the tab bar.
 
-Type: <<types,Bool>>
+Type: <<types,String>>
 
-Default: +pass:[true]+
+Valid values:
+
+ * +always+: Always show favicons.
+ * +never+: Always hide favicons.
+ * +pinned+: Show favicons only on pinned tabs.
+
+Default: +pass:[always]+
 
 [[tabs.indicator.padding]]
 === tabs.indicator.padding
@@ -2865,6 +2869,16 @@ Valid values:
  * +close+: Close the window.
 
 Default: +pass:[ignore]+
+
+[[tabs.min_width]]
+=== tabs.min_width
+Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
+This setting only applies when tabs are horizontal.
+This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
+
+Type: <<types,Int>>
+
+Default: +pass:[-1]+
 
 [[tabs.mode_on_change]]
 === tabs.mode_on_change
@@ -3102,6 +3116,14 @@ Default:
 - +pass:[path]+
 - +pass:[query]+
 
+[[url.open_base_url]]
+=== url.open_base_url
+Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[url.searchengines]]
 === url.searchengines
 Search engines which can be used via the address bar.
@@ -3137,10 +3159,12 @@ Default:
 - +pass:[utm_term]+
 - +pass:[utm_content]+
 
-[[window.hide_wayland_decoration]]
-=== window.hide_wayland_decoration
-Hide the window decoration when using wayland.
-This setting requires a restart.
+[[window.hide_decoration]]
+=== window.hide_decoration
+Hide the window decoration.
+
+This setting requires a restart on Wayland.
+
 
 Type: <<types,Bool>>
 
@@ -3273,7 +3297,7 @@ See the setting's valid values for more information on allowed values.
 |TextAlignment|Alignment of text.
 |TimestampTemplate|An strftime-like template for timestamps.
 
-See https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior for reference.
+See https://sqlite.org/lang_datefunc.html for reference.
 |UniqueCharString|A string which may not contain duplicate chars.
 |Url|A URL as a string.
 |VerticalPosition|The position of the download bar.

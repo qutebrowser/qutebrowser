@@ -278,6 +278,7 @@ def test_special_urls(url, special):
     assert urlutils.is_special_url(QUrl(url)) == special
 
 
+@pytest.mark.parametrize('open_base_url', [True, False])
 @pytest.mark.parametrize('url, host, query', [
     ('testfoo', 'www.example.com', 'q=testfoo'),
     ('test testfoo', 'www.qutebrowser.org', 'q=testfoo'),
@@ -288,7 +289,7 @@ def test_special_urls(url, special):
     ('stripped ', 'www.example.com', 'q=stripped'),
     ('test-with-dash testfoo', 'www.example.org', 'q=testfoo'),
 ])
-def test_get_search_url(url, host, query):
+def test_get_search_url(config_stub, url, host, query, open_base_url):
     """Test _get_search_url().
 
     Args:
@@ -296,9 +297,30 @@ def test_get_search_url(url, host, query):
         host: The expected search machine host.
         query: The expected search query.
     """
+    config_stub.val.url.open_base_url = open_base_url
     url = urlutils._get_search_url(url)
     assert url.host() == host
     assert url.query() == query
+
+
+@pytest.mark.parametrize('url, host', [
+    ('test', 'www.qutebrowser.org'),
+    ('test-with-dash', 'www.example.org'),
+])
+def test_get_search_url_open_base_url(config_stub, url, host):
+    """Test _get_search_url() with url.open_base_url_enabled.
+
+    Args:
+        url: The "URL" to enter.
+        host: The expected search machine host.
+        query: The expected search query.
+    """
+    config_stub.val.url.open_base_url = True
+    url = urlutils._get_search_url(url)
+    assert not url.path()
+    assert not url.fragment()
+    assert not url.query()
+    assert url.host() == host
 
 
 @pytest.mark.parametrize('url', ['\n', ' ', '\n '])

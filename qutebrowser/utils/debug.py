@@ -87,9 +87,10 @@ def log_signals(obj):
             return ret
 
         obj.__init__ = new_init
-        return obj
     else:
         connect_log_slot(obj)
+
+    return obj
 
 
 def qenum_key(base, value, add_base=False, klass=None):

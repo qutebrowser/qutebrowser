@@ -15,7 +15,7 @@ def get_data_files():
         ('../qutebrowser/img', 'img'),
         ('../qutebrowser/javascript', 'javascript'),
         ('../qutebrowser/html/doc', 'html/doc'),
-        ('../qutebrowser/git-commit-id', ''),
+        ('../qutebrowser/git-commit-id', '.'),
         ('../qutebrowser/config/configdata.yml', 'config'),
     ]
 
@@ -58,14 +58,14 @@ exe = EXE(pyz,
           icon=icon,
           debug=False,
           strip=False,
-          upx=True,
+          upx=False,
           console=False )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
                a.datas,
                strip=False,
-               upx=True,
+               upx=False,
                name='qutebrowser')
 
 app = BUNDLE(coll,

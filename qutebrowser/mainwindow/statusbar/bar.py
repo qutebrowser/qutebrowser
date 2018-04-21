@@ -268,7 +268,7 @@ class StatusBar(QWidget):
         """Get the currently displayed tab."""
         window = objreg.get('tabbed-browser', scope='window',
                             window=self._win_id)
-        return window.currentWidget()
+        return window.widget.currentWidget()
 
     def set_mode_active(self, mode, val):
         """Setter for self.{insert,command,caret}_active.
@@ -289,17 +289,9 @@ class StatusBar(QWidget):
             log.statusbar.debug("Setting prompt flag to {}".format(val))
             self._color_flags.prompt = val
         elif mode == usertypes.KeyMode.caret:
-            tab = self._current_tab()
-            log.statusbar.debug("Setting caret flag - val {}, selection "
-                                "{}".format(val, tab.caret.selection_enabled))
-            if val:
-                if tab.caret.selection_enabled:
-                    self._set_mode_text("{} selection".format(mode.name))
-                    self._color_flags.caret = ColorFlags.CaretMode.selection
-                else:
-                    self._set_mode_text(mode.name)
-                    self._color_flags.caret = ColorFlags.CaretMode.on
-            else:
+            if not val:
+                # Turning on is handled in on_current_caret_selection_toggled
+                log.statusbar.debug("Setting caret mode off")
                 self._color_flags.caret = ColorFlags.CaretMode.off
         config.set_register_stylesheet(self, update=False)
 
@@ -376,6 +368,18 @@ class StatusBar(QWidget):
         self.backforward.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.private == self._color_flags.private
+
+    @pyqtSlot(bool)
+    def on_caret_selection_toggled(self, selection):
+        """Update the statusbar when entering/leaving caret selection mode."""
+        log.statusbar.debug("Setting caret selection {}".format(selection))
+        if selection:
+            self._set_mode_text("caret selection")
+            self._color_flags.caret = ColorFlags.CaretMode.selection
+        else:
+            self._set_mode_text("caret")
+            self._color_flags.caret = ColorFlags.CaretMode.on
+        config.set_register_stylesheet(self, update=False)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

@@ -2,3 +2,4 @@
 pac_utils.js
 # Actually a jinja template so eslint chokes on the {{}} syntax.
 greasemonkey_wrapper.js
+global_wrapper.js

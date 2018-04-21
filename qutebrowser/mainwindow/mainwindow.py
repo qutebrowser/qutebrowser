@@ -184,7 +184,8 @@ class MainWindow(QWidget):
             private = bool(private)
         self._private = private
         self.tabbed_browser = tabbedbrowser.TabbedBrowser(win_id=self.win_id,
-                                                          private=private)
+                                                          private=private,
+                                                          parent=self)
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
         self._init_command_dispatcher()
@@ -230,6 +231,7 @@ class MainWindow(QWidget):
         config.instance.changed.connect(self._on_config_changed)
 
         objreg.get("app").new_window.emit(self)
+        self._set_decoration(config.val.window.hide_decoration)
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -327,7 +329,7 @@ class MainWindow(QWidget):
                                                 self.tabbed_browser)
         objreg.register('command-dispatcher', dispatcher, scope='window',
                         window=self.win_id)
-        self.tabbed_browser.destroyed.connect(
+        self.tabbed_browser.widget.destroyed.connect(
             functools.partial(objreg.delete, 'command-dispatcher',
                               scope='window', window=self.win_id))
 
@@ -344,13 +346,15 @@ class MainWindow(QWidget):
         elif option == 'statusbar.position':
             self._add_widgets()
             self._update_overlay_geometries()
+        elif option == 'window.hide_decoration':
+            self._set_decoration(config.val.window.hide_decoration)
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
-        self._vbox.removeWidget(self.tabbed_browser)
+        self._vbox.removeWidget(self.tabbed_browser.widget)
         self._vbox.removeWidget(self._downloadview)
         self._vbox.removeWidget(self.status)
-        widgets = [self.tabbed_browser]
+        widgets = [self.tabbed_browser.widget]
 
         downloads_position = config.val.downloads.position
         if downloads_position == 'top':
@@ -469,7 +473,7 @@ class MainWindow(QWidget):
 
         self.tabbed_browser.cur_scroll_perc_changed.connect(
             status.percentage.set_perc)
-        self.tabbed_browser.tab_index_changed.connect(
+        self.tabbed_browser.widget.tab_index_changed.connect(
             status.tabindex.on_tab_index_changed)
 
         self.tabbed_browser.cur_url_changed.connect(status.url.set_url)
@@ -479,6 +483,10 @@ class MainWindow(QWidget):
         self.tabbed_browser.cur_link_hovered.connect(status.url.set_hover_url)
         self.tabbed_browser.cur_load_status_changed.connect(
             status.url.on_load_status_changed)
+
+        self.tabbed_browser.cur_caret_selection_toggled.connect(
+            status.on_caret_selection_toggled)
+
         self.tabbed_browser.cur_fullscreen_requested.connect(
             self._on_fullscreen_requested)
         self.tabbed_browser.cur_fullscreen_requested.connect(status.maybe_hide)
@@ -488,6 +496,16 @@ class MainWindow(QWidget):
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)
+
+    def _set_decoration(self, hidden):
+        """Set the visibility of the window decoration via Qt."""
+        window_flags = Qt.Window
+        refresh_window = self.isVisible()
+        if hidden:
+            window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
+        self.setWindowFlags(window_flags)
+        if refresh_window:
+            self.show()
 
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):
@@ -517,7 +535,7 @@ class MainWindow(QWidget):
         super().resizeEvent(e)
         self._update_overlay_geometries()
         self._downloadview.updateGeometry()
-        self.tabbed_browser.tabBar().refresh()
+        self.tabbed_browser.widget.tabBar().refresh()
 
     def showEvent(self, e):
         """Extend showEvent to register us as the last-visible-main-window.
@@ -546,7 +564,7 @@ class MainWindow(QWidget):
         if crashsignal.is_crashing:
             e.accept()
             return
-        tab_count = self.tabbed_browser.count()
+        tab_count = self.tabbed_browser.widget.count()
         download_model = objreg.get('download-model', scope='window',
                                     window=self.win_id)
         download_count = download_model.running_downloads()

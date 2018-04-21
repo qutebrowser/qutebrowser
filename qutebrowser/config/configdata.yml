@@ -425,11 +425,7 @@ content.host_blocking.enabled:
 
 content.host_blocking.lists:
   default:
-    - "https://www.malwaredomainlist.com/hostslist/hosts.txt"
-    - "http://someonewhocares.org/hosts/hosts"
-    - "http://winhelp2002.mvps.org/hosts.zip"
-    - "http://malwaredomains.lehigh.edu/files/justdomains.zip"
-    - "https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&mimetype=plaintext"
+    - "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
   type:
     name: List
     valtype: Url
@@ -1252,9 +1248,14 @@ tabs.favicons.scale:
     `tabs.padding`.
 
 tabs.favicons.show:
-  default: true
-  type: Bool
-  desc: Show favicons in the tab bar.
+  default: always
+  type:
+    name: String
+    valid_values:
+      - always: Always show favicons.
+      - never: Always hide favicons.
+      - pinned: Show favicons only on pinned tabs.
+  desc: When to show favicons in the tab bar.
 
 tabs.last_close:
   default: ignore
@@ -1325,7 +1326,10 @@ tabs.show:
 
 tabs.show_switching_delay:
   default: 800
-  type: Int
+  type:
+    name: Int
+    minval: 0
+    maxval: maxint
   desc: "Duration (in milliseconds) to show the tab bar before hiding it when
     tabs.show is set to 'switching'."
 
@@ -1406,6 +1410,19 @@ tabs.width:
   desc: "Width (in pixels or as percentage of the window) of the tab bar if
     it's vertical."
 
+tabs.min_width:
+  default: -1
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+  desc: >-
+    Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
+
+    This setting only applies when tabs are horizontal.
+
+    This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
+
 tabs.width.indicator:
   renamed: tabs.indicator.width
 
@@ -1469,6 +1486,11 @@ url.incdec_segments:
   desc: URL segments where `:navigate increment/decrement` will search for
     a number.
 
+url.open_base_url:
+  type: Bool
+  default: false
+  desc: Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
+
 url.searchengines:
   default:
     DEFAULT: https://duckduckgo.com/?q={}
@@ -1513,10 +1535,15 @@ url.yank_ignored_parameters:
 ## window
 
 window.hide_wayland_decoration:
+  renamed: window.hide_decoration
+
+window.hide_decoration:
   type: Bool
   default: false
-  restart: true
-  desc: Hide the window decoration when using wayland.
+  desc: |
+    Hide the window decoration.
+
+    This setting requires a restart on Wayland.
 
 window.title_format:
   type:

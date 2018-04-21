@@ -27,6 +27,7 @@ import shutil
 
 import attr
 from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl
+from PyQt5.QtGui import QIcon
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
 from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
@@ -266,6 +267,9 @@ class FakeWebTab(browsertab.AbstractTab):
     def shutdown(self):
         pass
 
+    def icon(self):
+        return QIcon()
+
 
 class FakeSignal:
 
@@ -472,36 +476,54 @@ class SessionManagerStub:
     def list_sessions(self):
         return self.sessions
 
+    def save_autosave(self):
+        pass
+
 
 class TabbedBrowserStub(QObject):
 
     """Stub for the tabbed-browser object."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.widget = TabWidgetStub()
+        self.shutting_down = False
+        self.opened_url = None
+
+    def on_tab_close_requested(self, idx):
+        del self.widget.tabs[idx]
+
+    def widgets(self):
+        return self.widget.tabs
+
+    def tabopen(self, url):
+        self.opened_url = url
+
+    def openurl(self, url, *, newtab):
+        self.opened_url = url
+
+
+class TabWidgetStub(QObject):
+
+    """Stub for the tab-widget object."""
 
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.tabs = []
-        self.shutting_down = False
         self._qtabbar = QTabBar()
         self.index_of = None
         self.current_index = None
-        self.opened_url = None
 
     def count(self):
         return len(self.tabs)
-
-    def widgets(self):
-        return self.tabs
 
     def widget(self, i):
         return self.tabs[i]
 
     def page_title(self, i):
         return self.tabs[i].title()
-
-    def on_tab_close_requested(self, idx):
-        del self.tabs[idx]
 
     def tabBar(self):
         return self._qtabbar
@@ -525,12 +547,6 @@ class TabbedBrowserStub(QObject):
         if idx == -1:
             return None
         return self.tabs[idx - 1]
-
-    def tabopen(self, url):
-        self.opened_url = url
-
-    def openurl(self, url, *, newtab):
-        self.opened_url = url
 
 
 class ApplicationStub(QObject):
