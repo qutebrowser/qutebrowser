@@ -75,8 +75,9 @@ def test_local_filename_dictionary_installed(tmpdir, monkeypatch):
 
 
 def test_local_filename_installed_malformed(tmpdir, monkeypatch, caplog):
-    """Tests retrieving local filename when the dict installed and another
-    file is malformed."""
+    """Tests retrieving local filename when the dict installed.
+
+    In this usecase, another existing file is malformed."""
     monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
     for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'en-US.bdic']:
         (tmpdir / lang_file).ensure()
