@@ -146,5 +146,6 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         else:
             browsertab.openurl(url)
 
-    link_selector = 'a[href], area[href], link[href], [role=link][href]'
+    selectors = config.instance.get('hints.selectors', baseurl)
+    link_selector = ','.join(selectors['links'])
     browsertab.elements.find_css(link_selector, _prevnext_cb)
