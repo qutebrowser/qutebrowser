@@ -158,3 +158,62 @@ def test_required_scripts_are_included(download_stub, tmpdir):
     # Additionally check that the base script is still being parsed correctly
     assert "Script is running." in scripts[0].code()
     assert scripts[0].excludes
+
+
+class TestWindowIsolation:
+    """Check that greasemonkey scripts get a shadowed global scope."""
+
+    @classmethod
+    def setup_class(cls):
+        # Change something in the global scope
+        cls.setup_script = "window.$ = 'global'"
+
+        # Greasemonkey script to report back on its scope.
+        test_script = greasemonkey.GreasemonkeyScript.parse(
+            textwrap.dedent("""
+                // ==UserScript==
+                // @name scopetest
+                // ==/UserScript==
+                // Check the thing the page set is set to the expected type
+                result.push(window.$);
+                result.push($);
+                // Now overwrite it
+                window.$ = 'shadowed';
+                // And check everything is how the script would expect it to be
+                // after just writing to the "global" scope
+                result.push(window.$);
+                result.push($);
+            """)
+        )
+
+        # The compiled source of that scripts with some additional setup
+        # bookending it.
+        cls.test_script = "\n".join([
+            "var result = [];",
+            test_script.code(),
+            """
+            // Now check that the actual global scope has
+            // not been overwritten
+            result.push(window.$);
+            result.push($);
+            // And return our findings
+            result;"""
+        ])
+
+        # What we expect the script to report back.
+        cls.expected = [
+            "global", "global",
+            "shadowed", "shadowed",
+            "global", "global"]
+
+    def test_webengine(self, callback_checker, webengineview):
+        page = webengineview.page()
+        page.runJavaScript(self.setup_script)
+        page.runJavaScript(self.test_script, callback_checker.callback)
+        callback_checker.check(self.expected)
+
+    def test_webkit(self, webview):
+        elem = webview.page().mainFrame().documentElement()
+        elem.evaluateJavaScript(self.setup_script)
+        result = elem.evaluateJavaScript(self.test_script)
+        assert result == self.expected
