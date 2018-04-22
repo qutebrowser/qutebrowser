@@ -984,6 +984,10 @@ hints.selectors:
       - '[role="link"][href]'
     images:
       - 'img'
+    media:
+      - 'audio'
+      - 'img'
+      - 'video'
     urls:
       - '[src]'
       - '[href]'
