@@ -20,49 +20,52 @@
 
 """Generate file_version_info.txt for Pyinstaller use with Windows builds."""
 
-import os
 import os.path
 import sys
 
-from PyInstaller.utils.win32 import versioninfo
+from PyInstaller.utils.win32 import versioninfo as vs
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 import qutebrowser
 
-
 out_filename = 'file_version_info.txt'
 
-FileVersion = qutebrowser.__version_info__ + (0,)
-ProductVersion = qutebrowser.__version_info__ + (0,)
+filevers = qutebrowser.__version_info__ + (0,)
+prodvers = qutebrowser.__version_info__ + (0,)
+str_filevers = qutebrowser.__version__
+str_prodvers = qutebrowser.__version__
 
-CommentText = "A keyboard-focused browser with a minimal GUI."
-CopyrightText = "© 2014-2018 Florian Bruhin (The Compiler) \
-<mail@qutebrowser.org>"
-TrademarkText = "qutebrowser is free software under the GNU General Public \
-License"
+comment_text = """\
+A keyboard-focused browser with a minimal GUI.\
+"""
+copyright_text = """\
+© 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>\
+"""
+trademark_text = """\
+qutebrowser is free software under the GNU General Public License\
+"""
 
-FixedFileInfo = versioninfo.FixedFileInfo(FileVersion, ProductVersion)
+ffi = vs.FixedFileInfo(filevers, prodvers)
 
-StringFileInfo = [versioninfo.StringFileInfo(             
-    [versioninfo.StringTable('040904B0',
-    [versioninfo.StringStruct('Comments',f'{CommentText}'),
-    versioninfo.StringStruct('CompanyName',"qutebrowser.org"),
-    versioninfo.StringStruct('FileDescription',"qutebrowser"),
-    versioninfo.StringStruct('FileVersion',f'{qutebrowser.__version__}'),
-    versioninfo.StringStruct('InternalName',"qutebrowser"),
-    versioninfo.StringStruct('LegalCopyright',f'{CopyrightText}'),
-    versioninfo.StringStruct('LegalTrademarks',f'{TrademarkText}'),
-    versioninfo.StringStruct('OriginalFilename',"qutebrowser.exe"),
-    versioninfo.StringStruct('ProductName',"qutebrowser"),
-    versioninfo.StringStruct('ProductVersion',f'{qutebrowser.__version__}')])]),
-    versioninfo.VarFileInfo([versioninfo.VarStruct('Translation',
-                            [1033, 1200])])]
+kids = [vs.StringFileInfo(
+    [vs.StringTable('040904B0',
+                    [vs.StringStruct('Comments', f'{comment_text}'),
+                     vs.StringStruct('CompanyName', "qutebrowser.org"),
+                     vs.StringStruct('FileDescription', "qutebrowser"),
+                     vs.StringStruct('FileVersion', f'{str_filevers}'),
+                     vs.StringStruct('InternalName', "qutebrowser"),
+                     vs.StringStruct('LegalCopyright', f'{copyright_text}'),
+                     vs.StringStruct('LegalTrademarks', f'{trademark_text}'),
+                     vs.StringStruct('OriginalFilename', "qutebrowser.exe"),
+                     vs.StringStruct('ProductName', "qutebrowser"),
+                     vs.StringStruct('ProductVersion', f'{str_prodvers}')])]),
+    vs.VarFileInfo([vs.VarStruct('Translation', [1033, 1200])])]
 
-VSVersionInfo = versioninfo.VSVersionInfo(FixedFileInfo, StringFileInfo)
+file_version_info = vs.VSVersionInfo(ffi, kids)
 
 with open(out_filename, 'w', encoding='utf-8') as f:
-    f.write(f'{VSVersionInfo}')
+    f.write(f'{file_version_info}')
 
 f.close()
