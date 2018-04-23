@@ -109,6 +109,11 @@ def dmenu(items, invocation, encoding):
     return process.stdout.decode(encoding).strip()
 
 
+def fake_key_raw(text):
+    for character in text:
+        qute_command(f'fake-key {character}')
+
+
 def main(arguments):
     if not arguments.url:
         argument_parser.print_help()
@@ -150,7 +155,6 @@ def main(arguments):
         stderr('Failed to match username pattern on {}!'.format(arguments.username_target))
         return ExitCodes.COULD_NOT_MATCH_USERNAME
     username = match.group(1)
-    username = username.replace('\\', '\\\\')
 
     # Match password
     match = re.match(arguments.password_pattern, secret)
@@ -158,17 +162,20 @@ def main(arguments):
         stderr('Failed to match password pattern on secret!')
         return ExitCodes.COULD_NOT_MATCH_PASSWORD
     password = match.group(1)
-    password = password.replace('\\', '\\\\')
 
-    insert_mode = ';; enter-mode insert' if arguments.insert_mode else ''
     if arguments.username_only:
-        qute_command('fake-key {}{}'.format(username, insert_mode))
+        fake_key_raw(username)
     elif arguments.password_only:
-        qute_command('fake-key {}{}'.format(password, insert_mode))
+        fake_key_raw(password)
     else:
         # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
         # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
-        qute_command('fake-key {} ;; fake-key <Tab> ;; fake-key {}{}'.format(username, password, insert_mode))
+        fake_key_raw(username)
+        qute_command('fake-key <Tab>')
+        fake_key_raw(password)
+
+    if arguments.insert_mode:
+        qute_command('enter-mode insert')
 
     return ExitCodes.SUCCESS
 
