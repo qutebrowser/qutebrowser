@@ -357,6 +357,10 @@ class QuteProc(testprocess.Process):
             # when calling QApplication::sync
             "Focus object changed: "
             "<PyQt5.QtWidgets.QWidget object at *>",
+            # Qt >= 5.11
+            "Focus object changed: "
+            "<qutebrowser.browser.webengine.webview.WebEngineView object "
+            "at *>",
         ]
 
         if (log_line.category == 'ipc' and
