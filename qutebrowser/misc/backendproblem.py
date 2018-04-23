@@ -166,8 +166,9 @@ def _nvidia_shader_workaround():
     See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
     """
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
-    if utils.is_linux:
-        ctypes.CDLL(ctypes.util.find_library("GL"), mode=ctypes.RTLD_GLOBAL)
+    libgl = ctypes.util.find_library("GL")
+    if libgl is not None:
+        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
 
 
 def _handle_nouveau_graphics():
