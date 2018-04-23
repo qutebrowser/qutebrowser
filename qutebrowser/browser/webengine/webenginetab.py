@@ -755,7 +755,9 @@ class WebEngineTab(browsertab.AbstractTab):
             scripts.insert(new_script)
 
     def _install_event_filter(self):
-        self._widget.focusProxy().installEventFilter(self._mouse_event_filter)
+        fp = self._widget.focusProxy()
+        if fp is not None:
+            fp.installEventFilter(self._mouse_event_filter)
         self._child_event_filter = mouse.ChildEventFilter(
             eventfilter=self._mouse_event_filter, widget=self._widget,
             parent=self)
@@ -1102,4 +1104,6 @@ class WebEngineTab(browsertab.AbstractTab):
         self.predicted_navigation.connect(self._on_predicted_navigation)
 
     def event_target(self):
-        return self._widget.focusProxy()
+        fp = self._widget.focusProxy()
+        assert fp is not None
+        return fp
