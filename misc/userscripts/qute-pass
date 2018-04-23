@@ -111,7 +111,7 @@ def dmenu(items, invocation, encoding):
 
 def fake_key_raw(text):
     for character in text:
-        qute_command(f'fake-key {character}')
+        qute_command('fake-key {}'.format(character))
 
 
 def main(arguments):
