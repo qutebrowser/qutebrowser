@@ -15,3 +15,6 @@ flake8-tuple
 pep8-naming
 pydocstyle
 pyflakes
+
+# https://github.com/PyCQA/pycodestyle/issues/741
+#@ filter: pycodestyle < 2.4.0
