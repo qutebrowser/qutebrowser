@@ -48,7 +48,7 @@ class WebEngineView(QWebEngineView):
         else:
             profile = webenginesettings.default_profile
         page = WebEnginePage(theme_color=theme_color, profile=profile,
-                             parent=self)
+                             parent=self, win_id=win_id)
         self.setPage(page)
 
     def shutdown(self):
@@ -130,7 +130,7 @@ class WebEnginePage(QWebEnginePage):
     shutting_down = pyqtSignal()
     navigation_request = pyqtSignal(usertypes.NavigationRequest)
 
-    def __init__(self, *, theme_color, profile, parent=None):
+    def __init__(self, *, theme_color, profile, win_id, parent=None):
         super().__init__(profile, parent)
         self._is_shutting_down = False
         self.featurePermissionRequested.connect(
@@ -138,6 +138,7 @@ class WebEnginePage(QWebEnginePage):
         self._theme_color = theme_color
         self._set_bg_color()
         config.instance.changed.connect(self._set_bg_color)
+        self._win_id = win_id
         self.urlChanged.connect(self._inject_userjs)
 
     @config.change_filter('colors.webpage.bg')
@@ -310,9 +311,17 @@ class WebEnginePage(QWebEnginePage):
             QWebEnginePage.NavigationTypeOther:
                 usertypes.NavigationRequest.Type.other,
         }
+        accept_request = True
+        if(url.scheme() == "qute" and url.path() == "print"):
+            command_dispatcher = objreg.get('command-dispatcher',
+                                            scope='window',
+                                            window=self._win_id)
+            command_dispatcher.printpage()
+            accept_request = False
         navigation = usertypes.NavigationRequest(url=url,
                                                  navigation_type=type_map[typ],
-                                                 is_main_frame=is_main_frame)
+                                                 is_main_frame=is_main_frame,
+                                                 accepted=accept_request)
         self.navigation_request.emit(navigation)
         return navigation.accepted
 

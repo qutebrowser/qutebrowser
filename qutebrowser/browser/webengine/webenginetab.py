@@ -700,6 +700,12 @@ class WebEngineTab(browsertab.AbstractTab):
         self._inject_early_js('js', js_code, subframes=True)
         self._init_stylesheet()
 
+        js_code_print = utils.read_file('javascript/print.js')
+        self._inject_early_js('js',
+                              js_code_print,
+                              subframes=True,
+                              world=QWebEngineScript.MainWorld)
+
         greasemonkey = objreg.get('greasemonkey')
         greasemonkey.scripts_reloaded.connect(self._inject_userscripts)
         self._inject_userscripts()
