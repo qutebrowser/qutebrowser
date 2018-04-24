@@ -31,8 +31,16 @@ matrix:
            packages:
            - xvfb
     - os: osx
+      env: TESTENV=py36 OSX=highsierra
+      osx_image: xcode9.3
+      language: generic
+    - os: osx
       env: TESTENV=py36 OSX=sierra
       osx_image: xcode9.2
+      language: generic
+    - os: osx
+      env: TESTENV=py36 OSX=elcapitan
+      osx_image: xcode8
       language: generic
     # https://github.com/qutebrowser/qutebrowser/issues/2013
     # - os: osx
