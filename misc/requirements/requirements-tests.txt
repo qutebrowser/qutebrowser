@@ -2,7 +2,7 @@
 
 attrs==17.4.0
 beautifulsoup4==4.6.0
-cheroot==6.1.2
+cheroot==6.2.4
 click==6.7
 # colorama==0.3.9
 coverage==4.5.1
@@ -11,7 +11,7 @@ fields==5.0.0
 Flask==0.12.2
 glob2==0.6
 hunter==2.0.2
-hypothesis==3.55.1
+hypothesis==3.56.5
 itsdangerous==0.24
 # Jinja2==2.10
 Mako==1.0.7
@@ -28,7 +28,7 @@ pytest-benchmark==3.1.1
 pytest-cov==2.5.1
 pytest-faulthandler==1.5.0
 pytest-instafail==0.3.0
-pytest-mock==1.8.0
+pytest-mock==1.9.0
 pytest-qt==2.3.1
 pytest-repeat==0.4.1
 pytest-rerunfailures==4.0
