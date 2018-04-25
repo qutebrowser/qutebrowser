@@ -145,22 +145,16 @@
         }
     };
 
-    /* TamperMonkey allows assinging to `window` to change the visible global
-     * scope, without breaking other scripts. Eg if the page has set
-     * window.$ for an object for some reason (hello 4chan)
-     * - typeof $ === 'object'
-     * - typeof window.$ == 'undefined'
-     * - window.$ = function() {}
-     * - typeof $ === 'function'
-     * - typeof window.$ == 'function'
-     * Just shadowing `window` won't work because if you try to use '$'
-     * from the global scope you will still get the pages one.
-     * Additionally the userscript expects `window` to actually look
-     * like a fully featured browser window object.
-     *
-     * So let's try to use a Proxy on window and the possibly deprecated
-     * `with` function to make that proxy shadow the global scope.
-     * unsafeWindow should still be the actual global page window.
+    /* 
+     * Try to give userscripts an environment that they expect. Which
+     * seems to be that the global window object should look the same as
+     * the page's one and that if a script writes to an attribute of
+     * window it should be able to access that variable in the global
+     * scope.
+     * Use a Proxy to stop scripts from actually changing the global
+     * window (that's what unsafeWindow is for).
+     * Use the "with" statement to make the proxy provide what looks
+     * like global scope.
      *
      * There are other Proxy functions that we may need to override.
      * set, get and has are definitely required.
@@ -188,7 +182,8 @@
                key in target;
       }
     };
-    const qute_gm_window_proxy = new Proxy(unsafeWindow, qute_gm_windowProxyHandler);
+    const qute_gm_window_proxy = new Proxy(
+      unsafeWindow, qute_gm_windowProxyHandler);
 
     with (qute_gm_window_proxy) {
       // We can't return `this` or `qute_gm_window_proxy` from
