@@ -197,12 +197,11 @@
       // with `with` scope because then it would get assigned to the
       // proxy and we would get the same problem, so we have to make yet
       // another nested scope.
-      function qute_gm_window_scope() {  // why can't this be anonymous?
+      (function() {
         let window = qute_gm_window_proxy;
         // ====== The actual user script source ====== //
 {{ scriptSource }}
         // ====== End User Script ====== //
-      };
-      qute_gm_window_scope();
+      })();
     };
 })();
