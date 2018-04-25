@@ -36,7 +36,7 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *  # noqa: F403
-from qutebrowser.utils import qtutils, standarddir, usertypes, utils
+from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
 from qutebrowser.misc import objects
 
 import qutebrowser.app  # To register commands
@@ -77,6 +77,10 @@ def _apply_platform_markers(config, item):
          "https://bugreports.qt.io/browse/QTBUG-60673"),
         ('unicode_locale', sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
+        ('qtwebkit6021_skip',
+         version.qWebKitVersion and
+         version.qWebKitVersion() == '602.1',
+         "Broken on WebKit 602.1")
     ]
 
     for searched_marker, condition, default_reason in markers:
