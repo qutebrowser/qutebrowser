@@ -43,10 +43,10 @@ import helpers.stubs as stubsmod
 import helpers.utils
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles)
-from qutebrowser.utils import objreg, standarddir, utils
+from qutebrowser.utils import objreg, standarddir, utils, usertypes
 from qutebrowser.browser import greasemonkey
 from qutebrowser.browser.webkit import cookies
-from qutebrowser.misc import savemanager, sql
+from qutebrowser.misc import savemanager, sql, objects
 from qutebrowser.keyinput import modeman
 
 
@@ -360,9 +360,10 @@ def qnam(qapp):
 
 
 @pytest.fixture
-def webengineview(qtbot):
+def webengineview(qtbot, monkeypatch):
     """Get a QWebEngineView if QtWebEngine is available."""
     QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     view = QtWebEngineWidgets.QWebEngineView()
     qtbot.add_widget(view)
     return view
@@ -379,9 +380,10 @@ def webpage(qnam):
 
 
 @pytest.fixture
-def webview(qtbot, webpage):
+def webview(qtbot, webpage, monkeypatch):
     """Get a new QWebView object."""
     QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
 
     view = QtWebKitWidgets.QWebView()
     qtbot.add_widget(view)

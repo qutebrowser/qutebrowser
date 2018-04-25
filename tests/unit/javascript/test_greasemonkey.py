@@ -163,10 +163,14 @@ def test_required_scripts_are_included(download_stub, tmpdir):
 class TestWindowIsolation:
     """Check that greasemonkey scripts get a shadowed global scope."""
 
-    @classmethod
-    def setup_class(cls):
+    @pytest.fixture
+    def setup(self):
+        class SetupData:
+            pass
+        ret = SetupData()
+
         # Change something in the global scope
-        cls.setup_script = "window.$ = 'global'"
+        ret.setup_script = "window.$ = 'global'"
 
         # Greasemonkey script to report back on its scope.
         test_script = greasemonkey.GreasemonkeyScript.parse(
@@ -188,7 +192,7 @@ class TestWindowIsolation:
 
         # The compiled source of that scripts with some additional setup
         # bookending it.
-        cls.test_script = "\n".join([
+        ret.test_script = "\n".join([
             "var result = [];",
             test_script.code(),
             """
@@ -201,21 +205,22 @@ class TestWindowIsolation:
         ])
 
         # What we expect the script to report back.
-        cls.expected = [
+        ret.expected = [
             "global", "global",
             "shadowed", "shadowed",
             "global", "global"]
+        return ret
 
-    def test_webengine(self, callback_checker, webengineview):
+    def test_webengine(self, callback_checker, webengineview, setup):
         page = webengineview.page()
-        page.runJavaScript(self.setup_script)
-        page.runJavaScript(self.test_script, callback_checker.callback)
-        callback_checker.check(self.expected)
+        page.runJavaScript(setup.setup_script)
+        page.runJavaScript(setup.test_script, callback_checker.callback)
+        callback_checker.check(setup.expected)
 
     # The JSCore in 602.1 doesn't fully support Proxy.
     @pytest.mark.qtwebkit6021_skip
-    def test_webkit(self, webview):
+    def test_webkit(self, webview, setup):
         elem = webview.page().mainFrame().documentElement()
-        elem.evaluateJavaScript(self.setup_script)
-        result = elem.evaluateJavaScript(self.test_script)
-        assert result == self.expected
+        elem.evaluateJavaScript(setup.setup_script)
+        result = elem.evaluateJavaScript(setup.test_script)
+        assert result == setup.expected
