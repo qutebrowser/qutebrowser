@@ -85,6 +85,7 @@ git format-patch origin/master <1>
 <1> Replace `master` by the branch your work was based on, e.g.,
 `origin/develop`.
 
+[[python]]
 Running Development Changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 To run the git instance of qutebrowser with modifications (useful for testing out small changes)
