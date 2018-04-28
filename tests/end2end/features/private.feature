@@ -142,8 +142,8 @@ Feature: Using private browsing
     Scenario: Opening bookmark in private window
         When I open data/numbers/1.txt in a private window
         And I run :window-only
-        And I run :bookmark-add http://localhost:(port)/data/numbers/2.txt two
-        And I run :bookmark-load http://localhost:(port)/data/numbers/2.txt 
+        And I run :bookmark-tag http://localhost:(port)/data/numbers/2.txt two
+        And I run :bookmark-load two
         And I wait until data/numbers/2.txt is loaded
         Then the session should look like:
             windows:

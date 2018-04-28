@@ -40,7 +40,7 @@ Feature: Using completion
 
     Scenario: Using bookmark completion
         When I run :set-cmd-text -s :bookmark-load
-        Then the completion model should be bookmark
+        Then the completion model should be bookmark_tag
 
     Scenario: Using bind completion
         When I run :set-cmd-text -s :bind X
