@@ -89,7 +89,9 @@ class BookmarkManager(QObject):
         super().__init__(parent)
 
         self._marks = collections.OrderedDict()
-        self._init_lineparser()
+        bookmarks_path = os.path.join(standarddir.config(), 'bookmarks.jsonl')
+        self._lineparser = lineparser.LineParser(
+            standarddir.config(), bookmarks_path, parent=self)
 
         for line in self._lineparser:
             if not line.strip():
@@ -102,27 +104,16 @@ class BookmarkManager(QObject):
                 tags=data.get('tags', []),
             )
             self._marks[mark.url] = mark
-        self._init_savemanager(objreg.get('save-manager'))
+
+        save_manager = objreg.get('save-manager')
+        save_manager.add_saveable('bookmark-manager', self.save, self.changed,
+                                  filename=bookmarks_path)
 
     def __iter__(self):
         return iter(self._marks.values())
 
     def __contains__(self, url):
         return url in self._marks
-
-    def _init_lineparser(self):
-        bookmarks_directory = os.path.join(standarddir.config(), 'bookmarks')
-        if not os.path.isdir(bookmarks_directory):
-            os.makedirs(bookmarks_directory)
-
-        bookmarks_subdir = os.path.join('bookmarks', 'urls')
-        self._lineparser = lineparser.LineParser(
-            standarddir.config(), bookmarks_subdir, parent=self)
-
-    def _init_savemanager(self, save_manager):
-        filename = os.path.join(standarddir.config(), 'bookmarks', 'urls')
-        save_manager.add_saveable('bookmark-manager', self.save, self.changed,
-                                  filename=filename)
 
     def add(self, url, title, *, toggle=False):
         """Add a new bookmark.

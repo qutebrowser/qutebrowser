@@ -33,7 +33,7 @@ def _check_marks(quteproc, expected, contains):
         expected: The line to search for.
         contains: True if the line should be there, False otherwise.
     """
-    mark_file = os.path.join(quteproc.basedir, 'config', 'bookmarks', 'urls')
+    mark_file = os.path.join(quteproc.basedir, 'config', 'bookmarks.jsonl')
 
     quteproc.clear_data()  # So we don't match old messages
     quteproc.send_cmd(':save')

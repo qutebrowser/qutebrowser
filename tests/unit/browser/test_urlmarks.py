@@ -29,10 +29,7 @@ from qutebrowser.browser import urlmarks
 
 @pytest.fixture
 def bm_file(config_tmpdir):
-    bm_dir = config_tmpdir / 'bookmarks'
-    bm_dir.mkdir()
-    bm_file = bm_dir / 'urls'
-    return bm_file
+    return config_tmpdir / 'bookmarks.jsonl'
 
 
 def test_init(bm_file, fake_save_manager):
@@ -63,7 +60,7 @@ def test_init(bm_file, fake_save_manager):
 
 def test_init_empty(config_tmpdir, fake_save_manager):
     urlmarks.BookmarkManager()
-    path = config_tmpdir / 'bookmarks' / 'urls'
+    path = config_tmpdir / 'bookmarks.jsonl'
     path.ensure()
 
 
