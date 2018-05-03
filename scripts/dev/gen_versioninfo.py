@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 import qutebrowser
 
-out_filename = 'file_version_info.txt'
+out_filename = 'misc/file_version_info.txt'
 
 filevers = qutebrowser.__version_info__ + (0,)
 prodvers = qutebrowser.__version_info__ + (0,)
