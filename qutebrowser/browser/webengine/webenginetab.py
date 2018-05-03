@@ -780,6 +780,8 @@ class WebEngineTab(browsertab.AbstractTab):
             url: The QUrl to open.
             predict: If set to False, predicted_navigation is not emitted.
         """
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
+        self._widget.setFocus()
         self._saved_zoom = self.zoom.factor()
         self._openurl_prepare(url, predict=predict)
         self._widget.load(url)
