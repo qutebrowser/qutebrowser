@@ -81,7 +81,9 @@ Fixed
 - The Makefile (intended for packagers) now supports `PREFIX` properly.
 - The workaround for a black window with Nvidia graphics is now enabled on
   non-Linux systems (like FreeBSD) as well.
-- Initial support for Qt 5.11
+- Initial support for Qt 5.11.
+- Checking for a new version after sending a crash report now works properly
+  again.
 
 v1.2.1
 ------
