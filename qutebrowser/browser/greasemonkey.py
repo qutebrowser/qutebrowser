@@ -31,8 +31,7 @@ import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
-                               javascript)
-from qutebrowser.utils.urlmatch import UrlPattern
+                               javascript, urlmatch)
 from qutebrowser.commands import cmdutils
 from qutebrowser.browser import downloads
 
@@ -147,6 +146,42 @@ class MatchingScripts(object):
     idle = attr.ib(default=attr.Factory(list))
 
 
+class GreasemonkeyMatcher:
+
+    """Check whether scripts should be loaded for a given URL."""
+
+    # https://wiki.greasespot.net/Include_and_exclude_rules#Greaseable_schemes
+    # Limit the schemes scripts can run on due to unreasonable levels of
+    # exploitability
+    GREASEABLE_SCHEMES = ['http', 'https', 'ftp', 'file']
+
+    def __init__(self, url):
+        self._url = url
+        self._url_string = url.toString(QUrl.FullyEncoded)
+        self.is_greaseable = url.scheme() in self.GREASEABLE_SCHEMES
+
+    def _match_pattern(self, pattern):
+        # For include and exclude rules if they start and end with '/' they
+        # should be treated as a (ecma syntax) regular expression.
+        if pattern.startswith('/') and pattern.endswith('/'):
+            matches = re.search(pattern[1:-1], self._url_string, flags=re.I)
+            return matches is not None
+
+        # Otherwise they are glob expressions.
+        return fnmatch.fnmatch(self._url_string, pattern)
+
+    def matches(self, script):
+        """Check whether the URL matches filtering rules of the given script."""
+        assert self.is_greaseable
+        matching_includes = any(self._match_pattern(pat)
+                                for pat in script.includes)
+        matching_match = any(urlmatch.UrlPattern(pat).matches(self._url)
+                             for pat in script.matches)
+        matching_excludes = any(self._match_pattern(pat)
+                                for pat in script.excludes)
+        return (matching_includes or matching_match) and not matching_excludes
+
+
 class GreasemonkeyManager(QObject):
 
     """Manager of userscripts and a Greasemonkey compatible environment.
@@ -158,10 +193,6 @@ class GreasemonkeyManager(QObject):
     """
 
     scripts_reloaded = pyqtSignal()
-    # https://wiki.greasespot.net/Include_and_exclude_rules#Greaseable_schemes
-    # Limit the schemes scripts can run on due to unreasonable levels of
-    # exploitability
-    greaseable_schemes = ['http', 'https', 'ftp', 'file']
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -313,34 +344,17 @@ class GreasemonkeyManager(QObject):
         returns a tuple of lists of scripts meant to run at (document-start,
         document-end, document-idle)
         """
-        if url.scheme() not in self.greaseable_schemes:
+        matcher = GreasemonkeyMatcher(url)
+        if not matcher.is_greaseable:
             return MatchingScripts(url, [], [], [])
-
-        string_url = url.toString(QUrl.FullyEncoded)
-
-        def _match(pattern):
-            # For include and exclude rules if they start and end with '/' they
-            # should be treated as a (ecma syntax) regular expression.
-            if pattern.startswith('/') and pattern.endswith('/'):
-                matches = re.search(pattern[1:-1], string_url, flags=re.I)
-                return matches is not None
-
-            # Otherwise they are glob expressions.
-            return fnmatch.fnmatch(string_url, pattern)
-
-        def _chromium_match(pattern):
-            return UrlPattern(pattern).matches(url)
-
-        tester = (lambda script:
-                  (any(_match(pat) for pat in script.includes) or
-                   any(_chromium_match(pat) for pat in script.matches)) and
-                  not any(_match(pat) for pat in script.excludes))
-
         return MatchingScripts(
-            url,
-            [script for script in self._run_start if tester(script)],
-            [script for script in self._run_end if tester(script)],
-            [script for script in self._run_idle if tester(script)]
+            url=url,
+            start=[script for script in self._run_start
+                   if matcher.matches(script)],
+            end=[script for script in self._run_end
+                 if matcher.matches(script)],
+            idle=[script for script in self._run_idle
+                  if matcher.matches(script)]
         )
 
     def all_scripts(self):
