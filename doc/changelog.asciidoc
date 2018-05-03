@@ -91,6 +91,7 @@ Fixed
   syntax.
 - Searching via `/` or `?` now doesn't handle any characters in a special way.
 - Fixed crash when trying to retry some failed downloads on QtWebEngine.
+- An invalid spellcheck dictionary filename now doesn't crash anymore.
 
 v1.2.1
 ------
