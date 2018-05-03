@@ -89,6 +89,7 @@ Fixed
   properly.
 - `@match` in Greasemonkey scripts now more closely matches the proper pattern
   syntax.
+- Searching via `/` or `?` now doesn't handle any characters in a special way.
 
 v1.2.1
 ------
