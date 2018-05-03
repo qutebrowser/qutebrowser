@@ -214,22 +214,9 @@ class ProfileSetter:
             value = QWebEngineProfile.NoPersistentCookies
         self._profile.setPersistentCookiesPolicy(value)
 
-    def set_dictionary_language(self, warn=True):
+    def set_dictionary_language(self):
         """Load the given dictionaries."""
-        filenames = []
-        for code in config.val.spellcheck.languages or []:
-            local_filename = spell.local_filename(code)
-            if not local_filename:
-                if warn:
-                    message.warning("Language {} is not installed - see "
-                                    "scripts/dictcli.py in qutebrowser's "
-                                    "sources".format(code))
-                continue
-
-            filenames.append(local_filename)
-
-        log.config.debug("Found dicts: {}".format(filenames))
-        self._profile.setSpellCheckLanguages(filenames)
+        spell.init(self._profile)
 
 
 def _update_settings(option):
@@ -250,7 +237,7 @@ def _update_settings(option):
         # We're not touching the private profile's cookie policy.
     elif option == 'spellcheck.languages':
         default_profile.setter.set_dictionary_language()
-        private_profile.setter.set_dictionary_language(warn=False)
+        private_profile.setter.set_dictionary_language()
 
 
 def _init_profiles():
