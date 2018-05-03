@@ -67,7 +67,7 @@ def test_get_version_success(qtbot):
         with qtbot.waitSignal(client.success):
             client.get_version('test')
 
-    assert http_stub.url == QUrl('https://pypi.python.org/pypi/test/json')
+    assert http_stub.url == QUrl(client.API_URL.format('test'))
 
 
 def test_get_version_error(qtbot):
