@@ -87,6 +87,8 @@ Fixed
   again.
 - The `qute-pass` userscript now handles special chars in usernames/passwords
   properly.
+- `@match` in Greasemonkey scripts now more closely matches the proper pattern
+  syntax.
 
 v1.2.1
 ------
