@@ -26,6 +26,7 @@ Added
   search term is given.
 - New `tabs.min_width` setting to configure the minimal width for tabs.
 - New `getbib` userscript to download bibtex information for DOIs on a page.
+- New `qute-keepass` userscript to get passwords from KeePassX.
 
 Changed
 ~~~~~~~
