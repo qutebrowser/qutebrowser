@@ -174,6 +174,11 @@ Feature: Using hints
         # The actual check is already done above
         Then no crash should happen
 
+    Scenario: Error with invalid hint group
+        When I open data/hints/buttons.html
+        And I run :hint INVALID_GROUP
+        Then the error "Undefined hinting group 'INVALID_GROUP'!" should be shown
+
     # https://github.com/qutebrowser/qutebrowser/issues/1613
     Scenario: Hinting inputs with padding
         When I open data/hints/input.html
