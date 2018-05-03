@@ -15,8 +15,8 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.3.0 (unreleased)
--------------------
+v1.3.0
+------
 
 Added
 ~~~~~
@@ -25,8 +25,9 @@ Added
 - New `url.open_base_url` option to open the base URL of a searchengine when no
   search term is given.
 - New `tabs.min_width` setting to configure the minimal width for tabs.
-- New `getbib` userscript to download bibtex information for DOIs on a page.
-- New `qute-keepass` userscript to get passwords from KeePassX.
+- New userscripts:
+  * `getbib` to download bibtex information for DOIs on a page.
+  * `qute-keepass` to get passwords from KeePassX.
 
 Changed
 ~~~~~~~
@@ -52,7 +53,6 @@ Changed
   combines various sources.
 - Error messages when trying to wrap when `tabs.wrap` is `False` are now logged
   to debug instead of messages.
-
 
 Fixed
 ~~~~~
@@ -85,8 +85,6 @@ Fixed
 - Initial support for Qt 5.11.
 - Checking for a new version after sending a crash report now works properly
   again.
-- The `qute-pass` userscript now handles special chars in usernames/passwords
-  properly.
 - `@match` in Greasemonkey scripts now more closely matches the proper pattern
   syntax.
 - Searching via `/` or `?` now doesn't handle any characters in a special way.
@@ -95,6 +93,7 @@ Fixed
 - When no spellcheck dictionaries are configured, it's now disabled internally.
   This works around an issue with entering special characters on Facebook
   messenger.
+- The macOS release now should work again on macOS 10.11 and newer.
 
 v1.2.1
 ------
