@@ -273,8 +273,8 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         width = self.fontMetrics().width(text)
         return QSize(width, height)
 
-    @pyqtSlot(str)
-    def _incremental_search(self, text):
+    @pyqtSlot()
+    def _incremental_search(self):
         if not config.val.search.incremental:
             return
 

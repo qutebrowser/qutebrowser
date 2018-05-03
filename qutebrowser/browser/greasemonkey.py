@@ -171,7 +171,7 @@ class GreasemonkeyMatcher:
         return fnmatch.fnmatch(self._url_string, pattern)
 
     def matches(self, script):
-        """Check whether the URL matches filtering rules of the given script."""
+        """Check whether the URL matches filtering rules of the script."""
         assert self.is_greaseable
         matching_includes = any(self._match_pattern(pat)
                                 for pat in script.includes)
