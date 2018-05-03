@@ -84,6 +84,8 @@ Fixed
 - Initial support for Qt 5.11.
 - Checking for a new version after sending a crash report now works properly
   again.
+- The `qute-pass` userscript now handles special chars in usernames/passwords
+  properly.
 
 v1.2.1
 ------
