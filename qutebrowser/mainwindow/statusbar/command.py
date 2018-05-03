@@ -19,6 +19,8 @@
 
 """The commandline in the statusbar."""
 
+import functools
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import QSizePolicy
 
@@ -68,6 +70,14 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.textChanged.connect(self.update_completion)
         self.textChanged.connect(self.updateGeometry)
         self.textChanged.connect(self._incremental_search)
+
+        dispatcher = objreg.get('command-dispatcher',
+                                scope='window', window=self._win_id)
+        search_fn = dispatcher.search
+        self.search_prefixes = {
+            '/': search_fn,
+            '?': functools.partial(search_fn, reverse=True)
+        }
 
     def prefix(self):
         """Get the currently entered command prefix."""
@@ -162,17 +172,17 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             rapid: Run the command without closing or clearing the command bar.
         """
-        prefixes = {
-            ':': '',
-            '/': 'search -- ',
-            '?': 'search -r -- ',
-        }
         text = self.text()
         self.history.append(text)
         if not rapid:
             modeman.leave(self._win_id, usertypes.KeyMode.command,
                           'cmd accept')
-        self.got_cmd[str].emit(prefixes[text[0]] + text[1:])
+
+        prefix = text[0]
+        if prefix in self.search_prefixes:
+            self.search_prefixes[prefix](text[1:])
+        else:
+            self.got_cmd[str].emit(text[1:])
 
     @cmdutils.register(instance='status-command', scope='window')
     def edit_command(self, run=False):
@@ -258,10 +268,5 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         if not config.val.search.incremental:
             return
 
-        search_prefixes = {
-            '/': 'search -- ',
-            '?': 'search -r -- ',
-        }
-
-        if self.prefix() in ['/', '?']:
-            self.got_cmd[str].emit(search_prefixes[text[0]] + text[1:])
+        if self.prefix() in self.search_prefixes:
+            self.search_prefixes[self.prefix()](text[1:])

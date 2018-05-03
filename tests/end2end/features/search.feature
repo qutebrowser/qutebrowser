@@ -40,10 +40,25 @@ Feature: Searching on a page
         Then "space " should be found
 
     Scenario: Searching with / and slash in search term (issue 507)
-        When I run :set-cmd-text -s //slash
+        When I run :set-cmd-text //slash
         And I run :command-accept
         And I wait for "search found /slash" in the log
         Then "/slash" should be found
+
+    Scenario: Searching with arguments at start of search term
+        When I run :set-cmd-text /-r reversed
+        And I run :command-accept
+        And I wait for "search found -r reversed" in the log
+        Then "-r reversed" should be found
+
+    Scenario: Searching with semicolons in search term
+        When I run :set-cmd-text /;
+        And I run :fake-key -g ;
+        And I run :fake-key -g <space>
+        And I run :fake-key -g semi
+        And I run :command-accept
+        And I wait for "search found ;; semi" in the log
+        Then ";; semi" should be found
 
     # This doesn't work because this is QtWebKit behavior.
     @xfail_norun
