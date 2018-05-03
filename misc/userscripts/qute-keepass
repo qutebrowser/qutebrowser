@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+
+# Copyright 2018 Jay Kamat <jaygkamat@gmail.com>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""This userscript allows for insertion of usernames and passwords from keepass
+databases using pykeepass. Since it is a userscript, it must be run from
+qutebrowser.
+
+A sample invocation of this script is:
+
+:spawn --userscript qute-keepass -p ~/KeePassFiles/MainDatabase.kdbx
+
+And a sample binding
+
+:bind --mode=insert <ctrl-i> spawn --userscript qute-keepass -p ~/KeePassFiles/MainDatabase.kdbx
+
+-p or --path is a required argument.
+
+--keyfile-path allows you to specify a keepass keyfile. If you only use a
+keyfile, also add --no-password as well. Specifying --no-password without
+--keyfile-path will lead to an error.
+
+login information is inserted using :insert-text and :fake-key <Tab>, which
+means you must have a cursor in position before initiating this userscript. If
+you do not do this, you will get 'element not editable' errors.
+
+If keepass takes a while to open the DB, you might want to consider reducing
+the number of transform rounds in your database settings.
+
+Dependencies: pykeepass (in python3), PyQt5. Without pykeepass, you will get an
+exit code of 100.
+
+********************!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!******************
+
+WARNING: The login details are viewable as plaintext in qutebrowser's debug log
+(qute://log) and could be compromised if you decide to submit a crash report!
+
+********************!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!******************
+
+"""
+
+# pylint: disable=bad-builtin
+
+import argparse
+import enum
+import functools
+import os
+import shlex
+import subprocess
+import sys
+
+from PyQt5.QtCore import QUrl
+from PyQt5.QtWidgets import QApplication, QInputDialog, QLineEdit
+
+try:
+    import pykeepass
+except ImportError as e:
+    print("pykeepass not found: {}".format(str(e)), file=sys.stderr)
+
+    # Since this is a common error, try to print it to the FIFO if we can.
+    if 'QUTE_FIFO' in os.environ:
+        with open(os.environ['QUTE_FIFO'], 'w') as fifo:
+            fifo.write('message-error "pykeepass failed to be imported."\n')
+            fifo.flush()
+    sys.exit(100)
+
+argument_parser = argparse.ArgumentParser(
+    description="Fill passwords using keepass.",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    epilog=__doc__)
+argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
+argument_parser.add_argument('--path', '-p', required=True,
+                             help='Path to the keepass db.')
+argument_parser.add_argument('--keyfile-path', '-k', default=None,
+                             help='Path to a keepass keyfile')
+argument_parser.add_argument(
+    '--no-password', action='store_true',
+    help='Supply if no password is required to unlock this database. '
+    'Only allowed with --keyfile-path')
+argument_parser.add_argument(
+    '--dmenu-invocation', '-d', default='dmenu',
+    help='Invocation used to execute a dmenu-provider')
+argument_parser.add_argument(
+    '--dmenu-format', '-f', default='{title}: {username}',
+    help='Format string for keys to display in dmenu.'
+    ' Must generate a unique string.')
+argument_parser.add_argument(
+    '--no-insert-mode', '-n', dest='insert_mode', action='store_false',
+    help="Don't automatically enter insert mode")
+argument_parser.add_argument(
+    '--io-encoding', '-i', default='UTF-8',
+    help='Encoding used to communicate with subprocesses')
+group = argument_parser.add_mutually_exclusive_group()
+group.add_argument('--username-fill-only', '-e',
+                   action='store_true', help='Only insert username')
+group.add_argument('--password-fill-only', '-w',
+                   action='store_true', help='Only insert password')
+
+CMD_DELAY = 50
+
+
+class ExitCodes(enum.IntEnum):
+    """Stores various exit codes groups to use."""
+    SUCCESS = 0
+    FAILURE = 1
+    # 1 is automatically used if Python throws an exception
+    NO_CANDIDATES = 2
+    USER_QUIT = 3
+    DB_OPEN_FAIL = 4
+
+    INTERNAL_ERROR = 10
+
+
+def qute_command(command):
+    with open(os.environ['QUTE_FIFO'], 'w') as fifo:
+        fifo.write(command + '\n')
+        fifo.flush()
+
+
+def stderr(to_print):
+    """Extra functionality to echo out errors to qb ui."""
+    print(to_print, file=sys.stderr)
+    qute_command('message-error "{}"'.format(to_print))
+
+
+def dmenu(items, invocation, encoding):
+    """Runs dmenu with given arguments."""
+    command = shlex.split(invocation)
+    process = subprocess.run(command, input='\n'.join(items).encode(encoding),
+                             stdout=subprocess.PIPE)
+    return process.stdout.decode(encoding).strip()
+
+
+def get_password():
+    """Get a keepass db password from user."""
+    _app = QApplication(sys.argv)
+    text, ok = QInputDialog.getText(
+        None, "KeePass DB Password",
+        "Please enter your KeePass Master Password",
+        QLineEdit.Password)
+    if not ok:
+        stderr('Password Prompt Rejected.')
+        sys.exit(ExitCodes.USER_QUIT)
+    return text
+
+
+def find_candidates(args, host):
+    """Finds candidates that match host"""
+    file_path = os.path.expanduser(args.path)
+
+    # TODO find a way to keep the db open, so we don't open (and query
+    # password) it every time
+
+    pw = None
+    if not args.no_password:
+        pw = get_password()
+
+    kf = args.keyfile_path
+    if kf:
+        kf = os.path.expanduser(kf)
+
+    try:
+        kp = pykeepass.PyKeePass(file_path, password=pw, keyfile=kf)
+    except Exception as e:
+        stderr("There was an error opening the DB: {}".format(str(e)))
+
+    return kp.find_entries(url="{}{}{}".format(".*", host, ".*"), regex=True)
+
+
+def candidate_to_str(args, candidate):
+    """Turns candidate into a human readable string for dmenu"""
+    return args.dmenu_format.format(title=candidate.title,
+                                    url=candidate.url,
+                                    username=candidate.username,
+                                    path=candidate.path,
+                                    uuid=candidate.uuid)
+
+
+def candidate_to_secret(candidate):
+    """Turns candidate into a generic (user, password) tuple"""
+    return (candidate.username, candidate.password)
+
+
+def run(args):
+    """Runs qute-keepass"""
+    if not args.url:
+        argument_parser.print_help()
+        return ExitCodes.FAILURE
+
+    url_host = QUrl(args.url).host()
+
+    if not url_host:
+        stderr('{} was not parsed as a valid URL!'.format(args.url))
+        return ExitCodes.INTERNAL_ERROR
+
+    # Find candidates matching the host of the given URL
+    candidates = find_candidates(args, url_host)
+    if not candidates:
+        stderr('No candidates for URL {!r} found!'.format(args.url))
+        return ExitCodes.NO_CANDIDATES
+
+    # Create a map so we can get turn the resulting string from dmenu back into
+    # a candidate
+    candidates_strs = list(map(functools.partial(candidate_to_str, args),
+                               candidates))
+    candidates_map = dict(zip(candidates_strs, candidates))
+
+    if len(candidates) == 1:
+        selection = candidates.pop()
+    else:
+        selection = dmenu(candidates_strs,
+                          args.dmenu_invocation,
+                          args.io_encoding)
+
+        if selection not in candidates_map:
+            stderr("'{}' was not a valid entry!").format(selection)
+            return ExitCodes.USER_QUIT
+
+        selection = candidates_map[selection]
+
+    username, password = candidate_to_secret(selection)
+
+    insert_mode = ';; enter-mode insert' if args.insert_mode else ''
+    if args.username_fill_only:
+        qute_command('insert-text {}{}'.format(username, insert_mode))
+    elif args.password_fill_only:
+        qute_command('insert-text {}{}'.format(password, insert_mode))
+    else:
+        # Enter username and password using insert-key and fake-key <Tab>
+        # (which supports more passwords than fake-key only), then switch back
+        # into insert-mode, so the form can be directly submitted by hitting
+        # enter afterwards. It dosen't matter when we go into insert mode, but
+        # the other commands need to be be executed sequentially, so we add
+        # delays with later.
+        qute_command('insert-text {} ;;'
+                     'later {} fake-key <Tab> ;;'
+                     'later {} insert-text {}{}'
+                     .format(username, CMD_DELAY,
+                             CMD_DELAY * 2, password, insert_mode))
+
+    return ExitCodes.SUCCESS
+
+
+if __name__ == '__main__':
+    arguments = argument_parser.parse_args()
+    sys.exit(run(arguments))
