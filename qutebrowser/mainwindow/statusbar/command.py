@@ -186,11 +186,13 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         """
         text = self.text()
         self.history.append(text)
+
+        was_search = self._handle_search()
+
         if not rapid:
             modeman.leave(self._win_id, usertypes.KeyMode.command,
                           'cmd accept')
 
-        was_search = self._handle_search()
         if not was_search:
             self.got_cmd[str].emit(text[1:])
 
