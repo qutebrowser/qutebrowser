@@ -20,7 +20,6 @@
 """The main tabbed browser widget."""
 
 import functools
-
 import attr
 from PyQt5.QtWidgets import QSizePolicy, QWidget
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
@@ -109,6 +108,7 @@ class TabbedBrowser(QWidget):
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
+    crash_count = 0
 
     def __init__(self, *, win_id, private, parent=None):
         super().__init__(parent)
@@ -736,6 +736,9 @@ class TabbedBrowser(QWidget):
         if status == browsertab.TerminationStatus.normal:
             return
 
+        tab_id = self._tab_index(tab)
+        focused_tab_id = self._tab_index(self._now_focused)
+
         messages = {
             browsertab.TerminationStatus.abnormal:
                 "Renderer process exited with status {}".format(code),
@@ -746,13 +749,26 @@ class TabbedBrowser(QWidget):
             browsertab.TerminationStatus.unknown:
                 "Renderer process did not start",
         }
+
+        crash_messages = {
+            browsertab.TerminationStatus.abnormal:
+                "Renderer process exited with status {} {} times, not retrying".format(code, self.crash_count),
+            browsertab.TerminationStatus.crashed:
+                "Renderer process crashed {} times, not retrying".format(self.crash_count),
+            browsertab.TerminationStatus.killed:
+                "Renderer process was killed {} times, not retrying".format(self.crash_count),
+             browsertab.TerminationStatus.unknown:
+                "Renderer process did not start {} times, not retrying".format(self.crash_count),
+        }
+
         msg = messages[status]
+        crash_msg = crash_messages[status]
 
         def show_error_page(html):
             tab.set_html(html)
             log.webview.error(msg)
 
-        if qtutils.version_check('5.9', compiled=False):
+        if qtutils.version_check('5.9', compiled=False) and config.val.crash_count == -1:
             url_string = tab.url(requested=True).toDisplayString()
             error_page = jinja.render(
                 'error.html', title="Error loading {}".format(url_string),
@@ -764,6 +780,15 @@ class TabbedBrowser(QWidget):
             self._remove_tab(tab, crashed=True)
             if self.widget.count() == 0:
                 self.tabopen(QUrl('about:blank'))
+
+        if config.val.crash_count == -1:
+            pass
+        elif self.crash_count < config.val.crash_count:
+            self.crash_count+=1
+            url_string = tab.url(requested=True).toDisplayString()
+            self.tabopen(QUrl(url_string), idx=tab_id, background=focused_tab_id != tab_id)
+        elif self.crash_count == config.val.crash_count:
+            message.error(crash_msg)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
