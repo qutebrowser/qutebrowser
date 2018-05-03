@@ -92,6 +92,9 @@ Fixed
 - Searching via `/` or `?` now doesn't handle any characters in a special way.
 - Fixed crash when trying to retry some failed downloads on QtWebEngine.
 - An invalid spellcheck dictionary filename now doesn't crash anymore.
+- When no spellcheck dictionaries are configured, it's now disabled internally.
+  This works around an issue with entering special characters on Facebook
+  messenger.
 
 v1.2.1
 ------
