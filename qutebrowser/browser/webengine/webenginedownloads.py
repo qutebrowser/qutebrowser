@@ -101,7 +101,11 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def retry(self):
         state = self._qt_item.state()
-        assert state == QWebEngineDownloadItem.DownloadInterrupted, state
+        if state != QWebEngineDownloadItem.DownloadInterrupted:
+            log.downloads.warning(
+                "Trying to retry download in state {}".format(
+                    debug.qenum_key(QWebEngineDownloadItem, state)))
+            return
 
         try:
             self._qt_item.resume()

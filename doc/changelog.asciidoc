@@ -90,6 +90,7 @@ Fixed
 - `@match` in Greasemonkey scripts now more closely matches the proper pattern
   syntax.
 - Searching via `/` or `?` now doesn't handle any characters in a special way.
+- Fixed crash when trying to retry some failed downloads on QtWebEngine.
 
 v1.2.1
 ------
