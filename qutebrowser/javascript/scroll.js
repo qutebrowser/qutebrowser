@@ -69,9 +69,8 @@ window._qutebrowser.scroll = (function() {
     }
 
     funcs.to_perc = (x, y) => {
-        const elem = document.activeElement;
         // If we are in a frame, scroll that frame
-        const frame_win = utils.get_frame_window(elem);
+        const frame_win = utils.get_frame_window(document.activeElement);
         scroll_to_perc(x, y, frame_win, frame_win.document);
     };
 
@@ -80,27 +79,17 @@ window._qutebrowser.scroll = (function() {
         const dx = win.innerWidth * x;
         const dy = win.innerHeight * y;
         win.scrollBy(dx, dy);
-        return true;
-    }
-
-    // Scroll a provided win by x, y by raw pixels
-    function scroll_window_raw(x, y, win) {
-        win.scrollBy(x, y);
-        return true;
     }
 
     funcs.delta_page = (x, y) => {
-        const elem = document.activeElement;
-        // If we are in a frame, scroll that frame
-        const frame_win = utils.get_frame_window(elem);
+        const frame_win = utils.get_frame_window(document.activeElement);
         scroll_window(x, y, frame_win);
     };
 
     funcs.delta_px = (x, y) => {
-        const elem = document.activeElement;
-        // If we are in a frame, scroll that frame
-        const frame_win = utils.get_frame_window(elem);
-        scroll_window_raw(x, y, frame_win);
+        const frame_win = utils.get_frame_window(document.activeElement);
+        // Scroll by raw pixels, rather than by page
+        frame_win.scrollBy(x, y);
     };
 
     return funcs;
