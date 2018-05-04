@@ -43,7 +43,7 @@ window._qutebrowser.webelem = (function() {
     const utils = window._qutebrowser.utils;
 
     function get_frame_offset(frame) {
-        if (frame === null) {
+        if (frame === null || !frame.frameElement) {
             // Dummy object with zero offset
             return {
                 "top": 0,
