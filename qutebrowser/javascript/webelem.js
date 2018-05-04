@@ -274,7 +274,7 @@ window._qutebrowser.webelem = (function() {
             return null;
         }
 
-        // Check if we got an iframe, and if so, recurse inside of it
+        // Get the window of the frame/root
         const frame_win = utils.get_frame_window(elem);
         return serialize_elem(frame_win.document.activeElement, frame_win);
     };
@@ -285,7 +285,6 @@ window._qutebrowser.webelem = (function() {
         // Check if we got an iframe, and if so, recurse inside of it
         const frame_win = utils.get_frame_window(elem);
 
-        // In a frame
         if (frame_win !== window) {
             // Subtract offsets due to being in an iframe
             const frame_offset_rect =
