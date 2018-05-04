@@ -179,6 +179,17 @@ Feature: Using hints
         And I run :hint INVALID_GROUP
         Then the error "Undefined hinting group 'INVALID_GROUP'!" should be shown
 
+    Scenario: Custom hint group
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom": [".clickable"]}
+        And I hint with args "--rapid custom"
+        And I run :follow-hint a
+        And I run :follow-hint s
+        And I run :follow-hint d
+        Then the javascript message "beep!" should be logged
+        And the javascript message "bop!" should be logged
+        And the javascript message "boop!" should be logged
+
     # https://github.com/qutebrowser/qutebrowser/issues/1613
     Scenario: Hinting inputs with padding
         When I open data/hints/input.html
