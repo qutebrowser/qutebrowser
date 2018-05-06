@@ -165,6 +165,7 @@ class TestWindowIsolation:
 
     @pytest.fixture
     def setup(self):
+        # pylint: disable=attribute-defined-outside-init
         class SetupData:
             pass
         ret = SetupData()
