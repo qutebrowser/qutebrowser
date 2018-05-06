@@ -31,9 +31,10 @@ import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
-                               javascript, urlmatch)
+                               javascript, urlmatch, version, usertypes)
 from qutebrowser.commands import cmdutils
 from qutebrowser.browser import downloads
+from qutebrowser.misc import objects
 
 
 def _scripts_dir():
@@ -108,13 +109,18 @@ class GreasemonkeyScript:
         browser's debugger/inspector will not match up to the line
         numbers in the source script directly.
         """
+        # Don't use Proxy on this webkit version, the support isn't there.
+        use_proxy = not (
+            objects.backend == usertypes.Backend.QtWebKit and
+            version.qWebKitVersion() == '602.1')
         template = jinja.js_environment.get_template('greasemonkey_wrapper.js')
         return template.render(
             scriptName=javascript.string_escape(
                 "/".join([self.namespace or '', self.name])),
             scriptInfo=self._meta_json(),
             scriptMeta=javascript.string_escape(self.script_meta),
-            scriptSource=self._code)
+            scriptSource=self._code,
+            use_proxy=use_proxy)
 
     def _meta_json(self):
         return json.dumps({
