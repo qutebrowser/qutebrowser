@@ -7,15 +7,13 @@
     </head>
     <body>
         <iframe id="scroll-frame" style="margin: 50px;" src="/data/scroll/simple.html"></iframe>
-
+        <script>
+            let frame = document.getElementById("scroll-frame");
+            const win = frame.contentWindow;
+            win.addEventListener('scroll', () =>  {
+                console.log("scroll y px: " + win.scrollY);
+            });
+            console.log(frame);
+        </script>
     </body>
-
-    <script>
-        let frame = document.getElementById("scroll-frame");
-        const win = frame.contentWindow;
-        win.addEventListener('scroll', () =>  {
-            console.log("scroll y px: " + win.scrollY);
-        });
-        console.log(frame);
-    </script>
 </html>

@@ -25,7 +25,7 @@ window._qutebrowser.scroll = (function() {
     const utils = window._qutebrowser.utils;
 
     // Helper function which scrolls the document 'doc' and window 'win' to x, y
-    function scroll_to_perc(x, y, win = window, doc = document) {
+    function scroll_to_perc(x, y, win, doc) {
         let x_px = win.scrollX;
         let y_px = win.scrollY;
 
@@ -75,7 +75,7 @@ window._qutebrowser.scroll = (function() {
     };
 
     // Scroll a provided window by x,y as a percent
-    function scroll_window(x, y, win = window) {
+    function scroll_window(x, y, win) {
         const dx = win.innerWidth * x;
         const dy = win.innerHeight * y;
         win.scrollBy(dx, dy);
