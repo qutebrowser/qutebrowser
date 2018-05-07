@@ -427,11 +427,15 @@ class WebEngineScroller(browsertab.AbstractScroller):
         return self._pos_perc
 
     def to_perc(self, x=None, y=None):
-        js_code = javascript.assemble('scroll', 'to_perc', x, y)
+        js_code = javascript.assemble('scroll', 'to_perc', x, y,
+                                      config.val.scrolling.smooth)
         self._tab.run_js_async(js_code)
 
     def to_point(self, point):
-        js_code = javascript.assemble('window', 'scroll', point.x(), point.y())
+        # FIXME to_point will try to go to the same point point even in
+        # different frames, but this does not make sense when using marks.
+        js_code = javascript.assemble('scroll', 'to_px', point.x(), point.y(),
+                                      config.val.scrolling.smooth)
         self._tab.run_js_async(js_code)
 
     def to_anchor(self, name):
@@ -440,11 +444,13 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.openurl(url)
 
     def delta(self, x=0, y=0):
-        js_code = javascript.assemble('scroll', 'delta_px', x, y)
+        js_code = javascript.assemble('scroll', 'delta_px', x, y,
+                                      config.val.scrolling.smooth)
         self._tab.run_js_async(js_code)
 
     def delta_page(self, x=0, y=0):
-        js_code = javascript.assemble('scroll', 'delta_page', x, y)
+        js_code = javascript.assemble('scroll', 'delta_page', x, y,
+                                      config.val.scrolling.smooth)
         self._tab.run_js_async(js_code)
 
     def up(self, count=1):
