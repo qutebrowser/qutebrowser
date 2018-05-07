@@ -15,6 +15,15 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.4.0 (unreleased)
+-------------------
+
+Added
+~~~~~
+
+- New `--debug-flag log-requests` to log requests to the debug log for
+  debugging.
+
 v1.3.0
 ------
 

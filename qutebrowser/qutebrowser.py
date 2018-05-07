@@ -159,9 +159,12 @@ def debug_flag_error(flag):
     Available flags:
         debug-exit: Turn on debugging of late exit.
         pdb-postmortem: Drop into pdb on exceptions.
+        no-sql-history: Don't store history items.
+        no-scroll-filtering: Process all scrolling updates.
+        log-requests: Log all network requests.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
-                   'no-scroll-filtering']
+                   'no-scroll-filtering', 'log-requests']
 
     if flag in valid_flags:
         return flag

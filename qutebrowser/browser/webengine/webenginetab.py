@@ -62,8 +62,9 @@ def init():
 
     log.init.debug("Initializing request interceptor...")
     host_blocker = objreg.get('host-blocker')
+    args = objreg.get('args')
     req_interceptor = interceptor.RequestInterceptor(
-        host_blocker, parent=app)
+        host_blocker, args=args, parent=app)
     req_interceptor.install(webenginesettings.default_profile)
     req_interceptor.install(webenginesettings.private_profile)
 
