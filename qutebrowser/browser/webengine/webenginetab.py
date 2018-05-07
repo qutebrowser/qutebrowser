@@ -79,6 +79,10 @@ def init():
         webenginesettings.default_profile.clearAllVisitedLinks)
     hist.history_cleared.connect(
         webenginesettings.private_profile.clearAllVisitedLinks)
+    hist.url_cleared.connect(
+        lambda url: webenginesettings.default_profile.clearVisitedLinks([url]))
+    hist.url_cleared.connect(
+        lambda url: webenginesettings.private_profile.clearVisitedLinks([url]))
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.

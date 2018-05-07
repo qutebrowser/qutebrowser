@@ -52,7 +52,10 @@ class WebHistory(sql.SqlTable):
 
     """The global history of visited pages."""
 
+    # All web history cleared
     history_cleared = pyqtSignal()
+    # one url cleared
+    url_cleared = pyqtSignal(QUrl)
 
     def __init__(self, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
@@ -171,6 +174,7 @@ class WebHistory(sql.SqlTable):
         qtutils.ensure_valid(qurl)
         self.delete('url', self._format_url(qurl))
         self.completion.delete('url', self._format_completion_url(qurl))
+        self.url_cleared.emit(qurl)
 
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):
