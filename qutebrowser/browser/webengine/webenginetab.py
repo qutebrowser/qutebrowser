@@ -73,6 +73,13 @@ def init():
     download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
 
+    # Clear visited links on web history clear
+    hist = objreg.get('web-history')
+    hist.history_cleared.connect(
+        webenginesettings.default_profile.clearAllVisitedLinks)
+    hist.history_cleared.connect(
+        webenginesettings.private_profile.clearAllVisitedLinks)
+
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
 _JS_WORLD_MAP = {
