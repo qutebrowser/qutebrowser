@@ -103,7 +103,7 @@ def get_argparser():
                        help="How many lines of the debug log to keep in RAM "
                        "(-1: unlimited).",
                        default=2000, type=int)
-    debug.add_argument('--debug', help="Turn on debugging options.",
+    debug.add_argument('-d', '--debug', help="Turn on debugging options.",
                        action='store_true')
     debug.add_argument('--json-logging', action='store_true', help="Output log"
                        " lines in JSON format (one object per line).")
@@ -124,9 +124,9 @@ def get_argparser():
                        action='append')
     debug.add_argument('--qt-flag', help="Pass an argument to Qt as flag.",
                        nargs=1, action='append')
-    debug.add_argument('--debug-flag', type=debug_flag_error, default=[],
-                       help="Pass name of debugging feature to be turned on.",
-                       action='append', dest='debug_flags')
+    debug.add_argument('-D', '--debug-flag', type=debug_flag_error,
+                       default=[], help="Pass name of debugging feature to be"
+                       " turned on.", action='append', dest='debug_flags')
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command
