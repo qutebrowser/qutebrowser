@@ -184,7 +184,8 @@ class MainWindow(QWidget):
             private = bool(private)
         self._private = private
         self.tabbed_browser = tabbedbrowser.TabbedBrowser(win_id=self.win_id,
-                                                          private=private)
+                                                          private=private,
+                                                          parent=self)
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
         self._init_command_dispatcher()
@@ -230,6 +231,7 @@ class MainWindow(QWidget):
         config.instance.changed.connect(self._on_config_changed)
 
         objreg.get("app").new_window.emit(self)
+        self._set_decoration(config.val.window.hide_decoration)
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -344,6 +346,8 @@ class MainWindow(QWidget):
         elif option == 'statusbar.position':
             self._add_widgets()
             self._update_overlay_geometries()
+        elif option == 'window.hide_decoration':
+            self._set_decoration(config.val.window.hide_decoration)
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
@@ -492,6 +496,16 @@ class MainWindow(QWidget):
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
         cmd.hide_completion.connect(completion_obj.hide)
+
+    def _set_decoration(self, hidden):
+        """Set the visibility of the window decoration via Qt."""
+        window_flags = Qt.Window
+        refresh_window = self.isVisible()
+        if hidden:
+            window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
+        self.setWindowFlags(window_flags)
+        if refresh_window:
+            self.show()
 
     @pyqtSlot(bool)
     def _on_fullscreen_requested(self, on):

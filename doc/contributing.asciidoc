@@ -687,6 +687,8 @@ as closed.
 * Linux: Run `git checkout v1.$x.$y && ./.venv/bin/python3 scripts/dev/build_release.py --upload v1.$x.$y`.
 * Windows: Run `git checkout v1.X.Y; C:\Python36-32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
 * macOS: Run `git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
-* On server: Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
+* On server:
+  - Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
+  - Run `git pull github master && sudo python3 scripts/asciidoc2html.py --website /srv/http/qutebrowser`
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed.
 * Announce to qutebrowser and qutebrowser-announce mailinglist.

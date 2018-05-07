@@ -22,7 +22,8 @@ import pytest
 from qutebrowser.browser import downloads, qtnetworkdownloads
 
 
-def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache):
+def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache,
+                        fake_args):
     """Simple check for download model internals."""
     manager = qtnetworkdownloads.DownloadManager()
     model = downloads.DownloadModel(manager)

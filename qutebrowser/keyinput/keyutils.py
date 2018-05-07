@@ -58,7 +58,8 @@ def is_special(key, modifiers):
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
     return not (_is_printable(key) and
-                modifiers in [Qt.ShiftModifier, Qt.NoModifier])
+                modifiers in [Qt.ShiftModifier, Qt.NoModifier,
+                              Qt.KeypadModifier])
 
 
 def is_modifier_key(key):
@@ -303,7 +304,8 @@ class KeyInfo:
                 key_string = key_string.lower()
 
         # "special" binding
-        assert is_special(self.key, self.modifiers)
+        assert (is_special(self.key, self.modifiers) or
+                self.modifiers == Qt.KeypadModifier)
         modifier_string = _modifiers_to_string(modifiers)
         return '<{}{}>'.format(modifier_string, key_string)
 

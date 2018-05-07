@@ -62,8 +62,9 @@ def init():
 
     log.init.debug("Initializing request interceptor...")
     host_blocker = objreg.get('host-blocker')
+    args = objreg.get('args')
     req_interceptor = interceptor.RequestInterceptor(
-        host_blocker, parent=app)
+        host_blocker, args=args, parent=app)
     req_interceptor.install(webenginesettings.default_profile)
     req_interceptor.install(webenginesettings.private_profile)
 
@@ -763,7 +764,9 @@ class WebEngineTab(browsertab.AbstractTab):
             scripts.insert(new_script)
 
     def _install_event_filter(self):
-        self._widget.focusProxy().installEventFilter(self._mouse_event_filter)
+        fp = self._widget.focusProxy()
+        if fp is not None:
+            fp.installEventFilter(self._mouse_event_filter)
         self._child_event_filter = mouse.ChildEventFilter(
             eventfilter=self._mouse_event_filter, widget=self._widget,
             parent=self)
@@ -786,6 +789,8 @@ class WebEngineTab(browsertab.AbstractTab):
             url: The QUrl to open.
             predict: If set to False, predicted_navigation is not emitted.
         """
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
+        self._widget.setFocus()
         self._saved_zoom = self.zoom.factor()
         self._openurl_prepare(url, predict=predict)
         self._widget.load(url)

@@ -2,16 +2,16 @@
 
 attrs==17.4.0
 beautifulsoup4==4.6.0
-cheroot==6.0.0
+cheroot==6.2.4
 click==6.7
 # colorama==0.3.9
 coverage==4.5.1
 EasyProcess==0.2.3
 fields==5.0.0
-Flask==0.12.2
+Flask==1.0.1
 glob2==0.6
 hunter==2.0.2
-hypothesis==3.49.0
+hypothesis==3.56.5
 itsdangerous==0.24
 # Jinja2==2.10
 Mako==1.0.7
@@ -20,15 +20,15 @@ more-itertools==4.1.0
 parse==1.8.2
 parse-type==0.4.2
 pluggy==0.6.0
-py==1.5.2
-py-cpuinfo==3.3.0
-pytest==3.4.2
-pytest-bdd==2.20.0
+py==1.5.3
+py-cpuinfo==4.0.0
+pytest==3.5.1
+pytest-bdd==2.21.0
 pytest-benchmark==3.1.1
 pytest-cov==2.5.1
-pytest-faulthandler==1.4.1
+pytest-faulthandler==1.5.0
 pytest-instafail==0.3.0
-pytest-mock==1.7.1
+pytest-mock==1.9.0
 pytest-qt==2.3.1
 pytest-repeat==0.4.1
 pytest-rerunfailures==4.0

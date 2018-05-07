@@ -8,6 +8,7 @@ Feature: Javascript stuff
         When I open data/javascript/consolelog.html
         Then the javascript message "console.log works!" should be logged
 
+    @flaky
     Scenario: Opening/Closing a window via JS
         When I open data/javascript/window_open.html
         And I run :tab-only
@@ -15,7 +16,10 @@ Feature: Javascript stuff
         And I wait for "Changing title for idx 1 to 'about:blank'" in the log
         And I run :tab-focus 1
         And I run :click-element id close-normal
+        And I wait for "[*] window closed" in the log
         Then "Focus object changed: *" should be logged
+        And the following tabs should be open:
+            - data/javascript/window_open.html (active)
 
     @qtwebkit_skip
     Scenario: Opening/closing a modal window via JS
@@ -25,8 +29,11 @@ Feature: Javascript stuff
         And I wait for "Changing title for idx 1 to 'about:blank'" in the log
         And I run :tab-focus 1
         And I run :click-element id close-normal
+        And I wait for "[*] window closed" in the log
         Then "Focus object changed: *" should be logged
         And "Web*Dialog requested, but we don't support that!" should be logged
+        And the following tabs should be open:
+            - data/javascript/window_open.html (active)
 
     # https://github.com/qutebrowser/qutebrowser/issues/906
 
@@ -39,6 +46,7 @@ Feature: Javascript stuff
         And I wait for "Changing title for idx 2 to 'about:blank'" in the log
         And I run :tab-focus 2
         And I run :click-element id close-twice
+        And I wait for "[*] window closed" in the log
         Then "Requested to close * which does not exist!" should be logged
 
     @qtwebkit_skip @flaky
@@ -51,6 +59,7 @@ Feature: Javascript stuff
         And I run :buffer window_open.html
         And I run :click-element id close-twice
         And I wait for "Focus object changed: *" in the log
+        And I wait for "[*] window closed" in the log
         Then no crash should happen
 
     @flaky

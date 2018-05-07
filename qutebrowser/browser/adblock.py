@@ -94,13 +94,7 @@ class HostBlocker:
         _done_count: How many files have been read successfully.
         _local_hosts_file: The path to the blocked-hosts file.
         _config_hosts_file: The path to a blocked-hosts in ~/.config
-
-    Class attributes:
-        WHITELISTED: Hosts which never should be blocked.
     """
-
-    WHITELISTED = ('localhost', 'localhost.localdomain', 'broadcasthost',
-                   'local')
 
     def __init__(self):
         self._blocked_hosts = set()
@@ -234,16 +228,14 @@ class HostBlocker:
         parts = line.split()
         if len(parts) == 1:
             # "one host per line" format
-            host = parts[0]
-        elif len(parts) == 2:
-            # /etc/hosts format
-            host = parts[1]
+            hosts = [parts[0]]
         else:
-            log.misc.error("Failed to parse: {!r}".format(line))
-            return False
+            # /etc/hosts format
+            hosts = parts[1:]
 
-        if host not in self.WHITELISTED:
-            self._blocked_hosts.add(host)
+        for host in hosts:
+            if '.' in host and not host.endswith('.localdomain'):
+                self._blocked_hosts.add(host)
 
         return True
 

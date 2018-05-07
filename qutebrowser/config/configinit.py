@@ -26,7 +26,8 @@ from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc, configcommands)
-from qutebrowser.utils import objreg, usertypes, log, standarddir, message
+from qutebrowser.utils import (objreg, usertypes, log, standarddir, message,
+                               qtutils)
 from qutebrowser.misc import msgbox, objects
 
 
@@ -89,7 +90,7 @@ def _init_envvars():
     if config.val.qt.force_platform is not None:
         os.environ['QT_QPA_PLATFORM'] = config.val.qt.force_platform
 
-    if config.val.window.hide_wayland_decoration:
+    if config.val.window.hide_decoration:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
 
     if config.val.qt.highdpi:
@@ -161,4 +162,12 @@ def qt_args(namespace):
             argv += ['--' + name, value]
 
     argv += ['--' + arg for arg in config.val.qt.args]
+
+    if (objects.backend == usertypes.Backend.QtWebEngine and
+            not qtutils.version_check('5.11', compiled=False)):
+        # WORKAROUND equivalent to
+        # https://codereview.qt-project.org/#/c/217932/
+        # Needed for Qt < 5.9.5 and < 5.10.1
+        argv.append('--disable-shared-workers')
+
     return argv

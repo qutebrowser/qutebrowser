@@ -28,7 +28,8 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, utils, objreg, urlutils
+from qutebrowser.utils import (message, log, usertypes, utils, objreg,
+                               urlutils, debug)
 from qutebrowser.browser import shared
 from qutebrowser.browser.webkit import certificateerror
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
@@ -147,6 +148,7 @@ class NetworkManager(QNetworkAccessManager):
             super().__init__(parent)
         log.init.debug("NetworkManager init done")
         self.adopted_downloads = 0
+        self._args = objreg.get('args')
         self._win_id = win_id
         self._tab_id = tab_id
         self._private = private
@@ -405,6 +407,14 @@ class NetworkManager(QNetworkAccessManager):
                 # Catching RuntimeError because we could be in the middle of
                 # the webpage shutdown here.
                 current_url = QUrl()
+
+        if 'log-requests' in self._args.debug_flags:
+            operation = debug.qenum_key(QNetworkAccessManager, op)
+            operation = operation.replace('Operation', '').upper()
+            log.webview.debug("{} {}, first-party {}".format(
+                operation,
+                req.url().toDisplayString(),
+                current_url.toDisplayString()))
 
         self.set_referer(req, current_url)
         return super().createRequest(op, req, outgoing_data)

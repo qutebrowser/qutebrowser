@@ -1625,9 +1625,7 @@ class TimestampTemplate(BaseType):
 
     """An strftime-like template for timestamps.
 
-    See
-    https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
-    for reference.
+    See https://sqlite.org/lang_datefunc.html for reference.
     """
 
     def to_py(self, value):

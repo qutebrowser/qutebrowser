@@ -179,7 +179,6 @@ class ProfileSetter:
         self._profile.settings().setAttribute(
             QWebEngineSettings.FullScreenSupportEnabled, True)
         if qtutils.version_check('5.8'):
-            self._profile.setSpellCheckEnabled(True)
             self.set_dictionary_language()
 
     def set_http_headers(self):
@@ -230,6 +229,7 @@ class ProfileSetter:
 
         log.config.debug("Found dicts: {}".format(filenames))
         self._profile.setSpellCheckLanguages(filenames)
+        self._profile.setSpellCheckEnabled(bool(filenames))
 
 
 def _update_settings(option):

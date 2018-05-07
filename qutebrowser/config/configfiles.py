@@ -268,6 +268,15 @@ class YamlConfig(QObject):
             del settings['bindings.default']
             self._mark_changed()
 
+        # Option to show favicons only for pinned tabs changed the type of
+        # tabs.favicons.show from Bool to String
+        name = 'tabs.favicons.show'
+        if name in settings:
+            for scope, val in settings[name].items():
+                if isinstance(val, bool):
+                    settings[name][scope] = 'always' if val else 'never'
+                    self._mark_changed()
+
         return settings
 
     def _validate(self, settings):

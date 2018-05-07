@@ -73,3 +73,14 @@ def test_existing_dict(config_stub, monkeypatch):
                     webenginesettings.private_profile]:
         assert profile.isSpellCheckEnabled()
         assert profile.spellCheckLanguages() == ['en-US-8-0']
+
+
+@pytest.mark.skipif(
+    not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
+def test_spell_check_disabled(config_stub, monkeypatch):
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
+    config_stub.val.spellcheck.languages = []
+    webenginesettings._update_settings('spellcheck.languages')
+    for profile in [webenginesettings.default_profile,
+                    webenginesettings.private_profile]:
+        assert not profile.isSpellCheckEnabled()

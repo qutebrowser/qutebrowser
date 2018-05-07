@@ -489,6 +489,8 @@ class TabbedBrowser(QWidget):
                                                self.widget.count())
         else:
             self.widget.setCurrentWidget(tab)
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
+            tab.setFocus()
 
         tab.show()
         self.new_tab.emit(tab, idx)
@@ -531,16 +533,8 @@ class TabbedBrowser(QWidget):
 
     def _update_favicons(self):
         """Update favicons when config was changed."""
-        for i, tab in enumerate(self.widgets()):
-            if config.val.tabs.favicons.show:
-                self.widget.setTabIcon(i, tab.icon())
-                if config.val.tabs.tabs_are_windows:
-                    self.widget.window().setWindowIcon(tab.icon())
-            else:
-                self.widget.setTabIcon(i, QIcon())
-                if config.val.tabs.tabs_are_windows:
-                    window = self.widget.window()
-                    window.setWindowIcon(self.default_window_icon)
+        for tab in self.widgets():
+            self.widget.update_tab_favicon(tab)
 
     @pyqtSlot()
     def on_load_started(self, tab):
@@ -559,7 +553,7 @@ class TabbedBrowser(QWidget):
             tab.data.keep_icon = False
         else:
             if (config.val.tabs.tabs_are_windows and
-                    config.val.tabs.favicons.show):
+                    tab.data.should_show_icon()):
                 self.widget.window().setWindowIcon(self.default_window_icon)
         if idx == self.widget.currentIndex():
             self._update_window_title()
@@ -623,7 +617,7 @@ class TabbedBrowser(QWidget):
             tab: The WebView where the title was changed.
             icon: The new icon
         """
-        if not config.val.tabs.favicons.show:
+        if not tab.data.should_show_icon():
             return
         try:
             idx = self._tab_index(tab)

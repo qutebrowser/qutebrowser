@@ -292,7 +292,7 @@ class TestEarlyInit:
          'QT_XCB_FORCE_SOFTWARE_OPENGL', '1'),
         ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
         ('qt.highdpi', True, 'QT_AUTO_SCREEN_SCALE_FACTOR', '1'),
-        ('window.hide_wayland_decoration', True,
+        ('window.hide_decoration', True,
          'QT_WAYLAND_DISABLE_WINDOWDECORATION', '1')
     ])
     def test_env_vars(self, monkeypatch, config_stub,
@@ -347,6 +347,12 @@ class TestQtArgs:
         mocker.patch.object(parser, 'exit', side_effect=Exception)
         return parser
 
+    @pytest.fixture(autouse=True)
+    def patch_version_check(self, monkeypatch):
+        """Make sure no --disable-shared-workers argument gets added."""
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, compiled: True)
+
     @pytest.mark.parametrize('args, expected', [
         # No Qt arguments
         (['--debug'], [sys.argv[0]]),
@@ -381,6 +387,15 @@ class TestQtArgs:
         parsed = parser.parse_args(['--qt-flag', 'foo'])
         config_stub.val.qt.args = ['bar']
         assert configinit.qt_args(parsed) == [sys.argv[0], '--foo', '--bar']
+
+    def test_shared_workers(self, config_stub, monkeypatch, parser):
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, compiled: False)
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        parsed = parser.parse_args([])
+        expected = [sys.argv[0], '--disable-shared-workers']
+        assert configinit.qt_args(parsed) == expected
 
 
 @pytest.mark.parametrize('arg, confval, used', [

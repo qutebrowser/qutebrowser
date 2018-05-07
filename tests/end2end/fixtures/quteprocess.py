@@ -200,6 +200,10 @@ def is_ignored_chromium_message(line):
         # [23359:23359:0319/115812.168578:WARNING:
         # render_frame_host_impl.cc(2744)] OnDidStopLoading was called twice.
         'OnDidStopLoading was called twice.',
+
+        # [30412:30412:0323/074933.387250:ERROR:node_channel.cc(899)] Dropping
+        # message on closed channel.
+        'Dropping message on closed channel.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -353,6 +357,10 @@ class QuteProc(testprocess.Process):
             # when calling QApplication::sync
             "Focus object changed: "
             "<PyQt5.QtWidgets.QWidget object at *>",
+            # Qt >= 5.11
+            "Focus object changed: "
+            "<qutebrowser.browser.webengine.webview.WebEngineView object "
+            "at *>",
         ]
 
         if (log_line.category == 'ipc' and

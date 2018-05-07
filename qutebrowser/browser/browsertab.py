@@ -114,6 +114,10 @@ class TabData:
     netrc_used = attr.ib(False)
     input_mode = attr.ib(usertypes.KeyMode.normal)
 
+    def should_show_icon(self):
+        return (config.val.tabs.favicons.show == 'always' or
+                config.val.tabs.favicons.show == 'pinned' and self.pinned)
+
 
 class AbstractAction:
 
@@ -720,7 +724,13 @@ class AbstractTab(QWidget):
         if getattr(evt, 'posted', False):
             raise utils.Unreachable("Can't re-use an event which was already "
                                     "posted!")
+
         recipient = self.event_target()
+        if recipient is None:
+            # https://github.com/qutebrowser/qutebrowser/issues/3888
+            log.webview.warning("Unable to find event target!")
+            return
+
         evt.posted = True
         QApplication.postEvent(recipient, evt)
 

@@ -502,7 +502,7 @@ class CommandDispatcher:
         idx = new_tabbed_browser.widget.indexOf(newtab)
 
         new_tabbed_browser.widget.set_page_title(idx, cur_title)
-        if config.val.tabs.favicons.show:
+        if curtab.data.should_show_icon():
             new_tabbed_browser.widget.setTabIcon(idx, curtab.icon())
             if config.val.tabs.tabs_are_windows:
                 new_tabbed_browser.widget.window().setWindowIcon(curtab.icon())
@@ -1022,7 +1022,7 @@ class CommandDispatcher:
         elif config.val.tabs.wrap:
             self._set_current_index(newidx % self._count())
         else:
-            raise cmdexc.CommandError("First tab")
+            log.webview.debug("First tab")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1042,7 +1042,7 @@ class CommandDispatcher:
         elif config.val.tabs.wrap:
             self._set_current_index(newidx % self._count())
         else:
-            raise cmdexc.CommandError("Last tab")
+            log.webview.debug("Last tab")
 
     def _resolve_buffer_index(self, index):
         """Resolve a buffer index to the tabbedbrowser and tab.

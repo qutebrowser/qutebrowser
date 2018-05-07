@@ -19,20 +19,22 @@
 
 """A request interceptor taking care of adblocking and custom headers."""
 
-from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInterceptor
+from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
+                                   QWebEngineUrlRequestInfo)
 
 from qutebrowser.config import config
 from qutebrowser.browser import shared
-from qutebrowser.utils import utils, log
+from qutebrowser.utils import utils, log, debug
 
 
 class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
     """Handle ad blocking and custom headers."""
 
-    def __init__(self, host_blocker, parent=None):
+    def __init__(self, host_blocker, args, parent=None):
         super().__init__(parent)
         self._host_blocker = host_blocker
+        self._args = args
 
     def install(self, profile):
         """Install the interceptor on the given QWebEngineProfile."""
@@ -54,6 +56,18 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         Args:
             info: QWebEngineUrlRequestInfo &info
         """
+        if 'log-requests' in self._args.debug_flags:
+            resource_type = debug.qenum_key(QWebEngineUrlRequestInfo,
+                                            info.resourceType())
+            navigation_type = debug.qenum_key(QWebEngineUrlRequestInfo,
+                                              info.navigationType())
+            log.webview.debug("{} {}, first-party {}, resource {}, "
+                              "navigation {}".format(
+                                  bytes(info.requestMethod()).decode('ascii'),
+                                  info.requestUrl().toDisplayString(),
+                                  info.firstPartyUrl().toDisplayString(),
+                                  resource_type, navigation_type))
+
         # FIXME:qtwebengine only block ads for NavigationTypeOther?
         if self._host_blocker.is_blocked(info.requestUrl()):
             log.webview.info("Request to {} blocked by host blocker.".format(

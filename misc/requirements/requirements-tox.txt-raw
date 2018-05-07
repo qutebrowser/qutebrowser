@@ -1,4 +1,1 @@
 tox
-
-# The latest tox release still depends on pluggy < 0.4...
-pluggy==0.4.0
