@@ -61,7 +61,8 @@ def get_argparser():
     """Get the argparse parser."""
     parser = argparse.ArgumentParser(prog='qutebrowser',
                                      description=qutebrowser.__description__)
-    parser.add_argument('--basedir', help="Base directory for all storage.")
+    parser.add_argument('-B', '--basedir', help="Base directory for all "
+                        "storage.")
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "
@@ -112,8 +113,8 @@ def get_argparser():
                        action='store_true')
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
                        "the main window.")
-    debug.add_argument('--temp-basedir', action='store_true', help="Use a "
-                       "temporary basedir.")
+    debug.add_argument('-T', '--temp-basedir', action='store_true', help="Use "
+                       "a temporary basedir.")
     debug.add_argument('--no-err-windows', action='store_true', help="Don't "
                        "show any error windows (used for tests/smoke.py).")
     debug.add_argument('--qt-arg', help="Pass an argument with a value to Qt. "

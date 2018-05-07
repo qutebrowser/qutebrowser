@@ -38,7 +38,7 @@ show it.
 *-h*, *--help*::
     show this help message and exit
 
-*--basedir* 'BASEDIR'::
+*-B*, *--basedir* 'BASEDIR'::
     Base directory for all storage.
 
 *-V*, *--version*::
@@ -87,7 +87,7 @@ show it.
 *--nowindow*::
     Don't show the main window.
 
-*--temp-basedir*::
+*-T*, *--temp-basedir*::
     Use a temporary basedir.
 
 *--no-err-windows*::
