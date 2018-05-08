@@ -3,44 +3,28 @@ Configuring qutebrowser
 
 IMPORTANT: qutebrowser's configuration system was completely rewritten in
 September 2017. This information is not applicable to older releases, and older
-information elsewhere might be outdated. **If you had an old configuration
-around and upgraded, this page will automatically open once**. To view it at a
-later time, use the `:help` command.
+information elsewhere might be outdated.
 
-Migrating older configurations
-------------------------------
+qutebrowser's config files
+--------------------------
 
-qutebrowser does no automatic migration for the new configuration. However,
-there's a special link:qute://configdiff/old[configdiff] page
-(`qute://configdiff/old`) in qutebrowser, which will show you the changes you
-did in your old configuration, compared to the old defaults.
+qutebrowser releases before v1.0.0 had a `qutebrowser.conf` and `keys.conf`
+file. Those are not used anymore since that release - see
+<<migrating,"Migrating older configurations">> for information on how to
+migrate to the new config.
 
-Other changes in default settings:
+When using `:set` and `:bind`, changes are saved to an `autoconfig.yml` file
+automatically. If you don't want to have a config file which is curated by
+hand, you can simply use those - see
+<<autoconfig,"Configuring qutebrowser via the user interface">> for details.
 
-- In v1.1.x and newer, `<Up>` and `<Down>` navigate through command history
-  if no text was entered yet.
-  With v1.0.x, they always navigate through command history instead of selecting
-  completion items. Use `<Tab>`/`<Shift-Tab>` to cycle through the completion
-  instead.
-  You can get back the old behavior by doing:
-+
-----
-:bind -m command <Up> completion-item-focus prev
-:bind -m command <Down> completion-item-focus next
-----
-+
-or always navigate through command history with
-+
-----
-:bind -m command <Up> command-history-prev
-:bind -m command <Down> command-history-next
-----
+For more advanced configuration, you can write a `config.py` file - see
+<<configpy,"Configuring qutebrowser via config.py">>. As soon as a `config.py`
+exists, the `autoconfig.yml` file **is not read anymore** by default. You need
+to <<configpy-autoconfig,load it by hand>> if you want settings done via
+`:set`/`:bind` to still persist.
 
-- The default for `completion.web_history_max_items` is now set to `-1`, showing
-  an unlimited number of items in the completion for `:open` as the new
-  sqlite-based completion is much faster. If the `:open` completion is too slow
-  on your machine, set an appropriate limit again.
-
+[[autoconfig]]
 Configuring qutebrowser via the user interface
 ----------------------------------------------
 
@@ -88,6 +72,7 @@ link:commands.html#config-clear[`:config-clear`] to reset the entire configurati
 and link:commands.html#config-cycle[`:config-cycle`] to cycle a setting between
 different values.
 
+[[configpy]]
 Configuring qutebrowser via config.py
 -------------------------------------
 
@@ -239,6 +224,7 @@ config.bind(',v', 'spawn mpv {url}')
 To suppress loading of any default keybindings, you can set
 `c.bindings.default = {}`.
 
+[[configpy-autoconfig]]
 Loading `autoconfig.yml`
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -429,3 +415,38 @@ from qutebrowser.config.config import ConfigContainer  # noqa: F401
 config = config  # type: ConfigAPI # noqa: F821 pylint: disable=E0602,C0103
 c = c  # type: ConfigContainer # noqa: F821 pylint: disable=E0602,C0103
 ----
+
+[[migrating]]
+Migrating older configurations
+------------------------------
+
+qutebrowser does no automatic migration for the new configuration. However,
+there's a special link:qute://configdiff/old[configdiff] page
+(`qute://configdiff/old`) in qutebrowser, which will show you the changes you
+did in your old configuration, compared to the old defaults.
+
+Other changes in default settings:
+
+- In v1.1.x and newer, `<Up>` and `<Down>` navigate through command history
+  if no text was entered yet.
+  With v1.0.x, they always navigate through command history instead of selecting
+  completion items. Use `<Tab>`/`<Shift-Tab>` to cycle through the completion
+  instead.
+  You can get back the old behavior by doing:
++
+----
+:bind -m command <Up> completion-item-focus prev
+:bind -m command <Down> completion-item-focus next
+----
++
+or always navigate through command history with
++
+----
+:bind -m command <Up> command-history-prev
+:bind -m command <Down> command-history-next
+----
+
+- The default for `completion.web_history_max_items` is now set to `-1`, showing
+  an unlimited number of items in the completion for `:open` as the new
+  sqlite-based completion is much faster. If the `:open` completion is too slow
+  on your machine, set an appropriate limit again.
