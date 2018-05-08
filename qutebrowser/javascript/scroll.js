@@ -39,7 +39,7 @@ window._qutebrowser.scroll = (function() {
     }
 
     // Helper function which scrolls the document 'doc' and window 'win' to x, y
-    function scroll_to_perc(x, y, smooth, win, doc) {
+    function scroll_to_perc(x, y, win, doc) {
         let x_px = win.scrollX;
         let y_px = win.scrollY;
 
@@ -79,26 +79,13 @@ window._qutebrowser.scroll = (function() {
         }));
         */
 
-        if (smooth_supported()) {
-            win.scroll(build_scroll_options(x_px, y_px, smooth));
-        } else {
-            win.scroll(x_px, y_px);
-        }
+        win.scroll(x_px, y_px);
     }
 
-    funcs.to_perc = (x, y, smooth) => {
+    funcs.to_perc = (x, y) => {
         // If we are in a frame, scroll that frame
         const frame_win = utils.get_frame_window(document.activeElement);
-        scroll_to_perc(x, y, smooth, frame_win, frame_win.document);
-    };
-
-    funcs.to_px = (x, y, smooth) => {
-        const frame_win = utils.get_frame_window(document.activeElement);
-        if (smooth_supported()) {
-            frame_win.scroll(build_scroll_options(x, y, smooth));
-        } else {
-            frame_win.scroll(x, y);
-        }
+        scroll_to_perc(x, y, frame_win, frame_win.document);
     };
 
     // Scroll a provided window by x,y as a percent

@@ -428,15 +428,11 @@ class WebEngineScroller(browsertab.AbstractScroller):
         return self._pos_perc
 
     def to_perc(self, x=None, y=None):
-        js_code = javascript.assemble('scroll', 'to_perc', x, y,
-                                      config.val.scrolling.smooth)
+        js_code = javascript.assemble('scroll', 'to_perc', x, y)
         self._tab.run_js_async(js_code)
 
     def to_point(self, point):
-        # FIXME to_point will try to go to the same point point even in
-        # different frames, but this does not make sense when using marks.
-        js_code = javascript.assemble('scroll', 'to_px', point.x(), point.y(),
-                                      config.val.scrolling.smooth)
+        js_code = javascript.assemble('window', 'scroll', point.x(), point.y())
         self._tab.run_js_async(js_code)
 
     def to_anchor(self, name):
