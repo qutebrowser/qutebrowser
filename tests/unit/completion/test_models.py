@@ -739,6 +739,44 @@ def test_setting_value_completion_invalid(info):
     assert configmodel.value(optname='foobarbaz', info=info) is None
 
 
+@pytest.mark.parametrize('args, expected', [
+    ([], {
+        "Current/Default": [
+            ('true', 'Current value', None),
+            ('true', 'Default value', None),
+        ],
+        "Completions": [
+            ('false', '', None),
+            ('true', '', None),
+        ],
+    }),
+    (['false'], {
+        "Current/Default": [
+            ('true', 'Current value', None),
+            ('true', 'Default value', None),
+        ],
+        "Completions": [
+            ('true', '', None),
+        ],
+    }),
+    (['true'], {
+        "Completions": [
+            ('false', '', None),
+        ],
+    }),
+    (['false', 'true'], {}),
+])
+def test_setting_value_cycle(qtmodeltester, config_stub, configdata_stub,
+                             info, args, expected):
+    opt = 'content.javascript.enabled'
+
+    model = configmodel.value(opt, *args, info=info)
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+    _check_completions(model, expected)
+
+
 def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
                          key_config_stub, configdata_stub, info):
     """Test the results of keybinding command completion.
