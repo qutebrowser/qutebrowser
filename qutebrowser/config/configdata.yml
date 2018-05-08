@@ -2271,6 +2271,7 @@ bindings.default:
       ;R: hint --rapid links window
       ;d: hint links download
       ;t: hint inputs
+      gi: hint inputs --first
       h: scroll left
       j: scroll down
       k: scroll up

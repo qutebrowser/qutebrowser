@@ -172,6 +172,7 @@ class HintContext:
     tab = attr.ib(None)
     group = attr.ib(None)
     hint_mode = attr.ib(None)
+    first = attr.ib(False)
 
     def get_args(self, urlstr):
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -612,6 +613,9 @@ class HintManager(QObject):
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
 
+        if self._context.first:
+            self._fire(strings[0])
+            return
         # to make auto_follow == 'always' work
         self._handle_auto_follow()
 
@@ -620,7 +624,8 @@ class HintManager(QObject):
     @cmdutils.argument('win_id', win_id=True)
     def start(self,  # pylint: disable=keyword-arg-before-vararg
               group=webelem.Group.all, target=Target.normal,
-              *args, win_id, mode=None, add_history=False, rapid=False):
+              *args, win_id, mode=None, add_history=False, rapid=False,
+              first=False):
         """Start hinting.
 
         Args:
@@ -632,6 +637,7 @@ class HintManager(QObject):
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
             group: The element types to hint.
+            first: Click the first hinted element without prompting.
 
                 - `all`: All clickable elements.
                 - `links`: Only links.
@@ -713,6 +719,7 @@ class HintManager(QObject):
         self._context.rapid = rapid
         self._context.hint_mode = mode
         self._context.add_history = add_history
+        self._context.first = first
         try:
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
