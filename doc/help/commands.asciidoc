@@ -530,7 +530,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*]
+Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*] [*--first*]
      ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
@@ -600,6 +600,7 @@ Start hinting.
  `tab` (with `tabs.background_tabs=true`), `tab-bg`,
  `window`, `run`, `hover`, `userscript` and `spawn`.
 
+* +*-f*+, +*--first*+: Click the first hinted element without prompting.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.

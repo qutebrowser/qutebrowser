@@ -636,8 +636,8 @@ class HintManager(QObject):
                    `window`, `run`, `hover`, `userscript` and `spawn`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
-            group: The element types to hint.
             first: Click the first hinted element without prompting.
+            group: The element types to hint.
 
                 - `all`: All clickable elements.
                 - `links`: Only links.
