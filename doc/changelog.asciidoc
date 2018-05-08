@@ -24,6 +24,11 @@ Added
 - New `--debug-flag log-requests` to log requests to the debug log for
   debugging.
 
+Changed
+~~~~~~~
+
+- New short flags for commandline arguments: `-B` and `-T` for `--basedir` and `--temp-basedir`; `-d` and `-D` for `--debug` and `--debug-flag`.
+
 v1.3.0
 ------
 

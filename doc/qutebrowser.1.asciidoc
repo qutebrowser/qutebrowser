@@ -38,7 +38,7 @@ show it.
 *-h*, *--help*::
     show this help message and exit
 
-*-B*, *--basedir* 'BASEDIR'::
+*-B* 'BASEDIR', *--basedir* 'BASEDIR'::
     Base directory for all storage.
 
 *-V*, *--version*::
@@ -99,7 +99,7 @@ show it.
 *--qt-flag* 'QT_FLAG'::
     Pass an argument to Qt as flag.
 
-*-D*, *--debug-flag* 'DEBUG_FLAGS'::
+*-D* 'DEBUG_FLAGS', *--debug-flag* 'DEBUG_FLAGS'::
     Pass name of debugging feature to be turned on.
 // QUTE_OPTIONS_END
 
