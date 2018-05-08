@@ -29,6 +29,7 @@ Changed
 
 - New short flags for commandline arguments: `-B` and `-T` for `--basedir` and `--temp-basedir`; `-d` and `-D` for `--debug` and `--debug-flag`.
 - Deleting history items via `:history-clear` or `:completion-item-del` now also removes that URL from QtWebEngine's visited links.
+- There's now completion for commands taking a variable count of arguments (like `:config-cycle`).
 
 v1.3.0
 ------
