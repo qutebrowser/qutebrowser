@@ -509,3 +509,17 @@ Feature: Using hints
         And I press the key "hello"
         And I press the key "<Enter>"
         Then data/hello.txt should be loaded
+
+    Scenario: Using --first with normal links
+        When I open data/hints/html/simple.html
+        And I hint with args "all --first"
+        Then data/hello.txt should be loaded
+
+    Scenario: Using --first with inputs
+        When I open data/hints/input.html
+        And I hint with args "inputs --first"
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        # ensure we clicked the first element
+        And I run :jseval console.log(document.activeElement.id == "qute-input");
+        And I run :leave-mode
+        Then the javascript message "true" should be logged
