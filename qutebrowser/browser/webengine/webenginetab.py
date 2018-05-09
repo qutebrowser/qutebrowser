@@ -696,15 +696,13 @@ class WebEngineTab(browsertab.AbstractTab):
             utils.read_file('javascript/webelem.js'),
             utils.read_file('javascript/caret.js'),
         )
+        self._inject_early_js('js',
+                              utils.read_file('javascript/print.js'),
+                              subframes=True,
+                              world=QWebEngineScript.MainWorld)
         # FIXME:qtwebengine what about subframes=True?
         self._inject_early_js('js', js_code, subframes=True)
         self._init_stylesheet()
-
-        js_code_print = utils.read_file('javascript/print.js')
-        self._inject_early_js('js',
-                              js_code_print,
-                              subframes=True,
-                              world=QWebEngineScript.MainWorld)
 
         greasemonkey = objreg.get('greasemonkey')
         greasemonkey.scripts_reloaded.connect(self._inject_userscripts)
@@ -761,9 +759,7 @@ class WebEngineTab(browsertab.AbstractTab):
             scripts.insert(new_script)
 
     def _install_event_filter(self):
-        fp = self._widget.focusProxy()
-        if fp is not None:
-            fp.installEventFilter(self._mouse_event_filter)
+        self._widget.focusProxy().installEventFilter(self._mouse_event_filter)
         self._child_event_filter = mouse.ChildEventFilter(
             eventfilter=self._mouse_event_filter, widget=self._widget,
             parent=self)
@@ -1052,6 +1048,14 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
+
+        if navigation.url == QUrl('qute://print'):
+            command_dispatcher = objreg.get('command-dispatcher',
+                                            scope='window',
+                                            window=self.win_id)
+            command_dispatcher.printpage()
+            navigation.accepted = False
+
         if not navigation.accepted or not navigation.is_main_frame:
             return
 
@@ -1110,6 +1114,4 @@ class WebEngineTab(browsertab.AbstractTab):
         self.predicted_navigation.connect(self._on_predicted_navigation)
 
     def event_target(self):
-        fp = self._widget.focusProxy()
-        assert fp is not None
-        return fp
+        return self._widget.focusProxy()

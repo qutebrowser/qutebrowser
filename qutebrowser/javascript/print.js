@@ -17,8 +17,14 @@
  * along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* 
+ * this is a hack based on the QupZilla solution, https://github.com/QupZilla/qupzilla/commit/d3f0d766fb052dc504de2426d42f235d96b5eb60
+ *
+ * We go to a qute://print which triggers the print, then we cancel the request. 
+ */
+
 "use strict";
 
 window.print = function() {
-    window.location = "qute:print";
+    window.location = "qute://print";
 };
