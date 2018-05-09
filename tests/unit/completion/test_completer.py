@@ -129,12 +129,20 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
         """docstring."""
         pass
 
+    @cmdutils.argument('option', completion=miscmodels_patch.option)
+    @cmdutils.argument('values', completion=miscmodels_patch.value)
+    def config_cycle(option, *values):
+        """For testing varargs."""
+        pass
+
     cmd_utils = stubs.FakeCmdUtils({
         'set': command.Command(name='set', handler=set_command),
         'help': command.Command(name='help', handler=show_help),
         'open': command.Command(name='open', handler=openurl, maxsplit=0),
         'bind': command.Command(name='bind', handler=bind),
         'tab-detach': command.Command(name='tab-detach', handler=tab_detach),
+        'config-cycle': command.Command(name='config-cycle',
+                                        handler=config_cycle),
     })
     monkeypatch.setattr(completer, 'cmdutils', cmd_utils)
 
@@ -191,6 +199,10 @@ def _set_cmd_prompt(cmd, txt):
     ('/:help|', None, '', []),
     ('::bind|', 'command', ':bind', []),
     (':-w open |', None, '', []),
+    # varargs
+    (':config-cycle option |', 'value', '', ['option']),
+    (':config-cycle option one |', 'value', '', ['option', 'one']),
+    (':config-cycle option one two |', 'value', '', ['option', 'one', 'two']),
 ])
 def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
                            completer_obj, completion_widget_stub, config_stub,
@@ -209,6 +221,32 @@ def test_update_completion(txt, kind, pattern, pos_args, status_command_stub,
         assert model.info.config == config_stub
         assert model.info.keyconf == key_config_stub
         completion_widget_stub.set_pattern.assert_called_once_with(pattern)
+
+
+@pytest.mark.parametrize('txt1, txt2, regen', [
+    (':config-cycle |', ':config-cycle a|', False),
+    (':config-cycle abc|', ':config-cycle abc |', True),
+    (':config-cycle abc |', ':config-cycle abc d|', False),
+    (':config-cycle abc def|', ':config-cycle abc def |', True),
+    # open has maxsplit=0, so all args just set the pattern, not the model
+    (':open |', ':open a|', False),
+    (':open abc|', ':open abc |', False),
+    (':open abc |', ':open abc d|', False),
+    (':open abc def|', ':open abc def |', False),
+])
+def test_regen_completion(txt1, txt2, regen, status_command_stub,
+                          completer_obj, completion_widget_stub, config_stub,
+                          key_config_stub):
+    """Test that the completion function is only called as needed."""
+    # set the initial state
+    _set_cmd_prompt(status_command_stub, txt1)
+    completer_obj.schedule_completion_update()
+    completion_widget_stub.set_model.reset_mock()
+
+    # "move" the cursor and check if the completion function was called
+    _set_cmd_prompt(status_command_stub, txt2)
+    completer_obj.schedule_completion_update()
+    assert completion_widget_stub.set_model.called == regen
 
 
 @pytest.mark.parametrize('before, newtxt, after', [

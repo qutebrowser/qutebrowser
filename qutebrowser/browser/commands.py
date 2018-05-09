@@ -1022,7 +1022,7 @@ class CommandDispatcher:
         elif config.val.tabs.wrap:
             self._set_current_index(newidx % self._count())
         else:
-            raise cmdexc.CommandError("First tab")
+            log.webview.debug("First tab")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1042,7 +1042,7 @@ class CommandDispatcher:
         elif config.val.tabs.wrap:
             self._set_current_index(newidx % self._count())
         else:
-            raise cmdexc.CommandError("Last tab")
+            log.webview.debug("Last tab")
 
     def _resolve_buffer_index(self, index):
         """Resolve a buffer index to the tabbedbrowser and tab.

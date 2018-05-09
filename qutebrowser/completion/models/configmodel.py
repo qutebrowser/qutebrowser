@@ -47,12 +47,12 @@ def customized_option(*, info):
     return model
 
 
-def value(optname, *_values, info):
+def value(optname, *values, info):
     """A CompletionModel filled with setting values.
 
     Args:
         optname: The name of the config option this model shows.
-        _values: The values already provided on the command line.
+        values: The values already provided on the command line.
         info: A CompletionInfo instance.
     """
     model = completionmodel.CompletionModel(column_widths=(30, 70, 0))
@@ -64,13 +64,18 @@ def value(optname, *_values, info):
 
     opt = info.config.get_opt(optname)
     default = opt.typ.to_str(opt.default)
-    cur_cat = listcategory.ListCategory(
-        "Current/Default",
-        [(current, "Current value"), (default, "Default value")])
-    model.add_category(cur_cat)
+    cur_def = []
+    if current not in values:
+        cur_def.append((current, "Current value"))
+    if default not in values:
+        cur_def.append((default, "Default value"))
+    if cur_def:
+        cur_cat = listcategory.ListCategory("Current/Default", cur_def)
+        model.add_category(cur_cat)
 
-    vals = opt.typ.complete()
-    if vals is not None:
+    vals = opt.typ.complete() or []
+    vals = [x for x in vals if x[0] not in values]
+    if vals:
         model.add_category(listcategory.ListCategory("Completions", vals))
     return model
 

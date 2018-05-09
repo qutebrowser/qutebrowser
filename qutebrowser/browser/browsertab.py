@@ -724,7 +724,13 @@ class AbstractTab(QWidget):
         if getattr(evt, 'posted', False):
             raise utils.Unreachable("Can't re-use an event which was already "
                                     "posted!")
+
         recipient = self.event_target()
+        if recipient is None:
+            # https://github.com/qutebrowser/qutebrowser/issues/3888
+            log.webview.warning("Unable to find event target!")
+            return
+
         evt.posted = True
         QApplication.postEvent(recipient, evt)
 
