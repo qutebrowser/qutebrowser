@@ -22,7 +22,7 @@
 import functools
 
 import attr
-from PyQt5.QtWidgets import QSizePolicy, QWidget
+from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 from PyQt5.QtGui import QIcon
 
@@ -633,7 +633,11 @@ class TabbedBrowser(QWidget):
         """Give focus to current tab if command mode was left."""
         widget = self.widget.currentWidget()
         if config.val.input.blink != "always":
-            self.setFocus()
+            widget.setFocus()
+            focused_widget = QApplication.focusWidget()
+            o = QWidget(QApplication.focusWidget())
+            o.show()
+            o.setFocus()
             log.modes.debug(
                 "Left mode without blink enabled, focusing: {}".format(self))
             return
@@ -739,6 +743,23 @@ class TabbedBrowser(QWidget):
         if idx == self.widget.currentIndex():
             self._update_window_title()
             tab.handle_auto_insert_mode(ok)
+
+        if config.val.input.blink != "always":
+            previous_focus = QApplication.focusWidget()
+            widget = self.widget.currentWidget()
+            widget.setFocus()
+            # Attach a intercepter object under the webview to steal focus but
+            # propogate key events back up
+            o = QWidget(QApplication.focusWidget())
+            o.setObjectName("keyinterceptor")
+            o.show()
+            # if we stole focus from non webview related things like
+            # completion, give it back!
+            if previous_focus and previous_focus.parent() not in widget.children():
+                previous_focus.setFocus()
+            else:
+                o.setFocus()
+
 
     @pyqtSlot()
     def on_scroll_pos_changed(self):
