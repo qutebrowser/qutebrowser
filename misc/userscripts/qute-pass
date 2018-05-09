@@ -109,6 +109,13 @@ def dmenu(items, invocation, encoding):
     return process.stdout.decode(encoding).strip()
 
 
+def fake_key_raw(text):
+    for character in text:
+        # Escape all characters by default, space requires special handling
+        sequence = '" "' if character == ' ' else '\{}'.format(character)
+        qute_command('fake-key {}'.format(sequence))
+
+
 def main(arguments):
     if not arguments.url:
         argument_parser.print_help()
@@ -158,15 +165,19 @@ def main(arguments):
         return ExitCodes.COULD_NOT_MATCH_PASSWORD
     password = match.group(1)
 
-    insert_mode = ';; enter-mode insert' if arguments.insert_mode else ''
     if arguments.username_only:
-        qute_command('fake-key {}{}'.format(username, insert_mode))
+        fake_key_raw(username)
     elif arguments.password_only:
-        qute_command('fake-key {}{}'.format(password, insert_mode))
+        fake_key_raw(password)
     else:
         # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
         # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
-        qute_command('fake-key {} ;; fake-key <Tab> ;; fake-key {}{}'.format(username, password, insert_mode))
+        fake_key_raw(username)
+        qute_command('fake-key <Tab>')
+        fake_key_raw(password)
+
+    if arguments.insert_mode:
+        qute_command('enter-mode insert')
 
     return ExitCodes.SUCCESS
 

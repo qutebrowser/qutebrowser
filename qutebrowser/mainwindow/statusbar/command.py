@@ -19,6 +19,8 @@
 
 """The commandline in the statusbar."""
 
+import functools
+
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import QSizePolicy
 
@@ -68,6 +70,26 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.textChanged.connect(self.update_completion)
         self.textChanged.connect(self.updateGeometry)
         self.textChanged.connect(self._incremental_search)
+
+        self._command_dispatcher = objreg.get(
+            'command-dispatcher', scope='window', window=self._win_id)
+
+    def _handle_search(self):
+        """Check if the currently entered text is a search, and if so, run it.
+
+        Return:
+            True if a search was executed, False otherwise.
+        """
+        search_prefixes = {
+            '/': self._command_dispatcher.search,
+            '?': functools.partial(
+                self._command_dispatcher.search, reverse=True)
+        }
+        if self.prefix() in search_prefixes:
+            search_fn = search_prefixes[self.prefix()]
+            search_fn(self.text()[1:])
+            return True
+        return False
 
     def prefix(self):
         """Get the currently entered command prefix."""
@@ -162,17 +184,17 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         Args:
             rapid: Run the command without closing or clearing the command bar.
         """
-        prefixes = {
-            ':': '',
-            '/': 'search -- ',
-            '?': 'search -r -- ',
-        }
         text = self.text()
         self.history.append(text)
+
+        was_search = self._handle_search()
+
         if not rapid:
             modeman.leave(self._win_id, usertypes.KeyMode.command,
                           'cmd accept')
-        self.got_cmd[str].emit(prefixes[text[0]] + text[1:])
+
+        if not was_search:
+            self.got_cmd[str].emit(text[1:])
 
     @cmdutils.register(instance='status-command', scope='window')
     def edit_command(self, run=False):
@@ -253,15 +275,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         width = self.fontMetrics().width(text)
         return QSize(width, height)
 
-    @pyqtSlot(str)
-    def _incremental_search(self, text):
+    @pyqtSlot()
+    def _incremental_search(self):
         if not config.val.search.incremental:
             return
 
-        search_prefixes = {
-            '/': 'search -- ',
-            '?': 'search -r -- ',
-        }
-
-        if self.prefix() in ['/', '?']:
-            self.got_cmd[str].emit(search_prefixes[text[0]] + text[1:])
+        self._handle_search()

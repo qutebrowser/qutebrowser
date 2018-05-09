@@ -15,8 +15,29 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.3.0 (unreleased)
+v1.4.0 (unreleased)
 -------------------
+
+Added
+~~~~~
+
+- New `--debug-flag log-requests` to log requests to the debug log for
+  debugging.
+- New `--first` flag for `:hint` (bound to `gi` for inputs) which automatically
+  selects the first hint.
+
+Changed
+~~~~~~~
+
+- New short flags for commandline arguments: `-B` and `-T` for `--basedir` and
+  `--temp-basedir`; `-d` and `-D` for `--debug` and `--debug-flag`.
+- Deleting history items via `:history-clear` or `:completion-item-del` now
+  also removes that URL from QtWebEngine's visited links.
+- There's now completion for commands taking a variable count of arguments
+  (like `:config-cycle`).
+
+v1.3.0
+------
 
 Added
 ~~~~~
@@ -25,7 +46,9 @@ Added
 - New `url.open_base_url` option to open the base URL of a searchengine when no
   search term is given.
 - New `tabs.min_width` setting to configure the minimal width for tabs.
-- New `getbib` userscript to download bibtex information for DOIs on a page.
+- New userscripts:
+  * `getbib` to download bibtex information for DOIs on a page.
+  * `qute-keepass` to get passwords from KeePassX.
 
 Changed
 ~~~~~~~
@@ -51,7 +74,6 @@ Changed
   combines various sources.
 - Error messages when trying to wrap when `tabs.wrap` is `False` are now logged
   to debug instead of messages.
-
 
 Fixed
 ~~~~~
@@ -81,7 +103,18 @@ Fixed
 - The Makefile (intended for packagers) now supports `PREFIX` properly.
 - The workaround for a black window with Nvidia graphics is now enabled on
   non-Linux systems (like FreeBSD) as well.
-- Initial support for Qt 5.11
+- Initial support for Qt 5.11.
+- Checking for a new version after sending a crash report now works properly
+  again.
+- `@match` in Greasemonkey scripts now more closely matches the proper pattern
+  syntax.
+- Searching via `/` or `?` now doesn't handle any characters in a special way.
+- Fixed crash when trying to retry some failed downloads on QtWebEngine.
+- An invalid spellcheck dictionary filename now doesn't crash anymore.
+- When no spellcheck dictionaries are configured, it's now disabled internally.
+  This works around an issue with entering special characters on Facebook
+  messenger.
+- The macOS release now should work again on macOS 10.11 and newer.
 
 v1.2.1
 ------

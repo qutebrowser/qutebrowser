@@ -489,6 +489,8 @@ class TabbedBrowser(QWidget):
                                                self.widget.count())
         else:
             self.widget.setCurrentWidget(tab)
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
+            tab.setFocus()
 
         tab.show()
         self.new_tab.emit(tab, idx)

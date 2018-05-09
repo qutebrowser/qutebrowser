@@ -23,7 +23,7 @@ import os
 import time
 import contextlib
 
-from PyQt5.QtCore import pyqtSlot, QUrl, QTimer
+from PyQt5.QtCore import pyqtSlot, QUrl, QTimer, pyqtSignal
 
 from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import (utils, objreg, log, usertypes, message,
@@ -51,6 +51,11 @@ class CompletionHistory(sql.SqlTable):
 class WebHistory(sql.SqlTable):
 
     """The global history of visited pages."""
+
+    # All web history cleared
+    history_cleared = pyqtSignal()
+    # one url cleared
+    url_cleared = pyqtSignal(QUrl)
 
     def __init__(self, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
@@ -157,6 +162,7 @@ class WebHistory(sql.SqlTable):
         with self._handle_sql_errors():
             self.delete_all()
             self.completion.delete_all()
+        self.history_cleared.emit()
 
     def delete_url(self, url):
         """Remove all history entries with the given url.
@@ -168,6 +174,7 @@ class WebHistory(sql.SqlTable):
         qtutils.ensure_valid(qurl)
         self.delete('url', self._format_url(qurl))
         self.completion.delete('url', self._format_completion_url(qurl))
+        self.url_cleared.emit(qurl)
 
     @pyqtSlot(QUrl, QUrl, str)
     def add_from_tab(self, url, requested_url, title):

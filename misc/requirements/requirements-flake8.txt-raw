@@ -1,6 +1,6 @@
 flake8
 flake8-bugbear
-flake8-builtins
+flake8-builtins!=1.4.0
 flake8-comprehensions
 flake8-copyright
 flake8-debugger
@@ -18,3 +18,6 @@ pyflakes
 
 # https://github.com/PyCQA/pycodestyle/issues/741
 #@ filter: pycodestyle < 2.4.0
+
+# https://github.com/gforcada/flake8-builtins/issues/36
+#@ filter: flake8-builtins != 1.4.0

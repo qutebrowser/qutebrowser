@@ -176,23 +176,10 @@ class ProfileSetter:
         """Initialize settings on the given profile."""
         self.set_http_headers()
         self.set_http_cache_size()
-        self._init_attributes()
-
+        self._profile.settings().setAttribute(
+            QWebEngineSettings.FullScreenSupportEnabled, True)
         if qtutils.version_check('5.8'):
-            self._profile.setSpellCheckEnabled(True)
             self.set_dictionary_language()
-
-    def _init_attributes(self):
-        """Initialize hard-coded attributes."""
-        values = {
-            'FullScreenSupportEnabled': True,
-            'FocusOnNavigationEnabled': True,
-        }
-        settings = self._profile.settings()
-        for name, value in values.items():
-            attr = getattr(QWebEngineSettings, name, None)
-            if attr is not None:
-                settings.setAttribute(attr, value)
 
     def set_http_headers(self):
         """Set the user agent and accept-language for the given profile.
@@ -242,6 +229,7 @@ class ProfileSetter:
 
         log.config.debug("Found dicts: {}".format(filenames))
         self._profile.setSpellCheckLanguages(filenames)
+        self._profile.setSpellCheckEnabled(bool(filenames))
 
 
 def _update_settings(option):

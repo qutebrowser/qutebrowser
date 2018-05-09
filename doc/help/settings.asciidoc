@@ -562,6 +562,7 @@ Default:
 * +pass:[gd]+: +pass:[download]+
 * +pass:[gf]+: +pass:[view-source]+
 * +pass:[gg]+: +pass:[scroll-to-perc 0]+
+* +pass:[gi]+: +pass:[hint inputs --first]+
 * +pass:[gl]+: +pass:[tab-move -]+
 * +pass:[gm]+: +pass:[tab-move]+
 * +pass:[go]+: +pass:[set-cmd-text :open {url:pretty}]+
