@@ -649,6 +649,7 @@ class AbstractTab(QWidget):
     fullscreen_requested = pyqtSignal(bool)
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
     predicted_navigation = pyqtSignal(QUrl)
+    audio_muted_changed = pyqtSignal(bool)
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         self.private = private
@@ -923,3 +924,11 @@ class AbstractTab(QWidget):
 
     def is_deleted(self):
         return sip.isdeleted(self._widget)
+
+    def set_muted(self, muted: bool):
+        """Set this tab as muted or not."""
+        raise NotImplementedError
+
+    def is_muted(self):
+        """Whether this tab is muted."""
+        raise NotImplementedError

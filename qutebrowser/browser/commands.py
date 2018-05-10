@@ -2230,3 +2230,20 @@ class CommandDispatcher:
 
         window = self._tabbed_browser.widget.window()
         window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       name='tab-mute')
+    @cmdutils.argument('count', count=True)
+    def tab_mute(self, count=None):
+        """Mute/Unmute the current/[count]th tab.
+
+        Args:
+            count: The tab index to pin or unpin, or None
+        """
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+        try:
+            tab.set_muted(not tab.is_muted())
+        except browsertab.WebTabError as e:
+            raise cmdexc.CommandError(e)

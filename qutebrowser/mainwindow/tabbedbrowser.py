@@ -238,6 +238,8 @@ class TabbedBrowser(QWidget):
             functools.partial(self.on_window_close_requested, tab))
         tab.renderer_process_terminated.connect(
             functools.partial(self._on_renderer_process_terminated, tab))
+        tab.audio_muted_changed.connect(
+            functools.partial(self.on_mute_changed, tab))
         tab.new_tab_requested.connect(self.tabopen)
         if not self.private:
             web_history = objreg.get('web-history')
@@ -732,6 +734,18 @@ class TabbedBrowser(QWidget):
             return
         self._update_window_title('scroll_pos')
         self.widget.update_tab_title(idx, 'scroll_pos')
+
+    @pyqtSlot()
+    def on_mute_changed(self, tab, muted):
+        """Update tab and window title when scroll position changed."""
+        try:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
+            # We can get signals for tabs we already deleted...
+            return
+        self.widget.update_tab_title(idx, 'muted')
+        if idx == self.widget.currentIndex():
+            self._update_window_title('muted')
 
     def _on_renderer_process_terminated(self, tab, status, code):
         """Show an error when a renderer process terminated."""
