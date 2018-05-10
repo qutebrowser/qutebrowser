@@ -487,6 +487,8 @@ class TabbedBrowser(QWidget):
             tab.resize(self.widget.currentWidget().size())
             self.widget.tab_index_changed.emit(self.widget.currentIndex(),
                                                self.widget.count())
+            # Refocus webview in case we lost it by spawning a bg tab
+            self.widget.currentWidget().setFocus()
         else:
             self.widget.setCurrentWidget(tab)
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
