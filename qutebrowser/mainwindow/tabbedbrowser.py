@@ -738,8 +738,8 @@ class TabbedBrowser(QWidget):
         self.widget.update_tab_title(idx, 'scroll_pos')
 
     @pyqtSlot()
-    def on_audio_changed(self, tab, muted):
-        """Update audio cookie in tab when mute or recentlyAudible changed."""
+    def on_audio_changed(self, tab, _muted):
+        """Update audio field in tab when mute or recentlyAudible changed."""
         try:
             idx = self._tab_index(tab)
         except TabDeletedError:
