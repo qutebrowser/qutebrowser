@@ -650,6 +650,7 @@ class AbstractTab(QWidget):
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
     predicted_navigation = pyqtSignal(QUrl)
     audio_muted_changed = pyqtSignal(bool)
+    recently_audible_changed = pyqtSignal(bool)
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         self.private = private
@@ -931,4 +932,8 @@ class AbstractTab(QWidget):
 
     def is_muted(self):
         """Whether this tab is muted."""
+        raise NotImplementedError
+
+    def is_recently_audible(self):
+        """Whether this tab has had audio playing recently."""
         raise NotImplementedError

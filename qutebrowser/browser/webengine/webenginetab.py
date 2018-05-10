@@ -1093,6 +1093,7 @@ class WebEngineTab(browsertab.AbstractTab):
         page.contentsSizeChanged.connect(self.contents_size_changed)
         page.navigation_request.connect(self._on_navigation_request)
         page.audioMutedChanged.connect(self.audio_muted_changed)
+        page.recentlyAudibleChanged.connect(self.recently_audible_changed)
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
@@ -1125,3 +1126,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def is_muted(self):
         page = self._widget.page()
         return page.isAudioMuted()
+
+    def is_recently_audible(self):
+        page = self._widget.page()
+        return page.recentlyAudible()

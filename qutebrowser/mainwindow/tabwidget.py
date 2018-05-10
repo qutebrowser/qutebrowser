@@ -172,7 +172,8 @@ class TabWidget(QTabWidget):
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
         fields['private'] = ' [Private Mode] ' if tab.private else ''
-        fields['muted'] = '[M] ' if tab.is_muted() else ''
+        fields['audio'] = '[M] ' if tab.is_muted() else (
+            '[A] ' if tab.is_recently_audible() else '')
 
         if tab.load_status() == usertypes.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(tab.progress())

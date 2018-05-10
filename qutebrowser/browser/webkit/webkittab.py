@@ -835,3 +835,7 @@ class WebKitTab(browsertab.AbstractTab):
     def is_muted(self):
         # Dummy value for things that read muted status
         return False
+
+    def is_recently_audible(self):
+        # Dummy value for things that read audible status
+        return False
