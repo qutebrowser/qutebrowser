@@ -210,10 +210,10 @@ class HintActions:
         else:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab
 
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=self._win_id)
         if context.target in [Target.normal, Target.current]:
             # Set the pre-jump mark ', so we can jump back here after following
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=self._win_id)
             tabbed_browser.set_mark("'")
 
         try:
@@ -226,10 +226,6 @@ class HintActions:
                 elem.click(target_mapping[context.target])
         except webelem.Error as e:
             raise HintingError(str(e))
-
-        if context.target == Target.tab_bg:
-            # We lost focus when clicking in the background, get it back.
-            tabbed_browser.widget.currentWidget().setFocus()
 
     def yank(self, url, context):
         """Yank an element to the clipboard or primary selection.
