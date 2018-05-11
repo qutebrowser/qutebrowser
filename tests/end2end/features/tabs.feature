@@ -1272,3 +1272,19 @@ Feature: Tab management
         And I run :enter-mode insert
         And I run :fake-key -g new
         Then the javascript message "contents: existingnew" should be logged
+
+    Scenario: Focused prompt after opening link in bg
+        When I open data/hints/link_input.html
+        When I run :set-cmd-text -s :message-info
+        And I open data/hello.txt in a new background tab
+        And I run :fake-key -g hello-world
+        And I run :command-accept
+        Then the message "hello-world" should be shown
+
+    Scenario: Focused prompt after opening link in fg
+        When I open data/hints/link_input.html
+        When I run :set-cmd-text -s :message-info
+        And I open data/hello.txt in a new tab
+        And I run :fake-key -g hello-world
+        And I run :command-accept
+        Then the message "hello-world" should be shown
