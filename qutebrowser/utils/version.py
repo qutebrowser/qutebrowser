@@ -399,6 +399,7 @@ def version():
     lines += [
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
         "Imported from {}".format(importpath),
+        "Using Python from {}".format(sys.executable),
         "Qt library executable path: {}, data path: {}".format(
             QLibraryInfo.location(QLibraryInfo.LibraryExecutablesPath),
             QLibraryInfo.location(QLibraryInfo.DataPath)
