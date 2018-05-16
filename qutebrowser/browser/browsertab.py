@@ -847,7 +847,14 @@ class AbstractTab(QWidget):
         if predict:
             self.predicted_navigation.emit(url)
 
-    def openurl(self, url, *, predict=True):
+    def openurl(self, url, *, predict=True, background=False):
+        """Open the given URL in this tab.
+
+        Arguments:
+            url: The QUrl to open.
+            predict: If set to False, predicted_navigation is not emitted.
+            background: Whether the tab is being opened in the background.
+        """
         raise NotImplementedError
 
     def reload(self, *, force=False):

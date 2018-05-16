@@ -673,9 +673,11 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def openurl(self, url, *, predict=True):
+    # pylint: disable=unused-argument
+    def openurl(self, url, *, predict=True, background=False):
         self._openurl_prepare(url, predict=predict)
         self._widget.openurl(url)
+    # pylint: enable=unused-argument
 
     def url(self, requested=False):
         frame = self._widget.page().mainFrame()
