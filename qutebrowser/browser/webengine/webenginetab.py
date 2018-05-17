@@ -1067,7 +1067,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if not navigation.accepted or not navigation.is_main_frame:
             return
 
-        needs_reload = {
+        settings_needing_reload = {
             'content.plugins',
             'content.javascript.enabled',
             'content.javascript.can_access_clipboard',
@@ -1076,11 +1076,20 @@ class WebEngineTab(browsertab.AbstractTab):
             'input.spatial_navigation',
             'input.spatial_navigation',
         }
-        assert needs_reload.issubset(configdata.DATA)
+        assert settings_needing_reload.issubset(configdata.DATA)
 
         changed = self.settings.update_for_url(navigation.url)
-        if (changed & needs_reload and navigation.navigation_type !=
-                navigation.Type.link_clicked):
+        reload_needed = changed & settings_needing_reload
+
+        # On Qt < 5.11, we don't don't need a reload when type == link_clicked.
+        # On Qt 5.11.0, we always need a reload.
+        # TODO on Qt > 5.11.0, we hopefully never need a reload:
+        #      https://codereview.qt-project.org/#/c/229525/1
+        if not qtutils.version_check('5.11.0', exact=True, compiled=False):
+            if navigation.navigation_type != navigation.Type.link_clicked:
+                reload_needed = False
+
+        if reload_needed:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
             self._reload_url = navigation.url
 
