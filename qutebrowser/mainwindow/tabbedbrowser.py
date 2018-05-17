@@ -640,6 +640,21 @@ class TabbedBrowser(QWidget):
                 return
             widget.setFocus()
 
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_entered(self, mode):
+        """Focus webview when entering insert modes."""
+        if mode in modeman.PASSTHROUGH_MODES:
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58698
+            # The previous fixes don't seem to work across domains, this is a
+            # last-ditch effort. Does not fix forward_unbound_keys.
+            widget = self.widget.currentWidget()
+            if widget is None:
+                return
+            widget.setFocus()
+            log.modes.debug(
+                "Entered a passthrough mode, ensuring focus of {}".format(
+                    widget))
+
     @pyqtSlot(int)
     def on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
