@@ -45,6 +45,12 @@ Added
 
 - Work around a bug in Qt 5.11 where only the top/bottom half of the window is used.
 
+Fixed
+~~~~~
+
+- Work around an issue in Qt 5.11 where e.g. activating JavaScript per-domain
+  needed a manual relaod in some cases.
+
 v1.3.0
 ------
 
