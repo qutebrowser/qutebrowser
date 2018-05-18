@@ -36,6 +36,21 @@ Changed
 - There's now completion for commands taking a variable count of arguments
   (like `:config-cycle`).
 
+
+v1.3.1 (unreleased)
+-------------------
+
+Added
+~~~~~
+
+- Work around a bug in Qt 5.11 where only the top/bottom half of the window is used.
+
+Fixed
+~~~~~
+
+- Work around an issue in Qt 5.11 where e.g. activating JavaScript per-domain
+  needed a manual relaod in some cases.
+
 v1.3.0
 ------
 
