@@ -57,7 +57,8 @@ You'll need to download three packages:
   (or both) depending on the backend you want to use. QtWebEngine is the
   default/recommended choice.
 
-After downloading, install the packages:
+After downloading, install the packages (make sure to install all the
+downloaded qutebrowser deb files in one apt command):
 
 ----
 # apt install ./python3-pypeg2_*_all.deb
