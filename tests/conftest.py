@@ -223,8 +223,10 @@ def check_display(request):
 @pytest.fixture(autouse=True)
 def set_backend(monkeypatch, request):
     """Make sure the backend global is set."""
-    backend = (usertypes.Backend.QtWebEngine if request.config.webengine
-               else usertypes.Backend.QtWebKit)
+    if not request.config.webengine and version.qWebKitVersion:
+        backend = usertypes.Backend.QtWebKit
+    else:
+        backend = usertypes.Backend.QtWebEngine
     monkeypatch.setattr(objects, 'backend', backend)
 
 
