@@ -25,9 +25,14 @@ A short demonstration can be seen here: https://i.imgur.com/zA61NrF.gifv.
 
 USAGE = """The domain of the site has to be in the name of the LastPass entry, for example: "github.com/cryzed" or
 "websites/github.com".  The login information is inserted by emulating key events using qutebrowser's fake-key command in this manner:
-[USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms."""
+[USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms.
 
-EPILOG = """Dependencies: tldextract (Python 3 module), LastPass CLI.
+You must log into LastPass CLI using `lpass login <email>` prior to use of this script. The LastPass CLI agent only holds your master password for an hour by default. If you wish to change this, please see `man lpass`.
+
+To use in qutebrowser, run: `spawn --userscript qute-lastpass`
+"""
+
+EPILOG = """Dependencies: tldextract (Python 3 module), LastPass CLI (1.3 or newer)
 
 WARNING: The login details are viewable as plaintext in qutebrowser's debug log (qute://log) and might be shared if
 you decide to submit a crash report!"""
@@ -78,8 +83,16 @@ def qute_command(command):
 
 def pass_(domain, encoding):
     args = ['lpass', 'show', '-x', '-j', '-G', '.*{:s}.*'.format(domain)]
-    process = subprocess.run(args, stdout=subprocess.PIPE)
+    process = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    err = process.stderr.decode(encoding).strip()
+    if err != '':
+        msg = "LastPass CLI returned for {:s} - {:s}".format(domain, err)
+        print(msg)
+        return '[]'
+
     out = process.stdout.decode(encoding).strip()
+
     return out
 
 def dmenu(items, invocation, encoding):
@@ -107,7 +120,7 @@ def main(arguments):
     # the registered domain name and finally: the IPv4 address if that's what
     # the URL represents
     candidates = []
-    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4]):
+    for target in filter(None, {extract_result.fqdn, extract_result.registered_domain, extract_result.subdomain + extract_result.domain, extract_result.domain, extract_result.ipv4}):
         target_candidates = json.loads(pass_(target, arguments.io_encoding))
         if not target_candidates:
             continue
