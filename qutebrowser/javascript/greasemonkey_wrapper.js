@@ -189,16 +189,11 @@
         // We can't return `this` or `qute_gm_window_proxy` from
         // `qute_gm_window_proxy.get('window')` because the Proxy implementation
         // does typechecking on read-only things. So we have to shadow `window`
-        // more conventionally here. Except we can't do it directly within
-        // with `with` scope because then it would get assigned to the
-        // proxy and we would get the same problem, so we have to make yet
-        // another nested scope.
-        (function() {
-          let window = qute_gm_window_proxy;
-          // ====== The actual user script source ====== //
+        // more conventionally here.
+        const window = qute_gm_window_proxy;
+        // ====== The actual user script source ====== //
 {{ scriptSource }}
-          // ====== End User Script ====== //
-        })();
+        // ====== End User Script ====== //
       };
     {% else %}
       // ====== The actual user script source ====== //
