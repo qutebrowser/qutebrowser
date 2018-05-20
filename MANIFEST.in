@@ -1,6 +1,5 @@
 recursive-include qutebrowser *.py
 recursive-include qutebrowser/img *.svg *.png
-recursive-include qutebrowser/test *.py
 recursive-include qutebrowser/javascript *.js
 graft qutebrowser/html
 graft qutebrowser/3rdparty
@@ -27,20 +26,18 @@ prune scripts/dev
 prune scripts/testbrowser/cpp
 prune .github
 exclude scripts/asciidoc2html.py
-exclude doc/notes
 recursive-exclude doc *.asciidoc
 include doc/qutebrowser.1.asciidoc
 include doc/changelog.asciidoc
 prune tests
 prune qutebrowser/3rdparty
 exclude pytest.ini
-exclude qutebrowser.rcc
 exclude qutebrowser/javascript/.eslintrc.yaml
 exclude qutebrowser/javascript/.eslintignore
 exclude doc/help
 exclude .*
-exclude misc/appveyor_install.py
 exclude misc/qutebrowser.spec
 exclude misc/qutebrowser.nsi
+exclude misc/qutebrowser.rcc
 
 global-exclude __pycache__ *.pyc *.pyo
