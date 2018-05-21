@@ -860,11 +860,22 @@ window._qutebrowser.caret = (function() {
             "  position: absolute;" +
             "  z-index: 2147483647;" +
             "  min-height: 10px;" +
-            "  background-color: #000;" +
+            "  min-width: 0.6em;" +
+            "  background: inherit;" +
+            "  color: inherit;" +
+            "  mix-blend-mode: difference;" +
+            "  filter: invert(50%);" +
+            "  animation: blink 1s step-end infinite;" +
+            "}";
+        const blink = "@keyframes blink {" +
+            "50% { visibility: hidden; }" +
             "}";
         const node = document.createElement("style");
         node.innerHTML = style;
         document.body.appendChild(node);
+        const node2 = document.createElement("style");
+        node2.innerHTML = blink;
+        document.body.appendChild(node2);
     };
 
     /**
