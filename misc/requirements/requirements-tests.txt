@@ -2,7 +2,7 @@
 
 attrs==18.1.0
 beautifulsoup4==4.6.0
-cheroot==6.2.4
+cheroot==6.3.1
 click==6.7
 # colorama==0.3.9
 coverage==4.5.1
