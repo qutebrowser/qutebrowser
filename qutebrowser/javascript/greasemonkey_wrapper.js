@@ -163,16 +163,16 @@
       const unsafeWindow = window;
       const qute_gm_window_shadow = {};  // stores local changes to window
       const qute_gm_windowProxyHandler = {
-        get: function(obj, prop) {
+        get: function(target, prop) {
           if (prop in qute_gm_window_shadow)
             return qute_gm_window_shadow[prop];
-          if (prop in obj) {
-            if (typeof obj[prop] === 'function' && typeof obj[prop].prototype == 'undefined')
+          if (prop in target) {
+            if (typeof target[prop] === 'function' && typeof target[prop].prototype == 'undefined')
               // Getting TypeError: Illegal Execution when callers try to execute
               // eg addEventListener from here because they were returned
               // unbound
-              return obj[prop].bind(obj);
-            return obj[prop];
+              return target[prop].bind(target);
+            return target[prop];
           }
         },
         set: function(target, prop, val) {
