@@ -293,7 +293,7 @@ class _CrashDialog(QDialog):
         self._paste_text = '\n\n'.join(lines)
         try:
             user = getpass.getuser()
-        except Exception as e:
+        except Exception:
             log.misc.exception("Error while getting user")
             user = 'unknown'
         try:

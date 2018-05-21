@@ -498,7 +498,7 @@ def send_or_listen(args):
             server = IPCServer(socketname)
             server.listen()
             return server
-        except AddressInUseError as e:
+        except AddressInUseError:
             # This could be a race condition...
             log.init.debug("Got AddressInUseError, trying again.")
             time.sleep(0.5)
