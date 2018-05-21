@@ -86,9 +86,9 @@ def pass_(domain, encoding):
     process = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     err = process.stderr.decode(encoding).strip()
-    if err != '':
+    if err:
         msg = "LastPass CLI returned for {:s} - {:s}".format(domain, err)
-        print(msg)
+        stderr(msg)
         return '[]'
 
     out = process.stdout.decode(encoding).strip()
@@ -120,7 +120,7 @@ def main(arguments):
     # the registered domain name and finally: the IPv4 address if that's what
     # the URL represents
     candidates = []
-    for target in filter(None, {extract_result.fqdn, extract_result.registered_domain, extract_result.subdomain + extract_result.domain, extract_result.domain, extract_result.ipv4}):
+    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.subdomain + extract_result.domain, extract_result.domain, extract_result.ipv4]):
         target_candidates = json.loads(pass_(target, arguments.io_encoding))
         if not target_candidates:
             continue
