@@ -1674,7 +1674,7 @@ class CommandDispatcher:
         """
         try:
             elem.set_value(text)
-        except webelem.OrphanedError as e:
+        except webelem.OrphanedError:
             message.error('Edited element vanished')
             ed.backup()
         except webelem.Error as e:
