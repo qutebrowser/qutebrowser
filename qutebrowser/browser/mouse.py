@@ -22,7 +22,7 @@
 from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes
+from qutebrowser.utils import message, log, usertypes, qtutils
 from qutebrowser.keyinput import modeman
 
 
@@ -54,6 +54,11 @@ class ChildEventFilter(QObject):
                 obj, child))
             assert obj is self._widget
             child.installEventFilter(self._filter)
+
+            if qtutils.version_check('5.11', compiled=False, exact=True):
+                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
+                QTimer.singleShot(0, self._widget.setFocus)
+
         return False
 
 
