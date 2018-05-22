@@ -862,6 +862,9 @@ window._qutebrowser.caret = (function() {
             "  min-height: 10px;" +
             "  min-width: 0.6em;" +
             "  mix-blend-mode: difference;" +
+            "  --inherited-color: inherit;" +
+            "  background-color: var(--inherited-color, #fff);" +
+            "  color: var(--inherited-color, #000);" +
             "  filter: invert(50%);" +
             "  animation: blink 1s step-end infinite;" +
             "}";
