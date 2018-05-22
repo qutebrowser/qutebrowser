@@ -320,6 +320,10 @@ class TestCount:
         keyparser.execute.assert_called_once_with('message-info ccc', 23)
         assert not keyparser._sequence
 
+    def test_superscript(self, handle_text, keyparser):
+        # https://github.com/qutebrowser/qutebrowser/issues/3743
+        handle_text(Qt.Key_twosuperior, Qt.Key_B, Qt.Key_A)
+
     def test_count_keystring_update(self, qtbot, handle_text, keyparser):
         """Make sure the keystring is updated correctly when entering count."""
         with qtbot.waitSignals([keyparser.keystring_updated,
