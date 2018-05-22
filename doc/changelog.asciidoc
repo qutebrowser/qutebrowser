@@ -51,6 +51,7 @@ Fixed
 
 - Work around an issue in Qt 5.11 where e.g. activating JavaScript per-domain
   needed a manual relaod in some cases.
+- Don't crash when a ² key is pressed (e.g. on AZERTY keyboards).
 
 v1.3.0
 ------
