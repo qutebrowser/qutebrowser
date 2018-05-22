@@ -44,6 +44,7 @@ Added
 ~~~~~
 
 - Work around a bug in Qt 5.11 where only the top/bottom half of the window is used.
+- Work around keyboard focus issues with Qt 5.11
 
 Fixed
 ~~~~~
