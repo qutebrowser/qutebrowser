@@ -114,6 +114,12 @@ def leave(win_id, mode, reason=None, *, maybe=False):
     instance(win_id).leave(mode, reason, maybe=maybe)
 
 
+# A list of modes where key presses should be transferred to the webview
+PASSTHROUGH_MODES = [usertypes.KeyMode.insert,
+                     usertypes.KeyMode.passthrough,
+                     usertypes.KeyMode.caret]
+
+
 class ModeManager(QObject):
 
     """Manager for keyboard modes.
