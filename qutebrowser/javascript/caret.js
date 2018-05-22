@@ -861,8 +861,6 @@ window._qutebrowser.caret = (function() {
             "  z-index: 2147483647;" +
             "  min-height: 10px;" +
             "  min-width: 0.6em;" +
-            "  background: inherit;" +
-            "  color: inherit;" +
             "  mix-blend-mode: difference;" +
             "  filter: invert(50%);" +
             "  animation: blink 1s step-end infinite;" +
