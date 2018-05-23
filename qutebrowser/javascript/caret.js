@@ -859,13 +859,13 @@ window._qutebrowser.caret = (function() {
         const style = ".CaretBrowsing_Caret {" +
             "  position: absolute;" +
             "  z-index: 2147483647;" +
-            "  min-height: 10px;" +
+            "  min-height: 1em;" +
             "  min-width: 0.6em;" +
-            "  mix-blend-mode: difference;" +
             "  --inherited-color: inherit;" +
-            "  background-color: var(--inherited-color, #000);" +
+            "  background-color: var(--inherited-color, #AAA);" +
             "  color: var(--inherited-color, #000);" +
-            "  filter: invert(50%);" +
+            "  mix-blend-mode: difference;" +
+            "  filter: invert(45%);" +
             "  animation: blink 1s step-end infinite;" +
             "}";
         const blink = "@keyframes blink {" +
