@@ -874,6 +874,7 @@ def test_version_output(params, stubs, monkeypatch):
         '_git_str': lambda: ('GIT COMMIT' if params.git_commit else None),
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',
         'platform.python_version': lambda: 'PYTHON VERSION',
+        'sys.executable': 'EXECUTABLE PATH',
         'PYQT_VERSION_STR': 'PYQT VERSION',
         'earlyinit.qt_version': lambda: 'QT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
@@ -897,6 +898,7 @@ def test_version_output(params, stubs, monkeypatch):
         'qt': 'QT VERSION',
         'frozen': str(params.frozen),
         'import_path': import_path,
+        'python_path': 'EXECUTABLE PATH',
     }
 
     if params.with_webkit:
@@ -951,6 +953,7 @@ def test_version_output(params, stubs, monkeypatch):
         Platform: PLATFORM, ARCHITECTURE{linuxdist}
         Frozen: {frozen}
         Imported from {import_path}
+        Using Python from {python_path}
         Qt library executable path: QT PATH, data path: QT PATH
         {osinfo}
         Paths:

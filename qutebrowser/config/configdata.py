@@ -102,7 +102,7 @@ def _parse_yaml_type(name, node):
 
     try:
         typ = getattr(configtypes, type_name)
-    except AttributeError as e:
+    except AttributeError:
         raise AttributeError("Did not find type {} for {}".format(
             type_name, name))
 

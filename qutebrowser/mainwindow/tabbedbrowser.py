@@ -494,6 +494,7 @@ class TabbedBrowser(QWidget):
         else:
             self.widget.setCurrentWidget(tab)
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
+            # Still seems to be needed with Qt 5.11.1
             tab.setFocus()
 
         mode = modeman.instance(self._win_id).mode

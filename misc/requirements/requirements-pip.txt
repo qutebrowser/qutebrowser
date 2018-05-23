@@ -3,6 +3,6 @@
 appdirs==1.4.3
 packaging==17.1
 pyparsing==2.2.0
-setuptools==39.1.0
+setuptools==39.2.0
 six==1.11.0
-wheel==0.31.0
+wheel==0.31.1

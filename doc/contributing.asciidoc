@@ -567,6 +567,20 @@ can be useful for debugging:
 - chrome://ppapiflashcrash/
 - chrome://ppapiflashhang/
 
+QtWebEngine internals
+~~~~~~~~~~~~~~~~~~~~~
+
+This is mostly useful for qutebrowser maintainers to work around issues in Qt - if you don't understand it, don't worry, just ignore it.
+
+The hierarchy of widgets when QtWebEngine is involved looks like this:
+
+- qutebrowser has a `WebEngineTab` object, which is its abstraction over QtWebKit/QtWebEngine.
+- The `WebEngineTab` has a `_widget` attribute, which is the https://doc.qt.io/qt-5/qwebengineview.html[QWebEngineView]
+- That view has a https://doc.qt.io/qt-5/qwebenginepage.html[QWebEnginePage] for everything which doesn't require rendering.
+- The view also has a layout with exactly one element (which also is its `focusProxy()`)
+- That element is the  http://code.qt.io/cgit/qt/qtwebengine.git/tree/src/webenginewidgets/render_widget_host_view_qt_delegate_widget.cpp[RenderWidgetHostViewQtDelegateWidget] (it inherits https://doc.qt.io/qt-5/qquickwidget.html[QQuickWidget]) - also often referred to as RWHV or RWHVQDW. It can be obtained via `sip.cast(tab._widget.focusProxy(), QQuickWidget)`.
+- Calling `rootObject()` on that gives us the https://doc.qt.io/qt-5/qquickitem.html[QQuickItem] where Chromium renders into (?). With it, we can do things like `.setRotation(20)`.
+
 Style conventions
 -----------------
 
