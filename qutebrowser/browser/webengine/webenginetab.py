@@ -782,10 +782,15 @@ class WebEngineTab(browsertab.AbstractTab):
         self.zoom.set_factor(self._saved_zoom)
         self._saved_zoom = None
 
-    def openurl(self, url, *, predict=True, background=False):
+    def openurl(self, url, *, predict=True):
+        """Open the given URL in this tab.
+
+        Arguments:
+            url: The QUrl to open.
+            predict: If set to False, predicted_navigation is not emitted.
+        """
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
-        if not background:
-            self._widget.setFocus()
+        self._widget.setFocus()
         self._saved_zoom = self.zoom.factor()
         self._openurl_prepare(url, predict=predict)
         self._widget.load(url)

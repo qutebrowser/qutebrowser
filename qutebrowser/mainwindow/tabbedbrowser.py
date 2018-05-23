@@ -477,12 +477,11 @@ class TabbedBrowser(QWidget):
             idx = self._get_new_tab_idx(related)
         self.widget.insertTab(idx, tab, "")
 
+        if url is not None:
+            tab.openurl(url)
+
         if background is None:
             background = config.val.tabs.background
-
-        if url is not None:
-            tab.openurl(url, background=background)
-
         if background:
             # Make sure the background tab has the correct initial size.
             # With a foreground tab, it's going to be resized correctly by the
