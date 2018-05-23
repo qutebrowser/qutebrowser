@@ -30,7 +30,7 @@ from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
                           QUrl, QTimer)
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtNetwork import QAuthenticator
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.config import configdata, config
@@ -41,7 +41,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, objreg, jinja, debug)
+                               message, objreg, jinja, debug, message)
 
 
 _qute_scheme_handler = None
@@ -1061,7 +1061,13 @@ class WebEngineTab(browsertab.AbstractTab):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68224
             layout = self._widget.layout()
             count = layout.count()
+            children = self._widget.findChildren(QWidget)
+            if not count and children:
+                log.webview.warning("Found children not in layout: {}, "
+                                    "focus proxy {} (QTBUG-68224)".format(
+                                        children, self._widget.focusProxy()))
             if count > 1:
+                log.webview.debug("Found {} widgets! (QTBUG-68224)".format(count))
                 for i in range(count):
                     item = layout.itemAt(i)
                     if item is None:
