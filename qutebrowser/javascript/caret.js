@@ -863,7 +863,7 @@ window._qutebrowser.caret = (function() {
             "  min-width: 0.6em;" +
             "  mix-blend-mode: difference;" +
             "  --inherited-color: inherit;" +
-            "  background-color: var(--inherited-color, #fff);" +
+            "  background-color: var(--inherited-color, #000);" +
             "  color: var(--inherited-color, #000);" +
             "  filter: invert(50%);" +
             "  animation: blink 1s step-end infinite;" +
@@ -874,6 +874,7 @@ window._qutebrowser.caret = (function() {
         const node = document.createElement("style");
         node.innerHTML = style;
         document.body.appendChild(node);
+
         const node2 = document.createElement("style");
         node2.innerHTML = blink;
         document.body.appendChild(node2);
@@ -944,7 +945,7 @@ window._qutebrowser.caret = (function() {
      */
     CaretBrowsing.setCaretElementNormalStyle = function() {
         const element = CaretBrowsing.caretElement;
-        element.className = "CaretBrowsing_Caret";
+        element.ClassName = "CaretBrowsing_Caret";
         if (CaretBrowsing.isSelectionCollapsed) {
             element.style.opacity = "1.0";
         } else {
@@ -1170,6 +1171,8 @@ window._qutebrowser.caret = (function() {
                 CaretBrowsing.updateCaretOrSelection(true);
             }, 0);
         }
+
+        CaretBrowsing.stopAnimation();
     };
 
     CaretBrowsing.moveToBlock = function(paragraph, boundary) {
@@ -1188,6 +1191,8 @@ window._qutebrowser.caret = (function() {
         window.setTimeout(() => {
             CaretBrowsing.updateCaretOrSelection(true);
         }, 0);
+
+        CaretBrowsing.stopAnimation();
     };
 
     CaretBrowsing.toggle = function(value) {
@@ -1252,6 +1257,17 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.onWindowBlur = function() {
         CaretBrowsing.isWindowFocused = false;
         CaretBrowsing.updateIsCaretVisible();
+    };
+
+    CaretBrowsing.startAnimation = function() {
+        CaretBrowsing.caretElement.style.animationIterationCount = 'infinite';
+    };
+
+    CaretBrowsing.stopAnimation = function() {
+        CaretBrowsing.caretElement.style.animationIterationCount = 0;
+        window.setTimeout(() => {
+            CaretBrowsing.startAnimation();
+        }, 1000);
     };
 
     CaretBrowsing.init = function() {
