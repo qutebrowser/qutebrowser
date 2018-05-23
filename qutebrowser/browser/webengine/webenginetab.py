@@ -1026,8 +1026,9 @@ class WebEngineTab(browsertab.AbstractTab):
             log.config.debug(
                 "Loading {} again because of config change".format(
                     self._reload_url.toDisplayString()))
-            QTimer.singleShot(100, lambda url=self._reload_url:
-                              self.openurl(url, predict=False))
+            QTimer.singleShot(100, functools.partial(self.openurl,
+                                                     self._reload_url,
+                                                     predict=False))
             self._reload_url = None
 
         if not qtutils.version_check('5.10', compiled=False):
