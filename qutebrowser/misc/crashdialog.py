@@ -158,6 +158,11 @@ class _CrashDialog(QDialog):
         self._init_info_text()
         self._init_buttons()
 
+    # Prevent closing :report dialogs when pressing <escape>
+    def keyPressEvent(self, e):
+        if e.key() != Qt.Key_Escape:
+            super().keyPressEvent(e)
+
     def __repr__(self):
         return utils.get_repr(self)
 
