@@ -2179,6 +2179,13 @@ fonts.web.size.minimum_logical:
     maxval: maxint
   desc: Minimum logical font size (in pixels) that is applied when zooming out.
 
+## reporter
+
+reporter.escape_quits:
+  type: Bool
+  default: True
+  desc: Allow escape to quit the crash reporter.
+
 ## keybindings
 
 bindings.key_mappings:
