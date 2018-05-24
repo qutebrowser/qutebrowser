@@ -41,7 +41,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            webenginesettings)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, objreg, jinja, debug, message)
+                               message, objreg, jinja, debug)
 
 
 _qute_scheme_handler = None
@@ -1067,7 +1067,8 @@ class WebEngineTab(browsertab.AbstractTab):
                                     "focus proxy {} (QTBUG-68224)".format(
                                         children, self._widget.focusProxy()))
             if count > 1:
-                log.webview.debug("Found {} widgets! (QTBUG-68224)".format(count))
+                log.webview.debug("Found {} widgets! (QTBUG-68224)"
+                                  .format(count))
                 for i in range(count):
                     item = layout.itemAt(i)
                     if item is None:
