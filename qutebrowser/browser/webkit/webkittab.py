@@ -377,8 +377,14 @@ class WebKitCaret(browsertab.AbstractCaret):
                 QWebSettings.JavascriptEnabled):
             if tab:
                 self._tab.data.override_target = usertypes.ClickTarget.tab
-            self._tab.run_js_async(
-                'window.getSelection().anchorNode.parentNode.click()')
+            self._tab.run_js_async("""
+                const aElm = document.activeElement;
+                if (window.getSelection().anchorNode) {
+                    window.getSelection().anchorNode.parentNode.click();
+                } else if (aElm && aElm !== document.body) {
+                    aElm.click();
+                }
+            """)
         else:
             selection = self._widget.selectedHtml()
             if not selection:

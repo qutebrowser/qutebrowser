@@ -364,7 +364,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
         else:
             # click an existing blue selection
-            js_code = javascript.assemble('webelem', 'find_selected_link')
+            js_code = javascript.assemble('webelem', 'find_selected_focused_link')
             self._tab.run_js_async(js_code, lambda jsret:
                                    self._follow_selected_cb(jsret, tab))
 
