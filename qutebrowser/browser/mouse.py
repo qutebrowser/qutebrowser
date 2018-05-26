@@ -58,6 +58,9 @@ class ChildEventFilter(QObject):
             if qtutils.version_check('5.11', compiled=False, exact=True):
                 # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
                 QTimer.singleShot(0, self._widget.setFocus)
+        elif event.type() == QEvent.ChildRemoved:
+            child = event.child()
+            log.mouse.debug("{}: removed child {}".format(obj, child))
 
         return False
 
