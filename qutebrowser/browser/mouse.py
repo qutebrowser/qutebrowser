@@ -22,7 +22,7 @@
 from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils
+from qutebrowser.utils import message, log, usertypes, qtutils, objreg
 from qutebrowser.keyinput import modeman
 
 
@@ -57,7 +57,22 @@ class ChildEventFilter(QObject):
 
             if qtutils.version_check('5.11', compiled=False, exact=True):
                 # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
-                QTimer.singleShot(0, self._widget.setFocus)
+                try:
+                    win_id = self._widget._win_id
+                    PASSTHROUGH_MODES = [usertypes.KeyMode.command,
+                                        usertypes.KeyMode.prompt,
+                                        usertypes.KeyMode.yesno]
+                    if modeman.instance(win_id).mode not in PASSTHROUGH_MODES:
+                        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                                    window=win_id)
+                        current_index = tabbed_browser.widget.currentIndex()
+                        widget_index = self._widget.parent().tab_id
+                        if current_index == widget_index:
+                            QTimer.singleShot(0, self._widget.setFocus)
+                except:
+                    # Something failed, let's just setFocus
+                    QTimer.singleShot(0, self._widget.setFocus)
+
         elif event.type() == QEvent.ChildRemoved:
             child = event.child()
             log.mouse.debug("{}: removed child {}".format(obj, child))
