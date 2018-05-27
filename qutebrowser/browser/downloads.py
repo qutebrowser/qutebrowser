@@ -134,6 +134,7 @@ def create_full_filename(basename, filename):
     Return:
         The full absolute path, or None if filename creation was not possible.
     """
+    basename = utils.sanitize_filename(basename)
     # Remove chars which can't be encoded in the filename encoding.
     # See https://github.com/qutebrowser/qutebrowser/issues/427
     encoding = sys.getfilesystemencoding()
@@ -159,6 +160,7 @@ def get_filename_question(*, suggested_filename, url, parent=None):
         url: The URL the download originated from.
         parent: The parent of the question (a QObject).
     """
+    suggested_filename = utils.sanitize_filename(suggested_filename)
     encoding = sys.getfilesystemencoding()
     suggested_filename = utils.force_encoding(suggested_filename, encoding)
 
