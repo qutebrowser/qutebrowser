@@ -58,15 +58,22 @@ class ChildEventFilter(QObject):
             if qtutils.version_check('5.11', compiled=False, exact=True):
                 # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
                 try:
+                    # pylint: disable=protected-access
                     win_id = self._widget._win_id
-                    PASSTHROUGH_MODES = [usertypes.KeyMode.command,
-                                        usertypes.KeyMode.prompt,
-                                        usertypes.KeyMode.yesno]
-                    if modeman.instance(win_id).mode not in PASSTHROUGH_MODES:
-                        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                    # pylint: enable=protected-access
+                    passthrough_modes = [usertypes.KeyMode.command,
+                                         usertypes.KeyMode.prompt,
+                                         usertypes.KeyMode.yesno]
+                    if modeman.instance(win_id).mode not in passthrough_modes:
+                        tabbed_browser = objreg.get('tabbed-browser',
+                                                    scope='window',
                                                     window=win_id)
                         current_index = tabbed_browser.widget.currentIndex()
-                        widget_index = self._widget.parent().tab_id
+                        try:
+                            widget_index = tabbed_browser.widget.indexOf(
+                                self._widget.parent())
+                        except RuntimeError:
+                            widget_index = -1
                         if current_index == widget_index:
                             QTimer.singleShot(0, self._widget.setFocus)
                 except:
