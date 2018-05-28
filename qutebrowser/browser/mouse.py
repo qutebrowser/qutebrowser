@@ -66,7 +66,10 @@ class ChildEventFilter(QObject):
                         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                                     window=win_id)
                         current_index = tabbed_browser.widget.currentIndex()
-                        widget_index = self._widget.parent().tab_id
+                        try:
+                            widget_index = tabbed_browser.widget.indexOf(self._widget.parent())
+                        except RuntimeError:
+                            widget_index = -1
                         if current_index == widget_index:
                             QTimer.singleShot(0, self._widget.setFocus)
                 except:
