@@ -66,6 +66,10 @@ matrix:
       env: TESTENV=shellcheck
       services: docker
   fast_finish: true
+  allow_failures:
+    - os: linux
+      env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
+      services: docker
 
 cache:
   directories:
