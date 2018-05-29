@@ -77,6 +77,7 @@ try:
         version='.'.join(str(e) for e in _get_constant('version_info')),
         description=_get_constant('description'),
         long_description=read_file('README.asciidoc'),
+        long_description_content_type='text/plain',
         url='https://www.qutebrowser.org/',
         author=_get_constant('author'),
         author_email=_get_constant('email'),
