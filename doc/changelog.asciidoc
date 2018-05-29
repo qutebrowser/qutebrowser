@@ -15,6 +15,20 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.3.1
+------
+
+Fixed
+~~~~~
+
+- Work around a bug in Qt 5.11 where only the top/bottom half of the window is used.
+  This workaround is incomplete, but fixes the majority of the cases where this happens.
+- Work around keyboard focus issues with Qt 5.11.
+- Work around an issue in Qt 5.11 where e.g. activating JavaScript per-domain
+  needed a manual reload in some cases.
+- Don't crash when a ² key is pressed (e.g. on AZERTY keyboards).
+- Don't crash when a tab is opened and quickly closed again.
+
 v1.3.0
 ------
 
