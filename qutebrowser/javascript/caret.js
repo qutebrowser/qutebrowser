@@ -862,7 +862,7 @@ window._qutebrowser.caret = (function() {
             "  min-height: 1em;" +
             "  min-width: 0.2em;" +
             "  --inherited-color: inherit;" +
-            "  background-color: var(--inherited-color, #FFF);" +
+            "  background-color: var(--inherited-color, #000);" +
             "  color: var(--inherited-color, #000);" +
             "  mix-blend-mode: difference;" +
             "  filter: invert(85%);" +
