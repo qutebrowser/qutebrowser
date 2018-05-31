@@ -860,9 +860,9 @@ window._qutebrowser.caret = (function() {
             "  position: absolute;" +
             "  z-index: 2147483647;" +
             "  min-height: 1em;" +
-            "  min-width: 0.6em;" +
+            "  min-width: 0.2em;" +
             "  --inherited-color: inherit;" +
-            "  background-color: var(--inherited-color, #AAA);" +
+            "  background-color: var(--inherited-color, #FFF);" +
             "  color: var(--inherited-color, #000);" +
             "  mix-blend-mode: difference;" +
             "  filter: invert(45%);" +
