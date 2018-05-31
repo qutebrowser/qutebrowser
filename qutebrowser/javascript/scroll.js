@@ -38,79 +38,109 @@ window._qutebrowser.scroll = (function() {
         return "scrollBehavior" in document.documentElement.style;
     }
 
-    // Helper function which scrolls the document 'doc' and window 'win' to x, y
-    function scroll_to_perc(x, y, win, doc) {
-        let x_px = win.scrollX;
-        let y_px = win.scrollY;
+    // Helper function which scrolls an element to x, y
+    function scroll_to_perc(elt, x, y) {
+        let x_px = elt.scrollLeft;
+        let y_px = elt.scrollTop;
 
         const width = Math.max(
-            doc.body.scrollWidth,
-            doc.body.offsetWidth,
-            doc.documentElement.scrollWidth,
-            doc.documentElement.offsetWidth
+            elt.scrollWidth,
+            elt.offsetWidth
         );
         const height = Math.max(
-            doc.body.scrollHeight,
-            doc.body.offsetHeight,
-            doc.documentElement.scrollHeight,
-            doc.documentElement.offsetHeight
+            elt.scrollHeight,
+            elt.offsetHeight
         );
 
         if (x !== undefined) {
-            x_px = (width - win.innerWidth) / 100 * x;
+            x_px = (width - elt.clientWidth) / 100 * x;
         }
-
         if (y !== undefined) {
-            y_px = (height - win.innerHeight) / 100 * y;
+            y_px = (height - elt.clientHeight) / 100 * y;
         }
 
-        /*
-        console.log(JSON.stringify({
-            "x": x,
-            "win.scrollX": win.scrollX,
-            "win.innerWidth": win.innerWidth,
-            "elem.scrollWidth": doc.documentElement.scrollWidth,
-            "x_px": x_px,
-            "y": y,
-            "win.scrollY": win.scrollY,
-            "win.innerHeight": win.innerHeight,
-            "elem.scrollHeight": doc.documentElement.scrollHeight,
-            "y_px": y_px,
-        }));
-        */
+        elt.scroll(x_px, y_px);
+    }
 
-        win.scroll(x_px, y_px);
+    function scroll_element(element, x, y, smooth = false) {
+        const pre_x = element.scrollTop;
+        const pre_y = element.scrollLeft;
+        if (smooth_supported()) {
+            element.scrollBy(build_scroll_options(x, y, smooth));
+        } else {
+            element.scrollBy(x, y);
+        }
+        // Return true if we scrolled at all
+        return pre_x !== element.scrollLeft || pre_y !== element.scrollTop;
+    }
+
+    // Scroll a provided window's element by x,y as a percent
+    function scroll_window_elt(x, y, smooth, win, elt) {
+        const dx = win.innerWidth * x;
+        const dy = win.innerHeight * y;
+        scroll_element(elt, dx, dy, smooth);
+    }
+
+    function should_scroll(elt) {
+        const cs = window.getComputedStyle(elt);
+        return (cs.getPropertyValue("overflow-#{direction}") !== "hidden" &&
+            !(cs.getPropertyValue("visibility") in ["hidden", "collapse"]) &&
+            cs.getPropertyValue("display") !== "none");
+    }
+
+    function can_scroll(element, x, y) {
+        const x_sign = Math.sign(x);
+        const y_sign = Math.sign(y);
+        return (scroll_element(element, x_sign, y_sign) &&
+                scroll_element(element, -x_sign, -y_sign));
+    }
+
+    function is_scrollable(elt, x, y) {
+        return should_scroll(elt) && can_scroll(elt, x, y);
+    }
+
+    // Recurse up the DOM and get the first element which is scrollable.
+    // We cannot use scrollHeight and clientHeight due to a chrome bug (110149)
+    // Heavily inspired from Vimium's implementation:
+    // https://github.com/philc/vimium/blob/026c90ccff6/content_scripts/scroller.coffee#L253-L270
+    function scrollable_parent(element, x, y) {
+        let elt = element;
+        while (elt !== document.scrollingElement &&
+               !is_scrollable(elt, x, y)) {
+            elt = elt.parentElement;
+        }
+        return elt;
     }
 
     funcs.to_perc = (x, y) => {
         // If we are in a frame, scroll that frame
         const frame_win = utils.get_frame_window(document.activeElement);
-        scroll_to_perc(x, y, frame_win, frame_win.document);
-    };
-
-    // Scroll a provided window by x,y as a percent
-    function scroll_window(x, y, smooth, win) {
-        const dx = win.innerWidth * x;
-        const dy = win.innerHeight * y;
-        if (smooth_supported()) {
-            win.scrollBy(build_scroll_options(dx, dy, smooth));
+        if (frame_win === window) {
+            const scroll_elt = scrollable_parent(document.activeElement, x, y);
+            scroll_to_perc(scroll_elt, x, y);
         } else {
-            win.scrollBy(dx, dy);
+            scroll_to_perc(frame_win.document.scrollingElement, x, y);
         }
-    }
+    };
 
     funcs.delta_page = (x, y, smooth) => {
         const frame_win = utils.get_frame_window(document.activeElement);
-        scroll_window(x, y, smooth, frame_win);
+        if (frame_win === window) {
+            const scroll_elt = scrollable_parent(document.activeElement, x, y);
+            scroll_window_elt(x, y, smooth, frame_win, scroll_elt);
+        } else {
+            scroll_window_elt(x, y, smooth, frame_win, frame_win);
+        }
     };
 
     funcs.delta_px = (x, y, smooth) => {
         const frame_win = utils.get_frame_window(document.activeElement);
         // Scroll by raw pixels, rather than by page
-        if (smooth_supported()) {
-            frame_win.scrollBy(build_scroll_options(x, y, smooth));
+        if (frame_win === window) {
+            const scroll_elt = scrollable_parent(document.activeElement, x, y);
+            scroll_element(scroll_elt, x, y, smooth);
         } else {
-            frame_win.scrollBy(x, y);
+            scroll_element(frame_win, x, y, smooth);
         }
     };
 
