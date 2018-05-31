@@ -865,7 +865,7 @@ window._qutebrowser.caret = (function() {
             "  background-color: var(--inherited-color, #FFF);" +
             "  color: var(--inherited-color, #000);" +
             "  mix-blend-mode: difference;" +
-            "  filter: invert(45%);" +
+            "  filter: invert(85%);" +
             "  animation: blink 1s step-end infinite;" +
             "}";
         const blink = "@keyframes blink {" +
