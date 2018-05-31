@@ -42,24 +42,42 @@ window._qutebrowser.scroll = (function() {
     function scroll_to_perc(elt, x, y) {
         let x_px = elt.scrollLeft;
         let y_px = elt.scrollTop;
+        const viewDoc = elt.ownerDocument;
 
-        const width = Math.max(
+        let width = Math.max(
             elt.scrollWidth,
             elt.offsetWidth
         );
-        const height = Math.max(
+        let height = Math.max(
             elt.scrollHeight,
             elt.offsetHeight
         );
 
-        if (x !== undefined) {
-            x_px = (width - elt.clientWidth) / 100 * x;
-        }
-        if (y !== undefined) {
-            y_px = (height - elt.clientHeight) / 100 * y;
+        let viewWidth = elt.clientWidth;
+        let viewHeight = elt.clientHeight;
+
+        // If elt is scrolling element, use window's height
+        if (elt === viewDoc.scrollingElement) {
+            const docElt = viewDoc.documentElement;
+            const docScr = viewDoc.scrollingElement;
+            // If we have the full page, add docElt's dimensions to avoid
+            // rounding errors on zoom
+            width = Math.max(width, docElt.offsetWidth, docElt.scrollWidth);
+            height = Math.max(height, docElt.offsetHeight, docElt.scrollHeight);
+
+            viewWidth = Math.min(docElt.clientWidth, docScr.clientWidth);
+            viewHeight = Math.min(docElt.clientHeight, docScr.clientHeight);
         }
 
-        elt.scroll(x_px, y_px);
+        if (x !== undefined) {
+            x_px = (width - viewWidth) / 100 * x;
+        }
+        if (y !== undefined) {
+            y_px = (height - viewHeight) / 100 * y;
+        }
+
+        elt.scrollTop = y_px;
+        elt.scrollLeft = x_px;
     }
 
     function scroll_element(element, x, y, smooth = false) {
@@ -67,8 +85,11 @@ window._qutebrowser.scroll = (function() {
         const pre_y = element.scrollLeft;
         if (smooth_supported()) {
             element.scrollBy(build_scroll_options(x, y, smooth));
-        } else {
+        } else if ("scrollBy" in element) {
             element.scrollBy(x, y);
+        } else {
+            element.scrollTop += y;
+            element.scrollLeft += x;
         }
         // Return true if we scrolled at all
         return pre_x !== element.scrollLeft || pre_y !== element.scrollTop;
@@ -113,7 +134,6 @@ window._qutebrowser.scroll = (function() {
     }
 
     funcs.to_perc = (x, y) => {
-        // If we are in a frame, scroll that frame
         const frame_win = utils.get_frame_window(document.activeElement);
         if (frame_win === window) {
             const scroll_elt = scrollable_parent(document.activeElement, x, y);

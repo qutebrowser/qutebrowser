@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Scrolling In Panes</title>
+        <script>
+            function checkAnchor() {
+                var old_position = window.scrollY;
+                document.getElementById("anchor").scrollIntoView();
+                var new_position = window.scrollY;
+                if (old_position != new_position) {
+                    console.log("[FAIL] Old position " + old_position +
+                                " != new position " + new_position);
+                } else {
+                    console.log("[PASS] Positions equal: " + old_position);
+                }
+            }
+
+            window.onload = function () {
+                let div = document.getElementById("scroll-div");
+                div.addEventListener('scroll', () =>  {
+                    console.log("scroll y px: " + div.scrollTop);
+                });
+            }
+        </script>
+    </head>
+    <body>
+    <div id="scroll-div" style="overflow-y: scroll; height:400px;">
+      <a href="/data/hello.txt" id="link">Just a link</a>
+      <button>blub</button>
+        <p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus</p>
+        <pre>
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+<span id="anchor">70</span>
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+This is a very long line so this page can be scrolled horizontally. Did you think this line would end here already? Nah, it does not. But now it will. Or will it? I think it's not long enough yet. But depending on your screen size, this is not even enough yet, so I'm typing some more gibberish here. Hopefully that helps. I'm glad if it did, I'm always happy to help. Really, you're welcome. Okay, okay, can I stop now?
+        </pre>
+        <a href="/data/hello2.txt">next</a> link to test the --top-navigate argument for :scroll-page.
+        <a href="/data/hello3.txt">prev</a> link to test the --bottom-navigate argument for :scroll-page.
+    </div>
+    </body>
+</html>
