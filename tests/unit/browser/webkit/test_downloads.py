@@ -96,3 +96,24 @@ class TestDownloadTarget:
     ])
     def test_class_hierarchy(self, obj):
         assert isinstance(obj, downloads._DownloadTarget)
+
+
+@pytest.mark.parametrize('raw, expected', [
+    ('http://foo/bar', 'bar'),
+    ('A *|<>\\: bear!', 'A ______ bear!')
+])
+def test_sanitized_filenames(raw, expected, config_stub, download_tmpdir):
+    manager = downloads.AbstractDownloadManager()
+    target = downloads.FileDownloadTarget(download_tmpdir)
+    item = downloads.AbstractDownloadItem()
+
+    # Don't try to start a timer outside of a QThread
+    manager._update_timer.isActive = lambda: True
+
+    # Abstract methods
+    item._ensure_can_set_filename = lambda *args: True
+    item._after_set_filename = lambda *args: True
+
+    manager._init_item(item, True, raw)
+    item.set_target(target)
+    assert item._filename.endswith(expected)
