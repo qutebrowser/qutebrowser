@@ -459,16 +459,35 @@ def mode_manager(win_registry, config_stub, qapp):
     objreg.delete('mode-manager', scope='window', window=0)
 
 
+def standarddir_tmpdir(folder, monkeypatch, tmpdir):
+    """Set tmpdir/config as the configdir.
+
+    Use this to avoid creating a 'real' config dir (~/.config/qute_test).
+    """
+    confdir = tmpdir / folder
+    confdir.ensure(dir=True)
+    if hasattr(standarddir, folder):
+        monkeypatch.setattr(standarddir, folder,
+                            lambda **_kwargs: str(confdir))
+    return confdir
+
+
+@pytest.fixture
+def download_tmpdir(monkeypatch, tmpdir):
+    """Set tmpdir/download as the downloaddir.
+
+    Use this to avoid creating a 'real' download dir (~/.config/qute_test).
+    """
+    return standarddir_tmpdir('download', monkeypatch, tmpdir)
+
+
 @pytest.fixture
 def config_tmpdir(monkeypatch, tmpdir):
     """Set tmpdir/config as the configdir.
 
     Use this to avoid creating a 'real' config dir (~/.config/qute_test).
     """
-    confdir = tmpdir / 'config'
-    confdir.ensure(dir=True)
-    monkeypatch.setattr(standarddir, 'config', lambda auto=False: str(confdir))
-    return confdir
+    return standarddir_tmpdir('config', monkeypatch, tmpdir)
 
 
 @pytest.fixture
@@ -477,10 +496,7 @@ def data_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' data dir (~/.local/share/qute_test).
     """
-    datadir = tmpdir / 'data'
-    datadir.ensure(dir=True)
-    monkeypatch.setattr(standarddir, 'data', lambda system=False: str(datadir))
-    return datadir
+    return standarddir_tmpdir('data', monkeypatch, tmpdir)
 
 
 @pytest.fixture
@@ -489,10 +505,7 @@ def runtime_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' runtime dir.
     """
-    runtimedir = tmpdir / 'runtime'
-    runtimedir.ensure(dir=True)
-    monkeypatch.setattr(standarddir, 'runtime', lambda: str(runtimedir))
-    return runtimedir
+    return standarddir_tmpdir('runtime', monkeypatch, tmpdir)
 
 
 @pytest.fixture
@@ -501,10 +514,7 @@ def cache_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' cache dir (~/.cache/qute_test).
     """
-    cachedir = tmpdir / 'cache'
-    cachedir.ensure(dir=True)
-    monkeypatch.setattr(standarddir, 'cache', lambda: str(cachedir))
-    return cachedir
+    return standarddir_tmpdir('cache', monkeypatch, tmpdir)
 
 
 @pytest.fixture
