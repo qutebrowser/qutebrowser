@@ -32,7 +32,7 @@ import json
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
-from qutebrowser.utils import urlutils, standarddir, objreg
+from qutebrowser.utils import urlutils, standarddir, objreg, message
 from qutebrowser.misc import lineparser
 
 
@@ -89,6 +89,7 @@ class BookmarkManager(QObject):
         super().__init__(parent)
 
         self._marks = collections.OrderedDict()
+        self._import_urlmarks()
         bookmarks_path = os.path.join(standarddir.config(), 'bookmarks.jsonl')
         self._lineparser = lineparser.LineParser(
             standarddir.config(), bookmarks_path, parent=self)
@@ -114,6 +115,52 @@ class BookmarkManager(QObject):
 
     def __contains__(self, url):
         return url in self._marks
+
+    def _import_urlmarks(self):
+        """Import old-style bookmarks and quickmarks."""
+        bm_path = os.path.join(standarddir.config(), 'bookmarks', 'urls')
+        qm_path = os.path.join(standarddir.config(), 'quickmarks')
+        if os.path.exists(bm_path):
+            self._import_old_file(bm_path, self._parse_old_bookmark)
+        if os.path.exists(qm_path):
+            self._import_old_file(qm_path, self._parse_old_quickmark)
+
+    def _import_old_file(self, path, parse_fn):
+        try:
+            with open(path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        url, title, tags = parse_fn(line)
+                        qurl = QUrl(url)
+                        try:
+                            self.add(qurl, title)
+                        except AlreadyExistsError:
+                            pass
+                        self.tag(qurl, tags)
+                    except Error as e:
+                        message.error("Error importing {}: {}".format(line, e))
+            bakpath = path + '.bak'
+            message.info("Imported {}. Moving to {}".format(path, bakpath))
+            os.rename(path, bakpath)
+        except OSError as e:
+            message.error("Could not import {}: {}".format(path, e))
+
+    def _parse_old_bookmark(self, line):
+        parts = line.split(maxsplit=1)
+        url = parts[0]
+        title = parts[1] if len(parts) > 1 else ''
+        return url, title, []
+
+    def _parse_old_quickmark(self, line):
+        try:
+            key, url = line.rsplit(maxsplit=1)
+        except ValueError:
+            raise Error("Invalid quickmark")
+        else:
+            return url, '', [key]
 
     def add(self, url, title, *, toggle=False):
         """Add a new bookmark.

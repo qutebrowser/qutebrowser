@@ -17,14 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for the global page history."""
+"""Tests for bookmarks."""
 
+import logging
 from unittest import mock
 
 import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import urlmarks
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
@@ -62,6 +64,85 @@ def test_init_empty(config_tmpdir, fake_save_manager):
     urlmarks.BookmarkManager()
     path = config_tmpdir / 'bookmarks.jsonl'
     path.ensure()
+
+
+def test_init_import(fake_save_manager, config_tmpdir):
+    old_bm_file = config_tmpdir / 'bookmarks' / 'urls'
+    old_bm_file.dirpath().mkdir()
+    old_qm_file = config_tmpdir / 'quickmarks'
+
+    old_bm_file.write('\n'.join([
+        'http://example.com/old_bookmark Old Title',
+        '',
+        'http://example.com/old_bookmark_no_title',
+        '   ',
+        'http://example.com/both Title',
+    ]))
+
+    old_qm_file.write('\n'.join([
+        'foo http://example.com/foo',
+        '   ',
+        'bar http://example.com/bar',
+        '',
+        'both http://example.com/both',
+    ]))
+
+    bm = urlmarks.BookmarkManager()
+
+    assert list(bm) == [
+        urlmarks.Bookmark('http://example.com/bar', '', ['bar']),
+        urlmarks.Bookmark('http://example.com/foo', '', ['foo']),
+        urlmarks.Bookmark('http://example.com/both', 'Title', ['both']),
+        urlmarks.Bookmark('http://example.com/old_bookmark_no_title', '', []),
+        urlmarks.Bookmark('http://example.com/old_bookmark', 'Old Title', []),
+    ]
+
+    (config_tmpdir / 'bookmarks.jsonl').ensure()
+
+    # old files should be moved to a backup
+    assert not old_bm_file.check()
+    assert not old_qm_file.check()
+
+    old_bm_file_bak = config_tmpdir / 'bookmarks' / 'urls.bak'
+    old_qm_file_bak = config_tmpdir / 'quickmarks.bak'
+
+    old_bm_file_bak.ensure()
+    old_qm_file_bak.ensure()
+
+
+def test_init_import_invalid(fake_save_manager, config_tmpdir, caplog,
+                             message_mock):
+    old_bm_file = config_tmpdir / 'bookmarks' / 'urls'
+    old_bm_file.dirpath().mkdir()
+    old_qm_file = config_tmpdir / 'quickmarks'
+
+    old_qm_file.write('\n'.join([
+        'badline',
+        'foo http://example.com/foo',
+    ]))
+
+    with caplog.at_level(logging.ERROR):
+        bm = urlmarks.BookmarkManager()
+
+    assert list(bm) == [
+        urlmarks.Bookmark('http://example.com/foo', '', ['foo']),
+    ]
+
+    assert message_mock.get_messages(usertypes.MessageLevel.error) == [
+        "Error importing badline: Invalid quickmark",
+    ]
+
+    (config_tmpdir / 'bookmarks.jsonl').ensure()
+
+    # old files should be moved to a backup
+    assert not old_bm_file.check()
+    assert not old_qm_file.check()
+
+    old_bm_file_bak = config_tmpdir / 'bookmarks' / 'urls.bak'
+    old_qm_file_bak = config_tmpdir / 'quickmarks.bak'
+
+    old_bm_file_bak.ensure()
+    old_qm_file_bak.ensure()
 
 
 def test_add(bm_file, fake_save_manager, qtbot):
