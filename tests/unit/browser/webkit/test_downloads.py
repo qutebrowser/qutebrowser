@@ -104,7 +104,7 @@ class TestDownloadTarget:
 ])
 def test_sanitized_filenames(raw, expected, config_stub, download_tmpdir):
     manager = downloads.AbstractDownloadManager()
-    target = downloads.FileDownloadTarget(download_tmpdir)
+    target = downloads.FileDownloadTarget(str(download_tmpdir))
     item = downloads.AbstractDownloadItem()
 
     # Don't try to start a timer outside of a QThread
