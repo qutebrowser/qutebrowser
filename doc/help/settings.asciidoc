@@ -500,6 +500,7 @@ Default:
 * +pass:[&lt;Ctrl-Return&gt;]+: +pass:[follow-selected -t]+
 * +pass:[&lt;Ctrl-Shift-N&gt;]+: +pass:[open -p]+
 * +pass:[&lt;Ctrl-Shift-T&gt;]+: +pass:[undo]+
+* +pass:[&lt;Ctrl-Shift-Tab&gt;]+: +pass:[nop]+
 * +pass:[&lt;Ctrl-Shift-W&gt;]+: +pass:[close]+
 * +pass:[&lt;Ctrl-T&gt;]+: +pass:[open -t]+
 * +pass:[&lt;Ctrl-Tab&gt;]+: +pass:[tab-focus last]+

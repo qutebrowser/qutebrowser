@@ -2330,6 +2330,7 @@ bindings.default:
       gf: view-source
       gt: set-cmd-text -s :buffer
       <Ctrl-Tab>: tab-focus last
+      <Ctrl-Shift-Tab>: nop
       <Ctrl-^>: tab-focus last
       <Ctrl-V>: enter-mode passthrough
       <Ctrl-Q>: quit
