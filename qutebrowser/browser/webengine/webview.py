@@ -58,7 +58,12 @@ class WebEngineView(QWebEngineView):
         self._layout = miscwidgets.PseudoLayout(self)
 
     def render_widget(self):
-        """Get the RenderWidgetHostViewQt for this view."""
+        """Get the RenderWidgetHostViewQt for this view.
+
+        Normally, this would always be the focusProxy().
+        However, it sometimes isn't, so we use this as a WORKAROUND for
+        https://bugreports.qt.io/browse/QTBUG-68727
+        """
         proxy = self.focusProxy()
         if proxy is not None:
             return proxy
