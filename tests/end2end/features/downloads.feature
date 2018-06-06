@@ -201,8 +201,8 @@ Feature: Downloading things from a website.
         And I run :download-retry
         Then the error "Retrying downloads is unsupported *" should be shown
 
-    @qtwebkit_skip @qt>=5.10
-    Scenario: Retrying a failed download with QtWebEngine (Qt >= 5.10)
+    @qtwebkit_skip @qt==5.10.1
+    Scenario: Retrying a failed download with QtWebEngine (Qt 5.10)
         When I open data/downloads/issue2298.html
         And I run :click-element id download
         And I wait for "Download error: *" in the log
