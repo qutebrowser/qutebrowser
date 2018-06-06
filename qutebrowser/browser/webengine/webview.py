@@ -54,15 +54,10 @@ class WebEngineView(QWebEngineView):
         self.setPage(page)
 
         sip.delete(self.layout())
-        self._layout = miscwidgets.PseudoLayout(self)
+        self._layout = miscwidgets.WrapperLayout(self)
 
     def shutdown(self):
         self.page().shutdown()
-
-    def resizeEvent(self, _event):
-        proxy = self.focusProxy()
-        if proxy:
-            proxy.setGeometry(self.rect())
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.

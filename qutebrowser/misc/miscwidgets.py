@@ -240,8 +240,13 @@ class WrapperLayout(QLayout):
         super().__init__(parent)
         self._widget = None
 
-    def addItem(self, _widget):
-        raise utils.Unreachable
+    def addItem(self, item):
+        assert self.parent() is not None
+        self.wrap(self.parent(), item.widget())
+
+    def removeItem(self, item):
+        assert item.widget() == self._widget
+        self.unwrap()
 
     def sizeHint(self):
         return self._widget.sizeHint()
@@ -253,7 +258,8 @@ class WrapperLayout(QLayout):
         raise utils.Unreachable
 
     def setGeometry(self, rect):
-        self._widget.setGeometry(rect)
+        if self._widget is not None:
+            self._widget.setGeometry(rect)
 
     def wrap(self, container, widget):
         """Wrap the given widget in the given container."""
@@ -264,22 +270,7 @@ class WrapperLayout(QLayout):
     def unwrap(self):
         self._widget.setParent(None)
         self._widget.deleteLater()
-
-
-class PseudoLayout(QLayout):
-
-    def addItem(self, item):
-        assert self.parent() is not None
-        item.widget().setParent(self.parent())
-
-    def removeItem(self, item):
-        item.widget().setParent(None)
-
-    def count(self):
-        return 0
-
-    def itemAt(self, _pos):
-        return None
+        self._widget = None
 
 
 class FullscreenNotification(QLabel):
