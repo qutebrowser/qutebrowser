@@ -281,6 +281,20 @@ class PseudoLayout(QLayout):
     def itemAt(self, _pos):
         return None
 
+    def widget(self):
+        return self.parent().render_widget()
+
+    def setGeometry(self, rect):
+        widget = self.widget()
+        if widget is not None:
+            widget.setGeometry(rect)
+
+    def sizeHint(self):
+        widget = self.widget()
+        if widget is not None:
+            return widget.sizeHint()
+        return QSize()
+
 
 class FullscreenNotification(QLabel):
 

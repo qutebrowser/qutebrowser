@@ -73,11 +73,6 @@ class WebEngineView(QWebEngineView):
     def shutdown(self):
         self.page().shutdown()
 
-    def resizeEvent(self, _event):
-        widget = self.render_widget()
-        if widget is not None:
-            widget.setGeometry(self.rect())
-
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
 
