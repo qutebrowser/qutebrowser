@@ -266,6 +266,22 @@ class WrapperLayout(QLayout):
         self._widget.deleteLater()
 
 
+class PseudoLayout(QLayout):
+
+    def addItem(self, item):
+        assert self.parent() is not None
+        item.widget().setParent(self.parent())
+
+    def removeItem(self, item):
+        item.widget().setParent(None)
+
+    def count(self):
+        return 0
+
+    def itemAt(self, _pos):
+        return None
+
+
 class FullscreenNotification(QLabel):
 
     """A label telling the user this page is now fullscreen."""

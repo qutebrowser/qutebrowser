@@ -1048,28 +1048,6 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
 
-        if qtutils.version_check('5.11.0', exact=True, compiled=False):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68224
-            layout = self._widget.layout()
-            count = layout.count()
-            children = self._widget.findChildren(QWidget)
-            if not count and children:
-                log.webview.warning("Found children not in layout: {}, "
-                                    "focus proxy {} (QTBUG-68224)".format(
-                                        children, self._widget.focusProxy()))
-            if count > 1:
-                log.webview.debug("Found {} widgets! (QTBUG-68224)"
-                                  .format(count))
-                for i in range(count):
-                    item = layout.itemAt(i)
-                    if item is None:
-                        continue
-                    widget = item.widget()
-                    if widget is not self._widget.focusProxy():
-                        log.webview.debug("Removing widget {} (QTBUG-68224)"
-                                          .format(widget))
-                        layout.removeWidget(widget)
-
         if not navigation.accepted or not navigation.is_main_frame:
             return
 
