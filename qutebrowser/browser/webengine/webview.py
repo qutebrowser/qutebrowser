@@ -21,6 +21,7 @@
 
 import functools
 
+import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
@@ -30,6 +31,7 @@ from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import certificateerror, webenginesettings
 from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes, jinja, objreg, qtutils
+from qutebrowser.misc import miscwidgets
 
 
 class WebEngineView(QWebEngineView):
@@ -51,8 +53,16 @@ class WebEngineView(QWebEngineView):
                              parent=self)
         self.setPage(page)
 
+        sip.delete(self.layout())
+        self._layout = miscwidgets.PseudoLayout(self)
+
     def shutdown(self):
         self.page().shutdown()
+
+    def resizeEvent(self, _event):
+        proxy = self.focusProxy()
+        if proxy:
+            proxy.setGeometry(self.rect())
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
