@@ -1115,4 +1115,4 @@ class WebEngineTab(browsertab.AbstractTab):
         self.predicted_navigation.connect(self._on_predicted_navigation)
 
     def event_target(self):
-        return self._widget.focusProxy()
+        return self._widget.render_widget()

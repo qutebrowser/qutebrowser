@@ -24,6 +24,7 @@ import functools
 import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
                                       QWebEngineScript)
 
@@ -56,13 +57,26 @@ class WebEngineView(QWebEngineView):
         sip.delete(self.layout())
         self._layout = miscwidgets.PseudoLayout(self)
 
+    def render_widget(self):
+        """Get the RenderWidgetHostViewQt for this view."""
+        proxy = self.focusProxy()
+        if proxy is not None:
+            return proxy
+
+        children = self.findChildren(QWidget)
+        if not children:
+            return None
+
+        assert len(children) == 1
+        return children[0]
+
     def shutdown(self):
         self.page().shutdown()
 
     def resizeEvent(self, _event):
-        proxy = self.focusProxy()
-        if proxy:
-            proxy.setGeometry(self.rect())
+        widget = self.render_widget()
+        if widget is not None:
+            widget.setGeometry(self.rect())
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
