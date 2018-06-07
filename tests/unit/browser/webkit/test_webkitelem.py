@@ -872,14 +872,3 @@ def test_resolve_url_relative_base():
     elem = get_webelem(attributes={'href': 'foo'})
     with pytest.raises(ValueError):
         elem.resolve_url(QUrl('base'))
-
-
-@pytest.mark.parametrize('return_invalid', [True, False])
-def test_resolve_url_invalid(return_invalid):
-    elem = get_webelem(attributes={'href': 'what://::'})
-    baseurl = QUrl('http://www.example.com/')
-    resolved = elem.resolve_url(baseurl, return_invalid=return_invalid)
-    if return_invalid:
-        assert not resolved.isValid()
-    else:
-        assert resolved is None

@@ -33,8 +33,7 @@ from PyQt5.QtGui import QMouseEvent
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import mainwindow
-from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
-                               urlutils, message)
+from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
 
 Group = enum.Enum('Group', ['all', 'links', 'images', 'url', 'inputs'])
@@ -276,13 +275,11 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Remove target from link."""
         raise NotImplementedError
 
-    def resolve_url(self, baseurl, *, return_invalid=False):
+    def resolve_url(self, baseurl):
         """Resolve the URL in the element's src/href attribute.
 
         Args:
             baseurl: The URL to base relative URLs on as QUrl.
-            return_invalid: Whether to return an invalid QUrl.
-                            If False, None is returned for invalid URLs.
 
         Return:
             A QUrl with the absolute URL, or None.
@@ -299,7 +296,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
         url = QUrl(text)
         if not url.isValid():
-            return url if return_invalid else None
+            return None
         if url.isRelative():
             url = baseurl.resolved(url)
         qtutils.ensure_valid(url)
@@ -406,15 +403,6 @@ class AbstractWebElement(collections.abc.MutableMapping):
         if force_event:
             self._click_fake_event(click_target)
             return
-
-        if qtutils.version_check('5.11', compiled=False):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
-            baseurl = self._tab.url()
-            url = self.resolve_url(baseurl, return_invalid=True)
-            if url is not None and not url.isValid():
-                msg = urlutils.get_errstring(url, "Invalid link clicked")
-                message.error(msg)
-                return
 
         if click_target == usertypes.ClickTarget.normal:
             if self.is_link():

@@ -342,11 +342,6 @@ class WebEnginePage(QWebEnginePage):
                                                  navigation_type=type_map[typ],
                                                  is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
-
-        if not url.isValid() and qtutils.version_check('5.11', compiled=False):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
-            return True
-
         return navigation.accepted
 
     @pyqtSlot('QUrl')
