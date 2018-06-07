@@ -307,6 +307,10 @@ class AbstractWebElement(collections.abc.MutableMapping):
         href_tags = ['a', 'area', 'link']
         return self.tag_name() in href_tags and 'href' in self
 
+    def _requires_user_interaction(self):
+        """Return True if clicking this element needs user interaction."""
+        raise NotImplementedError
+
     def _mouse_pos(self):
         """Get the position to click/hover."""
         # Click the center of the largest square fitting into the top/left
@@ -405,7 +409,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             return
 
         if click_target == usertypes.ClickTarget.normal:
-            if self.is_link():
+            if self.is_link() and not self._requires_user_interaction():
                 log.webelem.debug("Clicking via JS click()")
                 self._click_js(click_target)
             elif self.is_editable(strict=True):
