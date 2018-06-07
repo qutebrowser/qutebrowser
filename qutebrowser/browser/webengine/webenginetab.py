@@ -1030,12 +1030,6 @@ class WebEngineTab(browsertab.AbstractTab):
         if not ok and not js_enabled:
             self.dump_async(self._error_page_workaround)
 
-        if (not ok and
-                self.url() == QUrl('chrome-error://chromewebdata/') and
-                qtutils.version_check('5.11', compiled=False)):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
-            self._show_error_page(QUrl(), "Unknown URL scheme")
-
         if ok and self._reload_url is not None:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
             log.config.debug(
