@@ -566,6 +566,9 @@ can be useful for debugging:
 - chrome://gpuclean/ (crashes the current renderer process!)
 - chrome://ppapiflashcrash/
 - chrome://ppapiflashhang/
+- chrome://quota-internals/ (Qt 5.11)
+- chrome://taskscheduler-internals/ (Qt 5.11)
+- chrome://sandbox/ (Qt 5.11, Linux only)
 
 QtWebEngine internals
 ~~~~~~~~~~~~~~~~~~~~~
