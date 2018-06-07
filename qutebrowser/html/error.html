@@ -74,7 +74,7 @@ function tryagain()
 			</td>
 			<td style="padding-left: 40px;">
 				<h1>Unable to load page</h1>
-				Error while opening {{ url }}<br>
+				Error while opening {{ url | default('page', true) }}<br>
 				<p id="error-message-text" style="color: #a31a1a;">{{ error }}</p><br><br>
 
 				<form name="bl">
