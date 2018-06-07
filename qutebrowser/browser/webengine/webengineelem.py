@@ -27,7 +27,7 @@ from PyQt5.QtGui import QMouseEvent
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 
-from qutebrowser.utils import log, javascript
+from qutebrowser.utils import log, javascript, urlutils
 from qutebrowser.browser import webelem
 
 
@@ -197,6 +197,13 @@ class WebEngineElement(webelem.AbstractWebElement):
     def _move_text_cursor(self):
         if self.is_text_input() and self.is_editable():
             self._js_call('move_cursor_to_end')
+
+    def _requires_user_interaction(self):
+        baseurl = self._tab.url()
+        url = self.resolve_url(baseurl)
+        if url is None:
+            return True
+        return url.scheme() not in urlutils.WEBENGINE_SCHEMES
 
     def _click_editable(self, click_target):
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-58515
