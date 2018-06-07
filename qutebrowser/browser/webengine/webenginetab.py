@@ -1049,9 +1049,13 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):
-        """If we know we're going to visit an URL soon, change the settings."""
+        """If we know we're going to visit an URL soon, change the settings.
+
+        This is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
+        """
         super()._on_predicted_navigation(url)
-        self.settings.update_for_url(url)
+        if not qtutils.version_check('5.11.1', compiled=False):
+            self.settings.update_for_url(url)
 
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
@@ -1074,14 +1078,16 @@ class WebEngineTab(browsertab.AbstractTab):
 
         # On Qt < 5.11, we don't don't need a reload when type == link_clicked.
         # On Qt 5.11.0, we always need a reload.
-        # TODO on Qt > 5.11.0, we hopefully never need a reload:
-        #      https://codereview.qt-project.org/#/c/229525/1
-        if not qtutils.version_check('5.11.0', exact=True, compiled=False):
+        # On Qt > 5.11.0, we never need a reload:
+        # https://codereview.qt-project.org/#/c/229525/1
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
+        if qtutils.version_check('5.11.1', compiled=False):
+            reload_needed = False
+        elif not qtutils.version_check('5.11.0', exact=True, compiled=False):
             if navigation.navigation_type != navigation.Type.link_clicked:
                 reload_needed = False
 
         if reload_needed:
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
             self._reload_url = navigation.url
 
     def _connect_signals(self):
