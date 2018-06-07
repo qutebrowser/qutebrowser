@@ -80,7 +80,7 @@ def _apply_platform_markers(config, item):
     ]
 
     for searched_marker, condition, default_reason in markers:
-        marker = item.get_marker(searched_marker)
+        marker = item.get_closest_marker(searched_marker)
         if not marker or not condition:
             continue
 
@@ -138,9 +138,9 @@ def pytest_collection_modifyitems(config, items):
                 item.add_marker(pytest.mark.end2end)
 
         _apply_platform_markers(config, item)
-        if item.get_marker('xfail_norun'):
+        if list(item.iter_markers('xfail_norun')):
             item.add_marker(pytest.mark.xfail(run=False))
-        if item.get_marker('js_prompt'):
+        if list(item.iter_markers('js_prompt')):
             if config.webengine:
                 item.add_marker(pytest.mark.skipif(
                     PYQT_VERSION <= 0x050700,
@@ -226,7 +226,7 @@ def set_backend(monkeypatch, request):
 
 @pytest.fixture(autouse=True)
 def apply_fake_os(monkeypatch, request):
-    fake_os = request.node.get_marker('fake_os')
+    fake_os = request.node.get_closest_marker('fake_os')
     if not fake_os:
         return
 

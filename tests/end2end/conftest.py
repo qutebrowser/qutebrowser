@@ -151,7 +151,7 @@ def pytest_collection_modifyitems(config, items):
 
     for item in items:
         for name, prefix, pytest_mark, condition in markers:
-            marker = item.get_marker(name)
+            marker = item.get_closest_marker(name)
             if marker and condition:
                 if marker.args:
                     text = '{}: {}'.format(prefix, marker.args[0])

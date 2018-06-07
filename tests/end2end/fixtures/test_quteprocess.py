@@ -68,7 +68,7 @@ class FakeNode:
     def __init__(self, call):
         self.rep_call = call
 
-    def get_marker(self, _name):
+    def get_closest_marker(self, _name):
         return None
 
 
