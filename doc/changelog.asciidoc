@@ -48,6 +48,8 @@ Fixed
   top/bottom half of the window is used.
 - QtWebEngine: Work around a bug in Qt 5.11 where an endless loading-loop is
   triggered when clicking a link with an unknown scheme.
+- QtWebEngine: When switching between pages with changed settings, less
+  unnecessary reloads are done now.
 - QtWebEngine: It's now possible to open external links such as `magnet://` or
   `mailto:` via hints.
 
