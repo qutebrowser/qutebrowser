@@ -373,7 +373,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def _click_href(self, click_target):
         """Fake a click on an element with a href by opening the link."""
-        baseurl = self._tab.url()
+        baseurl = self._tab.url().adjusted(QUrl.RemovePath)
         url = self.resolve_url(baseurl)
         if url is None:
             self._click_fake_event(click_target)

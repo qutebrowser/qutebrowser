@@ -721,7 +721,8 @@ class HintManager(QObject):
         self._context.add_history = add_history
         self._context.first = first
         try:
-            self._context.baseurl = tabbed_browser.current_url()
+            url = tabbed_browser.current_url()
+            self._context.baseurl = url.adjusted(QUrl.RemovePath)
         except qtutils.QtValueError:
             raise cmdexc.CommandError("No URL set for this page yet!")
         self._context.args = args

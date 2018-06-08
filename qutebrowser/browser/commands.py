@@ -672,6 +672,7 @@ class CommandDispatcher:
 
         try:
             if where in ['prev', 'next']:
+                url = url.adjusted(QUrl.RemovePath)
                 handler = handlers[where]
                 handler(browsertab=widget, win_id=self._win_id, baseurl=url,
                         tab=tab, background=bg, window=window)
