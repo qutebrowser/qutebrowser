@@ -1084,7 +1084,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if qtutils.version_check('5.11.1', compiled=False):
             reload_needed = False
         elif not qtutils.version_check('5.11.0', exact=True, compiled=False):
-            if navigation.navigation_type != navigation.Type.link_clicked:
+            if navigation.navigation_type == navigation.Type.link_clicked:
                 reload_needed = False
 
         if reload_needed:
