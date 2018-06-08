@@ -1070,7 +1070,7 @@ class WebEngineTab(browsertab.AbstractTab):
         # TODO on Qt > 5.11.0, we hopefully never need a reload:
         #      https://codereview.qt-project.org/#/c/229525/1
         if not qtutils.version_check('5.11.0', exact=True, compiled=False):
-            if navigation.navigation_type != navigation.Type.link_clicked:
+            if navigation.navigation_type == navigation.Type.link_clicked:
                 reload_needed = False
 
         if reload_needed:
