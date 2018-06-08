@@ -76,7 +76,7 @@ class WebEngineView(QWebEngineView):
         if not children:
             return None
 
-        assert len(children) == 1
+        assert len(children) == 1, children
         return children[0]
 
     def shutdown(self):
