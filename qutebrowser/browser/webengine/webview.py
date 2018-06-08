@@ -25,6 +25,7 @@ import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QWidget
+from PyQt5.QtQuickWidgets import QQuickWidget
 from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
                                       QWebEngineScript)
 
@@ -72,10 +73,9 @@ class WebEngineView(QWebEngineView):
         if proxy is not None:
             return proxy
 
-        # We don't want e.g. a QMenu.
-        rwhv_class = 'QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget'
-        children = [child for child in self.findChildren(QWidget)
-                    if child.inherits(rwhv_class)]
+        # This should only find the RenderWidgetHostViewQtDelegateWidget,
+        # but not e.g. a QMenu
+        children = self.findChildren(QQuickWidget)
 
         if not children:
             return None
