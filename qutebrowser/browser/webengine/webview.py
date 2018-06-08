@@ -72,7 +72,13 @@ class WebEngineView(QWebEngineView):
         if proxy is not None:
             return proxy
 
-        children = self.findChildren(QWidget)
+        # We only want the RenderWidgetHostViewQtDelegateWidget
+        # (which is a QWidget) but not e.g. a QMenu.
+        # pylint: disable=unidiomatic-typecheck
+        children = [child for child in self.findChildren(QWidget)
+                    if type(child) == QWidget]
+        # pylint: enable=unidiomatic-typecheck
+
         if not children:
             return None
 
