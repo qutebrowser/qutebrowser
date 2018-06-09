@@ -37,6 +37,9 @@ Changed
   (like `:config-cycle`).
 - QtWebEngine: On Qt 5.11.1, no reloads are needed anymore when switching
   between pages with changed settings (e.g. `content.javascript.enabled`).
+- The `qt.force_software_rendering` setting changed from a boolean to taking
+  different values (`software-opengl`, `qt-quick` and `chromium`) for different
+  kinds of software rendering workarounds.
 
 v1.3.2 (unreleased)
 -------------------

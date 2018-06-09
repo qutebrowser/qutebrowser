@@ -185,7 +185,7 @@ def _handle_nouveau_graphics():
         return
 
     button = _Button("Force software rendering", 'qt.force_software_rendering',
-                     True)
+                     'chromium')
     _show_dialog(
         backend=usertypes.Backend.QtWebEngine,
         because="you're using Nouveau graphics",
@@ -194,9 +194,9 @@ def _handle_nouveau_graphics():
              "<p>This allows you to use the newer QtWebEngine backend (based "
              "on Chromium) but could have noticeable performance impact "
              "(depending on your hardware). "
-             "This sets the <i>qt.force_software_rendering = True</i> option "
-             "(if you have a <i>config.py</i> file, you'll need to set this "
-             "manually).</p>",
+             "This sets the <i>qt.force_software_rendering = 'chromium'</i> "
+             "option (if you have a <i>config.py</i> file, you'll need to set "
+             "this manually).</p>",
         buttons=[button],
     )
 

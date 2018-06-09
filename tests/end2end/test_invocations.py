@@ -375,19 +375,3 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
 
     quteproc_new.start(args)
     assert quteproc_new.get_setting('search.ignore_case') == 'always'
-
-
-@pytest.mark.no_xvfb
-@pytest.mark.no_ci
-@pytest.mark.not_mac
-def test_force_software_rendering(request, quteproc_new):
-    """Make sure we can force software rendering with -s."""
-    if not request.config.webengine:
-        pytest.skip("Only runs with QtWebEngine")
-
-    args = (_base_args(request.config) +
-            ['--temp-basedir', '-s', 'qt.force_software_rendering', 'true'])
-    quteproc_new.start(args)
-    quteproc_new.open_path('chrome://gpu')
-    message = 'Canvas: Software only, hardware acceleration unavailable'
-    assert message in quteproc_new.get_content()

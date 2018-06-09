@@ -150,14 +150,24 @@ force_software_rendering:
   renamed: qt.force_software_rendering
 
 qt.force_software_rendering:
-  type: Bool
-  default: false
+  type:
+    name: String
+    valid_values:
+      - software-opengl: Tell LibGL to use a software implementation of GL
+            (`LIBGL_ALWAYS_SOFTWARE` / `QT_XCB_FORCE_SOFTWARE_OPENGL`)
+      - qt-quick: Tell Qt Quick to use a software renderer instead of OpenGL.
+            (`QT_QUICK_BACKEND=software`)
+      - chromium: Tell Chromium to disable GPU support and use Skia software
+            rendering instead. (`--disable-gpu`)
+      - none: Don't force software rendering.
+  default: none
   backend: QtWebEngine
   restart: true
   desc: >-
     Force software rendering for QtWebEngine.
 
-    This is needed for QtWebEngine to work with Nouveau drivers.
+    This is needed for QtWebEngine to work with Nouveau drivers and can be
+    useful in other scenarios related to graphic issues.
 
 qt.force_platform:
   type:

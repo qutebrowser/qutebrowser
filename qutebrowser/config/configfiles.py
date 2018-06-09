@@ -277,6 +277,15 @@ class YamlConfig(QObject):
                     settings[name][scope] = 'always' if val else 'never'
                     self._mark_changed()
 
+        # qt.force_software_rendering isn't a boolean anymore
+        name = 'qt.force_software_rendering'
+        if name in settings:
+            for scope, val in settings[name].items():
+                if isinstance(val, bool):
+                    settings[name][scope] = ('software-opengl' if val
+                                             else 'none')
+                    self._mark_changed()
+
         return settings
 
     def _validate(self, settings):

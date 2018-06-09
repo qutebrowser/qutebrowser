@@ -288,8 +288,10 @@ class TestEarlyInit:
         config.instance.set_str('fonts.monospace', 'Terminus')
 
     @pytest.mark.parametrize('config_opt, config_val, envvar, expected', [
-        ('qt.force_software_rendering', True,
+        ('qt.force_software_rendering', 'software-opengl',
          'QT_XCB_FORCE_SOFTWARE_OPENGL', '1'),
+        ('qt.force_software_rendering', 'qt-quick',
+         'QT_QUICK_BACKEND', 'software'),
         ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
         ('qt.highdpi', True, 'QT_AUTO_SCREEN_SCALE_FACTOR', '1'),
         ('window.hide_decoration', True,
@@ -395,6 +397,14 @@ class TestQtArgs:
                             usertypes.Backend.QtWebEngine)
         parsed = parser.parse_args([])
         expected = [sys.argv[0], '--disable-shared-workers']
+        assert configinit.qt_args(parsed) == expected
+
+    def test_disable_gpu(self, config_stub, monkeypatch, parser):
+        config_stub.val.qt.force_software_rendering = 'chromium'
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        parsed = parser.parse_args([])
+        expected = [sys.argv[0], '--disable-gpu']
         assert configinit.qt_args(parsed) == expected
 
 
