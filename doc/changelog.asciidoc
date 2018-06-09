@@ -47,6 +47,8 @@ Changed
   kinds of software rendering workarounds.
 - On Qt 5.11, using wayland with QtWebEngine is now possible when using
   software rendering.
+- GreaseMonkey scripts now get their own global scope (based on the page's
+  one), which allows scripts like OneeChan to work.
 
 Removed
 ~~~~~~~
