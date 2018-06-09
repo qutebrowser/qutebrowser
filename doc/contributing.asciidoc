@@ -85,6 +85,16 @@ git format-patch origin/master <1>
 <1> Replace `master` by the branch your work was based on, e.g.,
 `origin/develop`.
 
+Running qutebrowser
+-------------------
+
+After link:install.asciidoc#tox[installing qutebrowser via tox], you can run
+`.venv/bin/qutebrowser --debug --temp-basedir` to test your changes with debug
+logging enabled and without affecting existing running instances.
+
+Alternatively, you can install qutebrowser's dependencies system-wide and run
+`python3 -m qutebrowser --debug --temp-basedir`.
+
 Useful utilities
 ----------------
 
