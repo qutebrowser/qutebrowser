@@ -85,6 +85,33 @@ git format-patch origin/master <1>
 <1> Replace `master` by the branch your work was based on, e.g.,
 `origin/develop`.
 
+[[devbuilds]]
+Running Development Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To run the git instance of qutebrowser with modifications (useful for trying out small changes)
+run the following commands in the qutebrowser directory:
+
+==== Python
+----
+$ python3 -m qutebrowser --temp-basedir --debug
+----
+
+More details on how to run qutebrowser via python check out the
+link:install.asciidoc#python[install docs]
+
+==== Tox
+
+----
+$ tox -e mkvenv-pypi
+$ .venv/bin/qutebrowser --debug
+----
+
+More details on how to install qutebrowser via tox check out the
+link:install.asciidoc#tox[install docs]
+
+
+Also see `qutebrowser --help` for more information on command line flags.
+
 Useful utilities
 ----------------
 

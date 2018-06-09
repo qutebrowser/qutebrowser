@@ -367,6 +367,29 @@ standard location for your distro (`/usr/share/applications` and
 The normal `setup.py install` doesn't install these files, so you'll have to do
 it as part of the packaging process.
 
+[[python]]
+Running qutebrowser with Python
+-------------------------------
+While not recommended for development you can run qutebrowser with Python. It's
+recommeneded that you use a virtual eniverment like tox. More info on tox can be
+found link:#tox[here]
+
+----
+$ git clone https://github.com/qutebrowser/qutebrowser.git
+$ cd qutebrowser
+$ sudo pip3 install -r --user requirements.txt
+$ python3 scripts/asciidoc2html.py
+$ python3 -m qutebrowser --temp-basedir
+----
+
+Why `sudo pip3 install -r --user requirements.txt`? The --user flag will pip install
+the needed dependencies to the user and not globally. You could remove the user flag
+and sudo if you wish to install the dependencies globally like so: `pip3 install -r requirements.txt`
+
+
+See the link:contributing.asciidoc#devbuilds[contribution docs]
+for more details on contributing to the project.
+
 [[tox]]
 Installing qutebrowser with tox
 -------------------------------
@@ -382,7 +405,7 @@ $ git clone https://github.com/qutebrowser/qutebrowser.git
 $ cd qutebrowser
 ----
 
-Installing depdendencies (including Qt)
+Installing dependencies (including Qt)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Then run tox inside the qutebrowser repository to set up a
