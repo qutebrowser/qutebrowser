@@ -945,7 +945,7 @@ window._qutebrowser.caret = (function() {
      */
     CaretBrowsing.setCaretElementNormalStyle = function() {
         const element = CaretBrowsing.caretElement;
-        element.ClassName = "CaretBrowsing_Caret";
+        element.className = "CaretBrowsing_Caret";
         if (CaretBrowsing.isSelectionCollapsed) {
             element.style.opacity = "1.0";
         } else {
@@ -1260,7 +1260,7 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.startAnimation = function() {
-        CaretBrowsing.caretElement.style.animationIterationCount = 'infinite';
+        CaretBrowsing.caretElement.style.animationIterationCount = "infinite";
     };
 
     CaretBrowsing.stopAnimation = function() {
