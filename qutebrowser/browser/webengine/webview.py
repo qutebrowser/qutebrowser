@@ -24,7 +24,6 @@ import functools
 import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
-from PyQt5.QtWidgets import QWidget
 from PyQt5.QtQuickWidgets import QQuickWidget
 from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
                                       QWebEngineScript)
