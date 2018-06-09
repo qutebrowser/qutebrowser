@@ -2238,7 +2238,7 @@ class CommandDispatcher:
         """Mute/Unmute the current/[count]th tab.
 
         Args:
-            count: The tab index to pin or unpin, or None
+            count: The tab index to mute or unmute, or None
         """
         tab = self._cntwidget(count)
         if tab is None:

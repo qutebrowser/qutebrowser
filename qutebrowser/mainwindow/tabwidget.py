@@ -174,10 +174,14 @@ class TabWidget(QTabWidget):
         fields['backend'] = objects.backend.name
         fields['private'] = ' [Private Mode] ' if tab.private else ''
         try:
-            fields['audio'] = '[M] ' if tab.is_muted() else (
-                '[A] ' if tab.is_recently_audible() else '')
-        except (NotImplementedError, browsertab.WebTabError):
-            # one of the functions was not implemented or had an error, abort
+            if tab.is_muted():
+                fields['audio'] = '[M] '
+            elif tab.is_recently_audible():
+                fields['audio'] = '[A] '
+            else:
+                fields['audio'] = ''
+        except browsertab.WebTabError:
+            # Muting is only implemented with QtWebEngine
             fields['audio'] = ''
 
         if tab.load_status() == usertypes.LoadStatus.loading:

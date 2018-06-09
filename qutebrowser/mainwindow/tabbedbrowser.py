@@ -239,9 +239,9 @@ class TabbedBrowser(QWidget):
         tab.renderer_process_terminated.connect(
             functools.partial(self._on_renderer_process_terminated, tab))
         tab.audio_muted_changed.connect(
-            functools.partial(self.on_audio_changed, tab))
+            functools.partial(self._on_audio_changed, tab))
         tab.recently_audible_changed.connect(
-            functools.partial(self.on_audio_changed, tab))
+            functools.partial(self._on_audio_changed, tab))
         tab.new_tab_requested.connect(self.tabopen)
         if not self.private:
             web_history = objreg.get('web-history')
@@ -737,8 +737,7 @@ class TabbedBrowser(QWidget):
         self._update_window_title('scroll_pos')
         self.widget.update_tab_title(idx, 'scroll_pos')
 
-    @pyqtSlot()
-    def on_audio_changed(self, tab, _muted):
+    def _on_audio_changed(self, tab, _muted):
         """Update audio field in tab when mute or recentlyAudible changed."""
         try:
             idx = self._tab_index(tab)
