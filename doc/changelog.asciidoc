@@ -29,6 +29,7 @@ Added
   accidentally quitting the crash reporter when pressing escape.
 - New `qute-lastpass` userscript which uses the LastPass CLI to fill passwords.
 - The Makefile now installs a `/usr/share/metainfo/qutebrowser.appdata.xml` file.
+- QtWebEngine: Support for printing from webpages via `window.print`.
 
 Changed
 ~~~~~~~
