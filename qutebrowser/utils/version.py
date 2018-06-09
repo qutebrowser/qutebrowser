@@ -310,7 +310,7 @@ def _chromium_version():
     """Get the Chromium version for QtWebEngine.
 
     This can also be checked by looking at this file with the right Qt tag:
-    https://github.com/qt/qtwebengine/blob/dev/tools/scripts/version_resolver.py#L41
+    http://code.qt.io/cgit/qt/qtwebengine.git/tree/tools/scripts/version_resolver.py#n41
 
     Quick reference:
     Qt 5.7:  Chromium 49
