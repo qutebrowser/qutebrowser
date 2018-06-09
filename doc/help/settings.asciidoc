@@ -200,6 +200,7 @@
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
 |<<history_gap_interval,history_gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
+|<<input.escape_quits_reporter,input.escape_quits_reporter>>|Allow Escape to quit the crash reporter.
 |<<input.forward_unbound_keys,input.forward_unbound_keys>>|Which unbound keys to forward to the webview in normal mode.
 |<<input.insert_mode.auto_enter,input.insert_mode.auto_enter>>|Enter insert mode if an editable element is clicked.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
@@ -2386,6 +2387,14 @@ Items with less time between them are grouped when being displayed in `:history`
 Type: <<types,Int>>
 
 Default: +pass:[30]+
+
+[[input.escape_quits_reporter]]
+=== input.escape_quits_reporter
+Allow Escape to quit the crash reporter.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[input.forward_unbound_keys]]
 === input.forward_unbound_keys

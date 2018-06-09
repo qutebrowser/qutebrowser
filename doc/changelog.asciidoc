@@ -25,6 +25,8 @@ Added
   debugging.
 - New `--first` flag for `:hint` (bound to `gi` for inputs) which automatically
   selects the first hint.
+- New `input.escape_quits_reporter` setting which can be used to avoid
+  accidentally quitting the crash reporter when pressing escape.
 
 Changed
 ~~~~~~~
