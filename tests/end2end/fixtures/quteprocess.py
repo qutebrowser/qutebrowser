@@ -361,6 +361,9 @@ class QuteProc(testprocess.Process):
             "Focus object changed: "
             "<qutebrowser.browser.webengine.webview.WebEngineView object "
             "at *>",
+            # Qt >= 5.11 with workarounds
+            "Focus object changed: "
+            "<PyQt5.QtQuickWidgets.QQuickWidget object at *>",
         ]
 
         if (log_line.category == 'ipc' and
