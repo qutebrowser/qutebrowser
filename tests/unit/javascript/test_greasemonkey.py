@@ -194,7 +194,9 @@ class TestWindowIsolation:
         # The compiled source of that scripts with some additional setup
         # bookending it.
         ret.test_script = "\n".join([
-            "var result = [];",
+            """
+            const result = [];
+            """,
             test_script.code(),
             """
             // Now check that the actual global scope has
@@ -202,14 +204,14 @@ class TestWindowIsolation:
             result.push(window.$);
             result.push($);
             // And return our findings
-            result;"""
+            result;
+            """
         ])
 
         # What we expect the script to report back.
-        ret.expected = [
-            "global", "global",
-            "shadowed", "shadowed",
-            "global", "global"]
+        ret.expected = ["global", "global",
+                        "shadowed", "shadowed",
+                        "global", "global"]
         return ret
 
     def test_webengine(self, callback_checker, webengineview, setup):
