@@ -974,7 +974,7 @@ hints.uppercase:
 input.escape_quits_reporter:
   type: Bool
   default: True
-  desc: Allow escape to quit the crash reporter.
+  desc: Allow Escape to quit the crash reporter.
 
 input.forward_unbound_keys:
   default: auto
