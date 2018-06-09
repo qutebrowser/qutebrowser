@@ -705,6 +705,10 @@ class WebEngineTab(browsertab.AbstractTab):
             utils.read_file('javascript/webelem.js'),
             utils.read_file('javascript/caret.js'),
         )
+        self._inject_early_js('js',
+                              utils.read_file('javascript/print.js'),
+                              subframes=True,
+                              world=QWebEngineScript.MainWorld)
         # FIXME:qtwebengine what about subframes=True?
         self._inject_early_js('js', js_code, subframes=True)
         self._init_stylesheet()
@@ -1060,6 +1064,13 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
+
+        if navigation.url == QUrl('qute://print'):
+            command_dispatcher = objreg.get('command-dispatcher',
+                                            scope='window',
+                                            window=self.win_id)
+            command_dispatcher.printpage()
+            navigation.accepted = False
 
         if not navigation.accepted or not navigation.is_main_frame:
             return
