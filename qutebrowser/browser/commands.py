@@ -566,12 +566,6 @@ class CommandDispatcher:
         tabbed_browser.tabopen(self._current_url())
         self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       deprecated='Use :tab-give instead!')
-    def tab_detach(self):
-        """Deprecated way to detach a tab."""
-        self.tab_give()
-
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
         history = self._current_widget().history

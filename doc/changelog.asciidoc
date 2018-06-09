@@ -47,6 +47,11 @@ Changed
 - On Qt 5.11, using wayland with QtWebEngine is now possible when using
   software rendering.
 
+Removed
+~~~~~~~
+
+- `:tab-detach` which has been deprecated in v1.1.0 has been removed.
+
 v1.3.2 (unreleased)
 -------------------
 
