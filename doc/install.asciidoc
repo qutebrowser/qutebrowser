@@ -382,8 +382,8 @@ $ git clone https://github.com/qutebrowser/qutebrowser.git
 $ cd qutebrowser
 ----
 
-Installing depdendencies (including Qt)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installing dependencies (including Qt)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Then run tox inside the qutebrowser repository to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
