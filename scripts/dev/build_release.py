@@ -234,7 +234,7 @@ def build_windows():
     artifacts = []
 
     utils.print_title("Updating VersionInfo file")
-    gen_versioninfo
+    gen_versioninfo.main()
 
     utils.print_title("Running pyinstaller 32bit")
     _maybe_remove(out_32)

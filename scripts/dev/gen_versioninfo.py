@@ -29,43 +29,43 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 import qutebrowser
+from scripts import utils
 
-out_filename = 'misc/file_version_info.txt'
 
-filevers = qutebrowser.__version_info__ + (0,)
-prodvers = qutebrowser.__version_info__ + (0,)
-str_filevers = qutebrowser.__version__
-str_prodvers = qutebrowser.__version__
+def main():
+    utils.change_cwd()
+    out_filename = 'misc/file_version_info.txt'
 
-comment_text = """\
-A keyboard-focused browser with a minimal GUI.\
-"""
-copyright_text = """\
-© 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>\
-"""
-trademark_text = """\
-qutebrowser is free software under the GNU General Public License\
-"""
+    filevers = qutebrowser.__version_info__ + (0,)
+    prodvers = qutebrowser.__version_info__ + (0,)
+    str_filevers = qutebrowser.__version__
+    str_prodvers = qutebrowser.__version__
 
-ffi = vs.FixedFileInfo(filevers, prodvers)
+    comment_text = qutebrowser.__doc__
+    copyright_text = qutebrowser.__copyright__
+    trademark_text = "qutebrowser is free software under the GNU General Public License"
 
-kids = [vs.StringFileInfo(
-    [vs.StringTable('040904B0',
-                    [vs.StringStruct('Comments', f'{comment_text}'),
-                     vs.StringStruct('CompanyName', "qutebrowser.org"),
-                     vs.StringStruct('FileDescription', "qutebrowser"),
-                     vs.StringStruct('FileVersion', f'{str_filevers}'),
-                     vs.StringStruct('InternalName', "qutebrowser"),
-                     vs.StringStruct('LegalCopyright', f'{copyright_text}'),
-                     vs.StringStruct('LegalTrademarks', f'{trademark_text}'),
-                     vs.StringStruct('OriginalFilename', "qutebrowser.exe"),
-                     vs.StringStruct('ProductName', "qutebrowser"),
-                     vs.StringStruct('ProductVersion', f'{str_prodvers}')])]),
-    vs.VarFileInfo([vs.VarStruct('Translation', [1033, 1200])])]
+    ffi = vs.FixedFileInfo(filevers, prodvers)
 
-file_version_info = vs.VSVersionInfo(ffi, kids)
+    kids = [vs.StringFileInfo(
+        [vs.StringTable('040904B0',
+                        [vs.StringStruct('Comments', comment_text),
+                         vs.StringStruct('CompanyName', "qutebrowser.org"),
+                         vs.StringStruct('FileDescription', "qutebrowser"),
+                         vs.StringStruct('FileVersion', str_filevers),
+                         vs.StringStruct('InternalName', "qutebrowser"),
+                         vs.StringStruct('LegalCopyright', copyright_text),
+                         vs.StringStruct('LegalTrademarks', trademark_text),
+                         vs.StringStruct('OriginalFilename', "qutebrowser.exe"),
+                         vs.StringStruct('ProductName', "qutebrowser"),
+                         vs.StringStruct('ProductVersion', str_prodvers)])]),
+        vs.VarFileInfo([vs.VarStruct('Translation', [1033, 1200])])]
 
-with open(out_filename, 'w', encoding='utf-8') as f:
-    f.write(f'{file_version_info}')
+    file_version_info = vs.VSVersionInfo(ffi, kids)
 
-f.close()
+    with open(out_filename, 'w', encoding='utf-8') as f:
+        f.write(str(file_version_info))
+
+
+if __name__ == '__main__':
+    main()
