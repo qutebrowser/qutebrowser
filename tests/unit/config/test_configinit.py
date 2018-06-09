@@ -400,9 +400,9 @@ class TestQtArgs:
         assert configinit.qt_args(parsed) == expected
 
     def test_disable_gpu(self, config_stub, monkeypatch, parser):
-        config_stub.val.qt.force_software_rendering = 'chromium'
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
+        config_stub.val.qt.force_software_rendering = 'chromium'
         parsed = parser.parse_args([])
         expected = [sys.argv[0], '--disable-gpu']
         assert configinit.qt_args(parsed) == expected
