@@ -255,6 +255,7 @@ class TestYaml:
     @pytest.mark.parametrize('force, expected', [
         (True, 'software-opengl'),
         (False, 'none'),
+        ('chromium', 'chromium'),
     ])
     def test_force_software_rendering(self, yaml, autoconfig, force, expected):
         autoconfig.write({'qt.force_software_rendering': {'global': force}})
