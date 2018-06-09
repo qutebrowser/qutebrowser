@@ -388,6 +388,11 @@ class WebKitCaret(browsertab.AbstractCaret):
         else:
             selection = self._widget.selectedHtml()
             if not selection:
+                # Getting here may mean we crashed, but we can't do anything
+                # about that:
+                # https://github.com/annulen/webkit/commit/0e75f3272d149bc64899c161f150eb341a2417af
+                # TODO find a way to check if something is focused
+                self._tab.key_press(Qt.Key_Enter)
                 return
             try:
                 selected_element = xml.etree.ElementTree.fromstring(

@@ -335,6 +335,11 @@ class WebEngineCaret(browsertab.AbstractCaret):
         """
         if js_elem is None:
             return
+        if js_elem == "focused":
+            # we had a focused element, not a selected one. Just send <enter>
+            self._tab.key_press(Qt.Key_Enter)
+            return
+
         assert isinstance(js_elem, dict), js_elem
         elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
         if tab:
@@ -364,7 +369,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
         else:
             # click an existing blue selection
-            js_code = javascript.assemble('webelem', 'find_selected_focused_link')
+            js_code = javascript.assemble('webelem',
+                                          'find_selected_focused_link')
             self._tab.run_js_async(js_code, lambda jsret:
                                    self._follow_selected_cb(jsret, tab))
 

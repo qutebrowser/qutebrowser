@@ -329,8 +329,9 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
-    // Function for returning a selection to python (so we can click it)
-    // If there is no selection, get the currently focused element.
+    // Function for returning a selection or focus to python (so we can click
+    // it). If nothing is selected but there is something focused, returns
+    // "focused"
     funcs.find_selected_focused_link = () => {
         const elem = window.getSelection().baseNode;
         if (elem) {
@@ -348,8 +349,7 @@ window._qutebrowser.webelem = (function() {
         if (serialized_frame_elem) {
             return serialized_frame_elem;
         }
-        // No selected element, return focused element
-        return funcs.find_focused();
+        return funcs.find_focused() && "focused";
     };
 
     funcs.set_value = (id, value) => {
