@@ -971,6 +971,11 @@ hints.uppercase:
 
 ## input
 
+input.escape_quits_reporter:
+  type: Bool
+  default: True
+  desc: Allow escape to quit the crash reporter.
+
 input.forward_unbound_keys:
   default: auto
   type:
@@ -2188,13 +2193,6 @@ fonts.web.size.minimum_logical:
     minval: 0
     maxval: maxint
   desc: Minimum logical font size (in pixels) that is applied when zooming out.
-
-## reporter
-
-reporter.escape_quits:
-  type: Bool
-  default: True
-  desc: Allow escape to quit the crash reporter.
 
 ## keybindings
 
