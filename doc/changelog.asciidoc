@@ -40,6 +40,8 @@ Changed
 - The `qt.force_software_rendering` setting changed from a boolean to taking
   different values (`software-opengl`, `qt-quick` and `chromium`) for different
   kinds of software rendering workarounds.
+- On Qt 5.11, using wayland with QtWebEngine is now possible when using
+  software rendering.
 
 v1.3.2 (unreleased)
 -------------------
