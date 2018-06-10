@@ -302,7 +302,8 @@ class TestEarlyInit:
         """Check settings which set an environment variable."""
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.delenv(envvar, raising=False)
+        monkeypatch.setenv(envvar, '')  # to make sure it gets restored
+        monkeypatch.delenv(envvar)
 
         config_stub.set_obj(config_opt, config_val)
         configinit._init_envvars()
