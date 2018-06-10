@@ -55,8 +55,8 @@ Removed
 
 - `:tab-detach` which has been deprecated in v1.1.0 has been removed.
 
-v1.3.2 (unreleased)
--------------------
+v1.3.2
+------
 
 Fixed
 ~~~~~
