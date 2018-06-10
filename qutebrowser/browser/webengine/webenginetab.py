@@ -337,8 +337,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
             return
         if js_elem == "focused":
             # we had a focused element, not a selected one. Just send <enter>
-            self._tab.key_press(Qt.Key_Enter)
-            return
+            if tab:
+                self._tab.key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+            else:
+                self._tab.key_press(Qt.Key_Enter)
 
         assert isinstance(js_elem, dict), js_elem
         elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
