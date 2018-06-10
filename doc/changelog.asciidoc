@@ -15,6 +15,21 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.3.2
+------
+
+Fixed
+~~~~~
+
+- QtWebEngine: Improved workaround for a bug in Qt 5.11 where only the
+  top/bottom half of the window is used.
+- QtWebEngine: Work around a bug in Qt 5.11 where an endless loading-loop is
+  triggered when clicking a link with an unknown scheme.
+- QtWebEngine: When switching between pages with changed settings, less
+  unnecessary reloads are done now.
+- QtWebEngine: It's now possible to open external links such as `magnet://` or
+  `mailto:` via hints.
+
 v1.3.1
 ------
 
