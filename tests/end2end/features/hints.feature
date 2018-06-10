@@ -120,6 +120,15 @@ Feature: Using hints
         And I hint with args "links yank" and follow a
         Then the clipboard should contain "javascript:window.location.href='/data/hello.txt'"
 
+    Scenario: Rapid yanking
+        When I run :debug-set-fake-clipboard
+        And I open data/hints/rapid.html
+        And I hint with args "links yank --rapid"
+        And I run :follow-hint a
+        And I run :follow-hint s
+        And I run :leave-mode
+        Then the clipboard should contain "http://localhost:(port)/data/hello.txt(linesep)http://localhost:(port)/data/hello2.txt"
+
     Scenario: Rapid hinting
         When I open data/hints/rapid.html in a new tab
         And I run :tab-only

@@ -651,6 +651,7 @@ class TestGetSetClipboard:
                          autospec=True)
         clipboard = m()
         clipboard.text.return_value = 'mocked clipboard text'
+        mocker.patch('qutebrowser.utils.utils.fake_clipboard', None)
         return clipboard
 
     def test_set(self, clipboard_mock, caplog):
