@@ -309,6 +309,11 @@ class TestEarlyInit:
 
         assert os.environ[envvar] == expected
 
+    def test_env_vars_webkit(self, monkeypatch, config_stub):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebKit)
+        configinit._init_envvars()
+
 
 @pytest.mark.parametrize('errors', [True, False])
 def test_late_init(init_patch, monkeypatch, fake_save_manager, args,
@@ -390,14 +395,17 @@ class TestQtArgs:
         config_stub.val.qt.args = ['bar']
         assert configinit.qt_args(parsed) == [sys.argv[0], '--foo', '--bar']
 
-    def test_shared_workers(self, config_stub, monkeypatch, parser):
+    @pytest.mark.parametrize('backend, expected', [
+        (usertypes.Backend.QtWebEngine, ['--disable-shared-workers']),
+        (usertypes.Backend.QtWebKit, []),
+    ])
+    def test_shared_workers(self, config_stub, monkeypatch, parser,
+                            backend, expected):
         monkeypatch.setattr(configinit.qtutils, 'version_check',
                             lambda version, compiled: False)
-        monkeypatch.setattr(configinit.objects, 'backend',
-                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(configinit.objects, 'backend', backend)
         parsed = parser.parse_args([])
-        expected = [sys.argv[0], '--disable-shared-workers']
-        assert configinit.qt_args(parsed) == expected
+        assert configinit.qt_args(parsed) == [sys.argv[0]] + expected
 
     def test_disable_gpu(self, config_stub, monkeypatch, parser):
         monkeypatch.setattr(configinit.objects, 'backend',
