@@ -599,7 +599,8 @@ def check_open_tabs(quteproc, request, tabs):
                          r'contain "(?P<content>.*)"'))
 def clipboard_contains(quteproc, server, what, content):
     expected = content.replace('(port)', str(server.port))
-    expected = expected.replace('\\n', os.linesep)
+    expected = expected.replace('\\n', '\n')
+    expected = expected.replace('(linesep)', os.linesep)
     quteproc.wait_for(message='Setting fake {}: {}'.format(
         what, json.dumps(expected)))
 

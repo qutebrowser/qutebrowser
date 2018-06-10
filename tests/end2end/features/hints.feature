@@ -127,7 +127,7 @@ Feature: Using hints
         And I run :follow-hint a
         And I run :follow-hint s
         And I run :leave-mode
-        Then the clipboard should contain "http://localhost:(port)/data/hello.txt\nhttp://localhost:(port)/data/hello2.txt"
+        Then the clipboard should contain "http://localhost:(port)/data/hello.txt(linesep)http://localhost:(port)/data/hello2.txt"
 
     Scenario: Rapid hinting
         When I open data/hints/rapid.html in a new tab
