@@ -49,6 +49,8 @@ Changed
   software rendering.
 - GreaseMonkey scripts now get their own global scope (based on the page's
   one), which allows scripts like OneeChan to work.
+- Rapid hinting is now supported with the `yank` and `yank-primary` targets,
+  copying newline-separated links.
 
 Removed
 ~~~~~~~
