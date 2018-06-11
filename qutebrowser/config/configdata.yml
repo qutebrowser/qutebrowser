@@ -598,6 +598,15 @@ content.pdfjs:
     Note that the files can still be downloaded by clicking the download button
     in the pdf.js viewer.
 
+content.persistent_storage:
+  default: ask
+  type: BoolAsk
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.11
+  desc: Allow websites to request persistent storage quota via
+    `navigator.webkitPersistentStorage.requestQuota`.
+
 content.plugins:
   default: false
   type: Bool

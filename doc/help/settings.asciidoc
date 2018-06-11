@@ -144,6 +144,7 @@
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
 |<<content.notifications,content.notifications>>|Allow websites to show notifications.
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
+|<<content.persistent_storage,content.persistent_storage>>|Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
 |<<content.plugins,content.plugins>>|Enable plugins in Web pages.
 |<<content.print_element_backgrounds,content.print_element_backgrounds>>|Draw the background color and images also when the page is printed.
 |<<content.private_browsing,content.private_browsing>>|Open new windows in private browsing mode which does not record visited pages.
@@ -1856,6 +1857,24 @@ Type: <<types,Bool>>
 Default: +pass:[false]+
 
 This setting is only available with the QtWebKit backend.
+
+[[content.persistent_storage]]
+=== content.persistent_storage
+Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+On QtWebEngine, this setting requires Qt 5.11 or newer.
+
+On QtWebKit, this setting is unavailable.
 
 [[content.plugins]]
 === content.plugins

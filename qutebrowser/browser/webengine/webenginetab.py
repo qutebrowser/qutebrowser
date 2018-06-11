@@ -1046,6 +1046,17 @@ class WebEngineTab(browsertab.AbstractTab):
                 # aborted after a loadStarted signal.
                 pass
 
+    @pyqtSlot('QWebEngineQuotaRequest')
+    def _on_quota_requested(self, request):
+        size = utils.format_size(request.requestedSize())
+        shared.feature_permission(
+            url=request.origin(),
+            option='content.persistent_storage',
+            msg='use {} of persistent storage'.format(size),
+            yes_action=request.accept, no_action=request.reject,
+            abort_on=[self.shutting_down, self.load_started],
+            blocking=True)
+
     @pyqtSlot()
     def _on_load_started(self):
         """Clear search when a new load is started if needed."""
@@ -1204,6 +1215,11 @@ class WebEngineTab(browsertab.AbstractTab):
         page.navigation_request.connect(self._on_navigation_request)
         page.featurePermissionRequested.connect(
             self._on_feature_permission_requested)
+        try:
+            page.quotaRequested.connect(self._on_quota_requested)
+        except AttributeError:
+            # Added in Qt 5.11
+            pass
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
