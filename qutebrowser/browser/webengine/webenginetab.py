@@ -27,7 +27,7 @@ import html as html_utils
 
 import sip
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
-                          QUrl, QTimer)
+                          QUrl, QTimer, QObject)
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
@@ -643,6 +643,126 @@ class WebEngineAudio(browsertab.AbstractAudio):
         return page.recentlyAudible()
 
 
+class _WebEnginePermissions(QObject):
+
+    """Handling of various permission-related signals."""
+
+    _abort_questions = pyqtSignal()
+
+    def __init__(self, tab, parent=None):
+        super().__init__(parent)
+        self._tab = tab
+        self._widget = None
+
+    def connect_signals(self):
+        page = self._widget.page()
+        page.fullScreenRequested.connect(
+            self._on_fullscreen_requested)
+        page.featurePermissionRequested.connect(
+            self._on_feature_permission_requested)
+        try:
+            page.quotaRequested.connect(
+                self._on_quota_requested)
+            page.registerProtocolHandlerRequested.connect(
+                self._on_register_protocol_handler_requested)
+        except AttributeError:
+            # Added in Qt 5.11
+            pass
+
+        self._tab.shutting_down.connect(self._abort_questions)
+        self._tab.load_started.connect(self._abort_questions)
+
+    @pyqtSlot('QWebEngineFullScreenRequest')
+    def _on_fullscreen_requested(self, request):
+        request.accept()
+        on = request.toggleOn()
+
+        self._tab.data.fullscreen = on
+        self._tab.fullscreen_requested.emit(on)
+        if on:
+            notification = miscwidgets.FullscreenNotification(self)
+            notification.show()
+            notification.set_timeout(3000)
+
+    @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
+    def _on_feature_permission_requested(self, url, feature):
+        """Ask the user for approval for geolocation/media/etc.."""
+        options = {
+            QWebEnginePage.Geolocation: 'content.geolocation',
+            QWebEnginePage.MediaAudioCapture: 'content.media_capture',
+            QWebEnginePage.MediaVideoCapture: 'content.media_capture',
+            QWebEnginePage.MediaAudioVideoCapture: 'content.media_capture',
+        }
+        messages = {
+            QWebEnginePage.Geolocation: 'access your location',
+            QWebEnginePage.MediaAudioCapture: 'record audio',
+            QWebEnginePage.MediaVideoCapture: 'record video',
+            QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
+        }
+        assert options.keys() == messages.keys()
+
+        page = self._widget.page()
+
+        if feature not in options:
+            log.webview.error("Unhandled feature permission {}".format(
+                debug.qenum_key(QWebEnginePage, feature)))
+            page.setFeaturePermission(url, feature,
+                                      QWebEnginePage.PermissionDeniedByUser)
+            return
+
+        yes_action = functools.partial(
+            page.setFeaturePermission, url, feature,
+            QWebEnginePage.PermissionGrantedByUser)
+        no_action = functools.partial(
+            page.setFeaturePermission, url, feature,
+            QWebEnginePage.PermissionDeniedByUser)
+
+        question = shared.feature_permission(
+            url=url, option=options[feature], msg=messages[feature],
+            yes_action=yes_action, no_action=no_action,
+            abort_on=[self._abort_questions])
+
+        if question is not None:
+            page.featurePermissionRequestCanceled.connect(
+                functools.partial(self._on_feature_permission_cancelled,
+                                  question, url, feature))
+
+    def _on_feature_permission_cancelled(self, question, url, feature,
+                                         cancelled_url, cancelled_feature):
+        """Slot invoked when a feature permission request was cancelled.
+
+        To be used with functools.partial.
+        """
+        if url == cancelled_url and feature == cancelled_feature:
+            try:
+                question.abort()
+            except RuntimeError:
+                # The question could already be deleted, e.g. because it was
+                # aborted after a loadStarted signal.
+                pass
+
+    @pyqtSlot('QWebEngineQuotaRequest')
+    def _on_quota_requested(self, request):
+        size = utils.format_size(request.requestedSize())
+        shared.feature_permission(
+            url=request.origin(),
+            option='content.persistent_storage',
+            msg='use {} of persistent storage'.format(size),
+            yes_action=request.accept, no_action=request.reject,
+            abort_on=[self._abort_questions],
+            blocking=True)
+
+    @pyqtSlot('QWebEngineRegisterProtocolHandlerRequest')
+    def _on_register_protocol_handler_requested(self, request):
+        shared.feature_permission(
+            url=request.origin(),
+            option='content.register_protocol_handler',
+            msg='open all {} links'.format(request.scheme()),
+            yes_action=request.accept, no_action=request.reject,
+            abort_on=[self._abort_questions],
+            blocking=True)
+
+
 class WebEngineTab(browsertab.AbstractTab):
 
     """A QtWebEngine tab in the browser.
@@ -670,6 +790,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
         self.audio = WebEngineAudio()
+        self._permissions = _WebEnginePermissions(tab=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
         self._set_widget(widget)
@@ -680,6 +801,11 @@ class WebEngineTab(browsertab.AbstractTab):
         self._reload_url = None
         config.instance.changed.connect(self._on_config_changed)
         self._init_js()
+
+    def _set_widget(self, widget):
+        # pylint: disable=protected-access
+        super()._set_widget(widget)
+        self._permissions._widget = widget
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
@@ -977,96 +1103,6 @@ class WebEngineTab(browsertab.AbstractTab):
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html
                 self._show_error_page(url, "Authentication required")
 
-    @pyqtSlot('QWebEngineFullScreenRequest')
-    def _on_fullscreen_requested(self, request):
-        request.accept()
-        on = request.toggleOn()
-
-        self.data.fullscreen = on
-        self.fullscreen_requested.emit(on)
-        if on:
-            notification = miscwidgets.FullscreenNotification(self)
-            notification.show()
-            notification.set_timeout(3000)
-
-    @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
-    def _on_feature_permission_requested(self, url, feature):
-        """Ask the user for approval for geolocation/media/etc.."""
-        options = {
-            QWebEnginePage.Geolocation: 'content.geolocation',
-            QWebEnginePage.MediaAudioCapture: 'content.media_capture',
-            QWebEnginePage.MediaVideoCapture: 'content.media_capture',
-            QWebEnginePage.MediaAudioVideoCapture: 'content.media_capture',
-        }
-        messages = {
-            QWebEnginePage.Geolocation: 'access your location',
-            QWebEnginePage.MediaAudioCapture: 'record audio',
-            QWebEnginePage.MediaVideoCapture: 'record video',
-            QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
-        }
-        assert options.keys() == messages.keys()
-
-        page = self._widget.page()
-
-        if feature not in options:
-            log.webview.error("Unhandled feature permission {}".format(
-                debug.qenum_key(QWebEnginePage, feature)))
-            page.setFeaturePermission(url, feature,
-                                      QWebEnginePage.PermissionDeniedByUser)
-            return
-
-        yes_action = functools.partial(
-            page.setFeaturePermission, url, feature,
-            QWebEnginePage.PermissionGrantedByUser)
-        no_action = functools.partial(
-            page.setFeaturePermission, url, feature,
-            QWebEnginePage.PermissionDeniedByUser)
-
-        question = shared.feature_permission(
-            url=url, option=options[feature], msg=messages[feature],
-            yes_action=yes_action, no_action=no_action,
-            abort_on=[self.shutting_down, self.load_started])
-
-        if question is not None:
-            page.featurePermissionRequestCanceled.connect(
-                functools.partial(self._on_feature_permission_cancelled,
-                                  question, url, feature))
-
-    def _on_feature_permission_cancelled(self, question, url, feature,
-                                         cancelled_url, cancelled_feature):
-        """Slot invoked when a feature permission request was cancelled.
-
-        To be used with functools.partial.
-        """
-        if url == cancelled_url and feature == cancelled_feature:
-            try:
-                question.abort()
-            except RuntimeError:
-                # The question could already be deleted, e.g. because it was
-                # aborted after a loadStarted signal.
-                pass
-
-    @pyqtSlot('QWebEngineQuotaRequest')
-    def _on_quota_requested(self, request):
-        size = utils.format_size(request.requestedSize())
-        shared.feature_permission(
-            url=request.origin(),
-            option='content.persistent_storage',
-            msg='use {} of persistent storage'.format(size),
-            yes_action=request.accept, no_action=request.reject,
-            abort_on=[self.shutting_down, self.load_started],
-            blocking=True)
-
-    @pyqtSlot('QWebEngineRegisterProtocolHandlerRequest')
-    def _on_register_protocol_handler_requested(self, request):
-        shared.feature_permission(
-            url=request.origin(),
-            option='content.register_protocol_handler',
-            msg='open all {} links'.format(request.scheme()),
-            yes_action=request.accept, no_action=request.reject,
-            abort_on=[self.shutting_down, self.load_started],
-            blocking=True)
-
     @pyqtSlot()
     def _on_load_started(self):
         """Clear search when a new load is started if needed."""
@@ -1220,18 +1256,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.authenticationRequired.connect(self._on_authentication_required)
         page.proxyAuthenticationRequired.connect(
             self._on_proxy_authentication_required)
-        page.fullScreenRequested.connect(self._on_fullscreen_requested)
         page.contentsSizeChanged.connect(self.contents_size_changed)
         page.navigation_request.connect(self._on_navigation_request)
-        page.featurePermissionRequested.connect(
-            self._on_feature_permission_requested)
-        try:
-            page.quotaRequested.connect(self._on_quota_requested)
-            page.registerProtocolHandlerRequested.connect(
-                self._on_register_protocol_handler_requested)
-        except AttributeError:
-            # Added in Qt 5.11
-            pass
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
@@ -1253,7 +1279,10 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadFinished.connect(self._on_load_finished)
 
         self.predicted_navigation.connect(self._on_predicted_navigation)
-        self.audio._connect_signals()  # pylint: disable=protected-access
+
+        # pylint: disable=protected-access
+        self.audio._connect_signals()
+        self._permissions.connect_signals()
 
     def event_target(self):
         return self._widget.render_widget()
