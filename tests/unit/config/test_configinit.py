@@ -359,7 +359,7 @@ class TestQtArgs:
     def patch_version_check(self, monkeypatch):
         """Make sure no --disable-shared-workers argument gets added."""
         monkeypatch.setattr(configinit.qtutils, 'version_check',
-                            lambda version, compiled: True)
+                            lambda version, compiled=False: True)
 
     @pytest.mark.parametrize('args, expected', [
         # No Qt arguments
@@ -403,7 +403,7 @@ class TestQtArgs:
     def test_shared_workers(self, config_stub, monkeypatch, parser,
                             backend, expected):
         monkeypatch.setattr(configinit.qtutils, 'version_check',
-                            lambda version, compiled: False)
+                            lambda version, compiled=False: False)
         monkeypatch.setattr(configinit.objects, 'backend', backend)
         parsed = parser.parse_args([])
         assert configinit.qt_args(parsed) == [sys.argv[0]] + expected
@@ -415,6 +415,23 @@ class TestQtArgs:
         parsed = parser.parse_args([])
         expected = [sys.argv[0], '--disable-gpu']
         assert configinit.qt_args(parsed) == expected
+
+    @pytest.mark.parametrize('backend, new_version, autoplay, added', [
+        (usertypes.Backend.QtWebEngine, True, False, False),  # new
+        (usertypes.Backend.QtWebKit, False, False, False),  # QtWebKit
+        (usertypes.Backend.QtWebEngine, False, True, False),  # enabled
+        (usertypes.Backend.QtWebEngine, False, False, True),
+    ])
+    def test_autoplay(self, config_stub, monkeypatch, parser,
+                      backend, new_version, autoplay, added):
+        config_stub.val.content.autoplay = autoplay
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, compiled=False: new_version)
+        monkeypatch.setattr(configinit.objects, 'backend', backend)
+
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+        assert ('--autoplay-policy=user-gesture-required' in args) == added
 
 
 @pytest.mark.parametrize('arg, confval, used', [

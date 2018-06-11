@@ -214,6 +214,17 @@ auto_save.session:
 
 ## content
 
+content.autoplay:
+  default: true
+  type: Bool
+  backend:
+    QtWebEngine: Qt 5.10
+    QtWebKit: false
+  desc: >-
+    Automatically start playing `<video>` elements.
+
+    Note this option needs a restart with QtWebEngine on Qt < 5.11.
+
 content.cache.size:
   default: null
   type:

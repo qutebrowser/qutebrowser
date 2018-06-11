@@ -156,15 +156,19 @@ class WebEngineSettings(websettings.AbstractSettings):
         # Attributes which don't exist in all Qt versions.
         new_attributes = {
             # Qt 5.8
-            'content.print_element_backgrounds': 'PrintElementBackgrounds',
+            'content.print_element_backgrounds':
+                ('PrintElementBackgrounds', None),
+            # Qt 5.11
+            'content.autoplay':
+                ('PlaybackRequiresUserGesture', lambda val: not val),
         }
-        for name, attribute in new_attributes.items():
+        for name, (attribute, converter) in new_attributes.items():
             try:
                 value = getattr(QWebEngineSettings, attribute)
             except AttributeError:
                 continue
 
-            self._ATTRIBUTES[name] = Attr(value)
+            self._ATTRIBUTES[name] = Attr(value, converter=converter)
 
 
 class ProfileSetter:

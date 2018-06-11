@@ -172,7 +172,13 @@ def qt_args(namespace):
             # https://codereview.qt-project.org/#/c/217932/
             # Needed for Qt < 5.9.5 and < 5.10.1
             argv.append('--disable-shared-workers')
+
         if config.val.qt.force_software_rendering == 'chromium':
             argv.append('--disable-gpu')
+
+        if not qtutils.version_check('5.11'):
+            # On Qt 5.11, we can control this via QWebEngineSettings
+            if not config.val.content.autoplay:
+                argv.append('--autoplay-policy=user-gesture-required')
 
     return argv

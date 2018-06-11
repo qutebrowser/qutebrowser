@@ -109,6 +109,7 @@
 |<<completion.use_best_match,completion.use_best_match>>|Execute the best-matching command on a partial match.
 |<<completion.web_history_max_items,completion.web_history_max_items>>|Number of URLs to show in the web history.
 |<<confirm_quit,confirm_quit>>|Require a confirmation before quitting the application.
+|<<content.autoplay,content.autoplay>>|Automatically start playing `<video>` elements.
 |<<content.cache.appcache,content.cache.appcache>>|Enable support for the HTML 5 web application cache feature.
 |<<content.cache.maximum_pages,content.cache.maximum_pages>>|Maximum number of pages to hold in the global memory page cache.
 |<<content.cache.size,content.cache.size>>|Size (in bytes) of the HTTP network cache. Null to use the default value.
@@ -1466,6 +1467,19 @@ Valid values:
 Default: 
 
 - +pass:[never]+
+
+[[content.autoplay]]
+=== content.autoplay
+Automatically start playing `<video>` elements.
+Note this option needs a restart with QtWebEngine on Qt < 5.11.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+On QtWebEngine, this setting requires Qt 5.10 or newer.
+
+On QtWebKit, this setting is unavailable.
 
 [[content.cache.appcache]]
 === content.cache.appcache
