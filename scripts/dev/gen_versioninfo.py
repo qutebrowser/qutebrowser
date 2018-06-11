@@ -45,21 +45,32 @@ def main():
     copyright_text = qutebrowser.__copyright__
     trademark_text = "qutebrowser is free software under the GNU General Public License"
 
+    # https://www.science.co.il/language/Locale-codes.php#definitions
+    # https://msdn.microsoft.com/en-us/library/windows/desktop/dd317756.aspx
+    en_us = 1033  # 0x0409
+    utf_16 = 1200  # 0x04B0
+
     ffi = vs.FixedFileInfo(filevers, prodvers)
 
-    kids = [vs.StringFileInfo(
-        [vs.StringTable('040904B0',
-                        [vs.StringStruct('Comments', comment_text),
-                         vs.StringStruct('CompanyName', "qutebrowser.org"),
-                         vs.StringStruct('FileDescription', "qutebrowser"),
-                         vs.StringStruct('FileVersion', str_filevers),
-                         vs.StringStruct('InternalName', "qutebrowser"),
-                         vs.StringStruct('LegalCopyright', copyright_text),
-                         vs.StringStruct('LegalTrademarks', trademark_text),
-                         vs.StringStruct('OriginalFilename', "qutebrowser.exe"),
-                         vs.StringStruct('ProductName', "qutebrowser"),
-                         vs.StringStruct('ProductVersion', str_prodvers)])]),
-        vs.VarFileInfo([vs.VarStruct('Translation', [1033, 1200])])]
+    kids = [
+        vs.StringFileInfo([
+            # 0x0409: MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US)
+            # 0x04B0: codepage 1200 (UTF-16LE)
+            vs.StringTable('040904B0', [
+                vs.StringStruct('Comments', comment_text),
+                vs.StringStruct('CompanyName', "qutebrowser.org"),
+                vs.StringStruct('FileDescription', "qutebrowser"),
+                vs.StringStruct('FileVersion', str_filevers),
+                vs.StringStruct('InternalName', "qutebrowser"),
+                vs.StringStruct('LegalCopyright', copyright_text),
+                vs.StringStruct('LegalTrademarks', trademark_text),
+                vs.StringStruct('OriginalFilename', "qutebrowser.exe"),
+                vs.StringStruct('ProductName', "qutebrowser"),
+                vs.StringStruct('ProductVersion', str_prodvers)
+            ]),
+        ]),
+        vs.VarFileInfo([vs.VarStruct('Translation', [en_us, utf_16])]),
+    ]
 
     file_version_info = vs.VSVersionInfo(ffi, kids)
 
