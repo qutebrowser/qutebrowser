@@ -619,6 +619,8 @@ class WebEngineElements(browsertab.AbstractElements):
 
 class WebEngineAudio(browsertab.AbstractAudio):
 
+    """QtWebEngine implemementations related to audio/muting."""
+
     def _connect_signals(self):
         page = self._widget.page()
         page.audioMutedChanged.connect(self.muted_changed)
