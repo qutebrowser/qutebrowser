@@ -67,6 +67,14 @@ Removed
 
 - `:tab-detach` which has been deprecated in v1.1.0 has been removed.
 
+v1.3.3 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Crash in a workaround for a Qt 5.11 bug in rare circumstances.
+
 v1.3.2
 ------
 
