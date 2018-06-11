@@ -1365,12 +1365,16 @@ Show version information.
 
 [[view-source]]
 === view-source
-Syntax: +:view-source [*--edit*]+
+Syntax: +:view-source [*--edit*] [*--pygments*]+
 
 Show the source of the current page in a new tab.
 
 ==== optional arguments
 * +*-e*+, +*--edit*+: Edit the source in the editor instead of opening a tab.
+* +*-p*+, +*--pygments*+: Use pygments to generate the view. This is always the case for QtWebKit. For QtWebEngine it may display
+ slightly different source.
+ Some JavaScript processing may be applied.
+
 
 [[window-only]]
 === window-only

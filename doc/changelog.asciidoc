@@ -61,6 +61,8 @@ Changed
   element if there's no selection.
 - The `--logfilter` argument now can be prepended with an exclamation mark
   (e.g. `--logfilter '!init,destroy'`) to invert the filter.
+- `:view-source` now has a `--pygments` flag which uses the "old" way of
+  rendering sources even with QtWebEngine.
 
 Removed
 ~~~~~~~
