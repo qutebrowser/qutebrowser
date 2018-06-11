@@ -41,4 +41,3 @@ class WebKitInspector(inspector.AbstractWebInspector):
                 "Please enable content.developer_extras before using the "
                 "webinspector!")
         self._widget.setPage(page)
-        self.show()

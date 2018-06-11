@@ -39,7 +39,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         settings.setAttribute(QWebEngineSettings.JavascriptEnabled, True)
         self._set_widget(view)
 
-    def _inspect_old(self):
+    def _inspect_old(self, page):
         """Set up the inspector for Qt < 5.11."""
         try:
             port = int(os.environ['QTWEBENGINE_REMOTE_DEBUGGING'])
@@ -48,7 +48,11 @@ class WebEngineInspector(inspector.AbstractWebInspector):
                 "QtWebEngine inspector is not enabled. See "
                 "'qutebrowser --help' for details.")
         url = QUrl('http://localhost:{}/'.format(port))
-        self._widget.load(url)
+
+        if page is None:
+            self._widget.load(QUrl('about:blank'))
+        else:
+            self._widget.load(url)
 
     def _inspect_new(self, page):
         """Set up the inspector for Qt >= 5.11."""
@@ -58,5 +62,4 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         try:
             self._inspect_new(page)
         except AttributeError:
-            self._inspect_old()
-        self.show()
+            self._inspect_old(page)
