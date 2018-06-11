@@ -43,7 +43,8 @@ def main():
 
     comment_text = qutebrowser.__doc__
     copyright_text = qutebrowser.__copyright__
-    trademark_text = "qutebrowser is free software under the GNU General Public License"
+    trademark_text = ("qutebrowser is free software under the GNU General "
+                      "Public License")
 
     # https://www.science.co.il/language/Locale-codes.php#definitions
     # https://msdn.microsoft.com/en-us/library/windows/desktop/dd317756.aspx
