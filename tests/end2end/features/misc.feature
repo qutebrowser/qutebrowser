@@ -163,7 +163,7 @@ Feature: Various utility commands.
         And I run :inspector
         Then the error "Please enable content.developer_extras before using the webinspector!" should be shown
 
-    @qtwebkit_skip
+    @qtwebkit_skip @qt<5.11
     Scenario: Inspector without --enable-webengine-inspector
         When I run :inspector
         Then the error "QtWebEngine inspector is not enabled. See 'qutebrowser --help' for details." should be shown

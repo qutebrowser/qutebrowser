@@ -26,8 +26,9 @@ import logging
 import re
 
 import pytest
-
 from PyQt5.QtCore import QProcess, qVersion
+
+from tests import utils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
@@ -257,6 +258,7 @@ def test_qt_arg(request, quteproc_new, tmpdir):
     quteproc_new.wait_for_quit()
 
 
+@utils.skip_qt511
 def test_webengine_inspector(request, quteproc_new):
     if not request.config.webengine:
         pytest.skip()

@@ -27,7 +27,8 @@ Module attributes:
 import os
 
 from PyQt5.QtGui import QFont
-from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineProfile
+from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
+                                      QWebEnginePage)
 
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import config, websettings
@@ -274,7 +275,8 @@ def _init_profiles():
 
 def init(args):
     """Initialize the global QWebSettings."""
-    if args.enable_webengine_inspector:
+    if (args.enable_webengine_inspector and
+            not hasattr(QWebEnginePage, 'setInspectedPage')):  # only Qt < 5.11
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
 
     _init_profiles()

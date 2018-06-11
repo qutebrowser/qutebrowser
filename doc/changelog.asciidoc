@@ -51,6 +51,8 @@ Changed
   one), which allows scripts like OneeChan to work.
 - Rapid hinting is now supported with the `yank` and `yank-primary` targets,
   copying newline-separated links.
+- QtWebEngine: On Qt 5.11, the developer tools (inspector) can now be used
+  securely and without requiring the `--enable-webengine-inspector` option.
 
 Removed
 ~~~~~~~
