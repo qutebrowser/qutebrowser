@@ -1290,7 +1290,7 @@ If moving relatively: Offset. If moving absolutely: New position (default: 0). T
 Mute/Unmute the current/[count]th tab.
 
 ==== count
-The tab index to pin or unpin
+The tab index to mute or unmute
 
 [[tab-next]]
 === tab-next

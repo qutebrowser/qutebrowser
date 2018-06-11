@@ -1392,7 +1392,7 @@ tabs.title.format:
     * `{private}`: Indicates when private mode is enabled.
     * `{current_url}`: URL of the current web page.
     * `{protocol}`: Protocol (http/https/...) of the current web page.
-    * `{audio}`: Indicator for audio/mute status
+    * `{audio}`: Indicator for audio/mute status.
 
 tabs.title.format_pinned:
   default: '{index}'

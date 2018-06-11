@@ -488,6 +488,7 @@ Default:
 * +pass:[&lt;Alt-7&gt;]+: +pass:[tab-focus 7]+
 * +pass:[&lt;Alt-8&gt;]+: +pass:[tab-focus 8]+
 * +pass:[&lt;Alt-9&gt;]+: +pass:[tab-focus -1]+
+* +pass:[&lt;Alt-m&gt;]+: +pass:[tab-mute]+
 * +pass:[&lt;Ctrl-A&gt;]+: +pass:[navigate increment]+
 * +pass:[&lt;Ctrl-Alt-p&gt;]+: +pass:[print]+
 * +pass:[&lt;Ctrl-B&gt;]+: +pass:[scroll-page 0 -1]+
@@ -3062,12 +3063,12 @@ The following placeholders are defined:
 * `{private}`: Indicates when private mode is enabled.
 * `{current_url}`: URL of the current web page.
 * `{protocol}`: Protocol (http/https/...) of the current web page.
-* `{muted}`: Icon if the tab is muted
+* `{audio}`: Indicator for audio/mute status.
 
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{index}: {title}]+
+Default: +pass:[{audio}{index}: {title}]+
 
 [[tabs.title.format_pinned]]
 === tabs.title.format_pinned
