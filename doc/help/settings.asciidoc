@@ -154,6 +154,7 @@
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
+|<<content.webrtc_public_interfaces_only,content.webrtc_public_interfaces_only>>|Only expose public interfaces via WebRTC.
 |<<content.windowed_fullscreen,content.windowed_fullscreen>>|Limit fullscreen to the browser window (does not expand to fill the screen).
 |<<content.xss_auditing,content.xss_auditing>>|Monitor load requests for cross-site scripting attempts.
 |<<downloads.location.directory,downloads.location.directory>>|Directory to save downloads to.
@@ -1982,6 +1983,19 @@ This setting supports URL patterns.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[content.webrtc_public_interfaces_only]]
+=== content.webrtc_public_interfaces_only
+Only expose public interfaces via WebRTC.
+On Qt 5.9, this option requires a restart. On Qt 5.10, this option doesn't work at all because of a Qt bug. On Qt >= 5.11, no restart is required.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
+On QtWebEngine, this setting requires Qt 5.9.2 or newer.
+
+On QtWebKit, this setting is unavailable.
 
 [[content.windowed_fullscreen]]
 === content.windowed_fullscreen

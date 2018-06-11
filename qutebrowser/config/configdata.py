@@ -149,6 +149,7 @@ def _parse_yaml_backends_dict(name, node):
         False: False,
         'Qt 5.8': qtutils.version_check('5.8'),
         'Qt 5.9': qtutils.version_check('5.9'),
+        'Qt 5.9.2': qtutils.version_check('5.9.2'),
         'Qt 5.10': qtutils.version_check('5.10'),
         'Qt 5.11': qtutils.version_check('5.11'),
     }

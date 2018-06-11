@@ -180,5 +180,8 @@ def qt_args(namespace):
             # On Qt 5.11, we can control this via QWebEngineSettings
             if not config.val.content.autoplay:
                 argv.append('--autoplay-policy=user-gesture-required')
+            if config.val.content.webrtc_public_interfaces_only:
+                argv.append('--force-webrtc-ip-handling-policy='
+                            'default_public_interface_only')
 
     return argv

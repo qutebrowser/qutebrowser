@@ -675,6 +675,19 @@ content.webgl:
   supports_pattern: true
   desc: Enable WebGL.
 
+content.webrtc_public_interfaces_only:
+  default: false
+  type: Bool
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.9.2
+  desc: >-
+    Only expose public interfaces via WebRTC.
+
+    On Qt 5.9, this option requires a restart.
+    On Qt 5.10, this option doesn't work at all because of a Qt bug.
+    On Qt >= 5.11, no restart is required.
+
 content.xss_auditing:
   type: Bool
   default: false

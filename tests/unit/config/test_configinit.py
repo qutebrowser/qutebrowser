@@ -433,6 +433,24 @@ class TestQtArgs:
         args = configinit.qt_args(parsed)
         assert ('--autoplay-policy=user-gesture-required' in args) == added
 
+    @pytest.mark.parametrize('backend, new_version, public_only, added', [
+        (usertypes.Backend.QtWebEngine, True, True, False),  # new
+        (usertypes.Backend.QtWebKit, False, True, False),  # QtWebKit
+        (usertypes.Backend.QtWebEngine, False, False, False),  # disabled
+        (usertypes.Backend.QtWebEngine, False, True, True),
+    ])
+    def test_webrtc(self, config_stub, monkeypatch, parser,
+                    backend, new_version, public_only, added):
+        config_stub.val.content.webrtc_public_interfaces_only = public_only
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, compiled=False: new_version)
+        monkeypatch.setattr(configinit.objects, 'backend', backend)
+
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+        arg = '--force-webrtc-ip-handling-policy=default_public_interface_only'
+        assert (arg in args) == added
+
 
 @pytest.mark.parametrize('arg, confval, used', [
     # overridden by commandline arg
