@@ -1531,7 +1531,8 @@ class CommandDispatcher:
         except cmdexc.CommandError as e:
             message.error(str(e))
             return
-        if current_url.scheme() == 'view-source':
+
+        if current_url.scheme() == 'view-source' or tab.data.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")
 
         if edit:

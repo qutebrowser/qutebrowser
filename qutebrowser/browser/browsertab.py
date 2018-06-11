@@ -99,6 +99,8 @@ class TabData:
         keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
                    load.
         inspector: The QWebInspector used for this webview.
+        viewing_source: Set if we're currently showing a source view.
+                        Only used when sources are shown via pygments.
         open_target: Where to open the next link.
                      Only used for QtWebKit.
         override_target: Override for open_target for fake clicks (like hints).
@@ -110,6 +112,7 @@ class TabData:
     """
 
     keep_icon = attr.ib(False)
+    viewing_source = attr.ib(False)
     inspector = attr.ib(None)
     open_target = attr.ib(usertypes.ClickTarget.normal)
     override_target = attr.ib(None)
@@ -173,12 +176,9 @@ class AbstractAction:
             tb = objreg.get('tabbed-browser', scope='window',
                             window=self._tab.win_id)
             new_tab = tb.tabopen(background=False, related=True)
-            # The original URL becomes the path of a view-source: URL
-            # (without a host), but query/fragment should stay.
-            url = QUrl('view-source:' + urlstr)
-            new_tab.set_html(highlighted, url)
+            new_tab.set_html(highlighted, self._tab.url())
+            new_tab.data.viewing_source = True
 
-        urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
         self._tab.dump_async(show_source_cb)
 
 
@@ -817,6 +817,7 @@ class AbstractTab(QWidget):
     def _on_load_started(self):
         self._progress = 0
         self._has_ssl_errors = False
+        self.data.viewing_source = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 
