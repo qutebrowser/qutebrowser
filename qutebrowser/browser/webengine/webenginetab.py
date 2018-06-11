@@ -660,14 +660,12 @@ class _WebEnginePermissions(QObject):
             self._on_fullscreen_requested)
         page.featurePermissionRequested.connect(
             self._on_feature_permission_requested)
-        try:
+
+        if qtutils.version_check('5.11'):
             page.quotaRequested.connect(
                 self._on_quota_requested)
             page.registerProtocolHandlerRequested.connect(
                 self._on_register_protocol_handler_requested)
-        except AttributeError:
-            # Added in Qt 5.11
-            pass
 
         self._tab.shutting_down.connect(self._abort_questions)
         self._tab.load_started.connect(self._abort_questions)
