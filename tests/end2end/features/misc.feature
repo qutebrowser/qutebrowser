@@ -164,7 +164,7 @@ Feature: Various utility commands.
 
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
-        And I run :inspector
+        When I run :inspector
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :inspector
         And I wait for "Focus object changed: *" in the log
@@ -173,7 +173,7 @@ Feature: Various utility commands.
     # Different code path as an inspector got created now
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
-        And I run :inspector
+        When I run :inspector
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :inspector
         And I wait for "Focus object changed: *" in the log
@@ -482,7 +482,7 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "blah" should be shown
 
-    Scenario: Browsing through commands 
+    Scenario: Browsing through commands
         When I run :set-cmd-text :message-info blarg
         And I run :command-accept
         And I wait for "blarg" in the log
