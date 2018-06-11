@@ -81,6 +81,7 @@ class BrowserPage(QWebPage):
         self.downloadRequested.connect(self.on_download_requested)
         self.unsupportedContent.connect(self.on_unsupported_content)
         self.loadStarted.connect(self.on_load_started)
+
         self.featurePermissionRequested.connect(
             self._on_feature_permission_requested)
         self.saveFrameStateRequested.connect(

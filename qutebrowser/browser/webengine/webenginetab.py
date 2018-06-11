@@ -354,6 +354,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
             elem.click(click_type)
 
     def follow_selected(self, *, tab=False):
+        self.set_user_interacted()
+
         if self._tab.search.search_displayed:
             # We are currently in search mode.
             # let's click the link via a fake-click
@@ -369,6 +371,10 @@ class WebEngineCaret(browsertab.AbstractCaret):
                                           'find_selected_focused_link')
             self._tab.run_js_async(js_code, lambda jsret:
                                    self._follow_selected_cb(jsret, tab))
+
+    def set_user_interacted(self):
+        self._tab.run_js_async(
+            javascript.assemble('focustools', "setUserInteracted"))
 
     def _js_call(self, command, callback=None):
         self._tab.run_js_async(javascript.assemble('caret', command), callback)
@@ -682,6 +688,8 @@ class WebEngineTab(browsertab.AbstractTab):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
             self._init_stylesheet()
             self._update_stylesheet()
+        elif option == 'input.focus.blur_on_load':
+            self._init_focustools()
 
     def _update_stylesheet(self):
         """Update the custom stylesheet in existing tabs."""
@@ -724,6 +732,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def _init_js(self):
         """Initialize global qutebrowser JavaScript."""
+        self._init_focustools()
         js_code = javascript.wrap_global(
             'scripts',
             utils.read_file('javascript/scroll.js'),
@@ -791,6 +800,16 @@ class WebEngineTab(browsertab.AbstractTab):
             log.greasemonkey.debug('adding script: {}'
                                    .format(new_script.name()))
             scripts.insert(new_script)
+
+    def _init_focustools(self):
+        """Initialize focus tools."""
+        self._remove_early_js('focustools')
+        js_code = javascript.wrap_global(
+            'focustools',
+            utils.read_file('javascript/focustools.js'),
+            javascript.assemble('focustools', 'load',
+                                config.val.input.focus.blur_on_load))
+        self._inject_early_js('focustools', js_code, subframes=False)
 
     def _install_event_filter(self):
         fp = self._widget.focusProxy()

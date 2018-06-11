@@ -38,7 +38,9 @@ from PyQt5.QtPrintSupport import QPrinter
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
-from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
+from qutebrowser.config import config
+from qutebrowser.utils import (qtutils, objreg, usertypes, utils, log, debug,
+                               javascript)
 
 
 class WebKitAction(browsertab.AbstractAction):
@@ -412,6 +414,10 @@ class WebKitCaret(browsertab.AbstractCaret):
                     self._tab.new_tab_requested.emit(url)
                 else:
                     self._tab.openurl(url)
+
+    def set_user_interacted(self):
+        self._tab.run_js_async(
+            javascript.assemble('focustools', "setUserInteracted"))
 
 
 class WebKitZoom(browsertab.AbstractZoom):
@@ -807,6 +813,27 @@ class WebKitTab(browsertab.AbstractTab):
     def _on_contents_size_changed(self, size):
         self.contents_size_changed.emit(QSizeF(size))
 
+    @pyqtSlot()
+    def _init_js(self):
+        """Initialize js in the main frame.
+
+        Needs to be run every page load."""
+        js_code = javascript.wrap_global(
+            'scripts',
+            utils.read_file('javascript/focustools.js'))
+        self.run_js_async(js_code)
+
+    @pyqtSlot()
+    def _init_focustools(self):
+        """Handle clearing focus when the page is first loaded."""
+        if not config.val.input.focus.blur_on_load:
+            return
+        js_code = javascript.wrap_global(
+            'focustools',
+            javascript.assemble('focustools', 'load',
+                                config.val.input.focus.blur_on_load))
+        self.run_js_async(js_code)
+
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
@@ -851,6 +878,9 @@ class WebKitTab(browsertab.AbstractTab):
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.navigation_request.connect(self._on_navigation_request)
+
+        frame.initialLayoutCompleted.connect(self._init_js)
+        frame.initialLayoutCompleted.connect(self._init_focustools)
 
     def event_target(self):
         return self._widget

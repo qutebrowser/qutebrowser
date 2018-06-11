@@ -309,6 +309,7 @@ class WebKitElement(webelem.AbstractWebElement):
         return False
 
     def _click_editable(self, click_target):
+        self._tab.caret.set_user_interacted()
         ok = self._elem.evaluateJavaScript('this.focus(); true;')
         if ok:
             self._move_text_cursor()
@@ -321,6 +322,8 @@ class WebKitElement(webelem.AbstractWebElement):
         attribute = QWebSettings.JavascriptCanOpenWindows
         could_open_windows = settings.testAttribute(attribute)
         settings.setAttribute(attribute, True)
+
+        self._tab.caret.set_user_interacted()
         ok = self._elem.evaluateJavaScript('this.click(); true;')
         settings.setAttribute(attribute, could_open_windows)
         if not ok:

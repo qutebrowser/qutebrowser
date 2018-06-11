@@ -296,6 +296,7 @@ class ModeManager(QObject):
 
         log.modes.debug("Leaving mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
+
         # leaving a mode implies clearing keychain, see
         # https://github.com/qutebrowser/qutebrowser/issues/1805
         self.clear_keychain()

@@ -31,7 +31,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
-                               urlutils, message, jinja)
+                               urlutils, message, jinja, javascript)
 
 
 @attr.s
@@ -641,9 +641,37 @@ class TabbedBrowser(QWidget):
             widget = self.widget.currentWidget()
             log.modes.debug("Left status-input mode, focusing {!r}".format(
                 widget))
-            if widget is None:
-                return
-            widget.setFocus()
+            if widget is not None:
+                widget.setFocus()
+
+        self._handle_clear_on_mode_leave(mode)
+
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_entered(self, mode):
+        """Restore focus when re-entering insert mode if needed."""
+        self._handle_focus_on_mode_enter(mode)
+
+    def _handle_clear_on_mode_leave(self, mode):
+        """Handle clearing page focus when leaving insert mode."""
+        if (not config.val.input.focus.blur_on_mode_leave or
+                mode != usertypes.KeyMode.insert):
+            return
+        tab = self.widget.currentWidget()
+        if tab:
+            log.modes.debug("Left insert mode, clearing focused element.")
+            code = javascript.assemble('focustools', 'blur')
+            tab.run_js_async(code)
+
+    def _handle_focus_on_mode_enter(self, mode):
+        if (not config.val.input.focus.focus_on_mode_enter or
+                mode != usertypes.KeyMode.insert):
+            return
+        tab = self.widget.currentWidget()
+        if tab:
+            log.modes.debug("Entering insert mode, focusing "
+                            "last focused element.")
+            code = javascript.assemble('focustools', 'focusLastElement')
+            tab.run_js_async(code)
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
