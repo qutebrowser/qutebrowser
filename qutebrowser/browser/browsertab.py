@@ -711,8 +711,6 @@ class AbstractTab(QWidget):
     fullscreen_requested = pyqtSignal(bool)
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
     predicted_navigation = pyqtSignal(QUrl)
-    audio_muted_changed = pyqtSignal(bool)
-    recently_audible_changed = pyqtSignal(bool)
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         self.private = private

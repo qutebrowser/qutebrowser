@@ -1205,9 +1205,6 @@ class WebEngineTab(browsertab.AbstractTab):
         page.featurePermissionRequested.connect(
             self._on_feature_permission_requested)
 
-        page.audioMutedChanged.connect(self.audio_muted_changed)
-        page.recentlyAudibleChanged.connect(self.recently_audible_changed)
-
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
         view.renderProcessTerminated.connect(
