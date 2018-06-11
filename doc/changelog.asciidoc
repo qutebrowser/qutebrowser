@@ -47,6 +47,8 @@ Added
     (requires Qt 5.10).
   * New `content.webrtc_public_interfaces_only` setting to only expose public
     interfaces over WebRTC (requires Qt 5.9.2 or 5.11).
+  * New `content.canvas_reading` setting to disable reading from canvas
+    elements.
 
 Changed
 ~~~~~~~

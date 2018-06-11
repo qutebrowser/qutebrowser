@@ -113,6 +113,7 @@
 |<<content.cache.appcache,content.cache.appcache>>|Enable support for the HTML 5 web application cache feature.
 |<<content.cache.maximum_pages,content.cache.maximum_pages>>|Maximum number of pages to hold in the global memory page cache.
 |<<content.cache.size,content.cache.size>>|Size (in bytes) of the HTTP network cache. Null to use the default value.
+|<<content.canvas_reading,content.canvas_reading>>|Allow websites to read canvas elements.
 |<<content.cookies.accept,content.cookies.accept>>|Which cookies to accept.
 |<<content.cookies.store,content.cookies.store>>|Store cookies.
 |<<content.default_encoding,content.default_encoding>>|Default encoding to use for websites.
@@ -1516,6 +1517,18 @@ With QtWebEngine, the maximum supported value is 2147483647 (~2 GB).
 Type: <<types,Int>>
 
 Default: empty
+
+[[content.canvas_reading]]
+=== content.canvas_reading
+Allow websites to read canvas elements.
+Note this is needed for some websites to work properly.
+This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+This setting is only available with the QtWebEngine backend.
 
 [[content.cookies.accept]]
 === content.cookies.accept

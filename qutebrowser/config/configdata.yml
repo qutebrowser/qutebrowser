@@ -237,6 +237,16 @@ content.cache.size:
 
     With QtWebEngine, the maximum supported value is 2147483647 (~2 GB).
 
+content.canvas_reading:
+  default: true
+  type: Bool
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Allow websites to read canvas elements.
+
+    Note this is needed for some websites to work properly.
+
 # Defaults from QWebSettings::QWebSettings() in
 # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
 

@@ -176,6 +176,9 @@ def qt_args(namespace):
         if config.val.qt.force_software_rendering == 'chromium':
             argv.append('--disable-gpu')
 
+        if not config.val.content.canvas_reading:
+            argv.append('--disable-reading-from-canvas')
+
         if not qtutils.version_check('5.11'):
             # On Qt 5.11, we can control this via QWebEngineSettings
             if not config.val.content.autoplay:

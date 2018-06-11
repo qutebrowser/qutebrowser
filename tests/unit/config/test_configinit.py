@@ -451,6 +451,20 @@ class TestQtArgs:
         arg = '--force-webrtc-ip-handling-policy=default_public_interface_only'
         assert (arg in args) == added
 
+    @pytest.mark.parametrize('backend, canvas_reading, added', [
+        (usertypes.Backend.QtWebEngine, True, False),  # enabled
+        (usertypes.Backend.QtWebKit, False, False),  # QtWebKit
+        (usertypes.Backend.QtWebEngine, False, True),
+    ])
+    def test_canvas_reading(self, config_stub, monkeypatch, parser,
+                            backend, canvas_reading, added):
+        config_stub.val.content.canvas_reading = canvas_reading
+        monkeypatch.setattr(configinit.objects, 'backend', backend)
+
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+        assert ('--disable-reading-from-canvas' in args) == added
+
 
 @pytest.mark.parametrize('arg, confval, used', [
     # overridden by commandline arg
