@@ -32,6 +32,7 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import config, websettings
+from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import utils, standarddir, qtutils, message, log
 
 # The default QWebEngineProfile
@@ -88,35 +89,35 @@ class WebEngineSettings(websettings.AbstractSettings):
 
     _ATTRIBUTES = {
         'content.xss_auditing':
-            [QWebEngineSettings.XSSAuditingEnabled],
+            Attr(QWebEngineSettings.XSSAuditingEnabled),
         'content.images':
-            [QWebEngineSettings.AutoLoadImages],
+            Attr(QWebEngineSettings.AutoLoadImages),
         'content.javascript.enabled':
-            [QWebEngineSettings.JavascriptEnabled],
+            Attr(QWebEngineSettings.JavascriptEnabled),
         'content.javascript.can_open_tabs_automatically':
-            [QWebEngineSettings.JavascriptCanOpenWindows],
+            Attr(QWebEngineSettings.JavascriptCanOpenWindows),
         'content.javascript.can_access_clipboard':
-            [QWebEngineSettings.JavascriptCanAccessClipboard],
+            Attr(QWebEngineSettings.JavascriptCanAccessClipboard),
         'content.plugins':
-            [QWebEngineSettings.PluginsEnabled],
+            Attr(QWebEngineSettings.PluginsEnabled),
         'content.hyperlink_auditing':
-            [QWebEngineSettings.HyperlinkAuditingEnabled],
+            Attr(QWebEngineSettings.HyperlinkAuditingEnabled),
         'content.local_content_can_access_remote_urls':
-            [QWebEngineSettings.LocalContentCanAccessRemoteUrls],
+            Attr(QWebEngineSettings.LocalContentCanAccessRemoteUrls),
         'content.local_content_can_access_file_urls':
-            [QWebEngineSettings.LocalContentCanAccessFileUrls],
+            Attr(QWebEngineSettings.LocalContentCanAccessFileUrls),
         'content.webgl':
-            [QWebEngineSettings.WebGLEnabled],
+            Attr(QWebEngineSettings.WebGLEnabled),
         'content.local_storage':
-            [QWebEngineSettings.LocalStorageEnabled],
+            Attr(QWebEngineSettings.LocalStorageEnabled),
 
         'input.spatial_navigation':
-            [QWebEngineSettings.SpatialNavigationEnabled],
+            Attr(QWebEngineSettings.SpatialNavigationEnabled),
         'input.links_included_in_focus_chain':
-            [QWebEngineSettings.LinksIncludedInFocusChain],
+            Attr(QWebEngineSettings.LinksIncludedInFocusChain),
 
         'scrolling.smooth':
-            [QWebEngineSettings.ScrollAnimatorEnabled],
+            Attr(QWebEngineSettings.ScrollAnimatorEnabled),
     }
 
     _FONT_SIZES = {
@@ -163,7 +164,7 @@ class WebEngineSettings(websettings.AbstractSettings):
             except AttributeError:
                 continue
 
-            self._ATTRIBUTES[name] = [value]
+            self._ATTRIBUTES[name] = Attr(value)
 
 
 class ProfileSetter:
