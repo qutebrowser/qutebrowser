@@ -157,7 +157,8 @@ class AbstractAction:
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
 
-    def show_source(self, pygments=False):
+    def show_source(self,
+                    pygments=False):  # pylint: disable=redefined-outer-name
         """Show the source of the current page in a new tab."""
         raise NotImplementedError
 
