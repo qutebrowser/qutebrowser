@@ -230,14 +230,16 @@ def build_windows():
     # Get python path from registry if possible
     try:
         reg64_key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
-                                     r'SOFTWARE\Python\PythonCore\{}\InstallPath'.format(dot_ver))
+                                     r'SOFTWARE\Python\PythonCore'
+                                     r'\{}\InstallPath'.format(dot_ver))
         python_x64 = winreg.QueryValueEx(reg64_key, 'ExecutablePath')[0]
     except FileNotFoundError:
         python_x64 = r'C:\Python{}\python.exe'.format(ver)
 
     try:
         reg32_key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
-                                     r'SOFTWARE\WOW6432Node\Python\PythonCore\{}-32\InstallPath'.format(dot_ver))
+                                     r'SOFTWARE\WOW6432Node\Python\PythonCore'
+                                     r'\{}-32\InstallPath'.format(dot_ver))
         python_x86 = winreg.QueryValueEx(reg32_key, 'ExecutablePath')[0]
     except FileNotFoundError:
         python_x86 = r'C:\Python{}-32\python.exe'.format(ver)
