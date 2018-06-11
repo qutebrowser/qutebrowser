@@ -338,6 +338,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
         if js_elem == "focused":
             # we had a focused element, not a selected one. Just send <enter>
             self._follow_enter(tab)
+            return
 
         assert isinstance(js_elem, dict), js_elem
         elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
