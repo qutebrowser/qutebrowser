@@ -1057,6 +1057,16 @@ class WebEngineTab(browsertab.AbstractTab):
             abort_on=[self.shutting_down, self.load_started],
             blocking=True)
 
+    @pyqtSlot('QWebEngineRegisterProtocolHandlerRequest')
+    def _on_register_protocol_handler_requested(self, request):
+        shared.feature_permission(
+            url=request.origin(),
+            option='content.register_protocol_handler',
+            msg='open all {} links'.format(request.scheme()),
+            yes_action=request.accept, no_action=request.reject,
+            abort_on=[self.shutting_down, self.load_started],
+            blocking=True)
+
     @pyqtSlot()
     def _on_load_started(self):
         """Clear search when a new load is started if needed."""
@@ -1217,6 +1227,8 @@ class WebEngineTab(browsertab.AbstractTab):
             self._on_feature_permission_requested)
         try:
             page.quotaRequested.connect(self._on_quota_requested)
+            page.registerProtocolHandlerRequested.connect(
+                self._on_register_protocol_handler_requested)
         except AttributeError:
             # Added in Qt 5.11
             pass

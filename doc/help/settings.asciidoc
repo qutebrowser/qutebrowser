@@ -150,6 +150,7 @@
 |<<content.private_browsing,content.private_browsing>>|Open new windows in private browsing mode which does not record visited pages.
 |<<content.proxy,content.proxy>>|Proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
+|<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
@@ -1929,6 +1930,24 @@ Type: <<types,Bool>>
 Default: +pass:[true]+
 
 This setting is only available with the QtWebKit backend.
+
+[[content.register_protocol_handler]]
+=== content.register_protocol_handler
+Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+On QtWebEngine, this setting requires Qt 5.11 or newer.
+
+On QtWebKit, this setting is unavailable.
 
 [[content.ssl_strict]]
 === content.ssl_strict

@@ -644,6 +644,15 @@ content.proxy_dns_requests:
   backend: QtWebKit
   desc: Send DNS requests over the configured proxy.
 
+content.register_protocol_handler:
+  default: ask
+  type: BoolAsk
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.11
+  desc: Allow websites to register protocol handlers via
+    `navigator.registerProtocolHandler`.
+
 content.ssl_strict:
   default: ask
   type: BoolAsk
