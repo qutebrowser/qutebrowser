@@ -167,7 +167,7 @@ def debug_flag_error(flag):
         log-requests: Log all network requests.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
-                   'no-scroll-filtering', 'log-requests']
+                   'no-scroll-filtering', 'log-requests', 'lost-focusproxy']
 
     if flag in valid_flags:
         return flag

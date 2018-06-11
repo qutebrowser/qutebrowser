@@ -66,9 +66,10 @@ class WebEngineView(QWebEngineView):
         However, it sometimes isn't, so we use this as a WORKAROUND for
         https://bugreports.qt.io/browse/QTBUG-68727
         """
-        proxy = self.focusProxy()
-        if proxy is not None:
-            return proxy
+        if 'lost-focusproxy' not in objreg.get('args').debug_flags:
+            proxy = self.focusProxy()
+            if proxy is not None:
+                return proxy
 
         # This should only find the RenderWidgetHostViewQtDelegateWidget,
         # but not e.g. a QMenu
