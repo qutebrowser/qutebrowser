@@ -377,11 +377,26 @@ class WebKitCaret(browsertab.AbstractCaret):
                 QWebSettings.JavascriptEnabled):
             if tab:
                 self._tab.data.override_target = usertypes.ClickTarget.tab
-            self._tab.run_js_async(
-                'window.getSelection().anchorNode.parentNode.click()')
+            self._tab.run_js_async("""
+                const aElm = document.activeElement;
+                if (window.getSelection().anchorNode) {
+                    window.getSelection().anchorNode.parentNode.click();
+                } else if (aElm && aElm !== document.body) {
+                    aElm.click();
+                }
+            """)
         else:
             selection = self._widget.selectedHtml()
             if not selection:
+                # Getting here may mean we crashed, but we can't do anything
+                # about that until this commit is released:
+                # https://github.com/annulen/webkit/commit/0e75f3272d149bc64899c161f150eb341a2417af
+                # TODO find a way to check if something is focused
+                if tab:
+                    self._tab.key_press(Qt.Key_Enter,
+                                        modifier=Qt.ControlModifier)
+                else:
+                    self._tab.key_press(Qt.Key_Enter)
                 return
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
