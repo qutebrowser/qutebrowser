@@ -217,20 +217,19 @@ class TestInitLog:
         log.init_log(args)
         sys.stderr = old_stderr
 
-    @pytest.mark.parametrize('logfilter, negated', [
-        ('!one,two', True),
-        ('one,two', False),
-        ('one,!two', False),
-        (None, False),
+    @pytest.mark.parametrize('logfilter, expected_names, negated', [
+        ('!one,two', ['one', 'two'], True),
+        ('one,two', ['one', 'two'], False),
+        ('one,!two', ['one', '!two'], False),
+        (None, None, False),
     ])
-    def test_negation_parser(self, args, mocker, logfilter, negated):
+    def test_negation_parser(self, args, mocker,
+                             logfilter, expected_names, negated):
         """Test parsing the --logfilter argument."""
         filter_mock = mocker.patch('qutebrowser.utils.log.LogFilter',
                                    autospec=True)
         args.logfilter = logfilter
         log.init_log(args)
-        expected_names = (logfilter.lstrip('!').split(',') if logfilter else
-                          None)
         assert filter_mock.called
         assert filter_mock.call_args[0] == (expected_names, negated)
 
