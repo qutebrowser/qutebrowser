@@ -34,7 +34,7 @@ from PyQt5.QtPrintSupport import QPrinter
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
-from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
+from qutebrowser.utils import qtutils, usertypes, utils, log, debug
 
 
 class WebKitAction(browsertab.AbstractAction):
