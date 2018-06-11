@@ -741,7 +741,6 @@ class _WebEnginePermissions(QObject):
                 # aborted after a loadStarted signal.
                 pass
 
-    @pyqtSlot('QWebEngineQuotaRequest')
     def _on_quota_requested(self, request):
         size = utils.format_size(request.requestedSize())
         shared.feature_permission(
@@ -752,7 +751,6 @@ class _WebEnginePermissions(QObject):
             abort_on=[self._abort_questions],
             blocking=True)
 
-    @pyqtSlot('QWebEngineRegisterProtocolHandlerRequest')
     def _on_register_protocol_handler_requested(self, request):
         shared.feature_permission(
             url=request.origin(),
