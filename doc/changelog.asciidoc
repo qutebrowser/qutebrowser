@@ -34,9 +34,19 @@ Added
   * New `{audio}` field for `window.title_format` and `tabs.title.format` which
     displays `[M]`/`[A]` for muted/recently audible tabs.
   * New `:tab-mute` command (bound to `<Alt-m>`) to mute/unmute a tab.
-- QtWebEngine: Support for new permissions, including new settings (true/false/ask):
-  * `navigator.webkitPersistentStorage.requestQuota` with a new `content.persistent_storage` setting.
-  * `navigator.registerProtocolHandler` with a new `content.register_protocol_handler` setting.
+- QtWebEngine: New settings:
+  * Support for requesting persistent storage via
+    `navigator.webkitPersistentStorage.requestQuota` with a new
+    `content.persistent_storage` setting (requires Qt 5.11).
+  * Support for registering custom protocol handlers via
+    `navigator.registerProtocolHandler` with a new
+    `content.register_protocol_handler` setting (requires Qt 5.11).
+  * Support for WebRTC screen sharing with a new `content.desktop_capture`
+    setting (requires Qt 5.10).
+  * New `content.autoplay` setting to enable/disable automatic video playback
+    (requires Qt 5.10).
+  * New `content.webrtc_public_interfaces_only` setting to only expose public
+    interfaces over WebRTC (requires Qt 5.9.2 or 5.11).
 
 Changed
 ~~~~~~~
