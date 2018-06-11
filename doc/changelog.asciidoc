@@ -53,6 +53,8 @@ Changed
   copying newline-separated links.
 - QtWebEngine: On Qt 5.11, the developer tools (inspector) can now be used
   securely and without requiring the `--enable-webengine-inspector` option.
+- The `<Enter>` key (`:follow-selected`) now follows the currently focused
+  element if there's no selection.
 
 Removed
 ~~~~~~~
