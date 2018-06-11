@@ -198,8 +198,8 @@ There are some useful functions for debugging in the `qutebrowser.utils.debug`
 module.
 
 When starting qutebrowser with the `--debug` flag, you also get useful debug
-logs. You can add +--logfilter _category[,category,...]_+ to restrict logging
-to the given categories.
+logs. You can add +--logfilter _[!]category[,category,...]_+ to restrict
+logging to the given categories.
 
 With `--debug` there are also some additional +debug-_*_+ commands available,
 for example `:debug-all-objects` and `:debug-all-widgets` which print a list of

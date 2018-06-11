@@ -148,7 +148,7 @@ def logfilter_error(logfilter):
     Args:
         logfilter: A comma separated list of logger names.
     """
-    if set(logfilter.split(',')).issubset(log.LOGGER_NAMES):
+    if set(logfilter.lstrip('!').split(',')).issubset(log.LOGGER_NAMES):
         return logfilter
     else:
         raise argparse.ArgumentTypeError(
