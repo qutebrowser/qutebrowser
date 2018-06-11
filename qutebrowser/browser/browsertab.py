@@ -28,6 +28,10 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QApplication
 
+import pygments
+import pygments.lexers
+import pygments.formatters
+
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
@@ -150,9 +154,32 @@ class AbstractAction:
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
 
-    def show_source(self):
+    def show_source(self, pygments=False):
         """Show the source of the current page in a new tab."""
         raise NotImplementedError
+
+    def _show_source_pygments(self):
+
+        def show_source_cb(source):
+            """Show source as soon as it's ready."""
+            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
+            # pylint: disable=no-member
+            lexer = pygments.lexers.HtmlLexer()
+            formatter = pygments.formatters.HtmlFormatter(
+                full=True, linenos='table')
+            # pylint: enable=no-member
+            highlighted = pygments.highlight(source, lexer, formatter)
+
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._tab.win_id)
+            new_tab = tb.tabopen(background=False, related=True)
+            # The original URL becomes the path of a view-source: URL
+            # (without a host), but query/fragment should stay.
+            url = QUrl('view-source:' + urlstr)
+            new_tab.set_html(highlighted, url)
+
+        urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
+        self._tab.dump_async(show_source_cb)
 
 
 class AbstractPrinting:

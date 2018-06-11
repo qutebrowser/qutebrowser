@@ -1515,11 +1515,15 @@ class CommandDispatcher:
             )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def view_source(self, edit=False):
+    def view_source(self, edit=False, pygments=False):
         """Show the source of the current page in a new tab.
 
         Args:
             edit: Edit the source in the editor instead of opening a tab.
+            pygments: Use pygments to generate the view. This is always
+                      the case for QtWebKit. For QtWebEngine it may display
+                      slightly different source.
+                      Some JavaScript processing may be applied.
         """
         tab = self._current_widget()
         try:
@@ -1534,7 +1538,7 @@ class CommandDispatcher:
             ed = editor.ExternalEditor(self._tabbed_browser)
             tab.dump_async(ed.edit)
         else:
-            tab.action.show_source()
+            tab.action.show_source(pygments)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
