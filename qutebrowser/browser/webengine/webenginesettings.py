@@ -187,8 +187,17 @@ class ProfileSetter:
         """Initialize settings on the given profile."""
         self.set_http_headers()
         self.set_http_cache_size()
-        self._profile.settings().setAttribute(
+
+        settings = self._profile.settings()
+        settings.setAttribute(
             QWebEngineSettings.FullScreenSupportEnabled, True)
+        try:
+            settings.setAttribute(
+                QWebEngineSettings.FocusOnNavigationEnabled, False)
+        except AttributeError:
+            # Added in Qt 5.8
+            pass
+
         if qtutils.version_check('5.8'):
             self.set_dictionary_language()
 
