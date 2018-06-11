@@ -305,6 +305,15 @@ content.windowed_fullscreen:
   desc: >-
     Limit fullscreen to the browser window (does not expand to fill the screen).
 
+content.desktop_capture:
+  type: BoolAsk
+  default: ask
+  desc: >-
+    Allow websites to share screen content.
+
+    On Qt < 5.10, a dialog box is always displayed, even if this is set to
+    "true".
+
 content.developer_extras:
   deleted: true
 

@@ -110,6 +110,11 @@ class WebEngineSettings(websettings.AbstractSettings):
             Attr(QWebEngineSettings.WebGLEnabled),
         'content.local_storage':
             Attr(QWebEngineSettings.LocalStorageEnabled),
+        'content.desktop_capture':
+            Attr(QWebEngineSettings.ScreenCaptureEnabled,
+                 converter=lambda val: True if val == 'ask' else val),
+            # 'ask' is handled via the permission system, or a hardcoded
+            # dialog on Qt < 5.10
 
         'input.spatial_navigation':
             Attr(QWebEngineSettings.SpatialNavigationEnabled),

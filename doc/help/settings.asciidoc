@@ -116,6 +116,7 @@
 |<<content.cookies.accept,content.cookies.accept>>|Which cookies to accept.
 |<<content.cookies.store,content.cookies.store>>|Store cookies.
 |<<content.default_encoding,content.default_encoding>>|Default encoding to use for websites.
+|<<content.desktop_capture,content.desktop_capture>>|Allow websites to share screen content.
 |<<content.dns_prefetch,content.dns_prefetch>>|Try to pre-fetch DNS entries to speed up browsing.
 |<<content.frame_flattening,content.frame_flattening>>|Expand each subframe to its contents.
 |<<content.geolocation,content.geolocation>>|Allow websites to request geolocations.
@@ -1550,6 +1551,21 @@ The encoding must be a string describing an encoding such as _utf-8_, _iso-8859-
 Type: <<types,String>>
 
 Default: +pass:[iso-8859-1]+
+
+[[content.desktop_capture]]
+=== content.desktop_capture
+Allow websites to share screen content.
+On Qt < 5.10, a dialog box is always displayed, even if this is set to "true".
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
 
 [[content.dns_prefetch]]
 === content.dns_prefetch

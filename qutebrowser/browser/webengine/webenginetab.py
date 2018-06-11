@@ -699,6 +699,23 @@ class _WebEnginePermissions(QObject):
             QWebEnginePage.MediaVideoCapture: 'record video',
             QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
         }
+        try:
+            options.update({
+                QWebEnginePage.DesktopVideoCapture:
+                    'content.desktop_capture',
+                QWebEnginePage.DesktopAudioVideoCapture:
+                    'content.desktop_capture',
+            })
+            messages.update({
+                QWebEnginePage.DesktopVideoCapture:
+                    'capture your desktop',
+                QWebEnginePage.DesktopAudioVideoCapture:
+                    'capture your desktop and audio',
+            })
+        except AttributeError:
+            # Added in Qt 5.10
+            pass
+
         assert options.keys() == messages.keys()
 
         page = self._widget.page()
