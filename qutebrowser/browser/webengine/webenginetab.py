@@ -763,49 +763,14 @@ class _WebEnginePermissions(QObject):
             blocking=True)
 
 
-class WebEngineTab(browsertab.AbstractTab):
+class _WebEngineScripts(QObject):
 
-    """A QtWebEngine tab in the browser.
+    def __init__(self, tab, parent=None):
+        super().__init__(parent)
+        self._tab = tab
 
-    Signals:
-        _load_finished_fake:
-            Used in place of unreliable loadFinished
-    """
-
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-    _load_finished_fake = pyqtSignal(bool)
-
-    def __init__(self, *, win_id, mode_manager, private, parent=None):
-        super().__init__(win_id=win_id, mode_manager=mode_manager,
-                         private=private, parent=parent)
-        widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
-                                       private=private)
-        self.history = WebEngineHistory(self)
-        self.scroller = WebEngineScroller(self, parent=self)
-        self.caret = WebEngineCaret(mode_manager=mode_manager,
-                                    tab=self, parent=self)
-        self.zoom = WebEngineZoom(tab=self, parent=self)
-        self.search = WebEngineSearch(parent=self)
-        self.printing = WebEnginePrinting()
-        self.elements = WebEngineElements(tab=self)
-        self.action = WebEngineAction(tab=self)
-        self.audio = WebEngineAudio()
-        self._permissions = _WebEnginePermissions(tab=self)
-        # We're assigning settings in _set_widget
-        self.settings = webenginesettings.WebEngineSettings(settings=None)
-        self._set_widget(widget)
-        self._connect_signals()
-        self.backend = usertypes.Backend.QtWebEngine
-        self._child_event_filter = None
-        self._saved_zoom = None
-        self._reload_url = None
+    def connect_signals(self):
         config.instance.changed.connect(self._on_config_changed)
-        self._init_js()
-
-    def _set_widget(self, widget):
-        # pylint: disable=protected-access
-        super()._set_widget(widget)
-        self._permissions._widget = widget
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
@@ -817,7 +782,7 @@ class WebEngineTab(browsertab.AbstractTab):
         """Update the custom stylesheet in existing tabs."""
         css = shared.get_user_stylesheet()
         code = javascript.assemble('stylesheet', 'set_css', css)
-        self.run_js_async(code)
+        self._tab.run_js_async(code)
 
     def _inject_early_js(self, name, js_code, *,
                          world=QWebEngineScript.ApplicationWorld,
@@ -852,7 +817,7 @@ class WebEngineTab(browsertab.AbstractTab):
             if not script.isNull():
                 scripts.remove(script)
 
-    def _init_js(self):
+    def init(self):
         """Initialize global qutebrowser JavaScript."""
         js_code = javascript.wrap_global(
             'scripts',
@@ -921,6 +886,52 @@ class WebEngineTab(browsertab.AbstractTab):
             log.greasemonkey.debug('adding script: {}'
                                    .format(new_script.name()))
             scripts.insert(new_script)
+
+
+class WebEngineTab(browsertab.AbstractTab):
+
+    """A QtWebEngine tab in the browser.
+
+    Signals:
+        _load_finished_fake:
+            Used in place of unreliable loadFinished
+    """
+
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+    _load_finished_fake = pyqtSignal(bool)
+
+    def __init__(self, *, win_id, mode_manager, private, parent=None):
+        super().__init__(win_id=win_id, mode_manager=mode_manager,
+                         private=private, parent=parent)
+        widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
+                                       private=private)
+        self.history = WebEngineHistory(self)
+        self.scroller = WebEngineScroller(self, parent=self)
+        self.caret = WebEngineCaret(mode_manager=mode_manager,
+                                    tab=self, parent=self)
+        self.zoom = WebEngineZoom(tab=self, parent=self)
+        self.search = WebEngineSearch(parent=self)
+        self.printing = WebEnginePrinting()
+        self.elements = WebEngineElements(tab=self)
+        self.action = WebEngineAction(tab=self)
+        self.audio = WebEngineAudio()
+        self._permissions = _WebEnginePermissions(tab=self)
+        self._scripts = _WebEngineScripts(tab=self)
+        # We're assigning settings in _set_widget
+        self.settings = webenginesettings.WebEngineSettings(settings=None)
+        self._set_widget(widget)
+        self._connect_signals()
+        self.backend = usertypes.Backend.QtWebEngine
+        self._child_event_filter = None
+        self._saved_zoom = None
+        self._reload_url = None
+        self._scripts.init()
+
+    def _set_widget(self, widget):
+        # pylint: disable=protected-access
+        super()._set_widget(widget)
+        self._permissions._widget = widget
+        self._scripts._widget = widget
 
     def _install_event_filter(self):
         fp = self._widget.focusProxy()
@@ -1283,6 +1294,7 @@ class WebEngineTab(browsertab.AbstractTab):
         # pylint: disable=protected-access
         self.audio._connect_signals()
         self._permissions.connect_signals()
+        self._scripts.connect_signals()
 
     def event_target(self):
         return self._widget.render_widget()
