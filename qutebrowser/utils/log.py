@@ -506,7 +506,7 @@ class LogFilter(logging.Filter):
 
     Attributes:
         names: A list of record names to filter.
-        negated: Wether names is a list of records to log or to suppress.
+        negated: Whether names is a list of records to log or to suppress.
     """
 
     def __init__(self, names, negate=False):
