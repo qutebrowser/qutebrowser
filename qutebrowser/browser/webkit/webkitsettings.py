@@ -72,8 +72,6 @@ class WebKitSettings(websettings.AbstractSettings):
         'content.local_storage':
             [QWebSettings.LocalStorageEnabled,
              QWebSettings.OfflineStorageDatabaseEnabled],
-        'content.developer_extras':
-            [QWebSettings.DeveloperExtrasEnabled],
         'content.print_element_backgrounds':
             [QWebSettings.PrintElementBackgrounds],
         'content.xss_auditing':

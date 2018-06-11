@@ -157,12 +157,6 @@ Feature: Various utility commands.
 
     # :inspect
 
-    @qtwebengine_skip
-    Scenario: Inspector without developer extras
-        When I set content.developer_extras to false
-        And I run :inspector
-        Then the error "Please enable content.developer_extras before using the webinspector!" should be shown
-
     @qtwebkit_skip @qt<5.11
     Scenario: Inspector without --enable-webengine-inspector
         When I run :inspector
@@ -170,7 +164,6 @@ Feature: Various utility commands.
 
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test
-        When I set content.developer_extras to true
         And I run :inspector
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :inspector
@@ -178,16 +171,8 @@ Feature: Various utility commands.
         Then no crash should happen
 
     # Different code path as an inspector got created now
-    @qtwebengine_skip
-    Scenario: Inspector without developer extras (after smoke)
-        When I set content.developer_extras to false
-        And I run :inspector
-        Then the error "Please enable content.developer_extras before using the webinspector!" should be shown
-
-    # Different code path as an inspector got created now
     @no_xvfb @posix @qtwebengine_skip
     Scenario: Inspector smoke test 2
-        When I set content.developer_extras to true
         And I run :inspector
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :inspector

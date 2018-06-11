@@ -71,6 +71,8 @@ Removed
 ~~~~~~~
 
 - `:tab-detach` which has been deprecated in v1.1.0 has been removed.
+- The `content.developer_extras` setting got removed. On QtWebKit, developer
+  extras are now automatically enabled when opening the inspector.
 
 v1.3.3 (unreleased)
 -------------------

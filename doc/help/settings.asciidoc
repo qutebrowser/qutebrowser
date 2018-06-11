@@ -115,7 +115,6 @@
 |<<content.cookies.accept,content.cookies.accept>>|Which cookies to accept.
 |<<content.cookies.store,content.cookies.store>>|Store cookies.
 |<<content.default_encoding,content.default_encoding>>|Default encoding to use for websites.
-|<<content.developer_extras,content.developer_extras>>|Enable extra tools for Web developers.
 |<<content.dns_prefetch,content.dns_prefetch>>|Try to pre-fetch DNS entries to speed up browsing.
 |<<content.frame_flattening,content.frame_flattening>>|Expand each subframe to its contents.
 |<<content.geolocation,content.geolocation>>|Allow websites to request geolocations.
@@ -1536,17 +1535,6 @@ The encoding must be a string describing an encoding such as _utf-8_, _iso-8859-
 Type: <<types,String>>
 
 Default: +pass:[iso-8859-1]+
-
-[[content.developer_extras]]
-=== content.developer_extras
-Enable extra tools for Web developers.
-This needs to be enabled for `:inspector` to work and also adds an _Inspect_ entry to the context menu. For QtWebEngine, see `--enable-webengine-inspector` in `qutebrowser --help` instead.
-
-Type: <<types,Bool>>
-
-Default: +pass:[false]+
-
-This setting is only available with the QtWebKit backend.
 
 [[content.dns_prefetch]]
 === content.dns_prefetch

@@ -64,7 +64,6 @@ Feature: Keyboard input
     @no_xvfb @posix @qtwebengine_skip
     Scenario: :fake-key sending key to the website with other window focused
         When I open data/keyinput/log.html
-        And I set content.developer_extras to true
         And I run :inspector
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :fake-key x
