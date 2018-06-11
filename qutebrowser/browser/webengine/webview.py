@@ -74,7 +74,11 @@ class WebEngineView(QWebEngineView):
 
         # This should only find the RenderWidgetHostViewQtDelegateWidget,
         # but not e.g. a QMenu
-        children = self.findChildren(QQuickWidget)
+        children = [c for c in self.findChildren(QQuickWidget)
+                    if c.isVisible()]
+
+        log.webview.debug("Found possibly lost focusProxy: {}"
+                          .format(children))
 
         if not children:
             return None
