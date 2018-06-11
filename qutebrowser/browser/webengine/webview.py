@@ -80,11 +80,7 @@ class WebEngineView(QWebEngineView):
         log.webview.debug("Found possibly lost focusProxy: {}"
                           .format(children))
 
-        if not children:
-            return None
-
-        assert len(children) == 1, children
-        return children[0]
+        return children[-1] if children else None
 
     def shutdown(self):
         self.page().shutdown()
