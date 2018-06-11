@@ -655,6 +655,7 @@ class _WebEnginePermissions(QObject):
         self._widget = None
 
     def connect_signals(self):
+        """Connect related signals from the QWebEnginePage."""
         page = self._widget.page()
         page.fullScreenRequested.connect(
             self._on_fullscreen_requested)
@@ -781,6 +782,7 @@ class _WebEngineScripts(QObject):
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
+        self._widget = None
 
     def connect_signals(self):
         config.instance.changed.connect(self._on_config_changed)

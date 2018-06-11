@@ -23,7 +23,6 @@ from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebInspector
 
 from qutebrowser.browser import inspector
-from qutebrowser.config import config
 
 
 class WebKitInspector(inspector.AbstractWebInspector):
