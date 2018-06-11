@@ -111,6 +111,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
 |<<tab-give,tab-give>>|Give the current tab to a new or existing window if win_id given.
 |<<tab-move,tab-move>>|Move the current tab according to the argument and [count].
+|<<tab-mute,tab-mute>>|Mute/Unmute the current/[count]th tab.
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
 |<<tab-pin,tab-pin>>|Pin/Unpin the current/[count]th tab.
@@ -1283,6 +1284,13 @@ If neither is given, move it to the first position.
 If moving relatively: Offset. If moving absolutely: New position (default: 0). This
  overrides the index argument, if given.
 
+
+[[tab-mute]]
+=== tab-mute
+Mute/Unmute the current/[count]th tab.
+
+==== count
+The tab index to pin or unpin
 
 [[tab-next]]
 === tab-next

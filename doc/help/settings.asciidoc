@@ -3062,6 +3062,7 @@ The following placeholders are defined:
 * `{private}`: Indicates when private mode is enabled.
 * `{current_url}`: URL of the current web page.
 * `{protocol}`: Protocol (http/https/...) of the current web page.
+* `{muted}`: Icon if the tab is muted
 
 
 Type: <<types,FormatString>>

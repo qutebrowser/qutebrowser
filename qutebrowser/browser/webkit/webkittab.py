@@ -839,3 +839,14 @@ class WebKitTab(browsertab.AbstractTab):
 
     def event_target(self):
         return self._widget
+
+    def set_muted(self, muted: bool):
+        raise browsertab.WebTabError('Muting is not supported on QtWebKit!')
+
+    def is_muted(self):
+        # Dummy value for things that read muted status
+        return False
+
+    def is_recently_audible(self):
+        # Dummy value for things that read audible status
+        return False
