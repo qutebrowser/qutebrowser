@@ -142,8 +142,9 @@ class TestLogFilter:
         (['eggs.bacon'], True, 'eggs.baconstrips', True),
     ])
     def test_logfilter(self, logger, filters, negated, category, logged):
-        """
-        Check the multi-record filtering filterer filters multiple records.
+        """Ensure the multi-record filtering filterer filters multiple records.
+
+        (Blame @toofar for this comment)
         """
         logfilter = log.LogFilter(filters, negated)
         record = self._make_record(logger, category)
