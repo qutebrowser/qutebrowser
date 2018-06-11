@@ -59,6 +59,8 @@ Changed
   securely and without requiring the `--enable-webengine-inspector` option.
 - The `<Enter>` key (`:follow-selected`) now follows the currently focused
   element if there's no selection.
+- The `--logfilter` argument now can be prepended with an exclamation mark
+  (e.g. `--logfilter '!init,destroy'`) to invert the filter.
 
 Removed
 ~~~~~~~
