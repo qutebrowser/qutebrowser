@@ -28,7 +28,7 @@ import re
 import pytest
 from PyQt5.QtCore import QProcess, qVersion
 
-from tests import utils
+from helpers import utils
 
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
