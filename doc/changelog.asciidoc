@@ -34,6 +34,8 @@ Added
   * New `{audio}` field for `window.title_format` and `tabs.title.format` which
     displays `[M]`/`[A]` for muted/recently audible tabs.
   * New `:tab-mute` command (bound to `<Alt-m>`) to mute/unmute a tab.
+- QtWebEngine: Support for `content.cookies.accept` with third-party cookies
+  blocked by default (requires Qt 5.11).
 - QtWebEngine: New settings:
   * Support for requesting persistent storage via
     `navigator.webkitPersistentStorage.requestQuota` with a new

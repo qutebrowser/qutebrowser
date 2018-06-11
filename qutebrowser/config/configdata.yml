@@ -281,14 +281,17 @@ content.cache.appcache:
 
 content.cookies.accept:
   default: no-3rdparty
-  backend: QtWebKit
+  backend:
+    QtWebKit: true
+    QtWebEngine: Qt 5.11
   type:
     name: String
     valid_values:
       - all: "Accept all cookies."
       - no-3rdparty: "Accept cookies from the same origin only."
       - no-unknown-3rdparty: "Accept cookies from the same origin only, unless
-          a cookie is already set for the domain."
+          a cookie is already set for the domain. On QtWebEngine, this is the
+          same as no-3rdparty."
       - never: "Don't accept cookies at all."
   desc: Which cookies to accept.
 

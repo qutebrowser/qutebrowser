@@ -37,7 +37,7 @@ from qutebrowser.config import configdata, config
 from qutebrowser.browser import browsertab, mouse, shared
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
-                                           webenginedownloads,
+                                           cookies, webenginedownloads,
                                            webenginesettings)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
@@ -73,6 +73,10 @@ def init():
     download_manager.install(webenginesettings.default_profile)
     download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
+
+    log.init.debug("Initializing cookie filter...")
+    cookies.install_filter(webenginesettings.default_profile)
+    cookies.install_filter(webenginesettings.private_profile)
 
     # Clear visited links on web history clear
     hist = objreg.get('web-history')

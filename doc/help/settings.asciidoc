@@ -1540,12 +1540,12 @@ Valid values:
 
  * +all+: Accept all cookies.
  * +no-3rdparty+: Accept cookies from the same origin only.
- * +no-unknown-3rdparty+: Accept cookies from the same origin only, unless a cookie is already set for the domain.
+ * +no-unknown-3rdparty+: Accept cookies from the same origin only, unless a cookie is already set for the domain. On QtWebEngine, this is the same as no-3rdparty.
  * +never+: Don't accept cookies at all.
 
 Default: +pass:[no-3rdparty]+
 
-This setting is only available with the QtWebKit backend.
+On QtWebEngine, this setting requires Qt 5.11 or newer.
 
 [[content.cookies.store]]
 === content.cookies.store
