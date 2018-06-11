@@ -19,8 +19,6 @@
 
 """The main browser widget for QtWebEngine."""
 
-import functools
-
 import sip
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
@@ -168,8 +166,6 @@ class WebEnginePage(QWebEnginePage):
     def __init__(self, *, theme_color, profile, parent=None):
         super().__init__(profile, parent)
         self._is_shutting_down = False
-        self.featurePermissionRequested.connect(
-            self._on_feature_permission_requested)
         self._theme_color = theme_color
         self._set_bg_color()
         config.instance.changed.connect(self._set_bg_color)
@@ -181,61 +177,6 @@ class WebEnginePage(QWebEnginePage):
         if col is None:
             col = self._theme_color
         self.setBackgroundColor(col)
-
-    @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
-    def _on_feature_permission_requested(self, url, feature):
-        """Ask the user for approval for geolocation/media/etc.."""
-        options = {
-            QWebEnginePage.Geolocation: 'content.geolocation',
-            QWebEnginePage.MediaAudioCapture: 'content.media_capture',
-            QWebEnginePage.MediaVideoCapture: 'content.media_capture',
-            QWebEnginePage.MediaAudioVideoCapture: 'content.media_capture',
-        }
-        messages = {
-            QWebEnginePage.Geolocation: 'access your location',
-            QWebEnginePage.MediaAudioCapture: 'record audio',
-            QWebEnginePage.MediaVideoCapture: 'record video',
-            QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
-        }
-        assert options.keys() == messages.keys()
-
-        if feature not in options:
-            log.webview.error("Unhandled feature permission {}".format(
-                debug.qenum_key(QWebEnginePage, feature)))
-            self.setFeaturePermission(url, feature,
-                                      QWebEnginePage.PermissionDeniedByUser)
-            return
-
-        yes_action = functools.partial(
-            self.setFeaturePermission, url, feature,
-            QWebEnginePage.PermissionGrantedByUser)
-        no_action = functools.partial(
-            self.setFeaturePermission, url, feature,
-            QWebEnginePage.PermissionDeniedByUser)
-
-        question = shared.feature_permission(
-            url=url, option=options[feature], msg=messages[feature],
-            yes_action=yes_action, no_action=no_action,
-            abort_on=[self.shutting_down, self.loadStarted])
-
-        if question is not None:
-            self.featurePermissionRequestCanceled.connect(
-                functools.partial(self._on_feature_permission_cancelled,
-                                  question, url, feature))
-
-    def _on_feature_permission_cancelled(self, question, url, feature,
-                                         cancelled_url, cancelled_feature):
-        """Slot invoked when a feature permission request was cancelled.
-
-        To be used with functools.partial.
-        """
-        if url == cancelled_url and feature == cancelled_feature:
-            try:
-                question.abort()
-            except RuntimeError:
-                # The question could already be deleted, e.g. because it was
-                # aborted after a loadStarted signal.
-                pass
 
     def shutdown(self):
         self._is_shutting_down = True

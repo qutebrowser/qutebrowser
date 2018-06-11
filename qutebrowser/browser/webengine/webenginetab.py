@@ -989,6 +989,63 @@ class WebEngineTab(browsertab.AbstractTab):
             notification.show()
             notification.set_timeout(3000)
 
+    @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
+    def _on_feature_permission_requested(self, url, feature):
+        """Ask the user for approval for geolocation/media/etc.."""
+        options = {
+            QWebEnginePage.Geolocation: 'content.geolocation',
+            QWebEnginePage.MediaAudioCapture: 'content.media_capture',
+            QWebEnginePage.MediaVideoCapture: 'content.media_capture',
+            QWebEnginePage.MediaAudioVideoCapture: 'content.media_capture',
+        }
+        messages = {
+            QWebEnginePage.Geolocation: 'access your location',
+            QWebEnginePage.MediaAudioCapture: 'record audio',
+            QWebEnginePage.MediaVideoCapture: 'record video',
+            QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
+        }
+        assert options.keys() == messages.keys()
+
+        page = self._widget.page()
+
+        if feature not in options:
+            log.webview.error("Unhandled feature permission {}".format(
+                debug.qenum_key(QWebEnginePage, feature)))
+            page.setFeaturePermission(url, feature,
+                                      QWebEnginePage.PermissionDeniedByUser)
+            return
+
+        yes_action = functools.partial(
+            page.setFeaturePermission, url, feature,
+            QWebEnginePage.PermissionGrantedByUser)
+        no_action = functools.partial(
+            page.setFeaturePermission, url, feature,
+            QWebEnginePage.PermissionDeniedByUser)
+
+        question = shared.feature_permission(
+            url=url, option=options[feature], msg=messages[feature],
+            yes_action=yes_action, no_action=no_action,
+            abort_on=[self.shutting_down, self.load_started])
+
+        if question is not None:
+            page.featurePermissionRequestCanceled.connect(
+                functools.partial(self._on_feature_permission_cancelled,
+                                  question, url, feature))
+
+    def _on_feature_permission_cancelled(self, question, url, feature,
+                                         cancelled_url, cancelled_feature):
+        """Slot invoked when a feature permission request was cancelled.
+
+        To be used with functools.partial.
+        """
+        if url == cancelled_url and feature == cancelled_feature:
+            try:
+                question.abort()
+            except RuntimeError:
+                # The question could already be deleted, e.g. because it was
+                # aborted after a loadStarted signal.
+                pass
+
     @pyqtSlot()
     def _on_load_started(self):
         """Clear search when a new load is started if needed."""
@@ -1145,6 +1202,9 @@ class WebEngineTab(browsertab.AbstractTab):
         page.fullScreenRequested.connect(self._on_fullscreen_requested)
         page.contentsSizeChanged.connect(self.contents_size_changed)
         page.navigation_request.connect(self._on_navigation_request)
+        page.featurePermissionRequested.connect(
+            self._on_feature_permission_requested)
+
         page.audioMutedChanged.connect(self.audio_muted_changed)
         page.recentlyAudibleChanged.connect(self.recently_audible_changed)
 
