@@ -238,9 +238,9 @@ class TabbedBrowser(QWidget):
             functools.partial(self.on_window_close_requested, tab))
         tab.renderer_process_terminated.connect(
             functools.partial(self._on_renderer_process_terminated, tab))
-        tab.audio_muted_changed.connect(
+        tab.audio.muted_changed.connect(
             functools.partial(self._on_audio_changed, tab))
-        tab.recently_audible_changed.connect(
+        tab.audio.recently_audible_changed.connect(
             functools.partial(self._on_audio_changed, tab))
         tab.new_tab_requested.connect(self.tabopen)
         if not self.private:

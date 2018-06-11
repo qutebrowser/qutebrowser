@@ -617,6 +617,26 @@ class WebEngineElements(browsertab.AbstractElements):
         self._tab.run_js_async(js_code, js_cb)
 
 
+class WebEngineAudio(browsertab.AbstractAudio):
+
+    def _connect_signals(self):
+        page = self._widget.page()
+        page.audioMutedChanged.connect(self.muted_changed)
+        page.recentlyAudibleChanged.connect(self.recently_audible_changed)
+
+    def set_muted(self, muted: bool):
+        page = self._widget.page()
+        page.setAudioMuted(muted)
+
+    def is_muted(self):
+        page = self._widget.page()
+        return page.isAudioMuted()
+
+    def is_recently_audible(self):
+        page = self._widget.page()
+        return page.recentlyAudible()
+
+
 class WebEngineTab(browsertab.AbstractTab):
 
     """A QtWebEngine tab in the browser.
@@ -643,6 +663,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.printing = WebEnginePrinting()
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
+        self.audio = WebEngineAudio()
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
         self._set_widget(widget)
@@ -1141,18 +1162,7 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadFinished.connect(self._on_load_finished)
 
         self.predicted_navigation.connect(self._on_predicted_navigation)
+        self.audio._connect_signals()  # pylint: disable=protected-access
 
     def event_target(self):
         return self._widget.render_widget()
-
-    def set_muted(self, muted: bool):
-        page = self._widget.page()
-        page.setAudioMuted(muted)
-
-    def is_muted(self):
-        page = self._widget.page()
-        return page.isAudioMuted()
-
-    def is_recently_audible(self):
-        page = self._widget.page()
-        return page.recentlyAudible()

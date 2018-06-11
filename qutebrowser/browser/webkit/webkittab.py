@@ -651,6 +651,20 @@ class WebKitElements(browsertab.AbstractElements):
         callback(elem)
 
 
+class WebKitAudio(browsertab.AbstractAudio):
+
+    """Dummy handling of audio status for QtWebKit."""
+
+    def set_muted(self, muted: bool):
+        raise browsertab.WebTabError('Muting is not supported on QtWebKit!')
+
+    def is_muted(self):
+        return False
+
+    def is_recently_audible(self):
+        return False
+
+
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
@@ -671,6 +685,7 @@ class WebKitTab(browsertab.AbstractTab):
         self.printing = WebKitPrinting()
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
+        self.audio = WebKitAudio()
         # We're assigning settings in _set_widget
         self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)
@@ -839,14 +854,3 @@ class WebKitTab(browsertab.AbstractTab):
 
     def event_target(self):
         return self._widget
-
-    def set_muted(self, muted: bool):
-        raise browsertab.WebTabError('Muting is not supported on QtWebKit!')
-
-    def is_muted(self):
-        # Dummy value for things that read muted status
-        return False
-
-    def is_recently_audible(self):
-        # Dummy value for things that read audible status
-        return False

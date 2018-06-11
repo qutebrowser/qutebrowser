@@ -174,9 +174,9 @@ class TabWidget(QTabWidget):
         fields['backend'] = objects.backend.name
         fields['private'] = ' [Private Mode] ' if tab.private else ''
         try:
-            if tab.is_muted():
+            if tab.audio.is_muted():
                 fields['audio'] = '[M] '
-            elif tab.is_recently_audible():
+            elif tab.audio.is_recently_audible():
                 fields['audio'] = '[A] '
             else:
                 fields['audio'] = ''

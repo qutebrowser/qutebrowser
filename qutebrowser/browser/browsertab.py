@@ -606,6 +606,33 @@ class AbstractElements:
         raise NotImplementedError
 
 
+class AbstractAudio(QObject):
+
+    """Handling of audio/muting for this tab."""
+
+    muted_changed = pyqtSignal(bool)
+    recently_audible_changed = pyqtSignal(bool)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._widget = None
+
+    def set_muted(self, muted: bool):
+        """Set this tab as muted or not."""
+        raise NotImplementedError
+
+    def is_muted(self):
+        """Whether this tab is muted."""
+        raise NotImplementedError
+
+    def toggle_muted(self):
+        self.set_muted(not self.is_muted())
+
+    def is_recently_audible(self):
+        """Whether this tab has had audio playing recently."""
+        raise NotImplementedError
+
+
 class AbstractTab(QWidget):
 
     """A wrapper over the given widget to hide its API and expose another one.
@@ -702,6 +729,7 @@ class AbstractTab(QWidget):
         self.printing._widget = widget
         self.action._widget = widget
         self.elements._widget = widget
+        self.audio._widget = widget
         self.settings._settings = widget.settings()
 
         self._install_event_filter()
@@ -932,15 +960,3 @@ class AbstractTab(QWidget):
 
     def is_deleted(self):
         return sip.isdeleted(self._widget)
-
-    def set_muted(self, muted: bool):
-        """Set this tab as muted or not."""
-        raise NotImplementedError
-
-    def is_muted(self):
-        """Whether this tab is muted."""
-        raise NotImplementedError
-
-    def is_recently_audible(self):
-        """Whether this tab has had audio playing recently."""
-        raise NotImplementedError

@@ -2238,6 +2238,6 @@ class CommandDispatcher:
         if tab is None:
             return
         try:
-            tab.set_muted(not tab.is_muted())
+            tab.audio.toggle_muted()
         except browsertab.WebTabError as e:
             raise cmdexc.CommandError(e)
