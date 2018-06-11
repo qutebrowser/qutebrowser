@@ -414,6 +414,13 @@ class AbstractCaret(QObject):
     def selection(self, callback):
         raise NotImplementedError
 
+    def _follow_enter(self, tab):
+        """Follow a link by faking an enter press."""
+        if tab:
+            self._tab.key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+        else:
+            self._tab.key_press(Qt.Key_Enter)
+
     def follow_selected(self, *, tab=False):
         raise NotImplementedError
 

@@ -337,10 +337,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
             return
         if js_elem == "focused":
             # we had a focused element, not a selected one. Just send <enter>
-            if tab:
-                self._tab.key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
-            else:
-                self._tab.key_press(Qt.Key_Enter)
+            self._follow_enter(tab)
 
         assert isinstance(js_elem, dict), js_elem
         elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
@@ -364,11 +361,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
             log.webview.debug("Clicking a searched link via fake key press.")
             # send a fake enter, clicking the orange selection box
-            if tab:
-                self._tab.key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
-            else:
-                self._tab.key_press(Qt.Key_Enter)
-
+            self._follow_enter(tab)
         else:
             # click an existing blue selection
             js_code = javascript.assemble('webelem',

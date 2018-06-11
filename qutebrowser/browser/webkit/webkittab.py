@@ -392,11 +392,7 @@ class WebKitCaret(browsertab.AbstractCaret):
                 # about that until this commit is released:
                 # https://github.com/annulen/webkit/commit/0e75f3272d149bc64899c161f150eb341a2417af
                 # TODO find a way to check if something is focused
-                if tab:
-                    self._tab.key_press(Qt.Key_Enter,
-                                        modifier=Qt.ControlModifier)
-                else:
-                    self._tab.key_press(Qt.Key_Enter)
+                self._follow_enter(tab)
                 return
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
