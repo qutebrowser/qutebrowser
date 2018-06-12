@@ -683,7 +683,7 @@ class _WebEnginePermissions(QObject):
         self._tab.data.fullscreen = on
         self._tab.fullscreen_requested.emit(on)
         if on:
-            notification = miscwidgets.FullscreenNotification(self)
+            notification = miscwidgets.FullscreenNotification(self._widget)
             notification.show()
             notification.set_timeout(3000)
 
