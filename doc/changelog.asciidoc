@@ -83,6 +83,8 @@ Changed
 - `:view-source` now has a `--pygments` flag which uses the "old" way of
   rendering sources even with QtWebEngine.
 - Improved error messages when a setting needs a newer Qt version.
+- QtWebEngine: Various improvements to make the cursor more visible in caret
+  browsing.
 
 Removed
 ~~~~~~~
