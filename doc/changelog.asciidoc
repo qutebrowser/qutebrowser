@@ -55,6 +55,8 @@ Added
 Changed
 ~~~~~~~
 
+- The Windows/macOS releases now bundle Qt 5.11.1 which is based on
+  Chromium 65.0.3325.151 with security fixes up to Chromium 67.0.3396.79.
 - New short flags for commandline arguments: `-B` and `-T` for `--basedir` and
   `--temp-basedir`; `-d` and `-D` for `--debug` and `--debug-flag`.
 - Deleting history items via `:history-clear` or `:completion-item-del` now
