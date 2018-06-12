@@ -179,9 +179,9 @@ class TestSet:
     def test_set_wrong_backend(self, commands, monkeypatch):
         monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
         with pytest.raises(cmdexc.CommandError,
-                           match="The content.cookies.accept setting is not "
-                           "available with the QtWebEngine backend!"):
-            commands.set(0, 'content.cookies.accept', 'all')
+                           match="The hints.find_implementation setting is "
+                           "not available with the QtWebEngine backend!"):
+            commands.set(0, 'hints.find_implementation', 'javascript')
 
     @pytest.mark.parametrize('option', ['?', 'url.auto_search'])
     def test_empty(self, commands, option):
