@@ -859,8 +859,13 @@ window._qutebrowser.caret = (function() {
         const style = ".CaretBrowsing_Caret {" +
             "  position: absolute;" +
             "  z-index: 2147483647;" +
-            "  min-height: 10px;" +
+            "  min-height: 1em;" +
+            "  min-width: 0.2em;" +
             "  background-color: #000;" +
+            "  animation: blink 1s step-end infinite;" +
+            "}" +
+            "@keyframes blink {" +
+            "  50% { visibility: hidden; }" +
             "}";
         const node = document.createElement("style");
         node.innerHTML = style;
@@ -1158,6 +1163,8 @@ window._qutebrowser.caret = (function() {
                 CaretBrowsing.updateCaretOrSelection(true);
             }, 0);
         }
+
+        CaretBrowsing.stopAnimation();
     };
 
     CaretBrowsing.moveToBlock = function(paragraph, boundary) {
@@ -1176,6 +1183,8 @@ window._qutebrowser.caret = (function() {
         window.setTimeout(() => {
             CaretBrowsing.updateCaretOrSelection(true);
         }, 0);
+
+        CaretBrowsing.stopAnimation();
     };
 
     CaretBrowsing.toggle = function(value) {
@@ -1240,6 +1249,17 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.onWindowBlur = function() {
         CaretBrowsing.isWindowFocused = false;
         CaretBrowsing.updateIsCaretVisible();
+    };
+
+    CaretBrowsing.startAnimation = function() {
+        CaretBrowsing.caretElement.style.animationIterationCount = "infinite";
+    };
+
+    CaretBrowsing.stopAnimation = function() {
+        CaretBrowsing.caretElement.style.animationIterationCount = 0;
+        window.setTimeout(() => {
+            CaretBrowsing.startAnimation();
+        }, 1000);
     };
 
     CaretBrowsing.init = function() {
