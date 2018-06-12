@@ -27,7 +27,7 @@ import html as html_utils
 
 import sip
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
-                          QUrl, QTimer, QObject)
+                          QUrl, QTimer, QObject, qVersion)
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
@@ -246,7 +246,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
             self._tab.search.clear()
 
         self._tab.run_js_async(
-            javascript.assemble('caret', 'setPlatform', sys.platform))
+            javascript.assemble('caret',
+                                'setPlatform', sys.platform, qVersion()))
         self._js_call('setInitialCursor', self._selection_cb)
 
     def _selection_cb(self, enabled):
