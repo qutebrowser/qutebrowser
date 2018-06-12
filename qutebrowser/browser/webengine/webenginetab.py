@@ -933,9 +933,9 @@ class WebEngineTab(browsertab.AbstractTab):
         self.printing = WebEnginePrinting()
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
-        self.audio = WebEngineAudio()
-        self._permissions = _WebEnginePermissions(tab=self)
-        self._scripts = _WebEngineScripts(tab=self)
+        self.audio = WebEngineAudio(parent=self)
+        self._permissions = _WebEnginePermissions(tab=self, parent=self)
+        self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
         self._set_widget(widget)
