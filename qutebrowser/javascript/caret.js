@@ -861,15 +861,11 @@ window._qutebrowser.caret = (function() {
             "  z-index: 2147483647;" +
             "  min-height: 1em;" +
             "  min-width: 0.2em;" +
-            "  --inherited-color: inherit;" +
-            "  background-color: var(--inherited-color, #000);" +
-            "  color: var(--inherited-color, #000);" +
-            "  mix-blend-mode: difference;" +
-            "  filter: invert(85%);" +
+            "  background-color: #000;" +
             "  animation: blink 1s step-end infinite;" +
             "}" +
             "@keyframes blink {" +
-            "50% { visibility: hidden; }" +
+            "  50% { visibility: hidden; }" +
             "}";
         const node = document.createElement("style");
         node.innerHTML = style;
