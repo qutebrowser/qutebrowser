@@ -867,17 +867,13 @@ window._qutebrowser.caret = (function() {
             "  mix-blend-mode: difference;" +
             "  filter: invert(85%);" +
             "  animation: blink 1s step-end infinite;" +
-            "}";
-        const blink = "@keyframes blink {" +
+            "}" +
+            "@keyframes blink {" +
             "50% { visibility: hidden; }" +
             "}";
         const node = document.createElement("style");
         node.innerHTML = style;
         document.body.appendChild(node);
-
-        const node2 = document.createElement("style");
-        node2.innerHTML = blink;
-        document.body.appendChild(node2);
     };
 
     /**
