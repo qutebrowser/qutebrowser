@@ -870,27 +870,30 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.injectCaretStyles = function() {
         let backgroundColor;
         if (CaretBrowsing.isOldQt) {
-            backgroundColor = "  background-color: #000;";
+            backgroundColor = "background-color: #000;";
         } else {
-            backgroundColor =
-                "  --inherited-color: inherit;" +
-                "  background-color: var(--inherited-color, #000);" +
-                "  color: var(--inherited-color, #000);" +
-                "  mix-blend-mode: difference;" +
-                "  filter: invert(85%);";
+            backgroundColor = `
+                --inherited-color: inherit;
+                background-color: var(--inherited-color, #000);
+                color: var(--inherited-color, #000);
+                mix-blend-mode: difference;
+                filter: invert(85%);
+            `;
         }
 
-        const style = ".CaretBrowsing_Caret {" +
-            "  position: absolute;" +
-            "  z-index: 2147483647;" +
-            "  min-height: 1em;" +
-            "  min-width: 0.2em;" +
-            "  animation: blink 1s step-end infinite;" +
-            backgroundColor +
-            "}" +
-            "@keyframes blink {" +
-            "  50% { visibility: hidden; }" +
-            "}";
+        const style = `
+            .CaretBrowsing_Caret {
+              position: absolute;
+              z-index: 2147483647;
+              min-height: 1em;
+              min-width: 0.2em;
+              animation: blink 1s step-end infinite;
+              ${backgroundColor}
+            }
+            @keyframes blink {
+              50% { visibility: hidden; }
+            }
+        `;
         const node = document.createElement("style");
         node.innerHTML = style;
         document.body.appendChild(node);
