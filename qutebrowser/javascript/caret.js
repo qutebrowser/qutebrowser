@@ -868,19 +868,7 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.injectCaretStyles = function() {
-        let backgroundColor;
-        if (CaretBrowsing.isOldQt) {
-            backgroundColor = "background-color: #000;";
-        } else {
-            backgroundColor = `
-                --inherited-color: inherit;
-                background-color: var(--inherited-color, #000);
-                color: var(--inherited-color, #000);
-                mix-blend-mode: difference;
-                filter: invert(85%);
-            `;
-        }
-
+        const prefix = CaretBrowsing.isOldQt ? "-webkit-" : "";
         const style = `
             .CaretBrowsing_Caret {
               position: absolute;
@@ -888,7 +876,11 @@ window._qutebrowser.caret = (function() {
               min-height: 1em;
               min-width: 0.2em;
               animation: blink 1s step-end infinite;
-              ${backgroundColor}
+              --inherited-color: inherit;
+              background-color: var(--inherited-color, #000);
+              color: var(--inherited-color, #000);
+              mix-blend-mode: difference;
+              ${prefix}filter: invert(85%);
             }
             @keyframes blink {
               50% { visibility: hidden; }
