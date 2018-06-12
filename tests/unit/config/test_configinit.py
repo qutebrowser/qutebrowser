@@ -29,6 +29,7 @@ from qutebrowser import qutebrowser
 from qutebrowser.config import (config, configexc, configfiles, configinit,
                                 configdata, configtypes)
 from qutebrowser.utils import objreg, usertypes
+from helpers import utils
 
 
 @pytest.fixture
@@ -416,51 +417,53 @@ class TestQtArgs:
         expected = [sys.argv[0], '--disable-gpu']
         assert configinit.qt_args(parsed) == expected
 
-    @pytest.mark.parametrize('backend, new_version, autoplay, added', [
-        (usertypes.Backend.QtWebEngine, True, False, False),  # new
-        (usertypes.Backend.QtWebKit, False, False, False),  # QtWebKit
-        (usertypes.Backend.QtWebEngine, False, True, False),  # enabled
-        (usertypes.Backend.QtWebEngine, False, False, True),
+    @utils.qt510
+    @pytest.mark.parametrize('new_version, autoplay, added', [
+        (True, False, False),  # new enough to not need it
+        (False, True, False),  # autoplay enabled
+        (False, False, True),
     ])
     def test_autoplay(self, config_stub, monkeypatch, parser,
-                      backend, new_version, autoplay, added):
+                      new_version, autoplay, added):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
         config_stub.val.content.autoplay = autoplay
         monkeypatch.setattr(configinit.qtutils, 'version_check',
                             lambda version, compiled=False: new_version)
-        monkeypatch.setattr(configinit.objects, 'backend', backend)
 
         parsed = parser.parse_args([])
         args = configinit.qt_args(parsed)
         assert ('--autoplay-policy=user-gesture-required' in args) == added
 
-    @pytest.mark.parametrize('backend, new_version, public_only, added', [
-        (usertypes.Backend.QtWebEngine, True, True, False),  # new
-        (usertypes.Backend.QtWebKit, False, True, False),  # QtWebKit
-        (usertypes.Backend.QtWebEngine, False, False, False),  # disabled
-        (usertypes.Backend.QtWebEngine, False, True, True),
+    @utils.qt59
+    @pytest.mark.parametrize('new_version, public_only, added', [
+        (True, True, False),  # new enough to not need it
+        (False, False, False),  # option disabled
+        (False, True, True),
     ])
     def test_webrtc(self, config_stub, monkeypatch, parser,
-                    backend, new_version, public_only, added):
+                    new_version, public_only, added):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
         config_stub.val.content.webrtc_public_interfaces_only = public_only
         monkeypatch.setattr(configinit.qtutils, 'version_check',
                             lambda version, compiled=False: new_version)
-        monkeypatch.setattr(configinit.objects, 'backend', backend)
 
         parsed = parser.parse_args([])
         args = configinit.qt_args(parsed)
         arg = '--force-webrtc-ip-handling-policy=default_public_interface_only'
         assert (arg in args) == added
 
-    @pytest.mark.parametrize('backend, canvas_reading, added', [
-        (usertypes.Backend.QtWebEngine, True, False),  # enabled
-        (usertypes.Backend.QtWebKit, False, False),  # QtWebKit
-        (usertypes.Backend.QtWebEngine, False, True),
+    @pytest.mark.parametrize('canvas_reading, added', [
+        (True, False),  # canvas reading enabled
+        (False, True),
     ])
     def test_canvas_reading(self, config_stub, monkeypatch, parser,
-                            backend, canvas_reading, added):
-        config_stub.val.content.canvas_reading = canvas_reading
-        monkeypatch.setattr(configinit.objects, 'backend', backend)
+                            canvas_reading, added):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
 
+        config_stub.val.content.canvas_reading = canvas_reading
         parsed = parser.parse_args([])
         args = configinit.qt_args(parsed)
         assert ('--disable-reading-from-canvas' in args) == added
