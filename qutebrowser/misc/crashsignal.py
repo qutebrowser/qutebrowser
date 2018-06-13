@@ -223,14 +223,7 @@ class CrashHandler(QObject):
 
         if is_ignored_exception or 'pdb-postmortem' in self._args.debug_flags:
             # pdb exit, KeyboardInterrupt, ...
-            status = 0 if is_ignored_exception else 2
-            try:
-                self._quitter.shutdown(status)
-                return
-            except Exception:
-                log.init.exception("Error while shutting down")
-                qapp.quit()
-                return
+            sys.exit(usertypes.Exit.exception)
 
         self._quitter.quit_status['crash'] = False
         info = self._get_exception_info()
