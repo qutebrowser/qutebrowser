@@ -189,10 +189,10 @@ def debug_cache_stats():
     tabbed_browser_info = tab_bar._minimum_tab_size_hint_helper.cache_info()
     # pylint: enable=protected-access
 
-    log.misc.debug('is_valid_prefix: {}'.format(prefix_info))
-    log.misc.debug('_render_stylesheet: {}'.format(render_stylesheet_info))
-    log.misc.debug('history: {}'.format(history_info))
-    log.misc.debug('tab width cache: {}'.format(tabbed_browser_info))
+    log.misc.info('is_valid_prefix: {}'.format(prefix_info))
+    log.misc.info('_render_stylesheet: {}'.format(render_stylesheet_info))
+    log.misc.info('history: {}'.format(history_info))
+    log.misc.info('tab width cache: {}'.format(tabbed_browser_info))
 
 
 @cmdutils.register(debug=True)
