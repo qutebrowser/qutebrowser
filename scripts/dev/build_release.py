@@ -34,8 +34,10 @@ import tarfile
 import tempfile
 import collections
 
-if os.name == 'nt':
+try:
     import winreg
+except ImportError:
+    pass
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
