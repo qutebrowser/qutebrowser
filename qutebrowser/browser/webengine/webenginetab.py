@@ -769,7 +769,7 @@ class WebEngineTab(browsertab.AbstractTab):
             fp.installEventFilter(self._mouse_event_filter)
         self._child_event_filter = mouse.ChildEventFilter(
             eventfilter=self._mouse_event_filter, widget=self._widget,
-            parent=self)
+            win_id=self.win_id, parent=self)
         self._widget.installEventFilter(self._child_event_filter)
 
     @pyqtSlot()

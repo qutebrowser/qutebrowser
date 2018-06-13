@@ -40,11 +40,12 @@ class ChildEventFilter(QObject):
         _widget: The widget expected to send out childEvents.
     """
 
-    def __init__(self, eventfilter, widget, parent=None):
+    def __init__(self, eventfilter, widget, win_id, parent=None):
         super().__init__(parent)
         self._filter = eventfilter
         assert widget is not None
         self._widget = widget
+        self._win_id = win_id
 
     def eventFilter(self, obj, event):
         """Act on ChildAdded events."""
@@ -57,28 +58,21 @@ class ChildEventFilter(QObject):
 
             if qtutils.version_check('5.11', compiled=False, exact=True):
                 # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
-                try:
-                    # pylint: disable=protected-access
-                    win_id = self._widget._win_id
-                    # pylint: enable=protected-access
-                    passthrough_modes = [usertypes.KeyMode.command,
-                                         usertypes.KeyMode.prompt,
-                                         usertypes.KeyMode.yesno]
-                    if modeman.instance(win_id).mode not in passthrough_modes:
-                        tabbed_browser = objreg.get('tabbed-browser',
-                                                    scope='window',
-                                                    window=win_id)
-                        current_index = tabbed_browser.widget.currentIndex()
-                        try:
-                            widget_index = tabbed_browser.widget.indexOf(
-                                self._widget.parent())
-                        except RuntimeError:
-                            widget_index = -1
-                        if current_index == widget_index:
-                            QTimer.singleShot(0, self._widget.setFocus)
-                except:
-                    # Something failed, let's just setFocus
-                    QTimer.singleShot(0, self._widget.setFocus)
+                pass_modes = [usertypes.KeyMode.command,
+                              usertypes.KeyMode.prompt,
+                              usertypes.KeyMode.yesno]
+                if modeman.instance(self._win_id).mode not in pass_modes:
+                    tabbed_browser = objreg.get('tabbed-browser',
+                                                scope='window',
+                                                window=self._win_id)
+                    current_index = tabbed_browser.widget.currentIndex()
+                    try:
+                        widget_index = tabbed_browser.widget.indexOf(
+                            self._widget.parent())
+                    except RuntimeError:
+                        widget_index = -1
+                    if current_index == widget_index:
+                        QTimer.singleShot(0, self._widget.setFocus)
 
         elif event.type() == QEvent.ChildRemoved:
             child = event.child()
