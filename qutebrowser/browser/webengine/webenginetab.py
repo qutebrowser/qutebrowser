@@ -790,13 +790,31 @@ class _WebEngineScripts(QObject):
 
     def connect_signals(self):
         config.instance.changed.connect(self._on_config_changed)
+        self._tab.url_changed.connect(self._update_stylesheet)
+        self._tab.load_finished.connect(self._on_load_finished)
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
             self._init_stylesheet()
-            url = self.url(requested=True)
+            url = self._tab.url(requested=True)
             self._update_stylesheet(url=url)
+
+    @pyqtSlot()
+    def _on_url_changed(self):
+        requested_url = self._tab.url(requested=True)
+
+        # Ignore blank QUrls to avoid crashes.
+        if not requested_url.isValid():
+            log.webview.debug("Not updating per-domain stylesheets due to the QUrl being blank")
+            return
+
+        self._update_stylesheet(requested_url)
+
+    @pyqtSlot()
+    def _on_load_finished(self):
+        url = self._tab.url(requested=True)
+        self._update_stylesheet(url)
 
     def _update_stylesheet(self, url=None):
         """Update the custom stylesheet in existing tabs."""
@@ -1225,9 +1243,6 @@ class WebEngineTab(browsertab.AbstractTab):
             # In general, this is handled by Qt, but when loading takes long,
             # the old icon is still displayed.
             self.icon_changed.emit(QIcon())
-
-        url = self.url(requested=True)
-        self._update_stylesheet(url)
 
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):
