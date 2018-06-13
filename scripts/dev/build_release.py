@@ -34,6 +34,9 @@ import tarfile
 import tempfile
 import collections
 
+if os.name == 'nt':
+    import winreg
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
@@ -223,8 +226,25 @@ def build_windows():
     utils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
-    python_x86 = r'C:\Python{}-32\python.exe'.format(ver)
-    python_x64 = r'C:\Python{}\python.exe'.format(ver)
+    dot_ver = '.'.join(parts)
+
+    # Get python path from registry if possible
+    try:
+        reg64_key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
+                                     r'SOFTWARE\Python\PythonCore'
+                                     r'\{}\InstallPath'.format(dot_ver))
+        python_x64 = winreg.QueryValueEx(reg64_key, 'ExecutablePath')[0]
+    except FileNotFoundError:
+        python_x64 = r'C:\Python{}\python.exe'.format(ver)
+
+    try:
+        reg32_key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
+                                     r'SOFTWARE\WOW6432Node\Python\PythonCore'
+                                     r'\{}-32\InstallPath'.format(dot_ver))
+        python_x86 = winreg.QueryValueEx(reg32_key, 'ExecutablePath')[0]
+    except FileNotFoundError:
+        python_x86 = r'C:\Python{}-32\python.exe'.format(ver)
+
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
     out_32 = os.path.join('dist',
                           'qutebrowser-{}-x86'.format(qutebrowser.__version__))
