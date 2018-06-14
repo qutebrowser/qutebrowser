@@ -19,7 +19,7 @@
 
 """The main browser widgets."""
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
+from PyQt5.QtCore import pyqtSignal, Qt, QUrl
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
@@ -78,10 +78,6 @@ class WebView(QWebView):
 
         self.setPage(page)
 
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=win_id)
-        mode_manager.entered.connect(self.on_mode_entered)
-        mode_manager.left.connect(self.on_mode_left)
         config.instance.changed.connect(self._set_bg_color)
 
     def __repr__(self):
@@ -129,32 +125,6 @@ class WebView(QWebView):
             url: The URL to load as QUrl
         """
         self.load(url)
-
-    @pyqtSlot(usertypes.KeyMode)
-    def on_mode_entered(self, mode):
-        """Ignore attempts to focus the widget if in any status-input mode.
-
-        FIXME:qtwebengine
-        For QtWebEngine, doing the same has no effect, so we do it in here.
-        """
-        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno]:
-            log.webview.debug("Ignoring focus because mode {} was "
-                              "entered.".format(mode))
-            self.setFocusPolicy(Qt.NoFocus)
-
-    @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self, mode):
-        """Restore focus policy if status-input modes were left.
-
-        FIXME:qtwebengine
-        For QtWebEngine, doing the same has no effect, so we do it in here.
-        """
-        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno]:
-            log.webview.debug("Restoring focus policy because mode {} was "
-                              "left.".format(mode))
-        self.setFocusPolicy(Qt.WheelFocus)
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
