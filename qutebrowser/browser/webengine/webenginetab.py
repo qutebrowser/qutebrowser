@@ -796,7 +796,6 @@ class _WebEngineScripts(QObject):
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
-            self._init_stylesheet()
             self._update_stylesheet(url=self._tab.url())
 
     @pyqtSlot()
