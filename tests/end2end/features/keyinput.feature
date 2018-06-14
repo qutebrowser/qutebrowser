@@ -166,9 +166,10 @@ Feature: Keyboard input
     Scenario: mode on change normal
         Given I set tabs.mode_on_change to normal
         And I clean up open tabs
-        When I open about:blank
+        When I open data/hello.txt
         And I run :enter-mode insert
-        And I open about:blank in a new tab
+        And I open data/hello2.txt in a new background tab
+        And I run :tab-focus 2
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
         And "Leaving mode KeyMode.insert (reason: tab changed)" should be logged
         And "Mode before tab change: insert (mode_on_change = normal)" should be logged
@@ -177,9 +178,10 @@ Feature: Keyboard input
     Scenario: mode on change persist
         Given I set tabs.mode_on_change to persist
         And I clean up open tabs
-        When I open about:blank
+        When I open data/hello.txt
         And I run :enter-mode insert
-        And I open about:blank in a new tab
+        And I open data/hello2.txt in a new background tab
+        And I run :tab-focus 2
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
         And "Leaving mode KeyMode.insert (reason: tab changed)" should not be logged
         And "Mode before tab change: insert (mode_on_change = persist)" should be logged
@@ -188,9 +190,10 @@ Feature: Keyboard input
     Scenario: mode on change restore
         Given I set tabs.mode_on_change to restore
         And I clean up open tabs
-        When I open about:blank
+        When I open data/hello.txt
         And I run :enter-mode insert
-        And I open about:blank in a new tab
+        And I open data/hello2.txt in a new background tab
+        And I run :tab-focus 2
         And I run :enter-mode passthrough
         And I run :tab-focus 1
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
@@ -201,4 +204,3 @@ Feature: Keyboard input
         And "Mode before tab change: passthrough (mode_on_change = restore)" should be logged
         And "Entering mode KeyMode.insert (reason: restore)" should be logged
         And "Mode after tab change: insert (mode_on_change = restore)" should be logged
-
