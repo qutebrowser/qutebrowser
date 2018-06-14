@@ -311,10 +311,19 @@ class Config(QObject):
                 name, deleted=deleted, renamed=renamed)
             raise exception from None
 
-    def get(self, name, url=None):
-        """Get the given setting converted for Python code."""
+    def get(self, name, url=None, *, fallback=True):
+        """Get the given setting converted for Python code.
+
+        Args:
+            name: The name of the setting to get.
+            url: The QUrl to get the setting for.
+            fallback: If False, return configutils.UNSET when there's no
+                      override for this domain.
+        """
         opt = self.get_opt(name)
-        obj = self.get_obj(name, url=url)
+        obj = self.get_obj(name, url=url, fallback=fallback)
+        if obj is configutils.UNSET:
+            return obj
         return opt.typ.to_py(obj)
 
     def _maybe_copy(self, value):
@@ -328,14 +337,20 @@ class Config(QObject):
             assert value.__hash__ is not None, value
             return value
 
-    def get_obj(self, name, *, url=None):
+    def get_obj(self, name, *, url=None, fallback=True):
         """Get the given setting as object (for YAML/config.py).
 
         Note that the returned values are not watched for mutation.
         If a URL is given, return the value which should be used for that URL.
+
+        Args:
+            name: The name of the setting to get.
+            url: The QUrl to get the setting for.
+            fallback: If False, return configutils.UNSET when there's no
+                      override for this domain.
         """
         self.get_opt(name)  # To make sure it exists
-        value = self._values[name].get_for_url(url)
+        value = self._values[name].get_for_url(url, fallback=fallback)
         return self._maybe_copy(value)
 
     def get_obj_for_pattern(self, name, *, pattern):
