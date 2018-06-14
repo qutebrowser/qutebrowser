@@ -804,7 +804,7 @@ class _WebEngineScripts(QObject):
         self._update_stylesheet(url)
 
     @pyqtSlot(QUrl)
-    def _update_stylesheet(self, url=None):
+    def _update_stylesheet(self, url):
         """Update the custom stylesheet in existing tabs."""
         css = shared.get_user_stylesheet(url=url)
         code = javascript.assemble('stylesheet', 'set_css', css)
