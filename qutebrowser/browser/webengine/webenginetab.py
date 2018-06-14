@@ -870,7 +870,6 @@ class _WebEngineScripts(QObject):
         Partially inspired by QupZilla:
         https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
         """
-
         self._remove_early_js('stylesheet')
         css = shared.get_user_stylesheet(url=None)
         js_code = javascript.wrap_global(
