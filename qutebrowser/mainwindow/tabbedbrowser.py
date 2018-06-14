@@ -22,7 +22,7 @@
 import functools
 
 import attr
-from PyQt5.QtWidgets import QSizePolicy, QWidget
+from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 from PyQt5.QtGui import QIcon
 
@@ -462,6 +462,8 @@ class TabbedBrowser(QWidget):
                           "related {}, idx {}".format(
                               url, background, related, idx))
 
+        prev_focus = QApplication.focusWidget()
+
         if (config.val.tabs.tabs_are_windows and self.widget.count() > 0 and
                 not ignore_tabs_are_windows):
             window = mainwindow.MainWindow(private=self.private)
@@ -491,11 +493,20 @@ class TabbedBrowser(QWidget):
             tab.resize(self.widget.currentWidget().size())
             self.widget.tab_index_changed.emit(self.widget.currentIndex(),
                                                self.widget.count())
+            # Refocus webview in case we lost it by spawning a bg tab
+            self.widget.currentWidget().setFocus()
         else:
             self.widget.setCurrentWidget(tab)
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
             # Still seems to be needed with Qt 5.11.1
             tab.setFocus()
+
+        mode = modeman.instance(self._win_id).mode
+        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
+                    usertypes.KeyMode.yesno]:
+            # If we were in a command prompt, restore old focus
+            # The above commands need to be run to switch tabs
+            prev_focus.setFocus()
 
         tab.show()
         self.new_tab.emit(tab, idx)
