@@ -165,7 +165,11 @@ def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
 @pytest.fixture
 def webengine_tab(qtbot, tab_registry, fake_args, mode_manager,
                   session_manager_stub, greasemonkey_manager,
-                  redirect_webengine_data):
+                  redirect_webengine_data, tabbed_browser_stubs):
+    tabwidget = tabbed_browser_stubs[0].widget
+    tabwidget.current_index = 0
+    tabwidget.index_of = 0
+
     webenginetab = pytest.importorskip(
         'qutebrowser.browser.webengine.webenginetab')
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
