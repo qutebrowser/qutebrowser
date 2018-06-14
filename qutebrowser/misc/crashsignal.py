@@ -206,7 +206,6 @@ class CrashHandler(QObject):
         gracefully.
         """
         exc = (exctype, excvalue, tb)
-        qapp = QApplication.instance()
 
         if not self._quitter.quit_status['crash']:
             log.misc.error("ARGH, there was an exception while the crash "
