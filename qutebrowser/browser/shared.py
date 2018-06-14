@@ -25,7 +25,7 @@ import netrc
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.config import config
+from qutebrowser.config import config, configutils
 from qutebrowser.utils import usertypes, message, log, objreg, jinja, utils
 from qutebrowser.mainwindow import mainwindow
 
@@ -274,9 +274,16 @@ def get_tab(win_id, target):
 
 
 def get_user_stylesheet(url=None):
-    """Get the combined user-stylesheet."""
+    """Get the combined user-stylesheet.
+
+    If `url` is given and there's no overridden stylesheet, return
+    `configutils.UNSET`.
+    """
     css = ''
-    stylesheets = config.instance.get("content.user_stylesheets", url)
+    stylesheets = config.instance.get("content.user_stylesheets", url,
+                                      fallback=url is None)
+    if stylesheets is configutils.UNSET:
+        return stylesheets
 
     for filename in stylesheets:
         with open(filename, 'r', encoding='utf-8') as f:

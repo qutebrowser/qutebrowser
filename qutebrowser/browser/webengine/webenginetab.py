@@ -32,7 +32,7 @@ from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
-from qutebrowser.config import configdata, config
+from qutebrowser.config import configdata, config, configutils
 from qutebrowser.browser import browsertab, mouse, shared
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
@@ -796,7 +796,7 @@ class _WebEngineScripts(QObject):
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
-            self._update_stylesheet(url=self._tab.url())
+            self._update_stylesheet(url=self._tab.url(), force=True)
 
     @pyqtSlot()
     def _on_load_finished(self):
@@ -804,11 +804,20 @@ class _WebEngineScripts(QObject):
         self._update_stylesheet(url)
 
     @pyqtSlot(QUrl)
-    def _update_stylesheet(self, url):
-        """Update the custom stylesheet in existing tabs."""
+    def _update_stylesheet(self, url, force=False):
+        """Update the custom stylesheet in existing tabs.
+
+        Arguments:
+            url: The url to get the stylesheet for.
+            force: Also update the global stylesheet.
+        """
         css = shared.get_user_stylesheet(url=url)
-        code = javascript.assemble('stylesheet', 'set_css', css)
-        self._tab.run_js_async(code)
+        if css is configutils.UNSET and force:
+            css = shared.get_user_stylesheet(url=None)
+
+        if css is not configutils.UNSET:
+            code = javascript.assemble('stylesheet', 'set_css', css)
+            self._tab.run_js_async(code)
 
     def _inject_early_js(self, name, js_code, *,
                          world=QWebEngineScript.ApplicationWorld,
