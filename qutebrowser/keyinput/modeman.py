@@ -241,6 +241,11 @@ class ModeManager(QObject):
         """
         if not isinstance(mode, usertypes.KeyMode):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
+
+        if mode == usertypes.KeyMode.normal:
+            self.leave(self.mode, reason='enter normal: {}'.format(reason))
+            return
+
         log.modes.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._parsers:
