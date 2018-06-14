@@ -198,7 +198,6 @@ Feature: Keyboard input
         And I run :tab-focus 1
         Then "Entering mode KeyMode.insert (reason: command)" should be logged
         And "Mode before tab change: insert (mode_on_change = restore)" should be logged
-        And "Entering mode KeyMode.normal (reason: restore)" should be logged
         And "Mode after tab change: normal (mode_on_change = restore)" should be logged
         And "Entering mode KeyMode.passthrough (reason: command)" should be logged
         And "Mode before tab change: passthrough (mode_on_change = restore)" should be logged
