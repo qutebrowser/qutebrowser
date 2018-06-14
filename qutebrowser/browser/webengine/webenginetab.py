@@ -18,6 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Wrapper over a QWebEngineView."""
+
 import math
 import functools
 import sys
