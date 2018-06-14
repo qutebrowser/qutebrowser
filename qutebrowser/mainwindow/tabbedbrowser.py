@@ -645,23 +645,31 @@ class TabbedBrowser(QWidget):
             self.widget.window().setWindowIcon(icon)
 
     @pyqtSlot(usertypes.KeyMode)
+    def on_mode_entered(self, mode):
+        """Save input mode when tabs.mode_on_change = restore."""
+        if (config.val.tabs.mode_on_change == 'restore' and
+                mode in modeman.INPUT_MODES):
+            tab = self.widget.currentWidget()
+            if tab is not None:
+                tab.data.input_mode = mode
+
+    @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
-        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno]:
-            widget = self.widget.currentWidget()
+        widget = self.widget.currentWidget()
+        if widget is None:
+            return
+        if mode in [usertypes.KeyMode.command] + modeman.PROMPT_MODES:
             log.modes.debug("Left status-input mode, focusing {!r}".format(
                 widget))
-            if widget is None:
-                return
             widget.setFocus()
+        if config.val.tabs.mode_on_change == 'restore':
+            widget.data.input_mode = usertypes.KeyMode.normal
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
         mode_on_change = config.val.tabs.mode_on_change
-        modes_to_save = [usertypes.KeyMode.insert,
-                         usertypes.KeyMode.passthrough]
         if idx == -1 or self.shutting_down:
             # closing the last tab (before quitting) or shutting down
             return
@@ -670,26 +678,28 @@ class TabbedBrowser(QWidget):
             log.webview.debug("on_current_changed got called with invalid "
                               "index {}".format(idx))
             return
-        if self._now_focused is not None and mode_on_change == 'restore':
-            current_mode = modeman.instance(self._win_id).mode
-            if current_mode not in modes_to_save:
-                current_mode = usertypes.KeyMode.normal
-            self._now_focused.data.input_mode = current_mode
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
 
         modes_to_leave = [usertypes.KeyMode.hint, usertypes.KeyMode.caret]
-        if mode_on_change != 'persist':
-            modes_to_leave += modes_to_save
+
+        mm_instance = modeman.instance(self._win_id)
+        current_mode = mm_instance.mode
+        log.modes.debug("Mode before tab change: {} (mode_on_change = {})"
+                        .format(current_mode.name, mode_on_change))
+        if mode_on_change == 'normal':
+            modes_to_leave += modeman.INPUT_MODES
         for mode in modes_to_leave:
             modeman.leave(self._win_id, mode, 'tab changed', maybe=True)
-        if mode_on_change == 'restore':
-            modeman.enter(self._win_id, tab.data.input_mode,
-                          'restore input mode for tab')
+        if (mode_on_change == 'restore' and
+                current_mode not in modeman.PROMPT_MODES):
+            modeman.enter(self._win_id, tab.data.input_mode, 'restore')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
                             scope='window', window=self._win_id)
+        log.modes.debug("Mode after tab change: {} (mode_on_change = {})"
+                        .format(current_mode.name, mode_on_change))
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         QTimer.singleShot(0, self._update_window_title)

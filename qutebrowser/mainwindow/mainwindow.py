@@ -492,6 +492,7 @@ class MainWindow(QWidget):
         self.tabbed_browser.cur_fullscreen_requested.connect(status.maybe_hide)
 
         # command input / completion
+        mode_manager.entered.connect(self.tabbed_browser.on_mode_entered)
         mode_manager.left.connect(self.tabbed_browser.on_mode_left)
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
