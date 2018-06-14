@@ -280,7 +280,7 @@ def get_user_stylesheet(url=None):
     `configutils.UNSET`.
     """
     css = ''
-    stylesheets = config.instance.get("content.user_stylesheets", url,
+    stylesheets = config.instance.get('content.user_stylesheets', url,
                                       fallback=url is None)
     if stylesheets is configutils.UNSET:
         return stylesheets
