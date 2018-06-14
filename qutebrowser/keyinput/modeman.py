@@ -263,11 +263,12 @@ class ModeManager(QObject):
                 return
             log.modes.debug("Overriding mode {}.".format(self.mode))
             self.left.emit(self.mode, mode, self._win_id)
-        if (mode in PROMPT_MODES and self.mode in INPUT_MODES and
-                config.val.tabs.mode_on_change == 'restore'):
+
+        if mode in PROMPT_MODES and self.mode in INPUT_MODES:
             self._prev_mode = self.mode
         else:
             self._prev_mode = usertypes.KeyMode.normal
+
         self.mode = mode
         self.entered.emit(mode, self._win_id)
 
