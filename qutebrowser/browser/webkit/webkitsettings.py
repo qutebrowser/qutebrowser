@@ -124,15 +124,9 @@ class WebKitSettings(websettings.AbstractSettings):
         """Set the generated user-stylesheet."""
         stylesheet = shared.get_user_stylesheet().encode('utf-8')
         url = urlutils.data_url('text/css;charset=utf-8', stylesheet)
-        old = self._settings.userStyleSheetUrl()
-
-        if old == url:
-            return False
-
         self._settings.setUserStyleSheetUrl(url)
-        return True
 
-    def _set_cookie_accept_policy(self, value):
+    def _set_cookie_accept_policy(self):
         """Update the content.cookies.accept setting."""
         mapping = {
             'all': QWebSettings.AlwaysAllowThirdPartyCookies,
@@ -140,41 +134,29 @@ class WebKitSettings(websettings.AbstractSettings):
             'never': QWebSettings.AlwaysBlockThirdPartyCookies,
             'no-unknown-3rdparty': QWebSettings.AllowThirdPartyWithExistingCookies,
         }
+        value = config.val.content.cookies.accept
+        self._settings.setThirdPartyCookiePolicy(mapping[value])
 
-        old = self._settings.thirdPartyCookiePolicy()
-        new = mapping[value]
-
-        if old == new:
-            return False
-
-        self._settings.setThirdPartyCookiePolicy(new)
-        return True
-
-    def _set_cache_maximum_pages(self, value):
+    def _set_cache_maximum_pages(self):
         """Update the content.cache.maximum_pages setting."""
-        old = self._settings.maximumPagesInCache()
-
-        if old == value:
-            return False
-
+        value = config.val.content.cache.maximum_pages
         self._settings.setMaximumPagesInCache(value)
-        return True
 
-    def _update_setting(self, option, value):
+    def update_setting(self, option):
         if option in ['scrollbar.hide', 'content.user_stylesheets']:
-            return self._set_user_stylesheet()
+            self._set_user_stylesheet()
         elif option == 'content.cookies.accept':
-            return self._set_cookie_accept_policy(value)
+            self._set_cookie_accept_policy()
         elif option == 'content.cache.maximum_pages':
-            return self._set_cache_maximum_pages(value)
+            self._set_cache_maximum_pages()
         else:
-            return super()._update_setting(option, value)
+            super().update_setting(option)
 
     def init_settings(self):
         super().init_settings()
-        self.update_setting('content.user_stylesheets')
-        self.update_setting('content.cookies.accept')
-        self.update_setting('content.cache.maximum_pages')
+        self._set_user_stylesheet()
+        self._set_cookie_accept_policy()
+        self._set_cache_maximum_pages()
 
 
 def init(_args):
