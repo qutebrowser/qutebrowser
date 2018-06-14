@@ -901,7 +901,8 @@ Feature: Tab management
         Then qute://tabs should be loaded
 
     Scenario: :buffer with a matching title
-        When I open data/title.html
+        When I set input.blink to always
+        And I open data/title.html
         And I open data/search.html in a new tab
         And I open data/scroll/simple.html in a new tab
         And I run :buffer Searching text

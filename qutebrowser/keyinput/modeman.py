@@ -114,6 +114,11 @@ def leave(win_id, mode, reason=None, *, maybe=False):
     instance(win_id).leave(mode, reason, maybe=maybe)
 
 
+BLINK_MODES = [usertypes.KeyMode.insert,
+               usertypes.KeyMode.passthrough,
+               usertypes.KeyMode.caret]
+
+
 class ModeManager(QObject):
 
     """Manager for keyboard modes.

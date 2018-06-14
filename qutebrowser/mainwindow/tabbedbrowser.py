@@ -647,6 +647,16 @@ class TabbedBrowser(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
+        widget = self.widget.currentWidget()
+        if config.val.input.blink != "always":
+            widget.setFocus()
+            focused_widget = QApplication.focusWidget()
+            o = QWidget(QApplication.focusWidget())
+            o.show()
+            o.setFocus()
+            log.modes.debug(
+                "Left mode without blink enabled, focusing: {}".format(self))
+            return
         if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
                     usertypes.KeyMode.yesno]:
             widget = self.widget.currentWidget()
@@ -655,6 +665,16 @@ class TabbedBrowser(QWidget):
             if widget is None:
                 return
             widget.setFocus()
+
+    @pyqtSlot(usertypes.KeyMode)
+    def on_mode_entered(self, mode):
+        """Restore focus when entering insert mode if needed."""
+        if config.val.input.blink == "insert" and mode in modeman.BLINK_MODES:
+            widget = self.widget.currentWidget()
+            widget.setFocus()
+            log.modes.debug(
+                "Entered mode without blink enabled, focusing {}".format(
+                    widget))
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
@@ -670,14 +690,17 @@ class TabbedBrowser(QWidget):
             log.webview.debug("on_current_changed got called with invalid "
                               "index {}".format(idx))
             return
+
+        current_mode = modeman.instance(self._win_id).mode
         if self._now_focused is not None and mode_on_change == 'restore':
-            current_mode = modeman.instance(self._win_id).mode
             if current_mode not in modes_to_save:
                 current_mode = usertypes.KeyMode.normal
             self._now_focused.data.input_mode = current_mode
 
-        log.modes.debug("Current tab changed, focusing {!r}".format(tab))
-        tab.setFocus()
+        if not (config.val.input.blink == "insert" and
+                current_mode not in modeman.BLINK_MODES):
+            log.modes.debug("Current tab changed, focusing {!r}".format(tab))
+            tab.setFocus()
 
         modes_to_leave = [usertypes.KeyMode.hint, usertypes.KeyMode.caret]
         if mode_on_change != 'persist':
@@ -736,6 +759,23 @@ class TabbedBrowser(QWidget):
         if idx == self.widget.currentIndex():
             self._update_window_title()
             tab.handle_auto_insert_mode(ok)
+
+        if config.val.input.blink != "always":
+            previous_focus = QApplication.focusWidget()
+            widget = self.widget.currentWidget()
+            widget.setFocus()
+            # Attach a intercepter object under the webview to steal focus but
+            # propogate key events back up
+            o = QWidget(QApplication.focusWidget())
+            o.setObjectName("keyinterceptor")
+            o.show()
+            # if we stole focus from non webview related things like
+            # completion, give it back!
+            if previous_focus and previous_focus.parent() not in widget.children():
+                previous_focus.setFocus()
+            else:
+                o.setFocus()
+
 
     @pyqtSlot()
     def on_scroll_pos_changed(self):
