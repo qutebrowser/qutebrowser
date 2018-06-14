@@ -29,7 +29,7 @@ import os.path
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebKit import QWebSettings
 
-from qutebrowser.config import config, websettings
+from qutebrowser.config import config, websettings, configutils
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import standarddir, urlutils
 from qutebrowser.browser import shared
@@ -120,10 +120,13 @@ class WebKitSettings(websettings.AbstractSettings):
         QWebSettings.FantasyFont: QFont.Fantasy,
     }
 
-    def _set_user_stylesheet(self):
+    def _set_user_stylesheet(self, url=None):
         """Set the generated user-stylesheet."""
-        stylesheet = shared.get_user_stylesheet().encode('utf-8')
-        url = urlutils.data_url('text/css;charset=utf-8', stylesheet)
+        stylesheet = shared.get_user_stylesheet(url=url)
+        if stylesheet is configutils.UNSET:
+            return
+        url = urlutils.data_url('text/css;charset=utf-8',
+                                stylesheet.encode('utf-8'))
         self._settings.setUserStyleSheetUrl(url)
 
     def _set_cookie_accept_policy(self):
@@ -151,6 +154,10 @@ class WebKitSettings(websettings.AbstractSettings):
             self._set_cache_maximum_pages()
         else:
             super().update_setting(option)
+
+    def update_for_url(self, url):
+        super().update_for_url(url)
+        self._set_user_stylesheet(url)
 
     def init_settings(self):
         super().init_settings()
