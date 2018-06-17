@@ -90,6 +90,8 @@ Changed
 - On Qt 5.10 or newer, dictionaries are now read from the qutebrowser data
   directory (e.g. `~/.local/share/qutebrowser`) instead of `/usr/share/qt`.
   Existing dictionaries are copied over.
+- If an error while parsing `~/.netrc` occurs, the cause of the error is now
+  logged.
 
 Fixed
 ~~~~~

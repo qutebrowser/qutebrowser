@@ -312,10 +312,10 @@ def netrc_authentication(url, authenticator):
             (user, _account, password) = authenticators
     except FileNotFoundError:
         log.misc.debug("No .netrc file found")
-    except OSError:
-        log.misc.exception("Unable to read the netrc file")
-    except netrc.NetrcParseError:
-        log.misc.exception("Error when parsing the netrc file")
+    except OSError as e:
+        log.misc.exception("Unable to read the netrc file: {}".format(e))
+    except netrc.NetrcParseError as e:
+        log.misc.exception("Error when parsing the netrc file: {}".format(e))
 
     if user is None:
         return False
