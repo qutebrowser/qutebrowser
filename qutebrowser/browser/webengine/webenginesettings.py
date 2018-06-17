@@ -298,6 +298,8 @@ def init(args):
             not hasattr(QWebEnginePage, 'setInspectedPage')):  # only Qt < 5.11
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
 
+    spell.init()
+
     _init_profiles()
     config.instance.changed.connect(_update_settings)
 

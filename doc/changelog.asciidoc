@@ -87,6 +87,9 @@ Changed
   browsing.
 - When a prompt is opened in insert/passthrough mode, the mode is restored
   after closing the prompt.
+- On Qt 5.10 or newer, dictionaries are now read from the qutebrowser data
+  directory (e.g. `~/.local/share/qutebrowser`) instead of `/usr/share/qt`.
+  Existing dictionaries are copied over.
 
 Fixed
 ~~~~~
