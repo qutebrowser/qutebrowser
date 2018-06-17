@@ -62,20 +62,25 @@ def url(*, info):
     bookmarks = objreg.get('bookmark-manager').marks.items()
     searchengines = config.val.url.searchengines.items()
     categories = config.val.url.open_categories_shown
+    models = {}
 
     if searchengines and "searchengines" in categories:
-        model.add_category(listcategory.ListCategory(
-            'Search engines', searchengines, sort=False))
+        models["searchengines"] = listcategory.ListCategory(
+            'Search engines', searchengines, sort=False)
 
     if quickmarks and "quickmarks" in categories:
-        model.add_category(listcategory.ListCategory(
+        models["quickmarks"] = listcategory.ListCategory(
             'Quickmarks', quickmarks, delete_func=_delete_quickmark,
-            sort=False))
+            sort=False)
     if bookmarks and "bookmarks" in categories:
-        model.add_category(listcategory.ListCategory(
-            'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False))
+        models["bookmarks"] = listcategory.ListCategory(
+            'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False)
 
     if info.config.get('completion.web_history_max_items') != 0 and "history" in categories:
         hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
-        model.add_category(hist_cat)
+        models["history"] = hist_cat
+
+    for category in categories:
+        model.add_category(models[category])
+        
     return model

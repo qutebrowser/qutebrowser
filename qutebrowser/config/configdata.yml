@@ -1575,7 +1575,7 @@ url.open_categories_shown:
     - quickmarks
     - bookmarks
     - history
-  desc: Which categories should be shown in the :open dialogue.
+  desc: Which categories to show in the :open dialogue. The order of this list is used for ordering the categories.
 
 
 url.searchengines:
