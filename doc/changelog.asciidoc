@@ -97,6 +97,7 @@ Fixed
 ~~~~~
 
 - Various subtle keyboard focus issues.
+- Workaround for a Qt bug which preserves searches between page loads.
 
 Removed
 ~~~~~~~
