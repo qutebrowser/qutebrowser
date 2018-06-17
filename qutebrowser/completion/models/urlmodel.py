@@ -81,6 +81,7 @@ def url(*, info):
         models["history"] = hist_cat
 
     for category in categories:
-        model.add_category(models[category])
+        if category in models:
+            model.add_category(models[category])
         
     return model
