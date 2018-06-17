@@ -1565,6 +1565,19 @@ url.open_base_url:
   default: false
   desc: Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
 
+url.open_categories_shown:
+  type:
+    name: List
+    valtype: String
+    none_ok: true
+  default:
+    - searchengines
+    - quickmarks
+    - bookmarks
+    - history
+  desc: Which categories should be shown in the :open dialogue.
+
+
 url.searchengines:
   default:
     DEFAULT: https://duckduckgo.com/?q={}

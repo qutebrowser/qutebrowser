@@ -267,6 +267,7 @@
 |<<url.default_page,url.default_page>>|Page to open if :open -t/-b/-w is used without URL.
 |<<url.incdec_segments,url.incdec_segments>>|URL segments where `:navigate increment/decrement` will search for a number.
 |<<url.open_base_url,url.open_base_url>>|Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
+|<<url.open_categories_shown,url.open_categories_shown>>|Which categories should be shown in the :open dialogue.
 |<<url.searchengines,url.searchengines>>|Search engines which can be used via the address bar.
 |<<url.start_pages,url.start_pages>>|Page(s) to open at the start.
 |<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|URL parameters to strip with `:yank url`.
@@ -3226,6 +3227,18 @@ Open base URL of the searchengine if a searchengine shortcut is invoked without 
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
+
+[[url.open_categories_shown]]
+=== url.open_categories_shown
+Which categories should be shown in the :open dialogue.
+
+Type: <<types,List of Strings>>
+
+Default
+- +pass:[bookmarks]+
+- +pass:[searchengines]+
+- +pass:[history]+
+- +pass:[quickmarks]+
 
 [[url.searchengines]]
 === url.searchengines
