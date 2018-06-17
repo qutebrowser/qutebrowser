@@ -950,11 +950,10 @@ class WebEngineTab(browsertab.AbstractTab):
     @pyqtSlot()
     def _on_load_started(self):
         """Clear search when a new load is started if needed."""
-        if (qtutils.version_check('5.9', compiled=False) and
-                not qtutils.version_check('5.9.2', compiled=False)):
-            # WORKAROUND for
-            # https://bugreports.qt.io/browse/QTBUG-61506
-            self.search.clear()
+        # WORKAROUND for
+        # https://bugreports.qt.io/browse/QTBUG-61506
+        # (seems to be back in later Qt versions as well)
+        self.search.clear()
         super()._on_load_started()
         self.data.netrc_used = False
 
