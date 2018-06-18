@@ -9,8 +9,6 @@ qutebrowser
 // QUTE_WEB_HIDE
 image:icons/qutebrowser-64x64.png[qutebrowser logo] *A keyboard-driven, vim-like browser based on PyQt5 and Qt.*
 
-image:https://img.shields.io/pypi/l/qutebrowser.svg?style=flat["license badge",link="https://github.com/qutebrowser/qutebrowser/blob/master/LICENSE"]
-image:https://img.shields.io/pypi/v/qutebrowser.svg?style=flat["version badge",link="https://pypi.python.org/pypi/qutebrowser/"]
 image:https://travis-ci.org/qutebrowser/qutebrowser.svg?branch=master["Build Status", link="https://travis-ci.org/qutebrowser/qutebrowser"]
 image:https://ci.appveyor.com/api/projects/status/5pyauww2k68bbow2/branch/master?svg=true["AppVeyor build status", link="https://ci.appveyor.com/project/qutebrowser/qutebrowser"]
 image:https://codecov.io/github/qutebrowser/qutebrowser/coverage.svg?branch=master["coverage badge",link="https://codecov.io/github/qutebrowser/qutebrowser?branch=master"]

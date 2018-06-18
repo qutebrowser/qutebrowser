@@ -76,7 +76,7 @@ def _buffer(skip_win_id=None):
     model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
 
     for win_id in objreg.window_registry:
-        if skip_win_id and win_id == skip_win_id:
+        if skip_win_id is not None and win_id == skip_win_id:
             continue
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)

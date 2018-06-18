@@ -232,6 +232,15 @@ class FakeWebTabHistory(browsertab.AbstractHistory):
         return self._can_go_forward
 
 
+class FakeWebTabAudio(browsertab.AbstractAudio):
+
+    def is_muted(self):
+        return False
+
+    def is_recently_audible(self):
+        return False
+
+
 class FakeWebTab(browsertab.AbstractTab):
 
     """Fake AbstractTab to use in tests."""
@@ -248,6 +257,7 @@ class FakeWebTab(browsertab.AbstractTab):
         self.history = FakeWebTabHistory(self, can_go_back=can_go_back,
                                          can_go_forward=can_go_forward)
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
+        self.audio = FakeWebTabAudio()
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
 

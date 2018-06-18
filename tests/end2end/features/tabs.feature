@@ -336,13 +336,13 @@ Feature: Tab management
         When I set tabs.wrap to false
         And I open data/numbers/1.txt
         And I run :tab-prev
-        Then the error "First tab" should be shown
+        Then "First tab" should be logged
 
     Scenario: :tab-next with last tab without wrap
         When I set tabs.wrap to false
         And I open data/numbers/1.txt
         And I run :tab-next
-        Then the error "Last tab" should be shown
+        Then "Last tab" should be logged
 
     Scenario: :tab-prev on first tab with wrap
         When I set tabs.wrap to true
@@ -1250,3 +1250,41 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt (pinned) (active)
+
+
+    Scenario: Focused webview after clicking link in bg
+        When I open data/hints/link_input.html
+        And I run :click-element id qute-input-existing
+        And I wait for "Entering mode KeyMode.insert *" in the log
+        And I run :leave-mode
+        And I hint with args "all tab-bg" and follow a
+        And I wait until data/hello.txt is loaded
+        And I run :enter-mode insert
+        And I run :fake-key -g new
+        Then the javascript message "contents: existingnew" should be logged
+
+    Scenario: Focused webview after opening link in bg
+        When I open data/hints/link_input.html
+        And I run :click-element id qute-input-existing
+        And I wait for "Entering mode KeyMode.insert *" in the log
+        And I run :leave-mode
+        And I open data/hello.txt in a new background tab
+        And I run :enter-mode insert
+        And I run :fake-key -g new
+        Then the javascript message "contents: existingnew" should be logged
+
+    Scenario: Focused prompt after opening link in bg
+        When I open data/hints/link_input.html
+        When I run :set-cmd-text -s :message-info
+        And I open data/hello.txt in a new background tab
+        And I run :fake-key -g hello-world
+        And I run :command-accept
+        Then the message "hello-world" should be shown
+
+    Scenario: Focused prompt after opening link in fg
+        When I open data/hints/link_input.html
+        When I run :set-cmd-text -s :message-info
+        And I open data/hello.txt in a new tab
+        And I run :fake-key -g hello-world
+        And I run :command-accept
+        Then the message "hello-world" should be shown

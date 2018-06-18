@@ -1409,7 +1409,7 @@ class SearchEngineUrl(BaseType):
 
         try:
             value.format("")
-        except (KeyError, IndexError) as e:
+        except (KeyError, IndexError):
             raise configexc.ValidationError(
                 value, "may not contain {...} (use {{ and }} for literal {/})")
         except ValueError as e:

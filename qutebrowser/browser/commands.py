@@ -563,12 +563,6 @@ class CommandDispatcher:
         tabbed_browser.tabopen(self._current_url())
         self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       deprecated='Use :tab-give instead!')
-    def tab_detach(self):
-        """Deprecated way to detach a tab."""
-        self.tab_give()
-
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
         history = self._current_widget().history
@@ -1019,7 +1013,7 @@ class CommandDispatcher:
         elif config.val.tabs.wrap:
             self._set_current_index(newidx % self._count())
         else:
-            raise cmdexc.CommandError("First tab")
+            log.webview.debug("First tab")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1039,7 +1033,7 @@ class CommandDispatcher:
         elif config.val.tabs.wrap:
             self._set_current_index(newidx % self._count())
         else:
-            raise cmdexc.CommandError("Last tab")
+            log.webview.debug("Last tab")
 
     def _resolve_buffer_index(self, index):
         """Resolve a buffer index to the tabbedbrowser and tab.
@@ -1509,11 +1503,15 @@ class CommandDispatcher:
             )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def view_source(self, edit=False):
+    def view_source(self, edit=False, pygments=False):
         """Show the source of the current page in a new tab.
 
         Args:
             edit: Edit the source in the editor instead of opening a tab.
+            pygments: Use pygments to generate the view. This is always
+                      the case for QtWebKit. For QtWebEngine it may display
+                      slightly different source.
+                      Some JavaScript processing may be applied.
         """
         tab = self._current_widget()
         try:
@@ -1521,14 +1519,15 @@ class CommandDispatcher:
         except cmdexc.CommandError as e:
             message.error(str(e))
             return
-        if current_url.scheme() == 'view-source':
+
+        if current_url.scheme() == 'view-source' or tab.data.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")
 
         if edit:
             ed = editor.ExternalEditor(self._tabbed_browser)
             tab.dump_async(ed.edit)
         else:
-            tab.action.show_source()
+            tab.action.show_source(pygments)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
@@ -1662,7 +1661,7 @@ class CommandDispatcher:
         """
         try:
             elem.set_value(text)
-        except webelem.OrphanedError as e:
+        except webelem.OrphanedError:
             message.error('Edited element vanished')
             ed.backup()
         except webelem.Error as e:
@@ -2218,3 +2217,20 @@ class CommandDispatcher:
 
         window = self._tabbed_browser.widget.window()
         window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       name='tab-mute')
+    @cmdutils.argument('count', count=True)
+    def tab_mute(self, count=None):
+        """Mute/Unmute the current/[count]th tab.
+
+        Args:
+            count: The tab index to mute or unmute, or None
+        """
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+        try:
+            tab.audio.toggle_muted()
+        except browsertab.WebTabError as e:
+            raise cmdexc.CommandError(e)

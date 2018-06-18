@@ -22,6 +22,7 @@
 import collections
 import functools
 import math
+import os
 import re
 import html
 import enum
@@ -154,6 +155,7 @@ class HintContext:
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
+        first_run: Whether the action is run for the 1st time in rapid hinting.
         add_history: Whether to add yanked or spawned link to the history.
         filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
@@ -166,12 +168,14 @@ class HintContext:
     baseurl = attr.ib(None)
     to_follow = attr.ib(None)
     rapid = attr.ib(False)
+    first_run = attr.ib(True)
     add_history = attr.ib(False)
     filterstr = attr.ib(None)
     args = attr.ib(attr.Factory(list))
     tab = attr.ib(None)
     group = attr.ib(None)
     hint_mode = attr.ib(None)
+    first = attr.ib(False)
 
     def get_args(self, urlstr):
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -240,7 +244,18 @@ class HintActions:
         if url.scheme() == 'mailto':
             flags |= QUrl.RemoveScheme
         urlstr = url.toString(flags)
-        utils.set_clipboard(urlstr, selection=sel)
+
+        new_content = urlstr
+
+        # only second and consecutive yanks are to append to the clipboard
+        if context.rapid and not context.first_run:
+            try:
+                old_content = utils.get_clipboard(selection=sel)
+            except utils.ClipboardEmptyError:
+                pass
+            else:
+                new_content = os.linesep.join([old_content, new_content])
+        utils.set_clipboard(new_content, selection=sel)
 
         msg = "Yanked URL to {}: {}".format(
             "primary selection" if sel else "clipboard",
@@ -612,6 +627,9 @@ class HintManager(QObject):
         modeman.enter(self._win_id, usertypes.KeyMode.hint,
                       'HintManager.start')
 
+        if self._context.first:
+            self._fire(strings[0])
+            return
         # to make auto_follow == 'always' work
         self._handle_auto_follow()
 
@@ -620,7 +638,8 @@ class HintManager(QObject):
     @cmdutils.argument('win_id', win_id=True)
     def start(self,  # pylint: disable=keyword-arg-before-vararg
               group=webelem.Group.all, target=Target.normal,
-              *args, win_id, mode=None, add_history=False, rapid=False):
+              *args, win_id, mode=None, add_history=False, rapid=False,
+              first=False):
         """Start hinting.
 
         Args:
@@ -631,6 +650,7 @@ class HintManager(QObject):
                    `window`, `run`, `hover`, `userscript` and `spawn`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
+            first: Click the first hinted element without prompting.
             group: The element types to hint.
 
                 - `all`: All clickable elements.
@@ -694,7 +714,8 @@ class HintManager(QObject):
         if rapid:
             if target in [Target.tab_bg, Target.window, Target.run,
                           Target.hover, Target.userscript, Target.spawn,
-                          Target.download, Target.normal, Target.current]:
+                          Target.download, Target.normal, Target.current,
+                          Target.yank, Target.yank_primary]:
                 pass
             elif target == Target.tab and config.val.tabs.background:
                 pass
@@ -713,6 +734,7 @@ class HintManager(QObject):
         self._context.rapid = rapid
         self._context.hint_mode = mode
         self._context.add_history = add_history
+        self._context.first = first
         try:
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
@@ -906,6 +928,9 @@ class HintManager(QObject):
             handler()
         except HintingError as e:
             message.error(str(e))
+
+        if self._context is not None:
+            self._context.first_run = False
 
     @cmdutils.register(instance='hintmanager', scope='tab',
                        modes=[usertypes.KeyMode.hint])

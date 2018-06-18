@@ -57,7 +57,8 @@ You'll need to download three packages:
   (or both) depending on the backend you want to use. QtWebEngine is the
   default/recommended choice.
 
-After downloading, install the packages:
+After downloading, install the packages (make sure to install all the
+downloaded qutebrowser deb files in one apt command):
 
 ----
 # apt install ./python3-pypeg2_*_all.deb
@@ -381,8 +382,8 @@ $ git clone https://github.com/qutebrowser/qutebrowser.git
 $ cd qutebrowser
 ----
 
-Installing depdendencies (including Qt)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Installing dependencies (including Qt)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Then run tox inside the qutebrowser repository to set up a
 https://docs.python.org/3/library/venv.html[virtual environment]:
@@ -426,7 +427,11 @@ Creating a wrapper script
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Running `tox` does not install a system-wide `qutebrowser` script. You can
-launch qutebrowser by doing `.venv/bin/python3 -m qutebrowser`.
+launch qutebrowser by doing:
+
+----
+.venv/bin/python3 -m qutebrowser
+----
 
 You can create a simple wrapper script to start qutebrowser somewhere in your
 `$PATH` (e.g. `/usr/local/bin/qutebrowser` or `~/bin/qutebrowser`):

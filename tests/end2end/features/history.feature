@@ -66,6 +66,7 @@ Feature: Page history
         Then the history should contain:
             http://localhost:(port)/data/data_link.html data: link
 
+    @qtwebkit_skip
     Scenario: History with view-source URL
         When I open data/title.html
         And I run :view-source

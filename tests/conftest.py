@@ -36,7 +36,7 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *  # noqa: F403
-from qutebrowser.utils import qtutils, standarddir, usertypes, utils
+from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
 from qutebrowser.misc import objects
 
 import qutebrowser.app  # To register commands
@@ -77,10 +77,14 @@ def _apply_platform_markers(config, item):
          "https://bugreports.qt.io/browse/QTBUG-60673"),
         ('unicode_locale', sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
+        ('qtwebkit6021_skip',
+         version.qWebKitVersion and
+         version.qWebKitVersion() == '602.1',
+         "Broken on WebKit 602.1")
     ]
 
     for searched_marker, condition, default_reason in markers:
-        marker = item.get_marker(searched_marker)
+        marker = item.get_closest_marker(searched_marker)
         if not marker or not condition:
             continue
 
@@ -138,9 +142,9 @@ def pytest_collection_modifyitems(config, items):
                 item.add_marker(pytest.mark.end2end)
 
         _apply_platform_markers(config, item)
-        if item.get_marker('xfail_norun'):
+        if list(item.iter_markers('xfail_norun')):
             item.add_marker(pytest.mark.xfail(run=False))
-        if item.get_marker('js_prompt'):
+        if list(item.iter_markers('js_prompt')):
             if config.webengine:
                 item.add_marker(pytest.mark.skipif(
                     PYQT_VERSION <= 0x050700,
@@ -219,14 +223,16 @@ def check_display(request):
 @pytest.fixture(autouse=True)
 def set_backend(monkeypatch, request):
     """Make sure the backend global is set."""
-    backend = (usertypes.Backend.QtWebEngine if request.config.webengine
-               else usertypes.Backend.QtWebKit)
+    if not request.config.webengine and version.qWebKitVersion:
+        backend = usertypes.Backend.QtWebKit
+    else:
+        backend = usertypes.Backend.QtWebEngine
     monkeypatch.setattr(objects, 'backend', backend)
 
 
 @pytest.fixture(autouse=True)
 def apply_fake_os(monkeypatch, request):
-    fake_os = request.node.get_marker('fake_os')
+    fake_os = request.node.get_closest_marker('fake_os')
     if not fake_os:
         return
 

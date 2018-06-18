@@ -15,7 +15,7 @@ def get_data_files():
         ('../qutebrowser/img', 'img'),
         ('../qutebrowser/javascript', 'javascript'),
         ('../qutebrowser/html/doc', 'html/doc'),
-        ('../qutebrowser/git-commit-id', ''),
+        ('../qutebrowser/git-commit-id', '.'),
         ('../qutebrowser/config/configdata.yml', 'config'),
     ]
 
@@ -59,7 +59,8 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=False,
-          console=False )
+          console=False,
+          version='misc/file_version_info.txt')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

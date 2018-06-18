@@ -87,6 +87,8 @@ class AbstractWebInspector(QWidget):
         data = bytes(self.saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
         configfiles.state['geometry']['inspector'] = geom
+
+        self.inspect(None)
         super().closeEvent(e)
 
     def inspect(self, page):
@@ -99,3 +101,4 @@ class AbstractWebInspector(QWidget):
             self.hide()
         else:
             self.inspect(page)
+            self.show()

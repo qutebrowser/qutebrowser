@@ -177,7 +177,7 @@ def data_for_url(url):
     except OSError as e:
         # FIXME:qtwebengine how to handle this?
         raise QuteSchemeOSError(e)
-    except QuteSchemeError as e:
+    except QuteSchemeError:
         raise
 
     assert mimetype is not None, url

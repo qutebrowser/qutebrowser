@@ -33,6 +33,7 @@ from PyQt5.QtGui import QIcon, QPalette, QColor
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config
 from qutebrowser.misc import objects
+from qutebrowser.browser import browsertab
 
 
 PixelMetrics = enum.IntEnum('PixelMetrics', ['icon_padding'],
@@ -172,6 +173,16 @@ class TabWidget(QTabWidget):
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
         fields['private'] = ' [Private Mode] ' if tab.private else ''
+        try:
+            if tab.audio.is_muted():
+                fields['audio'] = '[M] '
+            elif tab.audio.is_recently_audible():
+                fields['audio'] = '[A] '
+            else:
+                fields['audio'] = ''
+        except browsertab.WebTabError:
+            # Muting is only implemented with QtWebEngine
+            fields['audio'] = ''
 
         if tab.load_status() == usertypes.LoadStatus.loading:
             fields['perc'] = '[{}%] '.format(tab.progress())

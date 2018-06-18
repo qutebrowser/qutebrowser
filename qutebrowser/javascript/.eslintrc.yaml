@@ -56,3 +56,4 @@ rules:
      no-bitwise: "off"
      no-ternary: "off"
      max-lines: "off"
+     multiline-ternary: ["error", "always-multiline"]

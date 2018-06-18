@@ -107,6 +107,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
 |<<tab-give,tab-give>>|Give the current tab to a new or existing window if win_id given.
 |<<tab-move,tab-move>>|Move the current tab according to the argument and [count].
+|<<tab-mute,tab-mute>>|Mute/Unmute the current/[count]th tab.
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
 |<<tab-pin,tab-pin>>|Pin/Unpin the current/[count]th tab.
@@ -526,7 +527,7 @@ Show help about a command or setting.
 
 [[hint]]
 === hint
-Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*]
+Syntax: +:hint [*--mode* 'mode'] [*--add-history*] [*--rapid*] [*--first*]
      ['group'] ['target'] ['args' ['args' ...]]+
 
 Start hinting.
@@ -596,6 +597,7 @@ Start hinting.
  `tab` (with `tabs.background_tabs=true`), `tab-bg`,
  `window`, `run`, `hover`, `userscript` and `spawn`.
 
+* +*-f*+, +*--first*+: Click the first hinted element without prompting.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -1232,6 +1234,13 @@ If moving relatively: Offset. If moving absolutely: New position (default: 0). T
  overrides the index argument, if given.
 
 
+[[tab-mute]]
+=== tab-mute
+Mute/Unmute the current/[count]th tab.
+
+==== count
+The tab index to mute or unmute
+
 [[tab-next]]
 === tab-next
 Switch to the next tab, or switch [count] tabs forward.
@@ -1305,12 +1314,16 @@ Show version information.
 
 [[view-source]]
 === view-source
-Syntax: +:view-source [*--edit*]+
+Syntax: +:view-source [*--edit*] [*--pygments*]+
 
 Show the source of the current page in a new tab.
 
 ==== optional arguments
 * +*-e*+, +*--edit*+: Edit the source in the editor instead of opening a tab.
+* +*-p*+, +*--pygments*+: Use pygments to generate the view. This is always the case for QtWebKit. For QtWebEngine it may display
+ slightly different source.
+ Some JavaScript processing may be applied.
+
 
 [[window-only]]
 === window-only

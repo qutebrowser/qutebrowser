@@ -28,6 +28,10 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QApplication
 
+import pygments
+import pygments.lexers
+import pygments.formatters
+
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
@@ -95,6 +99,8 @@ class TabData:
         keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
                    load.
         inspector: The QWebInspector used for this webview.
+        viewing_source: Set if we're currently showing a source view.
+                        Only used when sources are shown via pygments.
         open_target: Where to open the next link.
                      Only used for QtWebKit.
         override_target: Override for open_target for fake clicks (like hints).
@@ -106,6 +112,7 @@ class TabData:
     """
 
     keep_icon = attr.ib(False)
+    viewing_source = attr.ib(False)
     inspector = attr.ib(None)
     open_target = attr.ib(usertypes.ClickTarget.normal)
     override_target = attr.ib(None)
@@ -150,9 +157,30 @@ class AbstractAction:
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
 
-    def show_source(self):
+    def show_source(self,
+                    pygments=False):  # pylint: disable=redefined-outer-name
         """Show the source of the current page in a new tab."""
         raise NotImplementedError
+
+    def _show_source_pygments(self):
+
+        def show_source_cb(source):
+            """Show source as soon as it's ready."""
+            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
+            # pylint: disable=no-member
+            lexer = pygments.lexers.HtmlLexer()
+            formatter = pygments.formatters.HtmlFormatter(
+                full=True, linenos='table')
+            # pylint: enable=no-member
+            highlighted = pygments.highlight(source, lexer, formatter)
+
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._tab.win_id)
+            new_tab = tb.tabopen(background=False, related=True)
+            new_tab.set_html(highlighted, self._tab.url())
+            new_tab.data.viewing_source = True
+
+        self._tab.dump_async(show_source_cb)
 
 
 class AbstractPrinting:
@@ -414,6 +442,13 @@ class AbstractCaret(QObject):
     def selection(self, callback):
         raise NotImplementedError
 
+    def _follow_enter(self, tab):
+        """Follow a link by faking an enter press."""
+        if tab:
+            self._tab.key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+        else:
+            self._tab.key_press(Qt.Key_Enter)
+
     def follow_selected(self, *, tab=False):
         raise NotImplementedError
 
@@ -599,6 +634,33 @@ class AbstractElements:
         raise NotImplementedError
 
 
+class AbstractAudio(QObject):
+
+    """Handling of audio/muting for this tab."""
+
+    muted_changed = pyqtSignal(bool)
+    recently_audible_changed = pyqtSignal(bool)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._widget = None
+
+    def set_muted(self, muted: bool):
+        """Set this tab as muted or not."""
+        raise NotImplementedError
+
+    def is_muted(self):
+        """Whether this tab is muted."""
+        raise NotImplementedError
+
+    def toggle_muted(self):
+        self.set_muted(not self.is_muted())
+
+    def is_recently_audible(self):
+        """Whether this tab has had audio playing recently."""
+        raise NotImplementedError
+
+
 class AbstractTab(QWidget):
 
     """A wrapper over the given widget to hide its API and expose another one.
@@ -693,6 +755,7 @@ class AbstractTab(QWidget):
         self.printing._widget = widget
         self.action._widget = widget
         self.elements._widget = widget
+        self.audio._widget = widget
         self.settings._settings = widget.settings()
 
         self._install_event_filter()
@@ -724,7 +787,13 @@ class AbstractTab(QWidget):
         if getattr(evt, 'posted', False):
             raise utils.Unreachable("Can't re-use an event which was already "
                                     "posted!")
+
         recipient = self.event_target()
+        if recipient is None:
+            # https://github.com/qutebrowser/qutebrowser/issues/3888
+            log.webview.warning("Unable to find event target!")
+            return
+
         evt.posted = True
         QApplication.postEvent(recipient, evt)
 
@@ -747,6 +816,7 @@ class AbstractTab(QWidget):
     def _on_load_started(self):
         self._progress = 0
         self._has_ssl_errors = False
+        self.data.viewing_source = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 

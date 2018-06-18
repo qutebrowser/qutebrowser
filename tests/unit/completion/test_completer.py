@@ -125,7 +125,7 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
         """docstring."""
         pass
 
-    def tab_detach():
+    def tab_give():
         """docstring."""
         pass
 
@@ -140,7 +140,7 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
         'help': command.Command(name='help', handler=show_help),
         'open': command.Command(name='open', handler=openurl, maxsplit=0),
         'bind': command.Command(name='bind', handler=bind),
-        'tab-detach': command.Command(name='tab-detach', handler=tab_detach),
+        'tab-give': command.Command(name='tab-give', handler=tab_give),
         'config-cycle': command.Command(name='config-cycle',
                                         handler=config_cycle),
     })
@@ -189,7 +189,7 @@ def _set_cmd_prompt(cmd, txt):
     (':open -t |', 'url', '', []),
     (':open --tab |', 'url', '', []),
     (':open | -t', 'url', '', []),
-    (':tab-detach |', None, '', []),
+    (':tab-give |', None, '', []),
     (':bind --mode=caret <c-x> |', 'command', '', ['<c-x>']),
     pytest.param(':bind --mode caret <c-x> |', 'command', '', [],
                  marks=pytest.mark.xfail(reason='issue #74')),

@@ -19,6 +19,8 @@
 
 """Base class for vim-like key sequence parser."""
 
+import string
+
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtGui import QKeySequence
 
@@ -136,7 +138,7 @@ class BaseKeyParser(QObject):
     def _match_count(self, sequence, dry_run):
         """Try to match a key as count."""
         txt = str(sequence[-1])  # To account for sequences changed above.
-        if (txt.isdigit() and self._supports_count and
+        if (txt in string.digits and self._supports_count and
                 not (not self._count and txt == '0')):
             self._debug_log("Trying match as count")
             assert len(txt) == 1, txt

@@ -34,6 +34,9 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
     def install(self, profile):
         """Install the handler for qute:// URLs on the given profile."""
         profile.installUrlSchemeHandler(b'qute', self)
+        if qtutils.version_check('5.11', compiled=False):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
+            profile.installUrlSchemeHandler(b'chrome-error', self)
 
     def requestStarted(self, job):
         """Handle a request for a qute: scheme.
@@ -45,6 +48,12 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             job: QWebEngineUrlRequestJob
         """
         url = job.requestUrl()
+
+        if url.scheme() == 'chrome-error':
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
+            job.fail(QWebEngineUrlRequestJob.UrlInvalid)
+            return
+
         assert job.requestMethod() == b'GET'
         assert url.scheme() == 'qute'
         log.misc.debug("Got request for {}".format(url.toDisplayString()))

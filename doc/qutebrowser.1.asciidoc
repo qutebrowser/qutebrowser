@@ -38,7 +38,7 @@ show it.
 *-h*, *--help*::
     show this help message and exit
 
-*--basedir* 'BASEDIR'::
+*-B* 'BASEDIR', *--basedir* 'BASEDIR'::
     Base directory for all storage.
 
 *-V*, *--version*::
@@ -60,7 +60,7 @@ show it.
     Which backend to use.
 
 *--enable-webengine-inspector*::
-    Enable the web inspector for QtWebEngine. Note that this is a SECURITY RISK and you should not visit untrusted websites with the inspector turned on. See https://bugreports.qt.io/browse/QTBUG-50725 for more details.
+    Enable the web inspector for QtWebEngine. Note that this is a SECURITY RISK and you should not visit untrusted websites with the inspector turned on. See https://bugreports.qt.io/browse/QTBUG-50725 for more details. This is not needed anymore since Qt 5.11 where the inspector is always enabled and secure.
 
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
@@ -72,7 +72,7 @@ show it.
 *--loglines* 'LOGLINES'::
     How many lines of the debug log to keep in RAM (-1: unlimited).
 
-*--debug*::
+*-d*, *--debug*::
     Turn on debugging options.
 
 *--json-logging*::
@@ -87,7 +87,7 @@ show it.
 *--nowindow*::
     Don't show the main window.
 
-*--temp-basedir*::
+*-T*, *--temp-basedir*::
     Use a temporary basedir.
 
 *--no-err-windows*::
@@ -99,7 +99,7 @@ show it.
 *--qt-flag* 'QT_FLAG'::
     Pass an argument to Qt as flag.
 
-*--debug-flag* 'DEBUG_FLAGS'::
+*-D* 'DEBUG_FLAGS', *--debug-flag* 'DEBUG_FLAGS'::
     Pass name of debugging feature to be turned on.
 // QUTE_OPTIONS_END
 

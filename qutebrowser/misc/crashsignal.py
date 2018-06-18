@@ -36,7 +36,6 @@ except ImportError:
 import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc
@@ -206,7 +205,6 @@ class CrashHandler(QObject):
         gracefully.
         """
         exc = (exctype, excvalue, tb)
-        qapp = QApplication.instance()
 
         if not self._quitter.quit_status['crash']:
             log.misc.error("ARGH, there was an exception while the crash "
@@ -223,14 +221,7 @@ class CrashHandler(QObject):
 
         if is_ignored_exception or 'pdb-postmortem' in self._args.debug_flags:
             # pdb exit, KeyboardInterrupt, ...
-            status = 0 if is_ignored_exception else 2
-            try:
-                self._quitter.shutdown(status)
-                return
-            except Exception:
-                log.init.exception("Error while shutting down")
-                qapp.quit()
-                return
+            sys.exit(usertypes.Exit.exception)
 
         self._quitter.quit_status['crash'] = False
         info = self._get_exception_info()

@@ -34,12 +34,18 @@ import tarfile
 import tempfile
 import collections
 
+try:
+    import winreg
+except ImportError:
+    pass
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 import qutebrowser
 from scripts import utils
 # from scripts.dev import update_3rdparty
+from scripts.dev import gen_versioninfo
 
 
 def call_script(name, *args, python=sys.executable):
@@ -222,8 +228,25 @@ def build_windows():
     utils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
     ver = ''.join(parts)
-    python_x86 = r'C:\Python{}-32\python.exe'.format(ver)
-    python_x64 = r'C:\Python{}\python.exe'.format(ver)
+    dot_ver = '.'.join(parts)
+
+    # Get python path from registry if possible
+    try:
+        reg64_key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
+                                     r'SOFTWARE\Python\PythonCore'
+                                     r'\{}\InstallPath'.format(dot_ver))
+        python_x64 = winreg.QueryValueEx(reg64_key, 'ExecutablePath')[0]
+    except FileNotFoundError:
+        python_x64 = r'C:\Python{}\python.exe'.format(ver)
+
+    try:
+        reg32_key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
+                                     r'SOFTWARE\WOW6432Node\Python\PythonCore'
+                                     r'\{}-32\InstallPath'.format(dot_ver))
+        python_x86 = winreg.QueryValueEx(reg32_key, 'ExecutablePath')[0]
+    except FileNotFoundError:
+        python_x86 = r'C:\Python{}-32\python.exe'.format(ver)
+
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
     out_32 = os.path.join('dist',
                           'qutebrowser-{}-x86'.format(qutebrowser.__version__))
@@ -231,6 +254,9 @@ def build_windows():
                           'qutebrowser-{}-x64'.format(qutebrowser.__version__))
 
     artifacts = []
+
+    utils.print_title("Updating VersionInfo file")
+    gen_versioninfo.main()
 
     utils.print_title("Running pyinstaller 32bit")
     _maybe_remove(out_32)
@@ -401,14 +427,6 @@ def main():
 
     run_asciidoc2html(args)
     if os.name == 'nt':
-        if sys.maxsize > 2**32:
-            # WORKAROUND
-            print("Due to a python/Windows bug, this script needs to be run ")
-            print("with a 32bit Python.")
-            print()
-            print("See http://bugs.python.org/issue24493 and ")
-            print("https://github.com/pypa/virtualenv/issues/774")
-            sys.exit(1)
         artifacts = build_windows()
     elif sys.platform == 'darwin':
         artifacts = build_mac()

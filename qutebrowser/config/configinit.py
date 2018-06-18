@@ -83,9 +83,12 @@ def early_init(args):
 
 def _init_envvars():
     """Initialize environment variables which need to be set early."""
-    if (objects.backend == usertypes.Backend.QtWebEngine and
-            config.val.qt.force_software_rendering):
-        os.environ['QT_XCB_FORCE_SOFTWARE_OPENGL'] = '1'
+    if objects.backend == usertypes.Backend.QtWebEngine:
+        software_rendering = config.val.qt.force_software_rendering
+        if software_rendering == 'software-opengl':
+            os.environ['QT_XCB_FORCE_SOFTWARE_OPENGL'] = '1'
+        elif software_rendering == 'qt-quick':
+            os.environ['QT_QUICK_BACKEND'] = 'software'
 
     if config.val.qt.force_platform is not None:
         os.environ['QT_QPA_PLATFORM'] = config.val.qt.force_platform
@@ -163,11 +166,25 @@ def qt_args(namespace):
 
     argv += ['--' + arg for arg in config.val.qt.args]
 
-    if (objects.backend == usertypes.Backend.QtWebEngine and
-            not qtutils.version_check('5.11', compiled=False)):
-        # WORKAROUND equivalent to
-        # https://codereview.qt-project.org/#/c/217932/
-        # Needed for Qt < 5.9.5 and < 5.10.1
-        argv.append('--disable-shared-workers')
+    if objects.backend == usertypes.Backend.QtWebEngine:
+        if not qtutils.version_check('5.11', compiled=False):
+            # WORKAROUND equivalent to
+            # https://codereview.qt-project.org/#/c/217932/
+            # Needed for Qt < 5.9.5 and < 5.10.1
+            argv.append('--disable-shared-workers')
+
+        if config.val.qt.force_software_rendering == 'chromium':
+            argv.append('--disable-gpu')
+
+        if not config.val.content.canvas_reading:
+            argv.append('--disable-reading-from-canvas')
+
+        if not qtutils.version_check('5.11'):
+            # On Qt 5.11, we can control this via QWebEngineSettings
+            if not config.val.content.autoplay:
+                argv.append('--autoplay-policy=user-gesture-required')
+            if config.val.content.webrtc_public_interfaces_only:
+                argv.append('--force-webrtc-ip-handling-policy='
+                            'default_public_interface_only')
 
     return argv

@@ -166,8 +166,9 @@ def _nvidia_shader_workaround():
     See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
     """
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
-    if utils.is_linux:
-        ctypes.CDLL(ctypes.util.find_library("GL"), mode=ctypes.RTLD_GLOBAL)
+    libgl = ctypes.util.find_library("GL")
+    if libgl is not None:
+        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
 
 
 def _handle_nouveau_graphics():
@@ -184,7 +185,7 @@ def _handle_nouveau_graphics():
         return
 
     button = _Button("Force software rendering", 'qt.force_software_rendering',
-                     True)
+                     'chromium')
     _show_dialog(
         backend=usertypes.Backend.QtWebEngine,
         because="you're using Nouveau graphics",
@@ -193,9 +194,9 @@ def _handle_nouveau_graphics():
              "<p>This allows you to use the newer QtWebEngine backend (based "
              "on Chromium) but could have noticeable performance impact "
              "(depending on your hardware). "
-             "This sets the <i>qt.force_software_rendering = True</i> option "
-             "(if you have a <i>config.py</i> file, you'll need to set this "
-             "manually).</p>",
+             "This sets the <i>qt.force_software_rendering = 'chromium'</i> "
+             "option (if you have a <i>config.py</i> file, you'll need to set "
+             "this manually).</p>",
         buttons=[button],
     )
 
@@ -212,33 +213,41 @@ def _handle_wayland():
     if platform not in ['wayland', 'wayland-egl']:
         return
 
+    has_qt511 = qtutils.version_check('5.11', compiled=False)
+    if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
+        return
+
+    buttons = []
+    text = "<p>You can work around this in one of the following ways:</p>"
+
     if 'DISPLAY' in os.environ:
         # XWayland is available, but QT_QPA_PLATFORM=wayland is set
-        button = _Button("Force XWayland", 'qt.force_platform', 'xcb')
-        _show_dialog(
-            backend=usertypes.Backend.QtWebEngine,
-            because="you're using Wayland",
-            text="<p>There are two ways to fix this:</p>"
-                 "<p><b>Force Qt to use XWayland</b></p>"
+        buttons.append(_Button("Force XWayland", 'qt.force_platform', 'xcb'))
+        text += ("<p><b>Force Qt to use XWayland</b></p>"
                  "<p>This allows you to use the newer QtWebEngine backend "
                  "(based on Chromium). "
                  "This sets the <i>qt.force_platform = 'xcb'</i> option "
                  "(if you have a <i>config.py</i> file, you'll need to set "
-                 "this manually).</p>",
-            buttons=[button],
-        )
+                 "this manually).</p>")
     else:
-        # XWayland is unavailable
-        _show_dialog(
-            backend=usertypes.Backend.QtWebEngine,
-            because="you're using Wayland without XWayland",
-            text="<p>There are two ways to fix this:</p>"
-                 "<p><b>Set up XWayland</b></p>"
-                 "<p>This allows you to use the newer QtWebEngine backend "
-                 "(based on Chromium). "
-        )
+        text.append("<p><b>Set up XWayland</b></p>"
+                    "<p>This allows you to use the newer QtWebEngine backend "
+                    "(based on Chromium). ")
 
-    raise utils.Unreachable
+    if has_qt511:
+        buttons.append(_Button("Force software rendering",
+                               'qt.force_software_rendering',
+                               'chromium'))
+        text += ("<p><b>Forcing software rendering</b></p>"
+                 "<p>This allows you to use the newer QtWebEngine backend "
+                 "(based on Chromium) but could have noticeable performance "
+                 "impact (depending on your hardware). This sets the "
+                 "<i>qt.force_software_rendering = 'chromium'</i> option "
+                 "(if you have a <i>config.py</i> file, you'll need to set "
+                 "this manually).</p>")
+
+    _show_dialog(backend=usertypes.Backend.QtWebEngine,
+                 because="you're using Wayland", text=text, buttons=buttons)
 
 
 @attr.s

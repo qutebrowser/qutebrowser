@@ -45,7 +45,7 @@ class PyPIVersionClient(QObject):
                arg: The error message, as string.
     """
 
-    API_URL = 'https://pypi.python.org/pypi/{}/json'
+    API_URL = 'https://pypi.org/pypi/{}/json'
     success = pyqtSignal(str)
     error = pyqtSignal(str)
 

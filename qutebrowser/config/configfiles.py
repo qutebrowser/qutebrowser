@@ -233,6 +233,14 @@ class YamlConfig(QObject):
         if errors:
             raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
+    def _migrate_bool(self, settings, name, true_value, false_value):
+        """Migrate a boolean in the settings."""
+        if name in settings:
+            for scope, val in settings[name].items():
+                if isinstance(val, bool):
+                    settings[name][scope] = true_value if val else false_value
+                    self._mark_changed()
+
     def _handle_migrations(self, settings):
         """Migrate older configs to the newest format."""
         # Simple renamed/deleted options
@@ -268,14 +276,9 @@ class YamlConfig(QObject):
             del settings['bindings.default']
             self._mark_changed()
 
-        # Option to show favicons only for pinned tabs changed the type of
-        # tabs.favicons.show from Bool to String
-        name = 'tabs.favicons.show'
-        if name in settings:
-            for scope, val in settings[name].items():
-                if isinstance(val, bool):
-                    settings[name][scope] = 'always' if val else 'never'
-                    self._mark_changed()
+        self._migrate_bool(settings, 'tabs.favicons.show', 'always', 'never')
+        self._migrate_bool(settings, 'qt.force_software_rendering',
+                           'software-opengl', 'none')
 
         return settings
 
@@ -573,7 +576,7 @@ def read_autoconfig():
     """Read the autoconfig.yml file."""
     try:
         config.instance.read_yaml()
-    except configexc.ConfigFileErrors as e:
+    except configexc.ConfigFileErrors:
         raise  # caught in outer block
     except configexc.Error as e:
         desc = configexc.ConfigErrorDesc("Error", e)

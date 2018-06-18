@@ -19,11 +19,10 @@
 
 """Customized QWebInspector for QtWebKit."""
 
-
+from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebInspector
 
 from qutebrowser.browser import inspector
-from qutebrowser.config import config
 
 
 class WebKitInspector(inspector.AbstractWebInspector):
@@ -36,9 +35,6 @@ class WebKitInspector(inspector.AbstractWebInspector):
         self._set_widget(qwebinspector)
 
     def inspect(self, page):
-        if not config.val.content.developer_extras:
-            raise inspector.WebInspectorError(
-                "Please enable content.developer_extras before using the "
-                "webinspector!")
+        settings = QWebSettings.globalSettings()
+        settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
         self._widget.setPage(page)
-        self.show()

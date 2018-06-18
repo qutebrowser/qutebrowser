@@ -196,7 +196,8 @@ def ignore_certificate_errors(url, errors, abort_on):
     raise utils.Unreachable
 
 
-def feature_permission(url, option, msg, yes_action, no_action, abort_on):
+def feature_permission(url, option, msg, yes_action, no_action, abort_on,
+                       blocking=False):
     """Handle a feature permission request.
 
     Args:
@@ -206,9 +207,11 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on):
         yes_action: A callable to call if the request was approved
         no_action: A callable to call if the request was denied
         abort_on: A list of signals which interrupt the question.
+        blocking: If True, ask a blocking question.
 
     Return:
-        The Question object if a question was asked, None otherwise.
+        The Question object if a question was asked (and blocking=False),
+        None otherwise.
     """
     config_val = config.instance.get(option)
     if config_val == 'ask':
@@ -220,10 +223,20 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on):
             urlstr = None
             text = "Allow the website to {}?".format(msg)
 
-        return message.confirm_async(
-            yes_action=yes_action, no_action=no_action,
-            cancel_action=no_action, abort_on=abort_on,
-            title='Permission request', text=text, url=urlstr)
+        if blocking:
+            answer = message.ask(abort_on=abort_on, title='Permission request',
+                                 text=text, url=urlstr,
+                                 mode=usertypes.PromptMode.yesno)
+            if answer:
+                yes_action()
+            else:
+                no_action()
+            return None
+        else:
+            return message.confirm_async(
+                yes_action=yes_action, no_action=no_action,
+                cancel_action=no_action, abort_on=abort_on,
+                title='Permission request', text=text, url=urlstr)
     elif config_val:
         yes_action()
         return None
@@ -299,10 +312,10 @@ def netrc_authentication(url, authenticator):
             (user, _account, password) = authenticators
     except FileNotFoundError:
         log.misc.debug("No .netrc file found")
-    except OSError:
-        log.misc.exception("Unable to read the netrc file")
-    except netrc.NetrcParseError:
-        log.misc.exception("Error when parsing the netrc file")
+    except OSError as e:
+        log.misc.exception("Unable to read the netrc file: {}".format(e))
+    except netrc.NetrcParseError as e:
+        log.misc.exception("Error when parsing the netrc file: {}".format(e))
 
     if user is None:
         return False

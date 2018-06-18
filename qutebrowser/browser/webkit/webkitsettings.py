@@ -30,6 +30,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings
+from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import standarddir, urlutils
 from qutebrowser.browser import shared
 
@@ -44,50 +45,48 @@ class WebKitSettings(websettings.AbstractSettings):
 
     _ATTRIBUTES = {
         'content.images':
-            [QWebSettings.AutoLoadImages],
+            Attr(QWebSettings.AutoLoadImages),
         'content.javascript.enabled':
-            [QWebSettings.JavascriptEnabled],
+            Attr(QWebSettings.JavascriptEnabled),
         'content.javascript.can_open_tabs_automatically':
-            [QWebSettings.JavascriptCanOpenWindows],
+            Attr(QWebSettings.JavascriptCanOpenWindows),
         'content.javascript.can_close_tabs':
-            [QWebSettings.JavascriptCanCloseWindows],
+            Attr(QWebSettings.JavascriptCanCloseWindows),
         'content.javascript.can_access_clipboard':
-            [QWebSettings.JavascriptCanAccessClipboard],
+            Attr(QWebSettings.JavascriptCanAccessClipboard),
         'content.plugins':
-            [QWebSettings.PluginsEnabled],
+            Attr(QWebSettings.PluginsEnabled),
         'content.webgl':
-            [QWebSettings.WebGLEnabled],
+            Attr(QWebSettings.WebGLEnabled),
         'content.hyperlink_auditing':
-            [QWebSettings.HyperlinkAuditingEnabled],
+            Attr(QWebSettings.HyperlinkAuditingEnabled),
         'content.local_content_can_access_remote_urls':
-            [QWebSettings.LocalContentCanAccessRemoteUrls],
+            Attr(QWebSettings.LocalContentCanAccessRemoteUrls),
         'content.local_content_can_access_file_urls':
-            [QWebSettings.LocalContentCanAccessFileUrls],
+            Attr(QWebSettings.LocalContentCanAccessFileUrls),
         'content.dns_prefetch':
-            [QWebSettings.DnsPrefetchEnabled],
+            Attr(QWebSettings.DnsPrefetchEnabled),
         'content.frame_flattening':
-            [QWebSettings.FrameFlatteningEnabled],
+            Attr(QWebSettings.FrameFlatteningEnabled),
         'content.cache.appcache':
-            [QWebSettings.OfflineWebApplicationCacheEnabled],
+            Attr(QWebSettings.OfflineWebApplicationCacheEnabled),
         'content.local_storage':
-            [QWebSettings.LocalStorageEnabled,
-             QWebSettings.OfflineStorageDatabaseEnabled],
-        'content.developer_extras':
-            [QWebSettings.DeveloperExtrasEnabled],
+            Attr(QWebSettings.LocalStorageEnabled,
+                 QWebSettings.OfflineStorageDatabaseEnabled),
         'content.print_element_backgrounds':
-            [QWebSettings.PrintElementBackgrounds],
+            Attr(QWebSettings.PrintElementBackgrounds),
         'content.xss_auditing':
-            [QWebSettings.XSSAuditingEnabled],
+            Attr(QWebSettings.XSSAuditingEnabled),
 
         'input.spatial_navigation':
-            [QWebSettings.SpatialNavigationEnabled],
+            Attr(QWebSettings.SpatialNavigationEnabled),
         'input.links_included_in_focus_chain':
-            [QWebSettings.LinksIncludedInFocusChain],
+            Attr(QWebSettings.LinksIncludedInFocusChain),
 
         'zoom.text_only':
-            [QWebSettings.ZoomTextOnly],
+            Attr(QWebSettings.ZoomTextOnly),
         'scrolling.smooth':
-            [QWebSettings.ScrollAnimatorEnabled],
+            Attr(QWebSettings.ScrollAnimatorEnabled),
     }
 
     _FONT_SIZES = {

@@ -357,6 +357,13 @@ class QuteProc(testprocess.Process):
             # when calling QApplication::sync
             "Focus object changed: "
             "<PyQt5.QtWidgets.QWidget object at *>",
+            # Qt >= 5.11
+            "Focus object changed: "
+            "<qutebrowser.browser.webengine.webview.WebEngineView object "
+            "at *>",
+            # Qt >= 5.11 with workarounds
+            "Focus object changed: "
+            "<PyQt5.QtQuickWidgets.QQuickWidget object at *>",
         ]
 
         if (log_line.category == 'ipc' and
@@ -390,7 +397,7 @@ class QuteProc(testprocess.Process):
             elif (is_ignored_qt_message(self.request.config, line) or
                   is_ignored_lowlevel_message(line) or
                   is_ignored_chromium_message(line) or
-                  self.request.node.get_marker('no_invalid_lines')):
+                  list(self.request.node.iter_markers('no_invalid_lines'))):
                 self._log("IGNORED: {}".format(line))
                 return None
             else:
@@ -497,7 +504,7 @@ class QuteProc(testprocess.Process):
         """Extend wait_for to add divisor if a test is xfailing."""
         __tracebackhide__ = (lambda e:
                              e.errisinstance(testprocess.WaitForTimeout))
-        xfail = self.request.node.get_marker('xfail')
+        xfail = self.request.node.get_closest_marker('xfail')
         if xfail and (not xfail.args or xfail.args[0]):
             kwargs['divisor'] = 10
         else:

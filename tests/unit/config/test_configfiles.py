@@ -252,6 +252,20 @@ class TestYaml:
         data = autoconfig.read()
         assert data['tabs.favicons.show']['global'] == expected
 
+    @pytest.mark.parametrize('force, expected', [
+        (True, 'software-opengl'),
+        (False, 'none'),
+        ('chromium', 'chromium'),
+    ])
+    def test_force_software_rendering(self, yaml, autoconfig, force, expected):
+        autoconfig.write({'qt.force_software_rendering': {'global': force}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert data['qt.force_software_rendering']['global'] == expected
+
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):
         """A key marked as renamed with invalid name should raise an error."""
