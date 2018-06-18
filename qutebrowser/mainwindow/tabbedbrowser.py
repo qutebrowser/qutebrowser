@@ -533,7 +533,10 @@ class TabbedBrowser(QWidget):
             # *before* the currently focused tab, indices will shift by
             # 1 automatically.
         elif pos == 'next':
-            idx = self._tab_insert_idx_right
+            if config.val.tabs.new_position.stacking:
+                idx = self._tab_insert_idx_right
+            else:
+                idx = self.widget.currentIndex() + 1
             self._tab_insert_idx_right += 1
         elif pos == 'first':
             idx = 0

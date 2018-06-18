@@ -894,6 +894,39 @@ Feature: Tab management
             - about:blank
             - data/hello.txt (active)
 
+    # stacking tabs
+    Scenario: stacking tabs opening tab with tabs.new_position.related next
+        When I set tabs.new_position.related to next
+        And I set tabs.new_position.stacking to true
+        And I set tabs.background to true
+        And I open about:blank
+        And I open data/navigate/index.html in a new tab
+        And I hint with args "all tab-bg" and follow a
+        And I hint with args "all tab-bg" and follow s
+        And I wait until data/navigate/prev.html is loaded
+        And I wait until data/navigate/next.html is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/navigate/index.html (active)
+            - data/navigate/prev.html
+            - data/navigate/next.html
+
+    Scenario: no stacking tabs opening tab with tabs.new_position.related next
+        When I set tabs.new_position.related to next
+        And I set tabs.new_position.stacking to false
+        And I set tabs.background to true
+        And I open about:blank
+        And I open data/navigate/index.html in a new tab
+        And I hint with args "all tab-bg" and follow a
+        And I hint with args "all tab-bg" and follow s
+        And I wait until data/navigate/prev.html is loaded
+        And I wait until data/navigate/next.html is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/navigate/index.html (active)
+            - data/navigate/next.html
+            - data/navigate/prev.html
+
     # :buffer
 
     Scenario: :buffer without args or count
