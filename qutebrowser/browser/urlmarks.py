@@ -127,7 +127,7 @@ class BookmarkManager(QObject):
 
     def _import_old_file(self, path, parse_fn):
         try:
-            with open(path, 'r') as f:
+            with open(path, 'r', encoding='utf-8') as f:
                 for line in f:
                     line = line.strip()
                     if not line:
