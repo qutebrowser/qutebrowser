@@ -17,14 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.browser.webengine.spell module."""
-
 import logging
 import os
 
+import pytest
 from PyQt5.QtCore import QLibraryInfo
+
 from qutebrowser.browser.webengine import spell
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, qtutils, standarddir
 
 
 def test_version(message_mock, caplog):
@@ -38,10 +38,19 @@ def test_version(message_mock, caplog):
     assert msg.text == expected
 
 
-def test_dictionary_dir(monkeypatch):
-    monkeypatch.setattr(QLibraryInfo, 'location', lambda _: 'datapath')
-    assert spell.dictionary_dir() == os.path.join('datapath',
-                                                  'qtwebengine_dictionaries')
+@pytest.mark.parametrize('qt_version, old, subdir', [
+    ('5.9', True, 'global_datapath'),
+    ('5.9', False, 'global_datapath'),
+    ('5.10', True, 'global_datapath'),
+    ('5.10', False, 'user_datapath'),
+])
+def test_dictionary_dir(monkeypatch, qt_version, old, subdir):
+    monkeypatch.setattr(qtutils, 'qVersion', lambda: qt_version)
+    monkeypatch.setattr(QLibraryInfo, 'location', lambda _: 'global_datapath')
+    monkeypatch.setattr(standarddir, 'data', lambda: 'user_datapath')
+
+    expected = os.path.join(subdir, 'qtwebengine_dictionaries')
+    assert spell.dictionary_dir(old=old) == expected
 
 
 def test_local_filename_dictionary_does_not_exist(monkeypatch):
