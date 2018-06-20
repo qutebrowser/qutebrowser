@@ -100,6 +100,7 @@ The following software and libraries are required to run qutebrowser:
 * http://qt.io/[Qt] 5.7.1 or newer (5.10 recommended) with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
+  - QtQuickWidgets (part of qtbase/QtQuick in some distributions)
   - QtSQL (part of qtbase in some distributions)
   - QtOpenGL
   - QtWebEngine, or
