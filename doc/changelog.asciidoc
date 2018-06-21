@@ -24,7 +24,8 @@ Security
 - An XSS vulnerability on the `qute://history` page allowed websites to inject
   HTML into the page via a crafted title tag. This could allow them to steal
   your browsing history. If you're currently unable to upgrade, avoid using
-  `:history`.
+  `:history`. A CVE request for this issue is pending, see
+  https://github.com/qutebrowser/qutebrowser/issues/4011[#4011] for updates.
 
 Fixed
 ~~~~~
