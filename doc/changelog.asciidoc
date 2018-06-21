@@ -55,9 +55,6 @@ Added
 Changed
 ~~~~~~~
 
-- In v1.3.2 a dependency on the `PyQt5.QtQuickWidgets` module was accidentally
-  introduced. Since that module isn't packaged everywhere, it's been removed
-  again.
 - The Windows/macOS releases now bundle Qt 5.11.1 which is based on
   Chromium 65.0.3325.151 with security fixes up to Chromium 67.0.3396.87.
 - New short flags for commandline arguments: `-B` and `-T` for `--basedir` and
@@ -124,6 +121,9 @@ Fixed
 
 - Crash in a workaround for a Qt 5.11 bug in rare circumstances.
 - Workaround for a Qt bug which preserves searches between page loads.
+- In v1.3.2 a dependency on the `PyQt5.QtQuickWidgets` module was accidentally
+  introduced. Since that module isn't packaged everywhere, it's been removed
+  again.
 
 v1.3.2
 ------
