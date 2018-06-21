@@ -100,7 +100,6 @@ Fixed
 ~~~~~
 
 - Various subtle keyboard focus issues.
-- Workaround for a Qt bug which preserves searches between page loads.
 
 Removed
 ~~~~~~~
@@ -109,13 +108,22 @@ Removed
 - The `content.developer_extras` setting got removed. On QtWebKit, developer
   extras are now automatically enabled when opening the inspector.
 
-v1.3.3 (unreleased)
--------------------
+v1.3.3
+------
+
+Security
+~~~~~~~~
+
+- An XSS vulnerability on the `qute://history` page allowed websites to inject
+  HTML into the page via a crafted title tag. This could allow them to steal
+  your browsing history. If you're currently unable to upgrade, avoid using
+  `:history`.
 
 Fixed
 ~~~~~
 
 - Crash in a workaround for a Qt 5.11 bug in rare circumstances.
+- Workaround for a Qt bug which preserves searches between page loads.
 
 v1.3.2
 ------
