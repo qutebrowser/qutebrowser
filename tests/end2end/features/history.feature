@@ -111,3 +111,8 @@ Feature: Page history
         And I wait until qute://history is loaded
         Then the page should contain the plaintext "3.txt"
         Then the page should contain the plaintext "4.txt"
+
+    Scenario: XSS in :history
+        When I open data/issue4011.html
+        And I open qute://history
+        Then the javascript message "XSS" should not be logged
