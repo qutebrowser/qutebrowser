@@ -689,8 +689,6 @@ New PyQt release
 ~~~~~~~~~~~~~~~~
 
 * See above.
-* Install new PyQt in Windows VM (32- and 64-bit).
-* Download new installer and update PyQt installer path in `ci_install.py`.
 * Update `tox.ini`/`.travis.yml`/`.appveyor.yml` to test new versions.
 
 qutebrowser release
