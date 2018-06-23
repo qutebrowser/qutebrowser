@@ -642,8 +642,8 @@ class TestConfig:
         meth = getattr(conf, method)
         with pytest.raises(configexc.BackendError):
             with qtbot.assert_not_emitted(conf.changed):
-                meth('content.cookies.accept', 'all')
-        assert not conf._values['content.cookies.accept']
+                meth('hints.find_implementation', 'javascript')
+        assert not conf._values['hints.find_implementation']
 
     @pytest.mark.parametrize('method, value', [
         ('set_obj', {}),
