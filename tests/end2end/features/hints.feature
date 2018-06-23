@@ -165,13 +165,13 @@ Feature: Using hints
         And I hint with args "all run message-info {hint-url}" and follow a
         Then the message "http://localhost:(port)/data/hello.txt" should be shown
 
-    @qt!=5.11.0
+    @qt<5.11
     Scenario: Clicking an invalid link
         When I open data/invalid_link.html
         And I hint with args "all" and follow a
         Then the error "Invalid link clicked - *" should be shown
 
-    @qt!=5.11.0
+    @qt<5.11
     Scenario: Clicking an invalid link opening in a new tab
         When I open data/invalid_link.html
         And I hint with args "all tab" and follow a
