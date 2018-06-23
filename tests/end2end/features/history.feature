@@ -117,3 +117,10 @@ Feature: Page history
         When I open data/issue4011.html
         And I open qute://history
         Then the javascript message "XSS" should not be logged
+
+    Scenario: Escaping of URLs in :history
+        When I open query?one=1&two=2
+        And I open qute://history
+        And I hint with args "links normal" and follow a
+        And I wait until query?one=1&two=2 is loaded
+        Then the query parameter two should be set to 2

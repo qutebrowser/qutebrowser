@@ -242,7 +242,7 @@ def history_data(start_time, offset=None):
         end_time = start_time - 24*60*60
         entries = hist.entries_between(end_time, start_time)
 
-    return [{"url": html.escape(e.url),
+    return [{"url": e.url,
              "title": html.escape(e.title) or html.escape(e.url),
              "time": e.atime} for e in entries]
 

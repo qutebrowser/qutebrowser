@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import logging
 import re
 
@@ -32,6 +33,19 @@ def turn_on_sql_history(quteproc):
     quteproc.send_cmd(":debug-pyeval objreg.get('args')."
                       "debug_flags.remove('no-sql-history')")
     quteproc.wait_for_load_finished_url('qute://pyeval')
+
+
+@bdd.then(bdd.parsers.parse("the query parameter {name} should be set to "
+                            "{value}"))
+def check_query(quteproc, name, value):
+    """Check if a given query is set correctly.
+
+    This assumes we're on the server query page.
+    """
+    content = quteproc.get_content()
+    data = json.loads(content)
+    print(data)
+    assert data[name] == value
 
 
 @bdd.then(bdd.parsers.parse("the history should contain:\n{expected}"))

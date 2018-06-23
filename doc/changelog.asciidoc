@@ -97,6 +97,9 @@ Fixed
 ~~~~~
 
 - Various subtle keyboard focus issues.
+- The security fix in v1.3.3 caused URLs with ampersands
+  (`www.example.com?one=1&two=2`) to send the wrong arguments when clicked on
+  the `qute://history` page.
 
 Removed
 ~~~~~~~
