@@ -19,6 +19,7 @@
 
 """A completion category that queries the SQL History store."""
 
+from PyQt5.QtCore import pyqtSignal, Qt, PYQT_VERSION
 from PyQt5.QtSql import QSqlQueryModel
 
 from qutebrowser.misc import sql
@@ -29,6 +30,11 @@ from qutebrowser.config import config
 class HistoryCategory(QSqlQueryModel):
 
     """A completion category that queries the SQL History store."""
+
+    if PYQT_VERSION == 0x050b00:
+        # WORKAROUND for PyQt 5.11 bug:
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2018-June/040445.html
+        headerDataChanged = pyqtSignal(Qt.Orientation, int, int)
 
     def __init__(self, *, delete_func=None, parent=None):
         """Create a new History completion category."""

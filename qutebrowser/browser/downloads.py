@@ -30,7 +30,7 @@ import tempfile
 import enum
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
-                          QTimer, QAbstractListModel, QUrl)
+                          QTimer, QAbstractListModel, QUrl, PYQT_VERSION)
 
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
@@ -877,6 +877,11 @@ class AbstractDownloadManager(QObject):
 class DownloadModel(QAbstractListModel):
 
     """A list model showing downloads."""
+
+    if PYQT_VERSION == 0x050b00:
+        # WORKAROUND for PyQt 5.11 bug:
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2018-June/040445.html
+        headerDataChanged = pyqtSignal(Qt.Orientation, int, int)
 
     def __init__(self, qtnetwork_manager, webengine_manager=None, parent=None):
         super().__init__(parent)
