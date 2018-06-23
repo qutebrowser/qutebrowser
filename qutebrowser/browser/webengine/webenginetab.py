@@ -25,7 +25,6 @@ import sys
 import re
 import html as html_utils
 
-import sip
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
                           QUrl, QTimer, QObject, qVersion)
 from PyQt5.QtGui import QKeyEvent, QIcon
@@ -42,6 +41,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
+from qutebrowser.qt import sip
 
 
 _qute_scheme_handler = None

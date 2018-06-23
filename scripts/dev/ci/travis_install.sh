@@ -62,7 +62,10 @@ check_pyqt() {
     python3 <<EOF
 import sys
 from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
-from sip import SIP_VERSION_STR
+try:
+    from PyQt.sip import SIP_VERSION_STR
+except ModuleNotFoundError:
+    from sip import SIP_VERSION_STR
 
 print("Python {}".format(sys.version))
 print("PyQt5 {}".format(PYQT_VERSION_STR))

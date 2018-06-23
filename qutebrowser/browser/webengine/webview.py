@@ -19,7 +19,6 @@
 
 """The main browser widget for QtWebEngine."""
 
-import sip
 from PyQt5.QtCore import pyqtSignal, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QWidget
@@ -30,6 +29,7 @@ from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
 from qutebrowser.misc import miscwidgets
+from qutebrowser.qt import sip
 
 
 class WebEngineView(QWebEngineView):

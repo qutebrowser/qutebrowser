@@ -23,7 +23,6 @@ import re
 import functools
 import xml.etree.ElementTree
 
-import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
 from PyQt5.QtGui import QKeyEvent, QIcon
@@ -35,6 +34,7 @@ from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+from qutebrowser.qt import sip
 
 
 class WebKitAction(browsertab.AbstractAction):

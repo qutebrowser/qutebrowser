@@ -22,7 +22,6 @@
 import enum
 import itertools
 
-import sip
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
@@ -38,6 +37,7 @@ from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import mouse, hints
+from qutebrowser.qt import sip
 
 
 tab_id_gen = itertools.count(0)

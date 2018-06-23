@@ -246,7 +246,7 @@ def configure_pyqt():
     from PyQt5.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
 
-    import sip
+    from qutebrowser.qt import sip
     try:
         # Added in sip 4.19.4
         sip.enableoverflowchecking(True)

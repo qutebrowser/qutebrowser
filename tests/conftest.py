@@ -25,7 +25,6 @@ import os
 import sys
 import warnings
 
-import sip
 import pytest
 import hypothesis
 from PyQt5.QtCore import qVersion, PYQT_VERSION
@@ -38,6 +37,7 @@ from helpers.messagemock import message_mock
 from helpers.fixtures import *  # noqa: F403
 from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
 from qutebrowser.misc import objects
+from qutebrowser.qt import sip
 
 import qutebrowser.app  # To register commands
 
