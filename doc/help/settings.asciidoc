@@ -1570,6 +1570,8 @@ Default: +pass:[iso-8859-1]+
 Allow websites to share screen content.
 On Qt < 5.10, a dialog box is always displayed, even if this is set to "true".
 
+This setting supports URL patterns.
+
 Type: <<types,BoolAsk>>
 
 Valid values:
@@ -1608,6 +1610,8 @@ This setting is only available with the QtWebKit backend.
 [[content.geolocation]]
 === content.geolocation
 Allow websites to request geolocations.
+
+This setting supports URL patterns.
 
 Type: <<types,BoolAsk>>
 
@@ -1853,6 +1857,8 @@ Default: +pass:[true]+
 === content.media_capture
 Allow websites to record audio/video.
 
+This setting supports URL patterns.
+
 Type: <<types,BoolAsk>>
 
 Valid values:
@@ -1877,6 +1883,8 @@ Default: empty
 [[content.notifications]]
 === content.notifications
 Allow websites to show notifications.
+
+This setting supports URL patterns.
 
 Type: <<types,BoolAsk>>
 
@@ -1904,6 +1912,8 @@ This setting is only available with the QtWebKit backend.
 [[content.persistent_storage]]
 === content.persistent_storage
 Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
+
+This setting supports URL patterns.
 
 Type: <<types,BoolAsk>>
 
@@ -1977,6 +1987,8 @@ This setting is only available with the QtWebKit backend.
 === content.register_protocol_handler
 Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
 
+This setting supports URL patterns.
+
 Type: <<types,BoolAsk>>
 
 Valid values:
@@ -1994,6 +2006,8 @@ On QtWebKit, this setting is unavailable.
 [[content.ssl_strict]]
 === content.ssl_strict
 Validate SSL handshakes.
+
+This setting supports URL patterns.
 
 Type: <<types,BoolAsk>>
 

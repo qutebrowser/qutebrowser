@@ -156,7 +156,7 @@ def ignore_certificate_errors(url, errors, abort_on):
     Return:
         True if the error should be ignored, False otherwise.
     """
-    ssl_strict = config.val.content.ssl_strict
+    ssl_strict = config.instance.get('content.ssl_strict', url=url)
     log.webview.debug("Certificate errors {!r}, strict {}".format(
         errors, ssl_strict))
 
@@ -213,7 +213,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
         The Question object if a question was asked (and blocking=False),
         None otherwise.
     """
-    config_val = config.instance.get(option)
+    config_val = config.instance.get(option, url=url)
     if config_val == 'ask':
         if url.isValid():
             urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
