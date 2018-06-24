@@ -1455,6 +1455,7 @@ class CommandDispatcher:
             if tab.data.inspector is None:
                 tab.data.inspector = inspector.create()
                 tab.data.inspector.inspect(page)
+                tab.data.inspector.show()
             else:
                 tab.data.inspector.toggle(page)
         except inspector.WebInspectorError as e:
