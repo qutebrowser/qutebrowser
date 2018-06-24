@@ -380,7 +380,7 @@ class NetworkManager(QNetworkAccessManager):
                 result.setParent(self)
                 return result
 
-        for header, value in shared.custom_headers():
+        for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
 
         host_blocker = objreg.get('host-blocker')

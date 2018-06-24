@@ -1622,6 +1622,9 @@ Default: +pass:[ask]+
 [[content.headers.accept_language]]
 === content.headers.accept_language
 Value to send in the `Accept-Language` header.
+Note that the value read from JavaScript is always the global value.
+
+This setting supports URL patterns.
 
 Type: <<types,String>>
 
@@ -1631,6 +1634,8 @@ Default: +pass:[en-US,en]+
 === content.headers.custom
 Custom headers for qutebrowser HTTP requests.
 
+This setting supports URL patterns.
+
 Type: <<types,Dict>>
 
 Default: empty
@@ -1639,6 +1644,8 @@ Default: empty
 === content.headers.do_not_track
 Value to send in the `DNT` header.
 When this is set to true, qutebrowser asks websites to not track your identity. If set to null, the DNT header is not sent at all.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -1664,6 +1671,9 @@ This setting is only available with the QtWebKit backend.
 [[content.headers.user_agent]]
 === content.headers.user_agent
 User agent to send. Unset to send the default.
+Note that the value read from JavaScript is always the global value.
+
+This setting supports URL patterns.
 
 Type: <<types,String>>
 
