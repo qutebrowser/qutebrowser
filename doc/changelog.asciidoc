@@ -21,8 +21,7 @@ v1.4.0 (unreleased)
 Added
 ~~~~~
 
-- Support for the bundled `sip` module in PyQt 5.11 and workarounds for
-  PyQt 5.11 bugs.
+- Support for the bundled `sip` module in PyQt 5.11.
 - New `--debug-flag log-requests` to log requests to the debug log for
   debugging.
 - New `--first` flag for `:hint` (bound to `gi` for inputs) which automatically

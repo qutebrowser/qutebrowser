@@ -21,8 +21,7 @@
 
 import re
 
-from PyQt5.QtCore import (Qt, QSortFilterProxyModel, QRegExp, PYQT_VERSION,
-                          pyqtSignal)
+from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 from qutebrowser.utils import qtutils
@@ -31,11 +30,6 @@ from qutebrowser.utils import qtutils
 class ListCategory(QSortFilterProxyModel):
 
     """Expose a list of items as a category for the CompletionModel."""
-
-    if PYQT_VERSION == 0x050b00:
-        # WORKAROUND for PyQt 5.11 bug:
-        # https://www.riverbankcomputing.com/pipermail/pyqt/2018-June/040445.html
-        headerDataChanged = pyqtSignal(Qt.Orientation, int, int)
 
     def __init__(self, name, items, sort=True, delete_func=None, parent=None):
         super().__init__(parent)
