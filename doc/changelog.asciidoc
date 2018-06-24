@@ -59,14 +59,14 @@ Changed
 ~~~~~~~
 
 - The following settings now support URL patterns:
-  - content.headers.do_not_track
-  - content.headers.custom
-  - content.headers.accept_language
-  - content.headers.user_agent
-  - content.ssl_strict
-  - content.geolocation
-  - content.notifications
-  - content.media_capture
+  * `content.headers.do_not_track`
+  * `content.headers.custom`
+  * `content.headers.accept_language`
+  * `content.headers.user_agent`
+  * `content.ssl_strict`
+  * `content.geolocation`
+  * `content.notifications`
+  * `content.media_capture`
 - The Windows/macOS releases now bundle Qt 5.11.1 which is based on
   Chromium 65.0.3325.151 with security fixes up to Chromium 67.0.3396.87.
 - New short flags for commandline arguments: `-B` and `-T` for `--basedir` and
