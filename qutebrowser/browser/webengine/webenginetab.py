@@ -900,7 +900,18 @@ class _WebEngineScripts(QObject):
             # @run-at (and @include/@exclude/@match) is parsed by
             # QWebEngineScript.
             new_script = QWebEngineScript()
-            new_script.setWorldId(QWebEngineScript.MainWorld)
+            try:
+                world = int(script.jsworld)
+            except ValueError:
+                try:
+                    world = _JS_WORLD_MAP[usertypes.JsWorld[
+                        script.jsworld.lower()]]
+                except KeyError:
+                    log.greasemonkey.error(
+                        "script {} has invalid value for '@qute-js-world'"
+                        ": {}".format(script.name, script.jsworld))
+                    continue
+            new_script.setWorldId(world)
             new_script.setSourceCode(script.code())
             new_script.setName("GM-{}".format(script.name))
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
