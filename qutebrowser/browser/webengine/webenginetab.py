@@ -31,14 +31,15 @@ from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
+from PyQt5.QtWebEngineWidgets import (QWebEnginePage, QWebEngineScript,
+                                      QWebEngineCertificateError)
 
 from qutebrowser.config import configdata, config
 from qutebrowser.browser import browsertab, mouse, shared
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
-                                           webenginesettings)
+                                           webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
@@ -1223,6 +1224,34 @@ class WebEngineTab(browsertab.AbstractTab):
             # In general, this is handled by Qt, but when loading takes long,
             # the old icon is still displayed.
             self.icon_changed.emit(QIcon())
+
+    @pyqtSlot(certificateerror.CertificateErrorWrapper)
+    def _on_ssl_errors(self, error):
+        self._has_ssl_errors = True
+
+        url = error.url()
+        log.webview.debug("Certificate error: {}".format(error))
+
+        if error.is_overridable():
+            error.ignore = shared.ignore_certificate_errors(
+                url, [error], abort_on=[self.shutting_down, self.load_started])
+        else:
+            log.webview.error("Non-overridable certificate error: "
+                              "{}".format(error))
+
+        log.webview.debug("ignore {}, URL {}, requested {}".format(
+            error.ignore, url, self.url(requested=True)))
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-56207
+        # We can't really know when to show an error page, as the error might
+        # have happened when loading some resource.
+        # However, self.url() is not available yet and the requested URL
+        # might not match the URL we get from the error - so we just apply a
+        # heuristic here.
+        if (not qtutils.version_check('5.9') and
+                not error.ignore and
+                url.matches(self.url(requested=True), QUrl.RemoveScheme)):
+            self._show_error_page(url, str(error))
 
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):

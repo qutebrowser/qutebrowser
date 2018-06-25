@@ -808,6 +808,10 @@ class WebKitTab(browsertab.AbstractTab):
         if navigation.is_main_frame:
             self.settings.update_for_url(navigation.url)
 
+    @pyqtSlot()
+    def _on_ssl_errors(self):
+        self._has_ssl_errors = True
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()

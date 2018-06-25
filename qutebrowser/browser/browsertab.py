@@ -893,10 +893,6 @@ class AbstractTab(QWidget):
         self._progress = perc
         self.load_progress.emit(perc)
 
-    @pyqtSlot()
-    def _on_ssl_errors(self):
-        self._has_ssl_errors = True
-
     def url(self, requested=False):
         raise NotImplementedError
 

@@ -24,10 +24,11 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
-                                      QWebEngineScript)
+                                      QWebEngineScript,
+                                      QWebEngineCertificateError)
 
 from qutebrowser.browser import shared
-from qutebrowser.browser.webengine import certificateerror, webenginesettings
+from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes, jinja, objreg, qtutils
 from qutebrowser.misc import miscwidgets
@@ -152,11 +153,13 @@ class WebEnginePage(QWebEnginePage):
 
     Signals:
         certificate_error: Emitted on certificate errors.
+                           Needs to be directly connected to a slot setting the
+                           'ignore' attribute.
         shutting_down: Emitted when the page is shutting down.
         navigation_request: Emitted on acceptNavigationRequest.
     """
 
-    certificate_error = pyqtSignal()
+    certificate_error = pyqtSignal(certificateerror.CertificateErrorWrapper)
     shutting_down = pyqtSignal()
     navigation_request = pyqtSignal(usertypes.NavigationRequest)
 
@@ -181,39 +184,9 @@ class WebEnginePage(QWebEnginePage):
 
     def certificateError(self, error):
         """Handle certificate errors coming from Qt."""
-        self.certificate_error.emit()
-        url = error.url()
         error = certificateerror.CertificateErrorWrapper(error)
-        log.webview.debug("Certificate error: {}".format(error))
-
-        url_string = url.toDisplayString()
-        error_page = jinja.render(
-            'error.html', title="Error loading page: {}".format(url_string),
-            url=url_string, error=str(error))
-
-        if error.is_overridable():
-            ignore = shared.ignore_certificate_errors(
-                url, [error], abort_on=[self.loadStarted, self.shutting_down])
-        else:
-            log.webview.error("Non-overridable certificate error: "
-                              "{}".format(error))
-            ignore = False
-
-        log.webview.debug("ignore {}, URL {}, requested {}".format(
-            ignore, url, self.requestedUrl()))
-
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-56207
-        # We can't really know when to show an error page, as the error might
-        # have happened when loading some resource.
-        # However, self.url() is not available yet and self.requestedUrl()
-        # might not match the URL we get from the error - so we just apply a
-        # heuristic here.
-        if (not qtutils.version_check('5.9') and
-                not ignore and
-                url.matches(self.requestedUrl(), QUrl.RemoveScheme)):
-            self.setHtml(error_page)
-
-        return ignore
+        self.certificate_error.emit(error)
+        return error.ignore
 
     def javaScriptConfirm(self, url, js_msg):
         """Override javaScriptConfirm to use qutebrowser prompts."""
