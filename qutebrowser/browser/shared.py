@@ -48,7 +48,8 @@ def custom_headers(url):
     for header, value in conf_headers.items():
         headers[header.encode('ascii')] = value.encode('ascii')
 
-    accept_language = config.instance.get('content.headers.accept_language', url=url)
+    accept_language = config.instance.get('content.headers.accept_language',
+                                          url=url)
     if accept_language is not None:
         headers[b'Accept-Language'] = accept_language.encode('ascii')
 
