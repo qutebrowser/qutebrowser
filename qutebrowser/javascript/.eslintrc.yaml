@@ -57,3 +57,4 @@ rules:
      no-ternary: "off"
      max-lines: "off"
      multiline-ternary: ["error", "always-multiline"]
+     max-lines-per-function: "off"
