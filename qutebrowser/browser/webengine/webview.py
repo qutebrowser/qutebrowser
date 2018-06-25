@@ -199,15 +199,18 @@ class WebEnginePage(QWebEnginePage):
                               "{}".format(error))
             ignore = False
 
+        log.webview.debug("ignore {}, URL {}, requested {}".format(
+            ignore, url, self.requestedUrl()))
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-56207
         # We can't really know when to show an error page, as the error might
         # have happened when loading some resource.
         # However, self.url() is not available yet and self.requestedUrl()
         # might not match the URL we get from the error - so we just apply a
         # heuristic here.
-        # See https://bugreports.qt.io/browse/QTBUG-56207
-        log.webview.debug("ignore {}, URL {}, requested {}".format(
-            ignore, url, self.requestedUrl()))
-        if not ignore and url.matches(self.requestedUrl(), QUrl.RemoveScheme):
+        if (not qtutils.version_check('5.9') and
+                not ignore and
+                url.matches(self.requestedUrl(), QUrl.RemoveScheme)):
             self.setHtml(error_page)
 
         return ignore

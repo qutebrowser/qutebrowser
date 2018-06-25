@@ -104,6 +104,8 @@ Changed
   Existing dictionaries are copied over.
 - If an error while parsing `~/.netrc` occurs, the cause of the error is now
   logged.
+- On Qt 5.9 or newer, certificate errors now show Chromium's detailed error
+  page.
 
 Fixed
 ~~~~~
