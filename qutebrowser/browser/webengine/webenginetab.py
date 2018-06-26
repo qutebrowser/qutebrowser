@@ -854,9 +854,16 @@ class _WebEngineScripts(QObject):
         self._inject_early_js('js', js_code, subframes=True)
         self._init_stylesheet()
 
-        greasemonkey = objreg.get('greasemonkey')
-        greasemonkey.scripts_reloaded.connect(self._inject_userscripts)
-        self._inject_userscripts()
+        # The Greasemonkey metadata block support in QtWebEngine only starts at
+        # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
+        # response to urlChanged.
+        if not qtutils.version_check('5.8'):
+            self._widget.page().urlChanged.connect(
+                self._inject_userscripts_for_url)
+        else:
+            greasemonkey = objreg.get('greasemonkey')
+            greasemonkey.scripts_reloaded.connect(self._inject_all_userscripts)
+            self._inject_all_userscripts()
 
     def _init_stylesheet(self):
         """Initialize custom stylesheets.
@@ -873,32 +880,52 @@ class _WebEngineScripts(QObject):
         )
         self._inject_early_js('stylesheet', js_code, subframes=True)
 
-    def _inject_userscripts(self):
-        """Register user JavaScript files with the current tab."""
-        # The Greasemonkey metadata block support in QtWebEngine only starts at
-        # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
-        # response to urlChanged.
-        if not qtutils.version_check('5.8'):
-            return
+    def _inject_userscripts_for_url(self, url):
+        greasemonkey = objreg.get('greasemonkey')
+        matching_scripts = greasemonkey.scripts_for(url)
+        self._inject_userscripts(
+            matching_scripts.start, QWebEngineScript.DocumentCreation, True)
+        self._inject_userscripts(
+            matching_scripts.end, QWebEngineScript.DocumentReady, False)
+        self._inject_userscripts(
+            matching_scripts.idle, QWebEngineScript.Deferred, False)
 
+    def _inject_all_userscripts(self):
+        greasemonkey = objreg.get('greasemonkey')
+        scripts = greasemonkey.all_scripts()
+        self._inject_userscripts(scripts)
+
+    def _inject_userscripts(self, scripts=None, injection_point=None,
+                            remove_first=True):
+        """Register user JavaScript files with the current tab.
+
+        Args:
+            scripts: A list of GreasemonkeyScripts, or None to add all
+                     known by the Greasemonkey subsystem.
+            injection_point: The QWebEngineScript::InjectionPoint stage
+                             to inject the script into, None to use
+                             auto-detection.
+            remove_first: Whether to remove all previously injected
+                          scripts before adding these ones.
+        """
         # Since we are inserting scripts into a per-tab collection,
         # rather than just injecting scripts on page load, we need to
         # make sure we replace existing scripts, not just add new ones.
         # While, taking care not to remove any other scripts that might
         # have been added elsewhere, like the one for stylesheets.
-        greasemonkey = objreg.get('greasemonkey')
-        scripts = self._widget.page().scripts()
-        for script in scripts.toList():
-            if script.name().startswith("GM-"):
-                log.greasemonkey.debug('Removing script: {}'
-                                       .format(script.name()))
-                removed = scripts.remove(script)
-                assert removed, script.name()
+        page_scripts = self._widget.page().scripts()
+        if remove_first:
+            for script in page_scripts.toList():
+                if script.name().startswith("GM-"):
+                    log.greasemonkey.debug('Removing script: {}'
+                                           .format(script.name()))
+                    removed = page_scripts.remove(script)
+                    assert removed, script.name()
 
-        # Then add the new scripts.
-        for script in greasemonkey.all_scripts():
-            # @run-at (and @include/@exclude/@match) is parsed by
-            # QWebEngineScript.
+        if not scripts:
+            return
+
+        for script in scripts:
             new_script = QWebEngineScript()
             try:
                 world = int(script.jsworld)
@@ -915,9 +942,12 @@ class _WebEngineScripts(QObject):
             new_script.setSourceCode(script.code())
             new_script.setName("GM-{}".format(script.name))
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
+            # Override the @run-at value parsed by QWebEngineScript if desired.
+            if injection_point:
+                new_script.setInjectionPoint(injection_point)
             log.greasemonkey.debug('adding script: {}'
                                    .format(new_script.name()))
-            scripts.insert(new_script)
+            page_scripts.insert(new_script)
 
 
 class WebEngineTab(browsertab.AbstractTab):
