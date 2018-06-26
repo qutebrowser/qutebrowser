@@ -874,18 +874,18 @@ class _WebEngineScripts(QObject):
         self._inject_early_js('stylesheet', js_code, subframes=True)
 
     def _inject_userscripts(self):
-        """Register user JavaScript files with the global profiles."""
+        """Register user JavaScript files with the current tab."""
         # The Greasemonkey metadata block support in QtWebEngine only starts at
         # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
         # response to urlChanged.
         if not qtutils.version_check('5.8'):
             return
 
-        # Since we are inserting scripts into profile.scripts they won't
-        # just get replaced by new gm scripts like if we were injecting them
-        # ourselves so we need to remove all gm scripts, while not removing
-        # any other stuff that might have been added. Like the one for
-        # stylesheets.
+        # Since we are inserting scripts into a per-tab collection,
+        # rather than just injecting scripts on page load, we need to
+        # make sure we replace existing scripts, not just add new ones.
+        # While, taking care not to remove any other scripts that might
+        # have been added elsewhere, like the one for stylesheets.
         greasemonkey = objreg.get('greasemonkey')
         scripts = self._widget.page().scripts()
         for script in scripts.toList():
