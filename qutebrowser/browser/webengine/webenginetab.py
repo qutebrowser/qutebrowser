@@ -908,6 +908,9 @@ class _WebEngineScripts(QObject):
             remove_first: Whether to remove all previously injected
                           scripts before adding these ones.
         """
+        if sip.isdeleted(self._widget):
+            return
+
         # Since we are inserting scripts into a per-tab collection,
         # rather than just injecting scripts on page load, we need to
         # make sure we replace existing scripts, not just add new ones.
