@@ -499,6 +499,12 @@ def sanitize_filename(name, replacement='_'):
     """
     if replacement is None:
         replacement = ''
+
+    # Remove chars which can't be encoded in the filename encoding.
+    # See https://github.com/qutebrowser/qutebrowser/issues/427
+    encoding = sys.getfilesystemencoding()
+    name = force_encoding(name, encoding)
+
     # Bad characters taken from Windows, there are even fewer on Linux
     # See also
     # https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words

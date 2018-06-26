@@ -135,11 +135,11 @@ def create_full_filename(basename, filename):
         The full absolute path, or None if filename creation was not possible.
     """
     basename = utils.sanitize_filename(basename)
+    # Filename can be a full path so don't use sanitize_filename on it.
     # Remove chars which can't be encoded in the filename encoding.
     # See https://github.com/qutebrowser/qutebrowser/issues/427
     encoding = sys.getfilesystemencoding()
     filename = utils.force_encoding(filename, encoding)
-    basename = utils.force_encoding(basename, encoding)
     if os.path.isabs(filename) and (os.path.isdir(filename) or
                                     filename.endswith(os.sep)):
         # We got an absolute directory from the user, so we save it under
@@ -161,8 +161,6 @@ def get_filename_question(*, suggested_filename, url, parent=None):
         parent: The parent of the question (a QObject).
     """
     suggested_filename = utils.sanitize_filename(suggested_filename)
-    encoding = sys.getfilesystemencoding()
-    suggested_filename = utils.force_encoding(suggested_filename, encoding)
 
     q = usertypes.Question(parent)
     q.title = "Save file to:"
