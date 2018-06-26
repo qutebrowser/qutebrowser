@@ -92,3 +92,60 @@ def test_local_filename_installed_malformed(tmpdir, monkeypatch, caplog):
         (tmpdir / lang_file).ensure()
     with caplog.at_level(logging.WARNING):
         assert spell.local_filename('en-US') == 'en-US-11-0'
+
+
+class TestInit:
+
+    ENV = 'QTWEBENGINE_DICTIONARIES_PATH'
+
+    @pytest.fixture(autouse=True)
+    def remove_envvar(self, monkeypatch):
+        monkeypatch.delenv(self.ENV, raising=False)
+
+    @pytest.fixture
+    def patch_new_qt(self, monkeypatch):
+        monkeypatch.setattr(spell.qtutils, 'version_check',
+                            lambda _ver, compiled: True)
+
+    @pytest.fixture
+    def dict_dir(self, data_tmpdir):
+        return data_tmpdir / 'qtwebengine_dictionaries'
+
+    @pytest.fixture
+    def old_dict_dir(self, monkeypatch, tmpdir):
+        data_dir = tmpdir / 'old'
+        dict_dir = data_dir / 'qtwebengine_dictionaries'
+        (dict_dir / 'somedict').ensure()
+        monkeypatch.setattr(spell.QLibraryInfo, 'location',
+                            lambda _arg: data_dir)
+        return dict_dir
+
+    def test_old_qt(self, monkeypatch):
+        monkeypatch.setattr(spell.qtutils, 'version_check',
+                            lambda _ver, compiled: False)
+        spell.init()
+        assert self.ENV not in os.environ
+
+    def test_new_qt(self, dict_dir, patch_new_qt):
+        spell.init()
+        assert os.environ[self.ENV] == str(dict_dir)
+
+    def test_moving(self, old_dict_dir, dict_dir, patch_new_qt):
+        spell.init()
+        assert (dict_dir / 'somedict').exists()
+
+    def test_moving_oserror(self, mocker, caplog,
+                            old_dict_dir, dict_dir, patch_new_qt):
+        mocker.patch('shutil.copytree', side_effect=OSError)
+
+        with caplog.at_level(logging.ERROR):
+            spell.init()
+
+        record = caplog.records[0]
+        assert record.message == 'Failed to copy old dictionaries'
+
+    def test_moving_existing_destdir(self, old_dict_dir, dict_dir,
+                                     patch_new_qt):
+        dict_dir.ensure(dir=True)
+        spell.init()
+        assert not (dict_dir / 'somedict').exists()
