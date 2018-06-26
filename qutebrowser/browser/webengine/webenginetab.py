@@ -859,11 +859,12 @@ class _WebEngineScripts(QObject):
         # response to urlChanged.
         if not qtutils.version_check('5.8'):
             self._widget.page().urlChanged.connect(
-                self._inject_userscripts_for_url)
+                self._inject_greasemonkey_scripts_for_url)
         else:
             greasemonkey = objreg.get('greasemonkey')
-            greasemonkey.scripts_reloaded.connect(self._inject_all_userscripts)
-            self._inject_all_userscripts()
+            greasemonkey.scripts_reloaded.connect(
+                self._inject_all_greasemonkey_scripts)
+            self._inject_all_greasemonkey_scripts()
 
     def _init_stylesheet(self):
         """Initialize custom stylesheets.
@@ -880,23 +881,23 @@ class _WebEngineScripts(QObject):
         )
         self._inject_early_js('stylesheet', js_code, subframes=True)
 
-    def _inject_userscripts_for_url(self, url):
+    def _inject_greasemonkey_scripts_for_url(self, url):
         greasemonkey = objreg.get('greasemonkey')
         matching_scripts = greasemonkey.scripts_for(url)
-        self._inject_userscripts(
+        self._inject_greasemonkey_scripts(
             matching_scripts.start, QWebEngineScript.DocumentCreation, True)
-        self._inject_userscripts(
+        self._inject_greasemonkey_scripts(
             matching_scripts.end, QWebEngineScript.DocumentReady, False)
-        self._inject_userscripts(
+        self._inject_greasemonkey_scripts(
             matching_scripts.idle, QWebEngineScript.Deferred, False)
 
-    def _inject_all_userscripts(self):
+    def _inject_all_greasemonkey_scripts(self):
         greasemonkey = objreg.get('greasemonkey')
         scripts = greasemonkey.all_scripts()
-        self._inject_userscripts(scripts)
+        self._inject_greasemonkey_scripts(scripts)
 
-    def _inject_userscripts(self, scripts=None, injection_point=None,
-                            remove_first=True):
+    def _inject_greasemonkey_scripts(self, scripts=None, injection_point=None,
+                                     remove_first=True):
         """Register user JavaScript files with the current tab.
 
         Args:
