@@ -788,6 +788,7 @@ class _WebEngineScripts(QObject):
         super().__init__(parent)
         self._tab = tab
         self._widget = None
+        self._greasemonkey = objreg.get('greasemonkey')
 
     def connect_signals(self):
         config.instance.changed.connect(self._on_config_changed)
@@ -860,8 +861,7 @@ class _WebEngineScripts(QObject):
             self._widget.page().urlChanged.connect(
                 self._inject_greasemonkey_scripts_for_url)
         else:
-            greasemonkey = objreg.get('greasemonkey')
-            greasemonkey.scripts_reloaded.connect(
+            self._greasemonkey.scripts_reloaded.connect(
                 self._inject_all_greasemonkey_scripts)
             self._inject_all_greasemonkey_scripts()
 
@@ -881,8 +881,7 @@ class _WebEngineScripts(QObject):
         self._inject_early_js('stylesheet', js_code, subframes=True)
 
     def _inject_greasemonkey_scripts_for_url(self, url):
-        greasemonkey = objreg.get('greasemonkey')
-        matching_scripts = greasemonkey.scripts_for(url)
+        matching_scripts = self._greasemonkey.scripts_for(url)
         self._inject_greasemonkey_scripts(
             matching_scripts.start, QWebEngineScript.DocumentCreation, True)
         self._inject_greasemonkey_scripts(
@@ -891,8 +890,7 @@ class _WebEngineScripts(QObject):
             matching_scripts.idle, QWebEngineScript.Deferred, False)
 
     def _inject_all_greasemonkey_scripts(self):
-        greasemonkey = objreg.get('greasemonkey')
-        scripts = greasemonkey.all_scripts()
+        scripts = self._greasemonkey.all_scripts()
         self._inject_greasemonkey_scripts(scripts)
 
     def _inject_greasemonkey_scripts(self, scripts=None, injection_point=None,
