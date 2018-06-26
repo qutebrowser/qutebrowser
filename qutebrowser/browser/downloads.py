@@ -1224,8 +1224,7 @@ class TempDownloadManager:
             A tempfile.NamedTemporaryFile that should be used to save the file.
         """
         tmpdir = self._get_tmpdir()
-        encoding = sys.getfilesystemencoding()
-        suggested_name = utils.force_encoding(suggested_name, encoding)
+        suggested_name = utils.sanitize_filename(suggested_name)
         # Make sure that the filename is not too long
         suggested_name = utils.elide_filename(suggested_name, 50)
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
