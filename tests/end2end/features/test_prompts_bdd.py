@@ -55,10 +55,10 @@ def ssl_error_page(request, quteproc):
     else:
         if not request.config.webengine:
             line = quteproc.wait_for(message='Error while loading *: SSL '
-                                    'handshake failed')
+                                     'handshake failed')
             line.expected = True
         quteproc.wait_for(message="Changing title for idx * to 'Error "
-                        "loading page: *'")
+                          "loading page: *'")
         content = quteproc.get_content().strip()
         assert "Unable to load page" in content
 

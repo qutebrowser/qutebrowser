@@ -24,13 +24,12 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
-                                      QWebEngineScript,
-                                      QWebEngineCertificateError)
+                                      QWebEngineScript)
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, jinja, objreg, qtutils
+from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
 from qutebrowser.misc import miscwidgets
 
 
