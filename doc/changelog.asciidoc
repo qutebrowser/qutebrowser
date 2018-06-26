@@ -106,6 +106,8 @@ Changed
   logged.
 - On Qt 5.9 or newer, certificate errors now show Chromium's detailed error
   page.
+- Greasemonkey scripts now support a "@qute-js-world" tag to run them in a
+  different JavaScript context.
 
 Fixed
 ~~~~~
