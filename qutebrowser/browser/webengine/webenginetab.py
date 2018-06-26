@@ -880,6 +880,7 @@ class _WebEngineScripts(QObject):
         )
         self._inject_early_js('stylesheet', js_code, subframes=True)
 
+    @pyqtSlot(QUrl)
     def _inject_greasemonkey_scripts_for_url(self, url):
         matching_scripts = self._greasemonkey.scripts_for(url)
         self._inject_greasemonkey_scripts(
@@ -889,6 +890,7 @@ class _WebEngineScripts(QObject):
         self._inject_greasemonkey_scripts(
             matching_scripts.idle, QWebEngineScript.Deferred, False)
 
+    @pyqtSlot()
     def _inject_all_greasemonkey_scripts(self):
         scripts = self._greasemonkey.all_scripts()
         self._inject_greasemonkey_scripts(scripts)
