@@ -505,10 +505,16 @@ def sanitize_filename(name, replacement='_'):
     encoding = sys.getfilesystemencoding()
     name = force_encoding(name, encoding)
 
-    # Bad characters taken from Windows, there are even fewer on Linux
     # See also
     # https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words
-    bad_chars = '\\/:*?"<>|'
+    if is_windows:
+        bad_chars = '\\/:*?"<>|'
+    elif is_mac:
+        # Colons can be confusing in finder https://superuser.com/a/326627
+        bad_chars = '/:'
+    else:
+        bad_chars = '/'
+
     for bad_char in bad_chars:
         name = name.replace(bad_char, replacement)
     return name

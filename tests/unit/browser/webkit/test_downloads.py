@@ -22,6 +22,14 @@ import pytest
 from qutebrowser.browser import downloads, qtnetworkdownloads
 
 
+@pytest.fixture(autouse=True)
+def is_platform(monkeypatch, platform="windows"):
+    for p in ["mac", "linux", "posix", "windows"]:
+        monkeypatch.setattr(
+            'qutebrowser.utils.utils.is_{}'.format(p),
+            p == platform)
+
+
 def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache,
                         fake_args):
     """Simple check for download model internals."""
@@ -98,11 +106,14 @@ class TestDownloadTarget:
         assert isinstance(obj, downloads._DownloadTarget)
 
 
-@pytest.mark.parametrize('raw, expected', [
-    ('http://foo/bar', 'bar'),
-    ('A *|<>\\: bear!', 'A ______ bear!')
+@pytest.mark.parametrize('raw, platform, expected', [
+    ('http://foo/bar', 'windows', 'bar'),
+    ('A *|<>\\: bear!', 'windows', 'A ______ bear!'),
+    ('A *|<>\\: bear!', 'posix', 'A *|<>\\: bear!')
 ])
-def test_sanitized_filenames(raw, expected, config_stub, download_tmpdir):
+def test_sanitized_filenames(raw, platform, expected, config_stub,
+                             download_tmpdir, monkeypatch):
+    is_platform(monkeypatch, platform)
     manager = downloads.AbstractDownloadManager()
     target = downloads.FileDownloadTarget(str(download_tmpdir))
     item = downloads.AbstractDownloadItem()
