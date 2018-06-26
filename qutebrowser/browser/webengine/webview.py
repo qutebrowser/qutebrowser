@@ -288,7 +288,19 @@ class WebEnginePage(QWebEnginePage):
         def _add_script(script, injection_point):
             new_script = QWebEngineScript()
             new_script.setInjectionPoint(injection_point)
-            new_script.setWorldId(QWebEngineScript.MainWorld)
+            try:
+                world = int(script.jsworld)
+            except ValueError:
+                try:
+                    from qutebrowser.browser.webengine.webenginetab import _JS_WORLD_MAP
+                    world = _JS_WORLD_MAP[usertypes.JsWorld[
+                        script.jsworld.lower()]]
+                except KeyError:
+                    log.greasemonkey.error(
+                        "script {} has invalid value for '@qute-js-world'"
+                        ": {}".format(script.name, script.jsworld))
+                    return
+            new_script.setWorldId(world)
             new_script.setSourceCode(script.code())
             new_script.setName("GM-{}".format(script.name))
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
