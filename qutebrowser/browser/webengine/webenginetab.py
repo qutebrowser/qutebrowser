@@ -858,7 +858,7 @@ class _WebEngineScripts(QObject):
         # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
         # response to urlChanged.
         if not qtutils.version_check('5.8'):
-            self._widget.page().urlChanged.connect(
+            self._tab.url_changed.connect(
                 self._inject_greasemonkey_scripts_for_url)
         else:
             self._greasemonkey.scripts_reloaded.connect(
