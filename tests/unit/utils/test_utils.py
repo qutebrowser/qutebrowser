@@ -113,6 +113,14 @@ class TestElidingFilenames:
         assert utils.elide_filename(filename, length) == expected
 
 
+@pytest.fixture(autouse=True)
+def is_platform(monkeypatch, platform="windows"):
+    for p in ["mac", "linux", "posix", "windows"]:
+        monkeypatch.setattr(
+            'qutebrowser.utils.utils.is_{}'.format(p),
+            p == platform)
+
+
 @pytest.fixture(params=[True, False])
 def freezer(request, monkeypatch):
     if request.param and not getattr(sys, 'frozen', False):
@@ -629,12 +637,15 @@ def test_force_encoding(inp, enc, expected):
     assert utils.force_encoding(inp, enc) == expected
 
 
-@pytest.mark.parametrize('inp, expected', [
-    ('normal.txt', 'normal.txt'),
-    ('user/repo issues.mht', 'user_repo issues.mht'),
-    ('<Test\\File> - "*?:|', '_Test_File_ - _____'),
+@pytest.mark.parametrize('inp, platform, expected', [
+    ('normal.txt', 'windows', 'normal.txt'),
+    ('user/repo issues.mht', 'windows', 'user_repo issues.mht'),
+    ('<Test\\File> - "*?:|', 'windows', '_Test_File_ - _____'),
+    ('<Test\\File> - "*?:|', 'mac', '<Test\\File> - "*?_|'),
+    ('<Test\\File> - "*?:|', 'posix', '<Test\\File> - "*?:|'),
 ])
-def test_sanitize_filename(inp, expected):
+def test_sanitize_filename(inp, platform, expected, monkeypatch):
+    is_platform(monkeypatch, platform)
     assert utils.sanitize_filename(inp) == expected
 
 
