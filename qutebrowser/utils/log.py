@@ -209,6 +209,11 @@ def _init_py_warnings():
     """Initialize Python warning handling."""
     warnings.simplefilter('default')
     warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
+    # This happens in many qutebrowser dependencies...
+    warnings.filterwarnings('ignore', category=DeprecationWarning,
+                            message="Using or importing the ABCs from "
+                            "'collections' instead of from 'collections.abc' "
+                            "is deprecated, and in 3.8 it will stop working")
 
 
 @contextlib.contextmanager
