@@ -117,7 +117,7 @@ class TestInit:
         dict_dir = data_dir / 'qtwebengine_dictionaries'
         (dict_dir / 'somedict').ensure()
         monkeypatch.setattr(spell.QLibraryInfo, 'location',
-                            lambda _arg: data_dir)
+                            lambda _arg: str(data_dir))
         return dict_dir
 
     def test_old_qt(self, monkeypatch):
