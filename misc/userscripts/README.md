@@ -1,5 +1,7 @@
 # Userscripts
 
+The following userscripts are included in the current directory.
+
 - [cast](./cast): Cast content on your Chromecast using [castnow][]. Only
   [youtube-dl][] downloadable content.
 - [dmenu_qutebrowser](./dmenu_qutebrowser): Pipes history, quickmarks, and URL into dmenu.
@@ -29,4 +31,31 @@
 
 [castnow]: https://github.com/xat/castnow
 [youtube-dl]: https://rg3.github.io/youtube-dl/
+
+## Others
+
+The following userscripts can be found on their own repositories.
+
+- [qurlshare](https://github.com/sim590/qurlshare): *secure* sharing of an URL between qutebrowser
+  instances using a distributed hash table.
+- [qutebrowser-userscripts](https://github.com/cryzed/qutebrowser-userscripts):
+  a small pack of userscripts.
+- [qutebrowser-zotero](https://github.com/parchd-1/qutebrowser-zotero): connects
+  qutebrowser to [Zotero][] standalone.
+- [qute.match](https://github.com/bziur/qute.match): execute script based on
+  visisted url.
+- [qutepocket](https://github.com/kepi/qutepocket): Add URL to your [Pocket][]
+  bookmark manager.
+- [qb-scripts](https://github.com/peterjschroeder/qb-scripts): a small pack of
+  userscripts.
+- [instapaper.zsh](https://github.com/dmcgrady/instapaper.zsh): Add URL to
+  your [Instapaper][] bookmark manager.
+- [qtb.us](https://github.com/Chinggis6/qtb.us): small pack of userscripts.
+- [pinboard.zsh](https://github.com/dmix/pinboard.zsh): Add URL to your
+  [Pinboard][] bookmark manager.
+
+[Zotero]: https://www.zotero.org/
+[Pocket]: https://getpocket.com/
+[Instapaper]: https://www.instapaper.com/
+[Pinboard]: https://pinboard.in/
 
