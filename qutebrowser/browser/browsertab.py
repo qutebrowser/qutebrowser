@@ -532,12 +532,13 @@ class AbstractHistory:
     def __init__(self, tab):
         self._tab = tab
         self._history = None
+        self._to_load = []
 
     def __len__(self):
         return len(self._history)
 
     def __iter__(self):
-        return iter(self._history.items())
+        return iter(self._to_load or self._history.items())
 
     def current_idx(self):
         raise NotImplementedError
@@ -734,6 +735,7 @@ class AbstractTab(QWidget):
         self._mouse_event_filter = mouse.MouseEventFilter(
             self, parent=self)
         self.backend = None
+        self.loaded = False
 
         # FIXME:qtwebengine  Should this be public api via self.hints?
         #                    Also, should we get it out of objreg?
@@ -901,6 +903,12 @@ class AbstractTab(QWidget):
 
     def load_status(self):
         return self._load_status
+
+    def load(self):
+        raise NotImplementedError
+
+    def load_history_entries(self, entries):
+        raise NotImplementedError
 
     def _openurl_prepare(self, url, *, predict=True):
         qtutils.ensure_valid(url)
