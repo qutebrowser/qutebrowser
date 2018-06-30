@@ -73,6 +73,20 @@ class TabWidget(QTabWidget):
         self._init_config()
         config.instance.changed.connect(self._init_config)
 
+    def setCurrentIndex(self, idx):
+        super().setCurrentIndex(idx)
+        self.load_tab_at_index(idx)
+
+    # def setCurrentWidget(self, tabWidget):
+    #     super().setCurrentWidget(tabWidget)
+    #     if not tabWidget.loaded:
+    #         tabWidget.load()
+
+    def load_tab_at_index(self, idx):
+        tab = self.widget(idx)
+        if not tab.loaded:
+            tab.load()
+
     @config.change_filter('tabs')
     def _init_config(self):
         """Initialize attributes based on the config."""
@@ -405,6 +419,14 @@ class TabBar(QTabBar):
         stylesheet.set_register(self)
         QTimer.singleShot(0, self.maybe_hide)
 
+    def setCurrentIndex(self, idx):
+        super().setCurrentIndex(idx)
+
+        print('tabBar setIndex', idx)
+        tab = self.widget(idx)
+        if not tab.loaded:
+            tab.load()
+
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
 
@@ -546,7 +568,11 @@ class TabBar(QTabBar):
                     idx = self.count() - 1
             self.tabCloseRequested.emit(idx)  # type: ignore
             return
+
+        prevIdx = self.currentIndex()
         super().mousePressEvent(e)
+        if prevIdx != self.currentIndex():
+            self.parent().load_tab_at_index(self.currentIndex())
 
     def minimumTabSizeHint(self, index: int, ellipsis: bool = True) -> QSize:
         """Set the minimum tab size to indicator/icon/... text.
