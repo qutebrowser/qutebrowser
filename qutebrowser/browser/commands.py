@@ -877,6 +877,8 @@ class CommandDispatcher:
         window.activateWindow()
         window.raise_()
         tabbed_browser.widget.setCurrentWidget(tab)
+        if not tab.loaded:
+            tab.load()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last'])

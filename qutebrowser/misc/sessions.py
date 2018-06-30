@@ -154,17 +154,17 @@ class SessionManager(QObject):
         Args:
             tab: The tab to save.
             idx: The index of the current history item.
-            item: The history item.
+            item: TheHistoryItem.
 
         Return:
             A dict with the saved data for this item.
         """
         data = {
-            'url': bytes(item.url().toEncoded()).decode('ascii'),
+            'url': bytes(item.url.toEncoded()).decode('ascii'),
         }
 
-        if item.title():
-            data['title'] = item.title()
+        if item.title:
+            data['title'] = item.title
         else:
             # https://github.com/qutebrowser/qutebrowser/issues/879
             if tab.history.current_idx() == idx:
@@ -172,15 +172,15 @@ class SessionManager(QObject):
             else:
                 data['title'] = data['url']
 
-        if item.originalUrl() != item.url():
-            encoded = item.originalUrl().toEncoded()
+        if item.original_url != item.url:
+            encoded = item.original_url.toEncoded()
             data['original-url'] = bytes(encoded).decode('ascii')
 
         if tab.history.current_idx() == idx:
             data['active'] = True
 
         try:
-            user_data = item.userData()
+            user_data = item.user_data
         except AttributeError:
             # QtWebEngine
             user_data = None
@@ -211,15 +211,26 @@ class SessionManager(QObject):
         if active:
             data['active'] = True
         for idx, item in enumerate(tab.history):
-            qtutils.ensure_valid(item)
+            if not isinstance(item, TabHistoryItem):
+                qtutils.ensure_valid(item)
+                item = TabHistoryItem(
+                    item.url(),
+                    item.title(),
+                    original_url=item.originalUrl(),
+                    active=active,
+                    user_data=None)
             item_data = self._save_tab_item(tab, idx, item)
-            if item.url().scheme() == 'qute' and item.url().host() == 'back':
+            if item.url.scheme() == 'qute' and item.url.host() == 'back':
                 # don't add qute://back to the session file
                 if item_data.get('active', False) and data['history']:
                     # mark entry before qute://back as active
                     data['history'][-1]['active'] = True
             else:
                 data['history'].append(item_data)
+        # check active
+        if not any(i.get('active') for i in data['history']):
+            data['history'][-1]['active'] = True
+
         return data
 
     def _save_all(self, *, only_window=None, with_private=False):
@@ -251,6 +262,8 @@ class SessionManager(QObject):
             win_data['tabs'] = []
             if tabbed_browser.is_private:
                 win_data['private'] = True
+
+            # import pdb; pdb.set_trace()
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.widget.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active))
@@ -314,6 +327,7 @@ class SessionManager(QObject):
 
     def save_autosave(self):
         """Save the autosave session."""
+        return
         try:
             self.save('_autosave')
         except SessionError as e:
@@ -372,19 +386,19 @@ class SessionManager(QObject):
             if 'pinned' in histentry:
                 new_tab.data.pinned = histentry['pinned']
 
-            if (config.val.session.lazy_restore and
-                    histentry.get('active', False) and
-                    not histentry['url'].startswith('qute://back')):
-                # remove "active" mark and insert back page marked as active
-                lazy_index = i + 1
-                lazy_load.append({
-                    'title': histentry['title'],
-                    'url':
-                        'qute://back#' +
-                        urllib.parse.quote(histentry['title']),
-                    'active': True
-                })
-                histentry['active'] = False
+            # if (config.val.session.lazy_restore and
+            #         histentry.get('active', False) and
+            #         not histentry['url'].startswith('qute://back')):
+            #     # remove "active" mark and insert back page marked as active
+            #     lazy_index = i + 1
+            #     lazy_load.append({
+            #         'title': histentry['title'],
+            #         'url':
+            #             'qute://back#' +
+            #             urllib.parse.quote(histentry['title']),
+            #         'active': True
+            #     })
+            #     histentry['active'] = False
 
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
@@ -401,7 +415,8 @@ class SessionManager(QObject):
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
-            new_tab.history.private_api.load_items(entries)
+            new_tab.load_history_items(entries)
+            # new_tab.history.load_items(entries)
         except ValueError as e:
             raise SessionError(e)
 
@@ -412,6 +427,7 @@ class SessionManager(QObject):
             name: The name of the session to load.
             temp: If given, don't set the current session.
         """
+        print('loading session')
         path = self._get_session_path(name, check_exists=True)
         try:
             with open(path, encoding='utf-8') as f:
@@ -447,6 +463,8 @@ class SessionManager(QObject):
             self.did_load = True
         if not name.startswith('_') and not temp:
             self._current = name
+
+        print('session loaded')
 
     def delete(self, name):
         """Delete a session."""
