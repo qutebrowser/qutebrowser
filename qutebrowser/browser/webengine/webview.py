@@ -59,9 +59,6 @@ class WebEngineView(QWebEngineView):
             sip.delete(self.layout())
             self._layout = miscwidgets.PseudoLayout(self)
 
-    def focusInEvent(self, event):
-        super().focusInEvent(event)
-        print('focusIn', self)
 
     def render_widget(self):
         """Get the RenderWidgetHostViewQt for this view.
