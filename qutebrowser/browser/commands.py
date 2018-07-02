@@ -1730,3 +1730,17 @@ class CommandDispatcher:
 
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tab_load(self, prev=False, next_=False, opposite=False,
+                  force=False, count=None):
+
+        # tabbar = self._tabbed_browser.widget.tabBar()
+        tab = self._current_widget()
+        tab.load()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tab_unload(self, prev=False, next_=False, opposite=False,
+                  force=False, count=None):
+        tab = self._current_widget()
+        tab.unload()

@@ -36,6 +36,7 @@ from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
+from qutebrowser.browser import browsertab
 
 
 class Sentinel:
@@ -72,33 +73,33 @@ class SessionNotFoundError(SessionError):
     """Exception raised when a session to be loaded was not found."""
 
 
-class TabHistoryItem:
+# class TabHistoryItem:
 
-    """A single item in the tab history.
+#     """A single item in the tab history.
 
-    Attributes:
-        url: The QUrl of this item.
-        original_url: The QUrl of this item which was originally requested.
-        title: The title as string of this item.
-        active: Whether this item is the item currently navigated to.
-        user_data: The user data for this item.
-    """
+#     Attributes:
+#         url: The QUrl of this item.
+#         original_url: The QUrl of this item which was originally requested.
+#         title: The title as string of this item.
+#         active: Whether this item is the item currently navigated to.
+#         user_data: The user data for this item.
+#     """
 
-    def __init__(self, url, title, *, original_url=None, active=False,
-                 user_data=None):
-        self.url = url
-        if original_url is None:
-            self.original_url = url
-        else:
-            self.original_url = original_url
-        self.title = title
-        self.active = active
-        self.user_data = user_data
+#     def __init__(self, url, title, *, original_url=None, active=False,
+#                  user_data=None):
+#         self.url = url
+#         if original_url is None:
+#             self.original_url = url
+#         else:
+#             self.original_url = original_url
+#         self.title = title
+#         self.active = active
+#         self.user_data = user_data
 
-    def __repr__(self):
-        return utils.get_repr(self, constructor=True, url=self.url,
-                              original_url=self.original_url, title=self.title,
-                              active=self.active, user_data=self.user_data)
+#     def __repr__(self):
+#         return utils.get_repr(self, constructor=True, url=self.url,
+#                               original_url=self.original_url, title=self.title,
+#                               active=self.active, user_data=self.user_data)
 
 
 class SessionManager(QObject):
@@ -211,9 +212,9 @@ class SessionManager(QObject):
         if active:
             data['active'] = True
         for idx, item in enumerate(tab.history):
-            if not isinstance(item, TabHistoryItem):
+            if not isinstance(item, browsertab.TabHistoryItem):
                 qtutils.ensure_valid(item)
-                item = TabHistoryItem(
+                item = browsertab.TabHistoryItem(
                     item.url(),
                     item.title(),
                     original_url=item.originalUrl(),
@@ -407,7 +408,7 @@ class SessionManager(QObject):
                     histentry['original-url'].encode('ascii'))
             else:
                 orig_url = url
-            entry = TabHistoryItem(url=url, original_url=orig_url,
+            entry = browsertab.TabHistoryItem(url=url, original_url=orig_url,
                                    title=histentry['title'], active=active,
                                    user_data=user_data)
             entries.append(entry)
@@ -427,7 +428,6 @@ class SessionManager(QObject):
             name: The name of the session to load.
             temp: If given, don't set the current session.
         """
-        print('loading session')
         path = self._get_session_path(name, check_exists=True)
         try:
             with open(path, encoding='utf-8') as f:
@@ -463,8 +463,6 @@ class SessionManager(QObject):
             self.did_load = True
         if not name.startswith('_') and not temp:
             self._current = name
-
-        print('session loaded')
 
     def delete(self, name):
         """Delete a session."""

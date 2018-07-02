@@ -409,7 +409,6 @@ class TabBar(QTabBar):
     def setCurrentIndex(self, idx):
         super().setCurrentIndex(idx)
 
-        print('tabBar setIndex', idx)
         tab = self.widget(idx)
         if not tab.loaded:
             tab.load()
