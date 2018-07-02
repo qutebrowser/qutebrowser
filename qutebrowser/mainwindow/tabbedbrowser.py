@@ -68,6 +68,7 @@ class TabbedBrowser(QWidget):
         _win_id: The window ID this tabbedbrowser is associated with.
         _filter: A SignalFilter instance.
         _now_focused: The tab which is focused now.
+        _last_hovered_link:The URL of the last hovered link as String
         _tab_insert_idx_left: Where to insert a new tab with
                               tabs.new_tab_position set to 'prev'.
         _tab_insert_idx_right: Same as above, for 'next'.
@@ -126,6 +127,7 @@ class TabbedBrowser(QWidget):
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
+        self._last_hovered_link = None
         self.search_text = None
         self.search_options = {}
         self._local_marks = {}
@@ -204,6 +206,7 @@ class TabbedBrowser(QWidget):
         # filtered signals
         tab.link_hovered.connect(
             self._filter.create(self.cur_link_hovered, tab))
+        tab.link_hovered.connect(self.on_link_hovered_change)
         tab.load_progress.connect(
             self._filter.create(self.cur_progress, tab))
         tab.load_finished.connect(
@@ -407,6 +410,10 @@ class TabbedBrowser(QWidget):
             self.tabopen(url, background=False)
         else:
             self.widget.currentWidget().openurl(url)
+
+    @pyqtSlot(str)
+    def on_link_hovered_change(self, link_hovered):
+        self._last_hovered_link = link_hovered
 
     @pyqtSlot(int)
     def on_tab_close_requested(self, idx):
