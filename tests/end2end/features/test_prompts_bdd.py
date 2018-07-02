@@ -54,7 +54,8 @@ def ssl_error_page(request, quteproc):
         quteproc.wait_for(message="Certificate error: *")
         time.sleep(0.5)  # Wait for error page to appear
         content = quteproc.get_content().strip()
-        assert "ERR_INSECURE_RESPONSE" in content
+        assert ("ERR_INSECURE_RESPONSE" in content or  # Qt <= 5.10
+                "ERR_CERT_AUTHORITY_INVALID" in content)  # Qt 5.11
     else:
         if not request.config.webengine:
             line = quteproc.wait_for(message='Error while loading *: SSL '
