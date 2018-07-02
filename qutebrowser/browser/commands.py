@@ -2249,3 +2249,18 @@ class CommandDispatcher:
             tab.audio.toggle_muted()
         except browsertab.WebTabError as e:
             raise cmdexc.CommandError(e)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tab_load(self, prev=False, next_=False, opposite=False,
+                  force=False, count=None):
+
+        # tabbar = self._tabbed_browser.widget.tabBar()
+        tab = self._current_widget()
+        tab.load()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tab_unload(self, prev=False, next_=False, opposite=False,
+                  force=False, count=None):
+        tab = self._current_widget()
+        tab.unload()
+
