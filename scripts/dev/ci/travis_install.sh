@@ -82,8 +82,8 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
 
     brew --version
     brew update
-    brew upgrade python
-    brew install qt5 pyqt5 libyaml
+    brew upgrade python libyaml
+    brew install qt5 pyqt5
 
     pip_install -r misc/requirements/requirements-tox.txt
     python3 -m pip --version
