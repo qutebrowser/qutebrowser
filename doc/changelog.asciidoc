@@ -123,6 +123,10 @@ Fixed
 Removed
 ~~~~~~~
 
+- No prebuilt binaries for 32-bit Windows are supplied anymore. This is due to
+  Qt removing QtWebEngine support for those upstream. It might be possible to
+  distribute 32-bit binaries again with Qt 5.12 in December, but that will only
+  happen if it turns out enough people actually need 32-bit support.
 - `:tab-detach` which has been deprecated in v1.1.0 has been removed.
 - The `content.developer_extras` setting got removed. On QtWebKit, developer
   extras are now automatically enabled when opening the inspector.
