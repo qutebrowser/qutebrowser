@@ -7,4 +7,4 @@ Jinja2==2.10
 MarkupSafe==1.0
 Pygments==2.2.0
 pyPEG2==2.15.2
-PyYAML==3.12  # rq.filter: != 4.1
+PyYAML==3.13b1  # rq.filter: != 4.1
