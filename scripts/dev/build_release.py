@@ -45,7 +45,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 import qutebrowser
 from scripts import utils
 # from scripts.dev import update_3rdparty
-from scripts.dev import gen_versioninfo
 
 
 def call_script(name, *args, python=sys.executable):
@@ -245,6 +244,7 @@ def build_windows():
 
     artifacts = []
 
+    from scripts.dev import gen_versioninfo
     utils.print_title("Updating VersionInfo file")
     gen_versioninfo.main()
 
