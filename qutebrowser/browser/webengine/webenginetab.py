@@ -503,6 +503,13 @@ class WebEngineHistory(browsertab.AbstractHistory):
     """QtWebEngine implementations related to page history."""
 
     def current_idx(self):
+        if self._to_load:
+            idx = next(
+                (i for i, item in enumerate(self._to_load) if item.active),
+                None)
+            if idx is None:
+                idx = len(self._to_load)-1
+            return idx
         return self._history.currentItemIndex()
 
     def can_go_back(self):
@@ -1024,7 +1031,7 @@ class WebEngineTab(browsertab.AbstractTab):
             return
 
         self.loaded = False
-        self.history._to_load = []
+        _to_load = []
         for idx, item in enumerate(self.history):
             qtutils.ensure_valid(item)
             item = browsertab.TabHistoryItem(
@@ -1033,7 +1040,8 @@ class WebEngineTab(browsertab.AbstractTab):
                 original_url=item.originalUrl(),
                 active=idx == self.history.current_idx(),
                 user_data=None)
-            self.history._to_load.append(item)
+            _to_load.append(item)
+        self.history._to_load =_to_load
 
         _title = self._widget.title()
         self._widget.setHtml('', self._widget.url())

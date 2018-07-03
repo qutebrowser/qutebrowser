@@ -226,6 +226,7 @@ class SessionManager(QObject):
 
         # check active
         if data['history'] and not any(i.get('active') for i in data['history']):
+            log.session.warning('no active item for', tab)
             data['history'][-1]['active'] = True
 
         return data
