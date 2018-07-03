@@ -119,6 +119,7 @@ Fixed
   the `qute://history` page.
 - Crash when opening a PDF page with PDF.js enabled (on QtWebKit), but no
   PDF.js installed.
+- Crash when closing a tab shortly after opening it.
 
 Removed
 ~~~~~~~
