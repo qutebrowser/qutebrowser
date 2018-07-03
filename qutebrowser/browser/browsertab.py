@@ -911,7 +911,7 @@ class AbstractTab(QWidget):
         self._mouse_event_filter = mouse.MouseEventFilter(
             self, parent=self)
         self.backend = None
-        self.loaded = False
+        self.loaded = True
 
         # FIXME:qtwebengine  Should this be public api via self.hints?
         #                    Also, should we get it out of objreg?

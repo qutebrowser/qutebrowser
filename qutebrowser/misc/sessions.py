@@ -214,22 +214,24 @@ class SessionManager(QObject):
         for idx, item in enumerate(tab.history):
             if not isinstance(item, browsertab.TabHistoryItem):
                 qtutils.ensure_valid(item)
+
+                try:
+                    user_data = item.userData()
+                except AttributeError:
+                    user_data = None
+
                 item = browsertab.TabHistoryItem(
                     item.url(),
                     item.title(),
                     original_url=item.originalUrl(),
                     active=active,
-                    user_data=None)
+                    user_data=user_data)
+
             item_data = self._save_tab_item(tab, idx, item)
-            if item.url.scheme() == 'qute' and item.url.host() == 'back':
-                # don't add qute://back to the session file
-                if item_data.get('active', False) and data['history']:
-                    # mark entry before qute://back as active
-                    data['history'][-1]['active'] = True
-            else:
-                data['history'].append(item_data)
+            data['history'].append(item_data)
+
         # check active
-        if not any(i.get('active') for i in data['history']):
+        if data['history'] and not any(i.get('active') for i in data['history']):
             data['history'][-1]['active'] = True
 
         return data
@@ -264,8 +266,8 @@ class SessionManager(QObject):
             if tabbed_browser.is_private:
                 win_data['private'] = True
 
-            # import pdb; pdb.set_trace()
             for i, tab in enumerate(tabbed_browser.widgets()):
+                log.sessions.debug("saving tab {} with history {}...".format(tab, list(tab.history)))
                 active = i == tabbed_browser.widget.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active))
             data['windows'].append(win_data)
@@ -416,8 +418,11 @@ class SessionManager(QObject):
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
-            new_tab.load_history_items(entries)
-            # new_tab.history.load_items(entries)
+            if config.val.session.lazy_restore:
+                new_tab.loaded = False
+                new_tab.load_history_items(entries)
+            else:
+                new_tab.history.load_items(entries)
         except ValueError as e:
             raise SessionError(e)
 

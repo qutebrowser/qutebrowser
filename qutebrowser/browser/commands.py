@@ -1734,6 +1734,9 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_load(self, prev=False, next_=False, opposite=False,
                   force=False, count=None):
+        """
+        load the current tab
+        """
 
         # tabbar = self._tabbed_browser.widget.tabBar()
         tab = self._current_widget()
@@ -1742,5 +1745,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_unload(self, prev=False, next_=False, opposite=False,
                   force=False, count=None):
+        """
+        unload the current tab
+        """
         tab = self._current_widget()
         tab.unload()

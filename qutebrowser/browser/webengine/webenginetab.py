@@ -568,7 +568,10 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return len(self._history)
 
     def __iter__(self):
-        return iter(self._to_load or self._history.items())
+        if self._history is not None:
+            return iter(self._history.items())
+        else:
+            return iter(self._to_load)
 
     def current_idx(self):
         return self._history.currentItemIndex()
