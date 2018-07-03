@@ -43,11 +43,6 @@ travis_retry() {
     return $result
 }
 
-brew_install() {
-    brew update
-    brew install "$@"
-}
-
 pip_install() {
     travis_retry python3 -m pip install "$@"
 }
