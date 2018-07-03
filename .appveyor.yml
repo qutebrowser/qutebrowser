@@ -16,4 +16,5 @@ install:
   - 'set PATH=C:\Python36-x64;%PATH'
 
 test_script:
+  - '%PYTHON% -c "from PyQt5 import QtWebEngineWidgets"'
   - '%PYTHON% -m tox -e %TESTENV%'
