@@ -1024,6 +1024,9 @@ class WebEngineTab(browsertab.AbstractTab):
             url: The QUrl to open.
             predict: If set to False, predicted_navigation is not emitted.
         """
+        if sip.isdeleted(self._widget):
+            # https://github.com/qutebrowser/qutebrowser/issues/3896
+            return
         self._saved_zoom = self.zoom.factor()
         self._openurl_prepare(url, predict=predict)
         self._widget.load(url)
