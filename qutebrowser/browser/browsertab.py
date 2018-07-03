@@ -566,7 +566,10 @@ class AbstractHistory:
         return len(self._history)
 
     def __iter__(self):
-        return iter(self._to_load or self._history.items())
+        if self._history is not None:
+            return iter(self._history.items())
+        else:
+            return iter(self._to_load)
 
     def current_idx(self):
         raise NotImplementedError
@@ -763,7 +766,7 @@ class AbstractTab(QWidget):
         self._mouse_event_filter = mouse.MouseEventFilter(
             self, parent=self)
         self.backend = None
-        self.loaded = False
+        self.loaded = True
 
         # FIXME:qtwebengine  Should this be public api via self.hints?
         #                    Also, should we get it out of objreg?

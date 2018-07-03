@@ -675,6 +675,18 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
+    def load(self):
+        if not self.loaded:
+            self.history.load_items(self.history._to_load)
+            self.history._to_load = []
+            self.loaded = True
+
+    def load_history_items(self, entries):
+        if self.loaded:
+            self.history.load_items(entries)
+        else:
+            self.history._to_load.extend(entries)
+
     def openurl(self, url, *, predict=True):
         self._openurl_prepare(url, predict=predict)
         self._widget.openurl(url)
