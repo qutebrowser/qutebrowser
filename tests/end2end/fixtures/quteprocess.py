@@ -204,6 +204,10 @@ def is_ignored_chromium_message(line):
         # [30412:30412:0323/074933.387250:ERROR:node_channel.cc(899)] Dropping
         # message on closed channel.
         'Dropping message on closed channel.',
+        # [2204:1408:0703/113804.788:ERROR:
+        # gpu_process_transport_factory.cc(1019)] Lost UI shared context.
+        'Lost UI shared context.',
+
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
