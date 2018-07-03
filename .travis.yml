@@ -30,7 +30,7 @@ matrix:
       dist: xenial
       env: TESTENV=py37-pyqt511
     - os: osx
-      env: TESTENV=py36 OSX=sierra
+      env: TESTENV=py37 OSX=sierra
       osx_image: xcode9.2
       language: generic
     # https://github.com/qutebrowser/qutebrowser/issues/2013
