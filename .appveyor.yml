@@ -17,3 +17,6 @@ install:
 
 test_script:
   - '%PYTHON% -m tox -e %TESTENV%'
+
+on_finish:
+  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
