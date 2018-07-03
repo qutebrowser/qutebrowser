@@ -29,7 +29,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, usertypes, log, urlutils, utils
+from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
@@ -307,7 +307,14 @@ class DownloadItem(downloads.AbstractDownloadItem):
         """Handle QNetworkReply errors."""
         if code == QNetworkReply.OperationCanceledError:
             return
-        self._die(self._reply.errorString())
+
+        if self._reply is None:
+            error = "Unknown error: {}".format(
+                debug.qenum_key(QNetworkReply, code))
+        else:
+            error = self._reply.errorString()
+
+        self._die(error)
 
     @pyqtSlot()
     def _on_read_timer_timeout(self):
