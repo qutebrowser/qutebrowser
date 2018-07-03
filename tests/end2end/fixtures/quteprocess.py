@@ -104,6 +104,15 @@ def is_ignored_lowlevel_message(message):
         # Qt 5.11
         # DevTools listening on ws://127.0.0.1:37945/devtools/browser/...
         'DevTools listening on *',
+        # /home/travis/build/qutebrowser/qutebrowser/.tox/py36-pyqt511-cov/lib/
+        # python3.6/site-packages/PyQt5/Qt/libexec/QtWebEngineProcess:
+        # /lib/x86_64-linux-gnu/libdbus-1.so.3: no version information
+        # available (required by /home/travis/build/qutebrowser/qutebrowser/
+        # .tox/py36-pyqt511-cov/lib/python3.6/site-packages/PyQt5/Qt/libexec/
+        # ../lib/libQt5WebEngineCore.so.5)
+        '*/QtWebEngineProcess: /lib/x86_64-linux-gnu/libdbus-1.so.3: no '
+        'version information available (required by '
+        '*/libQt5WebEngineCore.so.5)',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
