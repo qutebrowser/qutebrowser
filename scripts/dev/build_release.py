@@ -256,9 +256,6 @@ def build_windows():
 
     utils.print_title("Building installers")
     subprocess.run(['makensis.exe',
-                    '/DVERSION={}'.format(qutebrowser.__version__),
-                    'misc/qutebrowser.nsi'], check=True)
-    subprocess.run(['makensis.exe',
                     '/DX64',
                     '/DVERSION={}'.format(qutebrowser.__version__),
                     'misc/qutebrowser.nsi'], check=True)
