@@ -25,13 +25,6 @@ import os
 import os.path
 import unittest
 import unittest.mock
-try:
-    # pylint: disable=no-name-in-module,useless-suppression
-    from test import test_file
-    # pylint: enable=no-name-in-module,useless-suppression
-except ImportError:
-    # Debian patches Python to remove the tests...
-    test_file = None
 
 import pytest
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
@@ -39,6 +32,20 @@ from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
 
 from qutebrowser.utils import qtutils, utils
 import overflow_test_cases
+
+if utils.is_linux:
+    # Those are not run on macOS because that seems to cause a hang sometimes.
+    # On Windows, we don't run them either because of
+    # https://github.com/pytest-dev/pytest/issues/3650
+    try:
+        # pylint: disable=no-name-in-module,useless-suppression
+        from test import test_file
+        # pylint: enable=no-name-in-module,useless-suppression
+    except ImportError:
+        # Debian patches Python to remove the tests...
+        test_file = None
+else:
+    test_file = None
 
 
 # pylint: disable=bad-continuation
@@ -476,12 +483,10 @@ class TestSavefileOpen:
             assert data == b'foo\nbar\nbaz'
 
 
-if test_file is not None and not utils.is_mac:
+if test_file is not None:
     # If we were able to import Python's test_file module, we run some code
     # here which defines unittest TestCases to run the python tests over
     # PyQIODevice.
-
-    # Those are not run on macOS because that seems to cause a hang sometimes.
 
     @pytest.fixture(scope='session', autouse=True)
     def clean_up_python_testfile():
