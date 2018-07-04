@@ -1114,8 +1114,6 @@ class CommandDispatcher:
         window.activateWindow()
         window.raise_()
         tabbed_browser.widget.setCurrentWidget(tab)
-        if not tab.loaded:
-            tab.load()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last'])
@@ -2251,22 +2249,28 @@ class CommandDispatcher:
             raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_load(self, prev=False, next_=False, opposite=False,
-                  force=False, count=None):
+    @cmdutils.argument('count', count=True)
+    def tab_load(self, index=None, count=None):
         """
         load the current tab
         """
 
-        # tabbar = self._tabbed_browser.widget.tabBar()
-        tab = self._current_widget()
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+
         tab.load()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_unload(self, prev=False, next_=False, opposite=False,
-                  force=False, count=None):
+    @cmdutils.argument('count', count=True)
+    def tab_unload(self, index=None, count=None):
         """
         unload the current tab
         """
-        tab = self._current_widget()
+
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+
         tab.unload()
 
