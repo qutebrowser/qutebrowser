@@ -1071,7 +1071,7 @@ hints.selectors:
       - 'audio'
       - 'img'
       - 'video'
-    urls:
+    url:
       - '[src]'
       - '[href]'
     inputs:

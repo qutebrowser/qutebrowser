@@ -146,18 +146,18 @@ class SelectionAndFilterTests:
     TESTS = [
         ('<foo />', []),
         ('<foo bar="baz"/>', []),
-        ('<foo href="baz"/>', ['urls']),
-        ('<foo src="baz"/>', ['urls']),
+        ('<foo href="baz"/>', ['url']),
+        ('<foo src="baz"/>', ['url']),
 
         ('<a />', ['all']),
-        ('<a href="foo" />', ['all', 'links', 'urls']),
-        ('<a href="javascript://foo" />', ['all', 'links', 'urls']),
+        ('<a href="foo" />', ['all', 'links', 'url']),
+        ('<a href="javascript://foo" />', ['all', 'links', 'url']),
 
         ('<area />', ['all']),
-        ('<area href="foo" />', ['all', 'links', 'urls']),
+        ('<area href="foo" />', ['all', 'links', 'url']),
 
         ('<link />', ['all']),
-        ('<link href="foo" />', ['all', 'links', 'urls']),
+        ('<link href="foo" />', ['all', 'links', 'url']),
 
         ('<textarea />', ['all', 'inputs']),
         ('<select />', ['all']),
@@ -173,7 +173,7 @@ class SelectionAndFilterTests:
         ('<input type="search" />', ['inputs', 'all']),
 
         ('<button />', ['all']),
-        ('<button href="foo" />', ['all', 'urls']),
+        ('<button href="foo" />', ['all', 'url']),
 
         # We can't easily test <frame>/<iframe> as they vanish when setting
         # them via QWebFrame::setHtml...
@@ -182,10 +182,10 @@ class SelectionAndFilterTests:
         ('<p onmousedown="foo" foo="bar"/>', ['all']),
         ('<p role="option" foo="bar"/>', ['all']),
         ('<p role="button" foo="bar"/>', ['all']),
-        ('<p role="button" href="bar"/>', ['all', 'urls']),
+        ('<p role="button" href="bar"/>', ['all', 'url']),
     ]
 
-    GROUPS = ['all', 'links', 'images', 'urls', 'inputs']
+    GROUPS = ['all', 'links', 'images', 'url', 'inputs']
 
     COMBINATIONS = list(itertools.product(TESTS, GROUPS))
 

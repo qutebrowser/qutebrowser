@@ -2542,7 +2542,7 @@ Default:
 * +pass:[audio]+
 * +pass:[img]+
 * +pass:[video]+
-- +pass:[urls]+:
+- +pass:[url]+:
 
 * +pass:[[src]]+
 * +pass:[[href]]+
