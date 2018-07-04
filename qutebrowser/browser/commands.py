@@ -877,8 +877,6 @@ class CommandDispatcher:
         window.activateWindow()
         window.raise_()
         tabbed_browser.widget.setCurrentWidget(tab)
-        if not tab.loaded:
-            tab.load()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last'])
@@ -1732,21 +1730,27 @@ class CommandDispatcher:
             debug.qflags_key(Qt, window.state_before_fullscreen)))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_load(self, prev=False, next_=False, opposite=False,
-                  force=False, count=None):
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tab_load(self, count=None):
         """
         load the current tab
         """
 
-        # tabbar = self._tabbed_browser.widget.tabBar()
-        tab = self._current_widget()
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+
         tab.load()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tab_unload(self, prev=False, next_=False, opposite=False,
-                  force=False, count=None):
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tab_unload(self, count=None):
         """
         unload the current tab
         """
-        tab = self._current_widget()
+
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+
         tab.unload()

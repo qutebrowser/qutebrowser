@@ -73,35 +73,6 @@ class SessionNotFoundError(SessionError):
     """Exception raised when a session to be loaded was not found."""
 
 
-# class TabHistoryItem:
-
-#     """A single item in the tab history.
-
-#     Attributes:
-#         url: The QUrl of this item.
-#         original_url: The QUrl of this item which was originally requested.
-#         title: The title as string of this item.
-#         active: Whether this item is the item currently navigated to.
-#         user_data: The user data for this item.
-#     """
-
-#     def __init__(self, url, title, *, original_url=None, active=False,
-#                  user_data=None):
-#         self.url = url
-#         if original_url is None:
-#             self.original_url = url
-#         else:
-#             self.original_url = original_url
-#         self.title = title
-#         self.active = active
-#         self.user_data = user_data
-
-#     def __repr__(self):
-#         return utils.get_repr(self, constructor=True, url=self.url,
-#                               original_url=self.original_url, title=self.title,
-#                               active=self.active, user_data=self.user_data)
-
-
 class SessionManager(QObject):
 
     """Manager for sessions.
@@ -390,20 +361,6 @@ class SessionManager(QObject):
             if 'pinned' in histentry:
                 new_tab.data.pinned = histentry['pinned']
 
-            # if (config.val.session.lazy_restore and
-            #         histentry.get('active', False) and
-            #         not histentry['url'].startswith('qute://back')):
-            #     # remove "active" mark and insert back page marked as active
-            #     lazy_index = i + 1
-            #     lazy_load.append({
-            #         'title': histentry['title'],
-            #         'url':
-            #             'qute://back#' +
-            #             urllib.parse.quote(histentry['title']),
-            #         'active': True
-            #     })
-            #     histentry['active'] = False
-
             active = histentry.get('active', False)
             url = QUrl.fromEncoded(histentry['url'].encode('ascii'))
             if 'original-url' in histentry:
@@ -419,11 +376,8 @@ class SessionManager(QObject):
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
-            if config.val.session.lazy_restore:
-                new_tab.loaded = False
-                new_tab.load_history_items(entries)
-            else:
-                new_tab.history.load_items(entries)
+            new_tab.loaded = False
+            new_tab.load_history_items(entries)
         except ValueError as e:
             raise SessionError(e)
 
@@ -452,18 +406,29 @@ class SessionManager(QObject):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
             tab_to_focus = None
+            new_tabs = []
             for i, tab in enumerate(win['tabs']):
                 new_tab = tabbed_browser.tabopen(background=False)
+                new_tabs.append(new_tab)
                 self._load_tab(new_tab, tab)
                 if tab.get('active', False):
                     tab_to_focus = i
                 if new_tab.data.pinned:
                     tabbed_browser.widget.set_tab_pinned(new_tab,
                                                          new_tab.data.pinned)
+
+            for tab in new_tabs:
+                tab.load_on_focus = True
+                if not config.val.session.lazy_restore:
+                    tab.load()
+
             if tab_to_focus is not None:
                 tabbed_browser.widget.setCurrentIndex(tab_to_focus)
+
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
+
+
 
         if data['windows']:
             self.did_load = True

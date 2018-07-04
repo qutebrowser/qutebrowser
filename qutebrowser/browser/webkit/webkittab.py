@@ -725,18 +725,6 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def load(self):
-        if not self.loaded:
-            self.history.load_items(self.history._to_load)
-            self.history._to_load = []
-            self.loaded = True
-
-    def load_history_items(self, entries):
-        if self.loaded:
-            self.history.load_items(entries)
-        else:
-            self.history._to_load.extend(entries)
-
     def load_url(self, url, *, emit_before_load_started=True):
         self._load_url_prepare(
             url, emit_before_load_started=emit_before_load_started)
@@ -768,6 +756,10 @@ class WebKitTab(browsertab.AbstractTab):
         return self._widget.icon()
 
     def reload(self, *, force=False):
+        if not self.loaded:
+            self.load()
+            return
+
         if force:
             action = QWebPage.ReloadAndBypassCache
         else:
