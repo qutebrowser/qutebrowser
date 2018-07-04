@@ -192,14 +192,22 @@ Feature: Using hints
 
     Scenario: Custom hint group
         When I open data/hints/custom_group.html
-        And I set hints.selectors to {"custom": [".clickable"]}
-        And I hint with args "--rapid custom"
-        And I run :follow-hint a
-        And I run :follow-hint s
-        And I run :follow-hint d
+        And I set hints.selectors to {"custom":[".clickable"]}
+        And I hint with args "custom" and follow a
         Then the javascript message "beep!" should be logged
-        And the javascript message "bop!" should be logged
-        And the javascript message "boop!" should be logged
+
+    Scenario: Custom hint group with URL pattern
+        When I open data/hints/custom_group.html
+        And I run :set -u *://*/data/hints/custom_group.html hints.selectors '{"custom": [".clickable"]}'
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
+
+    Scenario: Fallback to global value with URL pattern set
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom":[".clickable"]}
+        And I run :set -u *://*/data/hints/custom_group.html hints.selectors '{"other": [".other"]}'
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/1613
     Scenario: Hinting inputs with padding
