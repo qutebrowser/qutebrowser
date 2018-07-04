@@ -1194,38 +1194,6 @@ class WebEngineTab(browsertab.AbstractTab):
         self.zoom.set_factor(self._saved_zoom)
         self._saved_zoom = None
 
-    def unload(self):
-        if not self.loaded:
-            return
-
-        self.loaded = False
-        _to_load = []
-        for idx, item in enumerate(self.history):
-            qtutils.ensure_valid(item)
-            item = browsertab.TabHistoryItem(
-                item.url(),
-                item.title(),
-                original_url=item.originalUrl(),
-                active=idx == self.history.current_idx(),
-                user_data=None)
-            _to_load.append(item)
-        self.history._to_load =_to_load
-
-        _title = self._widget.title()
-        self._widget.setHtml('', self._widget.url())
-        self.title_changed.emit(_title)
-
-    def load(self):
-        self.history.load_items(self.history._to_load)
-        self.history._to_load = []
-        self.loaded = True
-
-    def load_history_items(self, entries):
-        if self.loaded:
-            self.history.private_api.load_items(entries)
-        else:
-            self.history._to_load.extend(entries)
-
     def load_url(self, url, *, emit_before_load_started=True):
         """Load the given URL in this tab.
 

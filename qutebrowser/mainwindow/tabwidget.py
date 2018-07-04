@@ -75,16 +75,8 @@ class TabWidget(QTabWidget):
 
     def setCurrentIndex(self, idx):
         super().setCurrentIndex(idx)
-        self.load_tab_at_index(idx)
-
-    # def setCurrentWidget(self, tabWidget):
-    #     super().setCurrentWidget(tabWidget)
-    #     if not tabWidget.loaded:
-    #         tabWidget.load()
-
-    def load_tab_at_index(self, idx):
         tab = self.widget(idx)
-        if not tab.loaded:
+        if tab.load_on_focus:
             tab.load()
 
     @config.change_filter('tabs')
@@ -568,10 +560,7 @@ class TabBar(QTabBar):
             self.tabCloseRequested.emit(idx)  # type: ignore
             return
 
-        prevIdx = self.currentIndex()
         super().mousePressEvent(e)
-        if prevIdx != self.currentIndex():
-            self.parent().load_tab_at_index(self.currentIndex())
 
     def minimumTabSizeHint(self, index: int, ellipsis: bool = True) -> QSize:
         """Set the minimum tab size to indicator/icon/... text.

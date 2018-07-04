@@ -1089,13 +1089,47 @@ class AbstractTab(QWidget):
         return self._load_status
 
     def load(self):
-        raise NotImplementedError
+        if self.loaded:
+            return
+
+        self.history.private_api.load_items(self.history._to_load)
+        self.history._to_load = []
+        self.loaded = True
+        self.load_on_focus = False
 
     def unload(self):
-        raise NotImplementedError
+        if not self.loaded:
+            return
 
-    def load_history_entries(self, entries):
-        raise NotImplementedError
+        self.loaded = False
+        self.load_on_focus = True
+
+        _to_load = []
+        for idx, item in enumerate(self.history):
+            qtutils.ensure_valid(item)
+            item = TabHistoryItem(
+                item.url(),
+                item.title(),
+                original_url=item.originalUrl(),
+                active=idx == self.history.current_idx(),
+                user_data=None)
+            _to_load.append(item)
+        self.history._to_load =_to_load
+
+        _title = self._widget.title()
+        self._widget.setHtml('', self._widget.url())
+        self.title_changed.emit(_title)
+
+    def setFocus(self):
+        super().setFocus()
+        if self.load_on_focus:
+            self.load()
+
+    def load_history_items(self, entries):
+        if self.loaded:
+            self.history.private_api.load_items(entries)
+        else:
+            self.history._to_load.extend(entries)
 
     def _load_url_prepare(self, url: QUrl, *,
                           emit_before_load_started: bool = True) -> None:
