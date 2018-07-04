@@ -98,7 +98,6 @@ _JS_WORLD_MAP = {
 }
 
 
-
 class WebEngineAction(browsertab.AbstractAction):
 
     """QtWebEngine implementations related to web actions."""
@@ -1167,7 +1166,6 @@ class WebEngineTab(browsertab.AbstractTab):
         self._saved_zoom = None
         self._reload_url = None  # type: typing.Optional[QUrl]
         self._scripts.init()
-        # self.entries_to_load = []
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access

@@ -59,7 +59,6 @@ class WebEngineView(QWebEngineView):
             sip.delete(self.layout())
             self._layout = miscwidgets.PseudoLayout(self)
 
-
     def render_widget(self):
         """Get the RenderWidgetHostViewQt for this view.
 
