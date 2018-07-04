@@ -513,7 +513,6 @@ class TabBar(QTabBar):
                     idx = self.count() - 1
             self.tabCloseRequested.emit(idx)
             return
-
         super().mousePressEvent(e)
 
     def minimumTabSizeHint(self, index, ellipsis: bool = True) -> QSize:
