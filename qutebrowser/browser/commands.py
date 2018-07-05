@@ -1774,10 +1774,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_load(self, count=None):
-        """
-        load the current tab
-        """
+        """Load the current tab.
 
+        Args:
+            count: The tab index to load, or None
+        """
         tab = self._cntwidget(count)
         if tab is None:
             return
@@ -1787,10 +1788,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_unload(self, count=None):
-        """
-        unload the current tab
-        """
+        """Unload the current tab.
 
+        Args:
+            count: The tab index to load, or None
+        """
         tab = self._cntwidget(count)
         if tab is None:
             return

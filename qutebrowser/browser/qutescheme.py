@@ -29,7 +29,6 @@ import json
 import os
 import time
 import textwrap
-import urllib
 import collections
 import base64
 import typing

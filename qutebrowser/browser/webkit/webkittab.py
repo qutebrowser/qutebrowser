@@ -557,8 +557,8 @@ class WebKitHistory(browsertab.AbstractHistory):
         return len(self._history)
 
     def __iter__(self):
-        if self._to_load:
-            return iter(self._to_load)
+        if self.to_load:
+            return iter(self.to_load)
         else:
             return iter(self._history.items())
 
