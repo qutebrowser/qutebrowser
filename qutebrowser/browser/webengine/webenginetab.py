@@ -502,12 +502,12 @@ class WebEngineHistory(browsertab.AbstractHistory):
     """QtWebEngine implementations related to page history."""
 
     def current_idx(self):
-        if self._to_load:
+        if self.to_load:
             idx = next(
-                (i for i, item in enumerate(self._to_load) if item.active),
+                (i for i, item in enumerate(self.to_load) if item.active),
                 None)
             if idx is None:
-                idx = len(self._to_load)-1
+                idx = len(self.to_load) - 1
             return idx
         return self._history.currentItemIndex()
 

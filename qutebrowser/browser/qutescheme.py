@@ -30,7 +30,6 @@ import os
 import time
 import textwrap
 import mimetypes
-import urllib
 import collections
 
 import pkg_resources
