@@ -109,6 +109,7 @@ class TabWidget(QTabWidget):
 
         bar.set_tab_data(idx, 'pinned', pinned)
         tab.data.pinned = pinned
+
         self.update_tab_favicon(tab)
         self.update_tab_title(idx)
 
@@ -154,6 +155,7 @@ class TabWidget(QTabWidget):
         # a size recalculation which is slow.
         if tabbar.tabText(idx) != title:
             tabbar.setTabText(idx, title)
+            tabbar._pinned_statistics.cache_clear()
 
         # always show only plain title in tooltips
         tabbar.setTabToolTip(idx, fields['title'])
@@ -325,6 +327,8 @@ class TabWidget(QTabWidget):
             if config.val.tabs.tabs_are_windows:
                 self.window().setWindowIcon(self.window().windowIcon())
 
+        self.tabBar()._pinned_statistics.cache_clear()
+
 
 class TabBar(QTabBar):
 
@@ -390,6 +394,7 @@ class TabBar(QTabBar):
                       "tabs.indicator.width",
                       "tabs.min_width",
                       "tabs.pinned.shrink"]:
+            self._pinned_statistics.cache_clear()
             self._minimum_tab_size_hint_helper.cache_clear()
 
     def _on_show_switching_delay_changed(self):
@@ -467,6 +472,7 @@ class TabBar(QTabBar):
         self._set_icon_size()
         # clear tab size cache
         self._minimum_tab_size_hint_helper.cache_clear()
+        self._pinned_statistics.cache_clear()
 
     def _set_icon_size(self):
         """Set the tab bar favicon size."""
@@ -564,6 +570,7 @@ class TabBar(QTabBar):
             width = max(min_width, width)
         return QSize(width, height)
 
+    @functools.lru_cache(maxsize=1)
     def _pinned_statistics(self) -> (int, int):
         """Get the number of pinned tabs and the total width of pinned tabs."""
         pinned_list = [idx for idx in range(self.count())
