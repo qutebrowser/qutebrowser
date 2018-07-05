@@ -81,6 +81,11 @@ class TabWidget(QTabWidget):
         config.instance.changed.connect(self._init_config)
 
     def setCurrentIndex(self, idx):
+        """Set the focus to the tab at index idx and load it.
+
+        Args:
+            idx index of the tab to focus
+        """
         super().setCurrentIndex(idx)
         tab = self.widget(idx)
         if tab.load_on_focus:
@@ -399,6 +404,11 @@ class TabBar(QTabBar):
         QTimer.singleShot(0, self.maybe_hide)
 
     def setCurrentIndex(self, idx):
+        """Set the focus to the tab at index idx and load it.
+
+        Args:
+            idx index of the tab to focus
+        """
         super().setCurrentIndex(idx)
 
         tab = self.widget(idx)

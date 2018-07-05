@@ -21,8 +21,6 @@
 
 import os
 import os.path
-import itertools
-import urllib
 import typing
 
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
@@ -202,8 +200,9 @@ class SessionManager(QObject):
             data['history'].append(item_data)
 
         # check active
-        if data['history'] and not any(i.get('active') for i in data['history']):
-            log.session.warning('no active item for', tab)
+        if (data['history'] and not
+                any(i.get('active') for i in data['history'])):
+            log.sessions.warning('no active item for {}'.format(tab))
             data['history'][-1]['active'] = True
 
         return data
@@ -239,7 +238,9 @@ class SessionManager(QObject):
                 win_data['private'] = True
 
             for i, tab in enumerate(tabbed_browser.widgets()):
-                log.sessions.debug("saving tab {} with history {}...".format(tab, list(tab.history)))
+                log.sessions.debug(
+                    "saving tab {} with history {}...".format(
+                        tab, list(tab.history)))
                 active = i == tabbed_browser.widget.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active))
             data['windows'].append(win_data)
@@ -324,19 +325,10 @@ class SessionManager(QObject):
 
     def _load_tab(self, new_tab, data):
         """Load yaml data into a newly opened tab."""
-        entries = []
-        lazy_load = []
-        # use len(data['history'])
-        # -> dropwhile empty if not session.lazy_session
-        lazy_index = len(data['history'])
-        gen = itertools.chain(
-            itertools.takewhile(lambda _: not lazy_load,
-                                enumerate(data['history'])),
-            enumerate(lazy_load),
-            itertools.dropwhile(lambda i: i[0] < lazy_index,
-                                enumerate(data['history'])))
+        history_items = []
 
-        for i, histentry in gen:
+        # for i, histentry in gen:
+        for histentry in data['history']:
             user_data = {}
 
             if 'zoom' in data:
@@ -367,16 +359,21 @@ class SessionManager(QObject):
                     histentry['original-url'].encode('ascii'))
             else:
                 orig_url = url
-            entry = browsertab.TabHistoryItem(url=url, original_url=orig_url,
-                                   title=histentry['title'], active=active,
-                                   user_data=user_data)
-            entries.append(entry)
+
+            entry = browsertab.TabHistoryItem(
+                url=url,
+                original_url=orig_url,
+                title=histentry['title'],
+                active=active,
+                user_data=user_data)
+            history_items.append(entry)
+
             if active:
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
             new_tab.loaded = False
-            new_tab.load_history_items(entries)
+            new_tab.load_history_items(history_items)
         except ValueError as e:
             raise SessionError(e)
 
@@ -416,6 +413,8 @@ class SessionManager(QObject):
                     tabbed_browser.widget.set_tab_pinned(new_tab,
                                                          new_tab.data.pinned)
 
+            # once all the tabs for the window are created, we can load them,
+            # or mark the as needing to be loaded when focused
             for tab in new_tabs:
                 tab.load_on_focus = True
                 if not config.val.session.lazy_restore:
@@ -427,8 +426,7 @@ class SessionManager(QObject):
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
-        if data['windows']:
-            self.did_load = True
+        self.did_load = bool(data['windows'])
         if not name.startswith('_') and not temp:
             self._current = name
 

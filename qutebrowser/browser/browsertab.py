@@ -607,6 +607,7 @@ class AbstractHistoryPrivate:
         """Deserialize from a list of WebHistoryItems."""
         raise NotImplementedError
 
+
 class TabHistoryItem:
 
     """A single item in the tab history.
@@ -644,7 +645,7 @@ class AbstractHistory:
         self._tab = tab
         self._history = None
         self.private_api = AbstractHistoryPrivate(tab)
-        self._to_load = []
+        self.to_load = []
 
     def __len__(self) -> int:
         raise NotImplementedError
@@ -1081,22 +1082,24 @@ class AbstractTab(QWidget):
         return self._load_status
 
     def load(self):
+        """Load the tab history."""
         if self.loaded:
             return
 
-        self.history.private_api.load_items(self.history._to_load)
-        self.history._to_load = []
+        self.history.private_api.load_items(self.history.to_load)
+        self.history.to_load = []
         self.loaded = True
         self.load_on_focus = False
 
     def unload(self):
+        """Unload the tab."""
         if not self.loaded:
             return
 
         self.loaded = False
         self.load_on_focus = True
 
-        _to_load = []
+        to_load = []
         for idx, item in enumerate(self.history):
             qtutils.ensure_valid(item)
             item = TabHistoryItem(
@@ -1105,23 +1108,29 @@ class AbstractTab(QWidget):
                 original_url=item.originalUrl(),
                 active=idx == self.history.current_idx(),
                 user_data=None)
-            _to_load.append(item)
-        self.history._to_load =_to_load
+            to_load.append(item)
+        self.history.to_load = to_load
 
         _title = self._widget.title()
         self._widget.setHtml('', self._widget.url())
         self.title_changed.emit(_title)
 
     def setFocus(self):
+        """Load the tab when it gets focused."""
         super().setFocus()
         if self.load_on_focus:
             self.load()
 
     def load_history_items(self, entries):
+        """Add a list of TabHistoryItems to the tab's history.
+
+        Args:
+            entries: a list of TabHistoryItems
+        """
         if self.loaded:
             self.history.private_api.load_items(entries)
         else:
-            self.history._to_load.extend(entries)
+            self.history.to_load.extend(entries)
 
     def _load_url_prepare(self, url: QUrl, *,
                           emit_before_load_started: bool = True) -> None:
