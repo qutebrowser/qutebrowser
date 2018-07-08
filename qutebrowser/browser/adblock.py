@@ -111,9 +111,9 @@ class HostBlocker:
 
         config.instance.changed.connect(self._update_files)
 
-    def is_blocked(self, url):
+    def is_blocked(self, url, primary=None):
         """Check if the given URL (as QUrl) is blocked."""
-        if not config.val.content.host_blocking.enabled:
+        if not config.instance.get("content.host_blocking.enabled", url=primary):
             return False
         host = url.host()
         return ((host in self._blocked_hosts or

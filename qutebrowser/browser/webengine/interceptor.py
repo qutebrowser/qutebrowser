@@ -69,9 +69,10 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                                   resource_type, navigation_type))
 
         url = info.requestUrl()
+        primary = info.firstPartyUrl()
 
         # FIXME:qtwebengine only block ads for NavigationTypeOther?
-        if self._host_blocker.is_blocked(url):
+        if self._host_blocker.is_blocked(url, primary):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 url.host()))
             info.block(True)

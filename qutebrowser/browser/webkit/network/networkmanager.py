@@ -383,14 +383,6 @@ class NetworkManager(QNetworkAccessManager):
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
 
-        host_blocker = objreg.get('host-blocker')
-        if host_blocker.is_blocked(req.url()):
-            log.webview.info("Request to {} blocked by host blocker.".format(
-                req.url().host()))
-            return networkreply.ErrorNetworkReply(
-                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
-                self)
-
         # There are some scenarios where we can't figure out current_url:
         # - There's a generic NetworkManager, e.g. for downloads
         # - The download was in a tab which is now closed.
@@ -407,6 +399,14 @@ class NetworkManager(QNetworkAccessManager):
                 # Catching RuntimeError because we could be in the middle of
                 # the webpage shutdown here.
                 current_url = QUrl()
+
+        host_blocker = objreg.get('host-blocker')
+        if host_blocker.is_blocked(req.url(), current_url):
+            log.webview.info("Request to {} blocked by host blocker.".format(
+                req.url().host()))
+            return networkreply.ErrorNetworkReply(
+                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
+                self)
 
         if 'log-requests' in self._args.debug_flags:
             operation = debug.qenum_key(QNetworkAccessManager, op)
