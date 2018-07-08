@@ -522,6 +522,11 @@ class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
     """History-related methods which are not part of the extension API."""
 
     def serialize(self):
+        if self._tab.history.to_load:
+            _stream, data, _cur_data = tabhistory.serialize(
+                self._tab.history.to_load
+            )
+            return data
         return qtutils.serialize(self._history)
 
     def deserialize(self, data):
@@ -563,6 +568,12 @@ class WebKitHistory(browsertab.AbstractHistory):
             return iter(self._history.items())
 
     def current_idx(self):
+        if self.to_load:
+            for i, item in enumerate(self.to_load):
+                if item.active:
+                    return i
+            return len(self.to_load) - 1
+
         return self._history.currentItemIndex()
 
     def can_go_back(self):
@@ -736,6 +747,10 @@ class WebKitTab(browsertab.AbstractTab):
         self._widget.load(url)
 
     def url(self, *, requested=False):
+        if not self.loaded and self.history.to_load:
+            idx = self.history.current_idx()
+            return self.history.to_load[idx].url
+
         frame = self._widget.page().mainFrame()
         if requested:
             return frame.requestedUrl()

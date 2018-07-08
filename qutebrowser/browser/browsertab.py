@@ -648,6 +648,27 @@ class TabHistoryItem:
                               original_url=self.original_url, title=self.title,
                               active=self.active, user_data=self.user_data)
 
+    @classmethod
+    def from_qt(cls, qt_item, active=False):
+        """Construct a TabHistoryItem from a Qt history item.
+
+        Args:
+            qt_item: a QWebEngineHistoryItem or QWebKitHistoryItem
+        """
+        qtutils.ensure_valid(qt_item)
+
+        try:
+            user_data = qt_item.userData()
+        except AttributeError:
+            user_data = None
+
+        return TabHistoryItem(
+            qt_item.url(),
+            qt_item.title(),
+            original_url=qt_item.originalUrl(),
+            active=active,
+            user_data=user_data)
+
 
 class AbstractHistory:
 
@@ -705,6 +726,16 @@ class AbstractHistory:
 
     def _go_to_item(self, item: typing.Any) -> None:
         raise NotImplementedError
+
+    def unload_items(self):
+        """Unload the history and store it in to_load."""
+        self.to_load = []
+        current_idx = self.current_idx()
+        for idx, item in enumerate(self):
+            item = TabHistoryItem.from_qt(
+                item, active=idx == current_idx)
+            self.to_load.append(item)
+        self._history.clear()
 
 
 class AbstractElements:
@@ -1107,21 +1138,31 @@ class AbstractTab(QWidget):
         self.loaded = False
         self.load_on_focus = True
 
-        to_load = []
-        for idx, item in enumerate(self.history):
-            qtutils.ensure_valid(item)
-            item = TabHistoryItem(
-                item.url(),
-                item.title(),
-                original_url=item.originalUrl(),
-                active=idx == self.history.current_idx(),
-                user_data=None)
-            to_load.append(item)
-        self.history.to_load = to_load
+        self.history.unload_items()
 
-        _title = self._widget.title()
-        self._widget.setHtml('', self._widget.url())
-        self.title_changed.emit(_title)
+        # this would be a better way to do it if I could find a way to clear
+        # the page without the webview triggering the title and icon change
+        # signals
+
+        # title = self.title()
+        # icon = self.icon()
+        # self._widget.setHtml("", self._widget.url())
+        # self.title_changed.emit(title)
+        # self.icon_changed.emit(icon)
+
+        try:
+            icon_url = \
+                self._widget.iconUrl().toDisplayString(QUrl.EncodeUnicode)
+            icon_tag = '<link rel="shortcut icon" href="{icon_url}"/>'.format(
+                icon_url=icon_url)
+        except AttributeError:
+            # QtWebkit doesn't have the iconUrl property
+            icon_tag = ''
+
+        self._widget.setHtml(
+            '<html><head>{icon_tag}<title>{title}</title></head></html>'
+            ''.format(title=self.title(), icon_tag=icon_tag),
+            self._widget.url())
 
     def setFocus(self):
         """Load the tab when it gets focused."""

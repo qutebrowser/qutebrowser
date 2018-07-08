@@ -416,18 +416,6 @@ class TabBar(QTabBar):
         stylesheet.set_register(self)
         QTimer.singleShot(0, self.maybe_hide)
 
-    def setCurrentIndex(self, idx):
-        """Set the focus to the tab at index idx and load it.
-
-        Args:
-            idx index of the tab to focus
-        """
-        super().setCurrentIndex(idx)
-
-        tab = self.widget(idx)
-        if not tab.loaded:
-            tab.load()
-
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
 
