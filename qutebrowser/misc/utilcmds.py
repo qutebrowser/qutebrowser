@@ -194,7 +194,7 @@ def debug_cache_stats():
     log.misc.info('_render_stylesheet: {}'.format(render_stylesheet_info))
     log.misc.info('history: {}'.format(history_info))
     log.misc.info('tab width cache: {}'.format(tabbed_browser_info))
-    log.misc.debug('pinned tab statistic cache: {}'
+    log.misc.info('pinned tab statistic cache: {}'
                    .format(tabbed_browser_pinned))
 
 

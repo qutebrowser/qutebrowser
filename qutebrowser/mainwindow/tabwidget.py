@@ -106,12 +106,15 @@ class TabWidget(QTabWidget):
         """
         bar = self.tabBar()
         idx = self.indexOf(tab)
+        old_pinned = tab.data.pinned
 
         bar.set_tab_data(idx, 'pinned', pinned)
         tab.data.pinned = pinned
 
-        self.update_tab_favicon(tab)
-        self.update_tab_title(idx)
+        if old_pinned != pinned:
+            self.update_tab_favicon(tab)
+            self.update_tab_title(idx)
+            self.tabBar()._pinned_statistics.cache_clear()
 
     def tab_indicator_color(self, idx):
         """Get the tab indicator color for the given index."""
@@ -155,7 +158,6 @@ class TabWidget(QTabWidget):
         # a size recalculation which is slow.
         if tabbar.tabText(idx) != title:
             tabbar.setTabText(idx, title)
-            tabbar._pinned_statistics.cache_clear()
 
         # always show only plain title in tooltips
         tabbar.setTabToolTip(idx, fields['title'])
@@ -327,7 +329,8 @@ class TabWidget(QTabWidget):
             if config.val.tabs.tabs_are_windows:
                 self.window().setWindowIcon(self.window().windowIcon())
 
-        self.tabBar()._pinned_statistics.cache_clear()
+        if tab.data.pinned:
+            self.tabBar()._pinned_statistics.cache_clear()
 
 
 class TabBar(QTabBar):
@@ -580,6 +583,12 @@ class TabBar(QTabBar):
                            for idx in pinned_list)
         return (pinned_count, pinned_width)
 
+    def setTabText(self, index, text):
+        """Update a tab's text."""
+        super().setTabText(index, text)
+        if self._tab_pinned(index):
+            self._pinned_statistics.cache_clear()
+
     def _tab_pinned(self, index: int) -> bool:
         """Return True if tab is pinned."""
         try:
@@ -676,11 +685,15 @@ class TabBar(QTabBar):
     def tabInserted(self, idx):
         """Update visibility when a tab was inserted."""
         super().tabInserted(idx)
+        if self._tab_pinned(idx):
+            self._pinned_statistics.cache_clear()
         self.maybe_hide()
 
     def tabRemoved(self, idx):
         """Update visibility when a tab was removed."""
         super().tabRemoved(idx)
+        # We cannot know if we removed a pinned tab or not, clear cache
+        self._pinned_statistics.cache_clear()
         self.maybe_hide()
 
     def wheelEvent(self, e):
