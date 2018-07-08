@@ -182,19 +182,7 @@ class SessionManager(QObject):
             data['active'] = True
         for idx, item in enumerate(tab.history):
             if not isinstance(item, browsertab.TabHistoryItem):
-                qtutils.ensure_valid(item)
-
-                try:
-                    user_data = item.userData()
-                except AttributeError:
-                    user_data = None
-
-                item = browsertab.TabHistoryItem(
-                    item.url(),
-                    item.title(),
-                    original_url=item.originalUrl(),
-                    active=active,
-                    user_data=user_data)
+                item = browsertab.TabHistoryItem.from_qt(item, active=active)
 
             item_data = self._save_tab_item(tab, idx, item)
             data['history'].append(item_data)
@@ -238,9 +226,6 @@ class SessionManager(QObject):
                 win_data['private'] = True
 
             for i, tab in enumerate(tabbed_browser.widgets()):
-                log.sessions.debug(
-                    "saving tab {} with history {}...".format(
-                        tab, list(tab.history)))
                 active = i == tabbed_browser.widget.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active))
             data['windows'].append(win_data)
