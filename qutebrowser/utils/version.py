@@ -484,6 +484,7 @@ def pastebin_version(pbclient=None):
 
     def _on_paste_version_success(url):
         global pastebin_url
+        url = url.strip()
         _yank_url(url)
         pbclient.deleteLater()
         pastebin_url = url
