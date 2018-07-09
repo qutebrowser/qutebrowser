@@ -31,10 +31,18 @@ import textwrap
 import mimetypes
 import urllib
 import collections
+import base64
+
+try:
+    import secrets
+except ImportError:
+    # New in Python 3.6
+    secrets = None
 
 import pkg_resources
 import sip
 from PyQt5.QtCore import QUrlQuery, QUrl
+from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
 from qutebrowser.config import config, configdata, configexc, configdiff
@@ -45,6 +53,7 @@ from qutebrowser.misc import objects
 
 pyeval_output = ":pyeval was never called"
 spawn_output = ":spawn was never called"
+csrf_token = None
 
 
 _HANDLERS = {}
@@ -447,13 +456,30 @@ def _qute_settings_set(url):
 @add_handler('settings')
 def qute_settings(url):
     """Handler for qute://settings. View/change qute configuration."""
+    global csrf_token
+
     if url.path() == '/set':
+        if url.password() != csrf_token:
+            message.error("Invalid CSRF token for qute://settings!")
+            raise QuteSchemeError("Invalid CSRF token!",
+                                  QNetworkReply.ContentAccessDenied)
         return _qute_settings_set(url)
 
-    html = jinja.render('settings.html', title='settings',
-                        configdata=configdata,
-                        confget=config.instance.get_str)
-    return 'text/html', html
+    # Requests to qute://settings/set should only be allowed from
+    # qute://settings. As an additional security precaution, we generate a CSRF
+    # token to use here.
+    if secrets:
+        csrf_token = secrets.token_urlsafe()
+    else:
+        # On Python < 3.6, from secrets.py
+        token = base64.urlsafe_b64encode(os.urandom(32))
+        csrf_token = token.rstrip(b'=').decode('ascii')
+
+    src = jinja.render('settings.html', title='settings',
+                       configdata=configdata,
+                       confget=config.instance.get_str,
+                       csrf_token=csrf_token)
+    return 'text/html', src
 
 
 @add_handler('bindings')
