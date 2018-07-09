@@ -37,6 +37,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         if qtutils.version_check('5.11', compiled=False):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
             profile.installUrlSchemeHandler(b'chrome-error', self)
+            profile.installUrlSchemeHandler(b'chrome-extension', self)
 
     def requestStarted(self, job):
         """Handle a request for a qute: scheme.
@@ -49,7 +50,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         """
         url = job.requestUrl()
 
-        if url.scheme() == 'chrome-error':
+        if url.scheme() in ['chrome-error', 'chrome-extension']:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
             job.fail(QWebEngineUrlRequestJob.UrlInvalid)
             return
