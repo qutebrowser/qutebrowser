@@ -56,7 +56,7 @@ class TestPDFJSHandler:
     def test_nonexisting_resource(self, caplog):
         """Test with a resource that does not exist."""
         with caplog.at_level(logging.WARNING, 'misc'):
-            with pytest.raises(qutescheme.QuteSchemeError):
+            with pytest.raises(qutescheme.NotFoundError):
                 qutescheme.data_for_url(QUrl('qute://pdfjs/no/file.html'))
         assert len(caplog.records) == 1
         assert (caplog.records[0].message ==

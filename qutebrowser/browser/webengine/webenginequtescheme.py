@@ -80,16 +80,19 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         log.misc.debug("Got request for {}".format(url.toDisplayString()))
         try:
             mimetype, data = qutescheme.data_for_url(url)
-        except qutescheme.NoHandlerFound:
-            log.misc.debug("No handler found for {}".format(
-                url.toDisplayString()))
+        except qutescheme.NotFoundError:
+            log.misc.exception("Error while handling qute://* URL")
             job.fail(QWebEngineUrlRequestJob.UrlNotFound)
-        except qutescheme.QuteSchemeOSError:
-            # FIXME:qtwebengine how do we show a better error here?
+        except qutescheme.UrlInvalidError:
+            log.misc.exception("Error while handling qute://* URL")
+            job.fail(QWebEngineUrlRequestJob.UrlInvalid)
+        except qutescheme.RequestDeniedError:
+            log.misc.exception("Error while handling qute://* URL")
+            job.fail(QWebEngineUrlRequestJob.RequestDenied)
+        except qutescheme.SchemeOSError:
             log.misc.exception("OSError while handling qute://* URL")
             job.fail(QWebEngineUrlRequestJob.UrlNotFound)
-        except qutescheme.QuteSchemeError:
-            # FIXME:qtwebengine how do we show a better error here?
+        except qutescheme.Error:
             log.misc.exception("Error while handling qute://* URL")
             job.fail(QWebEngineUrlRequestJob.RequestFailed)
         except qutescheme.Redirect as e:

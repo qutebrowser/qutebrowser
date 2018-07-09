@@ -59,15 +59,21 @@ def handler(request, operation, current_url):
 
     try:
         mimetype, data = qutescheme.data_for_url(url)
-    except qutescheme.NoHandlerFound:
-        errorstr = "No handler found for {}!".format(url.toDisplayString())
-        return networkreply.ErrorNetworkReply(
-            request, errorstr, QNetworkReply.ContentNotFoundError)
-    except qutescheme.QuteSchemeOSError as e:
+    except qutescheme.NotFoundError as e:
         return networkreply.ErrorNetworkReply(
             request, str(e), QNetworkReply.ContentNotFoundError)
-    except qutescheme.QuteSchemeError as e:
-        return networkreply.ErrorNetworkReply(request, e.errorstring, e.error)
+    except qutescheme.SchemeOSError as e:
+        return networkreply.ErrorNetworkReply(
+            request, str(e), QNetworkReply.ContentNotFoundError)
+    except qutescheme.UrlInvalidError as e:
+        return networkreply.ErrorNetworkReply(
+            request, str(e), QNetworkReply.ContentOperationNotPermittedError)
+    except qutescheme.RequestDeniedError as e:
+        return networkreply.ErrorNetworkReply(
+            request, str(e), QNetworkReply.ContentAccessDenied)
+    except qutescheme.Error as e:
+        return networkreply.ErrorNetworkReply(
+            request, str(e), QNetworkReply.InternalServerError)
     except qutescheme.Redirect as e:
         qtutils.ensure_valid(e.url)
         return networkreply.RedirectNetworkReply(e.url)
@@ -86,9 +92,8 @@ def qute_pdfjs(url):
         # information, as the failed pdfjs requests are still in the log.
         log.misc.warning(
             "pdfjs resource requested but not found: {}".format(e.path))
-        raise qutescheme.QuteSchemeError("Can't find pdfjs resource "
-                                         "'{}'".format(e.path),
-                                         QNetworkReply.ContentNotFoundError)
+        raise qutescheme.NotFoundError("Can't find pdfjs resource '{}'".format(
+            e.path))
     else:
         mimetype, _encoding = mimetypes.guess_type(url.fileName())
         assert mimetype is not None, url
