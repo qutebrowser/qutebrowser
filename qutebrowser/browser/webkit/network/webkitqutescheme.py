@@ -59,21 +59,23 @@ def handler(request, operation, current_url):
 
     try:
         mimetype, data = qutescheme.data_for_url(url)
-    except qutescheme.NotFoundError as e:
-        return networkreply.ErrorNetworkReply(
-            request, str(e), QNetworkReply.ContentNotFoundError)
-    except qutescheme.SchemeOSError as e:
-        return networkreply.ErrorNetworkReply(
-            request, str(e), QNetworkReply.ContentNotFoundError)
-    except qutescheme.UrlInvalidError as e:
-        return networkreply.ErrorNetworkReply(
-            request, str(e), QNetworkReply.ContentOperationNotPermittedError)
-    except qutescheme.RequestDeniedError as e:
-        return networkreply.ErrorNetworkReply(
-            request, str(e), QNetworkReply.ContentAccessDenied)
     except qutescheme.Error as e:
-        return networkreply.ErrorNetworkReply(
-            request, str(e), QNetworkReply.InternalServerError)
+        errors = {
+            qutescheme.NotFoundError:
+                QNetworkReply.ContentNotFoundError,
+            qutescheme.UrlInvalidError:
+                QNetworkReply.ContentOperationNotPermittedError,
+            qutescheme.RequestDeniedError:
+                QNetworkReply.ContentAccessDenied,
+            qutescheme.SchemeOSError:
+                QNetworkReply.ContentNotFoundError,
+            qutescheme.Error:
+                QNetworkReply.InternalServerError,
+        }
+        exctype = e.__type__
+        log.misc.exception("{} while handling qute://* URL".format(
+            exctype.__name__))
+        return networkreply.ErrorNetworkReply(request, str(e), errors[exctype])
     except qutescheme.Redirect as e:
         qtutils.ensure_valid(e.url)
         return networkreply.RedirectNetworkReply(e.url)
