@@ -67,7 +67,7 @@ class TestJavascriptHandler:
     def test_qutejavascript_empty_query(self):
         url = QUrl("qute://javascript")
 
-        with pytest.raises(qutescheme.InvalidURLError):
+        with pytest.raises(qutescheme.UrlInvalidError):
             qutescheme.qute_javascript(url)
 
 

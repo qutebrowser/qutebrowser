@@ -80,21 +80,23 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         log.misc.debug("Got request for {}".format(url.toDisplayString()))
         try:
             mimetype, data = qutescheme.data_for_url(url)
-        except qutescheme.NotFoundError:
-            log.misc.exception("Error while handling qute://* URL")
-            job.fail(QWebEngineUrlRequestJob.UrlNotFound)
-        except qutescheme.UrlInvalidError:
-            log.misc.exception("Error while handling qute://* URL")
-            job.fail(QWebEngineUrlRequestJob.UrlInvalid)
-        except qutescheme.RequestDeniedError:
-            log.misc.exception("Error while handling qute://* URL")
-            job.fail(QWebEngineUrlRequestJob.RequestDenied)
-        except qutescheme.SchemeOSError:
-            log.misc.exception("OSError while handling qute://* URL")
-            job.fail(QWebEngineUrlRequestJob.UrlNotFound)
-        except qutescheme.Error:
-            log.misc.exception("Error while handling qute://* URL")
-            job.fail(QWebEngineUrlRequestJob.RequestFailed)
+        except qutescheme.Error as e:
+            errors = {
+                qutescheme.NotFoundError:
+                    QWebEngineUrlRequestJob.UrlNotFound,
+                qutescheme.UrlInvalidError:
+                    QWebEngineUrlRequestJob.UrlInvalid,
+                qutescheme.RequestDeniedError:
+                    QWebEngineUrlRequestJob.RequestDenied,
+                qutescheme.SchemeOSError:
+                    QWebEngineUrlRequestJob.UrlNotFound,
+                qutescheme.Error:
+                    QWebEngineUrlRequestJob.RequestFailed,
+            }
+            exctype = e.__type__
+            log.misc.exception("{} while handling qute://* URL".format(
+                exctype.__name__))
+            job.fail(errors[exctype])
         except qutescheme.Redirect as e:
             qtutils.ensure_valid(e.url)
             job.redirect(e.url)
