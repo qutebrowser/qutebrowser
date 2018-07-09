@@ -115,13 +115,14 @@ class FileSchemeHandler(schemehandler.SchemeHandler):
 
     """Scheme handler for file: URLs."""
 
-    def createRequest(self, _op, request, _outgoing_data):
+    def createRequest(self, _op, request, _outgoing_data, _current_url):
         """Create a new request.
 
         Args:
              request: const QNetworkRequest & req
              _op: Operation op
              _outgoing_data: QIODevice * outgoingData
+             _current_url: The URL currently being visited.
 
         Return:
             A QNetworkReply for directories, None for files.

@@ -128,6 +128,63 @@ Feature: Special qute:// pages
         And I press the key "<Tab>"
         Then "Invalid value 'foo' *" should be logged
 
+    @qtwebkit_skip
+    Scenario: qute://settings CSRF via img (webengine)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-img
+        Then "Blocking malicious request from http://localhost:*/data/misc/qutescheme_csrf.html to qute://settings/set?*" should be logged
+
+    @qtwebkit_skip
+    Scenario: qute://settings CSRF via link (webengine)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-link
+        Then "Blocking malicious request from qute://settings/set?* to qute://settings/set?*" should be logged
+
+    @qtwebkit_skip
+    Scenario: qute://settings CSRF via redirect (webengine)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-redirect
+        Then "Blocking malicious request from qute://settings/set?* to qute://settings/set?*" should be logged
+
+    @qtwebkit_skip
+    Scenario: qute://settings CSRF via form (webengine)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-form
+        Then "Blocking malicious request from qute://settings/set?* to qute://settings/set?*" should be logged
+
+    @qtwebkit_skip
+    Scenario: qute://settings CSRF token (webengine)
+        When I open qute://settings
+        And I run :jseval const xhr = new XMLHttpRequest(); xhr.open("GET", "qute://settings/set"); xhr.send()
+        Then "Error while handling qute://* URL" should be logged
+        And the error "Invalid CSRF token for qute://settings!" should be shown
+
+    @qtwebengine_skip
+    Scenario: qute://settings CSRF via img (webkit)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-img
+        Then "Blocking malicious request from http://localhost:*/data/misc/qutescheme_csrf.html to qute://settings/set?*" should be logged
+
+    @qtwebengine_skip
+    Scenario: qute://settings CSRF via link (webkit)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-link
+        Then "Blocking malicious request from http://localhost:*/data/misc/qutescheme_csrf.html to qute://settings/set?*" should be logged
+        And "Error while loading qute://settings/set?*: Invalid qute://settings request" should be logged
+
+    @qtwebengine_skip
+    Scenario: qute://settings CSRF via redirect (webkit)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-redirect
+        Then "Blocking malicious request from http://localhost:*/data/misc/qutescheme_csrf.html to qute://settings/set?*" should be logged
+        And "Error while loading qute://settings/set?*: Invalid qute://settings request" should be logged
+
+    @qtwebengine_skip
+    Scenario: qute://settings CSRF via form (webkit)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-form
+        Then "Error while loading qute://settings/set?*: Unsupported request type" should be logged
+
     # pdfjs support
 
     @qtwebengine_skip: pdfjs is not implemented yet

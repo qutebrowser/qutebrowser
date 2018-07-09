@@ -384,13 +384,6 @@ class NetworkManager(QNetworkAccessManager):
                     req, proxy_error, QNetworkReply.UnknownProxyError,
                     self)
 
-        scheme = req.url().scheme()
-        if scheme in self._scheme_handlers:
-            result = self._scheme_handlers[scheme].createRequest(
-                op, req, outgoing_data)
-            if result is not None:
-                return result
-
         for header, value in shared.custom_headers():
             req.setRawHeader(header, value)
 
@@ -417,6 +410,13 @@ class NetworkManager(QNetworkAccessManager):
                 # Catching RuntimeError because we could be in the middle of
                 # the webpage shutdown here.
                 current_url = QUrl()
+
+        scheme = req.url().scheme()
+        if scheme in self._scheme_handlers:
+            result = self._scheme_handlers[scheme].createRequest(
+                op, req, outgoing_data, current_url)
+            if result is not None:
+                return result
 
         self.set_referer(req, current_url)
         return super().createRequest(op, req, outgoing_data)

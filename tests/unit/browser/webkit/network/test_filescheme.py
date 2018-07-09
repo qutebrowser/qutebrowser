@@ -249,7 +249,7 @@ class TestFileSchemeHandler:
         url = QUrl.fromLocalFile(str(tmpdir))
         req = QNetworkRequest(url)
         handler = filescheme.FileSchemeHandler(win_id=0)
-        reply = handler.createRequest(None, req, None)
+        reply = handler.createRequest(None, req, None, None)
         # The URL will always use /, even on Windows - so we force this here
         # too.
         tmpdir_path = str(tmpdir).replace(os.sep, '/')
@@ -261,7 +261,7 @@ class TestFileSchemeHandler:
         url = QUrl.fromLocalFile(str(filename))
         req = QNetworkRequest(url)
         handler = filescheme.FileSchemeHandler(win_id=0)
-        reply = handler.createRequest(None, req, None)
+        reply = handler.createRequest(None, req, None, None)
         assert reply is None
 
     def test_unicode_encode_error(self, mocker):
@@ -272,5 +272,5 @@ class TestFileSchemeHandler:
         err = UnicodeEncodeError('ascii', '', 0, 2, 'foo')
         mocker.patch('os.path.isdir', side_effect=err)
 
-        reply = handler.createRequest(None, req, None)
+        reply = handler.createRequest(None, req, None, None)
         assert reply is None
