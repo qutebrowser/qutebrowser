@@ -21,27 +21,46 @@
 
 import mimetypes
 
-from PyQt5.QtNetwork import QNetworkReply
+from PyQt5.QtCore import QUrl
+from PyQt5.QtNetwork import QNetworkReply, QNetworkAccessManager
 
 from qutebrowser.browser import pdfjs, qutescheme
 from qutebrowser.browser.webkit.network import networkreply
 from qutebrowser.utils import log, usertypes, qtutils
 
 
-def handler(request):
+def handler(request, operation, current_url):
     """Scheme handler for qute:// URLs.
 
     Args:
         request: QNetworkRequest to answer to.
+        operation: The HTTP operation being done.
+        current_url: The page we're on currently.
 
     Return:
         A QNetworkReply.
     """
+    if operation != QNetworkAccessManager.GetOperation:
+        return networkreply.ErrorNetworkReply(
+            request, "Unsupported request type",
+            QNetworkReply.ContentOperationNotPermittedError)
+
+    url = request.url()
+
+    if ((url.scheme(), url.host(), url.path()) ==
+            ('qute', 'settings', '/set')):
+        if current_url != QUrl('qute://settings/'):
+            log.webview.warning("Blocking malicious request from {} to {}"
+                                .format(current_url.toDisplayString(),
+                                        url.toDisplayString()))
+            return networkreply.ErrorNetworkReply(
+                request, "Invalid qute://settings request",
+                QNetworkReply.ContentAccessDenied)
+
     try:
-        mimetype, data = qutescheme.data_for_url(request.url())
+        mimetype, data = qutescheme.data_for_url(url)
     except qutescheme.NoHandlerFound:
-        errorstr = "No handler found for {}!".format(
-            request.url().toDisplayString())
+        errorstr = "No handler found for {}!".format(url.toDisplayString())
         return networkreply.ErrorNetworkReply(
             request, errorstr, QNetworkReply.ContentNotFoundError)
     except qutescheme.QuteSchemeOSError as e:

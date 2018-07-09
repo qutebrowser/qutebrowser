@@ -54,8 +54,28 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             job.fail(QWebEngineUrlRequestJob.UrlInvalid)
             return
 
-        assert job.requestMethod() == b'GET'
+        # Only the browser itself or qute:// pages should access any of those
+        # URLs.
+        # The request interceptor further locks down qute://settings/set.
+        try:
+            initiator = job.initiator()
+        except AttributeError:
+            # Added in Qt 5.11
+            pass
+        else:
+            if initiator.isValid() and initiator.scheme() != 'qute':
+                log.misc.warning("Blocking malicious request from {} to {}"
+                                 .format(initiator.toDisplayString(),
+                                         url.toDisplayString()))
+                job.fail(QWebEngineUrlRequestJob.RequestDenied)
+                return
+
+        if job.requestMethod() != b'GET':
+            job.fail(QWebEngineUrlRequestJob.RequestDenied)
+            return
+
         assert url.scheme() == 'qute'
+
         log.misc.debug("Got request for {}".format(url.toDisplayString()))
         try:
             mimetype, data = qutescheme.data_for_url(url)
