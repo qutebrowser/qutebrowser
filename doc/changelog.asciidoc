@@ -18,10 +18,23 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.5.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- The qute-pass userscript now has optional OTP support.
+
+v1.4.1 (unreleased)
+-------------------
+
 Fixed
 ~~~~~
 
 - Rare crash when an error occurs in downloads.
+- Newlines are now stripped from the :version pastebin URL.
+- There's a new `mkvenv-pypi-old` environment in `tox.ini` which installs an
+  older Qt, which is needed on Ubuntu 16.04.
+- Worked around a Qt issue which redirects to a `chrome-error://` page when
+  trying to use U2F.
 
 v1.4.0
 ------
