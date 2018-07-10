@@ -40,6 +40,8 @@ Section "Install"
   ; Uninstall old versions
   ExecWait 'MsiExec.exe /quiet /qn /norestart /X{633F41F9-FE9B-42D1-9CC4-718CBD01EE11}'
   ExecWait 'MsiExec.exe /quiet /qn /norestart /X{9331D947-AC86-4542-A755-A833429C6E69}'
+  RMDir /r "$INSTDIR\*.*"
+  CreateDirectory "$INSTDIR"
 
   SetOutPath "$INSTDIR"
   
