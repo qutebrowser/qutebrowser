@@ -35,6 +35,7 @@ Fixed
   older Qt, which is needed on Ubuntu 16.04.
 - Worked around a Qt issue which redirects to a `chrome-error://` page when
   trying to use U2F.
+- The `link_pyqt.py` script now works correctly with PyQt 5.11.
 
 v1.4.0
 ------
