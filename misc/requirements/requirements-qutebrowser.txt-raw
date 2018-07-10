@@ -1,9 +1,7 @@
 Jinja2
 Pygments
 pyPEG2
-PyYAML!=4.1
+PyYAML
 colorama
 cssutils
 attrs
-
-#@ filter: PyYAML != 4.1
