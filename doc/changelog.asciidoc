@@ -23,8 +23,15 @@ Added
 
 - The qute-pass userscript now has optional OTP support.
 
-v1.4.1 (unreleased)
--------------------
+v1.4.1
+------
+
+Security
+~~~~~~~~
+
+- CVE-2018-10895: Fix CSRF issue on the qute://settings page, leading to
+  possible arbitrary code execution. See the related GitHub issue for details:
+  https://github.com/qutebrowser/qutebrowser/issues/4060
 
 Fixed
 ~~~~~
