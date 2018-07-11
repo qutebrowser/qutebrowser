@@ -42,7 +42,7 @@ Section "Install"
   ExecWait 'MsiExec.exe /quiet /qn /norestart /X{9331D947-AC86-4542-A755-A833429C6E69}'
   IfFileExists "$INSTDIR\uninst.exe" 0 +2
   ExecWait "$INSTDIR\uninst.exe /S _?=$INSTDIR"
-  CreateDirectory "$INSTDIR
+  CreateDirectory "$INSTDIR"
 
   SetOutPath "$INSTDIR"
   
