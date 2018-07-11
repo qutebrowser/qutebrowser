@@ -19,7 +19,6 @@
 
 """The main browser widgets."""
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtCore import pyqtSignal, Qt, QUrl
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QStyleFactory
@@ -107,8 +106,8 @@ class WebView(QWebView):
             col = self.style().standardPalette().color(QPalette.Base)
         if self.view() is not None :
             if col.alpha() < 255 :
+                print(col.alpha())
                 self.view().setAttribute(Qt.WA_TranslucentBackground)
-                self.page().setBackgroundColor(Qt.transparent)
             else :
                 self.view().resetAttribute(Qt.WA_TranslucentBackground)
         palette.setColor(QPalette.Base, col)
