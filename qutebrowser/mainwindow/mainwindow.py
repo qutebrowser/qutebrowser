@@ -241,8 +241,6 @@ class MainWindow(QWidget):
             col = self._theme_color
         if col.alpha() < 255:
             self.setAttribute(Qt.WA_TranslucentBackground)
-        else:
-            self.resetAttribute(Qt.WA_TranslucentBackground)
                 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
