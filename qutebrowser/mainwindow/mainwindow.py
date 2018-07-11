@@ -359,6 +359,9 @@ class MainWindow(QWidget):
             self._update_overlay_geometries()
         elif option == 'window.hide_decoration':
             self._set_decoration(config.val.window.hide_decoration)
+        elif option == 'bg_transparency':
+            self._set_bg_color()
+
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
