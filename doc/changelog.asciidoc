@@ -15,13 +15,29 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.5.0 (unreleased)
--------------------
+v1.4.1
+------
+
+Security
+~~~~~~~~
+
+- CVE-2018-10895: Fix CSRF issue on the qute://settings page, leading to
+  possible arbitrary code execution. See the related GitHub issue for details:
+  https://github.com/qutebrowser/qutebrowser/issues/4060
 
 Fixed
 ~~~~~
 
 - Rare crash when an error occurs in downloads.
+- Newlines are now stripped from the :version pastebin URL.
+- There's a new `mkvenv-pypi-old` environment in `tox.ini` which installs an
+  older Qt, which is needed on Ubuntu 16.04.
+- Worked around a Qt issue which redirects to a `chrome-error://` page when
+  trying to use U2F.
+- The `link_pyqt.py` script now works correctly with PyQt 5.11.
+- The Windows installer now uninstalls the old version before installing the
+  new one, fixing issues with qutebrowser not starting after installing v1.4.0
+  over v1.3.3.
 
 v1.4.0
 ------
