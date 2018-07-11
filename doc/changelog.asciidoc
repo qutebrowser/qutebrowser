@@ -36,6 +36,9 @@ Fixed
 - Worked around a Qt issue which redirects to a `chrome-error://` page when
   trying to use U2F.
 - The `link_pyqt.py` script now works correctly with PyQt 5.11.
+- The Windows installer now uninstalls the old version before installing the
+  new one, fixing issues with qutebrowser not starting after installing v1.4.0
+  over v1.3.3.
 
 v1.4.0
 ------
