@@ -679,18 +679,13 @@ class Quitter:
 
     @cmdutils.register(instance='quitter', name='quit')
     @cmdutils.argument('session', completion=miscmodels.session)
-    def quit(self, all=False, save=False, session=None):
+    def quit(self, save=False, session=None):
         """Quit qutebrowser.
         Args:
-            all: When given, closes all windows and kills the current instance
             save: When given, save the open windows even if auto_save.session
                   is turned off.
             session: The name of the session to save.
         """
-        if  not all:
-            window = QApplication.activeWindow()
-            window.close()
-            return
         if session is not None and not save:
             raise cmdexc.CommandError("Session name given without --save!")
         if save:

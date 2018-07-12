@@ -3,9 +3,9 @@
 aliases:
   default:
     w: session-save
-    q: quit
-    qa: quit --all
-    wqa: quit --all --save
+    q: close
+    qa: quit
+    wqa: quit --save
   type:
     name: Dict
     keytype:
