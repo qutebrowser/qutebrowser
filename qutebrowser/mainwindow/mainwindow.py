@@ -241,7 +241,7 @@ class MainWindow(QWidget):
             col = self._theme_color
         if col.alpha() < 255:
             self.setAttribute(Qt.WA_TranslucentBackground)
-                
+
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
         if geometry is not None:
@@ -357,9 +357,8 @@ class MainWindow(QWidget):
             self._update_overlay_geometries()
         elif option == 'window.hide_decoration':
             self._set_decoration(config.val.window.hide_decoration)
-        elif option == 'bg_transparency':
+        elif option == 'colors.webpage.bg':
             self._set_bg_color()
-
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""

@@ -177,7 +177,7 @@ class WebEnginePage(QWebEnginePage):
             if col.alpha() < 255:
                 self.view().setAttribute(Qt.WA_TranslucentBackground)
             else:
-                self.view().resetAttribute(Qt.WA_TranslucentBackground)
+                self.view().setAttribute(Qt.WA_TranslucentBackground, False)
         self.setBackgroundColor(Qt.transparent)
 
     def shutdown(self):
