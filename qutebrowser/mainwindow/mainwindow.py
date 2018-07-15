@@ -24,7 +24,8 @@ import base64
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
+from PyQt5.QtCore import (pyqtSlot, QRect, QPoint, QTimer, Qt,
+                          QCoreApplication, QEventLoop)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
@@ -98,6 +99,8 @@ def raise_window(window, alert=True):
     window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
     window.setWindowState(window.windowState() | Qt.WindowActive)
     window.raise_()
+    QCoreApplication.processEvents(
+        QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
     window.activateWindow()
 
     if alert:
