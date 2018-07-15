@@ -2,6 +2,7 @@
 
 # Copyright 2017 Chris Braun (cryzed) <cryzed@googlemail.com>
 # Adapted for LastPass by Wayne Cheng (welps) <waynethecheng@gmail.com>
+# Fixed by Andrea Berlingieri (andrea-berling) <berlingieri.andrea@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -24,9 +25,9 @@ A short demonstration can be seen here: https://i.imgur.com/zA61NrF.gifv.
 """
 
 USAGE = """The domain of the site has to be in the name of the LastPass entry, for example: "github.com/cryzed" or
-"websites/github.com".  The login information is inserted by emulating key events using qutebrowser's fake-key command in this manner:
-[USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms.
-
+"websites/github.com".  The login information is inserted by finding the
+appropriate email/user and password text boxes with Javascript code and inserting
+them
 You must log into LastPass CLI using `lpass login <email>` prior to use of this script. The LastPass CLI agent only holds your master password for an hour by default. If you wish to change this, please see `man lpass`.
 
 To use in qutebrowser, run: `spawn --userscript qute-lastpass`
@@ -68,6 +69,20 @@ group.add_argument('--password-only', '-w',
 
 stderr = functools.partial(print, file=sys.stderr)
 
+# username insertion JS code
+# Apparently Github.com's email login box' type is not "email", but "text"
+# Its name is "login"
+# This compels me to add a special cases
+# Furthermore, not all sites use email to log in, so a more general match is
+# necessary. They will probably contain the word "user" in the name attribute
+usernameInsertion = 'var ret =\
+document.querySelector(\'input[type="email"]\'); if (ret == null)\
+{{document.querySelector(\'input[name*="login"]\');}} if (ret == null)\
+{{document.querySelector(\'input[name*="user"]\');}}\
+if (ret != null) {{ret.value="{username}";}}'
+# password insertion JS code
+passwordInsertion = 'document.querySelector(\'input[type="password"]\').value = "{password}"'
+
 class ExitCodes(enum.IntEnum):
     SUCCESS = 0
     FAILURE = 1
@@ -99,6 +114,7 @@ def dmenu(items, invocation, encoding):
     command = shlex.split(invocation)
     process = subprocess.run(command, input='\n'.join(
         items).encode(encoding), stdout=subprocess.PIPE)
+
     return process.stdout.decode(encoding).strip()
 
 
@@ -137,9 +153,14 @@ def main(arguments):
     if len(candidates) == 1:
         selection = candidates.pop()
     else:
-        choices = ["{:s} | {:s} | {:s} | {:s}".format(c["id"], c["name"], c["url"], c["username"]) for c in candidates]
+        """
+            Don't quite like this presentation, cause it doesn't let me see the
+            username'
+        """
+        #choices = ["{:s} | {:s} | {:s} | {:s}".format(c["id"], c["name"], c["url"], c["username"]) for c in candidates] 
+        choices = ["{:s} | {:s} | {:s}".format(c["username"],c["url"],c["id"]) for c in candidates]
         choice = dmenu(choices, arguments.dmenu_invocation, arguments.io_encoding)
-        choiceId = choice.split("|")[0].strip()
+        choiceId = choice.split("|")[2].strip()
         selection = next((c for (i, c) in enumerate(candidates) if c["id"] == choiceId), None)
 
     # Nothing was selected, simply return
@@ -150,22 +171,17 @@ def main(arguments):
     password = selection["password"]
 
     if arguments.username_only:
-        fake_key_raw(username)
+        qute_command('jseval -q ' + usernameInsertion.format(username=username))
     elif arguments.password_only:
-        fake_key_raw(password)
+        qute_command('jseval -q ' + passwordInsertion.format(password=password))
     else:
-        # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
-        # back into insert-mode, so the form can be directly submitted by
-        # hitting enter afterwards
-        fake_key_raw(username)
-        qute_command('fake-key <Tab>')
-        fake_key_raw(password)
+        qute_command('jseval -q ' + usernameInsertion.format(username=username))
+        qute_command('jseval -q ' + passwordInsertion.format(password=password))
 
     if arguments.insert_mode:
         qute_command('enter-mode insert')
 
     return ExitCodes.SUCCESS
-
 
 if __name__ == '__main__':
     arguments = argument_parser.parse_args()
