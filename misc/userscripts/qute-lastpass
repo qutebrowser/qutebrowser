@@ -77,8 +77,8 @@ stderr = functools.partial(print, file=sys.stderr)
 # necessary. They will probably contain the word "user" in the name attribute
 usernameInsertion = 'var ret =\
 document.querySelector(\'input[type="email"]\'); if (ret == null)\
-{{document.querySelector(\'input[name*="login"]\');}} if (ret == null)\
-{{document.querySelector(\'input[name*="user"]\');}}\
+{{ret = document.querySelector(\'input[name*="login"]\');}} if (ret == null)\
+{{ret = document.querySelector(\'input[name*="user"]\');}}\
 if (ret != null) {{ret.value="{username}";}}'
 # password insertion JS code
 passwordInsertion = 'document.querySelector(\'input[type="password"]\').value = "{password}"'
