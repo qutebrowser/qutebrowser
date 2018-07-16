@@ -410,11 +410,11 @@ class GotException(Exception):
 
 
 def excepthook(_exc, _val, _tb):
-    return
+    pass
 
 
 def excepthook_2(_exc, _val, _tb):
-    return
+    pass
 
 
 class TestDisabledExcepthook:

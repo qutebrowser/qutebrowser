@@ -365,7 +365,7 @@ def window_only(current_win_id):
 @cmdutils.register()
 def nop():
     """Do nothing."""
-    return
+    pass
 
 
 @cmdutils.register()

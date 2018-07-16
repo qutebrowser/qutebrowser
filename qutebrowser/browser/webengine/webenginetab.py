@@ -1086,10 +1086,10 @@ class WebEngineTab(browsertab.AbstractTab):
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
 
-    def networkaccessmanager(self):
+    def networkaccessmanager(self):  # pylint: disable=useless-return
         return None
 
-    def user_agent(self):
+    def user_agent(self):  # pylint: disable=useless-return
         return None
 
     def clear_ssl_errors(self):
