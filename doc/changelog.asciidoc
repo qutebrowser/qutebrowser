@@ -23,6 +23,11 @@ Added
 
 - The qute-pass userscript now has optional OTP support.
 
+Fixed
+~~~~~
+
+- Crash in Qt 5.7.1 when a website uses `window.print()`.
+
 v1.4.1
 ------
 
