@@ -462,7 +462,9 @@ class TestPreventExceptions:
     def test_raising(self, caplog):
         """Test with a raising function."""
         with caplog.at_level(logging.ERROR, 'misc'):
+            # pylint: disable=assignment-from-no-return
             ret = self.func_raising()
+            # pylint: enable=assignment-from-no-return
         assert ret == 42
         assert len(caplog.records) == 1
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
@@ -487,7 +489,9 @@ class TestPreventExceptions:
     def test_predicate_true(self, caplog):
         """Test with a True predicate."""
         with caplog.at_level(logging.ERROR, 'misc'):
+            # pylint: disable=assignment-from-no-return
             ret = self.func_predicate_true()
+            # enable: disable=assignment-from-no-return
         assert ret == 42
         assert len(caplog.records) == 1
 
