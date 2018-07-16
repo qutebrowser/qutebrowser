@@ -25,9 +25,9 @@ import shlex
 import functools
 import typing
 
-from PyQt5.QtWidgets import QApplication, QTabBar, QDialog
+from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
-from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
+from PyQt5.QtPrintSupport import QPrintPreviewDialog
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configdata
@@ -415,27 +415,6 @@ class CommandDispatcher:
         tab.printing.to_pdf(filename)
         log.misc.debug("Print to file: {}".format(filename))
 
-    def _print(self, tab):
-        """Print with a QPrintDialog."""
-        def print_callback(ok):
-            """Called when printing finished."""
-            if not ok:
-                message.error("Printing failed!")
-            diag.deleteLater()
-
-        def do_print():
-            """Called when the dialog was closed."""
-            tab.printing.to_printer(diag.printer(), print_callback)
-
-        diag = QPrintDialog(tab)
-        if utils.is_mac:
-            # For some reason we get a segfault when using open() on macOS
-            ret = diag.exec_()
-            if ret == QDialog.Accepted:
-                do_print()
-        else:
-            diag.open(do_print)
-
     @cmdutils.register(instance='command-dispatcher', name='print',
                        scope='window')
     @cmdutils.argument('count', count=True)
@@ -453,21 +432,14 @@ class CommandDispatcher:
             return
 
         try:
-            if pdf:
-                tab.printing.check_pdf_support()
-            else:
-                tab.printing.check_printer_support()
             if preview:
-                tab.printing.check_preview_support()
+                self._print_preview(tab)
+            elif pdf:
+                self._print_pdf(tab, pdf)
+            else:
+                tab.printing.show_dialog()
         except browsertab.WebTabError as e:
             raise cmdexc.CommandError(e)
-
-        if preview:
-            self._print_preview(tab)
-        elif pdf:
-            self._print_pdf(tab, pdf)
-        else:
-            self._print(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_clone(self, bg=False, window=False):

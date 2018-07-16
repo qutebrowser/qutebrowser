@@ -976,7 +976,7 @@ class WebEngineTab(browsertab.AbstractTab):
                                     tab=self, parent=self)
         self.zoom = WebEngineZoom(tab=self, parent=self)
         self.search = WebEngineSearch(parent=self)
-        self.printing = WebEnginePrinting()
+        self.printing = WebEnginePrinting(tab=self)
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
         self.audio = WebEngineAudio(parent=self)
@@ -1315,10 +1315,10 @@ class WebEngineTab(browsertab.AbstractTab):
         super()._on_navigation_request(navigation)
 
         if navigation.url == QUrl('qute://print'):
-            command_dispatcher = objreg.get('command-dispatcher',
-                                            scope='window',
-                                            window=self.win_id)
-            command_dispatcher.printpage()
+            try:
+                self.printing.show_dialog()
+            except browsertab.WebTabError as e:
+                message.error(str(e))
             navigation.accepted = False
 
         if not navigation.accepted or not navigation.is_main_frame:
