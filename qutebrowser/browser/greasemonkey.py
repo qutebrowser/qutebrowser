@@ -145,7 +145,7 @@ class GreasemonkeyScript:
 
 
 @attr.s
-class MatchingScripts(object):
+class MatchingScripts:
 
     """All userscripts registered to run on a particular url."""
 
