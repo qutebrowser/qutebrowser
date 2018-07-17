@@ -23,6 +23,12 @@ Added
 
 - The qute-pass userscript now has optional OTP support.
 
+Changed
+~~~~~~~
+
+- The `content.xss_auditing` setting is now enabled by default, to mirror
+  Chromium's rather than Qt's default behavior.
+
 Fixed
 ~~~~~
 

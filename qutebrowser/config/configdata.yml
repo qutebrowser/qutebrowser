@@ -729,14 +729,13 @@ content.webrtc_public_interfaces_only:
 
 content.xss_auditing:
   type: Bool
-  default: false
+  default: true
   supports_pattern: true
   desc: >-
     Monitor load requests for cross-site scripting attempts.
 
     Suspicious scripts will be blocked and reported in the inspector's
-    JavaScript console. Enabling this feature might have an impact on
-    performance.
+    JavaScript console.
 
 # emacs: '
 

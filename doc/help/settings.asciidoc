@@ -2061,13 +2061,13 @@ Default: +pass:[false]+
 [[content.xss_auditing]]
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
-Suspicious scripts will be blocked and reported in the inspector's JavaScript console. Enabling this feature might have an impact on performance.
+Suspicious scripts will be blocked and reported in the inspector's JavaScript console.
 
 This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
-Default: +pass:[false]+
+Default: +pass:[true]+
 
 [[downloads.location.directory]]
 === downloads.location.directory
