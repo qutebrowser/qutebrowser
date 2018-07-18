@@ -96,7 +96,7 @@ def qute_command(command):
 
 def find_pass_candidates(domain, password_store_path):
     candidates = []
-    for path, directories, file_names in os.walk(password_store_path):
+    for path, directories, file_names in os.walk(password_store_path, followlinks=True):
         if directories or domain not in path.split(os.path.sep):
             continue
 
