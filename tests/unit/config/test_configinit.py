@@ -293,6 +293,8 @@ class TestEarlyInit:
          'QT_XCB_FORCE_SOFTWARE_OPENGL', '1'),
         ('qt.force_software_rendering', 'qt-quick',
          'QT_QUICK_BACKEND', 'software'),
+        ('qt.force_software_rendering', 'chromium',
+         'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND', '1'),
         ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
         ('qt.highdpi', True, 'QT_AUTO_SCREEN_SCALE_FACTOR', '1'),
         ('window.hide_decoration', True,
