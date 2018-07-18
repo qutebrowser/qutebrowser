@@ -172,6 +172,11 @@ def _nvidia_shader_workaround():
 
 
 def _handle_nouveau_graphics():
+    """Force software rendering when using the Nouveau driver.
+
+    WORKAROUND for https://bugreports.qt.io/browse/QTBUG-41242
+    Should be fixed in Qt 5.10 via https://codereview.qt-project.org/#/c/208664/
+    """
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
 
     if os.environ.get('QUTE_SKIP_NOUVEAU_CHECK'):
@@ -181,7 +186,11 @@ def _handle_nouveau_graphics():
         return
 
     if (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
-            'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ):
+            # qt.force_software_rendering = 'software-opengl'
+            'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ or
+            # qt.force_software_rendering = 'chromium', also see:
+            # https://build.opensuse.org/package/view_file/openSUSE:Factory/libqt5-qtwebengine/disable-gpu-when-using-nouveau-boo-1005323.diff?expand=1
+            'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND' in os.environ):
         return
 
     button = _Button("Force software rendering", 'qt.force_software_rendering',
