@@ -867,7 +867,8 @@ class AbstractTab(QWidget):
 
     @pyqtSlot(str)
     def on_link_hovered_change(self, link_hovered):
-        self._last_hovered_link = link_hovered
+        if link_hovered:
+            self._last_hovered_link = link_hovered
 
     def handle_auto_insert_mode(self, ok):
         """Handle `input.insert_mode.auto_load` after loading finished."""
