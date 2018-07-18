@@ -433,6 +433,11 @@ def opengl_vendor():  # pragma: no cover
     """
     assert QApplication.instance()
 
+    override = os.environ.get('QUTE_FAKE_OPENGL_VENDOR')
+    if override is not None:
+        log.init.debug("Using override {}".format(override))
+        return override
+
     old_context = QOpenGLContext.currentContext()
     old_surface = None if old_context is None else old_context.surface()
 
