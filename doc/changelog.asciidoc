@@ -33,6 +33,7 @@ Fixed
 ~~~~~
 
 - Crash in Qt 5.7.1 when a website uses `window.print()`.
+- The workaround for Nouveau graphic drivers now works properly again.
 
 v1.4.1
 ------
