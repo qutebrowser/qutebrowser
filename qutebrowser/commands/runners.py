@@ -66,7 +66,7 @@ def replace_variables(win_id, arglist):
         'url:host': lambda: _current_url(tabbed_browser).host(),
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
-        'link_hovered': lambda: tabbed_browser._last_hovered_link,
+        'link_hovered': lambda: tabbed_browser._now_focused._last_hovered_link,
     }
     for key in list(variables):
         modified_key = '{' + key + '}'
