@@ -447,12 +447,12 @@ def opengl_vendor():  # pragma: no cover
     ctx = QOpenGLContext()
     ok = ctx.create()
     if not ok:
-        log.init.debug("opengl_vendor: Creating context failed!")
+        log.init.debug("Creating context failed!")
         return None
 
     ok = ctx.makeCurrent(surface)
     if not ok:
-        log.init.debug("opengl_vendor: Making context current failed!")
+        log.init.debug("Making context current failed!")
         return None
 
     try:
@@ -466,12 +466,11 @@ def opengl_vendor():  # pragma: no cover
         try:
             vf = ctx.versionFunctions(vp)
         except ImportError as e:
-            log.init.debug("opengl_vendor: Importing version functions "
-                           "failed: {}".format(e))
+            log.init.debug("Importing version functions failed: {}".format(e))
             return None
 
         if vf is None:
-            log.init.debug("opengl_vendor: Getting version functions failed!")
+            log.init.debug("Getting version functions failed!")
             return None
 
         return vf.glGetString(vf.GL_VENDOR)
