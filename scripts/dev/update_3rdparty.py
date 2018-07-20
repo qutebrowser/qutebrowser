@@ -35,6 +35,47 @@ from scripts import dictcli
 from qutebrowser.config import configdata
 
 
+def download_nsis_plugins():
+    """Download the plugins required by the NSIS script"""
+    cwd = os.getcwd()
+    github_url = 'https://raw.githubusercontent.com/Drizin/NsisMultiUser'
+    git_commit = '79914dbb0875dea57ff38976a9e2f1b4dd691e5c'
+    nsh_1 = 'Include/NsisMultiUser.nsh'
+    nsh_2 = 'Include/NsisMultiUserLang.nsh'
+    nsh_3 = 'Include/UAC.nsh'
+    nsh_4 = 'Demos/Common/Utils.nsh'
+    dll_1 = 'Plugins/x86-unicode/UAC.dll'
+    nsh_files = (nsh_1, nsh_2, nsh_3, nsh_4)
+    include_dir = 'include'
+    plugins_dir = 'plugins/x86-unicode'
+
+    os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          '..', '..', 'misc', 'nsis'))
+    os.makedirs(include_dir, exist_ok=True)
+    os.makedirs(plugins_dir, exist_ok=True)
+
+    print("=> Downloading NSIS plugins")
+    for nsh_file in nsh_files:
+        file_name = os.path.basename(nsh_file)
+        target_path = os.path.join(include_dir, file_name)
+        try:
+            urllib.request.urlretrieve('{}/{}/{}'.format(github_url,
+                                                         git_commit, nsh_file),
+                                       target_path)
+        except urllib.error.HTTPError as error:
+            print("Could not retrieve '{}': {}".format(file_name, error))
+    file_name = os.path.basename(dll_1)
+    target_path = os.path.join(plugins_dir, file_name)
+    try:
+        urllib.request.urlretrieve('{}/{}/{}'.format(github_url,
+                                                     git_commit, dll_1),
+                                   target_path)
+    except urllib.error.HTTPError as error:
+        print("Could not retrieve '{}': {}".format(file_name, error))
+    urllib.request.urlcleanup()
+    os.chdir(cwd)
+
+
 def get_latest_pdfjs_url():
     """Get the URL of the latest pdf.js prebuilt package.
 
@@ -130,9 +171,11 @@ def test_dicts():
             print('ERROR: {}'.format(response.status))
 
 
-def run(ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
+def run(nsis=False, ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
         dicts=False):
     """Update components based on the given arguments."""
+    if nsis:
+        download_nsis_plugins()
     if pdfjs:
         update_pdfjs(pdfjs_version)
     if ace:
@@ -145,6 +188,8 @@ def run(ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--nsis', '-n', help='Download NSIS plugins.',
+                        required=False, action='store_true')
     parser.add_argument(
         '--pdfjs', '-p',
         help='Specify pdfjs version. If not given, '
@@ -158,7 +203,7 @@ def main():
         'can be reached at the remote repository.',
         required=False, action='store_true')
     args = parser.parse_args()
-    run(ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
+    run(nsis=False, ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
         pdfjs_version=args.pdfjs, dicts=args.dicts)
 
 
