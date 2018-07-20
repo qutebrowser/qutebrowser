@@ -1,0 +1,174 @@
+# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+# NSIS uninstaller header. Uses NsisMultiUser plugin and contains portions of
+# its demo code, copyright 2017 Richard Drizin, Alex Mitev.
+
+
+; Variables
+Var SemiSilentMode ; installer started uninstaller in semi-silent mode using /SS parameter
+Var RunningFromInstaller ; installer started uninstaller using /uninstall parameter
+
+!insertmacro DeleteRetryAbortFunc "un."
+!insertmacro CheckSingleInstanceFunc "un."
+
+Section "un.Program Files" SectionUninstallProgram
+	SectionIn RO
+
+	; Call shell script to generate an uninstall-list nsh file
+	!tempfile UNLIST
+	!ifdef NSIS_WIN32_MAKENSIS
+		!execute 'cmd.exe /c .\mkunlist.cmd "${DIST_DIR}" "${UNLIST}"'
+	!else
+		!error "POSIX script for uninstall list generation is not yet available."
+	!endif
+
+	; Try to delete the EXE as the first step - if it's in use, don't remove anything else
+	!insertmacro DeleteRetryAbort "$INSTDIR\${PROGEXE}"
+
+	; Include and then delete the uninstall nsh file
+	!include "${UNLIST}"
+	!delfile "${UNLIST}"
+
+	; Clean up "Dektop Icon"
+	!insertmacro MULTIUSER_GetCurrentUserString $0
+	!insertmacro DeleteRetryAbort "$DESKTOP\${PRODUCT_NAME}$0.lnk"
+
+	; Clean up "Start Menu Icon"
+	!insertmacro MULTIUSER_GetCurrentUserString $0
+	!insertmacro DeleteRetryAbort "$STARTMENU\${PRODUCT_NAME}$0.lnk"
+
+	; Clean up Windows Registry
+	${if} $MultiUser.InstallMode == "AllUsers"
+	${orif} ${AtLeastWin8}
+		DeleteRegValue SHCTX "Software\RegisteredApplications" "${PRODUCT_NAME}"
+		DeleteRegKey SHCTX "Software\Clients\StartMenuInternet\${PRODUCT_NAME}"
+		DeleteRegKey SHCTX "Software\Classes\${PRODUCT_NAME}HTML"
+		DeleteRegKey SHCTX "Software\Classes\${PRODUCT_NAME}URL"
+		DeleteRegValue SHCTX "Software\Classes\.htm\OpenWithProgids" "${PRODUCT_NAME}HTML"
+		DeleteRegValue SHCTX "Software\Classes\.html\OpenWithProgids" "${PRODUCT_NAME}HTML"
+		DeleteRegValue SHCTX "Software\Classes\.shtml\OpenWithProgids" "${PRODUCT_NAME}HTML"
+		DeleteRegValue SHCTX "Software\Classes\.svg\OpenWithProgids" "${PRODUCT_NAME}HTML"
+		DeleteRegValue SHCTX "Software\Classes\.xht\OpenWithProgids" "${PRODUCT_NAME}HTML"
+		DeleteRegValue SHCTX "Software\Classes\.xhtml\OpenWithProgids" "${PRODUCT_NAME}HTML"
+		DeleteRegValue SHCTX "Software\Classes\.webp\OpenWithProgids" "${PRODUCT_NAME}HTML"
+	${endif}
+
+	; Refresh Shell Icons
+	System::Call "shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)"
+SectionEnd
+
+Section /o "!un.Program Settings" SectionRemoveSettings
+	; this section is executed only explicitly and shouldn't be placed in SectionUninstallProgram
+	DeleteRegKey HKCU "Software\${PRODUCT_NAME}"
+	SetShellVarContext current
+	RMDIR /r "${CONFIG_DIR}\data"
+	RMDIR /r "${CONFIG_DIR}\config"
+	RMDIR "${CONFIG_DIR}"
+	${if} $MultiUser.InstallMode == "AllUsers"
+		SetShellVarContext all
+	${endif}
+SectionEnd
+
+Section /o "un.Program Cache" SectionRemoveCache
+	; this section is executed only explicitly and shouldn't be placed in SectionUninstallProgram
+	SetShellVarContext current
+	RMDIR /r "${CACHE_DIR}\cache"
+	RMDIR "${CACHE_DIR}"
+	${if} $MultiUser.InstallMode == "AllUsers"
+		SetShellVarContext all
+	${endif}
+
+SectionEnd
+
+Section "-Uninstall" ; hidden section, must always be the last one!
+	Delete "$INSTDIR\${UNINSTALL_FILENAME}" ; we cannot use DeleteRetryAbort here - when using the _? parameter the uninstaller cannot delete itself and Delete fails, which is OK
+	; remove the directory only if it is empty - the user might have saved some files in it
+	RMDir "$INSTDIR"
+
+	; Remove the uninstaller from registry as the very last step - if sth. goes wrong, let the user run it again
+	!insertmacro MULTIUSER_RegistryRemoveInstallInfo ; Remove registry keys
+SectionEnd
+
+; Modern install component descriptions
+!insertmacro MUI_UNFUNCTION_DESCRIPTION_BEGIN
+	!insertmacro MUI_DESCRIPTION_TEXT ${SectionUninstallProgram} "Remove ${PRODUCT_NAME} application files."
+	!insertmacro MUI_DESCRIPTION_TEXT ${SectionRemoveSettings} "Remove ${PRODUCT_NAME} user files (configuration, bookmarks, history, sessions, scripts, cookies, etc.)."
+	!insertmacro MUI_DESCRIPTION_TEXT ${SectionRemoveCache} "Remove ${PRODUCT_NAME} cache files."
+!insertmacro MUI_UNFUNCTION_DESCRIPTION_END
+
+; Callbacks
+Function un.onInit
+	${GetParameters} $R0
+
+	${GetOptions} $R0 "/uninstall" $R1
+	${ifnot} ${errors}
+		StrCpy $RunningFromInstaller 1
+	${else}
+		StrCpy $RunningFromInstaller 0
+	${endif}
+
+	var /GLOBAL KeepReg
+	${GetOptions} $R0 "/upgrade" $R1
+	${ifnot} ${errors}
+		StrCpy $KeepReg 1
+	${else}
+		StrCpy $KeepReg 0
+	${endif}
+
+	${GetOptions} $R0 "/SS" $R1
+	${ifnot} ${errors}
+		StrCpy $SemiSilentMode 1
+		StrCpy $RunningFromInstaller 1
+		SetAutoClose true ; auto close (if no errors) if we are called from the installer; if there are errors, will be automatically set to false
+	${else}
+		StrCpy $SemiSilentMode 0
+	${endif}
+
+	${ifnot} ${UAC_IsInnerInstance}
+	${andif} $RunningFromInstaller = 0
+		!insertmacro CheckSingleInstance "Setup" "Global" "${SETUP_MUTEX}"
+		!insertmacro CheckSingleInstance "Application" "Local" "${APP_MUTEX}"
+	${endif}
+
+	!insertmacro MULTIUSER_UNINIT
+
+	!insertmacro MUI_UNGETLANGUAGE
+FunctionEnd
+
+Function un.PageInstallModeChangeMode
+FunctionEnd
+
+Function un.PageComponentsPre
+	${if} $SemiSilentMode = 1
+		Abort ; if user is installing, no use to remove program settings anyway (should be compatible with all versions)
+	${endif}
+FunctionEnd
+
+Function un.PageComponentsShow
+	; Show/hide the Back button
+	GetDlgItem $0 $HWNDPARENT 3
+	ShowWindow $0 $UninstallShowBackButton
+FunctionEnd
+
+Function un.onUninstFailed
+	${if} $SemiSilentMode = 0
+		MessageBox MB_ICONSTOP "${PRODUCT_NAME} ${VERSION} could not be fully uninstalled.$\r$\nPlease, restart Windows and run the uninstaller again." /SD IDOK
+	${else}
+		MessageBox MB_ICONSTOP "${PRODUCT_NAME} could not be fully installed.$\r$\nPlease, restart Windows and run the setup program again." /SD IDOK
+	${endif}
+FunctionEnd
