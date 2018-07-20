@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 import qutebrowser
 from scripts import utils
-# from scripts.dev import update_3rdparty
+from scripts.dev import update_3rdparty
 
 
 def call_script(name, *args, python=sys.executable):
@@ -221,8 +221,8 @@ def patch_windows(out_dir):
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    # Currently disabled because QtWebEngine has no pdfjs support
-    # update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
+    # pdfjs is currently disabled because it's not supported by QtWebEngine
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=False, fancy_dmg=False)
 
     utils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
@@ -256,9 +256,8 @@ def build_windows():
 
     utils.print_title("Building installers")
     subprocess.run(['makensis.exe',
-                    '/DX64',
                     '/DVERSION={}'.format(qutebrowser.__version__),
-                    'misc/qutebrowser.nsi'], check=True)
+                    'misc/nsis/qutebrowser.nsi'], check=True)
 
     name_64 = 'qutebrowser-{}-amd64.exe'.format(qutebrowser.__version__)
 
