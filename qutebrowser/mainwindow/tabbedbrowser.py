@@ -440,9 +440,6 @@ class TabbedBrowser(QWidget):
             elif last_close == 'default-page':
                 self.load_url(config.val.url.default_page, newtab=True)
 
-        if not self.shutting_down:
-            self._mark_dirty()
-
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
 
@@ -502,6 +499,9 @@ class TabbedBrowser(QWidget):
                 tab.layout().unwrap()
 
             tab.deleteLater()
+
+        if not quitter.instance.shutting_down:
+            self._mark_dirty()
 
     def undo(self, depth=1):
         """Undo removing of a tab or tabs."""
