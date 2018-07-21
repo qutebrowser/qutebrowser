@@ -371,6 +371,7 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
     quteproc_new.open_path('qute://settings/')
     quteproc_new.send_cmd(':jseval --world main '
                           'cset("search.ignore_case", "always")')
+    quteproc_new.wait_for(message='No output or error')
 
     assert quteproc_new.get_setting('search.ignore_case') == 'always'
 
