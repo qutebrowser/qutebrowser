@@ -134,6 +134,7 @@ class TabbedBrowser(QWidget):
         self.private = private
         config.instance.changed.connect(self._on_config_changed)
         self.save_manager = objreg.get('save-manager')
+        self.quitter = objreg.get('quitter')
 
     def __repr__(self):
         return utils.get_repr(self, count=self.widget.count())
@@ -314,9 +315,6 @@ class TabbedBrowser(QWidget):
             elif last_close == 'default-page':
                 self.openurl(config.val.url.default_page, newtab=True)
 
-        if not self.shutting_down:
-            self._mark_dirty()
-
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
 
@@ -370,6 +368,9 @@ class TabbedBrowser(QWidget):
             # see https://bugreports.qt.io/browse/QTBUG-58698
             tab.layout().unwrap()
             tab.deleteLater()
+
+        if not self.quitter.shutting_down:
+            self._mark_dirty()
 
     def undo(self):
         """Undo removing of a tab or tabs."""

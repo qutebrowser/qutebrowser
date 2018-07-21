@@ -511,7 +511,7 @@ class Quitter:
 
     Attributes:
         quit_status: The current quitting status.
-        _shutting_down: Whether we're currently shutting down.
+        shutting_down: Whether we're currently shutting down.
         _args: The argparse namespace.
     """
 
@@ -521,7 +521,7 @@ class Quitter:
             'tabs': False,
             'main': False,
         }
-        self._shutting_down = False
+        self.shutting_down = False
         self._args = args
 
     def on_last_window_closed(self):
@@ -707,9 +707,9 @@ class Quitter:
                             closing.
             restart: If we're planning to restart.
         """
-        if self._shutting_down:
+        if self.shutting_down:
             return
-        self._shutting_down = True
+        self.shutting_down = True
         log.destroy.debug("Shutting down with status {}, session {}...".format(
             status, session))
         session_manager = objreg.get('session-manager', None)
