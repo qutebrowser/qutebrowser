@@ -244,9 +244,6 @@ class TabbedBrowser(QWidget):
         config.instance.changed.connect(self._on_config_changed)
         quitter.instance.shutting_down.connect(self.shutdown)
         self.save_manager = objreg.get('save-manager')
-        self.save_manager.add_saveable(
-            'session._autosave', sess_manager.save_autosave,
-            self.cur_load_finished)
 
     def _update_stack_size(self):
         newsize = config.instance.get('tabs.undo_stack_size')
@@ -387,6 +384,9 @@ class TabbedBrowser(QWidget):
         idx = self.widget.currentIndex()
         return self.widget.tab_url(idx)
 
+    def _mark_dirty(self):
+        self.save_manager.mark_dirty('session._autosave')
+
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
         self.is_shutting_down = True
@@ -441,7 +441,7 @@ class TabbedBrowser(QWidget):
                 self.load_url(config.val.url.default_page, newtab=True)
 
         if not self.shutting_down:
-            self.save_manager.mark_dirty('session._autosave')
+            self._mark_dirty()
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
@@ -916,7 +916,7 @@ class TabbedBrowser(QWidget):
         self.widget.set_tab_indicator_color(idx, color)
         if idx == self.widget.currentIndex():
             tab.private_api.handle_auto_insert_mode(ok)
-        self.save_manager.mark_dirty('session._autosave')
+        self._mark_dirty()
 
     @pyqtSlot()
     def _on_scroll_pos_changed(self):

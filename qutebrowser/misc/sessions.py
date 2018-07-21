@@ -157,6 +157,10 @@ class SessionManager(QObject):
         self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
+        save_manager = objreg.get('save-manager')
+        save_manager.add_saveable(
+            'session._autosave', self.save_autosave,
+            save_on_exit=False)
 
     def _get_session_path(self, name, check_exists=False):
         """Get the session path based on a session name or absolute path.
