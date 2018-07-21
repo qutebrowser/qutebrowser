@@ -134,8 +134,9 @@ class TabbedBrowser(QWidget):
         self.private = private
         config.instance.changed.connect(self._on_config_changed)
         sess_manager = objreg.get('session-manager')
-        objreg.get('save-manager').add_saveable('session._autosave',
-                                                sess_manager.save_autosave)
+        objreg.get('save-manager').add_saveable(
+            'session._autosave', sess_manager.save_autosave,
+            self.cur_load_finished)
 
     def __repr__(self):
         return utils.get_repr(self, count=self.widget.count())
