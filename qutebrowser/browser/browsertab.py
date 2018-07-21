@@ -1078,9 +1078,6 @@ class AbstractTab(QWidget):
             # https://github.com/qutebrowser/qutebrowser/issues/3498
             return
 
-        if sessions.session_manager is not None:
-            sessions.session_manager.save_autosave()
-
         self.load_finished.emit(ok)
 
         if not self.title():
