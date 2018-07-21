@@ -104,7 +104,7 @@ Feature: Page history
         Then the page should contain the plaintext "4.txt"
 
     # Hangs a lot on AppVeyor
-    @posix
+    @posix @flaky
     Scenario: Listing history with qute:history redirect
         When I open data/numbers/3.txt
         And I open data/numbers/4.txt
