@@ -244,8 +244,9 @@ class TabbedBrowser(QWidget):
         config.instance.changed.connect(self._on_config_changed)
         quitter.instance.shutting_down.connect(self.shutdown)
         sess_manager = sessions.session_manager
-        objreg.get('save-manager').add_saveable('session._autosave',
-                                                sess_manager.save_autosave)
+        objreg.get('save-manager').add_saveable(
+            'session._autosave', sess_manager.save_autosave,
+            self.cur_load_finished)
 
     def _update_stack_size(self):
         newsize = config.instance.get('tabs.undo_stack_size')
