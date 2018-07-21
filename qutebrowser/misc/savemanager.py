@@ -70,6 +70,8 @@ class Saveable:
 
     def mark_dirty(self):
         """Mark this saveable as dirty (having changes)."""
+        if self._dirty:
+            return
         log.save.debug("Marking {} as dirty.".format(self._name))
         self._dirty = True
 
