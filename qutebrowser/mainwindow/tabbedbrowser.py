@@ -243,8 +243,8 @@ class TabbedBrowser(QWidget):
         self.tab_deque = TabDeque()
         config.instance.changed.connect(self._on_config_changed)
         quitter.instance.shutting_down.connect(self.shutdown)
-        sess_manager = sessions.session_manager
-        objreg.get('save-manager').add_saveable(
+        self.save_manager = objreg.get('save-manager')
+        self.save_manager.add_saveable(
             'session._autosave', sess_manager.save_autosave,
             self.cur_load_finished)
 
@@ -441,8 +441,7 @@ class TabbedBrowser(QWidget):
                 self.load_url(config.val.url.default_page, newtab=True)
 
         if not self.shutting_down:
-            save_manager = objreg.get('save-manager')
-            save_manager.saveables['session._autosave'].mark_dirty()
+            self.save_manager.mark_dirty('session._autosave')
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
@@ -917,7 +916,7 @@ class TabbedBrowser(QWidget):
         self.widget.set_tab_indicator_color(idx, color)
         if idx == self.widget.currentIndex():
             tab.private_api.handle_auto_insert_mode(ok)
-        objreg.get('save-manager').saveables['session._autosave'].mark_dirty()
+        self.save_manager.mark_dirty('session._autosave')
 
     @pyqtSlot()
     def _on_scroll_pos_changed(self):

@@ -218,3 +218,13 @@ class SaveManager(QObject):
                     e, "Error while saving!",
                     pre_text="Error while saving {}".format(key),
                     no_err_windows=objects.args.no_err_windows)
+
+    def mark_dirty(self, name):
+        """Mark a saveable as dirty.
+
+        Args:
+            name: The name of the saveable.
+        """
+        if name not in self.saveables:
+            raise ValueError("Saveable {} not registered!".format(name))
+        self.saveables[name].mark_dirty()
