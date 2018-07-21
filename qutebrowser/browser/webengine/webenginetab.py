@@ -33,7 +33,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.config import configdata, config
-from qutebrowser.browser import browsertab, mouse, shared
+from qutebrowser.browser import browsertab, mouse, shared, webelem
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
@@ -360,7 +360,11 @@ class WebEngineCaret(browsertab.AbstractCaret):
         if elem.is_link():
             log.webview.debug("Found link in selection, clicking. ClickTarget "
                               "{}, elem {}".format(click_type, elem))
-            elem.click(click_type)
+            try:
+                elem.click(click_type)
+            except webelem.Error as e:
+                message.error(str(e))
+                return
 
     def follow_selected(self, *, tab=False):
         if self._tab.search.search_displayed:
