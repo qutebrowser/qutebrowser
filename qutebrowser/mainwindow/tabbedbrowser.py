@@ -315,6 +315,32 @@ class TabbedBrowser(QWidget):
             elif last_close == 'default-page':
                 self.openurl(config.val.url.default_page, newtab=True)
 
+    def _add_undo(self, tab, new_undo=True):
+        if tab.url().isEmpty():
+            # There are some good reasons why a URL could be empty
+            # (target="_blank" with a download, see [1]), so we silently ignore
+            # this.
+            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
+            return False
+
+        if not tab.url().isValid():
+            urlutils.invalid_url_error(tab.url(), "saving tab")
+            return False
+
+        idx = self.widget.indexOf(tab)
+        try:
+            history_data = tab.history.serialize()
+        except browsertab.WebTabError:
+            pass  # special URL
+        else:
+            entry = UndoEntry(tab.url(), history_data, idx,
+                              tab.data.pinned)
+            if new_undo or not self._undo_stack:
+                self._undo_stack.append([entry])
+            else:
+                self._undo_stack[-1].append(entry)
+        return True
+
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
 
@@ -337,29 +363,8 @@ class TabbedBrowser(QWidget):
             objreg.delete('last-focused-tab', scope='window',
                           window=self._win_id)
 
-        if tab.url().isEmpty():
-            # There are some good reasons why a URL could be empty
-            # (target="_blank" with a download, see [1]), so we silently ignore
-            # this.
-            # [1] https://github.com/qutebrowser/qutebrowser/issues/163
-            pass
-        elif not tab.url().isValid():
-            # We display a warning for URLs which are not empty but invalid -
-            # but we don't return here because we want the tab to close either
-            # way.
-            urlutils.invalid_url_error(tab.url(), "saving tab")
-        elif add_undo:
-            try:
-                history_data = tab.history.serialize()
-            except browsertab.WebTabError:
-                pass  # special URL
-            else:
-                entry = UndoEntry(tab.url(), history_data, idx,
-                                  tab.data.pinned)
-                if new_undo or not self._undo_stack:
-                    self._undo_stack.append([entry])
-                else:
-                    self._undo_stack[-1].append(entry)
+        if add_undo:
+            self._add_undo(tab, new_undo=new_undo)
 
         tab.shutdown()
         self.widget.removeTab(idx)
