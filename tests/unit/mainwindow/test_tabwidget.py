@@ -40,7 +40,8 @@ class TestTabWidget:
         return w
 
     @pytest.fixture
-    def browser(self, qtbot, monkeypatch, config_stub):
+    def browser(self, qtbot, monkeypatch, config_stub, fake_save_manager,
+                fake_quitter):
         w = tabbedbrowser.TabbedBrowser(win_id=0, private=False)
         qtbot.addWidget(w)
         monkeypatch.setattr(tabwidget.objects, 'backend',

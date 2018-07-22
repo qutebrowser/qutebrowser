@@ -32,7 +32,11 @@ from qutebrowser.utils import objreg, qtutils
 from qutebrowser.browser.webkit import tabhistory
 
 
-pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
+@pytest.fixture(autouse=True)
+@pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
+def autouse(fake_save_manager):
+    yield
+
 
 webengine_refactoring_xfail = pytest.mark.xfail(
     True, reason='Broke during QtWebEngine refactoring, will be fixed after '
