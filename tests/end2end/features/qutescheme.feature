@@ -98,8 +98,8 @@ Feature: Special qute:// pages
 
     # qute://settings
 
-    # Sometimes, an unrelated value gets set
-    @flaky
+    # Sometimes, an unrelated value gets set, which also breaks other tests
+    @skip
     Scenario: Focusing input fields in qute://settings and entering valid value
         When I set search.ignore_case to never
         And I open qute://settings

@@ -163,6 +163,7 @@ Feature: Scrolling
         When I run :scroll-to-perc 100
         Then the page should be scrolled vertically
 
+    @flaky
     Scenario: Scrolling to bottom and to top with :scroll-to-perc
         When I run :scroll-to-perc 100
         And I wait until the scroll position changed

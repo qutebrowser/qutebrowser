@@ -262,7 +262,8 @@ Feature: Searching on a page
             - data/search.html
             - data/hello.txt (active)
 
-    @qtwebkit_skip: Not supported in qtwebkit @flaky
+    # Too flaky
+    @qtwebkit_skip: Not supported in qtwebkit @skip
     Scenario: Follow a searched link in an iframe
         When I open data/iframe_search.html
         And I run :tab-only
