@@ -116,7 +116,8 @@ Feature: Special qute:// pages
         Then the option search.ignore_case should be set to always
 
     # Sometimes, an unrelated value gets set
-    @flaky
+    # Too flaky...
+    @skip
     Scenario: Focusing input fields in qute://settings and entering invalid value
         When I open qute://settings
         # scroll to the right - the table does not fit in the default screen

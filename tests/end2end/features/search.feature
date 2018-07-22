@@ -214,6 +214,7 @@ Feature: Searching on a page
     # TODO: wrapping message without scrolling
 
     ## follow searched links
+    @flaky
     Scenario: Follow a searched link
         When I run :search follow
         And I wait for "search found follow" in the log
