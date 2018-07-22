@@ -42,10 +42,15 @@ from qutebrowser.qt import sip
 import qutebrowser.app  # To register commands
 
 
+ON_CI = 'CI' in os.environ
+
+
 # Set hypothesis settings
 hypothesis.settings.register_profile('default',
                                      hypothesis.settings(deadline=600))
-hypothesis.settings.load_profile('default')
+hypothesis.settings.register_profile('ci',
+                                     hypothesis.settings(deadline=None))
+hypothesis.settings.load_profile('ci' if ON_CI else 'default')
 
 
 def _apply_platform_markers(config, item):
@@ -60,8 +65,8 @@ def _apply_platform_markers(config, item):
          "Can't be run when frozen"),
         ('frozen', not getattr(sys, 'frozen', False),
          "Can only run when frozen"),
-        ('ci', 'CI' not in os.environ, "Only runs on CI."),
-        ('no_ci', 'CI' in os.environ, "Skipped on CI."),
+        ('ci', not ON_CI, "Only runs on CI."),
+        ('no_ci', ON_CI, "Skipped on CI."),
         ('issue2478', utils.is_windows and config.webengine,
          "Broken with QtWebEngine on Windows"),
         ('issue3572',
