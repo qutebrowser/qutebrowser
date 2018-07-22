@@ -21,7 +21,7 @@ Feature: Javascript stuff
         And the following tabs should be open:
             - data/javascript/window_open.html (active)
 
-    @qtwebkit_skip @flaky
+    @skip   # Too flaky
     Scenario: Opening/closing a modal window via JS
         When I open data/javascript/window_open.html
         And I run :tab-only
