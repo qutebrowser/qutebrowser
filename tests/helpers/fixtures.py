@@ -42,6 +42,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
+from qutebrowser import app
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
@@ -520,6 +521,16 @@ def fake_save_manager():
     objreg.register('save-manager', fake_save_manager)
     yield fake_save_manager
     objreg.delete('save-manager')
+
+
+@pytest.fixture
+def fake_quitter():
+    """Create a mock of quitter and register it into objreg."""
+    fake_quitter = unittest.mock.Mock(spec=app.Quitter)
+    fake_quitter.shutting_down = False
+    objreg.register('quitter', fake_quitter)
+    yield fake_quitter
+    objreg.delete('quitter')
 
 
 @pytest.fixture
