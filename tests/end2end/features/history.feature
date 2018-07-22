@@ -110,6 +110,7 @@ Feature: Page history
         And I open data/numbers/4.txt
         And I open qute:history without waiting
         And I wait until qute://history is loaded
+        And I wait 1s
         Then the page should contain the plaintext "3.txt"
         Then the page should contain the plaintext "4.txt"
 
