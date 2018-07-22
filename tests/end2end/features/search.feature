@@ -221,6 +221,7 @@ Feature: Searching on a page
         And I run :follow-selected
         Then data/hello.txt should be loaded
 
+    @flaky
     Scenario: Follow a searched link in a new tab
         When I run :window-only
         And I run :search follow
