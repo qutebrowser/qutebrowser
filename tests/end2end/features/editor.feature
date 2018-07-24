@@ -86,6 +86,7 @@ Feature: Opening external editors
         When I run :edit-url -t -b
         Then the error "Only one of -t/-b/-w can be given!" should be shown
 
+    @flaky
     Scenario: Editing a URL with invalid URL
         When I set url.auto_search to never
         And I open data/hello.txt

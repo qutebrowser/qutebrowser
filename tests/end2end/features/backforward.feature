@@ -3,7 +3,7 @@
 Feature: Going back and forward.
     Testing the :back/:forward commands.
 
-    @flaky
+    @skip  # Too flaky
     Scenario: Going back/forward
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt
