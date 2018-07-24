@@ -182,7 +182,7 @@ def open_path(quteproc, server, path):
       tab.
     - With "... in a new window", it's opened in a new window.
     - With "... in a private window" it's opened in a new private window.
-    - With "... as a URL", it's opened according to new_instance_open_target.
+    - With "... as a URL", it's opened according to new_instance.target.
     """
     path = path.replace('(port)', str(server.port))
 

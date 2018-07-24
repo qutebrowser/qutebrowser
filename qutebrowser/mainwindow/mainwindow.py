@@ -50,7 +50,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         via_ipc: Whether the request was made via IPC.
         force_window: Whether to force opening in a window.
         force_tab: Whether to force opening in a tab.
-        force_target: Override the new_instance_open_target config
+        force_target: Override the new_instance.target config
         no_raise: suppress target window raising
 
     Return:
@@ -63,7 +63,8 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         # Initial main window
         return 0
 
-    open_target = config.val.new_instance_open_target
+    open_target = config.val.new_instance.target
+    open_behavior = config.val.new_instance.behavior
 
     # Apply any target overrides, ordered by precedence
     if force_target is not None:
@@ -72,29 +73,30 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         open_target = 'window'
     if force_tab and open_target == 'window':
         # Command sent via IPC
-        open_target = 'tab-silent'
+        open_target = 'tab'
+        open_behavior = 'silent'
 
     window = None
-    should_raise = False
 
     # Try to find the existing tab target if opening in a tab
     if open_target != 'window':
         window = get_target_window()
-        should_raise = open_target not in ['tab-silent', 'tab-bg-silent']
 
     # Otherwise, or if no window was found, create a new one
     if window is None:
         window = MainWindow(private=None)
         window.show()
-        should_raise = True
+        open_behavior = 'activate'
 
-    if should_raise and not no_raise:
+    if open_behavior == 'activate' and not no_raise:
         raise_window(window)
+    elif open_behavior == 'mark':
+        mark_window(window)
 
     return window.win_id
 
 
-def raise_window(window, alert=True):
+def raise_window(window):
     """Raise the given MainWindow object."""
     window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
     window.setWindowState(window.windowState() | Qt.WindowActive)
@@ -104,14 +106,16 @@ def raise_window(window, alert=True):
         QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
     window.activateWindow()
 
-    if alert:
-        QApplication.instance().alert(window)
+
+def mark_window(window):
+    """Mark the given MainWindow object as urgent."""
+    QApplication.instance().alert(window)
 
 
 def get_target_window():
     """Get the target window for new tabs, or None if none exist."""
     try:
-        win_mode = config.val.new_instance_open_target_window
+        win_mode = config.val.new_instance.target_window
         if win_mode == 'last-focused':
             return objreg.last_focused_window()
         elif win_mode == 'first-opened':

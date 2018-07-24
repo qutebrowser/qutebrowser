@@ -270,6 +270,24 @@ class YamlConfig(QObject):
             del settings[old]
             self._mark_changed()
 
+        # new_instance_open_target got renamed and split into
+        # new_instance.target and new_instance.behavior
+        old = 'new_instance_open_target'
+        new = 'new_instance.target'
+        new_behavior = 'new_instance.behavior'
+        if old in settings:
+            settings[new] = {}
+            for scope, val in settings[old].items():
+                if val in {'tab-silent', 'tab-bg-silent'}:
+                    if new_behavior not in settings.keys():
+                        settings[new_behavior] = {}
+                    settings[new_behavior][scope] = 'silent'
+                    settings[new][scope] = val[:-len('-silent')]
+                else:
+                    settings[new][scope] = val
+            del settings[old]
+            self._mark_changed()
+
         # bindings.default can't be set in autoconfig.yml anymore, so ignore
         # old values.
         if 'bindings.default' in settings:
