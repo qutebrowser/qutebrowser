@@ -121,7 +121,7 @@ Feature: Page history
         And I open qute://history
         Then the javascript message "XSS" should not be logged
 
-    @flaky
+    @skip  # Too flaky
     Scenario: Escaping of URLs in :history
         When I open query?one=1&two=2
         And I open qute://history

@@ -345,6 +345,7 @@ Feature: Caret mode
         And I run :follow-selected --tab
         Then data/hello.txt should be loaded
 
+    @flaky
     Scenario: :follow-selected with link tabbing in a tab (with JS)
         When I set content.javascript.enabled to true
         And I run :leave-mode
