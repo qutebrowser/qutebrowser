@@ -203,6 +203,8 @@ class WebEngineElement(webelem.AbstractWebElement):
         url = self.resolve_url(baseurl)
         if url is None:
             return True
+        if baseurl.scheme() == url.scheme():  # e.g. a qute:// link
+            return False
         return url.scheme() not in urlutils.WEBENGINE_SCHEMES
 
     def _click_editable(self, click_target):
