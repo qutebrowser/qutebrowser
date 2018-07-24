@@ -101,7 +101,7 @@ Feature: Page history
         When I open data/numbers/3.txt
         And I open data/numbers/4.txt
         And I open qute://history
-        And I wait 1s
+        And I wait 2s
         Then the page should contain the plaintext "3.txt"
         Then the page should contain the plaintext "4.txt"
 
@@ -112,7 +112,7 @@ Feature: Page history
         And I open data/numbers/4.txt
         And I open qute:history without waiting
         And I wait until qute://history is loaded
-        And I wait 1s
+        And I wait 2s
         Then the page should contain the plaintext "3.txt"
         Then the page should contain the plaintext "4.txt"
 
@@ -125,7 +125,7 @@ Feature: Page history
     Scenario: Escaping of URLs in :history
         When I open query?one=1&two=2
         And I open qute://history
-        And I wait 1s  # JS loads the history async
+        And I wait 2s  # JS loads the history async
         And I hint with args "links normal" and follow a
         And I wait until query?one=1&two=2 is loaded
         Then the query parameter two should be set to 2
