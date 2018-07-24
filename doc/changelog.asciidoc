@@ -35,6 +35,8 @@ Fixed
 - Crash in Qt 5.7.1 when a website uses `window.print()`.
 - The workaround for Nouveau graphic drivers now works properly again.
 - Crash when using `:follow-selected` with a link which is outside of the view.
+- Workaround for windows not showing as urgent with some window managers
+  (like i3).
 
 v1.4.1
 ------
