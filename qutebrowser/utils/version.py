@@ -318,7 +318,7 @@ def _chromium_version():
     Qt 5.9:  Chromium 56
     Qt 5.10: Chromium 61
     Qt 5.11: Chromium 65
-    Qt 5.12: Chromium 69 (?)
+    Qt 5.12: Chromium 69 (? - current dev branch: 67)
 
     Also see https://www.chromium.org/developers/calendar
     """
@@ -433,6 +433,11 @@ def opengl_vendor():  # pragma: no cover
     """
     assert QApplication.instance()
 
+    override = os.environ.get('QUTE_FAKE_OPENGL_VENDOR')
+    if override is not None:
+        log.init.debug("Using override {}".format(override))
+        return override
+
     old_context = QOpenGLContext.currentContext()
     old_surface = None if old_context is None else old_context.surface()
 
@@ -442,12 +447,12 @@ def opengl_vendor():  # pragma: no cover
     ctx = QOpenGLContext()
     ok = ctx.create()
     if not ok:
-        log.init.debug("opengl_vendor: Creating context failed!")
+        log.init.debug("Creating context failed!")
         return None
 
     ok = ctx.makeCurrent(surface)
     if not ok:
-        log.init.debug("opengl_vendor: Making context current failed!")
+        log.init.debug("Making context current failed!")
         return None
 
     try:
@@ -461,12 +466,11 @@ def opengl_vendor():  # pragma: no cover
         try:
             vf = ctx.versionFunctions(vp)
         except ImportError as e:
-            log.init.debug("opengl_vendor: Importing version functions "
-                           "failed: {}".format(e))
+            log.init.debug("Importing version functions failed: {}".format(e))
             return None
 
         if vf is None:
-            log.init.debug("opengl_vendor: Getting version functions failed!")
+            log.init.debug("Getting version functions failed!")
             return None
 
         return vf.glGetString(vf.GL_VENDOR)
@@ -484,6 +488,7 @@ def pastebin_version(pbclient=None):
 
     def _on_paste_version_success(url):
         global pastebin_url
+        url = url.strip()
         _yank_url(url)
         pbclient.deleteLater()
         pastebin_url = url

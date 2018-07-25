@@ -506,7 +506,8 @@ class TabbedBrowser(QWidget):
                     usertypes.KeyMode.yesno]:
             # If we were in a command prompt, restore old focus
             # The above commands need to be run to switch tabs
-            prev_focus.setFocus()
+            if prev_focus is not None:
+                prev_focus.setFocus()
 
         tab.show()
         self.new_tab.emit(tab, idx)

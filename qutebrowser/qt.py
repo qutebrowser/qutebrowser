@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,17 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""A keyboard-driven, vim-like browser based on PyQt5."""
+"""Wrappers around Qt/PyQt code."""
 
-import os.path
-
-__author__ = "Florian Bruhin"
-__copyright__ = "Copyright 2014-2018 Florian Bruhin (The Compiler)"
-__license__ = "GPL"
-__maintainer__ = __author__
-__email__ = "mail@qutebrowser.org"
-__version_info__ = (1, 4, 1)
-__version__ = '.'.join(str(e) for e in __version_info__)
-__description__ = "A keyboard-driven, vim-like browser based on PyQt5."
-
-basedir = os.path.dirname(os.path.realpath(__file__))
+# pylint: disable=unused-import
+# PyQt 5.11 comes with a bundled sip,
+# for older PyQt versions it's a separate module.
+try:
+    from PyQt5 import sip
+except ImportError:
+    import sip

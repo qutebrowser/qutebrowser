@@ -392,6 +392,10 @@ https://docs.python.org/3/library/venv.html[virtual environment]:
 $ tox -e mkvenv-pypi
 ----
 
+If your system comes with Python 3.5.3 or older (such as Ubuntu 16.04 LTS), use
+`tox -e mkvenv-pypi-old` instead. This installs an older Qt version (5.10) due
+to bugs in newer versions.
+
 This installs all needed Python dependencies in a `.venv` subfolder.
 
 This comes with an up-to-date Qt/PyQt including QtWebEngine, but has a few

@@ -22,11 +22,11 @@
 import enum
 import itertools
 
-import sip
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import QWidget, QApplication, QDialog
+from PyQt5.QtPrintSupport import QPrintDialog
 
 import pygments
 import pygments.lexers
@@ -38,6 +38,7 @@ from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import mouse, hints
+from qutebrowser.qt import sip
 
 
 tab_id_gen = itertools.count(0)
@@ -187,8 +188,9 @@ class AbstractPrinting:
 
     """Attribute of AbstractTab for printing the page."""
 
-    def __init__(self):
+    def __init__(self, tab):
         self._widget = None
+        self._tab = tab
 
     def check_pdf_support(self):
         raise NotImplementedError
@@ -211,6 +213,29 @@ class AbstractPrinting:
                       (True if printing succeeded, False otherwise)
         """
         raise NotImplementedError
+
+    def show_dialog(self):
+        """Print with a QPrintDialog."""
+        self.check_printer_support()
+
+        def print_callback(ok):
+            """Called when printing finished."""
+            if not ok:
+                message.error("Printing failed!")
+            diag.deleteLater()
+
+        def do_print():
+            """Called when the dialog was closed."""
+            self.to_printer(diag.printer(), print_callback)
+
+        diag = QPrintDialog(self._tab)
+        if utils.is_mac:
+            # For some reason we get a segfault when using open() on macOS
+            ret = diag.exec_()
+            if ret == QDialog.Accepted:
+                do_print()
+        else:
+            diag.open(do_print)
 
 
 class AbstractSearch(QObject):
@@ -892,10 +917,6 @@ class AbstractTab(QWidget):
     def _on_load_progress(self, perc):
         self._progress = perc
         self.load_progress.emit(perc)
-
-    @pyqtSlot()
-    def _on_ssl_errors(self):
-        self._has_ssl_errors = True
 
     def url(self, requested=False):
         raise NotImplementedError

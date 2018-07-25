@@ -20,18 +20,17 @@ matrix:
     - os: linux
       env: TESTENV=py36-pyqt59
     - os: linux
-      env: TESTENV=py36-pyqt510-cov
-      # We need a newer Xvfb as a WORKAROUND for:
-      # https://bugreports.qt.io/browse/QTBUG-64928
+      env: TESTENV=py36-pyqt510
+    - os: linux
+      env: TESTENV=py36-pyqt511-cov
+    # https://github.com/travis-ci/travis-ci/issues/9069
+    - os: linux
+      python: 3.7
       sudo: required
-      addons:
-         apt:
-           sources:
-           - sourceline: "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe"
-           packages:
-           - xvfb
+      dist: xenial
+      env: TESTENV=py37-pyqt511
     - os: osx
-      env: TESTENV=py36 OSX=sierra
+      env: TESTENV=py37 OSX=sierra
       osx_image: xcode9.2
       language: generic
     # https://github.com/qutebrowser/qutebrowser/issues/2013
@@ -66,6 +65,10 @@ matrix:
       env: TESTENV=shellcheck
       services: docker
   fast_finish: true
+  allow_failures:
+    # https://github.com/qutebrowser/qutebrowser/issues/4055
+    - os: linux
+      env: TESTENV=py36-pyqt510
 
 cache:
   directories:

@@ -25,7 +25,6 @@ import sys
 import re
 import html as html_utils
 
-import sip
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
                           QUrl, QTimer, QObject, qVersion)
 from PyQt5.QtGui import QKeyEvent, QIcon
@@ -34,14 +33,15 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.config import configdata, config
-from qutebrowser.browser import browsertab, mouse, shared
+from qutebrowser.browser import browsertab, mouse, shared, webelem
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
-                                           webenginesettings)
+                                           webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
+from qutebrowser.qt import sip
 
 
 _qute_scheme_handler = None
@@ -360,7 +360,11 @@ class WebEngineCaret(browsertab.AbstractCaret):
         if elem.is_link():
             log.webview.debug("Found link in selection, clicking. ClickTarget "
                               "{}, elem {}".format(click_type, elem))
-            elem.click(click_type)
+            try:
+                elem.click(click_type)
+            except webelem.Error as e:
+                message.error(str(e))
+                return
 
     def follow_selected(self, *, tab=False):
         if self._tab.search.search_displayed:
@@ -788,6 +792,7 @@ class _WebEngineScripts(QObject):
         super().__init__(parent)
         self._tab = tab
         self._widget = None
+        self._greasemonkey = objreg.get('greasemonkey')
 
     def connect_signals(self):
         config.instance.changed.connect(self._on_config_changed)
@@ -853,9 +858,16 @@ class _WebEngineScripts(QObject):
         self._inject_early_js('js', js_code, subframes=True)
         self._init_stylesheet()
 
-        greasemonkey = objreg.get('greasemonkey')
-        greasemonkey.scripts_reloaded.connect(self._inject_userscripts)
-        self._inject_userscripts()
+        # The Greasemonkey metadata block support in QtWebEngine only starts at
+        # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
+        # response to urlChanged.
+        if not qtutils.version_check('5.8'):
+            self._tab.url_changed.connect(
+                self._inject_greasemonkey_scripts_for_url)
+        else:
+            self._greasemonkey.scripts_reloaded.connect(
+                self._inject_all_greasemonkey_scripts)
+            self._inject_all_greasemonkey_scripts()
 
     def _init_stylesheet(self):
         """Initialize custom stylesheets.
@@ -872,40 +884,77 @@ class _WebEngineScripts(QObject):
         )
         self._inject_early_js('stylesheet', js_code, subframes=True)
 
-    def _inject_userscripts(self):
-        """Register user JavaScript files with the global profiles."""
-        # The Greasemonkey metadata block support in QtWebEngine only starts at
-        # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
-        # response to urlChanged.
-        if not qtutils.version_check('5.8'):
+    @pyqtSlot(QUrl)
+    def _inject_greasemonkey_scripts_for_url(self, url):
+        matching_scripts = self._greasemonkey.scripts_for(url)
+        self._inject_greasemonkey_scripts(
+            matching_scripts.start, QWebEngineScript.DocumentCreation, True)
+        self._inject_greasemonkey_scripts(
+            matching_scripts.end, QWebEngineScript.DocumentReady, False)
+        self._inject_greasemonkey_scripts(
+            matching_scripts.idle, QWebEngineScript.Deferred, False)
+
+    @pyqtSlot()
+    def _inject_all_greasemonkey_scripts(self):
+        scripts = self._greasemonkey.all_scripts()
+        self._inject_greasemonkey_scripts(scripts)
+
+    def _inject_greasemonkey_scripts(self, scripts=None, injection_point=None,
+                                     remove_first=True):
+        """Register user JavaScript files with the current tab.
+
+        Args:
+            scripts: A list of GreasemonkeyScripts, or None to add all
+                     known by the Greasemonkey subsystem.
+            injection_point: The QWebEngineScript::InjectionPoint stage
+                             to inject the script into, None to use
+                             auto-detection.
+            remove_first: Whether to remove all previously injected
+                          scripts before adding these ones.
+        """
+        if sip.isdeleted(self._widget):
             return
 
-        # Since we are inserting scripts into profile.scripts they won't
-        # just get replaced by new gm scripts like if we were injecting them
-        # ourselves so we need to remove all gm scripts, while not removing
-        # any other stuff that might have been added. Like the one for
-        # stylesheets.
-        greasemonkey = objreg.get('greasemonkey')
-        scripts = self._widget.page().scripts()
-        for script in scripts.toList():
-            if script.name().startswith("GM-"):
-                log.greasemonkey.debug('Removing script: {}'
-                                       .format(script.name()))
-                removed = scripts.remove(script)
-                assert removed, script.name()
+        # Since we are inserting scripts into a per-tab collection,
+        # rather than just injecting scripts on page load, we need to
+        # make sure we replace existing scripts, not just add new ones.
+        # While, taking care not to remove any other scripts that might
+        # have been added elsewhere, like the one for stylesheets.
+        page_scripts = self._widget.page().scripts()
+        if remove_first:
+            for script in page_scripts.toList():
+                if script.name().startswith("GM-"):
+                    log.greasemonkey.debug('Removing script: {}'
+                                           .format(script.name()))
+                    removed = page_scripts.remove(script)
+                    assert removed, script.name()
 
-        # Then add the new scripts.
-        for script in greasemonkey.all_scripts():
-            # @run-at (and @include/@exclude/@match) is parsed by
-            # QWebEngineScript.
+        if not scripts:
+            return
+
+        for script in scripts:
             new_script = QWebEngineScript()
-            new_script.setWorldId(QWebEngineScript.MainWorld)
+            try:
+                world = int(script.jsworld)
+            except ValueError:
+                try:
+                    world = _JS_WORLD_MAP[usertypes.JsWorld[
+                        script.jsworld.lower()]]
+                except KeyError:
+                    log.greasemonkey.error(
+                        "script {} has invalid value for '@qute-js-world'"
+                        ": {}".format(script.name, script.jsworld))
+                    continue
+            new_script.setWorldId(world)
             new_script.setSourceCode(script.code())
             new_script.setName("GM-{}".format(script.name))
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
+            # Override the @run-at value parsed by QWebEngineScript if desired.
+            if injection_point:
+                new_script.setInjectionPoint(injection_point)
             log.greasemonkey.debug('adding script: {}'
                                    .format(new_script.name()))
-            scripts.insert(new_script)
+            page_scripts.insert(new_script)
 
 
 class WebEngineTab(browsertab.AbstractTab):
@@ -931,7 +980,7 @@ class WebEngineTab(browsertab.AbstractTab):
                                     tab=self, parent=self)
         self.zoom = WebEngineZoom(tab=self, parent=self)
         self.search = WebEngineSearch(parent=self)
-        self.printing = WebEnginePrinting()
+        self.printing = WebEnginePrinting(tab=self)
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
         self.audio = WebEngineAudio(parent=self)
@@ -979,6 +1028,9 @@ class WebEngineTab(browsertab.AbstractTab):
             url: The QUrl to open.
             predict: If set to False, predicted_navigation is not emitted.
         """
+        if sip.isdeleted(self._widget):
+            # https://github.com/qutebrowser/qutebrowser/issues/3896
+            return
         self._saved_zoom = self.zoom.factor()
         self._openurl_prepare(url, predict=predict)
         self._widget.load(url)
@@ -1038,10 +1090,10 @@ class WebEngineTab(browsertab.AbstractTab):
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
 
-    def networkaccessmanager(self):
+    def networkaccessmanager(self):  # pylint: disable=useless-return
         return None
 
-    def user_agent(self):
+    def user_agent(self):  # pylint: disable=useless-return
         return None
 
     def clear_ssl_errors(self):
@@ -1224,6 +1276,34 @@ class WebEngineTab(browsertab.AbstractTab):
             # the old icon is still displayed.
             self.icon_changed.emit(QIcon())
 
+    @pyqtSlot(certificateerror.CertificateErrorWrapper)
+    def _on_ssl_errors(self, error):
+        self._has_ssl_errors = True
+
+        url = error.url()
+        log.webview.debug("Certificate error: {}".format(error))
+
+        if error.is_overridable():
+            error.ignore = shared.ignore_certificate_errors(
+                url, [error], abort_on=[self.shutting_down, self.load_started])
+        else:
+            log.webview.error("Non-overridable certificate error: "
+                              "{}".format(error))
+
+        log.webview.debug("ignore {}, URL {}, requested {}".format(
+            error.ignore, url, self.url(requested=True)))
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-56207
+        # We can't really know when to show an error page, as the error might
+        # have happened when loading some resource.
+        # However, self.url() is not available yet and the requested URL
+        # might not match the URL we get from the error - so we just apply a
+        # heuristic here.
+        if (not qtutils.version_check('5.9') and
+                not error.ignore and
+                url.matches(self.url(requested=True), QUrl.RemoveScheme)):
+            self._show_error_page(url, str(error))
+
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):
         """If we know we're going to visit an URL soon, change the settings.
@@ -1239,10 +1319,10 @@ class WebEngineTab(browsertab.AbstractTab):
         super()._on_navigation_request(navigation)
 
         if navigation.url == QUrl('qute://print'):
-            command_dispatcher = objreg.get('command-dispatcher',
-                                            scope='window',
-                                            window=self.win_id)
-            command_dispatcher.printpage()
+            try:
+                self.printing.show_dialog()
+            except browsertab.WebTabError as e:
+                message.error(str(e))
             navigation.accepted = False
 
         if not navigation.accepted or not navigation.is_main_frame:

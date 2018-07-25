@@ -58,6 +58,7 @@ class GreasemonkeyScript:
         self.run_at = None
         self.script_meta = None
         self.runs_on_sub_frames = True
+        self.jsworld = "main"
         for name, value in properties:
             if name == 'name':
                 self.name = value
@@ -77,6 +78,8 @@ class GreasemonkeyScript:
                 self.runs_on_sub_frames = False
             elif name == 'require':
                 self.requires.append(value)
+            elif name == 'qute-js-world':
+                self.jsworld = value
 
     HEADER_REGEX = r'// ==UserScript==|\n+// ==/UserScript==\n'
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s*(?P<val>.*)'
@@ -142,7 +145,7 @@ class GreasemonkeyScript:
 
 
 @attr.s
-class MatchingScripts(object):
+class MatchingScripts:
 
     """All userscripts registered to run on a particular url."""
 

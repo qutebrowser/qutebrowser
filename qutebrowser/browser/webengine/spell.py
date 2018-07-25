@@ -21,8 +21,8 @@
 
 import glob
 import os
-import re
 import os.path
+import re
 import shutil
 
 from PyQt5.QtCore import QLibraryInfo
@@ -81,6 +81,7 @@ def local_filename(code):
 
 
 def init():
+    """Initialize the dictionary path if supported."""
     if qtutils.version_check('5.10', compiled=False):
         new_dir = dictionary_dir()
         old_dir = dictionary_dir(old=True)

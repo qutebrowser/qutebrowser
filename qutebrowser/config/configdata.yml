@@ -321,6 +321,7 @@ content.windowed_fullscreen:
 content.desktop_capture:
   type: BoolAsk
   default: ask
+  supports_pattern: true
   desc: >-
     Allow websites to share screen content.
 
@@ -350,14 +351,19 @@ content.frame_flattening:
 content.geolocation:
   default: ask
   type: BoolAsk
+  supports_pattern: true
   desc: Allow websites to request geolocations.
 
 content.headers.accept_language:
   type:
     name: String
     none_ok: true
+  supports_pattern: true
   default: en-US,en
-  desc: Value to send in the `Accept-Language` header.
+  desc: >-
+    Value to send in the `Accept-Language` header.
+
+    Note that the value read from JavaScript is always the global value.
 
 content.headers.custom:
   default: {}
@@ -370,6 +376,7 @@ content.headers.custom:
       name: String
       encoding: ascii
     none_ok: true
+  supports_pattern: true
   desc: Custom headers for qutebrowser HTTP requests.
 
 content.headers.do_not_track:
@@ -377,6 +384,7 @@ content.headers.do_not_track:
     name: Bool
     none_ok: true
   default: true
+  supports_pattern: true
   desc: >-
     Value to send in the `DNT` header.
 
@@ -451,7 +459,11 @@ content.headers.user_agent:
           Gecko"
         - IE 11.0 for Desktop Win7 64-bit
 
-  desc: User agent to send. Unset to send the default.
+  supports_pattern: true
+  desc: >-
+    User agent to send. Unset to send the default.
+
+    Note that the value read from JavaScript is always the global value.
 
 content.host_blocking.enabled:
   default: true
@@ -594,6 +606,7 @@ content.local_storage:
 content.media_capture:
   default: ask
   type: BoolAsk
+  supports_pattern: true
   backend: QtWebEngine
   desc: Allow websites to record audio/video.
 
@@ -610,6 +623,7 @@ content.netrc_file:
 content.notifications:
   default: ask
   type: BoolAsk
+  supports_pattern: true
   backend: QtWebKit
   desc: Allow websites to show notifications.
 
@@ -626,6 +640,7 @@ content.pdfjs:
 content.persistent_storage:
   default: ask
   type: BoolAsk
+  supports_pattern: true
   backend:
     QtWebKit: false
     QtWebEngine: Qt 5.11
@@ -672,6 +687,7 @@ content.proxy_dns_requests:
 content.register_protocol_handler:
   default: ask
   type: BoolAsk
+  supports_pattern: true
   backend:
     QtWebKit: false
     QtWebEngine: Qt 5.11
@@ -681,6 +697,7 @@ content.register_protocol_handler:
 content.ssl_strict:
   default: ask
   type: BoolAsk
+  supports_pattern: true
   desc: Validate SSL handshakes.
 
 content.user_stylesheets:
@@ -712,14 +729,13 @@ content.webrtc_public_interfaces_only:
 
 content.xss_auditing:
   type: Bool
-  default: false
+  default: true
   supports_pattern: true
   desc: >-
     Monitor load requests for cross-site scripting attempts.
 
     Suspicious scripts will be blocked and reported in the inspector's
-    JavaScript console. Enabling this feature might have an impact on
-    performance.
+    JavaScript console.
 
 # emacs: '
 

@@ -35,8 +35,4 @@ git+https://github.com/pallets/markupsafe.git
 hg+http://bitbucket.org/birkenfeld/pygments-main
 hg+https://bitbucket.org/fdik/pypeg
 git+https://github.com/python-attrs/attrs.git
-
-# Fails to build:
-# gcc: error: ext/_yaml.c: No such file or directory
-# hg+https://bitbucket.org/xi/pyyaml
-PyYAML==3.12
+git+https://github.com/yaml/pyyaml.git

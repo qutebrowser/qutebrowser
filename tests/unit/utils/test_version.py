@@ -659,7 +659,7 @@ class TestModuleVersions:
         The aim of this test is to fail if that gets missing in some future
         version of sip.
         """
-        import sip
+        from qutebrowser.qt import sip
         assert isinstance(sip.SIP_VERSION_STR, str)
 
 
@@ -987,11 +987,12 @@ def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
     monkeypatch.setattr('qutebrowser.utils.utils.log_clipboard', True)
 
     version.pastebin_version(pbclient)
-    pbclient.success.emit("test")
+    pbclient.success.emit("https://www.example.com/\n")
 
     msg = message_mock.getmsg(usertypes.MessageLevel.info)
-    assert msg.text == "Version url test yanked to clipboard."
-    assert version.pastebin_url == "test"
+    expected_text = "Version url https://www.example.com/ yanked to clipboard."
+    assert msg.text == expected_text
+    assert version.pastebin_url == "https://www.example.com/"
 
 
 def test_pastebin_version_twice(pbclient, monkeypatch):
@@ -1000,16 +1001,16 @@ def test_pastebin_version_twice(pbclient, monkeypatch):
                         lambda: "dummy")
 
     version.pastebin_version(pbclient)
-    pbclient.success.emit("test")
+    pbclient.success.emit("https://www.example.com/\n")
 
     pbclient.url = None
     pbclient.data = None
-    version.pastebin_url = "test2"
+    version.pastebin_url = "https://www.example.org/"
 
     version.pastebin_version(pbclient)
     assert pbclient.url is None
     assert pbclient.data is None
-    assert version.pastebin_url == "test2"
+    assert version.pastebin_url == "https://www.example.org/"
 
 
 def test_pastebin_version_error(pbclient, caplog, message_mock, monkeypatch):

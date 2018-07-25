@@ -183,10 +183,13 @@ class TestStandardDir:
     @pytest.mark.qt_log_ignore(r'^QStandardPaths: ')
     def test_linux_invalid_runtimedir(self, monkeypatch, tmpdir):
         """With invalid XDG_RUNTIME_DIR, fall back to TempLocation."""
+        tmpdir_env = tmpdir / 'temp'
+        tmpdir_env.ensure(dir=True)
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir / 'does-not-exist'))
-        monkeypatch.setenv('TMPDIR', str(tmpdir / 'temp'))
+        monkeypatch.setenv('TMPDIR', tmpdir_env)
+
         standarddir._init_dirs()
-        assert standarddir.runtime() == str(tmpdir / 'temp' / APPNAME)
+        assert standarddir.runtime() == str(tmpdir_env / APPNAME)
 
     @pytest.mark.fake_os('windows')
     def test_runtimedir_empty_tempdir(self, monkeypatch, tmpdir):

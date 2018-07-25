@@ -34,21 +34,22 @@ class CallSuper(Exception):
     """Raised when the caller should call the superclass instead."""
 
 
-def custom_headers():
+def custom_headers(url):
     """Get the combined custom headers."""
     headers = {}
 
-    dnt_config = config.val.content.headers.do_not_track
+    dnt_config = config.instance.get('content.headers.do_not_track', url=url)
     if dnt_config is not None:
         dnt = b'1' if dnt_config else b'0'
         headers[b'DNT'] = dnt
         headers[b'X-Do-Not-Track'] = dnt
 
-    conf_headers = config.val.content.headers.custom
+    conf_headers = config.instance.get('content.headers.custom', url=url)
     for header, value in conf_headers.items():
         headers[header.encode('ascii')] = value.encode('ascii')
 
-    accept_language = config.val.content.headers.accept_language
+    accept_language = config.instance.get('content.headers.accept_language',
+                                          url=url)
     if accept_language is not None:
         headers[b'Accept-Language'] = accept_language.encode('ascii')
 
@@ -156,7 +157,7 @@ def ignore_certificate_errors(url, errors, abort_on):
     Return:
         True if the error should be ignored, False otherwise.
     """
-    ssl_strict = config.val.content.ssl_strict
+    ssl_strict = config.instance.get('content.ssl_strict', url=url)
     log.webview.debug("Certificate errors {!r}, strict {}".format(
         errors, ssl_strict))
 
@@ -213,7 +214,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
         The Question object if a question was asked (and blocking=False),
         None otherwise.
     """
-    config_val = config.instance.get(option)
+    config_val = config.instance.get(option, url=url)
     if config_val == 'ask':
         if url.isValid():
             urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)

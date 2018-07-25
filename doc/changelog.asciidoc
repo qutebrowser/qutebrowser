@@ -15,12 +15,61 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.4.0 (unreleased)
+v1.5.0 (unreleased)
 -------------------
 
 Added
 ~~~~~
 
+- The qute-pass userscript now has optional OTP support.
+
+Changed
+~~~~~~~
+
+- The `content.xss_auditing` setting is now enabled by default, to mirror
+  Chromium's rather than Qt's default behavior.
+
+Fixed
+~~~~~
+
+- Crash in Qt 5.7.1 when a website uses `window.print()`.
+- The workaround for Nouveau graphic drivers now works properly again.
+- Crash when using `:follow-selected` with a link which is outside of the view.
+- Workaround for windows not showing as urgent with some window managers
+  (like i3).
+
+v1.4.1
+------
+
+Security
+~~~~~~~~
+
+- CVE-2018-10895: Fix CSRF issue on the qute://settings page, leading to
+  possible arbitrary code execution. See the related GitHub issue for details:
+  https://github.com/qutebrowser/qutebrowser/issues/4060
+
+Fixed
+~~~~~
+
+- Rare crash when an error occurs in downloads.
+- Newlines are now stripped from the :version pastebin URL.
+- There's a new `mkvenv-pypi-old` environment in `tox.ini` which installs an
+  older Qt, which is needed on Ubuntu 16.04.
+- Worked around a Qt issue which redirects to a `chrome-error://` page when
+  trying to use U2F.
+- The `link_pyqt.py` script now works correctly with PyQt 5.11.
+- The Windows installer now uninstalls the old version before installing the
+  new one, fixing issues with qutebrowser not starting after installing v1.4.0
+  over v1.3.3.
+
+v1.4.0
+------
+
+Added
+~~~~~
+
+- Support for the bundled `sip` module in PyQt 5.11 and other changes in
+  Qt/PyQt 5.11.x.
 - New `--debug-flag log-requests` to log requests to the debug log for
   debugging.
 - New `--first` flag for `:hint` (bound to `gi` for inputs) which automatically
@@ -40,11 +89,14 @@ Added
   * Support for requesting persistent storage via
     `navigator.webkitPersistentStorage.requestQuota` with a new
     `content.persistent_storage` setting (requires Qt 5.11).
+    This setting also supports URL patterns.
   * Support for registering custom protocol handlers via
     `navigator.registerProtocolHandler` with a new
     `content.register_protocol_handler` setting (requires Qt 5.11).
+    This setting also supports URL patterns.
   * Support for WebRTC screen sharing with a new `content.desktop_capture`
     setting (requires Qt 5.10).
+    This setting also supports URL patterns.
   * New `content.autoplay` setting to enable/disable automatic video playback
     (requires Qt 5.10).
   * New `content.webrtc_public_interfaces_only` setting to only expose public
@@ -55,6 +107,15 @@ Added
 Changed
 ~~~~~~~
 
+- The following settings now support URL patterns:
+  * `content.headers.do_not_track`
+  * `content.headers.custom`
+  * `content.headers.accept_language`
+  * `content.headers.user_agent`
+  * `content.ssl_strict`
+  * `content.geolocation`
+  * `content.notifications`
+  * `content.media_capture`
 - The Windows/macOS releases now bundle Qt 5.11.1 which is based on
   Chromium 65.0.3325.151 with security fixes up to Chromium 67.0.3396.87.
 - New short flags for commandline arguments: `-B` and `-T` for `--basedir` and
@@ -92,27 +153,53 @@ Changed
   Existing dictionaries are copied over.
 - If an error while parsing `~/.netrc` occurs, the cause of the error is now
   logged.
+- On Qt 5.9 or newer, certificate errors now show Chromium's detailed error
+  page.
+- Greasemonkey scripts now support a "@qute-js-world" tag to run them in a
+  different JavaScript context.
 
 Fixed
 ~~~~~
 
 - Various subtle keyboard focus issues.
-- Workaround for a Qt bug which preserves searches between page loads.
+- The security fix in v1.3.3 caused URLs with ampersands
+  (`www.example.com?one=1&two=2`) to send the wrong arguments when clicked on
+  the `qute://history` page.
+- Crash when opening a PDF page with PDF.js enabled (on QtWebKit), but no
+  PDF.js installed.
+- Crash when closing a tab shortly after opening it.
 
 Removed
 ~~~~~~~
 
+- No prebuilt binaries for 32-bit Windows are supplied anymore. This is due to
+  Qt removing QtWebEngine support for those upstream. It might be possible to
+  distribute 32-bit binaries again with Qt 5.12 in December, but that will only
+  happen if it turns out enough people actually need 32-bit support.
 - `:tab-detach` which has been deprecated in v1.1.0 has been removed.
 - The `content.developer_extras` setting got removed. On QtWebKit, developer
   extras are now automatically enabled when opening the inspector.
 
-v1.3.3 (unreleased)
--------------------
+v1.3.3
+------
+
+Security
+~~~~~~~~
+
+- An XSS vulnerability on the `qute://history` page allowed websites to inject
+  HTML into the page via a crafted title tag. This could allow them to steal
+  your browsing history. If you're currently unable to upgrade, avoid using
+  `:history`. A CVE request for this issue is pending, see
+  https://github.com/qutebrowser/qutebrowser/issues/4011[#4011] for updates.
 
 Fixed
 ~~~~~
 
 - Crash in a workaround for a Qt 5.11 bug in rare circumstances.
+- Workaround for a Qt bug which preserves searches between page loads.
+- In v1.3.2 a dependency on the `PyQt5.QtQuickWidgets` module was accidentally
+  introduced. Since that module isn't packaged everywhere, it's been removed
+  again.
 
 v1.3.2
 ------

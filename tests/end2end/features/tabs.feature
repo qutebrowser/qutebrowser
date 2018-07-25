@@ -915,6 +915,7 @@ Feature: Tab management
         When I run :buffer invalid title
         Then the error "No matching tab for: invalid title" should be shown
 
+    @flaky
     Scenario: :buffer with matching title and two windows
         When I open data/title.html
         And I open data/search.html in a new tab
