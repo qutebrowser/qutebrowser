@@ -17,29 +17,20 @@ if not exist "%DIST%" exit 2
 if exist "%ULIST%" del "%ULIST%" || exit 3
 if exist "%DLIST%" del "%DLIST%" || exit 3
 
-for /r "%DIST%" %%i in (*) do (
-	set "FN=%%i"
-	set "FN=!FN:%DIST%=!"
-	set "FN=!FN:$=$$!"
-	(echo:Delete "$INSTDIR!FN!") >> "%ULIST%"
-)
+for /r "%DIST%" %%i in (*) do call:AddToNSH %%i Delete "%ULIST%"
 
 rem '*' doesn't catch hidden files and there are a couple files starting with
 rem a '.', which will appear as hidden if mapped from a linux file system.
-for /f "tokens=*" %%i in ('dir "%DIST%" /a:h-d /b /s') do (
-	set "HFN=%%i"
-	set "HFN=!HFN:%DIST%=!"
-	set "HFN=!HFN:$=$$!"
-	(echo:Delete "$INSTDIR!HFN!") >> "%ULIST%"
-)
+for /f "tokens=*" %%i in ('dir "%DIST%" /a:h-d /b /s') do call:AddToNSH %%i Delete "%ULIST%"
 
-for /r "%DIST%" %%i in (.) do (
-	set "DN=%%i"
-	set "DN=!DN:%DIST%=!"
-	set "DN=!DN:$=$$!"
-	(echo:RMDir "$INSTDIR!DN:~0,-1!") >> "%DLIST%"
-)
+for /r "%DIST%" %%i in (.) do call:AddToNSH %%i RMDir "%DLIST%"
 
 sort /r "%DLIST%" >> "%ULIST%"
-
 del "%DLIST%"
+goto:eof
+
+:AddToNSH
+set "FN=%1"
+set "FN=!FN:%DIST%=!"
+set "FN=!FN:$=$$!"
+(echo:%2 "$INSTDIR!FN!") >> %3
