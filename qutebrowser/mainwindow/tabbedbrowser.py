@@ -739,7 +739,14 @@ class TabbedBrowser(QWidget):
             start = config.val.colors.tabs.indicator.start
             stop = config.val.colors.tabs.indicator.stop
             system = config.val.colors.tabs.indicator.system
-            color = utils.interpolate_color(start, stop, 100, system)
+            try:
+                qurl = self.widget.tab_url(idx)
+                if (qurl.scheme(), qurl.host()) == ('qute', 'back'):
+                    color = config.val.colors.tabs.indicator.suspended
+                else:
+                    color = utils.interpolate_color(start, stop, 100, system)
+            except:
+                color = config.val.colors.tabs.indicator.error
         else:
             color = config.val.colors.tabs.indicator.error
         self.widget.set_tab_indicator_color(idx, color)
