@@ -122,32 +122,32 @@ ShowUninstDetails hide
 
 ; Set PLATFORM - default x64
 !ifdef X86
-	!define PLATFORM "Win32"
-	!define ARCH "x86"
-	!define SUFFIX "win32"
+  !define PLATFORM "Win32"
+  !define ARCH "x86"
+  !define SUFFIX "win32"
 !else
-	!define PLATFORM "Win64"
-	!define ARCH "x64"
-	!define SUFFIX "amd64"
+  !define PLATFORM "Win64"
+  !define ARCH "x64"
+  !define SUFFIX "amd64"
 !endif
 
 ; If not defined, get VERSION from PROGEXE. Set DIST_DIR accordingly.
 !ifndef VERSION
-	!define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${ARCH}"
-	!getdllversion "${DIST_DIR}\${PROGEXE}" expv_
-	!define VERSION "${expv_1}.${expv_2}.${expv_3}"
+  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${ARCH}"
+  !getdllversion "${DIST_DIR}\${PROGEXE}" expv_
+  !define VERSION "${expv_1}.${expv_2}.${expv_3}"
 !else
-	!define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${VERSION}-${ARCH}"
+  !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${VERSION}-${ARCH}"
 !endif
 
 ; Pack the exe header with upx, unless NOUPX is defined.
 !ifndef NOUPX
-	!define /ifndef UPX "upx" ; assume upx is in path if UPX is not defined
-	!packhdr "$%TEMP%\exehead.tmp" '"${UPX}" "--ultra-brute" "$%TEMP%\exehead.tmp"'
+  !define /ifndef UPX "upx" ; assume upx is in path if UPX is not defined
+  !packhdr "$%TEMP%\exehead.tmp" '"${UPX}" "--ultra-brute" "$%TEMP%\exehead.tmp"'
 !else
-	!ifdef UPX
-		!error "Both UPX and NOUPX are defined."
-	!endif
+  !ifdef UPX
+    !error "Both UPX and NOUPX are defined."
+  !endif
 !endif
 
 ; Version Information
