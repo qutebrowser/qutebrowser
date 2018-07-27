@@ -202,8 +202,8 @@ def qute_bookmarks(_url):
     bookmarks = sorted(objreg.get('bookmark-manager'), key=lambda x: x.title)
 
     src = jinja.render('bookmarks.html',
-                        title='Bookmarks',
-                        bookmarks=bookmarks)
+                       title='Bookmarks',
+                       bookmarks=bookmarks)
     return 'text/html', src
 
 
