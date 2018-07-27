@@ -268,7 +268,7 @@ Section "Register with Windows" SectionWindowsRegister
 
     ; HTML and URL handlers
     StrCpy $2 "${PRODUCT_NAME}HTML"
-    StrCPY $3 "${PRODUCT_NAME} HTML Document"
+    StrCpy $3 "${PRODUCT_NAME} HTML Document"
     WriteRegHandler:
     WriteRegStr SHCTX "SOFTWARE\Classes\$2" "" "$3"
     WriteRegStr SHCTX "SOFTWARE\Classes\$2" "FriendlyTypeName" "$3"
