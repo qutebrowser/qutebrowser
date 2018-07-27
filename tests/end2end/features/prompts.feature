@@ -100,22 +100,6 @@ Feature: Prompts
         Then the javascript message "Alert done" should be logged
         And the javascript message "notification permission granted" should be logged
 
-    # TODO: what can we use other than quickmark-save here?
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
-    Scenario: Async question interrupted by async one
-        When I set content.notifications to ask
-        And I open data/prompt/notifications.html in a new tab
-        And I run :click-element id button
-        And I wait for a prompt
-        And I run :quickmark-save
-        And I wait for a prompt
-        # notification permission
-        And I run :prompt-accept yes
-        # quickmark
-        And I run :prompt-accept test
-        Then the javascript message "notification permission granted" should be logged
-        And "Added quickmark test for *" should be logged
-
     @qtwebengine_todo: Notifications are not implemented in QtWebEngine
     Scenario: Async question interrupted by blocking one
         When I set content.notifications to ask
@@ -399,22 +383,23 @@ Feature: Prompts
         Then the javascript message "confirm reply: false" should be logged
         And qutebrowser should quit
 
-    # TODO: what can I use instead of quickmark-save?
     Scenario: Using :prompt-open-download with a prompt which does not support it
-        When I open data/hello.txt
-        And I run :quickmark-save
+        When I open data/prompt/jsconfirm.html
+        And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-open-download
-        And I run :prompt-accept test-prompt-open-download
-        Then "Added quickmark test-prompt-open-download for *" should be logged
+        And I run :prompt-accept yes
+        Then the error "prompt-open-download: This command is only allowed in prompt mode, not yesno." should be shown
+        And the javascript message "confirm reply: true" should be logged
 
     Scenario: Using :prompt-item-focus with a prompt which does not support it
-        When I open data/hello.txt
-        And I run :quickmark-save
+        When I open data/prompt/jsconfirm.html
+        And I run :click-element id button
         And I wait for a prompt
         And I run :prompt-item-focus next
-        And I run :prompt-accept test-prompt-item-focus
-        Then "Added quickmark test-prompt-item-focus for *" should be logged
+        And I run :prompt-accept yes
+        Then the error "prompt-item-focus: This command is only allowed in prompt mode, not yesno." should be shown
+        And the javascript message "confirm reply: true" should be logged
 
     Scenario: Getting question in command mode
         When I open data/hello.txt
