@@ -402,12 +402,12 @@ Feature: Prompts
         And the javascript message "confirm reply: true" should be logged
 
     Scenario: Getting question in command mode
-        When I open data/hello.txt
-        And I run :later 500 quickmark-save
+        When I open data/prompt/jsprompt_delayed.html
+        And I run :click-element id button
         And I run :set-cmd-text :
         And I wait for a prompt
         And I run :prompt-accept prompt-in-command-mode
-        Then "Added quickmark prompt-in-command-mode for *" should be logged
+        Then the javascript message "Prompt reply: prompt-in-command-mode" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/1093
     @qtwebengine_skip: QtWebEngine doesn't open the second page/prompt
