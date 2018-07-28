@@ -860,7 +860,7 @@ class AbstractTab(QWidget):
 
             if navigation.navigation_type == navigation.Type.link_clicked:
                 msg = urlutils.get_errstring(navigation.url,
-                                            "Invalid link clicked")
+                                             "Invalid link clicked")
                 message.error(msg)
                 self.data.open_target = usertypes.ClickTarget.normal
 
