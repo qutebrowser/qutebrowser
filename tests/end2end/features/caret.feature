@@ -321,6 +321,7 @@ Feature: Caret mode
             - data/caret.html
             - data/hello.txt (active)
 
+    @flaky
     Scenario: :follow-selected with link tabbing (without JS)
         When I set content.javascript.enabled to false
         And I run :leave-mode
