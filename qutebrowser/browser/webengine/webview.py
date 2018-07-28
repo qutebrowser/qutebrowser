@@ -242,6 +242,14 @@ class WebEnginePage(QWebEnginePage):
                                 typ: QWebEnginePage.NavigationType,
                                 is_main_frame: bool):
         """Override acceptNavigationRequest to forward it to the tab API."""
+        if not url.isValid():
+            # WORKAROUND for missing IDNA 2008 support in QUrl
+            # see https://bugreports.qt.io/browse/QTBUG-60364
+            log.webview.debug("Ignoring invalid URL {} in "
+                              "acceptNavigationRequest: {}".format(
+                                  url.toDisplayString(), url.errorString()))
+            return True
+
         type_map = {
             QWebEnginePage.NavigationTypeLinkClicked:
                 usertypes.NavigationRequest.Type.link_clicked,

@@ -37,6 +37,8 @@ Fixed
 - Crash when using `:follow-selected` with a link which is outside of the view.
 - Workaround for windows not showing as urgent with some window managers
   (like i3).
+- Crash when opening URLs with some unicode characters (IDNA 2008). Those URLs
+  still won't open though, due to missing support in Qt.
 
 v1.4.1
 ------
