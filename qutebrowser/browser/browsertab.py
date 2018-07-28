@@ -854,12 +854,20 @@ class AbstractTab(QWidget):
                                       navigation.navigation_type,
                                       navigation.is_main_frame))
 
-        if (navigation.navigation_type == navigation.Type.link_clicked and
-                not navigation.url.isValid()):
-            msg = urlutils.get_errstring(navigation.url,
-                                         "Invalid link clicked")
-            message.error(msg)
-            self.data.open_target = usertypes.ClickTarget.normal
+        if not navigation.url.isValid():
+            # Also a WORKAROUND for missing IDNA 2008 support in QUrl, see
+            # https://bugreports.qt.io/browse/QTBUG-60364
+
+            if navigation.navigation_type == navigation.Type.link_clicked:
+                msg = urlutils.get_errstring(navigation.url,
+                                            "Invalid link clicked")
+                message.error(msg)
+                self.data.open_target = usertypes.ClickTarget.normal
+
+            log.webview.debug("Ignoring invalid URL {} in "
+                              "acceptNavigationRequest: {}".format(
+                                  navigation.url.toDisplayString(),
+                                  navigation.url.errorString()))
             navigation.accepted = False
 
     def handle_auto_insert_mode(self, ok):
