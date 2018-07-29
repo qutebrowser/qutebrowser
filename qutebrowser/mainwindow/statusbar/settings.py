@@ -121,3 +121,8 @@ class BooleanSettings(textbase.TextBase):
             self.parse_config()
         elif option in [t[1] for t in self._config]:
             self.on_tab_changed(self._current_tab())
+
+    def on_feature_permission_changed(self, option, _enabled):
+        """Update the widget when a pages feature permissions change."""
+        if option in [t[1] for t in self._config]:
+            self.on_tab_changed(self._current_tab())

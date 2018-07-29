@@ -831,6 +831,8 @@ class WebKitTab(browsertab.AbstractTab):
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.navigation_request.connect(self._on_navigation_request)
+        page.feature_permission_changed.connect(
+            self.feature_permission_changed)
 
     def event_target(self):
         return self._widget

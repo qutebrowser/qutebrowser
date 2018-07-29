@@ -789,12 +789,14 @@ class _WebEnginePermissions(QObject):
         Should only be called when an interactive permission request is
         pending.
         """
+        enabled = policy == QWebEnginePage.PermissionGrantedByUser
         try:
-            self.features[feature].enabled = \
-                    policy == QWebEnginePage.PermissionGrantedByUser
+            self.features[feature].enabled = enabled
+            setting_name = self.features[feature].setting_name
         except KeyError:
-            pass
+            setting_name = "<unknown>"
         self._widget.page().setFeaturePermission(origin, feature, policy)
+        self._tab.feature_permission_changed.emit(setting_name, enabled)
 
     def _on_load_started(self):
         """Reset some state when loading of a new page started."""

@@ -60,6 +60,7 @@ class BrowserPage(QWebPage):
     shutting_down = pyqtSignal()
     reloading = pyqtSignal(QUrl)
     navigation_request = pyqtSignal(usertypes.NavigationRequest)
+    feature_permission_changed = pyqtSignal(str, bool)
 
     def __init__(self, win_id, tab_id, tabdata, private, parent=None):
         super().__init__(parent)
@@ -383,12 +384,14 @@ class BrowserPage(QWebPage):
         Should only be called when an interactive permission request is
         pending.
         """
+        enabled = policy == QWebPage.PermissionGrantedByUser
         try:
-            self.features[feature].enabled = \
-                    policy == QWebPage.PermissionGrantedByUser
+            self.features[feature].enabled = enabled
+            setting_name = self.features[feature].setting_name
         except KeyError:
-            pass
+            setting_name = "<unknown>"
         super().setFeaturePermission(frame, feature, policy)
+        self.feature_permission_changed.emit(setting_name, enabled)
 
     def _on_feature_permission_cancelled(self, question, frame, feature,
                                          cancelled_frame, cancelled_feature):

@@ -718,6 +718,8 @@ class AbstractTab(QWidget):
                                      arg 0: A TerminationStatus member.
                                      arg 1: The exit code.
         predicted_navigation: Emitted before we tell Qt to open a URL.
+        feature_permission_changed: Permission for the page to use a web
+                                    api has been granted or denied.
     """
 
     window_close_requested = pyqtSignal()
@@ -736,6 +738,7 @@ class AbstractTab(QWidget):
     fullscreen_requested = pyqtSignal(bool)
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
     predicted_navigation = pyqtSignal(QUrl)
+    feature_permission_changed = pyqtSignal(str, bool)
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         self.private = private
