@@ -1016,3 +1016,6 @@ class AbstractTab(QWidget):
 
     def is_deleted(self):
         return sip.isdeleted(self._widget)
+
+    def test_feature(self, setting_name):
+        raise NotImplementedError
