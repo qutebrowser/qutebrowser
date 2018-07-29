@@ -485,12 +485,16 @@ class MainWindow(QWidget):
             status.tabindex.on_tab_index_changed)
 
         self.tabbed_browser.cur_url_changed.connect(status.url.set_url)
+        self.tabbed_browser.cur_url_changed.connect(
+            status.settings.on_url_changed)
         self.tabbed_browser.cur_url_changed.connect(functools.partial(
             status.backforward.on_tab_cur_url_changed,
             tabs=self.tabbed_browser))
         self.tabbed_browser.cur_link_hovered.connect(status.url.set_hover_url)
         self.tabbed_browser.cur_load_status_changed.connect(
             status.url.on_load_status_changed)
+        self.tabbed_browser.cur_load_status_changed.connect(
+            status.settings.on_load_status_changed)
 
         self.tabbed_browser.cur_caret_selection_toggled.connect(
             status.on_caret_selection_toggled)

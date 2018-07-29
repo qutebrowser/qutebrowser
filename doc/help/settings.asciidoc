@@ -253,6 +253,7 @@
 |<<statusbar.hide,statusbar.hide>>|Hide the statusbar unless a message is shown.
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
 |<<statusbar.position,statusbar.position>>|Position of the status bar.
+|<<statusbar.settings,statusbar.settings>>|Which boolean settings to display in the statusbar settings widget.
 |<<statusbar.widgets,statusbar.widgets>>|List of widgets displayed in the statusbar.
 |<<tabs.background,tabs.background>>|Open new tabs (middleclick/ctrl+click) in the background.
 |<<tabs.close_mouse_button,tabs.close_mouse_button>>|Mouse button with which to close tabs.
@@ -3173,6 +3174,15 @@ Valid values:
 
 Default: +pass:[bottom]+
 
+[[statusbar.settings]]
+=== statusbar.settings
+Which boolean settings to display in the statusbar settings widget.
+Specified in the form indicator-string|setting.name where the indicator-string will be displayed when the setting is true.
+
+Type: <<types,List of String>>
+
+Default: empty
+
 [[statusbar.widgets]]
 === statusbar.widgets
 List of widgets displayed in the statusbar.
@@ -3188,6 +3198,7 @@ Valid values:
  * +tabs+: Current active tab, e.g. `2`.
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
+ * +settings+: Boolean settings state for the current page.
 
 Default: 
 
