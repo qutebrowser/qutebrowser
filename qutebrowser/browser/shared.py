@@ -28,11 +28,14 @@ class CallSuper(Exception):
 
 @dataclasses.dataclass
 class Feature:
-    """A web api that the user can interactively grant permission to."""
+    """A web api that the user can interactively grant permission to.
+
+    `enabled` is None until a permission has been requested.
+    """
 
     setting_name: str
     requesting_message: str
-    enabled: bool = False
+    enabled: Optional[bool] = None
 
 
 def custom_headers(url):
