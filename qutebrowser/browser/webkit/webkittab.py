@@ -769,13 +769,15 @@ class _WebKitPermissions(QObject):
         Should only be called when an interactive permission request is
         pending.
         """
+        enabled = policy == QWebPage.PermissionGrantedByUser
         try:
-            self.features[feature].enabled = \
-                policy == QWebPage.PermissionGrantedByUser
+            self.features[feature].enabled = enabled
+            setting_name = self.features[feature].setting_name
         except KeyError:
-            pass
+            setting_name = "<unknown>"
         page = self._widget.page()
         page.setFeaturePermission(frame, feature, policy)
+        self._tab.feature_permission_changed.emit(setting_name, enabled)
 
     @pyqtSlot()
     def _on_load_started(self):

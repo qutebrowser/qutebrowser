@@ -849,6 +849,9 @@ class AbstractTab(QWidget):
     before_load_started = pyqtSignal(QUrl)
     #: Signal emitted when a new load started or we're shutting down.
     abort_questions = pyqtSignal()
+    #: Signal emitted when a tab's permission for a web API has been
+    #: granted or denied (setting as str, current access as bool)
+    feature_permission_changed = pyqtSignal(str, bool)
 
     # Signal emitted when a page's load status changed
     # (argument: usertypes.LoadStatus)
