@@ -82,6 +82,16 @@ class BrowserPage(QWebPage):
             functools.partial(self._inject_userjs, self.mainFrame()))
         self.frameCreated.connect(  # type: ignore[attr-defined]
             self._connect_userjs_signals)
+        self.features = {}
+        self._init_features()
+
+    def _init_features(self):
+        self.features.update({
+            QWebPage.Feature.Notifications: shared.Feature(
+                'content.notifications.enabled', 'show notifications'),
+            QWebPage.Feature.Geolocation: shared.Feature(
+                'content.geolocation', 'access your location'),
+        })
 
     @pyqtSlot('QWebFrame*')
     def _connect_userjs_signals(self, frame):
@@ -343,14 +353,6 @@ class BrowserPage(QWebPage):
                            "{!r}!".format(frame))
             return
 
-        options = {
-            QWebPage.Feature.Notifications: 'content.notifications.enabled',
-            QWebPage.Feature.Geolocation: 'content.geolocation',
-        }
-        messages = {
-            QWebPage.Feature.Notifications: 'show notifications',
-            QWebPage.Feature.Geolocation: 'access your location',
-        }
         yes_action = functools.partial(
             self.setFeaturePermission, frame, feature,
             QWebPage.PermissionPolicy.PermissionGrantedByUser)
@@ -364,8 +366,10 @@ class BrowserPage(QWebPage):
                                    QUrl.UrlFormattingOption.RemoveFragment)
         question = shared.feature_permission(
             url=url,
-            option=options[feature], msg=messages[feature],
-            yes_action=yes_action, no_action=no_action,
+            option=self.features[feature].setting_name,
+            msg=self.features[feature].requesting_message,
+            yes_action=yes_action,
+            no_action=no_action,
             abort_on=[self.shutting_down, self.loadStarted])
 
         if question is not None:

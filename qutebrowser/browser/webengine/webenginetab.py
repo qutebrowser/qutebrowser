@@ -876,33 +876,32 @@ class _WebEnginePermissions(QObject):
 
     _widget: webview.WebEngineView
 
-    _options = {
-        QWebEnginePage.Feature.Notifications: 'content.notifications.enabled',
-        QWebEnginePage.Feature.Geolocation: 'content.geolocation',
-        QWebEnginePage.Feature.MediaAudioCapture: 'content.media.audio_capture',
-        QWebEnginePage.Feature.MediaVideoCapture: 'content.media.video_capture',
-        QWebEnginePage.Feature.MediaAudioVideoCapture: 'content.media.audio_video_capture',
-        QWebEnginePage.Feature.MouseLock: 'content.mouse_lock',
-        QWebEnginePage.Feature.DesktopVideoCapture: 'content.desktop_capture',
-        QWebEnginePage.Feature.DesktopAudioVideoCapture: 'content.desktop_capture',
-    }
-
-    _messages = {
-        QWebEnginePage.Feature.Notifications: 'show notifications',
-        QWebEnginePage.Feature.Geolocation: 'access your location',
-        QWebEnginePage.Feature.MediaAudioCapture: 'record audio',
-        QWebEnginePage.Feature.MediaVideoCapture: 'record video',
-        QWebEnginePage.Feature.MediaAudioVideoCapture: 'record audio/video',
-        QWebEnginePage.Feature.MouseLock: 'hide your mouse pointer',
-        QWebEnginePage.Feature.DesktopVideoCapture: 'capture your desktop',
-        QWebEnginePage.Feature.DesktopAudioVideoCapture: 'capture your desktop and audio',
-    }
-
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
         self._widget = cast(webview.WebEngineView, None)
-        assert self._options.keys() == self._messages.keys()
+        self.features = {}
+        self._init_features()
+
+    def _init_features(self):
+        self.features.update({
+            QWebEnginePage.Feature.Notifications: shared.Feature(
+                'content.notifications.enabled', 'show notifications'),
+            QWebEnginePage.Feature.Geolocation: shared.Feature(
+                'content.geolocation', 'access your location'),
+            QWebEnginePage.Feature.MediaAudioCapture: shared.Feature(
+                'content.media.audio_capture', 'record audio'),
+            QWebEnginePage.Feature.MediaVideoCapture: shared.Feature(
+                'content.media.video_capture', 'record video'),
+            QWebEnginePage.Feature.MediaAudioVideoCapture: shared.Feature(
+                'content.media.audio_video_capture', 'record audio/video'),
+            QWebEnginePage.Feature.MouseLock: shared.Feature(
+                'content.mouse_lock', 'hide your mouse pointer'),
+            QWebEnginePage.Feature.DesktopVideoCapture: shared.Feature(
+                'content.desktop_capture', 'capture your desktop'),
+            QWebEnginePage.Feature.DesktopAudioVideoCapture: shared.Feature(
+                'content.desktop_capture', 'capture your desktop and audio'),
+        })
 
     def connect_signals(self):
         """Connect related signals from the QWebEnginePage."""
@@ -949,7 +948,7 @@ class _WebEnginePermissions(QObject):
             deny_permission()
             return
 
-        if feature not in self._options:
+        if feature not in self.features:
             log.webview.error("Unhandled feature permission {}".format(
                 permission_str))
             deny_permission()
@@ -957,9 +956,12 @@ class _WebEnginePermissions(QObject):
 
         question = shared.feature_permission(
             url=url.adjusted(QUrl.UrlFormattingOption.RemovePath),
-            option=self._options[feature], msg=self._messages[feature],
-            yes_action=grant_permission, no_action=deny_permission,
-            abort_on=[self._tab.abort_questions])
+            option=self.features[feature].setting_name,
+            msg=self.features[feature].requesting_message,
+            yes_action=grant_permission,
+            no_action=deny_permission,
+            abort_on=[self._tab.abort_questions]
+        )
 
         if question is not None:
             page.featurePermissionRequestCanceled.connect(
