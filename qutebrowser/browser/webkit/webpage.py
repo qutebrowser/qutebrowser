@@ -301,11 +301,15 @@ class BrowserPage(QWebPage):
 
     @pyqtSlot()
     def on_load_started(self):
-        """Reset error_occurred when loading of a new page started."""
+        """Reset some state when loading of a new page started."""
         if self._ignore_load_started:
             self._ignore_load_started = False
-        else:
-            self.error_occurred = False
+            return
+
+        self.error_occurred = False
+
+        for feat in self.features.values():
+            feat.enabled = False
 
     def _inject_userjs(self, frame):
         """Inject user JavaScripts into the page.
@@ -372,6 +376,19 @@ class BrowserPage(QWebPage):
             self.featurePermissionRequestCanceled.connect(
                 functools.partial(self._on_feature_permission_cancelled,
                                   question, frame, feature))
+
+    def setFeaturePermission(self, frame, feature, policy):
+        """Sets a policy to use feature for origin.
+
+        Should only be called when an interactive permission request is
+        pending.
+        """
+        try:
+            self.features[feature].enabled = \
+                    policy == QWebPage.PermissionGrantedByUser
+        except KeyError:
+            pass
+        super().setFeaturePermission(frame, feature, policy)
 
     def _on_feature_permission_cancelled(self, question, frame, feature,
                                          cancelled_frame, cancelled_feature):

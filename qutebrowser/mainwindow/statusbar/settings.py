@@ -36,6 +36,16 @@ class BooleanSettings(textbase.TextBase):
         super().__init__(*args, **kwargs)
         self.parse_config()
 
+    def _test_feature(self, setting_name, tab=None, default=False):
+        if not tab:
+            tab = self._current_tab()
+        if not tab:
+            return default
+        try:
+            return tab.test_feature(setting_name)
+        except KeyError:
+            return default
+
     def _to_bool(self, setting_name, url):
         """Return a bool for Bool and BoolAsk settings."""
         try:
@@ -47,7 +57,7 @@ class BooleanSettings(textbase.TextBase):
         obj = config.instance.get_obj(setting_name, url=url)
         if isinstance(opt.typ, configtypes.BoolAsk):
             if obj == 'ask':
-                return False
+                return self._test_feature(setting_name)
             return obj
         elif isinstance(opt.typ, configtypes.Bool):
             return obj

@@ -834,3 +834,18 @@ class WebKitTab(browsertab.AbstractTab):
 
     def event_target(self):
         return self._widget
+
+    def test_feature(self, setting_name):
+        """Return true if the user has granted permission for `setting_name`.
+
+        Returns KeyError if `setting_name` doesn't map to a grantable
+        feature.
+        """
+        feats = [
+            f for f in self._widget.page().features.values()
+            if f.setting_name == setting_name
+        ]
+        try:
+            return feats[0].enabled
+        except IndexError:
+            raise KeyError
