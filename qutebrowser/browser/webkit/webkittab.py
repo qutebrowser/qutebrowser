@@ -33,6 +33,7 @@ from PyQt5.QtPrintSupport import QPrinter
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
+from qutebrowser.config import config, configexc
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug
 from qutebrowser.qt import sip
 
@@ -843,11 +844,18 @@ class WebKitTab(browsertab.AbstractTab):
         Returns KeyError if `setting_name` doesn't map to a grantable
         feature.
         """
-        feats = [
-            f for f in self._widget.page().features.values()
-            if f.setting_name == setting_name
-        ]
         try:
-            return feats[0].enabled
+            feat = [
+                f for f in self._widget.page().features.values()
+                if f.setting_name == setting_name
+            ][0]
         except IndexError:
             raise KeyError
+        if feat.enabled is not None:
+            return feat.enabled
+        try:
+            opt = config.instance.get(setting_name, url=self.url())
+        except configexc.NoPatternError:
+            opt = config.instance.get(setting_name, url=None)
+        # "ask" is False
+        return opt is True

@@ -310,7 +310,7 @@ class BrowserPage(QWebPage):
         self.error_occurred = False
 
         for feat in self.features.values():
-            feat.enabled = False
+            feat.enabled = None
 
     def _inject_userjs(self, frame):
         """Inject user JavaScripts into the page.
