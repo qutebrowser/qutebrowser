@@ -23,6 +23,7 @@ import os
 import html
 import netrc
 
+import attr
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
@@ -32,6 +33,15 @@ from qutebrowser.mainwindow import mainwindow
 
 class CallSuper(Exception):
     """Raised when the caller should call the superclass instead."""
+
+
+@attr.s
+class Feature:
+    """A web api that the user can interactively grant permission to."""
+
+    setting_name = attr.ib()
+    requesting_message = attr.ib()
+    enabled = attr.ib(default=False)
 
 
 def custom_headers(url):
