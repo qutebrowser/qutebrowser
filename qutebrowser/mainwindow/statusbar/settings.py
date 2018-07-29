@@ -24,6 +24,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl
 from qutebrowser.config import config, configtypes
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import objreg, message, usertypes
+from qutebrowser.browser.browsertab import WebTabError
 
 
 class BooleanSettings(textbase.TextBase):
@@ -39,6 +40,15 @@ class BooleanSettings(textbase.TextBase):
         self._config = []
         self._parse_config()
 
+    def _test_feature(self, setting_name, default=False):
+        tab = self._current_tab()
+        if not tab:
+            return default
+        try:
+            return tab.test_feature(setting_name)
+        except WebTabError:
+            return default
+
     def _to_bool(self, setting_name, url):
         """Return a bool for Bool and BoolAsk settings."""
         try:
@@ -50,7 +60,7 @@ class BooleanSettings(textbase.TextBase):
         obj = config.instance.get_obj(setting_name, url=url)
         if isinstance(opt.typ, configtypes.BoolAsk):
             if obj == 'ask':
-                return False
+                return self._test_feature(setting_name)
             return obj
         elif isinstance(opt.typ, configtypes.Bool):
             return obj

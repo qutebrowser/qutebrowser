@@ -716,7 +716,7 @@ class _WebKitPermissions(QObject):
             self._on_feature_permission_requested)
 
         self._tab.shutting_down.connect(self._abort_questions)
-        self._tab.load_started.connect(self._abort_questions)
+        self._tab.load_started.connect(self._on_load_started)
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
     def _on_feature_permission_requested(self, frame, feature):
@@ -729,10 +729,10 @@ class _WebKitPermissions(QObject):
             return
 
         yes_action = functools.partial(
-            page.setFeaturePermission, frame, feature,
+            self.set_feature_permission, frame, feature,
             QWebPage.PermissionGrantedByUser)
         no_action = functools.partial(
-            page.setFeaturePermission, frame, feature,
+            self.set_feature_permission, frame, feature,
             QWebPage.PermissionDeniedByUser)
 
         question = shared.feature_permission(
@@ -762,6 +762,27 @@ class _WebKitPermissions(QObject):
                 # The question could already be deleted, e.g. because it was
                 # aborted after a loadStarted signal.
                 pass
+
+    def set_feature_permission(self, frame, feature, policy):
+        """Sets a policy to use feature for origin.
+
+        Should only be called when an interactive permission request is
+        pending.
+        """
+        try:
+            self.features[feature].enabled = \
+                policy == QWebPage.PermissionGrantedByUser
+        except KeyError:
+            pass
+        page = self._widget.page()
+        page.setFeaturePermission(frame, feature, policy)
+
+    @pyqtSlot()
+    def _on_load_started(self):
+        """Reset some state when loading of a new page started."""
+        for feat in self.features.values():
+            feat.enabled = None
+        self._abort_questions.emit()
 
 
 class WebKitTab(browsertab.AbstractTab):

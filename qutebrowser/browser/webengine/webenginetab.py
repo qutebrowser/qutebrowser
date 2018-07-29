@@ -767,6 +767,8 @@ class _WebEnginePermissions(QObject):
             page.registerProtocolHandlerRequested.connect(
                 self._on_register_protocol_handler_requested)
 
+        self._tab.load_started.connect(self._on_load_started)
+
     @pyqtSlot('QWebEngineFullScreenRequest')
     def _on_fullscreen_requested(self, request):
         request.accept()
@@ -787,15 +789,15 @@ class _WebEnginePermissions(QObject):
         if feature not in self.features:
             log.webview.error("Unhandled feature permission {}".format(
                 debug.qenum_key(QWebEnginePage, feature)))
-            page.setFeaturePermission(url, feature,
-                                      QWebEnginePage.PermissionDeniedByUser)
+            self.set_feature_permission(url, feature,
+                                        QWebEnginePage.PermissionDeniedByUser)
             return
 
         yes_action = functools.partial(
-            page.setFeaturePermission, url, feature,
+            self.set_feature_permission, url, feature,
             QWebEnginePage.PermissionGrantedByUser)
         no_action = functools.partial(
-            page.setFeaturePermission, url, feature,
+            self.set_feature_permission, url, feature,
             QWebEnginePage.PermissionDeniedByUser)
 
         question = shared.feature_permission(
@@ -844,6 +846,25 @@ class _WebEnginePermissions(QObject):
             yes_action=request.accept, no_action=request.reject,
             abort_on=[self._tab.abort_questions],
             blocking=True)
+
+    def set_feature_permission(self, origin, feature, policy):
+        """Sets a policy to use feature for origin.
+
+        Should only be called when an interactive permission request is
+        pending.
+        """
+        try:
+            self.features[feature].enabled = \
+                    policy == QWebEnginePage.PermissionGrantedByUser
+        except KeyError:
+            pass
+        self._widget.page().setFeaturePermission(origin, feature, policy)
+
+    @pyqtSlot()
+    def _on_load_started(self):
+        """Reset some state when loading of a new page started."""
+        for feat in self.features.values():
+            feat.enabled = False
 
 
 class _WebEngineScripts(QObject):
