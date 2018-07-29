@@ -59,9 +59,8 @@ class BooleanSettings(textbase.TextBase):
             url = None
         obj = config.instance.get_obj(setting_name, url=url)
         if isinstance(opt.typ, configtypes.BoolAsk):
-            if obj == 'ask':
-                return self._test_feature(setting_name)
-            return obj
+            default = False if obj == 'ask' else obj
+            return self._test_feature(setting_name, default=default)
         elif isinstance(opt.typ, configtypes.Bool):
             return obj
         raise ValueError(

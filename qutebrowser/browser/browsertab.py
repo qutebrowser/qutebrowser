@@ -1148,4 +1148,13 @@ class AbstractTab(QWidget):
         if not feats:
             raise WebTabError("No feature called {}.".format(setting_name))
 
-        return any(f.enabled for f in feats)
+        set_feats = [f for f in feats if f.enabled is not None]
+        if set_feats:
+            return any(f.enabled for f in set_feats)
+
+        try:
+            opt = config.instance.get(setting_name, url=self.url())
+        except configexc.NoPatternError:
+            opt = config.instance.get(setting_name, url=None)
+        # "ask" is False too
+        return opt is True

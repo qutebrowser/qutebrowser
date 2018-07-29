@@ -37,11 +37,14 @@ class CallSuper(Exception):
 
 @attr.s
 class Feature:
-    """A web api that the user can interactively grant permission to."""
+    """A web api that the user can interactively grant permission to.
+
+    `enabled` is None until a permission has been requested.
+    """
 
     setting_name = attr.ib()
     requesting_message = attr.ib()
-    enabled = attr.ib(default=False)
+    enabled = attr.ib(None)
 
 
 def custom_headers(url):

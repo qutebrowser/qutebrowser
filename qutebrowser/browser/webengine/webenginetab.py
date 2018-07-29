@@ -866,7 +866,7 @@ class _WebEnginePermissions(QObject):
     def _on_load_started(self):
         """Reset some state when loading of a new page started."""
         for feat in self.features.values():
-            feat.enabled = False
+            feat.enabled = None
 
 
 class _WebEngineScripts(QObject):
