@@ -233,6 +233,7 @@
 |<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
 |<<session.default_name,session.default_name>>|Name of the session to save by default.
 |<<session.lazy_restore,session.lazy_restore>>|Load a restored tab as soon as it takes focus.
+|<<settings.widget.content,settings.widget.content>>|Which boolean settings to display in the statusbar settings widget.
 |<<spellcheck.languages,spellcheck.languages>>|Languages to use for spell checking.
 |<<statusbar.hide,statusbar.hide>>|Hide the statusbar unless a message is shown.
 |<<statusbar.padding,statusbar.padding>>|Padding (in pixels) for the statusbar.
@@ -2781,6 +2782,15 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
+[[settings.widget.content]]
+=== settings.widget.content
+Which boolean settings to display in the statusbar settings widget.
+Specified in the form indicator-string|setting.name where the indicator-string will be displayed when the setting is true.
+
+Type: <<types,List of String>>
+
+Default: empty
+
 [[spellcheck.languages]]
 === spellcheck.languages
 Languages to use for spell checking.
@@ -2889,6 +2899,7 @@ Valid values:
  * +tabs+: Current active tab, e.g. `2`.
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
+ * +settings+: Boolean settings state for the current page.
 
 Default: 
 
