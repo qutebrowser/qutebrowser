@@ -1047,6 +1047,7 @@ class AbstractTab(QWidget):
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
         self._widget = cast(_WidgetType, None)
+        self._permissions = None
         self._progress = 0
         self._load_status = usertypes.LoadStatus.none
         self._tab_event_filter = eventfilter.TabEventFilter(
@@ -1374,3 +1375,18 @@ class AbstractTab(QWidget):
         else:
             widget = self._widget
         return sip.isdeleted(widget)
+
+    def test_feature(self, setting_name):
+        """Return true if the user has granted permission for `setting_name`.
+
+        Raises WebTabError if `setting_name` doesn't map to a grantable
+        feature.
+        """
+        feats = [
+            f for f in self._permissions.features.values()
+            if f.setting_name == setting_name
+        ]
+        if not feats:
+            raise WebTabError("No feature called {}.".format(setting_name))
+
+        return any(f.enabled for f in feats)
