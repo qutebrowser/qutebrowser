@@ -32,7 +32,7 @@ from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
-from qutebrowser.config import configdata, config
+from qutebrowser.config import configdata, config, configexc
 from qutebrowser.browser import browsertab, mouse, shared, webelem
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
@@ -801,7 +801,7 @@ class _WebEnginePermissions(QObject):
     def _on_load_started(self):
         """Reset some state when loading of a new page started."""
         for feat in self.features.values():
-            feat.enabled = False
+            feat.enabled = None
         self._abort_questions.emit()
 
 
@@ -1423,11 +1423,18 @@ class WebEngineTab(browsertab.AbstractTab):
         Returns KeyError if `setting_name` doesn't map to a grantable
         feature.
         """
-        feats = [
-            f for f in self._permissions.features.values()
-            if f.setting_name == setting_name
-        ]
         try:
-            return feats[0].enabled
+            feat = [
+                f for f in self._permissions.features.values()
+                if f.setting_name == setting_name
+            ][0]
         except IndexError:
             raise KeyError
+        if feat.enabled is not None:
+            return feat.enabled
+        try:
+            opt = config.instance.get(setting_name, url=self.url())
+        except configexc.NoPatternError:
+            opt = config.instance.get(setting_name, url=None)
+        # "ask" is False too
+        return opt is True
