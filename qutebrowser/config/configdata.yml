@@ -2140,9 +2140,23 @@ statusbar.widgets:
          format string via `clock:...`. For supported format strings, see
          https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes[the
          Python datetime documentation]."
+        - settings: "Boolean settings state for the current page."
     none_ok: true
   default: ['keypress', 'search_match', 'url', 'scroll', 'history', 'tabs', 'progress']
   desc: "List of widgets displayed in the statusbar."
+
+statusbar.settings:
+  type:
+    name: List
+    valtype:
+      name: String
+    none_ok: true
+  default: []
+  desc: >-
+    Which boolean settings to display in the statusbar settings widget.
+
+    Specified in the form indicator-string|setting.name where
+    the indicator-string will be displayed when the setting is true.
 
 ## tabs
 

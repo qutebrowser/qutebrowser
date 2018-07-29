@@ -16,7 +16,8 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
-                                              tabindex, textbase, clock, searchmatch)
+                                              tabindex, textbase, clock,
+                                              searchmatch, settings)
 
 
 @dataclasses.dataclass
@@ -129,6 +130,7 @@ class StatusBar(QWidget):
         prog: The Progress widget in the statusbar.
         cmd: The Command widget in the statusbar.
         search_match: The SearchMatch widget in the statusbar.
+        settings: The BooleanSetting widget in the statusbar.
         _hbox: The main QHBoxLayout.
         _stack: The QStackedLayout with cmd/txt widgets.
         _win_id: The window ID the statusbar is associated with.
@@ -189,6 +191,7 @@ class StatusBar(QWidget):
         self.prog = progress.Progress(self)
         self.clock = clock.Clock()
         self._text_widgets = []
+        self.settings = settings.BooleanSettings(self, self._win_id)
         self._draw_widgets()
 
         config.instance.changed.connect(self._on_config_changed)
@@ -221,6 +224,8 @@ class StatusBar(QWidget):
             return new_text_widget
         elif key.startswith('clock:') or key == 'clock':
             return self.clock
+        elif key == 'settings':
+            return self.settings
         else:
             raise utils.Unreachable(key)
 
@@ -232,8 +237,9 @@ class StatusBar(QWidget):
             self._set_hbox_padding()
         elif option == 'statusbar.widgets':
             self._draw_widgets()
+        self.settings.on_config_changed(option)
 
-    def _draw_widgets(self):
+    def _draw_widgets(self):  # noqa: C901 pragma: no mccabe
         """Draw statusbar widgets."""
         self._clear_widgets()
 
@@ -246,7 +252,7 @@ class StatusBar(QWidget):
 
             if segment == 'scroll_raw':
                 widget.set_raw()
-            elif segment in ('history', 'progress'):
+            elif segment in ('history', 'progress', 'settings'):
                 widget.enabled = True
                 if tab:
                     widget.on_tab_changed(tab)
@@ -268,7 +274,7 @@ class StatusBar(QWidget):
     def _clear_widgets(self):
         """Clear widgets before redrawing them."""
         # Start with widgets hidden and show them when needed
-        for widget in [self.url, self.percentage,
+        for widget in [self.url, self.percentage, self.settings,
                        self.backforward, self.tabindex,
                        self.keystring, self.prog, self.clock, *self._text_widgets]:
             assert isinstance(widget, QWidget)
@@ -416,6 +422,7 @@ class StatusBar(QWidget):
         self.prog.on_tab_changed(tab)
         self.percentage.on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
+        self.settings.on_tab_changed(tab)
         self.maybe_hide()
         assert tab.is_private == self._color_flags.private
 
