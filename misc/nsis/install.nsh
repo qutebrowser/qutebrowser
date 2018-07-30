@@ -98,7 +98,8 @@
     ReadRegStr $R0 HKLM "${REG_UN}\${PRODUCT_NAME}" "UninstallString"
     ${if} $R0 != ""
       System::Call 'Shlwapi::PathUnquoteSpaces(t r10r10)'
-      IfFileExists $R0 +2 0
+      IfFileExists $R0 +3 0
+      DeleteRegKey HKLM "${REG_UN}\${PRODUCT_NAME}"
       StrCpy $R0 ""
     ${endif}
   ${endif}
