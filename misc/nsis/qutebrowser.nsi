@@ -38,8 +38,8 @@ SetOverwrite on
 ShowInstDetails hide
 ShowUninstDetails hide
 
-!addplugindir /x86-unicode ".\Plugins\x86-unicode"
-!addincludedir ".\Include"
+!addplugindir /x86-unicode ".\plugins\x86-unicode"
+!addincludedir ".\include"
 
 !include MUI2.nsh
 !include NsisMultiUser.nsh
