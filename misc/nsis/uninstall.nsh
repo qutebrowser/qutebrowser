@@ -53,28 +53,28 @@ Section "un.Program Files" SectionUninstallProgram
   !insertmacro DeleteRetryAbort "$STARTMENU\${PRODUCT_NAME}$0.lnk"
 
   ; Clean up Windows Registry
-  ${if} $MultiUser.InstallMode == "AllUsers"
-  ${orif} ${AtLeastWin8}
-    DeleteRegValue SHCTX "Software\RegisteredApplications" "${PRODUCT_NAME}"
-    DeleteRegKey SHCTX "Software\Clients\StartMenuInternet\${PRODUCT_NAME}"
-    DeleteRegKey SHCTX "Software\Classes\${PRODUCT_NAME}HTML"
-    DeleteRegKey SHCTX "Software\Classes\${PRODUCT_NAME}URL"
-    DeleteRegValue SHCTX "Software\Classes\.htm\OpenWithProgids" "${PRODUCT_NAME}HTML"
-    DeleteRegValue SHCTX "Software\Classes\.html\OpenWithProgids" "${PRODUCT_NAME}HTML"
-    DeleteRegValue SHCTX "Software\Classes\.shtml\OpenWithProgids" "${PRODUCT_NAME}HTML"
-    DeleteRegValue SHCTX "Software\Classes\.svg\OpenWithProgids" "${PRODUCT_NAME}HTML"
-    DeleteRegValue SHCTX "Software\Classes\.xht\OpenWithProgids" "${PRODUCT_NAME}HTML"
-    DeleteRegValue SHCTX "Software\Classes\.xhtml\OpenWithProgids" "${PRODUCT_NAME}HTML"
-    DeleteRegValue SHCTX "Software\Classes\.webp\OpenWithProgids" "${PRODUCT_NAME}HTML"
+  ${if} $KeepReg = 0
+    ${if} $MultiUser.InstallMode == "AllUsers"
+    ${orif} ${AtLeastWin8}
+      DeleteRegValue SHCTX "SOFTWARE\RegisteredApplications" "${PRODUCT_NAME}"
+      DeleteRegKey SHCTX "SOFTWARE\Clients\StartMenuInternet\${PRODUCT_NAME}"
+      DeleteRegKey SHCTX "SOFTWARE\Classes\${PRODUCT_NAME}HTML"
+      DeleteRegKey SHCTX "SOFTWARE\Classes\${PRODUCT_NAME}URL"
+      DeleteRegValue SHCTX "SOFTWARE\Classes\.htm\OpenWithProgids" "${PRODUCT_NAME}HTML"
+      DeleteRegValue SHCTX "SOFTWARE\Classes\.html\OpenWithProgids" "${PRODUCT_NAME}HTML"
+      DeleteRegValue SHCTX "SOFTWARE\Classes\.shtml\OpenWithProgids" "${PRODUCT_NAME}HTML"
+      DeleteRegValue SHCTX "SOFTWARE\Classes\.svg\OpenWithProgids" "${PRODUCT_NAME}HTML"
+      DeleteRegValue SHCTX "SOFTWARE\Classes\.xht\OpenWithProgids" "${PRODUCT_NAME}HTML"
+      DeleteRegValue SHCTX "SOFTWARE\Classes\.xhtml\OpenWithProgids" "${PRODUCT_NAME}HTML"
+      DeleteRegValue SHCTX "SOFTWARE\Classes\.webp\OpenWithProgids" "${PRODUCT_NAME}HTML"
+      ; Refresh Shell Icons
+      System::Call "shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)"
+    ${endif}
   ${endif}
-
-  ; Refresh Shell Icons
-  System::Call "shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)"
 SectionEnd
 
 Section /o "!un.Program Settings" SectionRemoveSettings
   ; this section is executed only explicitly and shouldn't be placed in SectionUninstallProgram
-  DeleteRegKey HKCU "Software\${PRODUCT_NAME}"
   SetShellVarContext current
   RMDIR /r "${CONFIG_DIR}\data"
   RMDIR /r "${CONFIG_DIR}\config"
@@ -129,7 +129,7 @@ Function un.onInit
     StrCpy $RunningFromInstaller 0
   ${endif}
 
-  var /GLOBAL KeepReg
+  
   ${GetOptions} $R0 "/upgrade" $R1
   ${ifnot} ${errors}
     StrCpy $KeepReg 1

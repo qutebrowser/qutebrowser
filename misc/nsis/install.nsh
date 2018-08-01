@@ -18,13 +18,35 @@
 # NSIS installer header. Uses NsisMultiUser plugin and contains portions of
 # its demo code, copyright 2017 Richard Drizin, Alex Mitev.
 
+; Variables
+var KeepReg
 
-;Languages (first is default language) - must be inserted after all pages
+; Languages (first is default language) - must be inserted after all pages
 !insertmacro MUI_LANGUAGE "English"
 !insertmacro MULTIUSER_LANGUAGE_INIT
 
 ; Reserve files
 !insertmacro MUI_RESERVEFILE_LANGDLL
+
+; Macros
+!macro UpdateRegStr ROOT_KEY SUBKEY KEY_NAME KEY_VALUE
+  ClearErrors
+  ReadRegStr $R0 ${ROOT_KEY} "${SUBKEY}" "${KEY_NAME}"
+  ${if} ${errors}
+  ${orif} $R0 != "${KEY_VALUE}"
+    WriteRegStr ${ROOT_KEY} "${SUBKEY}" "${KEY_NAME}" "${KEY_VALUE}"
+  ${endif}
+!macroend
+
+!macro UpdateRegDWORD ROOT_KEY SUBKEY KEY_NAME KEY_VALUE
+  ClearErrors
+  ReadRegDWORD $R0 ${ROOT_KEY} "${SUBKEY}" "${KEY_NAME}"
+  ${if} ${errors}
+  ${orif} $R0 != "${KEY_VALUE}"
+    WriteRegDWORD ${ROOT_KEY} "${SUBKEY}" "${KEY_NAME}" "${KEY_VALUE}"
+  ${endif}
+!macroend
+
 
 !macro MSI32_STACK
   Push "${MSI32_010}"
@@ -158,12 +180,16 @@ Section "Core Files (required)" SectionCoreFiles
       StrCpy $2 ""
     ${endif}
 
+    ${if} $KeepReg = 1
+      StrCpy $4 "/upgrade"
+    ${endif}
+
     HideWindow
     ClearErrors
     StrCpy $0 0
     ; $1 is quoted in registry; the _? param stops the uninstaller from copying
     ; itself to the temporary directory, which is the only way for ExecWait to work
-    ExecWait '$1 /SS $2 _?=$3' $0
+    ExecWait '$1 $4 /SS $2 _?=$3' $0
 
     ${if} ${errors} ; stay in installer
       SetErrorLevel 2 ; Installation aborted by script
@@ -223,66 +249,66 @@ Section "Register with Windows" SectionWindowsRegister
 
     StrCpy $0 "SOFTWARE\Clients\StartMenuInternet\${PRODUCT_NAME}"
 
-    WriteRegStr SHCTX "$0" "" "${PRODUCT_NAME}"
+    !insertmacro UpdateRegStr SHCTX "$0" "" "${PRODUCT_NAME}"
 
-    WriteRegStr SHCTX "$0\DefaultIcon" "" "$1,0"
+    !insertmacro UpdateRegStr SHCTX "$0\DefaultIcon" "" "$1,0"
 
-    WriteRegDWORD SHCTX "$0\InstallInfo" "IconsVisible" 1
+    !insertmacro UpdateRegDWORD SHCTX "$0\InstallInfo" "IconsVisible" 1
 
-    WriteRegStr SHCTX "$0\shell\open\command" "" "$\"$1$\""
+    !insertmacro UpdateRegStr SHCTX "$0\shell\open\command" "" "$\"$1$\""
 
-    WriteRegStr SHCTX "$0\shell\properties" "" "${PRODUCT_NAME} settings"
-    WriteRegStr SHCTX "$0\shell\properties\command" "" "$\"$1$\" ${SHELL_PROPERTIES}"
+    !insertmacro UpdateRegStr SHCTX "$0\shell\properties" "" "${PRODUCT_NAME} settings"
+    !insertmacro UpdateRegStr SHCTX "$0\shell\properties\command" "" "$\"$1$\" ${SHELL_PROPERTIES}"
 
-    WriteRegStr SHCTX "$0\shell\safemode" "" "${PRODUCT_NAME} safe mode"
-    WriteRegStr SHCTX "$0\shell\safemode\command" "" "$\"$1$\" ${SHELL_SAFEMODE}"
+    !insertmacro UpdateRegStr SHCTX "$0\shell\safemode" "" "${PRODUCT_NAME} safe mode"
+    !insertmacro UpdateRegStr SHCTX "$0\shell\safemode\command" "" "$\"$1$\" ${SHELL_SAFEMODE}"
 
-    WriteRegStr SHCTX "$0\Capabilities" "ApplicationDescription" "${COMMENTS}"
-    WriteRegStr SHCTX "$0\Capabilities" "ApplicationIcon" "$1,0"
-    WriteRegStr SHCTX "$0\Capabilities" "ApplicationName" "${PRODUCT_NAME}"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities" "ApplicationDescription" "${COMMENTS}"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities" "ApplicationIcon" "$1,0"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities" "ApplicationName" "${PRODUCT_NAME}"
 
-    WriteRegStr SHCTX "$0\Capabilities\FileAssociations" ".htm" "${PRODUCT_NAME}HTML"
-    WriteRegStr SHCTX "$0\Capabilities\FileAssociations" ".html" "${PRODUCT_NAME}HTML"
-    WriteRegStr SHCTX "$0\Capabilities\FileAssociations" ".shtml" "${PRODUCT_NAME}HTML"
-    WriteRegStr SHCTX "$0\Capabilities\FileAssociations" ".svg" "${PRODUCT_NAME}HTML"
-    WriteRegStr SHCTX "$0\Capabilities\FileAssociations" ".xht" "${PRODUCT_NAME}HTML"
-    WriteRegStr SHCTX "$0\Capabilities\FileAssociations" ".xhtml" "${PRODUCT_NAME}HTML"
-    WriteRegStr SHCTX "$0\Capabilities\FileAssociations" ".webp" "${PRODUCT_NAME}HTML"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".htm" "${PRODUCT_NAME}HTML"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".html" "${PRODUCT_NAME}HTML"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".shtml" "${PRODUCT_NAME}HTML"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".svg" "${PRODUCT_NAME}HTML"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".xht" "${PRODUCT_NAME}HTML"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".xhtml" "${PRODUCT_NAME}HTML"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".webp" "${PRODUCT_NAME}HTML"
 
-    WriteRegStr SHCTX "$0\Capabilities\StartMenu" "StartMenuInternet" "${PRODUCT_NAME}"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\StartMenu" "StartMenuInternet" "${PRODUCT_NAME}"
 
-    WriteRegStr SHCTX "$0\Capabilities\URLAssociations" "ftp" "${PRODUCT_NAME}URL"
-    WriteRegStr SHCTX "$0\Capabilities\URLAssociations" "http" "${PRODUCT_NAME}URL"
-    WriteRegStr SHCTX "$0\Capabilities\URLAssociations" "https" "${PRODUCT_NAME}URL"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\URLAssociations" "ftp" "${PRODUCT_NAME}URL"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\URLAssociations" "http" "${PRODUCT_NAME}URL"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\URLAssociations" "https" "${PRODUCT_NAME}URL"
 
     ; Register Application
-    WriteRegStr SHCTX "SOFTWARE\RegisteredApplications" "${PRODUCT_NAME}" "$0\Capabilities"
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\RegisteredApplications" "${PRODUCT_NAME}" "$0\Capabilities"
 
     ; Associate file types
-    WriteRegStr SHCTX "SOFTWARE\Classes\.htm\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
-    WriteRegStr SHCTX "SOFTWARE\Classes\.html\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
-    WriteRegStr SHCTX "SOFTWARE\Classes\.shtml\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
-    WriteRegStr SHCTX "SOFTWARE\Classes\.svg\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
-    WriteRegStr SHCTX "SOFTWARE\Classes\.xht\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
-    WriteRegStr SHCTX "SOFTWARE\Classes\.xhtml\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
-    WriteRegStr SHCTX "SOFTWARE\Classes\.webp\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.htm\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.html\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.shtml\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.svg\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.xht\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.xhtml\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.webp\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
 
     ; HTML and URL handlers
     StrCpy $2 "${PRODUCT_NAME}HTML"
     StrCpy $3 "${PRODUCT_NAME} HTML Document"
     WriteRegHandler:
-    WriteRegStr SHCTX "SOFTWARE\Classes\$2" "" "$3"
-    WriteRegStr SHCTX "SOFTWARE\Classes\$2" "FriendlyTypeName" "$3"
-    WriteRegDWord SHCTX "SOFTWARE\Classes\$2" "EditFlags" 0x00000002
-    WriteRegStr SHCTX "SOFTWARE\Classes\$2\DefaultIcon" "" "$1,0"
-    WriteRegStr SHCTX "SOFTWARE\Classes\$2\shell" "" "open"
-    WriteRegStr SHCTX "SOFTWARE\Classes\$2\shell\open\command" "" "$\"$1$\" $\"%1$\""
-    WriteRegStr SHCTX "SOFTWARE\Classes\$2\shell\open\ddeexec" "" ""
-    StrCmp "$2" "${PRODUCT_NAME}HTML" 0 +4
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2" "" "$3"
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2" "FriendlyTypeName" "$3"
+    !insertmacro UpdateRegDWORD SHCTX "SOFTWARE\Classes\$2" "EditFlags" 0x00000002
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2\DefaultIcon" "" "$1,0"
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2\shell" "" "open"
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2\shell\open\command" "" "$\"$1$\" $\"%1$\""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2\shell\open\ddeexec" "" ""
+    StrCmp $2 "${PRODUCT_NAME}HTML" 0 +4
     StrCpy $2 "${PRODUCT_NAME}URL"
     StrCpy $3 "${PRODUCT_NAME} URL"
     Goto WriteRegHandler
-    WriteRegStr SHCTX "SOFTWARE\Classes\$2" "URL Protocol" ""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\$2" "URL Protocol" ""
   ${endif}
 SectionEnd
 
@@ -385,6 +411,7 @@ SectionEnd
 
 ; Callbacks
 Function .onInit
+  StrCpy $KeepReg 1
   !insertmacro CheckPlatform ${PLATFORM}
   !insertmacro CheckMinWinVer ${MIN_WIN_VER}
   ${ifnot} ${UAC_IsInnerInstance}
@@ -429,6 +456,12 @@ Function .onInit
 FunctionEnd
 
 Function .onSelChange
+  ${if} ${SectionIsSelected} ${SectionWindowsRegister}
+    StrCpy $KeepReg 1
+  ${else}
+    StrCpy $KeepReg 0
+  ${endif}
+
   ${if} ${SectionIsSelected} ${SectionDefaultBrowser}
     !insertmacro SetSectionFlag ${SectionWindowsRegister} ${SF_RO}
     !insertmacro SelectSection ${SectionWindowsRegister}
