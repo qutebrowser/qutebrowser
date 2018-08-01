@@ -42,8 +42,8 @@ var KeepReg
   ClearErrors
   ReadRegDWORD $R0 ${ROOT_KEY} "${SUBKEY}" "${KEY_NAME}"
   ${if} ${errors}
-  ${orif} $R0 != "${KEY_VALUE}"
-    WriteRegDWORD ${ROOT_KEY} "${SUBKEY}" "${KEY_NAME}" "${KEY_VALUE}"
+  ${orif} $R0 != ${KEY_VALUE}
+    WriteRegDWORD ${ROOT_KEY} "${SUBKEY}" "${KEY_NAME}" ${KEY_VALUE}
   ${endif}
 !macroend
 
