@@ -105,6 +105,15 @@ Is there an adblocker?::
     https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
     usage], so implementing support for AdBlockPlus-like lists is currently not
     a priority.
+    
+How can I get No-Script-like behaviour?::
+    You can toggle JavaScript blocking for the current domain with `tsh` by default.
+    To disable JavaScript by default:
++
+----
+:set content.javascript.enabled false
+----
++
 
 How do I play Youtube videos with mpv?::
     You can easily add a key binding to play youtube videos inside a real video
