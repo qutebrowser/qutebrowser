@@ -13,7 +13,7 @@ if [%2]==[] exit 1
 rem The full path of the release
 set "DIST=%~f1"
 rem The generated nsh file
-set "ULIST=%2"
+set "ULIST=%~2"
 rem Temporary file to keep the directories list
 set "DLIST=%TEMP%\%~n2%RANDOM%.tmp"
 
