@@ -129,6 +129,8 @@ def run(args):
         sys.exit(usertypes.Exit.err_ipc)
 
     if server is None:
+        if args.backend is not None:
+            log.init.warning("Changing the backend will not work, the backend from the previous instance will be used!")
         sys.exit(usertypes.Exit.ok)
     else:
         server.got_args.connect(lambda args, target_arg, cwd:
