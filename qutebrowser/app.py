@@ -131,7 +131,7 @@ def run(args):
     if server is None:
         if args.backend is not None:
             log.init.warning("Backend from the running" 
-                             "instance will be used")
+                             " instance will be used")
         sys.exit(usertypes.Exit.ok)
     else:
         server.got_args.connect(lambda args, target_arg, cwd:
