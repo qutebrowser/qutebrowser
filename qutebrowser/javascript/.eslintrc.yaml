@@ -58,3 +58,4 @@ rules:
      max-lines: "off"
      multiline-ternary: ["error", "always-multiline"]
      max-lines-per-function: "off"
+     require-unicode-regexp: "off"
