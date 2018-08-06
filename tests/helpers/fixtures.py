@@ -119,6 +119,7 @@ class FakeStatusBar(QWidget):
         self.hbox.setContentsMargins(0, 0, 0, 0)
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setStyleSheet('background-color: red;')
+        self._win_id = 0
 
     def minimumSizeHint(self):
         return QSize(1, self.fontMetrics().height())
