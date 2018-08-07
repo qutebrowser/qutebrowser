@@ -84,6 +84,18 @@ from qutebrowser.utils import urlmatch
 
     # Additional tests
     ("http://[", "Invalid IPv6 URL"),
+    ("http://[fc2e::bb88::edac]:", "Invalid port: Port is empty"),
+    ("http://[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]", "Invalid IPv6 URL"),
+    ("http://[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]", "Invalid IPv6 URL"),
+    ("http://[127.0.0.1:fc2e::bb88:edac]", "Invalid IPv6 URL"),
+    ("http://[]:20", "Pattern without host"),
+    ("http://[fc2e::bb88", "Invalid IPv6 URL"),
+    ("http://[[fc2e::bb88:edac]", "Invalid IPv6 URL"),
+    ("http://[fc2e::bb88:edac]]", "Invalid IPv6 URL"),
+    ("http://[fc2e:bb88:edac]", "Invalid IPv6 URL"),
+    ("http://[fc2e:bb88:edac::z]", "Invalid IPv6 URL"),
+    ("http://[fc2e:bb88:edac::2]:2a2", "Invalid port: invalid literal for int() with base 10: '2a2'"),
+
 ])
 def test_invalid_patterns(pattern, error):
     with pytest.raises(urlmatch.ParseError, match=re.escape(error)):
@@ -161,6 +173,8 @@ class TestMatchAllPagesForGivenScheme:
         ("https://google.com", False),
         ("http://74.125.127.100/search", True),
         ("http://[fc2e:0e35:bb88::edac]", True),
+        ("http://[fc2e:e35:bb88::edac]", True),
+        ("http://[fc2e:e35:bb88::127.0.0.1]", True),
         ("http://[::1]/bar", True),
     ])
     def test_urls(self, up, url, expected):
@@ -260,7 +274,7 @@ class TestMatchIpAddresses:
     def test_urls(self, pattern, expected):
         up = urlmatch.UrlPattern(pattern)
         assert up.matches(QUrl("http://127.0.0.1")) == expected
-    
+
 
 class TestMatchChromeUrls:
 
