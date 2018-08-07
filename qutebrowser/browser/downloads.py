@@ -79,7 +79,10 @@ def download_dir():
     else:
         ddir = directory
 
-    os.makedirs(ddir, exist_ok=True)
+    try:
+        os.makedirs(ddir, exist_ok=True)
+    except OSError as e:
+        message.error("Failed to create download directory: {}".format(e))
 
     return ddir
 
