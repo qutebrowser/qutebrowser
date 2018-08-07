@@ -154,10 +154,14 @@ class TestMatchAllPagesForGivenScheme:
 
     @pytest.mark.parametrize('url, expected', [
         ("http://google.com", True),
+        ("http://google.com:80", True),
+        ("http://google.com.", True),
         ("http://yahoo.com", True),
         ("http://google.com/foo", True),
         ("https://google.com", False),
         ("http://74.125.127.100/search", True),
+        ("http://[fc2e:0e35:bb88::edac]", True),
+        ("http://[::1]/bar", True),
     ])
     def test_urls(self, up, url, expected):
         assert up.matches(QUrl(url)) == expected
@@ -238,6 +242,7 @@ class TestMatchIpAddresses:
     @pytest.mark.parametrize('pattern, host, match_subdomains', [
         ("http://127.0.0.1/*", "127.0.0.1", False),
         ("http://*.0.0.1/*", "0.0.1", True),
+        ("http://[::1]/*", "::1", False),
     ])
     def test_attrs(self, pattern, host, match_subdomains):
         up = urlmatch.UrlPattern(pattern)
@@ -255,7 +260,7 @@ class TestMatchIpAddresses:
     def test_urls(self, pattern, expected):
         up = urlmatch.UrlPattern(pattern)
         assert up.matches(QUrl("http://127.0.0.1")) == expected
-
+    
 
 class TestMatchChromeUrls:
 
