@@ -39,6 +39,7 @@ Fixed
   (like i3).
 - Crash when opening URLs with some unicode characters (IDNA 2008). Those URLs
   still won't open though, due to missing support in Qt.
+- Crash when a download directory which can't be created is configured.
 
 v1.4.1
 ------
