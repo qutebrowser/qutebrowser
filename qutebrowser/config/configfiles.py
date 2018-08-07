@@ -576,7 +576,7 @@ def read_autoconfig():
     """Read the autoconfig.yml file."""
     try:
         config.instance.read_yaml()
-    except configexc.ConfigFileErrors:  # pylint: disable=try-except-raise
+    except configexc.ConfigFileErrors:
         raise  # caught in outer block
     except configexc.Error as e:
         desc = configexc.ConfigErrorDesc("Error", e)
