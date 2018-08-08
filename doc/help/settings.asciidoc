@@ -562,6 +562,7 @@ Default:
 * +pass:[g0]+: +pass:[tab-focus 1]+
 * +pass:[gB]+: +pass:[set-cmd-text -s :bookmark-load -t]+
 * +pass:[gC]+: +pass:[tab-clone]+
+* +pass:[gD]+: +pass:[tab-give]+
 * +pass:[gO]+: +pass:[set-cmd-text :open -t -r {url:pretty}]+
 * +pass:[gU]+: +pass:[navigate up -t]+
 * +pass:[g^]+: +pass:[tab-focus 1]+

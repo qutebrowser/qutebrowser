@@ -2455,6 +2455,7 @@ bindings.default:
       .: repeat-command
       <Ctrl-p>: tab-pin
       <Alt-m>: tab-mute
+      gD: tab-give
       q: record-macro
       "@": run-macro
       tsh: config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload
