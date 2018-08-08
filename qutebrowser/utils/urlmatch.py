@@ -29,8 +29,9 @@ import ipaddress
 import fnmatch
 import urllib.parse
 
-from qutebrowser.utils import utils, qtutils
 from PyQt5.QtCore import QUrl
+
+from qutebrowser.utils import utils, qtutils
 
 
 class ParseError(Exception):
@@ -178,10 +179,12 @@ class UrlPattern:
             assert self._host is None
             return
 
-        if not utils.raises(ValueError, ipaddress.IPv6Address, parsed.netloc[1:-1]):
+        if parsed.netloc.startswith('['):
             # Using QUrl parsing to minimize ipv6 addresses
             url = QUrl()
-            url.setHost(parsed.hostname)
+            url.setHost("[" + parsed.hostname + "]")
+            if url.host() == "":
+                raise ParseError("Invalid IPv6 URL"+parsed.hostname)
             self._host = url.host()
             return
 

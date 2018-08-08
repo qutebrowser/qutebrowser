@@ -84,7 +84,8 @@ from qutebrowser.utils import urlmatch
 
     # Additional tests
     ("http://[", "Invalid IPv6 URL"),
-    ("http://[fc2e::bb88::edac]:", "Invalid port: Port is empty"),
+    ("http://[fc2e:bb88::edac]:", "Invalid port: Port is empty"),
+    ("http://[fc2e::bb88::edac]", "Invalid IPv6 URL"),
     ("http://[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]", "Invalid IPv6 URL"),
     ("http://[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]", "Invalid IPv6 URL"),
     ("http://[127.0.0.1:fc2e::bb88:edac]", "Invalid IPv6 URL"),
