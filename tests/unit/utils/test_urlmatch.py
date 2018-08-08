@@ -257,6 +257,9 @@ class TestMatchIpAddresses:
         ("http://127.0.0.1/*", "127.0.0.1", False),
         ("http://*.0.0.1/*", "0.0.1", True),
         ("http://[::1]/*", "::1", False),
+        ("http://[0::1]/*", "::1", False),
+        ("http://[::01]/*", "::1", False),
+        ("http://[0:0:0:0:20::1]/*", "::20:0:0:1", False),
     ])
     def test_attrs(self, pattern, host, match_subdomains):
         up = urlmatch.UrlPattern(pattern)
