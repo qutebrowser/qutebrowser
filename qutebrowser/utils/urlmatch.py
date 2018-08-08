@@ -183,8 +183,8 @@ class UrlPattern:
             # Using QUrl parsing to minimize ipv6 addresses
             url = QUrl()
             url.setHost("[" + parsed.hostname + "]")
-            if url.host() == "":
-                raise ParseError("Invalid IPv6 URL"+parsed.hostname)
+            if not url.isValid():
+                raise ParseError(url.errorString())
             self._host = url.host()
             return
 
