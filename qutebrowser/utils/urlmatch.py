@@ -182,7 +182,7 @@ class UrlPattern:
         if parsed.netloc.startswith('['):
             # Using QUrl parsing to minimize ipv6 addresses
             url = QUrl()
-            url.setHost("[" + parsed.hostname + "]")
+            url.setHost(parsed.hostname)
             if not url.isValid():
                 raise ParseError(url.errorString())
             self._host = url.host()
