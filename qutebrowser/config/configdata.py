@@ -56,7 +56,7 @@ class Option:
 @attr.s
 class Migrations:
 
-    """Nigrated options in configdata.yml.
+    """Migrated options in configdata.yml.
 
     Attributes:
         renamed: A dict mapping old option names to new names.

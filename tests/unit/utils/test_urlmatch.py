@@ -85,17 +85,16 @@ from qutebrowser.utils import urlmatch
     # Additional tests
     ("http://[", "Invalid IPv6 URL"),
     ("http://[fc2e:bb88::edac]:", "Invalid port: Port is empty"),
-    ("http://[fc2e::bb88::edac]", """Invalid IPv6 address (character ':' not permitted); source was "[fc2e::bb88::edac]"; host = """""),
-    ("http://[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]"; host = ""'),
-    ("http://[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]"; host = ""'),
-    ("http://[127.0.0.1:fc2e::bb88:edac]", """Invalid IPv6 address (character '1' not permitted); source was "[127.0.0.1:fc2e::bb88:edac]"; host = """""),
+    ("http://[fc2e::bb88::edac]", 'Invalid IPv6 address; source was "fc2e::bb88::edac"; host = ""'),
+    ("http://[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac"; host = ""'),
+    ("http://[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac"; host = ""'),
+    ("http://[127.0.0.1:fc2e::bb88:edac]", 'Invalid IPv6 address; source was "127.0.0.1:fc2e::bb88:edac'),
     ("http://[]:20", "Pattern without host"),
     ("http://[fc2e::bb88", "Invalid IPv6 URL"),
-    ("http://[[fc2e::bb88:edac]", """Invalid IPv6 address (character '[' not permitted); source was "[[fc2e::bb88:edac]"; host = """""),
-        pytest.param("http://[fc2e::bb88:edac]]", "Invalid IPv6 URL", marks=pytest.mark.xfail(
-    reason="https://bugs.python.org/issue34360")),
-    ("http://[fc2e:bb88:edac]", 'Invalid IPv6 address; source was "[fc2e:bb88:edac]"; host = ""'),
-    ("http://[fc2e:bb88:edac::z]", """Invalid IPv6 address (character 'z' not permitted); source was "[fc2e:bb88:edac::z]"; host = """""),
+    ("http://[[fc2e::bb88:edac]", """Expected ']' to match '[' in hostname; source was "[fc2e::bb88:edac"; host = """""),
+    pytest.param("http://[fc2e::bb88:edac]]", "Invalid IPv6 URL", marks=pytest.mark.xfail(reason="https://bugs.python.org/issue34360")),
+    ("http://[fc2e:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:bb88:edac"; host = ""'),
+    ("http://[fc2e:bb88:edac::z]", 'Invalid IPv6 address; source was "fc2e:bb88:edac::z"; host = ""'),
     ("http://[fc2e:bb88:edac::2]:2a2", "Invalid port: invalid literal for int() with base 10: '2a2'"),
 
 ])
