@@ -92,7 +92,7 @@ from qutebrowser.utils import urlmatch
     ("http://[]:20", "Pattern without host"),
     ("http://[fc2e::bb88", "Invalid IPv6 URL"),
     ("http://[[fc2e::bb88:edac]", """Invalid IPv6 address (character '[' not permitted); source was "[[fc2e::bb88:edac]"; host = """""),
-    pytest.param("http://[fc2e::bb88:edac]]", "Invalid IPv6 URL", marks=pytest.mark.xfail(
+        pytest.param("http://[fc2e::bb88:edac]]", "Invalid IPv6 URL", marks=pytest.mark.xfail(
     reason="https://bugs.python.org/issue34360")),
     ("http://[fc2e:bb88:edac]", 'Invalid IPv6 address; source was "[fc2e:bb88:edac]"; host = ""'),
     ("http://[fc2e:bb88:edac::z]", """Invalid IPv6 address (character 'z' not permitted); source was "[fc2e:bb88:edac::z]"; host = """""),
