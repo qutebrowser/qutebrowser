@@ -253,6 +253,7 @@ Feature: Scrolling
         When I run :scroll-page 0 1.5
         Then the page should be scrolled vertically
 
+    @flaky
     Scenario: Scrolling down and up with :scroll-page
         When I run :scroll-page 0 1
         And I wait until the scroll position changed
