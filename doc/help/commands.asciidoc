@@ -910,7 +910,7 @@ The tab index to reload.
 
 [[repeat]]
 === repeat
-Syntax: +:repeat [*--mulcount*] 'times' 'command'+
+Syntax: +:repeat 'times' 'command'+
 
 Repeat a given command.
 
@@ -918,8 +918,8 @@ Repeat a given command.
 * +'times'+: How many times to repeat.
 * +'command'+: The command to run, with optional args.
 
-==== optional arguments
-* +*-c*+, +*--mulcount*+: When given, 'times' will be multiplied with [count].
+==== count
+Multiplies with 'times' when given
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
