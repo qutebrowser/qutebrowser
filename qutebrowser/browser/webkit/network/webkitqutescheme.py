@@ -72,7 +72,7 @@ def handler(request, operation, current_url):
             qutescheme.Error:
                 QNetworkReply.InternalServerError,
         }
-        exctype = e.__type__
+        exctype = type(e)
         log.misc.exception("{} while handling qute://* URL".format(
             exctype.__name__))
         return networkreply.ErrorNetworkReply(request, str(e), errors[exctype])
