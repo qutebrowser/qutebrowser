@@ -81,8 +81,8 @@ def repeat(times: int, command, win_id, count=None):
     Args:
         times: How many times to repeat.
         command: The command to run, with optional args.
+        count: Multiplies with 'times' when given.
     """
-
     if count is not None:
         times *= count
 

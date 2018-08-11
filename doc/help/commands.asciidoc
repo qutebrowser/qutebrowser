@@ -919,7 +919,7 @@ Repeat a given command.
 * +'command'+: The command to run, with optional args.
 
 ==== count
-Multiplies with 'times' when given
+Multiplies with 'times' when given.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
