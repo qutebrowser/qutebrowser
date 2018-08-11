@@ -93,7 +93,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
                 qutescheme.Error:
                     QWebEngineUrlRequestJob.RequestFailed,
             }
-            exctype = e.__type__
+            exctype = type(e)
             log.misc.exception("{} while handling qute://* URL".format(
                 exctype.__name__))
             job.fail(errors[exctype])
