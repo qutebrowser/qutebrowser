@@ -41,6 +41,15 @@ Feature: Miscellaneous utility commands exposed to the user.
         # If we have an error, the test will fail
         Then no crash should happen
 
+    Scenario: :repeat with count
+        When I run :run-with-count 2 repeat 3 message-info "repeat-test 3"
+        Then the message "repeat-test 3" should be shown
+        And the message "repeat-test 3" should be shown
+        And the message "repeat-test 3" should be shown
+        And the message "repeat-test 3" should be shown
+        And the message "repeat-test 3" should be shown
+        And the message "repeat-test 3" should be shown
+
     ## :run-with-count
 
     Scenario: :run-with-count
