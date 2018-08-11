@@ -74,13 +74,20 @@ def later(ms: int, command, win_id):
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
 @cmdutils.argument('win_id', win_id=True)
-def repeat(times: int, command, win_id):
+@cmdutils.argument('count', count=True)
+@cmdutils.argument('mulcount', flag='c')
+def repeat(times: int, command, win_id, count=None, mulcount=False):
     """Repeat a given command.
 
     Args:
         times: How many times to repeat.
         command: The command to run, with optional args.
+        mulcount: Multiply 'times' with [count].
     """
+
+    if mulcount and count is not None:
+        times *= count
+
     if times < 0:
         raise cmdexc.CommandError("A negative count doesn't make sense.")
     commandrunner = runners.CommandRunner(win_id)
