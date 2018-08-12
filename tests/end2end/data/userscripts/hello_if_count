@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ "$QUTE_COUNT" = "5" ]; then
+
+    echo "message-info 'Count is five!'" >> "$QUTE_FIFO"
+
+elif [ "$QUTE_COUNT" = "None" ]; then
+
+    echo "message-info 'No count!'" >> "$QUTE_FIFO"
+
+fi
