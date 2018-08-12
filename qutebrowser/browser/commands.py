@@ -1173,8 +1173,9 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
+    @cmdutils.argument('count', count=True)
     def spawn(self, cmdline, userscript=False, verbose=False,
-              output=False, detach=False):
+              output=False, detach=False, count=None):
         """Spawn a command in a shell.
 
         Args:
@@ -1188,6 +1189,7 @@ class CommandDispatcher:
             output: Whether the output should be shown in a new tab.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
+            count: Given to userscripts as $QUTE_COUNT.
         """
         cmdutils.check_exclusive((userscript, detach), 'ud')
         try:
@@ -1211,7 +1213,7 @@ class CommandDispatcher:
         if userscript:
             def _selection_callback(s):
                 try:
-                    runner = self._run_userscript(s, cmd, args, verbose)
+                    runner = self._run_userscript(s, cmd, args, verbose, count)
                     runner.finished.connect(_on_proc_finished)
                 except cmdexc.CommandError as e:
                     message.error(str(e))
@@ -1238,17 +1240,19 @@ class CommandDispatcher:
         """Open main startpage in current tab."""
         self.openurl(config.val.url.start_pages[0])
 
-    def _run_userscript(self, selection, cmd, args, verbose):
+    def _run_userscript(self, selection, cmd, args, verbose, count):
         """Run a userscript given as argument.
 
         Args:
             cmd: The userscript to run.
             args: Arguments to pass to the userscript.
             verbose: Show notifications when the command started/exited.
+            count: Exposed to the userscript.
         """
         env = {
             'QUTE_MODE': 'command',
             'QUTE_SELECTED_TEXT': selection,
+            'QUTE_COUNT': str(count), # must be a string
         }
 
         idx = self._current_index()
