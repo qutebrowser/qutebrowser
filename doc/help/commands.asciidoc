@@ -918,6 +918,9 @@ Repeat a given command.
 * +'times'+: How many times to repeat.
 * +'command'+: The command to run, with optional args.
 
+==== count
+Multiplies with 'times' when given.
+
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
