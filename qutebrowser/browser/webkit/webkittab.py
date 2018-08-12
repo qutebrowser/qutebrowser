@@ -9,7 +9,8 @@ import functools
 import xml.etree.ElementTree
 from typing import cast, Iterable, Optional
 
-from qutebrowser.qt.core import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
+from qutebrowser.qt.core import (pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize,
+                                 QObject, pyqtSignal)
 from qutebrowser.qt.gui import QIcon
 from qutebrowser.qt.widgets import QWidget
 # pylint: disable=no-name-in-module
@@ -848,6 +849,86 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
         return webkitinspector.WebKitInspector(splitter, win_id, parent)
 
 
+class _WebKitPermissions(QObject):
+
+    """Handling of various permission-related signals."""
+
+    _abort_questions = pyqtSignal()
+
+    def __init__(self, tab, parent=None):
+        super().__init__(parent)
+        self._tab = tab
+        self._widget = None
+        self.features = {}
+        self._init_features()
+
+    def _init_features(self):
+        self.features.update({
+            QWebPage.Feature.Notifications: shared.Feature(
+                'content.notifications.enabled', 'show notifications'),
+            QWebPage.Feature.Geolocation: shared.Feature(
+                'content.geolocation', 'access your location'),
+        })
+
+    def connect_signals(self):
+        """Connect related signals from the QWebPage."""
+        page = self._widget.page()
+        page.featurePermissionRequested.connect(self._on_feature_permission_requested)
+
+        self._tab.shutting_down.connect(self._abort_questions)
+        self._tab.load_started.connect(self._abort_questions)
+
+    @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
+    def _on_feature_permission_requested(self, frame, feature):
+        """Ask the user for approval for geolocation/notifications."""
+        if not isinstance(frame, QWebFrame):  # pragma: no cover
+            # This makes no sense whatsoever, but someone reported this being
+            # called with a QBuffer...
+            log.misc.error("on_feature_permission_requested got called with "
+                           "{!r}!".format(frame))
+            return
+
+        yes_action = functools.partial(
+            page.setFeaturePermission, frame, feature,
+            QWebPage.PermissionPolicy.PermissionGrantedByUser)
+        no_action = functools.partial(
+            page.setFeaturePermission, frame, feature,
+            QWebPage.PermissionPolicy.PermissionDeniedByUser)
+
+        url = frame.url().adjusted(QUrl.UrlFormattingOption.RemoveUserInfo |  # type: ignore[operator]
+                                   QUrl.UrlFormattingOption.RemovePath |
+                                   QUrl.UrlFormattingOption.RemoveQuery |
+                                   QUrl.UrlFormattingOption.RemoveFragment)
+
+        question = shared.feature_permission(
+            url=url,
+            option=self.features[feature].setting_name,
+            msg=self.features[feature].requesting_message,
+            yes_action=yes_action,
+            no_action=no_action,
+            abort_on=[self._abort_questions])
+
+        if question is not None:
+            page = self._widget.page()
+            page.featurePermissionRequestCanceled.connect(
+                functools.partial(self._on_feature_permission_cancelled,
+                                  question, frame, feature))
+
+    def _on_feature_permission_cancelled(self, question, frame, feature,
+                                         cancelled_frame, cancelled_feature):
+        """Slot invoked when a feature permission request was cancelled.
+
+        To be used with functools.partial.
+        """
+        if frame is cancelled_frame and feature == cancelled_feature:
+            try:
+                question.abort()
+            except RuntimeError:
+                # The question could already be deleted, e.g. because it was
+                # aborted after a loadStarted signal.
+                pass
+
+
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
@@ -875,11 +956,17 @@ class WebKitTab(browsertab.AbstractTab):
         self.audio = WebKitAudio(tab=self, parent=self)
         self.private_api = WebKitTabPrivate(mode_manager=mode_manager,
                                             tab=self)
+        self._permissions = _WebKitPermissions(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit
+
+    def _set_widget(self, widget):
+        # pylint: disable=protected-access
+        super()._set_widget(widget)
+        self._permissions._widget = widget
 
     def _install_event_filter(self):
         self._widget.installEventFilter(self._tab_event_filter)
@@ -1047,3 +1134,4 @@ class WebKitTab(browsertab.AbstractTab):
             self._on_history_trigger)
         page.navigation_request.connect(  # type: ignore[attr-defined]
             self._on_navigation_request)
+        self._permissions.connect_signals()
