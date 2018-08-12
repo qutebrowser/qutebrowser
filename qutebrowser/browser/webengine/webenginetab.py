@@ -32,7 +32,7 @@ from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
-from qutebrowser.config import configdata, config, configexc
+from qutebrowser.config import configdata, config
 from qutebrowser.browser import browsertab, mouse, shared, webelem
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
@@ -1416,25 +1416,3 @@ class WebEngineTab(browsertab.AbstractTab):
 
     def event_target(self):
         return self._widget.render_widget()
-
-    def test_feature(self, setting_name):
-        """Return true if the user has granted permission for `setting_name`.
-
-        Returns KeyError if `setting_name` doesn't map to a grantable
-        feature.
-        """
-        try:
-            feat = [
-                f for f in self._permissions.features.values()
-                if f.setting_name == setting_name
-            ][0]
-        except IndexError:
-            raise KeyError
-        if feat.enabled is not None:
-            return feat.enabled
-        try:
-            opt = config.instance.get(setting_name, url=self.url())
-        except configexc.NoPatternError:
-            opt = config.instance.get(setting_name, url=None)
-        # "ask" is False too
-        return opt is True

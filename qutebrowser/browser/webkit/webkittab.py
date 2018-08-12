@@ -24,7 +24,7 @@ import functools
 import xml.etree.ElementTree
 
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
-                          QSize)
+                          QSize, QObject, pyqtSignal)
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
@@ -33,7 +33,6 @@ from PyQt5.QtPrintSupport import QPrinter
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
-from qutebrowser.config import config, configexc
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug
 from qutebrowser.qt import sip
 
@@ -642,6 +641,105 @@ class WebKitAudio(browsertab.AbstractAudio):
         return False
 
 
+class _WebKitPermissions(QObject):
+
+    """Handling of various permission-related signals."""
+
+    _abort_questions = pyqtSignal()
+
+    def __init__(self, tab, parent=None):
+        super().__init__(parent)
+        self._tab = tab
+        self._widget = None
+        self.features = {}
+        self._init_features()
+
+    def _init_features(self):
+        self.features.update({
+            QWebPage.Notifications: shared.Feature(
+                'content.notifications', 'show notifications'),
+            QWebPage.Geolocation: shared.Feature(
+                'content.geolocation', 'access your location'),
+        })
+
+    def connect_signals(self):
+        """Connect related signals from the QWebPage."""
+        page = self._widget.page()
+        page.featurePermissionRequested.connect(
+            self._on_feature_permission_requested)
+
+        self._tab.shutting_down.connect(self._abort_questions)
+        self._tab.load_started.connect(self._on_load_started)
+
+    @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
+    def _on_feature_permission_requested(self, frame, feature):
+        """Ask the user for approval for geolocation/notifications."""
+        if not isinstance(frame, QWebFrame):  # pragma: no cover
+            # This makes no sense whatsoever, but someone reported this being
+            # called with a QBuffer...
+            log.misc.error("on_feature_permission_requested got called with "
+                           "{!r}!".format(frame))
+            return
+
+        yes_action = functools.partial(
+            self.set_feature_permission, frame, feature,
+            QWebPage.PermissionGrantedByUser)
+        no_action = functools.partial(
+            self.set_feature_permission, frame, feature,
+            QWebPage.PermissionDeniedByUser)
+
+        question = shared.feature_permission(
+            url=frame.url(),
+            option=self.features[feature].setting_name,
+            msg=self.features[feature].requesting_message,
+            yes_action=yes_action,
+            no_action=no_action,
+            abort_on=[self._abort_questions])
+
+        if question is not None:
+            page = self._widget.page()
+            page.featurePermissionRequestCanceled.connect(
+                functools.partial(self._on_feature_permission_cancelled,
+                                  question, frame, feature))
+
+    def set_feature_permission(self, frame, feature, policy):
+        """Sets a policy to use feature for origin.
+
+        Should only be called when an interactive permission request is
+        pending.
+        """
+        enabled = policy == QWebPage.PermissionGrantedByUser
+        try:
+            self.features[feature].enabled = enabled
+            setting_name = self.features[feature].setting_name
+        except KeyError:
+            setting_name = "<unknown>"
+        page = self._widget.page()
+        page.setFeaturePermission(frame, feature, policy)
+        self._tab.feature_permission_changed.emit(setting_name, enabled)
+
+    def _on_feature_permission_cancelled(self, question, frame, feature,
+                                         cancelled_frame, cancelled_feature):
+        """Slot invoked when a feature permission request was cancelled.
+
+        To be used with functools.partial.
+        """
+        if frame is cancelled_frame and feature == cancelled_feature:
+            try:
+                question.abort()
+            except RuntimeError:
+                # The question could already be deleted, e.g. because it was
+                # aborted after a loadStarted signal.
+                pass
+
+    @pyqtSlot()
+    def _on_load_started(self):
+        """Reset some state when loading of a new page started."""
+        for feat in self.features.values():
+            feat.enabled = None
+        self._abort_questions.emit()
+
+
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
@@ -663,11 +761,17 @@ class WebKitTab(browsertab.AbstractTab):
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
         self.audio = WebKitAudio(parent=self)
+        self._permissions = _WebKitPermissions(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit
+
+    def _set_widget(self, widget):
+        # pylint: disable=protected-access
+        super()._set_widget(widget)
+        self._permissions._widget = widget
 
     def _install_event_filter(self):
         self._widget.installEventFilter(self._mouse_event_filter)
@@ -832,30 +936,7 @@ class WebKitTab(browsertab.AbstractTab):
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.navigation_request.connect(self._on_navigation_request)
-        page.feature_permission_changed.connect(
-            self.feature_permission_changed)
+        self._permissions.connect_signals()
 
     def event_target(self):
         return self._widget
-
-    def test_feature(self, setting_name):
-        """Return true if the user has granted permission for `setting_name`.
-
-        Returns KeyError if `setting_name` doesn't map to a grantable
-        feature.
-        """
-        try:
-            feat = [
-                f for f in self._widget.page().features.values()
-                if f.setting_name == setting_name
-            ][0]
-        except IndexError:
-            raise KeyError
-        if feat.enabled is not None:
-            return feat.enabled
-        try:
-            opt = config.instance.get(setting_name, url=self.url())
-        except configexc.NoPatternError:
-            opt = config.instance.get(setting_name, url=None)
-        # "ask" is False
-        return opt is True
