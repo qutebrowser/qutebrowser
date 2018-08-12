@@ -33,7 +33,7 @@ import pygments.lexers
 import pygments.formatters
 
 from qutebrowser.keyinput import modeman
-from qutebrowser.config import config
+from qutebrowser.config import config, configexc
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
@@ -755,6 +755,7 @@ class AbstractTab(QWidget):
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
         self._widget = None
+        self._permissions = None
         self._progress = 0
         self._has_ssl_errors = False
         self._mode_manager = mode_manager
@@ -1021,4 +1022,23 @@ class AbstractTab(QWidget):
         return sip.isdeleted(self._widget)
 
     def test_feature(self, setting_name):
-        raise NotImplementedError
+        """Return true if the user has granted permission for `setting_name`.
+
+        Returns KeyError if `setting_name` doesn't map to a grantable
+        feature.
+        """
+        try:
+            feat = [
+                f for f in self._permissions.features.values()
+                if f.setting_name == setting_name
+            ][0]
+        except IndexError:
+            raise KeyError
+        if feat.enabled is not None:
+            return feat.enabled
+        try:
+            opt = config.instance.get(setting_name, url=self.url())
+        except configexc.NoPatternError:
+            opt = config.instance.get(setting_name, url=None)
+        # "ask" is False too
+        return opt is True
