@@ -4,7 +4,7 @@ if [ "$QUTE_COUNT" = "5" ]; then
 
     echo "message-info 'Count is five!'" >> "$QUTE_FIFO"
 
-elif [ "$QUTE_COUNT" = "None" ]; then
+elif [ -z "$QUTE_COUNT" ]; then
 
     echo "message-info 'No count!'" >> "$QUTE_FIFO"
 

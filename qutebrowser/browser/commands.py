@@ -1252,8 +1252,10 @@ class CommandDispatcher:
         env = {
             'QUTE_MODE': 'command',
             'QUTE_SELECTED_TEXT': selection,
-            'QUTE_COUNT': str(count), # must be a string
         }
+
+        if count is not None:
+            env['QUTE_COUNT'] = str(count) # must be str
 
         idx = self._current_index()
         if idx != -1:
