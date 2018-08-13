@@ -8,7 +8,7 @@ What is qutebrowser based on?::
     qutebrowser uses http://www.python.org/[Python], http://qt.io/[Qt] and
     http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
 +
-The concept of it is largely inspired by http://portix.bitbucket.org/dwb/[dwb]
+The concept of it is largely inspired by https://bitbucket.org/portix/dwb/[dwb]
 and http://www.vimperator.org/vimperator[Vimperator]. Many actions and
 key bindings are similar to dwb.
 
@@ -21,7 +21,7 @@ Why another browser?::
 Read the next few questions to find out why I was unhappy with existing
 software.
 
-What's wrong with link:http://portix.bitbucket.org/dwb/[dwb]/link:http://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://mason-larobina.github.io/luakit/[luakit]/link:http://pwmt.org/projects/jumanji/[jumanji]/... (projects based on WebKitGTK)?::
+What's wrong with link:https://bitbucket.org/portix/dwb/[dwb]/link:http://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://mason-larobina.github.io/luakit/[luakit]/link:http://pwmt.org/projects/jumanji/[jumanji]/... (projects based on WebKitGTK)?::
     Most of them are based on the http://webkitgtk.org/[WebKitGTK+]
     http://webkitgtk.org/reference/webkitgtk/stable/index.html[WebKit1] API,
     which causes a lot of crashes. As the GTK API using WebKit1 is
