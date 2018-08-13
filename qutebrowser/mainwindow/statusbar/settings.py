@@ -105,6 +105,9 @@ class BooleanSettings(textbase.TextBase):
 
     def on_tab_changed(self, tab):
         """Update tab settings text when tab changed."""
+        if not tab:
+            # Probably some timing issue with tabs/windows closing down.
+            return
         self.on_url_changed(tab.url())
 
     @pyqtSlot(usertypes.LoadStatus)
