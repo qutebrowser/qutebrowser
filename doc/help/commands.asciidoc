@@ -1200,6 +1200,9 @@ Spawn a command in a shell.
 * +*-o*+, +*--output*+: Whether the output should be shown in a new tab.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
 
+==== count
+Given to userscripts as $QUTE_COUNT.
+
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 
