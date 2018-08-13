@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$QUTE_COUNT" = "5" ]; then
+if [ "$QUTE_COUNT" -eq 5 ]; then
 
     echo "message-info 'Count is five!'" >> "$QUTE_FIFO"
 

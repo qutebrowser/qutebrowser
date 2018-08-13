@@ -1255,7 +1255,7 @@ class CommandDispatcher:
         }
 
         if count is not None:
-            env['QUTE_COUNT'] = str(count) # must be str
+            env['QUTE_COUNT'] = str(count)
 
         idx = self._current_index()
         if idx != -1:
