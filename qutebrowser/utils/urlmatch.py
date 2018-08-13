@@ -29,6 +29,8 @@ import ipaddress
 import fnmatch
 import urllib.parse
 
+from PyQt5.QtCore import QUrl
+
 from qutebrowser.utils import utils, qtutils
 
 
@@ -175,6 +177,15 @@ class UrlPattern:
             if self._scheme not in self._SCHEMES_WITHOUT_HOST:
                 raise ParseError("Pattern without host")
             assert self._host is None
+            return
+
+        if parsed.netloc.startswith('['):
+            # Using QUrl parsing to minimize ipv6 addresses
+            url = QUrl()
+            url.setHost(parsed.hostname)
+            if not url.isValid():
+                raise ParseError(url.errorString())
+            self._host = url.host()
             return
 
         # FIXME what about multiple dots?
