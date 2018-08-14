@@ -2085,7 +2085,10 @@ class CommandDispatcher:
                 raise cmdexc.CommandError(str(e))
 
         widget = self._current_widget()
-        widget.run_js_async(js_code, callback=jseval_cb, world=world)
+        try:
+            widget.run_js_async(js_code, callback=jseval_cb, world=world)
+        except OverflowError as e:
+            raise cmdexc.CommandError("World Id not in valid range")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fake_key(self, keystring, global_=False):
