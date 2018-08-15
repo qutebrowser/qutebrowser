@@ -2087,7 +2087,7 @@ class CommandDispatcher:
         widget = self._current_widget()
         try:
             widget.run_js_async(js_code, callback=jseval_cb, world=world)
-        except OverflowError as e:
+        except OverflowError:
             raise cmdexc.CommandError("World Id not in valid range")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
