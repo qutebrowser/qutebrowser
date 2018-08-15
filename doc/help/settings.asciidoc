@@ -634,7 +634,7 @@ Default:
 * +pass:[}}]+: +pass:[navigate next -t]+
 - +pass:[passthrough]+:
 
-* +pass:[&lt;Ctrl-V&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Shift-Escape&gt;]+: +pass:[leave-mode]+
 - +pass:[prompt]+:
 
 * +pass:[&lt;Alt-B&gt;]+: +pass:[rl-backward-word]+

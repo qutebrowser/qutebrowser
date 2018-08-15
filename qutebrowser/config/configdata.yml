@@ -2481,7 +2481,7 @@ bindings.default:
       <Ctrl-B>: hint all tab-bg
       <Escape>: leave-mode
     passthrough:
-      <Ctrl-V>: leave-mode
+      <Shift-Escape>: leave-mode
     command:
       <Ctrl-P>: command-history-prev
       <Ctrl-N>: command-history-next

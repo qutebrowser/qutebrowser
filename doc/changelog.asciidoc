@@ -30,6 +30,9 @@ Changed
 
 - The `:repeat` command now takes a count which is multiplied with the given
   "times" argument.
+- The default keybinding to leave passthrough mode was changed from `<Ctrl-V>`
+  to `<Shift-Escape>`, which makes pasting from the clipboard easier in
+  passthrough mode and is also unlikely to conflict with webpage bindings.
 
 v1.4.2 (unreleased)
 -------------------
