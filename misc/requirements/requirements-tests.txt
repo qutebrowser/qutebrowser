@@ -3,7 +3,7 @@
 atomicwrites==1.1.5
 attrs==18.1.0
 backports.functools-lru-cache==1.5
-beautifulsoup4==4.6.1
+beautifulsoup4==4.6.3
 cheroot==6.4.0
 click==6.7
 # colorama==0.3.9
@@ -13,7 +13,7 @@ fields==5.0.0
 Flask==1.0.2
 glob2==0.6
 hunter==2.0.2
-hypothesis==3.66.30
+hypothesis==3.67.0
 itsdangerous==0.24
 # Jinja2==2.10
 Mako==1.0.7
