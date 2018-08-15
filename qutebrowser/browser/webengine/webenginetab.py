@@ -948,6 +948,11 @@ class _WebEngineScripts(QObject):
             new_script = QWebEngineScript()
             try:
                 world = int(script.jsworld)
+                if not 0 <= world < 256:
+                    log.greasemonkey.error(
+                        "script {} has invalid value for '@qute-js-world'"
+                        ": {}".format(script.name, script.jsworld))
+                    continue
             except ValueError:
                 try:
                     world = _JS_WORLD_MAP[usertypes.JsWorld[
