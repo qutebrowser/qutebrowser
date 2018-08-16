@@ -47,6 +47,10 @@ from qutebrowser.qt import sip
 _qute_scheme_handler = None
 
 
+# WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69904
+MAX_WORLD_ID = 256 if qtutils.version_check('5.11.2') else 11
+
+
 def init():
     """Initialize QtWebEngine-specific modules."""
     # For some reason we need to keep a reference, otherwise the scheme handler
@@ -948,10 +952,11 @@ class _WebEngineScripts(QObject):
             new_script = QWebEngineScript()
             try:
                 world = int(script.jsworld)
-                if not 0 <= world <= 11:
+                if not 0 <= world <= MAX_WORLD_ID:
                     log.greasemonkey.error(
                         "script {} has invalid value for '@qute-js-world'"
-                        ": {}".format(script.name, script.jsworld))
+                        ": {}, should be between 0 and "
+                        "{}".format(script.name, script.jsworld, MAX_WORLD_ID))
                     continue
             except ValueError:
                 try:
@@ -1070,6 +1075,8 @@ class WebEngineTab(browsertab.AbstractTab):
             world_id = QWebEngineScript.ApplicationWorld
         elif isinstance(world, int):
             world_id = world
+            if not 0 <= world_id <= MAX_WORLD_ID:
+                raise OverflowError
         else:
             world_id = _JS_WORLD_MAP[world]
 
