@@ -41,6 +41,8 @@ from qutebrowser.misc import editor, guiprocess
 from qutebrowser.completion.models import urlmodel, miscmodels
 from qutebrowser.mainwindow import mainwindow
 
+# WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69904
+MAX_WORLD_ID = 256 if qtutils.version_check('5.11.2') else 11
 
 class CommandDispatcher:
 
@@ -2088,7 +2090,7 @@ class CommandDispatcher:
         try:
             widget.run_js_async(js_code, callback=jseval_cb, world=world)
         except OverflowError:
-            raise cmdexc.CommandError("World Id not in valid range")
+            raise cmdexc.CommandError("World ID should be between 0 and " + str(MAX_WORLD_ID))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fake_key(self, keystring, global_=False):
