@@ -122,7 +122,7 @@ Feature: Various utility commands.
     Scenario: :jseval using too high of a world id
         When I run :jseval --world=257 console.log("Hello from JS!");
         Then the error "World ID should be between 0 and 256" should be shown
- 
+
     @qtwebkit_skip @qt<5.11.2
     Scenario: :jseval using too high of a world id
         When I run :jseval --world=12 console.log("Hello from JS!");
