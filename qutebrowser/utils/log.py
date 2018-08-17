@@ -25,6 +25,7 @@ import html as pyhtml
 import logging
 import contextlib
 import collections
+import copy
 import faulthandler
 import traceback
 import warnings
@@ -637,17 +638,18 @@ class HTMLFormatter(logging.Formatter):
         self._colordict['reset'] = '</font>'
 
     def format(self, record):
-        record.__dict__.update(self._colordict)
-        if record.levelname in self._log_colors:
-            color = self._log_colors[record.levelname]
-            record.log_color = self._colordict[color]
+        record_clone = copy.copy(record)
+        record_clone.__dict__.update(self._colordict)
+        if record_clone.levelname in self._log_colors:
+            color = self._log_colors[record_clone.levelname]
+            record_clone.log_color = self._colordict[color]
         else:
-            record.log_color = ''
+            record_clone.log_color = ''
         for field in ['msg', 'filename', 'funcName', 'levelname', 'module',
                       'name', 'pathname', 'processName', 'threadName']:
-            data = str(getattr(record, field))
-            setattr(record, field, pyhtml.escape(data))
-        msg = super().format(record)
+            data = str(getattr(record_clone, field))
+            setattr(record_clone, field, pyhtml.escape(data))
+        msg = super().format(record_clone)
         if not msg.endswith(self._colordict['reset']):
             msg += self._colordict['reset']
         return msg
