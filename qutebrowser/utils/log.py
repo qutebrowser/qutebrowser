@@ -569,16 +569,14 @@ class RAMHandler(logging.Handler):
         https://github.com/qutebrowser/qutebrowser/issues/34
         """
         minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
-        lines = []
         fmt = self.html_formatter.format if html else self.format
         self.acquire()
         try:
-            records = list(self._data)
+            lines = list(fmt(record)
+                         for record in self._data
+                         if record.levelno >= minlevel)
         finally:
             self.release()
-        for record in records:
-            if record.levelno >= minlevel:
-                lines.append(fmt(record))
         return '\n'.join(lines)
 
     def change_log_capacity(self, capacity):
