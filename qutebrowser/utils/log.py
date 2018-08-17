@@ -572,9 +572,9 @@ class RAMHandler(logging.Handler):
         fmt = self.html_formatter.format if html else self.format
         self.acquire()
         try:
-            lines = list(fmt(record)
-                         for record in self._data
-                         if record.levelno >= minlevel)
+            lines = [fmt(record)
+                     for record in self._data
+                     if record.levelno >= minlevel]
         finally:
             self.release()
         return '\n'.join(lines)
