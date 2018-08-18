@@ -19,6 +19,8 @@
 
 """Functions that return miscellaneous completion models."""
 
+from math import log10
+
 from qutebrowser.config import configdata
 from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
@@ -117,9 +119,12 @@ def _buffer(skip_win_id=None):
         if tabbed_browser.shutting_down:
             continue
         tabs = []
-        for idx in range(tabbed_browser.widget.count()):
+        num_tabs = tabbed_browser.widget.count()
+        idx_width = int(log10(num_tabs)+1) if num_tabs else 0
+        for idx in range(num_tabs):
             tab = tabbed_browser.widget.widget(idx)
-            tabs.append(("{}/{}".format(win_id, idx + 1),
+            label = "{}/{:0{width}}".format(win_id, idx + 1, width=idx_width)
+            tabs.append((label,
                          tab.url().toDisplayString(),
                          tabbed_browser.widget.page_title(idx)))
         cat = listcategory.ListCategory("{}".format(win_id), tabs,
