@@ -57,6 +57,7 @@ Fixed
 - Crash in the `importer.py` script when importing Chrome bookmarks from newer Chrome versions.
 - The `content.webrtc_public_interfaces_only` option didn't work on Qt 5.11 previously (it now does).
   Note it still does not work on Qt 5.10 (due to a Qt bug) and Qt < 5.9.2.
+- Repeated escaping of entries in `qute://log` when refreshing page.
 
 v1.4.1
 ------
