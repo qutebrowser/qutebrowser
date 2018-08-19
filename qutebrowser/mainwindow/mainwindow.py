@@ -33,6 +33,7 @@ from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja)
 from qutebrowser.mainwindow import messageview, prompt
+from qutebrowser.misc import objects
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import commands, downloadview, hints, downloads
@@ -561,6 +562,19 @@ class MainWindow(QWidget):
             pass
         objreg.get('session-manager').save_last_window_session()
         self._save_geometry()
+        if (
+                objects.backend == usertypes.Backend.QtWebEngine
+                and all(window is self and self._private or not window._private
+                        for window
+                        in objreg.window_registry.values())
+        ):
+            log.destroy.debug("Window {} is the last private window open. "
+                              "Wiping private_profile data before closing."
+                              .format(self.win_id))
+            from qutebrowser.browser.webengine import webenginesettings
+            webenginesettings.private_profile.clearAllVisitedLinks()
+            webenginesettings.private_profile.clearHttpCache()
+            webenginesettings.private_profile.cookieStore().deleteAllCookies()
         log.destroy.debug("Closing window {}".format(self.win_id))
         self.tabbed_browser.shutdown()
 
