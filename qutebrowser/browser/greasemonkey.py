@@ -119,9 +119,9 @@ class GreasemonkeyScript:
         template = jinja.js_environment.get_template('greasemonkey_wrapper.js')
         return template.render(
             scriptName=javascript.string_escape(
-                "/".join([self.namespace or '', self.name])),
+                "/".join([self.namespace or '', self.name or ''])),
             scriptInfo=self._meta_json(),
-            scriptMeta=javascript.string_escape(self.script_meta),
+            scriptMeta=javascript.string_escape(self.script_meta or ''),
             scriptSource=self._code,
             use_proxy=use_proxy)
 

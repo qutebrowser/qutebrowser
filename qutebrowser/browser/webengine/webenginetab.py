@@ -899,6 +899,15 @@ class _WebEngineScripts(QObject):
         scripts = self._greasemonkey.all_scripts()
         self._inject_greasemonkey_scripts(scripts)
 
+    def _remove_all_greasemonkey_scripts(self):
+        page_scripts = self._widget.page().scripts()
+        for script in page_scripts.toList():
+            if script.name().startswith("GM-"):
+                log.greasemonkey.debug('Removing script: {}'
+                                       .format(script.name()))
+                removed = page_scripts.remove(script)
+                assert removed, script.name()
+
     def _inject_greasemonkey_scripts(self, scripts=None, injection_point=None,
                                      remove_first=True):
         """Register user JavaScript files with the current tab.
@@ -922,12 +931,7 @@ class _WebEngineScripts(QObject):
         # have been added elsewhere, like the one for stylesheets.
         page_scripts = self._widget.page().scripts()
         if remove_first:
-            for script in page_scripts.toList():
-                if script.name().startswith("GM-"):
-                    log.greasemonkey.debug('Removing script: {}'
-                                           .format(script.name()))
-                    removed = page_scripts.remove(script)
-                    assert removed, script.name()
+            self._remove_all_greasemonkey_scripts()
 
         if not scripts:
             return
@@ -1065,7 +1069,7 @@ class WebEngineTab(browsertab.AbstractTab):
             if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
                 raise browsertab.WebTabError(
                     "World ID should be between 0 and {}"
-                    .format(str(qtutils.MAX_WORLD_ID)))
+                    .format(qtutils.MAX_WORLD_ID))
         else:
             world_id = _JS_WORLD_MAP[world]
 
