@@ -2087,6 +2087,22 @@ class CommandDispatcher:
         widget = self._current_widget()
         widget.run_js_async(js_code, callback=jseval_cb, world=world)
 
+    @cmdutils.register(instance='command-dispatcher', scope='window', no_cmd_split=False)
+    def jseval_file(self, js_file, quiet=False, *,
+                    world: typing.Union[usertypes.JsWorld, int] = None):
+        """Evaluate a JavaScript file.
+
+        Args:
+            js_file: path to js file to evaluate
+                 If the path is relative, the file is searched in a js/ subdir
+                  in qutebrowser's data dir, e.g.
+                  `~/.local/share/qutebrowser/js`.
+            quiet: Don't show resulting JS object.
+            world: Ignored on QtWebKit. On QtWebEngine, a world ID or name to
+                   run the snippet in.
+        """
+        self.jseval(js_file, file=True, quiet=quiet,world=world)
+
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fake_key(self, keystring, global_=False):
         """Send a fake keypress or key string to the website or qutebrowser.

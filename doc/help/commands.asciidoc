@@ -65,6 +65,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<insert-text,insert-text>>|Insert text at cursor position.
 |<<inspector,inspector>>|Toggle the web inspector.
 |<<jseval,jseval>>|Evaluate a JavaScript string.
+|<<jseval-file,jseval-file>>|Evaluate a JavaScript file.
 |<<jump-mark,jump-mark>>|Jump to the mark named by `key`.
 |<<later,later>>|Execute a command after some time.
 |<<message-error,message-error>>|Show an error message in the statusbar.
@@ -671,6 +672,23 @@ Evaluate a JavaScript string.
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
+
+[[jseval-file]]
+=== jseval-file
+Syntax: +:jseval-file [*--quiet*] [*--world* 'world'] 'js-file'+
+
+Evaluate a JavaScript file.
+
+==== positional arguments
+* +'js-file'+: path to js file to evaluate If the path is relative, the file is searched in a js/ subdir
+ in qutebrowser's data dir, e.g.
+ `~/.local/share/qutebrowser/js`.
+
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show resulting JS object.
+* +*-w*+, +*--world*+: Ignored on QtWebKit. On QtWebEngine, a world ID or name to run the snippet in.
+
 
 [[jump-mark]]
 === jump-mark
