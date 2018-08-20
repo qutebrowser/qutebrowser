@@ -275,9 +275,9 @@ def _update_settings(option):
         private_profile.setter.set_dictionary_language(warn=False)
 
 
-def _init_profiles():
-    """Init the two used QWebEngineProfiles."""
-    global default_profile, private_profile
+def _init_default_profile():
+    """Init the default QWebEngineProfiles."""
+    global default_profile
 
     default_profile = QWebEngineProfile.defaultProfile()
     default_profile.setter = ProfileSetter(default_profile)
@@ -287,6 +287,11 @@ def _init_profiles():
         os.path.join(standarddir.data(), 'webengine'))
     default_profile.setter.init_profile()
     default_profile.setter.set_persistent_cookie_policy()
+
+
+def init_private_profile():
+    """Init the private QWebEngineProfiles."""
+    global private_profile
 
     private_profile = QWebEngineProfile()
     private_profile.setter = ProfileSetter(private_profile)
@@ -302,7 +307,8 @@ def init(args):
 
     spell.init()
 
-    _init_profiles()
+    _init_default_profile()
+    init_private_profile()
     config.instance.changed.connect(_update_settings)
 
     global global_settings

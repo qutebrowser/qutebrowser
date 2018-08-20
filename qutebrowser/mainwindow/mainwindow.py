@@ -29,7 +29,7 @@ from PyQt5.QtCore import (pyqtSlot, QRect, QPoint, QTimer, Qt,
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
-from qutebrowser.config import config, configfiles
+from qutebrowser.config import config, configfiles, websettings
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja)
 from qutebrowser.mainwindow import messageview, prompt
@@ -187,7 +187,7 @@ class MainWindow(QWidget):
             private = True
         else:
             private = bool(private)
-        self._private = private
+        self.private = private
         self.tabbed_browser = tabbedbrowser.TabbedBrowser(win_id=self.win_id,
                                                           private=private,
                                                           parent=self)
@@ -562,19 +562,14 @@ class MainWindow(QWidget):
             pass
         objreg.get('session-manager').save_last_window_session()
         self._save_geometry()
-        if (
-                objects.backend == usertypes.Backend.QtWebEngine
-                and all(window is self and self._private or not window._private
-                        for window
-                        in objreg.window_registry.values())
+        if all(
+                window is self and self.private or not window.private
+                for window
+                in objreg.window_registry.values()
         ):
-            log.destroy.debug("Window {} is the last private window open. "
-                              "Wiping private_profile data before closing."
-                              .format(self.win_id))
-            from qutebrowser.browser.webengine import webenginesettings
-            webenginesettings.private_profile.clearAllVisitedLinks()
-            webenginesettings.private_profile.clearHttpCache()
-            webenginesettings.private_profile.cookieStore().deleteAllCookies()
+            log.destroy.debug("Wiping private data before closing last "
+                              "private window")
+            websettings.clear_private_data()
         log.destroy.debug("Closing window {}".format(self.win_id))
         self.tabbed_browser.shutdown()
 

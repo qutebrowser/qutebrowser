@@ -193,6 +193,13 @@ def init(args):
                                 pattern=urlmatch.UrlPattern(pattern))
 
 
+def clear_private_data():
+    """Clear cookies, cache and related data for private browsing sessions"""
+    if objects.backend == usertypes.Backend.QtWebEngine:
+        from qutebrowser.browser.webengine import webenginesettings
+        webenginesettings.init_private_profile()
+
+
 def shutdown():
     """Shut down QWeb(Engine)Settings."""
     if objects.backend == usertypes.Backend.QtWebEngine:
