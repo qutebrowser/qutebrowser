@@ -172,7 +172,7 @@ Active
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * http://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
 * http://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
-* https://github.com/next-browser/next/[next] (Lisp, GTK+ with Webkit2)
+* https://github.com/next-browser/next/[next] (Lisp, Emacs-like, GTK+ with Webkit)
 * https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with WebEngine)
 * Chrome/Chromium addons:
   https://github.com/1995eaton/chromium-vim[cVim],
@@ -196,11 +196,13 @@ https://bitbucket.org/portix/dwb/pull-requests/22/several-cleanups-to-increase-p
 main inspiration for qutebrowser)
 * http://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
   WebKit1)
-* http://pwmt.org/projects/jumanji/[jumanji] (C, GTK+ with WebKit1)
+* http://pwmt.org/projects/jumanji/[jumanji-dead link] (C, GTK+ with WebKit1,
+https://wiki.archlinux.org/index.php?title=Jumanji[Arch Linux] has some data)
 * http://conkeror.org/[conkeror] (Javascript, Emacs-like, XULRunner/Gecko)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
-  http://5digits.org/pentadactyl/[Pentadactyl],
+  http://5digits.org/pentadactyl/[Pentadactyl-dead link],
+  http://bug.5digits.org/home[Pentadactyl],
   https://github.com/akhodakivskiy/VimFx[VimFx],
 * Chrome/Chromium addons:
   https://chrome.google.com/webstore/detail/vichrome/gghkfhpblkcmlkmpcpgaajbbiikbhpdi?hl=en[ViChrome],
