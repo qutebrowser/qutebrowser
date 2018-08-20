@@ -22,7 +22,7 @@
 from PyQt5.QtGui import QFont
 
 from qutebrowser.config import config, configutils
-from qutebrowser.utils import log, usertypes, urlmatch, qtutils
+from qutebrowser.utils import log, usertypes, urlmatch, qtutils, objreg
 from qutebrowser.misc import objects
 
 UNSET = object()
@@ -198,6 +198,9 @@ def clear_private_data():
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init_private_profile()
+    else:
+        objreg.get('ram-cookie-jar').setAllCookies([])
+
 
 
 def shutdown():
