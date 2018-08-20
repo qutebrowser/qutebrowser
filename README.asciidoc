@@ -172,6 +172,8 @@ Active
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * http://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
 * http://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
+* https://github.com/next-browser/next/[next] (Lisp, GTK+ with Webkit2)
+* https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with WebEngine)
 * Chrome/Chromium addons:
   https://github.com/1995eaton/chromium-vim[cVim],
   http://vimium.github.io/[Vimium],
