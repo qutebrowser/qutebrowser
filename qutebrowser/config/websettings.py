@@ -202,7 +202,6 @@ def clear_private_data():
         objreg.get('ram-cookie-jar').setAllCookies([])
 
 
-
 def shutdown():
     """Shut down QWeb(Engine)Settings."""
     if objects.backend == usertypes.Backend.QtWebEngine:

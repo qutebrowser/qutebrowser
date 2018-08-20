@@ -562,10 +562,11 @@ class MainWindow(QWidget):
             pass
         objreg.get('session-manager').save_last_window_session()
         self._save_geometry()
-        if all(
-                window is self and self.private or not window.private
-                for window
-                in objreg.window_registry.values()
+        if (
+                len(objreg.window_registry) > 1
+                and all(window is self and self.private or not window.private
+                        for window
+                        in objreg.window_registry.values())
         ):
             log.destroy.debug("Wiping private data before closing last "
                               "private window")
