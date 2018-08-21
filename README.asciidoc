@@ -196,7 +196,8 @@ https://bitbucket.org/portix/dwb/pull-requests/22/several-cleanups-to-increase-p
 main inspiration for qutebrowser)
 * http://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
   WebKit1)
-* https://wiki.archlinux.org/index.php?title=Jumanji[jumanji at Arch Linux] has some data (C, GTK+ with WebKit1)
+* https://wiki.archlinux.org/index.php?title=Jumanji[jumanji] (C, GTK+ with WebKit1, 
+original site is gone but Arch Linux has some data)
 * http://conkeror.org/[conkeror] (Javascript, Emacs-like, XULRunner/Gecko)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
