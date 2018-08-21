@@ -307,8 +307,12 @@ def netrc_authentication(url, authenticator):
         return False
     user, password = None, None
     try:
+        host = url.host()
+    except AttributeError:
+        host = url
+    try:
         net = netrc.netrc(config.val.content.netrc_file)
-        authenticators = net.authenticators(url.host())
+        authenticators = net.authenticators(host)
         if authenticators is not None:
             (user, _account, password) = authenticators
     except FileNotFoundError:

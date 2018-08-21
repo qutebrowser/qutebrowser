@@ -294,17 +294,26 @@ class NetworkManager(QNetworkAccessManager):
             authenticator.setUser(user)
             authenticator.setPassword(password)
         else:
-            msg = '<b>{}</b> says:<br/>{}'.format(
-                html.escape(proxy.hostName()),
-                html.escape(authenticator.realm()))
-            abort_on = self._get_abort_signals()
-            answer = message.ask(
-                title="Proxy authentication required", text=msg,
-                mode=usertypes.PromptMode.user_pwd, abort_on=abort_on)
-            if answer is not None:
-                authenticator.setUser(answer.user)
-                authenticator.setPassword(answer.password)
-                _proxy_auth_cache[proxy_id] = answer
+            netrc_success = False
+            if not self.data.netrc_used:
+                self.data.netrc_used = True
+                urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+                netrc_success = shared.netrc_authentication(html_utils.escape(proxy_host),
+                                                            authenticator)
+
+                print("netrc_success nm: " + str(netrc_success))
+            if not netrc_success:
+                msg = '<b>{}</b> says:<br/>{}'.format(
+                    html.escape(proxy.hostName()),
+                    html.escape(authenticator.realm()))
+                abort_on = self._get_abort_signals()
+                answer = message.ask(
+                    title="Proxy authentication required", text=msg,
+                    mode=usertypes.PromptMode.user_pwd, abort_on=abort_on)
+                if answer is not None:
+                    authenticator.setUser(answer.user)
+                    authenticator.setPassword(answer.password)
+                    _proxy_auth_cache[proxy_id] = answer
 
     @pyqtSlot()
     def on_adopted_download_destroyed(self):

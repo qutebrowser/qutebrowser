@@ -1151,7 +1151,12 @@ class WebEngineTab(browsertab.AbstractTab):
         netrc_success = False
         if not self.data.netrc_used:
             self.data.netrc_used = True
-            netrc_success = shared.netrc_authentication(url, authenticator)
+            urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+            netrc_success = shared.netrc_authentication(html_utils.escape(proxy_host),
+                                                        authenticator)
+
+            print("netrc_success we: " + str(netrc_success))
+            print(type(shared.netrc_authentication))
         if not netrc_success:
             msg = "<b>{}</b> requires a username and password.".format(
                 html_utils.escape(proxy_host))
