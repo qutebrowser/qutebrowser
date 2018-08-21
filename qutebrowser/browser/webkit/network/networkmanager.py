@@ -300,8 +300,6 @@ class NetworkManager(QNetworkAccessManager):
                 urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
                 netrc_success = shared.netrc_authentication(html_utils.escape(proxy_host),
                                                             authenticator)
-
-                print("netrc_success nm: " + str(netrc_success))
             if not netrc_success:
                 msg = '<b>{}</b> says:<br/>{}'.format(
                     html.escape(proxy.hostName()),
