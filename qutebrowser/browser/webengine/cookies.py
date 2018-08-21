@@ -23,7 +23,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import utils
 
 
-def _accept_cookie(request):
+def accept_cookie(request):
     """Check whether the given cookie should be accepted."""
     accept = config.val.content.cookies.accept
     if accept == 'all':
@@ -34,15 +34,3 @@ def _accept_cookie(request):
         return False
     else:
         raise utils.Unreachable
-
-
-def install_filter(profile):
-    """Install the cookie filter on the given profile.
-
-    On Qt < 5.11, the filter isn't installed.
-    """
-    store = profile.cookieStore()
-    try:
-        store.setCookieFilter(_accept_cookie)
-    except AttributeError:
-        pass

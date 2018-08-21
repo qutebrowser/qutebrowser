@@ -31,14 +31,6 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
     """Handle qute://* requests on QtWebEngine."""
 
-    def install(self, profile):
-        """Install the handler for qute:// URLs on the given profile."""
-        profile.installUrlSchemeHandler(b'qute', self)
-        if qtutils.version_check('5.11', compiled=False):
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
-            profile.installUrlSchemeHandler(b'chrome-error', self)
-            profile.installUrlSchemeHandler(b'chrome-extension', self)
-
     def requestStarted(self, job):
         """Handle a request for a qute: scheme.
 

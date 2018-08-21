@@ -35,56 +35,11 @@ from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 from qutebrowser.config import configdata, config
 from qutebrowser.browser import browsertab, mouse, shared, webelem
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
-                                           interceptor, webenginequtescheme,
-                                           cookies, webenginedownloads,
                                            webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
 from qutebrowser.qt import sip
-
-
-_qute_scheme_handler = None
-
-
-def init():
-    """Initialize QtWebEngine-specific modules."""
-    # For some reason we need to keep a reference, otherwise the scheme handler
-    # won't work...
-    # https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
-    global _qute_scheme_handler
-
-    app = QApplication.instance()
-    log.init.debug("Initializing qute://* handler...")
-    _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
-    _qute_scheme_handler.install(webenginesettings.default_profile)
-    _qute_scheme_handler.install(webenginesettings.private_profile)
-
-    log.init.debug("Initializing request interceptor...")
-    host_blocker = objreg.get('host-blocker')
-    args = objreg.get('args')
-    req_interceptor = interceptor.RequestInterceptor(
-        host_blocker, args=args, parent=app)
-    req_interceptor.install(webenginesettings.default_profile)
-    req_interceptor.install(webenginesettings.private_profile)
-
-    log.init.debug("Initializing QtWebEngine downloads...")
-    download_manager = webenginedownloads.DownloadManager(parent=app)
-    download_manager.install(webenginesettings.default_profile)
-    download_manager.install(webenginesettings.private_profile)
-    objreg.register('webengine-download-manager', download_manager)
-
-    log.init.debug("Initializing cookie filter...")
-    cookies.install_filter(webenginesettings.default_profile)
-    cookies.install_filter(webenginesettings.private_profile)
-
-    # Clear visited links on web history clear
-    hist = objreg.get('web-history')
-    for p in [webenginesettings.default_profile,
-              webenginesettings.private_profile]:
-        hist.history_cleared.connect(p.clearAllVisitedLinks)
-        hist.url_cleared.connect(lambda url, profile=p:
-                                 profile.clearVisitedLinks([url]))
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
