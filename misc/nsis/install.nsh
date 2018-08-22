@@ -47,7 +47,7 @@ var KeepReg
   ${endif}
 !macroend
 
-
+; Push the 32-bit MSI Product Codes on the stack.
 !macro MSI32_STACK
   Push "${MSI32_010}"
   Push "${MSI32_011}"
@@ -75,6 +75,7 @@ var KeepReg
   Push "${MSI32_101}"
 !macroend
 
+; Push the 64-bit MSI Product Codes on the stack.
 !macro MSI64_STACK
   Push "${MSI64_010}"
   Push "${MSI64_011}"
@@ -102,6 +103,9 @@ var KeepReg
   Push "${MSI64_101}"
 !macroend
 
+; Check the existence of MSI installations.
+; Must be inserted after MSI32_STACK and MSI64_STACK.
+; Returns the detected code in $R1 or an empty string if none is found.
 !macro CheckMSI
   ${foreach} $9 ${MSI_COUNT} 1 - 1
     Pop $R1
@@ -114,13 +118,17 @@ var KeepReg
   ${next}
 !macroend
 
+; Check the existence of the previous NSIS installations.
+; Returns the uninstaller path in $R0 or an empty string if not found.
 !macro CheckOldNSIS
   ReadRegStr $R0 HKLM "${REG_UN}\${PRODUCT_NAME}" "QuietUninstallString"
   ${if} $R0 != ""
     ReadRegStr $R0 HKLM "${REG_UN}\${PRODUCT_NAME}" "UninstallString"
     ${if} $R0 != ""
+      ; Remove the quotes from path in $R0
       System::Call 'Shlwapi::PathUnquoteSpaces(t r10r10)'
       IfFileExists $R0 +3 0
+      ; Delete the registry key if the uninstaller is missing.
       DeleteRegKey HKLM "${REG_UN}\${PRODUCT_NAME}"
       StrCpy $R0 ""
     ${endif}
