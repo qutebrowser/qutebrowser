@@ -315,5 +315,5 @@ My issue is not listed.::
     https://github.com/qutebrowser/qutebrowser/issues[the issue tracker] or
     using the `:report` command.
     If you are reporting a segfault, make sure you read the
-    link:stacktrace.html[guide] on how to report them with all needed
+    link:doc/stacktrace.html[guide] on how to report them with all needed
     information.
