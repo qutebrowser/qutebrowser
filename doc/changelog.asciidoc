@@ -24,6 +24,7 @@ Added
 - The qute-pass userscript now has optional OTP support.
 - When `:spawn --userscript` is called with a count, that count is now
   passed to userscripts as `$QUTE_COUNT`.
+- New `content.mouse_lock` setting to handle HTML5 pointer locking.
 
 Changed
 ~~~~~~~

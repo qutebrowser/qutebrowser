@@ -354,6 +354,15 @@ content.geolocation:
   supports_pattern: true
   desc: Allow websites to request geolocations.
 
+content.mouse_lock:
+  default: ask
+  type: BoolAsk
+  supports_pattern: true
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.8
+  desc: Allow websites to lock your mouse pointer.
+
 content.headers.accept_language:
   type:
     name: String

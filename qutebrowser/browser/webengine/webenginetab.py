@@ -709,6 +709,18 @@ class _WebEnginePermissions(QObject):
         }
         try:
             options.update({
+                QWebEnginePage.MouseLock:
+                    'content.mouse_lock',
+            })
+            messages.update({
+                QWebEnginePage.MouseLock:
+                    'hide your mouse pointer',
+            })
+        except AttributeError:
+            # Added in Qt 5.8
+            pass
+        try:
+            options.update({
                 QWebEnginePage.DesktopVideoCapture:
                     'content.desktop_capture',
                 QWebEnginePage.DesktopAudioVideoCapture:
