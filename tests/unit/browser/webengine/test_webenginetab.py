@@ -23,8 +23,10 @@ from unittest import mock
 import logging
 
 from PyQt5.QtCore import QObject
-from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScriptCollection
 import pytest
+QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
+QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
+QWebEngineScriptCollection = QtWebEngineWidgets.QWebEngineScriptCollection
 
 from qutebrowser.browser.webengine import webenginetab
 from qutebrowser.browser import greasemonkey
