@@ -45,6 +45,7 @@ In `command` mode:
 - `QUTE_URL`: The current URL.
 - `QUTE_TITLE`: The title of the current page.
 - `QUTE_SELECTED_TEXT`: The text currently selected on the page.
+- `QUTE_COUNT`: The `count` from the spawn command running the userscript.
 
 In `hints` mode:
 

@@ -206,6 +206,7 @@ def _check_modules(modules):
             # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
             messages = ['invalid escape sequence',
                         'Flags not at the start of the expression']
+            # pylint: disable=bad-continuation
             with log.ignore_py_warnings(
                 category=DeprecationWarning,
                 message=r'({})'.format('|'.join(messages))
@@ -216,6 +217,7 @@ def _check_modules(modules):
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'
             ):
+                # pylint: enable=bad-continuation
                 importlib.import_module(name)
         except ImportError as e:
             _die(text, e)

@@ -13,7 +13,7 @@
    height="682.66669"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
+   inkscape:version="0.92.2 2405546, 2018-03-11"
    version="1.0"
    sodipodi:docname="cheatsheet.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
@@ -33,7 +33,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.7536248"
-     inkscape:cx="430.72917"
+     inkscape:cx="613.20834"
      inkscape:cy="268.64059"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -3085,7 +3085,9 @@
          style="font-size:10.66666698px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06666672"
          id="flowPara4056">   (to index/left/right)</flowPara><flowPara
          style="font-size:10.66666698px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06666672"
-         id="flowPara3858">gC  -  clone tab  </flowPara><flowPara
+         id="flowPara3858">gC  -  clone tab</flowPara><flowPara
+         style="font-size:10.66666698px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06666672"
+         id="flowPara6098">gD - detach tab </flowPara><flowPara
          style="font-size:10.66666698px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06666672"
          id="flowPara3860">gf  -  view page source</flowPara><flowPara
          style="font-size:10.66666698px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06666672"
@@ -3097,9 +3099,9 @@
          style="font-size:10.66666698px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06666672"
          id="flowPara3921">sf  -  save config</flowPara><flowPara
          style="font-size:10.66666698px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06666672"
-         id="flowPara3925">ss  -  set setting</flowPara><flowPara
+         id="flowPara3925">ss  -  set setting (sl: temp)</flowPara><flowPara
          style="font-size:10.66666698px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06666672"
-         id="flowPara3927">sl  -  set temp. setting</flowPara><flowPara
+         id="flowPara3927" /><flowPara
          style="font-size:10.66666698px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06666672"
          id="flowPara3929">sk  -  bind key</flowPara><flowPara
          style="font-size:10.66666698px;line-height:1.25;font-family:sans-serif;fill:#000000;stroke-width:1.06666672"

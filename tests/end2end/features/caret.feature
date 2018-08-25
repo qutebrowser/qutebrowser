@@ -321,6 +321,7 @@ Feature: Caret mode
             - data/caret.html
             - data/hello.txt (active)
 
+    @flaky
     Scenario: :follow-selected with link tabbing (without JS)
         When I set content.javascript.enabled to false
         And I run :leave-mode
@@ -329,6 +330,7 @@ Feature: Caret mode
         And I run :follow-selected
         Then data/hello.txt should be loaded
 
+    @flaky
     Scenario: :follow-selected with link tabbing (with JS)
         When I set content.javascript.enabled to true
         And I run :leave-mode
@@ -337,6 +339,7 @@ Feature: Caret mode
         And I run :follow-selected
         Then data/hello.txt should be loaded
 
+    @flaky
     Scenario: :follow-selected with link tabbing in a tab (without JS)
         When I set content.javascript.enabled to false
         And I run :leave-mode
@@ -345,6 +348,7 @@ Feature: Caret mode
         And I run :follow-selected --tab
         Then data/hello.txt should be loaded
 
+    @flaky
     Scenario: :follow-selected with link tabbing in a tab (with JS)
         When I set content.javascript.enabled to true
         And I run :leave-mode

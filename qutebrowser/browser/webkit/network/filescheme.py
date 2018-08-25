@@ -111,11 +111,13 @@ def dirbrowser_html(path):
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
-def handler(request):
+def handler(request, _operation, _current_url):
     """Handler for a file:// URL.
 
     Args:
         request: QNetworkRequest to answer to.
+        _operation: The HTTP operation being done.
+        _current_url: The page we're on currently.
 
     Return:
         A QNetworkReply for directories, None for files.

@@ -575,7 +575,7 @@ class FailingQIODevice(QIODevice):
         self.setErrorString("Writing failed")
         return -1
 
-    def read(self, _maxsize):
+    def read(self, _maxsize):  # pylint: disable=useless-return
         """Simulate failed read."""
         self.setErrorString("Reading failed")
         return None

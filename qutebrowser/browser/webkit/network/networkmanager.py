@@ -373,13 +373,6 @@ class NetworkManager(QNetworkAccessManager):
                     req, proxy_error, QNetworkReply.UnknownProxyError,
                     self)
 
-        scheme = req.url().scheme()
-        if scheme in self._scheme_handlers:
-            result = self._scheme_handlers[scheme](req)
-            if result is not None:
-                result.setParent(self)
-                return result
-
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
 
@@ -415,6 +408,13 @@ class NetworkManager(QNetworkAccessManager):
                 operation,
                 req.url().toDisplayString(),
                 current_url.toDisplayString()))
+
+        scheme = req.url().scheme()
+        if scheme in self._scheme_handlers:
+            result = self._scheme_handlers[scheme](req, op, current_url)
+            if result is not None:
+                result.setParent(self)
+                return result
 
         self.set_referer(req, current_url)
         return super().createRequest(op, req, outgoing_data)

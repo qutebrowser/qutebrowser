@@ -658,7 +658,7 @@ class WebKitTab(browsertab.AbstractTab):
                                  tab=self, parent=self)
         self.zoom = WebKitZoom(tab=self, parent=self)
         self.search = WebKitSearch(parent=self)
-        self.printing = WebKitPrinting()
+        self.printing = WebKitPrinting(tab=self)
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
         self.audio = WebKitAudio(parent=self)

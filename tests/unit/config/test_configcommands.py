@@ -247,7 +247,7 @@ class TestCycle:
         commands.config_cycle(opt, '[foo]', '[bar]')
         assert config_stub.get(opt) == ['foo']
 
-    def test_toggle(self, commands, config_stub):
+    def test_toggle(self, commands, config_stub, yaml_value):
         """Run ':config-cycle auto_save.session'.
 
         Should toggle the value.

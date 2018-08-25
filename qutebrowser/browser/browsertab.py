@@ -25,7 +25,8 @@ import itertools
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import QWidget, QApplication, QDialog
+from PyQt5.QtPrintSupport import QPrintDialog
 
 import pygments
 import pygments.lexers
@@ -187,8 +188,9 @@ class AbstractPrinting:
 
     """Attribute of AbstractTab for printing the page."""
 
-    def __init__(self):
+    def __init__(self, tab):
         self._widget = None
+        self._tab = tab
 
     def check_pdf_support(self):
         raise NotImplementedError
@@ -211,6 +213,29 @@ class AbstractPrinting:
                       (True if printing succeeded, False otherwise)
         """
         raise NotImplementedError
+
+    def show_dialog(self):
+        """Print with a QPrintDialog."""
+        self.check_printer_support()
+
+        def print_callback(ok):
+            """Called when printing finished."""
+            if not ok:
+                message.error("Printing failed!")
+            diag.deleteLater()
+
+        def do_print():
+            """Called when the dialog was closed."""
+            self.to_printer(diag.printer(), print_callback)
+
+        diag = QPrintDialog(self._tab)
+        if utils.is_mac:
+            # For some reason we get a segfault when using open() on macOS
+            ret = diag.exec_()
+            if ret == QDialog.Accepted:
+                do_print()
+        else:
+            diag.open(do_print)
 
 
 class AbstractSearch(QObject):
@@ -829,12 +854,20 @@ class AbstractTab(QWidget):
                                       navigation.navigation_type,
                                       navigation.is_main_frame))
 
-        if (navigation.navigation_type == navigation.Type.link_clicked and
-                not navigation.url.isValid()):
-            msg = urlutils.get_errstring(navigation.url,
-                                         "Invalid link clicked")
-            message.error(msg)
-            self.data.open_target = usertypes.ClickTarget.normal
+        if not navigation.url.isValid():
+            # Also a WORKAROUND for missing IDNA 2008 support in QUrl, see
+            # https://bugreports.qt.io/browse/QTBUG-60364
+
+            if navigation.navigation_type == navigation.Type.link_clicked:
+                msg = urlutils.get_errstring(navigation.url,
+                                             "Invalid link clicked")
+                message.error(msg)
+                self.data.open_target = usertypes.ClickTarget.normal
+
+            log.webview.debug("Ignoring invalid URL {} in "
+                              "acceptNavigationRequest: {}".format(
+                                  navigation.url.toDisplayString(),
+                                  navigation.url.errorString()))
             navigation.accepted = False
 
     def handle_auto_insert_mode(self, ok):

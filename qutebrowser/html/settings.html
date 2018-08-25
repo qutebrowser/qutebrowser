@@ -3,7 +3,8 @@
 {% block script %}
 var cset = function(option, value) {
   // FIXME:conf we might want some error handling here?
-  var url = "qute://settings/set?option=" + encodeURIComponent(option);
+  var url = "qute://user:{{csrf_token}}@settings/set"
+  url += "?option=" + encodeURIComponent(option);
   url += "&value=" + encodeURIComponent(value);
   var xhr = new XMLHttpRequest();
   xhr.open("GET", url);

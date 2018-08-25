@@ -33,7 +33,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.config import configdata, config
-from qutebrowser.browser import browsertab, mouse, shared
+from qutebrowser.browser import browsertab, mouse, shared, webelem
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
@@ -360,7 +360,11 @@ class WebEngineCaret(browsertab.AbstractCaret):
         if elem.is_link():
             log.webview.debug("Found link in selection, clicking. ClickTarget "
                               "{}, elem {}".format(click_type, elem))
-            elem.click(click_type)
+            try:
+                elem.click(click_type)
+            except webelem.Error as e:
+                message.error(str(e))
+                return
 
     def follow_selected(self, *, tab=False):
         if self._tab.search.search_displayed:
@@ -705,6 +709,18 @@ class _WebEnginePermissions(QObject):
         }
         try:
             options.update({
+                QWebEnginePage.MouseLock:
+                    'content.mouse_lock',
+            })
+            messages.update({
+                QWebEnginePage.MouseLock:
+                    'hide your mouse pointer',
+            })
+        except AttributeError:
+            # Added in Qt 5.8
+            pass
+        try:
+            options.update({
                 QWebEnginePage.DesktopVideoCapture:
                     'content.desktop_capture',
                 QWebEnginePage.DesktopAudioVideoCapture:
@@ -976,7 +992,7 @@ class WebEngineTab(browsertab.AbstractTab):
                                     tab=self, parent=self)
         self.zoom = WebEngineZoom(tab=self, parent=self)
         self.search = WebEngineSearch(parent=self)
-        self.printing = WebEnginePrinting()
+        self.printing = WebEnginePrinting(tab=self)
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
         self.audio = WebEngineAudio(parent=self)
@@ -1315,10 +1331,10 @@ class WebEngineTab(browsertab.AbstractTab):
         super()._on_navigation_request(navigation)
 
         if navigation.url == QUrl('qute://print'):
-            command_dispatcher = objreg.get('command-dispatcher',
-                                            scope='window',
-                                            window=self.win_id)
-            command_dispatcher.printpage()
+            try:
+                self.printing.show_dialog()
+            except browsertab.WebTabError as e:
+                message.error(str(e))
             navigation.accepted = False
 
         if not navigation.accepted or not navigation.is_main_frame:

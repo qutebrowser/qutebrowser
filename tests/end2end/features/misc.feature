@@ -533,14 +533,14 @@ Feature: Various utility commands.
         Then "Renderer process crashed" should be logged
         And "* 'Error loading chrome://crash/'" should be logged
 
-    @qtwebkit_skip @no_invalid_lines @qt>=5.9
+    @qtwebkit_skip @no_invalid_lines @qt>=5.9 @flaky
     Scenario: Renderer kill (5.9)
         When I run :open -t chrome://kill
         Then "Renderer process was killed" should be logged
         And "* 'Error loading chrome://kill/'" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/2290
-    @qtwebkit_skip @no_invalid_lines
+    @qtwebkit_skip @no_invalid_lines @flaky
     Scenario: Navigating to URL after renderer process is gone
         When I run :tab-only
         And I open data/numbers/1.txt

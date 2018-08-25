@@ -211,6 +211,7 @@ Feature: Downloading things from a website.
         # works e.g. on a connection loss, which we can't test automatically.
         Then "Retrying downloads is unsupported *" should not be logged
 
+    @flaky
     Scenario: Retrying with count
         When I run :download http://localhost:(port)/data/downloads/download.bin
         And I run :download http://localhost:(port)/does-not-exist

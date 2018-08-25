@@ -290,10 +290,7 @@ def _create(path):
         0700. If the destination directory exists already the permissions
         should not be changed.
     """
-    try:
-        os.makedirs(path, 0o700)
-    except FileExistsError:
-        pass
+    os.makedirs(path, 0o700, exist_ok=True)
 
 
 def _init_dirs(args=None):

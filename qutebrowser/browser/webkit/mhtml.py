@@ -312,9 +312,9 @@ class _Downloader:
         for style in styles:
             style = webkitelem.WebKitElement(style, tab=self.tab)
             # The Mozilla Developer Network says:
-            # type: This attribute defines the styling language as a MIME type
-            # (charset should not be specified). This attribute is optional and
-            # default to text/css if it's missing.
+            # > type: This attribute defines the styling language as a MIME
+            # > type (charset should not be specified). This attribute is
+            # > optional and default to text/css if it's missing.
             # https://developer.mozilla.org/en/docs/Web/HTML/Element/style
             if 'type' in style and style['type'] != 'text/css':
                 continue

@@ -562,6 +562,7 @@ Default:
 * +pass:[g0]+: +pass:[tab-focus 1]+
 * +pass:[gB]+: +pass:[set-cmd-text -s :bookmark-load -t]+
 * +pass:[gC]+: +pass:[tab-clone]+
+* +pass:[gD]+: +pass:[tab-give]+
 * +pass:[gO]+: +pass:[set-cmd-text :open -t -r {url:pretty}]+
 * +pass:[gU]+: +pass:[navigate up -t]+
 * +pass:[g^]+: +pass:[tab-focus 1]+
@@ -633,7 +634,7 @@ Default:
 * +pass:[}}]+: +pass:[navigate next -t]+
 - +pass:[passthrough]+:
 
-* +pass:[&lt;Ctrl-V&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Shift-Escape&gt;]+: +pass:[leave-mode]+
 - +pass:[prompt]+:
 
 * +pass:[&lt;Alt-B&gt;]+: +pass:[rl-backward-word]+
@@ -2061,13 +2062,13 @@ Default: +pass:[false]+
 [[content.xss_auditing]]
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
-Suspicious scripts will be blocked and reported in the inspector's JavaScript console. Enabling this feature might have an impact on performance.
+Suspicious scripts will be blocked and reported in the inspector's JavaScript console.
 
 This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
-Default: +pass:[false]+
+Default: +pass:[true]+
 
 [[downloads.location.directory]]
 === downloads.location.directory
