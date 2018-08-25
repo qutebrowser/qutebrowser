@@ -200,7 +200,7 @@ def debug_cache_stats():
     log.misc.info('history: {}'.format(history_info))
     log.misc.info('tab width cache: {}'.format(tabbed_browser_info))
     log.misc.info('pinned tab statistic cache: {}'
-                   .format(tabbed_browser_pinned))
+                  .format(tabbed_browser_pinned))
 
 
 @cmdutils.register(debug=True)

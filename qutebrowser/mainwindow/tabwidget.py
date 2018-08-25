@@ -118,7 +118,9 @@ class TabWidget(QTabWidget):
         if old_pinned != pinned:
             self.update_tab_favicon(tab)
             self.update_tab_title(idx)
+            # pylint: disable=protected-access
             self.tabBar()._pinned_statistics.cache_clear()
+            # pylint: enable=protected-access
 
     def tab_indicator_color(self, idx):
         """Get the tab indicator color for the given index."""
@@ -334,7 +336,20 @@ class TabWidget(QTabWidget):
                 self.window().setWindowIcon(self.window().windowIcon())
 
         if tab.data.pinned:
+            # pylint: disable=protected-access
             self.tabBar()._pinned_statistics.cache_clear()
+            # pylint: enable=protected-access
+
+    def removeTab(self, idx):
+        """Additions to removeTab."""
+        # We must clear cache BEFORE the tab is removed, as the removeTab
+        # function calls tabSizeHint to resize the tabs after removing the tab.
+        # If we assume super().removeTab will NOT call tabSizeHint prematurely,
+        # this should work.
+        # pylint: disable=protected-access
+        self.tabBar()._pinned_statistics.cache_clear()
+        # pylint: enable=protected-access
+        super().removeTab(idx)
 
 
 class TabBar(QTabBar):
@@ -696,8 +711,6 @@ class TabBar(QTabBar):
     def tabRemoved(self, idx):
         """Update visibility when a tab was removed."""
         super().tabRemoved(idx)
-        # We cannot know if we removed a pinned tab or not, clear cache
-        self._pinned_statistics.cache_clear()
         self.maybe_hide()
 
     def wheelEvent(self, e):
