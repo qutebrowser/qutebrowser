@@ -59,7 +59,7 @@ Getting help
 
 You can get help in the IRC channel
 irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
-http://freenode.net/[Freenode]
+https://freenode.net/[Freenode]
 (https://webchat.freenode.net/?channels=#qutebrowser[webchat]), or by writing a
 message to the
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
@@ -96,8 +96,8 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* http://www.python.org/[Python] 3.5 or newer (3.6 recommended)
-* http://qt.io/[Qt] 5.7.1 or newer (5.11.1 recommended) with the following modules:
+* https://www.python.org/[Python] 3.5 or newer (3.6 recommended)
+* https://www.qt.io/[Qt] 5.7.1 or newer (5.11.1 recommended) with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
   - QtSQL (part of qtbase in some distributions)
@@ -106,14 +106,14 @@ The following software and libraries are required to run qutebrowser:
   - QtWebKit - only the
     link:https://github.com/annulen/webkit/wiki[updated fork] (5.212) is
     supported
-* http://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
+* https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
   (5.11.2 recommended) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
-* http://fdik.org/pyPEG/[pyPEG2]
+* https://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
 * http://pygments.org/[pygments]
 * https://github.com/yaml/pyyaml[PyYAML]
-* http://www.attrs.org/[attrs]
+* https://www.attrs.org/[attrs]
 
 The following libraries are optional:
 
@@ -152,7 +152,7 @@ https://github.com/qutebrowser/qutebrowser/graphs/contributors[hundreds of contr
 
 Additionally, the following people have contributed graphics:
 
-* Jad/link:http://yelostudio.com[yelo] (new icon)
+* Jad/link:https://yelostudio.com[yelo] (new icon)
 * WOFall (original icon)
 * regines (key binding cheatsheet)
 
@@ -170,11 +170,11 @@ Active
 
 * https://fanglingsu.github.io/vimb/[vimb] (C, GTK+ with WebKit2)
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
-* http://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
+* https://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
 * https://github.com/next-browser/next/[next] (Lisp, Emacs-like, GTK+ with WebKit)
 * https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with QtWebEngine)
 * Chrome/Chromium addons:
-  http://vimium.github.io/[Vimium],
+  https://vimium.github.io/[Vimium],
   https://github.com/brookhong/Surfingkeys[Surfingkeys],
 * Firefox addons (based on WebExtensions):
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
@@ -189,12 +189,12 @@ Inactive
 * https://bitbucket.org/portix/dwb[dwb] (C, GTK+ with WebKit1,
 https://bitbucket.org/portix/dwb/pull-requests/22/several-cleanups-to-increase-portability/diff[unmaintained] -
 main inspiration for qutebrowser)
-* http://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
+* https://sourceforge.net/p/vimprobable/wiki/Home/[vimprobable] (C, GTK+ with
   WebKit1)
-* https://wiki.archlinux.org/index.php?title=Jumanji[jumanji] (C, GTK+ with WebKit1, 
+* https://wiki.archlinux.org/index.php?title=Jumanji[jumanji] (C, GTK+ with WebKit1,
 original site is gone but Arch Linux has some data)
 * http://conkeror.org/[conkeror] (Javascript, Emacs-like, XULRunner/Gecko)
-* http://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
+* https://www.uzbl.org/[uzbl] (C, GTK+ with WebKit1/WebKit2)
 * Firefox addons (not based on WebExtensions or no recent activity):
   http://www.vimperator.org/[Vimperator],
   http://bug.5digits.org/pentadactyl/index[Pentadactyl],
@@ -232,4 +232,4 @@ display PDF files in the browser. Windows releases come with a bundled pdf.js.
 pdf.js is distributed under the terms of the Apache License. You can
 find a copy of the license in `qutebrowser/3rdparty/pdfjs/LICENSE` (in the
 Windows release or after running `scripts/dev/update_3rdparty.py`), or online
-http://www.apache.org/licenses/LICENSE-2.0.html[here].
+https://www.apache.org/licenses/LICENSE-2.0.html[here].
