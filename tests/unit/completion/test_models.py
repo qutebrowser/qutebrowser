@@ -20,6 +20,8 @@
 """Tests for completion models."""
 
 import collections
+import random
+import string
 from datetime import datetime
 
 import pytest
@@ -591,6 +593,34 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
     actual = [tab.url() for tab in tabbed_browser_stubs[0].widget.tabs]
     assert actual == [QUrl('https://github.com'),
                       QUrl('https://duckduckgo.com')]
+
+
+def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, app_stub,
+                                   win_registry, tabbed_browser_stubs):
+    """Ensure that the completion row order is the same as tab index order.
+
+    Would be violated for more than 9 tabs if the completion was being
+    alphabetically sorted on the first column, or the others.
+    """
+    expected = []
+    for idx in range(1, 11):
+        url = "".join(random.sample(string.ascii_letters, 12))
+        title = "".join(random.sample(string.ascii_letters, 12))
+        expected.append(("0/{}".format(idx), url, title))
+
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl(tab[1]), tab[2], idx)
+        for idx, tab in enumerate(expected)
+    ]
+    model = miscmodels.buffer()
+    model.set_pattern('')
+    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        '0': expected,
+        '1': [],
+    })
 
 
 def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
