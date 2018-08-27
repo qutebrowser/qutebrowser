@@ -97,7 +97,7 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * http://www.python.org/[Python] 3.5 or newer (3.6 recommended)
-* http://qt.io/[Qt] 5.7.1 or newer (5.11.1 recommended) with the following modules:
+* http://www.qt.io/[Qt] 5.7.1 or newer (5.11.1 recommended) with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
   - QtSQL (part of qtbase in some distributions)
