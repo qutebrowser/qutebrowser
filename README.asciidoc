@@ -172,7 +172,7 @@ Active
 * https://luakit.github.io/luakit/[luakit] (C/Lua, GTK+ with WebKit2)
 * http://surf.suckless.org/[surf] (C, GTK+ with WebKit1/WebKit2)
 * https://github.com/next-browser/next/[next] (Lisp, Emacs-like, GTK+ with WebKit)
-* https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with WebEngine)
+* https://github.com/parkouss/webmacs/[webmacs] (Python, Emacs-like with QtWebEngine)
 * Chrome/Chromium addons:
   http://vimium.github.io/[Vimium],
   https://github.com/brookhong/Surfingkeys[Surfingkeys],
