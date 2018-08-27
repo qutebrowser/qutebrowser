@@ -499,8 +499,13 @@ class CommandDispatcher:
         if tabbed_browser is self._tabbed_browser:
             raise cmdexc.CommandError("Can't take a tab from the same window")
 
-        self._open(tab.url(), tab=True)
-        tabbed_browser.close_tab(tab, add_undo=False)
+        current_tab = tabbed_browser.widget.currentWidget()
+        current_tab_idx = tabbed_browser.widget.indexOf(current_tab)
+        current_tab_text = tabbed_browser.widget.page_title(current_tab_idx)
+        tabbed_browser.widget.removeTab(current_tab_idx)
+        new_idx = self._tabbed_browser.widget.addTab(current_tab, "")
+        self._tabbed_browser.widget.update_tab_favicon(current_tab)
+        self._tabbed_browser.widget.set_page_title(new_idx, current_tab_text)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
@@ -535,8 +540,13 @@ class CommandDispatcher:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
 
-        tabbed_browser.tabopen(self._current_url())
-        self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
+        current_tab = self._current_widget()
+        current_tab_idx = self._tabbed_browser.widget.indexOf(current_tab)
+        current_tab_text = self._tabbed_browser.widget.page_title(current_tab_idx)
+        self._tabbed_browser.widget.removeTab(current_tab_idx)
+        new_idx = tabbed_browser.widget.addTab(current_tab, "")
+        tabbed_browser.widget.update_tab_favicon(current_tab)
+        tabbed_browser.widget.set_page_title(new_idx, current_tab_text)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
