@@ -227,6 +227,7 @@ class MainWindow(QWidget):
 
         self._init_geometry(geometry)
         self._connect_signals()
+        self._set_bg_color()
 
         # When we're here the statusbar might not even really exist yet, so
         # resizing will fail. Therefore, we use singleShot QTimers to make sure
@@ -236,6 +237,14 @@ class MainWindow(QWidget):
 
         objreg.get("app").new_window.emit(self)
         self._set_decoration(config.val.window.hide_decoration)
+
+    @config.change_filter('colors.webpage.bg')
+    def _set_bg_color(self):
+        col = config.val.colors.webpage.bg
+        if col is None:
+            col = self._theme_color
+        if col.alpha() < 255:
+            self.setAttribute(Qt.WA_TranslucentBackground)
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -352,6 +361,8 @@ class MainWindow(QWidget):
             self._update_overlay_geometries()
         elif option == 'window.hide_decoration':
             self._set_decoration(config.val.window.hide_decoration)
+        elif option == 'colors.webpage.bg':
+            self._set_bg_color()
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""

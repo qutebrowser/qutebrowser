@@ -19,7 +19,7 @@
 
 """The main browser widget for QtWebEngine."""
 
-from PyQt5.QtCore import pyqtSignal, QUrl, PYQT_VERSION
+from PyQt5.QtCore import pyqtSignal, Qt, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
@@ -173,7 +173,12 @@ class WebEnginePage(QWebEnginePage):
         col = config.val.colors.webpage.bg
         if col is None:
             col = self._theme_color
-        self.setBackgroundColor(col)
+        if self.view() is not None:
+            if col.alpha() < 255:
+                self.view().setAttribute(Qt.WA_TranslucentBackground)
+            else:
+                self.view().setAttribute(Qt.WA_TranslucentBackground, False)
+        self.setBackgroundColor(Qt.transparent)
 
     def shutdown(self):
         self._is_shutting_down = True

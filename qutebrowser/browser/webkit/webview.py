@@ -104,6 +104,11 @@ class WebView(QWebView):
         palette = self.palette()
         if col is None:
             col = self.style().standardPalette().color(QPalette.Base)
+        if self.view() is not None:
+            if col.alpha() < 255:
+                self.view().setAttribute(Qt.WA_TranslucentBackground)
+            else:
+                self.view().resetAttribute(Qt.WA_TranslucentBackground)
         palette.setColor(QPalette.Base, col)
         self.setPalette(palette)
 
