@@ -35,6 +35,8 @@ Changed
   to `<Shift-Escape>`, which makes pasting from the clipboard easier in
   passthrough mode and is also unlikely to conflict with webpage bindings.
 - The `app_id` is now set to `qutebrowser` for Wayland.
+- `Command` or `Cmd` can now be used (instead of `Meta`) to map the Command key
+  on macOS.
 
 v1.4.2 (unreleased)
 -------------------

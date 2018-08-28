@@ -270,8 +270,10 @@ def _parse_special_key(keystr):
     replacements = (
         ('control', 'ctrl'),
         ('windows', 'meta'),
-        ('mod1', 'alt'),
         ('mod4', 'meta'),
+        ('command', 'meta'),
+        ('cmd', 'meta'),
+        ('mod1', 'alt'),
         ('less', '<'),
         ('greater', '>'),
     )
