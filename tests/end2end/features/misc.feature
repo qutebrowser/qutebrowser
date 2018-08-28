@@ -181,7 +181,7 @@ Feature: Various utility commands.
 
     # :stop/:reload
 
-    @flaky
+    @skip  # Too flaky
     Scenario: :stop
         Given I have a fresh instance
         # We can't use "When I open" because we don't want to wait for load
