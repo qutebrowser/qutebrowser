@@ -145,7 +145,7 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    @flaky
+    @skip  # Too flaky
     Scenario: Scrolling down with a very big count
         When I run :scroll down with count 99999999999
         # Make sure it doesn't hang
@@ -253,6 +253,7 @@ Feature: Scrolling
         When I run :scroll-page 0 1.5
         Then the page should be scrolled vertically
 
+    @flaky
     Scenario: Scrolling down and up with :scroll-page
         When I run :scroll-page 0 1
         And I wait until the scroll position changed

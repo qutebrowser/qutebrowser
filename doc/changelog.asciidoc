@@ -22,6 +22,24 @@ Added
 ~~~~~
 
 - The qute-pass userscript now has optional OTP support.
+- When `:spawn --userscript` is called with a count, that count is now
+  passed to userscripts as `$QUTE_COUNT`.
+- New `content.mouse_lock` setting to handle HTML5 pointer locking.
+
+Changed
+~~~~~~~
+
+- The `:repeat` command now takes a count which is multiplied with the given
+  "times" argument.
+- The default keybinding to leave passthrough mode was changed from `<Ctrl-V>`
+  to `<Shift-Escape>`, which makes pasting from the clipboard easier in
+  passthrough mode and is also unlikely to conflict with webpage bindings.
+- The `app_id` is now set to `qutebrowser` for Wayland.
+- `Command` or `Cmd` can now be used (instead of `Meta`) to map the Command key
+  on macOS.
+
+v1.4.2 (unreleased)
+-------------------
 
 Changed
 ~~~~~~~
@@ -37,6 +55,13 @@ Fixed
 - Crash when using `:follow-selected` with a link which is outside of the view.
 - Workaround for windows not showing as urgent with some window managers
   (like i3).
+- Crash when opening URLs with some unicode characters (IDNA 2008). Those URLs
+  still won't open though, due to missing support in Qt.
+- Crash when a download directory which can't be created is configured.
+- Crash in the `importer.py` script when importing Chrome bookmarks from newer Chrome versions.
+- The `content.webrtc_public_interfaces_only` option didn't work on Qt 5.11 previously (it now does).
+  Note it still does not work on Qt 5.10 (due to a Qt bug) and Qt < 5.9.2.
+- Repeated escaping of entries in `qute://log` when refreshing page.
 
 v1.4.1
 ------
@@ -61,6 +86,7 @@ Fixed
 - The Windows installer now uninstalls the old version before installing the
   new one, fixing issues with qutebrowser not starting after installing v1.4.0
   over v1.3.3.
+- The `:buffer` completion now sorts tabs with indices >= 10 correctly again.
 
 v1.4.0
 ------

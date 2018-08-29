@@ -246,7 +246,7 @@ class WrapperLayout(QLayout):
     def sizeHint(self):
         return self._widget.sizeHint()
 
-    def itemAt(self, _index):  # pylint: disable=useless-return
+    def itemAt(self, _index):
         return None
 
     def takeAt(self, _index):
@@ -287,7 +287,7 @@ class PseudoLayout(QLayout):
     def count(self):
         return 0
 
-    def itemAt(self, _pos):  # pylint: disable=useless-return
+    def itemAt(self, _pos):
         return None
 
     def widget(self):

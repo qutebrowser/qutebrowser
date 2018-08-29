@@ -131,6 +131,7 @@ Feature: Javascript stuff
         And I run :tab-next
         Then the window sizes should be the same
 
+    @flaky
     Scenario: Checking visible/invisible window size with vertical tabbar
         When I run :tab-only
         And I set tabs.position to left

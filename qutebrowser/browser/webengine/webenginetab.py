@@ -709,6 +709,18 @@ class _WebEnginePermissions(QObject):
         }
         try:
             options.update({
+                QWebEnginePage.MouseLock:
+                    'content.mouse_lock',
+            })
+            messages.update({
+                QWebEnginePage.MouseLock:
+                    'hide your mouse pointer',
+            })
+        except AttributeError:
+            # Added in Qt 5.8
+            pass
+        try:
+            options.update({
                 QWebEnginePage.DesktopVideoCapture:
                     'content.desktop_capture',
                 QWebEnginePage.DesktopAudioVideoCapture:
@@ -1090,10 +1102,10 @@ class WebEngineTab(browsertab.AbstractTab):
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
 
-    def networkaccessmanager(self):  # pylint: disable=useless-return
+    def networkaccessmanager(self):
         return None
 
-    def user_agent(self):  # pylint: disable=useless-return
+    def user_agent(self):
         return None
 
     def clear_ssl_errors(self):

@@ -143,6 +143,7 @@
 |<<content.local_content_can_access_remote_urls,content.local_content_can_access_remote_urls>>|Allow locally loaded documents to access remote URLs.
 |<<content.local_storage,content.local_storage>>|Enable support for HTML 5 local storage and Web SQL.
 |<<content.media_capture,content.media_capture>>|Allow websites to record audio/video.
+|<<content.mouse_lock,content.mouse_lock>>|Allow websites to lock your mouse pointer.
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
 |<<content.notifications,content.notifications>>|Allow websites to show notifications.
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
@@ -560,6 +561,7 @@ Default:
 * +pass:[g0]+: +pass:[tab-focus 1]+
 * +pass:[gB]+: +pass:[set-cmd-text -s :bookmark-load -t]+
 * +pass:[gC]+: +pass:[tab-clone]+
+* +pass:[gD]+: +pass:[tab-give]+
 * +pass:[gO]+: +pass:[set-cmd-text :open -t -r {url:pretty}]+
 * +pass:[gU]+: +pass:[navigate up -t]+
 * +pass:[g^]+: +pass:[tab-focus 1]+
@@ -629,7 +631,7 @@ Default:
 * +pass:[}}]+: +pass:[navigate next -t]+
 - +pass:[passthrough]+:
 
-* +pass:[&lt;Ctrl-V&gt;]+: +pass:[leave-mode]+
+* +pass:[&lt;Shift-Escape&gt;]+: +pass:[leave-mode]+
 - +pass:[prompt]+:
 
 * +pass:[&lt;Alt-B&gt;]+: +pass:[rl-backward-word]+
@@ -1866,6 +1868,26 @@ Valid values:
 Default: +pass:[ask]+
 
 This setting is only available with the QtWebEngine backend.
+
+[[content.mouse_lock]]
+=== content.mouse_lock
+Allow websites to lock your mouse pointer.
+
+This setting supports URL patterns.
+
+Type: <<types,BoolAsk>>
+
+Valid values:
+
+ * +true+
+ * +false+
+ * +ask+
+
+Default: +pass:[ask]+
+
+On QtWebEngine, this setting requires Qt 5.8 or newer.
+
+On QtWebKit, this setting is unavailable.
 
 [[content.netrc_file]]
 === content.netrc_file

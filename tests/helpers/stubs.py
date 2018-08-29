@@ -44,7 +44,7 @@ class FakeNetworkCache(QAbstractNetworkCache):
     def cacheSize(self):
         return 0
 
-    def data(self, _url):  # pylint: disable=useless-return
+    def data(self, _url):
         return None
 
     def insert(self, _dev):
@@ -53,7 +53,7 @@ class FakeNetworkCache(QAbstractNetworkCache):
     def metaData(self, _url):
         return QNetworkCacheMetaData()
 
-    def prepare(self, _metadata):  # pylint: disable=useless-return
+    def prepare(self, _metadata):
         return None
 
     def remove(self, _url):

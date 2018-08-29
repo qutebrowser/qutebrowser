@@ -354,6 +354,15 @@ content.geolocation:
   supports_pattern: true
   desc: Allow websites to request geolocations.
 
+content.mouse_lock:
+  default: ask
+  type: BoolAsk
+  supports_pattern: true
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.8
+  desc: Allow websites to lock your mouse pointer.
+
 content.headers.accept_language:
   type:
     name: String
@@ -2452,6 +2461,7 @@ bindings.default:
       .: repeat-command
       <Ctrl-p>: tab-pin
       <Alt-m>: tab-mute
+      gD: tab-give
       q: record-macro
       "@": run-macro
       tsh: config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload
@@ -2477,7 +2487,7 @@ bindings.default:
       <Ctrl-B>: hint all tab-bg
       <Escape>: leave-mode
     passthrough:
-      <Ctrl-V>: leave-mode
+      <Shift-Escape>: leave-mode
     command:
       <Ctrl-P>: command-history-prev
       <Ctrl-N>: command-history-next

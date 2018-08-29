@@ -21,6 +21,10 @@ matrix:
       env: TESTENV=py36-pyqt59
     - os: linux
       env: TESTENV=py36-pyqt510
+      addons:
+        apt:
+          packages:
+          - xfonts-base
     - os: linux
       env: TESTENV=py36-pyqt511-cov
     # https://github.com/travis-ci/travis-ci/issues/9069

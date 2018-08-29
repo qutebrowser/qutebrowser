@@ -166,6 +166,8 @@ class WebEngineSettings(websettings.AbstractSettings):
             # Qt 5.11
             'content.autoplay':
                 ('PlaybackRequiresUserGesture', lambda val: not val),
+            'content.webrtc_public_interfaces_only':
+                ('WebRTCPublicInterfacesOnly', None),
         }
         for name, (attribute, converter) in new_attributes.items():
             try:
