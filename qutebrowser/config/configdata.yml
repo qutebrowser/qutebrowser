@@ -675,6 +675,7 @@ content.print_element_backgrounds:
 content.private_browsing:
   type: Bool
   default: false
+  restart: true
   desc: Open new windows in private browsing mode which does not record visited
     pages.
 
