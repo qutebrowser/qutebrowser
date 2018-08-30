@@ -1976,6 +1976,7 @@ On QtWebEngine, this setting requires Qt 5.8 or newer.
 [[content.private_browsing]]
 === content.private_browsing
 Open new windows in private browsing mode which does not record visited pages.
+This setting requires a restart.
 
 Type: <<types,Bool>>
 
