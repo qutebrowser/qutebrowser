@@ -80,8 +80,7 @@ class UrlText(textbase.TextBase):
     """
 
     def __init__(self, parent=None):
-        """Override TextBase.__init__ to elide in the middle by default."""
-        super().__init__(parent, Qt.ElideMiddle)
+        super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
         config.set_register_stylesheet(self)
         self._hover_url = None
