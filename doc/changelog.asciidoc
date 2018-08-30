@@ -46,6 +46,8 @@ Changed
 
 - The `content.xss_auditing` setting is now enabled by default, to mirror
   Chromium's rather than Qt's default behavior.
+- Long URLs in the statusbar are now elided at the end rather than in the
+  middle, to make sure the hostname is completely visible whenever possible.
 
 Fixed
 ~~~~~
