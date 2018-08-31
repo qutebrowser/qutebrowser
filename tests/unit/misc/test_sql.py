@@ -231,3 +231,41 @@ def test_delete_all(qtbot):
 
 def test_version():
     assert isinstance(sql.version(), str)
+
+
+class TestSqlQuery:
+
+    def test_prepare_error(self):
+        with pytest.raises(sql.SqlError) as excinfo:
+            sql.Query('invalid')
+        msg = excinfo.value.error.databaseText()
+        assert msg == 'near "invalid": syntax error'
+
+    @pytest.mark.parametrize('forward_only', [True, False])
+    def test_forward_only(self, forward_only):
+        q = sql.Query('SELECT 0 WHERE 0', forward_only=forward_only)
+        assert q.isForwardOnly() == forward_only
+
+    def test_iter_inactive(self):
+        q = sql.Query('SELECT 0')
+        with pytest.raises(sql.SqlError,
+                           match='Cannot iterate inactive query'):
+            next(iter(q))
+
+    def test_iter(self):
+        q = sql.Query('SELECT 0 AS col')
+        q.run()
+        result = next(iter(q))
+        assert result.col == 0
+
+    def test_run_binding(self):
+        q = sql.Query('SELECT :answer')
+        q.run(answer=42)
+        assert q.value() == 42
+
+    def test_value_missing(self):
+        q = sql.Query('SELECT 0 WHERE 0')
+        q.run()
+        with pytest.raises(sql.SqlError,
+                           match='No result for single-result query'):
+            q.value()
