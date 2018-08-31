@@ -85,8 +85,8 @@ class ConfigCommands:
             *, pattern=None):
         """Set an option.
 
-        If the option name ends with '?', the value of the option is shown
-        instead.
+        If the option name ends with '?' or no value is provided, the
+        value of the option is shown instead.
 
         Using :set without any arguments opens a page where settings can be
         changed interactively.
@@ -97,6 +97,7 @@ class ConfigCommands:
             pattern: The URL pattern to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
+
         """
         if option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -116,8 +117,7 @@ class ConfigCommands:
 
         with self._handle_config_error():
             if value is None:
-                raise cmdexc.CommandError("set: The following arguments "
-                                          "are required: value")
+                self._print_value(option, pattern=pattern)
             else:
                 self._config.set_str(option, value, pattern=pattern,
                                      save_yaml=not temp)
