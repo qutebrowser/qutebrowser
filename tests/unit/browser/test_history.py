@@ -444,3 +444,48 @@ def test_user_version(hist, monkeypatch):
         ('example.com/1', '', 1),
         ('example.com/2', '', 2),
     ]
+
+
+def test_force_rebuild(hist):
+    """Ensure that completion is regenerated if we force a rebuild."""
+    hist.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+    hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+    hist.completion.delete('url', 'example.com/2')
+
+    hist2 = history.WebHistory()
+    assert list(hist2.completion) == [('example.com/1', '', 1)]
+    hist2.metainfo['force_rebuild'] = True
+
+    hist3 = history.WebHistory()
+    assert list(hist3.completion) == [
+        ('example.com/1', '', 1),
+        ('example.com/2', '', 2),
+    ]
+    assert not hist3.metainfo['force_rebuild']
+
+
+class TestCompletionMetaInfo:
+
+    @pytest.fixture
+    def metainfo(self):
+        return history.CompletionMetaInfo()
+
+    def test_contains_keyerror(self, metainfo):
+        with pytest.raises(KeyError):
+            'does_not_exist' in metainfo  # pylint: disable=pointless-statement
+
+    def test_getitem_keyerror(self, metainfo):
+        with pytest.raises(KeyError):
+            metainfo['does_not_exist']  # pylint: disable=pointless-statement
+
+    def test_setitem_keyerror(self, metainfo):
+        with pytest.raises(KeyError):
+            metainfo['does_not_exist'] = 42
+
+    def test_contains(self, metainfo):
+        assert 'force_rebuild' in metainfo
+
+    def test_modify(self, metainfo):
+        assert not metainfo['force_rebuild']
+        metainfo['force_rebuild'] = True
+        assert metainfo['force_rebuild']

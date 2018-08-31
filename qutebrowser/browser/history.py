@@ -35,6 +35,40 @@ from qutebrowser.misc import objects, sql
 _USER_VERSION = 2
 
 
+class CompletionMetaInfo(sql.SqlTable):
+
+    """Table containing meta-information for the completion."""
+
+    KEYS = {
+        'force_rebuild': False,
+    }
+
+    def __init__(self, parent=None):
+        super().__init__("CompletionMetaInfo", ['key', 'value'],
+                         constraints={'key': 'PRIMARY KEY'})
+        for key, default in self.KEYS.items():
+            if key not in self:
+                self[key] = default
+
+    def __contains__(self, key):
+        if key not in self.KEYS:
+            raise KeyError(key)
+        query = self.contains_query('key')
+        return query.run(val=key).value()
+
+    def __getitem__(self, key):
+        if key not in self.KEYS:
+            raise KeyError(key)
+        query = sql.Query('SELECT value FROM CompletionMetaInfo '
+                          'WHERE key = :key')
+        return query.run(key=key).value()
+
+    def __setitem__(self, key, value):
+        if key not in self.KEYS:
+            raise KeyError(key)
+        self.insert({'key': key, 'value': value}, replace=True)
+
+
 class CompletionHistory(sql.SqlTable):
 
     """History which only has the newest entry for each URL."""
@@ -65,11 +99,18 @@ class WebHistory(sql.SqlTable):
                                       'redirect': 'NOT NULL'},
                          parent=parent)
         self.completion = CompletionHistory(parent=self)
+        self.metainfo = CompletionMetaInfo(parent=self)
+
         if sql.Query('pragma user_version').run().value() < _USER_VERSION:
             self.completion.delete_all()
+        if self.metainfo['force_rebuild']:
+            self.completion.delete_all()
+            self.metainfo['force_rebuild'] = False
+
         if not self.completion:
             # either the table is out-of-date or the user wiped it manually
             self._rebuild_completion()
+
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
