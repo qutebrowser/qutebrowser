@@ -234,7 +234,9 @@ class HostBlocker:
             hosts = parts[1:]
 
         for host in hosts:
-            if '.' in host and not host.endswith('.localdomain'):
+            if ('.' in host and
+                    not host.endswith('.localdomain') and
+                    host != '0.0.0.0'):
                 self._blocked_hosts.add(host)
 
         return True
