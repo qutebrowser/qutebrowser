@@ -263,6 +263,11 @@ class TestSqlQuery:
         q.run(answer=42)
         assert q.value() == 42
 
+    def test_run_missing_binding(self):
+        q = sql.Query('SELECT :answer')
+        with pytest.raises(sql.SqlError, match='Missing bound values!'):
+            q.run()
+
     def test_value_missing(self):
         q = sql.Query('SELECT 0 WHERE 0')
         q.run()

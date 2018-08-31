@@ -171,9 +171,13 @@ class Query(QSqlQuery):
     def run(self, **values):
         """Execute the prepared query."""
         log.sql.debug('Running SQL query: "{}"'.format(self.lastQuery()))
+
         for key, val in values.items():
             self.bindValue(':{}'.format(key), val)
         log.sql.debug('query bindings: {}'.format(self.boundValues()))
+        if any(val is None for val in self.boundValues().values()):
+            raise SqlError("Missing bound values!")
+
         if not self.exec_():
             raise SqliteError.from_query('exec', self.lastQuery(),
                                          self.lastError())
