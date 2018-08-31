@@ -173,6 +173,12 @@ class TestAdd:
         else:
             assert list(hist.completion) == [(completion_url, title, atime)]
 
+    def test_no_sql_history(self, hist, fake_args):
+        fake_args.debug_flags = 'no-sql-history'
+        hist.add_url(QUrl('https://www.example.com/'), atime=12346,
+                     title='Hello World', redirect=False)
+        assert not list(hist)
+
     def test_invalid(self, qtbot, hist, caplog):
         with caplog.at_level(logging.WARNING):
             hist.add_url(QUrl())
