@@ -69,11 +69,11 @@ class SqliteError(SqlError):
         # https://github.com/qutebrowser/qutebrowser/issues/3004
         environmental_errors = [
             '5',   # SQLITE_BUSY ("database is locked")
-            '8',   # SQLITE_READONLY
-            '10',  # SQLITE_IOERR
-            '11',  # SQLITE_CORRUPT
-            '13',  # SQLITE_FULL
-            '14',  # SQLITE_CANTOPEN
+            '8',   # SQLITE_READONLY ("attempt to write a readonly database")
+            '10',  # SQLITE_IOERR ("disk I/O error")
+            '11',  # SQLITE_CORRUPT ("database disk image is malformed")
+            '13',  # SQLITE_FULL ("database or disk is full")
+            '14',  # SQLITE_CANTOPEN ("unable to open database file")
         ]
         # At least in init(), we can get errors like this:
         # > type: ConnectionError
