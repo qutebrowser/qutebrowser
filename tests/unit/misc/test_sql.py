@@ -252,11 +252,23 @@ class TestSqlQuery:
                            match='Cannot iterate inactive query'):
             next(iter(q))
 
+    def test_iter_empty(self):
+        q = sql.Query('SELECT 0 AS col WHERE 0')
+        q.run()
+        with pytest.raises(StopIteration):
+            next(iter(q))
+
     def test_iter(self):
         q = sql.Query('SELECT 0 AS col')
         q.run()
         result = next(iter(q))
         assert result.col == 0
+
+    def test_iter_multiple(self):
+        q = sql.Query('VALUES (1), (2), (3);')
+        res = list(q.run())
+        assert len(res) == 3
+        assert res[0].column1 == 1
 
     def test_run_binding(self):
         q = sql.Query('SELECT :answer')
@@ -268,9 +280,24 @@ class TestSqlQuery:
         with pytest.raises(sql.SqlError, match='Missing bound values!'):
             q.run()
 
+    def test_run_batch(self):
+        q = sql.Query('SELECT :answer')
+        q.run_batch(values={'answer': [42]})
+        assert q.value() == 42
+
     def test_value_missing(self):
         q = sql.Query('SELECT 0 WHERE 0')
         q.run()
         with pytest.raises(sql.SqlError,
                            match='No result for single-result query'):
             q.value()
+
+    def test_num_rows_affected(self):
+        q = sql.Query('SELECT 0')
+        q.run()
+        assert q.rows_affected() == 0
+
+    def test_bound_values(self):
+        q = sql.Query('SELECT :answer')
+        q.run(answer=42)
+        assert q.bound_values() == {':answer': 42}
