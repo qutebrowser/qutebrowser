@@ -449,13 +449,10 @@ def _init_modules(args, crash_handler):
 
         log.init.debug("Initializing web history...")
         history.init(qApp)
-    except sql.SqlError as e:
-        if e.environmental:
-            error.handle_fatal_exc(e, args, 'Error initializing SQL',
-                                   pre_text='Error initializing SQL')
-            sys.exit(usertypes.Exit.err_init)
-        else:
-            raise
+    except sql.SqlEnvironmentError as e:
+        error.handle_fatal_exc(e, args, 'Error initializing SQL',
+                               pre_text='Error initializing SQL')
+        sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing completion...")
     completiondelegate.init()

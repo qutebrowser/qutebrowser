@@ -27,95 +27,104 @@ from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
 from qutebrowser.utils import log, debug
 
 
-class SqlError(Exception):
+class SqlEnvironmentError(Exception):
 
     """Raised on an error interacting with the SQL database.
 
-    Attributes:
-        environmental: Whether the error is likely caused by the environment
-                       and not a qutebrowser bug.
+    This is raised for errors resulting from the environment, where qutebrowser
+    isn't to blame.
     """
 
-    def __init__(self, msg, environmental=False):
-        super().__init__(msg)
-        self.environmental = environmental
-
     def text(self):
-        """Get a short text to display."""
         return str(self)
 
 
-class SqliteError(SqlError):
+class SqlBugError(Exception):
 
-    """A SQL error with a QSqlError available.
+    """Raised on an error interacting with the SQL database.
 
-    Attributes:
-        error: The QSqlError object.
+    This is raised for errors resulting from a qutebrowser bug.
+    """
+
+    def text(self):
+        return str(self)
+
+
+class SqliteEnvironmentError(SqlEnvironmentError):
+
+    """A sqlite error which is caused by the environment.
+
+    This is raised in conditions like a full disk or I/O errors, where
+    qutebrowser isn't to blame.
     """
 
     def __init__(self, msg, error):
         super().__init__(msg)
         self.error = error
 
-        log.sql.debug("SQL error:")
-        log.sql.debug("type: {}".format(
-            debug.qenum_key(QSqlError, error.type())))
-        log.sql.debug("database text: {}".format(error.databaseText()))
-        log.sql.debug("driver text: {}".format(error.driverText()))
-        log.sql.debug("error code: {}".format(error.nativeErrorCode()))
+    def text(self):
+        return self.error.databaseText()
 
-        # https://sqlite.org/rescode.html
-        # https://github.com/qutebrowser/qutebrowser/issues/2930
-        # https://github.com/qutebrowser/qutebrowser/issues/3004
-        environmental_errors = [
-            '5',   # SQLITE_BUSY ("database is locked")
-            '8',   # SQLITE_READONLY ("attempt to write a readonly database")
-            '10',  # SQLITE_IOERR ("disk I/O error")
-            '11',  # SQLITE_CORRUPT ("database disk image is malformed")
-            '13',  # SQLITE_FULL ("database or disk is full")
-            '14',  # SQLITE_CANTOPEN ("unable to open database file")
-        ]
-        # At least in init(), we can get errors like this:
-        # > type: ConnectionError
-        # > database text: out of memory
-        # > driver text: Error opening database
-        # > error code: -1
-        environmental_strings = [
-            "out of memory",
-        ]
-        errcode = error.nativeErrorCode()
-        self.environmental = (
-            errcode in environmental_errors or
-            (errcode == -1 and error.databaseText() in environmental_strings))
+
+class SqliteBugError(SqlBugError):
+
+    """A sqlite error which is caused by a bug in qutebrowser."""
+
+    def __init__(self, msg, error):
+        super().__init__(msg)
+        self.error = error
 
     def text(self):
         return self.error.databaseText()
 
-    @classmethod
-    def from_query(cls, what, query, error):
-        """Construct an error from a failed query.
 
-        Arguments:
-            what: What we were doing when the error happened.
-            query: The query which was executed.
-            error: The QSqlError object.
-        """
-        msg = 'Failed to {} query "{}": "{}"'.format(what, query, error.text())
-        return cls(msg, error)
+def raise_sqlite_error(msg, error):
+    """Raise either a SqliteBugError or SqliteEnvironmentError."""
+    log.sql.debug("SQL error:")
+    log.sql.debug("type: {}".format(
+        debug.qenum_key(QSqlError, error.type())))
+    log.sql.debug("database text: {}".format(error.databaseText()))
+    log.sql.debug("driver text: {}".format(error.driverText()))
+    log.sql.debug("error code: {}".format(error.nativeErrorCode()))
+    # https://sqlite.org/rescode.html
+    # https://github.com/qutebrowser/qutebrowser/issues/2930
+    # https://github.com/qutebrowser/qutebrowser/issues/3004
+    environmental_errors = [
+        '5',   # SQLITE_BUSY ("database is locked")
+        '8',   # SQLITE_READONLY ("attempt to write a readonly database")
+        '10',  # SQLITE_IOERR ("disk I/O error")
+        '11',  # SQLITE_CORRUPT ("database disk image is malformed")
+        '13',  # SQLITE_FULL ("database or disk is full")
+        '14',  # SQLITE_CANTOPEN ("unable to open database file")
+    ]
+    # At least in init(), we can get errors like this:
+    # > type: ConnectionError
+    # > database text: out of memory
+    # > driver text: Error opening database
+    # > error code: -1
+    environmental_strings = [
+        "out of memory",
+    ]
+    errcode = error.nativeErrorCode()
+    if (errcode in environmental_errors or
+            (errcode == -1 and error.databaseText() in environmental_strings)):
+        raise SqliteEnvironmentError(msg, error)
+    else:
+        raise SqliteBugError(msg, error)
 
 
 def init(db_path):
     """Initialize the SQL database connection."""
     database = QSqlDatabase.addDatabase('QSQLITE')
     if not database.isValid():
-        raise SqlError('Failed to add database. '
-                       'Are sqlite and Qt sqlite support installed?',
-                       environmental=True)
+        raise SqlEnvironmentError('Failed to add database. Are sqlite and Qt '
+                                  'sqlite support installed?')
     database.setDatabaseName(db_path)
     if not database.open():
         error = database.lastError()
-        raise SqliteError("Failed to open sqlite database at {}: {}"
-                          .format(db_path, error.text()), error)
+        msg = "Failed to open sqlite database at {}: {}".format(db_path,
+                                                                error.text())
+        raise_sqlite_error(msg, error)
 
     # Enable write-ahead-logging and reduce disk write frequency
     # see https://sqlite.org/pragma.html and issues #2930 and #3507
@@ -137,7 +146,7 @@ def version():
             close()
             return ver
         return Query("select sqlite_version()").run().value()
-    except SqlError as e:
+    except SqlEnvironmentError as e:
         return 'UNAVAILABLE ({})'.format(e)
 
 
@@ -162,7 +171,7 @@ class Query:
 
     def __iter__(self):
         if not self.query.isActive():
-            raise SqlError("Cannot iterate inactive query")
+            raise SqlBugError("Cannot iterate inactive query")
         rec = self.query.record()
         fields = [rec.fieldName(i) for i in range(rec.count())]
         rowtype = collections.namedtuple('ResultRow', fields)
@@ -173,8 +182,11 @@ class Query:
 
     def _check_ok(self, step, ok):
         if not ok:
-            raise SqliteError.from_query(step, self.query.lastQuery(),
-                                         self.query.lastError())
+            query = self.query.lastQuery()
+            error = self.query.lastError()
+            msg = 'Failed to {} query "{}": "{}"'.format(step, query,
+                                                         error.text())
+            raise_sqlite_error(msg, error)
 
     def run(self, **values):
         """Execute the prepared query."""
@@ -185,7 +197,7 @@ class Query:
             self.query.bindValue(':{}'.format(key), val)
         log.sql.debug('query bindings: {}'.format(self.bound_values()))
         if any(val is None for val in self.bound_values().values()):
-            raise SqlError("Missing bound values!")
+            raise SqlBugError("Missing bound values!")
 
         ok = self.query.exec_()
         self._check_ok('exec', ok)
@@ -200,7 +212,7 @@ class Query:
         for key, val in values.items():
             self.query.bindValue(':{}'.format(key), val)
         if any(val is None for val in self.bound_values().values()):
-            raise SqlError("Missing bound values!")
+            raise SqlBugError("Missing bound values!")
 
         db = QSqlDatabase.database()
         ok = db.transaction()
@@ -209,7 +221,7 @@ class Query:
         ok = self.query.execBatch()
         try:
             self._check_ok('execBatch', ok)
-        except SqliteError:
+        except (SqliteBugError, SqliteEnvironmentError):
             # Not checking the return value here, as we're failing anyways...
             db.rollback()
             raise
@@ -220,7 +232,7 @@ class Query:
     def value(self):
         """Return the result of a single-value query (e.g. an EXISTS)."""
         if not self.query.next():
-            raise SqlError("No result for single-result query")
+            raise SqlBugError("No result for single-result query")
         return self.query.record().value(0)
 
     def rows_affected(self):

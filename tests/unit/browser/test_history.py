@@ -190,7 +190,10 @@ class TestAdd:
     def test_error(self, monkeypatch, hist, message_mock, caplog,
                    environmental, completion):
         def raise_error(url, replace=False):
-            raise sql.SqlError("Error message", environmental=environmental)
+            if environmental:
+                raise sql.SqlEnvironmentError("Error message")
+            else:
+                raise sql.SqlBugError("Error message")
 
         if completion:
             monkeypatch.setattr(hist.completion, 'insert', raise_error)
@@ -203,7 +206,7 @@ class TestAdd:
             msg = message_mock.getmsg(usertypes.MessageLevel.error)
             assert msg.text == "Failed to write history: Error message"
         else:
-            with pytest.raises(sql.SqlError):
+            with pytest.raises(sql.SqlBugError):
                 hist.add_url(QUrl('https://www.example.org/'))
 
     @pytest.mark.parametrize('level, url, req_url, expected', [

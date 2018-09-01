@@ -145,11 +145,8 @@ class WebHistory(sql.SqlTable):
     def _handle_sql_errors(self):
         try:
             yield
-        except sql.SqlError as e:
-            if e.environmental:
-                message.error("Failed to write history: {}".format(e.text()))
-            else:
-                raise
+        except sql.SqlEnvironmentError as e:
+            message.error("Failed to write history: {}".format(e.text()))
 
     def _rebuild_completion(self):
         data = {'url': [], 'title': [], 'last_atime': []}
