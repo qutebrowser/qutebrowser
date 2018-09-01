@@ -23,9 +23,16 @@ import collections
 import random
 import string
 from datetime import datetime
+from unittest import mock
 
 import pytest
 from PyQt5.QtCore import QUrl
+try:
+    from PyQt5.QtWebEngineWidgets import (
+        QWebEngineHistory, QWebEngineHistoryItem
+    )
+except ImportError:
+    pass
 
 from qutebrowser.misc import objects
 from qutebrowser.completion import completer
@@ -1144,3 +1151,59 @@ def test_url_completion_benchmark(benchmark, info,
         model.set_pattern('ex 123')
 
     benchmark(bench)
+
+
+@pytest.fixture
+def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
+    """Returns a fake tab with some fake history items."""
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    tab = fake_web_tab(QUrl('https://github.com'), 'GitHub', 0)
+
+    history = []
+    for url, title in [
+            ("http://example.com/index", "list of things"),
+            ("http://example.com/thing1", "thing1 detail"),
+            ("http://example.com/thing2", "thing2 detail"),
+            ("http://example.com/thing3", "thing3 detail"),
+            ("http://example.com/thing4", "thing4 detail"),
+    ]:
+        entry = mock.Mock(spec=QWebEngineHistoryItem)
+        entry.url.return_value = QUrl(url)
+        entry.title.return_value = title
+        history.append(entry)
+    tab.history._history = mock.Mock(spec=QWebEngineHistory)
+    tab.history._history.items.return_value = history
+
+    monkeypatch.setattr(
+        tab.history, 'current_idx',
+        lambda: 2,
+    )
+    tabbed_browser_stubs[0].widget.tabs = [tab]
+    tabbed_browser_stubs[0].widget.current_index = 0
+    return tab
+
+
+def test_back_completion(tab_with_history, info):
+    """Test back tab history completion."""
+    model = miscmodels.back(info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "History": [
+            ("1", "http://example.com/thing1", "thing1 detail"),
+            ("0", "http://example.com/index", "list of things"),
+        ],
+    })
+
+
+def test_forward_completion(tab_with_history, info):
+    """Test forward tab history completion."""
+    model = miscmodels.forward(info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "History": [
+            ("3", "http://example.com/thing3", "thing3 detail"),
+            ("4", "http://example.com/thing4", "thing4 detail"),
+        ],
+    })
