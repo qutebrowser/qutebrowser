@@ -25,6 +25,8 @@ Added
 - When `:spawn --userscript` is called with a count, that count is now
   passed to userscripts as `$QUTE_COUNT`.
 - New `content.mouse_lock` setting to handle HTML5 pointer locking.
+- New `history.exclude` setting which hides a list of URL patterns from the
+  completion and `qute://history`.
 
 Changed
 ~~~~~~~
@@ -37,6 +39,7 @@ Changed
 - The `app_id` is now set to `qutebrowser` for Wayland.
 - `Command` or `Cmd` can now be used (instead of `Meta`) to map the Command key
   on macOS.
+- The `history_gap_interval` setting got renamed to `history.gap_interval`.
 
 v1.4.2 (unreleased)
 -------------------
