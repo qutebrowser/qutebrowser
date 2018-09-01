@@ -221,6 +221,14 @@ class TestAdd:
             hist.add_from_tab(QUrl(url), QUrl(req_url), 'title')
         assert set(hist) == set(expected)
 
+    def test_exclude(self, hist, config_stub):
+        """Excluded URLs should be in the history but not completion."""
+        config_stub.set_obj('history.exclude', ['*.example.org'])
+        url = QUrl('http://www.example.org/')
+        hist.add_from_tab(url, url, 'title')
+        assert list(hist)
+        assert not list(hist.completion)
+
 
 class TestHistoryInterface:
 
@@ -471,6 +479,21 @@ class TestRebuild:
             ('example.com/2', '', 2),
         ]
         assert not hist3.metainfo['force_rebuild']
+
+    def test_exclude(self, config_stub, hist):
+        """Ensure that patterns in history.exclude are ignored."""
+        config_stub.set_obj('history.exclude', ['*.example.org'])
+        assert hist.metainfo['force_rebuild']
+
+        hist.add_url(QUrl('http://example.com'), redirect=False, atime=1)
+        hist.add_url(QUrl('http://example.org'), redirect=False, atime=2)
+
+        hist2 = history.WebHistory()
+        assert list(hist2.completion) == [('http://example.com', '', 1)]
+
+    def test_unrelated_config_change(self, config_stub, hist):
+        config_stub.set_obj('history.gap_interval', 1234)
+        assert not hist.metainfo['force_rebuild']
 
 
 class TestCompletionMetaInfo:

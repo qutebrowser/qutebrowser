@@ -1055,6 +1055,22 @@ history.gap_interval:
     Items with less time between them are grouped when being displayed in
     `:history`. Use -1 to disable separation.
 
+history.exclude:
+  type:
+    name: List
+    valtype: UrlPattern
+    none_ok: true
+  default: []
+  restart: true
+  desc: >-
+    A list of patterns which should not be shown in the history.
+
+    This only affects the completion and qute://history page. Matching URLs are
+    still saved in the history, but hidden.
+
+    Changing this setting will cause the completion history to be regenerated
+    on the next start, which will take a short while.
+
 ## input
 
 input.escape_quits_reporter:

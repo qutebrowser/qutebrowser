@@ -25,6 +25,7 @@ import contextlib
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QTimer, pyqtSignal
 
+from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import (utils, objreg, log, usertypes, message,
                                debug, standarddir, qtutils)
@@ -128,11 +129,17 @@ class WebHistory(sql.SqlTable):
                                        'ORDER BY atime desc '
                                        'limit :limit offset :offset')
 
+        config.instance.changed.connect(self._on_config_changed)
+
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
 
     def __contains__(self, url):
         return self._contains_query.run(val=url).value()
+
+    @config.change_filter('history.exclude')
+    def _on_config_changed(self):
+        self.metainfo['force_rebuild'] = True
 
     @contextlib.contextmanager
     def _handle_sql_errors(self):
@@ -151,9 +158,14 @@ class WebHistory(sql.SqlTable):
                       'WHERE NOT redirect and url NOT LIKE "qute://back%" '
                       'GROUP BY url ORDER BY atime asc')
         for entry in q.run():
-            data['url'].append(self._format_completion_url(QUrl(entry.url)))
+            url = QUrl(entry.url)
+            if any(pattern.matches(url)
+                   for pattern in config.val.history.exclude):
+                continue
+            data['url'].append(self._format_completion_url(url))
             data['title'].append(entry.title)
             data['last_atime'].append(entry.atime)
+
         self.completion.insert_batch(data, replace=True)
         sql.Query('pragma user_version = {}'.format(_USER_VERSION)).run()
 
@@ -259,12 +271,18 @@ class WebHistory(sql.SqlTable):
                          'title': title,
                          'atime': atime,
                          'redirect': redirect})
-            if not redirect:
-                self.completion.insert({
-                    'url': self._format_completion_url(url),
-                    'title': title,
-                    'last_atime': atime
-                }, replace=True)
+
+            if any(pattern.matches(url)
+                   for pattern in config.val.history.exclude):
+                return
+            if redirect:
+                return
+
+            self.completion.insert({
+                'url': self._format_completion_url(url),
+                'title': title,
+                'last_atime': atime
+            }, replace=True)
 
     def _parse_entry(self, line):
         """Parse a history line like '12345 http://example.com title'."""
