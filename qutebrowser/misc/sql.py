@@ -139,7 +139,7 @@ def version():
         return 'UNAVAILABLE ({})'.format(e)
 
 
-class Query(QSqlQuery):
+class Query:
 
     """A prepared SQL Query."""
 
@@ -151,43 +151,68 @@ class Query(QSqlQuery):
             forward_only: Optimization for queries that will only step forward.
                           Must be false for completion queries.
         """
-        super().__init__(QSqlDatabase.database())
+        self.query = QSqlQuery(QSqlDatabase.database())
+
         log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
-        if not self.prepare(querystr):
-            raise SqliteError.from_query('prepare', querystr, self.lastError())
-        self.setForwardOnly(forward_only)
+        if not self.query.prepare(querystr):
+            raise SqliteError.from_query('prepare', querystr,
+                                         self.query.lastError())
+        self.query.setForwardOnly(forward_only)
 
     def __iter__(self):
-        if not self.isActive():
+        if not self.query.isActive():
             raise SqlError("Cannot iterate inactive query")
-        rec = self.record()
+        rec = self.query.record()
         fields = [rec.fieldName(i) for i in range(rec.count())]
         rowtype = collections.namedtuple('ResultRow', fields)
 
-        while self.next():
-            rec = self.record()
+        while self.query.next():
+            rec = self.query.record()
             yield rowtype(*[rec.value(i) for i in range(rec.count())])
 
     def run(self, **values):
         """Execute the prepared query."""
-        log.sql.debug('Running SQL query: "{}"'.format(self.lastQuery()))
+        log.sql.debug('Running SQL query: "{}"'.format(
+            self.query.lastQuery()))
 
         for key, val in values.items():
-            self.bindValue(':{}'.format(key), val)
-        log.sql.debug('query bindings: {}'.format(self.boundValues()))
-        if any(val is None for val in self.boundValues().values()):
+            self.query.bindValue(':{}'.format(key), val)
+        log.sql.debug('query bindings: {}'.format(self.bound_values()))
+        if any(val is None for val in self.bound_values().values()):
             raise SqlError("Missing bound values!")
 
-        if not self.exec_():
-            raise SqliteError.from_query('exec', self.lastQuery(),
-                                         self.lastError())
+        if not self.query.exec_():
+            raise SqliteError.from_query('exec', self.query.lastQuery(),
+                                         self.query.lastError())
         return self
+
+    def run_batch(self, values):
+        """Execute the query in batch mode."""
+        log.sql.debug('Running SQL query (batch): "{}"'.format(
+            self.query.lastQuery()))
+
+        for key, val in values.items():
+            self.query.bindValue(':{}'.format(key), val)
+
+        db = QSqlDatabase.database()
+        db.transaction()
+        ok = self.query.execBatch()
+        if not ok:
+            raise SqliteError.from_query('exec', self.query.lastQuery(),
+                                         self.query.lastError())
+        db.commit()
 
     def value(self):
         """Return the result of a single-value query (e.g. an EXISTS)."""
-        if not self.next():
+        if not self.query.next():
             raise SqlError("No result for single-result query")
-        return self.record().value(0)
+        return self.query.record().value(0)
+
+    def rows_affected(self):
+        return self.query.numRowsAffected()
+
+    def bound_values(self):
+        return self.query.boundValues()
 
 
 class SqlTable(QObject):
@@ -270,7 +295,7 @@ class SqlTable(QObject):
         q = Query("DELETE FROM {table} where {field} = :val"
                   .format(table=self._name, field=field))
         q.run(val=value)
-        if not q.numRowsAffected():
+        if not q.rows_affected():
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 
@@ -300,14 +325,7 @@ class SqlTable(QObject):
             replace: If true, overwrite rows with a primary key match.
         """
         q = self._insert_query(values, replace)
-        for key, val in values.items():
-            q.bindValue(':{}'.format(key), val)
-
-        db = QSqlDatabase.database()
-        db.transaction()
-        if not q.execBatch():
-            raise SqliteError.from_query('exec', q.lastQuery(), q.lastError())
-        db.commit()
+        q.run_batch(values)
         self.changed.emit()
 
     def delete_all(self):

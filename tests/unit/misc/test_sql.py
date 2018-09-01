@@ -244,7 +244,7 @@ class TestSqlQuery:
     @pytest.mark.parametrize('forward_only', [True, False])
     def test_forward_only(self, forward_only):
         q = sql.Query('SELECT 0 WHERE 0', forward_only=forward_only)
-        assert q.isForwardOnly() == forward_only
+        assert q.query.isForwardOnly() == forward_only
 
     def test_iter_inactive(self):
         q = sql.Query('SELECT 0')
