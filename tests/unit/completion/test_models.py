@@ -23,6 +23,7 @@ import collections
 import random
 import string
 from datetime import datetime
+from unittest import mock
 
 import pytest
 from PyQt5.QtCore import QUrl
@@ -951,3 +952,51 @@ def test_url_completion_benchmark(benchmark, info,
         model.set_pattern('ex 123')
 
     benchmark(bench)
+
+
+def test_backforward_completion(fake_web_tab, tabbed_browser_stubs,
+                                info, monkeypatch):
+    """Test back and forward tab history completion."""
+    tab = fake_web_tab(QUrl('https://github.com'), 'GitHub', 0)
+
+    history = []
+    for url, title in [
+            ("http://example.com/index", "list of things"),
+            ("http://example.com/thing1", "thing1 detail"),
+            ("http://example.com/thing2", "thing2 detail"),
+            ("http://example.com/thing3", "thing3 detail"),
+            ("http://example.com/thing4", "thing4 detail"),
+    ]:
+        entry = mock.Mock()
+        entry.url.return_value = QUrl(url)
+        entry.title.return_value = title
+        history.append(entry)
+    tab.history._history = mock.Mock()
+    tab.history._history.items.return_value = history
+
+    monkeypatch.setattr(
+        tab.history, 'current_idx',
+        mock.Mock(return_value=2),
+    )
+    tabbed_browser_stubs[0].widget.tabs = [tab]
+    tabbed_browser_stubs[0].widget.current_index = 0
+
+    model = miscmodels.back(info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "History": [
+            ("1", "http://example.com/thing1", "thing1 detail"),
+            ("0", "http://example.com/index", "list of things"),
+        ],
+    })
+
+    model = miscmodels.forward(info=info)
+    model.set_pattern('')
+
+    _check_completions(model, {
+        "History": [
+            ("3", "http://example.com/thing3", "thing3 detail"),
+            ("4", "http://example.com/thing4", "thing4 detail"),
+        ],
+    })
