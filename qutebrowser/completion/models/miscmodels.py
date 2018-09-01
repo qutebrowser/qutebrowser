@@ -179,3 +179,38 @@ def window(*, info):
     model.add_category(listcategory.ListCategory("Windows", windows))
 
     return model
+
+
+def _back_forward(info, go_forward):
+    tab = objreg.get('tab', scope='tab', window=info.win_id, tab='current')
+    history = tab.history
+    current_idx = history.current_idx()
+
+    model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
+    entries = [
+        (str(idx), entry.url().toDisplayString(), entry.title())
+        for idx, entry in enumerate(history)
+        if (idx > current_idx) == go_forward and idx != current_idx
+    ]
+    if not go_forward:
+        # make sure the most recent is at the top for :back
+        entries = reversed(entries)
+    cat = listcategory.ListCategory("History", entries, sort=False)
+    model.add_category(cat)
+    return model
+
+
+def forward(*, info):
+    """A model to complete on history of the current tab.
+
+    Used for the :forward command.
+    """
+    return _back_forward(info, go_forward=True)
+
+
+def back(*, info):
+    """A model to complete on history of the current tab.
+
+    Used for the :back command.
+    """
+    return _back_forward(info, go_forward=False)
