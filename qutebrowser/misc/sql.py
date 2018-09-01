@@ -27,59 +27,48 @@ from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
 from qutebrowser.utils import log, debug
 
 
-class SqlEnvironmentError(Exception):
+class SqlError(Exception):
+
+    """Base class for all SQL related errors."""
+
+    def __init__(self, msg, error=None):
+        super().__init__(msg)
+        self.error = error
+
+    def text(self):
+        """Get a short text description of the error.
+
+        This is a string suitable to show to the user as error message.
+        """
+        if self.error is None:
+            return str(self)
+        else:
+            return self.error.databaseText()
+
+
+class SqlEnvironmentError(SqlError):
 
     """Raised on an error interacting with the SQL database.
 
-    This is raised for errors resulting from the environment, where qutebrowser
-    isn't to blame.
+    This is raised in conditions resulting from the environment (like a full
+    disk or I/O errors), where qutebrowser isn't to blame.
     """
 
-    def text(self):
-        return str(self)
+    pass
 
 
-class SqlBugError(Exception):
+class SqlBugError(SqlError):
 
     """Raised on an error interacting with the SQL database.
 
     This is raised for errors resulting from a qutebrowser bug.
     """
 
-    def text(self):
-        return str(self)
-
-
-class SqliteEnvironmentError(SqlEnvironmentError):
-
-    """A sqlite error which is caused by the environment.
-
-    This is raised in conditions like a full disk or I/O errors, where
-    qutebrowser isn't to blame.
-    """
-
-    def __init__(self, msg, error):
-        super().__init__(msg)
-        self.error = error
-
-    def text(self):
-        return self.error.databaseText()
-
-
-class SqliteBugError(SqlBugError):
-
-    """A sqlite error which is caused by a bug in qutebrowser."""
-
-    def __init__(self, msg, error):
-        super().__init__(msg)
-        self.error = error
-
-    def text(self):
-        return self.error.databaseText()
+    pass
 
 
 def raise_sqlite_error(msg, error):
-    """Raise either a SqliteBugError or SqliteEnvironmentError."""
+    """Raise either a SqlBugError or SqlEnvironmentError."""
     log.sql.debug("SQL error:")
     log.sql.debug("type: {}".format(
         debug.qenum_key(QSqlError, error.type())))
@@ -108,9 +97,9 @@ def raise_sqlite_error(msg, error):
     errcode = error.nativeErrorCode()
     if (errcode in environmental_errors or
             (errcode == -1 and error.databaseText() in environmental_strings)):
-        raise SqliteEnvironmentError(msg, error)
+        raise SqlEnvironmentError(msg, error)
     else:
-        raise SqliteBugError(msg, error)
+        raise SqlBugError(msg, error)
 
 
 def init(db_path):
@@ -221,7 +210,7 @@ class Query:
         ok = self.query.execBatch()
         try:
             self._check_ok('execBatch', ok)
-        except (SqliteBugError, SqliteEnvironmentError):
+        except SqlError:
             # Not checking the return value here, as we're failing anyways...
             db.rollback()
             raise

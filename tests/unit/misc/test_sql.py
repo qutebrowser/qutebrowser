@@ -37,11 +37,11 @@ def test_sqlerror(klass):
     assert err.text() == text
 
 
-class TestSqliteError:
+class TestSqlError:
 
     @pytest.mark.parametrize('error_code, exception', [
-        ('5', sql.SqliteEnvironmentError),  # SQLITE_BUSY
-        ('19', sql.SqliteBugError),  # SQLITE_CONSTRAINT
+        ('5', sql.SqlEnvironmentError),  # SQLITE_BUSY
+        ('19', sql.SqlBugError),  # SQLITE_CONSTRAINT
     ])
     def test_environmental(self, error_code, exception):
         sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
@@ -52,7 +52,7 @@ class TestSqliteError:
     def test_logging(self, caplog):
         sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
                             '23')
-        with pytest.raises(sql.SqliteBugError):
+        with pytest.raises(sql.SqlBugError):
             sql.raise_sqlite_error("Message", sql_err)
 
         lines = [r.message for r in caplog.records]
@@ -64,16 +64,8 @@ class TestSqliteError:
 
         assert lines == expected
 
-    @pytest.mark.parametrize('base, sub', [
-        (sql.SqlEnvironmentError, sql.SqliteEnvironmentError),
-        (sql.SqlBugError, sql.SqliteBugError),
-    ])
-    def test_subclass(self, base, sub):
-        with pytest.raises(base):
-            raise sub("text", QSqlError())
-
     @pytest.mark.parametrize('klass',
-                             [sql.SqliteEnvironmentError, sql.SqliteBugError])
+                             [sql.SqlEnvironmentError, sql.SqlBugError])
     def test_text(self, klass):
         sql_err = QSqlError("driver text", "db text")
         err = klass("Message", sql_err)
@@ -103,7 +95,7 @@ def test_insert_replace(qtbot):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=True)
     assert list(table) == [('one', 11, True)]
 
-    with pytest.raises(sql.SqliteBugError):
+    with pytest.raises(sql.SqlBugError):
         table.insert({'name': 'one', 'val': 11, 'lucky': True}, replace=False)
 
 
@@ -139,7 +131,7 @@ def test_insert_batch_replace(qtbot):
                            ('one', 11, True),
                            ('nine', 19, True)]
 
-    with pytest.raises(sql.SqliteBugError):
+    with pytest.raises(sql.SqlBugError):
         table.insert_batch({'name': ['one', 'nine'],
                             'val': [11, 19],
                             'lucky': [True, True]})
@@ -236,7 +228,7 @@ def test_version():
 class TestSqlQuery:
 
     def test_prepare_error(self):
-        with pytest.raises(sql.SqliteBugError) as excinfo:
+        with pytest.raises(sql.SqlBugError) as excinfo:
             sql.Query('invalid')
 
         expected = ('Failed to prepare query "invalid": "near "invalid": '
