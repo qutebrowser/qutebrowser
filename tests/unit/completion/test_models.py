@@ -35,7 +35,7 @@ from qutebrowser.utils import usertypes
 
 
 def _check_completions(model, expected):
-    """Check that a model contains the expected items in any order.
+    """Check that a model contains the expected items in order.
 
     Args:
         expected: A dict of form
