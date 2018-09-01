@@ -193,6 +193,8 @@ class Query:
 
         for key, val in values.items():
             self.query.bindValue(':{}'.format(key), val)
+        if any(val is None for val in self.bound_values().values()):
+            raise SqlError("Missing bound values!")
 
         db = QSqlDatabase.database()
         db.transaction()
