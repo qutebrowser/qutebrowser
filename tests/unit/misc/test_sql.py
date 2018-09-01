@@ -40,8 +40,8 @@ def test_sqlerror(klass):
 class TestSqlError:
 
     @pytest.mark.parametrize('error_code, exception', [
-        ('5', sql.SqlEnvironmentError),  # SQLITE_BUSY
-        ('19', sql.SqlBugError),  # SQLITE_CONSTRAINT
+        (sql.SqliteErrorCode.BUSY, sql.SqlEnvironmentError),
+        (sql.SqliteErrorCode.CONSTRAINT, sql.SqlBugError),
     ])
     def test_environmental(self, error_code, exception):
         sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,

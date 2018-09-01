@@ -27,6 +27,23 @@ from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
 from qutebrowser.utils import log, debug
 
 
+class SqliteErrorCode:
+
+    """Error codes as used by sqlite.
+
+    See https://sqlite.org/rescode.html - note we only define the codes we use
+    in qutebrowser here.
+    """
+
+    BUSY = '5'  # database is locked
+    READONLY = '8'  # attempt to write a readonly database
+    IOERR = '10'  # disk I/O error
+    CORRUPT = '11'  # database disk image is malformed
+    FULL = '13'  # database or disk is full
+    CANTOPEN = '14'  # unable to open database file
+    CONSTRAINT = '19'  # UNIQUE constraint failed
+
+
 class SqlError(Exception):
 
     """Base class for all SQL related errors."""
@@ -75,16 +92,13 @@ def raise_sqlite_error(msg, error):
     log.sql.debug("database text: {}".format(error.databaseText()))
     log.sql.debug("driver text: {}".format(error.driverText()))
     log.sql.debug("error code: {}".format(error.nativeErrorCode()))
-    # https://sqlite.org/rescode.html
-    # https://github.com/qutebrowser/qutebrowser/issues/2930
-    # https://github.com/qutebrowser/qutebrowser/issues/3004
     environmental_errors = [
-        '5',   # SQLITE_BUSY ("database is locked")
-        '8',   # SQLITE_READONLY ("attempt to write a readonly database")
-        '10',  # SQLITE_IOERR ("disk I/O error")
-        '11',  # SQLITE_CORRUPT ("database disk image is malformed")
-        '13',  # SQLITE_FULL ("database or disk is full")
-        '14',  # SQLITE_CANTOPEN ("unable to open database file")
+        SqliteErrorCode.BUSY,
+        SqliteErrorCode.READONLY,
+        SqliteErrorCode.IOERR,
+        SqliteErrorCode.CORRUPT,
+        SqliteErrorCode.FULL,
+        SqliteErrorCode.CANTOPEN,
     ]
     # At least in init(), we can get errors like this:
     # > type: ConnectionError
