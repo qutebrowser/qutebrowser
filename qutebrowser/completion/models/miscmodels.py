@@ -164,3 +164,39 @@ def window(*, info):
     model.add_category(listcategory.ListCategory("Windows", windows))
 
     return model
+
+
+def _back_forward(info, forward):
+    window = objreg.get('tabbed-browser', scope='window',
+                        window=info.win_id)
+    history = window.widget.currentWidget().history
+    current_idx = history.current_idx()
+
+    model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
+    entries = [
+        (str(idx), entry.url().toDisplayString(), entry.title())
+        for idx, entry in enumerate(history)
+        if (idx > current_idx) == forward and idx != current_idx
+    ]
+    if not forward:
+        # make sure the most recent is at the top for :back
+        entries = reversed(entries)
+    cat = listcategory.ListCategory("History", entries, sort=False)
+    model.add_category(cat)
+    return model
+
+
+def forward(*, info):
+    """A model to complete on history of the current tab.
+
+    Used for the :forward command.
+    """
+    return _back_forward(info, forward=True)
+
+
+def back(*, info):
+    """A model to complete on history of the current tab.
+
+    Used for the :back command.
+    """
+    return _back_forward(info, forward=False)
