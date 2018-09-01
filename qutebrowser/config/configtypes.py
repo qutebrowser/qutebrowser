@@ -61,7 +61,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
-from qutebrowser.utils import standarddir, utils, qtutils, urlutils
+from qutebrowser.utils import standarddir, utils, qtutils, urlutils, urlmatch
 from qutebrowser.keyinput import keyutils
 
 
@@ -1660,4 +1660,23 @@ class Key(BaseType):
         try:
             return keyutils.KeySequence.parse(value)
         except keyutils.KeyParseError as e:
+            raise configexc.ValidationError(value, str(e))
+
+
+class UrlPattern(BaseType):
+
+    """A match pattern for a URL.
+
+    See https://developer.chrome.com/apps/match_patterns for the allowed
+    syntax.
+    """
+
+    def to_py(self, value):
+        self._basic_py_validation(value, str)
+        if not value:
+            return None
+
+        try:
+            return urlmatch.UrlPattern(value)
+        except urlmatch.ParseError as e:
             raise configexc.ValidationError(value, str(e))
