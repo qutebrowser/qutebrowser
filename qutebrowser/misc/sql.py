@@ -205,7 +205,12 @@ class Query:
         self._check_ok('transaction', ok)
 
         ok = self.query.execBatch()
-        self._check_ok('execBatch', ok)
+        try:
+            self._check_ok('execBatch', ok)
+        except SqliteError:
+            # Not checking the return value here, as we're failing anyways...
+            db.rollback()
+            raise
 
         ok = db.commit()
         self._check_ok('commit', ok)
