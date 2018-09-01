@@ -201,11 +201,14 @@ class Query:
             raise SqlError("Missing bound values!")
 
         db = QSqlDatabase.database()
-        db.transaction()
+        ok = db.transaction()
+        self._check_ok('transaction', ok)
 
         ok = self.query.execBatch()
         self._check_ok('execBatch', ok)
-        db.commit()
+
+        ok = db.commit()
+        self._check_ok('commit', ok)
 
     def value(self):
         """Return the result of a single-value query (e.g. an EXISTS)."""
