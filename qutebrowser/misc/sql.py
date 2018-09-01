@@ -154,9 +154,8 @@ class Query:
         self.query = QSqlQuery(QSqlDatabase.database())
 
         log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
-        if not self.query.prepare(querystr):
-            raise SqliteError.from_query('prepare', querystr,
-                                         self.query.lastError())
+        ok = self.query.prepare(querystr)
+        self._check_ok('prepare', ok)
         self.query.setForwardOnly(forward_only)
 
     def __iter__(self):
@@ -170,6 +169,11 @@ class Query:
             rec = self.query.record()
             yield rowtype(*[rec.value(i) for i in range(rec.count())])
 
+    def _check_ok(self, step, ok):
+        if not ok:
+            raise SqliteError.from_query(step, self.query.lastQuery(),
+                                         self.query.lastError())
+
     def run(self, **values):
         """Execute the prepared query."""
         log.sql.debug('Running SQL query: "{}"'.format(
@@ -181,9 +185,9 @@ class Query:
         if any(val is None for val in self.bound_values().values()):
             raise SqlError("Missing bound values!")
 
-        if not self.query.exec_():
-            raise SqliteError.from_query('exec', self.query.lastQuery(),
-                                         self.query.lastError())
+        ok = self.query.exec_()
+        self._check_ok('exec', ok)
+
         return self
 
     def run_batch(self, values):
@@ -198,10 +202,9 @@ class Query:
 
         db = QSqlDatabase.database()
         db.transaction()
+
         ok = self.query.execBatch()
-        if not ok:
-            raise SqliteError.from_query('exec', self.query.lastQuery(),
-                                         self.query.lastError())
+        self._check_ok('execBatch', ok)
         db.commit()
 
     def value(self):
