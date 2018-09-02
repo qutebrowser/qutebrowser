@@ -23,6 +23,16 @@ confirm_quit:
   default: [never]
   desc: Require a confirmation before quitting the application.
 
+history_gap_interval:
+  type: Int
+  default: 30
+  desc: >-
+    Maximum time (in minutes) between two history items for them to be
+    considered being from the same browsing session.
+
+    Items with less time between them are grouped when being displayed in
+    `:history`. Use -1 to disable separation.
+
 ignore_case:
   renamed: search.ignore_case
 
@@ -1058,18 +1068,6 @@ hints.uppercase:
   default: false
   type: Bool
   desc: Make characters in hint strings uppercase.
-
-## history
-
-history_gap_interval:
-  type: Int
-  default: 30
-  desc: >-
-    Maximum time (in minutes) between two history items for them to be
-    considered being from the same browsing session.
-
-    Items with less time between them are grouped when being displayed in
-    `:history`. Use -1 to disable separation.
 
 ## input
 
