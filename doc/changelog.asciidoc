@@ -66,6 +66,7 @@ Fixed
 - Repeated escaping of entries in `qute://log` when refreshing page.
 - The host blocker doesn't block 0.0.0.0 anymore.
 - Crash when using :// as URL pattern.
+- The `:buffer` completion now sorts tabs with indices >= 10 correctly again.
 
 v1.4.1
 ------
@@ -90,7 +91,6 @@ Fixed
 - The Windows installer now uninstalls the old version before installing the
   new one, fixing issues with qutebrowser not starting after installing v1.4.0
   over v1.3.3.
-- The `:buffer` completion now sorts tabs with indices >= 10 correctly again.
 
 v1.4.0
 ------
