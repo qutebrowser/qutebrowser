@@ -21,15 +21,28 @@
 
 import pytest
 
-from qutebrowser.config import configcache, config
+from qutebrowser.config import config
 
 
 class TestConfigCache:
 
     @pytest.fixture
     def ccache(self, config_stub):
-        return configcache.ConfigCache()
+        return config.configcache
 
     def test_configcache_except_pattern(self, ccache):
         with pytest.raises(AssertionError):
-            ccache['content.javascript.enabled']
+            assert ccache['content.javascript.enabled']
+
+    def test_configcache_error_set(self, ccache):
+        with pytest.raises(TypeError):
+            ccache['content.javascript.enabled'] = True
+
+    def test_configcache_get(self, ccache):
+        assert not ccache['auto_save.session']
+        assert not ccache['auto_save.session']
+
+    def test_configcache_get_after_set(self, ccache):
+        assert not ccache['auto_save.session']
+        config.val.auto_save.session = True
+        assert ccache['auto_save.session']

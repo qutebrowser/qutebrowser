@@ -42,9 +42,6 @@ class ConfigCache():
         if attr in self.cache:
             self.cache[attr] = config.instance.get(attr)
 
-    def __setitem__(self, attr, _value):
-        raise Exception("ConfigCache cannot be used to set values.")
-
     def __getitem__(self, attr: str):
         if attr not in self.cache:
             assert not config.instance.get_opt(attr).supports_pattern

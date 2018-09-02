@@ -147,6 +147,8 @@ PERFECT_FILES = [
      'config/configcommands.py'),
     ('tests/unit/config/test_configutils.py',
      'config/configutils.py'),
+    ('tests/unit/config/test_configcache.py',
+     'config/configcache.py'),
 
     ('tests/unit/utils/test_qtutils.py',
      'utils/qtutils.py'),

@@ -42,7 +42,7 @@ from PyQt5.QtNetwork import QNetworkCookieJar
 import helpers.stubs as stubsmod
 import helpers.utils
 from qutebrowser.config import (config, configdata, configtypes, configexc,
-                                configfiles)
+                                configfiles, configcache)
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
 from qutebrowser.browser import greasemonkey
 from qutebrowser.browser.webkit import cookies
@@ -252,6 +252,9 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
 
     container = config.ConfigContainer(conf)
     monkeypatch.setattr(config, 'val', container)
+
+    cache = configcache.ConfigCache()
+    monkeypatch.setattr(config, 'configcache', cache)
 
     try:
         configtypes.Font.monospace_fonts = container.fonts.monospace
