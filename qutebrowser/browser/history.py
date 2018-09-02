@@ -51,22 +51,23 @@ class CompletionMetaInfo(sql.SqlTable):
             if key not in self:
                 self[key] = default
 
-    def __contains__(self, key):
+    def _check_key(self, key):
         if key not in self.KEYS:
             raise KeyError(key)
+
+    def __contains__(self, key):
+        self._check_key(key)
         query = self.contains_query('key')
         return query.run(val=key).value()
 
     def __getitem__(self, key):
-        if key not in self.KEYS:
-            raise KeyError(key)
+        self._check_key(key)
         query = sql.Query('SELECT value FROM CompletionMetaInfo '
                           'WHERE key = :key')
         return query.run(key=key).value()
 
     def __setitem__(self, key, value):
-        if key not in self.KEYS:
-            raise KeyError(key)
+        self._check_key(key)
         self.insert({'key': key, 'value': value}, replace=True)
 
 
@@ -148,6 +149,11 @@ class WebHistory(sql.SqlTable):
         except sql.SqlEnvironmentError as e:
             message.error("Failed to write history: {}".format(e.text()))
 
+    def _is_excluded(self, url):
+        """Check if the given URL is excluded from the completion."""
+        return any(pattern.matches(url)
+                   for pattern in config.val.completion.web_history.exclude)
+
     def _rebuild_completion(self):
         data = {'url': [], 'title': [], 'last_atime': []}
         # select the latest entry for each url
@@ -156,8 +162,7 @@ class WebHistory(sql.SqlTable):
                       'GROUP BY url ORDER BY atime asc')
         for entry in q.run():
             url = QUrl(entry.url)
-            if any(pattern.matches(url)
-                   for pattern in config.val.completion.web_history.exclude):
+            if self._is_excluded(url):
                 continue
             data['url'].append(self._format_completion_url(url))
             data['title'].append(entry.title)
@@ -269,10 +274,7 @@ class WebHistory(sql.SqlTable):
                          'atime': atime,
                          'redirect': redirect})
 
-            if redirect:
-                return
-            if any(pattern.matches(url)
-                   for pattern in config.val.completion.web_history.exclude):
+            if redirect or self._is_excluded(url):
                 return
 
             self.completion.insert({

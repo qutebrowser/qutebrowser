@@ -191,16 +191,19 @@ class Query:
                                                          error.text())
             raise_sqlite_error(msg, error)
 
+    def _bind_values(self, values):
+        for key, val in values.items():
+            self.query.bindValue(':{}'.format(key), val)
+        if any(val is None for val in self.bound_values().values()):
+            raise SqlBugError("Missing bound values!")
+
     def run(self, **values):
         """Execute the prepared query."""
         log.sql.debug('Running SQL query: "{}"'.format(
             self.query.lastQuery()))
 
-        for key, val in values.items():
-            self.query.bindValue(':{}'.format(key), val)
+        self._bind_values(values)
         log.sql.debug('query bindings: {}'.format(self.bound_values()))
-        if any(val is None for val in self.bound_values().values()):
-            raise SqlBugError("Missing bound values!")
 
         ok = self.query.exec_()
         self._check_ok('exec', ok)
@@ -212,10 +215,7 @@ class Query:
         log.sql.debug('Running SQL query (batch): "{}"'.format(
             self.query.lastQuery()))
 
-        for key, val in values.items():
-            self.query.bindValue(':{}'.format(key), val)
-        if any(val is None for val in self.bound_values().values()):
-            raise SqlBugError("Missing bound values!")
+        self._bind_values(values)
 
         db = QSqlDatabase.database()
         ok = db.transaction()
