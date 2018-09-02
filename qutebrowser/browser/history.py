@@ -269,10 +269,10 @@ class WebHistory(sql.SqlTable):
                          'atime': atime,
                          'redirect': redirect})
 
+            if redirect:
+                return
             if any(pattern.matches(url)
                    for pattern in config.val.completion.web_history.exclude):
-                return
-            if redirect:
                 return
 
             self.completion.insert({
