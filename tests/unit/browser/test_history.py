@@ -226,8 +226,7 @@ class TestAdd:
 
     def test_exclude(self, hist, config_stub):
         """Excluded URLs should be in the history but not completion."""
-        config_stub.set_obj('completion.web_history.exclude',
-                            ['*.example.org'])
+        config_stub.val.completion.web_history.exclude = ['*.example.org']
         url = QUrl('http://www.example.org/')
         hist.add_from_tab(url, url, 'title')
         assert list(hist)
@@ -489,8 +488,7 @@ class TestRebuild:
 
         This setting should only be used for the completion.
         """
-        config_stub.set_obj('completion.web_history.exclude',
-                            ['*.example.org'])
+        config_stub.val.completion.web_history.exclude = ['*.example.org']
         assert hist.metainfo['force_rebuild']
 
         hist.add_url(QUrl('http://example.com'), redirect=False, atime=1)
@@ -500,7 +498,7 @@ class TestRebuild:
         assert list(hist2.completion) == [('http://example.com', '', 1)]
 
     def test_unrelated_config_change(self, config_stub, hist):
-        config_stub.set_obj('history_gap_interval', 1234)
+        config_stub.val.history_gap_interval = 1234
         assert not hist.metainfo['force_rebuild']
 
 

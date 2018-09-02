@@ -429,7 +429,7 @@ def test_config_change(config_stub, basedir, download_stub,
 
     host_blocker = adblock.HostBlocker()
     host_blocker.read_hosts()
-    config_stub.set_obj('content.host_blocking.lists', None)
+    config_stub.val.content.host_blocking.lists = None
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))

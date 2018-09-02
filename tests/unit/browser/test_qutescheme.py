@@ -136,7 +136,7 @@ class TestHistoryHandler:
 
     def test_exclude(self, fake_web_history, now, config_stub):
         """Make sure the completion.web_history.exclude setting is not used."""
-        config_stub.set_obj('completion.web_history.exclude', ['www.x.com'])
+        config_stub.val.completion.web_history.exclude = ['www.x.com']
 
         url = QUrl("qute://history/data?start_time={}".format(now))
         _mimetype, data = qutescheme.qute_history(url)
