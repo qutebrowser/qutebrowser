@@ -15,6 +15,36 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.4.2
+------
+
+Changed
+~~~~~~~
+
+- The `content.xss_auditing` setting is now enabled by default, to mirror
+  Chromium's rather than Qt's default behavior.
+- Long URLs in the statusbar are now elided at the end rather than in the
+  middle, to make sure the hostname is completely visible whenever possible.
+
+Fixed
+~~~~~
+
+- Crash in Qt 5.7.1 when a website uses `window.print()`.
+- The workaround for Nouveau graphic drivers now works properly again.
+- Crash when using `:follow-selected` with a link which is outside of the view.
+- Workaround for windows not showing as urgent with some window managers
+  (like i3).
+- Crash when opening URLs with some unicode characters (IDNA 2008). Those URLs
+  still won't open though, due to missing support in Qt.
+- Crash when a download directory which can't be created is configured.
+- Crash in the `importer.py` script when importing Chrome bookmarks from newer Chrome versions.
+- The `content.webrtc_public_interfaces_only` option didn't work on Qt 5.11 previously (it now does).
+  Note it still does not work on Qt 5.10 (due to a Qt bug) and Qt < 5.9.2.
+- Repeated escaping of entries in `qute://log` when refreshing page.
+- The host blocker doesn't block 0.0.0.0 anymore.
+- Crash when using :// as URL pattern.
+- The `:buffer` completion now sorts tabs with indices >= 10 correctly again.
+
 v1.4.1
 ------
 
