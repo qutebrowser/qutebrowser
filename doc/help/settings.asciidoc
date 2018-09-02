@@ -107,7 +107,8 @@
 |<<completion.shrink,completion.shrink>>|Shrink the completion to be smaller than the configured size if there are no scrollbars.
 |<<completion.timestamp_format,completion.timestamp_format>>|Format of timestamps (e.g. for the history completion).
 |<<completion.use_best_match,completion.use_best_match>>|Execute the best-matching command on a partial match.
-|<<completion.web_history_max_items,completion.web_history_max_items>>|Number of URLs to show in the web history.
+|<<completion.web_history.exclude,completion.web_history.exclude>>|A list of patterns which should not be shown in the history.
+|<<completion.web_history.max_items,completion.web_history.max_items>>|Number of URLs to show in the web history.
 |<<confirm_quit,confirm_quit>>|Require a confirmation before quitting the application.
 |<<content.autoplay,content.autoplay>>|Automatically start playing `<video>` elements.
 |<<content.cache.appcache,content.cache.appcache>>|Enable support for the HTML 5 web application cache feature.
@@ -205,8 +206,7 @@
 |<<hints.prev_regexes,hints.prev_regexes>>|Comma-separated list of regular expressions to use for 'prev' links.
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
-|<<history.exclude,history.exclude>>|A list of patterns which should not be shown in the history.
-|<<history.gap_interval,history.gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
+|<<history_gap_interval,history_gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
 |<<input.escape_quits_reporter,input.escape_quits_reporter>>|Allow Escape to quit the crash reporter.
 |<<input.forward_unbound_keys,input.forward_unbound_keys>>|Which unbound keys to forward to the webview in normal mode.
 |<<input.insert_mode.auto_enter,input.insert_mode.auto_enter>>|Enter insert mode if an editable element is clicked.
@@ -1448,8 +1448,19 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-[[completion.web_history_max_items]]
-=== completion.web_history_max_items
+[[completion.web_history.exclude]]
+=== completion.web_history.exclude
+A list of patterns which should not be shown in the history.
+This only affects the completion. Matching URLs are still saved in the history (and visible on the qute://history page), but hidden.
+Changing this setting will cause the completion history to be regenerated on the next start, which will take a short while.
+This setting requires a restart.
+
+Type: <<types,List of UrlPattern>>
+
+Default: empty
+
+[[completion.web_history.max_items]]
+=== completion.web_history.max_items
 Number of URLs to show in the web history.
 0: no history / -1: unlimited
 
@@ -2510,19 +2521,8 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-[[history.exclude]]
-=== history.exclude
-A list of patterns which should not be shown in the history.
-This only affects the completion and qute://history page. Matching URLs are still saved in the history, but hidden.
-Changing this setting will cause the completion history to be regenerated on the next start, which will take a short while.
-This setting requires a restart.
-
-Type: <<types,List of UrlPattern>>
-
-Default: empty
-
-[[history.gap_interval]]
-=== history.gap_interval
+[[history_gap_interval]]
+=== history_gap_interval
 Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
 Items with less time between them are grouped when being displayed in `:history`. Use -1 to disable separation.
 

@@ -276,7 +276,7 @@ def qute_history(url):
         return 'text/html', jinja.render(
             'history.html',
             title='History',
-            gap_interval=config.val.history.gap_interval
+            gap_interval=config.val.history_gap_interval
         )
 
 

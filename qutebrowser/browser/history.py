@@ -137,7 +137,7 @@ class WebHistory(sql.SqlTable):
     def __contains__(self, url):
         return self._contains_query.run(val=url).value()
 
-    @config.change_filter('history.exclude')
+    @config.change_filter('completion.web_history.exclude')
     def _on_config_changed(self):
         self.metainfo['force_rebuild'] = True
 
@@ -157,7 +157,7 @@ class WebHistory(sql.SqlTable):
         for entry in q.run():
             url = QUrl(entry.url)
             if any(pattern.matches(url)
-                   for pattern in config.val.history.exclude):
+                   for pattern in config.val.completion.web_history.exclude):
                 continue
             data['url'].append(self._format_completion_url(url))
             data['title'].append(entry.title)
@@ -270,7 +270,7 @@ class WebHistory(sql.SqlTable):
                          'redirect': redirect})
 
             if any(pattern.matches(url)
-                   for pattern in config.val.history.exclude):
+                   for pattern in config.val.completion.web_history.exclude):
                 return
             if redirect:
                 return
