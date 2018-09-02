@@ -17,20 +17,22 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""A 'high-performance' cache for the config system.
 
-Useful for areas which call out to the config system very frequently, DO NOT
-modify the value returned, DO NOT require per-url settings, do not change
-frequently, and do not require partially 'expanded' config paths.
-
-If any of these requirements are broken, you will get incorrect or slow
-behavior.
-"""
+"""Implementation of a basic config cache."""
 
 from qutebrowser.config import config
 
 
 class ConfigCache():
+    """A 'high-performance' cache for the config system.
+
+    Useful for areas which call out to the config system very frequently, DO
+    NOT modify the value returned, DO NOT require per-url settings, do not
+    change frequently, and do not require partially 'expanded' config paths.
+
+    If any of these requirements are broken, you will get incorrect or slow
+    behavior.
+    """
 
     def __init__(self) -> None:
         self.cache = {}
@@ -40,7 +42,7 @@ class ConfigCache():
         if attr in self.cache:
             self.cache[attr] = config.instance.get(attr)
 
-    def __setitem__(self, attr):
+    def __setitem__(self, attr, _value):
         raise Exception("ConfigCache cannot be used to set values.")
 
     def __getitem__(self, attr: str):
