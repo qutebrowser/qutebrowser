@@ -20,9 +20,11 @@
 """A 'high-performance' cache for the config system.
 
 Useful for areas which call out to the config system very frequently, DO NOT
-modify the value returned, and DO NOT require per-url settings.
+modify the value returned, DO NOT require per-url settings, do not change
+frequently, and do not require partially 'expanded' config paths.
 
-If any of these requirements are broken, you will get incorrect behavior.
+If any of these requirements are broken, you will get incorrect or slow
+behavior.
 """
 
 from qutebrowser.config import config
@@ -38,7 +40,10 @@ class ConfigCache():
         if attr in self.cache:
             self.cache[attr] = config.instance.get(attr)
 
-    def __getattr__(self, attr: str):
+    def __setitem__(self, attr):
+        raise Exception("ConfigCache cannot be used to set values.")
+
+    def __getitem__(self, attr: str):
         if attr not in self.cache:
             assert not config.instance.get_opt(attr).supports_pattern
             self.cache[attr] = config.instance.get(attr)

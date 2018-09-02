@@ -139,9 +139,9 @@ class TabWidget(QTabWidget):
         """
         tab = self.widget(idx)
         if tab.data.pinned:
-            fmt = config.val.tabs.title.format_pinned
+            fmt = config.configcache['tabs.title.format_pinned']
         else:
-            fmt = config.val.tabs.title.format
+            fmt = config.configcache['tabs.title.format']
 
         if (field is not None and
                 (fmt is None or ('{' + field + '}') not in fmt)):
@@ -604,7 +604,7 @@ class TabBar(QTabBar):
         minimum_size = self.minimumTabSizeHint(index)
         height = minimum_size.height()
         if self.vertical:
-            confwidth = str(config.val.tabs.width)
+            confwidth = str(config.configcache['tabs.width'])
             if confwidth.endswith('%'):
                 main_window = objreg.get('main-window', scope='window',
                                          window=self._win_id)
@@ -614,7 +614,7 @@ class TabBar(QTabBar):
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)
         else:
-            if config.val.tabs.pinned.shrink:
+            if config.configcache['tabs.pinned.shrink']:
                 pinned = self._tab_pinned(index)
                 pinned_count, pinned_width = self._pinned_statistics()
             else:
@@ -652,15 +652,15 @@ class TabBar(QTabBar):
             tab = QStyleOptionTab()
             self.initStyleOption(tab, idx)
 
-            # pylint: disable=bad-config-option
-            setting = config.val.colors.tabs
-            # pylint: enable=bad-config-option
+            setting = 'colors.tabs'
             if idx == selected:
-                setting = setting.selected
-            setting = setting.odd if (idx + 1) % 2 else setting.even
+                setting += '.selected'
+            setting += '.odd' if (idx + 1) % 2 else '.even'
 
-            tab.palette.setColor(QPalette.Window, setting.bg)
-            tab.palette.setColor(QPalette.WindowText, setting.fg)
+            tab.palette.setColor(QPalette.Window,
+                                 config.configcache[setting + '.bg'])
+            tab.palette.setColor(QPalette.WindowText,
+                                 config.configcache[setting + '.fg'])
 
             indicator_color = self.tab_indicator_color(idx)
             tab.palette.setColor(QPalette.Base, indicator_color)
@@ -805,7 +805,7 @@ class TabBarStyle(QCommonStyle):
         elif element == QStyle.CE_TabBarTabLabel:
             if not opt.icon.isNull() and layouts.icon.isValid():
                 self._draw_icon(layouts, opt, p)
-            alignment = (config.val.tabs.title.alignment |
+            alignment = (config.configcache['tabs.title.alignment'] |
                          Qt.AlignVCenter | Qt.TextHideMnemonic)
             self._style.drawItemText(p, layouts.text, alignment, opt.palette,
                                      opt.state & QStyle.State_Enabled,
@@ -878,8 +878,8 @@ class TabBarStyle(QCommonStyle):
         Return:
             A Layout object with two QRects.
         """
-        padding = config.val.tabs.padding
-        indicator_padding = config.val.tabs.indicator.padding
+        padding = config.configcache['tabs.padding']
+        indicator_padding = config.configcache['tabs.indicator.padding']
 
         text_rect = QRect(opt.rect)
         if not text_rect.isValid():
@@ -890,7 +890,7 @@ class TabBarStyle(QCommonStyle):
         text_rect.adjust(padding.left, padding.top, -padding.right,
                          -padding.bottom)
 
-        indicator_width = config.val.tabs.indicator.width
+        indicator_width = config.configcache['tabs.indicator.width']
         if indicator_width == 0:
             indicator_rect = QRect()
         else:
@@ -933,9 +933,9 @@ class TabBarStyle(QCommonStyle):
         icon_state = (QIcon.On if opt.state & QStyle.State_Selected
                       else QIcon.Off)
         # reserve space for favicon when tab bar is vertical (issue #1968)
-        position = config.val.tabs.position
+        position = config.configcache['tabs.position']
         if (position in [QTabWidget.East, QTabWidget.West] and
-                config.val.tabs.favicons.show != 'never'):
+                config.configcache['tabs.favicons.show'] != 'never'):
             tab_icon_size = icon_size
         else:
             actual_size = opt.icon.actualSize(icon_size, icon_mode, icon_state)
