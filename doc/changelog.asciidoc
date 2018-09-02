@@ -37,6 +37,8 @@ Changed
 - The `app_id` is now set to `qutebrowser` for Wayland.
 - `Command` or `Cmd` can now be used (instead of `Meta`) to map the Command key
   on macOS.
+- Using `:set option` now shows the value of the setting (like `:set option?`
+  already did).
 
 v1.4.2
 ------
