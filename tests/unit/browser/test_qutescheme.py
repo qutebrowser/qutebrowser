@@ -135,15 +135,13 @@ class TestHistoryHandler:
             assert item['time'] > end_time
 
     def test_exclude(self, fake_web_history, now, config_stub):
+        """Make sure the history.exclude setting does not apply."""
         config_stub.set_obj('history.exclude', ['www.x.com'])
-        url = QUrl('http://www.example.org/')
-        fake_web_history.add_from_tab(url, url, 'title')
 
         url = QUrl("qute://history/data?start_time={}".format(now))
         _mimetype, data = qutescheme.qute_history(url)
         items = json.loads(data)
-        assert len(items) == 1
-        assert items[0]['url'] == 'http://www.example.org/'
+        assert items
 
     def test_qute_history_benchmark(self, fake_web_history, benchmark, now):
         r = range(100000)

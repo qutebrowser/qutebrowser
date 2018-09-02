@@ -252,9 +252,7 @@ def history_data(start_time, offset=None):
     return [{"url": e.url,
              "title": html.escape(e.title) or html.escape(e.url),
              "time": e.atime}
-            for e in entries
-            if not any(pattern.matches(QUrl(e.url))
-                       for pattern in config.val.history.exclude)]
+            for e in entries]
 
 
 @add_handler('history')
