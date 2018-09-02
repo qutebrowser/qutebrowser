@@ -97,7 +97,6 @@ class ConfigCommands:
             pattern: The URL pattern to use.
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
-
         """
         if option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',

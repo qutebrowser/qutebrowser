@@ -63,7 +63,7 @@ class TestSet:
 
     @pytest.mark.parametrize('option', ['url.auto_search?', 'url.auto_search'])
     def test_get(self, config_stub, commands, message_mock, option):
-        """Run ':set url.auto_search?' / ':set url.auto_search?'.
+        """Run ':set url.auto_search?' / ':set url.auto_search'.
 
         Should show the value.
         """
@@ -186,7 +186,8 @@ class TestSet:
 
     def test_empty(self, commands):
         """Run ':set ?'.
-         Should show an error.
+
+        Should show an error.
         See https://github.com/qutebrowser/qutebrowser/issues/1109
         """
         with pytest.raises(cmdexc.CommandError, match="No option '?'"):
