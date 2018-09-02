@@ -38,8 +38,8 @@ Changed
 - `Command` or `Cmd` can now be used (instead of `Meta`) to map the Command key
   on macOS.
 
-v1.4.2 (unreleased)
--------------------
+v1.4.2
+------
 
 Changed
 ~~~~~~~
@@ -65,7 +65,7 @@ Fixed
   Note it still does not work on Qt 5.10 (due to a Qt bug) and Qt < 5.9.2.
 - Repeated escaping of entries in `qute://log` when refreshing page.
 - The host blocker doesn't block 0.0.0.0 anymore.
-- Crash when using :// as URL pattern
+- Crash when using :// as URL pattern.
 
 v1.4.1
 ------
