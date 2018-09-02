@@ -1139,7 +1139,7 @@ Syntax: +:set [*--temp*] [*--print*] [*--pattern* 'pattern'] ['option'] ['value'
 
 Set an option.
 
-If the option name ends with '?', the value of the option is shown instead. Using :set without any arguments opens a page where settings can be changed interactively.
+If the option name ends with '?' or no value is provided, the value of the option is shown instead. Using :set without any arguments opens a page where settings can be changed interactively.
 
 ==== positional arguments
 * +'option'+: The name of the option.
