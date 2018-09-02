@@ -211,11 +211,13 @@ class WebEngineSearch(browsertab.AbstractSearch):
         if reverse:
             self._flags |= QWebEnginePage.FindBackward
 
+        config.instance.set_str("scrolling.bar", "true")
         self._find(text, self._flags, result_cb, 'search')
 
     def clear(self):
         self.search_displayed = False
         self._widget.findText('')
+        config.instance.unset("scrolling.bar")
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
