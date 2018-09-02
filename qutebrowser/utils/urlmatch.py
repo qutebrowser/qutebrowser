@@ -140,7 +140,9 @@ class UrlPattern:
         Deviation from Chromium:
         - We assume * when no scheme has been given.
         """
-        assert parsed.scheme, parsed
+        if not parsed.scheme:
+            raise ParseError("Missing scheme")
+
         if parsed.scheme == 'any':
             self._scheme = None
             return

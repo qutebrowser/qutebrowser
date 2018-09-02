@@ -84,6 +84,7 @@ from qutebrowser.utils import urlmatch
 
     # Additional tests
     ("http://[", "Invalid IPv6 URL"),
+    ("://", "Missing scheme"),
 ])
 def test_invalid_patterns(pattern, error):
     with pytest.raises(urlmatch.ParseError, match=re.escape(error)):
