@@ -123,7 +123,7 @@ class BaseType:
     """A type used for a setting value.
 
     Attributes:
-        none_ok: Whether to convert to None for an empty string.
+        none_ok: Whether to allow None (or an empty string for :set) as value.
 
     Class attributes:
         valid_values: Possible values if they can be expressed as a fixed

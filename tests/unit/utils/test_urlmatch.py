@@ -96,7 +96,7 @@ from qutebrowser.utils import urlmatch
     ("http://[fc2e:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:bb88:edac"; host = ""'),
     ("http://[fc2e:bb88:edac::z]", 'Invalid IPv6 address; source was "fc2e:bb88:edac::z"; host = ""'),
     ("http://[fc2e:bb88:edac::2]:2a2", "Invalid port: invalid literal for int() with base 10: '2a2'"),
-
+    ("://", "Missing scheme"),
 ])
 def test_invalid_patterns(pattern, error):
     with pytest.raises(urlmatch.ParseError, match=re.escape(error)):
