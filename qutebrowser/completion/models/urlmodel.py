@@ -51,7 +51,8 @@ def _delete_quickmark(data):
 
 
 def url(*, info):
-    """A model which combines bookmarks, quickmarks, search engines and web history URLs.
+    """A model which combines bookmarks, quickmarks, search engines and web
+    history URLs.
 
     Used for the `open` command.
     """

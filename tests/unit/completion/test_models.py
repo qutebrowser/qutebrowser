@@ -490,7 +490,7 @@ def test_url_completion(qtmodeltester, config_stub, web_history_populated,
     })
 
 def test_search_only_default(qtmodeltester, config_stub, web_history_populated,
-                        quickmarks, bookmarks, info):
+                             quickmarks, bookmarks, info):
     """Test that Seardh engines is not shown when only default search engine is set in settings.
 
     Verify that:
@@ -855,11 +855,12 @@ def test_setting_option_completion(qtmodeltester, config_stub,
             ('bindings.commands', 'Default keybindings', (
                 '{"normal": {"<Ctrl+q>": "quit", "ZQ": "quit", '
                 '"I": "invalid", "d": "scroll down"}}')),
-            ('completion.open_categories', 'Which categories to show (in which order) in the :open completion.', '["searchengines", "quickmarks", "bookmarks", "history"]'),
+            ('completion.open_categories', 'Which categories to show (in which order) in the :open completion.',
+             '["searchengines", "quickmarks", "bookmarks", "history"]'),
             ('content.javascript.enabled', 'Enable/Disable JavaScript',
              'true'),
             ('url.searchengines', 'searchengines list',
-                '{"DEFAULT": "https://duckduckgo.com/?q={}", "google": "https://google.com/?q={}"}'),
+             '{"DEFAULT": "https://duckduckgo.com/?q={}", "google": "https://google.com/?q={}"}'),
         ]
     })
 
