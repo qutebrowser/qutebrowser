@@ -24,4 +24,4 @@ pydocstyle==2.1.1
 pyflakes==2.0.0
 six==1.11.0
 snowballstemmer==1.2.1
-typing==3.6.4
+typing==3.6.6
