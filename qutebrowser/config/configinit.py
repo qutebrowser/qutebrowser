@@ -89,6 +89,8 @@ def _init_envvars():
             os.environ['QT_XCB_FORCE_SOFTWARE_OPENGL'] = '1'
         elif software_rendering == 'qt-quick':
             os.environ['QT_QUICK_BACKEND'] = 'software'
+        elif software_rendering == 'chromium':
+            os.environ['QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND'] = '1'
 
     if config.val.qt.force_platform is not None:
         os.environ['QT_QPA_PLATFORM'] = config.val.qt.force_platform

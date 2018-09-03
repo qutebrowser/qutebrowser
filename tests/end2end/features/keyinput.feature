@@ -18,6 +18,7 @@ Feature: Keyboard input
 
     # input.forward_unbound_keys
 
+    @qt<5.11.1
     Scenario: Forwarding all keys
         When I open data/keyinput/log.html
         And I set input.forward_unbound_keys to all
@@ -30,6 +31,7 @@ Feature: Keyboard input
         And the javascript message "key press: 112" should be logged
         And the javascript message "key release: 112" should be logged
 
+    @qt<5.11.1
     Scenario: Forwarding special keys
         When I open data/keyinput/log.html
         And I set input.forward_unbound_keys to auto

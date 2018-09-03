@@ -5,6 +5,11 @@ The Compiler <mail@qutebrowser.org>
 :data-uri:
 :toc:
 
+IMPORTANT: I'm currently (July 2018) more busy than usual until September,
+because of exams coming up. Review of non-trivial pull requests will thus be
+delayed until then. If you're reading this note after mid-September, please
+open an issue.
+
 I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
 
 This document contains guidelines for contributing to qutebrowser, as well as
@@ -88,7 +93,7 @@ git format-patch origin/master <1>
 Running qutebrowser
 -------------------
 
-After link:install.asciidoc#tox[installing qutebrowser via tox], you can run
+After link:install.html#tox[installing qutebrowser via tox], you can run
 `.venv/bin/qutebrowser --debug --temp-basedir` to test your changes with debug
 logging enabled and without affecting existing running instances.
 
@@ -689,8 +694,6 @@ New PyQt release
 ~~~~~~~~~~~~~~~~
 
 * See above.
-* Install new PyQt in Windows VM (32- and 64-bit).
-* Download new installer and update PyQt installer path in `ci_install.py`.
 * Update `tox.ini`/`.travis.yml`/`.appveyor.yml` to test new versions.
 
 qutebrowser release
@@ -712,8 +715,8 @@ qutebrowser release
 as closed.
 
 * Linux: Run `git checkout v1.$x.$y && ./.venv/bin/python3 scripts/dev/build_release.py --upload v1.$x.$y`.
-* Windows: Run `git checkout v1.X.Y; C:\Python36-32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
-* macOS: Run `git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
+* Windows: Run `git checkout v1.X.Y; py -3.6 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
+* macOS: Run `pyenv shell 3.6.6 && git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
 * On server:
   - Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
   - Run `git pull github master && sudo python3 scripts/asciidoc2html.py --website /srv/http/qutebrowser`

@@ -136,7 +136,15 @@ def link_pyqt(executable, venv_path):
         executable: The python executable where the source files are present.
         venv_path: The path to the virtualenv site-packages.
     """
-    sip_file = get_lib_path(executable, 'sip')
+    try:
+        get_lib_path(executable, 'PyQt5.sip')
+    except Error:
+        # There is no PyQt5.sip, so we need to copy the toplevel sip.
+        sip_file = get_lib_path(executable, 'sip')
+    else:
+        # There is a PyQt5.sip, it'll get copied with the PyQt5 dir.
+        sip_file = None
+
     sipconfig_file = get_lib_path(executable, 'sipconfig', required=False)
     pyqt_dir = os.path.dirname(get_lib_path(executable, 'PyQt5.QtCore'))
 

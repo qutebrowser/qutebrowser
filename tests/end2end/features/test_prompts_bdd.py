@@ -17,8 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import time
+
 import pytest_bdd as bdd
 bdd.scenarios('prompts.feature')
+
+from qutebrowser.utils import qtutils
 
 
 @bdd.when("I load an SSL page")
@@ -46,14 +50,21 @@ def no_prompt_shown(quteproc):
 
 @bdd.then("a SSL error page should be shown")
 def ssl_error_page(request, quteproc):
-    if not request.config.webengine:
-        line = quteproc.wait_for(message='Error while loading *: SSL '
-                                 'handshake failed')
-        line.expected = True
-    quteproc.wait_for(message="Changing title for idx * to 'Error "
-                      "loading page: *'")
-    content = quteproc.get_content().strip()
-    assert "Unable to load page" in content
+    if request.config.webengine and qtutils.version_check('5.9'):
+        quteproc.wait_for(message="Certificate error: *")
+        time.sleep(0.5)  # Wait for error page to appear
+        content = quteproc.get_content().strip()
+        assert ("ERR_INSECURE_RESPONSE" in content or  # Qt <= 5.10
+                "ERR_CERT_AUTHORITY_INVALID" in content)  # Qt 5.11
+    else:
+        if not request.config.webengine:
+            line = quteproc.wait_for(message='Error while loading *: SSL '
+                                     'handshake failed')
+            line.expected = True
+        quteproc.wait_for(message="Changing title for idx * to 'Error "
+                          "loading page: *'")
+        content = quteproc.get_content().strip()
+        assert "Unable to load page" in content
 
 
 class AbstractCertificateErrorWrapper:

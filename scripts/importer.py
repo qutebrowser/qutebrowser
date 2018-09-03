@@ -333,6 +333,8 @@ def import_chrome(profile, bookmark_types, output_format):
 
         def bm_tree_walk(bm, template):
             """Recursive function to walk through bookmarks."""
+            if not isinstance(bm, dict):
+                return
             assert 'type' in bm, bm
             if bm['type'] == 'url':
                 if urllib.parse.urlparse(bm['url']).scheme != 'chrome':

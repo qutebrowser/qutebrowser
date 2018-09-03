@@ -104,6 +104,7 @@ def run(args):
     qApp = Application(args)
     qApp.setOrganizationName("qutebrowser")
     qApp.setApplicationName("qutebrowser")
+    qApp.setDesktopFileName("qutebrowser")
     qApp.setApplicationVersion(qutebrowser.__version__)
     qApp.lastWindowClosed.connect(quitter.on_last_window_closed)
 
@@ -129,6 +130,9 @@ def run(args):
         sys.exit(usertypes.Exit.err_ipc)
 
     if server is None:
+        if args.backend is not None:
+            log.init.warning(
+                "Backend from the running instance will be used")
         sys.exit(usertypes.Exit.ok)
     else:
         server.got_args.connect(lambda args, target_arg, cwd:

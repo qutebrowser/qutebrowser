@@ -313,12 +313,29 @@ def _chromium_version():
     http://code.qt.io/cgit/qt/qtwebengine.git/tree/tools/scripts/version_resolver.py#n41
 
     Quick reference:
+
     Qt 5.7:  Chromium 49
+             49.0.2623.111 (2016-03-02)
+             5.7.1: Security fixes up to 54.0.2840.87 (2016-10-19)
+
     Qt 5.8:  Chromium 53
+             53.0.2785.148 (2016-08-31)
+             5.8.0: Security fixes up to 55.0.2883.75 (2016-12-01)
+
     Qt 5.9:  Chromium 56
+    (LTS)    56.0.2924.122 (2017-01-25)
+             5.9.6: Security fixes up to 66.0.3359.170 (2018-04-17)
+
     Qt 5.10: Chromium 61
+             61.0.3163.140 (2017-09-05)
+             5.10.1: Security fixes up to 64.0.3282.140 (2018-01-24)
+
     Qt 5.11: Chromium 65
+             65.0.3325.151 (.1: .230) (2018-03-06)
+             5.11.1: Security fixes up to 67.0.3396.87 (2018-05-29)
+
     Qt 5.12: Chromium 69 (?)
+             current dev branch: 67.0.3396.76 (2018-05-29)
 
     Also see https://www.chromium.org/developers/calendar
     """
@@ -433,6 +450,11 @@ def opengl_vendor():  # pragma: no cover
     """
     assert QApplication.instance()
 
+    override = os.environ.get('QUTE_FAKE_OPENGL_VENDOR')
+    if override is not None:
+        log.init.debug("Using override {}".format(override))
+        return override
+
     old_context = QOpenGLContext.currentContext()
     old_surface = None if old_context is None else old_context.surface()
 
@@ -442,12 +464,12 @@ def opengl_vendor():  # pragma: no cover
     ctx = QOpenGLContext()
     ok = ctx.create()
     if not ok:
-        log.init.debug("opengl_vendor: Creating context failed!")
+        log.init.debug("Creating context failed!")
         return None
 
     ok = ctx.makeCurrent(surface)
     if not ok:
-        log.init.debug("opengl_vendor: Making context current failed!")
+        log.init.debug("Making context current failed!")
         return None
 
     try:
@@ -461,12 +483,11 @@ def opengl_vendor():  # pragma: no cover
         try:
             vf = ctx.versionFunctions(vp)
         except ImportError as e:
-            log.init.debug("opengl_vendor: Importing version functions "
-                           "failed: {}".format(e))
+            log.init.debug("Importing version functions failed: {}".format(e))
             return None
 
         if vf is None:
-            log.init.debug("opengl_vendor: Getting version functions failed!")
+            log.init.debug("Getting version functions failed!")
             return None
 
         return vf.glGetString(vf.GL_VENDOR)
@@ -484,6 +505,7 @@ def pastebin_version(pbclient=None):
 
     def _on_paste_version_success(url):
         global pastebin_url
+        url = url.strip()
         _yank_url(url)
         pbclient.deleteLater()
         pastebin_url = url

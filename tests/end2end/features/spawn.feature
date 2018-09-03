@@ -47,6 +47,17 @@ Feature: :spawn
             - data/hello.txt
             - data/hello.txt (active)
 
+    @posix
+    Scenario: Running :spawn with userscript and count
+        When I run :spawn -u (testdata)/userscripts/hello_if_count with count 5
+        Then the message "Count is five!" should be shown
+
+    @posix
+    Scenario: Running :spawn with userscript and no count
+        When I run :spawn -u (testdata)/userscripts/hello_if_count
+        Then the message "No count!" should be shown
+
+
     @windows
     Scenario: Running :spawn with userscript on Windows
         When I open data/hello.txt

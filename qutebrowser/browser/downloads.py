@@ -29,7 +29,6 @@ import pathlib
 import tempfile
 import enum
 
-import sip
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel, QUrl)
 
@@ -37,6 +36,7 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
                                qtutils)
+from qutebrowser.qt import sip
 
 
 ModelRole = enum.IntEnum('ModelRole', ['item'], start=Qt.UserRole)
@@ -80,9 +80,9 @@ def download_dir():
         ddir = directory
 
     try:
-        os.makedirs(ddir)
-    except FileExistsError:
-        pass
+        os.makedirs(ddir, exist_ok=True)
+    except OSError as e:
+        message.error("Failed to create download directory: {}".format(e))
 
     return ddir
 
@@ -692,9 +692,7 @@ class AbstractDownloadItem(QObject):
         global last_used_directory
 
         try:
-            os.makedirs(os.path.dirname(self._filename))
-        except FileExistsError:
-            pass
+            os.makedirs(os.path.dirname(self._filename), exist_ok=True)
         except OSError as e:
             self._die(e.strerror)
 

@@ -74,10 +74,10 @@ class SqliteError(SqlError):
             '13',  # SQLITE_FULL
         ]
         # At least in init(), we can get errors like this:
-        # type: ConnectionError
-        # database text: out of memory
-        # driver text: Error opening database
-        # error code: -1
+        # > type: ConnectionError
+        # > database text: out of memory
+        # > driver text: Error opening database
+        # > error code: -1
         environmental_strings = [
             "out of memory",
         ]

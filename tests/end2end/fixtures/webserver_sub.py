@@ -261,6 +261,11 @@ def response_headers():
     return response
 
 
+@app.route('/query')
+def query():
+    return flask.jsonify(flask.request.args)
+
+
 @app.route('/user-agent')
 def view_user_agent():
     """Return User-Agent."""

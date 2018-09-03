@@ -22,7 +22,6 @@
 import html
 import functools
 
-import sip
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
@@ -35,6 +34,7 @@ from qutebrowser.browser import pdfjs, shared
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import message, usertypes, log, jinja, objreg
+from qutebrowser.qt import sip
 
 
 class BrowserPage(QWebPage):
@@ -212,7 +212,8 @@ class BrowserPage(QWebPage):
             page = pdfjs.generate_pdfjs_page(reply.url())
         except pdfjs.PDFJSNotFound:
             page = jinja.render('no_pdfjs.html',
-                                url=reply.url().toDisplayString())
+                                url=reply.url().toDisplayString(),
+                                title="PDF.js not found")
         self.mainFrame().setContent(page.encode('utf-8'), 'text/html',
                                     reply.url())
         reply.deleteLater()
@@ -415,7 +416,7 @@ class BrowserPage(QWebPage):
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
-        ua = config.val.content.headers.user_agent
+        ua = config.instance.get('content.headers.user_agent', url=url)
         if ua is None:
             return super().userAgentForUrl(url)
         else:

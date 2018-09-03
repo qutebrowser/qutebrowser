@@ -166,6 +166,8 @@ class WebEngineSettings(websettings.AbstractSettings):
             # Qt 5.11
             'content.autoplay':
                 ('PlaybackRequiresUserGesture', lambda val: not val),
+            'content.webrtc_public_interfaces_only':
+                ('WebRTCPublicInterfacesOnly', None),
         }
         for name, (attribute, converter) in new_attributes.items():
             try:
@@ -297,6 +299,8 @@ def init(args):
     if (args.enable_webengine_inspector and
             not hasattr(QWebEnginePage, 'setInspectedPage')):  # only Qt < 5.11
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
+
+    spell.init()
 
     _init_profiles()
     config.instance.changed.connect(_update_settings)

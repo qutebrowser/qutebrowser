@@ -23,7 +23,6 @@ import re
 import functools
 import xml.etree.ElementTree
 
-import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
 from PyQt5.QtGui import QKeyEvent, QIcon
@@ -35,6 +34,7 @@ from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
 from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+from qutebrowser.qt import sip
 
 
 class WebKitAction(browsertab.AbstractAction):
@@ -658,7 +658,7 @@ class WebKitTab(browsertab.AbstractTab):
                                  tab=self, parent=self)
         self.zoom = WebKitZoom(tab=self, parent=self)
         self.search = WebKitSearch(parent=self)
-        self.printing = WebKitPrinting()
+        self.printing = WebKitPrinting(tab=self)
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
         self.audio = WebKitAudio(parent=self)
@@ -807,6 +807,10 @@ class WebKitTab(browsertab.AbstractTab):
 
         if navigation.is_main_frame:
             self.settings.update_for_url(navigation.url)
+
+    @pyqtSlot()
+    def _on_ssl_errors(self):
+        self._has_ssl_errors = True
 
     def _connect_signals(self):
         view = self._widget

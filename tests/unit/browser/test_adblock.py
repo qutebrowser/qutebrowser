@@ -259,6 +259,33 @@ def test_parsing_multiple_hosts_on_line(config_stub, basedir, download_stub,
     assert_urls(host_blocker, whitelisted=[])
 
 
+@pytest.mark.parametrize('ip, host', [
+    ('127.0.0.1', 'localhost'),
+    ('27.0.0.1', 'localhost.localdomain'),
+    ('27.0.0.1', 'local'),
+    ('55.255.255.255', 'broadcasthost'),
+    (':1', 'localhost'),
+    (':1', 'ip6-localhost'),
+    (':1', 'ip6-loopback'),
+    ('e80::1%lo0', 'localhost'),
+    ('f00::0', 'ip6-localnet'),
+    ('f00::0', 'ip6-mcastprefix'),
+    ('f02::1', 'ip6-allnodes'),
+    ('f02::2', 'ip6-allrouters'),
+    ('ff02::3', 'ip6-allhosts'),
+    ('.0.0.0', '0.0.0.0'),
+    ('127.0.1.1', 'myhostname'),
+    ('127.0.0.53', 'myhostname'),
+])
+def test_whitelisted_lines(config_stub, basedir, download_stub, data_tmpdir,
+                           tmpdir, win_registry, caplog, ip, host):
+    """Make sure we don't block hosts we don't want to."""
+    host_blocker = adblock.HostBlocker()
+    line = ('{} {}'.format(ip, host)).encode('ascii')
+    host_blocker._parse_line(line)
+    assert host not in host_blocker._blocked_hosts
+
+
 def test_failed_dl_update(config_stub, basedir, download_stub,
                           data_tmpdir, tmpdir, win_registry, caplog):
     """One blocklist fails to download.

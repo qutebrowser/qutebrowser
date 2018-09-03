@@ -19,18 +19,17 @@
 
 """The main browser widget for QtWebEngine."""
 
-import sip
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, PYQT_VERSION
+from PyQt5.QtCore import pyqtSignal, QUrl, PYQT_VERSION
 from PyQt5.QtGui import QPalette
-from PyQt5.QtQuickWidgets import QQuickWidget
-from PyQt5.QtWebEngineWidgets import (QWebEngineView, QWebEnginePage,
-                                      QWebEngineScript)
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
 from qutebrowser.browser import shared
-from qutebrowser.browser.webengine import certificateerror, webenginesettings
+from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, jinja, objreg, qtutils
+from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
 from qutebrowser.misc import miscwidgets
+from qutebrowser.qt import sip
 
 
 class WebEngineView(QWebEngineView):
@@ -71,10 +70,10 @@ class WebEngineView(QWebEngineView):
             if proxy is not None:
                 return proxy
 
-        # This should only find the RenderWidgetHostViewQtDelegateWidget,
-        # but not e.g. a QMenu
-        children = [c for c in self.findChildren(QQuickWidget)
-                    if c.isVisible()]
+        # We don't want e.g. a QMenu.
+        rwhv_class = 'QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget'
+        children = [c for c in self.findChildren(QWidget)
+                    if c.isVisible() and c.inherits(rwhv_class)]
 
         log.webview.debug("Found possibly lost focusProxy: {}"
                           .format(children))
@@ -152,11 +151,13 @@ class WebEnginePage(QWebEnginePage):
 
     Signals:
         certificate_error: Emitted on certificate errors.
+                           Needs to be directly connected to a slot setting the
+                           'ignore' attribute.
         shutting_down: Emitted when the page is shutting down.
         navigation_request: Emitted on acceptNavigationRequest.
     """
 
-    certificate_error = pyqtSignal()
+    certificate_error = pyqtSignal(certificateerror.CertificateErrorWrapper)
     shutting_down = pyqtSignal()
     navigation_request = pyqtSignal(usertypes.NavigationRequest)
 
@@ -166,7 +167,6 @@ class WebEnginePage(QWebEnginePage):
         self._theme_color = theme_color
         self._set_bg_color()
         config.instance.changed.connect(self._set_bg_color)
-        self.urlChanged.connect(self._inject_userjs)
 
     @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):
@@ -181,36 +181,9 @@ class WebEnginePage(QWebEnginePage):
 
     def certificateError(self, error):
         """Handle certificate errors coming from Qt."""
-        self.certificate_error.emit()
-        url = error.url()
         error = certificateerror.CertificateErrorWrapper(error)
-        log.webview.debug("Certificate error: {}".format(error))
-
-        url_string = url.toDisplayString()
-        error_page = jinja.render(
-            'error.html', title="Error loading page: {}".format(url_string),
-            url=url_string, error=str(error))
-
-        if error.is_overridable():
-            ignore = shared.ignore_certificate_errors(
-                url, [error], abort_on=[self.loadStarted, self.shutting_down])
-        else:
-            log.webview.error("Non-overridable certificate error: "
-                              "{}".format(error))
-            ignore = False
-
-        # We can't really know when to show an error page, as the error might
-        # have happened when loading some resource.
-        # However, self.url() is not available yet and self.requestedUrl()
-        # might not match the URL we get from the error - so we just apply a
-        # heuristic here.
-        # See https://bugreports.qt.io/browse/QTBUG-56207
-        log.webview.debug("ignore {}, URL {}, requested {}".format(
-            ignore, url, self.requestedUrl()))
-        if not ignore and url.matches(self.requestedUrl(), QUrl.RemoveScheme):
-            self.setHtml(error_page)
-
-        return ignore
+        self.certificate_error.emit(error)
+        return error.ignore
 
     def javaScriptConfirm(self, url, js_msg):
         """Override javaScriptConfirm to use qutebrowser prompts."""
@@ -288,43 +261,3 @@ class WebEnginePage(QWebEnginePage):
                                                  is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
         return navigation.accepted
-
-    @pyqtSlot('QUrl')
-    def _inject_userjs(self, url):
-        """Inject userscripts registered for `url` into the current page."""
-        if qtutils.version_check('5.8'):
-            # Handled in webenginetab with the builtin Greasemonkey
-            # support.
-            return
-
-        # Using QWebEnginePage.scripts() to hold the user scripts means
-        # we don't have to worry ourselves about where to inject the
-        # page but also means scripts hang around for the tab lifecycle.
-        # So clear them here.
-        scripts = self.scripts()
-        for script in scripts.toList():
-            if script.name().startswith("GM-"):
-                log.greasemonkey.debug("Removing script: {}"
-                                       .format(script.name()))
-                removed = scripts.remove(script)
-                assert removed, script.name()
-
-        def _add_script(script, injection_point):
-            new_script = QWebEngineScript()
-            new_script.setInjectionPoint(injection_point)
-            new_script.setWorldId(QWebEngineScript.MainWorld)
-            new_script.setSourceCode(script.code())
-            new_script.setName("GM-{}".format(script.name))
-            new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
-            log.greasemonkey.debug("Adding script: {}"
-                                   .format(new_script.name()))
-            scripts.insert(new_script)
-
-        greasemonkey = objreg.get('greasemonkey')
-        matching_scripts = greasemonkey.scripts_for(url)
-        for script in matching_scripts.start:
-            _add_script(script, QWebEngineScript.DocumentCreation)
-        for script in matching_scripts.end:
-            _add_script(script, QWebEngineScript.DocumentReady)
-        for script in matching_scripts.idle:
-            _add_script(script, QWebEngineScript.Deferred)

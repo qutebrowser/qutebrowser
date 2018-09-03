@@ -60,9 +60,13 @@ def url(*, info):
     quickmarks = [(url, name) for (name, url)
                   in objreg.get('quickmark-manager').marks.items()]
     bookmarks = objreg.get('bookmark-manager').marks.items()
-    searchengines = config.val.url.searchengines.items()
-    categories = config.val.url.open_categories_shown
+    # pylint: disable=bad-config-option
+    searchengines = {k:v for k, v in config.val.url.searchengines.items()
+                     if k not in "DEFAULT"}.items()
+    # pylint: enable=bad-config-option
+    categories = config.val.completion.open_categories
     models = {}
+
 
     if searchengines and "searchengines" in categories:
         models["searchengines"] = listcategory.ListCategory(
