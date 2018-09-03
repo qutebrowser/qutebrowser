@@ -19,4 +19,4 @@ pytest-xvfb
 vulture
 
 #@ ignore: Jinja2, MarkupSafe, colorama
-#@ filter: pytest != 3.7, != 3.7.1, != 3.7.2
+#@ filter: pytest != 3.7, != 3.7.1, != 3.7.2, != 3.7.3, != 3.7.4

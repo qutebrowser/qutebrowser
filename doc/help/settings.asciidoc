@@ -100,6 +100,7 @@
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
 |<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
 |<<completion.min_chars,completion.min_chars>>|Minimum amount of characters needed to update completions.
+|<<completion.open_categories,completion.open_categories>>|Which categories to show (in which order) in the :open completion.
 |<<completion.quick,completion.quick>>|Move on to the next part when there's only one possible completion left.
 |<<completion.scrollbar.padding,completion.scrollbar.padding>>|Padding (in pixels) of the scrollbar handle in the completion window.
 |<<completion.scrollbar.width,completion.scrollbar.width>>|Width (in pixels) of the scrollbar in the completion window.
@@ -268,7 +269,6 @@
 |<<url.default_page,url.default_page>>|Page to open if :open -t/-b/-w is used without URL.
 |<<url.incdec_segments,url.incdec_segments>>|URL segments where `:navigate increment/decrement` will search for a number.
 |<<url.open_base_url,url.open_base_url>>|Open base URL of the searchengine if a searchengine shortcut is invoked without parameters.
-|<<url.open_categories_shown,url.open_categories_shown>>|Which categories should be shown in the :open dialogue.
 |<<url.searchengines,url.searchengines>>|Search engines which can be used via the address bar.
 |<<url.start_pages,url.start_pages>>|Page(s) to open at the start.
 |<<url.yank_ignored_parameters,url.yank_ignored_parameters>>|URL parameters to strip with `:yank url`.
@@ -1385,6 +1385,26 @@ Minimum amount of characters needed to update completions.
 Type: <<types,Int>>
 
 Default: +pass:[1]+
+
+[[completion.open_categories]]
+=== completion.open_categories
+Which categories to show (in which order) in the :open completion.
+
+Type: <<types,FlagList>>
+
+Valid values:
+
+ * +searchengines+
+ * +quickmarks+
+ * +bookmarks+
+ * +history+
+
+Default: 
+
+- +pass:[searchengines]+
+- +pass:[quickmarks]+
+- +pass:[bookmarks]+
+- +pass:[history]+
 
 [[completion.quick]]
 === completion.quick
@@ -3273,18 +3293,6 @@ Open base URL of the searchengine if a searchengine shortcut is invoked without 
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
-
-[[url.open_categories_shown]]
-=== url.open_categories_shown
-Which categories should be shown in the :open dialogue.
-
-Type: <<types,List of Strings>>
-
-Default
-- +pass:[bookmarks]+
-- +pass:[searchengines]+
-- +pass:[history]+
-- +pass:[quickmarks]+
 
 [[url.searchengines]]
 === url.searchengines

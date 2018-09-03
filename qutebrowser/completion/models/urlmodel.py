@@ -87,5 +87,5 @@ def url(*, info):
     for category in categories:
         if category in models:
             model.add_category(models[category])
-        
+
     return model
