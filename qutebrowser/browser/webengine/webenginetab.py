@@ -653,9 +653,9 @@ class WebEngineAudio(browsertab.AbstractAudio):
         return page.recentlyAudible()
 
     def _on_url_changed(self):
-        urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
-        muted_url = config.instance.get('content.mute', url=urlstr)
-        self.set_muted(muted_url is not None)
+        url = self._tab.url()
+        is_audible = config.instance.get('content.audible_default', url=url)
+        self.set_muted(not is_audible)
 
 
 class _WebEnginePermissions(QObject):

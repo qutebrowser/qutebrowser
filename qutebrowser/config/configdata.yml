@@ -746,13 +746,11 @@ content.xss_auditing:
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console.
 
-content.mute:
-  default: null
-  type:
-    name: String
-    none_ok: true
+content.audible_default:
+  default: true
+  type: Bool
+  desc: Play sounds automatically in web pages.
   supports_pattern: true
-  desc: List of URLs muted by default.
 
 # emacs: '
 
