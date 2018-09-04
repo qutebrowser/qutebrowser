@@ -172,7 +172,7 @@ def bookmarks(bookmark_manager_stub):
 def web_history(init_sql, stubs, config_stub):
     """Fixture which provides a web-history object."""
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
-    config_stub.val.completion.web_history_max_items = -1
+    config_stub.val.completion.web_history.max_items = -1
     stub = history.WebHistory()
     objreg.register('web-history', stub)
     yield stub
@@ -518,7 +518,7 @@ def test_url_completion_delete_history(qtmodeltester, info,
 def test_url_completion_zero_limit(config_stub, web_history, quickmarks, info,
                                    bookmarks):
     """Make sure there's no history if the limit was set to zero."""
-    config_stub.val.completion.web_history_max_items = 0
+    config_stub.val.completion.web_history.max_items = 0
     model = urlmodel.url(info=info)
     model.set_pattern('')
     category = model.index(2, 0)  # "History" normally

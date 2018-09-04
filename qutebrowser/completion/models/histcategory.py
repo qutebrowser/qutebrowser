@@ -42,7 +42,7 @@ class HistoryCategory(QSqlQueryModel):
 
     def _atime_expr(self):
         """If max_items is set, return an expression to limit the query."""
-        max_items = config.val.completion.web_history_max_items
+        max_items = config.val.completion.web_history.max_items
         # HistoryCategory should not be added to the completion in that case.
         assert max_items != 0
 
@@ -84,7 +84,7 @@ class HistoryCategory(QSqlQueryModel):
         timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
                    .format(timestamp_format.replace("'", "`")))
 
-        if not self._query or len(words) != len(self._query.boundValues()):
+        if not self._query or len(words) != len(self._query.bound_values()):
             # if the number of words changed, we need to generate a new query
             # otherwise, we can reuse the prepared query for performance
             self._query = sql.Query(' '.join([
@@ -100,14 +100,14 @@ class HistoryCategory(QSqlQueryModel):
         with debug.log_time('sql', 'Running completion query'):
             self._query.run(**{
                 str(i): w for i, w in enumerate(words)})
-        self.setQuery(self._query)
+        self.setQuery(self._query.query)
 
     def removeRows(self, row, _count, _parent=None):
         """Override QAbstractItemModel::removeRows to re-run sql query."""
         # re-run query to reload updated table
         with debug.log_time('sql', 'Re-running completion query post-delete'):
             self._query.run()
-        self.setQuery(self._query)
+        self.setQuery(self._query.query)
         while self.rowCount() < row:
             self.fetchMore()
         return True

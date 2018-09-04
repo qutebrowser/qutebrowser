@@ -90,14 +90,15 @@ class TestHistoryHandler:
         for i in range(entry_count):
             entry_atime = now - i * interval
             entry = {"atime": str(entry_atime),
-                     "url": QUrl("www.x.com/" + str(i)),
+                     "url": QUrl("http://www.x.com/" + str(i)),
                      "title": "Page " + str(i)}
             items.insert(0, entry)
 
         return items
 
     @pytest.fixture
-    def fake_web_history(self, fake_save_manager, tmpdir, init_sql):
+    def fake_web_history(self, fake_save_manager, tmpdir, init_sql,
+                         config_stub):
         """Create a fake web-history and register it into objreg."""
         web_history = history.WebHistory()
         objreg.register('web-history', web_history)
@@ -132,6 +133,15 @@ class TestHistoryHandler:
         for item in items:
             assert item['time'] <= start_time
             assert item['time'] > end_time
+
+    def test_exclude(self, fake_web_history, now, config_stub):
+        """Make sure the completion.web_history.exclude setting is not used."""
+        config_stub.val.completion.web_history.exclude = ['www.x.com']
+
+        url = QUrl("qute://history/data?start_time={}".format(now))
+        _mimetype, data = qutescheme.qute_history(url)
+        items = json.loads(data)
+        assert items
 
     def test_qute_history_benchmark(self, fake_web_history, benchmark, now):
         r = range(100000)

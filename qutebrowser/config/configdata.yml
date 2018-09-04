@@ -812,7 +812,27 @@ completion.timestamp_format:
   default: '%Y-%m-%d'
   desc: Format of timestamps (e.g. for the history completion).
 
+completion.web_history.exclude:
+  type:
+    name: List
+    valtype: UrlPattern
+    none_ok: true
+  default: []
+  restart: true
+  desc: >-
+    A list of patterns which should not be shown in the history.
+
+    This only affects the completion. Matching URLs are still saved in the
+    history (and visible on the qute://history page), but hidden in the
+    completion.
+
+    Changing this setting will cause the completion history to be regenerated
+    on the next start, which will take a short while.
+
 completion.web_history_max_items:
+  renamed: completion.web_history.max_items
+
+completion.web_history.max_items:
   default: -1
   type:
     name: Int

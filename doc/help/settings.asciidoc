@@ -107,7 +107,8 @@
 |<<completion.shrink,completion.shrink>>|Shrink the completion to be smaller than the configured size if there are no scrollbars.
 |<<completion.timestamp_format,completion.timestamp_format>>|Format of timestamps (e.g. for the history completion).
 |<<completion.use_best_match,completion.use_best_match>>|Execute the best-matching command on a partial match.
-|<<completion.web_history_max_items,completion.web_history_max_items>>|Number of URLs to show in the web history.
+|<<completion.web_history.exclude,completion.web_history.exclude>>|A list of patterns which should not be shown in the history.
+|<<completion.web_history.max_items,completion.web_history.max_items>>|Number of URLs to show in the web history.
 |<<confirm_quit,confirm_quit>>|Require a confirmation before quitting the application.
 |<<content.autoplay,content.autoplay>>|Automatically start playing `<video>` elements.
 |<<content.cache.appcache,content.cache.appcache>>|Enable support for the HTML 5 web application cache feature.
@@ -1447,8 +1448,19 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-[[completion.web_history_max_items]]
-=== completion.web_history_max_items
+[[completion.web_history.exclude]]
+=== completion.web_history.exclude
+A list of patterns which should not be shown in the history.
+This only affects the completion. Matching URLs are still saved in the history (and visible on the qute://history page), but hidden in the completion.
+Changing this setting will cause the completion history to be regenerated on the next start, which will take a short while.
+This setting requires a restart.
+
+Type: <<types,List of UrlPattern>>
+
+Default: empty
+
+[[completion.web_history.max_items]]
+=== completion.web_history.max_items
 Number of URLs to show in the web history.
 0: no history / -1: unlimited
 
@@ -3449,5 +3461,8 @@ See the setting's valid values for more information on allowed values.
 See https://sqlite.org/lang_datefunc.html for reference.
 |UniqueCharString|A string which may not contain duplicate chars.
 |Url|A URL as a string.
+|UrlPattern|A match pattern for a URL.
+
+See https://developer.chrome.com/apps/match_patterns for the allowed syntax.
 |VerticalPosition|The position of the download bar.
 |==============

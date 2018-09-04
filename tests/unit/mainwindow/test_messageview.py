@@ -81,7 +81,7 @@ def test_changing_timer_with_messages_shown(qtbot, view, config_stub):
     config_stub.val.messages.timeout = 900000  # 15s
     view.show_message(usertypes.MessageLevel.info, 'test')
     with qtbot.waitSignal(view._clear_timer.timeout):
-        config_stub.set_obj('messages.timeout', 100)
+        config_stub.val.messages.timeout = 100
 
 
 @pytest.mark.parametrize('count, expected', [(1, 100), (3, 300),

@@ -25,6 +25,8 @@ Added
 - When `:spawn --userscript` is called with a count, that count is now
   passed to userscripts as `$QUTE_COUNT`.
 - New `content.mouse_lock` setting to handle HTML5 pointer locking.
+- New `completion.web_history.exclude` setting which hides a list of URL
+  patterns from the completion.
 
 Changed
 ~~~~~~~
@@ -39,6 +41,8 @@ Changed
   on macOS.
 - Using `:set option` now shows the value of the setting (like `:set option?`
   already did).
+- The `completion.web_history_max_items` setting got renamed to
+  `completion.web_history.max_items`.
 
 v1.4.2
 ------

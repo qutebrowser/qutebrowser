@@ -25,6 +25,7 @@ import contextlib
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QTimer, pyqtSignal
 
+from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import (utils, objreg, log, usertypes, message,
                                debug, standarddir, qtutils)
@@ -33,6 +34,41 @@ from qutebrowser.misc import objects, sql
 
 # increment to indicate that HistoryCompletion must be regenerated
 _USER_VERSION = 2
+
+
+class CompletionMetaInfo(sql.SqlTable):
+
+    """Table containing meta-information for the completion."""
+
+    KEYS = {
+        'force_rebuild': False,
+    }
+
+    def __init__(self, parent=None):
+        super().__init__("CompletionMetaInfo", ['key', 'value'],
+                         constraints={'key': 'PRIMARY KEY'})
+        for key, default in self.KEYS.items():
+            if key not in self:
+                self[key] = default
+
+    def _check_key(self, key):
+        if key not in self.KEYS:
+            raise KeyError(key)
+
+    def __contains__(self, key):
+        self._check_key(key)
+        query = self.contains_query('key')
+        return query.run(val=key).value()
+
+    def __getitem__(self, key):
+        self._check_key(key)
+        query = sql.Query('SELECT value FROM CompletionMetaInfo '
+                          'WHERE key = :key')
+        return query.run(key=key).value()
+
+    def __setitem__(self, key, value):
+        self._check_key(key)
+        self.insert({'key': key, 'value': value}, replace=True)
 
 
 class CompletionHistory(sql.SqlTable):
@@ -65,11 +101,18 @@ class WebHistory(sql.SqlTable):
                                       'redirect': 'NOT NULL'},
                          parent=parent)
         self.completion = CompletionHistory(parent=self)
+        self.metainfo = CompletionMetaInfo(parent=self)
+
         if sql.Query('pragma user_version').run().value() < _USER_VERSION:
             self.completion.delete_all()
+        if self.metainfo['force_rebuild']:
+            self.completion.delete_all()
+            self.metainfo['force_rebuild'] = False
+
         if not self.completion:
             # either the table is out-of-date or the user wiped it manually
             self._rebuild_completion()
+
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
@@ -87,21 +130,29 @@ class WebHistory(sql.SqlTable):
                                        'ORDER BY atime desc '
                                        'limit :limit offset :offset')
 
+        config.instance.changed.connect(self._on_config_changed)
+
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
 
     def __contains__(self, url):
         return self._contains_query.run(val=url).value()
 
+    @config.change_filter('completion.web_history.exclude')
+    def _on_config_changed(self):
+        self.metainfo['force_rebuild'] = True
+
     @contextlib.contextmanager
     def _handle_sql_errors(self):
         try:
             yield
-        except sql.SqlError as e:
-            if e.environmental:
-                message.error("Failed to write history: {}".format(e.text()))
-            else:
-                raise
+        except sql.SqlEnvironmentError as e:
+            message.error("Failed to write history: {}".format(e.text()))
+
+    def _is_excluded(self, url):
+        """Check if the given URL is excluded from the completion."""
+        return any(pattern.matches(url)
+                   for pattern in config.val.completion.web_history.exclude)
 
     def _rebuild_completion(self):
         data = {'url': [], 'title': [], 'last_atime': []}
@@ -110,9 +161,13 @@ class WebHistory(sql.SqlTable):
                       'WHERE NOT redirect and url NOT LIKE "qute://back%" '
                       'GROUP BY url ORDER BY atime asc')
         for entry in q.run():
-            data['url'].append(self._format_completion_url(QUrl(entry.url)))
+            url = QUrl(entry.url)
+            if self._is_excluded(url):
+                continue
+            data['url'].append(self._format_completion_url(url))
             data['title'].append(entry.title)
             data['last_atime'].append(entry.atime)
+
         self.completion.insert_batch(data, replace=True)
         sql.Query('pragma user_version = {}'.format(_USER_VERSION)).run()
 
@@ -218,12 +273,15 @@ class WebHistory(sql.SqlTable):
                          'title': title,
                          'atime': atime,
                          'redirect': redirect})
-            if not redirect:
-                self.completion.insert({
-                    'url': self._format_completion_url(url),
-                    'title': title,
-                    'last_atime': atime
-                }, replace=True)
+
+            if redirect or self._is_excluded(url):
+                return
+
+            self.completion.insert({
+                'url': self._format_completion_url(url),
+                'title': title,
+                'last_atime': atime
+            }, replace=True)
 
     def _parse_entry(self, line):
         """Parse a history line like '12345 http://example.com title'."""
