@@ -60,36 +60,39 @@ csrf_token = None
 _HANDLERS = {}
 
 
-class NoHandlerFound(Exception):
+class Error(Exception):
 
-    """Raised when no handler was found for the given URL."""
-
-    pass
-
-
-class QuteSchemeOSError(Exception):
-
-    """Called when there was an OSError inside a handler."""
+    """Exception for generic errors on a qute:// page."""
 
     pass
 
 
-class QuteSchemeError(Exception):
+class NotFoundError(Error):
 
-    """Exception to signal that a handler should return an ErrorReply.
+    """Raised when the given URL was not found."""
 
-    Attributes correspond to the arguments in
-    networkreply.ErrorNetworkReply.
+    pass
 
-    Attributes:
-        errorstring: Error string to print.
-        error: Numerical error value.
-    """
 
-    def __init__(self, errorstring, error):
-        self.errorstring = errorstring
-        self.error = error
-        super().__init__(errorstring)
+class SchemeOSError(Error):
+
+    """Raised when there was an OSError inside a handler."""
+
+    pass
+
+
+class UrlInvalidError(Error):
+
+    """Raised when an invalid URL was opened."""
+
+    pass
+
+
+class RequestDeniedError(Error):
+
+    """Raised when the request is forbidden."""
+
+    pass
 
 
 class Redirect(Exception):
@@ -175,18 +178,19 @@ def data_for_url(url):
         if query:
             new_url.setQuery(query)
         if new_url.host():  # path was a valid host
-            raise Redirect(new_url)
+            raise NotFoundError("No handler found for {}".format(
+                url.toDisplayString()))
 
     try:
         handler = _HANDLERS[host]
     except KeyError:
-        raise NoHandlerFound(url)
+        raise NotFoundError("No handler found for {}".format(
+            url.toDisplayString()))
 
     try:
         mimetype, data = handler(url)
     except OSError as e:
-        # FIXME:qtwebengine how to handle this?
-        raise QuteSchemeOSError(e)
+        raise SchemeOSError(e)
 
     assert mimetype is not None, url
     if mimetype == 'text/html' and isinstance(data, str):
@@ -262,13 +266,13 @@ def qute_history(url):
             offset = QUrlQuery(url).queryItemValue("offset")
             offset = int(offset) if offset else None
         except ValueError as e:
-            raise QuteSchemeError("Query parameter offset is invalid", e)
+            raise UrlInvalidError("Query parameter offset is invalid")
         # Use start_time in query or current time.
         try:
             start_time = QUrlQuery(url).queryItemValue("start_time")
             start_time = float(start_time) if start_time else time.time()
         except ValueError as e:
-            raise QuteSchemeError("Query parameter start_time is invalid", e)
+            raise UrlInvalidError("Query parameter start_time is invalid")
 
         return 'text/html', json.dumps(history_data(start_time, offset))
     else:
@@ -290,7 +294,7 @@ def qute_javascript(url):
         path = "javascript" + os.sep.join(path.split('/'))
         return 'text/html', utils.read_file(path, binary=False)
     else:
-        raise QuteSchemeError("No file specified", ValueError())
+        raise UrlInvalidError("No file specified")
 
 
 @add_handler('pyeval')
@@ -379,7 +383,7 @@ def qute_help(url):
         try:
             bdata = utils.read_file(path, binary=True)
         except OSError as e:
-            raise QuteSchemeOSError(e)
+            raise SchemeOSError(e)
         mimetype, _encoding = mimetypes.guess_type(urlpath)
         assert mimetype is not None, url
         return mimetype, bdata
@@ -461,8 +465,7 @@ def qute_settings(url):
     if url.path() == '/set':
         if url.password() != csrf_token:
             message.error("Invalid CSRF token for qute://settings!")
-            raise QuteSchemeError("Invalid CSRF token!",
-                                  QNetworkReply.ContentAccessDenied)
+            raise RequestDeniedError("Invalid CSRF token!")
         return _qute_settings_set(url)
 
     # Requests to qute://settings/set should only be allowed from

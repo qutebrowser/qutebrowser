@@ -61,13 +61,13 @@ class TestJavascriptHandler:
     def test_qutejavascript_404(self):
         url = QUrl("qute://javascript/404.js")
 
-        with pytest.raises(qutescheme.QuteSchemeOSError):
+        with pytest.raises(qutescheme.SchemeOSError):
             qutescheme.data_for_url(url)
 
     def test_qutejavascript_empty_query(self):
         url = QUrl("qute://javascript")
 
-        with pytest.raises(qutescheme.QuteSchemeError):
+        with pytest.raises(qutescheme.UrlInvalidError):
             qutescheme.qute_javascript(url)
 
 
