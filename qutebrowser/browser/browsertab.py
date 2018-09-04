@@ -666,9 +666,10 @@ class AbstractAudio(QObject):
     muted_changed = pyqtSignal(bool)
     recently_audible_changed = pyqtSignal(bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._widget = None
+        self._tab = tab
 
     def set_muted(self, muted: bool):
         """Set this tab as muted or not."""

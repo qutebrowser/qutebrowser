@@ -746,6 +746,14 @@ content.xss_auditing:
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console.
 
+content.mute:
+  default: null
+  type:
+    name: String
+    none_ok: true
+  supports_pattern: true
+  desc: List of URLs muted by default.
+
 # emacs: '
 
 ## completion

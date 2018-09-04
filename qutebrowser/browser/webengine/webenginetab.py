@@ -638,6 +638,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         page = self._widget.page()
         page.audioMutedChanged.connect(self.muted_changed)
         page.recentlyAudibleChanged.connect(self.recently_audible_changed)
+        self._tab.url_changed.connect(self._on_url_changed)
 
     def set_muted(self, muted: bool):
         page = self._widget.page()
@@ -650,6 +651,11 @@ class WebEngineAudio(browsertab.AbstractAudio):
     def is_recently_audible(self):
         page = self._widget.page()
         return page.recentlyAudible()
+
+    def _on_url_changed(self):
+        urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
+        muted_url = config.instance.get('content.mute', url=urlstr)
+        self.set_muted(muted_url is not None)
 
 
 class _WebEnginePermissions(QObject):
@@ -995,7 +1001,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.printing = WebEnginePrinting(tab=self)
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
-        self.audio = WebEngineAudio(parent=self)
+        self.audio = WebEngineAudio(tab=self, parent=self)
         self._permissions = _WebEnginePermissions(tab=self, parent=self)
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
