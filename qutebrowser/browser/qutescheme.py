@@ -42,7 +42,6 @@ except ImportError:
 
 import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
-from PyQt5.QtNetwork import QNetworkReply
 
 import qutebrowser
 from qutebrowser.config import config, configdata, configexc, configdiff
@@ -264,13 +263,13 @@ def qute_history(url):
         try:
             offset = QUrlQuery(url).queryItemValue("offset")
             offset = int(offset) if offset else None
-        except ValueError as e:
+        except ValueError:
             raise UrlInvalidError("Query parameter offset is invalid")
         # Use start_time in query or current time.
         try:
             start_time = QUrlQuery(url).queryItemValue("start_time")
             start_time = float(start_time) if start_time else time.time()
-        except ValueError as e:
+        except ValueError:
             raise UrlInvalidError("Query parameter start_time is invalid")
 
         return 'text/html', json.dumps(history_data(start_time, offset))
