@@ -523,6 +523,16 @@ def qute_pastebin_version(_url):
 @add_handler('pdfjs')
 def qute_pdfjs(url):
     """Handler for qute://pdfjs. Return the pdf.js viewer."""
+    # FIXME be more strict about allowed files here
+    if url.path() == '/file':
+        filename = QUrlQuery(url).queryItemValue('filename')
+        with open(filename, 'rb') as f:
+            data = f.read()
+        mimetype, _encoding = mimetypes.guess_type(filename)
+        if mimetype is None:
+            mimetype = 'application/octet-stream'
+        return mimetype, data
+
     try:
         data = pdfjs.get_pdfjs_res(url.path())
     except pdfjs.PDFJSNotFound as e:

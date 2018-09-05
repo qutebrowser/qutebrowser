@@ -155,7 +155,13 @@ def should_use_pdfjs(mimetype):
 def get_main_url(filename):
     """Get the URL to be opened to view a local PDF."""
     url = QUrl('qute://pdfjs/web/viewer.html')
+
+    file_url = QUrl('qute://pdfjs/file')
+    file_url_query = QUrlQuery()
+    file_url_query.addQueryItem('filename', filename)
+    file_url.setQuery(file_url_query)
+
     query = QUrlQuery()
-    query.addQueryItem('file', QUrl.fromLocalFile(filename).toString())
+    query.addQueryItem('file', file_url.toString())
     url.setQuery(query)
     return url
