@@ -22,9 +22,10 @@
 
 import os
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QUrlQuery
 
 from qutebrowser.utils import utils, javascript, jinja
+from qutebrowser.config import config
 
 
 class PDFJSNotFound(Exception):
@@ -210,3 +211,17 @@ def is_available():
         return False
     else:
         return True
+
+
+def should_use_pdfjs(mimetype):
+    return (mimetype in ['application/pdf', 'application/x-pdf'] and
+            config.val.content.pdfjs)
+
+
+def get_main_url(filename):
+    """Get the URL to be opened to view a local PDF."""
+    url = QUrl('qute://pdfjs')
+    query = QUrlQuery()
+    query.addQueryItem('file', QUrl.fromLocalFile(filename).toString())
+    url.setQuery(query)
+    return url
