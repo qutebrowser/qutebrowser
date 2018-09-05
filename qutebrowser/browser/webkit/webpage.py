@@ -208,12 +208,7 @@ class BrowserPage(QWebPage):
 
     def _show_pdfjs(self, reply):
         """Show the reply with pdfjs."""
-        try:
-            page = pdfjs.generate_pdfjs_page(reply.url())
-        except pdfjs.PDFJSNotFound:
-            page = jinja.render('no_pdfjs.html',
-                                url=reply.url().toDisplayString(),
-                                title="PDF.js not found")
+        page = pdfjs.generate_pdfjs_page(reply.url())
         self.mainFrame().setContent(page.encode('utf-8'), 'text/html',
                                     reply.url())
         reply.deleteLater()

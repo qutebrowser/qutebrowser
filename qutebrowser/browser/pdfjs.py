@@ -24,7 +24,7 @@ import os
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, javascript
+from qutebrowser.utils import utils, javascript, jinja
 
 
 class PDFJSNotFound(Exception):
@@ -49,6 +49,10 @@ def generate_pdfjs_page(url):
     Args:
         url: The url of the pdf as QUrl.
     """
+    if not is_available():
+        return jinja.render('no_pdfjs.html',
+                            url=url.toDisplayString(),
+                            title="PDF.js not found")
     viewer = get_pdfjs_res('web/viewer.html').decode('utf-8')
     script = _generate_pdfjs_script(url)
     html_page = viewer.replace('</body>',
