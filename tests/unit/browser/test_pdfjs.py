@@ -22,6 +22,45 @@ import pytest
 from qutebrowser.browser import pdfjs
 
 
+# Note that we got double protection, once because we use QUrl.FullyEncoded and
+# because we use qutebrowser.utils.javascript.string_escape.  Characters
+# like " are already replaced by QUrl.
+@pytest.mark.parametrize('url, expected', [
+    ('http://foo.bar', "http://foo.bar"),
+    ('http://"', ''),
+    ('\0', '%00'),
+    ('http://foobar/");alert("attack!");',
+     'http://foobar/%22);alert(%22attack!%22);'),
+])
+def test_generate_pdfjs_script(url, expected):
+    expected_open = 'open("{}");'.format(expected)
+    url = QUrl(url)
+    actual = pdfjs._generate_pdfjs_script(url)
+    assert expected_open in actual
+    assert 'PDFView' in actual
+
+
+def test_fix_urls():
+    page = textwrap.dedent("""
+        <html>
+        <script src="viewer.js"></script>
+        <link href="viewer.css">
+        <script src="unrelated.js"></script>
+        </html>
+    """).strip()
+
+    expected = textwrap.dedent("""
+        <html>
+        <script src="qute://pdfjs/web/viewer.js"></script>
+        <link href="qute://pdfjs/web/viewer.css">
+        <script src="unrelated.js"></script>
+        </html>
+    """).strip()
+
+    actual = pdfjs.fix_urls(page)
+    assert actual == expected
+
+
 @pytest.mark.parametrize('path, expected', [
     ('web/viewer.js', 'viewer.js'),
     ('build/locale/foo.bar', 'locale/foo.bar'),
