@@ -214,7 +214,7 @@ def should_use_pdfjs(mimetype):
 
 def get_main_url(filename):
     """Get the URL to be opened to view a local PDF."""
-    url = QUrl('qute://pdfjs/')
+    url = QUrl('qute://pdfjs/web/viewer.html')
 
     file_url = QUrl('qute://pdfjs/file')
     file_url_query = QUrlQuery()

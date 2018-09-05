@@ -533,7 +533,7 @@ def qute_pdfjs(url):
             mimetype = 'application/octet-stream'
         return mimetype, data
 
-    if url.path() == '/':
+    if url.path() == '/web/viewer.html':
         filepath = QUrlQuery(url).queryItemValue("file")
         data = pdfjs.generate_pdfjs_page(QUrl.fromLocalFile(filepath))
         return 'text/html', data

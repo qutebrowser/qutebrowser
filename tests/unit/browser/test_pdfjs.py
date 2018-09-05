@@ -17,7 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import textwrap
+
 import pytest
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import pdfjs
 
