@@ -42,39 +42,6 @@ class PDFJSNotFound(Exception):
         super().__init__(message)
 
 
-def generate_pdfjs_page(url):
-    """Return the html content of a page that displays url with pdfjs.
-
-    Returns a string.
-
-    Args:
-        url: The url of the pdf as QUrl.
-    """
-    if not is_available():
-        return jinja.render('no_pdfjs.html',
-                            url=url.toDisplayString(),
-                            title="PDF.js not found")
-    viewer = get_pdfjs_res('web/viewer.html').decode('utf-8')
-    script = _generate_pdfjs_script(url)
-    html_page = viewer.replace('</body>',
-                               '</body><script>{}</script>'.format(script))
-    return html_page
-
-
-def _generate_pdfjs_script(url):
-    """Generate the script that shows the pdf with pdf.js.
-
-    Args:
-        url: The url of the pdf page as QUrl.
-    """
-    return (
-        'document.addEventListener("DOMContentLoaded", function() {{\n'
-        '  PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
-        '  (window.PDFView || window.PDFViewerApplication).open("{url}");\n'
-        '}});\n'
-    ).format(url=javascript.string_escape(url.toString(QUrl.FullyEncoded)))
-
-
 def fix_urls(asset):
     """Take an html page and replace each relative URL with an absolute.
 
@@ -220,7 +187,7 @@ def should_use_pdfjs(mimetype):
 
 def get_main_url(filename):
     """Get the URL to be opened to view a local PDF."""
-    url = QUrl('qute://pdfjs')
+    url = QUrl('qute://pdfjs/web/viewer.html')
     query = QUrlQuery()
     query.addQueryItem('file', QUrl.fromLocalFile(filename).toString())
     url.setQuery(query)

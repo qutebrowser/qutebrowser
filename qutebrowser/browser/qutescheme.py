@@ -523,11 +523,6 @@ def qute_pastebin_version(_url):
 @add_handler('pdfjs')
 def qute_pdfjs(url):
     """Handler for qute://pdfjs. Return the pdf.js viewer."""
-    if url.path() == '/':
-        filepath = QUrlQuery(url).queryItemValue("file")
-        data = pdfjs.generate_pdfjs_page(QUrl.fromLocalFile(filepath))
-        return 'text/html', data
-
     try:
         data = pdfjs.get_pdfjs_res(url.path())
     except pdfjs.PDFJSNotFound as e:
