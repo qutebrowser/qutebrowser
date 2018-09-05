@@ -746,11 +746,16 @@ content.xss_auditing:
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console.
 
-content.audible_default:
-  default: true
+content.mute:
+  default: false
   type: Bool
-  desc: Play sounds automatically in web pages.
   supports_pattern: true
+  desc: >-
+    Mute new web pages.
+
+    It's off by default meaning that new web pages might play sounds.
+    It's possible to set this configuration differently for different
+    URLs.
 
 # emacs: '
 
