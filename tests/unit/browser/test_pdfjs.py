@@ -17,33 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import textwrap
-
 import pytest
-from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import pdfjs
-
-
-def test_fix_urls():
-    page = textwrap.dedent("""
-        <html>
-        <script src="viewer.js"></script>
-        <link href="viewer.css">
-        <script src="unrelated.js"></script>
-        </html>
-    """).strip()
-
-    expected = textwrap.dedent("""
-        <html>
-        <script src="qute://pdfjs/web/viewer.js"></script>
-        <link href="qute://pdfjs/web/viewer.css">
-        <script src="unrelated.js"></script>
-        </html>
-    """).strip()
-
-    actual = pdfjs.fix_urls(page)
-    assert actual == expected
 
 
 @pytest.mark.parametrize('path, expected', [

@@ -42,33 +42,6 @@ class PDFJSNotFound(Exception):
         super().__init__(message)
 
 
-def fix_urls(asset):
-    """Take an html page and replace each relative URL with an absolute.
-
-    This is specialized for pdf.js files and not a general purpose function.
-
-    Args:
-        asset: js file or html page as string.
-    """
-    new_urls = [
-        ('viewer.css', 'qute://pdfjs/web/viewer.css'),
-        ('compatibility.js', 'qute://pdfjs/web/compatibility.js'),
-        ('locale/locale.properties',
-         'qute://pdfjs/web/locale/locale.properties'),
-        ('l10n.js', 'qute://pdfjs/web/l10n.js'),
-        ('../build/pdf.js', 'qute://pdfjs/build/pdf.js'),
-        ('debugger.js', 'qute://pdfjs/web/debugger.js'),
-        ('viewer.js', 'qute://pdfjs/web/viewer.js'),
-        ('compressed.tracemonkey-pldi-09.pdf', ''),
-        ('./images/', 'qute://pdfjs/web/images/'),
-        ('../build/pdf.worker.js', 'qute://pdfjs/build/pdf.worker.js'),
-        ('../web/cmaps/', 'qute://pdfjs/web/cmaps/'),
-    ]
-    for original, new in new_urls:
-        asset = asset.replace(original, new)
-    return asset
-
-
 SYSTEM_PDFJS_PATHS = [
     # Debian pdf.js-common
     # Arch Linux pdfjs (AUR)
@@ -113,13 +86,7 @@ def get_pdfjs_res_and_path(path):
         except FileNotFoundError:
             raise PDFJSNotFound(path) from None
 
-    try:
-        # Might be script/html or might be binary
-        text_content = content.decode('utf-8')
-    except UnicodeDecodeError:
-        return (content, file_path)
-    text_content = fix_urls(text_content)
-    return (text_content.encode('utf-8'), file_path)
+    return content, file_path
 
 
 def get_pdfjs_res(path):
