@@ -43,6 +43,8 @@ Changed
   already did).
 - The `completion.web_history_max_items` setting got renamed to
   `completion.web_history.max_items`.
+- The Makefile shipped with qutebrowser now supports overriding variables
+  DATADIR and MANDIR.
 
 v1.4.2
 ------
