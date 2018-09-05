@@ -114,12 +114,10 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     Attributes:
         _name: The 'foo' part of qute://foo
-        backend: Limit which backends the handler can run with.
     """
 
-    def __init__(self, name, backend=None):
+    def __init__(self, name):
         self._name = name
-        self._backend = backend
         self._function = None
 
     def __call__(self, function):
@@ -129,19 +127,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def wrapper(self, *args, **kwargs):
         """Call the underlying function."""
-        if self._backend is not None and objects.backend != self._backend:
-            return self.wrong_backend_handler(*args, **kwargs)
-        else:
-            return self._function(*args, **kwargs)
-
-    def wrong_backend_handler(self, url):
-        """Show an error page about using the invalid backend."""
-        src = jinja.render('error.html',
-                           title="Error while opening qute://url",
-                           url=url.toDisplayString(),
-                           error='{} is not available with this '
-                                 'backend'.format(url.toDisplayString()))
-        return 'text/html', src
+        return self._function(*args, **kwargs)
 
 
 def data_for_url(url):
