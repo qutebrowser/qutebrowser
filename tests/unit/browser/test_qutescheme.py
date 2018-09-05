@@ -20,11 +20,12 @@
 import json
 import os
 import time
+import logging
 
 from PyQt5.QtCore import QUrl
 import pytest
 
-from qutebrowser.browser import qutescheme
+from qutebrowser.browser import qutescheme, pdfjs
 
 
 class TestJavascriptHandler:
@@ -169,3 +170,37 @@ class TestHelpHandler:
         mimetype, data = qutescheme.qute_help(QUrl('qute://help/foo.bin'))
         assert mimetype == 'application/octet-stream'
         assert data == b'\xff'
+
+
+class TestPDFJSHandler:
+
+    """Test the qute://pdfjs endpoint."""
+
+    @pytest.fixture(autouse=True)
+    def fake_pdfjs(self, monkeypatch):
+        def get_pdfjs_res(path):
+            if path == '/existing/file.html':
+                return b'foobar'
+            raise pdfjs.PDFJSNotFound(path)
+
+        monkeypatch.setattr(pdfjs, 'get_pdfjs_res', get_pdfjs_res)
+
+    @pytest.fixture(autouse=True)
+    def patch_backend(self, monkeypatch):
+        monkeypatch.setattr(qutescheme.objects, 'backend',
+                            usertypes.Backend.QtWebKit)
+
+    def test_existing_resource(self):
+        """Test with a resource that exists."""
+        _mimetype, data = qutescheme.data_for_url(
+            QUrl('qute://pdfjs/existing/file.html'))
+        assert data == b'foobar'
+
+    def test_nonexisting_resource(self, caplog):
+        """Test with a resource that does not exist."""
+        with caplog.at_level(logging.WARNING, 'misc'):
+            with pytest.raises(qutescheme.NotFoundError):
+                qutescheme.data_for_url(QUrl('qute://pdfjs/no/file.html'))
+        assert len(caplog.records) == 1
+        assert (caplog.records[0].message ==
+                'pdfjs resource requested but not found: /no/file.html')

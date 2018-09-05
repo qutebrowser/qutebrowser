@@ -44,6 +44,7 @@ import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
+from qutebrowser.browser import pdfjs
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, urlutils)
@@ -531,3 +532,21 @@ def qute_pastebin_version(_url):
     """Handler that pastebins the version string."""
     version.pastebin_version()
     return 'text/plain', b'Paste called.'
+
+
+@add_handler('pdfjs')
+def qute_pdfjs(url):
+    """Handler for qute://pdfjs. Return the pdf.js viewer."""
+    try:
+        data = pdfjs.get_pdfjs_res(url.path())
+    except pdfjs.PDFJSNotFound as e:
+        # Logging as the error might get lost otherwise since we're not showing
+        # the error page if a single asset is missing. This way we don't lose
+        # information, as the failed pdfjs requests are still in the log.
+        log.misc.warning(
+            "pdfjs resource requested but not found: {}".format(e.path))
+        raise NotFoundError("Can't find pdfjs resource '{}'".format(e.path))
+    else:
+        mimetype, _encoding = mimetypes.guess_type(url.fileName())
+        assert mimetype is not None, url
+        return mimetype, data

@@ -24,7 +24,7 @@ import mimetypes
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkReply, QNetworkAccessManager
 
-from qutebrowser.browser import pdfjs, qutescheme
+from qutebrowser.browser import qutescheme
 from qutebrowser.browser.webkit.network import networkreply
 from qutebrowser.utils import log, usertypes, qtutils
 
@@ -81,22 +81,3 @@ def handler(request, operation, current_url):
         return networkreply.RedirectNetworkReply(e.url)
 
     return networkreply.FixedDataNetworkReply(request, data, mimetype)
-
-
-@qutescheme.add_handler('pdfjs', backend=usertypes.Backend.QtWebKit)
-def qute_pdfjs(url):
-    """Handler for qute://pdfjs. Return the pdf.js viewer."""
-    try:
-        data = pdfjs.get_pdfjs_res(url.path())
-    except pdfjs.PDFJSNotFound as e:
-        # Logging as the error might get lost otherwise since we're not showing
-        # the error page if a single asset is missing. This way we don't lose
-        # information, as the failed pdfjs requests are still in the log.
-        log.misc.warning(
-            "pdfjs resource requested but not found: {}".format(e.path))
-        raise qutescheme.NotFoundError("Can't find pdfjs resource '{}'".format(
-            e.path))
-    else:
-        mimetype, _encoding = mimetypes.guess_type(url.fileName())
-        assert mimetype is not None, url
-        return mimetype, data
