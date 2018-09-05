@@ -26,8 +26,8 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScriptCollection
 import pytest
 
-from qutebrowser.browser.webengine.webenginetab import _WebEngineScripts
-from qutebrowser.browser.greasemonkey import GreasemonkeyScript
+from qutebrowser.browser.webengine import webenginetab
+from qutebrowser.browser import greasemonkey
 
 pytestmark = pytest.mark.usefixtures('greasemonkey_manager')
 
@@ -50,10 +50,10 @@ class TestWebengineScripts:
 
     def test_greasemonkey_undefined_world(self, fake_web_tab, caplog):
         """Make sure scripts with non-existent worlds are rejected."""
-        uut = _WebEngineScripts(fake_web_tab)
+        uut = webenginetab._WebEngineScripts(fake_web_tab)
         uut._widget = self.FakeWidget()
         scripts = [
-            GreasemonkeyScript([('qute-js-world', 'Mars')], None)
+            greasemonkey.GreasemonkeyScript([('qute-js-world', 'Mars')], None)
         ]
 
         with caplog.at_level(logging.ERROR, 'greasemonkey'):
@@ -64,16 +64,14 @@ class TestWebengineScripts:
         assert "has invalid value for '@qute-js-world': Mars" in msg
         uut._widget.scripts_mock.insert.assert_not_called()
 
-    @pytest.mark.parametrize("worldid", [
-        -1, 257
-    ])
+    @pytest.mark.parametrize("worldid", [-1, 257])
     def test_greasemonkey_out_of_range_world(self, worldid,
                                              fake_web_tab, caplog):
         """Make sure scripts with out-of-range worlds are rejected."""
-        uut = _WebEngineScripts(fake_web_tab)
+        uut = webenginetab._WebEngineScripts(fake_web_tab)
         uut._widget = self.FakeWidget()
         scripts = [
-            GreasemonkeyScript([('qute-js-world', worldid)], None)
+            greasemonkey.GreasemonkeyScript([('qute-js-world', worldid)], None)
         ]
 
         with caplog.at_level(logging.ERROR, 'greasemonkey'):
@@ -85,16 +83,14 @@ class TestWebengineScripts:
         assert "should be between 0 and" in msg
         uut._widget.scripts_mock.insert.assert_not_called()
 
-    @pytest.mark.parametrize("worldid", [
-        0, 10
-    ])
+    @pytest.mark.parametrize("worldid", [0, 10])
     def test_greasemonkey_good_worlds_are_passed(self, worldid,
                                                  fake_web_tab, caplog):
         """Make sure scripts with valid worlds have it set."""
-        uut = _WebEngineScripts(fake_web_tab)
+        uut = webenginetab._WebEngineScripts(fake_web_tab)
         uut._widget = self.FakeWidget()
         scripts = [
-            GreasemonkeyScript(
+            greasemonkey.GreasemonkeyScript(
                 [('name', 'foo'), ('qute-js-world', worldid)], None
             )
         ]

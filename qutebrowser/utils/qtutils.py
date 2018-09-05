@@ -24,7 +24,7 @@ Module attributes:
              value.
     MINVALS: A dictionary of C/Qt types (as string) mapped to their minimum
              value.
-    MAX_WORLD_ID: The highest World ID allowed in this version of QtWebEngine
+    MAX_WORLD_ID: The highest world ID allowed in this version of QtWebEngine.
 """
 
 
