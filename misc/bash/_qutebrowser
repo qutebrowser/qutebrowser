@@ -1,0 +1,106 @@
+_qutebrowser_basedir() {
+	local i=0
+
+	for word in "${COMP_WORDS[@]}"; do
+		if [ "$word" = -B ] || [ "$word" = --basedir ]; then
+			break
+		fi
+		i=$((i + 1))
+	done
+
+	if [ "$i" -lt ${#COMP_WORDS[@]} ]; then
+		printf '%s\n' "${COMP_WORDS[i + 1]}"
+	else
+		printf '%s\n' "${XDG_DATA_HOME:-$HOME/.local/share}/qutebrowser"
+	fi
+}
+
+_qutebrowser_sessions() {
+	ls -1 "$(_qutebrowser_basedir)/sessions" 2>/dev/null |
+		grep -v '_autosave' |
+		sed 's/\.yml$//g'
+}
+
+_qutebrowser() {
+	local options='-h --help
+	               -B --basedir
+	               -V --version
+	               -s --set
+	               -r --restore
+	               -R --override-restore
+	               --target
+	               --backend
+	               --enable-webengine-inspector
+	               -l --loglevel
+	               --logfilter
+	               --loglines
+	               -d --debug
+	               --json-logging
+	               --nocolor
+	               --force-color
+	               --nowindow
+	               ---T --temp-basedir
+	               --no-err-windows
+	               --qt-arg
+	               --qt-flag
+	               -D --debug-flag'
+
+        local targets='auto
+	              tab
+	              tab-bg
+	              tab-silent
+	              tab-bg-silent
+	              window'
+
+	local backends='webkit webengine'
+
+	local log_levels='critical
+	                  error
+	                  warning
+	                  info
+	                  debug
+	                  vdebug'
+
+	COMPREPLY=()
+
+	local cur prev
+
+	cur=${COMP_WORDS[COMP_CWORD]}
+	case "$cur" in
+	-*)
+		COMPREPLY=( $(compgen -W "$options" -- "$cur") )
+		;;
+	*)
+		prev=${COMP_WORDS[COMP_CWORD - 1]}
+
+		case "$prev" in
+		-B|--basedir)
+			COMPREPLY=( $(compgen -d "$cur") )
+			return 0
+			;;
+		-r|--restore)
+			COMPREPLY=( $(compgen -W "$(_qutebrowser_sessions)" -- "$cur") )
+			return 0
+			;;
+		--target)
+			COMPREPLY=( $(compgen -W "$targets" -- "$cur") )
+			return 0
+			;;
+		--backend)
+			COMPREPLY=( $(compgen -W "$backends" -- "$cur") )
+			return 0
+			;;
+		-l|--loglevel)
+			COMPREPLY=( $(compgen -W "$log_levels" -- "$cur") )
+			return 0
+			;;
+		*)
+			COMPREPLY=()
+			;;
+		esac
+	esac
+
+	return 0
+}
+
+complete -o filenames -o noquote -F _qutebrowser qutebrowser
