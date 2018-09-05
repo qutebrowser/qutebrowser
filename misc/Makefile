@@ -27,6 +27,8 @@ install: doc/qutebrowser.1.html
 			"$(DESTDIR)$(DATADIR)/icons/hicolor/$(i)x$(i)/apps/qutebrowser.png";)
 	install -Dm644 icons/qutebrowser.svg \
 		"$(DESTDIR)$(DATADIR)/icons/hicolor/scalable/apps/qutebrowser.svg"
+	install -m644 misc/bash/_qutebrowser \
+		"$(DESTDIR)$(DATADIR)/bash-completion/completions/_qutebrowser" || true
 	install -Dm755 -t "$(DESTDIR)$(DATADIR)/qutebrowser/userscripts/" \
 		$(wildcard misc/userscripts/*)
 	install -Dm755 -t "$(DESTDIR)$(DATADIR)/qutebrowser/scripts/" \
