@@ -27,7 +27,7 @@ import functools
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
-from qutebrowser.browser import downloads
+from qutebrowser.browser import downloads, pdfjs
 from qutebrowser.utils import debug, usertypes, message, log, qtutils
 
 
@@ -221,6 +221,10 @@ class DownloadManager(downloads.AbstractDownloadManager):
             download.set_target(self._mhtml_target)
             self._mhtml_target = None
             return
+        if pdfjs.should_use_pdfjs(qt_item.mimeType()):
+            download.set_target(downloads.PDFJSDownloadTarget())
+            return
+
 
         filename = downloads.immediate_download_path()
         if filename is not None:
