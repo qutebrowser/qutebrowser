@@ -652,8 +652,8 @@ class WebEngineAudio(browsertab.AbstractAudio):
         page = self._widget.page()
         return page.recentlyAudible()
 
-    def _on_url_changed(self):
-        url = self._tab.url()
+    @pyqtSlot(QUrl)
+    def _on_url_changed(self, url):
         is_audible = config.instance.get('content.audible_default', url=url)
         self.set_muted(not is_audible)
 
