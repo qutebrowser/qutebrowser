@@ -24,7 +24,8 @@ import os
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 
-from qutebrowser.utils import utils, javascript, jinja
+from qutebrowser.utils import utils, javascript, jinja, qtutils, usertypes
+from qutebrowser.misc import objects
 from qutebrowser.config import config
 
 
@@ -69,11 +70,18 @@ def _generate_pdfjs_script(url):
     """
     return jinja.js_environment.from_string("""
         document.addEventListener("DOMContentLoaded", function() {
+          {% if disable_create_object_url %}
           PDFJS.disableCreateObjectURL = true;
+          {% endif %}
           PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;
           (window.PDFView || window.PDFViewerApplication).open("{{ url }}");
         });
-    """).render(url=javascript.string_escape(url.toString(QUrl.FullyEncoded)))
+    """).render(
+        url=javascript.string_escape(url.toString(QUrl.FullyEncoded)),
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70420
+        disable_create_object_url=(
+            not qtutils.version_check('5.12') and
+            objects.backend == usertypes.Backend.QtWebEngine))
 
 
 SYSTEM_PDFJS_PATHS = [
