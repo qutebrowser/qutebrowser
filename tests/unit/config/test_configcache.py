@@ -17,6 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+# False-positives
+# FIXME: Report this to pylint?
+# pylint: disable=unsubscriptable-object
+
 """Tests for qutebrowser.config.configcache."""
 
 import pytest
@@ -30,6 +34,7 @@ def test_configcache_except_pattern(config_stub):
 
 
 def test_configcache_error_set(config_stub):
+    # pylint: disable=unsupported-assignment-operation
     with pytest.raises(TypeError):
         config.cache['content.javascript.enabled'] = True
 
