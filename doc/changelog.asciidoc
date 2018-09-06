@@ -46,6 +46,12 @@ Changed
 - The Makefile shipped with qutebrowser now supports overriding variables
   DATADIR and MANDIR.
 - Various performance improvements when many tabs are opened.
+- Regenerating completion history now shows a progress dialog.
+
+Removed
+~~~~~~~
+
+- Support for importing pre-v1.0.0 history files has been removed.
 
 v1.4.2
 ------
