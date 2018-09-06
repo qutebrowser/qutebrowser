@@ -45,6 +45,7 @@ Changed
   `completion.web_history.max_items`.
 - The Makefile shipped with qutebrowser now supports overriding variables
   DATADIR and MANDIR.
+- Various performance improvements when many tabs are opened.
 
 v1.4.2
 ------
