@@ -43,27 +43,6 @@ def test_generate_pdfjs_script(url, expected):
     assert 'PDFView' in actual
 
 
-def test_fix_urls():
-    page = textwrap.dedent("""
-        <html>
-        <script src="viewer.js"></script>
-        <link href="viewer.css">
-        <script src="unrelated.js"></script>
-        </html>
-    """).strip()
-
-    expected = textwrap.dedent("""
-        <html>
-        <script src="qute://pdfjs/web/viewer.js"></script>
-        <link href="qute://pdfjs/web/viewer.css">
-        <script src="unrelated.js"></script>
-        </html>
-    """).strip()
-
-    actual = pdfjs.fix_urls(page)
-    assert actual == expected
-
-
 @pytest.mark.parametrize('path, expected', [
     ('web/viewer.js', 'viewer.js'),
     ('build/locale/foo.bar', 'locale/foo.bar'),
