@@ -29,7 +29,6 @@ import json
 import os
 import time
 import textwrap
-import mimetypes
 import urllib
 import collections
 import base64
@@ -368,8 +367,7 @@ def qute_help(url):
             bdata = utils.read_file(path, binary=True)
         except OSError as e:
             raise SchemeOSError(e)
-        mimetype, _encoding = mimetypes.guess_type(urlpath)
-        assert mimetype is not None, url
+        mimetype = utils.guess_mimetype(urlpath)
         return mimetype, bdata
 
     try:
@@ -527,9 +525,7 @@ def qute_pdfjs(url):
         filename = QUrlQuery(url).queryItemValue('filename')
         with open(filename, 'rb') as f:
             data = f.read()
-        mimetype, _encoding = mimetypes.guess_type(filename)
-        if mimetype is None:
-            mimetype = 'application/octet-stream'
+        mimetype = utils.guess_mimetype(filename, fallback=True)
         return mimetype, data
 
     if url.path() == '/web/viewer.html':
@@ -547,7 +543,5 @@ def qute_pdfjs(url):
             "pdfjs resource requested but not found: {}".format(e.path))
         raise NotFoundError("Can't find pdfjs resource '{}'".format(e.path))
     else:
-        mimetype, _encoding = mimetypes.guess_type(url.fileName())
-        if mimetype is None:
-            mimetype = 'application/octet-stream'
+        mimetype = utils.guess_mimetype(url.fileName(), fallback=True)
         return mimetype, data
