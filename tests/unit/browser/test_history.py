@@ -468,3 +468,32 @@ class TestCompletionMetaInfo:
         assert not metainfo['force_rebuild']
         metainfo['force_rebuild'] = True
         assert metainfo['force_rebuild']
+
+
+class TestHistoryProgress:
+
+    @pytest.fixture
+    def progress(self):
+        return history.HistoryProgress()
+
+    def test_no_start(self, progress):
+        """Test calling tick/finish without start."""
+        progress.tick()
+        progress.finish()
+        assert progress._progress is None
+        assert progress._value == 1
+
+    def test_gui(self, qtbot, progress):
+        progress.start("Hello World", 42)
+        dialog = progress._progress
+        qtbot.add_widget(dialog)
+        progress.tick()
+
+        assert dialog.isVisible()
+        assert dialog.labelText() == "Hello World"
+        assert dialog.minimum() == 0
+        assert dialog.maximum() == 42
+        assert dialog.value() == 1
+
+        progress.finish()
+        assert not dialog.isVisible()
