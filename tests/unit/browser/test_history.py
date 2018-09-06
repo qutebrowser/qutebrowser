@@ -37,129 +37,106 @@ def prerequisites(config_stub, fake_save_manager, init_sql, fake_args):
     config_stub.data = {'general': {'private-browsing': False}}
 
 
-class FakeHistoryProgress:
-
-    """Fake for a WebHistoryProgress object."""
-
-    def __init__(self):
-        self._started = False
-        self._finished = False
-        self._value = 0
-
-    def start(self, _text, _maximum):
-        self._started = True
-
-    def tick(self):
-        self._value += 1
-
-    def finish(self):
-        self._finished = True
-
-
-@pytest.fixture()
-def hist(tmpdir):
-    return history.WebHistory(progress=FakeHistoryProgress())
-
-
 class TestSpecialMethods:
 
-    def test_iter(self, hist):
+    def test_iter(self, web_history):
         urlstr = 'http://www.example.com/'
         url = QUrl(urlstr)
-        hist.add_url(url, atime=12345)
+        web_history.add_url(url, atime=12345)
 
-        assert list(hist) == [(urlstr, '', 12345, False)]
+        assert list(web_history) == [(urlstr, '', 12345, False)]
 
-    def test_len(self, hist):
-        assert len(hist) == 0
+    def test_len(self, web_history):
+        assert len(web_history) == 0
 
         url = QUrl('http://www.example.com/')
-        hist.add_url(url)
+        web_history.add_url(url)
 
-        assert len(hist) == 1
+        assert len(web_history) == 1
 
-    def test_contains(self, hist):
-        hist.add_url(QUrl('http://www.example.com/'), title='Title',
-                     atime=12345)
-        assert 'http://www.example.com/' in hist
-        assert 'www.example.com' not in hist
-        assert 'Title' not in hist
-        assert 12345 not in hist
+    def test_contains(self, web_history):
+        web_history.add_url(QUrl('http://www.example.com/'),
+                            title='Title', atime=12345)
+        assert 'http://www.example.com/' in web_history
+        assert 'www.example.com' not in web_history
+        assert 'Title' not in web_history
+        assert 12345 not in web_history
 
 
 class TestGetting:
 
-    def test_get_recent(self, hist):
-        hist.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
-        hist.add_url(QUrl('http://example.com/'), atime=12345)
-        assert list(hist.get_recent()) == [
+    def test_get_recent(self, web_history):
+        web_history.add_url(QUrl('http://www.qutebrowser.org/'), atime=67890)
+        web_history.add_url(QUrl('http://example.com/'), atime=12345)
+        assert list(web_history.get_recent()) == [
             ('http://www.qutebrowser.org/', '', 67890, False),
             ('http://example.com/', '', 12345, False),
         ]
 
-    def test_entries_between(self, hist):
-        hist.add_url(QUrl('http://www.example.com/1'), atime=12345)
-        hist.add_url(QUrl('http://www.example.com/2'), atime=12346)
-        hist.add_url(QUrl('http://www.example.com/3'), atime=12347)
-        hist.add_url(QUrl('http://www.example.com/4'), atime=12348)
-        hist.add_url(QUrl('http://www.example.com/5'), atime=12348)
-        hist.add_url(QUrl('http://www.example.com/6'), atime=12349)
-        hist.add_url(QUrl('http://www.example.com/7'), atime=12350)
+    def test_entries_between(self, web_history):
+        web_history.add_url(QUrl('http://www.example.com/1'), atime=12345)
+        web_history.add_url(QUrl('http://www.example.com/2'), atime=12346)
+        web_history.add_url(QUrl('http://www.example.com/3'), atime=12347)
+        web_history.add_url(QUrl('http://www.example.com/4'), atime=12348)
+        web_history.add_url(QUrl('http://www.example.com/5'), atime=12348)
+        web_history.add_url(QUrl('http://www.example.com/6'), atime=12349)
+        web_history.add_url(QUrl('http://www.example.com/7'), atime=12350)
 
-        times = [x.atime for x in hist.entries_between(12346, 12349)]
+        times = [x.atime for x in web_history.entries_between(12346, 12349)]
         assert times == [12349, 12348, 12348, 12347]
 
-    def test_entries_before(self, hist):
-        hist.add_url(QUrl('http://www.example.com/1'), atime=12346)
-        hist.add_url(QUrl('http://www.example.com/2'), atime=12346)
-        hist.add_url(QUrl('http://www.example.com/3'), atime=12347)
-        hist.add_url(QUrl('http://www.example.com/4'), atime=12348)
-        hist.add_url(QUrl('http://www.example.com/5'), atime=12348)
-        hist.add_url(QUrl('http://www.example.com/6'), atime=12348)
-        hist.add_url(QUrl('http://www.example.com/7'), atime=12349)
-        hist.add_url(QUrl('http://www.example.com/8'), atime=12349)
+    def test_entries_before(self, web_history):
+        web_history.add_url(QUrl('http://www.example.com/1'), atime=12346)
+        web_history.add_url(QUrl('http://www.example.com/2'), atime=12346)
+        web_history.add_url(QUrl('http://www.example.com/3'), atime=12347)
+        web_history.add_url(QUrl('http://www.example.com/4'), atime=12348)
+        web_history.add_url(QUrl('http://www.example.com/5'), atime=12348)
+        web_history.add_url(QUrl('http://www.example.com/6'), atime=12348)
+        web_history.add_url(QUrl('http://www.example.com/7'), atime=12349)
+        web_history.add_url(QUrl('http://www.example.com/8'), atime=12349)
 
         times = [x.atime for x in
-                 hist.entries_before(12348, limit=3, offset=2)]
+                 web_history.entries_before(12348, limit=3, offset=2)]
         assert times == [12348, 12347, 12346]
 
 
 class TestDelete:
 
-    def test_clear(self, qtbot, tmpdir, hist, mocker):
-        hist.add_url(QUrl('http://example.com/'))
-        hist.add_url(QUrl('http://www.qutebrowser.org/'))
+    def test_clear(self, qtbot, tmpdir, web_history, mocker):
+        web_history.add_url(QUrl('http://example.com/'))
+        web_history.add_url(QUrl('http://www.qutebrowser.org/'))
 
         m = mocker.patch('qutebrowser.browser.history.message.confirm_async',
                          new=mocker.Mock, spec=[])
-        hist.clear()
+        web_history.clear()
         assert m.called
 
-    def test_clear_force(self, qtbot, tmpdir, hist):
-        hist.add_url(QUrl('http://example.com/'))
-        hist.add_url(QUrl('http://www.qutebrowser.org/'))
-        hist.clear(force=True)
-        assert not len(hist)
-        assert not len(hist.completion)
+    def test_clear_force(self, qtbot, tmpdir, web_history):
+        web_history.add_url(QUrl('http://example.com/'))
+        web_history.add_url(QUrl('http://www.qutebrowser.org/'))
+        web_history.clear(force=True)
+        assert not len(web_history)
+        assert not len(web_history.completion)
 
     @pytest.mark.parametrize('raw, escaped', [
         ('http://example.com/1', 'http://example.com/1'),
         ('http://example.com/1 2', 'http://example.com/1%202'),
     ])
-    def test_delete_url(self, hist, raw, escaped):
-        hist.add_url(QUrl('http://example.com/'), atime=0)
-        hist.add_url(QUrl(escaped), atime=0)
-        hist.add_url(QUrl('http://example.com/2'), atime=0)
+    def test_delete_url(self, web_history, raw, escaped):
+        web_history.add_url(QUrl('http://example.com/'), atime=0)
+        web_history.add_url(QUrl(escaped), atime=0)
+        web_history.add_url(QUrl('http://example.com/2'), atime=0)
 
-        before = set(hist)
-        completion_before = set(hist.completion)
+        before = set(web_history)
+        completion_before = set(web_history.completion)
 
-        hist.delete_url(QUrl(raw))
+        web_history.delete_url(QUrl(raw))
 
-        diff = before.difference(set(hist))
+        diff = before.difference(set(web_history))
         assert diff == {(escaped, '', 0, False)}
 
-        completion_diff = completion_before.difference(set(hist.completion))
+        completion_diff = completion_before.difference(
+            set(web_history.completion))
         assert completion_diff == {(raw, '', 0)}
 
 
@@ -183,30 +160,32 @@ class TestAdd:
              'https://user@example.com', 'https://user@example.com'),
         ]
     )
-    def test_add_url(self, qtbot, hist,
+    def test_add_url(self, qtbot, web_history,
                      url, atime, title, redirect, history_url, completion_url):
-        hist.add_url(QUrl(url), atime=atime, title=title, redirect=redirect)
-        assert list(hist) == [(history_url, title, atime, redirect)]
+        web_history.add_url(QUrl(url), atime=atime, title=title,
+                            redirect=redirect)
+        assert list(web_history) == [(history_url, title, atime, redirect)]
         if completion_url is None:
-            assert not len(hist.completion)
+            assert not len(web_history.completion)
         else:
-            assert list(hist.completion) == [(completion_url, title, atime)]
+            expected = [(completion_url, title, atime)]
+            assert list(web_history.completion) == expected
 
-    def test_no_sql_history(self, hist, fake_args):
+    def test_no_sql_web_history(self, web_history, fake_args):
         fake_args.debug_flags = 'no-sql-history'
-        hist.add_url(QUrl('https://www.example.com/'), atime=12346,
-                     title='Hello World', redirect=False)
-        assert not list(hist)
+        web_history.add_url(QUrl('https://www.example.com/'), atime=12346,
+                            title='Hello World', redirect=False)
+        assert not list(web_history)
 
-    def test_invalid(self, qtbot, hist, caplog):
+    def test_invalid(self, qtbot, web_history, caplog):
         with caplog.at_level(logging.WARNING):
-            hist.add_url(QUrl())
-        assert not list(hist)
-        assert not list(hist.completion)
+            web_history.add_url(QUrl())
+        assert not list(web_history)
+        assert not list(web_history.completion)
 
     @pytest.mark.parametrize('environmental', [True, False])
     @pytest.mark.parametrize('completion', [True, False])
-    def test_error(self, monkeypatch, hist, message_mock, caplog,
+    def test_error(self, monkeypatch, web_history, message_mock, caplog,
                    environmental, completion):
         def raise_error(url, replace=False):
             if environmental:
@@ -215,18 +194,18 @@ class TestAdd:
                 raise sql.SqlBugError("Error message")
 
         if completion:
-            monkeypatch.setattr(hist.completion, 'insert', raise_error)
+            monkeypatch.setattr(web_history.completion, 'insert', raise_error)
         else:
-            monkeypatch.setattr(hist, 'insert', raise_error)
+            monkeypatch.setattr(web_history, 'insert', raise_error)
 
         if environmental:
             with caplog.at_level(logging.ERROR):
-                hist.add_url(QUrl('https://www.example.org/'))
+                web_history.add_url(QUrl('https://www.example.org/'))
             msg = message_mock.getmsg(usertypes.MessageLevel.error)
             assert msg.text == "Failed to write history: Error message"
         else:
             with pytest.raises(sql.SqlBugError):
-                hist.add_url(QUrl('https://www.example.org/'))
+                web_history.add_url(QUrl('https://www.example.org/'))
 
     @pytest.mark.parametrize('level, url, req_url, expected', [
         (logging.DEBUG, 'a.com', 'a.com', [('a.com', 'title', 12345, False)]),
@@ -237,32 +216,33 @@ class TestAdd:
         (logging.WARNING, 'data:foo', '', []),
         (logging.WARNING, 'a.com', 'data:foo', []),
     ])
-    def test_from_tab(self, hist, caplog, mock_time,
+    def test_from_tab(self, web_history, caplog, mock_time,
                       level, url, req_url, expected):
         with caplog.at_level(level):
-            hist.add_from_tab(QUrl(url), QUrl(req_url), 'title')
-        assert set(hist) == set(expected)
+            web_history.add_from_tab(QUrl(url), QUrl(req_url), 'title')
+        assert set(web_history) == set(expected)
 
-    def test_exclude(self, hist, config_stub):
+    def test_exclude(self, web_history, config_stub):
         """Excluded URLs should be in the history but not completion."""
         config_stub.val.completion.web_history.exclude = ['*.example.org']
         url = QUrl('http://www.example.org/')
-        hist.add_from_tab(url, url, 'title')
-        assert list(hist)
-        assert not list(hist.completion)
+        web_history.add_from_tab(url, url, 'title')
+        assert list(web_history)
+        assert not list(web_history.completion)
 
 
 class TestHistoryInterface:
 
     @pytest.fixture
-    def hist_interface(self, hist):
+    def hist_interface(self, web_history):
         # pylint: disable=invalid-name
         QtWebKit = pytest.importorskip('PyQt5.QtWebKit')
         from qutebrowser.browser.webkit import webkithistory
         QWebHistoryInterface = QtWebKit.QWebHistoryInterface
         # pylint: enable=invalid-name
-        hist.add_url(url=QUrl('http://www.example.com/'), title='example')
-        interface = webkithistory.WebHistoryInterface(hist)
+        web_history.add_url(url=QUrl('http://www.example.com/'),
+                            title='example')
+        interface = webkithistory.WebHistoryInterface(web_history)
         QWebHistoryInterface.setDefaultInterface(interface)
         yield
         QWebHistoryInterface.setDefaultInterface(None)
@@ -280,9 +260,9 @@ class TestInit:
     def cleanup_init(self):
         # prevent test_init from leaking state
         yield
-        hist = objreg.get('web-history', None)
-        if hist is not None:
-            hist.setParent(None)
+        web_history = objreg.get('web-history', None)
+        if web_history is not None:
+            web_history.setParent(None)
             objreg.delete('web-history')
         try:
             from PyQt5.QtWebKit import QWebHistoryInterface
@@ -325,118 +305,124 @@ class TestInit:
 
 class TestDump:
 
-    def test_debug_dump_history(self, hist, tmpdir):
-        hist.add_url(QUrl('http://example.com/1'), title="Title1", atime=12345)
-        hist.add_url(QUrl('http://example.com/2'), title="Title2", atime=12346)
-        hist.add_url(QUrl('http://example.com/3'), title="Title3", atime=12347)
-        hist.add_url(QUrl('http://example.com/4'), title="Title4", atime=12348,
-                     redirect=True)
+    def test_debug_dump_history(self, web_history, tmpdir):
+        web_history.add_url(QUrl('http://example.com/1'),
+                            title="Title1", atime=12345)
+        web_history.add_url(QUrl('http://example.com/2'),
+                            title="Title2", atime=12346)
+        web_history.add_url(QUrl('http://example.com/3'),
+                            title="Title3", atime=12347)
+        web_history.add_url(QUrl('http://example.com/4'),
+                            title="Title4", atime=12348, redirect=True)
         histfile = tmpdir / 'history'
-        hist.debug_dump_history(str(histfile))
+        web_history.debug_dump_history(str(histfile))
         expected = ['12345 http://example.com/1 Title1',
                     '12346 http://example.com/2 Title2',
                     '12347 http://example.com/3 Title3',
                     '12348-r http://example.com/4 Title4']
         assert histfile.read() == '\n'.join(expected)
 
-    def test_nonexistent(self, hist, tmpdir):
+    def test_nonexistent(self, web_history, tmpdir):
         histfile = tmpdir / 'nonexistent' / 'history'
         with pytest.raises(cmdexc.CommandError):
-            hist.debug_dump_history(str(histfile))
+            web_history.debug_dump_history(str(histfile))
 
 
 class TestRebuild:
 
-    def test_delete(self, hist):
-        hist.insert({'url': 'example.com/1', 'title': 'example1',
-                     'redirect': False, 'atime': 1})
-        hist.insert({'url': 'example.com/1', 'title': 'example1',
-                     'redirect': False, 'atime': 2})
-        hist.insert({'url': 'example.com/2%203', 'title': 'example2',
-                     'redirect': False, 'atime': 3})
-        hist.insert({'url': 'example.com/3', 'title': 'example3',
-                     'redirect': True, 'atime': 4})
-        hist.insert({'url': 'example.com/2 3', 'title': 'example2',
-                     'redirect': False, 'atime': 5})
-        hist.completion.delete_all()
+    def test_delete(self, web_history, stubs):
+        web_history.insert({'url': 'example.com/1', 'title': 'example1',
+                            'redirect': False, 'atime': 1})
+        web_history.insert({'url': 'example.com/1', 'title': 'example1',
+                            'redirect': False, 'atime': 2})
+        web_history.insert({'url': 'example.com/2%203', 'title': 'example2',
+                            'redirect': False, 'atime': 3})
+        web_history.insert({'url': 'example.com/3', 'title': 'example3',
+                            'redirect': True, 'atime': 4})
+        web_history.insert({'url': 'example.com/2 3', 'title': 'example2',
+                            'redirect': False, 'atime': 5})
+        web_history.completion.delete_all()
 
-        hist2 = history.WebHistory(progress=FakeHistoryProgress())
+        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         assert list(hist2.completion) == [
             ('example.com/1', 'example1', 2),
             ('example.com/2 3', 'example2', 5),
         ]
 
-    def test_no_rebuild(self, hist):
+    def test_no_rebuild(self, web_history, stubs):
         """Ensure that completion is not regenerated unless empty."""
-        hist.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-        hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
-        hist.completion.delete('url', 'example.com/2')
+        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+        web_history.completion.delete('url', 'example.com/2')
 
-        hist2 = history.WebHistory(progress=FakeHistoryProgress())
+        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         assert list(hist2.completion) == [('example.com/1', '', 1)]
 
-    def test_user_version(self, hist, monkeypatch):
+    def test_user_version(self, web_history, stubs, monkeypatch):
         """Ensure that completion is regenerated if user_version changes."""
-        hist.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-        hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
-        hist.completion.delete('url', 'example.com/2')
+        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+        web_history.completion.delete('url', 'example.com/2')
 
-        hist2 = history.WebHistory(progress=FakeHistoryProgress())
+        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         assert list(hist2.completion) == [('example.com/1', '', 1)]
 
         monkeypatch.setattr(history, '_USER_VERSION',
                             history._USER_VERSION + 1)
-        hist3 = history.WebHistory(progress=FakeHistoryProgress())
+        hist3 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         assert list(hist3.completion) == [
             ('example.com/1', '', 1),
             ('example.com/2', '', 2),
         ]
 
-    def test_force_rebuild(self, hist):
+    def test_force_rebuild(self, web_history, stubs):
         """Ensure that completion is regenerated if we force a rebuild."""
-        hist.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-        hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
-        hist.completion.delete('url', 'example.com/2')
+        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+        web_history.completion.delete('url', 'example.com/2')
 
-        hist2 = history.WebHistory(progress=FakeHistoryProgress())
+        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         assert list(hist2.completion) == [('example.com/1', '', 1)]
         hist2.metainfo['force_rebuild'] = True
 
-        hist3 = history.WebHistory(progress=FakeHistoryProgress())
+        hist3 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         assert list(hist3.completion) == [
             ('example.com/1', '', 1),
             ('example.com/2', '', 2),
         ]
         assert not hist3.metainfo['force_rebuild']
 
-    def test_exclude(self, config_stub, hist):
+    def test_exclude(self, config_stub, web_history, stubs):
         """Ensure that patterns in completion.web_history.exclude are ignored.
 
         This setting should only be used for the completion.
         """
         config_stub.val.completion.web_history.exclude = ['*.example.org']
-        assert hist.metainfo['force_rebuild']
+        assert web_history.metainfo['force_rebuild']
 
-        hist.add_url(QUrl('http://example.com'), redirect=False, atime=1)
-        hist.add_url(QUrl('http://example.org'), redirect=False, atime=2)
+        web_history.add_url(QUrl('http://example.com'),
+                            redirect=False, atime=1)
+        web_history.add_url(QUrl('http://example.org'),
+                            redirect=False, atime=2)
 
-        hist2 = history.WebHistory(progress=FakeHistoryProgress())
+        hist2 = history.WebHistory(progress=stubs.FakeHistoryProgress())
         assert list(hist2.completion) == [('http://example.com', '', 1)]
 
-    def test_unrelated_config_change(self, config_stub, hist):
+    def test_unrelated_config_change(self, config_stub, web_history):
         config_stub.val.history_gap_interval = 1234
-        assert not hist.metainfo['force_rebuild']
+        assert not web_history.metainfo['force_rebuild']
 
     @pytest.mark.parametrize('patch_threshold', [True, False])
-    def test_progress(self, hist, config_stub, monkeypatch, patch_threshold):
-        hist.add_url(QUrl('example.com/1'), redirect=False, atime=1)
-        hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
-        hist.metainfo['force_rebuild'] = True
+    def test_progress(self, web_history, config_stub, monkeypatch, stubs,
+                      patch_threshold):
+        web_history.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+        web_history.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+        web_history.metainfo['force_rebuild'] = True
 
         if patch_threshold:
             monkeypatch.setattr(history.WebHistory, '_PROGRESS_THRESHOLD', 1)
 
-        progress = FakeHistoryProgress()
+        progress = stubs.FakeHistoryProgress()
         history.WebHistory(progress=progress)
         assert progress._value == 2
         assert progress._finished

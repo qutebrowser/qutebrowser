@@ -632,3 +632,22 @@ class FakeDownloadManager:
                 shutil.copyfileobj(fake_url_file, download_item.fileobj)
         self.downloads.append(download_item)
         return download_item
+
+
+class FakeHistoryProgress:
+
+    """Fake for a WebHistoryProgress object."""
+
+    def __init__(self):
+        self._started = False
+        self._finished = False
+        self._value = 0
+
+    def start(self, _text, _maximum):
+        self._started = True
+
+    def tick(self):
+        self._value += 1
+
+    def finish(self):
+        self._finished = True

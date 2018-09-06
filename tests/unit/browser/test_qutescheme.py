@@ -24,8 +24,7 @@ import time
 from PyQt5.QtCore import QUrl
 import pytest
 
-from qutebrowser.browser import history, qutescheme
-from qutebrowser.utils import objreg
+from qutebrowser.browser import qutescheme
 
 
 class TestJavascriptHandler:
@@ -96,21 +95,12 @@ class TestHistoryHandler:
 
         return items
 
-    @pytest.fixture
-    def fake_web_history(self, fake_save_manager, tmpdir, init_sql,
-                         config_stub):
-        """Create a fake web-history and register it into objreg."""
-        web_history = history.WebHistory()
-        objreg.register('web-history', web_history)
-        yield web_history
-        objreg.delete('web-history')
-
     @pytest.fixture(autouse=True)
-    def fake_history(self, fake_web_history, fake_args, entries):
+    def fake_history(self, web_history, fake_args, entries):
         """Create fake history."""
         fake_args.debug_flags = []
         for item in entries:
-            fake_web_history.add_url(**item)
+            web_history.add_url(**item)
 
     @pytest.mark.parametrize("start_time_offset, expected_item_count", [
         (0, 4),
@@ -134,7 +124,7 @@ class TestHistoryHandler:
             assert item['time'] <= start_time
             assert item['time'] > end_time
 
-    def test_exclude(self, fake_web_history, now, config_stub):
+    def test_exclude(self, web_history, now, config_stub):
         """Make sure the completion.web_history.exclude setting is not used."""
         config_stub.val.completion.web_history.exclude = ['www.x.com']
 
@@ -143,7 +133,7 @@ class TestHistoryHandler:
         items = json.loads(data)
         assert items
 
-    def test_qute_history_benchmark(self, fake_web_history, benchmark, now):
+    def test_qute_history_benchmark(self, web_history, benchmark, now):
         r = range(100000)
         entries = {
             'atime': [int(now - t) for t in r],
@@ -152,7 +142,7 @@ class TestHistoryHandler:
             'redirect': [False for _ in r],
         }
 
-        fake_web_history.insert_batch(entries)
+        web_history.insert_batch(entries)
         url = QUrl("qute://history/data?start_time={}".format(now))
         _mimetype, data = benchmark(qutescheme.qute_history, url)
         assert len(json.loads(data)) > 1

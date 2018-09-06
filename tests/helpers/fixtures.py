@@ -44,7 +44,7 @@ import helpers.utils
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache)
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
-from qutebrowser.browser import greasemonkey
+from qutebrowser.browser import greasemonkey, history
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql, objects
 from qutebrowser.keyinput import modeman
@@ -572,3 +572,14 @@ def download_stub(win_registry, tmpdir, stubs):
     objreg.register('qtnetwork-download-manager', stub)
     yield stub
     objreg.delete('qtnetwork-download-manager')
+
+
+@pytest.fixture
+def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs):
+    """Create a web history and register it into objreg."""
+    config_stub.val.completion.timestamp_format = '%Y-%m-%d'
+    config_stub.val.completion.web_history.max_items = -1
+    web_history = history.WebHistory(stubs.FakeHistoryProgress())
+    objreg.register('web-history', web_history)
+    yield web_history
+    objreg.delete('web-history')
