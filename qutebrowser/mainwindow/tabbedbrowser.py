@@ -719,9 +719,9 @@ class TabbedBrowser(QWidget):
         except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        start = config.val.colors.tabs.indicator.start
-        stop = config.val.colors.tabs.indicator.stop
-        system = config.val.colors.tabs.indicator.system
+        start = config.cache['colors.tabs.indicator.start']
+        stop = config.cache['colors.tabs.indicator.stop']
+        system = config.cache['colors.tabs.indicator.system']
         color = utils.interpolate_color(start, stop, perc, system)
         self.widget.set_tab_indicator_color(idx, color)
         self.widget.update_tab_title(idx)
