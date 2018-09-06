@@ -151,8 +151,8 @@ class WebHistory(sql.SqlTable):
 
     def _is_excluded(self, url):
         """Check if the given URL is excluded from the completion."""
-        return any(pattern.matches(url)
-                   for pattern in config.val.completion.web_history.exclude)
+        patterns = config.cache['completion.web_history.exclude']
+        return any(pattern.matches(url) for pattern in patterns)
 
     def _rebuild_completion(self):
         data = {'url': [], 'title': [], 'last_atime': []}
