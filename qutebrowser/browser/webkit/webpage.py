@@ -206,13 +206,6 @@ class BrowserPage(QWebPage):
                                                           suggested_file)
         return True
 
-    def _show_pdfjs(self, reply):
-        """Show the reply with pdfjs."""
-        page = pdfjs.generate_pdfjs_page(reply.url())
-        self.mainFrame().setContent(page.encode('utf-8'), 'text/html',
-                                    reply.url())
-        reply.deleteLater()
-
     def shutdown(self):
         """Prepare the web page for being deleted."""
         self._is_shutting_down = True
