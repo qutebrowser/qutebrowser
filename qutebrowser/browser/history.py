@@ -23,13 +23,12 @@ import os
 import time
 import contextlib
 
-from PyQt5.QtCore import pyqtSlot, QUrl, QTimer, pyqtSignal
+from PyQt5.QtCore import pyqtSlot, QUrl, pyqtSignal
 from PyQt5.QtWidgets import QProgressDialog, QApplication
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, cmdexc
-from qutebrowser.utils import (utils, objreg, log, usertypes, message,
-                               debug, standarddir, qtutils)
+from qutebrowser.utils import utils, objreg, log, usertypes, message, qtutils
 from qutebrowser.misc import objects, sql
 
 
@@ -51,6 +50,7 @@ class HistoryProgress:
         self._value = 0
 
     def start(self, text, maximum):
+        """Start showing a progress dialog."""
         self._progress = QProgressDialog()
         self._progress.setMinimumDuration(500)
         self._progress.setLabelText(text)
@@ -60,12 +60,14 @@ class HistoryProgress:
         QApplication.processEvents()
 
     def tick(self):
+        """Increase the displayed progress value."""
         self._value += 1
         if self._progress is not None:
             self._progress.setValue(self._value)
             QApplication.processEvents()
 
     def finish(self):
+        """Finish showing the progress dialog."""
         if self._progress is not None:
             self._progress.hide()
 
