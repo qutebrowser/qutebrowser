@@ -125,12 +125,17 @@ class WebHistory(sql.SqlTable):
         completion: A CompletionHistory instance.
         metainfo: A CompletionMetaInfo instance.
         _progress: A HistoryProgress instance.
+
+    Class attributes:
+        _PROGRESS_THRESHOLD: When to start showing progress dialogs.
     """
 
     # All web history cleared
     history_cleared = pyqtSignal()
     # one url cleared
     url_cleared = pyqtSignal(QUrl)
+
+    _PROGRESS_THRESHOLD = 1000
 
     def __init__(self, progress, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
@@ -203,7 +208,7 @@ class WebHistory(sql.SqlTable):
                       'GROUP BY url ORDER BY atime asc')
         entries = list(q.run())
 
-        if len(entries) > 1000:
+        if len(entries) > self._PROGRESS_THRESHOLD:
             self._progress.start("Rebuilding completion...", len(entries))
 
         for entry in entries:

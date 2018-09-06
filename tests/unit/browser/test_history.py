@@ -41,14 +41,19 @@ class FakeHistoryProgress:
 
     """Fake for a WebHistoryProgress object."""
 
+    def __init__(self):
+        self._started = False
+        self._finished = False
+        self._value = 0
+
     def start(self, _text, _maximum):
-        pass
+        self._started = True
 
     def tick(self):
-        pass
+        self._value += 1
 
     def finish(self):
-        pass
+        self._finished = True
 
 
 @pytest.fixture()
@@ -514,6 +519,21 @@ class TestRebuild:
     def test_unrelated_config_change(self, config_stub, hist):
         config_stub.val.history_gap_interval = 1234
         assert not hist.metainfo['force_rebuild']
+
+    @pytest.mark.parametrize('patch_threshold', [True, False])
+    def test_progress(self, hist, config_stub, monkeypatch, patch_threshold):
+        hist.add_url(QUrl('example.com/1'), redirect=False, atime=1)
+        hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
+        hist.metainfo['force_rebuild'] = True
+
+        if patch_threshold:
+            monkeypatch.setattr(history.WebHistory, '_PROGRESS_THRESHOLD', 1)
+
+        progress = FakeHistoryProgress()
+        history.WebHistory(progress=progress)
+        assert progress._value == 2
+        assert progress._finished
+        assert progress._started == patch_threshold
 
 
 class TestCompletionMetaInfo:
