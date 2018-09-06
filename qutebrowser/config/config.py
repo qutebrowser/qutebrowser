@@ -34,7 +34,7 @@ from qutebrowser.keyinput import keyutils
 val = None
 instance = None
 key_instance = None
-configcache = None
+cache = None
 
 # Keeping track of all change filters to validate them later.
 change_filters = []

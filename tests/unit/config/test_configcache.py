@@ -17,32 +17,31 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Tests for qutebrowser.misc.autoupdate."""
+"""Tests for qutebrowser.config.configcache."""
 
 import pytest
 
 from qutebrowser.config import config
 
 
-class TestConfigCache:
+def test_configcache_except_pattern(config_stub):
+    with pytest.raises(AssertionError):
+        assert config.cache['content.javascript.enabled']
 
-    @pytest.fixture
-    def ccache(self, config_stub):
-        return config.configcache
 
-    def test_configcache_except_pattern(self, ccache):
-        with pytest.raises(AssertionError):
-            assert ccache['content.javascript.enabled']
+def test_configcache_error_set(config_stub):
+    with pytest.raises(TypeError):
+        config.cache['content.javascript.enabled'] = True
 
-    def test_configcache_error_set(self, ccache):
-        with pytest.raises(TypeError):
-            ccache['content.javascript.enabled'] = True
 
-    def test_configcache_get(self, ccache):
-        assert not ccache['auto_save.session']
-        assert not ccache['auto_save.session']
+def test_configcache_get(config_stub):
+    assert len(config.cache._cache) == 0
+    assert not config.cache['auto_save.session']
+    assert len(config.cache._cache) == 1
+    assert not config.cache['auto_save.session']
 
-    def test_configcache_get_after_set(self, ccache):
-        assert not ccache['auto_save.session']
-        config.val.auto_save.session = True
-        assert ccache['auto_save.session']
+
+def test_configcache_get_after_set(config_stub):
+    assert not config.cache['auto_save.session']
+    config_stub.val.auto_save.session = True
+    assert config.cache['auto_save.session']

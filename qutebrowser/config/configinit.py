@@ -45,7 +45,7 @@ def early_init(args):
     config.instance = config.Config(yaml_config=yaml_config)
     config.val = config.ConfigContainer(config.instance)
     config.key_instance = config.KeyConfig(config.instance)
-    config.configcache = configcache.ConfigCache()
+    config.cache = configcache.ConfigCache()
     yaml_config.setParent(config.instance)
 
     for cf in config.change_filters:

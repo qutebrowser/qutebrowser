@@ -23,7 +23,8 @@
 from qutebrowser.config import config
 
 
-class ConfigCache():
+class ConfigCache:
+
     """A 'high-performance' cache for the config system.
 
     Useful for areas which call out to the config system very frequently, DO
@@ -35,15 +36,15 @@ class ConfigCache():
     """
 
     def __init__(self) -> None:
-        self.cache = {}
-        config.instance.changed.connect(self.config_changed)
+        self._cache = {}
+        config.instance.changed.connect(self._on_config_changed)
 
-    def config_changed(self, attr: str) -> None:
-        if attr in self.cache:
-            self.cache[attr] = config.instance.get(attr)
+    def _on_config_changed(self, attr: str) -> None:
+        if attr in self._cache:
+            self._cache[attr] = config.instance.get(attr)
 
     def __getitem__(self, attr: str):
-        if attr not in self.cache:
+        if attr not in self._cache:
             assert not config.instance.get_opt(attr).supports_pattern
-            self.cache[attr] = config.instance.get(attr)
-        return self.cache[attr]
+            self._cache[attr] = config.instance.get(attr)
+        return self._cache[attr]

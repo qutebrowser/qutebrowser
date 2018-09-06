@@ -254,7 +254,7 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
     monkeypatch.setattr(config, 'val', container)
 
     cache = configcache.ConfigCache()
-    monkeypatch.setattr(config, 'configcache', cache)
+    monkeypatch.setattr(config, 'cache', cache)
 
     try:
         configtypes.Font.monospace_fonts = container.fonts.monospace
