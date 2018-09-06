@@ -185,8 +185,6 @@ def init(args, crash_handler):
     QDesktopServices.setUrlHandler('https', open_desktopservices_url)
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
 
-    objreg.get('web-history').import_txt()
-
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
 
