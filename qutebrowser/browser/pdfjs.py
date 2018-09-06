@@ -67,13 +67,13 @@ def _generate_pdfjs_script(url):
     Args:
         url: The url of the pdf page as QUrl.
     """
-    return (
-        'document.addEventListener("DOMContentLoaded", function() {{\n'
-        '  PDFJS.disableCreateObjectURL = true;\n'
-        '  PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
-        '  (window.PDFView || window.PDFViewerApplication).open("{url}");\n'
-        '}});\n'
-    ).format(url=javascript.string_escape(url.toString(QUrl.FullyEncoded)))
+    return jinja.js_environment.from_string("""
+        document.addEventListener("DOMContentLoaded", function() {
+          PDFJS.disableCreateObjectURL = true;
+          PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;
+          (window.PDFView || window.PDFViewerApplication).open("{{ url }}");
+        });
+    """).render(url=javascript.string_escape(url.toString(QUrl.FullyEncoded)))
 
 
 SYSTEM_PDFJS_PATHS = [
