@@ -37,6 +37,38 @@ from qutebrowser.misc import objects, sql
 _USER_VERSION = 2
 
 
+class HistoryProgress:
+
+    """Progress dialog for history imports/conversions.
+
+    This makes WebHistory simpler as it can call methods of this class even
+    when we don't want to show a progress dialog (for very small imports). This
+    means tick() and finish() can be called even when start() wasn't.
+    """
+
+    def __init__(self):
+        self._progress = None
+        self._value = 0
+
+    def start(self, text, maximum):
+        self._progress = QProgressDialog()
+        self._progress.setLabelText(text)
+        self._progress.setMaximum(maximum)
+        self._progress.setCancelButton(None)
+        self._progress.show()
+        QApplication.processEvents()
+
+    def tick(self):
+        self._value += 1
+        if self._progress is not None:
+            self._progress.setValue(self._value)
+            QApplication.processEvents()
+
+    def finish(self):
+        if self._progress is not None:
+            self._progress.hide()
+
+
 class CompletionMetaInfo(sql.SqlTable):
 
     """Table containing meta-information for the completion."""
@@ -87,20 +119,28 @@ class CompletionHistory(sql.SqlTable):
 
 class WebHistory(sql.SqlTable):
 
-    """The global history of visited pages."""
+    """The global history of visited pages.
+
+    Attributes:
+        completion: A CompletionHistory instance.
+        metainfo: A CompletionMetaInfo instance.
+        _progress: A HistoryProgress instance.
+    """
 
     # All web history cleared
     history_cleared = pyqtSignal()
     # one url cleared
     url_cleared = pyqtSignal(QUrl)
 
-    def __init__(self, parent=None):
+    def __init__(self, progress, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          constraints={'url': 'NOT NULL',
                                       'title': 'NOT NULL',
                                       'atime': 'NOT NULL',
                                       'redirect': 'NOT NULL'},
                          parent=parent)
+        self._progress = progress
+
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
 
@@ -164,19 +204,10 @@ class WebHistory(sql.SqlTable):
         entries = list(q.run())
 
         if len(entries) > 1000:
-            progress = QProgressDialog()
-            progress.setLabelText("Rebuilding completion...")
-            progress.show()
-            progress.setMaximum(len(entries))
-            progress.setCancelButton(None)
-            QApplication.processEvents()
-        else:
-            progress = None
+            self._progress.start("Rebuilding completion...", len(entries))
 
-        for i, entry in enumerate(entries):
-            if progress is not None:
-                progress.setValue(i)
-                QApplication.processEvents()
+        for entry in entries:
+            self._progress.tick()
 
             url = QUrl(entry.url)
             if self._is_excluded(url):
@@ -185,8 +216,7 @@ class WebHistory(sql.SqlTable):
             data['title'].append(entry.title)
             data['last_atime'].append(entry.atime)
 
-        if progress is not None:
-            progress.hide()
+        self._progress.finish()
 
         self.completion.insert_batch(data, replace=True)
         sql.Query('pragma user_version = {}'.format(_USER_VERSION)).run()
@@ -438,7 +468,8 @@ def init(parent=None):
     Args:
         parent: The parent to use for WebHistory.
     """
-    history = WebHistory(parent=parent)
+    progress = HistoryProgress()
+    history = WebHistory(progress=progress, parent=parent)
     objreg.register('web-history', history)
 
     if objects.backend == usertypes.Backend.QtWebKit:  # pragma: no cover

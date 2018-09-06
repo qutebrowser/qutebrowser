@@ -37,9 +37,23 @@ def prerequisites(config_stub, fake_save_manager, init_sql, fake_args):
     config_stub.data = {'general': {'private-browsing': False}}
 
 
+class FakeHistoryProgress:
+
+    """Fake for a WebHistoryProgress object."""
+
+    def start(self, _text, _maximum):
+        pass
+
+    def tick(self):
+        pass
+
+    def finish(self):
+        pass
+
+
 @pytest.fixture()
 def hist(tmpdir):
-    return history.WebHistory()
+    return history.WebHistory(progress=FakeHistoryProgress())
 
 
 class TestSpecialMethods:
@@ -434,7 +448,7 @@ class TestRebuild:
                      'redirect': False, 'atime': 5})
         hist.completion.delete_all()
 
-        hist2 = history.WebHistory()
+        hist2 = history.WebHistory(progress=FakeHistoryProgress())
         assert list(hist2.completion) == [
             ('example.com/1', 'example1', 2),
             ('example.com/2 3', 'example2', 5),
@@ -446,7 +460,7 @@ class TestRebuild:
         hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
         hist.completion.delete('url', 'example.com/2')
 
-        hist2 = history.WebHistory()
+        hist2 = history.WebHistory(progress=FakeHistoryProgress())
         assert list(hist2.completion) == [('example.com/1', '', 1)]
 
     def test_user_version(self, hist, monkeypatch):
@@ -455,12 +469,12 @@ class TestRebuild:
         hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
         hist.completion.delete('url', 'example.com/2')
 
-        hist2 = history.WebHistory()
+        hist2 = history.WebHistory(progress=FakeHistoryProgress())
         assert list(hist2.completion) == [('example.com/1', '', 1)]
 
         monkeypatch.setattr(history, '_USER_VERSION',
                             history._USER_VERSION + 1)
-        hist3 = history.WebHistory()
+        hist3 = history.WebHistory(progress=FakeHistoryProgress())
         assert list(hist3.completion) == [
             ('example.com/1', '', 1),
             ('example.com/2', '', 2),
@@ -472,11 +486,11 @@ class TestRebuild:
         hist.add_url(QUrl('example.com/2'), redirect=False, atime=2)
         hist.completion.delete('url', 'example.com/2')
 
-        hist2 = history.WebHistory()
+        hist2 = history.WebHistory(progress=FakeHistoryProgress())
         assert list(hist2.completion) == [('example.com/1', '', 1)]
         hist2.metainfo['force_rebuild'] = True
 
-        hist3 = history.WebHistory()
+        hist3 = history.WebHistory(progress=FakeHistoryProgress())
         assert list(hist3.completion) == [
             ('example.com/1', '', 1),
             ('example.com/2', '', 2),
@@ -494,7 +508,7 @@ class TestRebuild:
         hist.add_url(QUrl('http://example.com'), redirect=False, atime=1)
         hist.add_url(QUrl('http://example.org'), redirect=False, atime=2)
 
-        hist2 = history.WebHistory()
+        hist2 = history.WebHistory(progress=FakeHistoryProgress())
         assert list(hist2.completion) == [('http://example.com', '', 1)]
 
     def test_unrelated_config_change(self, config_stub, hist):
