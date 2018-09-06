@@ -69,6 +69,7 @@ def _generate_pdfjs_script(url):
     """
     return (
         'document.addEventListener("DOMContentLoaded", function() {{\n'
+        '  PDFJS.disableCreateObjectURL = true;\n'
         '  PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;\n'
         '  (window.PDFView || window.PDFViewerApplication).open("{url}");\n'
         '}});\n'
