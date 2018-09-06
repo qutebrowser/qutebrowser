@@ -225,7 +225,6 @@ class DownloadManager(downloads.AbstractDownloadManager):
             download.set_target(downloads.PDFJSDownloadTarget())
             return
 
-
         filename = downloads.immediate_download_path()
         if filename is not None:
             # User doesn't want to be asked, so just use the download_dir

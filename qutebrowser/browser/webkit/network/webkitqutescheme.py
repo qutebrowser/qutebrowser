@@ -19,14 +19,12 @@
 
 """QtWebKit specific qute://* handlers and glue code."""
 
-import mimetypes
-
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkReply, QNetworkAccessManager
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.browser.webkit.network import networkreply
-from qutebrowser.utils import log, usertypes, qtutils
+from qutebrowser.utils import log, qtutils
 
 
 def handler(request, operation, current_url):

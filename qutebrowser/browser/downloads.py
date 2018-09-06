@@ -241,7 +241,6 @@ class FileDownloadTarget(_DownloadTarget):
     """
 
     def __init__(self, filename, force_overwrite=False):
-        # pylint: disable=super-init-not-called
         self.filename = filename
         self.force_overwrite = force_overwrite
 
@@ -261,7 +260,6 @@ class FileObjDownloadTarget(_DownloadTarget):
     """
 
     def __init__(self, fileobj):
-        # pylint: disable=super-init-not-called
         self.fileobj = fileobj
 
     def suggested_filename(self):
@@ -288,7 +286,6 @@ class OpenFileDownloadTarget(_DownloadTarget):
     """
 
     def __init__(self, cmdline=None):
-        # pylint: disable=super-init-not-called
         self.cmdline = cmdline
 
     def suggested_filename(self):
@@ -776,8 +773,8 @@ class AbstractDownloadItem(QObject):
                 return
 
             if isinstance(target, OpenFileDownloadTarget):
-                self.finished.connect(
-                    functools.partial(self._open_if_successful, target.cmdline))
+                self.finished.connect(functools.partial(
+                    self._open_if_successful, target.cmdline))
             elif isinstance(target, PDFJSDownloadTarget):
                 self.finished.connect(self._pdfjs_if_successful)
             else:

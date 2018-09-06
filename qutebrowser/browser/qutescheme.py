@@ -48,7 +48,6 @@ from qutebrowser.browser import pdfjs
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, urlutils)
-from qutebrowser.misc import objects
 from qutebrowser.qt import sip
 
 
