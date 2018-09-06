@@ -494,6 +494,7 @@ class TestHistoryProgress:
         assert dialog.minimum() == 0
         assert dialog.maximum() == 42
         assert dialog.value() == 1
+        assert dialog.minimumDuration() == 500
 
         progress.finish()
         assert not dialog.isVisible()

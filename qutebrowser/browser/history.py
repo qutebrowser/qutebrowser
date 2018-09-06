@@ -52,6 +52,7 @@ class HistoryProgress:
 
     def start(self, text, maximum):
         self._progress = QProgressDialog()
+        self._progress.setMinimumDuration(500)
         self._progress.setLabelText(text)
         self._progress.setMaximum(maximum)
         self._progress.setCancelButton(None)
