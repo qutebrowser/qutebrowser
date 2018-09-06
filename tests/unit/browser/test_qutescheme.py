@@ -185,11 +185,6 @@ class TestPDFJSHandler:
 
         monkeypatch.setattr(pdfjs, 'get_pdfjs_res', get_pdfjs_res)
 
-    @pytest.fixture(autouse=True)
-    def patch_backend(self, monkeypatch):
-        monkeypatch.setattr(qutescheme.objects, 'backend',
-                            usertypes.Backend.QtWebKit)
-
     def test_existing_resource(self):
         """Test with a resource that exists."""
         _mimetype, data = qutescheme.data_for_url(
