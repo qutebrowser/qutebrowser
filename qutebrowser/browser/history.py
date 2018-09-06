@@ -24,6 +24,7 @@ import time
 import contextlib
 
 from PyQt5.QtCore import pyqtSlot, QUrl, QTimer, pyqtSignal
+from PyQt5.QtWidgets import QProgressDialog, QApplication
 
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, cmdexc
@@ -160,13 +161,32 @@ class WebHistory(sql.SqlTable):
         q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
                       'WHERE NOT redirect and url NOT LIKE "qute://back%" '
                       'GROUP BY url ORDER BY atime asc')
-        for entry in q.run():
+        entries = list(q.run())
+
+        if len(entries) > 1000:
+            progress = QProgressDialog()
+            progress.setLabelText("Rebuilding completion...")
+            progress.show()
+            progress.setMaximum(len(entries))
+            progress.setCancelButton(None)
+            QApplication.processEvents()
+        else:
+            progress = None
+
+        for i, entry in enumerate(entries):
+            if progress is not None:
+                progress.setValue(i)
+                QApplication.processEvents()
+
             url = QUrl(entry.url)
             if self._is_excluded(url):
                 continue
             data['url'].append(self._format_completion_url(url))
             data['title'].append(entry.title)
             data['last_atime'].append(entry.atime)
+
+        if progress is not None:
+            progress.hide()
 
         self.completion.insert_batch(data, replace=True)
         sql.Query('pragma user_version = {}'.format(_USER_VERSION)).run()
