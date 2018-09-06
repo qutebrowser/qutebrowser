@@ -433,3 +433,22 @@ def test_config_change(config_stub, basedir, download_stub,
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
+
+
+def test_add_directory(config_stub, basedir, download_stub,
+                       data_tmpdir, tmpdir):
+    """Ensure adblocker can import all files in a directory."""
+    blocklist_hosts2 = []
+    for i in BLOCKLIST_HOSTS[1:]:
+        blocklist_hosts2.append('1' + i)
+
+    create_blocklist(tmpdir, blocked_hosts=BLOCKLIST_HOSTS,
+                     name='blocked-hosts', line_format='one_per_line')
+    create_blocklist(tmpdir, blocked_hosts=blocklist_hosts2,
+                     name='blocked-hosts2', line_format='one_per_line')
+
+    config_stub.val.content.host_blocking.lists = [tmpdir.strpath]
+    config_stub.val.content.host_blocking.enabled = True
+    host_blocker = adblock.HostBlocker()
+    host_blocker.adblock_update()
+    assert len(host_blocker._blocked_hosts) == (len(blocklist_hosts2) * 2)

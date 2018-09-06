@@ -178,7 +178,6 @@ class HostBlocker:
                     for filenames in os.scandir(filename):
                         if not filenames.name.startswith('.')\
                            and filenames.is_file():
-                            print( filenames.name )
                             self._import_local(filenames.path)
                 else:
                     self._import_local(filename)
