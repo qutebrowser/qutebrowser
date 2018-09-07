@@ -19,7 +19,7 @@
 
 """QtWebEngine specific qute://* handlers and glue code."""
 
-from PyQt5.QtCore import QBuffer, QIODevice
+from PyQt5.QtCore import QBuffer, QIODevice, QUrl
 from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
                                    QWebEngineUrlRequestJob)
 
@@ -55,6 +55,10 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             initiator = job.initiator()
         except AttributeError:
             # Added in Qt 5.11
+            return True
+
+        if initiator == QUrl('null') and not qtutils.version_check('5.12'):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70421
             return True
 
         if initiator.isValid() and initiator.scheme() != 'qute':

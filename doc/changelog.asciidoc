@@ -47,6 +47,7 @@ Changed
   DATADIR and MANDIR.
 - Various performance improvements when many tabs are opened.
 - Regenerating completion history now shows a progress dialog.
+- Make qute:// pages work properly on Qt 5.11.2
 
 Removed
 ~~~~~~~
