@@ -74,7 +74,9 @@ def _generate_pdfjs_script(url):
           PDFJS.disableCreateObjectURL = true;
           {% endif %}
           PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;
-          (window.PDFView || window.PDFViewerApplication).open("{{ url }}");
+
+          const viewer = window.PDFView || window.PDFViewerApplication;
+          viewer.open("{{ url }}");
         });
     """).render(
         url=javascript.string_escape(url.toString(QUrl.FullyEncoded)),
