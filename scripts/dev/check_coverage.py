@@ -64,6 +64,8 @@ PERFECT_FILES = [
      'browser/webkit/cookies.py'),
     ('tests/unit/browser/test_history.py',
      'browser/history.py'),
+    ('tests/unit/browser/test_pdfjs.py',
+     'browser/pdfjs.py'),
     ('tests/unit/browser/webkit/http/test_http.py',
      'browser/webkit/http.py'),
     ('tests/unit/browser/webkit/http/test_content_disposition.py',
