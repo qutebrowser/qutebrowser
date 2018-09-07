@@ -39,6 +39,33 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             profile.installUrlSchemeHandler(b'chrome-error', self)
             profile.installUrlSchemeHandler(b'chrome-extension', self)
 
+    def _check_initiator(self, job):
+        """Check whether the initiator of the job should be allowed.
+
+        Only the browser itself or qute:// pages should access any of those
+        URLs. The request interceptor further locks down qute://settings/set.
+
+        Args:
+            job: QWebEngineUrlRequestJob
+
+        Return:
+            True if the initiator is allowed, False if it was blocked.
+        """
+        try:
+            initiator = job.initiator()
+        except AttributeError:
+            # Added in Qt 5.11
+            return True
+
+        if initiator.isValid() and initiator.scheme() != 'qute':
+            log.misc.warning("Blocking malicious request from {} to {}"
+                                .format(initiator.toDisplayString(),
+                                        url.toDisplayString()))
+            job.fail(QWebEngineUrlRequestJob.RequestDenied)
+            return False
+
+        return True
+
     def requestStarted(self, job):
         """Handle a request for a qute: scheme.
 
@@ -55,21 +82,8 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             job.fail(QWebEngineUrlRequestJob.UrlInvalid)
             return
 
-        # Only the browser itself or qute:// pages should access any of those
-        # URLs.
-        # The request interceptor further locks down qute://settings/set.
-        try:
-            initiator = job.initiator()
-        except AttributeError:
-            # Added in Qt 5.11
-            pass
-        else:
-            if initiator.isValid() and initiator.scheme() != 'qute':
-                log.misc.warning("Blocking malicious request from {} to {}"
-                                 .format(initiator.toDisplayString(),
-                                         url.toDisplayString()))
-                job.fail(QWebEngineUrlRequestJob.RequestDenied)
-                return
+        if not self._check_initiator(job):
+            return
 
         if job.requestMethod() != b'GET':
             job.fail(QWebEngineUrlRequestJob.RequestDenied)
