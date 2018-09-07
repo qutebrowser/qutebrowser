@@ -750,12 +750,7 @@ content.mute:
   default: false
   type: Bool
   supports_pattern: true
-  desc: >-
-    Mute new web pages.
-
-    It's off by default meaning that new web pages might play sounds.
-    It's possible to set this configuration differently for different
-    URLs.
+  desc: Automatically mute tabs.
 
 # emacs: '
 
