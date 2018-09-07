@@ -62,9 +62,9 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             return True
 
         if initiator.isValid() and initiator.scheme() != 'qute':
-            log.misc.warning("Blocking malicious request from {} to {}"
-                                .format(initiator.toDisplayString(),
-                                        url.toDisplayString()))
+            log.misc.warning("Blocking malicious request from {} to {}".format(
+                initiator.toDisplayString(),
+                job.requestUrl().toDisplayString()))
             job.fail(QWebEngineUrlRequestJob.RequestDenied)
             return False
 
