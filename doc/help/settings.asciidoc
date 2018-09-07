@@ -1943,8 +1943,6 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
-This setting is only available with the QtWebKit backend.
-
 [[content.persistent_storage]]
 === content.persistent_storage
 Allow websites to request persistent storage quota via `navigator.webkitPersistentStorage.requestQuota`.
