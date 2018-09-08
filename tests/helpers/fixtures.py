@@ -166,9 +166,7 @@ def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
                               private=False)
     vbox.addWidget(tab)
     # to make sure container isn't GCed
-    # pylint: disable=attribute-defined-outside-init
     tab.container = container
-    # pylint: enable=attribute-defined-outside-init
 
     with qtbot.waitExposed(container):
         container.show()

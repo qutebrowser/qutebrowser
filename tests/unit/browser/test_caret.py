@@ -135,8 +135,7 @@ class TestBlock:
         caret.move_to_prev_word()
         selection.check("drei")
 
-    def test_moving_back_to_the_start_of_prev_block_with_sel(self,
-                                                             caret, selection):
+    def test_moving_back_to_the_start_of_prev_block_with_sel(self, caret, selection):
         caret.move_to_end_of_next_block(2)
         selection.toggle()
         caret.move_to_start_of_prev_block()
@@ -153,8 +152,7 @@ class TestBlock:
         caret.move_to_next_word()
         selection.check("eins ")
 
-    def test_moving_to_the_start_of_next_block_with_sel(self,
-                                                        caret, selection):
+    def test_moving_to_the_start_of_next_block_with_sel(self, caret, selection):
         selection.toggle()
         caret.move_to_start_of_next_block()
         selection.check("one two three\n")
@@ -290,8 +288,7 @@ class TestSearch:
 
     @pytest.mark.qtbug60673
     @pytest.mark.no_xvfb
-    def test_yanking_a_searched_line(
-            self, caret, selection, mode_manager, callback_checker, web_tab, qtbot):
+    def test_yanking_a_searched_line(self, caret, selection, mode_manager, callback_checker, web_tab, qtbot):
         web_tab.show()
         mode_manager.leave(usertypes.KeyMode.caret)
 
@@ -304,8 +301,7 @@ class TestSearch:
 
     @pytest.mark.qtbug60673
     @pytest.mark.no_xvfb
-    def test_yanking_a_searched_line_with_multiple_matches(
-            self, caret, selection, mode_manager, callback_checker, web_tab, qtbot):
+    def test_yanking_a_searched_line_with_multiple_matches(self, caret, selection, mode_manager, callback_checker, web_tab, qtbot):
         web_tab.show()
         mode_manager.leave(usertypes.KeyMode.caret)
 
