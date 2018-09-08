@@ -788,9 +788,17 @@ window._qutebrowser.caret = (function() {
 
     /**
      * Whether we're running on on old Qt 5.7.1.
+     * There, we need to use -webkit-filter.
      * @type {boolean}
      */
-    CaretBrowsing.isOldQt = null;
+    CaretBrowsing.needsFilterPrefix = null;
+
+    /**
+     * Whether we're running on Qt < 5.10.
+     * There, we need some additional movement workarounds.
+     * @type {boolean}
+     */
+    CaretBrowsing.needsEndOfDocWorkaround = null;
 
     /**
      * Check if a node is a control that normally allows the user to interact
@@ -868,7 +876,7 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.injectCaretStyles = function() {
-        const prefix = CaretBrowsing.isOldQt ? "-webkit-" : "";
+        const prefix = CaretBrowsing.needsFilterPrefix ? "-webkit-" : "";
         const style = `
             .CaretBrowsing_Caret {
               position: absolute;
@@ -1322,9 +1330,11 @@ window._qutebrowser.caret = (function() {
         return CaretBrowsing.selectionEnabled;
     };
 
-    funcs.setPlatform = (platform, qtVersion) => {
-        CaretBrowsing.isWindows = platform.startsWith("win");
-        CaretBrowsing.isOldQt = qtVersion === "5.7.1";
+    funcs.setFlags = (flags) => {
+        CaretBrowsing.isWindows = flags.includes("windows");
+        CaretBrowsing.needsFilterPrefix = flags.includes("filter-prefix");
+        CaretBrowsing.needsEndOfDocWorkaround =
+            flags.includes("end-of-doc-workaround");
     };
 
     funcs.disableCaret = () => {
@@ -1408,6 +1418,9 @@ window._qutebrowser.caret = (function() {
 
     funcs.moveToEndOfDocument = () => {
         CaretBrowsing.move("forward", "documentboundary");
+        if (CaretBrowsing.needsEndOfDocWorkaround) {
+            CaretBrowsing.move("left", "character");
+        }
         CaretBrowsing.finishMove();
     };
 

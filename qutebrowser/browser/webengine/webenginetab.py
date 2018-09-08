@@ -234,6 +234,17 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     """QtWebEngine implementations related to moving the cursor/selection."""
 
+    def _flags(self):
+        """Get flags to pass to JS."""
+        flags = []
+        if qtutils.version_check('5.7.1', compiled=False):
+            flags.append('filter-prefix')
+        if not qtutils.version_check('5.10', compiled=False):
+            flags.append('end-of-doc-workaround')
+        if utils.is_windows:
+            flags.append('windows')
+        return flags
+
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
         if mode != usertypes.KeyMode.caret:
@@ -246,8 +257,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
             self._tab.search.clear()
 
         self._tab.run_js_async(
-            javascript.assemble('caret',
-                                'setPlatform', sys.platform, qVersion()))
+            javascript.assemble('caret', 'setFlags', self._flags()))
+
         self._js_call('setInitialCursor', callback=self._selection_cb)
 
     def _selection_cb(self, enabled):
