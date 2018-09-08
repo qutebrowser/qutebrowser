@@ -236,14 +236,15 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     def _flags(self):
         """Get flags to pass to JS."""
-        flags = []
+        flags = set()
         if qtutils.version_check('5.7.1', compiled=False):
-            flags.append('filter-prefix')
+            flags.add('filter-prefix')
         if not qtutils.version_check('5.10', compiled=False):
-            flags.append('end-of-doc-workaround')
+            flags.add('end-of-doc-workaround')
         if utils.is_windows:
-            flags.append('windows')
-        return flags
+            flags.add('windows')
+            flags.add('end-of-doc-workaround')
+        return list(flags)
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
