@@ -154,7 +154,8 @@ def greasemonkey_manager(data_tmpdir):
 
 @pytest.fixture
 def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
-               session_manager_stub, greasemonkey_manager, fake_args):
+               session_manager_stub, greasemonkey_manager, fake_args,
+               host_blocker_stub):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)

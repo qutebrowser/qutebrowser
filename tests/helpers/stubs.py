@@ -475,6 +475,9 @@ class HostBlockerStub:
     def __init__(self):
         self.blocked_hosts = set()
 
+    def is_blocked(self, url):
+        return url in self.blocked_hosts
+
 
 class SessionManagerStub:
 
