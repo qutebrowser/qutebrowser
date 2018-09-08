@@ -289,8 +289,10 @@ class TestSearch:
     # https://bugreports.qt.io/browse/QTBUG-60673
 
     @pytest.mark.qtbug60673
+    @pytest.mark.no_xvfb
     def test_yanking_a_searched_line(
-            self, caret, selection, mode_manager, callback_checker, web_tab):
+            self, caret, selection, mode_manager, callback_checker, web_tab, qtbot):
+        web_tab.show()
         mode_manager.leave(usertypes.KeyMode.caret)
 
         web_tab.search.search('fiv', result_cb=callback_checker.callback)
@@ -301,8 +303,10 @@ class TestSearch:
         selection.check('five six')
 
     @pytest.mark.qtbug60673
+    @pytest.mark.no_xvfb
     def test_yanking_a_searched_line_with_multiple_matches(
-            self, caret, selection, mode_manager, callback_checker, web_tab):
+            self, caret, selection, mode_manager, callback_checker, web_tab, qtbot):
+        web_tab.show()
         mode_manager.leave(usertypes.KeyMode.caret)
 
         web_tab.search.search('w', result_cb=callback_checker.callback)
