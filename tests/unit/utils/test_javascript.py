@@ -84,6 +84,7 @@ class TestStringEscape:
     (None, 'undefined'),
     (object(), TypeError),
     (True, 'true'),
+    ([23, True, 'x'], '[23, true, "x"]'),
 ])
 def test_convert_js_arg(arg, expected):
     if expected is TypeError:
