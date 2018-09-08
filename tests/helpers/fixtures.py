@@ -455,9 +455,8 @@ def fake_args(request):
 
 
 @pytest.fixture
-def mode_manager(win_registry, config_stub, qapp):
-    mm = modeman.ModeManager(0)
-    objreg.register('mode-manager', mm, scope='window', window=0)
+def mode_manager(win_registry, config_stub, key_config_stub, qapp):
+    mm = modeman.init(0, parent=qapp)
     yield mm
     objreg.delete('mode-manager', scope='window', window=0)
 
