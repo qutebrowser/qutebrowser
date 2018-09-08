@@ -1271,14 +1271,18 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.startAnimation = function() {
-        CaretBrowsing.caretElement.style.animationIterationCount = "infinite";
+        if (CaretBrowsing.caretElement) {
+            CaretBrowsing.caretElement.style.animationIterationCount = "infinite";
+        }
     };
 
     CaretBrowsing.stopAnimation = function() {
-        CaretBrowsing.caretElement.style.animationIterationCount = 0;
-        window.setTimeout(() => {
-            CaretBrowsing.startAnimation();
-        }, 1000);
+        if (CaretBrowsing.caretElement) {
+            CaretBrowsing.caretElement.style.animationIterationCount = 0;
+            window.setTimeout(() => {
+                CaretBrowsing.startAnimation();
+            }, 1000);
+        }
     };
 
     CaretBrowsing.init = function() {
