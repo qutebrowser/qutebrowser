@@ -163,10 +163,11 @@ class WebEngineSearch(browsertab.AbstractSearch):
                            back yet.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._flags = QWebEnginePage.FindFlags(0)
         self._pending_searches = 0
+        self._tab = tab
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
@@ -194,6 +195,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
                               .strip())
             if callback is not None:
                 callback(found)
+            self._tab.scripts.update_stylesheet(searching=found)
         self._widget.findText(text, flags, wrapped_callback)
 
     def search(self, text, *, ignore_case='never', reverse=False,
@@ -216,6 +218,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
     def clear(self):
         self.search_displayed = False
         self._widget.findText('')
+        self._tab.scripts.update_stylesheet(searching=False)
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
@@ -813,11 +816,11 @@ class _WebEngineScripts(QObject):
     def _on_config_changed(self, option):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
             self._init_stylesheet()
-            self._update_stylesheet()
+            self.update_stylesheet()
 
-    def _update_stylesheet(self):
+    def update_stylesheet(self, searching=False):
         """Update the custom stylesheet in existing tabs."""
-        css = shared.get_user_stylesheet()
+        css = shared.get_user_stylesheet(searching=searching)
         code = javascript.assemble('stylesheet', 'set_css', css)
         self._tab.run_js_async(code)
 
@@ -991,13 +994,13 @@ class WebEngineTab(browsertab.AbstractTab):
         self.caret = WebEngineCaret(mode_manager=mode_manager,
                                     tab=self, parent=self)
         self.zoom = WebEngineZoom(tab=self, parent=self)
-        self.search = WebEngineSearch(parent=self)
+        self.search = WebEngineSearch(tab=self, parent=self)
         self.printing = WebEnginePrinting(tab=self)
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
         self.audio = WebEngineAudio(parent=self)
         self._permissions = _WebEnginePermissions(tab=self, parent=self)
-        self._scripts = _WebEngineScripts(tab=self, parent=self)
+        self.scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
         self._set_widget(widget)
@@ -1006,13 +1009,13 @@ class WebEngineTab(browsertab.AbstractTab):
         self._child_event_filter = None
         self._saved_zoom = None
         self._reload_url = None
-        self._scripts.init()
+        self.scripts.init()
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
         super()._set_widget(widget)
         self._permissions._widget = widget
-        self._scripts._widget = widget
+        self.scripts._widget = widget
 
     def _install_event_filter(self):
         fp = self._widget.focusProxy()
@@ -1405,7 +1408,7 @@ class WebEngineTab(browsertab.AbstractTab):
         # pylint: disable=protected-access
         self.audio._connect_signals()
         self._permissions.connect_signals()
-        self._scripts.connect_signals()
+        self.scripts.connect_signals()
 
     def event_target(self):
         return self._widget.render_widget()
