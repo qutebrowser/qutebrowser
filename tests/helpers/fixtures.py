@@ -211,6 +211,9 @@ def webengine_tab(qtbot, tab_registry, fake_args, mode_manager,
     # to make sure container isn't GCed
     tab.container = container
 
+    with qtbot.waitExposed(container):
+        container.show()
+
     return tab
 
 
