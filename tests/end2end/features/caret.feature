@@ -45,31 +45,6 @@ Feature: Caret mode
 
     # :follow-selected
 
-    Scenario: :follow-selected without a selection
-        When I run :follow-selected
-        Then no crash should happen
-
-    Scenario: :follow-selected with text
-        When I run :move-to-next-word
-        And I run :toggle-selection
-        And I run :move-to-end-of-word
-        And I run :follow-selected
-        Then no crash should happen
-
-    Scenario: :follow-selected with link (with JS)
-        When I set content.javascript.enabled to true
-        And I run :toggle-selection
-        And I run :move-to-end-of-word
-        And I run :follow-selected
-        Then data/hello.txt should be loaded
-
-    Scenario: :follow-selected with link (without JS)
-        When I set content.javascript.enabled to false
-        And I run :toggle-selection
-        And I run :move-to-end-of-word
-        And I run :follow-selected
-        Then data/hello.txt should be loaded
-
     Scenario: :follow-selected with --tab (with JS)
         When I set content.javascript.enabled to true
         And I run :tab-only
