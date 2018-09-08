@@ -182,11 +182,18 @@ def webengine_tab(qtbot, tab_registry, fake_args, mode_manager,
     tabwidget.current_index = 0
     tabwidget.index_of = 0
 
+    container = QWidget()
+    qtbot.add_widget(container)
+
+    vbox = QVBoxLayout(container)
     webenginetab = pytest.importorskip(
         'qutebrowser.browser.webengine.webenginetab')
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
                                     private=False)
-    qtbot.add_widget(tab)
+    vbox.addWidget(tab)
+    # to make sure container isn't GCed
+    tab.container = container
+
     return tab
 
 
