@@ -155,7 +155,14 @@ def greasemonkey_manager(data_tmpdir):
 @pytest.fixture
 def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
                session_manager_stub, greasemonkey_manager, fake_args,
-               host_blocker_stub):
+               host_blocker_stub, config_stub):
+    config_stub.val.content.javascript.log = {
+        'info': 'info',
+        'error': 'info',
+        'unknown': 'info',
+        'warning': 'info'
+    }
+
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
 
     container = QWidget()
@@ -177,7 +184,15 @@ def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
 @pytest.fixture
 def webengine_tab(qtbot, tab_registry, fake_args, mode_manager,
                   session_manager_stub, greasemonkey_manager,
-                  redirect_webengine_data, tabbed_browser_stubs):
+                  redirect_webengine_data, tabbed_browser_stubs,
+                  config_stub):
+    config_stub.val.content.javascript.log = {
+        'info': 'info',
+        'error': 'info',
+        'unknown': 'info',
+        'warning': 'info'
+    }
+
     tabwidget = tabbed_browser_stubs[0].widget
     tabwidget.current_index = 0
     tabwidget.index_of = 0
