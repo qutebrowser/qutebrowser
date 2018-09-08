@@ -203,6 +203,7 @@ class CallbackChecker(QObject):
 
     def check(self, expected):
         """Wait until the JS result arrived and compare it."""
+        __tracebackhide__ = True
         if self._result is self.UNSET:
             with self._qtbot.waitSignal(self.got_result, timeout=2000):
                 pass
