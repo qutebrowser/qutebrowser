@@ -248,7 +248,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._tab.run_js_async(
             javascript.assemble('caret',
                                 'setPlatform', sys.platform, qVersion()))
-        self._js_call('setInitialCursor', self._selection_cb)
+        self._js_call('setInitialCursor', callback=self._selection_cb)
 
     def _selection_cb(self, enabled):
         """Emit selection_toggled based on setInitialCursor."""
@@ -266,32 +266,25 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('disableCaret')
 
     def move_to_next_line(self, count=1):
-        for _ in range(count):
-            self._js_call('moveDown')
+        self._js_call('moveDown', count)
 
     def move_to_prev_line(self, count=1):
-        for _ in range(count):
-            self._js_call('moveUp')
+        self._js_call('moveUp', count)
 
     def move_to_next_char(self, count=1):
-        for _ in range(count):
-            self._js_call('moveRight')
+        self._js_call('moveRight', count)
 
     def move_to_prev_char(self, count=1):
-        for _ in range(count):
-            self._js_call('moveLeft')
+        self._js_call('moveLeft', count)
 
     def move_to_end_of_word(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToEndOfWord')
+        self._js_call('moveToEndOfWord', count)
 
     def move_to_next_word(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToNextWord')
+        self._js_call('moveToNextWord', count)
 
     def move_to_prev_word(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToPreviousWord')
+        self._js_call('moveToPreviousWord', count)
 
     def move_to_start_of_line(self):
         self._js_call('moveToStartOfLine')
@@ -300,20 +293,16 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('moveToEndOfLine')
 
     def move_to_start_of_next_block(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToStartOfNextBlock')
+        self._js_call('moveToStartOfNextBlock', count)
 
     def move_to_start_of_prev_block(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToStartOfPrevBlock')
+        self._js_call('moveToStartOfPrevBlock', count)
 
     def move_to_end_of_next_block(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToEndOfNextBlock')
+        self._js_call('moveToEndOfNextBlock', count)
 
     def move_to_end_of_prev_block(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToEndOfPrevBlock')
+        self._js_call('moveToEndOfPrevBlock', count)
 
     def move_to_start_of_document(self):
         self._js_call('moveToStartOfDocument')
@@ -322,7 +311,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('moveToEndOfDocument')
 
     def toggle_selection(self):
-        self._js_call('toggleSelection', self.selection_toggled.emit)
+        self._js_call('toggleSelection', callback=self.selection_toggled.emit)
 
     def drop_selection(self):
         self._js_call('dropSelection')
@@ -383,8 +372,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
             self._tab.run_js_async(js_code, lambda jsret:
                                    self._follow_selected_cb(jsret, tab))
 
-    def _js_call(self, command, callback=None):
-        self._tab.run_js_async(javascript.assemble('caret', command), callback)
+    def _js_call(self, command, *args, callback=None):
+        code = javascript.assemble('caret', command, *args)
+        self._tab.run_js_async(code, callback)
 
 
 class WebEngineScroller(browsertab.AbstractScroller):

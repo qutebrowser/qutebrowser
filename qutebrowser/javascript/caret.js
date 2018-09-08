@@ -1163,47 +1163,47 @@ window._qutebrowser.caret = (function() {
             }
         };
 
-    CaretBrowsing.move = function(direction, granularity) {
+    CaretBrowsing.move = function(direction, granularity, count = 1) {
         let action = "move";
         if (CaretBrowsing.selectionEnabled) {
             action = "extend";
         }
-        window.
-            getSelection().
-            modify(action, direction, granularity);
+
+        for (let i = 0; i < count; i++) {
+            window.
+                getSelection().
+                modify(action, direction, granularity);
+        }
 
         if (CaretBrowsing.isWindows &&
                 (direction === "forward" ||
                     direction === "right") &&
                 granularity === "word") {
             CaretBrowsing.move("left", "character");
-        } else {
-            window.setTimeout(() => {
-                CaretBrowsing.updateCaretOrSelection(true);
-            }, 0);
         }
+    };
 
+    CaretBrowsing.finishMove = function() {
+        window.setTimeout(() => {
+            CaretBrowsing.updateCaretOrSelection(true);
+        }, 0);
         CaretBrowsing.stopAnimation();
     };
 
-    CaretBrowsing.moveToBlock = function(paragraph, boundary) {
+    CaretBrowsing.moveToBlock = function(paragraph, boundary, count = 1) {
         let action = "move";
         if (CaretBrowsing.selectionEnabled) {
             action = "extend";
         }
-        window.
-            getSelection().
-            modify(action, paragraph, "paragraph");
+        for (let i = 0; i < count; i++) {
+            window.
+                getSelection().
+                modify(action, paragraph, "paragraph");
 
-        window.
-            getSelection().
-            modify(action, boundary, "paragraphboundary");
-
-        window.setTimeout(() => {
-            CaretBrowsing.updateCaretOrSelection(true);
-        }, 0);
-
-        CaretBrowsing.stopAnimation();
+            window.
+                getSelection().
+                modify(action, boundary, "paragraphboundary");
+        }
     };
 
     CaretBrowsing.toggle = function(value) {
@@ -1331,67 +1331,80 @@ window._qutebrowser.caret = (function() {
         CaretBrowsing.toggle();
     };
 
-    funcs.moveRight = () => {
+    funcs.moveRight = (count = 1) => {
+        CaretBrowsing.move("right", "character", count);
+        CaretBrowsing.finishMove();
+    };
+
+    funcs.moveLeft = (count = 1) => {
+        CaretBrowsing.move("left", "character", count);
+        CaretBrowsing.finishMove();
+    };
+
+    funcs.moveDown = (count = 1) => {
+        CaretBrowsing.move("forward", "line", count);
+        CaretBrowsing.finishMove();
+    };
+
+    funcs.moveUp = (count = 1) => {
+        CaretBrowsing.move("backward", "line", count);
+        CaretBrowsing.finishMove();
+    };
+
+    funcs.moveToEndOfWord = (count = 1) => {
+        CaretBrowsing.move("forward", "word", count);
+        CaretBrowsing.finishMove();
+    };
+
+    funcs.moveToNextWord = (count = 1) => {
+        CaretBrowsing.move("forward", "word", count);
         CaretBrowsing.move("right", "character");
+        CaretBrowsing.finishMove();
     };
 
-    funcs.moveLeft = () => {
-        CaretBrowsing.move("left", "character");
-    };
-
-    funcs.moveDown = () => {
-        CaretBrowsing.move("forward", "line");
-    };
-
-    funcs.moveUp = () => {
-        CaretBrowsing.move("backward", "line");
-    };
-
-    funcs.moveToEndOfWord = () => {
-        funcs.moveToNextWord();
-        funcs.moveLeft();
-    };
-
-    funcs.moveToNextWord = () => {
-        CaretBrowsing.move("forward", "word");
-        funcs.moveRight();
-    };
-
-    funcs.moveToPreviousWord = () => {
-        CaretBrowsing.move("backward", "word");
+    funcs.moveToPreviousWord = (count = 1) => {
+        CaretBrowsing.move("backward", "word", count);
+        CaretBrowsing.finishMove();
     };
 
     funcs.moveToStartOfLine = () => {
         CaretBrowsing.move("left", "lineboundary");
+        CaretBrowsing.finishMove();
     };
 
     funcs.moveToEndOfLine = () => {
         CaretBrowsing.move("right", "lineboundary");
+        CaretBrowsing.finishMove();
     };
 
-    funcs.moveToStartOfNextBlock = () => {
-        CaretBrowsing.moveToBlock("forward", "backward");
+    funcs.moveToStartOfNextBlock = (count = 1) => {
+        CaretBrowsing.moveToBlock("forward", "backward", count);
+        CaretBrowsing.finishMove();
     };
 
-    funcs.moveToStartOfPrevBlock = () => {
-        CaretBrowsing.moveToBlock("backward", "backward");
+    funcs.moveToStartOfPrevBlock = (count = 1) => {
+        CaretBrowsing.moveToBlock("backward", "backward", count);
+        CaretBrowsing.finishMove();
     };
 
-    funcs.moveToEndOfNextBlock = () => {
-        CaretBrowsing.moveToBlock("forward", "forward");
+    funcs.moveToEndOfNextBlock = (count = 1) => {
+        CaretBrowsing.moveToBlock("forward", "forward", count);
+        CaretBrowsing.finishMove();
     };
 
-    funcs.moveToEndOfPrevBlock = () => {
-        CaretBrowsing.moveToBlock("backward", "forward");
+    funcs.moveToEndOfPrevBlock = (count = 1) => {
+        CaretBrowsing.moveToBlock("backward", "forward", count);
+        CaretBrowsing.finishMove();
     };
 
     funcs.moveToStartOfDocument = () => {
         CaretBrowsing.move("backward", "documentboundary");
+        CaretBrowsing.finishMove();
     };
 
     funcs.moveToEndOfDocument = () => {
         CaretBrowsing.move("forward", "documentboundary");
-        funcs.moveLeft();
+        CaretBrowsing.finishMove();
     };
 
     funcs.dropSelection = () => {
