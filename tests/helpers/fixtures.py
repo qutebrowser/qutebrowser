@@ -157,9 +157,22 @@ def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
                session_manager_stub, greasemonkey_manager, fake_args,
                host_blocker_stub):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
+
+    container = QWidget()
+    qtbot.add_widget(container)
+
+    vbox = QVBoxLayout(container)
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
-    qtbot.add_widget(tab)
+    vbox.addWidget(tab)
+    # to make sure container isn't GCed
+    # pylint: disable=attribute-defined-outside-init
+    tab.container = container
+    # pylint: enable=attribute-defined-outside-init
+
+    with qtbot.waitExposed(container):
+        container.show()
+
     return tab
 
 
