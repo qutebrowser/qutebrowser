@@ -187,10 +187,15 @@ def _back_forward(info, go_forward):
     current_idx = history.current_idx()
 
     model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
+    if go_forward:
+        start = current_idx + 1
+        items = history.forward_items()
+    else:
+        start = 0
+        items = history.back_items()
     entries = [
         (str(idx), entry.url().toDisplayString(), entry.title())
-        for idx, entry in enumerate(history)
-        if (idx > current_idx) == go_forward and idx != current_idx
+        for idx, entry in enumerate(items, start)
     ]
     if not go_forward:
         # make sure the most recent is at the top for :back

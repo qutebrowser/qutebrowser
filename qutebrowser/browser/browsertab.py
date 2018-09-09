@@ -676,6 +676,12 @@ class AbstractHistory:
     def _go_to_item(self, item: typing.Any) -> None:
         raise NotImplementedError
 
+    def back_items(self) -> typing.List[typing.Any]:
+        raise NotImplementedError
+
+    def forward_items(self) -> typing.List[typing.Any]:
+        raise NotImplementedError
+
 
 class AbstractElements:
 

@@ -1158,6 +1158,11 @@ def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
     """Returns a fake tab with some fake history items."""
     pytest.importorskip('PyQt5.QtWebEngineWidgets')
     tab = fake_web_tab(QUrl('https://github.com'), 'GitHub', 0)
+    current_idx = 2
+    monkeypatch.setattr(
+        tab.history, 'current_idx',
+        lambda: current_idx,
+    )
 
     history = []
     for url, title in [
@@ -1173,11 +1178,21 @@ def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
         history.append(entry)
     tab.history._history = mock.Mock(spec=QWebEngineHistory)
     tab.history._history.items.return_value = history
-
     monkeypatch.setattr(
-        tab.history, 'current_idx',
-        lambda: 2,
+        tab.history, 'back_items',
+        lambda *_args: (
+            entry for idx, entry in enumerate(tab.history._history.items())
+            if idx < current_idx
+        ),
     )
+    monkeypatch.setattr(
+        tab.history, 'forward_items',
+        lambda *_args: (
+            entry for idx, entry in enumerate(tab.history._history.items())
+            if idx > current_idx
+        ),
+    )
+
     tabbed_browser_stubs[0].widget.tabs = [tab]
     tabbed_browser_stubs[0].widget.current_index = 0
     return tab
