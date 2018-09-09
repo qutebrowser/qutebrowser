@@ -48,6 +48,7 @@ Changed
 - Various performance improvements when many tabs are opened.
 - Regenerating completion history now shows a progress dialog.
 - Make qute:// pages work properly on Qt 5.11.2
+- The `content.autoplay` setting now supports URL patterns on Qt >= 5.11.
 
 Removed
 ~~~~~~~

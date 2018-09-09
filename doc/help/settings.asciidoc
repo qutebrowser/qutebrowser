@@ -1488,7 +1488,9 @@ Default:
 [[content.autoplay]]
 === content.autoplay
 Automatically start playing `<video>` elements.
-Note this option needs a restart with QtWebEngine on Qt < 5.11.
+Note: On Qt < 5.11, this option needs a restart and does not support URL patterns.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 

@@ -220,10 +220,12 @@ content.autoplay:
   backend:
     QtWebEngine: Qt 5.10
     QtWebKit: false
+  supports_pattern: true
   desc: >-
     Automatically start playing `<video>` elements.
 
-    Note this option needs a restart with QtWebEngine on Qt < 5.11.
+    Note: On Qt < 5.11, this option needs a restart and does not support URL
+    patterns.
 
 content.cache.size:
   default: null
