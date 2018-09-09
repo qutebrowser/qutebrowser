@@ -23,7 +23,7 @@ import time
 import logging
 
 import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QUrlQuery
 import pytest
 
 from qutebrowser.browser import qutescheme, pdfjs, downloads
@@ -213,9 +213,26 @@ class TestPDFJSHandler:
             QUrl('qute://pdfjs/web/viewer.html?filename=foobar'))
         assert b'PDF.js' in data
 
+    def test_viewer_no_filename(self):
+        with pytest.raises(qutescheme.UrlInvalidError):
+            qutescheme.data_for_url(QUrl('qute://pdfjs/web/viewer.html'))
+
     def test_file(self, download_tmpdir):
         """Load a file via qute://pdfjs/file."""
         (download_tmpdir / 'testfile').write_binary(b'foo')
         _mimetype, data = qutescheme.data_for_url(
             QUrl('qute://pdfjs/file?filename=testfile'))
         assert data == b'foo'
+
+    def test_file_no_filename(self):
+        with pytest.raises(qutescheme.UrlInvalidError):
+            qutescheme.data_for_url(QUrl('qute://pdfjs/file'))
+
+    @pytest.mark.parametrize('sep', ['/', os.sep])
+    def test_file_pathsep(self, sep):
+        url = QUrl('qute://pdfjs/file')
+        query = QUrlQuery()
+        query.addQueryItem('filename', 'foo{}bar'.format(sep))
+        url.setQuery(query)
+        with pytest.raises(qutescheme.RequestDeniedError):
+            qutescheme.data_for_url(url)
