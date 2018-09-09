@@ -1265,7 +1265,7 @@ class TempDownloadManager:
         # Make sure that the filename is not too long
         suggested_name = utils.elide_filename(suggested_name, 50)
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,
-                                           suffix=suggested_name)
+                                           suffix='_' + suggested_name)
         self.files.append(fobj)
         return fobj
 
