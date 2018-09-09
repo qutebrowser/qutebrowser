@@ -27,7 +27,6 @@ from PyQt5.QtCore import QUrl, QUrlQuery
 from qutebrowser.utils import utils, javascript, jinja, qtutils, usertypes
 from qutebrowser.misc import objects
 from qutebrowser.config import config
-from qutebrowser.browser import downloads
 
 
 class PDFJSNotFound(Exception):

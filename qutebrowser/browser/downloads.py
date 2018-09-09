@@ -778,7 +778,7 @@ class AbstractDownloadItem(QObject):
             elif isinstance(target, PDFJSDownloadTarget):
                 self.finished.connect(self._pdfjs_if_successful)
             else:
-                assert False, target
+                raise utils.Unreachable
 
             self._set_tempfile(fobj)
         else:  # pragma: no cover
