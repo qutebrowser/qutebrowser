@@ -22,10 +22,11 @@ import os
 import time
 import logging
 
+import py.path
 from PyQt5.QtCore import QUrl
 import pytest
 
-from qutebrowser.browser import qutescheme, pdfjs
+from qutebrowser.browser import qutescheme, pdfjs, downloads
 
 
 class TestJavascriptHandler:
@@ -185,6 +186,12 @@ class TestPDFJSHandler:
 
         monkeypatch.setattr(pdfjs, 'get_pdfjs_res', get_pdfjs_res)
 
+    @pytest.fixture
+    def download_tmpdir(self):
+        tdir = downloads.temp_download_manager.get_tmpdir()
+        yield py.path.local(tdir.name)
+        tdir.cleanup()
+
     def test_existing_resource(self):
         """Test with a resource that exists."""
         _mimetype, data = qutescheme.data_for_url(
@@ -199,3 +206,16 @@ class TestPDFJSHandler:
         assert len(caplog.records) == 1
         assert (caplog.records[0].message ==
                 'pdfjs resource requested but not found: /no/file.html')
+
+    def test_viewer_page(self):
+        """Load the /web/viewer.html page."""
+        _mimetype, data = qutescheme.data_for_url(
+            QUrl('qute://pdfjs/web/viewer.html?filename=foobar'))
+        assert b'PDF.js' in data
+
+    def test_file(self, download_tmpdir):
+        """Load a file via qute://pdfjs/file."""
+        (download_tmpdir / 'testfile').write_binary(b'foo')
+        _mimetype, data = qutescheme.data_for_url(
+            QUrl('qute://pdfjs/file?filename=testfile'))
+        assert data == b'foo'

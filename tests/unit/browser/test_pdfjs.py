@@ -30,7 +30,7 @@ from qutebrowser.utils import usertypes
 ])
 def test_generate_pdfjs_page(available, snippet, monkeypatch):
     monkeypatch.setattr(pdfjs, 'is_available', lambda: available)
-    content = pdfjs.generate_pdfjs_page(QUrl('https://example.com/'))
+    content = pdfjs.generate_pdfjs_page('example.pdf', QUrl())
     print(content)
     assert snippet in content
 
@@ -38,17 +38,16 @@ def test_generate_pdfjs_page(available, snippet, monkeypatch):
 # Note that we got double protection, once because we use QUrl.FullyEncoded and
 # because we use qutebrowser.utils.javascript.string_escape.  Characters
 # like " are already replaced by QUrl.
-@pytest.mark.parametrize('url, expected', [
-    ('http://foo.bar', "http://foo.bar"),
-    ('http://"', ''),
-    ('\0', '%00'),
-    ('http://foobar/");alert("attack!");',
-     'http://foobar/%22);alert(%22attack!%22);'),
+@pytest.mark.parametrize('filename, expected', [
+    ('foo.bar', "foo.bar"),
+    ('foo"bar', "foo%22bar"),
+    ('foo\0bar', 'foo%00bar'),
+    ('foobar");alert("attack!");',
+     'foobar%22);alert(%22attack!%22);'),
 ])
-def test_generate_pdfjs_script(url, expected):
-    expected_open = 'open("{}");'.format(expected)
-    url = QUrl(url)
-    actual = pdfjs._generate_pdfjs_script(url)
+def test_generate_pdfjs_script(filename, expected):
+    expected_open = 'open("qute://pdfjs/file?filename={}");'.format(expected)
+    actual = pdfjs._generate_pdfjs_script(filename)
     assert expected_open in actual
     assert 'PDFView' in actual
 
@@ -64,7 +63,7 @@ def test_generate_pdfjs_script_disable_object_url(monkeypatch,
     monkeypatch.setattr(pdfjs.qtutils, 'version_check', lambda _v: new_qt)
     monkeypatch.setattr(pdfjs.objects, 'backend', backend)
 
-    script = pdfjs._generate_pdfjs_script(QUrl('https://example.com/'))
+    script = pdfjs._generate_pdfjs_script('testfile')
     assert ('PDFJS.disableCreateObjectURL' in script) == expected
 
 
@@ -162,6 +161,6 @@ def test_should_use_pdfjs(mimetype, enabled, expected, config_stub):
 
 
 def test_get_main_url():
-    expected = ('qute://pdfjs/web/viewer.html?file='
-                'qute://pdfjs/file?filename%3Dhello?world.pdf')
+    expected = ('qute://pdfjs/web/viewer.html?filename='
+                'hello?world.pdf&file=')
     assert pdfjs.get_main_url('hello?world.pdf') == QUrl(expected)

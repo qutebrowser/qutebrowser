@@ -27,6 +27,7 @@ from PyQt5.QtCore import QUrl, QUrlQuery
 from qutebrowser.utils import utils, javascript, jinja, qtutils, usertypes
 from qutebrowser.misc import objects
 from qutebrowser.config import config
+from qutebrowser.browser import downloads
 
 
 class PDFJSNotFound(Exception):
@@ -43,31 +44,37 @@ class PDFJSNotFound(Exception):
         super().__init__(message)
 
 
-def generate_pdfjs_page(url):
-    """Return the html content of a page that displays url with pdfjs.
+def generate_pdfjs_page(filename, url):
+    """Return the html content of a page that displays a file with pdfjs.
 
     Returns a string.
 
     Args:
-        url: The url of the pdf as QUrl.
+        filename: The filename of the PDF to open.
+        url: The URL being opened.
     """
     if not is_available():
         return jinja.render('no_pdfjs.html',
                             url=url.toDisplayString(),
                             title="PDF.js not found")
     viewer = get_pdfjs_res('web/viewer.html').decode('utf-8')
-    script = _generate_pdfjs_script(url)
+    script = _generate_pdfjs_script(filename)
     html_page = viewer.replace('</body>',
                                '</body><script>{}</script>'.format(script))
     return html_page
 
 
-def _generate_pdfjs_script(url):
+def _generate_pdfjs_script(filename):
     """Generate the script that shows the pdf with pdf.js.
 
     Args:
-        url: The url of the pdf page as QUrl.
+        filename: The name of the file to open.
     """
+    url = QUrl('qute://pdfjs/file')
+    url_query = QUrlQuery()
+    url_query.addQueryItem('filename', filename)
+    url.setQuery(url_query)
+
     return jinja.js_environment.from_string("""
         document.addEventListener("DOMContentLoaded", function() {
           {% if disable_create_object_url %}
@@ -199,13 +206,8 @@ def should_use_pdfjs(mimetype):
 def get_main_url(filename):
     """Get the URL to be opened to view a local PDF."""
     url = QUrl('qute://pdfjs/web/viewer.html')
-
-    file_url = QUrl('qute://pdfjs/file')
-    file_url_query = QUrlQuery()
-    file_url_query.addQueryItem('filename', filename)
-    file_url.setQuery(file_url_query)
-
     query = QUrlQuery()
-    query.addQueryItem('file', file_url.toString())
+    query.addQueryItem('filename', filename)  # read from our JS
+    query.addQueryItem('file', '')  # to avoid pdfjs opening the default PDF
     url.setQuery(query)
     return url

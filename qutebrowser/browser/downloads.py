@@ -750,7 +750,7 @@ class AbstractDownloadItem(QObject):
         if filename is None:  # pragma: no cover
             log.downloads.error("No filename to open the download!")
             return
-        self.pdfjs_requested.emit(filename)
+        self.pdfjs_requested.emit(os.path.basename(filename))
 
     def set_target(self, target):
         """Set the target for a given download.
@@ -1233,7 +1233,7 @@ class TempDownloadManager:
                                    "directory")
             self._tmpdir = None
 
-    def _get_tmpdir(self):
+    def get_tmpdir(self):
         """Return the temporary directory that is used for downloads.
 
         The directory is created lazily on first access.
@@ -1259,7 +1259,7 @@ class TempDownloadManager:
         Return:
             A tempfile.NamedTemporaryFile that should be used to save the file.
         """
-        tmpdir = self._get_tmpdir()
+        tmpdir = self.get_tmpdir()
         encoding = sys.getfilesystemencoding()
         suggested_name = utils.force_encoding(suggested_name, encoding)
         # Make sure that the filename is not too long

@@ -43,7 +43,7 @@ import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
-from qutebrowser.browser import pdfjs
+from qutebrowser.browser import pdfjs, downloads
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, urlutils)
@@ -520,17 +520,27 @@ def qute_pastebin_version(_url):
 @add_handler('pdfjs')
 def qute_pdfjs(url):
     """Handler for qute://pdfjs. Return the pdf.js viewer."""
-    # FIXME be more strict about allowed files here
     if url.path() == '/file':
         filename = QUrlQuery(url).queryItemValue('filename')
-        with open(filename, 'rb') as f:
+        if not filename:
+            raise UrlInvalidError("Missing filename")
+        if '/' in filename or os.sep in filename:
+            raise RequestDeniedError("Path separator in filename.")
+
+        path = os.path.join(downloads.temp_download_manager.get_tmpdir().name,
+                            filename)
+
+        with open(path, 'rb') as f:
             data = f.read()
+
         mimetype = utils.guess_mimetype(filename, fallback=True)
         return mimetype, data
 
     if url.path() == '/web/viewer.html':
-        filepath = QUrlQuery(url).queryItemValue("file")
-        data = pdfjs.generate_pdfjs_page(QUrl.fromLocalFile(filepath))
+        filename = QUrlQuery(url).queryItemValue("filename")
+        if not filename:
+            raise UrlInvalidError("Missing filename")
+        data = pdfjs.generate_pdfjs_page(filename, url)
         return 'text/html', data
 
     try:
