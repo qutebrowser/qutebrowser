@@ -128,6 +128,14 @@ class WebKitElement(webelem.AbstractWebElement):
             value = javascript.string_escape(value)
             self._elem.evaluateJavaScript("this.value='{}'".format(value))
 
+    def dispatch_event(self, event):
+        self._check_vanished()
+        if self._tab.is_deleted():
+            raise webelem.OrphanedError("Tab containing element vanished")
+        log.webelem.debug("Firing event on {!r} via javascript.".format(self))
+        self._elem.evaluateJavaScript("this.dispatchEvent(new Event('{}'))"
+                                      .format(event))
+
     def caret_position(self):
         """Get the text caret position for the current element."""
         self._check_vanished()

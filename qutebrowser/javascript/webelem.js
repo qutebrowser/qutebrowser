@@ -362,6 +362,11 @@ window._qutebrowser.webelem = (function() {
         document.execCommand("insertText", false, text);
     };
 
+    funcs.dispatch_event = (id, event) => {
+        const elem = elements[id];
+        elem.dispatchEvent(new Event(event));
+    };
+
     funcs.set_attribute = (id, name, value) => {
         elements[id].setAttribute(name, value);
     };

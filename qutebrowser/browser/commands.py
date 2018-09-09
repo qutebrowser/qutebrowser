@@ -1652,6 +1652,8 @@ class CommandDispatcher:
         """
         try:
             elem.set_value(text)
+            # Kick off js handlers to trick them into thinking there was input.
+            elem.dispatch_event("input")
         except webelem.OrphanedError:
             message.error('Edited element vanished')
             ed.backup()

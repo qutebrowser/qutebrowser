@@ -139,6 +139,10 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Set the element value."""
         raise NotImplementedError
 
+    def dispatch_event(self, event):
+        """Set the element value."""
+        raise NotImplementedError
+
     def insert_text(self, text):
         """Insert the given text into the element."""
         raise NotImplementedError
