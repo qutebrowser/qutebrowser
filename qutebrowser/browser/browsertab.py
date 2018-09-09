@@ -591,6 +591,12 @@ class AbstractHistory:
     def can_go_forward(self):
         raise NotImplementedError
 
+    def back_items(self, max_items: int = 99999):
+        raise NotImplementedError
+
+    def forward_items(self, max_items: int = 99999):
+        raise NotImplementedError
+
     def _item_at(self, i):
         raise NotImplementedError
 
