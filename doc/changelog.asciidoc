@@ -27,6 +27,11 @@ Added
 - New `content.mouse_lock` setting to handle HTML5 pointer locking.
 - New `completion.web_history.exclude` setting which hides a list of URL
   patterns from the completion.
+- Rewritten PDF.js support:
+  * PDF.js support and the `content.pdfjs` setting are now available with
+    QtWebEngine.
+  * Opening a PDF file now doesn't start a second request anymore.
+  * Opening PDFs on https:// sites now works properly.
 
 Changed
 ~~~~~~~
