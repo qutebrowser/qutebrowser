@@ -198,9 +198,12 @@ def is_available():
         return True
 
 
-def should_use_pdfjs(mimetype):
-    return (mimetype in ['application/pdf', 'application/x-pdf'] and
-            config.val.content.pdfjs)
+def should_use_pdfjs(mimetype, url):
+    # e.g. 'blob:qute%3A///b45250b3-787e-44d1-a8d8-c2c90f81f981'
+    is_download_url = (url.scheme() == 'blob' and
+                       QUrl(url.path()).scheme() == 'qute')
+    is_pdf = mimetype in ['application/pdf', 'application/x-pdf']
+    return is_pdf and not is_download_url and config.val.content.pdfjs
 
 
 def get_main_url(filename):

@@ -268,7 +268,7 @@ class BrowserPage(QWebPage):
             else:
                 reply.finished.connect(functools.partial(
                     self.display_content, reply, 'image/jpeg'))
-        elif pdfjs.should_use_pdfjs(mimetype):
+        elif pdfjs.should_use_pdfjs(mimetype, reply.url()):
             download_manager.fetch(reply,
                                    target=downloads.PDFJSDownloadTarget())
         else:

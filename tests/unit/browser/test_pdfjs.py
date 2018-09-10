@@ -173,15 +173,20 @@ def test_is_available(available, mocker):
     assert pdfjs.is_available() == available
 
 
-@pytest.mark.parametrize('mimetype, enabled, expected', [
-    ('application/pdf', True, True),
-    ('application/x-pdf', True, True),
-    ('application/octet-stream', True, False),
-    ('application/pdf', False, False),
+@pytest.mark.parametrize('mimetype, url, enabled, expected', [
+    # PDF files
+    ('application/pdf', 'http://www.example.com', True, True),
+    ('application/x-pdf', 'http://www.example.com', True, True),
+    # Not a PDF
+    ('application/octet-stream', 'http://www.example.com', True, False),
+    # PDF.js disabled
+    ('application/pdf', 'http://www.example.com', False, False),
+    # Download button in PDF.js
+    ('application/pdf', 'blob:qute%3A///b45250b3', True, False),
 ])
-def test_should_use_pdfjs(mimetype, enabled, expected, config_stub):
+def test_should_use_pdfjs(mimetype, url, enabled, expected, config_stub):
     config_stub.val.content.pdfjs = enabled
-    assert pdfjs.should_use_pdfjs(mimetype) == expected
+    assert pdfjs.should_use_pdfjs(mimetype, QUrl(url)) == expected
 
 
 def test_get_main_url():

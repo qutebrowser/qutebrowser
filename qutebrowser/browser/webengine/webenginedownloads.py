@@ -221,7 +221,7 @@ class DownloadManager(downloads.AbstractDownloadManager):
             download.set_target(self._mhtml_target)
             self._mhtml_target = None
             return
-        if pdfjs.should_use_pdfjs(qt_item.mimeType()):
+        if pdfjs.should_use_pdfjs(qt_item.mimeType(), qt_item.url()):
             download.set_target(downloads.PDFJSDownloadTarget())
             return
 
