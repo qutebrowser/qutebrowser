@@ -21,7 +21,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import pdfjs
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, utils
 
 
 @pytest.mark.parametrize('available, snippet', [
@@ -61,15 +61,30 @@ def test_generate_pdfjs_script(filename, expected):
     assert 'PDFView' in actual
 
 
-@pytest.mark.parametrize('new_qt, backend, expected', [
-    (True, usertypes.Backend.QtWebEngine, False),
-    (True, usertypes.Backend.QtWebKit, False),
-    (False, usertypes.Backend.QtWebEngine, True),
-    (False, usertypes.Backend.QtWebKit, False),
+@pytest.mark.parametrize('qt, backend, expected', [
+    ('new', usertypes.Backend.QtWebEngine, False),
+    ('new', usertypes.Backend.QtWebKit, False),
+    ('old', usertypes.Backend.QtWebEngine, True),
+    ('old', usertypes.Backend.QtWebKit, False),
+    ('5.7', usertypes.Backend.QtWebEngine, False),
+    ('5.7', usertypes.Backend.QtWebKit, False),
 ])
 def test_generate_pdfjs_script_disable_object_url(monkeypatch,
-                                                  new_qt, backend, expected):
-    monkeypatch.setattr(pdfjs.qtutils, 'version_check', lambda _v: new_qt)
+                                                  qt, backend, expected):
+    if qt == 'new':
+        monkeypatch.setattr(pdfjs.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            False if version == '5.7.1' else True)
+    elif qt == 'old':
+        monkeypatch.setattr(pdfjs.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True: False)
+    elif qt == '5.7':
+        monkeypatch.setattr(pdfjs.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            True if version == '5.7.1' else False)
+    else:
+        raise utils.Unreachable
+
     monkeypatch.setattr(pdfjs.objects, 'backend', backend)
 
     script = pdfjs._generate_pdfjs_script('testfile')

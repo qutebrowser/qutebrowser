@@ -89,6 +89,7 @@ def _generate_pdfjs_script(filename):
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70420
         disable_create_object_url=(
             not qtutils.version_check('5.12') and
+            not qtutils.version_check('5.7.1', exact=True, compiled=False) and
             objects.backend == usertypes.Backend.QtWebEngine))
 
 
