@@ -25,11 +25,20 @@ from qutebrowser.utils import usertypes
 
 
 @pytest.mark.parametrize('available, snippet', [
-    (True, '<title>PDF.js viewer</title>'),
+    pytest.param(True, '<title>PDF.js viewer</title>',
+                 marks=pytest.mark.skipif(not pdfjs.is_available(),
+                                          reason='PDF.js unavailable')),
     (False, '<h1>No pdf.js installation found</h1>'),
+    ('force', 'fake PDF.js'),
 ])
 def test_generate_pdfjs_page(available, snippet, monkeypatch):
-    monkeypatch.setattr(pdfjs, 'is_available', lambda: available)
+    if available == 'force':
+        monkeypatch.setattr(pdfjs, 'is_available', lambda: True)
+        monkeypatch.setattr(pdfjs, 'get_pdfjs_res',
+                            lambda filename: b'fake PDF.js')
+    else:
+        monkeypatch.setattr(pdfjs, 'is_available', lambda: available)
+
     content = pdfjs.generate_pdfjs_page('example.pdf', QUrl())
     print(content)
     assert snippet in content
