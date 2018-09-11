@@ -66,7 +66,6 @@ def _check_completions(model, expected):
             actual[catname].append((name, desc, misc))
     assert actual == expected
     # sanity-check the column_widths
-    assert len(model.column_widths) == 3
     assert sum(model.column_widths) == 100
 
 
