@@ -86,12 +86,16 @@ class SqlBugError(SqlError):
 
 def raise_sqlite_error(msg, error):
     """Raise either a SqlBugError or SqlEnvironmentError."""
+    error_code = error.nativeErrorCode()
+    database_text = error.databaseText()
+
     log.sql.debug("SQL error:")
     log.sql.debug("type: {}".format(
         debug.qenum_key(QSqlError, error.type())))
-    log.sql.debug("database text: {}".format(error.databaseText()))
+    log.sql.debug("database text: {}".format(database_text))
     log.sql.debug("driver text: {}".format(error.driverText()))
-    log.sql.debug("error code: {}".format(error.nativeErrorCode()))
+    log.sql.debug("error code: {}".format(error_code))
+
     environmental_errors = [
         SqliteErrorCode.BUSY,
         SqliteErrorCode.READONLY,
@@ -108,9 +112,9 @@ def raise_sqlite_error(msg, error):
     environmental_strings = [
         "out of memory",
     ]
-    errcode = error.nativeErrorCode()
-    if (errcode in environmental_errors or
-            (errcode == -1 and error.databaseText() in environmental_strings)):
+
+    if (error_code in environmental_errors or
+            (error_code == -1 and database_text in environmental_strings)):
         raise SqlEnvironmentError(msg, error)
     else:
         raise SqlBugError(msg, error)
