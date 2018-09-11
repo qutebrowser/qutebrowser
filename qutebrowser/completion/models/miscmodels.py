@@ -19,6 +19,7 @@
 
 """Functions that return miscellaneous completion models."""
 
+import datetime
 import typing
 
 from qutebrowser.config import config, configdata
@@ -180,13 +181,16 @@ def window(*, info):
 
     return model
 
+def _qdatetime_to_completion_format(qdate):
+    pydate = datetime.datetime.fromtimestamp(qdate.toSecsSinceEpoch())
+    return pydate.strftime(config.val.completion.timestamp_format)
 
 def _back_forward(info, go_forward):
     tab = objreg.get('tab', scope='tab', window=info.win_id, tab='current')
     history = tab.history
     current_idx = history.current_idx()
 
-    model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
+    model = completionmodel.CompletionModel(column_widths=(5, 36, 50, 9))
     if go_forward:
         start = current_idx + 1
         items = history.forward_items()
@@ -194,7 +198,8 @@ def _back_forward(info, go_forward):
         start = 0
         items = history.back_items()
     entries = [
-        (str(idx), entry.url().toDisplayString(), entry.title())
+        (str(idx), entry.url().toDisplayString(), entry.title(),
+         _qdatetime_to_completion_format(entry.lastVisited()))
         for idx, entry in enumerate(items, start)
     ]
     if not go_forward:

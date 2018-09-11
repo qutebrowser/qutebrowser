@@ -22,11 +22,12 @@
 import collections
 import random
 import string
+import time
 from datetime import datetime
 from unittest import mock
 
 import pytest
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QDateTime
 try:
     from PyQt5.QtWebEngineWidgets import (
         QWebEngineHistory, QWebEngineHistoryItem
@@ -1164,16 +1165,18 @@ def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
     )
 
     history = []
-    for url, title in [
-            ("http://example.com/index", "list of things"),
-            ("http://example.com/thing1", "thing1 detail"),
-            ("http://example.com/thing2", "thing2 detail"),
-            ("http://example.com/thing3", "thing3 detail"),
-            ("http://example.com/thing4", "thing4 detail"),
+    now = time.time()
+    for url, title, ts in [
+            ("http://example.com/index", "list of things", now),
+            ("http://example.com/thing1", "thing1 detail", now+5),
+            ("http://example.com/thing2", "thing2 detail", now+10),
+            ("http://example.com/thing3", "thing3 detail", now+15),
+            ("http://example.com/thing4", "thing4 detail", now+20),
     ]:
         entry = mock.Mock(spec=QWebEngineHistoryItem)
         entry.url.return_value = QUrl(url)
         entry.title.return_value = title
+        entry.lastVisited.return_value = QDateTime.fromSecsSinceEpoch(ts)
         history.append(entry)
     tab.history._history = mock.Mock(spec=QWebEngineHistory)
     tab.history._history.items.return_value = history
