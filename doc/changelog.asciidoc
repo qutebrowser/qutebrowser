@@ -1631,7 +1631,7 @@ Changed
   `tabs.bg/fg.selected.odd/even`.
 - `:spawn --userscript` and `:hint` with the `userscript` target now look up
   relative paths in `~/.local/share/qutebrowser/userscripts` or
-  `$XDG_DATA_DIR`. Using a binary in `$PATH` won't work anymore with
+  `$XDG_DATA_HOME`. Using a binary in `$PATH` won't work anymore with
   `--userscript`.
 - New design for error pages
 - Link filtering for hints now checks if the text is contained anywhere in

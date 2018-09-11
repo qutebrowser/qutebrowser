@@ -1183,7 +1183,7 @@ class CommandDispatcher:
                         absolute path, or store the userscript in one of those
                         locations:
                             - `~/.local/share/qutebrowser/userscripts`
-                              (or `$XDG_DATA_DIR`)
+                              (or `$XDG_DATA_HOME`)
                             - `/usr/share/qutebrowser/userscripts`
             verbose: Show notifications when the command started/exited.
             output: Whether the output should be shown in a new tab.
