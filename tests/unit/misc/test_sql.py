@@ -49,6 +49,15 @@ class TestSqlError:
         with pytest.raises(exception):
             sql.raise_sqlite_error("Message", sql_err)
 
+    def test_out_of_memory(self):
+        """On out of memory error, we get an error code '-1' from Qt."""
+        sql_err = QSqlError("driver text",
+                            "out of memory",
+                            QSqlError.UnknownError,
+                            sql.SqliteErrorCode.UNKNOWN)
+        with pytest.raises(sql.SqlEnvironmentError):
+            sql.raise_sqlite_error("Message", sql_err)
+
     def test_logging(self, caplog):
         sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
                             '23')

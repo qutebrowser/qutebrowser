@@ -35,6 +35,7 @@ class SqliteErrorCode:
     in qutebrowser here.
     """
 
+    UNKNOWN = '-1'
     BUSY = '5'  # database is locked
     READONLY = '8'  # attempt to write a readonly database
     IOERR = '10'  # disk I/O error
@@ -114,7 +115,8 @@ def raise_sqlite_error(msg, error):
     ]
 
     if (error_code in environmental_errors or
-            (error_code == -1 and database_text in environmental_strings)):
+            (error_code == SqliteErrorCode.UNKNOWN and
+             database_text in environmental_strings)):
         raise SqlEnvironmentError(msg, error)
     else:
         raise SqlBugError(msg, error)
