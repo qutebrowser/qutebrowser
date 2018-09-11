@@ -49,6 +49,11 @@ Changed
 - Regenerating completion history now shows a progress dialog.
 - Make qute:// pages work properly on Qt 5.11.2
 
+Fixed
+~~~~~
+
+- Error when passing a substring with spaces to `:tab-take`.
+
 Removed
 ~~~~~~~
 
