@@ -199,6 +199,7 @@ def is_available():
 
 
 def should_use_pdfjs(mimetype, url):
+    """Check whether PDF.js should be used."""
     # e.g. 'blob:qute%3A///b45250b3-787e-44d1-a8d8-c2c90f81f981'
     is_download_url = (url.scheme() == 'blob' and
                        QUrl(url.path()).scheme() == 'qute')
