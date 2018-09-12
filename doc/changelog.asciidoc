@@ -55,6 +55,11 @@ Changed
 - Make qute:// pages work properly on Qt 5.11.2
 - The `content.autoplay` setting now supports URL patterns on Qt >= 5.11.
 
+Fixed
+~~~~~
+
+- Error when passing a substring with spaces to `:tab-take`.
+
 Removed
 ~~~~~~~
 
