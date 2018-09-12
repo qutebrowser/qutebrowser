@@ -59,6 +59,7 @@ Fixed
 ~~~~~
 
 - Error when passing a substring with spaces to `:tab-take`.
+- Greasemonkey scripts which start with an UTF-8 BOM are now handled correctly.
 
 Removed
 ~~~~~~~
