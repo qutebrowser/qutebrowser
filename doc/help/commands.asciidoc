@@ -1342,6 +1342,9 @@ Take a tab from another window.
 * +'index'+: The [win_id/]index of the tab to take. Or a substring in which case the closest match will be taken.
 
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+
 [[unbind]]
 === unbind
 Syntax: +:unbind [*--mode* 'mode'] 'key'+
