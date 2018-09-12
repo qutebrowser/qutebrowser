@@ -19,14 +19,12 @@
 
 """QtWebKit specific qute://* handlers and glue code."""
 
-import mimetypes
-
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkReply, QNetworkAccessManager
 
-from qutebrowser.browser import pdfjs, qutescheme
+from qutebrowser.browser import qutescheme
 from qutebrowser.browser.webkit.network import networkreply
-from qutebrowser.utils import log, usertypes, qtutils
+from qutebrowser.utils import log, qtutils
 
 
 def handler(request, operation, current_url):
@@ -59,37 +57,25 @@ def handler(request, operation, current_url):
 
     try:
         mimetype, data = qutescheme.data_for_url(url)
-    except qutescheme.NoHandlerFound:
-        errorstr = "No handler found for {}!".format(url.toDisplayString())
-        return networkreply.ErrorNetworkReply(
-            request, errorstr, QNetworkReply.ContentNotFoundError)
-    except qutescheme.QuteSchemeOSError as e:
-        return networkreply.ErrorNetworkReply(
-            request, str(e), QNetworkReply.ContentNotFoundError)
-    except qutescheme.QuteSchemeError as e:
-        return networkreply.ErrorNetworkReply(request, e.errorstring, e.error)
+    except qutescheme.Error as e:
+        errors = {
+            qutescheme.NotFoundError:
+                QNetworkReply.ContentNotFoundError,
+            qutescheme.UrlInvalidError:
+                QNetworkReply.ContentOperationNotPermittedError,
+            qutescheme.RequestDeniedError:
+                QNetworkReply.ContentAccessDenied,
+            qutescheme.SchemeOSError:
+                QNetworkReply.ContentNotFoundError,
+            qutescheme.Error:
+                QNetworkReply.InternalServerError,
+        }
+        exctype = type(e)
+        log.misc.exception("{} while handling qute://* URL".format(
+            exctype.__name__))
+        return networkreply.ErrorNetworkReply(request, str(e), errors[exctype])
     except qutescheme.Redirect as e:
         qtutils.ensure_valid(e.url)
         return networkreply.RedirectNetworkReply(e.url)
 
     return networkreply.FixedDataNetworkReply(request, data, mimetype)
-
-
-@qutescheme.add_handler('pdfjs', backend=usertypes.Backend.QtWebKit)
-def qute_pdfjs(url):
-    """Handler for qute://pdfjs. Return the pdf.js viewer."""
-    try:
-        data = pdfjs.get_pdfjs_res(url.path())
-    except pdfjs.PDFJSNotFound as e:
-        # Logging as the error might get lost otherwise since we're not showing
-        # the error page if a single asset is missing. This way we don't lose
-        # information, as the failed pdfjs requests are still in the log.
-        log.misc.warning(
-            "pdfjs resource requested but not found: {}".format(e.path))
-        raise qutescheme.QuteSchemeError("Can't find pdfjs resource "
-                                         "'{}'".format(e.path),
-                                         QNetworkReply.ContentNotFoundError)
-    else:
-        mimetype, _encoding = mimetypes.guess_type(url.fileName())
-        assert mimetype is not None, url
-        return mimetype, data

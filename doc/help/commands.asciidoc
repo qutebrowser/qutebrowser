@@ -576,7 +576,7 @@ Start hinting.
  - With `userscript`: The userscript to execute. Either store
  the userscript in
  `~/.local/share/qutebrowser/userscripts`
- (or `$XDG_DATA_DIR`), or use an absolute
+ (or `$XDG_DATA_HOME`), or use an absolute
  path.
  - With `fill`: The command to fill the statusbar with.
  `{hint-url}` will get replaced by the selected
@@ -1139,7 +1139,7 @@ Syntax: +:set [*--temp*] [*--print*] [*--pattern* 'pattern'] ['option'] ['value'
 
 Set an option.
 
-If the option name ends with '?', the value of the option is shown instead. Using :set without any arguments opens a page where settings can be changed interactively.
+If the option name ends with '?' or no value is provided, the value of the option is shown instead. Using :set without any arguments opens a page where settings can be changed interactively.
 
 ==== positional arguments
 * +'option'+: The name of the option.
@@ -1193,7 +1193,7 @@ Spawn a command in a shell.
 * +*-u*+, +*--userscript*+: Run the command as a userscript. You can use an absolute path, or store the userscript in one of those
  locations:
  - `~/.local/share/qutebrowser/userscripts`
- (or `$XDG_DATA_DIR`)
+ (or `$XDG_DATA_HOME`)
  - `/usr/share/qutebrowser/userscripts`
 
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.

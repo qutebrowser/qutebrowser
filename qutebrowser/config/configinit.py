@@ -28,6 +28,7 @@ from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc, configcommands)
 from qutebrowser.utils import (objreg, usertypes, log, standarddir, message,
                                qtutils)
+from qutebrowser.config import configcache
 from qutebrowser.misc import msgbox, objects
 
 
@@ -44,6 +45,7 @@ def early_init(args):
     config.instance = config.Config(yaml_config=yaml_config)
     config.val = config.ConfigContainer(config.instance)
     config.key_instance = config.KeyConfig(config.instance)
+    config.cache = configcache.ConfigCache()
     yaml_config.setParent(config.instance)
 
     for cf in config.change_filters:

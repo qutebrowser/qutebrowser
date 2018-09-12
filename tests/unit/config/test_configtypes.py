@@ -35,7 +35,7 @@ from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
 from qutebrowser.config import configtypes, configexc
-from qutebrowser.utils import debug, utils, qtutils
+from qutebrowser.utils import debug, utils, qtutils, urlmatch
 from qutebrowser.browser.network import pac
 from qutebrowser.keyinput import keyutils
 from tests.helpers import utils as testutils
@@ -2097,6 +2097,21 @@ class TestKey:
     def test_to_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
+
+
+class TestUrlPattern:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.UrlPattern
+
+    def test_to_py_valid(self, klass):
+        pattern = 'http://*.example.com/'
+        assert klass().to_py(pattern) == urlmatch.UrlPattern(pattern)
+
+    def test_to_py_invalid(self, klass):
+        with pytest.raises(configexc.ValidationError):
+            klass().to_py('http://')
 
 
 @pytest.mark.parametrize('first, second, equal', [

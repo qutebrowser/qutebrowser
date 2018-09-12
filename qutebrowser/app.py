@@ -104,6 +104,7 @@ def run(args):
     qApp = Application(args)
     qApp.setOrganizationName("qutebrowser")
     qApp.setApplicationName("qutebrowser")
+    qApp.setDesktopFileName("qutebrowser")
     qApp.setApplicationVersion(qutebrowser.__version__)
     qApp.lastWindowClosed.connect(quitter.on_last_window_closed)
 
@@ -183,8 +184,6 @@ def init(args, crash_handler):
     QDesktopServices.setUrlHandler('http', open_desktopservices_url)
     QDesktopServices.setUrlHandler('https', open_desktopservices_url)
     QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
-
-    objreg.get('web-history').import_txt()
 
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
@@ -448,13 +447,10 @@ def _init_modules(args, crash_handler):
 
         log.init.debug("Initializing web history...")
         history.init(qApp)
-    except sql.SqlError as e:
-        if e.environmental:
-            error.handle_fatal_exc(e, args, 'Error initializing SQL',
-                                   pre_text='Error initializing SQL')
-            sys.exit(usertypes.Exit.err_init)
-        else:
-            raise
+    except sql.SqlEnvironmentError as e:
+        error.handle_fatal_exc(e, args, 'Error initializing SQL',
+                               pre_text='Error initializing SQL')
+        sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing completion...")
     completiondelegate.init()
