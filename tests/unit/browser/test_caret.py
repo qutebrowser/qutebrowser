@@ -31,9 +31,8 @@ from helpers import utils
 
 @pytest.fixture
 def caret(web_tab, qtbot, mode_manager):
-    path = os.path.join(utils.abs_datapath(), 'caret.html')
     with qtbot.wait_signal(web_tab.load_finished):
-        web_tab.openurl(QUrl.fromLocalFile(path))
+        web_tab.openurl(QUrl('qute://testdata/data/caret.html'))
 
     mode_manager.enter(usertypes.KeyMode.caret)
 

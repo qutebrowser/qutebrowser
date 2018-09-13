@@ -24,6 +24,7 @@
 import os
 import sys
 import warnings
+import mimetypes
 
 import pytest
 import hypothesis
@@ -35,6 +36,7 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock
 from helpers.fixtures import *  # noqa: F403
+from qutebrowser.browser import qutescheme
 from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
 from qutebrowser.misc import objects
 from qutebrowser.qt import sip
@@ -43,6 +45,7 @@ import qutebrowser.app  # To register commands
 
 
 ON_CI = 'CI' in os.environ
+_qute_scheme_handler = None
 
 
 # Set hypothesis settings
@@ -284,3 +287,26 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
+
+
+@pytest.fixture(scope='session', autouse=True)
+def register_testdata_scheme_handler(qapp, request):
+    try:
+        global _qute_scheme_handler
+        from qutebrowser.browser.webengine import webenginequtescheme
+        from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=qapp)
+        _qute_scheme_handler.install(QWebEngineProfile.defaultProfile())
+    except ImportError:
+        pass
+
+    @qutescheme.add_handler('testdata')
+    def handler(url):
+        file_abs = os.path.abspath(os.path.dirname(__file__))
+        filename = os.path.join(file_abs, 'end2end',
+                                url.path().lstrip('/'))
+        with open(filename, 'rb') as f:
+            data = f.read()
+
+        mimetype, _encoding = mimetypes.guess_type(filename)
+        return mimetype, data
