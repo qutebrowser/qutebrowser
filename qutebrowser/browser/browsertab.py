@@ -22,11 +22,15 @@
 import enum
 import itertools
 
-import sip
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QWidget, QApplication
+from PyQt5.QtWidgets import QWidget, QApplication, QDialog
+from PyQt5.QtPrintSupport import QPrintDialog
+
+import pygments
+import pygments.lexers
+import pygments.formatters
 
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
@@ -34,6 +38,7 @@ from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import mouse, hints
+from qutebrowser.qt import sip
 
 
 tab_id_gen = itertools.count(0)
@@ -95,6 +100,8 @@ class TabData:
         keep_icon: Whether the (e.g. cloned) icon should not be cleared on page
                    load.
         inspector: The QWebInspector used for this webview.
+        viewing_source: Set if we're currently showing a source view.
+                        Only used when sources are shown via pygments.
         open_target: Where to open the next link.
                      Only used for QtWebKit.
         override_target: Override for open_target for fake clicks (like hints).
@@ -106,6 +113,7 @@ class TabData:
     """
 
     keep_icon = attr.ib(False)
+    viewing_source = attr.ib(False)
     inspector = attr.ib(None)
     open_target = attr.ib(usertypes.ClickTarget.normal)
     override_target = attr.ib(None)
@@ -150,17 +158,39 @@ class AbstractAction:
             raise WebTabError("{} is not a valid web action!".format(name))
         self._widget.triggerPageAction(member)
 
-    def show_source(self):
+    def show_source(self,
+                    pygments=False):  # pylint: disable=redefined-outer-name
         """Show the source of the current page in a new tab."""
         raise NotImplementedError
+
+    def _show_source_pygments(self):
+
+        def show_source_cb(source):
+            """Show source as soon as it's ready."""
+            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
+            # pylint: disable=no-member
+            lexer = pygments.lexers.HtmlLexer()
+            formatter = pygments.formatters.HtmlFormatter(
+                full=True, linenos='table')
+            # pylint: enable=no-member
+            highlighted = pygments.highlight(source, lexer, formatter)
+
+            tb = objreg.get('tabbed-browser', scope='window',
+                            window=self._tab.win_id)
+            new_tab = tb.tabopen(background=False, related=True)
+            new_tab.set_html(highlighted, self._tab.url())
+            new_tab.data.viewing_source = True
+
+        self._tab.dump_async(show_source_cb)
 
 
 class AbstractPrinting:
 
     """Attribute of AbstractTab for printing the page."""
 
-    def __init__(self):
+    def __init__(self, tab):
         self._widget = None
+        self._tab = tab
 
     def check_pdf_support(self):
         raise NotImplementedError
@@ -183,6 +213,29 @@ class AbstractPrinting:
                       (True if printing succeeded, False otherwise)
         """
         raise NotImplementedError
+
+    def show_dialog(self):
+        """Print with a QPrintDialog."""
+        self.check_printer_support()
+
+        def print_callback(ok):
+            """Called when printing finished."""
+            if not ok:
+                message.error("Printing failed!")
+            diag.deleteLater()
+
+        def do_print():
+            """Called when the dialog was closed."""
+            self.to_printer(diag.printer(), print_callback)
+
+        diag = QPrintDialog(self._tab)
+        if utils.is_mac:
+            # For some reason we get a segfault when using open() on macOS
+            ret = diag.exec_()
+            if ret == QDialog.Accepted:
+                do_print()
+        else:
+            diag.open(do_print)
 
 
 class AbstractSearch(QObject):
@@ -414,6 +467,13 @@ class AbstractCaret(QObject):
     def selection(self, callback):
         raise NotImplementedError
 
+    def _follow_enter(self, tab):
+        """Follow a link by faking an enter press."""
+        if tab:
+            self._tab.key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+        else:
+            self._tab.key_press(Qt.Key_Enter)
+
     def follow_selected(self, *, tab=False):
         raise NotImplementedError
 
@@ -599,6 +659,33 @@ class AbstractElements:
         raise NotImplementedError
 
 
+class AbstractAudio(QObject):
+
+    """Handling of audio/muting for this tab."""
+
+    muted_changed = pyqtSignal(bool)
+    recently_audible_changed = pyqtSignal(bool)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._widget = None
+
+    def set_muted(self, muted: bool):
+        """Set this tab as muted or not."""
+        raise NotImplementedError
+
+    def is_muted(self):
+        """Whether this tab is muted."""
+        raise NotImplementedError
+
+    def toggle_muted(self):
+        self.set_muted(not self.is_muted())
+
+    def is_recently_audible(self):
+        """Whether this tab has had audio playing recently."""
+        raise NotImplementedError
+
+
 class AbstractTab(QWidget):
 
     """A wrapper over the given widget to hide its API and expose another one.
@@ -693,6 +780,7 @@ class AbstractTab(QWidget):
         self.printing._widget = widget
         self.action._widget = widget
         self.elements._widget = widget
+        self.audio._widget = widget
         self.settings._settings = widget.settings()
 
         self._install_event_filter()
@@ -753,6 +841,7 @@ class AbstractTab(QWidget):
     def _on_load_started(self):
         self._progress = 0
         self._has_ssl_errors = False
+        self.data.viewing_source = False
         self._set_load_status(usertypes.LoadStatus.loading)
         self.load_started.emit()
 
@@ -765,12 +854,20 @@ class AbstractTab(QWidget):
                                       navigation.navigation_type,
                                       navigation.is_main_frame))
 
-        if (navigation.navigation_type == navigation.Type.link_clicked and
-                not navigation.url.isValid()):
-            msg = urlutils.get_errstring(navigation.url,
-                                         "Invalid link clicked")
-            message.error(msg)
-            self.data.open_target = usertypes.ClickTarget.normal
+        if not navigation.url.isValid():
+            # Also a WORKAROUND for missing IDNA 2008 support in QUrl, see
+            # https://bugreports.qt.io/browse/QTBUG-60364
+
+            if navigation.navigation_type == navigation.Type.link_clicked:
+                msg = urlutils.get_errstring(navigation.url,
+                                             "Invalid link clicked")
+                message.error(msg)
+                self.data.open_target = usertypes.ClickTarget.normal
+
+            log.webview.debug("Ignoring invalid URL {} in "
+                              "acceptNavigationRequest: {}".format(
+                                  navigation.url.toDisplayString(),
+                                  navigation.url.errorString()))
             navigation.accepted = False
 
     def handle_auto_insert_mode(self, ok):
@@ -828,10 +925,6 @@ class AbstractTab(QWidget):
     def _on_load_progress(self, perc):
         self._progress = perc
         self.load_progress.emit(perc)
-
-    @pyqtSlot()
-    def _on_ssl_errors(self):
-        self._has_ssl_errors = True
 
     def url(self, requested=False):
         raise NotImplementedError

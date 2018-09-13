@@ -158,6 +158,11 @@ class _CrashDialog(QDialog):
         self._init_info_text()
         self._init_buttons()
 
+    def keyPressEvent(self, e):
+        """Prevent closing :report dialogs when pressing <Escape>."""
+        if config.val.input.escape_quits_reporter or e.key() != Qt.Key_Escape:
+            super().keyPressEvent(e)
+
     def __repr__(self):
         return utils.get_repr(self)
 
@@ -293,7 +298,7 @@ class _CrashDialog(QDialog):
         self._paste_text = '\n\n'.join(lines)
         try:
             user = getpass.getuser()
-        except Exception as e:
+        except Exception:
             log.misc.exception("Error while getting user")
             user = 'unknown'
         try:

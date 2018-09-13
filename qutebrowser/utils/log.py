@@ -25,6 +25,7 @@ import html as pyhtml
 import logging
 import contextlib
 import collections
+import copy
 import faulthandler
 import traceback
 import warnings
@@ -182,9 +183,16 @@ def init_log(args):
     root = logging.getLogger()
     global console_filter
     if console is not None:
-        console_filter = LogFilter(None)
-        if args.logfilter is not None:
-            console_filter.names = args.logfilter.split(',')
+        if not args.logfilter:
+            negate = False
+            names = None
+        elif args.logfilter.startswith('!'):
+            negate = True
+            names = args.logfilter[1:].split(',')
+        else:
+            negate = False
+            names = args.logfilter.split(',')
+        console_filter = LogFilter(names, negate)
         console.addFilter(console_filter)
         root.addHandler(console)
     if ram is not None:
@@ -202,6 +210,11 @@ def _init_py_warnings():
     """Initialize Python warning handling."""
     warnings.simplefilter('default')
     warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
+    # This happens in many qutebrowser dependencies...
+    warnings.filterwarnings('ignore', category=DeprecationWarning,
+                            message="Using or importing the ABCs from "
+                            "'collections' instead of from 'collections.abc' "
+                            "is deprecated, and in 3.8 it will stop working")
 
 
 @contextlib.contextmanager
@@ -498,12 +511,14 @@ class LogFilter(logging.Filter):
     comma-separated list instead.
 
     Attributes:
-        _names: A list of names that should be logged.
+        names: A list of record names to filter.
+        negated: Whether names is a list of records to log or to suppress.
     """
 
-    def __init__(self, names):
+    def __init__(self, names, negate=False):
         super().__init__()
         self.names = names
+        self.negated = negate
 
     def filter(self, record):
         """Determine if the specified record is to be logged."""
@@ -514,12 +529,12 @@ class LogFilter(logging.Filter):
             return True
         for name in self.names:
             if record.name == name:
-                return True
+                return not self.negated
             elif not record.name.startswith(name):
                 continue
             elif record.name[len(name)] == '.':
-                return True
-        return False
+                return not self.negated
+        return self.negated
 
 
 class RAMHandler(logging.Handler):
@@ -554,16 +569,14 @@ class RAMHandler(logging.Handler):
         https://github.com/qutebrowser/qutebrowser/issues/34
         """
         minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
-        lines = []
         fmt = self.html_formatter.format if html else self.format
         self.acquire()
         try:
-            records = list(self._data)
+            lines = [fmt(record)
+                     for record in self._data
+                     if record.levelno >= minlevel]
         finally:
             self.release()
-        for record in records:
-            if record.levelno >= minlevel:
-                lines.append(fmt(record))
         return '\n'.join(lines)
 
     def change_log_capacity(self, capacity):
@@ -623,17 +636,18 @@ class HTMLFormatter(logging.Formatter):
         self._colordict['reset'] = '</font>'
 
     def format(self, record):
-        record.__dict__.update(self._colordict)
-        if record.levelname in self._log_colors:
-            color = self._log_colors[record.levelname]
-            record.log_color = self._colordict[color]
+        record_clone = copy.copy(record)
+        record_clone.__dict__.update(self._colordict)
+        if record_clone.levelname in self._log_colors:
+            color = self._log_colors[record_clone.levelname]
+            record_clone.log_color = self._colordict[color]
         else:
-            record.log_color = ''
+            record_clone.log_color = ''
         for field in ['msg', 'filename', 'funcName', 'levelname', 'module',
                       'name', 'pathname', 'processName', 'threadName']:
-            data = str(getattr(record, field))
-            setattr(record, field, pyhtml.escape(data))
-        msg = super().format(record)
+            data = str(getattr(record_clone, field))
+            setattr(record_clone, field, pyhtml.escape(data))
+        msg = super().format(record_clone)
         if not msg.endswith(self._colordict['reset']):
             msg += self._colordict['reset']
         return msg

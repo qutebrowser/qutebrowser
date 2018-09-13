@@ -234,6 +234,7 @@ window._qutebrowser.webelem = (function() {
     };
 
     // Runs a function in a frame until the result is not null, then return
+    // If no frame succeds, return null
     function run_frames(func) {
         for (let i = 0; i < window.frames.length; ++i) {
             const frame = window.frames[i];
@@ -295,8 +296,10 @@ window._qutebrowser.webelem = (function() {
         return serialize_elem(elem);
     };
 
-    // Function for returning a selection to python (so we can click it)
-    funcs.find_selected_link = () => {
+    // Function for returning a selection or focus to python (so we can click
+    // it). If nothing is selected but there is something focused, returns
+    // "focused"
+    funcs.find_selected_focused_link = () => {
         const elem = window.getSelection().baseNode;
         if (elem) {
             return serialize_elem(elem.parentNode);
@@ -309,7 +312,11 @@ window._qutebrowser.webelem = (function() {
             }
             return null;
         });
-        return serialized_frame_elem;
+
+        if (serialized_frame_elem) {
+            return serialized_frame_elem;
+        }
+        return funcs.find_focused() && "focused";
     };
 
     funcs.set_value = (id, value) => {

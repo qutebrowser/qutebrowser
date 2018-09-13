@@ -116,24 +116,37 @@ class TestLogFilter:
         return logger.makeRecord(name, level=level, fn=None, lno=0, msg="",
                                  args=None, exc_info=None)
 
-    @pytest.mark.parametrize('filters, category, logged', [
+    @pytest.mark.parametrize('filters, negated, category, logged', [
         # Filter letting all messages through
-        (None, 'eggs.bacon.spam', True),
-        (None, 'eggs', True),
+        (None, False, 'eggs.bacon.spam', True),
+        (None, False, 'eggs', True),
+        (None, True, 'ham', True),
         # Matching records
-        (['eggs', 'bacon'], 'eggs', True),
-        (['eggs', 'bacon'], 'bacon', True),
-        (['eggs.bacon'], 'eggs.bacon', True),
+        (['eggs', 'bacon'], False, 'eggs', True),
+        (['eggs', 'bacon'], False, 'bacon', True),
+        (['eggs.bacon'], False, 'eggs.bacon', True),
         # Non-matching records
-        (['eggs', 'bacon'], 'spam', False),
-        (['eggs'], 'eggsauce', False),
-        (['eggs.bacon'], 'eggs.baconstrips', False),
+        (['eggs', 'bacon'], False, 'spam', False),
+        (['eggs'], False, 'eggsauce', False),
+        (['eggs.bacon'], False, 'eggs.baconstrips', False),
         # Child loggers
-        (['eggs.bacon', 'spam.ham'], 'eggs.bacon.spam', True),
-        (['eggs.bacon', 'spam.ham'], 'spam.ham.salami', True),
+        (['eggs.bacon', 'spam.ham'], False, 'eggs.bacon.spam', True),
+        (['eggs.bacon', 'spam.ham'], False, 'spam.ham.salami', True),
+        # Suppressed records
+        (['eggs', 'bacon'], True, 'eggs', False),
+        (['eggs', 'bacon'], True, 'bacon', False),
+        (['eggs.bacon'], True, 'eggs.bacon', False),
+        # Non-suppressed records
+        (['eggs', 'bacon'], True, 'spam', True),
+        (['eggs'], True, 'eggsauce', True),
+        (['eggs.bacon'], True, 'eggs.baconstrips', True),
     ])
-    def test_logfilter(self, logger, filters, category, logged):
-        logfilter = log.LogFilter(filters)
+    def test_logfilter(self, logger, filters, negated, category, logged):
+        """Ensure the multi-record filtering filterer filters multiple records.
+
+        (Blame @toofar for this comment)
+        """
+        logfilter = log.LogFilter(filters, negated)
         record = self._make_record(logger, category)
         assert logfilter.filter(record) == logged
 
@@ -203,6 +216,22 @@ class TestInitLog:
         sys.stderr = None
         log.init_log(args)
         sys.stderr = old_stderr
+
+    @pytest.mark.parametrize('logfilter, expected_names, negated', [
+        ('!one,two', ['one', 'two'], True),
+        ('one,two', ['one', 'two'], False),
+        ('one,!two', ['one', '!two'], False),
+        (None, None, False),
+    ])
+    def test_negation_parser(self, args, mocker,
+                             logfilter, expected_names, negated):
+        """Test parsing the --logfilter argument."""
+        filter_mock = mocker.patch('qutebrowser.utils.log.LogFilter',
+                                   autospec=True)
+        args.logfilter = logfilter
+        log.init_log(args)
+        assert filter_mock.called
+        assert filter_mock.call_args[0] == (expected_names, negated)
 
 
 class TestHideQtWarning:

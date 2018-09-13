@@ -305,6 +305,9 @@ class WebKitElement(webelem.AbstractWebElement):
         if self.is_text_input() and self.is_editable():
             self._tab.caret.move_to_end_of_document()
 
+    def _requires_user_interaction(self):
+        return False
+
     def _click_editable(self, click_target):
         ok = self._elem.evaluateJavaScript('this.focus(); true;')
         if ok:

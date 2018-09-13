@@ -84,6 +84,19 @@ from qutebrowser.utils import urlmatch
 
     # Additional tests
     ("http://[", "Invalid IPv6 URL"),
+    ("http://[fc2e:bb88::edac]:", "Invalid port: Port is empty"),
+    ("http://[fc2e::bb88::edac]", 'Invalid IPv6 address; source was "fc2e::bb88::edac"; host = ""'),
+    ("http://[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac"; host = ""'),
+    ("http://[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac"; host = ""'),
+    ("http://[127.0.0.1:fc2e::bb88:edac]", 'Invalid IPv6 address; source was "127.0.0.1:fc2e::bb88:edac'),
+    ("http://[]:20", "Pattern without host"),
+    ("http://[fc2e::bb88", "Invalid IPv6 URL"),
+    ("http://[[fc2e::bb88:edac]", """Expected ']' to match '[' in hostname; source was "[fc2e::bb88:edac"; host = """""),
+    pytest.param("http://[fc2e::bb88:edac]]", "Invalid IPv6 URL", marks=pytest.mark.xfail(reason="https://bugs.python.org/issue34360")),
+    ("http://[fc2e:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:bb88:edac"; host = ""'),
+    ("http://[fc2e:bb88:edac::z]", 'Invalid IPv6 address; source was "fc2e:bb88:edac::z"; host = ""'),
+    ("http://[fc2e:bb88:edac::2]:2a2", "Invalid port: invalid literal for int() with base 10: '2a2'"),
+    ("://", "Missing scheme"),
 ])
 def test_invalid_patterns(pattern, error):
     with pytest.raises(urlmatch.ParseError, match=re.escape(error)):
@@ -154,10 +167,16 @@ class TestMatchAllPagesForGivenScheme:
 
     @pytest.mark.parametrize('url, expected', [
         ("http://google.com", True),
+        ("http://google.com:80", True),
+        ("http://google.com.", True),
         ("http://yahoo.com", True),
         ("http://google.com/foo", True),
         ("https://google.com", False),
         ("http://74.125.127.100/search", True),
+        ("http://[fc2e:0e35:bb88::edac]", True),
+        ("http://[fc2e:e35:bb88::edac]", True),
+        ("http://[fc2e:e35:bb88::127.0.0.1]", True),
+        ("http://[::1]/bar", True),
     ])
     def test_urls(self, up, url, expected):
         assert up.matches(QUrl(url)) == expected
@@ -238,6 +257,10 @@ class TestMatchIpAddresses:
     @pytest.mark.parametrize('pattern, host, match_subdomains', [
         ("http://127.0.0.1/*", "127.0.0.1", False),
         ("http://*.0.0.1/*", "0.0.1", True),
+        ("http://[::1]/*", "::1", False),
+        ("http://[0::1]/*", "::1", False),
+        ("http://[::01]/*", "::1", False),
+        ("http://[0:0:0:0:20::1]/*", "::20:0:0:1", False),
     ])
     def test_attrs(self, pattern, host, match_subdomains):
         up = urlmatch.UrlPattern(pattern)

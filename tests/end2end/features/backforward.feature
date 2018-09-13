@@ -3,6 +3,7 @@
 Feature: Going back and forward.
     Testing the :back/:forward commands.
 
+    @skip  # Too flaky
     Scenario: Going back/forward
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt
@@ -74,6 +75,7 @@ Feature: Going back and forward.
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
 
+    @flaky
     Scenario: Going back with count.
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt

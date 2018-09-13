@@ -29,7 +29,6 @@ try:
 except ImportError:
     hunter = None
 
-import sip
 from PyQt5.QtCore import QUrl
 # so it's available for :debug-pyeval
 from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
@@ -40,6 +39,7 @@ from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import config, configdata
 from qutebrowser.misc import consolewidget
 from qutebrowser.utils.version import pastebin_version
+from qutebrowser.qt import sip
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
@@ -74,13 +74,18 @@ def later(ms: int, command, win_id):
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
 @cmdutils.argument('win_id', win_id=True)
-def repeat(times: int, command, win_id):
+@cmdutils.argument('count', count=True)
+def repeat(times: int, command, win_id, count=None):
     """Repeat a given command.
 
     Args:
         times: How many times to repeat.
         command: The command to run, with optional args.
+        count: Multiplies with 'times' when given.
     """
+    if count is not None:
+        times *= count
+
     if times < 0:
         raise cmdexc.CommandError("A negative count doesn't make sense.")
     commandrunner = runners.CommandRunner(win_id)
@@ -189,10 +194,10 @@ def debug_cache_stats():
     tabbed_browser_info = tab_bar._minimum_tab_size_hint_helper.cache_info()
     # pylint: enable=protected-access
 
-    log.misc.debug('is_valid_prefix: {}'.format(prefix_info))
-    log.misc.debug('_render_stylesheet: {}'.format(render_stylesheet_info))
-    log.misc.debug('history: {}'.format(history_info))
-    log.misc.debug('tab width cache: {}'.format(tabbed_browser_info))
+    log.misc.info('is_valid_prefix: {}'.format(prefix_info))
+    log.misc.info('_render_stylesheet: {}'.format(render_stylesheet_info))
+    log.misc.info('history: {}'.format(history_info))
+    log.misc.info('tab width cache: {}'.format(tabbed_browser_info))
 
 
 @cmdutils.register(debug=True)
@@ -365,7 +370,7 @@ def window_only(current_win_id):
 @cmdutils.register()
 def nop():
     """Do nothing."""
-    return
+    pass
 
 
 @cmdutils.register()

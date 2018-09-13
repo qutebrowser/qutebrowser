@@ -33,6 +33,7 @@ import contextlib
 import socket
 import shlex
 import glob
+import mimetypes
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
@@ -510,11 +511,13 @@ def sanitize_filename(name, replacement='_'):
 
 def set_clipboard(data, selection=False):
     """Set the clipboard to some given data."""
+    global fake_clipboard
     if selection and not supports_selection():
         raise SelectionUnsupportedError
     if log_clipboard:
         what = 'primary selection' if selection else 'clipboard'
         log.misc.debug("Setting fake {}: {}".format(what, json.dumps(data)))
+        fake_clipboard = data
     else:
         mode = QClipboard.Selection if selection else QClipboard.Clipboard
         QApplication.clipboard().setText(data, mode=mode)
@@ -643,7 +646,7 @@ def yaml_load(f):
     end = datetime.datetime.now()
 
     delta = (end - start).total_seconds()
-    deadline = 5 if 'CI' in os.environ else 2
+    deadline = 10 if 'CI' in os.environ else 2
     if delta > deadline:  # pragma: no cover
         log.misc.warning(
             "YAML load took unusually long, please report this at "
@@ -681,3 +684,19 @@ def chunk(elems, n):
         raise ValueError("n needs to be at least 1!")
     for i in range(0, len(elems), n):
         yield elems[i:i + n]
+
+
+def guess_mimetype(filename, fallback=False):
+    """Guess a mimetype based on a filename.
+
+    Args:
+        filename: The filename to check.
+        fallback: Fall back to application/octet-stream if unknown.
+    """
+    mimetype, _encoding = mimetypes.guess_type(filename)
+    if mimetype is None:
+        if fallback:
+            return 'application/octet-stream'
+        else:
+            raise ValueError("Got None mimetype for {}".format(filename))
+    return mimetype

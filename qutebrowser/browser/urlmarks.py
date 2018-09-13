@@ -240,8 +240,7 @@ class BookmarkManager(UrlMarkManager):
 
     def _init_lineparser(self):
         bookmarks_directory = os.path.join(standarddir.config(), 'bookmarks')
-        if not os.path.isdir(bookmarks_directory):
-            os.makedirs(bookmarks_directory)
+        os.makedirs(bookmarks_directory, exist_ok=True)
 
         bookmarks_subdir = os.path.join('bookmarks', 'urls')
         self._lineparser = lineparser.LineParser(

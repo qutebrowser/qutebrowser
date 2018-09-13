@@ -22,6 +22,7 @@
 import collections
 import functools
 import math
+import os
 import re
 import html
 import enum
@@ -154,6 +155,7 @@ class HintContext:
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
+        first_run: Whether the action is run for the 1st time in rapid hinting.
         add_history: Whether to add yanked or spawned link to the history.
         filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
@@ -166,6 +168,7 @@ class HintContext:
     baseurl = attr.ib(None)
     to_follow = attr.ib(None)
     rapid = attr.ib(False)
+    first_run = attr.ib(True)
     add_history = attr.ib(False)
     filterstr = attr.ib(None)
     args = attr.ib(attr.Factory(list))
@@ -241,7 +244,18 @@ class HintActions:
         if url.scheme() == 'mailto':
             flags |= QUrl.RemoveScheme
         urlstr = url.toString(flags)
-        utils.set_clipboard(urlstr, selection=sel)
+
+        new_content = urlstr
+
+        # only second and consecutive yanks are to append to the clipboard
+        if context.rapid and not context.first_run:
+            try:
+                old_content = utils.get_clipboard(selection=sel)
+            except utils.ClipboardEmptyError:
+                pass
+            else:
+                new_content = os.linesep.join([old_content, new_content])
+        utils.set_clipboard(new_content, selection=sel)
 
         msg = "Yanked URL to {}: {}".format(
             "primary selection" if sel else "clipboard",
@@ -679,7 +693,7 @@ class HintManager(QObject):
                 - With `userscript`: The userscript to execute. Either store
                                      the userscript in
                                      `~/.local/share/qutebrowser/userscripts`
-                                     (or `$XDG_DATA_DIR`), or use an absolute
+                                     (or `$XDG_DATA_HOME`), or use an absolute
                                      path.
                 - With `fill`: The command to fill the statusbar with.
                                 `{hint-url}` will get replaced by the selected
@@ -700,7 +714,8 @@ class HintManager(QObject):
         if rapid:
             if target in [Target.tab_bg, Target.window, Target.run,
                           Target.hover, Target.userscript, Target.spawn,
-                          Target.download, Target.normal, Target.current]:
+                          Target.download, Target.normal, Target.current,
+                          Target.yank, Target.yank_primary]:
                 pass
             elif target == Target.tab and config.val.tabs.background:
                 pass
@@ -913,6 +928,9 @@ class HintManager(QObject):
             handler()
         except HintingError as e:
             message.error(str(e))
+
+        if self._context is not None:
+            self._context.first_run = False
 
     @cmdutils.register(instance='hintmanager', scope='tab',
                        modes=[usertypes.KeyMode.hint])

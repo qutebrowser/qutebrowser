@@ -68,7 +68,7 @@ def url(*, info):
         model.add_category(listcategory.ListCategory(
             'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False))
 
-    if info.config.get('completion.web_history_max_items') != 0:
+    if info.config.get('completion.web_history.max_items') != 0:
         hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
         model.add_category(hist_cat)
     return model

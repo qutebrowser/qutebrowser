@@ -5,15 +5,15 @@ cache:
 build: off
 environment:
     PYTHONUNBUFFERED: 1
-    PYTHON: C:\Python36\python.exe
+    PYTHON: C:\Python36-x64\python.exe
     matrix:
-    - TESTENV: py36-pyqt510
+    - TESTENV: py36-pyqt511
     - TESTENV: pylint
 
 install:
   - '%PYTHON% -m pip install -U pip'
   - '%PYTHON% -m pip install -r misc\requirements\requirements-tox.txt'
-  - 'set PATH=%PATH%;C:\Python36'
+  - 'set PATH=C:\Python36-x64;%PATH'
 
 test_script:
   - '%PYTHON% -m tox -e %TESTENV%'

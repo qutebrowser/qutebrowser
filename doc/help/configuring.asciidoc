@@ -390,6 +390,13 @@ xresources = read_xresources('*')
 c.colors.statusbar.normal.bg = xresources['*.background']
 ----
 
+Pre-built colorschemes
+^^^^^^^^^^^^^^^^^^^^^^
+
+- A collection of https://github.com/chriskempson/base16[base16] color-schemes can be found in https://github.com/theova/base16-qutebrowser[base16-qutebrowser] and used with https://github.com/AuditeMarlow/base16-manager[base16-manager].
+- Two implementations of the https://github.com/arcticicestudio/nord[Nord] colorscheme for qutebrowser exist: https://github.com/Linuus/nord-qutebrowser[Linuus], https://github.com/KnownAsDon/QuteBrowser-Nord-Theme[KnownAsDon]
+- https://github.com/evannagle/qutebrowser-dracula-theme[Dracula]
+
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -446,7 +453,7 @@ or always navigate through command history with
 :bind -m command <Down> command-history-next
 ----
 
-- The default for `completion.web_history_max_items` is now set to `-1`, showing
+- The default for `completion.web_history.max_items` is now set to `-1`, showing
   an unlimited number of items in the completion for `:open` as the new
   sqlite-based completion is much faster. If the `:open` completion is too slow
   on your machine, set an appropriate limit again.

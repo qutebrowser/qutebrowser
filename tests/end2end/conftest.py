@@ -85,8 +85,8 @@ def _get_version_tag(tag):
         do_skip = {
             '==': not qtutils.version_check(version, exact=True,
                                             compiled=False),
-            '>=': not qtutils.version_check(version),
-            '<': qtutils.version_check(version),
+            '>=': not qtutils.version_check(version, compiled=False),
+            '<': qtutils.version_check(version, compiled=False),
             '!=': qtutils.version_check(version, exact=True, compiled=False),
         }
         return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
@@ -151,7 +151,7 @@ def pytest_collection_modifyitems(config, items):
 
     for item in items:
         for name, prefix, pytest_mark, condition in markers:
-            marker = item.get_marker(name)
+            marker = item.get_closest_marker(name)
             if marker and condition:
                 if marker.args:
                     text = '{}: {}'.format(prefix, marker.args[0])

@@ -18,6 +18,7 @@ Feature: Keyboard input
 
     # input.forward_unbound_keys
 
+    @qt<5.11.1
     Scenario: Forwarding all keys
         When I open data/keyinput/log.html
         And I set input.forward_unbound_keys to all
@@ -30,6 +31,7 @@ Feature: Keyboard input
         And the javascript message "key press: 112" should be logged
         And the javascript message "key release: 112" should be logged
 
+    @qt<5.11.1
     Scenario: Forwarding special keys
         When I open data/keyinput/log.html
         And I set input.forward_unbound_keys to auto
@@ -64,7 +66,6 @@ Feature: Keyboard input
     @no_xvfb @posix @qtwebengine_skip
     Scenario: :fake-key sending key to the website with other window focused
         When I open data/keyinput/log.html
-        And I set content.developer_extras to true
         And I run :inspector
         And I wait for "Focus object changed: <PyQt5.QtWebKitWidgets.QWebView object at *>" in the log
         And I run :fake-key x
@@ -161,3 +162,46 @@ Feature: Keyboard input
         And I press the key "c"
         Then the message "foo 3" should be shown
         And the message "foo 3" should be shown
+
+    # test all tabs.mode_on_change modes
+
+    Scenario: mode on change normal
+        Given I set tabs.mode_on_change to normal
+        And I clean up open tabs
+        When I open data/hello.txt
+        And I run :enter-mode insert
+        And I open data/hello2.txt in a new background tab
+        And I run :tab-focus 2
+        Then "Entering mode KeyMode.insert (reason: command)" should be logged
+        And "Leaving mode KeyMode.insert (reason: tab changed)" should be logged
+        And "Mode before tab change: insert (mode_on_change = normal)" should be logged
+        And "Mode after tab change: normal (mode_on_change = normal)" should be logged
+
+    Scenario: mode on change persist
+        Given I set tabs.mode_on_change to persist
+        And I clean up open tabs
+        When I open data/hello.txt
+        And I run :enter-mode insert
+        And I open data/hello2.txt in a new background tab
+        And I run :tab-focus 2
+        Then "Entering mode KeyMode.insert (reason: command)" should be logged
+        And "Leaving mode KeyMode.insert (reason: tab changed)" should not be logged
+        And "Mode before tab change: insert (mode_on_change = persist)" should be logged
+        And "Mode after tab change: insert (mode_on_change = persist)" should be logged
+
+    Scenario: mode on change restore
+        Given I set tabs.mode_on_change to restore
+        And I clean up open tabs
+        When I open data/hello.txt
+        And I run :enter-mode insert
+        And I open data/hello2.txt in a new background tab
+        And I run :tab-focus 2
+        And I run :enter-mode passthrough
+        And I run :tab-focus 1
+        Then "Entering mode KeyMode.insert (reason: command)" should be logged
+        And "Mode before tab change: insert (mode_on_change = restore)" should be logged
+        And "Mode after tab change: normal (mode_on_change = restore)" should be logged
+        And "Entering mode KeyMode.passthrough (reason: command)" should be logged
+        And "Mode before tab change: passthrough (mode_on_change = restore)" should be logged
+        And "Entering mode KeyMode.insert (reason: restore)" should be logged
+        And "Mode after tab change: insert (mode_on_change = restore)" should be logged

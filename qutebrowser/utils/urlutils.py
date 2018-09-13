@@ -39,6 +39,21 @@ from qutebrowser.browser.network import pac
 # https://github.com/qutebrowser/qutebrowser/issues/108
 
 
+# URL schemes supported by QtWebEngine
+WEBENGINE_SCHEMES = [
+    'about',
+    'data',
+    'file',
+    'filesystem',
+    'ftp',
+    'http',
+    'https',
+    'javascript',
+    'ws',
+    'wss',
+]
+
+
 class InvalidUrlError(ValueError):
 
     """Error raised if a function got an invalid URL.

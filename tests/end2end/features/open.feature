@@ -41,6 +41,7 @@ Feature: Opening pages
         And I run :open 3
         Then data/numbers/3.txt should be loaded
 
+    @flaky
     Scenario: Opening in a new tab
         Given I open about:blank
         When I run :tab-only

@@ -104,6 +104,15 @@ def is_ignored_lowlevel_message(message):
         # Qt 5.11
         # DevTools listening on ws://127.0.0.1:37945/devtools/browser/...
         'DevTools listening on *',
+        # /home/travis/build/qutebrowser/qutebrowser/.tox/py36-pyqt511-cov/lib/
+        # python3.6/site-packages/PyQt5/Qt/libexec/QtWebEngineProcess:
+        # /lib/x86_64-linux-gnu/libdbus-1.so.3: no version information
+        # available (required by /home/travis/build/qutebrowser/qutebrowser/
+        # .tox/py36-pyqt511-cov/lib/python3.6/site-packages/PyQt5/Qt/libexec/
+        # ../lib/libQt5WebEngineCore.so.5)
+        '*/QtWebEngineProcess: /lib/x86_64-linux-gnu/libdbus-1.so.3: no '
+        'version information available (required by '
+        '*/libQt5WebEngineCore.so.5)',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -204,6 +213,10 @@ def is_ignored_chromium_message(line):
         # [30412:30412:0323/074933.387250:ERROR:node_channel.cc(899)] Dropping
         # message on closed channel.
         'Dropping message on closed channel.',
+        # [2204:1408:0703/113804.788:ERROR:
+        # gpu_process_transport_factory.cc(1019)] Lost UI shared context.
+        'Lost UI shared context.',
+
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -361,6 +374,9 @@ class QuteProc(testprocess.Process):
             "Focus object changed: "
             "<qutebrowser.browser.webengine.webview.WebEngineView object "
             "at *>",
+            # Qt >= 5.11 with workarounds
+            "Focus object changed: "
+            "<PyQt5.QtQuickWidgets.QQuickWidget object at *>",
         ]
 
         if (log_line.category == 'ipc' and
@@ -394,7 +410,7 @@ class QuteProc(testprocess.Process):
             elif (is_ignored_qt_message(self.request.config, line) or
                   is_ignored_lowlevel_message(line) or
                   is_ignored_chromium_message(line) or
-                  self.request.node.get_marker('no_invalid_lines')):
+                  list(self.request.node.iter_markers('no_invalid_lines'))):
                 self._log("IGNORED: {}".format(line))
                 return None
             else:
@@ -501,7 +517,7 @@ class QuteProc(testprocess.Process):
         """Extend wait_for to add divisor if a test is xfailing."""
         __tracebackhide__ = (lambda e:
                              e.errisinstance(testprocess.WaitForTimeout))
-        xfail = self.request.node.get_marker('xfail')
+        xfail = self.request.node.get_closest_marker('xfail')
         if xfail and (not xfail.args or xfail.args[0]):
             kwargs['divisor'] = 10
         else:

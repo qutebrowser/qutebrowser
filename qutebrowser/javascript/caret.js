@@ -781,6 +781,18 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.blinkFlag = true;
 
     /**
+     * Whether we're running on Windows.
+     * @type {boolean}
+     */
+    CaretBrowsing.isWindows = null;
+
+    /**
+     * Whether we're running on on old Qt 5.7.1.
+     * @type {boolean}
+     */
+    CaretBrowsing.isOldQt = null;
+
+    /**
      * Check if a node is a control that normally allows the user to interact
      * with it using arrow keys. We won't override the arrow keys when such a
      * control has focus, the user must press Escape to do caret browsing outside
@@ -856,12 +868,24 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.injectCaretStyles = function() {
-        const style = ".CaretBrowsing_Caret {" +
-            "  position: absolute;" +
-            "  z-index: 2147483647;" +
-            "  min-height: 10px;" +
-            "  background-color: #000;" +
-            "}";
+        const prefix = CaretBrowsing.isOldQt ? "-webkit-" : "";
+        const style = `
+            .CaretBrowsing_Caret {
+              position: absolute;
+              z-index: 2147483647;
+              min-height: 1em;
+              min-width: 0.2em;
+              animation: blink 1s step-end infinite;
+              --inherited-color: inherit;
+              background-color: var(--inherited-color, #000);
+              color: var(--inherited-color, #000);
+              mix-blend-mode: difference;
+              ${prefix}filter: invert(85%);
+            }
+            @keyframes blink {
+              50% { visibility: hidden; }
+            }
+        `;
         const node = document.createElement("style");
         node.innerHTML = style;
         document.body.appendChild(node);
@@ -1158,6 +1182,8 @@ window._qutebrowser.caret = (function() {
                 CaretBrowsing.updateCaretOrSelection(true);
             }, 0);
         }
+
+        CaretBrowsing.stopAnimation();
     };
 
     CaretBrowsing.moveToBlock = function(paragraph, boundary) {
@@ -1176,6 +1202,8 @@ window._qutebrowser.caret = (function() {
         window.setTimeout(() => {
             CaretBrowsing.updateCaretOrSelection(true);
         }, 0);
+
+        CaretBrowsing.stopAnimation();
     };
 
     CaretBrowsing.toggle = function(value) {
@@ -1242,6 +1270,17 @@ window._qutebrowser.caret = (function() {
         CaretBrowsing.updateIsCaretVisible();
     };
 
+    CaretBrowsing.startAnimation = function() {
+        CaretBrowsing.caretElement.style.animationIterationCount = "infinite";
+    };
+
+    CaretBrowsing.stopAnimation = function() {
+        CaretBrowsing.caretElement.style.animationIterationCount = 0;
+        window.setTimeout(() => {
+            CaretBrowsing.startAnimation();
+        }, 1000);
+    };
+
     CaretBrowsing.init = function() {
         CaretBrowsing.isWindowFocused = document.hasFocus();
 
@@ -1279,8 +1318,9 @@ window._qutebrowser.caret = (function() {
         return CaretBrowsing.selectionEnabled;
     };
 
-    funcs.setPlatform = (platform) => {
+    funcs.setPlatform = (platform, qtVersion) => {
         CaretBrowsing.isWindows = platform.startsWith("win");
+        CaretBrowsing.isOldQt = qtVersion === "5.7.1";
     };
 
     funcs.disableCaret = () => {

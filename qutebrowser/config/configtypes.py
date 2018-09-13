@@ -61,7 +61,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.config import configexc
-from qutebrowser.utils import standarddir, utils, qtutils, urlutils
+from qutebrowser.utils import standarddir, utils, qtutils, urlutils, urlmatch
 from qutebrowser.keyinput import keyutils
 
 
@@ -123,7 +123,7 @@ class BaseType:
     """A type used for a setting value.
 
     Attributes:
-        none_ok: Whether to convert to None for an empty string.
+        none_ok: Whether to allow None (or an empty string for :set) as value.
 
     Class attributes:
         valid_values: Possible values if they can be expressed as a fixed
@@ -1409,7 +1409,7 @@ class SearchEngineUrl(BaseType):
 
         try:
             value.format("")
-        except (KeyError, IndexError) as e:
+        except (KeyError, IndexError):
             raise configexc.ValidationError(
                 value, "may not contain {...} (use {{ and }} for literal {/})")
         except ValueError as e:
@@ -1660,4 +1660,23 @@ class Key(BaseType):
         try:
             return keyutils.KeySequence.parse(value)
         except keyutils.KeyParseError as e:
+            raise configexc.ValidationError(value, str(e))
+
+
+class UrlPattern(BaseType):
+
+    """A match pattern for a URL.
+
+    See https://developer.chrome.com/apps/match_patterns for the allowed
+    syntax.
+    """
+
+    def to_py(self, value):
+        self._basic_py_validation(value, str)
+        if not value:
+            return None
+
+        try:
+            return urlmatch.UrlPattern(value)
+        except urlmatch.ParseError as e:
             raise configexc.ValidationError(value, str(e))

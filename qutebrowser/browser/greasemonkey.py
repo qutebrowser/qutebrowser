@@ -31,9 +31,10 @@ import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
-                               javascript, urlmatch)
+                               javascript, urlmatch, version, usertypes)
 from qutebrowser.commands import cmdutils
 from qutebrowser.browser import downloads
+from qutebrowser.misc import objects
 
 
 def _scripts_dir():
@@ -57,6 +58,7 @@ class GreasemonkeyScript:
         self.run_at = None
         self.script_meta = None
         self.runs_on_sub_frames = True
+        self.jsworld = "main"
         for name, value in properties:
             if name == 'name':
                 self.name = value
@@ -76,6 +78,8 @@ class GreasemonkeyScript:
                 self.runs_on_sub_frames = False
             elif name == 'require':
                 self.requires.append(value)
+            elif name == 'qute-js-world':
+                self.jsworld = value
 
     HEADER_REGEX = r'// ==UserScript==|\n+// ==/UserScript==\n'
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s*(?P<val>.*)'
@@ -108,13 +112,18 @@ class GreasemonkeyScript:
         browser's debugger/inspector will not match up to the line
         numbers in the source script directly.
         """
+        # Don't use Proxy on this webkit version, the support isn't there.
+        use_proxy = not (
+            objects.backend == usertypes.Backend.QtWebKit and
+            version.qWebKitVersion() == '602.1')
         template = jinja.js_environment.get_template('greasemonkey_wrapper.js')
         return template.render(
             scriptName=javascript.string_escape(
                 "/".join([self.namespace or '', self.name])),
             scriptInfo=self._meta_json(),
             scriptMeta=javascript.string_escape(self.script_meta),
-            scriptSource=self._code)
+            scriptSource=self._code,
+            use_proxy=use_proxy)
 
     def _meta_json(self):
         return json.dumps({
@@ -136,7 +145,7 @@ class GreasemonkeyScript:
 
 
 @attr.s
-class MatchingScripts(object):
+class MatchingScripts:
 
     """All userscripts registered to run on a particular url."""
 
@@ -225,7 +234,7 @@ class GreasemonkeyManager(QObject):
             if not os.path.isfile(script_filename):
                 continue
             script_path = os.path.join(scripts_dir, script_filename)
-            with open(script_path, encoding='utf-8') as script_file:
+            with open(script_path, encoding='utf-8-sig') as script_file:
                 script = GreasemonkeyScript.parse(script_file.read())
                 if not script.name:
                     script.name = script_filename

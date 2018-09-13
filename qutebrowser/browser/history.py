@@ -23,16 +23,88 @@ import os
 import time
 import contextlib
 
-from PyQt5.QtCore import pyqtSlot, QUrl, QTimer, pyqtSignal
+from PyQt5.QtCore import pyqtSlot, QUrl, pyqtSignal
+from PyQt5.QtWidgets import QProgressDialog, QApplication
 
+from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, cmdexc
-from qutebrowser.utils import (utils, objreg, log, usertypes, message,
-                               debug, standarddir, qtutils)
+from qutebrowser.utils import utils, objreg, log, usertypes, message, qtutils
 from qutebrowser.misc import objects, sql
 
 
 # increment to indicate that HistoryCompletion must be regenerated
 _USER_VERSION = 2
+
+
+class HistoryProgress:
+
+    """Progress dialog for history imports/conversions.
+
+    This makes WebHistory simpler as it can call methods of this class even
+    when we don't want to show a progress dialog (for very small imports). This
+    means tick() and finish() can be called even when start() wasn't.
+    """
+
+    def __init__(self):
+        self._progress = None
+        self._value = 0
+
+    def start(self, text, maximum):
+        """Start showing a progress dialog."""
+        self._progress = QProgressDialog()
+        self._progress.setMinimumDuration(500)
+        self._progress.setLabelText(text)
+        self._progress.setMaximum(maximum)
+        self._progress.setCancelButton(None)
+        self._progress.show()
+        QApplication.processEvents()
+
+    def tick(self):
+        """Increase the displayed progress value."""
+        self._value += 1
+        if self._progress is not None:
+            self._progress.setValue(self._value)
+            QApplication.processEvents()
+
+    def finish(self):
+        """Finish showing the progress dialog."""
+        if self._progress is not None:
+            self._progress.hide()
+
+
+class CompletionMetaInfo(sql.SqlTable):
+
+    """Table containing meta-information for the completion."""
+
+    KEYS = {
+        'force_rebuild': False,
+    }
+
+    def __init__(self, parent=None):
+        super().__init__("CompletionMetaInfo", ['key', 'value'],
+                         constraints={'key': 'PRIMARY KEY'})
+        for key, default in self.KEYS.items():
+            if key not in self:
+                self[key] = default
+
+    def _check_key(self, key):
+        if key not in self.KEYS:
+            raise KeyError(key)
+
+    def __contains__(self, key):
+        self._check_key(key)
+        query = self.contains_query('key')
+        return query.run(val=key).value()
+
+    def __getitem__(self, key):
+        self._check_key(key)
+        query = sql.Query('SELECT value FROM CompletionMetaInfo '
+                          'WHERE key = :key')
+        return query.run(key=key).value()
+
+    def __setitem__(self, key, value):
+        self._check_key(key)
+        self.insert({'key': key, 'value': value}, replace=True)
 
 
 class CompletionHistory(sql.SqlTable):
@@ -50,26 +122,46 @@ class CompletionHistory(sql.SqlTable):
 
 class WebHistory(sql.SqlTable):
 
-    """The global history of visited pages."""
+    """The global history of visited pages.
+
+    Attributes:
+        completion: A CompletionHistory instance.
+        metainfo: A CompletionMetaInfo instance.
+        _progress: A HistoryProgress instance.
+
+    Class attributes:
+        _PROGRESS_THRESHOLD: When to start showing progress dialogs.
+    """
 
     # All web history cleared
     history_cleared = pyqtSignal()
     # one url cleared
     url_cleared = pyqtSignal(QUrl)
 
-    def __init__(self, parent=None):
+    _PROGRESS_THRESHOLD = 1000
+
+    def __init__(self, progress, parent=None):
         super().__init__("History", ['url', 'title', 'atime', 'redirect'],
                          constraints={'url': 'NOT NULL',
                                       'title': 'NOT NULL',
                                       'atime': 'NOT NULL',
                                       'redirect': 'NOT NULL'},
                          parent=parent)
+        self._progress = progress
+
         self.completion = CompletionHistory(parent=self)
+        self.metainfo = CompletionMetaInfo(parent=self)
+
         if sql.Query('pragma user_version').run().value() < _USER_VERSION:
             self.completion.delete_all()
+        if self.metainfo['force_rebuild']:
+            self.completion.delete_all()
+            self.metainfo['force_rebuild'] = False
+
         if not self.completion:
             # either the table is out-of-date or the user wiped it manually
             self._rebuild_completion()
+
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
         self._contains_query = self.contains_query('url')
@@ -87,21 +179,29 @@ class WebHistory(sql.SqlTable):
                                        'ORDER BY atime desc '
                                        'limit :limit offset :offset')
 
+        config.instance.changed.connect(self._on_config_changed)
+
     def __repr__(self):
         return utils.get_repr(self, length=len(self))
 
     def __contains__(self, url):
         return self._contains_query.run(val=url).value()
 
+    @config.change_filter('completion.web_history.exclude')
+    def _on_config_changed(self):
+        self.metainfo['force_rebuild'] = True
+
     @contextlib.contextmanager
     def _handle_sql_errors(self):
         try:
             yield
-        except sql.SqlError as e:
-            if e.environmental:
-                message.error("Failed to write history: {}".format(e.text()))
-            else:
-                raise
+        except sql.SqlEnvironmentError as e:
+            message.error("Failed to write history: {}".format(e.text()))
+
+    def _is_excluded(self, url):
+        """Check if the given URL is excluded from the completion."""
+        patterns = config.cache['completion.web_history.exclude']
+        return any(pattern.matches(url) for pattern in patterns)
 
     def _rebuild_completion(self):
         data = {'url': [], 'title': [], 'last_atime': []}
@@ -109,10 +209,23 @@ class WebHistory(sql.SqlTable):
         q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
                       'WHERE NOT redirect and url NOT LIKE "qute://back%" '
                       'GROUP BY url ORDER BY atime asc')
-        for entry in q.run():
-            data['url'].append(self._format_completion_url(QUrl(entry.url)))
+        entries = list(q.run())
+
+        if len(entries) > self._PROGRESS_THRESHOLD:
+            self._progress.start("Rebuilding completion...", len(entries))
+
+        for entry in entries:
+            self._progress.tick()
+
+            url = QUrl(entry.url)
+            if self._is_excluded(url):
+                continue
+            data['url'].append(self._format_completion_url(url))
             data['title'].append(entry.title)
             data['last_atime'].append(entry.atime)
+
+        self._progress.finish()
+
         self.completion.insert_batch(data, replace=True)
         sql.Query('pragma user_version = {}'.format(_USER_VERSION)).run()
 
@@ -218,114 +331,15 @@ class WebHistory(sql.SqlTable):
                          'title': title,
                          'atime': atime,
                          'redirect': redirect})
-            if not redirect:
-                self.completion.insert({
-                    'url': self._format_completion_url(url),
-                    'title': title,
-                    'last_atime': atime
-                }, replace=True)
 
-    def _parse_entry(self, line):
-        """Parse a history line like '12345 http://example.com title'."""
-        if not line or line.startswith('#'):
-            return None
-        data = line.split(maxsplit=2)
-        if len(data) == 2:
-            atime, url = data
-            title = ""
-        elif len(data) == 3:
-            atime, url, title = data
-        else:
-            raise ValueError("2 or 3 fields expected")
+            if redirect or self._is_excluded(url):
+                return
 
-        # http://xn--pple-43d.com/ with
-        # https://bugreports.qt.io/browse/QTBUG-60364
-        if url in ['http://.com/', 'https://.com/',
-                   'http://www..com/', 'https://www..com/']:
-            return None
-
-        url = QUrl(url)
-        if not url.isValid():
-            raise ValueError("Invalid URL: {}".format(url.errorString()))
-
-        # https://github.com/qutebrowser/qutebrowser/issues/2646
-        if url.scheme() == 'data':
-            return None
-
-        # https://github.com/qutebrowser/qutebrowser/issues/670
-        atime = atime.lstrip('\0')
-
-        if '-' in atime:
-            atime, flags = atime.split('-')
-        else:
-            flags = ''
-
-        if not set(flags).issubset('r'):
-            raise ValueError("Invalid flags {!r}".format(flags))
-
-        redirect = 'r' in flags
-        return (url, title, int(atime), redirect)
-
-    def import_txt(self):
-        """Import a history text file into sqlite if it exists.
-
-        In older versions of qutebrowser, history was stored in a text format.
-        This converts that file into the new sqlite format and moves it to a
-        backup location.
-        """
-        path = os.path.join(standarddir.data(), 'history')
-        if not os.path.isfile(path):
-            return
-
-        def action():
-            """Actually run the import."""
-            with debug.log_time(log.init, 'Import old history file to sqlite'):
-                try:
-                    self._read(path)
-                except ValueError as ex:
-                    message.error('Failed to import history: {}'.format(ex))
-                else:
-                    self._write_backup(path)
-
-        # delay to give message time to appear before locking down for import
-        message.info('Converting {} to sqlite...'.format(path))
-        QTimer.singleShot(100, action)
-
-    def _read(self, path):
-        """Import a text file into the sql database."""
-        with open(path, 'r', encoding='utf-8') as f:
-            data = {'url': [], 'title': [], 'atime': [], 'redirect': []}
-            completion_data = {'url': [], 'title': [], 'last_atime': []}
-            for (i, line) in enumerate(f):
-                try:
-                    parsed = self._parse_entry(line.strip())
-                    if parsed is None:
-                        continue
-                    url, title, atime, redirect = parsed
-                    data['url'].append(self._format_url(url))
-                    data['title'].append(title)
-                    data['atime'].append(atime)
-                    data['redirect'].append(redirect)
-                    if not redirect:
-                        completion_data['url'].append(
-                            self._format_completion_url(url))
-                        completion_data['title'].append(title)
-                        completion_data['last_atime'].append(atime)
-                except ValueError as ex:
-                    raise ValueError('Failed to parse line #{} of {}: "{}"'
-                                     .format(i, path, ex))
-        self.insert_batch(data)
-        self.completion.insert_batch(completion_data, replace=True)
-
-    def _write_backup(self, path):
-        bak = path + '.bak'
-        message.info('History import complete. Appending {} to {}'
-                     .format(path, bak))
-        with open(path, 'r', encoding='utf-8') as infile:
-            with open(bak, 'a', encoding='utf-8') as outfile:
-                for line in infile:
-                    outfile.write('\n' + line)
-        os.remove(path)
+            self.completion.insert({
+                'url': self._format_completion_url(url),
+                'title': title,
+                'last_atime': atime
+            }, replace=True)
 
     def _format_url(self, url):
         return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
@@ -360,7 +374,8 @@ def init(parent=None):
     Args:
         parent: The parent to use for WebHistory.
     """
-    history = WebHistory(parent=parent)
+    progress = HistoryProgress()
+    history = WebHistory(progress=progress, parent=parent)
     objreg.register('web-history', history)
 
     if objects.backend == usertypes.Backend.QtWebKit:  # pragma: no cover

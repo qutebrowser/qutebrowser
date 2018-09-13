@@ -915,6 +915,7 @@ Feature: Tab management
         When I run :buffer invalid title
         Then the error "No matching tab for: invalid title" should be shown
 
+    @flaky
     Scenario: :buffer with matching title and two windows
         When I open data/title.html
         And I open data/search.html in a new tab
@@ -1250,3 +1251,41 @@ Feature: Tab management
         Then the following tabs should be open:
             - data/numbers/1.txt
             - data/numbers/2.txt (pinned) (active)
+
+
+    Scenario: Focused webview after clicking link in bg
+        When I open data/hints/link_input.html
+        And I run :click-element id qute-input-existing
+        And I wait for "Entering mode KeyMode.insert *" in the log
+        And I run :leave-mode
+        And I hint with args "all tab-bg" and follow a
+        And I wait until data/hello.txt is loaded
+        And I run :enter-mode insert
+        And I run :fake-key -g new
+        Then the javascript message "contents: existingnew" should be logged
+
+    Scenario: Focused webview after opening link in bg
+        When I open data/hints/link_input.html
+        And I run :click-element id qute-input-existing
+        And I wait for "Entering mode KeyMode.insert *" in the log
+        And I run :leave-mode
+        And I open data/hello.txt in a new background tab
+        And I run :enter-mode insert
+        And I run :fake-key -g new
+        Then the javascript message "contents: existingnew" should be logged
+
+    Scenario: Focused prompt after opening link in bg
+        When I open data/hints/link_input.html
+        When I run :set-cmd-text -s :message-info
+        And I open data/hello.txt in a new background tab
+        And I run :fake-key -g hello-world
+        And I run :command-accept
+        Then the message "hello-world" should be shown
+
+    Scenario: Focused prompt after opening link in fg
+        When I open data/hints/link_input.html
+        When I run :set-cmd-text -s :message-info
+        And I open data/hello.txt in a new tab
+        And I run :fake-key -g hello-world
+        And I run :command-accept
+        Then the message "hello-world" should be shown

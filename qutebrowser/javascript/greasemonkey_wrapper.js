@@ -145,9 +145,59 @@
         }
     };
 
-    const unsafeWindow = window;
+    {% if use_proxy %}
+      /*
+       * Try to give userscripts an environment that they expect. Which
+       * seems to be that the global window object should look the same as
+       * the page's one and that if a script writes to an attribute of
+       * window it should be able to access that variable in the global
+       * scope.
+       * Use a Proxy to stop scripts from actually changing the global
+       * window (that's what unsafeWindow is for).
+       * Use the "with" statement to make the proxy provide what looks
+       * like global scope.
+       *
+       * There are other Proxy functions that we may need to override.
+       * set, get and has are definitely required.
+       */
+      const unsafeWindow = window;
+      const qute_gm_window_shadow = {};  // stores local changes to window
+      const qute_gm_windowProxyHandler = {
+        get: function(target, prop) {
+          if (prop in qute_gm_window_shadow)
+            return qute_gm_window_shadow[prop];
+          if (prop in target) {
+            if (typeof target[prop] === 'function' && typeof target[prop].prototype == 'undefined')
+              // Getting TypeError: Illegal Execution when callers try to execute
+              // eg addEventListener from here because they were returned
+              // unbound
+              return target[prop].bind(target);
+            return target[prop];
+          }
+        },
+        set: function(target, prop, val) {
+          return qute_gm_window_shadow[prop] = val;
+        },
+        has: function(target, key) {
+          return key in qute_gm_window_shadow || key in target;
+        }
+      };
+      const qute_gm_window_proxy = new Proxy(
+        unsafeWindow, qute_gm_windowProxyHandler);
 
-    // ====== The actual user script source ====== //
+      with (qute_gm_window_proxy) {
+        // We can't return `this` or `qute_gm_window_proxy` from
+        // `qute_gm_window_proxy.get('window')` because the Proxy implementation
+        // does typechecking on read-only things. So we have to shadow `window`
+        // more conventionally here.
+        const window = qute_gm_window_proxy;
+        // ====== The actual user script source ====== //
 {{ scriptSource }}
-    // ====== End User Script ====== //
+        // ====== End User Script ====== //
+      };
+    {% else %}
+      // ====== The actual user script source ====== //
+{{ scriptSource }}
+      // ====== End User Script ====== //
+    {% endif %}
 })();

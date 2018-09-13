@@ -410,11 +410,11 @@ class GotException(Exception):
 
 
 def excepthook(_exc, _val, _tb):
-    return
+    pass
 
 
 def excepthook_2(_exc, _val, _tb):
-    return
+    pass
 
 
 class TestDisabledExcepthook:
@@ -462,7 +462,9 @@ class TestPreventExceptions:
     def test_raising(self, caplog):
         """Test with a raising function."""
         with caplog.at_level(logging.ERROR, 'misc'):
+            # pylint: disable=assignment-from-no-return
             ret = self.func_raising()
+            # pylint: enable=assignment-from-no-return
         assert ret == 42
         assert len(caplog.records) == 1
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
@@ -487,7 +489,9 @@ class TestPreventExceptions:
     def test_predicate_true(self, caplog):
         """Test with a True predicate."""
         with caplog.at_level(logging.ERROR, 'misc'):
+            # pylint: disable=assignment-from-no-return
             ret = self.func_predicate_true()
+            # enable: disable=assignment-from-no-return
         assert ret == 42
         assert len(caplog.records) == 1
 
@@ -651,6 +655,7 @@ class TestGetSetClipboard:
                          autospec=True)
         clipboard = m()
         clipboard.text.return_value = 'mocked clipboard text'
+        mocker.patch('qutebrowser.utils.utils.fake_clipboard', None)
         return clipboard
 
     def test_set(self, clipboard_mock, caplog):
@@ -811,3 +816,16 @@ def test_chunk(elems, n, expected):
 def test_chunk_invalid(n):
     with pytest.raises(ValueError):
         list(utils.chunk([], n))
+
+
+@pytest.mark.parametrize('filename, expected', [
+    ('test.jpg', 'image/jpeg'),
+    ('test.blabla', 'application/octet-stream'),
+])
+def test_guess_mimetype(filename, expected):
+    assert utils.guess_mimetype(filename, fallback=True) == expected
+
+
+def test_guess_mimetype_no_fallback():
+    with pytest.raises(ValueError):
+        utils.guess_mimetype('test.blabla')

@@ -130,6 +130,26 @@ def test_load_emits_signal(qtbot):
         gm_manager.load_scripts()
 
 
+def test_utf8_bom():
+    """Make sure UTF-8 BOMs are stripped from scripts.
+
+    If we don't strip them, we'll have a BOM in the middle of the file, causing
+    QtWebEngine to not catch the "// ==UserScript==" line.
+    """
+    script = textwrap.dedent("""
+        \N{BYTE ORDER MARK}// ==UserScript==
+        // @name qutebrowser test userscript
+        // ==/UserScript==
+    """.lstrip('\n'))
+    _save_script(script, 'bom.user.js')
+    gm_manager = greasemonkey.GreasemonkeyManager()
+
+    scripts = gm_manager.all_scripts()
+    assert len(scripts) == 1
+    script = scripts[0]
+    assert '// ==UserScript==' in script.code().splitlines()
+
+
 def test_required_scripts_are_included(download_stub, tmpdir):
     test_require_script = textwrap.dedent("""
         // ==UserScript==
@@ -158,3 +178,72 @@ def test_required_scripts_are_included(download_stub, tmpdir):
     # Additionally check that the base script is still being parsed correctly
     assert "Script is running." in scripts[0].code()
     assert scripts[0].excludes
+
+
+class TestWindowIsolation:
+    """Check that greasemonkey scripts get a shadowed global scope."""
+
+    @pytest.fixture
+    def setup(self):
+        # pylint: disable=attribute-defined-outside-init
+        class SetupData:
+            pass
+        ret = SetupData()
+
+        # Change something in the global scope
+        ret.setup_script = "window.$ = 'global'"
+
+        # Greasemonkey script to report back on its scope.
+        test_script = greasemonkey.GreasemonkeyScript.parse(
+            textwrap.dedent("""
+                // ==UserScript==
+                // @name scopetest
+                // ==/UserScript==
+                // Check the thing the page set is set to the expected type
+                result.push(window.$);
+                result.push($);
+                // Now overwrite it
+                window.$ = 'shadowed';
+                // And check everything is how the script would expect it to be
+                // after just writing to the "global" scope
+                result.push(window.$);
+                result.push($);
+            """)
+        )
+
+        # The compiled source of that scripts with some additional setup
+        # bookending it.
+        ret.test_script = "\n".join([
+            """
+            const result = [];
+            """,
+            test_script.code(),
+            """
+            // Now check that the actual global scope has
+            // not been overwritten
+            result.push(window.$);
+            result.push($);
+            // And return our findings
+            result;
+            """
+        ])
+
+        # What we expect the script to report back.
+        ret.expected = ["global", "global",
+                        "shadowed", "shadowed",
+                        "global", "global"]
+        return ret
+
+    def test_webengine(self, callback_checker, webengineview, setup):
+        page = webengineview.page()
+        page.runJavaScript(setup.setup_script)
+        page.runJavaScript(setup.test_script, callback_checker.callback)
+        callback_checker.check(setup.expected)
+
+    # The JSCore in 602.1 doesn't fully support Proxy.
+    @pytest.mark.qtwebkit6021_skip
+    def test_webkit(self, webview, setup):
+        elem = webview.page().mainFrame().documentElement()
+        elem.evaluateJavaScript(setup.setup_script)
+        result = elem.evaluateJavaScript(setup.test_script)
+        assert result == setup.expected

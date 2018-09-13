@@ -61,13 +61,14 @@ class TestSet:
         commands.set(win_id=0)
         assert tabbed_browser_stubs[0].opened_url == QUrl('qute://settings')
 
-    def test_get(self, config_stub, commands, message_mock):
-        """Run ':set url.auto_search?'.
+    @pytest.mark.parametrize('option', ['url.auto_search?', 'url.auto_search'])
+    def test_get(self, config_stub, commands, message_mock, option):
+        """Run ':set url.auto_search?' / ':set url.auto_search'.
 
         Should show the value.
         """
         config_stub.val.url.auto_search = 'never'
-        commands.set(win_id=0, option='url.auto_search?')
+        commands.set(win_id=0, option=option)
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == 'url.auto_search = never'
 
@@ -179,21 +180,18 @@ class TestSet:
     def test_set_wrong_backend(self, commands, monkeypatch):
         monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
         with pytest.raises(cmdexc.CommandError,
-                           match="The content.cookies.accept setting is not "
-                           "available with the QtWebEngine backend!"):
-            commands.set(0, 'content.cookies.accept', 'all')
+                           match="The hints.find_implementation setting is "
+                           "not available with the QtWebEngine backend!"):
+            commands.set(0, 'hints.find_implementation', 'javascript')
 
-    @pytest.mark.parametrize('option', ['?', 'url.auto_search'])
-    def test_empty(self, commands, option):
-        """Run ':set ?' / ':set url.auto_search'.
+    def test_empty(self, commands):
+        """Run ':set ?'.
 
         Should show an error.
         See https://github.com/qutebrowser/qutebrowser/issues/1109
         """
-        with pytest.raises(cmdexc.CommandError,
-                           match="The following arguments are required: "
-                                 "value"):
-            commands.set(win_id=0, option=option)
+        with pytest.raises(cmdexc.CommandError, match="No option '?'"):
+            commands.set(win_id=0, option='?')
 
     def test_toggle(self, commands):
         """Try toggling a value.
@@ -247,7 +245,7 @@ class TestCycle:
         commands.config_cycle(opt, '[foo]', '[bar]')
         assert config_stub.get(opt) == ['foo']
 
-    def test_toggle(self, commands, config_stub):
+    def test_toggle(self, commands, config_stub, yaml_value):
         """Run ':config-cycle auto_save.session'.
 
         Should toggle the value.

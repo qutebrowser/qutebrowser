@@ -27,10 +27,12 @@ Module attributes:
 import os
 
 from PyQt5.QtGui import QFont
-from PyQt5.QtWebEngineWidgets import QWebEngineSettings, QWebEngineProfile
+from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
+                                      QWebEnginePage)
 
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import config, websettings
+from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import utils, standarddir, qtutils, message, log
 
 # The default QWebEngineProfile
@@ -87,35 +89,40 @@ class WebEngineSettings(websettings.AbstractSettings):
 
     _ATTRIBUTES = {
         'content.xss_auditing':
-            [QWebEngineSettings.XSSAuditingEnabled],
+            Attr(QWebEngineSettings.XSSAuditingEnabled),
         'content.images':
-            [QWebEngineSettings.AutoLoadImages],
+            Attr(QWebEngineSettings.AutoLoadImages),
         'content.javascript.enabled':
-            [QWebEngineSettings.JavascriptEnabled],
+            Attr(QWebEngineSettings.JavascriptEnabled),
         'content.javascript.can_open_tabs_automatically':
-            [QWebEngineSettings.JavascriptCanOpenWindows],
+            Attr(QWebEngineSettings.JavascriptCanOpenWindows),
         'content.javascript.can_access_clipboard':
-            [QWebEngineSettings.JavascriptCanAccessClipboard],
+            Attr(QWebEngineSettings.JavascriptCanAccessClipboard),
         'content.plugins':
-            [QWebEngineSettings.PluginsEnabled],
+            Attr(QWebEngineSettings.PluginsEnabled),
         'content.hyperlink_auditing':
-            [QWebEngineSettings.HyperlinkAuditingEnabled],
+            Attr(QWebEngineSettings.HyperlinkAuditingEnabled),
         'content.local_content_can_access_remote_urls':
-            [QWebEngineSettings.LocalContentCanAccessRemoteUrls],
+            Attr(QWebEngineSettings.LocalContentCanAccessRemoteUrls),
         'content.local_content_can_access_file_urls':
-            [QWebEngineSettings.LocalContentCanAccessFileUrls],
+            Attr(QWebEngineSettings.LocalContentCanAccessFileUrls),
         'content.webgl':
-            [QWebEngineSettings.WebGLEnabled],
+            Attr(QWebEngineSettings.WebGLEnabled),
         'content.local_storage':
-            [QWebEngineSettings.LocalStorageEnabled],
+            Attr(QWebEngineSettings.LocalStorageEnabled),
+        'content.desktop_capture':
+            Attr(QWebEngineSettings.ScreenCaptureEnabled,
+                 converter=lambda val: True if val == 'ask' else val),
+        # 'ask' is handled via the permission system,
+        # or a hardcoded dialog on Qt < 5.10
 
         'input.spatial_navigation':
-            [QWebEngineSettings.SpatialNavigationEnabled],
+            Attr(QWebEngineSettings.SpatialNavigationEnabled),
         'input.links_included_in_focus_chain':
-            [QWebEngineSettings.LinksIncludedInFocusChain],
+            Attr(QWebEngineSettings.LinksIncludedInFocusChain),
 
         'scrolling.smooth':
-            [QWebEngineSettings.ScrollAnimatorEnabled],
+            Attr(QWebEngineSettings.ScrollAnimatorEnabled),
     }
 
     _FONT_SIZES = {
@@ -154,15 +161,21 @@ class WebEngineSettings(websettings.AbstractSettings):
         # Attributes which don't exist in all Qt versions.
         new_attributes = {
             # Qt 5.8
-            'content.print_element_backgrounds': 'PrintElementBackgrounds',
+            'content.print_element_backgrounds':
+                ('PrintElementBackgrounds', None),
+            # Qt 5.11
+            'content.autoplay':
+                ('PlaybackRequiresUserGesture', lambda val: not val),
+            'content.webrtc_public_interfaces_only':
+                ('WebRTCPublicInterfacesOnly', None),
         }
-        for name, attribute in new_attributes.items():
+        for name, (attribute, converter) in new_attributes.items():
             try:
                 value = getattr(QWebEngineSettings, attribute)
             except AttributeError:
                 continue
 
-            self._ATTRIBUTES[name] = [value]
+            self._ATTRIBUTES[name] = Attr(value, converter=converter)
 
 
 class ProfileSetter:
@@ -176,8 +189,17 @@ class ProfileSetter:
         """Initialize settings on the given profile."""
         self.set_http_headers()
         self.set_http_cache_size()
-        self._profile.settings().setAttribute(
+
+        settings = self._profile.settings()
+        settings.setAttribute(
             QWebEngineSettings.FullScreenSupportEnabled, True)
+        try:
+            settings.setAttribute(
+                QWebEngineSettings.FocusOnNavigationEnabled, False)
+        except AttributeError:
+            # Added in Qt 5.8
+            pass
+
         if qtutils.version_check('5.8'):
             self.set_dictionary_language()
 
@@ -274,8 +296,11 @@ def _init_profiles():
 
 def init(args):
     """Initialize the global QWebSettings."""
-    if args.enable_webengine_inspector:
+    if (args.enable_webengine_inspector and
+            not hasattr(QWebEnginePage, 'setInspectedPage')):  # only Qt < 5.11
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
+
+    spell.init()
 
     _init_profiles()
     config.instance.changed.connect(_update_settings)

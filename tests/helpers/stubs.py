@@ -232,6 +232,15 @@ class FakeWebTabHistory(browsertab.AbstractHistory):
         return self._can_go_forward
 
 
+class FakeWebTabAudio(browsertab.AbstractAudio):
+
+    def is_muted(self):
+        return False
+
+    def is_recently_audible(self):
+        return False
+
+
 class FakeWebTab(browsertab.AbstractTab):
 
     """Fake AbstractTab to use in tests."""
@@ -248,6 +257,7 @@ class FakeWebTab(browsertab.AbstractTab):
         self.history = FakeWebTabHistory(self, can_go_back=can_go_back,
                                          can_go_forward=can_go_forward)
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
+        self.audio = FakeWebTabAudio()
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
 
@@ -622,3 +632,22 @@ class FakeDownloadManager:
                 shutil.copyfileobj(fake_url_file, download_item.fileobj)
         self.downloads.append(download_item)
         return download_item
+
+
+class FakeHistoryProgress:
+
+    """Fake for a WebHistoryProgress object."""
+
+    def __init__(self):
+        self._started = False
+        self._finished = False
+        self._value = 0
+
+    def start(self, _text, _maximum):
+        self._started = True
+
+    def tick(self):
+        self._value += 1
+
+    def finish(self):
+        self._finished = True

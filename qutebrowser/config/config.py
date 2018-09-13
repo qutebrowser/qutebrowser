@@ -34,6 +34,7 @@ from qutebrowser.keyinput import keyutils
 val = None
 instance = None
 key_instance = None
+cache = None
 
 # Keeping track of all change filters to validate them later.
 change_filters = []
@@ -276,7 +277,8 @@ class Config(QObject):
         """Set the given option to the given value."""
         if not isinstance(objects.backend, objects.NoBackend):
             if objects.backend not in opt.backends:
-                raise configexc.BackendError(opt.name, objects.backend)
+                raise configexc.BackendError(opt.name, objects.backend,
+                                             opt.raw_backends)
 
         opt.typ.to_py(value)  # for validation
 

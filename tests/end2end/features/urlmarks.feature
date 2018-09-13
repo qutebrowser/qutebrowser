@@ -116,6 +116,7 @@ Feature: quickmarks and bookmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/9.txt nine
         Then the quickmark file should contain "nine http://localhost:*/data/numbers/9.txt"
 
+    @flaky
     Scenario: Saving a quickmark (:quickmark-save)
         When I open data/numbers/10.txt
         And I run :quickmark-save

@@ -172,6 +172,11 @@ def _nvidia_shader_workaround():
 
 
 def _handle_nouveau_graphics():
+    """Force software rendering when using the Nouveau driver.
+
+    WORKAROUND for https://bugreports.qt.io/browse/QTBUG-41242
+    Should be fixed in Qt 5.10 via https://codereview.qt-project.org/#/c/208664/
+    """
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
 
     if os.environ.get('QUTE_SKIP_NOUVEAU_CHECK'):
@@ -181,11 +186,15 @@ def _handle_nouveau_graphics():
         return
 
     if (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
-            'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ):
+            # qt.force_software_rendering = 'software-opengl'
+            'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ or
+            # qt.force_software_rendering = 'chromium', also see:
+            # https://build.opensuse.org/package/view_file/openSUSE:Factory/libqt5-qtwebengine/disable-gpu-when-using-nouveau-boo-1005323.diff?expand=1
+            'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND' in os.environ):
         return
 
     button = _Button("Force software rendering", 'qt.force_software_rendering',
-                     True)
+                     'chromium')
     _show_dialog(
         backend=usertypes.Backend.QtWebEngine,
         because="you're using Nouveau graphics",
@@ -194,9 +203,9 @@ def _handle_nouveau_graphics():
              "<p>This allows you to use the newer QtWebEngine backend (based "
              "on Chromium) but could have noticeable performance impact "
              "(depending on your hardware). "
-             "This sets the <i>qt.force_software_rendering = True</i> option "
-             "(if you have a <i>config.py</i> file, you'll need to set this "
-             "manually).</p>",
+             "This sets the <i>qt.force_software_rendering = 'chromium'</i> "
+             "option (if you have a <i>config.py</i> file, you'll need to set "
+             "this manually).</p>",
         buttons=[button],
     )
 
@@ -213,33 +222,41 @@ def _handle_wayland():
     if platform not in ['wayland', 'wayland-egl']:
         return
 
+    has_qt511 = qtutils.version_check('5.11', compiled=False)
+    if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
+        return
+
+    buttons = []
+    text = "<p>You can work around this in one of the following ways:</p>"
+
     if 'DISPLAY' in os.environ:
         # XWayland is available, but QT_QPA_PLATFORM=wayland is set
-        button = _Button("Force XWayland", 'qt.force_platform', 'xcb')
-        _show_dialog(
-            backend=usertypes.Backend.QtWebEngine,
-            because="you're using Wayland",
-            text="<p>There are two ways to fix this:</p>"
-                 "<p><b>Force Qt to use XWayland</b></p>"
+        buttons.append(_Button("Force XWayland", 'qt.force_platform', 'xcb'))
+        text += ("<p><b>Force Qt to use XWayland</b></p>"
                  "<p>This allows you to use the newer QtWebEngine backend "
                  "(based on Chromium). "
                  "This sets the <i>qt.force_platform = 'xcb'</i> option "
                  "(if you have a <i>config.py</i> file, you'll need to set "
-                 "this manually).</p>",
-            buttons=[button],
-        )
+                 "this manually).</p>")
     else:
-        # XWayland is unavailable
-        _show_dialog(
-            backend=usertypes.Backend.QtWebEngine,
-            because="you're using Wayland without XWayland",
-            text="<p>There are two ways to fix this:</p>"
-                 "<p><b>Set up XWayland</b></p>"
-                 "<p>This allows you to use the newer QtWebEngine backend "
-                 "(based on Chromium). "
-        )
+        text.append("<p><b>Set up XWayland</b></p>"
+                    "<p>This allows you to use the newer QtWebEngine backend "
+                    "(based on Chromium). ")
 
-    raise utils.Unreachable
+    if has_qt511:
+        buttons.append(_Button("Force software rendering",
+                               'qt.force_software_rendering',
+                               'chromium'))
+        text += ("<p><b>Forcing software rendering</b></p>"
+                 "<p>This allows you to use the newer QtWebEngine backend "
+                 "(based on Chromium) but could have noticeable performance "
+                 "impact (depending on your hardware). This sets the "
+                 "<i>qt.force_software_rendering = 'chromium'</i> option "
+                 "(if you have a <i>config.py</i> file, you'll need to set "
+                 "this manually).</p>")
+
+    _show_dialog(backend=usertypes.Backend.QtWebEngine,
+                 because="you're using Wayland", text=text, buttons=buttons)
 
 
 @attr.s

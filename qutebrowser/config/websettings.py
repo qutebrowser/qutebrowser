@@ -28,6 +28,18 @@ from qutebrowser.misc import objects
 UNSET = object()
 
 
+class AttributeInfo:
+
+    """Info about a settings attribute."""
+
+    def __init__(self, *attributes, converter=None):
+        self.attributes = attributes
+        if converter is None:
+            self.converter = lambda val: val
+        else:
+            self.converter = converter
+
+
 class AbstractSettings:
 
     """Abstract base class for settings set via QWeb(Engine)Settings."""
@@ -50,12 +62,13 @@ class AbstractSettings:
         """
         old_value = self.test_attribute(name)
 
-        for attribute in self._ATTRIBUTES[name]:
+        info = self._ATTRIBUTES[name]
+        for attribute in info.attributes:
             if value is configutils.UNSET:
                 self._settings.resetAttribute(attribute)
                 new_value = self.test_attribute(name)
             else:
-                self._settings.setAttribute(attribute, value)
+                self._settings.setAttribute(attribute, info.converter(value))
                 new_value = value
 
         return old_value != new_value
@@ -66,7 +79,8 @@ class AbstractSettings:
         If the setting resolves to a list of attributes, only the first
         attribute is tested.
         """
-        return self._settings.testAttribute(self._ATTRIBUTES[name][0])
+        info = self._ATTRIBUTES[name]
+        return self._settings.testAttribute(info.attributes[0])
 
     def set_font_size(self, name, value):
         """Set the given QWebSettings/QWebEngineSettings font size.

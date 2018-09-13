@@ -21,10 +21,12 @@
 
 import glob
 import os
+import os.path
 import re
+import shutil
 
 from PyQt5.QtCore import QLibraryInfo
-from qutebrowser.utils import log, message
+from qutebrowser.utils import log, message, standarddir, qtutils
 
 dict_version_re = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
 
@@ -39,9 +41,12 @@ def version(filename):
     return tuple(int(n) for n in match.group('version').split('-'))
 
 
-def dictionary_dir():
+def dictionary_dir(old=False):
     """Return the path (str) to the QtWebEngine's dictionaries directory."""
-    datapath = QLibraryInfo.location(QLibraryInfo.DataPath)
+    if qtutils.version_check('5.10', compiled=False) and not old:
+        datapath = standarddir.data()
+    else:
+        datapath = QLibraryInfo.location(QLibraryInfo.DataPath)
     return os.path.join(datapath, 'qtwebengine_dictionaries')
 
 
@@ -73,3 +78,16 @@ def local_filename(code):
     """
     all_installed = local_files(code)
     return os.path.splitext(all_installed[0])[0] if all_installed else None
+
+
+def init():
+    """Initialize the dictionary path if supported."""
+    if qtutils.version_check('5.10', compiled=False):
+        new_dir = dictionary_dir()
+        old_dir = dictionary_dir(old=True)
+        os.environ['QTWEBENGINE_DICTIONARIES_PATH'] = new_dir
+        try:
+            if os.path.exists(old_dir) and not os.path.exists(new_dir):
+                shutil.copytree(old_dir, new_dir)
+        except OSError:
+            log.misc.exception("Failed to copy old dictionaries")

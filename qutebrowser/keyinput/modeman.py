@@ -30,6 +30,9 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
 
+INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
+PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
+
 
 @attr.s(frozen=True)
 class KeyEvent:
@@ -121,6 +124,7 @@ class ModeManager(QObject):
     Attributes:
         mode: The mode we're currently in.
         _win_id: The window ID of this ModeManager
+        _prev_mode: Mode before a prompt popped up
         _parsers: A dictionary of modes and their keyparsers.
         _forward_unbound_keys: If we should forward unbound keys.
         _releaseevents_to_pass: A set of KeyEvents where the keyPressEvent was
@@ -144,6 +148,7 @@ class ModeManager(QObject):
         super().__init__(parent)
         self._win_id = win_id
         self._parsers = {}
+        self._prev_mode = usertypes.KeyMode.normal
         self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = set()
 
@@ -236,13 +241,17 @@ class ModeManager(QObject):
         """
         if not isinstance(mode, usertypes.KeyMode):
             raise TypeError("Mode {} is no KeyMode member!".format(mode))
+
+        if mode == usertypes.KeyMode.normal:
+            self.leave(self.mode, reason='enter normal: {}'.format(reason))
+            return
+
         log.modes.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
         if mode not in self._parsers:
             raise ValueError("No keyparser for mode {}".format(mode))
-        prompt_modes = (usertypes.KeyMode.prompt, usertypes.KeyMode.yesno)
-        if self.mode == mode or (self.mode in prompt_modes and
-                                 mode in prompt_modes):
+        if self.mode == mode or (self.mode in PROMPT_MODES and
+                                 mode in PROMPT_MODES):
             log.modes.debug("Ignoring request as we're in mode {} "
                             "already.".format(self.mode))
             return
@@ -254,6 +263,12 @@ class ModeManager(QObject):
                 return
             log.modes.debug("Overriding mode {}.".format(self.mode))
             self.left.emit(self.mode, mode, self._win_id)
+
+        if mode in PROMPT_MODES and self.mode in INPUT_MODES:
+            self._prev_mode = self.mode
+        else:
+            self._prev_mode = usertypes.KeyMode.normal
+
         self.mode = mode
         self.entered.emit(mode, self._win_id)
 
@@ -301,6 +316,9 @@ class ModeManager(QObject):
         self.clear_keychain()
         self.mode = usertypes.KeyMode.normal
         self.left.emit(mode, self.mode, self._win_id)
+        if mode in PROMPT_MODES:
+            self.enter(self._prev_mode,
+                       reason='restore mode before {}'.format(mode.name))
 
     @cmdutils.register(instance='mode-manager', name='leave-mode',
                        not_modes=[usertypes.KeyMode.normal], scope='window')

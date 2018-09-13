@@ -25,9 +25,9 @@ import shlex
 import functools
 import typing
 
-from PyQt5.QtWidgets import QApplication, QTabBar, QDialog
+from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
-from PyQt5.QtPrintSupport import QPrintDialog, QPrintPreviewDialog
+from PyQt5.QtPrintSupport import QPrintPreviewDialog
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configdata
@@ -415,27 +415,6 @@ class CommandDispatcher:
         tab.printing.to_pdf(filename)
         log.misc.debug("Print to file: {}".format(filename))
 
-    def _print(self, tab):
-        """Print with a QPrintDialog."""
-        def print_callback(ok):
-            """Called when printing finished."""
-            if not ok:
-                message.error("Printing failed!")
-            diag.deleteLater()
-
-        def do_print():
-            """Called when the dialog was closed."""
-            tab.printing.to_printer(diag.printer(), print_callback)
-
-        diag = QPrintDialog(tab)
-        if utils.is_mac:
-            # For some reason we get a segfault when using open() on macOS
-            ret = diag.exec_()
-            if ret == QDialog.Accepted:
-                do_print()
-        else:
-            diag.open(do_print)
-
     @cmdutils.register(instance='command-dispatcher', name='print',
                        scope='window')
     @cmdutils.argument('count', count=True)
@@ -453,21 +432,14 @@ class CommandDispatcher:
             return
 
         try:
-            if pdf:
-                tab.printing.check_pdf_support()
-            else:
-                tab.printing.check_printer_support()
             if preview:
-                tab.printing.check_preview_support()
+                self._print_preview(tab)
+            elif pdf:
+                self._print_pdf(tab, pdf)
+            else:
+                tab.printing.show_dialog()
         except browsertab.WebTabError as e:
             raise cmdexc.CommandError(e)
-
-        if preview:
-            self._print_preview(tab)
-        elif pdf:
-            self._print_pdf(tab, pdf)
-        else:
-            self._print(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_clone(self, bg=False, window=False):
@@ -513,7 +485,8 @@ class CommandDispatcher:
         new_tabbed_browser.widget.set_tab_pinned(newtab, curtab.data.pinned)
         return newtab
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.other_buffer)
     def tab_take(self, index):
         """Take a tab from another window.
@@ -565,12 +538,6 @@ class CommandDispatcher:
 
         tabbed_browser.tabopen(self._current_url())
         self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       deprecated='Use :tab-give instead!')
-    def tab_detach(self):
-        """Deprecated way to detach a tab."""
-        self.tab_give()
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
@@ -1207,8 +1174,9 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
+    @cmdutils.argument('count', count=True)
     def spawn(self, cmdline, userscript=False, verbose=False,
-              output=False, detach=False):
+              output=False, detach=False, count=None):
         """Spawn a command in a shell.
 
         Args:
@@ -1216,12 +1184,13 @@ class CommandDispatcher:
                         absolute path, or store the userscript in one of those
                         locations:
                             - `~/.local/share/qutebrowser/userscripts`
-                              (or `$XDG_DATA_DIR`)
+                              (or `$XDG_DATA_HOME`)
                             - `/usr/share/qutebrowser/userscripts`
             verbose: Show notifications when the command started/exited.
             output: Whether the output should be shown in a new tab.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
+            count: Given to userscripts as $QUTE_COUNT.
         """
         cmdutils.check_exclusive((userscript, detach), 'ud')
         try:
@@ -1245,7 +1214,7 @@ class CommandDispatcher:
         if userscript:
             def _selection_callback(s):
                 try:
-                    runner = self._run_userscript(s, cmd, args, verbose)
+                    runner = self._run_userscript(s, cmd, args, verbose, count)
                     runner.finished.connect(_on_proc_finished)
                 except cmdexc.CommandError as e:
                     message.error(str(e))
@@ -1272,18 +1241,22 @@ class CommandDispatcher:
         """Open main startpage in current tab."""
         self.openurl(config.val.url.start_pages[0])
 
-    def _run_userscript(self, selection, cmd, args, verbose):
+    def _run_userscript(self, selection, cmd, args, verbose, count):
         """Run a userscript given as argument.
 
         Args:
             cmd: The userscript to run.
             args: Arguments to pass to the userscript.
             verbose: Show notifications when the command started/exited.
+            count: Exposed to the userscript.
         """
         env = {
             'QUTE_MODE': 'command',
             'QUTE_SELECTED_TEXT': selection,
         }
+
+        if count is not None:
+            env['QUTE_COUNT'] = str(count)
 
         idx = self._current_index()
         if idx != -1:
@@ -1461,6 +1434,7 @@ class CommandDispatcher:
             if tab.data.inspector is None:
                 tab.data.inspector = inspector.create()
                 tab.data.inspector.inspect(page)
+                tab.data.inspector.show()
             else:
                 tab.data.inspector.toggle(page)
         except inspector.WebInspectorError as e:
@@ -1521,11 +1495,15 @@ class CommandDispatcher:
             )
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def view_source(self, edit=False):
+    def view_source(self, edit=False, pygments=False):
         """Show the source of the current page in a new tab.
 
         Args:
             edit: Edit the source in the editor instead of opening a tab.
+            pygments: Use pygments to generate the view. This is always
+                      the case for QtWebKit. For QtWebEngine it may display
+                      slightly different source.
+                      Some JavaScript processing may be applied.
         """
         tab = self._current_widget()
         try:
@@ -1533,14 +1511,15 @@ class CommandDispatcher:
         except cmdexc.CommandError as e:
             message.error(str(e))
             return
-        if current_url.scheme() == 'view-source':
+
+        if current_url.scheme() == 'view-source' or tab.data.viewing_source:
             raise cmdexc.CommandError("Already viewing source!")
 
         if edit:
             ed = editor.ExternalEditor(self._tabbed_browser)
             tab.dump_async(ed.edit)
         else:
-            tab.action.show_source()
+            tab.action.show_source(pygments)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
@@ -1674,7 +1653,7 @@ class CommandDispatcher:
         """
         try:
             elem.set_value(text)
-        except webelem.OrphanedError as e:
+        except webelem.OrphanedError:
             message.error('Edited element vanished')
             ed.backup()
         except webelem.Error as e:
@@ -2230,3 +2209,20 @@ class CommandDispatcher:
 
         window = self._tabbed_browser.widget.window()
         window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       name='tab-mute')
+    @cmdutils.argument('count', count=True)
+    def tab_mute(self, count=None):
+        """Mute/Unmute the current/[count]th tab.
+
+        Args:
+            count: The tab index to mute or unmute, or None
+        """
+        tab = self._cntwidget(count)
+        if tab is None:
+            return
+        try:
+            tab.audio.toggle_muted()
+        except browsertab.WebTabError as e:
+            raise cmdexc.CommandError(e)

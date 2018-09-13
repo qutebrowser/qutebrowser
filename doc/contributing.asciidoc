@@ -85,6 +85,16 @@ git format-patch origin/master <1>
 <1> Replace `master` by the branch your work was based on, e.g.,
 `origin/develop`.
 
+Running qutebrowser
+-------------------
+
+After link:install.html#tox[installing qutebrowser via tox], you can run
+`.venv/bin/qutebrowser --debug --temp-basedir` to test your changes with debug
+logging enabled and without affecting existing running instances.
+
+Alternatively, you can install qutebrowser's dependencies system-wide and run
+`python3 -m qutebrowser --debug --temp-basedir`.
+
 Useful utilities
 ----------------
 
@@ -188,8 +198,8 @@ There are some useful functions for debugging in the `qutebrowser.utils.debug`
 module.
 
 When starting qutebrowser with the `--debug` flag, you also get useful debug
-logs. You can add +--logfilter _category[,category,...]_+ to restrict logging
-to the given categories.
+logs. You can add +--logfilter _[!]category[,category,...]_+ to restrict
+logging to the given categories.
 
 With `--debug` there are also some additional +debug-_*_+ commands available,
 for example `:debug-all-objects` and `:debug-all-widgets` which print a list of
@@ -566,6 +576,23 @@ can be useful for debugging:
 - chrome://gpuclean/ (crashes the current renderer process!)
 - chrome://ppapiflashcrash/
 - chrome://ppapiflashhang/
+- chrome://quota-internals/ (Qt 5.11)
+- chrome://taskscheduler-internals/ (Qt 5.11)
+- chrome://sandbox/ (Qt 5.11, Linux only)
+
+QtWebEngine internals
+~~~~~~~~~~~~~~~~~~~~~
+
+This is mostly useful for qutebrowser maintainers to work around issues in Qt - if you don't understand it, don't worry, just ignore it.
+
+The hierarchy of widgets when QtWebEngine is involved looks like this:
+
+- qutebrowser has a `WebEngineTab` object, which is its abstraction over QtWebKit/QtWebEngine.
+- The `WebEngineTab` has a `_widget` attribute, which is the https://doc.qt.io/qt-5/qwebengineview.html[QWebEngineView]
+- That view has a https://doc.qt.io/qt-5/qwebenginepage.html[QWebEnginePage] for everything which doesn't require rendering.
+- The view also has a layout with exactly one element (which also is its `focusProxy()`)
+- That element is the  http://code.qt.io/cgit/qt/qtwebengine.git/tree/src/webenginewidgets/render_widget_host_view_qt_delegate_widget.cpp[RenderWidgetHostViewQtDelegateWidget] (it inherits https://doc.qt.io/qt-5/qquickwidget.html[QQuickWidget]) - also often referred to as RWHV or RWHVQDW. It can be obtained via `sip.cast(tab._widget.focusProxy(), QQuickWidget)`.
+- Calling `rootObject()` on that gives us the https://doc.qt.io/qt-5/qquickitem.html[QQuickItem] where Chromium renders into (?). With it, we can do things like `.setRotation(20)`.
 
 Style conventions
 -----------------
@@ -662,8 +689,6 @@ New PyQt release
 ~~~~~~~~~~~~~~~~
 
 * See above.
-* Install new PyQt in Windows VM (32- and 64-bit).
-* Download new installer and update PyQt installer path in `ci_install.py`.
 * Update `tox.ini`/`.travis.yml`/`.appveyor.yml` to test new versions.
 
 qutebrowser release
@@ -685,8 +710,8 @@ qutebrowser release
 as closed.
 
 * Linux: Run `git checkout v1.$x.$y && ./.venv/bin/python3 scripts/dev/build_release.py --upload v1.$x.$y`.
-* Windows: Run `git checkout v1.X.Y; C:\Python36-32\python scripts\dev\build_release.py --asciidoc C:\Python27\python C:\asciidoc-8.6.9\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
-* macOS: Run `git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
+* Windows: Run `git checkout v1.X.Y; py -3.6 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
+* macOS: Run `pyenv shell 3.6.6 && git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
 * On server:
   - Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
   - Run `git pull github master && sudo python3 scripts/asciidoc2html.py --website /srv/http/qutebrowser`

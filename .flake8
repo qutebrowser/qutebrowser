@@ -44,7 +44,7 @@ ignore =
 min-version = 3.4.0
 max-complexity = 12
 per-file-ignores =
-    /tests/**/test_*.py : D100,D101,D401
+    /tests/**/*.py : D100,D101,D401
     /tests/unit/browser/test_history.py : N806
     /tests/helpers/fixtures.py : N806
     /tests/unit/browser/webkit/http/test_content_disposition.py : D400

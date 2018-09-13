@@ -44,9 +44,15 @@ class BackendError(Error):
 
     """Raised when this setting is unavailable with the current backend."""
 
-    def __init__(self, name, backend):
-        super().__init__("The {} setting is not available with the {} "
-                         "backend!".format(name, backend.name))
+    def __init__(self, name, backend, raw_backends):
+        if raw_backends is None or not raw_backends[backend.name]:
+            msg = ("The {} setting is not available with the {} backend!"
+                   .format(name, backend.name))
+        else:
+            msg = ("The {} setting needs {} with the {} backend!"
+                   .format(name, raw_backends[backend.name], backend.name))
+
+        super().__init__(msg)
 
 
 class NoPatternError(Error):

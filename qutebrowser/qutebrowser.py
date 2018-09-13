@@ -86,7 +86,9 @@ def get_argparser():
                         "that this is a SECURITY RISK and you should not "
                         "visit untrusted websites with the inspector turned "
                         "on. See https://bugreports.qt.io/browse/QTBUG-50725 "
-                        "for more details.")
+                        "for more details. This is not needed anymore since "
+                        "Qt 5.11 where the inspector is always enabled and "
+                        "secure.")
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
@@ -146,7 +148,7 @@ def logfilter_error(logfilter):
     Args:
         logfilter: A comma separated list of logger names.
     """
-    if set(logfilter.split(',')).issubset(log.LOGGER_NAMES):
+    if set(logfilter.lstrip('!').split(',')).issubset(log.LOGGER_NAMES):
         return logfilter
     else:
         raise argparse.ArgumentTypeError(
@@ -165,7 +167,7 @@ def debug_flag_error(flag):
         log-requests: Log all network requests.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
-                   'no-scroll-filtering', 'log-requests']
+                   'no-scroll-filtering', 'log-requests', 'lost-focusproxy']
 
     if flag in valid_flags:
         return flag

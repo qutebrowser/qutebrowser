@@ -24,7 +24,6 @@ import os.path
 import itertools
 import urllib
 
-import sip
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
 import yaml
@@ -35,6 +34,7 @@ from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.qt import sip
 
 
 default = object()  # Sentinel value

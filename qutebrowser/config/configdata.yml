@@ -150,14 +150,24 @@ force_software_rendering:
   renamed: qt.force_software_rendering
 
 qt.force_software_rendering:
-  type: Bool
-  default: false
+  type:
+    name: String
+    valid_values:
+      - software-opengl: Tell LibGL to use a software implementation of GL
+            (`LIBGL_ALWAYS_SOFTWARE` / `QT_XCB_FORCE_SOFTWARE_OPENGL`)
+      - qt-quick: Tell Qt Quick to use a software renderer instead of OpenGL.
+            (`QT_QUICK_BACKEND=software`)
+      - chromium: Tell Chromium to disable GPU support and use Skia software
+            rendering instead. (`--disable-gpu`)
+      - none: Don't force software rendering.
+  default: none
   backend: QtWebEngine
   restart: true
   desc: >-
     Force software rendering for QtWebEngine.
 
-    This is needed for QtWebEngine to work with Nouveau drivers.
+    This is needed for QtWebEngine to work with Nouveau drivers and can be
+    useful in other scenarios related to graphic issues.
 
 qt.force_platform:
   type:
@@ -204,6 +214,19 @@ auto_save.session:
 
 ## content
 
+content.autoplay:
+  default: true
+  type: Bool
+  backend:
+    QtWebEngine: Qt 5.10
+    QtWebKit: false
+  supports_pattern: true
+  desc: >-
+    Automatically start playing `<video>` elements.
+
+    Note: On Qt < 5.11, this option needs a restart and does not support URL
+    patterns.
+
 content.cache.size:
   default: null
   type:
@@ -215,6 +238,16 @@ content.cache.size:
     Size (in bytes) of the HTTP network cache. Null to use the default value.
 
     With QtWebEngine, the maximum supported value is 2147483647 (~2 GB).
+
+content.canvas_reading:
+  default: true
+  type: Bool
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Allow websites to read canvas elements.
+
+    Note this is needed for some websites to work properly.
 
 # Defaults from QWebSettings::QWebSettings() in
 # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
@@ -250,14 +283,17 @@ content.cache.appcache:
 
 content.cookies.accept:
   default: no-3rdparty
-  backend: QtWebKit
+  backend:
+    QtWebKit: true
+    QtWebEngine: Qt 5.11
   type:
     name: String
     valid_values:
       - all: "Accept all cookies."
       - no-3rdparty: "Accept cookies from the same origin only."
       - no-unknown-3rdparty: "Accept cookies from the same origin only, unless
-          a cookie is already set for the domain."
+          a cookie is already set for the domain. On QtWebEngine, this is the
+          same as no-3rdparty."
       - never: "Don't accept cookies at all."
   desc: Which cookies to accept.
 
@@ -284,16 +320,18 @@ content.windowed_fullscreen:
   desc: >-
     Limit fullscreen to the browser window (does not expand to fill the screen).
 
-content.developer_extras:
-  type: Bool
-  default: false
-  backend: QtWebKit
+content.desktop_capture:
+  type: BoolAsk
+  default: ask
+  supports_pattern: true
   desc: >-
-    Enable extra tools for Web developers.
+    Allow websites to share screen content.
 
-    This needs to be enabled for `:inspector` to work and also adds an
-    _Inspect_ entry to the context menu. For QtWebEngine, see
-    `--enable-webengine-inspector` in `qutebrowser --help` instead.
+    On Qt < 5.10, a dialog box is always displayed, even if this is set to
+    "true".
+
+content.developer_extras:
+  deleted: true
 
 content.dns_prefetch:
   default: true
@@ -315,14 +353,28 @@ content.frame_flattening:
 content.geolocation:
   default: ask
   type: BoolAsk
+  supports_pattern: true
   desc: Allow websites to request geolocations.
+
+content.mouse_lock:
+  default: ask
+  type: BoolAsk
+  supports_pattern: true
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.8
+  desc: Allow websites to lock your mouse pointer.
 
 content.headers.accept_language:
   type:
     name: String
     none_ok: true
+  supports_pattern: true
   default: en-US,en
-  desc: Value to send in the `Accept-Language` header.
+  desc: >-
+    Value to send in the `Accept-Language` header.
+
+    Note that the value read from JavaScript is always the global value.
 
 content.headers.custom:
   default: {}
@@ -335,6 +387,7 @@ content.headers.custom:
       name: String
       encoding: ascii
     none_ok: true
+  supports_pattern: true
   desc: Custom headers for qutebrowser HTTP requests.
 
 content.headers.do_not_track:
@@ -342,6 +395,7 @@ content.headers.do_not_track:
     name: Bool
     none_ok: true
   default: true
+  supports_pattern: true
   desc: >-
     Value to send in the `DNT` header.
 
@@ -416,7 +470,11 @@ content.headers.user_agent:
           Gecko"
         - IE 11.0 for Desktop Win7 64-bit
 
-  desc: User agent to send. Unset to send the default.
+  supports_pattern: true
+  desc: >-
+    User agent to send. Unset to send the default.
+
+    Note that the value read from JavaScript is always the global value.
 
 content.host_blocking.enabled:
   default: true
@@ -559,6 +617,7 @@ content.local_storage:
 content.media_capture:
   default: ask
   type: BoolAsk
+  supports_pattern: true
   backend: QtWebEngine
   desc: Allow websites to record audio/video.
 
@@ -575,18 +634,28 @@ content.netrc_file:
 content.notifications:
   default: ask
   type: BoolAsk
+  supports_pattern: true
   backend: QtWebKit
   desc: Allow websites to show notifications.
 
 content.pdfjs:
   default: false
   type: Bool
-  backend: QtWebKit
   desc: >-
     Allow pdf.js to view PDF files in the browser.
 
     Note that the files can still be downloaded by clicking the download button
     in the pdf.js viewer.
+
+content.persistent_storage:
+  default: ask
+  type: BoolAsk
+  supports_pattern: true
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.11
+  desc: Allow websites to request persistent storage quota via
+    `navigator.webkitPersistentStorage.requestQuota`.
 
 content.plugins:
   default: false
@@ -625,9 +694,20 @@ content.proxy_dns_requests:
   backend: QtWebKit
   desc: Send DNS requests over the configured proxy.
 
+content.register_protocol_handler:
+  default: ask
+  type: BoolAsk
+  supports_pattern: true
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.11
+  desc: Allow websites to register protocol handlers via
+    `navigator.registerProtocolHandler`.
+
 content.ssl_strict:
   default: ask
   type: BoolAsk
+  supports_pattern: true
   desc: Validate SSL handshakes.
 
 content.user_stylesheets:
@@ -644,16 +724,28 @@ content.webgl:
   supports_pattern: true
   desc: Enable WebGL.
 
+content.webrtc_public_interfaces_only:
+  default: false
+  type: Bool
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.9.2
+  desc: >-
+    Only expose public interfaces via WebRTC.
+
+    On Qt 5.9, this option requires a restart.
+    On Qt 5.10, this option doesn't work at all because of a Qt bug.
+    On Qt >= 5.11, no restart is required.
+
 content.xss_auditing:
   type: Bool
-  default: false
+  default: true
   supports_pattern: true
   desc: >-
     Monitor load requests for cross-site scripting attempts.
 
     Suspicious scripts will be blocked and reported in the inspector's
-    JavaScript console. Enabling this feature might have an impact on
-    performance.
+    JavaScript console.
 
 # emacs: '
 
@@ -721,7 +813,27 @@ completion.timestamp_format:
   default: '%Y-%m-%d'
   desc: Format of timestamps (e.g. for the history completion).
 
+completion.web_history.exclude:
+  type:
+    name: List
+    valtype: UrlPattern
+    none_ok: true
+  default: []
+  restart: true
+  desc: >-
+    A list of patterns which should not be shown in the history.
+
+    This only affects the completion. Matching URLs are still saved in the
+    history (and visible on the qute://history page), but hidden in the
+    completion.
+
+    Changing this setting will cause the completion history to be regenerated
+    on the next start, which will take a short while.
+
 completion.web_history_max_items:
+  renamed: completion.web_history.max_items
+
+completion.web_history.max_items:
   default: -1
   type:
     name: Int
@@ -960,6 +1072,11 @@ hints.uppercase:
   desc: Make characters in hint strings uppercase.
 
 ## input
+
+input.escape_quits_reporter:
+  type: Bool
+  default: True
+  desc: Allow Escape to quit the crash reporter.
 
 input.forward_unbound_keys:
   default: auto
@@ -1344,7 +1461,7 @@ tabs.title.alignment:
   desc: Alignment of the text inside of tabs.
 
 tabs.title.format:
-  default: '{index}: {title}'
+  default: '{audio}{index}: {title}'
   type:
     name: FormatString
     fields:
@@ -1359,6 +1476,7 @@ tabs.title.format:
       - private
       - current_url
       - protocol
+      - audio
     none_ok: true
   desc: |
     Format to use for the tab title.
@@ -1376,6 +1494,7 @@ tabs.title.format:
     * `{private}`: Indicates when private mode is enabled.
     * `{current_url}`: URL of the current web page.
     * `{protocol}`: Protocol (http/https/...) of the current web page.
+    * `{audio}`: Indicator for audio/mute status.
 
 tabs.title.format_pinned:
   default: '{index}'
@@ -1393,6 +1512,7 @@ tabs.title.format_pinned:
       - private
       - current_url
       - protocol
+      - audio
     none_ok: true
   desc: Format to use for the tab title for pinned tabs. The same placeholders
     like for `tabs.title.format` are defined.
@@ -1560,6 +1680,7 @@ window.title_format:
       - private
       - current_url
       - protocol
+      - audio
   default: '{perc}{title}{title_sep}qutebrowser'
   desc: |
     Format to use for the window title. The same placeholders like for
@@ -2330,6 +2451,7 @@ bindings.default:
       gf: view-source
       gt: set-cmd-text -s :buffer
       <Ctrl-Tab>: tab-focus last
+      <Ctrl-Shift-Tab>: nop
       <Ctrl-^>: tab-focus last
       <Ctrl-V>: enter-mode passthrough
       <Ctrl-Q>: quit
@@ -2362,6 +2484,8 @@ bindings.default:
       <Ctrl-Return>: follow-selected -t
       .: repeat-command
       <Ctrl-p>: tab-pin
+      <Alt-m>: tab-mute
+      gD: tab-give
       q: record-macro
       "@": run-macro
       tsh: config-cycle -p -t -u *://{url:host}/* content.javascript.enabled ;; reload
@@ -2387,7 +2511,7 @@ bindings.default:
       <Ctrl-B>: hint all tab-bg
       <Escape>: leave-mode
     passthrough:
-      <Ctrl-V>: leave-mode
+      <Shift-Escape>: leave-mode
     command:
       <Ctrl-P>: command-history-prev
       <Ctrl-N>: command-history-next

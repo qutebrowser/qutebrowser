@@ -111,6 +111,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-focus,tab-focus>>|Select the tab given as argument/[count].
 |<<tab-give,tab-give>>|Give the current tab to a new or existing window if win_id given.
 |<<tab-move,tab-move>>|Move the current tab according to the argument and [count].
+|<<tab-mute,tab-mute>>|Mute/Unmute the current/[count]th tab.
 |<<tab-next,tab-next>>|Switch to the next tab, or switch [count] tabs forward.
 |<<tab-only,tab-only>>|Close all tabs except for the current one.
 |<<tab-pin,tab-pin>>|Pin/Unpin the current/[count]th tab.
@@ -575,7 +576,7 @@ Start hinting.
  - With `userscript`: The userscript to execute. Either store
  the userscript in
  `~/.local/share/qutebrowser/userscripts`
- (or `$XDG_DATA_DIR`), or use an absolute
+ (or `$XDG_DATA_HOME`), or use an absolute
  path.
  - With `fill`: The command to fill the statusbar with.
  `{hint-url}` will get replaced by the selected
@@ -917,6 +918,9 @@ Repeat a given command.
 * +'times'+: How many times to repeat.
 * +'command'+: The command to run, with optional args.
 
+==== count
+Multiplies with 'times' when given.
+
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
 * With this command, +;;+ is interpreted literally instead of splitting off a second command.
@@ -1135,7 +1139,7 @@ Syntax: +:set [*--temp*] [*--print*] [*--pattern* 'pattern'] ['option'] ['value'
 
 Set an option.
 
-If the option name ends with '?', the value of the option is shown instead. Using :set without any arguments opens a page where settings can be changed interactively.
+If the option name ends with '?' or no value is provided, the value of the option is shown instead. Using :set without any arguments opens a page where settings can be changed interactively.
 
 ==== positional arguments
 * +'option'+: The name of the option.
@@ -1189,12 +1193,15 @@ Spawn a command in a shell.
 * +*-u*+, +*--userscript*+: Run the command as a userscript. You can use an absolute path, or store the userscript in one of those
  locations:
  - `~/.local/share/qutebrowser/userscripts`
- (or `$XDG_DATA_DIR`)
+ (or `$XDG_DATA_HOME`)
  - `/usr/share/qutebrowser/userscripts`
 
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
 * +*-o*+, +*--output*+: Whether the output should be shown in a new tab.
 * +*-d*+, +*--detach*+: Whether the command should be detached from qutebrowser.
+
+==== count
+Given to userscripts as $QUTE_COUNT.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -1284,6 +1291,13 @@ If moving relatively: Offset. If moving absolutely: New position (default: 0). T
  overrides the index argument, if given.
 
 
+[[tab-mute]]
+=== tab-mute
+Mute/Unmute the current/[count]th tab.
+
+==== count
+The tab index to mute or unmute
+
 [[tab-next]]
 === tab-next
 Switch to the next tab, or switch [count] tabs forward.
@@ -1328,6 +1342,9 @@ Take a tab from another window.
 * +'index'+: The [win_id/]index of the tab to take. Or a substring in which case the closest match will be taken.
 
 
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
+
 [[unbind]]
 === unbind
 Syntax: +:unbind [*--mode* 'mode'] 'key'+
@@ -1357,12 +1374,16 @@ Show version information.
 
 [[view-source]]
 === view-source
-Syntax: +:view-source [*--edit*]+
+Syntax: +:view-source [*--edit*] [*--pygments*]+
 
 Show the source of the current page in a new tab.
 
 ==== optional arguments
 * +*-e*+, +*--edit*+: Edit the source in the editor instead of opening a tab.
+* +*-p*+, +*--pygments*+: Use pygments to generate the view. This is always the case for QtWebKit. For QtWebEngine it may display
+ slightly different source.
+ Some JavaScript processing may be applied.
+
 
 [[window-only]]
 === window-only

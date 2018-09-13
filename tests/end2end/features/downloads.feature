@@ -80,7 +80,8 @@ Feature: Downloading things from a website.
         And I open data/downloads/issue1243.html
         And I hint with args "links download" and follow a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
-        Then the error "Download error: No handler found for qute://!" should be shown
+        Then the error "Download error: No handler found for qute://" should be shown
+        And "NotFoundError while handling qute://* URL" should be logged
 
     Scenario: Downloading a data: link (issue 1214)
         When I set downloads.location.suggestion to filename
@@ -201,8 +202,8 @@ Feature: Downloading things from a website.
         And I run :download-retry
         Then the error "Retrying downloads is unsupported *" should be shown
 
-    @qtwebkit_skip @qt>=5.10
-    Scenario: Retrying a failed download with QtWebEngine (Qt >= 5.10)
+    @qtwebkit_skip @qt==5.10.1
+    Scenario: Retrying a failed download with QtWebEngine (Qt 5.10)
         When I open data/downloads/issue2298.html
         And I run :click-element id download
         And I wait for "Download error: *" in the log
@@ -211,6 +212,7 @@ Feature: Downloading things from a website.
         # works e.g. on a connection loss, which we can't test automatically.
         Then "Retrying downloads is unsupported *" should not be logged
 
+    @flaky
     Scenario: Retrying with count
         When I run :download http://localhost:(port)/data/downloads/download.bin
         And I run :download http://localhost:(port)/does-not-exist

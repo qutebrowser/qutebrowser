@@ -23,11 +23,6 @@ import re
 import functools
 import xml.etree.ElementTree
 
-import pygments
-import pygments.lexers
-import pygments.formatters
-
-import sip
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
 from PyQt5.QtGui import QKeyEvent, QIcon
@@ -38,7 +33,8 @@ from PyQt5.QtPrintSupport import QPrinter
 from qutebrowser.browser import browsertab, shared
 from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
                                         webkitsettings)
-from qutebrowser.utils import qtutils, objreg, usertypes, utils, log, debug
+from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+from qutebrowser.qt import sip
 
 
 class WebKitAction(browsertab.AbstractAction):
@@ -55,28 +51,8 @@ class WebKitAction(browsertab.AbstractAction):
         """Save the current page."""
         raise browsertab.UnsupportedOperationError
 
-    def show_source(self):
-
-        def show_source_cb(source):
-            """Show source as soon as it's ready."""
-            # WORKAROUND for https://github.com/PyCQA/pylint/issues/491
-            # pylint: disable=no-member
-            lexer = pygments.lexers.HtmlLexer()
-            formatter = pygments.formatters.HtmlFormatter(
-                full=True, linenos='table')
-            # pylint: enable=no-member
-            highlighted = pygments.highlight(source, lexer, formatter)
-
-            tb = objreg.get('tabbed-browser', scope='window',
-                            window=self._tab.win_id)
-            new_tab = tb.tabopen(background=False, related=True)
-            # The original URL becomes the path of a view-source: URL
-            # (without a host), but query/fragment should stay.
-            url = QUrl('view-source:' + urlstr)
-            new_tab.set_html(highlighted, url)
-
-        urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
-        self._tab.dump_async(show_source_cb)
+    def show_source(self, pygments=False):
+        self._show_source_pygments()
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
@@ -377,11 +353,22 @@ class WebKitCaret(browsertab.AbstractCaret):
                 QWebSettings.JavascriptEnabled):
             if tab:
                 self._tab.data.override_target = usertypes.ClickTarget.tab
-            self._tab.run_js_async(
-                'window.getSelection().anchorNode.parentNode.click()')
+            self._tab.run_js_async("""
+                const aElm = document.activeElement;
+                if (window.getSelection().anchorNode) {
+                    window.getSelection().anchorNode.parentNode.click();
+                } else if (aElm && aElm !== document.body) {
+                    aElm.click();
+                }
+            """)
         else:
             selection = self._widget.selectedHtml()
             if not selection:
+                # Getting here may mean we crashed, but we can't do anything
+                # about that until this commit is released:
+                # https://github.com/annulen/webkit/commit/0e75f3272d149bc64899c161f150eb341a2417af
+                # TODO find a way to check if something is focused
+                self._follow_enter(tab)
                 return
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
@@ -640,6 +627,20 @@ class WebKitElements(browsertab.AbstractElements):
         callback(elem)
 
 
+class WebKitAudio(browsertab.AbstractAudio):
+
+    """Dummy handling of audio status for QtWebKit."""
+
+    def set_muted(self, muted: bool):
+        raise browsertab.WebTabError('Muting is not supported on QtWebKit!')
+
+    def is_muted(self):
+        return False
+
+    def is_recently_audible(self):
+        return False
+
+
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
@@ -657,9 +658,10 @@ class WebKitTab(browsertab.AbstractTab):
                                  tab=self, parent=self)
         self.zoom = WebKitZoom(tab=self, parent=self)
         self.search = WebKitSearch(parent=self)
-        self.printing = WebKitPrinting()
+        self.printing = WebKitPrinting(tab=self)
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
+        self.audio = WebKitAudio(parent=self)
         # We're assigning settings in _set_widget
         self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)
@@ -805,6 +807,10 @@ class WebKitTab(browsertab.AbstractTab):
 
         if navigation.is_main_frame:
             self.settings.update_for_url(navigation.url)
+
+    @pyqtSlot()
+    def _on_ssl_errors(self):
+        self._has_ssl_errors = True
 
     def _connect_signals(self):
         view = self._widget

@@ -29,6 +29,7 @@ from qutebrowser import qutebrowser
 from qutebrowser.config import (config, configexc, configfiles, configinit,
                                 configdata, configtypes)
 from qutebrowser.utils import objreg, usertypes
+from helpers import utils
 
 
 @pytest.fixture
@@ -288,8 +289,12 @@ class TestEarlyInit:
         config.instance.set_str('fonts.monospace', 'Terminus')
 
     @pytest.mark.parametrize('config_opt, config_val, envvar, expected', [
-        ('qt.force_software_rendering', True,
+        ('qt.force_software_rendering', 'software-opengl',
          'QT_XCB_FORCE_SOFTWARE_OPENGL', '1'),
+        ('qt.force_software_rendering', 'qt-quick',
+         'QT_QUICK_BACKEND', 'software'),
+        ('qt.force_software_rendering', 'chromium',
+         'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND', '1'),
         ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
         ('qt.highdpi', True, 'QT_AUTO_SCREEN_SCALE_FACTOR', '1'),
         ('window.hide_decoration', True,
@@ -300,12 +305,18 @@ class TestEarlyInit:
         """Check settings which set an environment variable."""
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        monkeypatch.delenv(envvar, raising=False)
+        monkeypatch.setenv(envvar, '')  # to make sure it gets restored
+        monkeypatch.delenv(envvar)
 
         config_stub.set_obj(config_opt, config_val)
         configinit._init_envvars()
 
         assert os.environ[envvar] == expected
+
+    def test_env_vars_webkit(self, monkeypatch, config_stub):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebKit)
+        configinit._init_envvars()
 
 
 @pytest.mark.parametrize('errors', [True, False])
@@ -351,7 +362,7 @@ class TestQtArgs:
     def patch_version_check(self, monkeypatch):
         """Make sure no --disable-shared-workers argument gets added."""
         monkeypatch.setattr(configinit.qtutils, 'version_check',
-                            lambda version, compiled: True)
+                            lambda version, compiled=False: True)
 
     @pytest.mark.parametrize('args, expected', [
         # No Qt arguments
@@ -388,14 +399,76 @@ class TestQtArgs:
         config_stub.val.qt.args = ['bar']
         assert configinit.qt_args(parsed) == [sys.argv[0], '--foo', '--bar']
 
-    def test_shared_workers(self, config_stub, monkeypatch, parser):
+    @pytest.mark.parametrize('backend, expected', [
+        (usertypes.Backend.QtWebEngine, ['--disable-shared-workers']),
+        (usertypes.Backend.QtWebKit, []),
+    ])
+    def test_shared_workers(self, config_stub, monkeypatch, parser,
+                            backend, expected):
         monkeypatch.setattr(configinit.qtutils, 'version_check',
-                            lambda version, compiled: False)
+                            lambda version, compiled=False: False)
+        monkeypatch.setattr(configinit.objects, 'backend', backend)
+        parsed = parser.parse_args([])
+        assert configinit.qt_args(parsed) == [sys.argv[0]] + expected
+
+    def test_disable_gpu(self, config_stub, monkeypatch, parser):
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
+        config_stub.val.qt.force_software_rendering = 'chromium'
         parsed = parser.parse_args([])
-        expected = [sys.argv[0], '--disable-shared-workers']
+        expected = [sys.argv[0], '--disable-gpu']
         assert configinit.qt_args(parsed) == expected
+
+    @utils.qt510
+    @pytest.mark.parametrize('new_version, autoplay, added', [
+        (True, False, False),  # new enough to not need it
+        (False, True, False),  # autoplay enabled
+        (False, False, True),
+    ])
+    def test_autoplay(self, config_stub, monkeypatch, parser,
+                      new_version, autoplay, added):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        config_stub.val.content.autoplay = autoplay
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, compiled=False: new_version)
+
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+        assert ('--autoplay-policy=user-gesture-required' in args) == added
+
+    @utils.qt59
+    @pytest.mark.parametrize('new_version, public_only, added', [
+        (True, True, False),  # new enough to not need it
+        (False, False, False),  # option disabled
+        (False, True, True),
+    ])
+    def test_webrtc(self, config_stub, monkeypatch, parser,
+                    new_version, public_only, added):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        config_stub.val.content.webrtc_public_interfaces_only = public_only
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, compiled=False: new_version)
+
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+        arg = '--force-webrtc-ip-handling-policy=default_public_interface_only'
+        assert (arg in args) == added
+
+    @pytest.mark.parametrize('canvas_reading, added', [
+        (True, False),  # canvas reading enabled
+        (False, True),
+    ])
+    def test_canvas_reading(self, config_stub, monkeypatch, parser,
+                            canvas_reading, added):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+
+        config_stub.val.content.canvas_reading = canvas_reading
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+        assert ('--disable-reading-from-canvas' in args) == added
 
 
 @pytest.mark.parametrize('arg, confval, used', [
