@@ -31,6 +31,8 @@ import itertools
 import textwrap
 import unittest.mock
 import types
+import mimetypes
+import os.path
 
 import attr
 import pytest
@@ -44,7 +46,7 @@ import helpers.utils
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache)
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
-from qutebrowser.browser import greasemonkey, history
+from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql, objects
 from qutebrowser.keyinput import modeman
@@ -152,10 +154,33 @@ def greasemonkey_manager(data_tmpdir):
     objreg.delete('greasemonkey')
 
 
+@pytest.fixture(scope='session')
+def testdata_scheme(qapp):
+    try:
+        global _qute_scheme_handler
+        from qutebrowser.browser.webengine import webenginequtescheme
+        from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=qapp)
+        _qute_scheme_handler.install(QWebEngineProfile.defaultProfile())
+    except ImportError:
+        pass
+
+    @qutescheme.add_handler('testdata')
+    def handler(url):
+        file_abs = os.path.abspath(os.path.dirname(__file__))
+        filename = os.path.join(file_abs, '..', 'end2end',
+                                url.path().lstrip('/'))
+        with open(filename, 'rb') as f:
+            data = f.read()
+
+        mimetype, _encoding = mimetypes.guess_type(filename)
+        return mimetype, data
+
+
 @pytest.fixture
 def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
                session_manager_stub, greasemonkey_manager, fake_args,
-               host_blocker_stub, config_stub):
+               host_blocker_stub, config_stub, testdata_scheme):
     # Make sure error logging via JS fails tests
     config_stub.val.content.javascript.log = {
         'info': 'info',
@@ -186,7 +211,7 @@ def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
 def webengine_tab(qtbot, tab_registry, fake_args, mode_manager,
                   session_manager_stub, greasemonkey_manager,
                   redirect_webengine_data, tabbed_browser_stubs,
-                  config_stub, qapp):
+                  config_stub, qapp, testdata_scheme):
     # Make sure error logging via JS fails tests
     config_stub.val.content.javascript.log = {
         'info': 'info',
