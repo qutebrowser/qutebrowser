@@ -28,7 +28,7 @@ window._qutebrowser.scroll = (function() {
         return {
             "behavior": smooth
                 ? "smooth"
-                : "auto",
+                : "instant",
             "left": x,
             "top": y,
         };
