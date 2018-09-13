@@ -49,8 +49,21 @@ class Selection:
         self._callback_checker = utils.CallbackChecker(qtbot)
 
     def check(self, expected):
-        self._caret.selection(self._callback_checker.callback)
-        self._callback_checker.check(expected)
+        """Check whether we got the expected selection.
+
+        Since (especially on Windows) the selection is empty if we're too
+        quickly, we try to read it multiple times.
+        """
+        for _ in range(10):
+            with self._qtbot.wait_signal(self._callback_checker.got_result) as blocker:
+                self._caret.selection(self._callback_checker.callback)
+
+            selection = blocker.args[0]
+            if selection:
+                assert selection == expected
+                return
+
+            self._qtbot.wait(50)
 
     def check_multiline(self, expected):
         self.check(textwrap.dedent(expected).strip())
