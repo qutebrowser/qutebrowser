@@ -20,11 +20,13 @@
 import json
 import os
 import time
+import logging
 
-from PyQt5.QtCore import QUrl
+import py.path  # pylint: disable=no-name-in-module
+from PyQt5.QtCore import QUrl, QUrlQuery
 import pytest
 
-from qutebrowser.browser import qutescheme
+from qutebrowser.browser import qutescheme, pdfjs, downloads
 
 
 class TestJavascriptHandler:
@@ -169,3 +171,68 @@ class TestHelpHandler:
         mimetype, data = qutescheme.qute_help(QUrl('qute://help/foo.bin'))
         assert mimetype == 'application/octet-stream'
         assert data == b'\xff'
+
+
+class TestPDFJSHandler:
+
+    """Test the qute://pdfjs endpoint."""
+
+    @pytest.fixture(autouse=True)
+    def fake_pdfjs(self, monkeypatch):
+        def get_pdfjs_res(path):
+            if path == '/existing/file.html':
+                return b'foobar'
+            raise pdfjs.PDFJSNotFound(path)
+
+        monkeypatch.setattr(pdfjs, 'get_pdfjs_res', get_pdfjs_res)
+
+    @pytest.fixture
+    def download_tmpdir(self):
+        tdir = downloads.temp_download_manager.get_tmpdir()
+        yield py.path.local(tdir.name)  # pylint: disable=no-member
+        tdir.cleanup()
+
+    def test_existing_resource(self):
+        """Test with a resource that exists."""
+        _mimetype, data = qutescheme.data_for_url(
+            QUrl('qute://pdfjs/existing/file.html'))
+        assert data == b'foobar'
+
+    def test_nonexisting_resource(self, caplog):
+        """Test with a resource that does not exist."""
+        with caplog.at_level(logging.WARNING, 'misc'):
+            with pytest.raises(qutescheme.NotFoundError):
+                qutescheme.data_for_url(QUrl('qute://pdfjs/no/file.html'))
+        assert len(caplog.records) == 1
+        assert (caplog.records[0].message ==
+                'pdfjs resource requested but not found: /no/file.html')
+
+    def test_viewer_page(self):
+        """Load the /web/viewer.html page."""
+        _mimetype, data = qutescheme.data_for_url(
+            QUrl('qute://pdfjs/web/viewer.html?filename=foobar'))
+        assert b'PDF.js' in data
+
+    def test_viewer_no_filename(self):
+        with pytest.raises(qutescheme.UrlInvalidError):
+            qutescheme.data_for_url(QUrl('qute://pdfjs/web/viewer.html'))
+
+    def test_file(self, download_tmpdir):
+        """Load a file via qute://pdfjs/file."""
+        (download_tmpdir / 'testfile').write_binary(b'foo')
+        _mimetype, data = qutescheme.data_for_url(
+            QUrl('qute://pdfjs/file?filename=testfile'))
+        assert data == b'foo'
+
+    def test_file_no_filename(self):
+        with pytest.raises(qutescheme.UrlInvalidError):
+            qutescheme.data_for_url(QUrl('qute://pdfjs/file'))
+
+    @pytest.mark.parametrize('sep', ['/', os.sep])
+    def test_file_pathsep(self, sep):
+        url = QUrl('qute://pdfjs/file')
+        query = QUrlQuery()
+        query.addQueryItem('filename', 'foo{}bar'.format(sep))
+        url.setQuery(query)
+        with pytest.raises(qutescheme.RequestDeniedError):
+            qutescheme.data_for_url(url)

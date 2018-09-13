@@ -145,6 +145,26 @@ def test_load_emits_signal(qtbot):
         gm_manager.load_scripts()
 
 
+def test_utf8_bom():
+    """Make sure UTF-8 BOMs are stripped from scripts.
+
+    If we don't strip them, we'll have a BOM in the middle of the file, causing
+    QtWebEngine to not catch the "// ==UserScript==" line.
+    """
+    script = textwrap.dedent("""
+        \N{BYTE ORDER MARK}// ==UserScript==
+        // @name qutebrowser test userscript
+        // ==/UserScript==
+    """.lstrip('\n'))
+    _save_script(script, 'bom.user.js')
+    gm_manager = greasemonkey.GreasemonkeyManager()
+
+    scripts = gm_manager.all_scripts()
+    assert len(scripts) == 1
+    script = scripts[0]
+    assert '// ==UserScript==' in script.code().splitlines()
+
+
 def test_required_scripts_are_included(download_stub, tmpdir):
     test_require_script = textwrap.dedent("""
         // ==UserScript==

@@ -29,7 +29,6 @@ import json
 import os
 import time
 import textwrap
-import mimetypes
 import urllib
 import collections
 import base64
@@ -44,10 +43,10 @@ import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
+from qutebrowser.browser import pdfjs, downloads
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, urlutils)
-from qutebrowser.misc import objects
 from qutebrowser.qt import sip
 
 
@@ -113,12 +112,10 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     Attributes:
         _name: The 'foo' part of qute://foo
-        backend: Limit which backends the handler can run with.
     """
 
-    def __init__(self, name, backend=None):
+    def __init__(self, name):
         self._name = name
-        self._backend = backend
         self._function = None
 
     def __call__(self, function):
@@ -128,19 +125,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def wrapper(self, *args, **kwargs):
         """Call the underlying function."""
-        if self._backend is not None and objects.backend != self._backend:
-            return self.wrong_backend_handler(*args, **kwargs)
-        else:
-            return self._function(*args, **kwargs)
-
-    def wrong_backend_handler(self, url):
-        """Show an error page about using the invalid backend."""
-        src = jinja.render('error.html',
-                           title="Error while opening qute://url",
-                           url=url.toDisplayString(),
-                           error='{} is not available with this '
-                                 'backend'.format(url.toDisplayString()))
-        return 'text/html', src
+        return self._function(*args, **kwargs)
 
 
 def data_for_url(url):
@@ -382,8 +367,7 @@ def qute_help(url):
             bdata = utils.read_file(path, binary=True)
         except OSError as e:
             raise SchemeOSError(e)
-        mimetype, _encoding = mimetypes.guess_type(urlpath)
-        assert mimetype is not None, url
+        mimetype = utils.guess_mimetype(urlpath)
         return mimetype, bdata
 
     try:
@@ -531,3 +515,43 @@ def qute_pastebin_version(_url):
     """Handler that pastebins the version string."""
     version.pastebin_version()
     return 'text/plain', b'Paste called.'
+
+
+@add_handler('pdfjs')
+def qute_pdfjs(url):
+    """Handler for qute://pdfjs. Return the pdf.js viewer."""
+    if url.path() == '/file':
+        filename = QUrlQuery(url).queryItemValue('filename')
+        if not filename:
+            raise UrlInvalidError("Missing filename")
+        if '/' in filename or os.sep in filename:
+            raise RequestDeniedError("Path separator in filename.")
+
+        path = os.path.join(downloads.temp_download_manager.get_tmpdir().name,
+                            filename)
+
+        with open(path, 'rb') as f:
+            data = f.read()
+
+        mimetype = utils.guess_mimetype(filename, fallback=True)
+        return mimetype, data
+
+    if url.path() == '/web/viewer.html':
+        filename = QUrlQuery(url).queryItemValue("filename")
+        if not filename:
+            raise UrlInvalidError("Missing filename")
+        data = pdfjs.generate_pdfjs_page(filename, url)
+        return 'text/html', data
+
+    try:
+        data = pdfjs.get_pdfjs_res(url.path())
+    except pdfjs.PDFJSNotFound as e:
+        # Logging as the error might get lost otherwise since we're not showing
+        # the error page if a single asset is missing. This way we don't lose
+        # information, as the failed pdfjs requests are still in the log.
+        log.misc.warning(
+            "pdfjs resource requested but not found: {}".format(e.path))
+        raise NotFoundError("Can't find pdfjs resource '{}'".format(e.path))
+    else:
+        mimetype = utils.guess_mimetype(url.fileName(), fallback=True)
+        return mimetype, data

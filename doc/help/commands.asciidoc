@@ -576,7 +576,7 @@ Start hinting.
  - With `userscript`: The userscript to execute. Either store
  the userscript in
  `~/.local/share/qutebrowser/userscripts`
- (or `$XDG_DATA_DIR`), or use an absolute
+ (or `$XDG_DATA_HOME`), or use an absolute
  path.
  - With `fill`: The command to fill the statusbar with.
  `{hint-url}` will get replaced by the selected
@@ -1193,7 +1193,7 @@ Spawn a command in a shell.
 * +*-u*+, +*--userscript*+: Run the command as a userscript. You can use an absolute path, or store the userscript in one of those
  locations:
  - `~/.local/share/qutebrowser/userscripts`
- (or `$XDG_DATA_DIR`)
+ (or `$XDG_DATA_HOME`)
  - `/usr/share/qutebrowser/userscripts`
 
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
@@ -1341,6 +1341,9 @@ Take a tab from another window.
 ==== positional arguments
 * +'index'+: The [win_id/]index of the tab to take. Or a substring in which case the closest match will be taken.
 
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
 
 [[unbind]]
 === unbind

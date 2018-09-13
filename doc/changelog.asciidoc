@@ -27,6 +27,11 @@ Added
 - New `content.mouse_lock` setting to handle HTML5 pointer locking.
 - New `completion.web_history.exclude` setting which hides a list of URL
   patterns from the completion.
+- Rewritten PDF.js support:
+  * PDF.js support and the `content.pdfjs` setting are now available with
+    QtWebEngine.
+  * Opening a PDF file now doesn't start a second request anymore.
+  * Opening PDFs on https:// sites now works properly.
 
 Changed
 ~~~~~~~
@@ -48,6 +53,13 @@ Changed
 - Various performance improvements when many tabs are opened.
 - Regenerating completion history now shows a progress dialog.
 - Make qute:// pages work properly on Qt 5.11.2
+- The `content.autoplay` setting now supports URL patterns on Qt >= 5.11.
+
+Fixed
+~~~~~
+
+- Error when passing a substring with spaces to `:tab-take`.
+- Greasemonkey scripts which start with an UTF-8 BOM are now handled correctly.
 
 Removed
 ~~~~~~~
@@ -1625,7 +1637,7 @@ Changed
   `tabs.bg/fg.selected.odd/even`.
 - `:spawn --userscript` and `:hint` with the `userscript` target now look up
   relative paths in `~/.local/share/qutebrowser/userscripts` or
-  `$XDG_DATA_DIR`. Using a binary in `$PATH` won't work anymore with
+  `$XDG_DATA_HOME`. Using a binary in `$PATH` won't work anymore with
   `--userscript`.
 - New design for error pages
 - Link filtering for hints now checks if the text is contained anywhere in

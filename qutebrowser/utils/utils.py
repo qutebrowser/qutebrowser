@@ -33,6 +33,7 @@ import contextlib
 import socket
 import shlex
 import glob
+import mimetypes
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
@@ -683,3 +684,19 @@ def chunk(elems, n):
         raise ValueError("n needs to be at least 1!")
     for i in range(0, len(elems), n):
         yield elems[i:i + n]
+
+
+def guess_mimetype(filename, fallback=False):
+    """Guess a mimetype based on a filename.
+
+    Args:
+        filename: The filename to check.
+        fallback: Fall back to application/octet-stream if unknown.
+    """
+    mimetype, _encoding = mimetypes.guess_type(filename)
+    if mimetype is None:
+        if fallback:
+            return 'application/octet-stream'
+        else:
+            raise ValueError("Got None mimetype for {}".format(filename))
+    return mimetype
