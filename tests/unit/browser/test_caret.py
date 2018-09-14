@@ -336,17 +336,19 @@ class TestFollowSelected:
     def test_follow_selected_without_a_selection(self, qtbot, caret, selection, web_tab,
                                                  mode_manager):
         mode_manager.leave(usertypes.KeyMode.caret)
-        with qtbot.assert_not_emitted(web_tab.load_started):
-            caret.follow_selected()
-            qtbot.wait(self.LOAD_STARTED_DELAY)
+        with qtbot.wait_signal(caret.follow_selected_done):
+            with qtbot.assert_not_emitted(web_tab.load_started):
+                caret.follow_selected()
+                qtbot.wait(self.LOAD_STARTED_DELAY)
 
     def test_follow_selected_with_text(self, qtbot, caret, selection, web_tab):
         caret.move_to_next_word()
         selection.toggle()
         caret.move_to_end_of_word()
-        with qtbot.assert_not_emitted(web_tab.load_started):
-            caret.follow_selected()
-            qtbot.wait(self.LOAD_STARTED_DELAY)
+        with qtbot.wait_signal(caret.follow_selected_done):
+            with qtbot.assert_not_emitted(web_tab.load_started):
+                caret.follow_selected()
+                qtbot.wait(self.LOAD_STARTED_DELAY)
 
     @pytest.mark.parametrize('with_js', [True, False])
     def test_follow_selected_with_link(self, caret, selection, config_stub,
