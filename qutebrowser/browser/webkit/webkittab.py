@@ -369,13 +369,11 @@ class WebKitCaret(browsertab.AbstractCaret):
                 # https://github.com/annulen/webkit/commit/0e75f3272d149bc64899c161f150eb341a2417af
                 # TODO find a way to check if something is focused
                 self._follow_enter(tab)
-                self.follow_selected_done.emit()
                 return
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
                     '<html>{}</html>'.format(selection)).find('a')
             except xml.etree.ElementTree.ParseError:
-                self.follow_selected_done.emit()
                 raise browsertab.WebTabError('Could not parse selected '
                                              'element!')
 
@@ -383,7 +381,6 @@ class WebKitCaret(browsertab.AbstractCaret):
                 try:
                     url = selected_element.attrib['href']
                 except KeyError:
-                    self.follow_selected_done.emit()
                     raise browsertab.WebTabError('Anchor element without '
                                                  'href!')
                 url = self._tab.url().resolved(QUrl(url))
@@ -391,8 +388,6 @@ class WebKitCaret(browsertab.AbstractCaret):
                     self._tab.new_tab_requested.emit(url)
                 else:
                     self._tab.openurl(url)
-
-        self.follow_selected_done.emit()
 
 
 class WebKitZoom(browsertab.AbstractZoom):
