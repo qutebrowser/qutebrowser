@@ -335,6 +335,7 @@ class TestFollowSelected:
 
     def test_follow_selected_without_a_selection(self, qtbot, caret, selection, web_tab,
                                                  mode_manager):
+        caret.move_to_next_word()  # Move cursor away from the link
         mode_manager.leave(usertypes.KeyMode.caret)
         with qtbot.wait_signal(caret.follow_selected_done):
             with qtbot.assert_not_emitted(web_tab.load_started):
