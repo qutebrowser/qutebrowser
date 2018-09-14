@@ -11,10 +11,10 @@ updating them if you notice something being broken!
 Containerized Installation on any Linux platform (with Docker)
 --------------------------------------------------------------
 
-Run the following command and enjoy qutebrowser:
+Run the following command as a user that can access the docker engine:
 
 ----
-# docker run --net=host --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" omervexler/qutebrowser
+# docker run -it --env="DISPLAY" -v /tmp/.X11-unix:/tmp/.X11-unix omervexler/qutebrowser:latest
 ----
 
 On Debian / Ubuntu
