@@ -8,8 +8,10 @@ means those instructions might be out of date in some places.
 https://github.com/qutebrowser/qutebrowser/blob/master/doc/contributing.asciidoc[Please help]
 updating them if you notice something being broken!
 
-Containerized Installation on any Linux platform (with Docker)
+Containerized Installation on Linux platform (with Docker)
 --------------------------------------------------------------
+
+This installation method was tested against Ubuntu 18.04.1 LTS.
 
 Run the following command as a user that can access the docker engine:
 
