@@ -333,6 +333,10 @@ class TestFollowSelected:
 
     LOAD_STARTED_DELAY = 50
 
+    @pytest.fixture(params=[True, False], autouse=True)
+    def toggle_js(self, request, config_stub):
+        config_stub.val.content.javascript.enabled = request.param
+
     def test_follow_selected_without_a_selection(self, qtbot, caret, selection, web_tab,
                                                  mode_manager):
         caret.move_to_next_word()  # Move cursor away from the link
@@ -351,10 +355,8 @@ class TestFollowSelected:
                 caret.follow_selected()
                 qtbot.wait(self.LOAD_STARTED_DELAY)
 
-    @pytest.mark.parametrize('with_js', [True, False])
     def test_follow_selected_with_link(self, caret, selection, config_stub,
-                                       qtbot, web_tab, with_js):
-        config_stub.val.content.javascript.enabled = with_js
+                                       qtbot, web_tab):
         selection.toggle()
         caret.move_to_end_of_word()
         with qtbot.wait_signal(web_tab.load_finished):
