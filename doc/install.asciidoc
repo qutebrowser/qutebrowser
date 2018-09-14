@@ -9,11 +9,11 @@ https://github.com/qutebrowser/qutebrowser/blob/master/doc/contributing.asciidoc
 updating them if you notice something being broken!
 
 Containerized Installation on Linux platform (with Docker)
---------------------------------------------------------------
+----------------------------------------------------------
 
 This installation method was tested against Ubuntu 18.04.1 LTS.
 
-Run the following command as a user that can access the docker engine:
+Run the following command:
 
 ----
 # docker run -it --env="DISPLAY" -v /tmp/.X11-unix:/tmp/.X11-unix omervexler/qutebrowser:latest
