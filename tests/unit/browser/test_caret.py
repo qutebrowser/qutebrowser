@@ -19,7 +19,6 @@
 
 """Tests for caret browsing mode."""
 
-import os.path
 import textwrap
 
 import pytest
@@ -55,7 +54,8 @@ class Selection:
         quickly, we try to read it multiple times.
         """
         for _ in range(10):
-            with self._qtbot.wait_signal(self._callback_checker.got_result) as blocker:
+            with self._qtbot.wait_signal(
+                    self._callback_checker.got_result) as blocker:
                 self._caret.selection(self._callback_checker.callback)
 
             selection = blocker.args[0]

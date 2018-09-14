@@ -52,6 +52,9 @@ from qutebrowser.misc import savemanager, sql, objects
 from qutebrowser.keyinput import modeman
 
 
+_qute_scheme_handler = None
+
+
 class WinRegistryHelper:
 
     """Helper class for win_registry."""
@@ -160,13 +163,14 @@ def testdata_scheme(qapp):
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
         from PyQt5.QtWebEngineWidgets import QWebEngineProfile
-        _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=qapp)
+        _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
+            parent=qapp)
         _qute_scheme_handler.install(QWebEngineProfile.defaultProfile())
     except ImportError:
         pass
 
     @qutescheme.add_handler('testdata')
-    def handler(url):
+    def handler(url):  # pylint: disable=unused-variable
         file_abs = os.path.abspath(os.path.dirname(__file__))
         filename = os.path.join(file_abs, '..', 'end2end',
                                 url.path().lstrip('/'))

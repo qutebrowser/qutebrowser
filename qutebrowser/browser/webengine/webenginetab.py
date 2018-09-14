@@ -21,12 +21,11 @@
 
 import math
 import functools
-import sys
 import re
 import html as html_utils
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
-                          QUrl, QTimer, QObject, qVersion)
+                          QUrl, QTimer, QObject)
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication

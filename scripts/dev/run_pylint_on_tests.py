@@ -52,6 +52,7 @@ def main():
         # pytest fixtures
         'redefined-outer-name',
         'unused-argument',
+        'too-many-arguments',
         # things which are okay in tests
         'missing-docstring',
         'protected-access',
