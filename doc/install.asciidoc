@@ -8,6 +8,15 @@ means those instructions might be out of date in some places.
 https://github.com/qutebrowser/qutebrowser/blob/master/doc/contributing.asciidoc[Please help]
 updating them if you notice something being broken!
 
+Containerized Installation on any Linux platform (with Docker)
+--------------------------------------------------------------
+
+Run the following command and enjoy qutebrowser:
+
+----
+# docker run --net=host --env="DISPLAY" --volume="$HOME/.Xauthority:/root/.Xauthority:rw" omervexler/qutebrowser
+----
+
 On Debian / Ubuntu
 ------------------
 
