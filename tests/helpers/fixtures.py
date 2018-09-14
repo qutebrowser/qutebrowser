@@ -182,9 +182,10 @@ def testdata_scheme(qapp):
 
 
 @pytest.fixture
-def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
-               session_manager_stub, greasemonkey_manager, fake_args,
-               host_blocker_stub, config_stub, testdata_scheme):
+def web_tab_setup(qtbot, tab_registry, session_manager_stub,
+                  greasemonkey_manager, fake_args, host_blocker_stub,
+                  config_stub, testdata_scheme):
+    """Shared setup for webkit_tab/webengine_tab."""
     # Make sure error logging via JS fails tests
     config_stub.val.content.javascript.log = {
         'info': 'info',
@@ -193,6 +194,9 @@ def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
         'warning': 'error',
     }
 
+
+@pytest.fixture
+def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
 
     container = QWidget()
@@ -212,18 +216,8 @@ def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
 
 
 @pytest.fixture
-def webengine_tab(qtbot, tab_registry, fake_args, mode_manager,
-                  session_manager_stub, greasemonkey_manager,
-                  redirect_webengine_data, tabbed_browser_stubs,
-                  config_stub, qapp, testdata_scheme):
-    # Make sure error logging via JS fails tests
-    config_stub.val.content.javascript.log = {
-        'info': 'info',
-        'error': 'error',
-        'unknown': 'error',
-        'warning': 'error',
-    }
-
+def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
+                  tabbed_browser_stubs, mode_manager):
     tabwidget = tabbed_browser_stubs[0].widget
     tabwidget.current_index = 0
     tabwidget.index_of = 0
