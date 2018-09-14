@@ -344,10 +344,13 @@ class WebEngineCaret(browsertab.AbstractCaret):
             tab: Open in a new tab.
         """
         if js_elem is None:
+            self.follow_selected_done.emit()
             return
+
         if js_elem == "focused":
             # we had a focused element, not a selected one. Just send <enter>
             self._follow_enter(tab)
+            self.follow_selected_done.emit()
             return
 
         assert isinstance(js_elem, dict), js_elem
@@ -365,7 +368,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
                 elem.click(click_type)
             except webelem.Error as e:
                 message.error(str(e))
-                return
+
+        self.follow_selected_done.emit()
 
     def follow_selected(self, *, tab=False):
         if self._tab.search.search_displayed:

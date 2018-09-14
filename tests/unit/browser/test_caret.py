@@ -331,14 +331,16 @@ class TestSearch:
 
 class TestFollowSelected:
 
-    def test_follow_selected_without_a_selection(self, caret, selection):
-        caret.follow_selected()
+    def test_follow_selected_without_a_selection(self, qtbot, caret, selection):
+        with qtbot.wait_signal(caret.follow_selected_done):
+            caret.follow_selected()
 
-    def test_follow_selected_with_text(self, caret, selection):
+    def test_follow_selected_with_text(self, qtbot, caret, selection):
         caret.move_to_next_word()
         selection.toggle()
         caret.move_to_end_of_word()
-        caret.follow_selected()
+        with qtbot.wait_signal(caret.follow_selected_done):
+            caret.follow_selected()
 
     @pytest.mark.parametrize('with_js', [True, False])
     def test_follow_selected_with_link(self, caret, selection, config_stub,
