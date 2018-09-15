@@ -335,7 +335,13 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
                                callback)
 
-    def _follow_selected_cb(self, js_elem, tab=False):
+    def _follow_selected_cb_wrapped(self, js_elem, tab):
+        try:
+            self._follow_selected_cb(js_elem, tab)
+        finally:
+            self.follow_selected_done.emit()
+
+    def _follow_selected_cb(self, js_elem, tab):
         """Callback for javascript which clicks the selected element.
 
         Args:
@@ -343,13 +349,11 @@ class WebEngineCaret(browsertab.AbstractCaret):
             tab: Open in a new tab.
         """
         if js_elem is None:
-            self.follow_selected_done.emit()
             return
 
         if js_elem == "focused":
             # we had a focused element, not a selected one. Just send <enter>
             self._follow_enter(tab)
-            self.follow_selected_done.emit()
             return
 
         assert isinstance(js_elem, dict), js_elem
@@ -368,8 +372,6 @@ class WebEngineCaret(browsertab.AbstractCaret):
             except webelem.Error as e:
                 message.error(str(e))
 
-        self.follow_selected_done.emit()
-
     def follow_selected(self, *, tab=False):
         if self._tab.search.search_displayed:
             # We are currently in search mode.
@@ -384,8 +386,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
             # click an existing blue selection
             js_code = javascript.assemble('webelem',
                                           'find_selected_focused_link')
-            self._tab.run_js_async(js_code, lambda jsret:
-                                   self._follow_selected_cb(jsret, tab))
+            self._tab.run_js_async(
+                js_code,
+                lambda jsret: self._follow_selected_cb_wrapped(jsret, tab))
 
     def _js_call(self, command, *args, callback=None):
         code = javascript.assemble('caret', command, *args)
