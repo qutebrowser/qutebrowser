@@ -202,11 +202,16 @@ class CompletionItemDelegate(QStyledItemDelegate):
             pattern = view.pattern
             columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
-                repl = r'<span class="highlight">\g<0></span>'
-                pat = html.escape(re.escape(pattern), quote=False).replace(
-                    r'\ ', r'|')
-                txt = html.escape(self._opt.text, quote=False)
-                text = re.sub(pat, repl, txt, flags=re.IGNORECASE)
+                pat = '({})'.format(re.escape(pattern).replace(r'\ ', r'|'))
+                parts = re.split(pat, self._opt.text, flags=re.IGNORECASE)
+                fmt = '<span class="highlight">{}</span>'
+                escape = lambda s: html.escape(s, quote=False)
+                highlight = lambda s: fmt.format(escape(s))
+                # matches are at every odd index
+                text = ''.join([
+                    highlight(s) if i % 2 == 1 else escape(s)
+                    for i, s in enumerate(parts)
+                ])
                 self._doc.setHtml(text)
             else:
                 self._doc.setPlainText(self._opt.text)

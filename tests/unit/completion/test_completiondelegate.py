@@ -90,6 +90,7 @@ def delegate(mock_style_option, mock_text_document, config_stub, mocker, view):
     # https://github.com/qutebrowser/qutebrowser/issues/4199
     ('foo', "'foo'", "'{foo}'"),
     ('x', "'x'", "'{x}'"),
+    ('lt', "<lt", "&lt;{lt}"),
 ])
 def test_paint(delegate, painter, view, mock_style_option, mock_text_document,
                pat, txt_in, txt_out):
