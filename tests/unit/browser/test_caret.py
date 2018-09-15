@@ -121,14 +121,6 @@ class TestBlock:
             eins zwei drei
         """)
 
-    def test_selecting_a_block(self, caret, selection):
-        selection.toggle()
-        caret.move_to_end_of_next_block()
-        selection.check_multiline("""
-            one two three
-            eins zwei drei
-        """)
-
     def test_moving_back_to_the_end_of_prev_block_with_sel(self, caret, selection):
         caret.move_to_end_of_next_block(2)
         selection.toggle()
