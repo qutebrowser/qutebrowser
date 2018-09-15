@@ -794,13 +794,6 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.needsFilterPrefix = null;
 
     /**
-     * Whether we're running on Qt < 5.10.
-     * There, we need some additional movement workarounds.
-     * @type {boolean}
-     */
-    CaretBrowsing.needsEndOfDocWorkaround = null;
-
-    /**
      * Check if a node is a control that normally allows the user to interact
      * with it using arrow keys. We won't override the arrow keys when such a
      * control has focus, the user must press Escape to do caret browsing outside
@@ -1333,8 +1326,6 @@ window._qutebrowser.caret = (function() {
     funcs.setFlags = (flags) => {
         CaretBrowsing.isWindows = flags.includes("windows");
         CaretBrowsing.needsFilterPrefix = flags.includes("filter-prefix");
-        CaretBrowsing.needsEndOfDocWorkaround =
-            flags.includes("end-of-doc-workaround");
     };
 
     funcs.disableCaret = () => {
@@ -1418,9 +1409,6 @@ window._qutebrowser.caret = (function() {
 
     funcs.moveToEndOfDocument = () => {
         CaretBrowsing.move("forward", "documentboundary");
-        if (CaretBrowsing.needsEndOfDocWorkaround) {
-            CaretBrowsing.move("left", "character");
-        }
         CaretBrowsing.finishMove();
     };
 

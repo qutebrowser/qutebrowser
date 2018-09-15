@@ -47,7 +47,7 @@ class Selection:
         self._caret = caret
         self._callback_checker = utils.CallbackChecker(qtbot)
 
-    def check(self, expected):
+    def check(self, expected, *, strip=False):
         """Check whether we got the expected selection.
 
         Since (especially on Windows) the selection is empty if we're too
@@ -60,13 +60,15 @@ class Selection:
 
             selection = blocker.args[0]
             if selection:
+                if strip:
+                    selection = selection.strip()
                 assert selection == expected
                 return
 
             self._qtbot.wait(50)
 
-    def check_multiline(self, expected):
-        self.check(textwrap.dedent(expected).strip())
+    def check_multiline(self, expected, *, strip=False):
+        self.check(textwrap.dedent(expected).strip(), strip=strip)
 
     def toggle(self):
         with self._qtbot.wait_signal(self._caret.selection_toggled):
@@ -89,7 +91,7 @@ class TestDocument:
 
             four five six
             vier fünf sechs
-        """)
+        """, strip=True)
 
     def test_moving_to_end_and_start(self, caret, selection):
         caret.move_to_end_of_document()
@@ -108,7 +110,7 @@ class TestDocument:
 
             four five six
             vier fünf sechs
-        """)
+        """, strip=True)
 
 
 class TestBlock:

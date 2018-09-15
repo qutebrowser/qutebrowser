@@ -238,11 +238,8 @@ class WebEngineCaret(browsertab.AbstractCaret):
         flags = set()
         if qtutils.version_check('5.7.1', compiled=False):
             flags.add('filter-prefix')
-        if not qtutils.version_check('5.10', compiled=False):
-            flags.add('end-of-doc-workaround')
         if utils.is_windows:
             flags.add('windows')
-            flags.add('end-of-doc-workaround')
         return list(flags)
 
     @pyqtSlot(usertypes.KeyMode)
