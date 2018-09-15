@@ -172,7 +172,7 @@ def testdata_scheme(qapp):
     @qutescheme.add_handler('testdata')
     def handler(url):  # pylint: disable=unused-variable
         file_abs = os.path.abspath(os.path.dirname(__file__))
-        filename = os.path.join(file_abs, '..', 'end2end',
+        filename = os.path.join(file_abs, os.pardir, 'end2end',
                                 url.path().lstrip('/'))
         with open(filename, 'rb') as f:
             data = f.read()
