@@ -23,8 +23,6 @@ from unittest import mock
 
 import pytest
 
-from PyQt5.QtCore import QModelIndex
-from PyQt5.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate
 from PyQt5.QtGui import QPainter
 
 from qutebrowser.completion import completiondelegate
