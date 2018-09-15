@@ -354,5 +354,6 @@ class TestFollowSelected:
         selection.toggle()
         caret.move_to_end_of_word()
         with qtbot.wait_signal(web_tab.load_finished):
-            caret.follow_selected()
+            with qtbot.wait_signal(caret.follow_selected_done):
+                caret.follow_selected()
         assert web_tab.url().path() == '/data/hello.txt'
