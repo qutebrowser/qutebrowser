@@ -25,6 +25,13 @@ Added
 - When `:spawn --userscript` is called with a count, that count is now
   passed to userscripts as `$QUTE_COUNT`.
 - New `content.mouse_lock` setting to handle HTML5 pointer locking.
+- New `completion.web_history.exclude` setting which hides a list of URL
+  patterns from the completion.
+- Rewritten PDF.js support:
+  * PDF.js support and the `content.pdfjs` setting are now available with
+    QtWebEngine.
+  * Opening a PDF file now doesn't start a second request anymore.
+  * Opening PDFs on https:// sites now works properly.
 
 Changed
 ~~~~~~~
@@ -37,15 +44,38 @@ Changed
 - The `app_id` is now set to `qutebrowser` for Wayland.
 - `Command` or `Cmd` can now be used (instead of `Meta`) to map the Command key
   on macOS.
+- Using `:set option` now shows the value of the setting (like `:set option?`
+  already did).
+- The `completion.web_history_max_items` setting got renamed to
+  `completion.web_history.max_items`.
+- The Makefile shipped with qutebrowser now supports overriding variables
+  DATADIR and MANDIR.
+- Various performance improvements when many tabs are opened.
+- Regenerating completion history now shows a progress dialog.
+- Make qute:// pages work properly on Qt 5.11.2
+- The `content.autoplay` setting now supports URL patterns on Qt >= 5.11.
 
-v1.4.2 (unreleased)
--------------------
+Fixed
+~~~~~
+
+- Error when passing a substring with spaces to `:tab-take`.
+- Greasemonkey scripts which start with an UTF-8 BOM are now handled correctly.
+
+Removed
+~~~~~~~
+
+- Support for importing pre-v1.0.0 history files has been removed.
+
+v1.4.2
+------
 
 Changed
 ~~~~~~~
 
 - The `content.xss_auditing` setting is now enabled by default, to mirror
   Chromium's rather than Qt's default behavior.
+- Long URLs in the statusbar are now elided at the end rather than in the
+  middle, to make sure the hostname is completely visible whenever possible.
 
 Fixed
 ~~~~~
@@ -62,6 +92,9 @@ Fixed
 - The `content.webrtc_public_interfaces_only` option didn't work on Qt 5.11 previously (it now does).
   Note it still does not work on Qt 5.10 (due to a Qt bug) and Qt < 5.9.2.
 - Repeated escaping of entries in `qute://log` when refreshing page.
+- The host blocker doesn't block 0.0.0.0 anymore.
+- Crash when using :// as URL pattern.
+- The `:buffer` completion now sorts tabs with indices >= 10 correctly again.
 
 v1.4.1
 ------
@@ -86,7 +119,6 @@ Fixed
 - The Windows installer now uninstalls the old version before installing the
   new one, fixing issues with qutebrowser not starting after installing v1.4.0
   over v1.3.3.
-- The `:buffer` completion now sorts tabs with indices >= 10 correctly again.
 
 v1.4.0
 ------
@@ -1605,7 +1637,7 @@ Changed
   `tabs.bg/fg.selected.odd/even`.
 - `:spawn --userscript` and `:hint` with the `userscript` target now look up
   relative paths in `~/.local/share/qutebrowser/userscripts` or
-  `$XDG_DATA_DIR`. Using a binary in `$PATH` won't work anymore with
+  `$XDG_DATA_HOME`. Using a binary in `$PATH` won't work anymore with
   `--userscript`.
 - New design for error pages
 - Link filtering for hints now checks if the text is contained anywhere in

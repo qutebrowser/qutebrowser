@@ -31,8 +31,8 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.completion import completer
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import configdata, configtypes
-from qutebrowser.utils import objreg, usertypes
-from qutebrowser.browser import history, urlmarks
+from qutebrowser.utils import usertypes
+from qutebrowser.browser import urlmarks
 from qutebrowser.commands import cmdutils
 
 
@@ -157,17 +157,6 @@ def bookmarks(bookmark_manager_mock):
     ]))
     bookmark_manager_mock.all_tags.return_value = {'foo', 'bar', 'baz'}
     return bookmark_manager_mock
-
-
-@pytest.fixture
-def web_history(init_sql, stubs, config_stub):
-    """Fixture which provides a web-history object."""
-    config_stub.val.completion.timestamp_format = '%Y-%m-%d'
-    config_stub.val.completion.web_history_max_items = -1
-    stub = history.WebHistory()
-    objreg.register('web-history', stub)
-    yield stub
-    objreg.delete('web-history')
 
 
 @pytest.fixture
@@ -421,7 +410,7 @@ def test_url_completion_delete_history(qtmodeltester, info, bookmarks,
 
 def test_url_completion_zero_limit(config_stub, web_history, info, bookmarks):
     """Make sure there's no history if the limit was set to zero."""
-    config_stub.val.completion.web_history_max_items = 0
+    config_stub.val.completion.web_history.max_items = 0
     model = urlmodel.url(info=info)
     model.set_pattern('')
     category = model.index(1, 0)  # "History" normally
