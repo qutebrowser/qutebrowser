@@ -50,8 +50,8 @@ class Selection:
     def check(self, expected, *, strip=False):
         """Check whether we got the expected selection.
 
-        Since (especially on Windows) the selection is empty if we're too
-        quickly, we try to read it multiple times.
+        Since (especially on Windows) the selection is empty if we're checking
+        too quickly, we try to read it multiple times.
         """
         for _ in range(10):
             with self._qtbot.wait_signal(
