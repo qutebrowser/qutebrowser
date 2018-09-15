@@ -203,8 +203,9 @@ class CompletionItemDelegate(QStyledItemDelegate):
             columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
                 repl = r'<span class="highlight">\g<0></span>'
-                pat = html.escape(re.escape(pattern)).replace(r'\ ', r'|')
-                txt = html.escape(self._opt.text)
+                pat = html.escape(re.escape(pattern), quote=False).replace(
+                    r'\ ', r'|')
+                txt = html.escape(self._opt.text, quote=False)
                 text = re.sub(pat, repl, txt, flags=re.IGNORECASE)
                 self._doc.setHtml(text)
             else:
