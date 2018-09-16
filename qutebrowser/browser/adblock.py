@@ -66,10 +66,10 @@ def is_whitelisted_host(url):
     """Check if the given url is on the adblock whitelist.
 
     Args:
-        url: The url to check.
+        url: The url to check in QUrl form.
     """
     for pattern in config.val.content.host_blocking.whitelist:
-        if urlmatch.URLPattern(pattern).matches(url):
+        if urlmatch.UrlPattern(pattern).matches(url):
             return True
     return False
 
@@ -119,7 +119,7 @@ class HostBlocker:
         host = url.host()
         return ((host in self._blocked_hosts or
                  host in self._config_blocked_hosts) and
-                not is_whitelisted_host(url.toString()))
+                not is_whitelisted_host(url))
 
     def _read_hosts_file(self, filename, target):
         """Read hosts from the given filename.
