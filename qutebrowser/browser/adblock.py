@@ -66,7 +66,7 @@ def is_whitelisted_host(url):
     """Check if the given url is on the adblock whitelist.
 
     Args:
-        url: The url to check.
+        url: The url to check as a string.
     """
     for pattern in config.val.content.host_blocking.whitelist:
         if urlmatch.URLPattern(pattern).matches(url):
