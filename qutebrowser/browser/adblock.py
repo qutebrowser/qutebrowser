@@ -30,6 +30,7 @@ from qutebrowser.browser import downloads
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir, log, message
 from qutebrowser.commands import cmdutils
+from qutebrowser.utils import urlmatch
 
 
 def guess_zip_filename(zf):
@@ -61,14 +62,14 @@ def get_fileobj(byte_io):
     return byte_io
 
 
-def is_whitelisted_host(host):
-    """Check if the given host is on the adblock whitelist.
+def is_whitelisted_host(url):
+    """Check if the given url is on the adblock whitelist.
 
     Args:
-        host: The host of the request as string.
+        url: The url to check.
     """
     for pattern in config.val.content.host_blocking.whitelist:
-        if fnmatch.fnmatch(host, pattern.lower()):
+        if urlmatch.URLPattern(pattern).matches(url):
             return True
     return False
 
@@ -118,7 +119,7 @@ class HostBlocker:
         host = url.host()
         return ((host in self._blocked_hosts or
                  host in self._config_blocked_hosts) and
-                not is_whitelisted_host(host))
+                not is_whitelisted_host(url.toString()))
 
     def _read_hosts_file(self, filename, target):
         """Read hosts from the given filename.
