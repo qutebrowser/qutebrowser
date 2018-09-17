@@ -8,6 +8,10 @@ matrix:
   include:
     - os: linux
       env: TESTENV=py36-pyqt59
+      addons:
+        apt:
+          packages:
+          - gdb
   fast_finish: true
 
 cache:
