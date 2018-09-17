@@ -25,7 +25,7 @@ elif [[ $TESTENV == shellcheck ]]; then
            -w /outside \
            koalaman/shellcheck:latest "${scripts[@]}"
 else
-    args=()
+    args=('tests/unit')
     [[ $TRAVIS_OS_NAME == osx ]] && args=('--qute-bdd-webengine' '--no-xvfb' 'tests/unit')
 
     tox -e "$TESTENV" -- "${args[@]}"
