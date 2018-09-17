@@ -36,6 +36,8 @@ Added
   model.
 - New `qt.low_end_device_mode` setting which turns on Chromium's low-end device
   mode. This mode uses less RAM, but the expense of performance.
+- New `content.webrtc_ip_handling_policy` setting, which allows more
+  fine-grained/restrictive control about which IPs are exposed via WebRTC.
 
 Changed
 ~~~~~~~
@@ -71,6 +73,8 @@ Removed
 ~~~~~~~
 
 - Support for importing pre-v1.0.0 history files has been removed.
+- The `content.webrtc_public_interfaces_only` setting has been removed and
+  replaced by `content.webrtc_ip_handling_policy`.
 
 v1.4.2
 ------

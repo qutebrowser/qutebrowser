@@ -769,18 +769,31 @@ content.webgl:
   supports_pattern: true
   desc: Enable WebGL.
 
-content.webrtc_public_interfaces_only:
-  default: false
-  type: Bool
+content.webrtc_ip_handling_policy:
+  default: all-interfaces
+  type:
+    name: String
+    valid_values:
+      - all-interfaces: WebRTC has the right to enumerate all interfaces and
+            bind them to discover public interfaces.
+      - default-public-and-private-interfaces: WebRTC should only use the
+            default route used by http. This also exposes the associated
+            default private address. Default route is the route chosen by the
+            OS on a multi-homed endpoint.
+      - default-public-interface-only: WebRTC should only use the default route
+            used by http. This doesn't expose any local addresses.
+      - disable-non-proxied-udp: WebRTC should only use TCP to contact peers or
+            servers unless the proxy server supports UDP. This doesn't expose
+            any local addresses either.
+  default: all-interfaces
   backend:
     QtWebKit: false
     QtWebEngine: Qt 5.9.2
+  restart: true
   desc: >-
-    Only expose public interfaces via WebRTC.
+    Which interfaces to expose via WebRTC.
 
-    On Qt 5.9, this option requires a restart.
-    On Qt 5.10, this option doesn't work at all because of a Qt bug.
-    On Qt >= 5.11, no restart is required.
+    On Qt 5.10, this option doesn't work because of a Qt bug.
 
 content.xss_auditing:
   type: Bool

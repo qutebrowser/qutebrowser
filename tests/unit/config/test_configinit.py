@@ -438,23 +438,35 @@ class TestQtArgs:
         assert ('--autoplay-policy=user-gesture-required' in args) == added
 
     @utils.qt59
-    @pytest.mark.parametrize('new_version, public_only, added', [
-        (True, True, False),  # new enough to not need it
-        (False, False, False),  # option disabled
-        (False, True, True),
+    @pytest.mark.parametrize('policy, arg', [
+        ('all-interfaces', None),
+
+        ('default-public-and-private-interfaces',
+         '--force-webrtc-ip-handling-policy='
+         'default_public_and_private_interfaces'),
+
+        ('default-public-interface-only',
+         '--force-webrtc-ip-handling-policy='
+         'default_public_interface_only'),
+
+        ('disable-non-proxied-udp',
+         '--force-webrtc-ip-handling-policy='
+         'disable_non_proxied_udp'),
     ])
     def test_webrtc(self, config_stub, monkeypatch, parser,
-                    new_version, public_only, added):
+                    policy, arg):
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        config_stub.val.content.webrtc_public_interfaces_only = public_only
-        monkeypatch.setattr(configinit.qtutils, 'version_check',
-                            lambda version, compiled=False: new_version)
+        config_stub.val.content.webrtc_ip_handling_policy = policy
 
         parsed = parser.parse_args([])
         args = configinit.qt_args(parsed)
-        arg = '--force-webrtc-ip-handling-policy=default_public_interface_only'
-        assert (arg in args) == added
+
+        if arg is None:
+            assert not any(a.startswith('--force-webrtc-ip-handling-policy=')
+                           for a in args)
+        else:
+            assert arg in args
 
     @pytest.mark.parametrize('canvas_reading, added', [
         (True, False),  # canvas reading enabled
