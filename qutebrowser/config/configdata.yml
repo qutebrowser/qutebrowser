@@ -506,10 +506,7 @@ content.host_blocking.whitelist:
     valtype: UrlPattern
     none_ok: true
   desc: >-
-    List of URL Patterns should always be loaded, despite being ad-blocked.
-
-    Patterns may contain the * wildcard and are based on chromium url matching
-    guidelines. See utils.urlmatch.py for examples.
+    List of URL Patterns that should always be loaded, despite being ad-blocked.
 
     Local domains are always exempt from hostblocking.
 
