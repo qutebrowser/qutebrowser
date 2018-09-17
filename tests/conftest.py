@@ -174,12 +174,14 @@ def pytest_ignore_collect(path):
 
 @pytest.fixture(scope='session')
 def qapp_args():
-    """Make QtWebEngine unit tests run on Qt 5.7.1.
-
-    See https://github.com/qutebrowser/qutebrowser/issues/3163
-    """
+    """Work around some issues with tests."""
+    # WORKAROUND for https://github.com/qutebrowser/qutebrowser/issues/3163
     if qVersion() == '5.7.1':
         return [sys.argv[0], '--disable-seccomp-filter-sandbox']
+    # WORKAROUND for unknown crash in swrast_dri.so
+    # https://github.com/qutebrowser/qutebrowser/pull/4218#issuecomment-421931770
+    if qVersion() == '5.9.3' and 'TRAVIS' in os.environ:
+        return [sys.argv[0], '--disable-gpu']
     return []
 
 
