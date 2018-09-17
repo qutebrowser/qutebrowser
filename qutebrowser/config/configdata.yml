@@ -503,13 +503,13 @@ content.host_blocking.whitelist:
   - piwik.org
   type:
     name: List
-    valtype: String
+    valtype: QUrl
     none_ok: true
   desc: >-
-    List of domains that should always be loaded, despite being ad-blocked.
+    List of URL Patterns should always be loaded, despite being ad-blocked.
 
-    Domains may contain * and ? wildcards and are otherwise required to exactly
-    match the requested domain.
+    Patterns may contain the * wildcard and are based on chromium url matching
+    guidelines. See utils.urlmatch.py for examples.
 
     Local domains are always exempt from hostblocking.
 
