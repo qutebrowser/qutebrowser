@@ -27,9 +27,8 @@ import zipfile
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
-from qutebrowser.utils import objreg, standarddir, log, message
+from qutebrowser.utils import objreg, standarddir, log, message, urlmatch
 from qutebrowser.commands import cmdutils
-from qutebrowser.utils import urlmatch
 
 
 def guess_zip_filename(zf):
@@ -68,8 +67,11 @@ def is_whitelisted_host(url):
         url: The url to check in QUrl form.
     """
     for pattern in config.val.content.host_blocking.whitelist:
-        if urlmatch.UrlPattern(pattern).matches(url):
-            return True
+        try:
+            if pattern.matches(url):
+                return True
+        except urlmatch.ParseError as p_error:
+                log.misc.exception("Unable to read UrlPattern: " + UrlPattern._pattern)
     return False
 
 
