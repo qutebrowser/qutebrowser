@@ -375,13 +375,20 @@ def qute_help(url):
     except OSError:
         # No .html around, let's see if we find the asciidoc
         asciidoc_path = path.replace('.html', '.asciidoc')
+        asciidoc_paths = [asciidoc_path]
         if asciidoc_path.startswith('html/doc/'):
-            asciidoc_path = asciidoc_path.replace('html/doc/', '../doc/help/')
+            asciidoc_paths += [asciidoc_path.replace('html/doc/', '../doc/help/'),
+                               asciidoc_path.replace('html/doc/', '../doc/')]
 
-        try:
-            asciidoc = utils.read_file(asciidoc_path)
-        except OSError:
-            asciidoc = None
+        asciidoc = None
+
+        for path in asciidoc_paths:
+            try:
+                asciidoc = utils.read_file(path)
+            except OSError:
+                pass
+            else:
+                break
 
         if asciidoc is None:
             raise
