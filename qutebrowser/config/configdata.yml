@@ -503,7 +503,7 @@ content.host_blocking.whitelist:
   - piwik.org
   type:
     name: List
-    valtype: QUrlPattern
+    valtype: UrlPattern
     none_ok: true
   desc: >-
     List of URL Patterns should always be loaded, despite being ad-blocked.
