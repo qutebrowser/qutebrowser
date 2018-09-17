@@ -359,10 +359,11 @@ class TestQtArgs:
         return parser
 
     @pytest.fixture(autouse=True)
-    def patch_version_check(self, monkeypatch):
-        """Make sure no --disable-shared-workers argument gets added."""
+    def reduce_args(self, monkeypatch, config_stub):
+        """Make sure no --disable-shared-workers/referer argument get added."""
         monkeypatch.setattr(configinit.qtutils, 'version_check',
                             lambda version, compiled=False: True)
+        config_stub.val.content.headers.referer = 'always'
 
     @pytest.mark.parametrize('args, expected', [
         # No Qt arguments
@@ -521,6 +522,25 @@ class TestQtArgs:
         if arg is None:
             assert '--enable-low-end-device-mode' not in args
             assert '--disable-low-end-device-mode' not in args
+        else:
+            assert arg in args
+
+    @pytest.mark.parametrize('referer, arg', [
+        ('always', None),
+        ('never', '--no-referrers'),
+        ('same-domain', '--reduced-referrer-granularity'),
+    ])
+    def test_referer(self, config_stub, monkeypatch, parser, referer, arg):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+
+        config_stub.val.content.headers.referer = referer
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+
+        if arg is None:
+            assert '--no-referrers' not in args
+            assert '--reduced-referrer-granularity' not in args
         else:
             assert arg in args
 

@@ -215,4 +215,15 @@ def qt_args(namespace):
             raise utils.Unreachable("Unknown low-end device mode {}"
                                     .format(low_end_device_mode))
 
+        referrer = config.val.content.headers.referer
+        if referrer == 'always':
+            pass
+        elif referrer == 'never':
+            argv.append('--no-referrers')
+        elif referrer == 'same-domain':
+            argv.append('--reduced-referrer-granularity')
+        else:
+            raise utils.Unreachable("Unknown referrer {}"
+                                    .format(referrer))
+
     return argv

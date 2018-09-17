@@ -42,6 +42,7 @@ Added
 Changed
 ~~~~~~~
 
+- The `content.headers.referer` setting now works on QtWebEngine.
 - The `:repeat` command now takes a count which is multiplied with the given
   "times" argument.
 - The default keybinding to leave passthrough mode was changed from `<Ctrl-V>`

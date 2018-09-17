@@ -1677,6 +1677,8 @@ Default: +pass:[true]+
 === content.headers.referer
 When to send the Referer header.
 The Referer header tells websites from which website you were coming from when visiting them.
+No restart is needed with QtWebKit.
+This setting requires a restart.
 
 Type: <<types,String>>
 
@@ -1684,11 +1686,9 @@ Valid values:
 
  * +always+: Always send the Referer.
  * +never+: Never send the Referer. This is not recommended, as some sites may break.
- * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites.
+ * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites. With QtWebEngine, the referer will still be sent for other domains, but with stripped path information.
 
 Default: +pass:[same-domain]+
-
-This setting is only available with the QtWebKit backend.
 
 [[content.headers.user_agent]]
 === content.headers.user_agent
