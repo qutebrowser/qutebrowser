@@ -180,8 +180,8 @@ def qapp_args():
         return [sys.argv[0], '--disable-seccomp-filter-sandbox']
     # WORKAROUND for unknown crash in swrast_dri.so
     # https://github.com/qutebrowser/qutebrowser/pull/4218#issuecomment-421931770
-    if qVersion() == '5.9.3':
-        return [sys.argv[0], '--disable-gpu']
+    # if qVersion() == '5.9.3':
+    #     return [sys.argv[0], '--disable-gpu']
     return []
 
 

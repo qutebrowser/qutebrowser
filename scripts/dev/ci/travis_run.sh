@@ -30,5 +30,7 @@ else
 
     tox -e "$TESTENV" --notest
 
+    export QT_QUICK_BACKEND=software
+
     PYTHONPATH=. ./.tox/py36-pyqt59/bin/pytest tests/unit
 fi
