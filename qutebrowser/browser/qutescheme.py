@@ -39,7 +39,6 @@ except ImportError:
     # New in Python 3.6
     secrets = None
 
-import pkg_resources
 from PyQt5.QtCore import QUrlQuery, QUrl
 
 import qutebrowser
@@ -414,17 +413,6 @@ def qute_help(url):
         return 'text/plain', (preamble + asciidoc).encode('utf-8')
     else:
         return 'text/html', data
-
-
-@add_handler('backend-warning')
-def qute_backend_warning(_url):
-    """Handler for qute://backend-warning."""
-    src = jinja.render('backend-warning.html',
-                       distribution=version.distribution(),
-                       Distribution=version.Distribution,
-                       version=pkg_resources.parse_version,
-                       title="Legacy backend warning")
-    return 'text/html', src
 
 
 def _qute_settings_set(url):
