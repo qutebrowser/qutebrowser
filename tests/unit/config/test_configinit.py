@@ -492,6 +492,26 @@ class TestQtArgs:
             assert '--process-per-site-instance' not in args
             assert '--process-per-tab' not in args
 
+    @pytest.mark.parametrize('low_end_device_mode, arg', [
+        ('auto', None),
+        ('force-on', '--enable-low-end-device-mode'),
+        ('force-off', '--disable-low-end-device-mode'),
+    ])
+    def test_low_end_device_mode(self, config_stub, monkeypatch, parser,
+                                 low_end_device_mode, arg):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+
+        config_stub.val.qt.low_end_device_mode = low_end_device_mode
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+
+        if arg is None:
+            assert '--enable-low-end-device-mode' not in args
+            assert '--disable-low-end-device-mode' not in args
+        else:
+            assert arg in args
+
 
 @pytest.mark.parametrize('arg, confval, used', [
     # overridden by commandline arg

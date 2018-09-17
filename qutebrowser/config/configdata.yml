@@ -210,6 +210,23 @@ qt.process_model:
       - https://www.chromium.org/developers/design-documents/process-models
       - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
 
+qt.low_end_device_mode:
+  type:
+    name: String
+    valid_values:
+      - force-on: Always use low-end device mode.
+      - auto: Decide automatically (uses low-end mode with < 1 GB available
+            RAM).
+      - force-off: Never use low-end device mode.
+  default: auto
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Use Chromium's low-end device mode.
+
+    This improves the RAM usage of renderer processes, at the expense of
+    performance.
+
 qt.highdpi:
   type: Bool
   default: false

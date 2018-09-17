@@ -202,4 +202,15 @@ def qt_args(namespace):
             raise utils.Unreachable("Unknown process model {}"
                                     .format(process_model))
 
+        low_end_device_mode = config.val.qt.low_end_device_mode
+        if low_end_device_mode == 'auto':
+            pass
+        elif low_end_device_mode == 'force-on':
+            argv.append('--enable-low-end-device-mode')
+        elif low_end_device_mode == 'force-off':
+            argv.append('--disable-low-end-device-mode')
+        else:
+            raise utils.Unreachable("Unknown low-end device mode {}"
+                                    .format(low_end_device_mode))
+
     return argv
