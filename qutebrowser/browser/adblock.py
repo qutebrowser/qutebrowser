@@ -70,8 +70,8 @@ def is_whitelisted_host(url):
         try:
             if pattern.matches(url):
                 return True
-        except urlmatch.ParseError as p_error:
-                log.misc.exception("Unable to read UrlPattern: " + UrlPattern._pattern)
+        except urlmatch.ParseError:
+            log.misc.exception("Unable to read UrlPattern: " + str(url))
     return False
 
 
