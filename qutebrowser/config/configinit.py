@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QMessageBox
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc, configcommands)
 from qutebrowser.utils import (objreg, usertypes, log, standarddir, message,
-                               qtutils, utils)
+                               qtutils)
 from qutebrowser.config import configcache
 from qutebrowser.misc import msgbox, objects
 

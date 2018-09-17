@@ -349,9 +349,9 @@ def qute_gpl(_url):
     return 'text/html', utils.read_file('html/license.html')
 
 
-def _asciidoc_fallback_path(path):
+def _asciidoc_fallback_path(html_path):
     """Fall back to plaintext asciidoc if the HTML is unavailable."""
-    asciidoc_path = path.replace('.html', '.asciidoc')
+    asciidoc_path = html_path.replace('.html', '.asciidoc')
     asciidoc_paths = [asciidoc_path]
     if asciidoc_path.startswith('html/doc/'):
         asciidoc_paths += [asciidoc_path.replace('html/doc/', '../doc/help/'),
