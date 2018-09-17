@@ -171,59 +171,67 @@ def qt_args(namespace):
     argv += ['--' + arg for arg in config.val.qt.args]
 
     if objects.backend == usertypes.Backend.QtWebEngine:
-        if not qtutils.version_check('5.11', compiled=False):
-            # WORKAROUND equivalent to
-            # https://codereview.qt-project.org/#/c/217932/
-            # Needed for Qt < 5.9.5 and < 5.10.1
-            argv.append('--disable-shared-workers')
-
-        if config.val.qt.force_software_rendering == 'chromium':
-            argv.append('--disable-gpu')
-
-        if not config.val.content.canvas_reading:
-            argv.append('--disable-reading-from-canvas')
-
-        if not qtutils.version_check('5.11'):
-            # On Qt 5.11, we can control this via QWebEngineSettings
-            if not config.val.content.autoplay:
-                argv.append('--autoplay-policy=user-gesture-required')
-
-        webrtc_policy = config.val.content.webrtc_ip_handling_policy
-        if webrtc_policy != 'all-interfaces':
-            argv.append('--force-webrtc-ip-handling-policy=' +
-                        webrtc_policy.replace('-', '_'))
-
-        process_model = config.val.qt.process_model
-        if process_model == 'process-per-site-instance':
-            pass
-        elif process_model == 'process-per-site':
-            argv.append('--process-per-site')
-        elif process_model == 'single-process':
-            argv.append('--single-process')
-        else:
-            raise utils.Unreachable("Unknown process model {}"
-                                    .format(process_model))
-
-        low_end_device_mode = config.val.qt.low_end_device_mode
-        if low_end_device_mode == 'auto':
-            pass
-        elif low_end_device_mode == 'force-on':
-            argv.append('--enable-low-end-device-mode')
-        elif low_end_device_mode == 'force-off':
-            argv.append('--disable-low-end-device-mode')
-        else:
-            raise utils.Unreachable("Unknown low-end device mode {}"
-                                    .format(low_end_device_mode))
-
-        referrer = config.val.content.headers.referer
-        if referrer == 'always':
-            pass
-        elif referrer == 'never':
-            argv.append('--no-referrers')
-        elif referrer == 'same-domain':
-            argv.append('--reduced-referrer-granularity')
-        else:
-            raise utils.Unreachable("Unknown referrer {}"
-                                    .format(referrer))
+        argv += list(_qtwebengine_args())
 
     return argv
+
+
+def _qtwebengine_args():
+    """Get the QtWebEngine arguments to use based on the config."""
+    if not qtutils.version_check('5.11', compiled=False):
+        # WORKAROUND equivalent to
+        # https://codereview.qt-project.org/#/c/217932/
+        # Needed for Qt < 5.9.5 and < 5.10.1
+        yield '--disable-shared-workers'
+
+    settings = {
+        'qt.force_software_rendering': {
+            'software-opengl': None,
+            'qt-quick': None,
+            'chromium': '--disable-gpu',
+            'none': None,
+        },
+        'content.canvas_reading': {
+            True: None,
+            False: '--disable-reading-from-canvas',
+        },
+        'content.webrtc_ip_handling_policy': {
+            'all-interfaces': None,
+            'default-public-and-private-interfaces':
+                '--force-webrtc-ip-handling-policy='
+                'default_public_and_private_interfaces',
+            'default-public-interface-only':
+                '--force-webrtc-ip-handling-policy='
+                'default_public_interface_only',
+            'disable-non-proxied-udp':
+                '--force-webrtc-ip-handling-policy='
+                'disable_non_proxied_udp',
+        },
+        'qt.process_model': {
+            'process-per-site-instance': None,
+            'process-per-site': '--process-per-site',
+            'single-process': '--single-process',
+        },
+        'qt.low_end_device_mode': {
+            'auto': None,
+            'force-on': '--enable-low-end-device-mode',
+            'force-off': '--disable-low-end-device-mode',
+        },
+        'content.headers.referer': {
+            'always': None,
+            'never': '--no-referrers',
+            'same-domain': '--reduced-referrer-granularity',
+        }
+    }
+
+    if not qtutils.version_check('5.11'):
+        # On Qt 5.11, we can control this via QWebEngineSettings
+        settings['content.autoplay'] = {
+            True: None,
+            False: '--autoplay-policy=user-gesture-required',
+        }
+
+    for setting, args in sorted(settings.items()):
+        arg = args[config.instance.get(setting)]
+        if arg is not None:
+            yield arg
