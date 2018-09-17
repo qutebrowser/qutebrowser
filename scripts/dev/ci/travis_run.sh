@@ -28,5 +28,7 @@ else
     args=('tests/unit')
     [[ $TRAVIS_OS_NAME == osx ]] && args=('--qute-bdd-webengine' '--no-xvfb' 'tests/unit')
 
-    tox -e "$TESTENV" -- "${args[@]}"
+    tox -e "$TESTENV" --notest
+
+    PYTHONPATH=. ./.tox/py36-pyqt59/bin/pytest tests/unit
 fi

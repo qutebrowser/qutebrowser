@@ -15,4 +15,5 @@ case $TESTENV in
         ;;
 esac
 
+ls
 find . \( -name "*.core" -o -name core \) -exec gdb --batch --quiet -ex "thread apply all bt $full" "$exe" {} \;
