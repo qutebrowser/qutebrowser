@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QMessageBox
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc, configcommands)
 from qutebrowser.utils import (objreg, usertypes, log, standarddir, message,
-                               qtutils)
+                               qtutils, utils)
 from qutebrowser.config import configcache
 from qutebrowser.misc import msgbox, objects
 
@@ -190,5 +190,16 @@ def qt_args(namespace):
             if config.val.content.webrtc_public_interfaces_only:
                 argv.append('--force-webrtc-ip-handling-policy='
                             'default_public_interface_only')
+
+        process_model = config.val.qt.process_model
+        if process_model == 'process-per-site-instance':
+            pass
+        elif process_model == 'process-per-site':
+            argv.append('--process-per-site')
+        elif process_model == 'single-process':
+            argv.append('--single-process')
+        else:
+            raise utils.Unreachable("Unknown process model {}"
+                                    .format(process_model))
 
     return argv

@@ -470,6 +470,28 @@ class TestQtArgs:
         args = configinit.qt_args(parsed)
         assert ('--disable-reading-from-canvas' in args) == added
 
+    @pytest.mark.parametrize('process_model, added', [
+        ('process-per-site-instance', False),
+        ('process-per-site', True),
+        ('single-process', True),
+    ])
+    def test_process_model(self, config_stub, monkeypatch, parser,
+                           process_model, added):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+
+        config_stub.val.qt.process_model = process_model
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+
+        if added:
+            assert '--' + process_model in args
+        else:
+            assert '--process-per-site' not in args
+            assert '--single-process' not in args
+            assert '--process-per-site-instance' not in args
+            assert '--process-per-tab' not in args
+
 
 @pytest.mark.parametrize('arg, confval, used', [
     # overridden by commandline arg

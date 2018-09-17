@@ -229,6 +229,7 @@
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
+|<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
@@ -2756,6 +2757,28 @@ This setting requires a restart.
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
+
+[[qt.process_model]]
+=== qt.process_model
+Which Chromium process model to use.
+Alternative process models use less resources, but decrease security and robustness.
+See the following pages for more details:
+
+  - https://www.chromium.org/developers/design-documents/process-models
+  - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +process-per-site-instance+: Pages from separate sites are put into separate processes and separate visits to the same site are also isolated.
+ * +process-per-site+: Pages from separate sites are put into separate processes. Unlike Process per Site Instance, all visits to the same site will share an OS process. The benefit of this model is reduced memory consumption, because more web pages will share processes. The drawbacks include reduced security, robustness, and responsiveness.
+ * +single-process+: Run all tabs in a single process. This should be used for debugging purposes only, and it disables `:open --private`.
+
+Default: +pass:[process-per-site-instance]+
+
+This setting is only available with the QtWebEngine backend.
 
 [[scrolling.bar]]
 === scrolling.bar

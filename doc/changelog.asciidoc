@@ -32,6 +32,8 @@ Added
     QtWebEngine.
   * Opening a PDF file now doesn't start a second request anymore.
   * Opening PDFs on https:// sites now works properly.
+- New `qt.process_model` setting which can be used to change Chromium's process
+  model.
 
 Changed
 ~~~~~~~

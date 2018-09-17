@@ -66,6 +66,11 @@ class CommandDispatcher:
 
     def _new_tabbed_browser(self, private):
         """Get a tabbed-browser from a new window."""
+        args = QApplication.instance().arguments()
+        if private and '--single-process' in args:
+            raise cmdexc.CommandError("Private windows are unavailable with "
+                                      "the single-process process model.")
+
         new_window = mainwindow.MainWindow(private=private)
         new_window.show()
         return new_window.tabbed_browser
