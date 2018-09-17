@@ -24,7 +24,6 @@ import os.path
 import functools
 import posixpath
 import zipfile
-import fnmatch
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
