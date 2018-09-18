@@ -72,9 +72,9 @@ from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
                               crashsignal, earlyinit, sql, cmdhistory,
-                              backendproblem)
+                              backendproblem, objects)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
-                               usertypes, standarddir, error)
+                               usertypes, standarddir, error, qtutils)
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command
@@ -351,10 +351,6 @@ def _open_startpage(win_id=None):
 def _open_special_pages(args):
     """Open special notification pages which are only shown once.
 
-    Currently this is:
-      - Quickstart page if it's the first start.
-      - Legacy QtWebKit warning if needed.
-
     Args:
         args: The argparse namespace.
     """
@@ -366,25 +362,30 @@ def _open_special_pages(args):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
 
-    # Quickstart page
+    pages = [
+        # state, condition, URL
+        ('quickstart-done',
+         True,
+         'https://www.qutebrowser.org/quickstart.html'),
 
-    quickstart_done = general_sect.get('quickstart-done') == '1'
+        ('config-migration-shown',
+         os.path.exists(os.path.join(standarddir.config(),
+                                     'qutebrowser.conf')),
+         'qute://help/configuring.html'),
 
-    if not quickstart_done:
-        tabbed_browser.tabopen(
-            QUrl('https://www.qutebrowser.org/quickstart.html'))
-        general_sect['quickstart-done'] = '1'
+        ('webkit-warning-shown',
+         objects.backend == usertypes.Backend.QtWebKit,
+         'qute://warning/webkit'),
 
-    # Setting migration page
+        ('old-qt-warning-shown',
+         not qtutils.version_check('5.9'),
+         'qute://warning/old-qt'),
+    ]
 
-    needs_migration = os.path.exists(
-        os.path.join(standarddir.config(), 'qutebrowser.conf'))
-    migration_shown = general_sect.get('config-migration-shown') == '1'
-
-    if needs_migration and not migration_shown:
-        tabbed_browser.tabopen(QUrl('qute://help/configuring.html'),
-                               background=False)
-        general_sect['config-migration-shown'] = '1'
+    for state, condition, url in pages:
+        if general_sect.get(state) != '1' and condition:
+            tabbed_browser.tabopen(QUrl(url), background=False)
+            general_sect[state] = '1'
 
 
 def on_focus_changed(_old, new):

@@ -235,6 +235,21 @@ class TestYaml:
         data = autoconfig.read()
         assert 'bindings.default' not in data
 
+    @pytest.mark.parametrize('public_only, expected', [
+        (True, 'default-public-interface-only'),
+        (False, 'all-interfaces'),
+    ])
+    def test_webrtc(self, yaml, autoconfig, public_only, expected):
+        """Tests for migration of content.webrtc_public_interfaces_only."""
+        autoconfig.write({'content.webrtc_public_interfaces_only':
+                          {'global': public_only}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert data['content.webrtc_ip_handling_policy']['global'] == expected
+
     @pytest.mark.parametrize('show, expected', [
         (True, 'always'),
         (False, 'never'),

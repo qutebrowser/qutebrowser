@@ -32,10 +32,19 @@ Added
     QtWebEngine.
   * Opening a PDF file now doesn't start a second request anymore.
   * Opening PDFs on https:// sites now works properly.
+- New `qt.process_model` setting which can be used to change Chromium's process
+  model.
+- New `qt.low_end_device_mode` setting which turns on Chromium's low-end device
+  mode. This mode uses less RAM, but the expense of performance.
+- New `content.webrtc_ip_handling_policy` setting, which allows more
+  fine-grained/restrictive control about which IPs are exposed via WebRTC.
+- Running qutebrowser with QtWebKit or Qt < 5.9 now shows a warning (only
+  once), as support for those is going to be removed in a future release.
 
 Changed
 ~~~~~~~
 
+- The `content.headers.referer` setting now works on QtWebEngine.
 - The `:repeat` command now takes a count which is multiplied with the given
   "times" argument.
 - The default keybinding to leave passthrough mode was changed from `<Ctrl-V>`
@@ -67,6 +76,8 @@ Removed
 ~~~~~~~
 
 - Support for importing pre-v1.0.0 history files has been removed.
+- The `content.webrtc_public_interfaces_only` setting has been removed and
+  replaced by `content.webrtc_ip_handling_policy`.
 
 v1.4.2
 ------

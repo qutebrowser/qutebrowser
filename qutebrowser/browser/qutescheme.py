@@ -39,8 +39,7 @@ except ImportError:
     # New in Python 3.6
     secrets = None
 
-import pkg_resources
-from PyQt5.QtCore import QUrlQuery, QUrl
+from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
 import qutebrowser
 from qutebrowser.browser import pdfjs, downloads
@@ -349,9 +348,9 @@ def qute_gpl(_url):
     return 'text/html', utils.read_file('html/license.html')
 
 
-def _asciidoc_fallback_path(path):
+def _asciidoc_fallback_path(html_path):
     """Fall back to plaintext asciidoc if the HTML is unavailable."""
-    asciidoc_path = path.replace('.html', '.asciidoc')
+    asciidoc_path = html_path.replace('.html', '.asciidoc')
     asciidoc_paths = [asciidoc_path]
     if asciidoc_path.startswith('html/doc/'):
         asciidoc_paths += [asciidoc_path.replace('html/doc/', '../doc/help/'),
@@ -414,17 +413,6 @@ def qute_help(url):
         return 'text/plain', (preamble + asciidoc).encode('utf-8')
     else:
         return 'text/html', data
-
-
-@add_handler('backend-warning')
-def qute_backend_warning(_url):
-    """Handler for qute://backend-warning."""
-    src = jinja.render('backend-warning.html',
-                       distribution=version.distribution(),
-                       Distribution=version.Distribution,
-                       version=pkg_resources.parse_version,
-                       title="Legacy backend warning")
-    return 'text/html', src
 
 
 def _qute_settings_set(url):
@@ -564,3 +552,19 @@ def qute_pdfjs(url):
     else:
         mimetype = utils.guess_mimetype(url.fileName(), fallback=True)
         return mimetype, data
+
+
+@add_handler('warning')
+def qute_warning(url):
+    """Handler for qute://warning."""
+    path = url.path()
+    if path == '/old-qt':
+        src = jinja.render('warning-old-qt.html',
+                           title='Old Qt warning',
+                           qt_version=qVersion())
+    elif path == '/webkit':
+        src = jinja.render('warning-webkit.html',
+                           title='QtWebKit backend warning')
+    else:
+        raise NotFoundError("Invalid warning page {}".format(path))
+    return 'text/html', src

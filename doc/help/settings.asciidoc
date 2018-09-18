@@ -158,7 +158,7 @@
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
-|<<content.webrtc_public_interfaces_only,content.webrtc_public_interfaces_only>>|Only expose public interfaces via WebRTC.
+|<<content.webrtc_ip_handling_policy,content.webrtc_ip_handling_policy>>|Which interfaces to expose via WebRTC.
 |<<content.windowed_fullscreen,content.windowed_fullscreen>>|Limit fullscreen to the browser window (does not expand to fill the screen).
 |<<content.xss_auditing,content.xss_auditing>>|Monitor load requests for cross-site scripting attempts.
 |<<downloads.location.directory,downloads.location.directory>>|Directory to save downloads to.
@@ -229,6 +229,8 @@
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
+|<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
+|<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
@@ -1675,6 +1677,8 @@ Default: +pass:[true]+
 === content.headers.referer
 When to send the Referer header.
 The Referer header tells websites from which website you were coming from when visiting them.
+No restart is needed with QtWebKit.
+This setting requires a restart.
 
 Type: <<types,String>>
 
@@ -1682,11 +1686,9 @@ Valid values:
 
  * +always+: Always send the Referer.
  * +never+: Never send the Referer. This is not recommended, as some sites may break.
- * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites.
+ * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites. With QtWebEngine, the referer will still be sent for other domains, but with stripped path information.
 
 Default: +pass:[same-domain]+
-
-This setting is only available with the QtWebKit backend.
 
 [[content.headers.user_agent]]
 === content.headers.user_agent
@@ -2071,14 +2073,22 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[content.webrtc_public_interfaces_only]]
-=== content.webrtc_public_interfaces_only
-Only expose public interfaces via WebRTC.
-On Qt 5.9, this option requires a restart. On Qt 5.10, this option doesn't work at all because of a Qt bug. On Qt >= 5.11, no restart is required.
+[[content.webrtc_ip_handling_policy]]
+=== content.webrtc_ip_handling_policy
+Which interfaces to expose via WebRTC.
+On Qt 5.10, this option doesn't work because of a Qt bug.
+This setting requires a restart.
 
-Type: <<types,Bool>>
+Type: <<types,String>>
 
-Default: +pass:[false]+
+Valid values:
+
+ * +all-interfaces+: WebRTC has the right to enumerate all interfaces and bind them to discover public interfaces.
+ * +default-public-and-private-interfaces+: WebRTC should only use the default route used by http. This also exposes the associated default private address. Default route is the route chosen by the OS on a multi-homed endpoint.
+ * +default-public-interface-only+: WebRTC should only use the default route used by http. This doesn't expose any local addresses.
+ * +disable-non-proxied-udp+: WebRTC should only use TCP to contact peers or servers unless the proxy server supports UDP. This doesn't expose any local addresses either.
+
+Default: +pass:[all-interfaces]+
 
 On QtWebEngine, this setting requires Qt 5.9.2 or newer.
 
@@ -2756,6 +2766,46 @@ This setting requires a restart.
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
+
+[[qt.low_end_device_mode]]
+=== qt.low_end_device_mode
+When to use Chromium's low-end device mode.
+This improves the RAM usage of renderer processes, at the expense of performance.
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Always use low-end device mode.
+ * +auto+: Decide automatically (uses low-end mode with < 1 GB available RAM).
+ * +never+: Never use low-end device mode.
+
+Default: +pass:[auto]+
+
+This setting is only available with the QtWebEngine backend.
+
+[[qt.process_model]]
+=== qt.process_model
+Which Chromium process model to use.
+Alternative process models use less resources, but decrease security and robustness.
+See the following pages for more details:
+
+  - https://www.chromium.org/developers/design-documents/process-models
+  - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +process-per-site-instance+: Pages from separate sites are put into separate processes and separate visits to the same site are also isolated.
+ * +process-per-site+: Pages from separate sites are put into separate processes. Unlike Process per Site Instance, all visits to the same site will share an OS process. The benefit of this model is reduced memory consumption, because more web pages will share processes. The drawbacks include reduced security, robustness, and responsiveness.
+ * +single-process+: Run all tabs in a single process. This should be used for debugging purposes only, and it disables `:open --private`.
+
+Default: +pass:[process-per-site-instance]+
+
+This setting is only available with the QtWebEngine backend.
 
 [[scrolling.bar]]
 === scrolling.bar
