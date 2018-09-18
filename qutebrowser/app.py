@@ -72,9 +72,9 @@ from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
                               crashsignal, earlyinit, sql, cmdhistory,
-                              backendproblem)
+                              backendproblem, objects)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
-                               usertypes, standarddir, error)
+                               usertypes, standarddir, error, qtutils)
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command
@@ -373,6 +373,13 @@ def _open_special_pages(args):
                                      'qutebrowser.conf')),
          'qute://help/configuring.html'),
 
+        ('webkit-warning-shown',
+         objects.backend == usertypes.Backend.QtWebKit,
+         'qute://warning/webkit'),
+
+        ('old-qt-warning-shown',
+         not qtutils.version_check('5.9'),
+         'qute://warning/old-qt'),
     ]
 
     for state, condition, url in pages:

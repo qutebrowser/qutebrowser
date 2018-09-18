@@ -1,0 +1,24 @@
+{% extends "styled.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<span class="note">Note this warning will only appear once. Use <span class="mono">:open
+qute://warning/old-qt</span> to show it again at a later time.</span>
+
+<p>You're using qutebrowser with Qt {{qt_version}}.</p>
+
+<p>Qt 5.7 was released in June 2016, with the 5.7.1 patch release in December
+2016. It is based on Chromium 49 (March 2016) with (some) security fixes up to
+Chromium 54 (October 2016). It is also
+<a href="https://www.debian.org/releases/stable/amd64/release-notes/ch-information.en.html#browser-security">not covered</a>
+by Debian security updates.</p>
+
+<p>Qt 5.8 has had various bugs, and has been unsupported (but working to some
+degree) in qutebrowser for a while.</p>
+
+<p>Because of those security issues and the maintaince burden coming with
+supporting old versions, support for Qt < 5.9 will be dropped in a future
+qutebrowser release. You might want to check
+<a href="https://qutebrowser.org/doc/install.html">alternate installation methods</a>
+which allow you to get a newer Qt.</p>
+{% endblock %}

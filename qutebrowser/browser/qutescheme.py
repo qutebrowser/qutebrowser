@@ -39,7 +39,7 @@ except ImportError:
     # New in Python 3.6
     secrets = None
 
-from PyQt5.QtCore import QUrlQuery, QUrl
+from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
 import qutebrowser
 from qutebrowser.browser import pdfjs, downloads
@@ -552,3 +552,19 @@ def qute_pdfjs(url):
     else:
         mimetype = utils.guess_mimetype(url.fileName(), fallback=True)
         return mimetype, data
+
+
+@add_handler('warning')
+def qute_warning(url):
+    """Handler for qute://warning."""
+    path = url.path()
+    if path == '/old-qt':
+        src = jinja.render('warning-old-qt.html',
+                           title='Old Qt warning',
+                           qt_version=qVersion())
+    elif path == '/webkit':
+        src = jinja.render('warning-webkit.html',
+                           title='QtWebKit backend warning')
+    else:
+        raise NotFoundError("Invalid warning page {}".format(path))
+    return 'text/html', src

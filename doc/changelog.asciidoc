@@ -38,6 +38,8 @@ Added
   mode. This mode uses less RAM, but the expense of performance.
 - New `content.webrtc_ip_handling_policy` setting, which allows more
   fine-grained/restrictive control about which IPs are exposed via WebRTC.
+- Running qutebrowser with QtWebKit or Qt < 5.9 now shows a warning (only
+  once), as support for those is going to be removed in a future release.
 
 Changed
 ~~~~~~~
