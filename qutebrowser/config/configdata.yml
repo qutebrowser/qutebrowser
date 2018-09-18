@@ -506,7 +506,7 @@ content.host_blocking.whitelist:
     valtype: UrlPattern
     none_ok: true
   desc: >-
-    List of URL Patterns that should always be loaded, despite being ad-blocked.
+    A list of patterns that should always be loaded, despite being ad-blocked.
 
     Local domains are always exempt from hostblocking.
 
