@@ -229,7 +229,7 @@
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
-|<<qt.low_end_device_mode,qt.low_end_device_mode>>|Use Chromium's low-end device mode.
+|<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
 |<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
@@ -2769,7 +2769,7 @@ Default: +pass:[false]+
 
 [[qt.low_end_device_mode]]
 === qt.low_end_device_mode
-Use Chromium's low-end device mode.
+When to use Chromium's low-end device mode.
 This improves the RAM usage of renderer processes, at the expense of performance.
 This setting requires a restart.
 
@@ -2777,9 +2777,9 @@ Type: <<types,String>>
 
 Valid values:
 
- * +force-on+: Always use low-end device mode.
+ * +always+: Always use low-end device mode.
  * +auto+: Decide automatically (uses low-end mode with < 1 GB available RAM).
- * +force-off+: Never use low-end device mode.
+ * +never+: Never use low-end device mode.
 
 Default: +pass:[auto]+
 

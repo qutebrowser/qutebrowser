@@ -214,8 +214,8 @@ def _qtwebengine_args():
         },
         'qt.low_end_device_mode': {
             'auto': None,
-            'force-on': '--enable-low-end-device-mode',
-            'force-off': '--disable-low-end-device-mode',
+            'always': '--enable-low-end-device-mode',
+            'never': '--disable-low-end-device-mode',
         },
         'content.headers.referer': {
             'always': None,

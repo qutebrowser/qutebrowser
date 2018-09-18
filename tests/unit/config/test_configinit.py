@@ -507,8 +507,8 @@ class TestQtArgs:
 
     @pytest.mark.parametrize('low_end_device_mode, arg', [
         ('auto', None),
-        ('force-on', '--enable-low-end-device-mode'),
-        ('force-off', '--disable-low-end-device-mode'),
+        ('always', '--enable-low-end-device-mode'),
+        ('never', '--disable-low-end-device-mode'),
     ])
     def test_low_end_device_mode(self, config_stub, monkeypatch, parser,
                                  low_end_device_mode, arg):
