@@ -60,18 +60,15 @@ def get_fileobj(byte_io):
     return byte_io
 
 
-def is_whitelisted_host(url):
+def is_whitelisted_url(url):
     """Check if the given url is on the adblock whitelist.
 
     Args:
         url: The url to check in QUrl form.
     """
     for pattern in config.val.content.host_blocking.whitelist:
-        try:
-            if pattern.matches(url):
-                return True
-        except urlmatch.ParseError:
-            log.misc.exception("Unable to read UrlPattern: " + str(url))
+        if pattern.matches(url):
+            return True
     return False
 
 
@@ -120,7 +117,7 @@ class HostBlocker:
         host = url.host()
         return ((host in self._blocked_hosts or
                  host in self._config_blocked_hosts) and
-                not is_whitelisted_host(url))
+                not is_whitelisted_url(url))
 
     def _read_hosts_file(self, filename, target):
         """Read hosts from the given filename.
