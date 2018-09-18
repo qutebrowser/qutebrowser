@@ -27,7 +27,7 @@ import zipfile
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
-from qutebrowser.utils import objreg, standarddir, log, message, urlmatch
+from qutebrowser.utils import objreg, standarddir, log, message
 from qutebrowser.commands import cmdutils
 
 
@@ -61,10 +61,10 @@ def get_fileobj(byte_io):
 
 
 def is_whitelisted_url(url):
-    """Check if the given url is on the adblock whitelist.
+    """Check if the given URL is on the adblock whitelist.
 
     Args:
-        url: The url to check in QUrl form.
+        url: The URL to check as QUrl.
     """
     for pattern in config.val.content.host_blocking.whitelist:
         if pattern.matches(url):
