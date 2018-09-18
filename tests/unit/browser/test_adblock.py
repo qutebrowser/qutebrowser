@@ -33,7 +33,7 @@ pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
 # TODO See ../utils/test_standarddirutils for OSError and caplog assertion
 
-WHITELISTED_HOSTS = ('qutebrowser.org', 'mediumhost.io')
+WHITELISTED_HOSTS = ('qutebrowser.org', 'mediumhost.io', 'http://*.edu')
 
 BLOCKLIST_HOSTS = ('localhost',
                    'mediumhost.io',
@@ -50,7 +50,8 @@ URLS_TO_CHECK = ('http://localhost',
                  'http://ads.worsthostever.net',
                  'http://goodhost.gov',
                  'ftp://verygoodhost.com',
-                 'http://qutebrowser.org')
+                 'http://qutebrowser.org',
+                 'http://veryverygoodhost.edu')
 
 
 class BaseDirStub:
