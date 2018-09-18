@@ -129,7 +129,7 @@
 |<<content.headers.user_agent,content.headers.user_agent>>|User agent to send. Unset to send the default.
 |<<content.host_blocking.enabled,content.host_blocking.enabled>>|Enable host blocking.
 |<<content.host_blocking.lists,content.host_blocking.lists>>|List of URLs of lists which contain hosts to block.
-|<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
+|<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|A list of patterns that should always be loaded, despite being ad-blocked.
 |<<content.hyperlink_auditing,content.hyperlink_auditing>>|Enable hyperlink auditing (`<a ping>`).
 |<<content.images,content.images>>|Load images automatically in web pages.
 |<<content.javascript.alert,content.javascript.alert>>|Show javascript alerts.
@@ -1729,11 +1729,10 @@ Default:
 
 [[content.host_blocking.whitelist]]
 === content.host_blocking.whitelist
-List of domains that should always be loaded, despite being ad-blocked.
-Domains may contain * and ? wildcards and are otherwise required to exactly match the requested domain.
+A list of patterns that should always be loaded, despite being ad-blocked.
 Local domains are always exempt from hostblocking.
 
-Type: <<types,List of String>>
+Type: <<types,List of UrlPattern>>
 
 Default: 
 
