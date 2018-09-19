@@ -384,7 +384,9 @@ def main():
         import github3  # pylint: disable=unused-variable
         read_github_token()
 
-    if not args.no_asciidoc:
+    if args.no_asciidoc:
+        os.makedirs(os.path.join('qutebrowser', 'html', 'doc'))
+    else:
         run_asciidoc2html(args)
 
     if os.name == 'nt':
