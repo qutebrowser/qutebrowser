@@ -16,13 +16,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
-
-"""Tests for the CompletionView Object."""
-
 from unittest import mock
 
 import pytest
-
+from PyQt5.QtCore import QModelIndex, QObject
 from PyQt5.QtGui import QPainter
 
 from qutebrowser.completion import completiondelegate
@@ -30,32 +27,32 @@ from qutebrowser.completion import completiondelegate
 
 @pytest.fixture
 def painter():
-    """Create the CompletionView used for testing."""
     return mock.Mock(spec=QPainter)
 
 
 def _qt_mock(klass, mocker):
-    m = mocker.patch(
-        'qutebrowser.completion.completiondelegate.{}'.format(klass),
-        autospec=True)
+    m = mocker.patch.object(completiondelegate, klass, autospec=True)
     return m
 
 
 @pytest.fixture
 def mock_style_option(mocker):
-    """Create the CompletionView used for testing."""
     return _qt_mock('QStyleOptionViewItem', mocker)
 
 
 @pytest.fixture
 def mock_text_document(mocker):
-    """Create the CompletionView used for testing."""
     return _qt_mock('QTextDocument', mocker)
 
 
 @pytest.fixture
 def view():
-    return mock.Mock()
+    class FakeView(QObject):
+        def __init__(self):
+            super().__init__()
+            self.pattern = None
+
+    return FakeView()
 
 
 @pytest.fixture
@@ -63,13 +60,9 @@ def delegate(mock_style_option, mock_text_document, config_stub, mocker, view):
     _qt_mock('QStyle', mocker)
     _qt_mock('QTextOption', mocker)
     _qt_mock('QAbstractTextDocumentLayout', mocker)
-    completiondelegate._cached_stylesheet = mock.Mock()
-    delegate = completiondelegate.CompletionItemDelegate()
-    parent = mock.Mock()
-    parent.return_value = view
-    delegate.parent = parent
+    completiondelegate._cached_stylesheet = ''
+    delegate = completiondelegate.CompletionItemDelegate(parent=view)
     delegate.initStyleOption = mock.Mock()
-    delegate.setTextDirection = mock.Mock()
     return delegate
 
 
@@ -92,10 +85,9 @@ def delegate(mock_style_option, mock_text_document, config_stub, mocker, view):
 ])
 def test_paint(delegate, painter, view, mock_style_option, mock_text_document,
                pat, txt_in, txt_out):
-    """Ensure set_model actually sets the model and expands all categories."""
     view.pattern = pat
     mock_style_option().text = txt_in
-    index = mock.Mock()
+    index = mock.Mock(spec=QModelIndex)
     index.column.return_value = 0
     index.model.return_value.columns_to_filter.return_value = [0]
     opt = mock_style_option()
