@@ -127,7 +127,7 @@ def patch_mac_app():
     for lib in ['QtCore', 'QtWebEngineCore', 'QtQuick', 'QtQml', 'QtNetwork',
                 'QtGui', 'QtWebChannel', 'QtPositioning']:
         dest = os.path.join(app_path, lib + '.framework', 'Versions', '5')
-        os.makedirs(dest)
+        os.makedirs(dest, exist_ok=True)
         os.symlink(os.path.join(os.pardir, os.pardir, os.pardir, 'Contents',
                                 'MacOS', lib),
                    os.path.join(dest, lib))
