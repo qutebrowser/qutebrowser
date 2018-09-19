@@ -254,6 +254,9 @@ def build_windows():
     shutil.move(out_pyinstaller, out_64)
     patch_windows(out_64)
 
+    utils.print_title("Running 64bit smoke test")
+    smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
+
     utils.print_title("Building installers")
     subprocess.run(['makensis.exe',
                     '/DX64',
@@ -267,9 +270,6 @@ def build_windows():
          'application/vnd.microsoft.portable-executable',
          'Windows 64bit installer'),
     ]
-
-    utils.print_title("Running 64bit smoke test")
-    smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
     utils.print_title("Zipping 64bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-amd64'.format(
