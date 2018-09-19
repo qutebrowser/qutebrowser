@@ -247,9 +247,9 @@ def _handle_wayland():
                  "(if you have a <i>config.py</i> file, you'll need to set "
                  "this manually).</p>")
     else:
-        text.append("<p><b>Set up XWayland</b></p>"
-                    "<p>This allows you to use the newer QtWebEngine backend "
-                    "(based on Chromium). ")
+        text += ("<p><b>Set up XWayland</b></p>"
+                 "<p>This allows you to use the newer QtWebEngine backend "
+                 "(based on Chromium). ")
 
     if has_qt511:
         buttons.append(_Button("Force software rendering",
