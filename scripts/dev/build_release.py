@@ -127,7 +127,7 @@ def patch_mac_app():
     for lib in ['QtCore', 'QtWebEngineCore', 'QtQuick', 'QtQml', 'QtNetwork',
                 'QtGui', 'QtWebChannel', 'QtPositioning']:
         dest = os.path.join(app_path, lib + '.framework', 'Versions', '5')
-        os.makedirs(dest, exist_ok=True)
+        os.makedirs(dest)
         os.symlink(os.path.join(os.pardir, os.pardir, os.pardir, 'Contents',
                                 'MacOS', lib),
                    os.path.join(dest, lib))
@@ -385,7 +385,7 @@ def main():
         read_github_token()
 
     if args.no_asciidoc:
-        os.makedirs(os.path.join('qutebrowser', 'html', 'doc'))
+        os.makedirs(os.path.join('qutebrowser', 'html', 'doc'), exist_ok=True)
     else:
         run_asciidoc2html(args)
 
