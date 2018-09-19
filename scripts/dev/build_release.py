@@ -375,6 +375,8 @@ def pypi_upload(artifacts):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--no-asciidoc', action='store_true',
+                        help="Don't generate docs")
     parser.add_argument('--asciidoc', help="Full path to python and "
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
@@ -392,7 +394,9 @@ def main():
         import github3  # pylint: disable=unused-variable
         read_github_token()
 
-    run_asciidoc2html(args)
+    if not args.no_asciidoc:
+        run_asciidoc2html(args)
+
     if os.name == 'nt':
         artifacts = build_windows()
     elif sys.platform == 'darwin':
