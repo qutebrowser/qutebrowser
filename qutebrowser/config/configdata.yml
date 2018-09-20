@@ -2559,6 +2559,12 @@ bindings.default:
       tPH: config-cycle -p -u *://*.{url:host}/* content.plugins ;; reload
       tpu: config-cycle -p -t -u {url} content.plugins ;; reload
       tPu: config-cycle -p -u {url} content.plugins ;; reload
+      tih: config-cycle -p -t -u *://{url:host}/* content.images ;; reload
+      tIh: config-cycle -p -u *://{url:host}/* content.images ;; reload
+      tiH: config-cycle -p -t -u *://*.{url:host}/* content.images ;; reload
+      tIH: config-cycle -p -u *://*.{url:host}/* content.images ;; reload
+      tiu: config-cycle -p -t -u {url} content.images ;; reload
+      tIu: config-cycle -p -u {url} content.images ;; reload
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text {primary}
