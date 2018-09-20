@@ -28,6 +28,7 @@ from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc, configcommands)
 from qutebrowser.utils import (objreg, usertypes, log, standarddir, message,
                                qtutils)
+from qutebrowser.config import configcache
 from qutebrowser.misc import msgbox, objects
 
 
@@ -44,6 +45,7 @@ def early_init(args):
     config.instance = config.Config(yaml_config=yaml_config)
     config.val = config.ConfigContainer(config.instance)
     config.key_instance = config.KeyConfig(config.instance)
+    config.cache = configcache.ConfigCache()
     yaml_config.setParent(config.instance)
 
     for cf in config.change_filters:
@@ -169,24 +171,67 @@ def qt_args(namespace):
     argv += ['--' + arg for arg in config.val.qt.args]
 
     if objects.backend == usertypes.Backend.QtWebEngine:
-        if not qtutils.version_check('5.11', compiled=False):
-            # WORKAROUND equivalent to
-            # https://codereview.qt-project.org/#/c/217932/
-            # Needed for Qt < 5.9.5 and < 5.10.1
-            argv.append('--disable-shared-workers')
-
-        if config.val.qt.force_software_rendering == 'chromium':
-            argv.append('--disable-gpu')
-
-        if not config.val.content.canvas_reading:
-            argv.append('--disable-reading-from-canvas')
-
-        if not qtutils.version_check('5.11'):
-            # On Qt 5.11, we can control this via QWebEngineSettings
-            if not config.val.content.autoplay:
-                argv.append('--autoplay-policy=user-gesture-required')
-            if config.val.content.webrtc_public_interfaces_only:
-                argv.append('--force-webrtc-ip-handling-policy='
-                            'default_public_interface_only')
+        argv += list(_qtwebengine_args())
 
     return argv
+
+
+def _qtwebengine_args():
+    """Get the QtWebEngine arguments to use based on the config."""
+    if not qtutils.version_check('5.11', compiled=False):
+        # WORKAROUND equivalent to
+        # https://codereview.qt-project.org/#/c/217932/
+        # Needed for Qt < 5.9.5 and < 5.10.1
+        yield '--disable-shared-workers'
+
+    settings = {
+        'qt.force_software_rendering': {
+            'software-opengl': None,
+            'qt-quick': None,
+            'chromium': '--disable-gpu',
+            'none': None,
+        },
+        'content.canvas_reading': {
+            True: None,
+            False: '--disable-reading-from-canvas',
+        },
+        'content.webrtc_ip_handling_policy': {
+            'all-interfaces': None,
+            'default-public-and-private-interfaces':
+                '--force-webrtc-ip-handling-policy='
+                'default_public_and_private_interfaces',
+            'default-public-interface-only':
+                '--force-webrtc-ip-handling-policy='
+                'default_public_interface_only',
+            'disable-non-proxied-udp':
+                '--force-webrtc-ip-handling-policy='
+                'disable_non_proxied_udp',
+        },
+        'qt.process_model': {
+            'process-per-site-instance': None,
+            'process-per-site': '--process-per-site',
+            'single-process': '--single-process',
+        },
+        'qt.low_end_device_mode': {
+            'auto': None,
+            'always': '--enable-low-end-device-mode',
+            'never': '--disable-low-end-device-mode',
+        },
+        'content.headers.referer': {
+            'always': None,
+            'never': '--no-referrers',
+            'same-domain': '--reduced-referrer-granularity',
+        }
+    }
+
+    if not qtutils.version_check('5.11'):
+        # On Qt 5.11, we can control this via QWebEngineSettings
+        settings['content.autoplay'] = {
+            True: None,
+            False: '--autoplay-policy=user-gesture-required',
+        }
+
+    for setting, args in sorted(settings.items()):
+        arg = args[config.instance.get(setting)]
+        if arg is not None:
+            yield arg

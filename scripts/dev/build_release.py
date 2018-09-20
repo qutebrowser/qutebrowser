@@ -209,15 +209,6 @@ def build_mac():
     return [(dmg_name, 'application/x-apple-diskimage', 'macOS .dmg')]
 
 
-def patch_windows(out_dir):
-    """Copy missing DLLs for windows into the given output."""
-    dll_dir = os.path.join('.tox', 'pyinstaller', 'lib', 'site-packages',
-                           'PyQt5', 'Qt', 'bin')
-    dlls = ['libEGL.dll', 'libGLESv2.dll', 'libeay32.dll', 'ssleay32.dll']
-    for dll in dlls:
-        shutil.copy(os.path.join(dll_dir, dll), out_dir)
-
-
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
@@ -252,7 +243,9 @@ def build_windows():
     _maybe_remove(out_64)
     call_tox('pyinstaller', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
-    patch_windows(out_64)
+
+    utils.print_title("Running 64bit smoke test")
+    smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
     utils.print_title("Building installers")
     subprocess.run(['makensis.exe',
@@ -267,9 +260,6 @@ def build_windows():
          'application/vnd.microsoft.portable-executable',
          'Windows 64bit installer'),
     ]
-
-    utils.print_title("Running 64bit smoke test")
-    smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
     utils.print_title("Zipping 64bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-amd64'.format(
@@ -375,6 +365,8 @@ def pypi_upload(artifacts):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--no-asciidoc', action='store_true',
+                        help="Don't generate docs")
     parser.add_argument('--asciidoc', help="Full path to python and "
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
@@ -392,7 +384,11 @@ def main():
         import github3  # pylint: disable=unused-variable
         read_github_token()
 
-    run_asciidoc2html(args)
+    if args.no_asciidoc:
+        os.makedirs(os.path.join('qutebrowser', 'html', 'doc'), exist_ok=True)
+    else:
+        run_asciidoc2html(args)
+
     if os.name == 'nt':
         artifacts = build_windows()
     elif sys.platform == 'darwin':

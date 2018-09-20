@@ -816,3 +816,16 @@ def test_chunk(elems, n, expected):
 def test_chunk_invalid(n):
     with pytest.raises(ValueError):
         list(utils.chunk([], n))
+
+
+@pytest.mark.parametrize('filename, expected', [
+    ('test.jpg', 'image/jpeg'),
+    ('test.blabla', 'application/octet-stream'),
+])
+def test_guess_mimetype(filename, expected):
+    assert utils.guess_mimetype(filename, fallback=True) == expected
+
+
+def test_guess_mimetype_no_fallback():
+    with pytest.raises(ValueError):
+        utils.guess_mimetype('test.blabla')

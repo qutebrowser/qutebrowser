@@ -432,7 +432,7 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     cmd_path = os.path.expanduser(cmd)
 
     # if cmd is not given as an absolute path, look it up
-    # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_DIR)
+    # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_HOME)
     if not os.path.isabs(cmd_path):
         log.misc.debug("{} is no absolute path".format(cmd_path))
         cmd_path = _lookup_path(cmd)

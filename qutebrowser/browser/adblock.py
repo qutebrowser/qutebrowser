@@ -24,7 +24,6 @@ import os.path
 import functools
 import posixpath
 import zipfile
-import fnmatch
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
@@ -32,7 +31,7 @@ from qutebrowser.utils import objreg, standarddir, log, message
 from qutebrowser.commands import cmdutils
 
 
-def guess_zip_filename(zf):
+def _guess_zip_filename(zf):
     """Guess which file to use inside a zip file.
 
     Args:
@@ -54,26 +53,26 @@ def get_fileobj(byte_io):
     if zipfile.is_zipfile(byte_io):
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
         zf = zipfile.ZipFile(byte_io)
-        filename = guess_zip_filename(zf)
+        filename = _guess_zip_filename(zf)
         byte_io = zf.open(filename, mode='r')
     else:
         byte_io.seek(0)  # rewind what zipfile.is_zipfile did
     return byte_io
 
 
-def is_whitelisted_host(host):
-    """Check if the given host is on the adblock whitelist.
+def _is_whitelisted_url(url):
+    """Check if the given URL is on the adblock whitelist.
 
     Args:
-        host: The host of the request as string.
+        url: The URL to check as QUrl.
     """
     for pattern in config.val.content.host_blocking.whitelist:
-        if fnmatch.fnmatch(host, pattern.lower()):
+        if pattern.matches(url):
             return True
     return False
 
 
-class FakeDownload:
+class _FakeDownload:
 
     """A download stub to use on_download_finished with local files."""
 
@@ -118,7 +117,7 @@ class HostBlocker:
         host = url.host()
         return ((host in self._blocked_hosts or
                  host in self._config_blocked_hosts) and
-                not is_whitelisted_host(host))
+                not _is_whitelisted_url(url))
 
     def _read_hosts_file(self, filename, target):
         """Read hosts from the given filename.
@@ -189,7 +188,7 @@ class HostBlocker:
                                                 auto_remove=True)
                 self._in_progress.append(download)
                 download.finished.connect(
-                    functools.partial(self.on_download_finished, download))
+                    functools.partial(self._on_download_finished, download))
 
     def _import_local(self, filename):
         """Adds the contents of a file to the blocklist.
@@ -285,7 +284,7 @@ class HostBlocker:
             message.error("adblock: {} read errors for {}".format(
                 error_count, byte_io.name))
 
-    def on_lists_downloaded(self):
+    def _on_lists_downloaded(self):
         """Install block lists after files have been downloaded."""
         with open(self._local_hosts_file, 'w', encoding='utf-8') as f:
             for host in sorted(self._blocked_hosts):
@@ -304,7 +303,7 @@ class HostBlocker:
             except OSError as e:
                 log.misc.exception("Failed to delete hosts file: {}".format(e))
 
-    def on_download_finished(self, download):
+    def _on_download_finished(self, download):
         """Check if all downloads are finished and if so, trigger reading.
 
         Arguments:
@@ -319,6 +318,6 @@ class HostBlocker:
                 download.fileobj.close()
         if not self._in_progress:
             try:
-                self.on_lists_downloaded()
+                self._on_lists_downloaded()
             except OSError:
                 log.misc.exception("Failed to write host block list!")

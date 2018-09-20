@@ -68,10 +68,6 @@ def test_page_titles(url, title, out):
 
 class TestDownloadTarget:
 
-    def test_base(self):
-        with pytest.raises(NotImplementedError):
-            downloads._DownloadTarget()
-
     def test_filename(self):
         target = downloads.FileDownloadTarget("/foo/bar")
         assert target.filename == "/foo/bar"

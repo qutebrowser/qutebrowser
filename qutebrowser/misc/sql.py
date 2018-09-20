@@ -35,6 +35,7 @@ class SqliteErrorCode:
     in qutebrowser here.
     """
 
+    UNKNOWN = '-1'
     BUSY = '5'  # database is locked
     READONLY = '8'  # attempt to write a readonly database
     IOERR = '10'  # disk I/O error
@@ -86,12 +87,17 @@ class SqlBugError(SqlError):
 
 def raise_sqlite_error(msg, error):
     """Raise either a SqlBugError or SqlEnvironmentError."""
+    error_code = error.nativeErrorCode()
+    database_text = error.databaseText()
+    driver_text = error.driverText()
+
     log.sql.debug("SQL error:")
     log.sql.debug("type: {}".format(
         debug.qenum_key(QSqlError, error.type())))
-    log.sql.debug("database text: {}".format(error.databaseText()))
-    log.sql.debug("driver text: {}".format(error.driverText()))
-    log.sql.debug("error code: {}".format(error.nativeErrorCode()))
+    log.sql.debug("database text: {}".format(database_text))
+    log.sql.debug("driver text: {}".format(driver_text))
+    log.sql.debug("error code: {}".format(error_code))
+
     environmental_errors = [
         SqliteErrorCode.BUSY,
         SqliteErrorCode.READONLY,
@@ -100,17 +106,15 @@ def raise_sqlite_error(msg, error):
         SqliteErrorCode.FULL,
         SqliteErrorCode.CANTOPEN,
     ]
-    # At least in init(), we can get errors like this:
-    # > type: ConnectionError
-    # > database text: out of memory
-    # > driver text: Error opening database
-    # > error code: -1
-    environmental_strings = [
-        "out of memory",
-    ]
-    errcode = error.nativeErrorCode()
-    if (errcode in environmental_errors or
-            (errcode == -1 and error.databaseText() in environmental_strings)):
+
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70506
+    # We don't know what the actual error was, but let's assume it's not us to
+    # blame... Usually this is something like an unreadable database file.
+    qtbug_70506 = (error_code == SqliteErrorCode.UNKNOWN and
+                   driver_text == "Error opening database" and
+                   database_text == "out of memory")
+
+    if error_code in environmental_errors or qtbug_70506:
         raise SqlEnvironmentError(msg, error)
     else:
         raise SqlBugError(msg, error)

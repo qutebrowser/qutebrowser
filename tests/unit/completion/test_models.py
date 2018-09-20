@@ -30,8 +30,7 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.completion import completer
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import configdata, configtypes
-from qutebrowser.utils import objreg, usertypes
-from qutebrowser.browser import history
+from qutebrowser.utils import usertypes
 from qutebrowser.commands import cmdutils
 
 
@@ -166,17 +165,6 @@ def bookmarks(bookmark_manager_stub):
         ('http://qutebrowser.org', 'qutebrowser | qutebrowser'),
     ])
     return bookmark_manager_stub
-
-
-@pytest.fixture
-def web_history(init_sql, stubs, config_stub):
-    """Fixture which provides a web-history object."""
-    config_stub.val.completion.timestamp_format = '%Y-%m-%d'
-    config_stub.val.completion.web_history.max_items = -1
-    stub = history.WebHistory()
-    objreg.register('web-history', stub)
-    yield stub
-    objreg.delete('web-history')
 
 
 @pytest.fixture

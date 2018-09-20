@@ -181,6 +181,51 @@ qt.force_platform:
     This sets the `QT_QPA_PLATFORM` environment variable and is useful to force
     using the XCB plugin when running QtWebEngine on Wayland.
 
+qt.process_model:
+  type:
+    name: String
+    valid_values:
+      - process-per-site-instance: Pages from separate sites are put into
+            separate processes and separate visits to the same site are also
+            isolated.
+      - process-per-site: Pages from separate sites are put into separate
+            processes. Unlike Process per Site Instance, all visits to the same
+            site will share an OS process. The benefit of this model is reduced
+            memory consumption, because more web pages will share processes.
+            The drawbacks include reduced security, robustness, and
+            responsiveness.
+      - single-process: Run all tabs in a single process. This should be used
+            for debugging purposes only, and it disables `:open --private`.
+  default: process-per-site-instance
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Which Chromium process model to use.
+
+    Alternative process models use less resources, but decrease security and
+    robustness.
+
+    See the following pages for more details:
+
+      - https://www.chromium.org/developers/design-documents/process-models
+      - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+
+qt.low_end_device_mode:
+  type:
+    name: String
+    valid_values:
+      - always: Always use low-end device mode.
+      - auto: Decide automatically (uses low-end mode with < 1 GB available
+            RAM).
+      - never: Never use low-end device mode.
+  default: auto
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    When to use Chromium's low-end device mode.
+
+    This improves the RAM usage of renderer processes, at the expense of
+    performance.
 
 qt.highdpi:
   type: Bool
@@ -220,10 +265,12 @@ content.autoplay:
   backend:
     QtWebEngine: Qt 5.10
     QtWebKit: false
+  supports_pattern: true
   desc: >-
     Automatically start playing `<video>` elements.
 
-    Note this option needs a restart with QtWebEngine on Qt < 5.11.
+    Note: On Qt < 5.11, this option needs a restart and does not support URL
+    patterns.
 
 content.cache.size:
   default: null
@@ -409,13 +456,17 @@ content.headers.referer:
       - never: "Never send the Referer. This is not recommended, as some sites
           may break."
       - same-domain: "Only send the Referer for the same domain. This will
-          still protect your privacy, but shouldn't break any sites."
-  backend: QtWebKit
+          still protect your privacy, but shouldn't break any sites. With
+          QtWebEngine, the referer will still be sent for other domains, but
+          with stripped path information."
+  restart: true
   desc: >-
     When to send the Referer header.
 
     The Referer header tells websites from which website you were coming from
     when visiting them.
+
+    No restart is needed with QtWebKit.
 
 content.headers.user_agent:
   default: null
@@ -501,13 +552,10 @@ content.host_blocking.whitelist:
   - piwik.org
   type:
     name: List
-    valtype: String
+    valtype: UrlPattern
     none_ok: true
   desc: >-
-    List of domains that should always be loaded, despite being ad-blocked.
-
-    Domains may contain * and ? wildcards and are otherwise required to exactly
-    match the requested domain.
+    A list of patterns that should always be loaded, despite being ad-blocked.
 
     Local domains are always exempt from hostblocking.
 
@@ -639,7 +687,6 @@ content.notifications:
 content.pdfjs:
   default: false
   type: Bool
-  backend: QtWebKit
   desc: >-
     Allow pdf.js to view PDF files in the browser.
 
@@ -723,18 +770,31 @@ content.webgl:
   supports_pattern: true
   desc: Enable WebGL.
 
-content.webrtc_public_interfaces_only:
-  default: false
-  type: Bool
+content.webrtc_ip_handling_policy:
+  default: all-interfaces
+  type:
+    name: String
+    valid_values:
+      - all-interfaces: WebRTC has the right to enumerate all interfaces and
+            bind them to discover public interfaces.
+      - default-public-and-private-interfaces: WebRTC should only use the
+            default route used by http. This also exposes the associated
+            default private address. Default route is the route chosen by the
+            OS on a multi-homed endpoint.
+      - default-public-interface-only: WebRTC should only use the default route
+            used by http. This doesn't expose any local addresses.
+      - disable-non-proxied-udp: WebRTC should only use TCP to contact peers or
+            servers unless the proxy server supports UDP. This doesn't expose
+            any local addresses either.
+  default: all-interfaces
   backend:
     QtWebKit: false
     QtWebEngine: Qt 5.9.2
+  restart: true
   desc: >-
-    Only expose public interfaces via WebRTC.
+    Which interfaces to expose via WebRTC.
 
-    On Qt 5.9, this option requires a restart.
-    On Qt 5.10, this option doesn't work at all because of a Qt bug.
-    On Qt >= 5.11, no restart is required.
+    On Qt 5.10, this option doesn't work because of a Qt bug.
 
 content.xss_auditing:
   type: Bool
