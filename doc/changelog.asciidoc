@@ -40,6 +40,7 @@ Added
   fine-grained/restrictive control about which IPs are exposed via WebRTC.
 - Running qutebrowser with QtWebKit or Qt < 5.9 now shows a warning (only
   once), as support for those is going to be removed in a future release.
+- New t[iI][hHu] default bindings (similar to `tsh` etc.) to toggle images.
 
 Changed
 ~~~~~~~
