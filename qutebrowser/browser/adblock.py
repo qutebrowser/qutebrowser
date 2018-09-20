@@ -202,9 +202,9 @@ class HostBlocker:
             message.error("adblock: Error while reading {}: {}".format(
                 filename, e.strerror))
             return
-        download = FakeDownload(fileobj)
+        download = _FakeDownload(fileobj)
         self._in_progress.append(download)
-        self.on_download_finished(download)
+        self._on_download_finished(download)
 
     def _parse_line(self, line):
         """Parse a line from a host file.
