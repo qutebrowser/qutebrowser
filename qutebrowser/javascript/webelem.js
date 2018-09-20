@@ -362,9 +362,14 @@ window._qutebrowser.webelem = (function() {
         document.execCommand("insertText", false, text);
     };
 
-    funcs.dispatch_event = (id, event) => {
+
+    funcs.dispatch_event = (id, event, bubbles = false,
+        cancelable = false, composed = false) => {
         const elem = elements[id];
-        elem.dispatchEvent(new Event(event));
+        elem.dispatchEvent(
+            new Event(event, {"bubbles": bubbles,
+                "cancelable": cancelable,
+                "composed": composed}));
     };
 
     funcs.set_attribute = (id, name, value) => {
