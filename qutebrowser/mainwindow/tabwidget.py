@@ -110,17 +110,17 @@ class TabWidget(QTabWidget):
         """
         bar = self.tabBar()
         idx = self.indexOf(tab)
+
         old_pinned = tab.data.pinned
+        if tab.data.pinned == pinned:
+            return
 
         bar.set_tab_data(idx, 'pinned', pinned)
         tab.data.pinned = pinned
+        self.tabBar().clear_pinned_statistics.emit()
 
-        if old_pinned != pinned:
-            self.update_tab_favicon(tab)
-            self.update_tab_title(idx)
-            # pylint: disable=protected-access
-            self.tabBar()._pinned_statistics.cache_clear()
-            # pylint: enable=protected-access
+        self.update_tab_favicon(tab)
+        self.update_tab_title(idx)
 
     def tab_indicator_color(self, idx):
         """Get the tab indicator color for the given index."""
@@ -336,9 +336,7 @@ class TabWidget(QTabWidget):
                 self.window().setWindowIcon(self.window().windowIcon())
 
         if tab.data.pinned:
-            # pylint: disable=protected-access
-            self.tabBar()._pinned_statistics.cache_clear()
-            # pylint: enable=protected-access
+            self.tabBar().clear_pinned_statistics.emit()
 
     def removeTab(self, idx):
         """Additions to removeTab."""
@@ -346,9 +344,7 @@ class TabWidget(QTabWidget):
         # function calls tabSizeHint to resize the tabs after removing the tab.
         # If we assume super().removeTab will NOT call tabSizeHint prematurely,
         # this should work.
-        # pylint: disable=protected-access
-        self.tabBar()._pinned_statistics.cache_clear()
-        # pylint: enable=protected-access
+        self.tabBar().clear_pinned_statistics.emit()
         super().removeTab(idx)
 
 
@@ -368,9 +364,11 @@ class TabBar(QTabBar):
 
     Signals:
         new_tab_requested: Emitted when a new tab is requested.
+        clear_pinned_statistics: Emitted if pinned tabs have been modified.
     """
 
     new_tab_requested = pyqtSignal()
+    clear_pinned_statistics = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -386,6 +384,12 @@ class TabBar(QTabBar):
         self.setAutoFillBackground(True)
         self._set_colors()
         QTimer.singleShot(0, self.maybe_hide)
+        self.clear_pinned_statistics.connect(
+            self._pinned_statistics.cache_clear,
+            type=Qt.DirectConnection)
+
+    def _clear_pinned(self):
+        self._pinned_statistics.cache_clear()
 
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
@@ -416,7 +420,7 @@ class TabBar(QTabBar):
                       "tabs.indicator.width",
                       "tabs.min_width",
                       "tabs.pinned.shrink"]:
-            self._pinned_statistics.cache_clear()
+            self.clear_pinned_statistics.emit()
             self._minimum_tab_size_hint_helper.cache_clear()
 
     def _on_show_switching_delay_changed(self):
@@ -494,7 +498,7 @@ class TabBar(QTabBar):
         self._set_icon_size()
         # clear tab size cache
         self._minimum_tab_size_hint_helper.cache_clear()
-        self._pinned_statistics.cache_clear()
+        self.clear_pinned_statistics.emit()
 
     def _set_icon_size(self):
         """Set the tab bar favicon size."""
@@ -606,7 +610,7 @@ class TabBar(QTabBar):
         """Update a tab's text."""
         super().setTabText(index, text)
         if self._tab_pinned(index):
-            self._pinned_statistics.cache_clear()
+            self.clear_pinned_statistics.emit()
 
     def _tab_pinned(self, index: int) -> bool:
         """Return True if tab is pinned."""
