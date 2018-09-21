@@ -107,16 +107,6 @@ class NormalKeyParser(CommandKeyParser):
         self._debug_log("Releasing inhibition state of normal mode.")
         self._inhibited = False
 
-    @pyqtSlot()
-    def _stop_timers(self):
-        super()._stop_timers()
-        self._inhibited_timer.stop()
-        try:
-            self._inhibited_timer.timeout.disconnect(self._clear_inhibited)
-        except TypeError:
-            # no connections
-            pass
-
 
 class PassthroughKeyParser(CommandKeyParser):
 

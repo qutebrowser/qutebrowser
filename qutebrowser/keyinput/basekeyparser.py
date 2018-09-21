@@ -281,3 +281,9 @@ class BaseKeyParser(QObject):
             self._sequence = keyutils.KeySequence()
             self._count = ''
             self.keystring_updated.emit('')
+        self._partial_timer.stop()
+        try:
+            self._partial_timer.timeout.disconnect(self.clear_partial_match)
+        except TypeError:
+            # no connections
+            pass
