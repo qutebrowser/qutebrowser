@@ -11,7 +11,7 @@ import traceback
 from typing import Optional
 from collections.abc import Mapping, MutableMapping, Sequence
 
-from qutebrowser.qt.core import QObject, pyqtSignal
+from qutebrowser.qt.core import QObject, pyqtSignal, pyqtSlot
 from qutebrowser.qt.gui import QKeySequence, QKeyEvent
 
 from qutebrowser.config import config
@@ -153,6 +153,7 @@ class BaseKeyParser(QObject):
         passthrough: Whether unbound keys should be passed through with this
                      handler.
         _supports_count: Whether count is supported.
+        _partial_timer: Timer to clear partial keypresses.
 
     Signals:
         keystring_updated: Emitted when the keystring is updated.
@@ -182,6 +183,8 @@ class BaseKeyParser(QObject):
         self._supports_count = supports_count
         self.bindings = BindingTrie()
         self._read_config()
+        self._partial_timer = usertypes.Timer(self, 'partial-match')
+        self._partial_timer.setSingleShot(True)
         config.instance.changed.connect(self._on_config_changed)
 
     def __repr__(self) -> str:
@@ -302,6 +305,7 @@ class BaseKeyParser(QObject):
         if result.match_type == QKeySequence.SequenceMatch.NoMatch:
             was_count = self._match_count(result.sequence, dry_run)
             if was_count:
+                self._set_partial_timeout()
                 return QKeySequence.SequenceMatch.ExactMatch
 
         if dry_run:
@@ -332,6 +336,7 @@ class BaseKeyParser(QObject):
             self._debug_log("No match for '{}' (added {})".format(
                 result.sequence, info))
             self.keystring_updated.emit(self._count + str(result.sequence))
+            self._set_partial_timeout()
         elif result.match_type == QKeySequence.SequenceMatch.NoMatch:
             self._debug_log("Giving up with '{}', no matches".format(
                 result.sequence))
@@ -361,6 +366,24 @@ class BaseKeyParser(QObject):
             count: The count if given.
         """
         raise NotImplementedError
+
+    def _set_partial_timeout(self):
+        """Set a timeout to clear a partial keystring."""
+        timeout = config.val.input.partial_timeout
+        if timeout != 0:
+            self._partial_timer.setInterval(timeout)
+            self._partial_timer.timeout.connect(self.clear_partial_match)
+            self._partial_timer.start()
+
+    @pyqtSlot()
+    def clear_partial_match(self):
+        """Clear a partial keystring after a timeout."""
+        self._debug_log("Clearing partial keystring {}".format(
+            self._sequence))
+        if self._count:
+            self._count = ''
+        self._sequence = keyutils.KeySequence()
+        self.keystring_updated.emit(str(self._sequence))
 
     def clear_keystring(self) -> None:
         """Clear the currently entered key sequence."""

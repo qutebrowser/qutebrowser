@@ -66,11 +66,7 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
 
 class NormalKeyParser(CommandKeyParser):
 
-    """KeyParser for normal mode with added STARTCHARS detection and more.
-
-    Attributes:
-        _partial_timer: Timer to clear partial keypresses.
-    """
+    """KeyParser for normal mode with added STARTCHARS detection and more."""
 
     _sequence: keyutils.KeySequence
 
@@ -131,6 +127,15 @@ class NormalKeyParser(CommandKeyParser):
         self._debug_log("Releasing inhibition state of normal mode.")
         self._inhibited = False
 
+    @pyqtSlot()
+    def _stop_timers(self):
+        super()._stop_timers()
+        self._inhibited_timer.stop()
+        try:
+            self._inhibited_timer.timeout.disconnect(self._clear_inhibited)
+        except TypeError:
+            # no connections
+            pass
 
 
 class PassthroughKeyParser(CommandKeyParser):
@@ -187,9 +192,13 @@ class PassthroughKeyParser(CommandKeyParser):
         if dry_run or len(orig_sequence) == 1 or match != QKeySequence.NoMatch:
             return match
 
+        self._forward_keystring(orig_sequence)
+        return QKeySequence.ExactMatch
+
+    def _forward_keystring(self, orig_sequence):
         window = QApplication.focusWindow()
         if window is None:
-            return match
+            return
 
         first = True
         for keyinfo in orig_sequence:
@@ -201,7 +210,11 @@ class PassthroughKeyParser(CommandKeyParser):
             QApplication.postEvent(window, press_event)
             QApplication.postEvent(window, release_event)
 
-        return QKeySequence.ExactMatch
+    @pyqtSlot()
+    def clear_partial_match(self):
+        """Override to forward the original sequence to browser."""
+        self._forward_keystring(self._orig_sequence)
+        self.clear_keystring()
 
     def clear_keystring(self):
         """Override to also clear the original sequence."""
@@ -329,6 +342,19 @@ class HintKeyParser(CommandKeyParser):
     def execute(self, cmdstr: str, count: int = None) -> None:
         assert count is None
         self._hintmanager.handle_partial_key(cmdstr)
+
+    @pyqtSlot()
+    def clear_partial_match(self):
+        """Override to avoid clearing filter text after a timeout."""
+        if self._last_press != LastPress.filtertext:
+            super().clear_partial_match()
+
+    @pyqtSlot(str)
+    def on_keystring_updated(self, keystr):
+        """Update hintmanager when the keystring was updated."""
+        hintmanager = objreg.get('hintmanager', scope='tab',
+                                 window=self._win_id, tab='current')
+        hintmanager.handle_partial_key(keystr)
 
 
 class RegisterKeyParser(CommandKeyParser):
