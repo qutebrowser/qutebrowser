@@ -568,15 +568,6 @@ class TabBar(QTabBar):
             width = max(min_width, width)
         return QSize(width, height)
 
-    def _pinned_statistics(self) -> (int, int):
-        """Get the number of pinned tabs and the total width of pinned tabs."""
-        pinned_list = [idx for idx in range(self.count())
-                       if self._tab_pinned(idx)]
-        pinned_count = len(pinned_list)
-        pinned_width = sum(self.minimumTabSizeHint(idx, ellipsis=False).width()
-                           for idx in pinned_list)
-        return (pinned_count, pinned_width)
-
     def _tab_pinned(self, index: int) -> bool:
         """Return True if tab is pinned."""
         try:
@@ -614,32 +605,17 @@ class TabBar(QTabBar):
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)
         else:
-            if config.cache['tabs.pinned.shrink']:
-                pinned = self._tab_pinned(index)
-                pinned_count, pinned_width = self._pinned_statistics()
-            else:
-                pinned = False
-                pinned_count, pinned_width = 0, 0
-            no_pinned_count = self.count() - pinned_count
-            no_pinned_width = self.width() - pinned_width
-
-            if pinned:
+            if config.cache['tabs.pinned.shrink'] and self._tab_pinned(index):
                 # Give pinned tabs the minimum size they need to display their
                 # titles, let Qt handle scaling it down if we get too small.
                 width = self.minimumTabSizeHint(index, ellipsis=False).width()
             else:
-                width = no_pinned_width / no_pinned_count
+                # Request as much space as possible so we fill the tabbar, let
+                # Qt shrink us down
+                width = self.width()
 
-            # If no_pinned_width is not divisible by no_pinned_count, add a
-            # pixel to some tabs so that there is no ugly leftover space.
-            if (no_pinned_count > 0 and
-                    index < no_pinned_width % no_pinned_count):
-                width += 1
-
-            # If we don't have enough space, we return the minimum size so we
-            # get scroll buttons as soon as needed.
+            # If we don't have enough space, we return the minimum size
             width = max(width, minimum_size.width())
-
             size = QSize(width, height)
         qtutils.ensure_valid(size)
         return size
