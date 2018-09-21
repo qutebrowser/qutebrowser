@@ -388,9 +388,6 @@ class TabBar(QTabBar):
             self._pinned_statistics.cache_clear,
             type=Qt.DirectConnection)
 
-    def _clear_pinned(self):
-        self._pinned_statistics.cache_clear()
-
     def __repr__(self):
         return utils.get_repr(self, count=self.count())
 
@@ -663,7 +660,9 @@ class TabBar(QTabBar):
                 # titles, let Qt handle scaling it down if we get too small.
                 width = self.minimumTabSizeHint(index, ellipsis=False).width()
             else:
-                width = no_pinned_width / no_pinned_count
+                # Clamp no_pinned_count to avoid division by 0 if there is a
+                # bug in caching or somewhere else.
+                width = no_pinned_width / min(no_pinned_count, 1)
 
             # If no_pinned_width is not divisible by no_pinned_count, add a
             # pixel to some tabs so that there is no ugly leftover space.
