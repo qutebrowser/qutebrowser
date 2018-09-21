@@ -644,11 +644,15 @@ class TabBar(QTabBar):
         qtutils.ensure_valid(size)
         return size
 
-    def paintEvent(self, _e):
+    def paintEvent(self, event):
         """Override paintEvent to draw the tabs like we want to."""
         p = QStylePainter(self)
         selected = self.currentIndex()
         for idx in range(self.count()):
+            if not event.region().intersects(self.tabRect(idx)):
+                # Don't repaint if we are outside the requested region
+                continue
+
             tab = QStyleOptionTab()
             self.initStyleOption(tab, idx)
 
@@ -664,10 +668,6 @@ class TabBar(QTabBar):
 
             indicator_color = self.tab_indicator_color(idx)
             tab.palette.setColor(QPalette.Base, indicator_color)
-            if tab.rect.right() < 0 or tab.rect.left() > self.width():
-                # Don't bother drawing a tab if the entire tab is outside of
-                # the visible tab bar.
-                continue
             p.drawControl(QStyle.CE_TabBarTab, tab)
 
     def tabInserted(self, idx):
