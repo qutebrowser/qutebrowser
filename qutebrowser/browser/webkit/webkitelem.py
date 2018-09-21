@@ -132,12 +132,13 @@ class WebKitElement(webelem.AbstractWebElement):
                        cancelable=False, composed=False):
         self._check_vanished()
         log.webelem.debug("Firing event on {!r} via javascript.".format(self))
-        event = javascript.string_escape(event)
         self._elem.evaluateJavaScript(
-            "this.dispatchEvent(new Event('{}', "
+            "this.dispatchEvent(new Event({}, "
             "{{'bubbles': {}, 'cancelable': {}, 'composed': {}}}))"
-            .format(event, str(bubbles).lower(), str(cancelable).lower(),
-                    str(composed).lower()))
+            .format(javascript.convert_js_arg(event),
+                    javascript.convert_js_arg(bubbles),
+                    javascript.convert_js_arg(cancelable),
+                    javascript.convert_js_arg(composed)))
 
     def caret_position(self):
         """Get the text caret position for the current element."""
