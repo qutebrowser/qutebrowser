@@ -56,11 +56,18 @@ def generate_pdfjs_page(filename, url):
         return jinja.render('no_pdfjs.html',
                             url=url.toDisplayString(),
                             title="PDF.js not found")
-    viewer = get_pdfjs_res('web/viewer.html').decode('utf-8')
+    html = get_pdfjs_res('web/viewer.html').decode('utf-8')
+
     script = _generate_pdfjs_script(filename)
-    html_page = viewer.replace('</body>',
-                               '</body><script>{}</script>'.format(script))
-    return html_page
+    html = html.replace('</body>',
+                        '</body><script>{}</script>'.format(script))
+    # WORKAROUND for the fact that PDF.js tries to use the Fetch API even with
+    # qute:// URLs.
+    pdfjs_script = '<script src="../build/pdf.js"></script>'
+    html = html.replace(pdfjs_script,
+                        '<script>window.Response = undefined;</script>\n' +
+                        pdfjs_script)
+    return html
 
 
 def _generate_pdfjs_script(filename):
