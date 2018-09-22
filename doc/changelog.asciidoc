@@ -75,6 +75,7 @@ Fixed
 - When no documentation has been generated, the plaintext documentation now can
   be shown for more files such as `qute://help/userscripts.html`.
 - Crash when doing initial run on Wayland without XWayland
+- Crash when trying to load an empty session file.
 
 Removed
 ~~~~~~~
