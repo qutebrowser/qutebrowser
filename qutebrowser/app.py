@@ -59,7 +59,6 @@ except ImportError:
 
 import qutebrowser
 import qutebrowser.resources
-from qutebrowser.completion import completiondelegate
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import cmdutils, runners, cmdexc
 from qutebrowser.config import config, websettings, configfiles, configinit
@@ -451,9 +450,6 @@ def _init_modules(args, crash_handler):
         error.handle_fatal_exc(e, args, 'Error initializing SQL',
                                pre_text='Error initializing SQL')
         sys.exit(usertypes.Exit.err_init)
-
-    log.init.debug("Initializing completion...")
-    completiondelegate.init()
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()

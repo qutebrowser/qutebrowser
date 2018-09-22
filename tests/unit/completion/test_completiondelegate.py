@@ -19,82 +19,33 @@
 from unittest import mock
 
 import pytest
-from PyQt5.QtCore import QModelIndex, QObject
-from PyQt5.QtGui import QPainter
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QTextDocument
 
 from qutebrowser.completion import completiondelegate
 
 
-@pytest.fixture
-def painter():
-    return mock.Mock(spec=QPainter)
-
-
-def _qt_mock(klass, mocker):
-    m = mocker.patch.object(completiondelegate, klass, autospec=True)
-    return m
-
-
-@pytest.fixture
-def mock_style_option(mocker):
-    return _qt_mock('QStyleOptionViewItem', mocker)
-
-
-@pytest.fixture
-def mock_text_document(mocker):
-    return _qt_mock('QTextDocument', mocker)
-
-
-@pytest.fixture
-def view():
-    class FakeView(QObject):
-        def __init__(self):
-            super().__init__()
-            self.pattern = None
-
-    return FakeView()
-
-
-@pytest.fixture
-def delegate(mock_style_option, mock_text_document, config_stub, mocker, view):
-    _qt_mock('QStyle', mocker)
-    _qt_mock('QTextOption', mocker)
-    _qt_mock('QAbstractTextDocumentLayout', mocker)
-    completiondelegate._cached_stylesheet = ''
-    delegate = completiondelegate.CompletionItemDelegate(parent=view)
-    delegate.initStyleOption = mock.Mock()
-    return delegate
-
-
-@pytest.mark.parametrize('pat,txt_in,txt_out', [
-    # { and } represent the open/close html tags for highlighting
-    ('foo', 'foo', '{foo}'),
-    ('foo', 'foobar', '{foo}bar'),
-    ('foo', 'barfoo', 'bar{foo}'),
-    ('foo', 'barfoobaz', 'bar{foo}baz'),
-    ('foo', 'barfoobazfoo', 'bar{foo}baz{foo}'),
-    ('foo', 'foofoo', '{foo}{foo}'),
-    ('a b', 'cadb', 'c{a}d{b}'),
-    ('foo', '<foo>', '&lt;{foo}&gt;'),
-    ('<a>', "<a>bc", '{&lt;a&gt;}bc'),
+@pytest.mark.parametrize('pat,txt,segments', [
+    ('foo', 'foo', [(0, 3)]),
+    ('foo', 'foobar', [(0, 3)]),
+    ('foo', 'barfoo', [(3, 3)]),
+    ('foo', 'barfoobaz', [(3, 3)]),
+    ('foo', 'barfoobazfoo', [(3, 3), (9, 3)]),
+    ('foo', 'foofoo', [(0, 3), (3, 3)]),
+    ('a|b', 'cadb', [(1, 1), (3, 1)]),
+    ('foo', '<foo>', [(1, 3)]),
+    ('<a>', "<a>bc", [(0, 3)]),
 
     # https://github.com/qutebrowser/qutebrowser/issues/4199
-    ('foo', "'foo'", "'{foo}'"),
-    ('x', "'x'", "'{x}'"),
-    ('lt', "<lt", "&lt;{lt}"),
+    ('foo', "'foo'", [(1, 3)]),
+    ('x', "'x'", [(1, 1)]),
+    ('lt', "<lt", [(1, 2)]),
 ])
-def test_paint(delegate, painter, view, mock_style_option, mock_text_document,
-               pat, txt_in, txt_out):
-    view.pattern = pat
-    mock_style_option().text = txt_in
-    index = mock.Mock(spec=QModelIndex)
-    index.column.return_value = 0
-    index.model.return_value.columns_to_filter.return_value = [0]
-    opt = mock_style_option()
-    delegate.paint(painter, opt, index)
-    expected = txt_out.replace(
-        '{', '<span class="highlight">'
-    ).replace(
-        '}', '</span>'
-    )
-    mock_text_document().setHtml.assert_called_once_with(expected)
+def test_highlight(pat, txt, segments):
+    doc = QTextDocument(txt)
+    highlighter = completiondelegate._Highlighter(doc, pat, Qt.red)
+    highlighter.setFormat = mock.Mock()
+    highlighter.highlightBlock(txt)
+    highlighter.setFormat.assert_has_calls([
+        mock.call(s[0], s[1], mock.ANY) for s in segments
+    ])
