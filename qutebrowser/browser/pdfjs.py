@@ -83,10 +83,20 @@ def _generate_pdfjs_script(filename):
 
     return jinja.js_environment.from_string("""
         document.addEventListener("DOMContentLoaded", function() {
-          {% if disable_create_object_url %}
-          PDFJS.disableCreateObjectURL = true;
-          {% endif %}
-          PDFJS.verbosity = PDFJS.VERBOSITY_LEVELS.info;
+          if (typeof window.PDFJS !== 'undefined') {
+              // v1.x
+              {% if disable_create_object_url %}
+              window.PDFJS.disableCreateObjectURL = true;
+              {% endif %}
+              window.PDFJS.verbosity = window.PDFJS.VERBOSITY_LEVELS.info;
+          } else {
+              // v2.x
+              const options = window.PDFViewerApplicationOptions;
+              {% if disable_create_object_url %}
+              options.set('disableCreateObjectURL', true);
+              {% endif %}
+              options.set('verbosity', pdfjsLib.VerbosityLevel.INFOS);
+          }
 
           const viewer = window.PDFView || window.PDFViewerApplication;
           viewer.open("{{ url }}");
