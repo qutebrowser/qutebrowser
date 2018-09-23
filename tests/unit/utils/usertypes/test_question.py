@@ -49,10 +49,10 @@ def test_mode_invalid(question):
 
 @pytest.mark.parametrize('mode, answer, signal_names', [
     (usertypes.PromptMode.text, 'foo', ['answered', 'completed']),
-    (usertypes.PromptMode.yesno, True, ['answered', 'completed',
-                                        'answered_yes']),
-    (usertypes.PromptMode.yesno, False, ['answered', 'completed',
-                                         'answered_no']),
+    (usertypes.PromptMode.yesno, True, ['answered', 'answered_yes',
+                                        'completed']),
+    (usertypes.PromptMode.yesno, False, ['answered', 'answered_no',
+                                         'completed']),
 ])
 def test_done(mode, answer, signal_names, question, qtbot):
     """Test the 'done' method and completed/answered signals."""
