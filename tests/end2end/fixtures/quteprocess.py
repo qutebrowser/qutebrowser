@@ -65,6 +65,7 @@ def is_ignored_lowlevel_message(message):
          "GL(dl_tls_generation)' failed!*"),
         # ???
         'getrlimit(RLIMIT_NOFILE) failed',
+        'libpng warning: Skipped (ignored) a chunk between APNG chunks',
         # Travis CI containers don't have a /etc/machine-id
         ('*D-Bus library appears to be incorrectly set up; failed to read '
          'machine uuid: Failed to open "/etc/machine-id": No such file or '
