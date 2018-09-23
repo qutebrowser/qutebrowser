@@ -111,7 +111,6 @@ class TabWidget(QTabWidget):
         bar = self.tabBar()
         idx = self.indexOf(tab)
 
-        bar.set_tab_data(idx, 'pinned', pinned)
         tab.data.pinned = pinned
         self.update_tab_favicon(tab)
         self.update_tab_title(idx)
@@ -570,10 +569,10 @@ class TabBar(QTabBar):
 
     def _tab_pinned(self, index: int) -> bool:
         """Return True if tab is pinned."""
-        try:
-            return self.tab_data(index, 'pinned')
-        except KeyError:
-            return False
+        if not 0 <= index < self.count():
+            raise IndexError("Tab index ({}) out of range ({})!".format(
+                index, self.count()))
+        return self.parent().widget(index).data.pinned
 
     def tabSizeHint(self, index: int):
         """Override tabSizeHint to customize qb's tab size.
