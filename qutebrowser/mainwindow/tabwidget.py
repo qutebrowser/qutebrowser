@@ -388,13 +388,14 @@ class TabBar(QTabBar):
         if option.startswith('colors.tabs.'):
             self.update()
 
-        # Clear _minimum_tab_size_hint_helper cache when appropriate
+        # Clear tab size caches when appropriate
         if option in ["tabs.indicator.padding",
                       "tabs.padding",
                       "tabs.indicator.width",
                       "tabs.min_width",
                       "tabs.pinned.shrink"]:
             self._minimum_tab_size_hint_helper.cache_clear()
+            self._minimum_tab_height.cache_clear()
 
     def _on_show_switching_delay_changed(self):
         """Set timer interval when tabs.show_switching_delay got changed."""
@@ -471,6 +472,7 @@ class TabBar(QTabBar):
         self._set_icon_size()
         # clear tab size cache
         self._minimum_tab_size_hint_helper.cache_clear()
+        self._minimum_tab_height.cache_clear()
 
     def _set_icon_size(self):
         """Set the tab bar favicon size."""
@@ -558,8 +560,7 @@ class TabBar(QTabBar):
         # Only add padding if indicator exists
         if indicator_width != 0:
             padding_h += indicator_padding.left + indicator_padding.right
-        padding_v = padding.top + padding.bottom
-        height = self.fontMetrics().height() + padding_v
+        height = self._minimum_tab_height()
         width = (text_width + icon_width +
                  padding_h + indicator_width)
         min_width = config.val.tabs.min_width
@@ -567,6 +568,11 @@ class TabBar(QTabBar):
                 not pinned or not config.val.tabs.pinned.shrink):
             width = max(min_width, width)
         return QSize(width, height)
+
+    @functools.lru_cache(maxsize=1)
+    def _minimum_tab_height(self):
+        padding = config.cache['tabs.padding']
+        return self.fontMetrics().height() + padding.top + padding.bottom
 
     def _tab_pinned(self, index: int) -> bool:
         """Return True if tab is pinned."""
@@ -592,8 +598,7 @@ class TabBar(QTabBar):
             # want to ensure it's valid in this special case.
             return QSize()
 
-        minimum_size = self.minimumTabSizeHint(index)
-        height = minimum_size.height()
+        height = self._minimum_tab_height()
         if self.vertical:
             confwidth = str(config.cache['tabs.width'])
             if confwidth.endswith('%'):
@@ -603,7 +608,7 @@ class TabBar(QTabBar):
                 width = main_window.width() * perc / 100
             else:
                 width = int(confwidth)
-            size = QSize(max(minimum_size.width(), width), height)
+            size = QSize(width, height)
         else:
             if config.cache['tabs.pinned.shrink'] and self._tab_pinned(index):
                 # Give pinned tabs the minimum size they need to display their
@@ -611,11 +616,9 @@ class TabBar(QTabBar):
                 width = self.minimumTabSizeHint(index, ellipsis=False).width()
             else:
                 # Request as much space as possible so we fill the tabbar, let
-                # Qt shrink us down
-                width = self.width()
-
-            # If we don't have enough space, we return the minimum size
-            width = max(width, minimum_size.width())
+                # Qt shrink us down. If for some reason (tests, bugs)
+                # self.width() gives 0, use a sane min of 10 px
+                width = max(self.width(), 10)
             size = QSize(width, height)
         qtutils.ensure_valid(size)
         return size
