@@ -1116,15 +1116,16 @@ class CommandDispatcher:
         if index == 'last':
             self._tab_focus_last()
             return
-        elif not no_last and index == self._current_index() + 1:
-            self._tab_focus_last(show_error=False)
-            return
         elif index is None:
             self.tab_next()
             return
 
         if index < 0:
             index = self._count() + index + 1
+
+        if not no_last and index == self._current_index() + 1:
+            self._tab_focus_last(show_error=False)
+            return
 
         if 1 <= index <= self._count():
             self._set_current_index(index - 1)
