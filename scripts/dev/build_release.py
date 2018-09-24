@@ -25,7 +25,6 @@ import os
 import os.path
 import sys
 import time
-import glob
 import shutil
 import plistlib
 import subprocess
@@ -113,7 +112,8 @@ def patch_mac_app():
         plistlib.dump(plist_data, f)
 
     # Replace some duplicate files by symlinks
-    framework_path = os.path.join(app_path, 'Contents', 'Resources', 'PyQt5', 'Qt', 'lib', 'QtWebEngineCore.framework')
+    framework_path = os.path.join(app_path, 'Contents', 'Resources', 'PyQt5',
+                                  'Qt', 'lib', 'QtWebEngineCore.framework')
 
     core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
     os.remove(core_lib)
