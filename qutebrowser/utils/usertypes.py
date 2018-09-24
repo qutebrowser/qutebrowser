@@ -245,7 +245,7 @@ JsWorld = enum.Enum('JsWorld', ['main', 'application', 'user', 'jseval'])
 JsLogLevel = enum.Enum('JsLogLevel', ['unknown', 'info', 'warning', 'error'])
 
 
-MessageLevel = enum.Enum('MessageLevel', ['error', 'warning', 'info'])
+MessageLevel = enum.IntEnum('MessageLevel', ['info', 'warning', 'error'])
 
 
 class Question(QObject):

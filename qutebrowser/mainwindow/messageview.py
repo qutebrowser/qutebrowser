@@ -118,6 +118,9 @@ class MessageView(QWidget):
     @pyqtSlot(usertypes.MessageLevel, str, bool)
     def show_message(self, level, text, replace=False):
         """Show the given message with the given MessageLevel."""
+        if level < usertypes.MessageLevel[config.val.messages.level]:
+            return
+
         if text == self._last_text:
             return
 
