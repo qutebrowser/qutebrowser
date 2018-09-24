@@ -20,6 +20,7 @@
 """Tests for the custom TabWidget/TabBar."""
 
 import pytest
+import functools
 
 from PyQt5.QtGui import QIcon, QPixmap
 
@@ -141,3 +142,9 @@ class TestTabWidget:
             browser.shutdown()
 
         benchmark(_run_bench)
+
+    def test_tab_pinned_benchmark(self, benchmark, widget, fake_web_tab):
+        """Benchmark for _tab_pinned."""
+        widget.addTab(fake_web_tab(), 'foobar')
+        tab_bar = widget.tabBar()
+        benchmark(functools.partial(tab_bar._tab_pinned, 0))
