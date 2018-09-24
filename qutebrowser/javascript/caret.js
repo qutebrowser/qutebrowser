@@ -769,6 +769,13 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.needsFilterPrefix = null;
 
     /**
+     * The id returned by window.setInterval for our stopAnimation function, so
+     * we can cancel it when we call stopAnimation again.
+     * @type {number?}
+     */
+    CaretBrowsing.animationFunctionId = null;
+
+    /**
      * Check if a node is a control that normally allows the user to interact
      * with it using arrow keys. We won't override the arrow keys when such a
      * control has focus, the user must press Escape to do caret browsing outside
@@ -1252,7 +1259,9 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.stopAnimation = function() {
         if (CaretBrowsing.caretElement) {
             CaretBrowsing.caretElement.style.animationIterationCount = 0;
-            window.setTimeout(() => {
+            window.clearTimeout(CaretBrowsing.animationFunctionId);
+
+            CaretBrowsing.animationFunctionId = window.setTimeout(() => {
                 CaretBrowsing.startAnimation();
             }, 1000);
         }
