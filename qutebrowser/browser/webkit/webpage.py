@@ -270,7 +270,8 @@ class BrowserPage(QWebPage):
                     self.display_content, reply, 'image/jpeg'))
         elif pdfjs.should_use_pdfjs(mimetype, reply.url()):
             download_manager.fetch(reply,
-                                   target=downloads.PDFJSDownloadTarget())
+                                   target=downloads.PDFJSDownloadTarget(),
+                                   auto_remove=True)
         else:
             # Unknown mimetype, so download anyways.
             download_manager.fetch(reply,
