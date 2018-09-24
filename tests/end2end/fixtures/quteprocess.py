@@ -218,6 +218,12 @@ def is_ignored_chromium_message(line):
         # gpu_process_transport_factory.cc(1019)] Lost UI shared context.
         'Lost UI shared context.',
 
+        # Qt 5.12
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70702
+        # [32123:32123:0923/224739.457307:ERROR:in_progress_cache_impl.cc(192)]
+        # Cache is not initialized, cannot RetrieveEntry.
+        'Cache is not initialized, cannot RetrieveEntry.',
+        'Cache is not initialized, cannot AddOrReplaceEntry.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
