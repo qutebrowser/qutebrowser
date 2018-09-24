@@ -224,6 +224,12 @@ def is_ignored_chromium_message(line):
         # Cache is not initialized, cannot RetrieveEntry.
         'Cache is not initialized, cannot RetrieveEntry.',
         'Cache is not initialized, cannot AddOrReplaceEntry.',
+        # [10518:10518:0924/121250.186121:WARNING:
+        # render_frame_host_impl.cc(431)]
+        # InterfaceRequest was dropped, the document is no longer active:
+        # content.mojom.RendererAudioOutputStreamFactory
+        'InterfaceRequest was dropped, the document is no longer active: '
+        'content.mojom.RendererAudioOutputStreamFactory',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
