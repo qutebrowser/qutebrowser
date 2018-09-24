@@ -61,6 +61,12 @@ def normalize_line(line):
     return line
 
 
+def normalize_whole(s):
+    if qtutils.version_check('5.12', compiled=False):
+        s = s.replace('\n\n-----=_qute-UUID', '\n-----=_qute-UUID')
+    return s
+
+
 class DownloadDir:
 
     """Abstraction over a download directory."""
@@ -86,6 +92,7 @@ class DownloadDir:
                                       if normalize_line(line) is not None)
         actual_data = '\n'.join(normalize_line(line)
                                 for line in self.read_file())
+        actual_data = normalize_whole(actual_data)
 
         assert actual_data == expected_data
 
