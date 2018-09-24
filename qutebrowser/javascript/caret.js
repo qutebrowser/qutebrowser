@@ -756,31 +756,6 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.isSelectionCollapsed = false;
 
     /**
-     * The id returned by window.setInterval for our blink function, so
-     * we can cancel it when caret browsing is disabled.
-     * @type {number?}
-     */
-    CaretBrowsing.blinkFunctionId = null;
-
-    /**
-     * The desired x-coordinate to match when moving the caret up and down.
-     * To match the behavior as documented in Mozilla's caret browsing spec
-     * (http://www.mozilla.org/access/keyboard/proposal), we keep track of the
-     * initial x position when the user starts moving the caret up and down,
-     * so that the x position doesn't drift as you move throughout lines, but
-     * stays as close as possible to the initial position. This is reset when
-     * moving left or right or clicking.
-     * @type {number?}
-     */
-    CaretBrowsing.targetX = null;
-
-    /**
-     * A flag that flips on or off as the caret blinks.
-     * @type {boolean}
-     */
-    CaretBrowsing.blinkFlag = true;
-
-    /**
      * Whether we're running on Windows.
      * @type {boolean}
      */
@@ -988,7 +963,6 @@ window._qutebrowser.caret = (function() {
      */
     CaretBrowsing.recreateCaretElement = function() {
         if (CaretBrowsing.caretElement) {
-            window.clearInterval(CaretBrowsing.blinkFunctionId);
             CaretBrowsing.caretElement.parentElement.removeChild(
                 CaretBrowsing.caretElement);
             CaretBrowsing.caretElement = null;
@@ -1233,7 +1207,6 @@ window._qutebrowser.caret = (function() {
             return true;
         }
         window.setTimeout(() => {
-            CaretBrowsing.targetX = null;
             CaretBrowsing.updateCaretOrSelection(false);
         }, 0);
         return true;
@@ -1251,7 +1224,6 @@ window._qutebrowser.caret = (function() {
             CaretBrowsing.updateCaretOrSelection(true);
         } else if (!CaretBrowsing.isCaretVisible &&
             CaretBrowsing.caretElement) {
-            window.clearInterval(CaretBrowsing.blinkFunctionId);
             if (CaretBrowsing.caretElement) {
                 CaretBrowsing.isSelectionCollapsed = false;
                 CaretBrowsing.caretElement.parentElement.removeChild(
