@@ -831,7 +831,7 @@ class AbstractDownloadManager(QObject):
         """Open PDF.js when a download requests it."""
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-        tabbed_browser.tabopen(pdfjs.get_main_url(filename))
+        tabbed_browser.tabopen(pdfjs.get_main_url(filename), background=False)
 
     def _init_item(self, download, auto_remove, suggested_filename):
         """Initialize a newly created DownloadItem."""
