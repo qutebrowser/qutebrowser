@@ -81,10 +81,12 @@ class DownloadDir:
 
     def compare_mhtml(self, filename):
         with open(filename, 'r', encoding='utf-8') as f:
-            expected_data = [normalize_line(line) for line in f
-                             if normalize_line(line) is not None]
-        actual_data = self.read_file()
-        actual_data = [normalize_line(line) for line in actual_data]
+            expected_data = '\n'.join(normalize_line(line)
+                                      for line in f
+                                      if normalize_line(line) is not None)
+        actual_data = '\n'.join(normalize_line(line)
+                                for line in self.read_file())
+
         assert actual_data == expected_data
 
 
