@@ -66,6 +66,8 @@ Changed
 - The `content.autoplay` setting now supports URL patterns on Qt >= 5.11.
 - The `content.host_blocking.whitelist` setting now takes a list of URL
   patterns instead of globs.
+- In passthrough mode, Ctrl + Mousewheel now also gets passed through to the
+  page instead of zooming.
 
 Fixed
 ~~~~~

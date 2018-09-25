@@ -141,6 +141,10 @@ class MouseEventFilter(QObject):
             return True
 
         if e.modifiers() & Qt.ControlModifier:
+            mode = modeman.instance(self._tab.win_id).mode
+            if mode == usertypes.KeyMode.passthrough:
+                return False
+
             divider = config.val.zoom.mouse_divider
             if divider == 0:
                 return False
