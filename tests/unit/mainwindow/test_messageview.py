@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import random
 import pytest
 from PyQt5.QtCore import Qt
 
@@ -27,6 +28,7 @@ from qutebrowser.utils import usertypes
 @pytest.fixture
 def view(qtbot, config_stub):
     config_stub.val.messages.timeout = 100
+    config_stub.val.messages.level = 'info'
     mv = messageview.MessageView()
     qtbot.add_widget(mv)
     return mv
@@ -39,6 +41,30 @@ def test_single_message(qtbot, view, level):
     with qtbot.waitExposed(view):
         view.show_message(level, 'test')
     assert view._messages[0].isVisible()
+
+
+def test_messages_level(qtbot, view, config_stub):
+    def assert_visible(level, visible):
+        n = len(view._messages)
+        with qtbot.waitExposed(view):
+            view.show_message(level, str(random.random()))
+        if visible:
+            assert n == len(view._messages) - 1
+        else:
+            assert n == len(view._messages)
+
+    config_stub.val.messages.level = 'info'
+    assert_visible(usertypes.MessageLevel.info, True)
+    assert_visible(usertypes.MessageLevel.warning, True)
+    assert_visible(usertypes.MessageLevel.error, True)
+    config_stub.val.messages.level = 'warning'
+    assert_visible(usertypes.MessageLevel.info, False)
+    assert_visible(usertypes.MessageLevel.warning, True)
+    assert_visible(usertypes.MessageLevel.error, True)
+    config_stub.val.messages.level = 'error'
+    assert_visible(usertypes.MessageLevel.info, False)
+    assert_visible(usertypes.MessageLevel.warning, False)
+    assert_visible(usertypes.MessageLevel.error, True)
 
 
 def test_message_hiding(qtbot, view):

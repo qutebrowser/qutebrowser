@@ -1241,6 +1241,16 @@ keyhint.delay:
 
 ## messages
 
+messages.level:
+  type:
+    name: String
+    valid_values:
+      - info: Display info, warning and error messages
+      - warning: Display warnings and errors
+      - error: Display errors only
+  default: info
+  desc: Minimum level of messages to display in message view window.
+
 messages.timeout:
   type:
     name: Int
