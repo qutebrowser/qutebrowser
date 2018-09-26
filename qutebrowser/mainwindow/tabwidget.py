@@ -506,7 +506,7 @@ class TabBar(QTabBar):
             icon_width = min(icon.actualSize(self.iconSize()).width(),
                              self.iconSize().width()) + icon_padding
 
-        pinned = self._tab_pinned(index)
+        pinned = self._widget(index).data.pinned
         if not self.vertical and pinned and config.val.tabs.pinned.shrink:
             # Never consider ellipsis an option for horizontal pinned tabs
             ellipsis = False
@@ -548,12 +548,12 @@ class TabBar(QTabBar):
             width = max(min_width, width)
         return QSize(width, height)
 
-    def _tab_pinned(self, index: int) -> bool:
-        """Return True if tab is pinned."""
+    def _widget(self, index: int) -> QWidget:
+        """Get a tab widget."""
         if not 0 <= index < self.count():
             raise IndexError("Tab index ({}) out of range ({})!".format(
                 index, self.count()))
-        return self.parent().widget(index).data.pinned
+        return self.parent().widget(index)
 
     def tabSizeHint(self, index: int):
         """Override tabSizeHint to customize qb's tab size.
@@ -585,7 +585,8 @@ class TabBar(QTabBar):
                 width = int(confwidth)
             size = QSize(max(minimum_size.width(), width), height)
         else:
-            if config.cache['tabs.pinned.shrink'] and self._tab_pinned(index):
+            if (config.cache['tabs.pinned.shrink'] and
+                    self._widget(index).data.pinned):
                 # Give pinned tabs the minimum size they need to display their
                 # titles, let Qt handle scaling it down if we get too small.
                 width = self.minimumTabSizeHint(index, ellipsis=False).width()

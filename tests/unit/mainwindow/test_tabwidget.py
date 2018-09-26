@@ -147,4 +147,4 @@ class TestTabWidget:
         """Benchmark for _tab_pinned."""
         widget.addTab(fake_web_tab(), 'foobar')
         tab_bar = widget.tabBar()
-        benchmark(functools.partial(tab_bar._tab_pinned, 0))
+        benchmark(lambda: tab_bar._widget(0).data.pinned)
