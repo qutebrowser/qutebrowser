@@ -112,6 +112,7 @@ class TabData:
         input_mode: current input mode for the tab.
         title_override: The URL string which we'll open soon
                         (which overrides the old title)
+        indicator_color: Color of the indicator in the tab bar.
     """
 
     keep_icon = attr.ib(False)
@@ -124,6 +125,7 @@ class TabData:
     netrc_used = attr.ib(False)
     input_mode = attr.ib(usertypes.KeyMode.normal)
     title_override = attr.ib(None)
+    indicator_color = attr.ib(None)
 
     def should_show_icon(self):
         return (config.val.tabs.favicons.show == 'always' or
