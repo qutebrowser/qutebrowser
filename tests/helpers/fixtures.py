@@ -31,6 +31,8 @@ import itertools
 import textwrap
 import unittest.mock
 import types
+import mimetypes
+import os.path
 
 import attr
 import pytest
@@ -44,10 +46,13 @@ import helpers.utils
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache)
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
-from qutebrowser.browser import greasemonkey, history
+from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql, objects
 from qutebrowser.keyinput import modeman
+
+
+_qute_scheme_handler = None
 
 
 class WinRegistryHelper:
@@ -152,29 +157,86 @@ def greasemonkey_manager(data_tmpdir):
     objreg.delete('greasemonkey')
 
 
+@pytest.fixture(scope='session')
+def testdata_scheme(qapp):
+    try:
+        global _qute_scheme_handler
+        from qutebrowser.browser.webengine import webenginequtescheme
+        from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
+            parent=qapp)
+        _qute_scheme_handler.install(QWebEngineProfile.defaultProfile())
+    except ImportError:
+        pass
+
+    @qutescheme.add_handler('testdata')
+    def handler(url):  # pylint: disable=unused-variable
+        file_abs = os.path.abspath(os.path.dirname(__file__))
+        filename = os.path.join(file_abs, os.pardir, 'end2end',
+                                url.path().lstrip('/'))
+        with open(filename, 'rb') as f:
+            data = f.read()
+
+        mimetype, _encoding = mimetypes.guess_type(filename)
+        return mimetype, data
+
+
 @pytest.fixture
-def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
-               session_manager_stub, greasemonkey_manager, fake_args):
+def web_tab_setup(qtbot, tab_registry, session_manager_stub,
+                  greasemonkey_manager, fake_args, host_blocker_stub,
+                  config_stub, testdata_scheme):
+    """Shared setup for webkit_tab/webengine_tab."""
+    # Make sure error logging via JS fails tests
+    config_stub.val.content.javascript.log = {
+        'info': 'info',
+        'error': 'error',
+        'unknown': 'error',
+        'warning': 'error',
+    }
+
+
+@pytest.fixture
+def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
+
+    container = QWidget()
+    qtbot.add_widget(container)
+
+    vbox = QVBoxLayout(container)
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
-    qtbot.add_widget(tab)
+    vbox.addWidget(tab)
+    # to make sure container isn't GCed
+    tab.container = container
+
+    with qtbot.waitExposed(container):
+        container.show()
+
     return tab
 
 
 @pytest.fixture
-def webengine_tab(qtbot, tab_registry, fake_args, mode_manager,
-                  session_manager_stub, greasemonkey_manager,
-                  redirect_webengine_data, tabbed_browser_stubs):
+def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
+                  tabbed_browser_stubs, mode_manager):
     tabwidget = tabbed_browser_stubs[0].widget
     tabwidget.current_index = 0
     tabwidget.index_of = 0
 
+    container = QWidget()
+    qtbot.add_widget(container)
+
+    vbox = QVBoxLayout(container)
     webenginetab = pytest.importorskip(
         'qutebrowser.browser.webengine.webenginetab')
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
                                     private=False)
-    qtbot.add_widget(tab)
+    vbox.addWidget(tab)
+    # to make sure container isn't GCed
+    tab.container = container
+
+    with qtbot.waitExposed(container):
+        container.show()
+
     return tab
 
 
@@ -455,9 +517,8 @@ def fake_args(request):
 
 
 @pytest.fixture
-def mode_manager(win_registry, config_stub, qapp):
-    mm = modeman.ModeManager(0)
-    objreg.register('mode-manager', mm, scope='window', window=0)
+def mode_manager(win_registry, config_stub, key_config_stub, qapp):
+    mm = modeman.init(0, parent=qapp)
     yield mm
     objreg.delete('mode-manager', scope='window', window=0)
 

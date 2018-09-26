@@ -43,6 +43,7 @@ import qutebrowser.app  # To register commands
 
 
 ON_CI = 'CI' in os.environ
+_qute_scheme_handler = None
 
 
 # Set hypothesis settings

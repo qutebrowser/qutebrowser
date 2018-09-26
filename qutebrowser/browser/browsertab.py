@@ -395,9 +395,11 @@ class AbstractCaret(QObject):
     Signals:
         selection_toggled: Emitted when the selection was toggled.
                            arg: Whether the selection is now active.
+        follow_selected_done: Emitted when a follow_selection action is done.
     """
 
     selection_toggled = pyqtSignal(bool)
+    follow_selected_done = pyqtSignal()
 
     def __init__(self, tab, mode_manager, parent=None):
         super().__init__(parent)

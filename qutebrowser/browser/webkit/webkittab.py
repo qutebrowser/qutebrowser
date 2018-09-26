@@ -348,7 +348,7 @@ class WebKitCaret(browsertab.AbstractCaret):
     def selection(self, callback):
         callback(self._widget.selectedText())
 
-    def follow_selected(self, *, tab=False):
+    def _follow_selected(self, *, tab=False):
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
@@ -388,6 +388,12 @@ class WebKitCaret(browsertab.AbstractCaret):
                     self._tab.new_tab_requested.emit(url)
                 else:
                     self._tab.openurl(url)
+
+    def follow_selected(self, *, tab=False):
+        try:
+            self._follow_selected(tab=tab)
+        finally:
+            self.follow_selected_done.emit()
 
 
 class WebKitZoom(browsertab.AbstractZoom):

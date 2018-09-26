@@ -59,6 +59,8 @@ def _convert_js_arg(arg):
         return str(arg).lower()
     elif isinstance(arg, (int, float)):
         return str(arg)
+    elif isinstance(arg, list):
+        return '[{}]'.format(', '.join(_convert_js_arg(e) for e in arg))
     else:
         raise TypeError("Don't know how to handle {!r} of type {}!".format(
             arg, type(arg).__name__))
