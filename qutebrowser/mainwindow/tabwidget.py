@@ -402,27 +402,6 @@ class TabBar(QTabBar):
         else:
             self.show()
 
-    def set_tab_data(self, idx, key, value):
-        """Set tab data as a dictionary."""
-        if not 0 <= idx < self.count():
-            raise IndexError("Tab index ({}) out of range ({})!".format(
-                idx, self.count()))
-        data = self.tabData(idx)
-        if data is None:
-            data = {}
-        data[key] = value
-        self.setTabData(idx, data)
-
-    def tab_data(self, idx, key):
-        """Get tab data for a given key."""
-        if not 0 <= idx < self.count():
-            raise IndexError("Tab index ({}) out of range ({})!".format(
-                idx, self.count()))
-        data = self.tabData(idx)
-        if data is None:
-            data = {}
-        return data[key]
-
     def refresh(self):
         """Properly repaint the tab bar and relayout tabs."""
         # This is a horrible hack, but we need to do this so the underlying Qt
