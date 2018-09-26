@@ -1021,7 +1021,7 @@ class Font(BaseType):
     def __repr__(self, **kwargs):
         # Remove leading spaces, comments (and previous spaces) and newlines from regexp pattern
         return super().__repr__(monospace_fonts=self.monospace_fonts,
-                                font_regexp=re.sub('(?m)(^\s+)|(\s*#.*$)|\n', '', self.font_regex.pattern), **kwargs)
+                                font_regexp=re.sub(r'(?m)(^\s+)|(\s*#.*$)|\n', '', self.font_regex.pattern), **kwargs)
 
 
 class FontFamily(Font):
