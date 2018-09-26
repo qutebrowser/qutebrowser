@@ -19,8 +19,6 @@
 
 """Tests for the custom TabWidget/TabBar."""
 
-import functools
-
 import pytest
 from PyQt5.QtGui import QIcon, QPixmap
 
