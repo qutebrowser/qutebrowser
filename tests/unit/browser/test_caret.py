@@ -336,18 +336,18 @@ class TestFollowSelected:
         caret.move_to_next_word()  # Move cursor away from the link
         mode_manager.leave(usertypes.KeyMode.caret)
         with qtbot.wait_signal(caret.follow_selected_done):
-            with qtbot.assert_not_emitted(web_tab.load_started):
+            with qtbot.assert_not_emitted(web_tab.load_started,
+                                          wait=self.LOAD_STARTED):
                 caret.follow_selected()
-                qtbot.wait(self.LOAD_STARTED_DELAY)
 
     def test_follow_selected_with_text(self, qtbot, caret, selection, web_tab):
         caret.move_to_next_word()
         selection.toggle()
         caret.move_to_end_of_word()
         with qtbot.wait_signal(caret.follow_selected_done):
-            with qtbot.assert_not_emitted(web_tab.load_started):
+            with qtbot.assert_not_emitted(web_tab.load_started,
+                                          wait=self.LOAD_STARTED):
                 caret.follow_selected()
-                qtbot.wait(self.LOAD_STARTED_DELAY)
 
     def test_follow_selected_with_link(self, caret, selection, config_stub,
                                        qtbot, web_tab):
