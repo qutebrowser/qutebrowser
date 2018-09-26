@@ -265,7 +265,7 @@ class FakeWebTab(browsertab.AbstractTab):
         assert not requested
         return self._url
 
-    def title(self):
+    def title(self, *, fallback=True):
         return self._title
 
     def progress(self):
@@ -534,9 +534,6 @@ class TabWidgetStub(QObject):
 
     def widget(self, i):
         return self.tabs[i]
-
-    def page_title(self, i):
-        return self.tabs[i].title()
 
     def tabBar(self):
         return self._qtabbar

@@ -603,7 +603,10 @@ class TabbedBrowser(QWidget):
             return
         log.webview.debug("Changing title for idx {} to '{}'".format(
             idx, text))
-        self.widget.set_page_title(idx, text)
+
+        tab.data.tab_title = text
+        self.widget.update_tab_title(idx, 'title')
+
         if idx == self.widget.currentIndex():
             self._update_window_title()
 
@@ -621,8 +624,9 @@ class TabbedBrowser(QWidget):
             # We can get signals for tabs we already deleted...
             return
 
-        if not self.widget.page_title(idx):
-            self.widget.set_page_title(idx, url.toDisplayString())
+        if not tab.data.tab_title:
+            tab.data.tab_title = url.toDisplayString()
+            self.widget.update_tab_title(idx, 'title')
 
     @pyqtSlot(browsertab.AbstractTab, QIcon)
     def on_icon_changed(self, tab, icon):
@@ -719,11 +723,13 @@ class TabbedBrowser(QWidget):
         except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
+
         start = config.cache['colors.tabs.indicator.start']
         stop = config.cache['colors.tabs.indicator.stop']
         system = config.cache['colors.tabs.indicator.system']
         color = utils.interpolate_color(start, stop, perc, system)
         self.widget.set_tab_indicator_color(idx, color)
+
         self.widget.update_tab_title(idx)
         if idx == self.widget.currentIndex():
             self._update_window_title()
@@ -743,6 +749,7 @@ class TabbedBrowser(QWidget):
         else:
             color = config.val.colors.tabs.indicator.error
         self.widget.set_tab_indicator_color(idx, color)
+
         self.widget.update_tab_title(idx)
         if idx == self.widget.currentIndex():
             self._update_window_title()

@@ -121,7 +121,7 @@ def _buffer(skip_win_id=None):
             tab = tabbed_browser.widget.widget(idx)
             tabs.append(("{}/{}".format(win_id, idx + 1),
                          tab.url().toDisplayString(),
-                         tabbed_browser.widget.page_title(idx)))
+                         tab.title()))
         cat = listcategory.ListCategory(
             str(win_id), tabs, delete_func=delete_buffer, sort=False)
         model.add_category(cat)

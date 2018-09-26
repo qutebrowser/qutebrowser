@@ -723,7 +723,7 @@ class WebKitTab(browsertab.AbstractTab):
     def stop(self):
         self._widget.stop()
 
-    def title(self):
+    def _title(self):
         return self._widget.title()
 
     def clear_ssl_errors(self):
@@ -827,7 +827,7 @@ class WebKitTab(browsertab.AbstractTab):
         page.loadProgress.connect(self._on_load_progress)
         frame.loadStarted.connect(self._on_load_started)
         view.scroll_pos_changed.connect(self.scroller.perc_changed)
-        view.titleChanged.connect(self.title_changed)
+        view.titleChanged.connect(self._on_title_changed)
         view.urlChanged.connect(self._on_url_changed)
         view.shutting_down.connect(self.shutting_down)
         page.networkAccessManager().sslErrors.connect(self._on_ssl_errors)
