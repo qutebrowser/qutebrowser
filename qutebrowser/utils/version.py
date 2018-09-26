@@ -334,8 +334,8 @@ def _chromium_version():
              65.0.3325.151 (.1: .230) (2018-03-06)
              5.11.1: Security fixes up to 67.0.3396.87 (2018-05-29)
 
-    Qt 5.12: Chromium 69 (?)
-             current dev branch: 67.0.3396.76 (2018-05-29)
+    Qt 5.12: Chromium 69
+             current 5.12 branch: 69.0.3497.70 (2018-09-11)
 
     Also see https://www.chromium.org/developers/calendar
     """
