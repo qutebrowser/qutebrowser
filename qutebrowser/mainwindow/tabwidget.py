@@ -89,17 +89,6 @@ class TabWidget(QTabWidget):
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
 
-    def set_tab_indicator_color(self, idx, color):
-        """Set the tab indicator color.
-
-        Args:
-            idx: The tab index.
-            color: A QColor.
-        """
-        bar = self.tabBar()
-        bar.set_tab_data(idx, 'indicator-color', color)
-        bar.update(bar.tabRect(idx))
-
     def set_tab_pinned(self, tab: QWidget,
                        pinned: bool) -> None:
         """Set the tab status as pinned.
@@ -113,9 +102,10 @@ class TabWidget(QTabWidget):
         self.update_tab_favicon(tab)
         self.update_tab_title(idx)
 
-    def tab_indicator_color(self, idx):
-        """Get the tab indicator color for the given index."""
-        return self.tabBar().tab_indicator_color(idx)
+    def update_tab_indicator(self, idx):
+        """Redraw the tab indicator."""
+        tabbar = self.tabBar()
+        tabbar.update(tabbar.tabRect(idx))
 
     def update_tab_title(self, idx, field=None):
         """Update the tab text for the given tab.
@@ -433,13 +423,6 @@ class TabBar(QTabBar):
             data = {}
         return data[key]
 
-    def tab_indicator_color(self, idx):
-        """Get the tab indicator color for the given index."""
-        try:
-            return self.tab_data(idx, 'indicator-color')
-        except KeyError:
-            return QColor()
-
     def refresh(self):
         """Properly repaint the tab bar and relayout tabs."""
         # This is a horrible hack, but we need to do this so the underlying Qt
@@ -613,22 +596,24 @@ class TabBar(QTabBar):
                 # Don't repaint if we are outside the requested region
                 continue
 
-            tab = QStyleOptionTab()
-            self.initStyleOption(tab, idx)
+            tab = self._widget(idx)
+
+            opt = QStyleOptionTab()
+            self.initStyleOption(opt, idx)
 
             setting = 'colors.tabs'
             if idx == selected:
                 setting += '.selected'
             setting += '.odd' if (idx + 1) % 2 else '.even'
 
-            tab.palette.setColor(QPalette.Window,
+            opt.palette.setColor(QPalette.Window,
                                  config.cache[setting + '.bg'])
-            tab.palette.setColor(QPalette.WindowText,
+            opt.palette.setColor(QPalette.WindowText,
                                  config.cache[setting + '.fg'])
 
-            indicator_color = self.tab_indicator_color(idx)
-            tab.palette.setColor(QPalette.Base, indicator_color)
-            p.drawControl(QStyle.CE_TabBarTab, tab)
+            if tab.data.indicator_color is not None:
+                opt.palette.setColor(QPalette.Base, tab.data.indicator_color)
+            p.drawControl(QStyle.CE_TabBarTab, opt)
 
     def tabInserted(self, idx):
         """Update visibility when a tab was inserted."""
