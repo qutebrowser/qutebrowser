@@ -109,9 +109,9 @@ class ValidValues:
     def __iter__(self):
         return self.values.__iter__()
 
-    def __repr__(self):
+    def __repr__(self, **kwargs):
         return utils.get_repr(self, values=self.values,
-                              descriptions=self.descriptions)
+                              descriptions=self.descriptions, **kwargs)
 
     def __eq__(self, other):
         return (self.values == other.values and
@@ -295,6 +295,9 @@ class BaseType:
                 out.append((val, desc))
             return out
 
+    def __repr__(self, **kwargs):
+        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values, **kwargs)
+
 
 class MappingType(BaseType):
 
@@ -318,6 +321,9 @@ class MappingType(BaseType):
             return None
         self._validate_valid_values(value.lower())
         return self.MAPPING[value.lower()]
+
+    def __repr__(self, **kwargs):
+        return super().__repr__(mapping=self.MAPPING, **kwargs)
 
 
 class String(BaseType):
@@ -398,6 +404,10 @@ class String(BaseType):
             return self._completions
         else:
             return super().complete()
+
+    def __repr__(self, **kwargs):
+        return super().__repr__(minlen=self.minlen, maxlen=self.maxlen, forbidden=self.forbidden,
+                                _completions=self._completions, encoding=self.encoding, **kwargs)
 
 
 class UniqueCharString(String):
@@ -498,6 +508,9 @@ class List(BaseType):
                 self.valtype.to_doc(elem, indent=indent+1)))
         return '\n'.join(lines)
 
+    def __repr__(self, **kwargs):
+        return super().__repr__(valtype=self.valtype, length=self.length, show_valtype=self._show_valtype, **kwargs)
+
 
 class ListOrValue(BaseType):
 
@@ -567,6 +580,9 @@ class ListOrValue(BaseType):
         val, typ = self._val_and_type(value)
         return typ.to_doc(val)
 
+    def __repr__(self, **kwargs):
+        return super().__repr__(listtype=self.listtype.__repr__(), valtype=self.valtype, **kwargs)
+
 
 class FlagList(List):
 
@@ -614,6 +630,9 @@ class FlagList(List):
             for combination in itertools.combinations(combinables, size):
                 out.append((json.dumps(combination), ''))
         return out
+
+    def __repr__(self, **kwargs):
+        return super().__repr__(combinable_values=self.combinable_values, **kwargs)
 
 
 class Bool(BaseType):
@@ -727,6 +746,9 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
         if value is None:
             return ''
         return str(value)
+
+    def __repr__(self, **kwargs):
+        return super().__repr__(minval=self.minval, maxval=self.maxval, **kwargs)
 
 
 class Int(_Numeric):
@@ -866,6 +888,9 @@ class PercOrInt(_Numeric):
         else:
             self._validate_bounds(value)
         return value
+
+    def __repr__(self, **kwargs):
+        return super().__repr__(minperc=self.minperc, maxperc=self.maxperc, **kwargs)
 
 
 class Command(BaseType):
@@ -1015,6 +1040,11 @@ class Font(BaseType):
         if value.endswith(' monospace') and self.monospace_fonts is not None:
             return value.replace('monospace', self.monospace_fonts)
         return value
+
+    def __repr__(self, **kwargs):
+        # Remove leading spaces, comments (and previous spaces) and newlines from regexp pattern
+        return super().__repr__(monospace_fonts=self.monospace_fonts,
+                                font_regexp=re.sub('(?m)(^\s+)|(\s*#.*$)|\n', '', self.font_regex.pattern), **kwargs)
 
 
 class FontFamily(Font):
@@ -1180,6 +1210,9 @@ class Regex(BaseType):
         else:
             return value
 
+    def __repr__(self, **kwargs):
+        return super().__repr__(_regexp_type=self._regex_type, flags=self.flags, **kwargs)
+
 
 class Dict(BaseType):
 
@@ -1276,6 +1309,10 @@ class Dict(BaseType):
             )).splitlines()
         return '\n'.join(line.rstrip(' ') for line in lines)
 
+    def __repr__(self, **kwargs):
+        return super().__repr__(keytype=self.keytype, valtype=self.valtype, fixed_keys=self.fixed_keys,
+                                required_keys=self.required_keys, **kwargs)
+
 
 class File(BaseType):
 
@@ -1307,6 +1344,9 @@ class File(BaseType):
             raise configexc.ValidationError(value, e)
 
         return value
+
+    def __repr__(self, **kwargs):
+        return super().__repr__(required=self.required, **kwargs)
 
 
 class Directory(BaseType):
@@ -1359,6 +1399,9 @@ class FormatString(BaseType):
 
         return value
 
+    def __repr__(self, **kwargs):
+        return super().__repr__(fields=self.fields, **kwargs)
+
 
 class ShellCommand(List):
 
@@ -1390,6 +1433,9 @@ class ShellCommand(List):
                                             "{}-placeholder or a "
                                             "{file}-placeholder.")
         return value
+
+    def __repr__(self, **kwargs):
+        return super().__repr__(placeholder=self.placeholder, **kwargs)
 
 
 class Proxy(BaseType):
