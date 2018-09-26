@@ -459,8 +459,7 @@ class CommandDispatcher:
         """
         cmdutils.check_exclusive((bg, window), 'bw')
         curtab = self._current_widget()
-        cur_title = self._tabbed_browser.widget.page_title(
-            self._current_index())
+
         try:
             history = curtab.history.serialize()
         except browsertab.WebTabError as e:
@@ -478,7 +477,7 @@ class CommandDispatcher:
                                         window=newtab.win_id)
         idx = new_tabbed_browser.widget.indexOf(newtab)
 
-        new_tabbed_browser.widget.set_page_title(idx, cur_title)
+        newtab.data.title_override = curtab.data.title_override
         if curtab.data.should_show_icon():
             new_tabbed_browser.widget.setTabIcon(idx, curtab.icon())
             if config.val.tabs.tabs_are_windows:
@@ -827,7 +826,7 @@ class CommandDispatcher:
             keep: Stay in visual mode after yanking the selection.
         """
         if what == 'title':
-            s = self._tabbed_browser.widget.page_title(self._current_index())
+            s = self._current_widget().title()
         elif what == 'domain':
             port = self._current_url().port()
             s = '{}://{}{}'.format(self._current_url().scheme(),
@@ -1264,12 +1263,10 @@ class CommandDispatcher:
         if count is not None:
             env['QUTE_COUNT'] = str(count)
 
-        idx = self._current_index()
-        if idx != -1:
-            env['QUTE_TITLE'] = self._tabbed_browser.widget.page_title(idx)
-
         # FIXME:qtwebengine: If tab is None, run_async will fail!
         tab = self._tabbed_browser.widget.currentWidget()
+
+        env['QUTE_TITLE'] = tab.title()
 
         try:
             url = self._tabbed_browser.current_url()

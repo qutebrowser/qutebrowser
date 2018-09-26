@@ -110,6 +110,8 @@ class TabData:
         fullscreen: Whether the tab has a video shown fullscreen currently.
         netrc_used: Whether netrc authentication was performed.
         input_mode: current input mode for the tab.
+        title_override: The URL string which we'll open soon
+                        (which overrides the old title)
     """
 
     keep_icon = attr.ib(False)
@@ -121,6 +123,7 @@ class TabData:
     fullscreen = attr.ib(False)
     netrc_used = attr.ib(False)
     input_mode = attr.ib(usertypes.KeyMode.normal)
+    title_override = attr.ib(None)
 
     def should_show_icon(self):
         return (config.val.tabs.favicons.show == 'always' or
@@ -828,14 +831,24 @@ class AbstractTab(QWidget):
         qtutils.ensure_valid(url)
         url_string = url.toDisplayString()
         log.webview.debug("Predicted navigation: {}".format(url_string))
-        self.title_changed.emit(url_string)
+
+        if not self.title(fallback=False):
+            self.data.title_override = url_string
+            self.title_changed.emit(self.title())
 
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url):
         """Update title when URL has changed and no title is available."""
-        if url.isValid() and not self.title():
-            self.title_changed.emit(url.toDisplayString())
+        if url.isValid() and not self.title(fallback=False):
+            self.data.title_override = url.toDisplayString()
+            self.title_changed.emit(self.title())
         self.url_changed.emit(url)
+
+    @pyqtSlot(str)
+    def _on_title_changed(self, title):
+        """Update our title when the page's title has changed."""
+        self.data.title_override = None
+        self.title_changed.emit(title)
 
     @pyqtSlot()
     def _on_load_started(self):
@@ -910,10 +923,6 @@ class AbstractTab(QWidget):
             self._set_load_status(usertypes.LoadStatus.error)
 
         self.load_finished.emit(ok)
-
-        if not self.title():
-            self.title_changed.emit(self.url().toDisplayString())
-
         self.zoom.set_current()
 
     @pyqtSlot()
@@ -981,8 +990,30 @@ class AbstractTab(QWidget):
     def shutdown(self):
         raise NotImplementedError
 
-    def title(self):
+    def _title(self):
         raise NotImplementedError
+
+    def title(self, *, fallback=True):
+        """Get the title of the webpage.
+
+        Args:
+            fallback: If set, use an override or fallback title
+                      instead of the page's.
+        """
+        if self.data.title_override is not None and not fallback:
+            # We had a predicted navigation, but we might still be displaying
+            # the old page. Here, we want the new URL as title instead.
+            return self.data.title_override
+
+        title = self._title()
+        if title or not fallback:
+            return title
+
+        url = self.url()
+        if url.isValid():
+            return url.toDisplayString()
+
+        return ''
 
     def icon(self):
         raise NotImplementedError

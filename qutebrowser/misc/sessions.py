@@ -392,7 +392,8 @@ class SessionManager(QObject):
                                    user_data=user_data)
             entries.append(entry)
             if active:
-                new_tab.title_changed.emit(histentry['title'])
+                new_tab.data.title_override = histentry['title']
+                new_tab.title_changed.emit(new_tab.title())
 
         try:
             new_tab.history.load_items(entries)

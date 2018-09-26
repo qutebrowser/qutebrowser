@@ -1088,7 +1088,7 @@ class WebEngineTab(browsertab.AbstractTab):
     def stop(self):
         self._widget.stop()
 
-    def title(self):
+    def _title(self):
         return self._widget.title()
 
     def icon(self):
@@ -1381,7 +1381,7 @@ class WebEngineTab(browsertab.AbstractTab):
         page.contentsSizeChanged.connect(self.contents_size_changed)
         page.navigation_request.connect(self._on_navigation_request)
 
-        view.titleChanged.connect(self.title_changed)
+        view.titleChanged.connect(self._on_title_changed)
         view.urlChanged.connect(self._on_url_changed)
         view.renderProcessTerminated.connect(
             self._on_render_process_terminated)
