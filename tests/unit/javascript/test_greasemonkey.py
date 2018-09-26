@@ -234,11 +234,13 @@ class TestWindowIsolation:
                         "global", "global"]
         return ret
 
-    def test_webengine(self, callback_checker, webengineview, setup):
+    def test_webengine(self, qtbot, webengineview, setup):
         page = webengineview.page()
         page.runJavaScript(setup.setup_script)
-        page.runJavaScript(setup.test_script, callback_checker.callback)
-        callback_checker.check(setup.expected)
+
+        with qtbot.wait_callback() as callback:
+            page.runJavaScript(setup.test_script, callback)
+        assert callback.args == [setup.expected]
 
     # The JSCore in 602.1 doesn't fully support Proxy.
     @pytest.mark.qtwebkit6021_skip

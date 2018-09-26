@@ -45,7 +45,6 @@ class Selection:
     def __init__(self, qtbot, caret):
         self._qtbot = qtbot
         self._caret = caret
-        self._callback_checker = utils.CallbackChecker(qtbot)
 
     def check(self, expected, *, strip=False):
         """Check whether we got the expected selection.
@@ -54,11 +53,10 @@ class Selection:
         too quickly, we try to read it multiple times.
         """
         for _ in range(10):
-            with self._qtbot.wait_signal(
-                    self._callback_checker.got_result) as blocker:
-                self._caret.selection(self._callback_checker.callback)
+            with self._qtbot.wait_callback() as callback:
+                self._caret.selection(callback)
 
-            selection = blocker.args[0]
+            selection = callback.args[0]
             if selection:
                 if strip:
                     selection = selection.strip()
@@ -76,7 +74,7 @@ class Selection:
 
 
 @pytest.fixture
-def selection(qtbot, caret, callback_checker):
+def selection(qtbot, caret):
     return Selection(qtbot, caret)
 
 
@@ -294,12 +292,13 @@ class TestSearch:
 
     @pytest.mark.qtbug60673
     @pytest.mark.no_xvfb
-    def test_yanking_a_searched_line(self, caret, selection, mode_manager, callback_checker, web_tab, qtbot):
+    def test_yanking_a_searched_line(self, caret, selection, mode_manager, web_tab, qtbot):
         web_tab.show()
         mode_manager.leave(usertypes.KeyMode.caret)
 
-        web_tab.search.search('fiv', result_cb=callback_checker.callback)
-        callback_checker.check(True)
+        with qtbot.wait_callback() as callback:
+            web_tab.search.search('fiv', result_cb=callback)
+        assert callback.args == [True]
 
         mode_manager.enter(usertypes.KeyMode.caret)
         caret.move_to_end_of_line()
@@ -307,15 +306,17 @@ class TestSearch:
 
     @pytest.mark.qtbug60673
     @pytest.mark.no_xvfb
-    def test_yanking_a_searched_line_with_multiple_matches(self, caret, selection, mode_manager, callback_checker, web_tab, qtbot):
+    def test_yanking_a_searched_line_with_multiple_matches(self, caret, selection, mode_manager, web_tab, qtbot):
         web_tab.show()
         mode_manager.leave(usertypes.KeyMode.caret)
 
-        web_tab.search.search('w', result_cb=callback_checker.callback)
-        callback_checker.check(True)
+        with qtbot.wait_callback() as callback:
+            web_tab.search.search('w', result_cb=callback)
+        assert callback.args == [True]
 
-        web_tab.search.next_result(result_cb=callback_checker.callback)
-        callback_checker.check(True)
+        with qtbot.wait_callback() as callback:
+            web_tab.search.next_result(result_cb=callback)
+        assert callback.args == [True]
 
         mode_manager.enter(usertypes.KeyMode.caret)
 
@@ -337,7 +338,7 @@ class TestFollowSelected:
         mode_manager.leave(usertypes.KeyMode.caret)
         with qtbot.wait_signal(caret.follow_selected_done):
             with qtbot.assert_not_emitted(web_tab.load_started,
-                                          wait=self.LOAD_STARTED):
+                                          wait=self.LOAD_STARTED_DELAY):
                 caret.follow_selected()
 
     def test_follow_selected_with_text(self, qtbot, caret, selection, web_tab):
@@ -346,7 +347,7 @@ class TestFollowSelected:
         caret.move_to_end_of_word()
         with qtbot.wait_signal(caret.follow_selected_done):
             with qtbot.assert_not_emitted(web_tab.load_started,
-                                          wait=self.LOAD_STARTED):
+                                          wait=self.LOAD_STARTED_DELAY):
                 caret.follow_selected()
 
     def test_follow_selected_with_link(self, caret, selection, config_stub,

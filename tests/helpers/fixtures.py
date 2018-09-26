@@ -84,11 +84,6 @@ class WinRegistryHelper:
             del objreg.window_registry[win_id]
 
 
-@pytest.fixture
-def callback_checker(qtbot):
-    return helpers.utils.CallbackChecker(qtbot)
-
-
 class FakeStatusBar(QWidget):
 
     """Fake statusbar to test progressbar sizing."""
