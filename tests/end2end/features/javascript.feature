@@ -124,6 +124,9 @@ Feature: Javascript stuff
     # https://github.com/qutebrowser/qutebrowser/issues/1190
     # https://github.com/qutebrowser/qutebrowser/issues/2495
 
+    # Currently broken on Windows:
+    # https://github.com/qutebrowser/qutebrowser/issues/4230
+    @posix
     Scenario: Checking visible/invisible window size
         When I run :tab-only
         And I open data/javascript/windowsize.html in a new background tab
