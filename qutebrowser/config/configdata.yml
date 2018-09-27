@@ -2610,6 +2610,7 @@ bindings.default:
     prompt:
       <Return>: prompt-accept
       <Ctrl-X>: prompt-open-download
+      <Ctrl-P>: prompt-open-download --pdfjs
       <Shift-Tab>: prompt-item-focus prev
       <Up>: prompt-item-focus prev
       <Tab>: prompt-item-focus next

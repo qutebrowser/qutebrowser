@@ -32,6 +32,8 @@ Added
     QtWebEngine.
   * Opening a PDF file now doesn't start a second request anymore.
   * Opening PDFs on https:// sites now works properly.
+  * New `--pdfjs` flag for `prompt-open-download`, so PDFs can be opened in
+    PDF.js with `<Ctrl-P>` in the download prompt.
 - New `qt.process_model` setting which can be used to change Chromium's process
   model.
 - New `qt.low_end_device_mode` setting which turns on Chromium's low-end device
