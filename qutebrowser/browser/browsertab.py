@@ -701,6 +701,7 @@ class AbstractTab(QWidget):
 
         _load_status: loading status of this page
                       Accessible via load_status() method.
+        _last_hovered_link: The URL of the last hovered link as String
         _has_ssl_errors: Whether SSL errors happened.
                          Needs to be set by subclasses.
 
@@ -761,6 +762,7 @@ class AbstractTab(QWidget):
         self._mouse_event_filter = mouse.MouseEventFilter(
             self, parent=self)
         self.backend = None
+        self._last_hovered_link = None
 
         # FIXME:qtwebengine  Should this be public api via self.hints?
         #                    Also, should we get it out of objreg?
@@ -769,6 +771,7 @@ class AbstractTab(QWidget):
                         window=self.win_id, tab=self.tab_id)
 
         self.predicted_navigation.connect(self._on_predicted_navigation)
+        self.link_hovered.connect(self.on_link_hovered_change)
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
@@ -871,6 +874,11 @@ class AbstractTab(QWidget):
                                   navigation.url.toDisplayString(),
                                   navigation.url.errorString()))
             navigation.accepted = False
+
+    @pyqtSlot(str)
+    def on_link_hovered_change(self, link_hovered):
+        if link_hovered:
+            self._last_hovered_link = link_hovered
 
     def handle_auto_insert_mode(self, ok):
         """Handle `input.insert_mode.auto_load` after loading finished."""

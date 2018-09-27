@@ -17,6 +17,7 @@ For command arguments, there are also some variables you can use:
 - `{url:host}` expands to the host part of the URL
 - `{clipboard}` expands to the clipboard contents
 - `{primary}` expands to the primary selection contents
+- `{link_hovered}` expands to the URL of the last hovered link  
 
 It is possible to run or bind multiple commands by separating them with `;;`.
 
