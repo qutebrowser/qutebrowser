@@ -1018,6 +1018,10 @@ class AbstractTab(QWidget):
         if url.isValid():
             return url.toDisplayString()
 
+        req_url = self.url(requested=True)
+        if req_url.isValid():
+            return url.toDisplayString()
+
         return ''
 
     def icon(self):
