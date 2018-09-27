@@ -78,4 +78,4 @@ def test_simple_js_webengine(qtbot, webengineview, qapp,
     with qtbot.wait_callback() as callback:
         page.runJavaScript('1 + 1', world, callback)
 
-    assert callback.args == [expected]
+    callback.assert_called_with(expected)

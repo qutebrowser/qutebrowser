@@ -240,7 +240,7 @@ class TestWindowIsolation:
 
         with qtbot.wait_callback() as callback:
             page.runJavaScript(setup.test_script, callback)
-        assert callback.args == [setup.expected]
+        callback.assert_called_with(setup.expected)
 
     # The JSCore in 602.1 doesn't fully support Proxy.
     @pytest.mark.qtwebkit6021_skip

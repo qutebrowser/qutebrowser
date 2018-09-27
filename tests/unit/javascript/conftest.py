@@ -112,7 +112,7 @@ class JSTester:
         """
         with self.qtbot.wait_callback() as callback:
             self.tab.run_js_async(source, callback, world=world)
-        assert callback.args == [expected]
+        callback.assert_called_with(expected)
 
 
 @pytest.fixture

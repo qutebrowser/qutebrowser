@@ -58,7 +58,7 @@ class CaretTester:
 
         with self._qtbot.wait_callback() as callback:
             self.js.tab.caret.selection(lambda text: callback(text.rstrip()))
-        assert callback.args == ['MARKER']
+        callback.assert_called_with('MARKER')
 
     def check_scrolled(self):
         """Check if the page is scrolled down."""
