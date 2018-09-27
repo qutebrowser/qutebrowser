@@ -99,10 +99,10 @@ def _generate_pdfjs_script(filename):
           }
 
           const viewer = window.PDFView || window.PDFViewerApplication;
-          viewer.open("{{ url }}");
+          viewer.open({{ url }});
         });
     """).render(
-        url=javascript.string_escape(url.toString(QUrl.FullyEncoded)),
+        url=javascript.to_js(url.toString(QUrl.FullyEncoded)),
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70420
         disable_create_object_url=(
             not qtutils.version_check('5.12') and

@@ -125,8 +125,8 @@ class WebKitElement(webelem.AbstractWebElement):
             self._elem.setPlainText(value)
         else:
             log.webelem.debug("Filling {!r} via javascript.".format(self))
-            value = javascript.string_escape(value)
-            self._elem.evaluateJavaScript("this.value='{}'".format(value))
+            value = javascript.to_js(value)
+            self._elem.evaluateJavaScript("this.value={}".format(value))
 
     def dispatch_event(self, event, bubbles=False,
                        cancelable=False, composed=False):
@@ -135,10 +135,10 @@ class WebKitElement(webelem.AbstractWebElement):
         self._elem.evaluateJavaScript(
             "this.dispatchEvent(new Event({}, "
             "{{'bubbles': {}, 'cancelable': {}, 'composed': {}}}))"
-            .format(javascript.convert_js_arg(event),
-                    javascript.convert_js_arg(bubbles),
-                    javascript.convert_js_arg(cancelable),
-                    javascript.convert_js_arg(composed)))
+            .format(javascript.to_js(event),
+                    javascript.to_js(bubbles),
+                    javascript.to_js(cancelable),
+                    javascript.to_js(composed)))
 
     def caret_position(self):
         """Get the text caret position for the current element."""
@@ -154,11 +154,11 @@ class WebKitElement(webelem.AbstractWebElement):
             raise webelem.Error("Element is not editable!")
         log.webelem.debug("Inserting text into element {!r}".format(self))
         self._elem.evaluateJavaScript("""
-            var text = "{}";
+            var text = {};
             var event = document.createEvent("TextEvent");
             event.initTextEvent("textInput", true, true, null, text);
             this.dispatchEvent(event);
-        """.format(javascript.string_escape(text)))
+        """.format(javascript.to_js(text)))
 
     def _parent(self):
         """Get the parent element of this element."""

@@ -45,8 +45,8 @@ def test_generate_pdfjs_page(available, snippet, monkeypatch):
 
 
 # Note that we got double protection, once because we use QUrl.FullyEncoded and
-# because we use qutebrowser.utils.javascript.string_escape.  Characters
-# like " are already replaced by QUrl.
+# because we use qutebrowser.utils.javascript.to_js. Characters like " are
+# already replaced by QUrl.
 @pytest.mark.parametrize('filename, expected', [
     ('foo.bar', "foo.bar"),
     ('foo"bar', "foo%22bar"),
