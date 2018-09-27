@@ -89,9 +89,9 @@ class TestStringEscape:
 def test_convert_js_arg(arg, expected):
     if expected is TypeError:
         with pytest.raises(TypeError):
-            javascript._convert_js_arg(arg)
+            javascript.convert_js_arg(arg)
     else:
-        assert javascript._convert_js_arg(arg) == expected
+        assert javascript.convert_js_arg(arg) == expected
 
 
 @pytest.mark.parametrize('base, expected_base', [
