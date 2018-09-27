@@ -38,6 +38,7 @@ class TestTabWidget:
         qtbot.addWidget(w)
         monkeypatch.setattr(tabwidget.objects, 'backend',
                             usertypes.Backend.QtWebKit)
+        monkeypatch.setattr(w.tabBar(), 'width', w.width)
         return w
 
     @pytest.fixture
@@ -108,7 +109,7 @@ class TestTabWidget:
 
         for i in range(num_tabs):
             if i in pinned_num and shrink_pinned and not vertical:
-                assert (first_size.width() <
+                assert (first_size.width() >
                         widget.tabBar().tabSizeHint(i).width())
                 assert (first_size_min.width() <
                         widget.tabBar().minimumTabSizeHint(i).width())
@@ -127,6 +128,22 @@ class TestTabWidget:
             widget.show()
 
         benchmark(widget.update_tab_titles)
+
+    def test_tab_min_width(self, widget, fake_web_tab, config_stub):
+        """Ensure by default, all tab sizes are the same."""
+        widget.addTab(fake_web_tab(), 'foobar')
+        normal_size = widget.tabBar().minimumTabSizeHint(0).width()
+        normal_size += 100
+        config_stub.val.tabs.min_width = normal_size
+        assert widget.tabBar().minimumTabSizeHint(0).width() == normal_size
+
+    def test_tab_max_width(self, widget, fake_web_tab, config_stub):
+        """Ensure by default, all tab sizes are the same."""
+        widget.addTab(fake_web_tab(), 'foobar')
+        normal_size = widget.tabBar().tabSizeHint(0).width()
+        normal_size -= 10
+        config_stub.val.tabs.max_width = normal_size
+        assert widget.tabBar().tabSizeHint(0).width() == normal_size
 
     @pytest.mark.parametrize("num_tabs", [4, 10])
     def test_add_remove_tab_benchmark(self, benchmark, browser,

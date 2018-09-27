@@ -610,6 +610,9 @@ class TabBar(QTabBar):
                 # Request as much space as possible so we fill the tabbar, let
                 # Qt shrink us down
                 width = self.width()
+                max_width = config.cache['tabs.max_width']
+                if max_width > 0:
+                    width = min(max_width, width)
 
             # If we don't have enough space, we return the minimum size
             width = max(width, minimum_size.width())
