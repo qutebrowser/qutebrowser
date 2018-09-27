@@ -72,6 +72,7 @@ Changed
   page instead of zooming.
 - Editing text in an external editor now simulates a JS "input" event, which
   improves compatibility with websites reacting via JS to input.
+- The `qute://settings` page is now properly sorted on Python 3.5.
 
 Fixed
 ~~~~~
