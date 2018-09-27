@@ -147,7 +147,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             bubbles: Whether this event should bubble.
             cancelable: Whether this event can be cancelled.
             composed: Whether the event will trigger listeners outside of a
-                      shadow root
+                      shadow root.
         """
         raise NotImplementedError
 
