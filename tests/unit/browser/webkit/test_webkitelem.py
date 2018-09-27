@@ -409,8 +409,8 @@ class TestWebKitElement:
         assert elem.value() == 'js'
 
     @pytest.mark.parametrize('editable, value, uses_js, arg', [
-        ('false', 'foo', True, "this.value='foo'"),
-        ('false', "foo'bar", True, r"this.value='foo\'bar'"),
+        ('false', 'foo', True, 'this.value="foo"'),
+        ('false', "foo'bar", True, r'this.value="foo\'bar"'),
         ('true', 'foo', False, 'foo'),
     ])
     def test_set_value(self, editable, value, uses_js, arg):
