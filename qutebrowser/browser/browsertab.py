@@ -833,12 +833,12 @@ class AbstractTab(QWidget):
     def _on_predicted_navigation(self, url):
         """Adjust the title if we are going to visit an URL soon."""
         qtutils.ensure_valid(url)
+
         url_string = url.toDisplayString()
         log.webview.debug("Predicted navigation: {}".format(url_string))
 
-        if not self.title(fallback=False):
-            self.data.title_override = url_string
-            self.title_changed.emit(self.title())
+        self.data.title_override = url_string
+        self.title_changed.emit(self.title())
 
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url):
@@ -848,11 +848,11 @@ class AbstractTab(QWidget):
             self.title_changed.emit(self.title())
         self.url_changed.emit(url)
 
-    @pyqtSlot(str)
-    def _on_title_changed(self, title):
+    @pyqtSlot()
+    def _on_title_changed(self):
         """Update our title when the page's title has changed."""
         self.data.title_override = None
-        self.title_changed.emit(title)
+        self.title_changed.emit(self.title())
 
     @pyqtSlot()
     def _on_load_started(self):
@@ -1001,10 +1001,11 @@ class AbstractTab(QWidget):
         """Get the title of the webpage.
 
         Args:
-            fallback: If set, use an override or fallback title
-                      instead of the page's.
+            fallback: If set to False, only the page's title is returned. If
+                      True (the default), we fall back to the predicted
+                      navigation or page URL if no title is set.
         """
-        if self.data.title_override is not None and not fallback:
+        if self.data.title_override is not None and fallback:
             # We had a predicted navigation, but we might still be displaying
             # the old page. Here, we want the new URL as title instead.
             return self.data.title_override
