@@ -870,37 +870,44 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom_in(self, count=1):
+    @cmdutils.argument('quiet', flag='q')
+    def zoom_in(self, count=1, quiet=False):
         """Increase the zoom level for the current tab.
 
         Args:
             count: How many steps to zoom in.
+            quiet: Don't show information message with result.
         """
         tab = self._current_widget()
         try:
             perc = tab.zoom.offset(count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        message.info("Zoom level: {}%".format(int(perc)), replace=True)
+        if not quiet:
+            message.info("Zoom level: {}%".format(int(perc)), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom_out(self, count=1):
+    @cmdutils.argument('quiet', flag='q')
+    def zoom_out(self, count=1, quiet=False):
         """Decrease the zoom level for the current tab.
 
         Args:
             count: How many steps to zoom out.
+            quiet: Don't show information message with result.
         """
         tab = self._current_widget()
         try:
             perc = tab.zoom.offset(-count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        message.info("Zoom level: {}%".format(int(perc)), replace=True)
+        if not quiet:
+            message.info("Zoom level: {}%".format(int(perc)), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom(self, zoom=None, count=None):
+    @cmdutils.argument('quiet', flag='q')
+    def zoom(self, zoom=None, count=None, quiet=False):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither is
@@ -910,6 +917,7 @@ class CommandDispatcher:
         Args:
             zoom: The zoom percentage to set.
             count: The zoom percentage to set.
+            quiet: Don't show information message with result.
         """
         if zoom is not None:
             try:
@@ -927,7 +935,8 @@ class CommandDispatcher:
             tab.zoom.set_factor(float(level) / 100)
         except ValueError:
             raise cmdexc.CommandError("Can't zoom {}%!".format(level))
-        message.info("Zoom level: {}%".format(int(level)), replace=True)
+        if not quiet:
+            message.info("Zoom level: {}%".format(int(level)), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_only(self, prev=False, next_=False, force=False):
