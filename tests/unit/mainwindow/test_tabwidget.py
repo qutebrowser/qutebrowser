@@ -38,6 +38,7 @@ class TestTabWidget:
         qtbot.addWidget(w)
         monkeypatch.setattr(tabwidget.objects, 'backend',
                             usertypes.Backend.QtWebKit)
+        w.show()
         return w
 
     @pytest.fixture
@@ -108,7 +109,7 @@ class TestTabWidget:
 
         for i in range(num_tabs):
             if i in pinned_num and shrink_pinned and not vertical:
-                assert (first_size.width() <
+                assert (first_size.width() >
                         widget.tabBar().tabSizeHint(i).width())
                 assert (first_size_min.width() <
                         widget.tabBar().minimumTabSizeHint(i).width())
@@ -127,6 +128,19 @@ class TestTabWidget:
             widget.show()
 
         benchmark(widget.update_tab_titles)
+
+    def test_tab_min_width(self, widget, fake_web_tab, config_stub, qtbot):
+        widget.addTab(fake_web_tab(), 'foobar')
+        widget.addTab(fake_web_tab(), 'foobar1')
+        min_size = widget.tabBar().tabRect(0).width() + 10
+        config_stub.val.tabs.min_width = min_size
+        assert widget.tabBar().tabRect(0).width() == min_size
+
+    def test_tab_max_width(self, widget, fake_web_tab, config_stub, qtbot):
+        widget.addTab(fake_web_tab(), 'foobar')
+        max_size = widget.tabBar().tabRect(0).width() - 10
+        config_stub.val.tabs.max_width = max_size
+        assert widget.tabBar().tabRect(0).width() == max_size
 
     @pytest.mark.parametrize("num_tabs", [4, 10])
     def test_add_remove_tab_benchmark(self, benchmark, browser,

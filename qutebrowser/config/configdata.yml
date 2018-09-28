@@ -1602,6 +1602,23 @@ tabs.min_width:
 
     This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
 
+tabs.max_width:
+  default: -1
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+  desc: >-
+    Maximum width (in pixels) of tabs (-1 for no maximum).
+
+    This setting only applies when tabs are horizontal.
+
+    This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is
+    False.
+
+    This setting may not apply properly if max_width is smaller than the
+    minimum size of tab contents, or smaller than tabs.min_width.
+
 tabs.width.indicator:
   renamed: tabs.indicator.width
 
