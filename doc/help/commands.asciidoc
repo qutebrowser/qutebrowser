@@ -1413,7 +1413,7 @@ Yank something to the clipboard or primary selection.
 
 [[zoom]]
 === zoom
-Syntax: +:zoom ['zoom']+
+Syntax: +:zoom [*--quiet*] ['zoom']+
 
 Set the zoom level for the current tab.
 
@@ -1422,19 +1422,32 @@ The zoom can be given as argument or as [count]. If neither is given, the zoom i
 ==== positional arguments
 * +'zoom'+: The zoom percentage to set.
 
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show information message with result.
+
 ==== count
 The zoom percentage to set.
 
 [[zoom-in]]
 === zoom-in
+Syntax: +:zoom-in [*--quiet*]+
+
 Increase the zoom level for the current tab.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show information message with result.
 
 ==== count
 How many steps to zoom in.
 
 [[zoom-out]]
 === zoom-out
+Syntax: +:zoom-out [*--quiet*]+
+
 Decrease the zoom level for the current tab.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show information message with result.
 
 ==== count
 How many steps to zoom out.
