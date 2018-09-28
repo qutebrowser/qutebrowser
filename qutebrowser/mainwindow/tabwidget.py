@@ -216,8 +216,17 @@ class TabWidget(QTabWidget):
 
     def update_tab_titles(self):
         """Update all texts."""
+        # Every single call to setTabText calls the size hinting functions for
+        # every single tab, which are slow. Since we know we are updating all
+        # the tab's titles, we can delay this processing by making the tab
+        # non-visible. To avoid flickering, disable repaint updates whlie we
+        # work.
+        self.setUpdatesEnabled(False)
+        self.setVisible(False)
         for idx in range(self.count()):
             self.update_tab_title(idx)
+        self.setVisible(True)
+        self.setUpdatesEnabled(True)
 
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
