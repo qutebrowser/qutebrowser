@@ -43,6 +43,8 @@ Added
 - Running qutebrowser with QtWebKit or Qt < 5.9 now shows a warning (only
   once), as support for those is going to be removed in a future release.
 - New t[iI][hHu] default bindings (similar to `tsh` etc.) to toggle images.
+- New `tabs.max_width` setting which allows to have a more "normal" look for
+  tabs.
 
 Changed
 ~~~~~~~
