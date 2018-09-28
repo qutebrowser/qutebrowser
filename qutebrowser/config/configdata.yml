@@ -810,7 +810,12 @@ content.mute:
   default: false
   type: Bool
   supports_pattern: true
-  desc: Automatically mute tabs.
+  desc: >-
+    Automatically mute tabs.
+
+    Note that if the `:tab-mute` command is used, the mute status for the
+    affected tab is now controlled manually, and this setting doesn't have any
+    effect.
 
 # emacs: '
 
