@@ -637,7 +637,16 @@ class WebEngineElements(browsertab.AbstractElements):
 
 class WebEngineAudio(browsertab.AbstractAudio):
 
-    """QtWebEngine implemementations related to audio/muting."""
+    """QtWebEngine implemementations related to audio/muting.
+
+    Attributes:
+        _overridden: Whether the user toggled muting manually.
+                     If that's the case, we leave it alone.
+    """
+
+    def __init__(self, tab, parent=None):
+        super().__init__(tab, parent)
+        self._overridden = False
 
     def _connect_signals(self):
         page = self._widget.page()
@@ -645,7 +654,8 @@ class WebEngineAudio(browsertab.AbstractAudio):
         page.recentlyAudibleChanged.connect(self.recently_audible_changed)
         self._tab.url_changed.connect(self._on_url_changed)
 
-    def set_muted(self, muted: bool):
+    def set_muted(self, muted: bool, override: bool = False):
+        self._overridden = override
         page = self._widget.page()
         page.setAudioMuted(muted)
 
@@ -659,6 +669,8 @@ class WebEngineAudio(browsertab.AbstractAudio):
 
     @pyqtSlot(QUrl)
     def _on_url_changed(self, url):
+        if self._overridden:
+            return
         mute = config.instance.get('content.mute', url=url)
         self.set_muted(mute)
 

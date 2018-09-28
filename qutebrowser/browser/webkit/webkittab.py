@@ -637,7 +637,7 @@ class WebKitAudio(browsertab.AbstractAudio):
 
     """Dummy handling of audio status for QtWebKit."""
 
-    def set_muted(self, muted: bool):
+    def set_muted(self, muted: bool, override: bool = False):
         raise browsertab.WebTabError('Muting is not supported on QtWebKit!')
 
     def is_muted(self):
