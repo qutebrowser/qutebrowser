@@ -1423,7 +1423,7 @@ The zoom can be given as argument or as [count]. If neither is given, the zoom i
 * +'zoom'+: The zoom percentage to set.
 
 ==== optional arguments
-* +*-q*+, +*--quiet*+: Don't show information message with result.
+* +*-q*+, +*--quiet*+: Don't show a zoom level message.
 
 ==== count
 The zoom percentage to set.
@@ -1435,7 +1435,7 @@ Syntax: +:zoom-in [*--quiet*]+
 Increase the zoom level for the current tab.
 
 ==== optional arguments
-* +*-q*+, +*--quiet*+: Don't show information message with result.
+* +*-q*+, +*--quiet*+: Don't show a zoom level message.
 
 ==== count
 How many steps to zoom in.
@@ -1447,7 +1447,7 @@ Syntax: +:zoom-out [*--quiet*]+
 Decrease the zoom level for the current tab.
 
 ==== optional arguments
-* +*-q*+, +*--quiet*+: Don't show information message with result.
+* +*-q*+, +*--quiet*+: Don't show a zoom level message.
 
 ==== count
 How many steps to zoom out.
