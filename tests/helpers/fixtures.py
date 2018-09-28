@@ -42,7 +42,6 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
-import helpers.utils
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache)
 from qutebrowser.utils import objreg, standarddir, utils, usertypes

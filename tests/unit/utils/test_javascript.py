@@ -86,12 +86,12 @@ class TestStringEscape:
     (True, 'true'),
     ([23, True, 'x'], '[23, true, "x"]'),
 ])
-def test_convert_js_arg(arg, expected):
+def test_to_js(arg, expected):
     if expected is TypeError:
         with pytest.raises(TypeError):
-            javascript._convert_js_arg(arg)
+            javascript.to_js(arg)
     else:
-        assert javascript._convert_js_arg(arg) == expected
+        assert javascript.to_js(arg) == expected
 
 
 @pytest.mark.parametrize('base, expected_base', [

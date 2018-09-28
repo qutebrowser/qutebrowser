@@ -758,11 +758,11 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
  - `up`: Go up a level in the current URL.
  - `increment`: Increment the last number in the URL.
  Uses the
- link:settings.html#url.incdec_segments[url.incdec_segments]
+ link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
  config option.
  - `decrement`: Decrement the last number in the URL.
  Uses the
- link:settings.html#url.incdec_segments[url.incdec_segments]
+ link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
  config option.
  
 
@@ -1666,7 +1666,7 @@ Shift the focus of the prompt file completion menu to another item.
 
 [[prompt-open-download]]
 === prompt-open-download
-Syntax: +:prompt-open-download ['cmdline']+
+Syntax: +:prompt-open-download [*--pdfjs*] ['cmdline']+
 
 Immediately open a download.
 
@@ -1677,6 +1677,9 @@ If no specific command is given, this will use the system's default application 
  present, the filename is automatically appended to the
  cmdline.
 
+
+==== optional arguments
+* +*-p*+, +*--pdfjs*+: Open the download via PDF.js.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.

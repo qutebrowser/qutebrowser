@@ -25,7 +25,6 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import usertypes
-from helpers import utils
 
 
 @pytest.fixture
@@ -298,7 +297,7 @@ class TestSearch:
 
         with qtbot.wait_callback() as callback:
             web_tab.search.search('fiv', result_cb=callback)
-        assert callback.args == [True]
+        callback.assert_called_with(True)
 
         mode_manager.enter(usertypes.KeyMode.caret)
         caret.move_to_end_of_line()
@@ -312,11 +311,11 @@ class TestSearch:
 
         with qtbot.wait_callback() as callback:
             web_tab.search.search('w', result_cb=callback)
-        assert callback.args == [True]
+        callback.assert_called_with(True)
 
         with qtbot.wait_callback() as callback:
             web_tab.search.next_result(result_cb=callback)
-        assert callback.args == [True]
+        callback.assert_called_with(True)
 
         mode_manager.enter(usertypes.KeyMode.caret)
 

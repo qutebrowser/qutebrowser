@@ -62,9 +62,9 @@ class StylesheetTester:
         """Check whether the css in ELEMENT is set to VALUE."""
         self.js.run("console.log({document});"
                     "window.getComputedStyle({document}, null)"
-                    ".getPropertyValue('{prop}');".format(
+                    ".getPropertyValue({prop});".format(
                         document=document_element,
-                        prop=javascript.string_escape(css_style)),
+                        prop=javascript.to_js(css_style)),
                     value)
 
     def check_eq(self, one, two, true=True):

@@ -139,6 +139,18 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Set the element value."""
         raise NotImplementedError
 
+    def dispatch_event(self, event, bubbles=False,
+                       cancelable=False, composed=False):
+        """Dispatch an event to the element.
+
+        Args:
+            bubbles: Whether this event should bubble.
+            cancelable: Whether this event can be cancelled.
+            composed: Whether the event will trigger listeners outside of a
+                      shadow root.
+        """
+        raise NotImplementedError
+
     def insert_text(self, text):
         """Insert the given text into the element."""
         raise NotImplementedError

@@ -612,11 +612,11 @@ class CommandDispatcher:
                 - `up`: Go up a level in the current URL.
                 - `increment`: Increment the last number in the URL.
                   Uses the
-                  link:settings.html#url.incdec_segments[url.incdec_segments]
+                  link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
                   config option.
                 - `decrement`: Decrement the last number in the URL.
                   Uses the
-                  link:settings.html#url.incdec_segments[url.incdec_segments]
+                  link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
                   config option.
 
             tab: Open in a new tab.
@@ -1659,6 +1659,8 @@ class CommandDispatcher:
         """
         try:
             elem.set_value(text)
+            # Kick off js handlers to trick them into thinking there was input.
+            elem.dispatch_event("input", bubbles=True)
         except webelem.OrphanedError:
             message.error('Edited element vanished')
             ed.backup()

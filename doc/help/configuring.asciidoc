@@ -44,7 +44,7 @@ If you want to customize many settings, you can open the link:qute://settings[]
 page by running `:set` without any arguments, where all settings are listed and
 customizable.
 
-Using the link:commands.html#set[`:set`] command and command completion, you
+Using the link:commands{outfilesuffix}#set[`:set`] command and command completion, you
 can quickly set settings interactively, for example `:set tabs.position left`.
 
 Some settings are also customizable for a given
@@ -53,8 +53,8 @@ https://developer.chrome.com/apps/match_patterns[URL pattern] by doing e.g.
 
 To get more help about a setting, use e.g. `:help tabs.position`.
 
-To bind and unbind keys, you can use the link:commands.html#bind[`:bind`] and
-link:commands.html#unbind[`:unbind`] commands:
+To bind and unbind keys, you can use the link:commands{outfilesuffix}#bind[`:bind`] and
+link:commands{outfilesuffix}#unbind[`:unbind`] commands:
 
 - Binding the key chain `,v` to the `:spawn mpv {url}` command:
   `:bind ,v spawn mpv {url}`
@@ -67,9 +67,9 @@ See the help pages linked above (or `:help :bind`, `:help :unbind`) for more
 information.
 
 Other useful commands for config manipulation are
-link:commands.html#config-unset[`:config-unset`] to reset a value to its default,
-link:commands.html#config-clear[`:config-clear`] to reset the entire configuration,
-and link:commands.html#config-cycle[`:config-cycle`] to cycle a setting between
+link:commands{outfilesuffix}#config-unset[`:config-unset`] to reset a value to its default,
+link:commands{outfilesuffix}#config-clear[`:config-clear`] to reset the entire configuration,
+and link:commands{outfilesuffix}#config-cycle[`:config-cycle`] to cycle a setting between
 different values.
 
 [[configpy]]
@@ -111,7 +111,7 @@ Note that qutebrowser does some Python magic so it's able to warn you about
 mistyped config settings. As an example, if you do `c.tabs.possition = "left"`,
 you'll get an error when starting.
 
-See the link:settings.html[settings help page] for all available settings. The
+See the link:settings{outfilesuffix}[settings help page] for all available settings. The
 accepted values depend on the type of the option. Commonly used are:
 
 - Strings: `c.tabs.position = "left"`
@@ -187,7 +187,7 @@ preferred to use the `config.bind` command. Doing so ensures the commands are
 valid and normalizes different expressions which map to the same key.
 
 For details on how to specify keys and the available modes, see the
-link:settings.html#bindings.commands[documentation] for the `bindings.commands`
+link:settings{outfilesuffix}#bindings.commands[documentation] for the `bindings.commands`
 setting.
 
 To bind a key:

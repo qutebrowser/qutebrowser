@@ -32,6 +32,8 @@ Added
     QtWebEngine.
   * Opening a PDF file now doesn't start a second request anymore.
   * Opening PDFs on https:// sites now works properly.
+  * New `--pdfjs` flag for `prompt-open-download`, so PDFs can be opened in
+    PDF.js with `<Ctrl-P>` in the download prompt.
 - New `qt.process_model` setting which can be used to change Chromium's process
   model.
 - New `qt.low_end_device_mode` setting which turns on Chromium's low-end device
@@ -68,6 +70,9 @@ Changed
   patterns instead of globs.
 - In passthrough mode, Ctrl + Mousewheel now also gets passed through to the
   page instead of zooming.
+- Editing text in an external editor now simulates a JS "input" event, which
+  improves compatibility with websites reacting via JS to input.
+- The `qute://settings` page is now properly sorted on Python 3.5.
 
 Fixed
 ~~~~~
