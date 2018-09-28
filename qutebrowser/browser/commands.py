@@ -870,7 +870,6 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    @cmdutils.argument('quiet')
     def zoom_in(self, count=1, quiet=False):
         """Increase the zoom level for the current tab.
 
@@ -888,7 +887,6 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    @cmdutils.argument('quiet')
     def zoom_out(self, count=1, quiet=False):
         """Decrease the zoom level for the current tab.
 
@@ -906,7 +904,6 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    @cmdutils.argument('quiet')
     def zoom(self, zoom=None, count=None, quiet=False):
         """Set the zoom level for the current tab.
 
