@@ -1282,9 +1282,14 @@ prompt.radius:
 ## scrolling
 
 scrolling.bar:
-  type: Bool
-  default: false
-  desc: Show a scrollbar.
+  type:
+    name: String
+    valid_values:
+      - always: Always show the scrollbar.
+      - never: Never show the scrollbar.
+      - when_searching: Show the scrollbar when searching for text in the webpage.
+  default: when_searching
+  desc: When to show the scrollbar.
 
 scrolling.smooth:
   type: Bool
