@@ -232,7 +232,7 @@
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
-|<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
+|<<scrolling.bar,scrolling.bar>>|When to show the scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
 |<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
@@ -1920,7 +1920,7 @@ On QtWebKit, this setting is unavailable.
 [[content.mute]]
 === content.mute
 Automatically mute tabs.
-Note that if the :tab-mute command is used, the mute status for the affected tab is now controlled manually, and this setting doesn't have any effect.
+Note that if the `:tab-mute` command is used, the mute status for the affected tab is now controlled manually, and this setting doesn't have any effect.
 
 This setting supports URL patterns.
 
@@ -2828,11 +2828,17 @@ This setting is only available with the QtWebEngine backend.
 
 [[scrolling.bar]]
 === scrolling.bar
-Show a scrollbar.
+When to show the scrollbar.
 
-Type: <<types,Bool>>
+Type: <<types,String>>
 
-Default: +pass:[false]+
+Valid values:
+
+ * +always+: Always show the scrollbar.
+ * +never+: Never show the scrollbar.
+ * +when-searching+: Show the scrollbar when searching for text in the webpage. With the QtWebKit backend, this is equal to `never`.
+
+Default: +pass:[when-searching]+
 
 [[scrolling.smooth]]
 === scrolling.smooth

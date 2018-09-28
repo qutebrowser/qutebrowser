@@ -79,6 +79,9 @@ Changed
 - The `qute://settings` page is now properly sorted on Python 3.5.
 - `:zoom`, `:zoom-in` and `:zoom-out` now have a `--quiet` switch which causes
   them to not display a message.
+- The `scrolling.bar` setting now takes three values instead of being a
+  boolean: `always`, `never`, and `when-searching` (which only displays it
+  while a search is active).
 
 Fixed
 ~~~~~
