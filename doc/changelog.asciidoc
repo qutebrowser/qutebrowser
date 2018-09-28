@@ -45,6 +45,8 @@ Added
 - New t[iI][hHu] default bindings (similar to `tsh` etc.) to toggle images.
 - New `tabs.max_width` setting which allows to have a more "normal" look for
   tabs.
+- New `content.mute` setting which allows to mute pages (or all tabs) by
+  default.
 
 Changed
 ~~~~~~~

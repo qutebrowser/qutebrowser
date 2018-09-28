@@ -145,6 +145,7 @@
 |<<content.local_storage,content.local_storage>>|Enable support for HTML 5 local storage and Web SQL.
 |<<content.media_capture,content.media_capture>>|Allow websites to record audio/video.
 |<<content.mouse_lock,content.mouse_lock>>|Allow websites to lock your mouse pointer.
+|<<content.mute,content.mute>>|Automatically mute tabs.
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
 |<<content.notifications,content.notifications>>|Allow websites to show notifications.
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
@@ -1915,6 +1916,16 @@ Default: +pass:[ask]+
 On QtWebEngine, this setting requires Qt 5.8 or newer.
 
 On QtWebKit, this setting is unavailable.
+
+[[content.mute]]
+=== content.mute
+Automatically mute tabs.
+
+This setting supports URL patterns.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[content.netrc_file]]
 === content.netrc_file
