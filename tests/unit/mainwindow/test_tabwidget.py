@@ -39,7 +39,6 @@ class TestTabWidget:
         monkeypatch.setattr(tabwidget.objects, 'backend',
                             usertypes.Backend.QtWebKit)
         w.show()
-        # monkeypatch.setattr(w.tabBar(), 'width', w.width)
         return w
 
     @pytest.fixture
@@ -130,17 +129,18 @@ class TestTabWidget:
 
         benchmark(widget.update_tab_titles)
 
-    def test_tab_min_width(self, widget, fake_web_tab, config_stub):
+    def test_tab_min_width(self, widget, fake_web_tab, config_stub, qtbot):
         widget.addTab(fake_web_tab(), 'foobar')
-        normal_size = widget.tabBar().tabRect(0).width() + 100
-        config_stub.val.tabs.min_width = normal_size
-        assert widget.tabBar().tabRect(0).width() == normal_size
+        widget.addTab(fake_web_tab(), 'foobar1')
+        min_size = widget.tabBar().tabRect(0).width() + 10
+        config_stub.val.tabs.min_width = min_size
+        assert widget.tabBar().tabRect(0).width() == min_size
 
-    def test_tab_max_width(self, widget, fake_web_tab, config_stub):
+    def test_tab_max_width(self, widget, fake_web_tab, config_stub, qtbot):
         widget.addTab(fake_web_tab(), 'foobar')
-        normal_size = widget.tabBar().tabRect(0).width() - 10
-        config_stub.val.tabs.max_width = normal_size
-        assert widget.tabBar().tabRect(0).width() == normal_size
+        max_size = widget.tabBar().tabRect(0).width() - 10
+        config_stub.val.tabs.max_width = max_size
+        assert widget.tabBar().tabRect(0).width() == max_size
 
     @pytest.mark.parametrize("num_tabs", [4, 10])
     def test_add_remove_tab_benchmark(self, benchmark, browser,

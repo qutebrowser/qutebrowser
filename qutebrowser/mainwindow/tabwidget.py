@@ -613,15 +613,12 @@ class TabBar(QTabBar):
                 width = self.minimumTabSizeHint(index, ellipsis=False).width()
             else:
                 # Request as much space as possible so we fill the tabbar, let
-                # Qt shrink us down
-                width = self.width()
+                # Qt shrink us down. If for some reason (tests, bugs)
+                # self.width() gives 0, use a sane min of 10 px
+                width = max(self.width(), 10)
                 max_width = config.cache['tabs.max_width']
                 if max_width > 0:
                     width = min(max_width, width)
-
-                # If for some reason (tests, bugs) self.width() gives 0, use a
-                # sane min of 10 px
-                width = max(width, 10)
             size = QSize(width, height)
         qtutils.ensure_valid(size)
         return size
