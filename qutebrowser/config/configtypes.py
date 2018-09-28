@@ -1381,7 +1381,7 @@ class ShellCommand(List):
         if value is configutils.UNSET:
             return value
         elif not value:
-            return value
+            return []
 
         if (self.placeholder and
                 '{}' not in ' '.join(value) and
@@ -1647,8 +1647,10 @@ class ConfirmQuit(FlagList):
 
     def to_py(self, value):
         values = super().to_py(value)
-        if not values or values is configutils.UNSET:
+        if values is configutils.UNSET:
             return values
+        elif not values:
+            return []
 
         # Never can't be set with other options
         if 'never' in values and len(values) > 1:
