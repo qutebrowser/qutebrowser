@@ -215,9 +215,10 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._find(text, self._flags, result_cb, 'search')
 
     def clear(self):
+        if self.search_displayed:
+            self._tab.scripts.update_stylesheet(searching=False)
         self.search_displayed = False
         self._widget.findText('')
-        self._tab.scripts.update_stylesheet(searching=False)
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
