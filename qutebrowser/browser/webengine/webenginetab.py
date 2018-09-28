@@ -163,10 +163,9 @@ class WebEngineSearch(browsertab.AbstractSearch):
     """
 
     def __init__(self, tab, parent=None):
-        super().__init__(parent)
+        super().__init__(tab, parent)
         self._flags = QWebEnginePage.FindFlags(0)
         self._pending_searches = 0
-        self._tab = tab
 
     def _find(self, text, flags, callback, caller):
         """Call findText on the widget."""
@@ -1026,8 +1025,8 @@ class WebEngineTab(browsertab.AbstractTab):
                          private=private, parent=parent)
         widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
                                        private=private)
-        self.history = WebEngineHistory(self)
-        self.scroller = WebEngineScroller(self, parent=self)
+        self.history = WebEngineHistory(tab=self)
+        self.scroller = WebEngineScroller(tab=self, parent=self)
         self.caret = WebEngineCaret(mode_manager=mode_manager,
                                     tab=self, parent=self)
         self.zoom = WebEngineZoom(tab=self, parent=self)

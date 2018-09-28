@@ -258,8 +258,9 @@ class AbstractSearch(QObject):
     finished = pyqtSignal(bool)
     cleared = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, tab, parent=None):
         super().__init__(parent)
+        self._tab = tab
         self._widget = None
         self.text = None
         self.search_displayed = False

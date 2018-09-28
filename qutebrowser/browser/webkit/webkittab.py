@@ -84,8 +84,8 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     """QtWebKit implementations related to searching on the page."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, tab, parent=None):
+        super().__init__(tab, parent)
         self._flags = QWebPage.FindFlags(0)
 
     def _call_cb(self, callback, found, text, flags, caller):
@@ -662,12 +662,12 @@ class WebKitTab(browsertab.AbstractTab):
                                  private=private, tab=self)
         if private:
             self._make_private(widget)
-        self.history = WebKitHistory(self)
-        self.scroller = WebKitScroller(self, parent=self)
+        self.history = WebKitHistory(tab=self)
+        self.scroller = WebKitScroller(tab=self, parent=self)
         self.caret = WebKitCaret(mode_manager=mode_manager,
                                  tab=self, parent=self)
         self.zoom = WebKitZoom(tab=self, parent=self)
-        self.search = WebKitSearch(parent=self)
+        self.search = WebKitSearch(tab=self, parent=self)
         self.printing = WebKitPrinting(tab=self)
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
