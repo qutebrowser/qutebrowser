@@ -667,7 +667,7 @@ class WebKitTab(browsertab.AbstractTab):
         self.printing = WebKitPrinting(tab=self)
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
-        self.audio = WebKitAudio(parent=self)
+        self.audio = WebKitAudio(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)

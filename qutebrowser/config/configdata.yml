@@ -806,6 +806,12 @@ content.xss_auditing:
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console.
 
+content.mute:
+  default: false
+  type: Bool
+  supports_pattern: true
+  desc: Automatically mute tabs.
+
 # emacs: '
 
 ## completion
