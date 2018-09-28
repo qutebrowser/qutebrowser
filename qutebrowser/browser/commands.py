@@ -870,13 +870,13 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    @cmdutils.argument('quiet', flag='q')
+    @cmdutils.argument('quiet')
     def zoom_in(self, count=1, quiet=False):
         """Increase the zoom level for the current tab.
 
         Args:
             count: How many steps to zoom in.
-            quiet: Don't show information message with result.
+            quiet: Don't show a zoom level message.
         """
         tab = self._current_widget()
         try:
@@ -888,13 +888,13 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    @cmdutils.argument('quiet', flag='q')
+    @cmdutils.argument('quiet')
     def zoom_out(self, count=1, quiet=False):
         """Decrease the zoom level for the current tab.
 
         Args:
             count: How many steps to zoom out.
-            quiet: Don't show information message with result.
+            quiet: Don't show a zoom level message.
         """
         tab = self._current_widget()
         try:
@@ -906,7 +906,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    @cmdutils.argument('quiet', flag='q')
+    @cmdutils.argument('quiet')
     def zoom(self, zoom=None, count=None, quiet=False):
         """Set the zoom level for the current tab.
 
@@ -917,7 +917,7 @@ class CommandDispatcher:
         Args:
             zoom: The zoom percentage to set.
             count: The zoom percentage to set.
-            quiet: Don't show information message with result.
+            quiet: Don't show a zoom level message.
         """
         if zoom is not None:
             try:
