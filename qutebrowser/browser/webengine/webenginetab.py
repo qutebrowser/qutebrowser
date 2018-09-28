@@ -653,6 +653,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         page.audioMutedChanged.connect(self.muted_changed)
         page.recentlyAudibleChanged.connect(self.recently_audible_changed)
         self._tab.url_changed.connect(self._on_url_changed)
+        config.instance.changed.connect(self._on_config_changed)
 
     def set_muted(self, muted: bool, override: bool = False):
         self._overridden = override
@@ -673,6 +674,10 @@ class WebEngineAudio(browsertab.AbstractAudio):
             return
         mute = config.instance.get('content.mute', url=url)
         self.set_muted(mute)
+
+    @config.change_filter('content.mute')
+    def _on_config_changed(self):
+        self._on_url_changed(self._tab.url())
 
 
 class _WebEnginePermissions(QObject):
