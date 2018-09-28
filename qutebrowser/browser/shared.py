@@ -284,7 +284,7 @@ def get_user_stylesheet(searching=False):
             css += f.read()
 
     if (config.val.scrolling.bar == 'never' or
-            config.val.scrolling.bar == 'when_searching' and not searching):
+            config.val.scrolling.bar == 'when-searching' and not searching):
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     return css

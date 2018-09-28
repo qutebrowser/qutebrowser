@@ -293,7 +293,7 @@ class YamlConfig(QObject):
 
         self._migrate_bool(settings, 'tabs.favicons.show', 'always', 'never')
         self._migrate_bool(settings, 'scrolling.bar',
-                           'when_searching', 'never')
+                           'when-searching', 'never')
         self._migrate_bool(settings, 'qt.force_software_rendering',
                            'software-opengl', 'none')
 
