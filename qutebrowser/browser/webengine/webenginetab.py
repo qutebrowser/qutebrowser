@@ -192,9 +192,11 @@ class WebEngineSearch(browsertab.AbstractSearch):
                 flag_text = ''
             log.webview.debug(' '.join([caller, found_text, text, flag_text])
                               .strip())
+
             if callback is not None:
                 callback(found)
-            self._tab.scripts.update_stylesheet(searching=found)
+            self.finished.emit(found)
+
         self._widget.findText(text, flags, wrapped_callback)
 
     def search(self, text, *, ignore_case='never', reverse=False,
@@ -216,7 +218,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def clear(self):
         if self.search_displayed:
-            self._tab.scripts.update_stylesheet(searching=False)
+            self.cleared.emit()
         self.search_displayed = False
         self._widget.findText('')
 
@@ -839,15 +841,21 @@ class _WebEngineScripts(QObject):
         self._greasemonkey = objreg.get('greasemonkey')
 
     def connect_signals(self):
+        """Connect signals to our private slots."""
         config.instance.changed.connect(self._on_config_changed)
+
+        self._tab.search.cleared.connect(functools.partial(
+            self._update_stylesheet, searching=False))
+        self._tab.search.finished.connect(self._update_stylesheet)
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
             self._init_stylesheet()
-            self.update_stylesheet()
+            self._update_stylesheet()
 
-    def update_stylesheet(self, searching=False):
+    @pyqtSlot(bool)
+    def _update_stylesheet(self, searching=False):
         """Update the custom stylesheet in existing tabs."""
         css = shared.get_user_stylesheet(searching=searching)
         code = javascript.assemble('stylesheet', 'set_css', css)
@@ -1029,7 +1037,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.action = WebEngineAction(tab=self)
         self.audio = WebEngineAudio(tab=self, parent=self)
         self._permissions = _WebEnginePermissions(tab=self, parent=self)
-        self.scripts = _WebEngineScripts(tab=self, parent=self)
+        self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
         self._set_widget(widget)
@@ -1038,13 +1046,13 @@ class WebEngineTab(browsertab.AbstractTab):
         self._child_event_filter = None
         self._saved_zoom = None
         self._reload_url = None
-        self.scripts.init()
+        self._scripts.init()
 
     def _set_widget(self, widget):
         # pylint: disable=protected-access
         super()._set_widget(widget)
         self._permissions._widget = widget
-        self.scripts._widget = widget
+        self._scripts._widget = widget
 
     def _install_event_filter(self):
         fp = self._widget.focusProxy()
@@ -1437,7 +1445,7 @@ class WebEngineTab(browsertab.AbstractTab):
         # pylint: disable=protected-access
         self.audio._connect_signals()
         self._permissions.connect_signals()
-        self.scripts.connect_signals()
+        self._scripts.connect_signals()
 
     def event_target(self):
         return self._widget.render_widget()

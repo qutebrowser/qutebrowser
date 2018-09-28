@@ -115,7 +115,11 @@ class WebKitSearch(browsertab.AbstractSearch):
         if callback is not None:
             QTimer.singleShot(0, functools.partial(callback, found))
 
+        self.finished.emit(found)
+
     def clear(self):
+        if self.search_displayed:
+            self.cleared.emit()
         self.search_displayed = False
         # We first clear the marked text, then the highlights
         self._widget.findText('')

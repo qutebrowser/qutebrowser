@@ -248,7 +248,15 @@ class AbstractSearch(QObject):
                           this view.
         _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
+
+    Signals:
+        finished: Emitted when a search was finished.
+                  arg: True if the text was found, False otherwise.
+        cleared: Emitted when an existing search was cleared.
     """
+
+    finished = pyqtSignal(bool)
+    cleared = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
