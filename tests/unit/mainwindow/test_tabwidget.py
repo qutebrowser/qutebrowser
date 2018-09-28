@@ -40,14 +40,6 @@ class TestTabWidget:
                             usertypes.Backend.QtWebKit)
         return w
 
-    @pytest.fixture
-    def browser(self, qtbot, monkeypatch, config_stub):
-        w = tabbedbrowser.TabbedBrowser(win_id=0, private=False)
-        qtbot.addWidget(w)
-        monkeypatch.setattr(tabwidget.objects, 'backend',
-                            usertypes.Backend.QtWebKit)
-        return w
-
     def test_small_icon_doesnt_crash(self, widget, qtbot, fake_web_tab):
         """Test that setting a small icon doesn't produce a crash.
 
@@ -108,7 +100,7 @@ class TestTabWidget:
 
         for i in range(num_tabs):
             if i in pinned_num and shrink_pinned and not vertical:
-                assert (first_size.width() <
+                assert (first_size.width() >
                         widget.tabBar().tabSizeHint(i).width())
                 assert (first_size_min.width() <
                         widget.tabBar().minimumTabSizeHint(i).width())
@@ -129,17 +121,21 @@ class TestTabWidget:
         benchmark(widget.update_tab_titles)
 
     @pytest.mark.parametrize("num_tabs", [4, 10])
-    def test_add_remove_tab_benchmark(self, benchmark, browser,
-                                      qtbot, fake_web_tab, num_tabs):
+    @pytest.mark.parametrize("rev", [True, False])
+    def test_add_remove_tab_benchmark(self, benchmark, widget,
+                                      qtbot, fake_web_tab, num_tabs, rev):
         """Benchmark for addTab and removeTab."""
         def _run_bench():
+            with qtbot.wait_exposed(widget):
+                widget.show()
             for i in range(num_tabs):
-                browser.widget.addTab(fake_web_tab(), 'foobar' + str(i))
+                widget.addTab(fake_web_tab(), 'foobar' + str(i))
 
-            with qtbot.waitExposed(browser):
-                browser.show()
-
-            browser.shutdown()
+            to_del = range(num_tabs)
+            if rev:
+                to_del = reversed(to_del)
+            for i in to_del:
+                widget.removeTab(i)
 
         benchmark(_run_bench)
 
