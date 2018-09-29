@@ -452,4 +452,4 @@ def test_add_directory(config_stub, basedir, download_stub,
     config_stub.val.content.host_blocking.enabled = True
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update()
-    assert len(host_blocker._blocked_hosts) == (len(blocklist_hosts2) * 2)
+    assert len(host_blocker._blocked_hosts) == len(blocklist_hosts2) * 2

@@ -175,8 +175,7 @@ class HostBlocker:
                 filename = url.toLocalFile()
                 if os.path.isdir(filename):
                     for filenames in os.scandir(filename):
-                        if not filenames.name.startswith('.')\
-                           and filenames.is_file():
+                        if filenames.is_file():
                             self._import_local(filenames.path)
                 else:
                     self._import_local(filename)
