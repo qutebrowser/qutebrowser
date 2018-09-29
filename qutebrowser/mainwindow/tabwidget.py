@@ -21,6 +21,7 @@
 
 import functools
 import enum
+import contextlib
 
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
@@ -214,19 +215,35 @@ class TabWidget(QTabWidget):
         fields['scroll_pos'] = scroll_pos
         return fields
 
+    @contextlib.contextmanager
+    def _toggle_visibility(self, force_toggle=False):
+        """Toggle visibility while running.
+
+        Every single call to setTabText calls the size hinting functions for
+        every single tab, which are slow. Since we know we are updating all
+        the tab's titles, we can delay this processing by making the tab
+        non-visible. To avoid flickering, disable repaint updates whlie we
+        work.
+
+        Args:
+            force_toggle: Whether to always force the toggle, or only do it
+                          if we have enough tabs for it to matter
+        """
+        if self.count() > 10:
+            force_toggle = True
+        if force_toggle:
+            self.setUpdatesEnabled(False)
+            self.setVisible(False)
+        yield
+        if force_toggle:
+            self.setVisible(True)
+            self.setUpdatesEnabled(True)
+
     def update_tab_titles(self):
         """Update all texts."""
-        # Every single call to setTabText calls the size hinting functions for
-        # every single tab, which are slow. Since we know we are updating all
-        # the tab's titles, we can delay this processing by making the tab
-        # non-visible. To avoid flickering, disable repaint updates whlie we
-        # work.
-        self.setUpdatesEnabled(False)
-        self.setVisible(False)
-        for idx in range(self.count()):
-            self.update_tab_title(idx)
-        self.setVisible(True)
-        self.setUpdatesEnabled(True)
+        with self._toggle_visibility():
+            for idx in range(self.count()):
+                self.update_tab_title(idx)
 
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""

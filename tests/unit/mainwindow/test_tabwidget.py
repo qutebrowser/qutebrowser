@@ -24,7 +24,7 @@ import functools
 import pytest
 from PyQt5.QtGui import QIcon, QPixmap
 
-from qutebrowser.mainwindow import tabwidget, tabbedbrowser
+from qutebrowser.mainwindow import tabwidget
 from qutebrowser.utils import usertypes
 
 
@@ -108,7 +108,7 @@ class TestTabWidget:
                 assert first_size == widget.tabBar().tabSizeHint(i)
                 assert first_size_min == widget.tabBar().minimumTabSizeHint(i)
 
-    @pytest.mark.parametrize("num_tabs", [4, 10])
+    @pytest.mark.parametrize("num_tabs", [4, 10, 50, 100])
     def test_update_tab_titles_benchmark(self, benchmark, widget,
                                          qtbot, fake_web_tab, num_tabs):
         """Benchmark for update_tab_titles."""
@@ -120,7 +120,7 @@ class TestTabWidget:
 
         benchmark(widget.update_tab_titles)
 
-    @pytest.mark.parametrize("num_tabs", [4, 10])
+    @pytest.mark.parametrize("num_tabs", [4, 100])
     @pytest.mark.parametrize("rev", [True, False])
     def test_add_remove_tab_benchmark(self, benchmark, widget,
                                       qtbot, fake_web_tab, num_tabs, rev):
