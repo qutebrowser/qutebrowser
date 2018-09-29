@@ -806,6 +806,17 @@ content.xss_auditing:
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console.
 
+content.mute:
+  default: false
+  type: Bool
+  supports_pattern: true
+  desc: >-
+    Automatically mute tabs.
+
+    Note that if the `:tab-mute` command is used, the mute status for the
+    affected tab is now controlled manually, and this setting doesn't have any
+    effect.
+
 # emacs: '
 
 ## completion
@@ -1271,9 +1282,15 @@ prompt.radius:
 ## scrolling
 
 scrolling.bar:
-  type: Bool
-  default: false
-  desc: Show a scrollbar.
+  type:
+    name: String
+    valid_values:
+      - always: Always show the scrollbar.
+      - never: Never show the scrollbar.
+      - when-searching: Show the scrollbar when searching for text in the
+            webpage. With the QtWebKit backend, this is equal to `never`.
+  default: when-searching
+  desc: When to show the scrollbar.
 
 scrolling.smooth:
   type: Bool
@@ -1601,6 +1618,23 @@ tabs.min_width:
     This setting only applies when tabs are horizontal.
 
     This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
+
+tabs.max_width:
+  default: -1
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+  desc: >-
+    Maximum width (in pixels) of tabs (-1 for no maximum).
+
+    This setting only applies when tabs are horizontal.
+
+    This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is
+    False.
+
+    This setting may not apply properly if max_width is smaller than the
+    minimum size of tab contents, or smaller than tabs.min_width.
 
 tabs.width.indicator:
   renamed: tabs.indicator.width

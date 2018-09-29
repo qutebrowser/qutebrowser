@@ -162,8 +162,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
                            back yet.
     """
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, tab, parent=None):
+        super().__init__(tab, parent)
         self._flags = QWebEnginePage.FindFlags(0)
         self._pending_searches = 0
 
@@ -191,8 +191,11 @@ class WebEngineSearch(browsertab.AbstractSearch):
                 flag_text = ''
             log.webview.debug(' '.join([caller, found_text, text, flag_text])
                               .strip())
+
             if callback is not None:
                 callback(found)
+            self.finished.emit(found)
+
         self._widget.findText(text, flags, wrapped_callback)
 
     def search(self, text, *, ignore_case='never', reverse=False,
@@ -213,6 +216,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._find(text, self._flags, result_cb, 'search')
 
     def clear(self):
+        if self.search_displayed:
+            self.cleared.emit()
         self.search_displayed = False
         self._widget.findText('')
 
@@ -637,14 +642,26 @@ class WebEngineElements(browsertab.AbstractElements):
 
 class WebEngineAudio(browsertab.AbstractAudio):
 
-    """QtWebEngine implemementations related to audio/muting."""
+    """QtWebEngine implemementations related to audio/muting.
+
+    Attributes:
+        _overridden: Whether the user toggled muting manually.
+                     If that's the case, we leave it alone.
+    """
+
+    def __init__(self, tab, parent=None):
+        super().__init__(tab, parent)
+        self._overridden = False
 
     def _connect_signals(self):
         page = self._widget.page()
         page.audioMutedChanged.connect(self.muted_changed)
         page.recentlyAudibleChanged.connect(self.recently_audible_changed)
+        self._tab.url_changed.connect(self._on_url_changed)
+        config.instance.changed.connect(self._on_config_changed)
 
-    def set_muted(self, muted: bool):
+    def set_muted(self, muted: bool, override: bool = False):
+        self._overridden = override
         page = self._widget.page()
         page.setAudioMuted(muted)
 
@@ -655,6 +672,17 @@ class WebEngineAudio(browsertab.AbstractAudio):
     def is_recently_audible(self):
         page = self._widget.page()
         return page.recentlyAudible()
+
+    @pyqtSlot(QUrl)
+    def _on_url_changed(self, url):
+        if self._overridden:
+            return
+        mute = config.instance.get('content.mute', url=url)
+        self.set_muted(mute)
+
+    @config.change_filter('content.mute')
+    def _on_config_changed(self):
+        self._on_url_changed(self._tab.url())
 
 
 class _WebEnginePermissions(QObject):
@@ -812,7 +840,12 @@ class _WebEngineScripts(QObject):
         self._greasemonkey = objreg.get('greasemonkey')
 
     def connect_signals(self):
+        """Connect signals to our private slots."""
         config.instance.changed.connect(self._on_config_changed)
+
+        self._tab.search.cleared.connect(functools.partial(
+            self._update_stylesheet, searching=False))
+        self._tab.search.finished.connect(self._update_stylesheet)
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
@@ -820,9 +853,10 @@ class _WebEngineScripts(QObject):
             self._init_stylesheet()
             self._update_stylesheet()
 
-    def _update_stylesheet(self):
+    @pyqtSlot(bool)
+    def _update_stylesheet(self, searching=False):
         """Update the custom stylesheet in existing tabs."""
-        css = shared.get_user_stylesheet()
+        css = shared.get_user_stylesheet(searching=searching)
         code = javascript.assemble('stylesheet', 'set_css', css)
         self._tab.run_js_async(code)
 
@@ -991,16 +1025,16 @@ class WebEngineTab(browsertab.AbstractTab):
                          private=private, parent=parent)
         widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
                                        private=private)
-        self.history = WebEngineHistory(self)
-        self.scroller = WebEngineScroller(self, parent=self)
+        self.history = WebEngineHistory(tab=self)
+        self.scroller = WebEngineScroller(tab=self, parent=self)
         self.caret = WebEngineCaret(mode_manager=mode_manager,
                                     tab=self, parent=self)
         self.zoom = WebEngineZoom(tab=self, parent=self)
-        self.search = WebEngineSearch(parent=self)
+        self.search = WebEngineSearch(tab=self, parent=self)
         self.printing = WebEnginePrinting(tab=self)
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
-        self.audio = WebEngineAudio(parent=self)
+        self.audio = WebEngineAudio(tab=self, parent=self)
         self._permissions = _WebEnginePermissions(tab=self, parent=self)
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget

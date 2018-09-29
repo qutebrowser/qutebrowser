@@ -43,6 +43,10 @@ Added
 - Running qutebrowser with QtWebKit or Qt < 5.9 now shows a warning (only
   once), as support for those is going to be removed in a future release.
 - New t[iI][hHu] default bindings (similar to `tsh` etc.) to toggle images.
+- New `tabs.max_width` setting which allows to have a more "normal" look for
+  tabs.
+- New `content.mute` setting which allows to mute pages (or all tabs) by
+  default.
 
 Changed
 ~~~~~~~
@@ -73,6 +77,11 @@ Changed
 - Editing text in an external editor now simulates a JS "input" event, which
   improves compatibility with websites reacting via JS to input.
 - The `qute://settings` page is now properly sorted on Python 3.5.
+- `:zoom`, `:zoom-in` and `:zoom-out` now have a `--quiet` switch which causes
+  them to not display a message.
+- The `scrolling.bar` setting now takes three values instead of being a
+  boolean: `always`, `never`, and `when-searching` (which only displays it
+  while a search is active).
 
 Fixed
 ~~~~~

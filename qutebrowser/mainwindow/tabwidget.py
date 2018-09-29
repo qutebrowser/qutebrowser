@@ -642,6 +642,9 @@ class TabBar(QTabBar):
                 # Qt shrink us down. If for some reason (tests, bugs)
                 # self.width() gives 0, use a sane min of 10 px
                 width = max(self.width(), 10)
+                max_width = config.cache['tabs.max_width']
+                if max_width > 0:
+                    width = min(max_width, width)
             size = QSize(width, height)
         qtutils.ensure_valid(size)
         return size

@@ -34,7 +34,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
-from qutebrowser.config import configtypes, configexc
+from qutebrowser.config import configtypes, configexc, configutils
 from qutebrowser.utils import debug, utils, qtutils, urlmatch
 from qutebrowser.browser.network import pac
 from qutebrowser.keyinput import keyutils
@@ -273,6 +273,11 @@ class TestAll:
         meth = getattr(klass(), method)
         with pytest.raises(configexc.ValidationError):
             meth(value)
+
+    @pytest.mark.parametrize('none_ok', [True, False])
+    def test_unset(self, klass, none_ok):
+        typ = klass(none_ok=none_ok)
+        assert typ.to_py(configutils.UNSET) is configutils.UNSET
 
     def test_to_str_none(self, klass):
         assert klass().to_str(None) == ''

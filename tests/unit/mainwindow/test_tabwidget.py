@@ -38,6 +38,7 @@ class TestTabWidget:
         qtbot.addWidget(w)
         monkeypatch.setattr(tabwidget.objects, 'backend',
                             usertypes.Backend.QtWebKit)
+        w.show()
         return w
 
     def test_small_icon_doesnt_crash(self, widget, qtbot, fake_web_tab):
@@ -119,6 +120,19 @@ class TestTabWidget:
             widget.show()
 
         benchmark(widget.update_tab_titles)
+
+    def test_tab_min_width(self, widget, fake_web_tab, config_stub, qtbot):
+        widget.addTab(fake_web_tab(), 'foobar')
+        widget.addTab(fake_web_tab(), 'foobar1')
+        min_size = widget.tabBar().tabRect(0).width() + 10
+        config_stub.val.tabs.min_width = min_size
+        assert widget.tabBar().tabRect(0).width() == min_size
+
+    def test_tab_max_width(self, widget, fake_web_tab, config_stub, qtbot):
+        widget.addTab(fake_web_tab(), 'foobar')
+        max_size = widget.tabBar().tabRect(0).width() - 10
+        config_stub.val.tabs.max_width = max_size
+        assert widget.tabBar().tabRect(0).width() == max_size
 
     @pytest.mark.parametrize("num_tabs", [4, 100])
     @pytest.mark.parametrize("rev", [True, False])

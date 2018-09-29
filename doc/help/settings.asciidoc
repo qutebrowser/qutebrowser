@@ -145,6 +145,7 @@
 |<<content.local_storage,content.local_storage>>|Enable support for HTML 5 local storage and Web SQL.
 |<<content.media_capture,content.media_capture>>|Allow websites to record audio/video.
 |<<content.mouse_lock,content.mouse_lock>>|Allow websites to lock your mouse pointer.
+|<<content.mute,content.mute>>|Automatically mute tabs.
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
 |<<content.notifications,content.notifications>>|Allow websites to show notifications.
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
@@ -231,7 +232,7 @@
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
 |<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
-|<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
+|<<scrolling.bar,scrolling.bar>>|When to show the scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
 |<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
@@ -250,6 +251,7 @@
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
+|<<tabs.max_width,tabs.max_width>>|Maximum width (in pixels) of tabs (-1 for no maximum).
 |<<tabs.min_width,tabs.min_width>>|Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
 |<<tabs.mode_on_change,tabs.mode_on_change>>|When switching tabs, what input mode is applied.
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
@@ -1915,6 +1917,17 @@ On QtWebEngine, this setting requires Qt 5.8 or newer.
 
 On QtWebKit, this setting is unavailable.
 
+[[content.mute]]
+=== content.mute
+Automatically mute tabs.
+Note that if the `:tab-mute` command is used, the mute status for the affected tab is now controlled manually, and this setting doesn't have any effect.
+
+This setting supports URL patterns.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[content.netrc_file]]
 === content.netrc_file
 Netrc-file for HTTP authentication.
@@ -2815,11 +2828,17 @@ This setting is only available with the QtWebEngine backend.
 
 [[scrolling.bar]]
 === scrolling.bar
-Show a scrollbar.
+When to show the scrollbar.
 
-Type: <<types,Bool>>
+Type: <<types,String>>
 
-Default: +pass:[false]+
+Valid values:
+
+ * +always+: Always show the scrollbar.
+ * +never+: Never show the scrollbar.
+ * +when-searching+: Show the scrollbar when searching for text in the webpage. With the QtWebKit backend, this is equal to `never`.
+
+Default: +pass:[when-searching]+
 
 [[scrolling.smooth]]
 === scrolling.smooth
@@ -3085,6 +3104,17 @@ Valid values:
  * +close+: Close the window.
 
 Default: +pass:[ignore]+
+
+[[tabs.max_width]]
+=== tabs.max_width
+Maximum width (in pixels) of tabs (-1 for no maximum).
+This setting only applies when tabs are horizontal.
+This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
+This setting may not apply properly if max_width is smaller than the minimum size of tab contents, or smaller than tabs.min_width.
+
+Type: <<types,Int>>
+
+Default: +pass:[-1]+
 
 [[tabs.min_width]]
 === tabs.min_width
