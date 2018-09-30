@@ -82,6 +82,7 @@ Changed
 - The `scrolling.bar` setting now takes three values instead of being a
   boolean: `always`, `never`, and `when-searching` (which only displays it
   while a search is active).
+- '@@' now repeats the last run macro.
 
 Fixed
 ~~~~~
