@@ -323,7 +323,8 @@ class MappingType(BaseType):
         return self.MAPPING[value.lower()]
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values)
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values)
 
 
 class String(BaseType):
@@ -406,8 +407,11 @@ class String(BaseType):
             return super().complete()
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values, minlen=self.minlen,
-                              maxlen=self.maxlen, forbidden=self.forbidden, _completions=self._completions,
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values,
+                              minlen=self.minlen,
+                              maxlen=self.maxlen, forbidden=self.forbidden,
+                              _completions=self._completions,
                               encoding=self.encoding)
 
 
@@ -510,7 +514,8 @@ class List(BaseType):
         return '\n'.join(lines)
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype, length=self.length)
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype,
+                              length=self.length)
 
 
 class ListOrValue(BaseType):
@@ -582,7 +587,8 @@ class ListOrValue(BaseType):
         return typ.to_doc(val)
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, listtype=self.listtype, valtype=self.valtype)
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              listtype=self.listtype, valtype=self.valtype)
 
 
 class FlagList(List):
@@ -633,7 +639,8 @@ class FlagList(List):
         return out
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype, length=self.length)
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype,
+                              length=self.length)
 
 
 class Bool(BaseType):
@@ -671,7 +678,8 @@ class Bool(BaseType):
         return mapping[value]
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values)
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values)
 
 
 class BoolAsk(Bool):
@@ -752,7 +760,8 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
         return str(value)
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval, maxval=self.maxval)
+        return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval,
+                              maxval=self.maxval)
 
 
 class Int(_Numeric):
@@ -893,9 +902,10 @@ class PercOrInt(_Numeric):
             self._validate_bounds(value)
         return value
 
-    def __repr__(self, **kwargs):
-        return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval, maxval=self.maxval,
-                              minperc=self.minperc, maxperc=self.maxperc)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval,
+                              maxval=self.maxval, minperc=self.minperc,
+                              maxperc=self.maxperc)
 
 
 class Command(BaseType):
@@ -1309,9 +1319,10 @@ class Dict(BaseType):
             )).splitlines()
         return '\n'.join(line.rstrip(' ') for line in lines)
 
-    def __repr__(self, **kwargs):
-        return utils.get_repr(self, none_ok=self.none_ok, keytype=self.keytype, valtype=self.valtype,
-                              fixed_keys=self.fixed_keys, required_keys=self.required_keys)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, keytype=self.keytype,
+                              valtype=self.valtype, fixed_keys=self.fixed_keys,
+                              required_keys=self.required_keys)
 
 
 class File(BaseType):
@@ -1346,7 +1357,9 @@ class File(BaseType):
         return value
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values, required=self.required)
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values,
+                              required=self.required)
 
 
 class Directory(BaseType):
@@ -1435,7 +1448,9 @@ class ShellCommand(List):
         return value
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, placeholder=self.placeholder, valtype=self.valtype)
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              placeholder=self.placeholder,
+                              valtype=self.valtype)
 
 
 class Proxy(BaseType):
@@ -1482,7 +1497,8 @@ class Proxy(BaseType):
         return out
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values)
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values)
 
 
 class SearchEngineUrl(BaseType):
