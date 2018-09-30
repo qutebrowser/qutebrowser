@@ -216,7 +216,7 @@ class TabWidget(QTabWidget):
         return fields
 
     @contextlib.contextmanager
-    def _toggle_visibility(self, force_toggle=False):
+    def _toggle_visibility(self):
         """Toggle visibility while running.
 
         Every single call to setTabText calls the size hinting functions for
@@ -224,18 +224,15 @@ class TabWidget(QTabWidget):
         the tab's titles, we can delay this processing by making the tab
         non-visible. To avoid flickering, disable repaint updates whlie we
         work.
-
-        Args:
-            force_toggle: Whether to always force the toggle, or only do it
-                          if we have enough tabs for it to matter
         """
-        if self.count() > 10:
-            force_toggle = True
-        if force_toggle:
+        toggle = self.count() > 10
+        if toggle:
             self.setUpdatesEnabled(False)
             self.setVisible(False)
+
         yield
-        if force_toggle:
+
+        if toggle:
             self.setVisible(True)
             self.setUpdatesEnabled(True)
 
