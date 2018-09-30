@@ -173,15 +173,12 @@ class HostBlocker:
         for url in config.val.content.host_blocking.lists:
             if url.scheme() == 'file':
                 filename = url.toLocalFile()
-                try:
-                    fileobj = open(filename, 'rb')
-                except OSError as e:
-                    message.error("adblock: Error while reading {}: {}".format(
-                        filename, e.strerror))
-                    continue
-                download = _FakeDownload(fileobj)
-                self._in_progress.append(download)
-                self._on_download_finished(download)
+                if os.path.isdir(filename):
+                    for filenames in os.scandir(filename):
+                        if filenames.is_file():
+                            self._import_local(filenames.path)
+                else:
+                    self._import_local(filename)
             else:
                 fobj = io.BytesIO()
                 fobj.name = 'adblock: ' + url.host()
@@ -191,6 +188,22 @@ class HostBlocker:
                 self._in_progress.append(download)
                 download.finished.connect(
                     functools.partial(self._on_download_finished, download))
+
+    def _import_local(self, filename):
+        """Adds the contents of a file to the blocklist.
+
+        Args:
+            filename: path to a local file to import.
+        """
+        try:
+            fileobj = open(filename, 'rb')
+        except OSError as e:
+            message.error("adblock: Error while reading {}: {}".format(
+                filename, e.strerror))
+            return
+        download = _FakeDownload(fileobj)
+        self._in_progress.append(download)
+        self._on_download_finished(download)
 
     def _parse_line(self, line):
         """Parse a line from a host file.
