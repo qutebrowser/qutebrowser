@@ -174,9 +174,9 @@ class HostBlocker:
             if url.scheme() == 'file':
                 filename = url.toLocalFile()
                 if os.path.isdir(filename):
-                    for filenames in os.scandir(filename):
-                        if filenames.is_file():
-                            self._import_local(filenames.path)
+                    for entry in os.scandir(filename):
+                        if entry.is_file():
+                            self._import_local(entry.path)
                 else:
                     self._import_local(filename)
             else:
