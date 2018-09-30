@@ -83,6 +83,8 @@ Changed
   boolean: `always`, `never`, and `when-searching` (which only displays it
   while a search is active).
 - '@@' now repeats the last run macro.
+- The `content.host_blocking.lists` setting now accepts a `file://` URL to a
+  directory, and reads all files in that directory.
 
 Fixed
 ~~~~~

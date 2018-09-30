@@ -1729,6 +1729,11 @@ The file can be in one of the following formats:
 - A zip-file of any of the above, with either only one file, or a file
   named `hosts` (with any extension).
 
+It's also possible to add a local file or directory via a `file://` URL. In
+case of a directory, all files in the directory are read as adblock lists.
+
+The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
+
 
 Type: <<types,List of Url>>
 
