@@ -109,9 +109,9 @@ class ValidValues:
     def __iter__(self):
         return self.values.__iter__()
 
-    def __repr__(self, **kwargs):
+    def __repr__(self):
         return utils.get_repr(self, values=self.values,
-                              descriptions=self.descriptions, **kwargs)
+                              descriptions=self.descriptions)
 
     def __eq__(self, other):
         return (self.values == other.values and
@@ -295,8 +295,8 @@ class BaseType:
                 out.append((val, desc))
             return out
 
-    def __repr__(self, **kwargs):
-        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok)
 
 
 class MappingType(BaseType):
@@ -322,8 +322,8 @@ class MappingType(BaseType):
         self._validate_valid_values(value.lower())
         return self.MAPPING[value.lower()]
 
-    def __repr__(self, **kwargs):
-        return super().__repr__(mapping=self.MAPPING, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values)
 
 
 class String(BaseType):
@@ -405,9 +405,10 @@ class String(BaseType):
         else:
             return super().complete()
 
-    def __repr__(self, **kwargs):
-        return super().__repr__(minlen=self.minlen, maxlen=self.maxlen, forbidden=self.forbidden,
-                                _completions=self._completions, encoding=self.encoding, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values, minlen=self.minlen,
+                              maxlen=self.maxlen, forbidden=self.forbidden, _completions=self._completions,
+                              encoding=self.encoding)
 
 
 class UniqueCharString(String):
@@ -508,8 +509,8 @@ class List(BaseType):
                 self.valtype.to_doc(elem, indent=indent+1)))
         return '\n'.join(lines)
 
-    def __repr__(self, **kwargs):
-        return super().__repr__(valtype=self.valtype, length=self.length, show_valtype=self._show_valtype, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype, length=self.length)
 
 
 class ListOrValue(BaseType):
@@ -580,8 +581,8 @@ class ListOrValue(BaseType):
         val, typ = self._val_and_type(value)
         return typ.to_doc(val)
 
-    def __repr__(self, **kwargs):
-        return super().__repr__(listtype=self.listtype.__repr__(), valtype=self.valtype, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, listtype=self.listtype, valtype=self.valtype)
 
 
 class FlagList(List):
@@ -631,8 +632,8 @@ class FlagList(List):
                 out.append((json.dumps(combination), ''))
         return out
 
-    def __repr__(self, **kwargs):
-        return super().__repr__(combinable_values=self.combinable_values, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype, length=self.length)
 
 
 class Bool(BaseType):
@@ -668,6 +669,9 @@ class Bool(BaseType):
             False: 'false',
         }
         return mapping[value]
+
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values)
 
 
 class BoolAsk(Bool):
@@ -747,8 +751,8 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
             return ''
         return str(value)
 
-    def __repr__(self, **kwargs):
-        return super().__repr__(minval=self.minval, maxval=self.maxval, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval, maxval=self.maxval)
 
 
 class Int(_Numeric):
@@ -890,7 +894,8 @@ class PercOrInt(_Numeric):
         return value
 
     def __repr__(self, **kwargs):
-        return super().__repr__(minperc=self.minperc, maxperc=self.maxperc, **kwargs)
+        return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval, maxval=self.maxval,
+                              minperc=self.minperc, maxperc=self.maxperc)
 
 
 class Command(BaseType):
@@ -1040,11 +1045,6 @@ class Font(BaseType):
         if value.endswith(' monospace') and self.monospace_fonts is not None:
             return value.replace('monospace', self.monospace_fonts)
         return value
-
-    def __repr__(self, **kwargs):
-        # Remove leading spaces, comments (and previous spaces) and newlines from regexp pattern
-        return super().__repr__(monospace_fonts=self.monospace_fonts,
-                                font_regexp=re.sub(r'(?m)(^\s+)|(\s*#.*$)|\n', '', self.font_regex.pattern), **kwargs)
 
 
 class FontFamily(Font):
@@ -1210,8 +1210,8 @@ class Regex(BaseType):
         else:
             return value
 
-    def __repr__(self, **kwargs):
-        return super().__repr__(_regexp_type=self._regex_type, flags=self.flags, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, flags=self.flags)
 
 
 class Dict(BaseType):
@@ -1310,8 +1310,8 @@ class Dict(BaseType):
         return '\n'.join(line.rstrip(' ') for line in lines)
 
     def __repr__(self, **kwargs):
-        return super().__repr__(keytype=self.keytype, valtype=self.valtype, fixed_keys=self.fixed_keys,
-                                required_keys=self.required_keys, **kwargs)
+        return utils.get_repr(self, none_ok=self.none_ok, keytype=self.keytype, valtype=self.valtype,
+                              fixed_keys=self.fixed_keys, required_keys=self.required_keys)
 
 
 class File(BaseType):
@@ -1345,8 +1345,8 @@ class File(BaseType):
 
         return value
 
-    def __repr__(self, **kwargs):
-        return super().__repr__(required=self.required, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values, required=self.required)
 
 
 class Directory(BaseType):
@@ -1399,8 +1399,8 @@ class FormatString(BaseType):
 
         return value
 
-    def __repr__(self, **kwargs):
-        return super().__repr__(fields=self.fields, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, fields=self.fields)
 
 
 class ShellCommand(List):
@@ -1434,8 +1434,8 @@ class ShellCommand(List):
                                             "{file}-placeholder.")
         return value
 
-    def __repr__(self, **kwargs):
-        return super().__repr__(placeholder=self.placeholder, **kwargs)
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, placeholder=self.placeholder, valtype=self.valtype)
 
 
 class Proxy(BaseType):
@@ -1480,6 +1480,9 @@ class Proxy(BaseType):
         out.append(('http://localhost:8080/', 'Local HTTP proxy'))
         out.append(('pac+https://example.com/proxy.pac', 'Proxy autoconfiguration file URL'))
         return out
+
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, valid_values=self.valid_values)
 
 
 class SearchEngineUrl(BaseType):
