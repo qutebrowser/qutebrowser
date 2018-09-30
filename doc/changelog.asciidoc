@@ -93,6 +93,7 @@ Fixed
   be shown for more files such as `qute://help/userscripts.html`.
 - Crash when doing initial run on Wayland without XWayland
 - Crash when trying to load an empty session file.
+- `:hint` with an invalid `--mode=` value now shows a proper error.
 
 Removed
 ~~~~~~~

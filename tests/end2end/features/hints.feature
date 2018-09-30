@@ -15,6 +15,10 @@ Feature: Using hints
         And I hint with args "links normal" and follow xyz
         Then the error "No hint xyz!" should be shown
 
+    Scenario: Using :hint with invalid mode.
+        When I run :hint --mode=foobar
+        Then the error "Invalid mode: Invalid value 'foobar' - valid values: number, letter, word" should be shown
+
     ### Opening in current or new tab
 
     Scenario: Following a hint and force to open in current tab.

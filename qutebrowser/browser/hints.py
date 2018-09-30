@@ -32,7 +32,7 @@ import attr
 from PyQt5.QtCore import pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
-from qutebrowser.config import config
+from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
@@ -726,6 +726,12 @@ class HintManager(QObject):
 
         if mode is None:
             mode = config.val.hints.mode
+        else:
+            opt = config.instance.get_opt('hints.mode')
+            try:
+                opt.typ.to_py(mode)
+            except configexc.ValidationError as e:
+                raise cmdexc.CommandError("Invalid mode: {}".format(e))
 
         self._check_args(target, *args)
         self._context = HintContext()
