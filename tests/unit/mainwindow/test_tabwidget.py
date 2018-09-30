@@ -24,7 +24,7 @@ import functools
 import pytest
 from PyQt5.QtGui import QIcon, QPixmap
 
-from qutebrowser.mainwindow import tabwidget, tabbedbrowser
+from qutebrowser.mainwindow import tabwidget
 from qutebrowser.utils import usertypes
 
 
@@ -39,14 +39,6 @@ class TestTabWidget:
         monkeypatch.setattr(tabwidget.objects, 'backend',
                             usertypes.Backend.QtWebKit)
         w.show()
-        return w
-
-    @pytest.fixture
-    def browser(self, qtbot, monkeypatch, config_stub):
-        w = tabbedbrowser.TabbedBrowser(win_id=0, private=False)
-        qtbot.addWidget(w)
-        monkeypatch.setattr(tabwidget.objects, 'backend',
-                            usertypes.Backend.QtWebKit)
         return w
 
     def test_small_icon_doesnt_crash(self, widget, qtbot, fake_web_tab):
@@ -117,7 +109,7 @@ class TestTabWidget:
                 assert first_size == widget.tabBar().tabSizeHint(i)
                 assert first_size_min == widget.tabBar().minimumTabSizeHint(i)
 
-    @pytest.mark.parametrize("num_tabs", [4, 10])
+    @pytest.mark.parametrize("num_tabs", [4, 10, 50, 100])
     def test_update_tab_titles_benchmark(self, benchmark, widget,
                                          qtbot, fake_web_tab, num_tabs):
         """Benchmark for update_tab_titles."""
@@ -142,18 +134,23 @@ class TestTabWidget:
         config_stub.val.tabs.max_width = max_size
         assert widget.tabBar().tabRect(0).width() == max_size
 
-    @pytest.mark.parametrize("num_tabs", [4, 10])
-    def test_add_remove_tab_benchmark(self, benchmark, browser,
-                                      qtbot, fake_web_tab, num_tabs):
+    @pytest.mark.parametrize("num_tabs", [4, 100])
+    @pytest.mark.parametrize("rev", [True, False])
+    def test_add_remove_tab_benchmark(self, benchmark, widget,
+                                      qtbot, fake_web_tab, num_tabs, rev):
         """Benchmark for addTab and removeTab."""
         def _run_bench():
+            with qtbot.wait_exposed(widget):
+                widget.show()
             for i in range(num_tabs):
-                browser.widget.addTab(fake_web_tab(), 'foobar' + str(i))
+                idx = i if rev else 0
+                widget.insertTab(idx, fake_web_tab(), 'foobar' + str(i))
 
-            with qtbot.waitExposed(browser):
-                browser.show()
-
-            browser.shutdown()
+            to_del = range(num_tabs)
+            if rev:
+                to_del = reversed(to_del)
+            for i in to_del:
+                widget.removeTab(i)
 
         benchmark(_run_bench)
 
