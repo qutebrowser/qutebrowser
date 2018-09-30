@@ -147,13 +147,14 @@ It also works nicely with rapid hints:
 ----
 
 How do I use qutebrowser with mutt?::
-    Due to a Qt limitation, local files without `.html` extensions are
-    "downloaded" instead of displayed, see
-    https://github.com/qutebrowser/qutebrowser/issues/566[#566]. You can work
-    around this by using this in your `mailcap`:
+    For security reasons, local files without `.html` extensions aren't
+    rendered as HTML, see
+    https://bugs.chromium.org/p/chromium/issues/detail?id=777737[this Chromium issue]
+    for details. You can do this in your `mailcap` file to get a proper
+    extension:
 +
 ----
-    text/html; mv %s %s.html && qutebrowser %s.html >/dev/null 2>/dev/null; needsterminal;
+    text/html; qutebrowser %s; nametemplate=%s.html
 ----
 
 What is the difference between bookmarks and quickmarks?::
