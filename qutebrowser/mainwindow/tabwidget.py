@@ -599,7 +599,13 @@ class TabBar(QTabBar):
         if not 0 <= index < self.count():
             raise IndexError("Tab index ({}) out of range ({})!".format(
                 index, self.count()))
-        return self.parent().widget(index).data.pinned
+
+        widget = self.parent().widget(index)
+        if widget is None:
+            # This could happen when Qt calls tabSizeHint while initializing
+            # tabs.
+            return False
+        return widget.data.pinned
 
     def tabSizeHint(self, index: int):
         """Override tabSizeHint to customize qb's tab size.
