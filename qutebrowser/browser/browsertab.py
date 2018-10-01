@@ -786,10 +786,10 @@ class AbstractTab(QWidget):
 
         self.predicted_navigation.connect(self._on_predicted_navigation)
 
-    def _set_widget(self, widget):
+    def _set_widget(self, widget, splitter=None):
         # pylint: disable=protected-access
         self._widget = widget
-        self._layout.wrap(self, widget)
+        self._layout.wrap(self, splitter if splitter else widget)
         self.history._history = widget.history()
         self.scroller._init_widget(widget)
         self.caret._widget = widget

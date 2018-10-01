@@ -28,7 +28,7 @@ from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
                           QUrl, QTimer, QObject)
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtNetwork import QAuthenticator
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QSplitter
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.config import configdata, config
@@ -1025,6 +1025,15 @@ class WebEngineTab(browsertab.AbstractTab):
                          private=private, parent=parent)
         widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
                                        private=private)
+
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.addWidget(widget)
+        inspector = webview.WebEngineView(tabdata=self.data, win_id=win_id,
+                                       private=private)
+        inspector.page().setInspectedPage(widget.page())
+        splitter.addWidget(inspector)
+        splitter.show()
+
         self.history = WebEngineHistory(tab=self)
         self.scroller = WebEngineScroller(tab=self, parent=self)
         self.caret = WebEngineCaret(mode_manager=mode_manager,
@@ -1039,7 +1048,8 @@ class WebEngineTab(browsertab.AbstractTab):
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
-        self._set_widget(widget)
+        self._set_widget(widget, splitter=splitter)
+
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
         self._child_event_filter = None
@@ -1047,9 +1057,9 @@ class WebEngineTab(browsertab.AbstractTab):
         self._reload_url = None
         self._scripts.init()
 
-    def _set_widget(self, widget):
+    def _set_widget(self, widget, splitter=None):
         # pylint: disable=protected-access
-        super()._set_widget(widget)
+        super()._set_widget(widget, splitter=splitter)
         self._permissions._widget = widget
         self._scripts._widget = widget
 
