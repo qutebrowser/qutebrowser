@@ -635,7 +635,8 @@ class CommandDispatcher:
 
         cmdutils.check_exclusive((tab, bg, window), 'tbw')
         widget = self._current_widget()
-        url = self._current_url().adjusted(QUrl.RemoveFragment)
+        url = self._current_url().adjusted(QUrl.RemoveFragment |
+                                           QUrl.RemoveQuery)
 
         handlers = {
             'prev': functools.partial(navigate.prevnext, prev=True),
