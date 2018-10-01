@@ -493,12 +493,13 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.other_buffer)
-    def tab_take(self, index):
+    def tab_take(self, index, keep=False):
         """Take a tab from another window.
 
         Args:
             index: The [win_id/]index of the tab to take. Or a substring
                    in which case the closest match will be taken.
+            keep: If given, keep the old tab around.
         """
         tabbed_browser, tab = self._resolve_buffer_index(index)
 
@@ -506,18 +507,20 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Can't take a tab from the same window")
 
         self._open(tab.url(), tab=True)
-        tabbed_browser.close_tab(tab, add_undo=False)
+        if not keep:
+            tabbed_browser.close_tab(tab, add_undo=False)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
     @cmdutils.argument('count', count=True)
-    def tab_give(self, win_id: int = None, count=None):
+    def tab_give(self, win_id: int = None, keep=False, count=None):
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
 
         Args:
             win_id: The window ID of the window to give the current tab to.
+            keep: If given, keep the old tab around.
             count: Overrides win_id (index starts at 1 for win_id=0).
         """
         if count is not None:
@@ -527,7 +530,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Can't give a tab to the same window")
 
         if win_id is None:
-            if self._count() < 2:
+            if self._count() < 2 and not keep:
                 raise cmdexc.CommandError("Cannot detach from a window with "
                                           "only one tab")
 
@@ -542,7 +545,8 @@ class CommandDispatcher:
                                         window=win_id)
 
         tabbed_browser.tabopen(self._current_url())
-        self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
+        if not keep:
+            self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""

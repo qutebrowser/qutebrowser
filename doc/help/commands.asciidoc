@@ -1261,7 +1261,7 @@ The tab index to focus, starting with 1.
 
 [[tab-give]]
 === tab-give
-Syntax: +:tab-give ['win-id']+
+Syntax: +:tab-give [*--keep*] ['win-id']+
 
 Give the current tab to a new or existing window if win_id given.
 
@@ -1269,6 +1269,9 @@ If no win_id is given, the tab will get detached into a new window.
 
 ==== positional arguments
 * +'win-id'+: The window ID of the window to give the current tab to.
+
+==== optional arguments
+* +*-k*+, +*--keep*+: If given, keep the old tab around.
 
 ==== count
 Overrides win_id (index starts at 1 for win_id=0).
@@ -1334,13 +1337,16 @@ How many tabs to switch back.
 
 [[tab-take]]
 === tab-take
-Syntax: +:tab-take 'index'+
+Syntax: +:tab-take [*--keep*] 'index'+
 
 Take a tab from another window.
 
 ==== positional arguments
 * +'index'+: The [win_id/]index of the tab to take. Or a substring in which case the closest match will be taken.
 
+
+==== optional arguments
+* +*-k*+, +*--keep*+: If given, keep the old tab around.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.

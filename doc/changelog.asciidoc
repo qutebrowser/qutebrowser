@@ -85,6 +85,8 @@ Changed
 - '@@' now repeats the last run macro.
 - The `content.host_blocking.lists` setting now accepts a `file://` URL to a
   directory, and reads all files in that directory.
+- The `:tab-give` and `:tab-take` command now have a new flag `--keep` which
+  causes them to keep the old tab around.
 
 Fixed
 ~~~~~
