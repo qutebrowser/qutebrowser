@@ -1199,23 +1199,30 @@ class WebEngineTab(browsertab.AbstractTab):
     def _on_proxy_authentication_required(self, url, authenticator,
                                           proxy_host):
         """Called when a proxy needs authentication."""
-        msg = "<b>{}</b> requires a username and password.".format(
-            html_utils.escape(proxy_host))
-        urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
-        answer = message.ask(
-            title="Proxy authentication required", text=msg,
-            mode=usertypes.PromptMode.user_pwd,
-            abort_on=[self.shutting_down, self.load_started], url=urlstr)
-        if answer is not None:
-            authenticator.setUser(answer.user)
-            authenticator.setPassword(answer.password)
-        else:
-            try:
-                # pylint: disable=no-member, useless-suppression
-                sip.assign(authenticator, QAuthenticator())
-                # pylint: enable=no-member, useless-suppression
-            except AttributeError:
-                self._show_error_page(url, "Proxy authentication required")
+        netrc_success = False
+        if not self.data.netrc_used:
+            self.data.netrc_used = True
+            urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+            netrc_success = shared.netrc_authentication(html_utils.escape(proxy_host),
+                                                        authenticator)
+        if not netrc_success:
+            msg = "<b>{}</b> requires a username and password.".format(
+                html_utils.escape(proxy_host))
+            urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
+            answer = message.ask(
+                title="Proxy authentication required", text=msg,
+                mode=usertypes.PromptMode.user_pwd,
+                abort_on=[self.shutting_down, self.load_started], url=urlstr)
+            if answer is not None:
+                authenticator.setUser(answer.user)
+                authenticator.setPassword(answer.password)
+            else:
+                try:
+                    # pylint: disable=no-member, useless-suppression
+                    sip.assign(authenticator, QAuthenticator())
+                    # pylint: enable=no-member, useless-suppression
+                except AttributeError:
+                    self._show_error_page(url, "Proxy authentication required")
 
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
