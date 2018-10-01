@@ -141,7 +141,7 @@ class MainWindow(QWidget):
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
         _overlays: Widgets shown as overlay for the current webpage.
-        _private: Whether the window is in private browsing mode.
+        private: Whether the window is in private browsing mode.
     """
 
     def __init__(self, *, private, geometry=None, parent=None):
