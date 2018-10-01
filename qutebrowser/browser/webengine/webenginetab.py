@@ -1033,6 +1033,9 @@ class WebEngineTab(browsertab.AbstractTab):
         inspector.page().setInspectedPage(widget.page())
         splitter.addWidget(inspector)
         splitter.show()
+        inspector.hide()
+        self.data.inspector = inspector;
+        self.data.splitter = splitter
 
         self.history = WebEngineHistory(tab=self)
         self.scroller = WebEngineScroller(tab=self, parent=self)
