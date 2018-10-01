@@ -333,13 +333,13 @@ window._qutebrowser.webelem = (function() {
     // it). If nothing is selected but there is something focused, returns
     // "focused"
     funcs.find_selected_focused_link = () => {
-        const elem = window.getSelection().baseNode;
+        const elem = window.getSelection().anchorNode;
         if (elem) {
             return serialize_elem(elem.parentNode);
         }
 
         const serialized_frame_elem = run_frames((frame) => {
-            const node = frame.window.getSelection().baseNode;
+            const node = frame.window.getSelection().anchorNode;
             if (node) {
                 return serialize_elem(node.parentNode, frame);
             }
