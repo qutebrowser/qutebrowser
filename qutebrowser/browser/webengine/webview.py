@@ -175,6 +175,14 @@ class WebEnginePage(QWebEnginePage):
             col = self._theme_color
         self.setBackgroundColor(col)
 
+    def triggerAction(self, action, checked):
+        super().triggerAction(action, checked)
+        if action == QWebEnginePage.InspectElement:
+            tabdata = self.parent()._tabdata
+            tabdata.inspector.show()
+            if tabdata.splitter.sizes()[1] == 0:
+                tabdata.splitter.setSizes([2, 1])
+
     def shutdown(self):
         self._is_shutting_down = True
         self.shutting_down.emit()
