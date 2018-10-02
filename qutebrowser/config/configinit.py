@@ -55,7 +55,8 @@ def early_init(args):
         config.instance, config.key_instance)
     objreg.register('config-commands', config_commands)
 
-    config_file = os.path.join(standarddir.config(), 'config.py')
+    config_file = (args.config if args.config is not None
+        else os.path.join(standarddir.config(), 'config.py'))
 
     try:
         if os.path.exists(config_file):
