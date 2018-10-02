@@ -1798,7 +1798,7 @@ colors.completion.item.selected.border.bottom:
 
 colors.completion.match.fg:
   default: '#ff4444'
-  type: QssColor
+  type: QtColor
   desc: Foreground color of the matched text in the completion.
 
 colors.completion.scrollbar.fg:
