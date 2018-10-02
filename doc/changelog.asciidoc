@@ -87,6 +87,7 @@ Changed
   directory, and reads all files in that directory.
 - The `:tab-give` and `:tab-take` command now have a new flag `--keep` which
   causes them to keep the old tab around.
+- `:navigate` now clears the URL query.
 
 Fixed
 ~~~~~
