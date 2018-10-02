@@ -47,6 +47,21 @@ def customized_option(*, info):
     return model
 
 
+def structure_option(*, info):
+    """A CompletionModel filled with set settings of structures.
+
+    Gets lists and dicts and their descriptions.
+    """
+    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
+    options = ((opt.name, opt.description, info.config.get_str(opt.name))
+               for opt in configdata.DATA.values()
+               if isinstance(info.config.get_obj(opt.name), (list, dict)))
+    model.add_category(
+        listcategory.ListCategory("Structure options", options)
+    )
+    return model
+
+
 def value(optname, *values, info):
     """A CompletionModel filled with setting values.
 

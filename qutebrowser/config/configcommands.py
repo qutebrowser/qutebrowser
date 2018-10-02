@@ -251,6 +251,72 @@ class ConfigCommands:
             self._config.unset(option, save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.structure_option)
+    def config_add(
+            self, option, key=None, value=None, temp=False, replace=False
+    ):
+        """Adds an option.
+
+        This adds an element to a dictionary or list. --replace is needed
+        to override existing values.
+
+        Args:
+            option: The name of the option.
+            value: The value to place in either the list or the dictionary.
+            key: The key to set if it's a dictionary.
+            temp: Don't touch autoconfig.yml.
+            replace: Whether or not we should replace, default is not.
+        """
+        with self._handle_config_error():
+            option_value = self._config.get_obj(option)
+
+            # Attempt to replace if it's there.
+            if isinstance(option_value, list):
+                if value is None:
+                    # In this case our key is teh "value", since we are just
+                    # adding to the list.
+                    option_value.append(key)
+
+                if value and replace:
+                    # In this case we are trying to replace something at an
+                    # index.
+                    try:
+                        index = int(key)
+                        if index >= len(option_value):
+                            option_value.append(value)
+                        else:
+                            option_value[int(key)] = value
+                    except:
+                        raise cmdexc.CommandError("The index must be a number")
+                else:
+                    raise cmdexc.CommandError(
+                        "Use --replace to replace a value at an index")
+            elif isinstance(option_value, dict):
+                # Here we are trying to add something to a dictionary.
+                if value is None and not replace:
+                    raise cmdexc.CommandError((
+                        "{value} should not be empty unless --replace is"
+                        "provided (in which case a 'destroy' will happen)!"
+                    ).format(value=value))
+
+                if not replace and key in option_value:
+                    raise cmdexc.CommandError((
+                        "{key} already existed in {option} - use --replace"
+                        "to overwrite!"
+                    ).format(key=key, option=option))
+
+                # If we made it this far with a None value, we should destroy
+                # the option in the dictionary, otherwise we should insert it.
+                if value is None:
+                    option_value.pop(key, None)
+                else:
+                    option_value[key] = value
+
+            # Set the option in the config.
+            self._config.set_obj(option, option_value, pattern=None,
+                                 save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
     def config_clear(self, save=False):
         """Set all settings back to their default.
 
