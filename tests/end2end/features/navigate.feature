@@ -13,6 +13,11 @@ Feature: Using :navigate
         And I run :navigate up
         Then data/navigate should be loaded
 
+    Scenario: Navigating up with a query
+        When I open data/navigate/sub?foo=bar
+        And I run :navigate up
+        Then data/navigate should be loaded
+
     Scenario: Navigating up by count
         When I open data/navigate/sub/index.html
         And I run :navigate up with count 2
