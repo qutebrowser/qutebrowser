@@ -23,22 +23,23 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QSplitter
 from qutebrowser.browser.webengine import webview
 
-class SplitInspector():
+class SplitInspector(QSplitter):
 
     """QtWebEngine web inspector inside a tab using QSplitter"""
 
     def __init__(self, main_webview):
-        splitter = QSplitter(Qt.Horizontal)
-        splitter.addWidget(main_webview)
+        super().__init__(Qt.Horizontal)
+        self.addWidget(main_webview)
         inspector = webview.WebEngineView(tabdata=main_webview._tabdata,
                                           win_id=main_webview._win_id,
                                           private=main_webview._private)
         inspector.page().setInspectedPage(main_webview.page())
-        splitter.addWidget(inspector)
+        self.addWidget(inspector)
         inspector.hide()
 
-        self.splitter = splitter
         self.inspector = inspector
+        self.main_idx = 0
+        self.inspector_idx = 1
 
     def toggle(self, page):
         """Show/hide the inspector."""
@@ -51,8 +52,23 @@ class SplitInspector():
         """Show the inspector."""
         if not self.inspector.isVisible():
             self.inspector.show()
-            width = self.splitter.width()
-            if self.splitter.sizes()[1] == 0:
-                self.splitter.setSizes([width * 2 / 3, width / 3])
-            self.splitter.setStretchFactor(0, 1)
-            self.splitter.setStretchFactor(1, 0)
+            width = self.width()
+            if self.sizes()[self.inspector_idx] == 0:
+                sizes = [1, 1]
+                sizes[self.main_idx] = width * 2 / 3
+                sizes[self.inspector_idx] = width / 3
+                self.setSizes(sizes)
+            self.setStretchFactor(self.main_idx,      1)
+            self.setStretchFactor(self.inspector_idx, 0)
+
+    def resizeEvent(self, e):
+        """Window resize event"""
+        super().resizeEvent(e)
+        if self.inspector.isVisible():
+            sizes = self.sizes()
+            total = sizes[0] + sizes[1]
+            protected_main_size = 150
+            if sizes[self.main_idx] < protected_main_size and total >= 300:
+                sizes[self.main_idx] = protected_main_size
+                sizes[self.inspector_idx] = total - protected_main_size
+                self.setSizes(sizes)

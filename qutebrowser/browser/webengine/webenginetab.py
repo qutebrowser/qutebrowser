@@ -1044,7 +1044,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
-        self._set_widget(widget, splitter=inspector.splitter)
+        self._set_widget(widget, splitter=inspector)
 
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
