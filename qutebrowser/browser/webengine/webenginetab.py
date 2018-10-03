@@ -36,7 +36,8 @@ from qutebrowser.browser import browsertab, mouse, shared, webelem
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
-                                           webenginesettings, certificateerror)
+                                           webenginesettings, certificateerror,
+                                           split_inspector)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
@@ -1026,16 +1027,8 @@ class WebEngineTab(browsertab.AbstractTab):
         widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
                                        private=private)
 
-        splitter = QSplitter(Qt.Horizontal)
-        splitter.addWidget(widget)
-        inspector = webview.WebEngineView(tabdata=self.data, win_id=win_id,
-                                       private=private)
-        inspector.page().setInspectedPage(widget.page())
-        splitter.addWidget(inspector)
-        splitter.show()
-        inspector.hide()
-        self.data.inspector = inspector;
-        self.data.splitter = splitter
+        inspector = split_inspector.SplitInspector(widget)
+        self.data.inspector = inspector
 
         self.history = WebEngineHistory(tab=self)
         self.scroller = WebEngineScroller(tab=self, parent=self)
@@ -1051,7 +1044,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
-        self._set_widget(widget, splitter=splitter)
+        self._set_widget(widget, splitter=inspector.splitter)
 
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine

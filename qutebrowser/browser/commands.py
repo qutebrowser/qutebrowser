@@ -1453,13 +1453,6 @@ class CommandDispatcher:
                 tab.data.inspector = inspector.create()
                 tab.data.inspector.inspect(page)
                 tab.data.inspector.show()
-            elif hasattr(tab.data, 'splitter'):
-                if tab.data.inspector.isVisible():
-                    tab.data.inspector.hide()
-                else:
-                    tab.data.inspector.show()
-                    if tab.data.splitter.sizes()[1] == 0:
-                        tab.data.splitter.setSizes([2, 1])
             else:
                 tab.data.inspector.toggle(page)
         except inspector.WebInspectorError as e:

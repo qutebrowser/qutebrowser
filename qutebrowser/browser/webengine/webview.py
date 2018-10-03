@@ -40,6 +40,7 @@ class WebEngineView(QWebEngineView):
         super().__init__(parent)
         self._win_id = win_id
         self._tabdata = tabdata
+        self._private = private
 
         theme_color = self.style().standardPalette().color(QPalette.Base)
         if private:
@@ -178,10 +179,7 @@ class WebEnginePage(QWebEnginePage):
     def triggerAction(self, action, checked):
         super().triggerAction(action, checked)
         if action == QWebEnginePage.InspectElement:
-            tabdata = self.parent()._tabdata
-            tabdata.inspector.show()
-            if tabdata.splitter.sizes()[1] == 0:
-                tabdata.splitter.setSizes([2, 1])
+            self.parent()._tabdata.inspector.show()
 
     def shutdown(self):
         self._is_shutting_down = True
