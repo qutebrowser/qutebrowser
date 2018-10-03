@@ -710,8 +710,8 @@ qutebrowser release
 as closed.
 
 * Linux: Run `git checkout v1.$x.$y && ./.venv/bin/python3 scripts/dev/build_release.py --upload v1.$x.$y`.
-* Windows: Run `git checkout v1.X.Y; py -3.6 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
-* macOS: Run `pyenv shell 3.6.6 && git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
+* Windows: Run `git checkout v1.X.Y; py -3 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
+* macOS: Run `git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
 * On server:
   - Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
   - Run `git pull github master && sudo python3 scripts/asciidoc2html.py --website /srv/http/qutebrowser`
