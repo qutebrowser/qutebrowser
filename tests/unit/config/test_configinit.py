@@ -52,7 +52,7 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 def args(fake_args):
     """Arguments needed for the config to init."""
     fake_args.temp_settings = []
-    fake_args.config = None
+    fake_args.config_py = None
     return fake_args
 
 
