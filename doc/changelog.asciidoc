@@ -21,12 +21,6 @@ v1.5.0 (unreleased)
 Added
 ~~~~~
 
-- The qute-pass userscript now has optional OTP support.
-- When `:spawn --userscript` is called with a count, that count is now
-  passed to userscripts as `$QUTE_COUNT`.
-- New `content.mouse_lock` setting to handle HTML5 pointer locking.
-- New `completion.web_history.exclude` setting which hides a list of URL
-  patterns from the completion.
 - Rewritten PDF.js support:
   * PDF.js support and the `content.pdfjs` setting are now available with
     QtWebEngine.
@@ -34,23 +28,28 @@ Added
   * Opening PDFs on https:// sites now works properly.
   * New `--pdfjs` flag for `prompt-open-download`, so PDFs can be opened in
     PDF.js with `<Ctrl-P>` in the download prompt.
-- New `qt.process_model` setting which can be used to change Chromium's process
-  model.
-- New `qt.low_end_device_mode` setting which turns on Chromium's low-end device
-  mode. This mode uses less RAM, but the expense of performance.
-- New `content.webrtc_ip_handling_policy` setting, which allows more
-  fine-grained/restrictive control about which IPs are exposed via WebRTC.
+- New settings:
+  * `content.mouse_lock` to handle HTML5 pointer locking.
+  * `completion.web_history.exclude` which hides a list of URL patterns from
+    the completion.
+  * `qt.process_model` which can be used to change Chromium's process model.
+  * `qt.low_end_device_mode` which turns on Chromium's low-end device mode.
+    This mode uses less RAM, but the expense of performance.
+  * `content.webrtc_ip_handling_policy`, which allows more
+    fine-grained/restrictive control about which IPs are exposed via WebRTC.
+  * `tabs.max_width` which allows to have a more "normal" look for tabs.
+  * `content.mute` which allows to mute pages (or all tabs) by default.
 - Running qutebrowser with QtWebKit or Qt < 5.9 now shows a warning (only
   once), as support for those is going to be removed in a future release.
 - New t[iI][hHu] default bindings (similar to `tsh` etc.) to toggle images.
-- New `tabs.max_width` setting which allows to have a more "normal" look for
-  tabs.
-- New `content.mute` setting which allows to mute pages (or all tabs) by
-  default.
+- The qute-pass userscript now has optional OTP support.
+- When `:spawn --userscript` is called with a count, that count is now
+  passed to userscripts as `$QUTE_COUNT`.
 
 Changed
 ~~~~~~~
 
+- Various performance improvements when many tabs are opened.
 - The `content.headers.referer` setting now works on QtWebEngine.
 - The `:repeat` command now takes a count which is multiplied with the given
   "times" argument.
@@ -65,10 +64,8 @@ Changed
 - The `completion.web_history_max_items` setting got renamed to
   `completion.web_history.max_items`.
 - The Makefile shipped with qutebrowser now supports overriding variables
-  DATADIR and MANDIR.
-- Various performance improvements when many tabs are opened.
+  `DATADIR` and `MANDIR`.
 - Regenerating completion history now shows a progress dialog.
-- Make qute:// pages work properly on Qt 5.11.2
 - The `content.autoplay` setting now supports URL patterns on Qt >= 5.11.
 - The `content.host_blocking.whitelist` setting now takes a list of URL
   patterns instead of globs.
@@ -92,11 +89,12 @@ Changed
 Fixed
 ~~~~~
 
+- `qute://` pages now work properly on Qt 5.11.2
 - Error when passing a substring with spaces to `:tab-take`.
 - Greasemonkey scripts which start with an UTF-8 BOM are now handled correctly.
 - When no documentation has been generated, the plaintext documentation now can
   be shown for more files such as `qute://help/userscripts.html`.
-- Crash when doing initial run on Wayland without XWayland
+- Crash when doing initial run on Wayland without XWayland.
 - Crash when trying to load an empty session file.
 - `:hint` with an invalid `--mode=` value now shows a proper error.
 - Rare crash on Qt 5.11.2 when clicking on `<select>` elements.
