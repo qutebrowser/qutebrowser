@@ -40,6 +40,11 @@ class SplitInspector(QSplitter):
         self.inspector = inspector
         self.main_idx = 0
         self.inspector_idx = 1
+        self.splitterMoved.connect(self._onSplitterMoved)
+
+        self.preferredSize = max(300, self.width() / 2)
+        self.setStretchFactor(self.main_idx,      1)
+        self.setStretchFactor(self.inspector_idx, 0)
 
     def toggle(self, page):
         """Show/hide the inspector."""
@@ -53,22 +58,28 @@ class SplitInspector(QSplitter):
         if not self.inspector.isVisible():
             self.inspector.show()
             width = self.width()
-            if self.sizes()[self.inspector_idx] == 0:
-                sizes = [1, 1]
-                sizes[self.main_idx] = width * 2 / 3
-                sizes[self.inspector_idx] = width / 3
-                self.setSizes(sizes)
-            self.setStretchFactor(self.main_idx,      1)
-            self.setStretchFactor(self.inspector_idx, 0)
+            sizes = self.sizes()
+            self._adjust_size()
 
     def resizeEvent(self, e):
         """Window resize event"""
         super().resizeEvent(e)
         if self.inspector.isVisible():
-            sizes = self.sizes()
-            total = sizes[0] + sizes[1]
-            protected_main_size = 150
-            if sizes[self.main_idx] < protected_main_size and total >= 300:
-                sizes[self.main_idx] = protected_main_size
-                sizes[self.inspector_idx] = total - protected_main_size
-                self.setSizes(sizes)
+            self._adjust_size()
+
+    def _adjust_size(self):
+        sizes = self.sizes()
+        total = sizes[0] + sizes[1]
+        protected_main_size = 150
+        if total >= self.preferredSize + protected_main_size and sizes[self.inspector_idx] != self.preferredSize:
+            sizes[self.inspector_idx] = self.preferredSize
+            sizes[self.main_idx] = total - self.preferredSize
+            self.setSizes(sizes)
+        if sizes[self.main_idx] < protected_main_size and total >= 300:
+            sizes[self.main_idx] = protected_main_size
+            sizes[self.inspector_idx] = total - protected_main_size
+            self.setSizes(sizes)
+
+    def _onSplitterMoved(self, pos, index):
+        sizes = self.sizes()
+        self.preferredSize = sizes[self.inspector_idx]
