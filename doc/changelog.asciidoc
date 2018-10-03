@@ -100,6 +100,7 @@ Fixed
 - Crash when trying to load an empty session file.
 - `:hint` with an invalid `--mode=` value now shows a proper error.
 - Rare crash on Qt 5.11.2 when clicking on `<select>` elements.
+- Rare crash related to the completion.
 
 Removed
 ~~~~~~~

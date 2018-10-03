@@ -24,7 +24,7 @@ import re
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, log
 
 
 class ListCategory(QSortFilterProxyModel):
@@ -79,6 +79,13 @@ class ListCategory(QSortFilterProxyModel):
 
         left = self.srcmodel.data(lindex)
         right = self.srcmodel.data(rindex)
+
+        if left is None or right is None:
+            log.completion.warning("Got unexpected None value, "
+                                   "left={!r} right={!r} "
+                                   "lindex={!r} rindex={!r}"
+                                   .format(left, right, lindex, rindex))
+            return False
 
         leftstart = left.startswith(self._pattern)
         rightstart = right.startswith(self._pattern)
