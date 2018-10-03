@@ -115,13 +115,13 @@ def url_or_buffer(*, info):
         if tabbed_browser.shutting_down:
             continue
         tabs = []
-        for idx in range(tabbed_browser.count()):
-            tab = tabbed_browser.widget(idx)
+        for idx in range(tabbed_browser.widget.count()):
+            tab = tabbed_browser.widget.widget(idx)
             tabs.append(("{}/{}".format(win_id, idx + 1),
                          tab.url().toDisplayString(),
-                         tabbed_browser.page_title(idx)))
-        cat = listcategory.ListCategory("{}".format(win_id), tabs,
-                                        delete_func=delete_buffer)
+                         tabbed_browser.widget.page_title(idx)))
+        cat = listcategory.ListCategory(
+            str(win_id), tabs, delete_func=delete_buffer, sort=False)
         model.add_category(cat)
 
     quickmarks = [(url, name) for (name, url)
@@ -136,7 +136,7 @@ def url_or_buffer(*, info):
         model.add_category(listcategory.ListCategory(
             'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False))
 
-    if info.config.get('completion.web_history_max_items') != 0:
+    if info.config.get('completion.web_history.max_items') != 0:
         hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
         model.add_category(hist_cat)
     return model
