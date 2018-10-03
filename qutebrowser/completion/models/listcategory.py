@@ -80,7 +80,7 @@ class ListCategory(QSortFilterProxyModel):
         left = self.srcmodel.data(lindex)
         right = self.srcmodel.data(rindex)
 
-        if left is None or right is None:
+        if left is None or right is None:  # pragma: no cover
             log.completion.warning("Got unexpected None value, "
                                    "left={!r} right={!r} "
                                    "lindex={!r} rindex={!r}"
