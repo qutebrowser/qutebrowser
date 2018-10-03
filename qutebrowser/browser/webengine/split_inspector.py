@@ -35,7 +35,6 @@ class SplitInspector():
                                           private=main_webview._private)
         inspector.page().setInspectedPage(main_webview.page())
         splitter.addWidget(inspector)
-        splitter.show()
         inspector.hide()
 
         self.splitter = splitter
@@ -50,6 +49,10 @@ class SplitInspector():
 
     def show(self):
         """Show the inspector."""
-        self.inspector.show()
-        if self.splitter.sizes()[1] == 0:
-            self.splitter.setSizes([2, 1])
+        if not self.inspector.isVisible():
+            self.inspector.show()
+            width = self.splitter.width()
+            if self.splitter.sizes()[1] == 0:
+                self.splitter.setSizes([width * 2 / 3, width / 3])
+            self.splitter.setStretchFactor(0, 1)
+            self.splitter.setStretchFactor(1, 0)
