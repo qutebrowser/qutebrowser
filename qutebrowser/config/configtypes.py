@@ -915,7 +915,6 @@ class QtColor(BaseType):
         if val.endswith('%'):
             val = val[:-1]
             mult = 255.0 / 100
-            return int(float(val) * 255.0 / 100.0)
 
         try:
             return int(float(val) * mult)
@@ -927,19 +926,21 @@ class QtColor(BaseType):
         if not value:
             return None
 
-        if value.endswith(')'):
+        if '(' in value and value.endswith(')'):
             openparen = value.index('(')
             kind = value[:openparen]
             vals = value[openparen+1:-1].split(',')
             vals = [self._parse_value(v) for v in vals]
             if kind == 'rgba' and len(vals) == 4:
                 return QColor.fromRgb(*vals)
-            if kind == 'rgb' and len(vals) == 3:
-                return QColor.fromRgb(*vals)
-            if kind == 'hsva' and len(vals) == 4:
+            elif kind == 'rgb' and len(vals) == 3:
+              return QColor.fromRgb(*vals)
+            elif kind == 'hsva' and len(vals) == 4:
+              return QColor.fromHsv(*vals)
+            elif kind == 'hsv' and len(vals) == 3:
                 return QColor.fromHsv(*vals)
-            if kind == 'hsv' and len(vals) == 3:
-                return QColor.fromHsv(*vals)
+            else:
+                raise configexc.ValidationError(value, "must be a valid color")
 
         color = QColor(value)
         if color.isValid():
