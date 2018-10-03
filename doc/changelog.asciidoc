@@ -49,6 +49,9 @@ Added
 Changed
 ~~~~~~~
 
+- Windows and macOS releases now bundle Python 3.7, PyQt 5.11.3 and Qt 5.11.2.
+  QtWebEngine includes security fixes up to Chromium 68.0.3440.75 and
+  http://code.qt.io/cgit/qt/qtwebengine.git/tree/dist/changes-5.11.2/?h=v5.11.2[various other fixes].
 - Various performance improvements when many tabs are opened.
 - The `content.headers.referer` setting now works on QtWebEngine.
 - The `:repeat` command now takes a count which is multiplied with the given
