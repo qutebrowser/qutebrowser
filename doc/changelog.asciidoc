@@ -23,6 +23,10 @@ Fixed
 
 - Flickering when opening/closing tabs (as soon as more than 10 are open) on
   some pages.
+- PDF.js is now bundled again with the macOS/Windows release.
+- PDF.js is now searched in the correct path (if not installed system-wide)
+  instead of hardcoding `~/.local/share/qutebrowser`.
+- Improved logging for PDF.js resources which fail to load.
 
 v1.5.0
 ------
