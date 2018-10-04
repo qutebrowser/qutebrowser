@@ -922,12 +922,43 @@ class QtColor(BaseType):
     * transparent (no color)
     """
 
+    def _parse_value(self, val):
+        try:
+            return int(val)
+        except ValueError:
+            pass
+
+        mult = 255.0
+        if val.endswith('%'):
+            val = val[:-1]
+            mult = 255.0 / 100
+            return int(float(val) * 255.0 / 100.0)
+
+        try:
+            return int(float(val) * mult)
+        except ValueError:
+            raise configexc.ValidationError(val, "must be a valid color value")
+
     def to_py(self, value):
         self._basic_py_validation(value, str)
         if value is configutils.UNSET:
             return value
         elif not value:
             return None
+
+        if value.endswith(')'):
+            openparen = value.index('(')
+            kind = value[:openparen]
+            vals = value[openparen+1:-1].split(',')
+            vals = [self._parse_value(v) for v in vals]
+            if kind == 'rgba' and len(vals) == 4:
+                return QColor.fromRgb(*vals)
+            if kind == 'rgb' and len(vals) == 3:
+                return QColor.fromRgb(*vals)
+            if kind == 'hsva' and len(vals) == 4:
+                return QColor.fromHsv(*vals)
+            if kind == 'hsv' and len(vals) == 3:
+                return QColor.fromHsv(*vals)
 
         color = QColor(value)
         if color.isValid():
