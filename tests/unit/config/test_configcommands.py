@@ -25,7 +25,7 @@ import unittest.mock
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.config import configcommands, configutils
+from qutebrowser.config import configcommands, configtypes, configutils
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.keyinput import keyutils
@@ -280,6 +280,54 @@ class TestCycle:
         commands.config_cycle('auto_save.session', print_=True)
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == 'auto_save.session = true'
+
+
+class TestAdd:
+
+    """Test :config-add-list and :config-add-dict."""
+
+    @pytest.mark.parametrize('name', ['content.host_blocking.whitelist',
+                                      'history_gap_interval'])
+    @pytest.mark.parametrize('temp', [True, False])
+    @pytest.mark.parametrize('value', ['test1', 'test2', '', None])
+    def test_add_list(self, commands, config_stub, yaml_value, name, temp, value):
+        opt_type = config_stub.get_opt(name).typ
+
+        try:
+            commands.config_add_list(name, value, temp=temp)
+        except cmdexc.CommandError:
+            # We attempted to add to the dictionary with replace as false.
+            valid_list_types = (configtypes.List, configtypes.ListOrValue)
+            assert not isinstance(opt_type, valid_list_types) or not value
+            return
+
+        assert str(config_stub.get(name)[-1]) == value
+        if temp:
+            assert yaml_value(name) == configutils.UNSET
+        else:
+            assert yaml_value(name)[-1] == value
+
+    @pytest.mark.parametrize('name', ['aliases', 'history_gap_interval'])
+    @pytest.mark.parametrize('key', ['w', 'missingkey'])
+    @pytest.mark.parametrize('value', ['test1', 'test2'])
+    @pytest.mark.parametrize('temp', [True, False])
+    @pytest.mark.parametrize('replace', [True, False])
+    def test_add_dict(self, commands, config_stub, yaml_value, name, key,
+                      value, temp, replace):
+        opt_type = config_stub.get_opt(name).typ
+
+        try:
+            commands.config_add_dict(name, key, value, temp=temp, replace=replace)
+        except cmdexc.CommandError:
+            # We attempted to add to the dictionary with replace as false.
+            assert not isinstance(opt_type, configtypes.Dict) or not replace
+            return
+
+        assert str(config_stub.get(name)[key]) == value
+        if temp:
+            assert yaml_value(name) == configutils.UNSET
+        else:
+            assert yaml_value(name)[key] == value
 
 
 class TestUnsetAndClear:
