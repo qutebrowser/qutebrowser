@@ -226,15 +226,16 @@ class TabWidget(QTabWidget):
         work.
         """
         toggle = self.count() > 10
+        bar = self.tabBar()
         if toggle:
-            self.setUpdatesEnabled(False)
-            self.setVisible(False)
+            bar.setUpdatesEnabled(False)
+            bar.setVisible(False)
 
         yield
 
         if toggle:
-            self.setVisible(True)
-            self.setUpdatesEnabled(True)
+            bar.setVisible(True)
+            bar.setUpdatesEnabled(True)
 
     def update_tab_titles(self):
         """Update all texts."""
