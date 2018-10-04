@@ -71,7 +71,7 @@ def handler(request, operation, current_url):
                 QNetworkReply.InternalServerError,
         }
         exctype = type(e)
-        log.misc.exception("{} while handling qute://* URL".format(
+        log.misc.error("{} while handling qute://* URL".format(
             exctype.__name__))
         return networkreply.ErrorNetworkReply(request, str(e), errors[exctype])
     except qutescheme.Redirect as e:
