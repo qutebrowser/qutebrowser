@@ -25,7 +25,7 @@ import os
 from PyQt5.QtCore import QUrl, QUrlQuery
 
 from qutebrowser.utils import (utils, javascript, jinja, qtutils, usertypes,
-                               standarddir)
+                               standarddir, log)
 from qutebrowser.misc import objects
 from qutebrowser.config import config
 
@@ -203,7 +203,10 @@ def _read_from_system(system_path, names):
             full_path = os.path.join(system_path, name)
             with open(full_path, 'rb') as f:
                 return (f.read(), full_path)
-        except OSError:
+        except FileNotFoundError:
+            continue
+        except OSError as e:
+            log.misc.warning("OSError while reading PDF.js file: {}".format(e))
             continue
     return (None, None)
 
