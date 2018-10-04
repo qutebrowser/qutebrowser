@@ -1228,7 +1228,9 @@ class TestCommand:
 
 class TestQtColor:
 
-    """Test QtColor."""
+    @pytest.fixture
+    def klass(self):
+        return configtypes.QtColor
 
     @pytest.mark.parametrize('val, expected', [
         ('#123', QColor('#123')),
@@ -1248,8 +1250,8 @@ class TestQtColor:
         ('hsv(10%,10%,10%)', QColor.fromHsv(25, 25, 25)),
         ('hsva(10%,20%,30%,40%)', QColor.fromHsv(25, 51, 76, 102)),
     ])
-    def test_valid(self, val, expected):
-        assert configtypes.QtColor().to_py(val) == expected
+    def test_valid(self, klass, val, expected):
+        assert klass().to_py(val) == expected
 
     @pytest.mark.parametrize('val', [
         '#00000G',
@@ -1267,14 +1269,16 @@ class TestQtColor:
         'rgba(1, 2, 3)',
         'rgb(10%%, 0, 0)',
     ])
-    def test_invalid(self, val):
+    def test_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            configtypes.QtColor().to_py(val)
+            klass().to_py(val)
 
 
 class TestQssColor:
 
-    """Test QssColor."""
+    @pytest.fixture
+    def klass(self):
+        return configtypes.QssColor
 
     @pytest.mark.parametrize('val', [
         '#123',
@@ -1298,8 +1302,8 @@ class TestQssColor:
         'qradialgradient(cx:0, cy:0, radius: 1, fx:0.5, fy:0.5, '
         'stop:0 white, stop:1 green)',
     ])
-    def test_valid(self, val):
-        assert configtypes.QssColor().to_py(val) == val
+    def test_valid(self, klass, val):
+        assert klass().to_py(val) == val
 
     @pytest.mark.parametrize('val', [
         '#00000G',
@@ -1310,9 +1314,9 @@ class TestQssColor:
         'foo(1, 2, 3)',
         'rgb(1, 2, 3',
     ])
-    def test_invalid(self, val):
+    def test_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
-            configtypes.QssColor().to_py(val)
+            klass().to_py(val)
 
 
 @attr.s
