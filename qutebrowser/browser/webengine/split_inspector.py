@@ -17,69 +17,66 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""QtWebEngine web inspector inside a tab using QSplitter"""
+"""QtWebEngine web inspector inside a tab using QSplitter."""
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QSplitter
 from qutebrowser.browser.webengine import webview
 
+
 class SplitInspector(QSplitter):
 
-    """QtWebEngine web inspector inside a tab using QSplitter"""
+    """QtWebEngine web inspector inside a tab using QSplitter."""
 
-    def __init__(self, main_webview):
+    def __init__(self, main_webview, inspector_webview):
         super().__init__(Qt.Horizontal)
         self.addWidget(main_webview)
-        inspector = webview.WebEngineView(tabdata=main_webview._tabdata,
-                                          win_id=main_webview._win_id,
-                                          private=main_webview._private)
-        inspector.page().setInspectedPage(main_webview.page())
-        self.addWidget(inspector)
-        inspector.hide()
+        inspector_webview.page().setInspectedPage(main_webview.page())
+        self.addWidget(inspector_webview)
+        inspector_webview.hide()
 
-        self.inspector = inspector
+        self.inspector_webview = inspector_webview
         self.main_idx = 0
         self.inspector_idx = 1
         self.splitterMoved.connect(self._onSplitterMoved)
 
-        self.preferredSize = max(300, self.width() / 2)
-        self.setStretchFactor(self.main_idx,      1)
+        self.preferred_size = max(300, self.width() / 2)
+        self.setStretchFactor(self.main_idx, 1)
         self.setStretchFactor(self.inspector_idx, 0)
 
-    def toggle(self, page):
+    def toggle(self, _page):
         """Show/hide the inspector."""
-        if self.inspector.isVisible():
-            self.inspector.hide()
+        if self.inspector_webview.isVisible():
+            self.inspector_webview.hide()
         else:
             self.show()
 
     def show(self):
         """Show the inspector."""
-        if not self.inspector.isVisible():
-            self.inspector.show()
-            width = self.width()
-            sizes = self.sizes()
-            self._adjust_size()
-
-    def resizeEvent(self, e):
-        """Window resize event"""
-        super().resizeEvent(e)
-        if self.inspector.isVisible():
+        if not self.inspector_webview.isVisible():
+            self.inspector_webview.show()
             self._adjust_size()
 
     def _adjust_size(self):
         sizes = self.sizes()
         total = sizes[0] + sizes[1]
         protected_main_size = 150
-        if total >= self.preferredSize + protected_main_size and sizes[self.inspector_idx] != self.preferredSize:
-            sizes[self.inspector_idx] = self.preferredSize
-            sizes[self.main_idx] = total - self.preferredSize
+        if (total >= self.preferred_size + protected_main_size and
+                sizes[self.inspector_idx] != self.preferred_size):
+            sizes[self.inspector_idx] = self.preferred_size
+            sizes[self.main_idx] = total - self.preferred_size
             self.setSizes(sizes)
         if sizes[self.main_idx] < protected_main_size and total >= 300:
             sizes[self.main_idx] = protected_main_size
             sizes[self.inspector_idx] = total - protected_main_size
             self.setSizes(sizes)
 
-    def _onSplitterMoved(self, pos, index):
+    def _onSplitterMoved(self, _pos, _index):
         sizes = self.sizes()
-        self.preferredSize = sizes[self.inspector_idx]
+        self.preferred_size = sizes[self.inspector_idx]
+
+    def resizeEvent(self, e):
+        """Window resize event."""
+        super().resizeEvent(e)
+        if self.inspector_webview.isVisible():
+            self._adjust_size()

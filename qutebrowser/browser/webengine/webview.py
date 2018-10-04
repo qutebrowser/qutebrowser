@@ -176,11 +176,6 @@ class WebEnginePage(QWebEnginePage):
             col = self._theme_color
         self.setBackgroundColor(col)
 
-    def triggerAction(self, action, checked):
-        super().triggerAction(action, checked)
-        if action == QWebEnginePage.InspectElement:
-            self.parent()._tabdata.inspector.show()
-
     def shutdown(self):
         self._is_shutting_down = True
         self.shutting_down.emit()
@@ -267,3 +262,9 @@ class WebEnginePage(QWebEnginePage):
                                                  is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
         return navigation.accepted
+
+    def triggerAction(self, action, checked):
+        """Trigger the specified contextmenu action."""
+        super().triggerAction(action, checked)
+        if action == QWebEnginePage.InspectElement:
+            self.parent()._tabdata.inspector.show()
