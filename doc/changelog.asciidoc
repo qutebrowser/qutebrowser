@@ -22,7 +22,7 @@ Added
 ~~~~~
 
 - Rewritten PDF.js support:
-  * PDF.js support and the `content.pdfjs` setting are now available with
+  * PDF.js support and the `content.pdfjs` setting are now also available with
     QtWebEngine.
   * Opening a PDF file now doesn't start a second request anymore.
   * Opening PDFs on https:// sites now works properly.
