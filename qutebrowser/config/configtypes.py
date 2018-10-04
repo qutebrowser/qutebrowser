@@ -934,9 +934,9 @@ class QtColor(BaseType):
             if kind == 'rgba' and len(vals) == 4:
                 return QColor.fromRgb(*vals)
             elif kind == 'rgb' and len(vals) == 3:
-              return QColor.fromRgb(*vals)
+                return QColor.fromRgb(*vals)
             elif kind == 'hsva' and len(vals) == 4:
-              return QColor.fromHsv(*vals)
+                return QColor.fromHsv(*vals)
             elif kind == 'hsv' and len(vals) == 3:
                 return QColor.fromHsv(*vals)
             else:

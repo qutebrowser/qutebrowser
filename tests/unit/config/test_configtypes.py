@@ -21,7 +21,6 @@
 import re
 import json
 import math
-import itertools
 import warnings
 import inspect
 import functools
@@ -1245,7 +1244,6 @@ class TestQtColor:
         ('hsva(10%,20%,30%,40%)', QColor.fromHsv(25, 51, 76, 102)),
     ])
     def test_valid(self, val, expected):
-        act = configtypes.QtColor().to_py(val)
         assert configtypes.QtColor().to_py(val) == expected
 
     @pytest.mark.parametrize('val', [
