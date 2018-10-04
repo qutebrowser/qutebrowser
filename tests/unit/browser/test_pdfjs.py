@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import os.path
+
 import pytest
 from PyQt5.QtCore import QUrl
 
@@ -24,10 +26,14 @@ from qutebrowser.browser import pdfjs
 from qutebrowser.utils import usertypes, utils
 
 
+@pytest.fixture(autouse=True)
+def patch_data_dir(monkeypatch, tmpdir):
+    monkeypatch.setattr(pdfjs.standarddir, 'data',
+                        lambda: str(tmpdir / 'data'))
+
+
 @pytest.mark.parametrize('available, snippet', [
-    pytest.param(True, '<title>PDF.js viewer</title>',
-                 marks=pytest.mark.skipif(not pdfjs.is_available(),
-                                          reason='PDF.js unavailable')),
+    (True, '<title>PDF.js viewer</title>'),
     (False, '<h1>No pdf.js installation found</h1>'),
     ('force', 'fake PDF.js'),
 ])
@@ -36,8 +42,12 @@ def test_generate_pdfjs_page(available, snippet, monkeypatch):
         monkeypatch.setattr(pdfjs, 'is_available', lambda: True)
         monkeypatch.setattr(pdfjs, 'get_pdfjs_res',
                             lambda filename: b'fake PDF.js')
+    elif available:
+        if not pdfjs.is_available():
+            pytest.skip("PDF.js unavailable")
+        monkeypatch.setattr(pdfjs, 'is_available', lambda: True)
     else:
-        monkeypatch.setattr(pdfjs, 'is_available', lambda: available)
+        monkeypatch.setattr(pdfjs, 'is_available', lambda: False)
 
     content = pdfjs.generate_pdfjs_page('example.pdf', QUrl())
     print(content)
@@ -110,7 +120,8 @@ class TestResources:
         read_system_mock.assert_called_with('/usr/share/pdf.js/',
                                             ['web/test', 'test'])
 
-    def test_get_pdfjs_res_bundled(self, read_system_mock, read_file_mock):
+    def test_get_pdfjs_res_bundled(self, read_system_mock, read_file_mock,
+                                   tmpdir):
         read_system_mock.return_value = (None, None)
 
         read_file_mock.return_value = b'content'
@@ -118,7 +129,10 @@ class TestResources:
         assert pdfjs.get_pdfjs_res_and_path('web/test') == (b'content', None)
         assert pdfjs.get_pdfjs_res('web/test') == b'content'
 
-        for path in pdfjs.SYSTEM_PDFJS_PATHS:
+        for path in ['/usr/share/pdf.js/',
+                     str(tmpdir / 'data' / 'pdfjs'),
+                     # hardcoded for --temp-basedir
+                     os.path.expanduser('~/.local/share/qutebrowser/pdfjs/')]:
             read_system_mock.assert_any_call(path, ['web/test', 'test'])
 
     def test_get_pdfjs_res_not_found(self, read_system_mock, read_file_mock):
