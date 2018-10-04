@@ -21,7 +21,6 @@
 import re
 import json
 import math
-import itertools
 import warnings
 import inspect
 import functools
@@ -1247,11 +1246,9 @@ class TestQtColor:
         # however this is consistent with Qt's CSS parser
         # https://bugreports.qt.io/browse/QTBUG-70897
         ('hsv(10%,10%,10%)', QColor.fromHsv(25, 25, 25)),
+        ('hsva(10%,20%,30%,40%)', QColor.fromHsv(25, 51, 76, 102)),
     ])
     def test_valid(self, val, expected):
-        act = configtypes.QtColor().to_py(val)
-        print(expected.hue(), expected.saturation(), expected.value(), expected.alpha())
-        print(act.hue(), act.saturation(), act.value(), act.alpha())
         assert configtypes.QtColor().to_py(val) == expected
 
     @pytest.mark.parametrize('val', [
@@ -1262,6 +1259,13 @@ class TestQtColor:
         '42',
         'foo(1, 2, 3)',
         'rgb(1, 2, 3',
+        'rgb)',
+        'rgb(1, 2, 3))',
+        'rgb((1, 2, 3)',
+        'rgb()',
+        'rgb(1, 2, 3, 4)',
+        'rgba(1, 2, 3)',
+        'rgb(10%%, 0, 0)',
     ])
     def test_invalid(self, val):
         with pytest.raises(configexc.ValidationError):
