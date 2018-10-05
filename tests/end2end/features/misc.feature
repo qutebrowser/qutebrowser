@@ -118,6 +118,26 @@ Feature: Various utility commands.
         Then the javascript message "Hello from the page!" should be logged
         And "No output or error" should be logged
 
+    @qtwebkit_skip @qt>=5.11.2
+    Scenario: :jseval using too high of a world id in Qt versions bigger than 5.11.2
+        When I run :jseval --world=257 console.log("Hello from JS!");
+        Then the error "World ID should be between 0 and 256" should be shown
+
+    @qtwebkit_skip @qt<5.11.2
+    Scenario: :jseval using too high of a world id in Qt versions smaller than 5.11.2
+        When I run :jseval --world=12 console.log("Hello from JS!");
+        Then the error "World ID should be between 0 and 11" should be shown
+
+    @qtwebkit_skip @qt>=5.11.2
+    Scenario: :jseval using a negative world id in Qt versions bigger than 5.11.2
+        When I run :jseval --world=-1 console.log("Hello from JS!");
+        Then the error "World ID should be between 0 and 256" should be shown
+
+    @qtwebkit_skip @qt<5.11.2
+    Scenario: :jseval using a negative world id in Qt versions smaller than 5.11.2
+        When I run :jseval --world=-1 console.log("Hello from JS!");
+        Then the error "World ID should be between 0 and 11" should be shown
+
     Scenario: :jseval --file using a file that exists as js-code
         When I run :jseval --file (testdata)/misc/jseval_file.js
         Then the javascript message "Hello from JS!" should be logged

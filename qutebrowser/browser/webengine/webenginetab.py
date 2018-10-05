@@ -950,6 +950,15 @@ class _WebEngineScripts(QObject):
         scripts = self._greasemonkey.all_scripts()
         self._inject_greasemonkey_scripts(scripts)
 
+    def _remove_all_greasemonkey_scripts(self):
+        page_scripts = self._widget.page().scripts()
+        for script in page_scripts.toList():
+            if script.name().startswith("GM-"):
+                log.greasemonkey.debug('Removing script: {}'
+                                       .format(script.name()))
+                removed = page_scripts.remove(script)
+                assert removed, script.name()
+
     def _inject_greasemonkey_scripts(self, scripts=None, injection_point=None,
                                      remove_first=True):
         """Register user JavaScript files with the current tab.
@@ -973,12 +982,7 @@ class _WebEngineScripts(QObject):
         # have been added elsewhere, like the one for stylesheets.
         page_scripts = self._widget.page().scripts()
         if remove_first:
-            for script in page_scripts.toList():
-                if script.name().startswith("GM-"):
-                    log.greasemonkey.debug('Removing script: {}'
-                                           .format(script.name()))
-                    removed = page_scripts.remove(script)
-                    assert removed, script.name()
+            self._remove_all_greasemonkey_scripts()
 
         if not scripts:
             return
@@ -987,6 +991,15 @@ class _WebEngineScripts(QObject):
             new_script = QWebEngineScript()
             try:
                 world = int(script.jsworld)
+                if not 0 <= world <= qtutils.MAX_WORLD_ID:
+                    log.greasemonkey.error(
+                        "script {} has invalid value for '@qute-js-world'"
+                        ": {}, should be between 0 and {}"
+                        .format(
+                            script.name,
+                            script.jsworld,
+                            qtutils.MAX_WORLD_ID))
+                    continue
             except ValueError:
                 try:
                     world = _JS_WORLD_MAP[usertypes.JsWorld[
@@ -1104,6 +1117,10 @@ class WebEngineTab(browsertab.AbstractTab):
             world_id = QWebEngineScript.ApplicationWorld
         elif isinstance(world, int):
             world_id = world
+            if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
+                raise browsertab.WebTabError(
+                    "World ID should be between 0 and {}"
+                    .format(qtutils.MAX_WORLD_ID))
         else:
             world_id = _JS_WORLD_MAP[world]
 
