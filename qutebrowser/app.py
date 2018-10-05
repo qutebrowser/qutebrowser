@@ -677,7 +677,6 @@ class Quitter:
     @cmdutils.argument('session', completion=miscmodels.session)
     def quit(self, save=False, session=None):
         """Quit qutebrowser.
-
         Args:
             save: When given, save the open windows even if auto_save.session
                   is turned off.
