@@ -151,7 +151,7 @@ class TestResources:
 
         with caplog.at_level(logging.WARNING):
             with pytest.raises(pdfjs.PDFJSNotFound,
-                            match="Path 'web/test' not found"):
+                               match="Path 'web/test' not found"):
                 pdfjs.get_pdfjs_res_and_path('web/test')
 
         assert len(caplog.records) == 1
