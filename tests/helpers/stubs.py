@@ -459,6 +459,12 @@ class BookmarkManagerStub(UrlMarkManagerStub):
 
     pass
 
+class SearchenginesManagerStub(UrlMarkManagerStub):
+
+    """Stub for the bookmark-manager object."""
+
+    pass
+
 
 class QuickmarkManagerStub(UrlMarkManagerStub):
 
