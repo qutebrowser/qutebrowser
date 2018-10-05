@@ -143,9 +143,9 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
             raw_backends=None)),
         ('completion.open_categories', configdata.Option(
             name='completion.open_categories',
-            description='Which categories to show (in which order) in the :open completion.',
-            typ=configtypes.FlagList(
-            ),
+            description=('Which categories to show (in which order) in the '
+                         ':open completion.'),
+            typ=configtypes.FlagList(),
             default=["searchengines", "quickmarks", "bookmarks", "history"],
             backends=[],
             raw_backends=None)),
@@ -265,7 +265,8 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
             ('aliases', 'Aliases for commands.', None),
             ('bindings.commands', 'Default keybindings', None),
             ('bindings.default', 'Default keybindings', None),
-            ('completion.open_categories', 'Which categories to show (in which order) in the :open completion.', None),
+            ('completion.open_categories', 'Which categories to show (in '
+             'which order) in the :open completion.', None),
             ('content.javascript.enabled', 'Enable/Disable JavaScript', None),
             ('url.searchengines', 'searchengines list', None),
         ],
@@ -274,14 +275,22 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
 
 def test_open_categories(qtmodeltester, config_stub, web_history_populated,
                          quickmarks, bookmarks, info):
-    """Test that open_categories settings has the desired effect.
+    """Test that the open_categories setting has the desired effect.
 
     Verify that:
-        - All categories are listed when they are defined in the completion.open_categories list
+        - All categories are listed when they are defined in the
+          completion.open_categories list.
     """
-    config_stub.val.url.searchengines = {"DEFAULT": "https://duckduckgo.com/?q={}",
-                                         "google": "https://google.com/?q={}"}
-    config_stub.val.completion.open_categories = ["searchengines", "quickmarks", "bookmarks", "history"]
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+        "google": "https://google.com/?q={}",
+    }
+    config_stub.val.completion.open_categories = [
+        "searchengines",
+        "quickmarks",
+        "bookmarks",
+        "history",
+    ]
     model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -311,33 +320,29 @@ def test_open_categories(qtmodeltester, config_stub, web_history_populated,
 
 def test_open_categories_remove_all(qtmodeltester, config_stub, web_history_populated,
                                     quickmarks, bookmarks, info):
-    """Test that removing an item (boookmarks) from the open_categories settings has the desired effect.
-
-    Verify that:
-        - Only categories
-    """
-    config_stub.val.url.searchengines = {"DEFAULT": "https://duckduckgo.com/?q={}",
-                                         "google": "https://google.com/?q={}"}
+    """Test removing all items from open_categories."""
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+        "google": "https://google.com/?q={}",
+    }
     config_stub.val.completion.open_categories = []
     model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
-    _check_completions(model, {
-    })
+    _check_completions(model, {})
 
 
 def test_open_categories_remove_one(qtmodeltester, config_stub, web_history_populated,
                                     quickmarks, bookmarks, info):
-    """Test that removing an item (boookmarks) from the open_categories settings has the desired effect.
-
-    Verify that:
-        - Only categories
-    """
-    config_stub.val.url.searchengines = {"DEFAULT": "https://duckduckgo.com/?q={}",
-                                         "google": "https://google.com/?q={}"}
-    config_stub.val.completion.open_categories = ["searchengines", "quickmarks", "history"]
+    """Test removing an item (boookmarks) from open_categories."""
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+        "google": "https://google.com/?q={}",
+    }
+    config_stub.val.completion.open_categories = [
+        "searchengines", "quickmarks", "history"]
     model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -358,6 +363,7 @@ def test_open_categories_remove_one(qtmodeltester, config_stub, web_history_popu
             ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
         ],
     })
+
 
 def test_quickmark_completion(qtmodeltester, quickmarks):
     """Test the results of quickmark completion."""
@@ -449,8 +455,16 @@ def test_url_completion(qtmodeltester, config_stub, web_history_populated,
         - entries are sorted by access time
         - only the most recent entry is included for each url
     """
-    config_stub.val.completion.open_categories = ["searchengines", "quickmarks", "bookmarks", "history"]
-    config_stub.val.url.searchengines = {"DEFAULT": "https://duckduckgo.com/?q={}", "google": "https://google.com/?q={}"}
+    config_stub.val.completion.open_categories = [
+        "searchengines",
+        "quickmarks",
+        "bookmarks",
+        "history",
+    ]
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+        "google": "https://google.com/?q={}"
+    }
     model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -477,15 +491,19 @@ def test_url_completion(qtmodeltester, config_stub, web_history_populated,
         ],
     })
 
+
 def test_search_only_default(qtmodeltester, config_stub, web_history_populated,
                              quickmarks, bookmarks, info):
-    """Test that Seardh engines is not shown when only default search engine is set in settings.
-
-    Verify that:
-        - No Search engines categories is shown
-    """
-    config_stub.val.completion.open_categories = ["searchengines", "quickmarks", "bookmarks", "history"]
-    config_stub.val.url.searchengines = {"DEFAULT": "https://duckduckgo.com/?q={}",}
+    """Test that search engines are not shown with only the default engine."""
+    config_stub.val.completion.open_categories = [
+        "searchengines",
+        "quickmarks",
+        "bookmarks",
+        "history",
+    ]
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+    }
     model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.data_display_may_return_none = True
@@ -508,6 +526,7 @@ def test_search_only_default(qtmodeltester, config_stub, web_history_populated,
             ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
         ],
     })
+
 
 def test_url_completion_no_quickmarks(qtmodeltester, web_history_populated,
                                       quickmark_manager_stub, bookmarks, info):
@@ -651,8 +670,16 @@ def test_url_completion_zero_limit(config_stub, web_history, quickmarks, info,
                                    bookmarks):
     """Make sure there's no history if the limit was set to zero."""
     config_stub.val.completion.web_history.max_items = 0
-    config_stub.val.completion.open_categories = ["searchengines", "quickmarks", "bookmarks", "history"]
-    config_stub.val.url.searchengines = {"DEFAULT": "https://duckduckgo.com/?q={}", "google": "https://google.com/?q={}"}
+    config_stub.val.completion.open_categories = [
+        "searchengines",
+        "quickmarks",
+        "bookmarks",
+        "history",
+    ]
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+        "google": "https://google.com/?q={}",
+    }
     model = urlmodel.url(info=info)
     model.set_pattern('')
     category = model.index(3, 0)  # "History" normally
@@ -843,12 +870,14 @@ def test_setting_option_completion(qtmodeltester, config_stub,
             ('bindings.commands', 'Default keybindings', (
                 '{"normal": {"<Ctrl+q>": "quit", "ZQ": "quit", '
                 '"I": "invalid", "d": "scroll down"}}')),
-            ('completion.open_categories', 'Which categories to show (in which order) in the :open completion.',
+            ('completion.open_categories', 'Which categories to show (in '
+             'which order) in the :open completion.',
              '["searchengines", "quickmarks", "bookmarks", "history"]'),
             ('content.javascript.enabled', 'Enable/Disable JavaScript',
              'true'),
             ('url.searchengines', 'searchengines list',
-             '{"DEFAULT": "https://duckduckgo.com/?q={}", "google": "https://google.com/?q={}"}'),
+             '{"DEFAULT": "https://duckduckgo.com/?q={}", '
+             '"google": "https://google.com/?q={}"}'),
         ]
     })
 

@@ -51,40 +51,45 @@ def _delete_quickmark(data):
 
 
 def url(*, info):
-    """A model which combines bookmarks, quickmarks, search engines and web
-    history URLs.
+    """A model which combines various URLs.
+
+    This combines:
+    - bookmarks
+    - quickmarks
+    - search engines
+    - web history URLs
 
     Used for the `open` command.
     """
     model = completionmodel.CompletionModel(column_widths=(40, 50, 10))
 
+    # pylint: disable=bad-config-option
     quickmarks = [(url, name) for (name, url)
                   in objreg.get('quickmark-manager').marks.items()]
     bookmarks = objreg.get('bookmark-manager').marks.items()
-    # pylint: disable=bad-config-option
     searchengines = [(k, v) for k, v
                      in sorted(config.val.url.searchengines.items())
-                     if k != "DEFAULT"]
+                     if k != 'DEFAULT']
     # pylint: enable=bad-config-option
     categories = config.val.completion.open_categories
     models = {}
 
-
-    if searchengines and "searchengines" in categories:
-        models["searchengines"] = listcategory.ListCategory(
+    if searchengines and 'searchengines' in categories:
+        models['searchengines'] = listcategory.ListCategory(
             'Search engines', searchengines, sort=False)
 
-    if quickmarks and "quickmarks" in categories:
-        models["quickmarks"] = listcategory.ListCategory(
+    if quickmarks and 'quickmarks' in categories:
+        models['quickmarks'] = listcategory.ListCategory(
             'Quickmarks', quickmarks, delete_func=_delete_quickmark,
             sort=False)
-    if bookmarks and "bookmarks" in categories:
-        models["bookmarks"] = listcategory.ListCategory(
+    if bookmarks and 'bookmarks' in categories:
+        models['bookmarks'] = listcategory.ListCategory(
             'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False)
 
-    if info.config.get('completion.web_history.max_items') != 0 and "history" in categories:
+    history_disabled = info.config.get('completion.web_history.max_items') == 0
+    if not history_disabled and 'history' in categories:
         hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
-        models["history"] = hist_cat
+        models['history'] = hist_cat
 
     for category in categories:
         if category in models:
