@@ -77,6 +77,11 @@ Feature: Yanking and pasting.
 		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a;b&c=d" should be shown
 		And the clipboard should contain "http://localhost:(port)/data/title.html?a;b&c=d"
 
+    Scenario: Yanking with --quiet
+        When I open data/title.html
+        And I run :yank --quiet
+        Then "Yanked URL to clipboard: *" should not be logged
+
     #### {clipboard} and {primary}
 
     Scenario: Pasting a URL
