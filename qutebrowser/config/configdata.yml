@@ -1494,8 +1494,8 @@ tabs.new_position.stacking:
   desc: >-
     Stack related tabs on top of each other when opened consecutively.
 
-    Only applies `next` and `prev` values of `tabs.new_position.related` and
-    `tabs.new_position.unrelated`.
+    Only applies for `next` and `prev` values of `tabs.new_position.related`
+    and `tabs.new_position.unrelated`.
 
 tabs.padding:
   default:
