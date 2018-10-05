@@ -38,6 +38,8 @@ Changed
 - The `QtColor` config type now also understands colors like `rgb(...)`.
 - `:yank` now has a `--quiet` option which causes it to not display a message.
 - The `:open` completion now also shows search engines by default.
+- The `content.host_blocking.enabled` setting now supports URL patterns, so the
+  adblocker can be disabled on a given page.
 
 Fixed
 ~~~~~
