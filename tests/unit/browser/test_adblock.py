@@ -28,6 +28,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import adblock
+from qutebrowser.utils import urlmatch
 
 pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
@@ -214,6 +215,23 @@ def test_disabled_blocking_update(basedir, config_stub, download_stub,
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
+
+
+def test_disabled_blocking_per_url(config_stub, data_tmpdir):
+    example_com = 'https://www.example.com/'
+
+    config_stub.val.content.host_blocking.lists = []
+    pattern = urlmatch.UrlPattern(example_com)
+    config_stub.set_obj('content.host_blocking.enabled', False,
+                        pattern=pattern)
+
+    url = QUrl('blocked.example.com')
+
+    host_blocker = adblock.HostBlocker()
+    host_blocker._blocked_hosts.add(url.host())
+
+    assert host_blocker.is_blocked(url)
+    assert not host_blocker.is_blocked(url, first_party_url=QUrl(example_com))
 
 
 def test_no_blocklist_update(config_stub, download_stub,
