@@ -600,7 +600,6 @@ class ModelValidator:
     """Validates completion models."""
 
     def __init__(self, modeltester):
-        modeltester.data_display_may_return_none = True
         self._model = None
         self._modeltester = modeltester
 

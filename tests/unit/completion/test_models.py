@@ -225,7 +225,6 @@ def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
     """
     model = miscmodels.command(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -251,7 +250,6 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
     """
     model = miscmodels.helptopic(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -293,7 +291,6 @@ def test_open_categories(qtmodeltester, config_stub, web_history_populated,
     ]
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -328,7 +325,6 @@ def test_open_categories_remove_all(qtmodeltester, config_stub, web_history_popu
     config_stub.val.completion.open_categories = []
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {})
@@ -345,7 +341,6 @@ def test_open_categories_remove_one(qtmodeltester, config_stub, web_history_popu
         "searchengines", "quickmarks", "history"]
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -369,7 +364,6 @@ def test_quickmark_completion(qtmodeltester, quickmarks):
     """Test the results of quickmark completion."""
     model = miscmodels.quickmark()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -390,7 +384,6 @@ def test_quickmark_completion_delete(qtmodeltester, quickmarks, row, removed):
     """Test deleting a quickmark from the quickmark completion model."""
     model = miscmodels.quickmark()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     parent = model.index(0, 0)
@@ -406,7 +399,6 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
     model = miscmodels.bookmark()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -427,7 +419,6 @@ def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
     """Test deleting a quickmark from the quickmark completion model."""
     model = miscmodels.bookmark()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     parent = model.index(0, 0)
@@ -467,7 +458,6 @@ def test_url_completion(qtmodeltester, config_stub, web_history_populated,
     }
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -506,7 +496,6 @@ def test_search_only_default(qtmodeltester, config_stub, web_history_populated,
     }
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -533,7 +522,6 @@ def test_url_completion_no_quickmarks(qtmodeltester, web_history_populated,
     """Test that the quickmark category is gone with no quickmarks."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -555,7 +543,6 @@ def test_url_completion_no_bookmarks(qtmodeltester, web_history_populated,
     """Test that the bookmarks category is gone with no bookmarks."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -606,7 +593,6 @@ def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
     """Test deleting a bookmark from the url completion model."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     parent = model.index(1, 0)
@@ -628,7 +614,6 @@ def test_url_completion_delete_quickmark(qtmodeltester, info, qtbot,
     """Test deleting a bookmark from the url completion model."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     parent = model.index(0, 0)
@@ -651,7 +636,6 @@ def test_url_completion_delete_history(qtmodeltester, info,
     """Test deleting a history entry."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     parent = model.index(2, 0)
@@ -690,7 +674,6 @@ def test_session_completion(qtmodeltester, session_manager_stub):
     session_manager_stub.sessions = ['default', '1', '2']
     model = miscmodels.session()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -712,7 +695,6 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
     ]
     model = miscmodels.buffer()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -740,7 +722,6 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
     ]
     model = miscmodels.buffer()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     parent = model.index(0, 0)
@@ -775,7 +756,6 @@ def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, app_stub,
     ]
     model = miscmodels.buffer()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -797,7 +777,6 @@ def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
     info.win_id = 1
     model = miscmodels.other_buffer(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -822,7 +801,6 @@ def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab, app_stub,
     info.win_id = 0
     model = miscmodels.other_buffer(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -846,7 +824,6 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
     info.win_id = 1
     model = miscmodels.window(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -861,7 +838,6 @@ def test_setting_option_completion(qtmodeltester, config_stub,
                                    configdata_stub, info):
     model = configmodel.option(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -888,7 +864,6 @@ def test_setting_customized_option_completion(qtmodeltester, config_stub,
 
     model = configmodel.customized_option(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -902,7 +877,6 @@ def test_setting_value_completion(qtmodeltester, config_stub, configdata_stub,
                                   info):
     model = configmodel.value(optname='content.javascript.enabled', info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -921,7 +895,6 @@ def test_setting_value_no_completions(qtmodeltester, config_stub,
                                       configdata_stub, info):
     model = configmodel.value(optname='aliases', info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -969,7 +942,6 @@ def test_setting_value_cycle(qtmodeltester, config_stub, configdata_stub,
 
     model = configmodel.value(opt, *args, info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
     _check_completions(model, expected)
 
@@ -986,7 +958,6 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
     """
     model = configmodel.bind('ZQ', info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -1049,7 +1020,6 @@ def test_bind_completion_no_binding(qtmodeltester, cmdutils_stub, config_stub,
     """Test keybinding completion with no current or default binding."""
     model = configmodel.bind('x', info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
