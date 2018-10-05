@@ -19,7 +19,6 @@
 
 """Test webenginetab."""
 
-from unittest import mock
 import logging
 
 from PyQt5.QtCore import QObject
@@ -35,28 +34,14 @@ pytestmark = pytest.mark.usefixtures('greasemonkey_manager')
 
 
 class TestWebengineScripts:
+
     """Test the _WebEngineScripts utility class."""
 
-    class FakeWidget(QObject):
-        """Fake widget for _WebengineScripts to use."""
-
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.scripts = []
-            self.page = mock.create_autospec(QWebEnginePage)
-            self.scripts_mock = mock.create_autospec(
-                QWebEngineScriptCollection
-            )
-            self.scripts_mock.toList.return_value = self.scripts
-            self.page.return_value.scripts.return_value = self.scripts_mock
-
     @pytest.fixture
-    def mocked_scripts(self, fake_web_tab):
-        scripts = webenginetab._WebEngineScripts(fake_web_tab)
-        scripts._widget = self.FakeWidget()
-        return scripts
+    def webengine_scripts(self, webengine_tab):
+        return webengine_tab._scripts
 
-    def test_greasemonkey_undefined_world(self, mocked_scripts, caplog):
+    def test_greasemonkey_undefined_world(self, webengine_scripts, caplog):
         """Make sure scripts with non-existent worlds are rejected."""
         scripts = [
             greasemonkey.GreasemonkeyScript(
@@ -64,16 +49,18 @@ class TestWebengineScripts:
         ]
 
         with caplog.at_level(logging.ERROR, 'greasemonkey'):
-            mocked_scripts._inject_greasemonkey_scripts(scripts)
+            webengine_scripts._inject_greasemonkey_scripts(scripts)
 
         assert len(caplog.records) == 1
         msg = caplog.records[0].message
         assert "has invalid value for '@qute-js-world': Mars" in msg
-        mocked_scripts._widget.scripts_mock.insert.assert_not_called()
+        collection = webengine_scripts._widget.page().scripts().toList()
+        assert not any(script.name().startswith('GM-')
+                       for script in collection)
 
     @pytest.mark.parametrize("worldid", [-1, 257])
-    def test_greasemonkey_out_of_range_world(self, worldid,
-                                             mocked_scripts, caplog):
+    def test_greasemonkey_out_of_range_world(self, worldid, webengine_scripts,
+                                             caplog):
         """Make sure scripts with out-of-range worlds are rejected."""
         scripts = [
             greasemonkey.GreasemonkeyScript(
@@ -81,17 +68,19 @@ class TestWebengineScripts:
         ]
 
         with caplog.at_level(logging.ERROR, 'greasemonkey'):
-            mocked_scripts._inject_greasemonkey_scripts(scripts)
+            webengine_scripts._inject_greasemonkey_scripts(scripts)
 
         assert len(caplog.records) == 1
         msg = caplog.records[0].message
         assert "has invalid value for '@qute-js-world': " in msg
         assert "should be between 0 and" in msg
-        mocked_scripts._widget.scripts_mock.insert.assert_not_called()
+        collection = webengine_scripts._widget.page().scripts().toList()
+        assert not any(script.name().startswith('GM-')
+                       for script in collection)
 
     @pytest.mark.parametrize("worldid", [0, 10])
     def test_greasemonkey_good_worlds_are_passed(self, worldid,
-                                                 mocked_scripts, caplog):
+                                                 webengine_scripts, caplog):
         """Make sure scripts with valid worlds have it set."""
         scripts = [
             greasemonkey.GreasemonkeyScript(
@@ -100,8 +89,7 @@ class TestWebengineScripts:
         ]
 
         with caplog.at_level(logging.ERROR, 'greasemonkey'):
-            mocked_scripts._inject_greasemonkey_scripts(scripts)
+            webengine_scripts._inject_greasemonkey_scripts(scripts)
 
-        calls = mocked_scripts._widget.scripts_mock.insert.call_args_list
-        assert len(calls) == 1
-        assert calls[0][0][0].worldId() == worldid
+        collection = webengine_scripts._widget.page().scripts()
+        assert collection.toList()[-1].worldId() == worldid
