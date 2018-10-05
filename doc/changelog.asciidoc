@@ -27,6 +27,10 @@ Added
 Changed
 ~~~~~~~
 
+- `:q` now closes current window instead of quitting qutebrowser completely
+  (`:close`), while `:qa` quits (`:quit`). The behavior of `:wq` remains
+  unchanged (`:quit --save`), as closing a window while saving the session
+  doesn't make sense.
 - Completion highlighting is now done differently (using QSyntaxHighlither),
   which should fix some highlighting corner-cases.
 - The `QtColor` config type now also understands colors like `rgb(...)`.

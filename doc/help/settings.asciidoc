@@ -294,9 +294,11 @@ Type: <<types,Dict>>
 
 Default: 
 
-- +pass:[q]+: +pass:[quit]+
+- +pass:[q]+: +pass:[close]+
+- +pass:[qa]+: +pass:[quit]+
 - +pass:[w]+: +pass:[session-save]+
 - +pass:[wq]+: +pass:[quit --save]+
+- +pass:[wqa]+: +pass:[quit --save]+
 
 [[auto_save.interval]]
 === auto_save.interval
