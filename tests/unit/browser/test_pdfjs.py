@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import os.path
 
 import pytest
@@ -132,13 +133,30 @@ class TestResources:
                      os.path.expanduser('~/.local/share/qutebrowser/pdfjs/')]:
             read_system_mock.assert_any_call(path, ['web/test', 'test'])
 
-    def test_get_pdfjs_res_not_found(self, read_system_mock, read_file_mock):
+    def test_get_pdfjs_res_not_found(self, read_system_mock, read_file_mock,
+                                     caplog):
         read_system_mock.return_value = (None, None)
         read_file_mock.side_effect = FileNotFoundError
 
         with pytest.raises(pdfjs.PDFJSNotFound,
                            match="Path 'web/test' not found"):
             pdfjs.get_pdfjs_res_and_path('web/test')
+
+        assert not caplog.records
+
+    def test_get_pdfjs_res_oserror(self, read_system_mock, read_file_mock,
+                                   caplog):
+        read_system_mock.return_value = (None, None)
+        read_file_mock.side_effect = OSError("Message")
+
+        with caplog.at_level(logging.WARNING):
+            with pytest.raises(pdfjs.PDFJSNotFound,
+                            match="Path 'web/test' not found"):
+                pdfjs.get_pdfjs_res_and_path('web/test')
+
+        assert len(caplog.records) == 1
+        rec = caplog.records[0]
+        assert rec.message == 'OSError while reading PDF.js file: Message'
 
 
 @pytest.mark.parametrize('path, expected', [
@@ -171,6 +189,23 @@ def test_read_from_system(names, expected_name, tmpdir):
         expected = (None, None)
 
     assert pdfjs._read_from_system(str(tmpdir), names) == expected
+
+
+def test_read_from_system_oserror(tmpdir, caplog):
+    unreadable_file = tmpdir / 'unreadable'
+    unreadable_file.ensure()
+    unreadable_file.chmod(0)
+    if os.access(str(unreadable_file), os.R_OK):
+        # Docker container or similar
+        pytest.skip("File was still readable")
+
+    expected = (None, None)
+    with caplog.at_level(logging.WARNING):
+        assert pdfjs._read_from_system(str(tmpdir), ['unreadable']) == expected
+
+    assert len(caplog.records) == 1
+    rec = caplog.records[0]
+    assert rec.message.startswith('OSError while reading PDF.js file:')
 
 
 @pytest.mark.parametrize('available', [True, False])

@@ -157,6 +157,9 @@ def get_pdfjs_res_and_path(path):
             content = utils.read_file(res_path, binary=True)
         except FileNotFoundError:
             raise PDFJSNotFound(path) from None
+        except OSError as e:
+            log.misc.warning("OSError while reading PDF.js file: {}".format(e))
+            raise PDFJSNotFound(path) from None
 
     return content, file_path
 
