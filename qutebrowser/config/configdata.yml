@@ -529,6 +529,7 @@ content.headers.user_agent:
 
 content.host_blocking.enabled:
   default: true
+  supports_pattern: true
   type: Bool
   desc: Enable host blocking.
 

@@ -70,21 +70,21 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                                   resource_type, navigation_type))
 
         url = info.requestUrl()
-        firstparty = info.firstPartyUrl()
+        first_party = info.firstPartyUrl()
 
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):
-            if (firstparty != QUrl('qute://settings/') or
+            if (first_party != QUrl('qute://settings/') or
                     info.resourceType() !=
                     QWebEngineUrlRequestInfo.ResourceTypeXhr):
                 log.webview.warning("Blocking malicious request from {} to {}"
-                                    .format(firstparty.toDisplayString(),
+                                    .format(first_party.toDisplayString(),
                                             url.toDisplayString()))
                 info.block(True)
                 return
 
         # FIXME:qtwebengine only block ads for NavigationTypeOther?
-        if self._host_blocker.is_blocked(url):
+        if self._host_blocker.is_blocked(url, first_party):
             log.webview.info("Request to {} blocked by host blocker.".format(
                 url.host()))
             info.block(True)
