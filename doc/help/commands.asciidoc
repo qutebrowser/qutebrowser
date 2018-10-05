@@ -1416,7 +1416,7 @@ Yank something to the clipboard or primary selection.
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-k*+, +*--keep*+: Stay in visual mode after yanking the selection.
-* +*-q*+, +*--quiet*+: Don't show information message.
+* +*-q*+, +*--quiet*+: Don't show an information message.
 
 [[zoom]]
 === zoom

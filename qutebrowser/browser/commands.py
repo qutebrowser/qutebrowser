@@ -831,7 +831,7 @@ class CommandDispatcher:
 
             sel: Use the primary selection instead of the clipboard.
             keep: Stay in visual mode after yanking the selection.
-            quiet: Don't show information message.
+            quiet: Don't show an information message.
         """
         if what == 'title':
             s = self._tabbed_browser.widget.page_title(self._current_index())

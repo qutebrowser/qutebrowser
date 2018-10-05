@@ -24,6 +24,7 @@ Changed
 - Completion highlighting is now done differently (using QSyntaxHighlither),
   which should fix some highlighting corner-cases.
 - The `QtColor` config type now also understands colors like `rgb(...)`.
+- `:yank` now has a `--quiet` option which causes it to not display a message.
 
 v1.5.1 (unreleased)
 -------------------
