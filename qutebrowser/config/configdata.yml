@@ -1475,12 +1475,27 @@ tabs.mousewheel_switching:
 tabs.new_position.related:
   default: next
   type: NewTabPosition
-  desc: Position of new tabs opened from another tab.
+  desc: >-
+    Position of new tabs opened from another tab.
+
+    See `tabs.new_position.stacking` for controlling stacking behavior.
 
 tabs.new_position.unrelated:
   default: last
   type: NewTabPosition
-  desc: "Position of new tabs which aren't opened from another tab."
+  desc: >-
+    Position of new tabs which are not opened from another tab.
+
+    See `tabs.new_position.stacking` for controlling stacking behavior.
+
+tabs.new_position.stacking:
+  default: true
+  type: Bool
+  desc: >-
+    Stack related tabs on top of each other when opened consecutively.
+
+    Only applies `next` and `prev` values of `tabs.new_position.related` and
+    `tabs.new_position.unrelated`.
 
 tabs.padding:
   default:
