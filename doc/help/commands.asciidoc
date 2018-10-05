@@ -1397,7 +1397,7 @@ Close all windows except for the current one.
 
 [[yank]]
 === yank
-Syntax: +:yank [*--sel*] [*--keep*] ['what']+
+Syntax: +:yank [*--sel*] [*--keep*] [*--quiet*] ['what']+
 
 Yank something to the clipboard or primary selection.
 
@@ -1416,6 +1416,7 @@ Yank something to the clipboard or primary selection.
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-k*+, +*--keep*+: Stay in visual mode after yanking the selection.
+* +*-q*+, +*--quiet*+: Don't show information message.
 
 [[zoom]]
 === zoom
