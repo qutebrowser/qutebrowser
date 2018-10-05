@@ -62,8 +62,9 @@ def url(*, info):
                   in objreg.get('quickmark-manager').marks.items()]
     bookmarks = objreg.get('bookmark-manager').marks.items()
     # pylint: disable=bad-config-option
-    searchengines = {k:v for k, v in config.val.url.searchengines.items()
-                     if k not in "DEFAULT"}.items()
+    searchengines = [(k, v) for k, v
+                     in sorted(config.val.url.searchengines.items())
+                     if k != "DEFAULT"]
     # pylint: enable=bad-config-option
     categories = config.val.completion.open_categories
     models = {}
