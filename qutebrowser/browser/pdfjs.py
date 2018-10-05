@@ -54,10 +54,11 @@ def generate_pdfjs_page(filename, url):
         url: The URL being opened.
     """
     if not is_available():
+        pdfjs_dir = os.path.join(standarddir.data(), 'pdfjs')
         return jinja.render('no_pdfjs.html',
                             url=url.toDisplayString(),
                             title="PDF.js not found",
-                            pdfjs_dir=os.path.join(standarddir.data(), 'pdfjs'))
+                            pdfjs_dir=pdfjs_dir)
     html = get_pdfjs_res('web/viewer.html').decode('utf-8')
 
     script = _generate_pdfjs_script(filename)

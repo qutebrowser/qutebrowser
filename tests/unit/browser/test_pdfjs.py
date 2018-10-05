@@ -26,10 +26,7 @@ from qutebrowser.browser import pdfjs
 from qutebrowser.utils import usertypes, utils
 
 
-@pytest.fixture(autouse=True)
-def patch_data_dir(monkeypatch, tmpdir):
-    monkeypatch.setattr(pdfjs.standarddir, 'data',
-                        lambda: str(tmpdir / 'data'))
+pytestmark = [pytest.mark.usefixtures('data_tmpdir')]
 
 
 @pytest.mark.parametrize('available, snippet', [
