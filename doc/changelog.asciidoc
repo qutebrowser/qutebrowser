@@ -23,6 +23,8 @@ Added
 
 - New `tabs.new_position.stacking` setting which controls whether new tabs
   opened from a page should stack on each other or not.
+- New `completion.open_categories` setting which allows to configure which
+  categories are shown in the `:open` completion, and how they are ordered.
 
 Changed
 ~~~~~~~
@@ -35,6 +37,7 @@ Changed
   which should fix some highlighting corner-cases.
 - The `QtColor` config type now also understands colors like `rgb(...)`.
 - `:yank` now has a `--quiet` option which causes it to not display a message.
+- The `:open` completion now also shows search engines by default.
 
 v1.5.1 (unreleased)
 -------------------
