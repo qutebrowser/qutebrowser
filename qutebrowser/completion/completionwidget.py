@@ -196,6 +196,42 @@ class CompletionView(QTreeView):
 
         raise utils.Unreachable
 
+    def _next_page(self, upwards):
+        """Essentially _next_idx with a for loop to increment by 14 (size of each page) instead of 1 each time
+
+        Args:
+            upwards: Get previous item, not next.
+
+        Return:
+            A QModelIndex.
+        """
+        idx = self.selectionModel().currentIndex()
+        if not idx.isValid():
+            # No item selected yet
+            if upwards:
+                return self.model().last_item()
+            else:
+                return self.model().first_item()
+
+        while True:
+            if upwards:
+                for x in range(14):
+                    idx = self.indexAbove(idx) 
+            else: 
+                for x in range(14):
+                    idx = self.indexBelow(idx)
+            # wrap around if we arrived at beginning/end
+            if not idx.isValid() and upwards:
+                return self.model().last_item()
+            elif not idx.isValid() and not upwards:
+                idx = self.model().first_item()
+                self.scrollTo(idx.parent())
+                return idx
+            elif idx.parent().isValid():
+                # Item is a real item, not a category header -> success
+                return idx
+
+
     def _next_category_idx(self, upwards):
         """Get the index of the previous/next category.
 
@@ -230,7 +266,7 @@ class CompletionView(QTreeView):
     @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')
     @cmdutils.argument('which', choices=['next', 'prev', 'next-category',
-                                         'prev-category'])
+                                         'prev-category', 'next-page', 'last-page'])
     @cmdutils.argument('history', flag='H')
     def completion_item_focus(self, which, history=False):
         """Shift the focus of the completion menu to another item.
@@ -263,6 +299,8 @@ class CompletionView(QTreeView):
             'prev': self._next_idx(upwards=True),
             'next-category': self._next_category_idx(upwards=False),
             'prev-category': self._next_category_idx(upwards=True),
+            'next-page': self._next_page(upwards=False),
+            'last-page': self._next_page(upwards=True),
         }
         idx = indices[which]
 
