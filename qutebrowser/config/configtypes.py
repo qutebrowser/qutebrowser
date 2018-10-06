@@ -1295,7 +1295,7 @@ class Dict(BaseType):
         if not value:
             # An empty Dict is treated just like None -> empty string
             return ''
-        return json.dumps(value)
+        return json.dumps(value, sort_keys=True)
 
     def to_doc(self, value, indent=0):
         if not value:

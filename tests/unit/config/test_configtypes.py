@@ -1703,6 +1703,11 @@ class TestDict:
         value = typ.from_obj({'1': '2'})
         assert value == {'1': 2}
 
+    def test_to_str(self, klass):
+        typ = klass(keytype=configtypes.String(), valtype=configtypes.String())
+        d = {'a': 'b', 'c': 'd'}
+        assert typ.to_str(d) == '{"a": "b", "c": "d"}'
+
 
 def unrequired_class(**kwargs):
     return configtypes.File(required=False, **kwargs)

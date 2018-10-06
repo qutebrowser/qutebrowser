@@ -844,8 +844,8 @@ def test_setting_option_completion(qtmodeltester, config_stub,
         "Options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
             ('bindings.commands', 'Default keybindings', (
-                '{"normal": {"<Ctrl+q>": "quit", "ZQ": "quit", '
-                '"I": "invalid", "d": "scroll down"}}')),
+                '{"normal": {"<Ctrl+q>": "quit", "I": "invalid", '
+                '"ZQ": "quit", "d": "scroll down"}}')),
             ('completion.open_categories', 'Which categories to show (in '
              'which order) in the :open completion.',
              '["searchengines", "quickmarks", "bookmarks", "history"]'),
