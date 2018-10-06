@@ -45,7 +45,7 @@ class _Highlighter(QSyntaxHighlighter):
 
     def highlightBlock(self, text):
         """Override highlightBlock for custom highlighting."""
-        for match in re.finditer(self._pattern, text):
+        for match in re.finditer(self._pattern, text, re.IGNORECASE):
             start, end = match.span()
             length = end - start
             self.setFormat(start, length, self._format)

@@ -28,6 +28,7 @@ from qutebrowser.completion import completiondelegate
 @pytest.mark.parametrize('pat,txt,segments', [
     ('foo', 'foo', [(0, 3)]),
     ('foo', 'foobar', [(0, 3)]),
+    ('foo', 'FOObar', [(0, 3)]),  # re.IGNORECASE
     ('foo', 'barfoo', [(3, 3)]),
     ('foo', 'barfoobaz', [(3, 3)]),
     ('foo', 'barfoobazfoo', [(3, 3), (9, 3)]),
