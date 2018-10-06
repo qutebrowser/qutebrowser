@@ -142,7 +142,7 @@ class TestTabWidget:
             widget.addTab(fake_web_tab(), 'foobar' + str(i))
         assert not widget.tabBar().isVisible()
 
-    @pytest.mark.parametrize("num_tabs", [4, 100])
+    @pytest.mark.parametrize("num_tabs", [4, 70])
     @pytest.mark.parametrize("rev", [True, False])
     def test_add_remove_tab_benchmark(self, benchmark, widget,
                                       qtbot, fake_web_tab, num_tabs, rev):
