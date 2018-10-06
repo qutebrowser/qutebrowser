@@ -21,13 +21,11 @@
 
 import logging
 
-from PyQt5.QtCore import QObject
 import pytest
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
 QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
 QWebEngineScriptCollection = QtWebEngineWidgets.QWebEngineScriptCollection
 
-from qutebrowser.browser.webengine import webenginetab
 from qutebrowser.browser import greasemonkey
 
 pytestmark = pytest.mark.usefixtures('greasemonkey_manager')
