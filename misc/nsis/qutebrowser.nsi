@@ -140,14 +140,9 @@ ShowUninstDetails hide
   !define /ifndef DIST_DIR ".\..\..\dist\${PRODUCT_NAME}-${VERSION}-${ARCH}"
 !endif
 
-; Pack the exe header with upx, unless NOUPX is defined.
-!ifndef NOUPX
-  !define /ifndef UPX "upx" ; assume upx is in path if UPX is not defined
-  !packhdr "$%TEMP%\exehead.tmp" '"${UPX}" "--ultra-brute" "$%TEMP%\exehead.tmp"'
-!else
-  !ifdef UPX
-    !error "Both UPX and NOUPX are defined."
-  !endif
+; Pack the exe header with upx if UPX is defined.
+!ifdef UPX
+  !packhdr "$%TEMP%\exehead.tmp" '"upx" "--ultra-brute" "$%TEMP%\exehead.tmp"'
 !endif
 
 ; Version Information
