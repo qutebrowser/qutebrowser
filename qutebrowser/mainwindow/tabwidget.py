@@ -225,8 +225,8 @@ class TabWidget(QTabWidget):
         non-visible. To avoid flickering, disable repaint updates whlie we
         work.
         """
-        toggle = self.count() > 10
         bar = self.tabBar()
+        toggle = self.count() > 10 and bar.isVisible()
         if toggle:
             bar.setUpdatesEnabled(False)
             bar.setVisible(False)

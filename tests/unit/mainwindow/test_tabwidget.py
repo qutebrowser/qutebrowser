@@ -134,6 +134,14 @@ class TestTabWidget:
         config_stub.val.tabs.max_width = max_size
         assert widget.tabBar().tabRect(0).width() == max_size
 
+    def test_tab_stays_hidden(self, widget, fake_web_tab, config_stub):
+        assert widget.tabBar().isVisible()
+        config_stub.val.tabs.show = "never"
+        assert not widget.tabBar().isVisible()
+        for i in range(12):
+            widget.addTab(fake_web_tab(), 'foobar' + str(i))
+        assert not widget.tabBar().isVisible()
+
     @pytest.mark.parametrize("num_tabs", [4, 100])
     @pytest.mark.parametrize("rev", [True, False])
     def test_add_remove_tab_benchmark(self, benchmark, widget,
