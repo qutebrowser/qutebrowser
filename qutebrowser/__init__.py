@@ -27,7 +27,6 @@ __license__ = "GPL"
 __maintainer__ = __author__
 __email__ = "mail@qutebrowser.org"
 __version__ = "1.5.0"
-# __version__ = config['bumpversion']['current_version']
 __version_info__ = __version__.split('.')
 __description__ = "A keyboard-driven, vim-like browser based on PyQt5."
 
