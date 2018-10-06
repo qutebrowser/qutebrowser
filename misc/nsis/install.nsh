@@ -193,36 +193,39 @@ Section "Core Files (required)" SectionCoreFiles
       StrCpy $4 "/upgrade"
     ${endif}
 
-    HideWindow
-    ClearErrors
-    StrCpy $0 0
-    ; $1 is quoted in registry; the _? param stops the uninstaller from copying
-    ; itself to the temporary directory, which is the only way for ExecWait to work
-    ExecWait '$1 $4 /SS $2 _?=$3' $0
+    ; Make sure the uninstaller is there before attempting to run it
+    ${if} ${FileExists} $1
+      HideWindow
+      ClearErrors
+      StrCpy $0 0
+      ; $1 is quoted in registry; the _? param stops the uninstaller from copying
+      ; itself to the temporary directory, which is the only way for ExecWait to work
+      ExecWait '$1 $4 /SS $2 _?=$3' $0
 
-    ${if} ${errors} ; stay in installer
-      SetErrorLevel 2 ; Installation aborted by script
-      BringToFront
-      Abort "Error executing uninstaller."
-    ${else}
-      ${Switch} $0
-        ${Case} 0 ; uninstaller completed successfully - continue with installation
-          BringToFront
-          ${Break}
-        ${Case} 1 ; Installation aborted by user (cancel button)
-        ${Case} 2 ; Installation aborted by script
-          SetErrorLevel $0
-          Quit ; uninstaller was started, but completed with errors - Quit installer
-        ${Default} ; all other error codes - uninstaller could not start, elevate, etc. - Abort installer
-          SetErrorLevel $0
-          BringToFront
-          Abort "Error executing uninstaller."
-      ${EndSwitch}
+      ${if} ${errors} ; stay in installer
+        SetErrorLevel 2 ; Installation aborted by script
+        BringToFront
+        Abort "Error executing uninstaller."
+      ${else}
+        ${Switch} $0
+          ${Case} 0 ; uninstaller completed successfully - continue with installation
+            BringToFront
+            ${Break}
+          ${Case} 1 ; Installation aborted by user (cancel button)
+          ${Case} 2 ; Installation aborted by script
+            SetErrorLevel $0
+            Quit ; uninstaller was started, but completed with errors - Quit installer
+          ${Default} ; all other error codes - uninstaller could not start, elevate, etc. - Abort installer
+            SetErrorLevel $0
+            BringToFront
+            Abort "Error executing uninstaller."
+        ${EndSwitch}
+      ${endif}
+
+      ; the uninstaller doesn't delete itself when not copied to the temp directory
+      !insertmacro DeleteRetryAbort "$3\${UNINSTALL_FILENAME}"
+      RMDir "$3"
     ${endif}
-
-    ; the uninstaller doesn't delete itself when not copied to the temp directory
-    !insertmacro DeleteRetryAbort "$3\${UNINSTALL_FILENAME}"
-    RMDir "$3"
   ${endif}
 
   ; Remove the old uninstaller if it's leftover
