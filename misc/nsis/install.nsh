@@ -163,6 +163,7 @@ Section "Core Files (required)" SectionCoreFiles
   ${if} $HasCurrentModeInstallation = 1
     StrCpy $0 "$MultiUser.InstallMode"
   ${else}
+    StrCpy $KeepReg 0
     !if ${MULTIUSER_INSTALLMODE_ALLOW_BOTH_INSTALLATIONS} = 0
       ${if} $HasPerMachineInstallation = 1
         ; if there's no per-user installation, but there's per-machine installation, uninstall it
