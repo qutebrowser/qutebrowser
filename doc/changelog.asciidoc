@@ -58,7 +58,6 @@ Fixed
 - PDF.js is now searched in the correct path (if not installed system-wide)
   instead of hardcoding `~/.local/share/qutebrowser`.
 - Improved logging for PDF.js resources which fail to load.
-- The completion highlighting is now case-insensitive again.
 
 v1.5.0
 ------
