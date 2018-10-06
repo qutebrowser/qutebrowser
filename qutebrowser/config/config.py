@@ -24,6 +24,7 @@ import contextlib
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from pathlib import Path
 
 from qutebrowser.config import configdata, configexc, configutils
 from qutebrowser.utils import utils, log, jinja
@@ -470,6 +471,17 @@ class Config(QObject):
             return '<Default configuration>'
 
         return '\n'.join(blocks)
+    
+
+
+def new_dump_userconfig():
+    """Dumps entire user configuration from ~/.config/qutebrowser/config.py
+    located near Config class for continuity"""
+    dumps = open(str(Path.home()) + "/.config/qutebrowser/config.py", 'r')
+    dumped = dumps.read()
+    dumps.close()
+    return dumped
+
 
 
 class ConfigContainer:

@@ -503,7 +503,7 @@ def qute_configdiff(url):
                      str(e.strerror).encode('utf-8'))
             return 'text/plain', error
     else:
-        data = config.instance.dump_userconfig().encode('utf-8')
+        data = config.new_dump_userconfig().encode('utf-8')
         return 'text/plain', data
 
 
