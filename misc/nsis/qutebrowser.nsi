@@ -55,8 +55,6 @@ ShowUninstDetails hide
 !define HELP_LINK "https://qutebrowser.org/doc/help/"
 !define CONTACT "mail@qutebrowser.org"
 !define COMMENTS "A keyboard-driven, vim-like browser based on PyQt5."
-!define SHELL_PROPERTIES "qute://settings/"
-!define SHELL_SAFEMODE "--temp-basedir"
 !define LANGID "1033" ; U.S. English
 !define MIN_WIN_VER "XP"
 !define SETUP_MUTEX "${PRODUCT_NAME} Setup Mutex" ; do not change this between program versions!

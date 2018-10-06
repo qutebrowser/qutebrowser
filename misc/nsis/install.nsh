@@ -266,12 +266,6 @@ Section "Register with Windows" SectionWindowsRegister
 
     !insertmacro UpdateRegStr SHCTX "$0\shell\open\command" "" "$\"$1$\""
 
-    !insertmacro UpdateRegStr SHCTX "$0\shell\properties" "" "${PRODUCT_NAME} settings"
-    !insertmacro UpdateRegStr SHCTX "$0\shell\properties\command" "" "$\"$1$\" ${SHELL_PROPERTIES}"
-
-    !insertmacro UpdateRegStr SHCTX "$0\shell\safemode" "" "${PRODUCT_NAME} safe mode"
-    !insertmacro UpdateRegStr SHCTX "$0\shell\safemode\command" "" "$\"$1$\" ${SHELL_SAFEMODE}"
-
     !insertmacro UpdateRegStr SHCTX "$0\Capabilities" "ApplicationDescription" "${COMMENTS}"
     !insertmacro UpdateRegStr SHCTX "$0\Capabilities" "ApplicationIcon" "$1,0"
     !insertmacro UpdateRegStr SHCTX "$0\Capabilities" "ApplicationName" "${PRODUCT_NAME}"
