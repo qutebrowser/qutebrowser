@@ -45,7 +45,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--profile-tool', metavar='TOOL',
                         action='store', choices=['kcachegrind', 'snakeviz',
-                                                 'gprof2dot', 'none'],
+                                                 'gprof2dot', 'tuna', 'none'],
                         default='snakeviz',
                         help="The tool to use to view the profiling data")
     parser.add_argument('--profile-file', metavar='FILE', action='store',
@@ -92,6 +92,8 @@ def main():
                         '-o', callgraphfile])
     elif args.profile_tool == 'snakeviz':
         subprocess.run(['snakeviz', profilefile])
+    elif args.profile_tool == 'tuna':
+        subprocess.run(['tuna', profilefile])
 
     shutil.rmtree(tempdir)
 
