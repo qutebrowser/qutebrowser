@@ -205,6 +205,9 @@ class CompletionView(QTreeView):
         Return:
             A QModelIndex.
         """
+
+        page_length = int(self.height()/21.0416666667)  # amount each time to scroll by using the equation height/element amount = 21.0416666667, maintains origin element (where you pressed PgUp or PgDown) at top or bottom of list respectivley
+
         idx = self.selectionModel().currentIndex()
         if not idx.isValid():
             # No item selected yet
@@ -215,10 +218,10 @@ class CompletionView(QTreeView):
 
         while True:
             if upwards:
-                for x in range(14):
-                    idx = self.indexAbove(idx) 
-            else: 
-                for x in range(14):
+                for x in range(page_length):
+                    idx = self.indexAbove(idx)
+            else:
+                for x in range(page_length):
                     idx = self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
             if not idx.isValid() and upwards:
@@ -230,7 +233,7 @@ class CompletionView(QTreeView):
             elif idx.parent().isValid():
                 # Item is a real item, not a category header -> success
                 return idx
-                
+       
     def _next_category_idx(self, upwards):
         """Get the index of the previous/next category.
 
