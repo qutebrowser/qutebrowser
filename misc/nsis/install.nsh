@@ -516,6 +516,9 @@ Function PageInstallModeChangeMode
       !insertmacro UnselectSection ${SectionDefaultBrowser}
     ${endif}
   ${endif}
+
+  ; Expand 'Shortcuts' group
+  !insertmacro SetSectionFlag ${SectionGroupShortcuts} ${SF_EXPAND}
 FunctionEnd
 
 Function PageDirectoryPre
