@@ -18,11 +18,29 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import date
+import subprocess
+
 from lxml import etree
 
 # TODO: move to global constants?
 appdata_path = "misc/qutebrowser.appdata.xml"
 version_xpath = '//*[@type="desktop"]/releases'
+
+
+def bump_version(version_leap = "patch"):
+    """Update qutebrowser release version in .bumpversion.cfg
+
+    :param version_leap: define the jump between versions ("major", "minor", "patch")
+    """
+
+    # make sure the correct version jump was chosen
+    if version_leap not in ("major", "minor", "patch"):
+        raise ValueError("version_leap takes values of 'major', 'minor' or 'patch' only.")
+
+    # NOTE: this may rely on the python version used to launch the function
+    # and whether the wrapper script 'bumpversion' was provided
+    subprocess.run(['bumpversion', version_leap, '--allow-dirty'])
 
 
 def read_appdata():
@@ -66,6 +84,12 @@ def add_release(releases, version_string, date_string):
 
 
 if __name__ == "__main__":
+    # bump version globally
+    bump_version()
+
+    # NOTE: this step must be executed AFTER bumping the version!
+    # import __version__ and use to update remaining files
+    from qutebrowser import __version__
 
     # read appdata XML
     appdata_tree = read_appdata()
@@ -73,13 +97,9 @@ if __name__ == "__main__":
     # get <releases> XML block
     releases = appdata_tree.xpath(version_xpath)[0]
 
-    # attach example release
-    add_release(releases, "1.5.0", "2018-10-06")
-
-    # bump/add new version (from git tag?)
-    for release in releases.iterchildren():
-        print("version: {}, date: {}".format(release.get('version'),
-                                             release.get('date')))
+    # attach new release
+    # TODO: use different date string?
+    add_release(releases, __version__, date.today().isoformat())
 
     # write appdata back to XML
     write_appdata(appdata_tree)
