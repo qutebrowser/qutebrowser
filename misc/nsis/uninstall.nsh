@@ -62,6 +62,7 @@ Section "un.Program Files" SectionUninstallProgram
       DeleteRegKey SHCTX "SOFTWARE\Classes\${PRODUCT_NAME}URL"
       DeleteRegValue SHCTX "SOFTWARE\Classes\.htm\OpenWithProgids" "${PRODUCT_NAME}HTML"
       DeleteRegValue SHCTX "SOFTWARE\Classes\.html\OpenWithProgids" "${PRODUCT_NAME}HTML"
+      DeleteRegValue SHCTX "SOFTWARE\Classes\.pdf\OpenWithProgids" "${PRODUCT_NAME}HTML"
       DeleteRegValue SHCTX "SOFTWARE\Classes\.shtml\OpenWithProgids" "${PRODUCT_NAME}HTML"
       DeleteRegValue SHCTX "SOFTWARE\Classes\.svg\OpenWithProgids" "${PRODUCT_NAME}HTML"
       DeleteRegValue SHCTX "SOFTWARE\Classes\.xht\OpenWithProgids" "${PRODUCT_NAME}HTML"

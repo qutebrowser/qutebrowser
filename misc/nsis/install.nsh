@@ -278,6 +278,7 @@ Section "Register with Windows" SectionWindowsRegister
 
     !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".htm" "${PRODUCT_NAME}HTML"
     !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".html" "${PRODUCT_NAME}HTML"
+    !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".pdf" "${PRODUCT_NAME}HTML"
     !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".shtml" "${PRODUCT_NAME}HTML"
     !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".svg" "${PRODUCT_NAME}HTML"
     !insertmacro UpdateRegStr SHCTX "$0\Capabilities\FileAssociations" ".xht" "${PRODUCT_NAME}HTML"
@@ -296,6 +297,7 @@ Section "Register with Windows" SectionWindowsRegister
     ; Associate file types
     !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.htm\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
     !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.html\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
+    !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.pdf\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
     !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.shtml\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
     !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.svg\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
     !insertmacro UpdateRegStr SHCTX "SOFTWARE\Classes\.xht\OpenWithProgids" "${PRODUCT_NAME}HTML" ""
