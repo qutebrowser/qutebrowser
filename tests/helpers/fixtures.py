@@ -66,9 +66,7 @@ class WidgetContainer(QWidget):
 
     def set_widget(self, widget):
         self.vbox.addWidget(widget)
-        # pylint: disable=attribute-defined-outside-init
         widget.container = self
-        # pylint: enable=attribute-defined-outside-init
 
     def expose(self):
         with self._qtbot.waitExposed(self):
