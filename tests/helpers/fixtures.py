@@ -54,6 +54,32 @@ from qutebrowser.keyinput import modeman
 _qute_scheme_handler = None
 
 
+class WidgetContainer(QWidget):
+
+    """Container for another widget."""
+
+    def __init__(self, qtbot, parent=None):
+        super().__init__(parent)
+        self._qtbot = qtbot
+        self.vbox = QVBoxLayout(self)
+        qtbot.add_widget(self)
+
+    def set_widget(self, widget):
+        self.vbox.addWidget(widget)
+        # pylint: disable=attribute-defined-outside-init
+        widget.container = self
+        # pylint: enable=attribute-defined-outside-init
+
+    def expose(self):
+        with self._qtbot.waitExposed(self):
+            self.show()
+
+
+@pytest.fixture
+def widget_container(qtbot):
+    return WidgetContainer(qtbot)
+
+
 class WinRegistryHelper:
 
     """Helper class for win_registry."""
@@ -100,22 +126,11 @@ class FakeStatusBar(QWidget):
 
 
 @pytest.fixture
-def fake_statusbar(qtbot):
+def fake_statusbar(widget_container):
     """Fixture providing a statusbar in a container window."""
-    container = QWidget()
-    qtbot.add_widget(container)
-    vbox = QVBoxLayout(container)
-    vbox.addStretch()
-
-    statusbar = FakeStatusBar(container)
-    # to make sure container isn't GCed
-    # pylint: disable=attribute-defined-outside-init
-    statusbar.container = container
-    vbox.addWidget(statusbar)
-    # pylint: enable=attribute-defined-outside-init
-
-    with qtbot.waitExposed(container):
-        container.show()
+    widget_container.vbox.addStretch()
+    statusbar = FakeStatusBar(widget_container)
+    widget_container.set_widget(statusbar)
     return statusbar
 
 
@@ -190,47 +205,29 @@ def web_tab_setup(qtbot, tab_registry, session_manager_stub,
 
 
 @pytest.fixture
-def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager):
+def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
+               widget_container):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
 
-    container = QWidget()
-    qtbot.add_widget(container)
-
-    vbox = QVBoxLayout(container)
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
-    vbox.addWidget(tab)
-    # to make sure container isn't GCed
-    tab.container = container
-
-    with qtbot.waitExposed(container):
-        container.show()
-
+    widget_container.set_widget(tab)
     return tab
 
 
 @pytest.fixture
 def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
-                  tabbed_browser_stubs, mode_manager):
+                  tabbed_browser_stubs, mode_manager, widget_container):
     tabwidget = tabbed_browser_stubs[0].widget
     tabwidget.current_index = 0
     tabwidget.index_of = 0
 
-    container = QWidget()
-    qtbot.add_widget(container)
-
-    vbox = QVBoxLayout(container)
     webenginetab = pytest.importorskip(
         'qutebrowser.browser.webengine.webenginetab')
+
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
                                     private=False)
-    vbox.addWidget(tab)
-    # to make sure container isn't GCed
-    tab.container = container
-
-    with qtbot.waitExposed(container):
-        container.show()
-
+    widget_container.set_widget(tab)
     return tab
 
 
