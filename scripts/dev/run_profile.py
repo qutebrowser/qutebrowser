@@ -50,6 +50,8 @@ def parse_args():
                         help="The tool to use to view the profiling data")
     parser.add_argument('--profile-file', metavar='FILE', action='store',
                         help="The filename to use with --profile-tool=none")
+    parser.add_argument('--profile-test', action='store_true',
+                        help="Run pytest instead of qutebrowser")
     return parser.parse_known_args()
 
 
@@ -65,7 +67,12 @@ def main():
     sys.argv = [sys.argv[0]] + remaining
 
     profiler = cProfile.Profile()
-    profiler.runcall(qutebrowser.qutebrowser.main)
+
+    if args.profile_test:
+        import pytest
+        profiler.runcall(pytest.main)
+    else:
+        profiler.runcall(qutebrowser.qutebrowser.main)
 
     # If we have an exception after here, we don't want the qutebrowser
     # exception hook to take over.
