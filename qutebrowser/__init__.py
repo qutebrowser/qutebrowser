@@ -19,15 +19,20 @@
 
 """A keyboard-driven, vim-like browser based on PyQt5."""
 
+from configparser import ConfigParser
 import os.path
+
+# load .bumpversion.cfg config
+config = ConfigParser()
+config.read('.bumpversion.cfg')
 
 __author__ = "Florian Bruhin"
 __copyright__ = "Copyright 2014-2018 Florian Bruhin (The Compiler)"
 __license__ = "GPL"
 __maintainer__ = __author__
 __email__ = "mail@qutebrowser.org"
-__version_info__ = (1, 5, 0)
-__version__ = '.'.join(str(e) for e in __version_info__)
+__version__ = config['bumpversion']['current_version']
+__version_info__ = __version__.split('.')
 __description__ = "A keyboard-driven, vim-like browser based on PyQt5."
 
 basedir = os.path.dirname(os.path.realpath(__file__))
