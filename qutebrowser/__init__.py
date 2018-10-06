@@ -19,12 +19,7 @@
 
 """A keyboard-driven, vim-like browser based on PyQt5."""
 
-# from configparser import ConfigParser
 import os.path
-
-# load .bumpversion.cfg config
-# config = ConfigParser()
-# config.read('.bumpversion.cfg')
 
 __author__ = "Florian Bruhin"
 __copyright__ = "Copyright 2014-2018 Florian Bruhin (The Compiler)"
