@@ -233,7 +233,7 @@ class CompletionView(QTreeView):
             elif idx.parent().isValid():
                 # Item is a real item, not a category header -> success
                 return idx
-       
+
     def _next_category_idx(self, upwards):
         """Get the index of the previous/next category.
 
