@@ -44,6 +44,8 @@ def test_elided_text(fake_statusbar, qtbot, elidemode, check):
         check: function that receives the elided text and must return True
         if the ellipsis is placed correctly according to elidemode.
     """
+    fake_statusbar.container.expose()
+
     label = TextBase(elidemode=elidemode)
     qtbot.add_widget(label)
     fake_statusbar.hbox.addWidget(label)
