@@ -7,6 +7,5 @@
 - If you are stuck somewhere or have questions,
   https://github.com/qutebrowser/qutebrowser#getting-help[please ask]!
 
-See the full contribution documentation for details and other useful hints:
-
-include::../doc/contributing.asciidoc[]
+See the link:../doc/contributing.asciidoc[full contribution documentation] for
+details and other useful hints.
