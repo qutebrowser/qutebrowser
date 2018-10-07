@@ -23,8 +23,8 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
+from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QAbstractItemView
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize, QPoint, QModelIndex
 
 from qutebrowser.config import config
 from qutebrowser.completion import completiondelegate
@@ -197,7 +197,7 @@ class CompletionView(QTreeView):
         raise utils.Unreachable
 
     def _next_page(self, upwards):
-        """Essentially _next_idx with a for loop to increment by 14 (size of each page) instead of 1 each time
+        """Essentially _next_idx with a for loop to increment by amount of elements per page (size of each page) instead of 1 each time
 
         Args:
             upwards: Get previous item, not next.
@@ -206,22 +206,25 @@ class CompletionView(QTreeView):
             A QModelIndex.
         """
 
-        page_length = int(self.height()/21.0416666667)  # amount each time to scroll by using the equation height/element amount = 21.0416666667, maintains origin element (where you pressed PgUp or PgDown) at top or bottom of list respectivley
-
         idx = self.selectionModel().currentIndex()
+
         if not idx.isValid():
             # No item selected yet
+            page_length = 0  # No need to scroll yet
             if upwards:
                 return self.model().last_item()
             else:
                 return self.model().first_item()
+        else:
+            element_height = self.visualRect(idx).height()  # Finds Height of each CompletionView elements
+            page_length = int(self.height()/element_height)
 
         while True:
             if upwards:
-                for x in range(page_length):
+                for x in range(page_length-1):  # Ensures bottom element stays at top of next page
                     idx = self.indexAbove(idx)
             else:
-                for x in range(page_length):
+                for x in range(page_length-1):
                     idx = self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
             if not idx.isValid() and upwards:
