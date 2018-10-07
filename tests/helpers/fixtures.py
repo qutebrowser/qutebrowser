@@ -226,7 +226,10 @@ def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
                                     private=False)
     widget_container.set_widget(tab)
-    return tab
+    yield tab
+    # If a page is still loading here, _on_load_finished could get called
+    # during teardown when session_manager_stub is already deleted.
+    tab.stop()
 
 
 @pytest.fixture(params=['webkit', 'webengine'])
