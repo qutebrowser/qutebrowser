@@ -40,7 +40,7 @@ def bump_version(version_leap="patch"):
         version_leap: define the jump between versions
         ("major", "minor", "patch")
     """
-    subprocess.run(['bump2version', version_leap])
+    subprocess.run(['bump2version', version_leap], check=True)
 
 
 def read_appdata():
