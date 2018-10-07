@@ -699,9 +699,12 @@ qutebrowser release
 * Update changelog (remove *(unreleased)*) and commit.
 * If committing on minor branch, cherry-pick release commit to master.
 * Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones as closed.
-* Linux: run `./.venv/bin/python3 scripts/dev/build_release.py --bump ["major","minor","patch"] --upload`.
-* Windows: Run `py -3 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py -bump ["major","minor","patch"] --upload`.
-* macOS: Run `python3 scripts/dev/build_release.py --bump ["major","minor","patch"] --upload`.
+* Run `./.venv/bin/python3 scripts/dev/update_version.py major | minor | patch`.
+* Run 'git push origin'.
+* Create new release via GitHub (required to upload release artifacts).
+* Linux: run `./.venv/bin/python3 scripts/dev/build_release.py --upload`.
+* Windows: Run `py -3 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload`.
+* macOS: Run `python3 scripts/dev/build_release.py --upload`.
 * On server:
   - Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
   - Run `git pull github master && sudo python3 scripts/asciidoc2html.py --website /srv/http/qutebrowser`
