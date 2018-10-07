@@ -696,24 +696,15 @@ qutebrowser release
 
 * Make sure there are no unstaged changes and the tests are green.
 * Make sure all issues with the related milestone are closed.
-* Run `x=... y=...` to set the respective shell variables.
-
-* Update changelog (remove *(unreleased)*).
-* Adjust `__version_info__` in `qutebrowser/__init__.py`.
-* Commit.
-
-* Create annotated git tag (`git tag -s "v1.$x.$y" -m "Release v1.$x.$y"`).
-* `git push origin`; `git push origin v1.$x.$y`.
+* Update changelog (remove *(unreleased)*) and commit.
 * If committing on minor branch, cherry-pick release commit to master.
-* Create release on github.
-* Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones
-as closed.
-
-* Linux: Run `git checkout v1.$x.$y && ./.venv/bin/python3 scripts/dev/build_release.py --upload v1.$x.$y`.
-* Windows: Run `git checkout v1.X.Y; py -3 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
-* macOS: Run `git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
+* Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones as closed.
+* Linux: run `./.venv/bin/python3 scripts/dev/build_release.py --bump ["major","minor","patch"] --upload`.
+* Windows: Run `py -3 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py -bump ["major","minor","patch"] --upload`.
+* macOS: Run `python3 scripts/dev/build_release.py --bump ["major","minor","patch"] --upload`.
 * On server:
   - Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
   - Run `git pull github master && sudo python3 scripts/asciidoc2html.py --website /srv/http/qutebrowser`
+* Create release on github.
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed.
 * Announce to qutebrowser and qutebrowser-announce mailinglist.
