@@ -405,7 +405,6 @@ def main():
         utils.print_title("Press enter to release...")
         input()
 
-        # create version tag
         version_tag = "v" + __version__
 
         github_upload(artifacts, version_tag)
