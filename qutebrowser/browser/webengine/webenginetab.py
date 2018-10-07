@@ -183,6 +183,13 @@ class WebEngineSearch(browsertab.AbstractSearch):
                                       self._pending_searches))
                 return
 
+            if sip.isdeleted(self._widget):
+                # This happens when starting a search, and closing the tab
+                # before results arrive.
+                log.webview.debug("Ignoring finished search for deleted "
+                                  "widget")
+                return
+
             found_text = 'found' if found else "didn't find"
             if flags:
                 flag_text = 'with flags {}'.format(debug.qflags_key(
