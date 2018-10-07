@@ -300,28 +300,17 @@ class TestAdd:
             assert yaml_value(name)[-1] == value
 
     def test_add_list_non_list(self, commands):
-        name = 'history_gap_interval'
-        value = 'value'
         with pytest.raises(
                 cmdexc.CommandError,
                 match=":config-add-list can only be used for lists"):
-            commands.config_add_list(name, value)
+            commands.config_add_list('history_gap_interval', 'value')
 
-    def test_add_list_empty_value(self, commands):
-        name = 'content.host_blocking.whitelist'
-        value = ''
+    @pytest.mark.parametrize('value', ['', None, 42])
+    def test_add_list_invalid_values(self, commands, value):
         with pytest.raises(
                 cmdexc.CommandError,
-                match="Invalid value '{}' - may not be empty!".format(value)):
-            commands.config_add_list(name, value)
-
-    def test_add_list_none_value(self, commands):
-        name = 'content.host_blocking.whitelist'
-        value = None
-        with pytest.raises(
-                cmdexc.CommandError,
-                match="Invalid value 'None' - may not be null!"):
-            commands.config_add_list(name, value)
+                match="Invalid value '{}'".format(value)):
+            commands.config_add_list('content.host_blocking.whitelist', value)
 
     @pytest.mark.parametrize('value', ['test1', 'test2'])
     @pytest.mark.parametrize('temp', [True, False])
@@ -354,29 +343,16 @@ class TestAdd:
                 commands.config_add_dict(name, key, value, replace=False)
 
     def test_add_dict_non_dict(self, commands):
-        name = 'history_gap_interval'
-        key = 'value'
-        value = 'value'
         with pytest.raises(
                 cmdexc.CommandError,
                 match=":config-add-dict can only be used for dicts"):
-            commands.config_add_dict(name, key, value)
+            commands.config_add_dict('history_gap_interval', 'key', 'value')
 
-    def test_add_dict_empty_value(self, commands):
-        name = 'aliases'
-        key = 'missingkey'
-        value = ''
+    @pytest.mark.parametrize('value', ['', None, 42])
+    def test_add_dict_invalid_values(self, commands, value):
         with pytest.raises(cmdexc.CommandError,
-                           match="Invalid value '' - may not be empty!"):
-            commands.config_add_dict(name, key, value)
-
-    def test_add_dict_none_value(self, commands):
-        name = 'aliases'
-        key = 'missingkey'
-        value = None
-        with pytest.raises(cmdexc.CommandError,
-                           match="Invalid value 'None' - may not be null!"):
-            commands.config_add_dict(name, key, value)
+                           match="Invalid value '{}'".format(value)):
+            commands.config_add_dict('aliases', 'missingkey', value)
 
 
 class TestUnsetAndClear:
