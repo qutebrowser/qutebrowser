@@ -283,7 +283,7 @@ class ConfigCommands:
             option: The name of the option.
             key: The key to use.
             value: The value to place in the dictionary.
-            temp: Don't touch autoconfig.yml.
+            temp: Set value temporarily until qutebrowser is closed.
             replace: Whether or not we should replace, default is not.
         """
         opt = self._config.get_opt(option)
