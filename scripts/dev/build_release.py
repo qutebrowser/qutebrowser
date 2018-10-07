@@ -84,13 +84,6 @@ def run_asciidoc2html(args):
     call_script('asciidoc2html.py', *a2h_args)
 
 
-def run_update_version(args):
-    """Bump release version."""
-    utils.print_title("Running update_version.py")
-
-    call_script('update_version.py', args.bump)
-
-
 def _maybe_remove(path):
     """Remove a path if it exists."""
     try:
@@ -367,9 +360,6 @@ def main():
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
                         metavar=('PYTHON', 'ASCIIDOC'))
-    parser.add_argument('--bump', type=str,
-                        choices=["major", "minor", "patch"],
-                        required=False, help="Update release version")
     parser.add_argument('--upload', action='store_true', required=False,
                         help="Toggle to upload the release to GitHub")
     args = parser.parse_args()
@@ -382,9 +372,6 @@ def main():
         # or without API token
         import github3  # pylint: disable=unused-variable
         read_github_token()
-
-    if args.bump is not None:
-        run_update_version(args)
 
     if args.no_asciidoc:
         os.makedirs(os.path.join('qutebrowser', 'html', 'doc'), exist_ok=True)
