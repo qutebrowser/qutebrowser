@@ -25,7 +25,7 @@ import unittest.mock
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.config import configcommands, configtypes, configutils
+from qutebrowser.config import configcommands, configutils
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.keyinput import keyutils
@@ -286,20 +286,12 @@ class TestAdd:
 
     """Test :config-add-list and :config-add-dict."""
 
-    @pytest.mark.parametrize('name', ['content.host_blocking.whitelist',
-                                      'history_gap_interval'])
     @pytest.mark.parametrize('temp', [True, False])
-    @pytest.mark.parametrize('value', ['test1', 'test2', '', None])
-    def test_add_list(self, commands, config_stub, yaml_value, name, temp, value):
-        opt_type = config_stub.get_opt(name).typ
+    @pytest.mark.parametrize('value', ['test1', 'test2'])
+    def test_add_list(self, commands, config_stub, yaml_value, temp, value):
+        name = 'content.host_blocking.whitelist'
 
-        try:
-            commands.config_add_list(name, value, temp=temp)
-        except cmdexc.CommandError:
-            # We attempted to add to the dictionary with replace as false.
-            valid_list_types = (configtypes.List, configtypes.ListOrValue)
-            assert not isinstance(opt_type, valid_list_types) or not value
-            return
+        commands.config_add_list(name, value, temp=temp)
 
         assert str(config_stub.get(name)[-1]) == value
         if temp:
@@ -307,27 +299,84 @@ class TestAdd:
         else:
             assert yaml_value(name)[-1] == value
 
-    @pytest.mark.parametrize('name', ['aliases', 'history_gap_interval'])
-    @pytest.mark.parametrize('key', ['w', 'missingkey'])
+    def test_add_list_non_list(self, commands):
+        name = 'history_gap_interval'
+        value = 'value'
+        with pytest.raises(
+                cmdexc.CommandError,
+                match=":config-add-list can only be used for lists"):
+            commands.config_add_list(name, value)
+
+    def test_add_list_empty_value(self, commands):
+        name = 'content.host_blocking.whitelist'
+        value = ''
+        with pytest.raises(
+                cmdexc.CommandError,
+                match="Invalid value '{}' - may not be empty!".format(value)):
+            commands.config_add_list(name, value)
+
+    def test_add_list_none_value(self, commands):
+        name = 'content.host_blocking.whitelist'
+        value = None
+        with pytest.raises(
+                cmdexc.CommandError,
+                match="Invalid value 'None' - may not be null!"):
+            commands.config_add_list(name, value)
+
     @pytest.mark.parametrize('value', ['test1', 'test2'])
     @pytest.mark.parametrize('temp', [True, False])
-    @pytest.mark.parametrize('replace', [True, False])
-    def test_add_dict(self, commands, config_stub, yaml_value, name, key,
-                      value, temp, replace):
-        opt_type = config_stub.get_opt(name).typ
+    def test_add_dict(self, commands, config_stub, yaml_value, value, temp):
+        name = 'aliases'
+        key = 'missingkey'
 
-        try:
-            commands.config_add_dict(name, key, value, temp=temp, replace=replace)
-        except cmdexc.CommandError:
-            # We attempted to add to the dictionary with replace as false.
-            assert not isinstance(opt_type, configtypes.Dict) or not replace
-            return
+        commands.config_add_dict(name, key, value, temp=temp)
 
         assert str(config_stub.get(name)[key]) == value
         if temp:
             assert yaml_value(name) == configutils.UNSET
         else:
             assert yaml_value(name)[key] == value
+
+    @pytest.mark.parametrize('replace', [True, False])
+    def test_add_dict_replace(self, commands, config_stub, replace):
+        name = 'aliases'
+        key = 'w'
+        value = 'anything'
+
+        if replace:
+            commands.config_add_dict(name, key, value, replace=True)
+            assert str(config_stub.get(name)[key]) == value
+        else:
+            with pytest.raises(
+                    cmdexc.CommandError,
+                    match="w already exists in aliases - use --replace to "
+                          "overwrite!"):
+                commands.config_add_dict(name, key, value, replace=False)
+
+    def test_add_dict_non_dict(self, commands):
+        name = 'history_gap_interval'
+        key = 'value'
+        value = 'value'
+        with pytest.raises(
+                cmdexc.CommandError,
+                match=":config-add-dict can only be used for dicts"):
+            commands.config_add_dict(name, key, value)
+
+    def test_add_dict_empty_value(self, commands):
+        name = 'aliases'
+        key = 'missingkey'
+        value = ''
+        with pytest.raises(cmdexc.CommandError,
+                           match="Invalid value '' - may not be empty!"):
+            commands.config_add_dict(name, key, value)
+
+    def test_add_dict_none_value(self, commands):
+        name = 'aliases'
+        key = 'missingkey'
+        value = None
+        with pytest.raises(cmdexc.CommandError,
+                           match="Invalid value 'None' - may not be null!"):
+            commands.config_add_dict(name, key, value)
 
 
 class TestUnsetAndClear:

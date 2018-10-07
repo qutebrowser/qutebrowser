@@ -245,7 +245,7 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
-            temp: Don't touch autoconfig.yml.
+            temp: Set value temporarily until qutebrowser is closed.
         """
         with self._handle_config_error():
             self._config.unset(option, save_yaml=not temp)
@@ -255,12 +255,10 @@ class ConfigCommands:
     def config_add_list(self, option, value, temp=False):
         """Append a value to a config option that is a list.
 
-        This appends an option to a config setting that is a list.
-
         Args:
             option: The name of the option.
-            value: The value to append to the end of the dictionary.
-            temp: Don't touch autoconfig.yml.
+            value: The value to append to the end of the list.
+            temp: Set value temporarily until qutebrowser is closed.
         """
         opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
@@ -290,15 +288,15 @@ class ConfigCommands:
         """
         opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):
-            raise cmdexc.CommandError(":config-add-list can only be used for "
+            raise cmdexc.CommandError(":config-add-dict can only be used for "
                                       "dicts")
 
         with self._handle_config_error():
             option_value = self._config.get_mutable_obj(option)
 
             if key in option_value and not replace:
-                raise cmdexc.CommandError(("{} already existed in {} - use "
-                                           "--replace to overwrite!")
+                raise cmdexc.CommandError("{} already exists in {} - use "
+                                          "--replace to overwrite!"
                                           .format(key, option))
 
             option_value[key] = value
