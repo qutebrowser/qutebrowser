@@ -84,23 +84,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Update release version.")
     parser.add_argument('bump', action="store",
                         choices=["major", "minor", "patch"],
-                        required=False, help="Update release version")
+                        required=True, help="Update release version")
     args = parser.parse_args()
 
-    # bump version globally
-    if args.bump is not None:
-        bump_version(args.bump)
+    bump_version(args.bump)
 
-        from qutebrowser import __version__
+    from qutebrowser import __version__
 
-        appdata_tree = read_appdata()
+    appdata_tree = read_appdata()
 
-        releases_block = appdata_tree.xpath(version_xpath)[0]
+    releases_block = appdata_tree.xpath(version_xpath)[0]
 
-        add_release(releases_block, __version__,
-                    datetime.date.today().isoformat())
+    add_release(releases_block, __version__, datetime.date.today().isoformat())
 
-        write_appdata(appdata_tree)
-    else:
-        print("Option 'bump' not specified via command-line."
-              " Nothing was changed.")
+    write_appdata(appdata_tree)
