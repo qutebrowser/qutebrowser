@@ -36,6 +36,8 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
 |<<close,close>>|Close the current window.
+|<<config-add-dict,config-add-dict>>|Add a key/value pair to a dictionary option.
+|<<config-add-list,config-add-list>>|Append a value to a config option that is a list.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
 |<<config-edit,config-edit>>|Open the config.py file in the editor.
@@ -266,6 +268,35 @@ The given filter needs to result in exactly one element, otherwise, an error is 
 === close
 Close the current window.
 
+[[config-add-dict]]
+=== config-add-dict
+Syntax: +:config-add-dict [*--temp*] [*--replace*] 'option' 'key' 'value'+
+
+Add a key/value pair to a dictionary option.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'key'+: The key to use.
+* +'value'+: The value to place in the dictionary.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
+* +*-r*+, +*--replace*+: Replace existing values. By default, existing values are not overwritten.
+
+
+[[config-add-list]]
+=== config-add-list
+Syntax: +:config-add-list [*--temp*] 'option' 'value'+
+
+Append a value to a config option that is a list.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'value'+: The value to append to the end of the list.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
+
 [[config-clear]]
 === config-clear
 Syntax: +:config-clear [*--save*]+
@@ -326,7 +357,7 @@ This sets an option back to its default and removes it from autoconfig.yml.
 * +'option'+: The name of the option.
 
 ==== optional arguments
-* +*-t*+, +*--temp*+: Don't touch autoconfig.yml.
+* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 
 [[config-write-py]]
 === config-write-py

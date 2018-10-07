@@ -55,13 +55,13 @@ def dict_option(*, info):
 
 
 def _option(info, title, predicate):
-    """A CompletionModel that is generified for several option sets.
+    """A CompletionModel that is generated for several option sets.
 
     Args:
         info: The config info that can be passed through.
         title: The title of the options.
         predicate: The function for filtering out the options. Takes a single
-            argument.
+                   argument.
     """
     model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
     options = ((opt.name, opt.description, info.config.get_str(opt.name))

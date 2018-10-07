@@ -274,17 +274,15 @@ class ConfigCommands:
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.dict_option)
     def config_add_dict(self, option, key, value, temp=False, replace=False):
-        """Add a value at the key within the option specified.
-
-        This adds an element to a dictionary. --replace is needed to override
-        existing values.
+        """Add a key/value pair to a dictionary option.
 
         Args:
             option: The name of the option.
             key: The key to use.
             value: The value to place in the dictionary.
             temp: Set value temporarily until qutebrowser is closed.
-            replace: Whether or not we should replace, default is not.
+            replace: Replace existing values. By default, existing values are
+                     not overwritten.
         """
         opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):
