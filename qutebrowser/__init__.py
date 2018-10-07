@@ -31,5 +31,3 @@ __version_info__ = [int(part) for part in __version__.split('.')]
 __description__ = "A keyboard-driven, vim-like browser based on PyQt5."
 
 basedir = os.path.dirname(os.path.realpath(__file__))
-appdata_path = os.path.join(os.path.dirname(basedir), "misc",
-                            "qutebrowser.appdata.xml")

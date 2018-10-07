@@ -20,12 +20,16 @@
 
 import argparse
 import datetime
+import os.path
 import subprocess
 
 from lxml import etree
 
-from qutebrowser import appdata_path
+from qutebrowser import basedir
 
+# use basedir to get project root dir
+appdata_path = os.path.join(os.path.dirname(basedir), "misc",
+                            "qutebrowser.appdata.xml")
 version_xpath = '//*[@type="desktop"]/releases'
 
 
