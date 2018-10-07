@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import argparse
 from datetime import date
 import subprocess
 
@@ -34,13 +35,10 @@ def bump_version(version_leap = "patch"):
     :param version_leap: define the jump between versions ("major", "minor", "patch")
     """
 
-    # make sure the correct version jump was chosen
-    if version_leap not in ("major", "minor", "patch"):
-        raise ValueError("version_leap takes values of 'major', 'minor' or 'patch' only.")
 
     # NOTE: this may rely on the python version used to launch the function
     # and whether the wrapper script 'bumpversion' was provided
-    subprocess.run(['bumpversion', version_leap, '--allow-dirty'])
+    subprocess.run(['bump2version', version_leap, '--allow-dirty'])
 
 
 def read_appdata():
@@ -84,22 +82,29 @@ def add_release(releases, version_string, date_string):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Update release version and appdata.xml")
+    parser.add_argument('bump', action="store", choices=["major", "minor", "patch"],
+                        required=False, help="Update release version")
+    args = parser.parse_args()
+
     # bump version globally
-    bump_version()
+    if args.bump is not None:
+        bump_version(args.bump)
 
-    # NOTE: this step must be executed AFTER bumping the version!
-    # import __version__ and use to update remaining files
-    from qutebrowser import __version__
+        # NOTE: this step must be executed AFTER bumping the version!
+        from qutebrowser import __version__
 
-    # read appdata XML
-    appdata_tree = read_appdata()
+        # read appdata XML
+        appdata_tree = read_appdata()
 
-    # get <releases> XML block
-    releases = appdata_tree.xpath(version_xpath)[0]
+        # get <releases> XML block
+        releases = appdata_tree.xpath(version_xpath)[0]
 
-    # attach new release
-    # TODO: use different date string?
-    add_release(releases, __version__, date.today().isoformat())
+        # attach new release
+        # TODO: use different date string?
+        add_release(releases, __version__, date.today().isoformat())
 
-    # write appdata back to XML
-    write_appdata(appdata_tree)
+        # write appdata back to XML
+        write_appdata(appdata_tree)
+    else:
+        print("Option 'bump' not specified via command-line. Nothing was changed.")
