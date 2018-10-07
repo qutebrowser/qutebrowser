@@ -367,7 +367,8 @@ def main():
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
                         metavar=('PYTHON', 'ASCIIDOC'))
-    parser.add_argument('--bump', type=str, choices=["major", "minor", "patch"],
+    parser.add_argument('--bump', type=str,
+                        choices=["major", "minor", "patch"],
                         required=False, help="Update release version")
     parser.add_argument('--upload', action='store_true', required=False,
                         help="Toggle to upload the release to GitHub")

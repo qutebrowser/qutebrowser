@@ -19,71 +19,67 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
-from datetime import date
+import datetime
 import subprocess
 
 from lxml import etree
 
-# TODO: move to global constants?
-appdata_path = "misc/qutebrowser.appdata.xml"
+from qutebrowser import appdata_path
+
 version_xpath = '//*[@type="desktop"]/releases'
 
 
-def bump_version(version_leap = "patch"):
-    """Update qutebrowser release version in .bumpversion.cfg
+def bump_version(version_leap="patch"):
+    """Update qutebrowser release version.
 
-    :param version_leap: define the jump between versions ("major", "minor", "patch")
+    Args:
+        version_leap: define the jump between versions
+        ("major", "minor", "patch")
     """
-
-
-    # NOTE: this may rely on the python version used to launch the function
-    # and whether the wrapper script 'bumpversion' was provided
-    subprocess.run(['bump2version', version_leap, '--allow-dirty'])
+    subprocess.run(['bump2version', version_leap])
 
 
 def read_appdata():
-    """Reads the appdata XML into an ElementTree object
+    """Read qutebrowser.appdata.xml into an ElementTree object.
 
-    :return: ElementTree object
+    :Return:
+        ElementTree object representing appdata.xml
     """
-
     with open(appdata_path, "rb") as f:
-        appdata_tree = etree.fromstring(f.read())
+        appdata = etree.fromstring(f.read())
 
-    return appdata_tree
+    return appdata
 
 
-def write_appdata(appdata_tree):
-    """Write appdata tree object back to XML file
+def write_appdata(appdata):
+    """Write qutebrowser.appdata ElementTree object to a file.
 
-    :param appdata_tree: appdata ElementTree object
+    Args:
+        appdata: appdata ElementTree object
     """
-
     with open(appdata_path, "wb") as f:
-        f.write(etree.tostring(appdata_tree, pretty_print=True))
+        f.write(etree.tostring(appdata, pretty_print=True))
 
 
 def add_release(releases, version_string, date_string):
-    """Add new <release> block to <releases> block of the appdata XML
+    """Add new <release> block to <releases> block of the appdata XML.
 
-    :param releases: <releases> XML ElementTree
-    :param version_string: new qutebrowser version
-    :param date_string: release date for the new version
-    :return:
+    Args:
+        releases: <releases> XML ElementTree
+        version_string: new qutebrowser version
+        date_string: release date for the new version
     """
-
-    # create <release> block and populate
     release = etree.Element("release")
     release.attrib["version"] = version_string
     release.attrib["date"] = date_string
 
-    # attach new release to <releases> block
     releases.append(release)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Update release version and appdata.xml")
-    parser.add_argument('bump', action="store", choices=["major", "minor", "patch"],
+    parser = argparse.ArgumentParser(description="Update release version.")
+    parser.add_argument('bump', action="store",
+                        choices=["major", "minor", "patch"],
                         required=False, help="Update release version")
     args = parser.parse_args()
 
@@ -91,20 +87,16 @@ if __name__ == "__main__":
     if args.bump is not None:
         bump_version(args.bump)
 
-        # NOTE: this step must be executed AFTER bumping the version!
         from qutebrowser import __version__
 
-        # read appdata XML
         appdata_tree = read_appdata()
 
-        # get <releases> XML block
-        releases = appdata_tree.xpath(version_xpath)[0]
+        releases_block = appdata_tree.xpath(version_xpath)[0]
 
-        # attach new release
-        # TODO: use different date string?
-        add_release(releases, __version__, date.today().isoformat())
+        add_release(releases_block, __version__,
+                    datetime.date.today().isoformat())
 
-        # write appdata back to XML
         write_appdata(appdata_tree)
     else:
-        print("Option 'bump' not specified via command-line. Nothing was changed.")
+        print("Option 'bump' not specified via command-line."
+              " Nothing was changed.")
