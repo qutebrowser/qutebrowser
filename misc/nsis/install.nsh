@@ -194,7 +194,8 @@ Section "Core Files (required)" SectionCoreFiles
     ${endif}
 
     ; Make sure the uninstaller is there before attempting to run it
-    ${if} ${FileExists} $1
+    ${if} ${FileExists} "$3\${UNINSTALL_FILENAME}"
+
       HideWindow
       ClearErrors
       StrCpy $0 0
