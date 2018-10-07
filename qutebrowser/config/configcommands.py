@@ -245,10 +245,62 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
-            temp: Don't touch autoconfig.yml.
+            temp: Set value temporarily until qutebrowser is closed.
         """
         with self._handle_config_error():
             self._config.unset(option, save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.list_option)
+    def config_add_list(self, option, value, temp=False):
+        """Append a value to a config option that is a list.
+
+        Args:
+            option: The name of the option.
+            value: The value to append to the end of the list.
+            temp: Set value temporarily until qutebrowser is closed.
+        """
+        opt = self._config.get_opt(option)
+        valid_list_types = (configtypes.List, configtypes.ListOrValue)
+        if not isinstance(opt.typ, valid_list_types):
+            raise cmdexc.CommandError(":config-add-list can only be used for "
+                                      "lists")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+            option_value.append(value)
+            self._config.update_mutables(save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.dict_option)
+    def config_add_dict(self, option, key, value, temp=False, replace=False):
+        """Add a value at the key within the option specified.
+
+        This adds an element to a dictionary. --replace is needed to override
+        existing values.
+
+        Args:
+            option: The name of the option.
+            key: The key to use.
+            value: The value to place in the dictionary.
+            temp: Set value temporarily until qutebrowser is closed.
+            replace: Whether or not we should replace, default is not.
+        """
+        opt = self._config.get_opt(option)
+        if not isinstance(opt.typ, configtypes.Dict):
+            raise cmdexc.CommandError(":config-add-dict can only be used for "
+                                      "dicts")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+
+            if key in option_value and not replace:
+                raise cmdexc.CommandError("{} already exists in {} - use "
+                                          "--replace to overwrite!"
+                                          .format(key, option))
+
+            option_value[key] = value
+            self._config.update_mutables(save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
     def config_clear(self, save=False):
