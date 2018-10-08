@@ -202,14 +202,14 @@ Feature: Using hints
 
     Scenario: Custom hint group with URL pattern
         When I open data/hints/custom_group.html
-        And I run :set -u *://*/data/hints/custom_group.html hints.selectors '{"custom": [".clickable"]}'
+        And I run :set -tu *://*/data/hints/custom_group.html hints.selectors '{"custom": [".clickable"]}'
         And I hint with args "custom" and follow a
         Then the javascript message "beep!" should be logged
 
     Scenario: Fallback to global value with URL pattern set
         When I open data/hints/custom_group.html
         And I set hints.selectors to {"custom":[".clickable"]}
-        And I run :set -u *://*/data/hints/custom_group.html hints.selectors '{"other": [".other"]}'
+        And I run :set -tu *://*/data/hints/custom_group.html hints.selectors '{"other": [".other"]}'
         And I hint with args "custom" and follow a
         Then the javascript message "beep!" should be logged
 

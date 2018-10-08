@@ -2581,6 +2581,8 @@ CSS selectors used to determine which elements on a page should have hints.
 
 This setting supports URL patterns.
 
+This setting can only be set in config.py.
+
 Type: <<types,Dict>>
 
 Default: 

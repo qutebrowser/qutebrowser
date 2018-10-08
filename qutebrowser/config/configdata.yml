@@ -1163,6 +1163,7 @@ hints.scatter:
     Ignored for number hints.
 
 hints.selectors:
+  no_autoconfig: true
   default:
     all:
       - 'a'
