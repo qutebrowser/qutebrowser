@@ -150,6 +150,9 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         else:
             browsertab.openurl(url)
 
-    selectors = config.instance.get('hints.selectors', baseurl)
-    link_selector = ','.join(selectors['links'])
+    try:
+        link_selector = webelem.css_selector('links', baseurl)
+    except webelem.Error as e:
+        raise Error(str(e))
+
     browsertab.elements.find_css(link_selector, _prevnext_cb)

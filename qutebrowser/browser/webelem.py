@@ -44,6 +44,18 @@ class OrphanedError(Error):
     pass
 
 
+def css_selector(group, url):
+    """Get a CSS selector for the given group/URL."""
+    selectors = config.instance.get('hints.selectors', url)
+    if group not in selectors:
+        selectors = config.val.hints.selectors
+
+        if group not in selectors:
+            raise Error("Undefined hinting group {!r}".format(group))
+
+    return ','.join(selectors[group])
+
+
 class AbstractWebElement(collections.abc.MutableMapping):
 
     """A wrapper around QtWebKit/QtWebEngine web element.

@@ -192,7 +192,7 @@ Feature: Using hints
     Scenario: Error with invalid hint group
         When I open data/hints/buttons.html
         And I run :hint INVALID_GROUP
-        Then the error "Undefined hinting group 'INVALID_GROUP'!" should be shown
+        Then the error "Undefined hinting group 'INVALID_GROUP'" should be shown
 
     Scenario: Custom hint group
         When I open data/hints/custom_group.html
