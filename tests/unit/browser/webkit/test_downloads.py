@@ -22,6 +22,14 @@ import pytest
 from qutebrowser.browser import downloads, qtnetworkdownloads
 
 
+@pytest.fixture(autouse=True)
+def is_platform(monkeypatch, platform="windows"):
+    for p in ["mac", "linux", "posix", "windows"]:
+        monkeypatch.setattr(
+            'qutebrowser.utils.utils.is_{}'.format(p),
+            p == platform)
+
+
 def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache,
                         fake_args):
     """Simple check for download model internals."""
@@ -92,3 +100,27 @@ class TestDownloadTarget:
     ])
     def test_class_hierarchy(self, obj):
         assert isinstance(obj, downloads._DownloadTarget)
+
+
+@pytest.mark.parametrize('raw, platform, expected', [
+    ('http://foo/bar', 'windows', 'bar'),
+    ('A *|<>\\: bear!', 'windows', 'A ______ bear!'),
+    ('A *|<>\\: bear!', 'posix', 'A *|<>\\: bear!')
+])
+def test_sanitized_filenames(raw, platform, expected, config_stub,
+                             download_tmpdir, monkeypatch):
+    is_platform(monkeypatch, platform)
+    manager = downloads.AbstractDownloadManager()
+    target = downloads.FileDownloadTarget(str(download_tmpdir))
+    item = downloads.AbstractDownloadItem()
+
+    # Don't try to start a timer outside of a QThread
+    manager._update_timer.isActive = lambda: True
+
+    # Abstract methods
+    item._ensure_can_set_filename = lambda *args: True
+    item._after_set_filename = lambda *args: True
+
+    manager._init_item(item, True, raw)
+    item.set_target(target)
+    assert item._filename.endswith(expected)
