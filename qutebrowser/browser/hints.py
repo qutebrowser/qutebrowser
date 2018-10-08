@@ -661,6 +661,9 @@ class HintManager(QObject):
                 - `images`: Only images.
                 - `inputs`: Only input fields.
 
+                Custom groups can be added via the `hints.selectors` setting
+                and also used here.
+
             target: What to do with the selected element.
 
                 - `normal`: Open the link.
