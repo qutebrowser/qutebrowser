@@ -13,13 +13,13 @@ fields==5.0.0
 Flask==1.0.2
 glob2==0.6
 hunter==2.0.2
-hypothesis==3.74.0
+hypothesis==3.74.3
 itsdangerous==0.24
 # Jinja2==2.10
 Mako==1.0.7
 # MarkupSafe==1.0
 more-itertools==4.3.0
-parse==1.8.4
+parse==1.9.0
 parse-type==0.4.2
 pluggy==0.7.1
 py==1.6.0
@@ -33,7 +33,7 @@ pytest-instafail==0.4.0
 pytest-mock==1.10.0
 pytest-qt==3.2.1
 pytest-repeat==0.7.0
-pytest-rerunfailures==4.1
+pytest-rerunfailures==4.2
 pytest-travis-fold==1.3.0
 pytest-xvfb==1.1.0
 PyVirtualDisplay==0.2.1
