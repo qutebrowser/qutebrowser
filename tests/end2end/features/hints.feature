@@ -189,6 +189,30 @@ Feature: Using hints
         # The actual check is already done above
         Then no crash should happen
 
+    Scenario: Error with invalid hint group
+        When I open data/hints/buttons.html
+        And I run :hint INVALID_GROUP
+        Then the error "Undefined hinting group 'INVALID_GROUP'!" should be shown
+
+    Scenario: Custom hint group
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom":[".clickable"]}
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
+
+    Scenario: Custom hint group with URL pattern
+        When I open data/hints/custom_group.html
+        And I run :set -u *://*/data/hints/custom_group.html hints.selectors '{"custom": [".clickable"]}'
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
+
+    Scenario: Fallback to global value with URL pattern set
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom":[".clickable"]}
+        And I run :set -u *://*/data/hints/custom_group.html hints.selectors '{"other": [".other"]}'
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
+
     # https://github.com/qutebrowser/qutebrowser/issues/1613
     Scenario: Hinting inputs with padding
         When I open data/hints/input.html

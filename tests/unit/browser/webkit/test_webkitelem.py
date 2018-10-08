@@ -29,7 +29,7 @@ import pytest
 from PyQt5.QtCore import QRect, QPoint, QUrl
 QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
 
-from qutebrowser.browser import webelem, browsertab
+from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
@@ -146,53 +146,46 @@ class SelectionAndFilterTests:
     TESTS = [
         ('<foo />', []),
         ('<foo bar="baz"/>', []),
-        ('<foo href="baz"/>', [webelem.Group.url]),
-        ('<foo src="baz"/>', [webelem.Group.url]),
+        ('<foo href="baz"/>', ['url']),
+        ('<foo src="baz"/>', ['url']),
 
-        ('<a />', [webelem.Group.all]),
-        ('<a href="foo" />', [webelem.Group.all, webelem.Group.links,
-                              webelem.Group.url]),
-        ('<a href="javascript://foo" />', [webelem.Group.all,
-                                           webelem.Group.links,
-                                           webelem.Group.url]),
+        ('<a />', ['all']),
+        ('<a href="foo" />', ['all', 'links', 'url']),
+        ('<a href="javascript://foo" />', ['all', 'links', 'url']),
 
-        ('<area />', [webelem.Group.all]),
-        ('<area href="foo" />', [webelem.Group.all, webelem.Group.links,
-                                 webelem.Group.url]),
+        ('<area />', ['all']),
+        ('<area href="foo" />', ['all', 'links', 'url']),
 
-        ('<link />', [webelem.Group.all]),
-        ('<link href="foo" />', [webelem.Group.all, webelem.Group.links,
-                                 webelem.Group.url]),
+        ('<link />', ['all']),
+        ('<link href="foo" />', ['all', 'links', 'url']),
 
-        ('<textarea />', [webelem.Group.all, webelem.Group.inputs]),
-        ('<select />', [webelem.Group.all]),
+        ('<textarea />', ['all', 'inputs']),
+        ('<select />', ['all']),
 
-        ('<input />', [webelem.Group.all, webelem.Group.inputs]),
+        ('<input />', ['all', 'inputs']),
         ('<input type="hidden" />', []),
-        ('<input type="text" />', [webelem.Group.inputs, webelem.Group.all]),
-        ('<input type="email" />', [webelem.Group.inputs, webelem.Group.all]),
-        ('<input type="url" />', [webelem.Group.inputs, webelem.Group.all]),
-        ('<input type="tel" />', [webelem.Group.inputs, webelem.Group.all]),
-        ('<input type="number" />', [webelem.Group.inputs, webelem.Group.all]),
-        ('<input type="password" />', [webelem.Group.inputs,
-                                       webelem.Group.all]),
-        ('<input type="search" />', [webelem.Group.inputs, webelem.Group.all]),
+        ('<input type="text" />', ['inputs', 'all']),
+        ('<input type="email" />', ['inputs', 'all']),
+        ('<input type="url" />', ['inputs', 'all']),
+        ('<input type="tel" />', ['inputs', 'all']),
+        ('<input type="number" />', ['inputs', 'all']),
+        ('<input type="password" />', ['inputs', 'all']),
+        ('<input type="search" />', ['inputs', 'all']),
 
-        ('<button />', [webelem.Group.all]),
-        ('<button href="foo" />', [webelem.Group.all, webelem.Group.url]),
+        ('<button />', ['all']),
+        ('<button href="foo" />', ['all', 'url']),
 
         # We can't easily test <frame>/<iframe> as they vanish when setting
         # them via QWebFrame::setHtml...
 
-        ('<p onclick="foo" foo="bar"/>', [webelem.Group.all]),
-        ('<p onmousedown="foo" foo="bar"/>', [webelem.Group.all]),
-        ('<p role="option" foo="bar"/>', [webelem.Group.all]),
-        ('<p role="button" foo="bar"/>', [webelem.Group.all]),
-        ('<p role="button" href="bar"/>', [webelem.Group.all,
-                                           webelem.Group.url]),
+        ('<p onclick="foo" foo="bar"/>', ['all']),
+        ('<p onmousedown="foo" foo="bar"/>', ['all']),
+        ('<p role="option" foo="bar"/>', ['all']),
+        ('<p role="button" foo="bar"/>', ['all']),
+        ('<p role="button" href="bar"/>', ['all', 'url']),
     ]
 
-    GROUPS = list(webelem.Group)
+    GROUPS = ['all', 'links', 'images', 'url', 'inputs']
 
     COMBINATIONS = list(itertools.product(TESTS, GROUPS))
 
@@ -215,11 +208,12 @@ class TestSelectorsAndFilters:
         assert self.TESTS
 
     @pytest.mark.parametrize('group, val, matching', TESTS)
-    def test_selectors(self, webframe, group, val, matching):
+    def test_selectors(self, webframe, group, val, matching, config_stub):
         webframe.setHtml('<html><body>{}</body></html>'.format(val))
         # Make sure setting HTML succeeded and there's a new element
         assert len(webframe.findAllElements('*')) == 3
-        elems = webframe.findAllElements(webelem.SELECTORS[group])
+        selector = ','.join(config_stub.val.hints.selectors[group])
+        elems = webframe.findAllElements(selector)
         elems = [webkitelem.WebKitElement(e, tab=None) for e in elems]
         assert bool(elems) == matching
 

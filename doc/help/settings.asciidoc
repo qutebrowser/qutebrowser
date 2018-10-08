@@ -207,6 +207,7 @@
 |<<hints.next_regexes,hints.next_regexes>>|Comma-separated list of regular expressions to use for 'next' links.
 |<<hints.prev_regexes,hints.prev_regexes>>|Comma-separated list of regular expressions to use for 'prev' links.
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
+|<<hints.selectors,hints.selectors>>|CSS selectors used to determine which elements on a page should have hints.
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
 |<<history_gap_interval,history_gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
 |<<input.escape_quits_reporter,input.escape_quits_reporter>>|Allow Escape to quit the crash reporter.
@@ -2573,6 +2574,73 @@ Ignored for number hints.
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
+
+[[hints.selectors]]
+=== hints.selectors
+CSS selectors used to determine which elements on a page should have hints.
+
+This setting supports URL patterns.
+
+Type: <<types,Dict>>
+
+Default: 
+
+- +pass:[all]+:
+
+* +pass:[a]+
+* +pass:[area]+
+* +pass:[textarea]+
+* +pass:[select]+
+* +pass:[input:not([type=&quot;hidden&quot;])]+
+* +pass:[button]+
+* +pass:[frame]+
+* +pass:[iframe]+
+* +pass:[img]+
+* +pass:[link]+
+* +pass:[summary]+
+* +pass:[[onclick]]+
+* +pass:[[onmousedown]]+
+* +pass:[[role=&quot;link&quot;]]+
+* +pass:[[role=&quot;option&quot;]]+
+* +pass:[[role=&quot;button&quot;]]+
+* +pass:[[ng-click]]+
+* +pass:[[ngClick]]+
+* +pass:[[data-ng-click]]+
+* +pass:[[x-ng-click]]+
+- +pass:[images]+:
+
+* +pass:[img]+
+- +pass:[inputs]+:
+
+* +pass:[input[type=&quot;text&quot;]]+
+* +pass:[input[type=&quot;date&quot;]]+
+* +pass:[input[type=&quot;datetime-local&quot;]]+
+* +pass:[input[type=&quot;email&quot;]]+
+* +pass:[input[type=&quot;month&quot;]]+
+* +pass:[input[type=&quot;number&quot;]]+
+* +pass:[input[type=&quot;password&quot;]]+
+* +pass:[input[type=&quot;search&quot;]]+
+* +pass:[input[type=&quot;tel&quot;]]+
+* +pass:[input[type=&quot;time&quot;]]+
+* +pass:[input[type=&quot;url&quot;]]+
+* +pass:[input[type=&quot;week&quot;]]+
+* +pass:[input:not([type])]+
+* +pass:[textarea]+
+- +pass:[links]+:
+
+* +pass:[a[href]]+
+* +pass:[area[href]]+
+* +pass:[link[href]]+
+* +pass:[[role=&quot;link&quot;][href]]+
+- +pass:[media]+:
+
+* +pass:[audio]+
+* +pass:[img]+
+* +pass:[video]+
+- +pass:[url]+:
+
+* +pass:[[src]]+
+* +pass:[[href]]+
 
 [[hints.uppercase]]
 === hints.uppercase

@@ -637,9 +637,8 @@ class HintManager(QObject):
                        star_args_optional=True, maxsplit=2)
     @cmdutils.argument('win_id', win_id=True)
     def start(self,  # pylint: disable=keyword-arg-before-vararg
-              group=webelem.Group.all, target=Target.normal,
-              *args, win_id, mode=None, add_history=False, rapid=False,
-              first=False):
+              group='all', target=Target.normal, *args, win_id, mode=None,
+              add_history=False, rapid=False, first=False):
         """Start hinting.
 
         Args:
@@ -747,9 +746,24 @@ class HintManager(QObject):
             raise cmdexc.CommandError("No URL set for this page yet!")
         self._context.args = args
         self._context.group = group
-        selector = webelem.SELECTORS[self._context.group]
+        selector = self._get_selector()
         self._context.tab.elements.find_css(selector, self._start_cb,
                                             only_visible=True)
+
+    def _get_selector(self):
+        """Get the CSS selectors for this url and hinting group."""
+        url = self._context.baseurl
+        group = self._context.group
+
+        selectors = config.instance.get('hints.selectors', url)
+        if group not in selectors:
+            selectors = config.val.hints.selectors
+
+            if group not in selectors:
+                raise cmdexc.CommandError("Undefined hinting group "
+                                          "'{}'!".format(group))
+
+        return ','.join(selectors[group])
 
     def current_mode(self):
         """Return the currently active hinting mode (or None otherwise)."""

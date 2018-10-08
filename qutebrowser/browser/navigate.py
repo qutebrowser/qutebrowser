@@ -21,7 +21,6 @@
 
 import posixpath
 
-from qutebrowser.browser import webelem
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, urlutils, log, message, qtutils
 from qutebrowser.mainwindow import mainwindow
@@ -147,5 +146,6 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         else:
             browsertab.openurl(url)
 
-    browsertab.elements.find_css(webelem.SELECTORS[webelem.Group.links],
-                                 _prevnext_cb)
+    selectors = config.instance.get('hints.selectors', baseurl)
+    link_selector = ','.join(selectors['links'])
+    browsertab.elements.find_css(link_selector, _prevnext_cb)
