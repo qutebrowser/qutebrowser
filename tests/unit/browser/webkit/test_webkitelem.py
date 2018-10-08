@@ -183,6 +183,8 @@ class SelectionAndFilterTests:
         ('<p role="option" foo="bar"/>', ['all']),
         ('<p role="button" foo="bar"/>', ['all']),
         ('<p role="button" href="bar"/>', ['all', 'url']),
+
+        ('<span tabindex=0 />', ['all']),
     ]
 
     GROUPS = ['all', 'links', 'images', 'url', 'inputs']
