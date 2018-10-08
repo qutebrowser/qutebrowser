@@ -649,6 +649,7 @@ def test_sanitize_filename(inp, expected, monkeypatch):
     assert utils.sanitize_filename(inp) == expected
 
 
+@pytest.mark.fake_os('windows')
 def test_sanitize_filename_empty_replacement():
     name = '/<Bad File>/'
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'

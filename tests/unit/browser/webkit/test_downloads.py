@@ -62,6 +62,7 @@ def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache,
      '',
      None),
 ])
+@pytest.mark.fake_os('windows')
 def test_page_titles(url, title, out):
     assert downloads.suggested_fn_from_title(url, title) == out
 
