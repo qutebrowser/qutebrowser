@@ -98,3 +98,5 @@ if __name__ == "__main__":
     add_release(releases_block, __version__, datetime.date.today().isoformat())
 
     write_appdata(appdata_tree)
+
+    print(__version__)
