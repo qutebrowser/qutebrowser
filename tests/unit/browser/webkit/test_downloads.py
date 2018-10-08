@@ -101,7 +101,7 @@ class TestDownloadTarget:
     pytest.param('A *|<>\\: bear!', 'A ______ bear!',
                  marks=pytest.mark.fake_os('windows')),
     pytest.param('A *|<>\\: bear!', 'A *|<>\\: bear!',
-                 marks=pytest.mark.fake_os('posix')),
+                 marks=[pytest.mark.fake_os('posix'), pytest.mark.posix]),
 ])
 def test_sanitized_filenames(raw, expected,
                              config_stub, download_tmpdir, monkeypatch):
