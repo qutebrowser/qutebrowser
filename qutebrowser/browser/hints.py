@@ -601,8 +601,12 @@ class HintManager(QObject):
             return
 
         if elems is None:
-            message.error("There was an error while getting hint elements")
+            message.error("Unknown error while getting hint elements.")
             return
+        elif isinstance(elems, webelem.Error):
+            message.error(str(elems))
+            return
+
         if not elems:
             message.error("No elements found.")
             return

@@ -21,6 +21,7 @@
 
 import posixpath
 
+from qutebrowser.browser import webelem
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, urlutils, log, message, qtutils
 from qutebrowser.mainwindow import mainwindow
@@ -116,7 +117,10 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
     """
     def _prevnext_cb(elems):
         if elems is None:
-            message.error("There was an error while getting hint elements")
+            message.error("Unknown error while getting hint elements")
+            return
+        elif isinstance(elems, webelem.Error):
+            message.error(str(elems))
             return
 
         elem = _find_prevnext(prev, elems)

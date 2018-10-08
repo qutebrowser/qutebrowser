@@ -214,7 +214,14 @@ window._qutebrowser.webelem = (function() {
     }
 
     funcs.find_css = (selector, only_visible) => {
-        const elems = document.querySelectorAll(selector);
+        let elems;
+
+        try {
+            elems = document.querySelectorAll(selector);
+        } catch (ex) {
+            return {"success": false, "error": ex.toString()};
+        }
+
         const subelem_frames = window.frames;
         const out = [];
 
@@ -239,7 +246,7 @@ window._qutebrowser.webelem = (function() {
             }
         }
 
-        return out;
+        return {"success": true, "result": out};
     };
 
     // Runs a function in a frame until the result is not null, then return

@@ -596,9 +596,12 @@ class WebEngineElements(browsertab.AbstractElements):
         if js_elems is None:
             callback(None)
             return
+        elif not js_elems['success']:
+            callback(webelem.Error(js_elems['error']))
+            return
 
         elems = []
-        for js_elem in js_elems:
+        for js_elem in js_elems['result']:
             elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
             elems.append(elem)
         callback(elems)

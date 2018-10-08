@@ -75,6 +75,11 @@ Feature: Using :navigate
         And I run :navigate next
         Then data/navigate/next.html should be loaded
 
+    Scenario: Navigating with invalid selector
+        When I set hints.selectors to {"links": ["@"]}
+        And I run :navigate next
+        Then the error "SyntaxError: Failed to execute 'querySelectorAll' on 'Document': '@' is not a valid selector." should be shown
+
     # increment/decrement
 
     Scenario: Incrementing number in URL

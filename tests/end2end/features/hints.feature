@@ -213,6 +213,13 @@ Feature: Using hints
         And I hint with args "custom" and follow a
         Then the javascript message "beep!" should be logged
 
+    @qtwebkit_skip
+    Scenario: Invalid custom selector
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom":["@"]}
+        And I run :hint custom
+        Then the error "SyntaxError: Failed to execute 'querySelectorAll' on 'Document': '@' is not a valid selector." should be shown
+
     # https://github.com/qutebrowser/qutebrowser/issues/1613
     Scenario: Hinting inputs with padding
         When I open data/hints/input.html
