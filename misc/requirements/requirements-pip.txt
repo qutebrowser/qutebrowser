@@ -5,4 +5,4 @@ packaging==18.0
 pyparsing==2.2.2
 setuptools==40.4.3
 six==1.11.0
-wheel==0.32.0
+wheel==0.32.1
