@@ -46,7 +46,9 @@ class ConfigCache:
             self._cache[attr] = config.instance.get(attr)
 
     def __getitem__(self, attr: str) -> typing.Any:
-        if attr not in self._cache:
+        try:
+            return self._cache[attr]
+        except KeyError:
             assert not config.instance.get_opt(attr).supports_pattern
             self._cache[attr] = config.instance.get(attr)
-        return self._cache[attr]
+            return self._cache[attr]
