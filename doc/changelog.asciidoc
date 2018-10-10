@@ -15,6 +15,21 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.5.1
+------
+
+Fixed
+~~~~~
+
+- Flickering when opening/closing tabs (as soon as more than 10 are open) on
+  some pages.
+- PDF.js is now bundled again with the macOS/Windows release.
+- PDF.js is now searched in the correct path (if not installed system-wide)
+  instead of hardcoding `~/.local/share/qutebrowser`.
+- Improved logging for PDF.js resources which fail to load.
+- Crash when closing a tab after doing a search.
+- Tabs appearing when hidden after e.g. closing tabs.
+
 v1.5.0
 ------
 
@@ -22,7 +37,7 @@ Added
 ~~~~~
 
 - Rewritten PDF.js support:
-  * PDF.js support and the `content.pdfjs` setting are now available with
+  * PDF.js support and the `content.pdfjs` setting are now also available with
     QtWebEngine.
   * Opening a PDF file now doesn't start a second request anymore.
   * Opening PDFs on https:// sites now works properly.
