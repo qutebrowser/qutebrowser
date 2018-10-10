@@ -53,8 +53,8 @@ Fixed
 - When websites suggest download filenames with invalid characters, those are
   now correctly replaced.
 
-v1.5.1 (unreleased)
--------------------
+v1.5.1
+------
 
 Fixed
 ~~~~~
