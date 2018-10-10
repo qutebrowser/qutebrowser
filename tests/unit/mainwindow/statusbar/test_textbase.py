@@ -57,17 +57,6 @@ def test_elided_text(fake_statusbar, qtbot, elidemode, check):
     assert check(label._elided_text)
 
 
-def test_settext_empty(mocker, qtbot):
-    """Make sure using setText('') works and runs repaint."""
-    label = TextBase()
-    qtbot.add_widget(label)
-    mocker.patch('qutebrowser.mainwindow.statusbar.textbase.TextBase.repaint',
-                 autospec=True)
-
-    label.setText('')
-    label.repaint.assert_called_with()  # pylint: disable=no-member
-
-
 def test_resize(qtbot):
     """Make sure the elided text is updated when resizing."""
     label = TextBase()
