@@ -282,6 +282,79 @@ class TestCycle:
         assert msg.text == 'auto_save.session = true'
 
 
+class TestAdd:
+
+    """Test :config-add-list and :config-add-dict."""
+
+    @pytest.mark.parametrize('temp', [True, False])
+    @pytest.mark.parametrize('value', ['test1', 'test2'])
+    def test_add_list(self, commands, config_stub, yaml_value, temp, value):
+        name = 'content.host_blocking.whitelist'
+
+        commands.config_add_list(name, value, temp=temp)
+
+        assert str(config_stub.get(name)[-1]) == value
+        if temp:
+            assert yaml_value(name) == configutils.UNSET
+        else:
+            assert yaml_value(name)[-1] == value
+
+    def test_add_list_non_list(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match=":config-add-list can only be used for lists"):
+            commands.config_add_list('history_gap_interval', 'value')
+
+    @pytest.mark.parametrize('value', ['', None, 42])
+    def test_add_list_invalid_values(self, commands, value):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match="Invalid value '{}'".format(value)):
+            commands.config_add_list('content.host_blocking.whitelist', value)
+
+    @pytest.mark.parametrize('value', ['test1', 'test2'])
+    @pytest.mark.parametrize('temp', [True, False])
+    def test_add_dict(self, commands, config_stub, yaml_value, value, temp):
+        name = 'aliases'
+        key = 'missingkey'
+
+        commands.config_add_dict(name, key, value, temp=temp)
+
+        assert str(config_stub.get(name)[key]) == value
+        if temp:
+            assert yaml_value(name) == configutils.UNSET
+        else:
+            assert yaml_value(name)[key] == value
+
+    @pytest.mark.parametrize('replace', [True, False])
+    def test_add_dict_replace(self, commands, config_stub, replace):
+        name = 'aliases'
+        key = 'w'
+        value = 'anything'
+
+        if replace:
+            commands.config_add_dict(name, key, value, replace=True)
+            assert str(config_stub.get(name)[key]) == value
+        else:
+            with pytest.raises(
+                    cmdexc.CommandError,
+                    match="w already exists in aliases - use --replace to "
+                          "overwrite!"):
+                commands.config_add_dict(name, key, value, replace=False)
+
+    def test_add_dict_non_dict(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match=":config-add-dict can only be used for dicts"):
+            commands.config_add_dict('history_gap_interval', 'key', 'value')
+
+    @pytest.mark.parametrize('value', ['', None, 42])
+    def test_add_dict_invalid_values(self, commands, value):
+        with pytest.raises(cmdexc.CommandError,
+                           match="Invalid value '{}'".format(value)):
+            commands.config_add_dict('aliases', 'missingkey', value)
+
+
 class TestUnsetAndClear:
 
     """Test :config-unset and :config-clear."""

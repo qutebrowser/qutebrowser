@@ -248,10 +248,19 @@ class AbstractSearch(QObject):
                           this view.
         _flags: The flags of the last search (needs to be set by subclasses).
         _widget: The underlying WebView widget.
+
+    Signals:
+        finished: Emitted when a search was finished.
+                  arg: True if the text was found, False otherwise.
+        cleared: Emitted when an existing search was cleared.
     """
 
-    def __init__(self, parent=None):
+    finished = pyqtSignal(bool)
+    cleared = pyqtSignal()
+
+    def __init__(self, tab, parent=None):
         super().__init__(parent)
+        self._tab = tab
         self._widget = None
         self.text = None
         self.search_displayed = False
@@ -395,9 +404,11 @@ class AbstractCaret(QObject):
     Signals:
         selection_toggled: Emitted when the selection was toggled.
                            arg: Whether the selection is now active.
+        follow_selected_done: Emitted when a follow_selection action is done.
     """
 
     selection_toggled = pyqtSignal(bool)
+    follow_selected_done = pyqtSignal()
 
     def __init__(self, tab, mode_manager, parent=None):
         super().__init__(parent)
@@ -621,6 +632,9 @@ class AbstractElements:
     def find_css(self, selector, callback, *, only_visible=False):
         """Find all HTML elements matching a given selector async.
 
+        If there's an error, the callback is called with a webelem.Error
+        instance.
+
         Args:
             callback: The callback to be called when the search finished.
             selector: The CSS selector to search for.
@@ -666,20 +680,27 @@ class AbstractAudio(QObject):
     muted_changed = pyqtSignal(bool)
     recently_audible_changed = pyqtSignal(bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._widget = None
+        self._tab = tab
 
-    def set_muted(self, muted: bool):
-        """Set this tab as muted or not."""
+    def set_muted(self, muted: bool, override: bool = False):
+        """Set this tab as muted or not.
+
+        Arguments:
+            override: If set to True, muting/unmuting was done manually and
+                      overrides future automatic mute/unmute changes based on
+                      the URL.
+        """
         raise NotImplementedError
 
     def is_muted(self):
         """Whether this tab is muted."""
         raise NotImplementedError
 
-    def toggle_muted(self):
-        self.set_muted(not self.is_muted())
+    def toggle_muted(self, *, override: bool = False):
+        self.set_muted(not self.is_muted(), override=override)
 
     def is_recently_audible(self):
         """Whether this tab has had audio playing recently."""

@@ -65,6 +65,7 @@ def is_ignored_lowlevel_message(message):
          "GL(dl_tls_generation)' failed!*"),
         # ???
         'getrlimit(RLIMIT_NOFILE) failed',
+        'libpng warning: Skipped (ignored) a chunk between APNG chunks',
         # Travis CI containers don't have a /etc/machine-id
         ('*D-Bus library appears to be incorrectly set up; failed to read '
          'machine uuid: Failed to open "/etc/machine-id": No such file or '
@@ -217,6 +218,18 @@ def is_ignored_chromium_message(line):
         # gpu_process_transport_factory.cc(1019)] Lost UI shared context.
         'Lost UI shared context.',
 
+        # Qt 5.12
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70702
+        # [32123:32123:0923/224739.457307:ERROR:in_progress_cache_impl.cc(192)]
+        # Cache is not initialized, cannot RetrieveEntry.
+        'Cache is not initialized, cannot RetrieveEntry.',
+        'Cache is not initialized, cannot AddOrReplaceEntry.',
+        # [10518:10518:0924/121250.186121:WARNING:
+        # render_frame_host_impl.cc(431)]
+        # InterfaceRequest was dropped, the document is no longer active:
+        # content.mojom.RendererAudioOutputStreamFactory
+        'InterfaceRequest was dropped, the document is no longer active: '
+        'content.mojom.RendererAudioOutputStreamFactory',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -654,7 +667,7 @@ class QuteProc(testprocess.Process):
         # \ and " in a value should be treated literally, so escape them
         value = value.replace('\\', r'\\')
         value = value.replace('"', '\\"')
-        self.send_cmd(':set "{}" "{}"'.format(option, value), escape=False)
+        self.send_cmd(':set -t "{}" "{}"'.format(option, value), escape=False)
         self.wait_for(category='config', message='Config option changed: *')
 
     @contextlib.contextmanager

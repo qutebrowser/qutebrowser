@@ -22,6 +22,7 @@
 from qutebrowser.completion.models import (completionmodel, listcategory,
                                            histcategory)
 from qutebrowser.utils import log, objreg
+from qutebrowser.config import config
 
 
 _URLCOL = 0
@@ -43,7 +44,12 @@ def _delete_bookmark(data):
 
 
 def url(*, info):
-    """A model which combines bookmarks and web history URLs.
+    """A model which combines various URLs.
+
+    This combines:
+    - bookmarks
+    - search engines
+    - web history URLs
 
     Used for the `open` command.
     """
@@ -52,13 +58,31 @@ def url(*, info):
     bookmarks = [(m.url, m.title, ' '.join(m.tags)) for m in
                  objreg.get('bookmark-manager')]
 
-    if bookmarks:
-        model.add_category(listcategory.ListCategory(
-            'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False))
+    searchengines = [(k, v) for k, v
+                     in sorted(config.val.url.searchengines.items())
+                     if k != 'DEFAULT']
 
-    if info.config.get('completion.web_history.max_items') != 0:
+    # pylint: enable=bad-config-option
+    categories = config.val.completion.open_categories
+    models = {}
+
+    if searchengines and 'searchengines' in categories:
+        models['searchengines'] = listcategory.ListCategory(
+            'Search engines', searchengines, sort=False)
+
+    if bookmarks and 'bookmarks' in categories:
+        models['bookmarks'] = listcategory.ListCategory(
+            'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False)
+
+    history_disabled = info.config.get('completion.web_history.max_items') == 0
+    if not history_disabled and 'history' in categories:
         hist_cat = histcategory.HistoryCategory(delete_func=_delete_history)
-        model.add_category(hist_cat)
+        models['history'] = hist_cat
+
+    for category in categories:
+        if category in models:
+            model.add_category(models[category])
+
     return model
 
 

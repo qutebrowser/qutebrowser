@@ -212,16 +212,17 @@ class DownloadManager(downloads.AbstractDownloadManager):
     def handle_download(self, qt_item):
         """Start a download coming from a QWebEngineProfile."""
         suggested_filename = _get_suggested_filename(qt_item.path())
+        use_pdfjs = pdfjs.should_use_pdfjs(qt_item.mimeType(), qt_item.url())
 
         download = DownloadItem(qt_item)
-        self._init_item(download, auto_remove=False,
+        self._init_item(download, auto_remove=use_pdfjs,
                         suggested_filename=suggested_filename)
 
         if self._mhtml_target is not None:
             download.set_target(self._mhtml_target)
             self._mhtml_target = None
             return
-        if pdfjs.should_use_pdfjs(qt_item.mimeType(), qt_item.url()):
+        if use_pdfjs:
             download.set_target(downloads.PDFJSDownloadTarget())
             return
 

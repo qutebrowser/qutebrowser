@@ -21,12 +21,11 @@
 
 import math
 import functools
-import sys
 import re
 import html as html_utils
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
-                          QUrl, QTimer, QObject, qVersion)
+                          QUrl, QTimer, QObject)
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
@@ -163,8 +162,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
                            back yet.
     """
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, tab, parent=None):
+        super().__init__(tab, parent)
         self._flags = QWebEnginePage.FindFlags(0)
         self._pending_searches = 0
 
@@ -184,6 +183,13 @@ class WebEngineSearch(browsertab.AbstractSearch):
                                       self._pending_searches))
                 return
 
+            if sip.isdeleted(self._widget):
+                # This happens when starting a search, and closing the tab
+                # before results arrive.
+                log.webview.debug("Ignoring finished search for deleted "
+                                  "widget")
+                return
+
             found_text = 'found' if found else "didn't find"
             if flags:
                 flag_text = 'with flags {}'.format(debug.qflags_key(
@@ -192,8 +198,11 @@ class WebEngineSearch(browsertab.AbstractSearch):
                 flag_text = ''
             log.webview.debug(' '.join([caller, found_text, text, flag_text])
                               .strip())
+
             if callback is not None:
                 callback(found)
+            self.finished.emit(found)
+
         self._widget.findText(text, flags, wrapped_callback)
 
     def search(self, text, *, ignore_case='never', reverse=False,
@@ -214,6 +223,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
         self._find(text, self._flags, result_cb, 'search')
 
     def clear(self):
+        if self.search_displayed:
+            self.cleared.emit()
         self.search_displayed = False
         self._widget.findText('')
 
@@ -234,6 +245,15 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     """QtWebEngine implementations related to moving the cursor/selection."""
 
+    def _flags(self):
+        """Get flags to pass to JS."""
+        flags = set()
+        if qtutils.version_check('5.7.1', compiled=False):
+            flags.add('filter-prefix')
+        if utils.is_windows:
+            flags.add('windows')
+        return list(flags)
+
     @pyqtSlot(usertypes.KeyMode)
     def _on_mode_entered(self, mode):
         if mode != usertypes.KeyMode.caret:
@@ -246,9 +266,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
             self._tab.search.clear()
 
         self._tab.run_js_async(
-            javascript.assemble('caret',
-                                'setPlatform', sys.platform, qVersion()))
-        self._js_call('setInitialCursor', self._selection_cb)
+            javascript.assemble('caret', 'setFlags', self._flags()))
+
+        self._js_call('setInitialCursor', callback=self._selection_cb)
 
     def _selection_cb(self, enabled):
         """Emit selection_toggled based on setInitialCursor."""
@@ -266,32 +286,25 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('disableCaret')
 
     def move_to_next_line(self, count=1):
-        for _ in range(count):
-            self._js_call('moveDown')
+        self._js_call('moveDown', count)
 
     def move_to_prev_line(self, count=1):
-        for _ in range(count):
-            self._js_call('moveUp')
+        self._js_call('moveUp', count)
 
     def move_to_next_char(self, count=1):
-        for _ in range(count):
-            self._js_call('moveRight')
+        self._js_call('moveRight', count)
 
     def move_to_prev_char(self, count=1):
-        for _ in range(count):
-            self._js_call('moveLeft')
+        self._js_call('moveLeft', count)
 
     def move_to_end_of_word(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToEndOfWord')
+        self._js_call('moveToEndOfWord', count)
 
     def move_to_next_word(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToNextWord')
+        self._js_call('moveToNextWord', count)
 
     def move_to_prev_word(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToPreviousWord')
+        self._js_call('moveToPreviousWord', count)
 
     def move_to_start_of_line(self):
         self._js_call('moveToStartOfLine')
@@ -300,20 +313,16 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('moveToEndOfLine')
 
     def move_to_start_of_next_block(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToStartOfNextBlock')
+        self._js_call('moveToStartOfNextBlock', count)
 
     def move_to_start_of_prev_block(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToStartOfPrevBlock')
+        self._js_call('moveToStartOfPrevBlock', count)
 
     def move_to_end_of_next_block(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToEndOfNextBlock')
+        self._js_call('moveToEndOfNextBlock', count)
 
     def move_to_end_of_prev_block(self, count=1):
-        for _ in range(count):
-            self._js_call('moveToEndOfPrevBlock')
+        self._js_call('moveToEndOfPrevBlock', count)
 
     def move_to_start_of_document(self):
         self._js_call('moveToStartOfDocument')
@@ -322,7 +331,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._js_call('moveToEndOfDocument')
 
     def toggle_selection(self):
-        self._js_call('toggleSelection', self.selection_toggled.emit)
+        self._js_call('toggleSelection', callback=self.selection_toggled.emit)
 
     def drop_selection(self):
         self._js_call('dropSelection')
@@ -335,7 +344,13 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
                                callback)
 
-    def _follow_selected_cb(self, js_elem, tab=False):
+    def _follow_selected_cb_wrapped(self, js_elem, tab):
+        try:
+            self._follow_selected_cb(js_elem, tab)
+        finally:
+            self.follow_selected_done.emit()
+
+    def _follow_selected_cb(self, js_elem, tab):
         """Callback for javascript which clicks the selected element.
 
         Args:
@@ -344,6 +359,7 @@ class WebEngineCaret(browsertab.AbstractCaret):
         """
         if js_elem is None:
             return
+
         if js_elem == "focused":
             # we had a focused element, not a selected one. Just send <enter>
             self._follow_enter(tab)
@@ -364,7 +380,6 @@ class WebEngineCaret(browsertab.AbstractCaret):
                 elem.click(click_type)
             except webelem.Error as e:
                 message.error(str(e))
-                return
 
     def follow_selected(self, *, tab=False):
         if self._tab.search.search_displayed:
@@ -380,11 +395,13 @@ class WebEngineCaret(browsertab.AbstractCaret):
             # click an existing blue selection
             js_code = javascript.assemble('webelem',
                                           'find_selected_focused_link')
-            self._tab.run_js_async(js_code, lambda jsret:
-                                   self._follow_selected_cb(jsret, tab))
+            self._tab.run_js_async(
+                js_code,
+                lambda jsret: self._follow_selected_cb_wrapped(jsret, tab))
 
-    def _js_call(self, command, callback=None):
-        self._tab.run_js_async(javascript.assemble('caret', command), callback)
+    def _js_call(self, command, *args, callback=None):
+        code = javascript.assemble('caret', command, *args)
+        self._tab.run_js_async(code, callback)
 
 
 class WebEngineScroller(browsertab.AbstractScroller):
@@ -579,9 +596,12 @@ class WebEngineElements(browsertab.AbstractElements):
         if js_elems is None:
             callback(None)
             return
+        elif not js_elems['success']:
+            callback(webelem.Error(js_elems['error']))
+            return
 
         elems = []
-        for js_elem in js_elems:
+        for js_elem in js_elems['result']:
             elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
             elems.append(elem)
         callback(elems)
@@ -621,8 +641,8 @@ class WebEngineElements(browsertab.AbstractElements):
         self._tab.run_js_async(js_code, js_cb)
 
     def find_at_pos(self, pos, callback):
-        assert pos.x() >= 0
-        assert pos.y() >= 0
+        assert pos.x() >= 0, pos
+        assert pos.y() >= 0, pos
         pos /= self._tab.zoom.factor()
         js_code = javascript.assemble('webelem', 'find_at_pos',
                                       pos.x(), pos.y())
@@ -632,14 +652,26 @@ class WebEngineElements(browsertab.AbstractElements):
 
 class WebEngineAudio(browsertab.AbstractAudio):
 
-    """QtWebEngine implemementations related to audio/muting."""
+    """QtWebEngine implemementations related to audio/muting.
+
+    Attributes:
+        _overridden: Whether the user toggled muting manually.
+                     If that's the case, we leave it alone.
+    """
+
+    def __init__(self, tab, parent=None):
+        super().__init__(tab, parent)
+        self._overridden = False
 
     def _connect_signals(self):
         page = self._widget.page()
         page.audioMutedChanged.connect(self.muted_changed)
         page.recentlyAudibleChanged.connect(self.recently_audible_changed)
+        self._tab.url_changed.connect(self._on_url_changed)
+        config.instance.changed.connect(self._on_config_changed)
 
-    def set_muted(self, muted: bool):
+    def set_muted(self, muted: bool, override: bool = False):
+        self._overridden = override
         page = self._widget.page()
         page.setAudioMuted(muted)
 
@@ -650,6 +682,17 @@ class WebEngineAudio(browsertab.AbstractAudio):
     def is_recently_audible(self):
         page = self._widget.page()
         return page.recentlyAudible()
+
+    @pyqtSlot(QUrl)
+    def _on_url_changed(self, url):
+        if self._overridden:
+            return
+        mute = config.instance.get('content.mute', url=url)
+        self.set_muted(mute)
+
+    @config.change_filter('content.mute')
+    def _on_config_changed(self):
+        self._on_url_changed(self._tab.url())
 
 
 class _WebEnginePermissions(QObject):
@@ -807,7 +850,12 @@ class _WebEngineScripts(QObject):
         self._greasemonkey = objreg.get('greasemonkey')
 
     def connect_signals(self):
+        """Connect signals to our private slots."""
         config.instance.changed.connect(self._on_config_changed)
+
+        self._tab.search.cleared.connect(functools.partial(
+            self._update_stylesheet, searching=False))
+        self._tab.search.finished.connect(self._update_stylesheet)
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
@@ -815,9 +863,10 @@ class _WebEngineScripts(QObject):
             self._init_stylesheet()
             self._update_stylesheet()
 
-    def _update_stylesheet(self):
+    @pyqtSlot(bool)
+    def _update_stylesheet(self, searching=False):
         """Update the custom stylesheet in existing tabs."""
-        css = shared.get_user_stylesheet()
+        css = shared.get_user_stylesheet(searching=searching)
         code = javascript.assemble('stylesheet', 'set_css', css)
         self._tab.run_js_async(code)
 
@@ -911,6 +960,15 @@ class _WebEngineScripts(QObject):
         scripts = self._greasemonkey.all_scripts()
         self._inject_greasemonkey_scripts(scripts)
 
+    def _remove_all_greasemonkey_scripts(self):
+        page_scripts = self._widget.page().scripts()
+        for script in page_scripts.toList():
+            if script.name().startswith("GM-"):
+                log.greasemonkey.debug('Removing script: {}'
+                                       .format(script.name()))
+                removed = page_scripts.remove(script)
+                assert removed, script.name()
+
     def _inject_greasemonkey_scripts(self, scripts=None, injection_point=None,
                                      remove_first=True):
         """Register user JavaScript files with the current tab.
@@ -934,12 +992,7 @@ class _WebEngineScripts(QObject):
         # have been added elsewhere, like the one for stylesheets.
         page_scripts = self._widget.page().scripts()
         if remove_first:
-            for script in page_scripts.toList():
-                if script.name().startswith("GM-"):
-                    log.greasemonkey.debug('Removing script: {}'
-                                           .format(script.name()))
-                    removed = page_scripts.remove(script)
-                    assert removed, script.name()
+            self._remove_all_greasemonkey_scripts()
 
         if not scripts:
             return
@@ -948,6 +1001,15 @@ class _WebEngineScripts(QObject):
             new_script = QWebEngineScript()
             try:
                 world = int(script.jsworld)
+                if not 0 <= world <= qtutils.MAX_WORLD_ID:
+                    log.greasemonkey.error(
+                        "script {} has invalid value for '@qute-js-world'"
+                        ": {}, should be between 0 and {}"
+                        .format(
+                            script.name,
+                            script.jsworld,
+                            qtutils.MAX_WORLD_ID))
+                    continue
             except ValueError:
                 try:
                     world = _JS_WORLD_MAP[usertypes.JsWorld[
@@ -986,16 +1048,16 @@ class WebEngineTab(browsertab.AbstractTab):
                          private=private, parent=parent)
         widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
                                        private=private)
-        self.history = WebEngineHistory(self)
-        self.scroller = WebEngineScroller(self, parent=self)
+        self.history = WebEngineHistory(tab=self)
+        self.scroller = WebEngineScroller(tab=self, parent=self)
         self.caret = WebEngineCaret(mode_manager=mode_manager,
                                     tab=self, parent=self)
         self.zoom = WebEngineZoom(tab=self, parent=self)
-        self.search = WebEngineSearch(parent=self)
+        self.search = WebEngineSearch(tab=self, parent=self)
         self.printing = WebEnginePrinting(tab=self)
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
-        self.audio = WebEngineAudio(parent=self)
+        self.audio = WebEngineAudio(tab=self, parent=self)
         self._permissions = _WebEnginePermissions(tab=self, parent=self)
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
@@ -1065,6 +1127,10 @@ class WebEngineTab(browsertab.AbstractTab):
             world_id = QWebEngineScript.ApplicationWorld
         elif isinstance(world, int):
             world_id = world
+            if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
+                raise browsertab.WebTabError(
+                    "World ID should be between 0 and {}"
+                    .format(qtutils.MAX_WORLD_ID))
         else:
             world_id = _JS_WORLD_MAP[world]
 

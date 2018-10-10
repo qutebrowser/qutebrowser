@@ -257,7 +257,7 @@ class FakeWebTab(browsertab.AbstractTab):
         self.history = FakeWebTabHistory(self, can_go_back=can_go_back,
                                          can_go_forward=can_go_forward)
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
-        self.audio = FakeWebTabAudio()
+        self.audio = FakeWebTabAudio(self)
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
 
@@ -443,6 +443,9 @@ class HostBlockerStub:
 
     def __init__(self):
         self.blocked_hosts = set()
+
+    def is_blocked(self, url, first_party_url=None):
+        return url in self.blocked_hosts
 
 
 class SessionManagerStub:

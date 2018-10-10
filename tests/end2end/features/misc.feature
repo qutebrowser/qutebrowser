@@ -118,6 +118,16 @@ Feature: Various utility commands.
         Then the javascript message "Hello from the page!" should be logged
         And "No output or error" should be logged
 
+    @qtwebkit_skip
+    Scenario: :jseval using too high of a world
+        When I run :jseval --world=257 console.log("Hello from JS!");
+        Then the error "World ID should be between 0 and *" should be shown
+
+    @qtwebkit_skip
+    Scenario: :jseval using a negative world id
+        When I run :jseval --world=-1 console.log("Hello from JS!");
+        Then the error "World ID should be between 0 and *" should be shown
+
     Scenario: :jseval --file using a file that exists as js-code
         When I run :jseval --file (testdata)/misc/jseval_file.js
         Then the javascript message "Hello from JS!" should be logged

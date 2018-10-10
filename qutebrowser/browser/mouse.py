@@ -116,9 +116,13 @@ class MouseEventFilter(QObject):
 
         self._ignore_wheel_event = True
 
+        pos = e.pos()
+        if pos.x() < 0 or pos.y() < 0:
+            log.mouse.warning("Ignoring invalid click at {}".format(pos))
+            return False
+
         if e.button() != Qt.NoButton:
-            self._tab.elements.find_at_pos(e.pos(),
-                                           self._mousepress_insertmode_cb)
+            self._tab.elements.find_at_pos(pos, self._mousepress_insertmode_cb)
 
         return False
 
@@ -141,6 +145,10 @@ class MouseEventFilter(QObject):
             return True
 
         if e.modifiers() & Qt.ControlModifier:
+            mode = modeman.instance(self._tab.win_id).mode
+            if mode == usertypes.KeyMode.passthrough:
+                return False
+
             divider = config.val.zoom.mouse_divider
             if divider == 0:
                 return False

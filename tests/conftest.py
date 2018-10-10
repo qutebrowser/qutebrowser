@@ -24,6 +24,8 @@
 import os
 import sys
 import warnings
+import ctypes
+import ctypes.util
 
 import pytest
 import hypothesis
@@ -43,6 +45,7 @@ import qutebrowser.app  # To register commands
 
 
 ON_CI = 'CI' in os.environ
+_qute_scheme_handler = None
 
 
 # Set hypothesis settings
@@ -233,6 +236,14 @@ def set_backend(monkeypatch, request):
     else:
         backend = usertypes.Backend.QtWebEngine
     monkeypatch.setattr(objects, 'backend', backend)
+
+
+@pytest.fixture(autouse=True)
+def apply_libgl_workaround():
+    """Make sure we load libGL early so QtWebEngine tests run properly."""
+    libgl = ctypes.util.find_library("GL")
+    if libgl is not None:
+        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
 
 
 @pytest.fixture(autouse=True)

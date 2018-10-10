@@ -431,7 +431,6 @@ def qt_message_handler(msg_type, context, msg):
     # import the utils module here.
     if sys.platform == 'darwin':
         suppressed_msgs += [
-            'libpng warning: iCCP: known incorrect sRGB profile',
             # https://bugreports.qt.io/browse/QTBUG-47154
             ('virtual void QSslSocketBackendPrivate::transmit() SSLRead '
              'failed with: -9805'),

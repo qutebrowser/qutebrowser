@@ -86,8 +86,7 @@ def update_pdfjs(target_version=None):
         shutil.rmtree(target_path)
     os.makedirs(target_path)
     print("Extracting new version")
-    with open(archive_path, 'rb') as archive:
-        shutil.unpack_archive(archive, target_path, 'zip')
+    shutil.unpack_archive(archive_path, target_path, 'zip')
     urllib.request.urlcleanup()
 
 

@@ -143,6 +143,24 @@ def configdata_stub(config_stub, monkeypatch, configdata_init):
             default=True,
             backends=[],
             raw_backends=None)),
+        ('completion.open_categories', configdata.Option(
+            name='completion.open_categories',
+            description=('Which categories to show (in which order) in the '
+                         ':open completion.'),
+            typ=configtypes.FlagList(),
+            default=["searchengines", "bookmarks", "history"],
+            backends=[],
+            raw_backends=None)),
+        ('url.searchengines', configdata.Option(
+            name='url.searchengines',
+            description='searchengines list',
+            typ=configtypes.Dict(
+                keytype=configtypes.String(),
+                valtype=configtypes.String(),
+            ),
+            default={"DEFAULT": "https://duckduckgo.com/?q={}", "google": "https://google.com/?q={}"},
+            backends=[],
+            raw_backends=None)),
     ]))
     config_stub._init_values()
 
@@ -199,7 +217,6 @@ def test_command_completion(qtmodeltester, cmdutils_stub, configdata_stub,
     """
     model = miscmodels.command(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -225,7 +242,6 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
     """
     model = miscmodels.helptopic(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -239,8 +255,89 @@ def test_help_completion(qtmodeltester, cmdutils_stub, key_config_stub,
             ('aliases', 'Aliases for commands.', None),
             ('bindings.commands', 'Default keybindings', None),
             ('bindings.default', 'Default keybindings', None),
+            ('completion.open_categories', 'Which categories to show (in '
+             'which order) in the :open completion.', None),
             ('content.javascript.enabled', 'Enable/Disable JavaScript', None),
-        ]
+            ('url.searchengines', 'searchengines list', None),
+        ],
+    })
+
+
+def test_open_categories(qtmodeltester, config_stub, web_history_populated,
+                         bookmarks, info):
+    """Test that the open_categories setting has the desired effect.
+
+    Verify that:
+        - All categories are listed when they are defined in the
+          completion.open_categories list.
+    """
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+        "google": "https://google.com/?q={}",
+    }
+    config_stub.val.completion.open_categories = [
+        "searchengines",
+        "bookmarks",
+        "history",
+    ]
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Search engines": [
+            ('google', 'https://google.com/?q={}', None),
+        ],
+        "Bookmarks": [
+            ('https://github.com', 'GitHub', 'foo bar'),
+            ('https://python.org', 'Welcome to Python.org', ''),
+            ('http://qutebrowser.org', 'qutebrowser', 'baz'),
+        ],
+        "History": [
+            ('https://github.com', 'https://github.com', '2016-05-01'),
+            ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
+            ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
+        ],
+    })
+
+
+def test_open_categories_remove_all(qtmodeltester, config_stub, web_history_populated,
+                                    bookmarks, info):
+    """Test removing all items from open_categories."""
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+        "google": "https://google.com/?q={}",
+    }
+    config_stub.val.completion.open_categories = []
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {})
+
+
+def test_open_categories_remove_one(qtmodeltester, config_stub, web_history_populated,
+                                    bookmarks, info):
+    """Test removing an item (boookmarks) from open_categories."""
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+        "google": "https://google.com/?q={}",
+    }
+    config_stub.val.completion.open_categories = [
+        "searchengines", "history"]
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Search engines": [
+            ('google', 'https://google.com/?q={}', None),
+        ],
+        "History": [
+            ('https://github.com', 'https://github.com', '2016-05-01'),
+            ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
+            ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
+        ],
     })
 
 
@@ -248,7 +345,6 @@ def test_bookmark_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
     model = urlmodel.bookmark()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -269,7 +365,6 @@ def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
     """Test deleting a bookmark from the bookmark completion model."""
     model = urlmodel.bookmark()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     parent = model.index(0, 0)
@@ -283,7 +378,6 @@ def test_bookmark_tag_completion(qtmodeltester, bookmarks):
     """Test the results of bookmark completion."""
     model = urlmodel.bookmark_tag()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -301,17 +395,59 @@ def url_args(fake_args):
     fake_args.debug_flags = []
 
 
-def test_url_completion(qtmodeltester, web_history_populated, bookmarks, info):
+def test_url_completion(qtmodeltester, config_stub, web_history_populated,
+                        bookmarks, info):
     """Test the results of url completion.
 
     Verify that:
-        - bookmarks and urls are included
+        - searchengines, bookmarks, and urls are included
+        - default search engine is not displayed
         - entries are sorted by access time
         - only the most recent entry is included for each url
     """
+    config_stub.val.completion.open_categories = [
+        "searchengines",
+        "bookmarks",
+        "history",
+    ]
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+        "google": "https://google.com/?q={}"
+    }
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Search engines": [
+            ('google', 'https://google.com/?q={}', None),
+        ],
+        "Bookmarks": [
+            ('https://github.com', 'GitHub', 'foo bar'),
+            ('https://python.org', 'Welcome to Python.org', ''),
+            ('http://qutebrowser.org', 'qutebrowser', 'baz'),
+        ],
+        "History": [
+            ('https://github.com', 'https://github.com', '2016-05-01'),
+            ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
+            ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
+        ],
+    })
+
+
+def test_search_only_default(qtmodeltester, config_stub, web_history_populated,
+                             bookmarks, info):
+    """Test that search engines are not shown with only the default engine."""
+    config_stub.val.completion.open_categories = [
+        "searchengines",
+        "bookmarks",
+        "history",
+    ]
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+    }
+    model = urlmodel.url(info=info)
+    model.set_pattern('')
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -333,7 +469,6 @@ def test_url_completion_no_bookmarks(qtmodeltester, web_history_populated,
     """Test that the bookmarks category is gone with no bookmarks."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -378,7 +513,6 @@ def test_url_completion_delete_bookmark(qtmodeltester, bookmarks,
     """Test deleting a bookmark from the url completion model."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     parent = model.index(0, 0)
@@ -393,7 +527,6 @@ def test_url_completion_delete_history(qtmodeltester, info, bookmarks,
     """Test deleting a history entry."""
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     parent = model.index(1, 0)
@@ -411,9 +544,18 @@ def test_url_completion_delete_history(qtmodeltester, info, bookmarks,
 def test_url_completion_zero_limit(config_stub, web_history, info, bookmarks):
     """Make sure there's no history if the limit was set to zero."""
     config_stub.val.completion.web_history.max_items = 0
+    config_stub.val.completion.open_categories = [
+        "searchengines",
+        "bookmarks",
+        "history",
+    ]
+    config_stub.val.url.searchengines = {
+        "DEFAULT": "https://duckduckgo.com/?q={}",
+        "google": "https://google.com/?q={}",
+    }
     model = urlmodel.url(info=info)
     model.set_pattern('')
-    category = model.index(1, 0)  # "History" normally
+    category = model.index(2, 0)  # "History" normally
     assert model.data(category) is None
 
 
@@ -421,7 +563,6 @@ def test_session_completion(qtmodeltester, session_manager_stub):
     session_manager_stub.sessions = ['default', '1', '2']
     model = miscmodels.session()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -443,7 +584,6 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
     ]
     model = miscmodels.buffer()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -471,7 +611,6 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
     ]
     model = miscmodels.buffer()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     parent = model.index(0, 0)
@@ -506,7 +645,6 @@ def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, app_stub,
     ]
     model = miscmodels.buffer()
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -528,7 +666,6 @@ def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
     info.win_id = 1
     model = miscmodels.other_buffer(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -553,7 +690,6 @@ def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab, app_stub,
     info.win_id = 0
     model = miscmodels.other_buffer(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -577,7 +713,6 @@ def test_window_completion(qtmodeltester, fake_web_tab, tabbed_browser_stubs,
     info.win_id = 1
     model = miscmodels.window(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -592,17 +727,22 @@ def test_setting_option_completion(qtmodeltester, config_stub,
                                    configdata_stub, info):
     model = configmodel.option(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
         "Options": [
             ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
             ('bindings.commands', 'Default keybindings', (
-                '{"normal": {"<Ctrl+q>": "quit", "ZQ": "quit", '
-                '"I": "invalid", "d": "scroll down"}}')),
+                '{"normal": {"<Ctrl+q>": "quit", "I": "invalid", '
+                '"ZQ": "quit", "d": "scroll down"}}')),
+            ('completion.open_categories', 'Which categories to show (in '
+             'which order) in the :open completion.',
+             '["searchengines", "bookmarks", "history"]'),
             ('content.javascript.enabled', 'Enable/Disable JavaScript',
              'true'),
+            ('url.searchengines', 'searchengines list',
+             '{"DEFAULT": "https://duckduckgo.com/?q={}", '
+             '"google": "https://google.com/?q={}"}'),
         ]
     })
 
@@ -613,7 +753,6 @@ def test_setting_customized_option_completion(qtmodeltester, config_stub,
 
     model = configmodel.customized_option(info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -627,7 +766,6 @@ def test_setting_value_completion(qtmodeltester, config_stub, configdata_stub,
                                   info):
     model = configmodel.value(optname='content.javascript.enabled', info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -646,7 +784,6 @@ def test_setting_value_no_completions(qtmodeltester, config_stub,
                                       configdata_stub, info):
     model = configmodel.value(optname='aliases', info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -694,7 +831,6 @@ def test_setting_value_cycle(qtmodeltester, config_stub, configdata_stub,
 
     model = configmodel.value(opt, *args, info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
     _check_completions(model, expected)
 
@@ -711,7 +847,6 @@ def test_bind_completion(qtmodeltester, cmdutils_stub, config_stub,
     """
     model = configmodel.bind('ZQ', info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {
@@ -774,7 +909,6 @@ def test_bind_completion_no_binding(qtmodeltester, cmdutils_stub, config_stub,
     """Test keybinding completion with no current or default binding."""
     model = configmodel.bind('x', info=info)
     model.set_pattern('')
-    qtmodeltester.data_display_may_return_none = True
     qtmodeltester.check(model)
 
     _check_completions(model, {

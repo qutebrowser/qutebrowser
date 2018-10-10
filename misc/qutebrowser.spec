@@ -19,10 +19,10 @@ def get_data_files():
         ('../qutebrowser/config/configdata.yml', 'config'),
     ]
 
-    # if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
-    #     data_files.append(('../qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
-    # else:
-    #     print("Warning: excluding pdfjs as it's not present!")
+    if os.path.exists(os.path.join('qutebrowser', '3rdparty', 'pdfjs')):
+        data_files.append(('../qutebrowser/3rdparty/pdfjs', '3rdparty/pdfjs'))
+    else:
+        print("Warning: excluding pdfjs as it's not present!")
 
     return data_files
 

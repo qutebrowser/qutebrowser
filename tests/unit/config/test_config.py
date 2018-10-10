@@ -480,6 +480,17 @@ class TestConfig:
         conf.set_obj(name, False, pattern=pattern)
         assert conf.get(name, url=QUrl('https://example.com/')) is False
 
+    @pytest.mark.parametrize('fallback, expected', [
+        (True, True),
+        (False, configutils.UNSET)
+    ])
+    def test_get_for_url_fallback(self, conf, fallback, expected):
+        """Test conf.get() with an URL and fallback."""
+        value = conf.get('content.javascript.enabled',
+                         url=QUrl('https://example.com/'),
+                         fallback=fallback)
+        assert value is expected
+
     @pytest.mark.parametrize('value', [{}, {'normal': {'a': 'nop'}}])
     def test_get_bindings(self, config_stub, conf, value):
         """Test conf.get() with bindings which have missing keys."""

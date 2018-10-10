@@ -25,7 +25,6 @@ import os
 import os.path
 import sys
 import time
-import glob
 import shutil
 import plistlib
 import subprocess
@@ -44,7 +43,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 
 import qutebrowser
 from scripts import utils
-# from scripts.dev import update_3rdparty
+from scripts.dev import update_3rdparty
 
 
 def call_script(name, *args, python=sys.executable):
@@ -101,36 +100,9 @@ def smoke_test(executable):
 
 
 def patch_mac_app():
-    """Patch .app to copy missing data and link some libs.
-
-    See https://github.com/pyinstaller/pyinstaller/issues/2276
-    """
+    """Patch .app to use our Info.plist and save some space."""
     app_path = os.path.join('dist', 'qutebrowser.app')
-    qtwe_core_dir = os.path.join('.tox', 'pyinstaller', 'lib', 'python3.6',
-                                 'site-packages', 'PyQt5', 'Qt', 'lib',
-                                 'QtWebEngineCore.framework')
-    # Copy QtWebEngineProcess.app
-    proc_app = 'QtWebEngineProcess.app'
-    shutil.copytree(os.path.join(qtwe_core_dir, 'Helpers', proc_app),
-                    os.path.join(app_path, 'Contents', 'MacOS', proc_app))
-    # Copy resources
-    for f in glob.glob(os.path.join(qtwe_core_dir, 'Resources', '*')):
-        dest = os.path.join(app_path, 'Contents', 'Resources')
-        if os.path.isdir(f):
-            dir_dest = os.path.join(dest, os.path.basename(f))
-            print("Copying directory {} to {}".format(f, dir_dest))
-            shutil.copytree(f, dir_dest)
-        else:
-            print("Copying {} to {}".format(f, dest))
-            shutil.copy(f, dest)
-    # Link dependencies
-    for lib in ['QtCore', 'QtWebEngineCore', 'QtQuick', 'QtQml', 'QtNetwork',
-                'QtGui', 'QtWebChannel', 'QtPositioning']:
-        dest = os.path.join(app_path, lib + '.framework', 'Versions', '5')
-        os.makedirs(dest)
-        os.symlink(os.path.join(os.pardir, os.pardir, os.pardir, 'Contents',
-                                'MacOS', lib),
-                   os.path.join(dest, lib))
+
     # Patch Info.plist - pyinstaller's options are too limiting
     plist_path = os.path.join(app_path, 'Contents', 'Info.plist')
     with open(plist_path, "rb") as f:
@@ -138,6 +110,25 @@ def patch_mac_app():
     plist_data.update(INFO_PLIST_UPDATES)
     with open(plist_path, "wb") as f:
         plistlib.dump(plist_data, f)
+
+    # Replace some duplicate files by symlinks
+    framework_path = os.path.join(app_path, 'Contents', 'Resources', 'PyQt5',
+                                  'Qt', 'lib', 'QtWebEngineCore.framework')
+
+    core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
+    os.remove(core_lib)
+    core_target = os.path.join(*[os.pardir] * 7, 'MacOS', 'QtWebEngineCore')
+    os.symlink(core_target, core_lib)
+
+    framework_resource_path = os.path.join(framework_path, 'Resources')
+    for name in os.listdir(framework_resource_path):
+        file_path = os.path.join(framework_resource_path, name)
+        target = os.path.join(*[os.pardir] * 5, name)
+        if os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+        else:
+            os.remove(file_path)
+        os.symlink(target, file_path)
 
 
 INFO_PLIST_UPDATES = {
@@ -178,8 +169,7 @@ def build_mac():
     for d in ['dist', 'build']:
         shutil.rmtree(d, ignore_errors=True)
     utils.print_title("Updating 3rdparty content")
-    # Currently disabled because QtWebEngine has no pdfjs support
-    # update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
+    update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
     utils.print_title("Building .app via pyinstaller")
     call_tox('pyinstaller', '-r')
     utils.print_title("Patching .app")
@@ -209,20 +199,10 @@ def build_mac():
     return [(dmg_name, 'application/x-apple-diskimage', 'macOS .dmg')]
 
 
-def patch_windows(out_dir):
-    """Copy missing DLLs for windows into the given output."""
-    dll_dir = os.path.join('.tox', 'pyinstaller', 'lib', 'site-packages',
-                           'PyQt5', 'Qt', 'bin')
-    dlls = ['libEGL.dll', 'libGLESv2.dll', 'libeay32.dll', 'ssleay32.dll']
-    for dll in dlls:
-        shutil.copy(os.path.join(dll_dir, dll), out_dir)
-
-
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    # Currently disabled because QtWebEngine has no pdfjs support
-    # update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
+    update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
 
     utils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
@@ -252,7 +232,9 @@ def build_windows():
     _maybe_remove(out_64)
     call_tox('pyinstaller', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
-    patch_windows(out_64)
+
+    utils.print_title("Running 64bit smoke test")
+    smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
     utils.print_title("Building installers")
     subprocess.run(['makensis.exe',
@@ -267,9 +249,6 @@ def build_windows():
          'application/vnd.microsoft.portable-executable',
          'Windows 64bit installer'),
     ]
-
-    utils.print_title("Running 64bit smoke test")
-    smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
     utils.print_title("Zipping 64bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-amd64'.format(
@@ -375,6 +354,8 @@ def pypi_upload(artifacts):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--no-asciidoc', action='store_true',
+                        help="Don't generate docs")
     parser.add_argument('--asciidoc', help="Full path to python and "
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
@@ -392,7 +373,11 @@ def main():
         import github3  # pylint: disable=unused-variable
         read_github_token()
 
-    run_asciidoc2html(args)
+    if args.no_asciidoc:
+        os.makedirs(os.path.join('qutebrowser', 'html', 'doc'), exist_ok=True)
+    else:
+        run_asciidoc2html(args)
+
     if os.name == 'nt':
         artifacts = build_windows()
     elif sys.platform == 'darwin':

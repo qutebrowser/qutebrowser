@@ -5,6 +5,14 @@ The Compiler <mail@qutebrowser.org>
 :data-uri:
 :toc:
 
+IMPORTANT: *Currently, bigger changes are going on in qutebrowser, as
+part of a
+https://lists.schokokeks.org/pipermail/qutebrowser-announce/2018-September/000051.html[student research project]
+about adding a plugin API to qutebrowser and moving a lot of code from the code
+into plugins.* Due to that, bandwidth for pull request review is currently
+very limited, and contributions might lead to merge conflicts due to
+ongoing refactorings.
+
 I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
 
 This document contains guidelines for contributing to qutebrowser, as well as
@@ -88,7 +96,7 @@ git format-patch origin/master <1>
 Running qutebrowser
 -------------------
 
-After link:install.html#tox[installing qutebrowser via tox], you can run
+After link:install{outfilesuffix}#tox[installing qutebrowser via tox], you can run
 `.venv/bin/qutebrowser --debug --temp-basedir` to test your changes with debug
 logging enabled and without affecting existing running instances.
 
@@ -710,8 +718,8 @@ qutebrowser release
 as closed.
 
 * Linux: Run `git checkout v1.$x.$y && ./.venv/bin/python3 scripts/dev/build_release.py --upload v1.$x.$y`.
-* Windows: Run `git checkout v1.X.Y; py -3.6 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
-* macOS: Run `pyenv shell 3.6.6 && git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
+* Windows: Run `git checkout v1.X.Y; py -3 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
+* macOS: Run `git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
 * On server:
   - Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
   - Run `git pull github master && sudo python3 scripts/asciidoc2html.py --website /srv/http/qutebrowser`

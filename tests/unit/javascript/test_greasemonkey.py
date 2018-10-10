@@ -113,6 +113,21 @@ def test_no_metadata(caplog):
     assert len(scripts.end) == 1
 
 
+def test_no_name():
+    """Ensure that GreaseMonkeyScripts must have a name."""
+    msg = "@name key required or pass filename to init."
+    with pytest.raises(ValueError, match=msg):
+        greasemonkey.GreasemonkeyScript([("something", "else")], "")
+
+
+def test_no_name_with_fallback():
+    """Ensure that script's name can fallback to the provided filename."""
+    script = greasemonkey.GreasemonkeyScript(
+        [("something", "else")], "", filename=r"C:\COM1")
+    assert script
+    assert script.name == r"C:\COM1"
+
+
 def test_bad_scheme(caplog):
     """qute:// isn't in the list of allowed schemes."""
     _save_script("var nothing = true;\n", 'nothing.user.js')
@@ -234,11 +249,13 @@ class TestWindowIsolation:
                         "global", "global"]
         return ret
 
-    def test_webengine(self, callback_checker, webengineview, setup):
+    def test_webengine(self, qtbot, webengineview, setup):
         page = webengineview.page()
         page.runJavaScript(setup.setup_script)
-        page.runJavaScript(setup.test_script, callback_checker.callback)
-        callback_checker.check(setup.expected)
+
+        with qtbot.wait_callback() as callback:
+            page.runJavaScript(setup.test_script, callback)
+        callback.assert_called_with(setup.expected)
 
     # The JSCore in 602.1 doesn't fully support Proxy.
     @pytest.mark.qtwebkit6021_skip

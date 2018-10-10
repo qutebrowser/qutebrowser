@@ -391,7 +391,7 @@ class PromptContainer(QWidget):
 
     @cmdutils.register(instance='prompt-container', scope='window',
                        modes=[usertypes.KeyMode.prompt], maxsplit=0)
-    def prompt_open_download(self, cmdline: str = None):
+    def prompt_open_download(self, cmdline: str = None, pdfjs=False):
         """Immediately open a download.
 
         If no specific command is given, this will use the system's default
@@ -402,9 +402,10 @@ class PromptContainer(QWidget):
                      is expanded to the temporary file name. If no `{}` is
                      present, the filename is automatically appended to the
                      cmdline.
+            pdfjs: Open the download via PDF.js.
         """
         try:
-            self._prompt.download_open(cmdline)
+            self._prompt.download_open(cmdline, pdfjs=pdfjs)
         except UnsupportedOperationError:
             pass
 
@@ -537,8 +538,10 @@ class _BasePrompt(QWidget):
     def accept(self, value=None):
         raise NotImplementedError
 
-    def download_open(self, _cmdline):
+    def download_open(self, cmdline, pdfjs):
         """Open the download directly if this is a download prompt."""
+        utils.unused(cmdline)
+        utils.unused(pdfjs)
         raise UnsupportedOperationError
 
     def item_focus(self, _which):
@@ -757,8 +760,13 @@ class DownloadFilenamePrompt(FilenamePrompt):
             self.question.answer = downloads.FileDownloadTarget(answer)
         return done
 
-    def download_open(self, cmdline):
-        self.question.answer = downloads.OpenFileDownloadTarget(cmdline)
+    def download_open(self, cmdline, pdfjs):
+        if pdfjs:
+            target = downloads.PDFJSDownloadTarget()
+        else:
+            target = downloads.OpenFileDownloadTarget(cmdline)
+
+        self.question.answer = target
         self.question.done()
         message.global_bridge.prompt_done.emit(self.KEY_MODE)
 
@@ -767,6 +775,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
             ('prompt-accept', 'Accept'),
             ('leave-mode', 'Abort'),
             ('prompt-open-download', "Open download"),
+            ('prompt-open-download --pdfjs', "Open download via PDF.js"),
             ('prompt-yank', "Yank URL"),
         ]
         return cmds

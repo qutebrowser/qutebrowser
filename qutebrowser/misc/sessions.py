@@ -414,6 +414,9 @@ class SessionManager(QObject):
             raise SessionError(e)
 
         log.sessions.debug("Loading session {} from {}...".format(name, path))
+        if data is None:
+            raise SessionError("Got empty session file")
+
         for win in data['windows']:
             window = mainwindow.MainWindow(geometry=win['geometry'],
                                            private=win.get('private', None))

@@ -73,7 +73,16 @@ Feature: Special qute:// pages
         And I open qute://help/index.html/../ without waiting
         Then qute://help/ should be loaded
 
-    Scenario: Opening a link with qute://help/img/
+    @qtwebengine_skip
+    Scenario: Opening a link with qute://help/img/ (QtWebKit)
+        When the documentation is up to date
+        And I open qute://help/img/ without waiting
+        Then "*Error while * qute://*" should be logged
+        And "*Is a directory*" should be logged
+        And "* url='qute://help/img'* LoadStatus.error" should be logged
+
+    @qtwebkit_skip
+    Scenario: Opening a link with qute://help/img/ (QtWebEngine)
         When the documentation is up to date
         And I open qute://help/img/ without waiting
         Then "*Error while * qute://*" should be logged
@@ -190,34 +199,27 @@ Feature: Special qute:// pages
 
     # pdfjs support
 
-    @qtwebengine_skip: pdfjs is not implemented yet
     Scenario: pdfjs is used for pdf files
         Given pdfjs is available
         When I set content.pdfjs to true
-        And I open data/misc/test.pdf
+        And I open data/misc/test.pdf without waiting
         Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
 
-    @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: pdfjs is not used when disabled
         When I set content.pdfjs to false
         And I set downloads.location.prompt to false
-        And I open data/misc/test.pdf
+        And I open data/misc/test.pdf without waiting
         Then "Download test.pdf finished" should be logged
 
-    @qtwebengine_skip: pdfjs is not implemented yet
+    @qtwebengine_skip: Might work with Qt 5.12
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
-        # WORKAROUND to prevent the "Painter ended with 2 saved states" warning
-        # Might be related to https://bugreports.qt.io/browse/QTBUG-13524 and
-        # a weird interaction with the previous test.
-        And I have a fresh instance
         When I set content.pdfjs to true
-        And I set downloads.location.suggestion to filename
         And I set downloads.location.prompt to true
-        And I open data/misc/test.pdf
+        And I open data/misc/test.pdf without waiting
         And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
         And I run :jseval document.getElementById("download").click()
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='test.pdf' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
         And I run :leave-mode
         Then no crash should happen
 

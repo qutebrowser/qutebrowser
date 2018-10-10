@@ -169,7 +169,7 @@ def main(arguments):
 
     # Match username
     target = selection if arguments.username_target == 'path' else secret
-    match = re.match(arguments.username_pattern, target)
+    match = re.search(arguments.username_pattern, target, re.MULTILINE)
     if not match:
         stderr('Failed to match username pattern on {}!'.format(arguments.username_target))
         return ExitCodes.COULD_NOT_MATCH_USERNAME

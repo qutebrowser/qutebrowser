@@ -100,6 +100,7 @@
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
 |<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
 |<<completion.min_chars,completion.min_chars>>|Minimum amount of characters needed to update completions.
+|<<completion.open_categories,completion.open_categories>>|Which categories to show (in which order) in the :open completion.
 |<<completion.quick,completion.quick>>|Move on to the next part when there's only one possible completion left.
 |<<completion.scrollbar.padding,completion.scrollbar.padding>>|Padding (in pixels) of the scrollbar handle in the completion window.
 |<<completion.scrollbar.width,completion.scrollbar.width>>|Width (in pixels) of the scrollbar in the completion window.
@@ -129,7 +130,7 @@
 |<<content.headers.user_agent,content.headers.user_agent>>|User agent to send. Unset to send the default.
 |<<content.host_blocking.enabled,content.host_blocking.enabled>>|Enable host blocking.
 |<<content.host_blocking.lists,content.host_blocking.lists>>|List of URLs of lists which contain hosts to block.
-|<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|List of domains that should always be loaded, despite being ad-blocked.
+|<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|A list of patterns that should always be loaded, despite being ad-blocked.
 |<<content.hyperlink_auditing,content.hyperlink_auditing>>|Enable hyperlink auditing (`<a ping>`).
 |<<content.images,content.images>>|Load images automatically in web pages.
 |<<content.javascript.alert,content.javascript.alert>>|Show javascript alerts.
@@ -145,6 +146,7 @@
 |<<content.local_storage,content.local_storage>>|Enable support for HTML 5 local storage and Web SQL.
 |<<content.media_capture,content.media_capture>>|Allow websites to record audio/video.
 |<<content.mouse_lock,content.mouse_lock>>|Allow websites to lock your mouse pointer.
+|<<content.mute,content.mute>>|Automatically mute tabs.
 |<<content.netrc_file,content.netrc_file>>|Netrc-file for HTTP authentication.
 |<<content.notifications,content.notifications>>|Allow websites to show notifications.
 |<<content.pdfjs,content.pdfjs>>|Allow pdf.js to view PDF files in the browser.
@@ -158,7 +160,7 @@
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
-|<<content.webrtc_public_interfaces_only,content.webrtc_public_interfaces_only>>|Only expose public interfaces via WebRTC.
+|<<content.webrtc_ip_handling_policy,content.webrtc_ip_handling_policy>>|Which interfaces to expose via WebRTC.
 |<<content.windowed_fullscreen,content.windowed_fullscreen>>|Limit fullscreen to the browser window (does not expand to fill the screen).
 |<<content.xss_auditing,content.xss_auditing>>|Monitor load requests for cross-site scripting attempts.
 |<<downloads.location.directory,downloads.location.directory>>|Directory to save downloads to.
@@ -205,6 +207,7 @@
 |<<hints.next_regexes,hints.next_regexes>>|Comma-separated list of regular expressions to use for 'next' links.
 |<<hints.prev_regexes,hints.prev_regexes>>|Comma-separated list of regular expressions to use for 'prev' links.
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
+|<<hints.selectors,hints.selectors>>|CSS selectors used to determine which elements on a page should have hints.
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
 |<<history_gap_interval,history_gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
 |<<input.escape_quits_reporter,input.escape_quits_reporter>>|Allow Escape to quit the crash reporter.
@@ -229,7 +232,9 @@
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
-|<<scrolling.bar,scrolling.bar>>|Show a scrollbar.
+|<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
+|<<qt.process_model,qt.process_model>>|Which Chromium process model to use.
+|<<scrolling.bar,scrolling.bar>>|When to show the scrollbar.
 |<<scrolling.smooth,scrolling.smooth>>|Enable smooth scrolling for web pages.
 |<<search.ignore_case,search.ignore_case>>|When to find text on a page case-insensitively.
 |<<search.incremental,search.incremental>>|Find text on a page incrementally, renewing the search for each typed character.
@@ -248,11 +253,13 @@
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
+|<<tabs.max_width,tabs.max_width>>|Maximum width (in pixels) of tabs (-1 for no maximum).
 |<<tabs.min_width,tabs.min_width>>|Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
 |<<tabs.mode_on_change,tabs.mode_on_change>>|When switching tabs, what input mode is applied.
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
-|<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which aren't opened from another tab.
+|<<tabs.new_position.stacking,tabs.new_position.stacking>>|Stack related tabs on top of each other when opened consecutively.
+|<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which are not opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
 |<<tabs.pinned.shrink,tabs.pinned.shrink>>|Shrink pinned tabs down to their contents.
 |<<tabs.position,tabs.position>>|Position of the tab bar.
@@ -289,9 +296,11 @@ Type: <<types,Dict>>
 
 Default: 
 
-- +pass:[q]+: +pass:[quit]+
+- +pass:[q]+: +pass:[close]+
+- +pass:[qa]+: +pass:[quit]+
 - +pass:[w]+: +pass:[session-save]+
 - +pass:[wq]+: +pass:[quit --save]+
+- +pass:[wqa]+: +pass:[quit --save]+
 
 [[auto_save.interval]]
 === auto_save.interval
@@ -593,6 +602,9 @@ Default:
 * +pass:[sk]+: +pass:[set-cmd-text -s :bind]+
 * +pass:[sl]+: +pass:[set-cmd-text -s :set -t]+
 * +pass:[ss]+: +pass:[set-cmd-text -s :set]+
+* +pass:[tIH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.images ;; reload]+
+* +pass:[tIh]+: +pass:[config-cycle -p -u *://{url:host}/* content.images ;; reload]+
+* +pass:[tIu]+: +pass:[config-cycle -p -u {url} content.images ;; reload]+
 * +pass:[tPH]+: +pass:[config-cycle -p -u *://*.{url:host}/* content.plugins ;; reload]+
 * +pass:[tPh]+: +pass:[config-cycle -p -u *://{url:host}/* content.plugins ;; reload]+
 * +pass:[tPu]+: +pass:[config-cycle -p -u {url} content.plugins ;; reload]+
@@ -600,6 +612,9 @@ Default:
 * +pass:[tSh]+: +pass:[config-cycle -p -u *://{url:host}/* content.javascript.enabled ;; reload]+
 * +pass:[tSu]+: +pass:[config-cycle -p -u {url} content.javascript.enabled ;; reload]+
 * +pass:[th]+: +pass:[back -t]+
+* +pass:[tiH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.images ;; reload]+
+* +pass:[tih]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.images ;; reload]+
+* +pass:[tiu]+: +pass:[config-cycle -p -t -u {url} content.images ;; reload]+
 * +pass:[tl]+: +pass:[forward -t]+
 * +pass:[tpH]+: +pass:[config-cycle -p -t -u *://*.{url:host}/* content.plugins ;; reload]+
 * +pass:[tph]+: +pass:[config-cycle -p -t -u *://{url:host}/* content.plugins ;; reload]+
@@ -648,6 +663,7 @@ Default:
 * +pass:[&lt;Ctrl-F&gt;]+: +pass:[rl-forward-char]+
 * +pass:[&lt;Ctrl-H&gt;]+: +pass:[rl-backward-delete-char]+
 * +pass:[&lt;Ctrl-K&gt;]+: +pass:[rl-kill-line]+
+* +pass:[&lt;Ctrl-P&gt;]+: +pass:[prompt-open-download --pdfjs]+
 * +pass:[&lt;Ctrl-U&gt;]+: +pass:[rl-unix-line-discard]+
 * +pass:[&lt;Ctrl-W&gt;]+: +pass:[rl-unix-word-rubout]+
 * +pass:[&lt;Ctrl-X&gt;]+: +pass:[prompt-open-download]+
@@ -779,7 +795,7 @@ Default: +pass:[black]+
 === colors.completion.match.fg
 Foreground color of the matched text in the completion.
 
-Type: <<types,QssColor>>
+Type: <<types,QtColor>>
 
 Default: +pass:[#ff4444]+
 
@@ -1382,6 +1398,26 @@ Type: <<types,Int>>
 
 Default: +pass:[1]+
 
+[[completion.open_categories]]
+=== completion.open_categories
+Which categories to show (in which order) in the :open completion.
+
+Type: <<types,FlagList>>
+
+Valid values:
+
+ * +searchengines+
+ * +quickmarks+
+ * +bookmarks+
+ * +history+
+
+Default: 
+
+- +pass:[searchengines]+
+- +pass:[quickmarks]+
+- +pass:[bookmarks]+
+- +pass:[history]+
+
 [[completion.quick]]
 === completion.quick
 Move on to the next part when there's only one possible completion left.
@@ -1671,6 +1707,8 @@ Default: +pass:[true]+
 === content.headers.referer
 When to send the Referer header.
 The Referer header tells websites from which website you were coming from when visiting them.
+No restart is needed with QtWebKit.
+This setting requires a restart.
 
 Type: <<types,String>>
 
@@ -1678,11 +1716,9 @@ Valid values:
 
  * +always+: Always send the Referer.
  * +never+: Never send the Referer. This is not recommended, as some sites may break.
- * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites.
+ * +same-domain+: Only send the Referer for the same domain. This will still protect your privacy, but shouldn't break any sites. With QtWebEngine, the referer will still be sent for other domains, but with stripped path information.
 
 Default: +pass:[same-domain]+
-
-This setting is only available with the QtWebKit backend.
 
 [[content.headers.user_agent]]
 === content.headers.user_agent
@@ -1699,6 +1735,8 @@ Default: empty
 === content.host_blocking.enabled
 Enable host blocking.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
@@ -1714,6 +1752,11 @@ The file can be in one of the following formats:
 - A zip-file of any of the above, with either only one file, or a file
   named `hosts` (with any extension).
 
+It's also possible to add a local file or directory via a `file://` URL. In
+case of a directory, all files in the directory are read as adblock lists.
+
+The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
+
 
 Type: <<types,List of Url>>
 
@@ -1723,11 +1766,11 @@ Default:
 
 [[content.host_blocking.whitelist]]
 === content.host_blocking.whitelist
-List of domains that should always be loaded, despite being ad-blocked.
-Domains may contain * and ? wildcards and are otherwise required to exactly match the requested domain.
+A list of patterns that should always be loaded, despite being ad-blocked.
+Note this whitelists blocked hosts, not first-party URLs. As an example, if `example.org` loads an ad from `ads.example.org`, the whitelisted host should be `ads.example.org`. If you want to disable the adblocker on a given page, use the `content.host_blocking.enabled` setting with a URL pattern instead.
 Local domains are always exempt from hostblocking.
 
-Type: <<types,List of String>>
+Type: <<types,List of UrlPattern>>
 
 Default: 
 
@@ -1903,6 +1946,17 @@ On QtWebEngine, this setting requires Qt 5.8 or newer.
 
 On QtWebKit, this setting is unavailable.
 
+[[content.mute]]
+=== content.mute
+Automatically mute tabs.
+Note that if the `:tab-mute` command is used, the mute status for the affected tab is now controlled manually, and this setting doesn't have any effect.
+
+This setting supports URL patterns.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
+
 [[content.netrc_file]]
 === content.netrc_file
 Netrc-file for HTTP authentication.
@@ -2067,14 +2121,22 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-[[content.webrtc_public_interfaces_only]]
-=== content.webrtc_public_interfaces_only
-Only expose public interfaces via WebRTC.
-On Qt 5.9, this option requires a restart. On Qt 5.10, this option doesn't work at all because of a Qt bug. On Qt >= 5.11, no restart is required.
+[[content.webrtc_ip_handling_policy]]
+=== content.webrtc_ip_handling_policy
+Which interfaces to expose via WebRTC.
+On Qt 5.10, this option doesn't work because of a Qt bug.
+This setting requires a restart.
 
-Type: <<types,Bool>>
+Type: <<types,String>>
 
-Default: +pass:[false]+
+Valid values:
+
+ * +all-interfaces+: WebRTC has the right to enumerate all interfaces and bind them to discover public interfaces.
+ * +default-public-and-private-interfaces+: WebRTC should only use the default route used by http. This also exposes the associated default private address. Default route is the route chosen by the OS on a multi-homed endpoint.
+ * +default-public-interface-only+: WebRTC should only use the default route used by http. This doesn't expose any local addresses.
+ * +disable-non-proxied-udp+: WebRTC should only use TCP to contact peers or servers unless the proxy server supports UDP. This doesn't expose any local addresses either.
+
+Default: +pass:[all-interfaces]+
 
 On QtWebEngine, this setting requires Qt 5.9.2 or newer.
 
@@ -2509,6 +2571,76 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
+[[hints.selectors]]
+=== hints.selectors
+CSS selectors used to determine which elements on a page should have hints.
+
+This setting supports URL patterns.
+
+This setting can only be set in config.py.
+
+Type: <<types,Dict>>
+
+Default: 
+
+- +pass:[all]+:
+
+* +pass:[a]+
+* +pass:[area]+
+* +pass:[textarea]+
+* +pass:[select]+
+* +pass:[input:not([type=&quot;hidden&quot;])]+
+* +pass:[button]+
+* +pass:[frame]+
+* +pass:[iframe]+
+* +pass:[img]+
+* +pass:[link]+
+* +pass:[summary]+
+* +pass:[[onclick]]+
+* +pass:[[onmousedown]]+
+* +pass:[[role=&quot;link&quot;]]+
+* +pass:[[role=&quot;option&quot;]]+
+* +pass:[[role=&quot;button&quot;]]+
+* +pass:[[ng-click]]+
+* +pass:[[ngClick]]+
+* +pass:[[data-ng-click]]+
+* +pass:[[x-ng-click]]+
+* +pass:[[tabindex]]+
+- +pass:[images]+:
+
+* +pass:[img]+
+- +pass:[inputs]+:
+
+* +pass:[input[type=&quot;text&quot;]]+
+* +pass:[input[type=&quot;date&quot;]]+
+* +pass:[input[type=&quot;datetime-local&quot;]]+
+* +pass:[input[type=&quot;email&quot;]]+
+* +pass:[input[type=&quot;month&quot;]]+
+* +pass:[input[type=&quot;number&quot;]]+
+* +pass:[input[type=&quot;password&quot;]]+
+* +pass:[input[type=&quot;search&quot;]]+
+* +pass:[input[type=&quot;tel&quot;]]+
+* +pass:[input[type=&quot;time&quot;]]+
+* +pass:[input[type=&quot;url&quot;]]+
+* +pass:[input[type=&quot;week&quot;]]+
+* +pass:[input:not([type])]+
+* +pass:[textarea]+
+- +pass:[links]+:
+
+* +pass:[a[href]]+
+* +pass:[area[href]]+
+* +pass:[link[href]]+
+* +pass:[[role=&quot;link&quot;][href]]+
+- +pass:[media]+:
+
+* +pass:[audio]+
+* +pass:[img]+
+* +pass:[video]+
+- +pass:[url]+:
+
+* +pass:[[src]]+
+* +pass:[[href]]+
+
 [[hints.uppercase]]
 === hints.uppercase
 Make characters in hint strings uppercase.
@@ -2753,13 +2885,59 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
+[[qt.low_end_device_mode]]
+=== qt.low_end_device_mode
+When to use Chromium's low-end device mode.
+This improves the RAM usage of renderer processes, at the expense of performance.
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +always+: Always use low-end device mode.
+ * +auto+: Decide automatically (uses low-end mode with < 1 GB available RAM).
+ * +never+: Never use low-end device mode.
+
+Default: +pass:[auto]+
+
+This setting is only available with the QtWebEngine backend.
+
+[[qt.process_model]]
+=== qt.process_model
+Which Chromium process model to use.
+Alternative process models use less resources, but decrease security and robustness.
+See the following pages for more details:
+
+  - https://www.chromium.org/developers/design-documents/process-models
+  - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Valid values:
+
+ * +process-per-site-instance+: Pages from separate sites are put into separate processes and separate visits to the same site are also isolated.
+ * +process-per-site+: Pages from separate sites are put into separate processes. Unlike Process per Site Instance, all visits to the same site will share an OS process. The benefit of this model is reduced memory consumption, because more web pages will share processes. The drawbacks include reduced security, robustness, and responsiveness.
+ * +single-process+: Run all tabs in a single process. This should be used for debugging purposes only, and it disables `:open --private`.
+
+Default: +pass:[process-per-site-instance]+
+
+This setting is only available with the QtWebEngine backend.
+
 [[scrolling.bar]]
 === scrolling.bar
-Show a scrollbar.
+When to show the scrollbar.
 
-Type: <<types,Bool>>
+Type: <<types,String>>
 
-Default: +pass:[false]+
+Valid values:
+
+ * +always+: Always show the scrollbar.
+ * +never+: Never show the scrollbar.
+ * +when-searching+: Show the scrollbar when searching for text in the webpage. With the QtWebKit backend, this is equal to `never`.
+
+Default: +pass:[when-searching]+
 
 [[scrolling.smooth]]
 === scrolling.smooth
@@ -3026,6 +3204,17 @@ Valid values:
 
 Default: +pass:[ignore]+
 
+[[tabs.max_width]]
+=== tabs.max_width
+Maximum width (in pixels) of tabs (-1 for no maximum).
+This setting only applies when tabs are horizontal.
+This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
+This setting may not apply properly if max_width is smaller than the minimum size of tab contents, or smaller than tabs.min_width.
+
+Type: <<types,Int>>
+
+Default: +pass:[-1]+
+
 [[tabs.min_width]]
 === tabs.min_width
 Minimum width (in pixels) of tabs (-1 for the default minimum size behavior).
@@ -3061,6 +3250,7 @@ Default: +pass:[true]+
 [[tabs.new_position.related]]
 === tabs.new_position.related
 Position of new tabs opened from another tab.
+See `tabs.new_position.stacking` for controlling stacking behavior.
 
 Type: <<types,NewTabPosition>>
 
@@ -3073,9 +3263,19 @@ Valid values:
 
 Default: +pass:[next]+
 
+[[tabs.new_position.stacking]]
+=== tabs.new_position.stacking
+Stack related tabs on top of each other when opened consecutively.
+Only applies for `next` and `prev` values of `tabs.new_position.related` and `tabs.new_position.unrelated`.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[tabs.new_position.unrelated]]
 === tabs.new_position.unrelated
-Position of new tabs which aren't opened from another tab.
+Position of new tabs which are not opened from another tab.
+See `tabs.new_position.stacking` for controlling stacking behavior.
 
 Type: <<types,NewTabPosition>>
 
@@ -3435,7 +3635,7 @@ When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in http://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
 |QtColor|A color value.
 
-A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color)
+A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
 |QtFont|A font family, with optional style/weight/size.
 
 * Style: `normal`/`italic`/`oblique` * Weight: `normal`, `bold`, `100`..`900` * Size: _number_ `px`/`pt`

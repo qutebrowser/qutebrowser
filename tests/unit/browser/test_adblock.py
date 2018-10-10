@@ -28,12 +28,13 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import adblock
+from qutebrowser.utils import urlmatch
 
 pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
 # TODO See ../utils/test_standarddirutils for OSError and caplog assertion
 
-WHITELISTED_HOSTS = ('qutebrowser.org', 'mediumhost.io')
+WHITELISTED_HOSTS = ('qutebrowser.org', 'mediumhost.io', 'http://*.edu')
 
 BLOCKLIST_HOSTS = ('localhost',
                    'mediumhost.io',
@@ -50,7 +51,8 @@ URLS_TO_CHECK = ('http://localhost',
                  'http://ads.worsthostever.net',
                  'http://goodhost.gov',
                  'ftp://verygoodhost.com',
-                 'http://qutebrowser.org')
+                 'http://qutebrowser.org',
+                 'http://veryverygoodhost.edu')
 
 
 class BaseDirStub:
@@ -213,6 +215,23 @@ def test_disabled_blocking_update(basedir, config_stub, download_stub,
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
+
+
+def test_disabled_blocking_per_url(config_stub, data_tmpdir):
+    example_com = 'https://www.example.com/'
+
+    config_stub.val.content.host_blocking.lists = []
+    pattern = urlmatch.UrlPattern(example_com)
+    config_stub.set_obj('content.host_blocking.enabled', False,
+                        pattern=pattern)
+
+    url = QUrl('blocked.example.com')
+
+    host_blocker = adblock.HostBlocker()
+    host_blocker._blocked_hosts.add(url.host())
+
+    assert host_blocker.is_blocked(url)
+    assert not host_blocker.is_blocked(url, first_party_url=QUrl(example_com))
 
 
 def test_no_blocklist_update(config_stub, download_stub,
@@ -433,3 +452,22 @@ def test_config_change(config_stub, basedir, download_stub,
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
+
+
+def test_add_directory(config_stub, basedir, download_stub,
+                       data_tmpdir, tmpdir):
+    """Ensure adblocker can import all files in a directory."""
+    blocklist_hosts2 = []
+    for i in BLOCKLIST_HOSTS[1:]:
+        blocklist_hosts2.append('1' + i)
+
+    create_blocklist(tmpdir, blocked_hosts=BLOCKLIST_HOSTS,
+                     name='blocked-hosts', line_format='one_per_line')
+    create_blocklist(tmpdir, blocked_hosts=blocklist_hosts2,
+                     name='blocked-hosts2', line_format='one_per_line')
+
+    config_stub.val.content.host_blocking.lists = [tmpdir.strpath]
+    config_stub.val.content.host_blocking.enabled = True
+    host_blocker = adblock.HostBlocker()
+    host_blocker.adblock_update()
+    assert len(host_blocker._blocked_hosts) == len(blocklist_hosts2) * 2

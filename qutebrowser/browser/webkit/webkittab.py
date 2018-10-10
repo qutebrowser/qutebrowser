@@ -84,8 +84,8 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     """QtWebKit implementations related to searching on the page."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, tab, parent=None):
+        super().__init__(tab, parent)
         self._flags = QWebPage.FindFlags(0)
 
     def _call_cb(self, callback, found, text, flags, caller):
@@ -115,7 +115,11 @@ class WebKitSearch(browsertab.AbstractSearch):
         if callback is not None:
             QTimer.singleShot(0, functools.partial(callback, found))
 
+        self.finished.emit(found)
+
     def clear(self):
+        if self.search_displayed:
+            self.cleared.emit()
         self.search_displayed = False
         # We first clear the marked text, then the highlights
         self._widget.findText('')
@@ -348,7 +352,7 @@ class WebKitCaret(browsertab.AbstractCaret):
     def selection(self, callback):
         callback(self._widget.selectedText())
 
-    def follow_selected(self, *, tab=False):
+    def _follow_selected(self, *, tab=False):
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
@@ -388,6 +392,12 @@ class WebKitCaret(browsertab.AbstractCaret):
                     self._tab.new_tab_requested.emit(url)
                 else:
                     self._tab.openurl(url)
+
+    def follow_selected(self, *, tab=False):
+        try:
+            self._follow_selected(tab=tab)
+        finally:
+            self.follow_selected_done.emit()
 
 
 class WebKitZoom(browsertab.AbstractZoom):
@@ -631,7 +641,7 @@ class WebKitAudio(browsertab.AbstractAudio):
 
     """Dummy handling of audio status for QtWebKit."""
 
-    def set_muted(self, muted: bool):
+    def set_muted(self, muted: bool, override: bool = False):
         raise browsertab.WebTabError('Muting is not supported on QtWebKit!')
 
     def is_muted(self):
@@ -652,16 +662,16 @@ class WebKitTab(browsertab.AbstractTab):
                                  private=private, tab=self)
         if private:
             self._make_private(widget)
-        self.history = WebKitHistory(self)
-        self.scroller = WebKitScroller(self, parent=self)
+        self.history = WebKitHistory(tab=self)
+        self.scroller = WebKitScroller(tab=self, parent=self)
         self.caret = WebKitCaret(mode_manager=mode_manager,
                                  tab=self, parent=self)
         self.zoom = WebKitZoom(tab=self, parent=self)
-        self.search = WebKitSearch(parent=self)
+        self.search = WebKitSearch(tab=self, parent=self)
         self.printing = WebKitPrinting(tab=self)
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
-        self.audio = WebKitAudio(parent=self)
+        self.audio = WebKitAudio(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)

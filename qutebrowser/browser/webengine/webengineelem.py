@@ -135,6 +135,10 @@ class WebEngineElement(webelem.AbstractWebElement):
     def set_value(self, value):
         self._js_call('set_value', value)
 
+    def dispatch_event(self, event, bubbles=False,
+                       cancelable=False, composed=False):
+        self._js_call('dispatch_event', event, bubbles, cancelable, composed)
+
     def caret_position(self):
         """Get the text caret position for the current element.
 

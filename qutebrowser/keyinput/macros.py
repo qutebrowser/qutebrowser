@@ -34,12 +34,14 @@ class MacroRecorder:
         _macro_count: The count passed to run_macro_command for each window.
                       Stored for use by run_macro, which may be called from
                       keyinput/modeparsers.py after a key input.
+        _last_register: The macro which did run last.
     """
 
     def __init__(self):
         self._macros = {}
         self._recording_macro = None
         self._macro_count = {}
+        self._last_register = None
 
     @cmdutils.register(instance='macro-recorder', name='record-macro')
     @cmdutils.argument('win_id', win_id=True)
@@ -85,9 +87,16 @@ class MacroRecorder:
 
     def run_macro(self, win_id, register):
         """Run a recorded macro."""
+        if register == '@':
+            if self._last_register is None:
+                raise cmdexc.CommandError("No previous macro")
+            register = self._last_register
+        self._last_register = register
+
         if register not in self._macros:
             raise cmdexc.CommandError(
                 "No macro recorded in '{}'!".format(register))
+
         commandrunner = runners.CommandRunner(win_id)
         for _ in range(self._macro_count[win_id]):
             for cmd in self._macros[register]:

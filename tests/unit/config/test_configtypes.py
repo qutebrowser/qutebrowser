@@ -21,7 +21,6 @@
 import re
 import json
 import math
-import itertools
 import warnings
 import inspect
 import functools
@@ -34,7 +33,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
-from qutebrowser.config import configtypes, configexc
+from qutebrowser.config import configtypes, configexc, configutils
 from qutebrowser.utils import debug, utils, qtutils, urlmatch
 from qutebrowser.browser.network import pac
 from qutebrowser.keyinput import keyutils
@@ -273,6 +272,11 @@ class TestAll:
         meth = getattr(klass(), method)
         with pytest.raises(configexc.ValidationError):
             meth(value)
+
+    @pytest.mark.parametrize('none_ok', [True, False])
+    def test_unset(self, klass, none_ok):
+        typ = klass(none_ok=none_ok)
+        assert typ.to_py(configutils.UNSET) is configutils.UNSET
 
     def test_to_str_none(self, klass):
         assert klass().to_str(None) == ''
@@ -1222,85 +1226,95 @@ class TestCommand:
         assert ('cmd2', "desc 2") in items
 
 
-class ColorTests:
+class TestQtColor:
 
-    """Generator for tests for TestColors."""
+    @pytest.fixture
+    def klass(self):
+        return configtypes.QtColor
 
-    TYPES = [configtypes.QtColor, configtypes.QssColor]
+    @pytest.mark.parametrize('val, expected', [
+        ('#123', QColor('#123')),
+        ('#112233', QColor('#112233')),
+        ('#111222333', QColor('#111222333')),
+        ('#111122223333', QColor('#111122223333')),
+        ('red', QColor('red')),
 
-    TESTS = [
-        ('#123', TYPES),
-        ('#112233', TYPES),
-        ('#111222333', TYPES),
-        ('#111122223333', TYPES),
-        ('red', TYPES),
+        ('rgb(0, 0, 0)', QColor.fromRgb(0, 0, 0)),
+        ('rgb(0,0,0)', QColor.fromRgb(0, 0, 0)),
 
-        ('#00000G', []),
-        ('#123456789ABCD', []),
-        ('#12', []),
-        ('foobar', []),
-        ('42', []),
-        ('foo(1, 2, 3)', []),
-        ('rgb(1, 2, 3', []),
+        ('rgba(255, 255, 255, 1.0)', QColor.fromRgb(255, 255, 255, 255)),
 
-        ('rgb(0, 0, 0)', [configtypes.QssColor]),
-        ('rgb(0,0,0)', [configtypes.QssColor]),
-
-        ('rgba(255, 255, 255, 1.0)', [configtypes.QssColor]),
-        ('hsv(10%,10%,10%)', [configtypes.QssColor]),
-
-        ('qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 white, '
-         'stop: 0.4 gray, stop:1 green)', [configtypes.QssColor]),
-        ('qconicalgradient(cx:0.5, cy:0.5, angle:30, stop:0 white, '
-         'stop:1 #00FF00)', [configtypes.QssColor]),
-        ('qradialgradient(cx:0, cy:0, radius: 1, fx:0.5, fy:0.5, '
-         'stop:0 white, stop:1 green)', [configtypes.QssColor]),
-    ]
-
-    COMBINATIONS = list(itertools.product(TESTS, TYPES))
-
-    def __init__(self):
-        self.valid = list(self._generate_valid())
-        self.invalid = list(self._generate_invalid())
-
-    def _generate_valid(self):
-        for (val, valid_classes), klass in self.COMBINATIONS:
-            if klass in valid_classes:
-                yield klass, val
-
-    def _generate_invalid(self):
-        for (val, valid_classes), klass in self.COMBINATIONS:
-            if klass not in valid_classes:
-                yield klass, val
-
-
-class TestColors:
-
-    """Test QtColor/QssColor."""
-
-    TESTS = ColorTests()
-
-    @pytest.fixture(params=ColorTests.TYPES)
-    def klass_fixt(self, request):
-        """Fixture which provides all ColorTests classes.
-
-        Named klass_fix so it has a different name from the parametrized klass,
-        see https://github.com/pytest-dev/pytest/issues/979.
-        """
-        return request.param
-
-    def test_test_generator(self):
-        """Some sanity checks for ColorTests."""
-        assert self.TESTS.valid
-        assert self.TESTS.invalid
-
-    @pytest.mark.parametrize('klass, val', TESTS.valid)
-    def test_to_py_valid(self, klass, val):
-        expected = QColor(val) if klass is configtypes.QtColor else val
+        # this should be (36, 25, 25) as hue goes to 359
+        # however this is consistent with Qt's CSS parser
+        # https://bugreports.qt.io/browse/QTBUG-70897
+        ('hsv(10%,10%,10%)', QColor.fromHsv(25, 25, 25)),
+        ('hsva(10%,20%,30%,40%)', QColor.fromHsv(25, 51, 76, 102)),
+    ])
+    def test_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
 
-    @pytest.mark.parametrize('klass, val', TESTS.invalid)
-    def test_to_py_invalid(self, klass, val):
+    @pytest.mark.parametrize('val', [
+        '#00000G',
+        '#123456789ABCD',
+        '#12',
+        'foobar',
+        '42',
+        'foo(1, 2, 3)',
+        'rgb(1, 2, 3',
+        'rgb)',
+        'rgb(1, 2, 3))',
+        'rgb((1, 2, 3)',
+        'rgb()',
+        'rgb(1, 2, 3, 4)',
+        'rgba(1, 2, 3)',
+        'rgb(10%%, 0, 0)',
+    ])
+    def test_invalid(self, klass, val):
+        with pytest.raises(configexc.ValidationError):
+            klass().to_py(val)
+
+
+class TestQssColor:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.QssColor
+
+    @pytest.mark.parametrize('val', [
+        '#123',
+        '#112233',
+        '#111222333',
+        '#111122223333',
+        'red',
+
+        'rgb(0, 0, 0)',
+        'rgb(0,0,0)',
+
+        'rgba(255, 255, 255, 1.0)',
+        'hsv(10%,10%,10%)',
+
+        'qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 white, '
+        'stop: 0.4 gray, stop:1 green)',
+
+        'qconicalgradient(cx:0.5, cy:0.5, angle:30, stop:0 white, '
+        'stop:1 #00FF00)',
+
+        'qradialgradient(cx:0, cy:0, radius: 1, fx:0.5, fy:0.5, '
+        'stop:0 white, stop:1 green)',
+    ])
+    def test_valid(self, klass, val):
+        assert klass().to_py(val) == val
+
+    @pytest.mark.parametrize('val', [
+        '#00000G',
+        '#123456789ABCD',
+        '#12',
+        'foobar',
+        '42',
+        'foo(1, 2, 3)',
+        'rgb(1, 2, 3',
+    ])
+    def test_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
 
@@ -1688,6 +1702,11 @@ class TestDict:
                                valtype=FromObjType())
         value = typ.from_obj({'1': '2'})
         assert value == {'1': 2}
+
+    def test_to_str(self, klass):
+        typ = klass(keytype=configtypes.String(), valtype=configtypes.String())
+        d = {'a': 'b', 'c': 'd'}
+        assert typ.to_str(d) == '{"a": "b", "c": "d"}'
 
 
 def unrequired_class(**kwargs):

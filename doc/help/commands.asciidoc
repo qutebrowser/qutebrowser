@@ -36,6 +36,8 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
 |<<close,close>>|Close the current window.
+|<<config-add-dict,config-add-dict>>|Add a key/value pair to a dictionary option.
+|<<config-add-list,config-add-list>>|Append a value to a config option that is a list.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
 |<<config-edit,config-edit>>|Open the config.py file in the editor.
@@ -262,6 +264,35 @@ The given filter needs to result in exactly one element, otherwise, an error is 
 === close
 Close the current window.
 
+[[config-add-dict]]
+=== config-add-dict
+Syntax: +:config-add-dict [*--temp*] [*--replace*] 'option' 'key' 'value'+
+
+Add a key/value pair to a dictionary option.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'key'+: The key to use.
+* +'value'+: The value to place in the dictionary.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
+* +*-r*+, +*--replace*+: Replace existing values. By default, existing values are not overwritten.
+
+
+[[config-add-list]]
+=== config-add-list
+Syntax: +:config-add-list [*--temp*] 'option' 'value'+
+
+Append a value to a config option that is a list.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'value'+: The value to append to the end of the list.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
+
 [[config-clear]]
 === config-clear
 Syntax: +:config-clear [*--save*]+
@@ -322,7 +353,7 @@ This sets an option back to its default and removes it from autoconfig.yml.
 * +'option'+: The name of the option.
 
 ==== optional arguments
-* +*-t*+, +*--temp*+: Don't touch autoconfig.yml.
+* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 
 [[config-write-py]]
 === config-write-py
@@ -541,6 +572,10 @@ Start hinting.
  - `inputs`: Only input fields.
  
 
+ Custom groups can be added via the `hints.selectors` setting
+ and also used here.
+ 
+
 
 * +'target'+: What to do with the selected element. 
 
@@ -754,11 +789,11 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
  - `up`: Go up a level in the current URL.
  - `increment`: Increment the last number in the URL.
  Uses the
- link:settings.html#url.incdec_segments[url.incdec_segments]
+ link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
  config option.
  - `decrement`: Decrement the last number in the URL.
  Uses the
- link:settings.html#url.incdec_segments[url.incdec_segments]
+ link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
  config option.
  
 
@@ -1210,7 +1245,7 @@ The tab index to focus, starting with 1.
 
 [[tab-give]]
 === tab-give
-Syntax: +:tab-give ['win-id']+
+Syntax: +:tab-give [*--keep*] ['win-id']+
 
 Give the current tab to a new or existing window if win_id given.
 
@@ -1218,6 +1253,9 @@ If no win_id is given, the tab will get detached into a new window.
 
 ==== positional arguments
 * +'win-id'+: The window ID of the window to give the current tab to.
+
+==== optional arguments
+* +*-k*+, +*--keep*+: If given, keep the old tab around.
 
 ==== count
 Overrides win_id (index starts at 1 for win_id=0).
@@ -1283,13 +1321,16 @@ How many tabs to switch back.
 
 [[tab-take]]
 === tab-take
-Syntax: +:tab-take 'index'+
+Syntax: +:tab-take [*--keep*] 'index'+
 
 Take a tab from another window.
 
 ==== positional arguments
 * +'index'+: The [win_id/]index of the tab to take. Or a substring in which case the closest match will be taken.
 
+
+==== optional arguments
+* +*-k*+, +*--keep*+: If given, keep the old tab around.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -1340,7 +1381,7 @@ Close all windows except for the current one.
 
 [[yank]]
 === yank
-Syntax: +:yank [*--sel*] [*--keep*] ['what']+
+Syntax: +:yank [*--sel*] [*--keep*] [*--quiet*] ['what']+
 
 Yank something to the clipboard or primary selection.
 
@@ -1359,10 +1400,11 @@ Yank something to the clipboard or primary selection.
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-k*+, +*--keep*+: Stay in visual mode after yanking the selection.
+* +*-q*+, +*--quiet*+: Don't show an information message.
 
 [[zoom]]
 === zoom
-Syntax: +:zoom ['zoom']+
+Syntax: +:zoom [*--quiet*] ['zoom']+
 
 Set the zoom level for the current tab.
 
@@ -1371,19 +1413,32 @@ The zoom can be given as argument or as [count]. If neither is given, the zoom i
 ==== positional arguments
 * +'zoom'+: The zoom percentage to set.
 
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show a zoom level message.
+
 ==== count
 The zoom percentage to set.
 
 [[zoom-in]]
 === zoom-in
+Syntax: +:zoom-in [*--quiet*]+
+
 Increase the zoom level for the current tab.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show a zoom level message.
 
 ==== count
 How many steps to zoom in.
 
 [[zoom-out]]
 === zoom-out
+Syntax: +:zoom-out [*--quiet*]+
+
 Decrease the zoom level for the current tab.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show a zoom level message.
 
 ==== count
 How many steps to zoom out.
@@ -1615,7 +1670,7 @@ Shift the focus of the prompt file completion menu to another item.
 
 [[prompt-open-download]]
 === prompt-open-download
-Syntax: +:prompt-open-download ['cmdline']+
+Syntax: +:prompt-open-download [*--pdfjs*] ['cmdline']+
 
 Immediately open a download.
 
@@ -1626,6 +1681,9 @@ If no specific command is given, this will use the system's default application 
  present, the filename is automatically appended to the
  cmdline.
 
+
+==== optional arguments
+* +*-p*+, +*--pdfjs*+: Open the download via PDF.js.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
