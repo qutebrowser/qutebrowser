@@ -858,6 +858,40 @@ def test_setting_option_completion(qtmodeltester, config_stub,
     })
 
 
+def test_setting_dict_option_completion(qtmodeltester, config_stub,
+                                        configdata_stub, info):
+    model = configmodel.dict_option(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "Dict options": [
+            ('aliases', 'Aliases for commands.', '{"q": "quit"}'),
+            ('bindings.commands', 'Default keybindings', (
+                '{"normal": {"<Ctrl+q>": "quit", "I": "invalid", '
+                '"ZQ": "quit", "d": "scroll down"}}')),
+            ('url.searchengines', 'searchengines list',
+             '{"DEFAULT": "https://duckduckgo.com/?q={}", '
+             '"google": "https://google.com/?q={}"}'),
+        ]
+    })
+
+
+def test_setting_list_option_completion(qtmodeltester, config_stub,
+                                        configdata_stub, info):
+    model = configmodel.list_option(info=info)
+    model.set_pattern('')
+    qtmodeltester.check(model)
+
+    _check_completions(model, {
+        "List options": [
+            ('completion.open_categories', 'Which categories to show (in '
+             'which order) in the :open completion.',
+             '["searchengines", "quickmarks", "bookmarks", "history"]'),
+        ]
+    })
+
+
 def test_setting_customized_option_completion(qtmodeltester, config_stub,
                                               configdata_stub, info):
     info.config.set_obj('aliases', {'foo': 'nop'})
