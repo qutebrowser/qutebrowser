@@ -411,7 +411,7 @@ class String(BaseType):
                               valid_values=self.valid_values,
                               minlen=self.minlen,
                               maxlen=self.maxlen, forbidden=self.forbidden,
-                              _completions=self._completions,
+                              completions=self._completions,
                               encoding=self.encoding)
 
 
@@ -587,8 +587,7 @@ class ListOrValue(BaseType):
         return typ.to_doc(val)
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok,
-                              listtype=self.listtype, valtype=self.valtype)
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype)
 
 
 class FlagList(List):
@@ -639,7 +638,8 @@ class FlagList(List):
         return out
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype,
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values,
                               length=self.length)
 
 
@@ -676,10 +676,6 @@ class Bool(BaseType):
             False: 'false',
         }
         return mapping[value]
-
-    def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok,
-                              valid_values=self.valid_values)
 
 
 class BoolAsk(Bool):
@@ -903,8 +899,8 @@ class PercOrInt(_Numeric):
         return value
 
     def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval,
-                              maxval=self.maxval, minperc=self.minperc,
+        return utils.get_repr(self, none_ok=self.none_ok, minint=self.minval,
+                              maxint=self.maxval, minperc=self.minperc,
                               maxperc=self.maxperc)
 
 
@@ -1358,7 +1354,6 @@ class File(BaseType):
 
     def __repr__(self):
         return utils.get_repr(self, none_ok=self.none_ok,
-                              valid_values=self.valid_values,
                               required=self.required)
 
 
@@ -1449,8 +1444,7 @@ class ShellCommand(List):
 
     def __repr__(self):
         return utils.get_repr(self, none_ok=self.none_ok,
-                              placeholder=self.placeholder,
-                              valtype=self.valtype)
+                              placeholder=self.placeholder)
 
 
 class Proxy(BaseType):
@@ -1495,10 +1489,6 @@ class Proxy(BaseType):
         out.append(('http://localhost:8080/', 'Local HTTP proxy'))
         out.append(('pac+https://example.com/proxy.pac', 'Proxy autoconfiguration file URL'))
         return out
-
-    def __repr__(self):
-        return utils.get_repr(self, none_ok=self.none_ok,
-                              valid_values=self.valid_values)
 
 
 class SearchEngineUrl(BaseType):
