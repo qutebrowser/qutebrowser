@@ -258,7 +258,7 @@ class ConfigCommands:
         Args:
             option: The name of the option.
             value: The value to append to the end of the list.
-            temp: Set value temporarily until qutebrowser is closed.
+            temp: Add value temporarily until qutebrowser is closed.
         """
         opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
@@ -280,7 +280,7 @@ class ConfigCommands:
             option: The name of the option.
             key: The key to use.
             value: The value to place in the dictionary.
-            temp: Set value temporarily until qutebrowser is closed.
+            temp: Add value temporarily until qutebrowser is closed.
             replace: Replace existing values. By default, existing values are
                      not overwritten.
         """
@@ -308,7 +308,7 @@ class ConfigCommands:
         Args:
             option: The name of the option.
             value: The value to remove from the list.
-            temp: Set value temporarily until qutebrowser is closed.
+            temp: Remove value temporarily until qutebrowser is closed.
         """
         opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
@@ -335,7 +335,7 @@ class ConfigCommands:
         Args:
             option: The name of the option.
             key: The key to remove from the dict.
-            temp: Set value temporarily until qutebrowser is closed.
+            temp: Remove value temporarily until qutebrowser is closed.
         """
         opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):

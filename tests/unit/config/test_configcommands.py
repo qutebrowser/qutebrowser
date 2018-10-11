@@ -357,7 +357,7 @@ class TestAdd:
 
 class TestRemove:
 
-    """Test :config-add-list and :config-add-dict."""
+    """Test :config-remove-list and :config-remove-dict."""
 
     @pytest.mark.parametrize('value', ['25%', '50%'])
     @pytest.mark.parametrize('temp', [True, False])

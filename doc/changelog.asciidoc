@@ -25,8 +25,11 @@ Added
   opened from a page should stack on each other or not.
 - New `completion.open_categories` setting which allows to configure which
   categories are shown in the `:open` completion, and how they are ordered.
-- New `:config-add-dict` and `:config-add-list` commands to easily add a new
-  element to a dict/list setting.
+- New config manipulation commands:
+  * `:config-add-dict` and `:config-add-list` to a new element to a dict/list
+    setting.
+  * `:config-remove-dict` and `:config-remove-list` to remove an element from a
+    dict/list setting.
 - New `hints.selectors` setting which allows to configure what CSS selectors
   are used for hints, and also allows adding custom hint groups.
 

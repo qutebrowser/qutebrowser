@@ -41,6 +41,8 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
 |<<config-edit,config-edit>>|Open the config.py file in the editor.
+|<<config-remove-dict,config-remove-dict>>|Remove a key from a dict.
+|<<config-remove-list,config-remove-list>>|Remove a value from a list.
 |<<config-source,config-source>>|Read a config.py file.
 |<<config-unset,config-unset>>|Unset an option.
 |<<config-write-py,config-write-py>>|Write the current configuration to a config.py file.
@@ -280,7 +282,7 @@ Add a key/value pair to a dictionary option.
 * +'value'+: The value to place in the dictionary.
 
 ==== optional arguments
-* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
+* +*-t*+, +*--temp*+: Add value temporarily until qutebrowser is closed.
 * +*-r*+, +*--replace*+: Replace existing values. By default, existing values are not overwritten.
 
 
@@ -295,7 +297,7 @@ Append a value to a config option that is a list.
 * +'value'+: The value to append to the end of the list.
 
 ==== optional arguments
-* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
+* +*-t*+, +*--temp*+: Add value temporarily until qutebrowser is closed.
 
 [[config-clear]]
 === config-clear
@@ -331,6 +333,32 @@ Open the config.py file in the editor.
 
 ==== optional arguments
 * +*-n*+, +*--no-source*+: Don't re-source the config file after editing.
+
+[[config-remove-dict]]
+=== config-remove-dict
+Syntax: +:config-remove-dict [*--temp*] 'option' 'key'+
+
+Remove a key from a dict.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'key'+: The key to remove from the dict.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Remove value temporarily until qutebrowser is closed.
+
+[[config-remove-list]]
+=== config-remove-list
+Syntax: +:config-remove-list [*--temp*] 'option' 'value'+
+
+Remove a value from a list.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'value'+: The value to remove from the list.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Remove value temporarily until qutebrowser is closed.
 
 [[config-source]]
 === config-source
