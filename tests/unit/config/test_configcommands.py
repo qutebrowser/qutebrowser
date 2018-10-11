@@ -355,6 +355,61 @@ class TestAdd:
             commands.config_add_dict('aliases', 'missingkey', value)
 
 
+class TestRemove:
+
+    """Test :config-add-list and :config-add-dict."""
+
+    @pytest.mark.parametrize('value', ['25%', '50%'])
+    @pytest.mark.parametrize('temp', [True, False])
+    def test_remove_list(self, commands, config_stub, yaml_value, value, temp):
+        name = 'zoom.levels'
+        commands.config_remove_list(name, value, temp=temp)
+
+        assert value not in config_stub.get(name)
+        if temp:
+            assert yaml_value(name) == configutils.UNSET
+        else:
+            assert value not in yaml_value(name)
+
+    def test_remove_list_non_list(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match=":config-remove-list can only be used for lists"):
+            commands.config_remove_list('content.javascript.enabled',
+                                        'never')
+
+    def test_remove_list_no_value(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match="never is not in colors.completion.fg!"):
+            commands.config_remove_list('colors.completion.fg', 'never')
+
+    @pytest.mark.parametrize('key', ['w', 'q'])
+    @pytest.mark.parametrize('temp', [True, False])
+    def test_remove_dict(self, commands, config_stub, yaml_value, key, temp):
+        name = 'aliases'
+        commands.config_remove_dict(name, key, temp=temp)
+
+        assert key not in config_stub.get(name)
+        if temp:
+            assert yaml_value(name) == configutils.UNSET
+        else:
+            assert key not in yaml_value(name)
+
+    def test_remove_dict_non_dict(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match=":config-remove-dict can only be used for dicts"):
+            commands.config_remove_dict('content.javascript.enabled',
+                                        'never')
+
+    def test_remove_dict_no_value(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match="never is not in aliases!"):
+            commands.config_remove_dict('aliases', 'never')
+
+
 class TestUnsetAndClear:
 
     """Test :config-unset and :config-clear."""

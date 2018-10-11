@@ -301,6 +301,59 @@ class ConfigCommands:
             self._config.update_mutables(save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.list_option)
+    def config_remove_list(self, option, value, temp=False):
+        """Remove a value from a list.
+
+        Args:
+            option: The name of the option.
+            value: The value to remove from the list.
+            temp: Set value temporarily until qutebrowser is closed.
+        """
+        opt = self._config.get_opt(option)
+        valid_list_types = (configtypes.List, configtypes.ListOrValue)
+        if not isinstance(opt.typ, valid_list_types):
+            raise cmdexc.CommandError(":config-remove-list can only be used "
+                                      "for lists")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+
+            if value not in option_value:
+                raise cmdexc.CommandError("{} is not in {}!".format(value,
+                                                                    option))
+
+            option_value.remove(value)
+
+            self._config.update_mutables(save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.dict_option)
+    def config_remove_dict(self, option, key, temp=False):
+        """Remove a key from a dict.
+
+        Args:
+            option: The name of the option.
+            key: The key to remove from the dict.
+            temp: Set value temporarily until qutebrowser is closed.
+        """
+        opt = self._config.get_opt(option)
+        if not isinstance(opt.typ, configtypes.Dict):
+            raise cmdexc.CommandError(":config-remove-dict can only be used "
+                                      "for dicts")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+
+            if key not in option_value:
+                raise cmdexc.CommandError("{} is not in {}!".format(key,
+                                                                    option))
+
+            del option_value[key]
+
+            self._config.update_mutables(save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
     def config_clear(self, save=False):
         """Set all settings back to their default.
 
