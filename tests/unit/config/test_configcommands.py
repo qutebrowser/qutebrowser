@@ -284,14 +284,14 @@ class TestCycle:
 
 class TestAdd:
 
-    """Test :config-add-list and :config-add-dict."""
+    """Test :config-list-add and :config-dict-add."""
 
     @pytest.mark.parametrize('temp', [True, False])
     @pytest.mark.parametrize('value', ['test1', 'test2'])
-    def test_add_list(self, commands, config_stub, yaml_value, temp, value):
+    def test_list_add(self, commands, config_stub, yaml_value, temp, value):
         name = 'content.host_blocking.whitelist'
 
-        commands.config_add_list(name, value, temp=temp)
+        commands.config_list_add(name, value, temp=temp)
 
         assert str(config_stub.get(name)[-1]) == value
         if temp:
@@ -299,26 +299,26 @@ class TestAdd:
         else:
             assert yaml_value(name)[-1] == value
 
-    def test_add_list_non_list(self, commands):
+    def test_list_add_non_list(self, commands):
         with pytest.raises(
                 cmdexc.CommandError,
-                match=":config-add-list can only be used for lists"):
-            commands.config_add_list('history_gap_interval', 'value')
+                match=":config-list-add can only be used for lists"):
+            commands.config_list_add('history_gap_interval', 'value')
 
     @pytest.mark.parametrize('value', ['', None, 42])
-    def test_add_list_invalid_values(self, commands, value):
+    def test_list_add_invalid_values(self, commands, value):
         with pytest.raises(
                 cmdexc.CommandError,
                 match="Invalid value '{}'".format(value)):
-            commands.config_add_list('content.host_blocking.whitelist', value)
+            commands.config_list_add('content.host_blocking.whitelist', value)
 
     @pytest.mark.parametrize('value', ['test1', 'test2'])
     @pytest.mark.parametrize('temp', [True, False])
-    def test_add_dict(self, commands, config_stub, yaml_value, value, temp):
+    def test_dict_add(self, commands, config_stub, yaml_value, value, temp):
         name = 'aliases'
         key = 'missingkey'
 
-        commands.config_add_dict(name, key, value, temp=temp)
+        commands.config_dict_add(name, key, value, temp=temp)
 
         assert str(config_stub.get(name)[key]) == value
         if temp:
@@ -327,43 +327,43 @@ class TestAdd:
             assert yaml_value(name)[key] == value
 
     @pytest.mark.parametrize('replace', [True, False])
-    def test_add_dict_replace(self, commands, config_stub, replace):
+    def test_dict_add_replace(self, commands, config_stub, replace):
         name = 'aliases'
         key = 'w'
         value = 'anything'
 
         if replace:
-            commands.config_add_dict(name, key, value, replace=True)
+            commands.config_dict_add(name, key, value, replace=True)
             assert str(config_stub.get(name)[key]) == value
         else:
             with pytest.raises(
                     cmdexc.CommandError,
                     match="w already exists in aliases - use --replace to "
                           "overwrite!"):
-                commands.config_add_dict(name, key, value, replace=False)
+                commands.config_dict_add(name, key, value, replace=False)
 
-    def test_add_dict_non_dict(self, commands):
+    def test_dict_add_non_dict(self, commands):
         with pytest.raises(
                 cmdexc.CommandError,
-                match=":config-add-dict can only be used for dicts"):
-            commands.config_add_dict('history_gap_interval', 'key', 'value')
+                match=":config-dict-add can only be used for dicts"):
+            commands.config_dict_add('history_gap_interval', 'key', 'value')
 
     @pytest.mark.parametrize('value', ['', None, 42])
-    def test_add_dict_invalid_values(self, commands, value):
+    def test_dict_add_invalid_values(self, commands, value):
         with pytest.raises(cmdexc.CommandError,
                            match="Invalid value '{}'".format(value)):
-            commands.config_add_dict('aliases', 'missingkey', value)
+            commands.config_dict_add('aliases', 'missingkey', value)
 
 
 class TestRemove:
 
-    """Test :config-remove-list and :config-remove-dict."""
+    """Test :config-list-remove and :config-dict-remove."""
 
     @pytest.mark.parametrize('value', ['25%', '50%'])
     @pytest.mark.parametrize('temp', [True, False])
-    def test_remove_list(self, commands, config_stub, yaml_value, value, temp):
+    def test_list_remove(self, commands, config_stub, yaml_value, value, temp):
         name = 'zoom.levels'
-        commands.config_remove_list(name, value, temp=temp)
+        commands.config_list_remove(name, value, temp=temp)
 
         assert value not in config_stub.get(name)
         if temp:
@@ -371,24 +371,24 @@ class TestRemove:
         else:
             assert value not in yaml_value(name)
 
-    def test_remove_list_non_list(self, commands):
+    def test_list_remove_non_list(self, commands):
         with pytest.raises(
                 cmdexc.CommandError,
-                match=":config-remove-list can only be used for lists"):
-            commands.config_remove_list('content.javascript.enabled',
+                match=":config-list-remove can only be used for lists"):
+            commands.config_list_remove('content.javascript.enabled',
                                         'never')
 
-    def test_remove_list_no_value(self, commands):
+    def test_list_remove_no_value(self, commands):
         with pytest.raises(
                 cmdexc.CommandError,
                 match="never is not in colors.completion.fg!"):
-            commands.config_remove_list('colors.completion.fg', 'never')
+            commands.config_list_remove('colors.completion.fg', 'never')
 
     @pytest.mark.parametrize('key', ['w', 'q'])
     @pytest.mark.parametrize('temp', [True, False])
-    def test_remove_dict(self, commands, config_stub, yaml_value, key, temp):
+    def test_dict_remove(self, commands, config_stub, yaml_value, key, temp):
         name = 'aliases'
-        commands.config_remove_dict(name, key, temp=temp)
+        commands.config_dict_remove(name, key, temp=temp)
 
         assert key not in config_stub.get(name)
         if temp:
@@ -396,18 +396,18 @@ class TestRemove:
         else:
             assert key not in yaml_value(name)
 
-    def test_remove_dict_non_dict(self, commands):
+    def test_dict_remove_non_dict(self, commands):
         with pytest.raises(
                 cmdexc.CommandError,
-                match=":config-remove-dict can only be used for dicts"):
-            commands.config_remove_dict('content.javascript.enabled',
+                match=":config-dict-remove can only be used for dicts"):
+            commands.config_dict_remove('content.javascript.enabled',
                                         'never')
 
-    def test_remove_dict_no_value(self, commands):
+    def test_dict_remove_no_value(self, commands):
         with pytest.raises(
                 cmdexc.CommandError,
                 match="never is not in aliases!"):
-            commands.config_remove_dict('aliases', 'never')
+            commands.config_dict_remove('aliases', 'never')
 
 
 class TestUnsetAndClear:

@@ -252,7 +252,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.list_option)
-    def config_add_list(self, option, value, temp=False):
+    def config_list_add(self, option, value, temp=False):
         """Append a value to a config option that is a list.
 
         Args:
@@ -263,7 +263,7 @@ class ConfigCommands:
         opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
         if not isinstance(opt.typ, valid_list_types):
-            raise cmdexc.CommandError(":config-add-list can only be used for "
+            raise cmdexc.CommandError(":config-list-add can only be used for "
                                       "lists")
 
         with self._handle_config_error():
@@ -273,7 +273,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.dict_option)
-    def config_add_dict(self, option, key, value, temp=False, replace=False):
+    def config_dict_add(self, option, key, value, temp=False, replace=False):
         """Add a key/value pair to a dictionary option.
 
         Args:
@@ -286,7 +286,7 @@ class ConfigCommands:
         """
         opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):
-            raise cmdexc.CommandError(":config-add-dict can only be used for "
+            raise cmdexc.CommandError(":config-dict-add can only be used for "
                                       "dicts")
 
         with self._handle_config_error():
@@ -302,7 +302,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.list_option)
-    def config_remove_list(self, option, value, temp=False):
+    def config_list_remove(self, option, value, temp=False):
         """Remove a value from a list.
 
         Args:
@@ -313,7 +313,7 @@ class ConfigCommands:
         opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
         if not isinstance(opt.typ, valid_list_types):
-            raise cmdexc.CommandError(":config-remove-list can only be used "
+            raise cmdexc.CommandError(":config-list-remove can only be used "
                                       "for lists")
 
         with self._handle_config_error():
@@ -329,7 +329,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.dict_option)
-    def config_remove_dict(self, option, key, temp=False):
+    def config_dict_remove(self, option, key, temp=False):
         """Remove a key from a dict.
 
         Args:
@@ -339,7 +339,7 @@ class ConfigCommands:
         """
         opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):
-            raise cmdexc.CommandError(":config-remove-dict can only be used "
+            raise cmdexc.CommandError(":config-dict-remove can only be used "
                                       "for dicts")
 
         with self._handle_config_error():
