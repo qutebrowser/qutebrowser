@@ -730,21 +730,12 @@ class HintManager(QObject):
                 raise cmdexc.CommandError("Rapid hinting makes no sense with "
                                           "target {}!".format(name))
 
-        if mode is None:
-            mode = config.val.hints.mode
-        else:
-            opt = config.instance.get_opt('hints.mode')
-            try:
-                opt.typ.to_py(mode)
-            except configexc.ValidationError as e:
-                raise cmdexc.CommandError("Invalid mode: {}".format(e))
-
         self._check_args(target, *args)
         self._context = HintContext()
         self._context.tab = tab
         self._context.target = target
         self._context.rapid = rapid
-        self._context.hint_mode = mode
+        self._context.hint_mode = self._get_hint_mode(mode)
         self._context.add_history = add_history
         self._context.first = first
         try:
@@ -762,6 +753,19 @@ class HintManager(QObject):
 
         self._context.tab.elements.find_css(selector, self._start_cb,
                                             only_visible=True)
+
+
+    def _get_hint_mode(self, mode):
+        """Get the hinting mode to use based on a mode argument."""
+        if mode is None:
+            return config.val.hints.mode
+
+        opt = config.instance.get_opt('hints.mode')
+        try:
+            opt.typ.to_py(mode)
+        except configexc.ValidationError as e:
+            raise cmdexc.CommandError("Invalid mode: {}".format(e))
+        return mode
 
     def current_mode(self):
         """Return the currently active hinting mode (or None otherwise)."""
