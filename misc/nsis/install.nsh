@@ -147,6 +147,31 @@ var KeepReg
   ${endif}
 !macroend
 
+; Functions
+Function Get_Default_Browser
+  ReadRegStr $0 HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" "ProgId"
+  ReadRegStr $1 HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" "ProgId"
+  ReadRegStr $2 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.htm\UserChoice" "ProgId"
+  ReadRegStr $3 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.html\UserChoice" "ProgId"
+FunctionEnd
+
+Function Set_Default_Browser
+  StrCmp $0 "${PRODUCT_NAME}URL" +2 0
+  WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" \
+    "ProgId" "${PRODUCT_NAME}URL"
+  StrCmp $1 "${PRODUCT_NAME}URL" +2 0
+  WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" \
+    "ProgId" "${PRODUCT_NAME}URL"
+  StrCmp $2 "${PRODUCT_NAME}HTML" +3 0
+  DeleteRegKey HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.htm\UserChoice"
+  WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.htm\UserChoice" \
+    "ProgId" "${PRODUCT_NAME}HTML"
+  StrCmp $3 "${PRODUCT_NAME}HTML" +3 0
+  DeleteRegKey HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.html\UserChoice"
+  WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.html\UserChoice" \
+    "ProgId" "${PRODUCT_NAME}HTML"
+FunctionEnd
+
 ; Sections
 InstType "Full"
 InstType "Typical"
@@ -324,10 +349,7 @@ SectionEnd
 Section /o "Set as default browser" SectionDefaultBrowser
   SectionIn 1
 
-  ReadRegStr $0 HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" "ProgId"
-  ReadRegStr $1 HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" "ProgId"
-  ReadRegStr $2 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.htm\UserChoice" "ProgId"
-  ReadRegStr $3 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.html\UserChoice" "ProgId"
+  !insertmacro UAC_AsUser_Call Function Get_Default_Browser $UAC_SYNCREGISTERS
   ${ifnot} $0 == "${PRODUCT_NAME}URL"
   ${orifnot} $1 == "${PRODUCT_NAME}URL"
   ${orifnot} $2 == "${PRODUCT_NAME}HTML"
@@ -338,20 +360,7 @@ Section /o "Set as default browser" SectionDefaultBrowser
       ExecShell "open" "control.exe" "/name Microsoft.DefaultPrograms /page \
         pageDefaultProgram\pageAdvancedSettings?pszAppName=${PRODUCT_NAME}"
     ${else}
-      StrCmp $0 "${PRODUCT_NAME}URL" +2 0
-      WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" \
-        "ProgId" "${PRODUCT_NAME}URL"
-      StrCmp $1 "${PRODUCT_NAME}URL" +2 0
-      WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" \
-        "ProgId" "${PRODUCT_NAME}URL"
-      StrCmp $2 "${PRODUCT_NAME}HTML" +3 0
-      DeleteRegKey HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.htm\UserChoice"
-      WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.htm\UserChoice" \
-        "ProgId" "${PRODUCT_NAME}HTML"
-      StrCmp $3 "${PRODUCT_NAME}HTML" +3 0
-      DeleteRegKey HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.html\UserChoice"
-      WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.html\UserChoice" \
-        "ProgId" "${PRODUCT_NAME}HTML"
+      !insertmacro UAC_AsUser_Call Function Set_Default_Browser $UAC_SYNCREGISTERS
     ${endif}
   ${endif}
 SectionEnd
@@ -506,8 +515,11 @@ Function PageInstallModeChangeMode
     !insertmacro SelectSection ${SectionWindowsRegister}
 
     ; Select 'Default browser' if already set in registry
-    ReadRegStr $0 HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" "ProgId"
+    !insertmacro UAC_AsUser_Call Function Get_Default_Browser $UAC_SYNCREGISTERS
     ${if} $0 == "${PRODUCT_NAME}URL"
+    ${orif} $1 == "${PRODUCT_NAME}URL"
+    ${orif} $2 == "${PRODUCT_NAME}HTML"
+    ${orif} $3 == "${PRODUCT_NAME}HTML"
       !insertmacro SetSectionFlag ${SectionWindowsRegister} ${SF_RO}
       !insertmacro SelectSection ${SectionDefaultBrowser}
     ${else}
