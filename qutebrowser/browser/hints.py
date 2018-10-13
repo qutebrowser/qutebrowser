@@ -754,7 +754,6 @@ class HintManager(QObject):
         self._context.tab.elements.find_css(selector, self._start_cb,
                                             only_visible=True)
 
-
     def _get_hint_mode(self, mode):
         """Get the hinting mode to use based on a mode argument."""
         if mode is None:

@@ -44,15 +44,15 @@ def customized_option(*, info):
 
 def list_option(*, info):
     """A CompletionModel filled with settings whose values are lists."""
-    predicate = lambda opt: (isinstance(info.config.get_obj(opt.name), list)
-                             and not opt.no_autoconfig)
+    predicate = lambda opt: (isinstance(info.config.get_obj(opt.name),
+                                        list) and not opt.no_autoconfig)
     return _option(info, "List options", predicate)
 
 
 def dict_option(*, info):
     """A CompletionModel filled with settings whose values are dicts."""
-    predicate = lambda opt: (isinstance(info.config.get_obj(opt.name), dict)
-                             and not opt.no_autoconfig)
+    predicate = lambda opt: (isinstance(info.config.get_obj(opt.name),
+                                        dict) and not opt.no_autoconfig)
     return _option(info, "Dict options", predicate)
 
 

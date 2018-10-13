@@ -36,13 +36,13 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<clear-messages,clear-messages>>|Clear all message notifications.
 |<<click-element,click-element>>|Click the element matching the given filter.
 |<<close,close>>|Close the current window.
-|<<config-add-dict,config-add-dict>>|Add a key/value pair to a dictionary option.
-|<<config-add-list,config-add-list>>|Append a value to a config option that is a list.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
+|<<config-dict-add,config-dict-add>>|Add a key/value pair to a dictionary option.
+|<<config-dict-remove,config-dict-remove>>|Remove a key from a dict.
 |<<config-edit,config-edit>>|Open the config.py file in the editor.
-|<<config-remove-dict,config-remove-dict>>|Remove a key from a dict.
-|<<config-remove-list,config-remove-list>>|Remove a value from a list.
+|<<config-list-add,config-list-add>>|Append a value to a config option that is a list.
+|<<config-list-remove,config-list-remove>>|Remove a value from a list.
 |<<config-source,config-source>>|Read a config.py file.
 |<<config-unset,config-unset>>|Unset an option.
 |<<config-write-py,config-write-py>>|Write the current configuration to a config.py file.
@@ -270,35 +270,6 @@ The given filter needs to result in exactly one element, otherwise, an error is 
 === close
 Close the current window.
 
-[[config-add-dict]]
-=== config-add-dict
-Syntax: +:config-add-dict [*--temp*] [*--replace*] 'option' 'key' 'value'+
-
-Add a key/value pair to a dictionary option.
-
-==== positional arguments
-* +'option'+: The name of the option.
-* +'key'+: The key to use.
-* +'value'+: The value to place in the dictionary.
-
-==== optional arguments
-* +*-t*+, +*--temp*+: Add value temporarily until qutebrowser is closed.
-* +*-r*+, +*--replace*+: Replace existing values. By default, existing values are not overwritten.
-
-
-[[config-add-list]]
-=== config-add-list
-Syntax: +:config-add-list [*--temp*] 'option' 'value'+
-
-Append a value to a config option that is a list.
-
-==== positional arguments
-* +'option'+: The name of the option.
-* +'value'+: The value to append to the end of the list.
-
-==== optional arguments
-* +*-t*+, +*--temp*+: Add value temporarily until qutebrowser is closed.
-
 [[config-clear]]
 === config-clear
 Syntax: +:config-clear [*--save*]+
@@ -325,18 +296,25 @@ Cycle an option between multiple values.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
 
-[[config-edit]]
-=== config-edit
-Syntax: +:config-edit [*--no-source*]+
+[[config-dict-add]]
+=== config-dict-add
+Syntax: +:config-dict-add [*--temp*] [*--replace*] 'option' 'key' 'value'+
 
-Open the config.py file in the editor.
+Add a key/value pair to a dictionary option.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'key'+: The key to use.
+* +'value'+: The value to place in the dictionary.
 
 ==== optional arguments
-* +*-n*+, +*--no-source*+: Don't re-source the config file after editing.
+* +*-t*+, +*--temp*+: Add value temporarily until qutebrowser is closed.
+* +*-r*+, +*--replace*+: Replace existing values. By default, existing values are not overwritten.
 
-[[config-remove-dict]]
-=== config-remove-dict
-Syntax: +:config-remove-dict [*--temp*] 'option' 'key'+
+
+[[config-dict-remove]]
+=== config-dict-remove
+Syntax: +:config-dict-remove [*--temp*] 'option' 'key'+
 
 Remove a key from a dict.
 
@@ -347,9 +325,31 @@ Remove a key from a dict.
 ==== optional arguments
 * +*-t*+, +*--temp*+: Remove value temporarily until qutebrowser is closed.
 
-[[config-remove-list]]
-=== config-remove-list
-Syntax: +:config-remove-list [*--temp*] 'option' 'value'+
+[[config-edit]]
+=== config-edit
+Syntax: +:config-edit [*--no-source*]+
+
+Open the config.py file in the editor.
+
+==== optional arguments
+* +*-n*+, +*--no-source*+: Don't re-source the config file after editing.
+
+[[config-list-add]]
+=== config-list-add
+Syntax: +:config-list-add [*--temp*] 'option' 'value'+
+
+Append a value to a config option that is a list.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'value'+: The value to append to the end of the list.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Add value temporarily until qutebrowser is closed.
+
+[[config-list-remove]]
+=== config-list-remove
+Syntax: +:config-list-remove [*--temp*] 'option' 'value'+
 
 Remove a value from a list.
 
