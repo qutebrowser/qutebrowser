@@ -355,6 +355,8 @@ class TabWidget(QTabWidget):
         tab = self.widget(idx)
         if (icon.isNull() and
                 config.cache['tabs.favicons.show'] != 'never' and
+                config.cache['tabs.pinned.shrink'] and
+                not self.tabBar().vertical and
                 tab is not None and tab.data.pinned):
             icon = self.style().standardIcon(QStyle.SP_FileIcon)
         super().setTabIcon(idx, icon)
