@@ -135,11 +135,12 @@ def create_full_filename(basename, filename):
     Return:
         The full absolute path, or None if filename creation was not possible.
     """
+    basename = utils.sanitize_filename(basename)
+    # Filename can be a full path so don't use sanitize_filename on it.
     # Remove chars which can't be encoded in the filename encoding.
     # See https://github.com/qutebrowser/qutebrowser/issues/427
     encoding = sys.getfilesystemencoding()
     filename = utils.force_encoding(filename, encoding)
-    basename = utils.force_encoding(basename, encoding)
     if os.path.isabs(filename) and (os.path.isdir(filename) or
                                     filename.endswith(os.sep)):
         # We got an absolute directory from the user, so we save it under
@@ -160,8 +161,7 @@ def get_filename_question(*, suggested_filename, url, parent=None):
         url: The URL the download originated from.
         parent: The parent of the question (a QObject).
     """
-    encoding = sys.getfilesystemencoding()
-    suggested_filename = utils.force_encoding(suggested_filename, encoding)
+    suggested_filename = utils.sanitize_filename(suggested_filename)
 
     q = usertypes.Question(parent)
     q.title = "Save file to:"
@@ -1260,8 +1260,7 @@ class TempDownloadManager:
             A tempfile.NamedTemporaryFile that should be used to save the file.
         """
         tmpdir = self.get_tmpdir()
-        encoding = sys.getfilesystemencoding()
-        suggested_name = utils.force_encoding(suggested_name, encoding)
+        suggested_name = utils.sanitize_filename(suggested_name)
         # Make sure that the filename is not too long
         suggested_name = utils.elide_filename(suggested_name, 50)
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,

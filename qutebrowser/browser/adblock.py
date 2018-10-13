@@ -110,10 +110,14 @@ class HostBlocker:
 
         config.instance.changed.connect(self._update_files)
 
-    def is_blocked(self, url):
+    def is_blocked(self, url, first_party_url=None):
         """Check if the given URL (as QUrl) is blocked."""
-        if not config.val.content.host_blocking.enabled:
+        if first_party_url is not None and not first_party_url.isValid():
+            first_party_url = None
+        if not config.instance.get('content.host_blocking.enabled',
+                                   url=first_party_url):
             return False
+
         host = url.host()
         return ((host in self._blocked_hosts or
                  host in self._config_blocked_hosts) and

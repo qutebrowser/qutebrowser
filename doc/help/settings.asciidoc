@@ -100,6 +100,7 @@
 |<<completion.delay,completion.delay>>|Delay (in milliseconds) before updating completions after typing a character.
 |<<completion.height,completion.height>>|Height (in pixels or as percentage of the window) of the completion.
 |<<completion.min_chars,completion.min_chars>>|Minimum amount of characters needed to update completions.
+|<<completion.open_categories,completion.open_categories>>|Which categories to show (in which order) in the :open completion.
 |<<completion.quick,completion.quick>>|Move on to the next part when there's only one possible completion left.
 |<<completion.scrollbar.padding,completion.scrollbar.padding>>|Padding (in pixels) of the scrollbar handle in the completion window.
 |<<completion.scrollbar.width,completion.scrollbar.width>>|Width (in pixels) of the scrollbar in the completion window.
@@ -206,6 +207,7 @@
 |<<hints.next_regexes,hints.next_regexes>>|Comma-separated list of regular expressions to use for 'next' links.
 |<<hints.prev_regexes,hints.prev_regexes>>|Comma-separated list of regular expressions to use for 'prev' links.
 |<<hints.scatter,hints.scatter>>|Scatter hint key chains (like Vimium) or not (like dwb).
+|<<hints.selectors,hints.selectors>>|CSS selectors used to determine which elements on a page should have hints.
 |<<hints.uppercase,hints.uppercase>>|Make characters in hint strings uppercase.
 |<<history_gap_interval,history_gap_interval>>|Maximum time (in minutes) between two history items for them to be considered being from the same browsing session.
 |<<input.escape_quits_reporter,input.escape_quits_reporter>>|Allow Escape to quit the crash reporter.
@@ -256,7 +258,8 @@
 |<<tabs.mode_on_change,tabs.mode_on_change>>|When switching tabs, what input mode is applied.
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
-|<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which aren't opened from another tab.
+|<<tabs.new_position.stacking,tabs.new_position.stacking>>|Stack related tabs on top of each other when opened consecutively.
+|<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which are not opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
 |<<tabs.pinned.shrink,tabs.pinned.shrink>>|Shrink pinned tabs down to their contents.
 |<<tabs.position,tabs.position>>|Position of the tab bar.
@@ -293,9 +296,11 @@ Type: <<types,Dict>>
 
 Default: 
 
-- +pass:[q]+: +pass:[quit]+
+- +pass:[q]+: +pass:[close]+
+- +pass:[qa]+: +pass:[quit]+
 - +pass:[w]+: +pass:[session-save]+
 - +pass:[wq]+: +pass:[quit --save]+
+- +pass:[wqa]+: +pass:[quit --save]+
 
 [[auto_save.interval]]
 === auto_save.interval
@@ -794,7 +799,7 @@ Default: +pass:[black]+
 === colors.completion.match.fg
 Foreground color of the matched text in the completion.
 
-Type: <<types,QssColor>>
+Type: <<types,QtColor>>
 
 Default: +pass:[#ff4444]+
 
@@ -1397,6 +1402,26 @@ Type: <<types,Int>>
 
 Default: +pass:[1]+
 
+[[completion.open_categories]]
+=== completion.open_categories
+Which categories to show (in which order) in the :open completion.
+
+Type: <<types,FlagList>>
+
+Valid values:
+
+ * +searchengines+
+ * +quickmarks+
+ * +bookmarks+
+ * +history+
+
+Default: 
+
+- +pass:[searchengines]+
+- +pass:[quickmarks]+
+- +pass:[bookmarks]+
+- +pass:[history]+
+
 [[completion.quick]]
 === completion.quick
 Move on to the next part when there's only one possible completion left.
@@ -1714,6 +1739,8 @@ Default: empty
 === content.host_blocking.enabled
 Enable host blocking.
 
+This setting supports URL patterns.
+
 Type: <<types,Bool>>
 
 Default: +pass:[true]+
@@ -1744,6 +1771,7 @@ Default:
 [[content.host_blocking.whitelist]]
 === content.host_blocking.whitelist
 A list of patterns that should always be loaded, despite being ad-blocked.
+Note this whitelists blocked hosts, not first-party URLs. As an example, if `example.org` loads an ad from `ads.example.org`, the whitelisted host should be `ads.example.org`. If you want to disable the adblocker on a given page, use the `content.host_blocking.enabled` setting with a URL pattern instead.
 Local domains are always exempt from hostblocking.
 
 Type: <<types,List of UrlPattern>>
@@ -2547,6 +2575,76 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
+[[hints.selectors]]
+=== hints.selectors
+CSS selectors used to determine which elements on a page should have hints.
+
+This setting supports URL patterns.
+
+This setting can only be set in config.py.
+
+Type: <<types,Dict>>
+
+Default: 
+
+- +pass:[all]+:
+
+* +pass:[a]+
+* +pass:[area]+
+* +pass:[textarea]+
+* +pass:[select]+
+* +pass:[input:not([type=&quot;hidden&quot;])]+
+* +pass:[button]+
+* +pass:[frame]+
+* +pass:[iframe]+
+* +pass:[img]+
+* +pass:[link]+
+* +pass:[summary]+
+* +pass:[[onclick]]+
+* +pass:[[onmousedown]]+
+* +pass:[[role=&quot;link&quot;]]+
+* +pass:[[role=&quot;option&quot;]]+
+* +pass:[[role=&quot;button&quot;]]+
+* +pass:[[ng-click]]+
+* +pass:[[ngClick]]+
+* +pass:[[data-ng-click]]+
+* +pass:[[x-ng-click]]+
+* +pass:[[tabindex]]+
+- +pass:[images]+:
+
+* +pass:[img]+
+- +pass:[inputs]+:
+
+* +pass:[input[type=&quot;text&quot;]]+
+* +pass:[input[type=&quot;date&quot;]]+
+* +pass:[input[type=&quot;datetime-local&quot;]]+
+* +pass:[input[type=&quot;email&quot;]]+
+* +pass:[input[type=&quot;month&quot;]]+
+* +pass:[input[type=&quot;number&quot;]]+
+* +pass:[input[type=&quot;password&quot;]]+
+* +pass:[input[type=&quot;search&quot;]]+
+* +pass:[input[type=&quot;tel&quot;]]+
+* +pass:[input[type=&quot;time&quot;]]+
+* +pass:[input[type=&quot;url&quot;]]+
+* +pass:[input[type=&quot;week&quot;]]+
+* +pass:[input:not([type])]+
+* +pass:[textarea]+
+- +pass:[links]+:
+
+* +pass:[a[href]]+
+* +pass:[area[href]]+
+* +pass:[link[href]]+
+* +pass:[[role=&quot;link&quot;][href]]+
+- +pass:[media]+:
+
+* +pass:[audio]+
+* +pass:[img]+
+* +pass:[video]+
+- +pass:[url]+:
+
+* +pass:[[src]]+
+* +pass:[[href]]+
+
 [[hints.uppercase]]
 === hints.uppercase
 Make characters in hint strings uppercase.
@@ -3156,6 +3254,7 @@ Default: +pass:[true]+
 [[tabs.new_position.related]]
 === tabs.new_position.related
 Position of new tabs opened from another tab.
+See `tabs.new_position.stacking` for controlling stacking behavior.
 
 Type: <<types,NewTabPosition>>
 
@@ -3168,9 +3267,19 @@ Valid values:
 
 Default: +pass:[next]+
 
+[[tabs.new_position.stacking]]
+=== tabs.new_position.stacking
+Stack related tabs on top of each other when opened consecutively.
+Only applies for `next` and `prev` values of `tabs.new_position.related` and `tabs.new_position.unrelated`.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[tabs.new_position.unrelated]]
 === tabs.new_position.unrelated
-Position of new tabs which aren't opened from another tab.
+Position of new tabs which are not opened from another tab.
+See `tabs.new_position.stacking` for controlling stacking behavior.
 
 Type: <<types,NewTabPosition>>
 
@@ -3530,7 +3639,7 @@ When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
 A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359) * A gradient as explained in http://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation] under ``Gradient''
 |QtColor|A color value.
 
-A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color)
+A value can be in one of the following formats: * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB` * An SVG color name as specified in http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification]. * transparent (no color) * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages) * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
 |QtFont|A font family, with optional style/weight/size.
 
 * Style: `normal`/`italic`/`oblique` * Weight: `normal`, `bold`, `100`..`900` * Size: _number_ `px`/`pt`

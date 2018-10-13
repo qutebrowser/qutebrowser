@@ -920,7 +920,25 @@ class QtColor(BaseType):
     * An SVG color name as specified in
       http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
     * transparent (no color)
+    * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
+    * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
     """
+
+    def _parse_value(self, val):
+        try:
+            return int(val)
+        except ValueError:
+            pass
+
+        mult = 255.0
+        if val.endswith('%'):
+            val = val[:-1]
+            mult = 255.0 / 100
+
+        try:
+            return int(float(val) * mult)
+        except ValueError:
+            raise configexc.ValidationError(val, "must be a valid color value")
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
@@ -928,6 +946,22 @@ class QtColor(BaseType):
             return value
         elif not value:
             return None
+
+        if '(' in value and value.endswith(')'):
+            openparen = value.index('(')
+            kind = value[:openparen]
+            vals = value[openparen+1:-1].split(',')
+            vals = [self._parse_value(v) for v in vals]
+            if kind == 'rgba' and len(vals) == 4:
+                return QColor.fromRgb(*vals)
+            elif kind == 'rgb' and len(vals) == 3:
+                return QColor.fromRgb(*vals)
+            elif kind == 'hsva' and len(vals) == 4:
+                return QColor.fromHsv(*vals)
+            elif kind == 'hsv' and len(vals) == 3:
+                return QColor.fromHsv(*vals)
+            else:
+                raise configexc.ValidationError(value, "must be a valid color")
 
         color = QColor(value)
         if color.isValid():
@@ -1261,7 +1295,7 @@ class Dict(BaseType):
         if not value:
             # An empty Dict is treated just like None -> empty string
             return ''
-        return json.dumps(value)
+        return json.dumps(value, sort_keys=True)
 
     def to_doc(self, value, indent=0):
         if not value:

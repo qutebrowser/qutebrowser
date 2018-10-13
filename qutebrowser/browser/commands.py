@@ -817,7 +817,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
                                         'title', 'domain'])
-    def yank(self, what='url', sel=False, keep=False):
+    def yank(self, what='url', sel=False, keep=False, quiet=False):
         """Yank something to the clipboard or primary selection.
 
         Args:
@@ -831,6 +831,7 @@ class CommandDispatcher:
 
             sel: Use the primary selection instead of the clipboard.
             keep: Stay in visual mode after yanking the selection.
+            quiet: Don't show an information message.
         """
         if what == 'title':
             s = self._tabbed_browser.widget.page_title(self._current_index())
@@ -844,10 +845,10 @@ class CommandDispatcher:
             what = 'URL'  # For printing
         elif what == 'selection':
             def _selection_callback(s):
-                if not s:
+                if not s and not quiet:
                     message.info("Nothing to yank")
                     return
-                self._yank_to_target(s, sel, what, keep)
+                self._yank_to_target(s, sel, what, keep, quiet)
 
             caret = self._current_widget().caret
             caret.selection(callback=_selection_callback)
@@ -855,9 +856,9 @@ class CommandDispatcher:
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
-        self._yank_to_target(s, sel, what, keep)
+        self._yank_to_target(s, sel, what, keep, quiet)
 
-    def _yank_to_target(self, s, sel, what, keep):
+    def _yank_to_target(self, s, sel, what, keep, quiet):
         if sel and utils.supports_selection():
             target = "primary selection"
         else:
@@ -866,10 +867,12 @@ class CommandDispatcher:
 
         utils.set_clipboard(s, selection=sel)
         if what != 'selection':
-            message.info("Yanked {} to {}: {}".format(what, target, s))
+            if not quiet:
+                message.info("Yanked {} to {}: {}".format(what, target, s))
         else:
-            message.info("{} {} yanked to {}".format(
-                len(s), "char" if len(s) == 1 else "chars", target))
+            if not quiet:
+                message.info("{} {} yanked to {}".format(
+                    len(s), "char" if len(s) == 1 else "chars", target))
             if not keep:
                 modeman.leave(self._win_id, KeyMode.caret, "yank selected",
                               maybe=True)
@@ -2106,7 +2109,10 @@ class CommandDispatcher:
                 raise cmdexc.CommandError(str(e))
 
         widget = self._current_widget()
-        widget.run_js_async(js_code, callback=jseval_cb, world=world)
+        try:
+            widget.run_js_async(js_code, callback=jseval_cb, world=world)
+        except browsertab.WebTabError as e:
+            raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fake_key(self, keystring, global_=False):

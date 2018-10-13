@@ -634,14 +634,22 @@ def test_force_encoding(inp, enc, expected):
 
 
 @pytest.mark.parametrize('inp, expected', [
-    ('normal.txt', 'normal.txt'),
-    ('user/repo issues.mht', 'user_repo issues.mht'),
-    ('<Test\\File> - "*?:|', '_Test_File_ - _____'),
+    pytest.param('normal.txt', 'normal.txt',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('user/repo issues.mht', 'user_repo issues.mht',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('<Test\\File> - "*?:|', '_Test_File_ - _____',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?_|',
+                 marks=pytest.mark.fake_os('mac')),
+    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?:|',
+                 marks=pytest.mark.fake_os('posix')),
 ])
-def test_sanitize_filename(inp, expected):
+def test_sanitize_filename(inp, expected, monkeypatch):
     assert utils.sanitize_filename(inp) == expected
 
 
+@pytest.mark.fake_os('windows')
 def test_sanitize_filename_empty_replacement():
     name = '/<Bad File>/'
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
