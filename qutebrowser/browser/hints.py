@@ -56,6 +56,7 @@ def on_mode_entered(mode, win_id):
                       maybe=True)
 
 
+_reusable_hint_labels = []
 class HintLabel(QLabel):
 
     """A label for a link.
@@ -77,12 +78,20 @@ class HintLabel(QLabel):
     """
 
     def __init__(self, elem, context):
-        super().__init__(parent=context.tab)
-        self._context = context
-        self.elem = elem
+        super().__init__()
+        self._reusable_init(elem, context)
 
+        # Those attributes are common for all HintLabel objects, and they only
+        # need to be initialized once per object
         self.setAttribute(Qt.WA_StyledBackground, True)
         config.set_register_stylesheet(self)
+
+    def _reusable_init(self, elem, context):
+        # This is similar to __init__, except that it assumes the object is
+        # already initialized and use that to reduce execution time.
+        self.setParent(context.tab)
+        self._context = context
+        self.elem = elem
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
         self._move_to_elem()
@@ -130,7 +139,21 @@ class HintLabel(QLabel):
     def cleanup(self):
         """Clean up this element and hide it."""
         self.hide()
-        self.deleteLater()
+        self._context.tab.contents_size_changed.disconnect(self._move_to_elem)
+        _reusable_hint_labels.append(self)
+
+
+def create_hint_label(elem, context):
+    """Returns a HintLabel object with the parameters (elem, context).
+    Try to reuse a reusable object if possible.
+    """
+
+    try:
+        self = _reusable_hint_labels.pop()
+    except IndexError:
+        return HintLabel(elem, context)
+    self._reusable_init(elem, context)
+    return self
 
 
 @attr.s
@@ -615,7 +638,7 @@ class HintManager(QObject):
         log.hints.debug("hints: {}".format(', '.join(strings)))
 
         for elem, string in zip(elems, strings):
-            label = HintLabel(elem, self._context)
+            label = create_hint_label(elem, self._context)
             label.update_text('', string)
             self._context.all_labels.append(label)
             self._context.labels[string] = label
