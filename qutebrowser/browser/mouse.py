@@ -24,6 +24,7 @@ from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg
 from qutebrowser.keyinput import modeman
+from qutebrowser.browser.pdfjs import is_pdfjs_page
 
 
 class ChildEventFilter(QObject):
@@ -145,6 +146,10 @@ class MouseEventFilter(QObject):
             return True
 
         if e.modifiers() & Qt.ControlModifier:
+            if is_pdfjs_page(self._tab):
+                # Let PDF.js handle the event
+                return False
+
             mode = modeman.instance(self._tab.win_id).mode
             if mode == usertypes.KeyMode.passthrough:
                 return False
