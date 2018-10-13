@@ -88,4 +88,5 @@ def test_scattered_hints_count(win_registry, mode_manager, min_len,
         assert num_chars ** (longest_hint_len - 1) < num_elements
         if shortest_hint_len == longest_hint_len:
             # Check that we really couldn't use any short links
-            assert (num_chars ** longest_hint_len) - num_elements < len(chars) - 1
+            assert ((num_chars ** longest_hint_len) - num_elements <
+                    len(chars) - 1)
