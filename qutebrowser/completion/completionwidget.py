@@ -197,7 +197,7 @@ class CompletionView(QTreeView):
         raise utils.Unreachable
 
     def _next_page(self, upwards):
-        """Essentially _next_idx with a for loop to increment by amount of elements per page (size of each page) instead of 1 each time
+        """Return the index a page away from the selected index
 
         Args:
             upwards: Get previous item, not next.
@@ -216,15 +216,17 @@ class CompletionView(QTreeView):
             else:
                 return self.model().first_item()
         else:
-            element_height = self.visualRect(idx).height()  # Finds Height of each CompletionView elements
+            # Finds Height of each CompletionView elements
+            element_height = self.visualRect(idx).height()  
             page_length = int(self.height()/element_height)
 
         while True:
             if upwards:
-                for x in range(page_length-1):  # Ensures bottom element stays at top of next page
+                # Ensures bottom element stays at top of next page
+                for _x in range(page_length-1):  
                     idx = self.indexAbove(idx)
             else:
-                for x in range(page_length-1):
+                for _x in range(page_length-1):
                     idx = self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
             if not idx.isValid() and upwards:
@@ -300,14 +302,14 @@ class CompletionView(QTreeView):
 
         selmodel = self.selectionModel()
         indices = {
-            'next': self._next_idx(upwards=False),
-            'prev': self._next_idx(upwards=True),
-            'next-category': self._next_category_idx(upwards=False),
-            'prev-category': self._next_category_idx(upwards=True),
-            'next-page': self._next_page(upwards=False),
-            'last-page': self._next_page(upwards=True),
+            'next': lambda: self._next_idx(upwards=False),
+            'prev': lambda: self._next_idx(upwards=True),
+            'next-category': lambda: self._next_category_idx(upwards=False),
+            'prev-category': lambda: self._next_category_idx(upwards=True),
+            'next-page': lambda: self._next_page(upwards=False),
+            'last-page': lambda: self._next_page(upwards=True),
         }
-        idx = indices[which]
+        idx = indices[which]()
 
         if not idx.isValid():
             return
