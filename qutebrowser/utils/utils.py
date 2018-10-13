@@ -712,3 +712,16 @@ def guess_mimetype(filename, fallback=False):
         else:
             raise ValueError("Got None mimetype for {}".format(filename))
     return mimetype
+
+
+def ceil_log(number, base):
+    """Compute max(1, ceil(log(number, base))).
+
+    Use only integer arithmetic in order to avoid numerical error.
+    """
+    result = 1
+    accum = base
+    while accum < number:
+        result += 1
+        accum *= base
+    return result

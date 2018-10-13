@@ -21,7 +21,6 @@
 
 import collections
 import functools
-import math
 import os
 import re
 import html
@@ -454,8 +453,7 @@ class HintManager(QObject):
         # Determine how many digits the link hints will require in the worst
         # case. Usually we do not need all of these digits for every link
         # single hint, so we can show shorter hints for a few of the links.
-        needed = max(min_chars, math.ceil(
-            math.log(len(elems), len(chars))-1e-13))
+        needed = max(min_chars, utils.ceil_log(len(elems), len(chars)))
         # Short hints are the number of hints we can possibly show which are
         # (needed - 1) digits in length.
         if needed > min_chars and needed > 1:
@@ -487,7 +485,7 @@ class HintManager(QObject):
             elems: The elements to generate labels for.
         """
         strings = []
-        needed = max(min_chars, math.ceil(math.log(len(elems), len(chars))))
+        needed = max(min_chars, utils.ceil_log(len(elems), len(chars)))
         for i in range(len(elems)):
             strings.append(self._number_to_hint_str(i, chars, needed))
         return strings
