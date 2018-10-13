@@ -454,10 +454,13 @@ class HintManager(QObject):
         # case. Usually we do not need all of these digits for every link
         # single hint, so we can show shorter hints for a few of the links.
         needed = max(min_chars, utils.ceil_log(len(elems), len(chars)))
+
         # Short hints are the number of hints we can possibly show which are
         # (needed - 1) digits in length.
         if needed > min_chars and needed > 1:
             total_space = len(chars) ** needed
+            # For each 1 short link being added, len(chars) long links are
+            # removed, therefore the space removed is len(chars) - 1.
             short_count = (total_space - len(elems)) // (len(chars) - 1)
         else:
             short_count = 0
