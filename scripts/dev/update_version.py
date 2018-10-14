@@ -99,4 +99,27 @@ if __name__ == "__main__":
 
     write_appdata(appdata_tree)
 
-    print(__version__)
+    print("Run the following commands to create a new release:")
+
+    print("* Run `git push origin; git push {v}`.".format(v=__version__))
+
+    print("* Create new release via GitHub",
+          "(required to upload release artifacts).")
+
+    print("* Linux: Run `git checkout {v} &&".format(v=__version__),
+          "./.venv/bin/python3 scripts/dev/build_release.py --upload`")
+
+    print("* Windows: Run `git checkout {v};".format(v=__version__),
+          "py -3 scripts\dev\\build_release.py --asciidoc",
+          "C:\Python27\python",
+          "%userprofile%\\bin\\asciidoc-8.6.10\\asciidoc.py --upload`.")
+
+    print("* macOS: Run `git checkout {v} &&".format(v=__version__),
+          "python3 scripts/dev/build_release.py --upload`.")
+
+    print("* On server:")
+    print("- Run `python3 scripts/dev/download_release.py",
+          "v{v}`.".format(v=__version__))
+    print("- Run `git pull github master &&",
+          "sudo python3 scripts/asciidoc2html.py",
+          "--website /srv/http/qutebrowser`")
