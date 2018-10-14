@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+
+<!-- target: hello.txt -->
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Javascript link</title>
+    </head>
+    <body>
+        <button id="link">Follow me via JS!</button>
+        <script type="text/javascript">
+            document.getElementById('link').addEventListener('click', function() {
+                window.location.href = '/data/hello.txt';
+            });
+        </script>
+    </body>
+</html>

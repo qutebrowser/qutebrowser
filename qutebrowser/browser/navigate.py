@@ -117,7 +117,10 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
     """
     def _prevnext_cb(elems):
         if elems is None:
-            message.error("There was an error while getting hint elements")
+            message.error("Unknown error while getting hint elements")
+            return
+        elif isinstance(elems, webelem.Error):
+            message.error(str(elems))
             return
 
         elem = _find_prevnext(prev, elems)
@@ -147,5 +150,9 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         else:
             browsertab.openurl(url)
 
-    browsertab.elements.find_css(webelem.SELECTORS[webelem.Group.links],
-                                 _prevnext_cb)
+    try:
+        link_selector = webelem.css_selector('links', baseurl)
+    except webelem.Error as e:
+        raise Error(str(e))
+
+    browsertab.elements.find_css(link_selector, _prevnext_cb)

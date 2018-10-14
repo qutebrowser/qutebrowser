@@ -118,6 +118,16 @@ Feature: Various utility commands.
         Then the javascript message "Hello from the page!" should be logged
         And "No output or error" should be logged
 
+    @qtwebkit_skip
+    Scenario: :jseval using too high of a world
+        When I run :jseval --world=257 console.log("Hello from JS!");
+        Then the error "World ID should be between 0 and *" should be shown
+
+    @qtwebkit_skip
+    Scenario: :jseval using a negative world id
+        When I run :jseval --world=-1 console.log("Hello from JS!");
+        Then the error "World ID should be between 0 and *" should be shown
+
     Scenario: :jseval --file using a file that exists as js-code
         When I run :jseval --file (testdata)/misc/jseval_file.js
         Then the javascript message "Hello from JS!" should be logged
@@ -533,14 +543,14 @@ Feature: Various utility commands.
         Then "Renderer process crashed" should be logged
         And "* 'Error loading chrome://crash/'" should be logged
 
-    @qtwebkit_skip @no_invalid_lines @qt>=5.9
+    @qtwebkit_skip @no_invalid_lines @qt>=5.9 @flaky
     Scenario: Renderer kill (5.9)
         When I run :open -t chrome://kill
         Then "Renderer process was killed" should be logged
         And "* 'Error loading chrome://kill/'" should be logged
 
     # https://github.com/qutebrowser/qutebrowser/issues/2290
-    @qtwebkit_skip @no_invalid_lines
+    @qtwebkit_skip @no_invalid_lines @flaky
     Scenario: Navigating to URL after renderer process is gone
         When I run :tab-only
         And I open data/numbers/1.txt

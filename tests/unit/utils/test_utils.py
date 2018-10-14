@@ -410,11 +410,11 @@ class GotException(Exception):
 
 
 def excepthook(_exc, _val, _tb):
-    return
+    pass
 
 
 def excepthook_2(_exc, _val, _tb):
-    return
+    pass
 
 
 class TestDisabledExcepthook:
@@ -462,7 +462,9 @@ class TestPreventExceptions:
     def test_raising(self, caplog):
         """Test with a raising function."""
         with caplog.at_level(logging.ERROR, 'misc'):
+            # pylint: disable=assignment-from-no-return
             ret = self.func_raising()
+            # pylint: enable=assignment-from-no-return
         assert ret == 42
         assert len(caplog.records) == 1
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
@@ -487,7 +489,9 @@ class TestPreventExceptions:
     def test_predicate_true(self, caplog):
         """Test with a True predicate."""
         with caplog.at_level(logging.ERROR, 'misc'):
+            # pylint: disable=assignment-from-no-return
             ret = self.func_predicate_true()
+            # enable: disable=assignment-from-no-return
         assert ret == 42
         assert len(caplog.records) == 1
 
@@ -630,14 +634,22 @@ def test_force_encoding(inp, enc, expected):
 
 
 @pytest.mark.parametrize('inp, expected', [
-    ('normal.txt', 'normal.txt'),
-    ('user/repo issues.mht', 'user_repo issues.mht'),
-    ('<Test\\File> - "*?:|', '_Test_File_ - _____'),
+    pytest.param('normal.txt', 'normal.txt',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('user/repo issues.mht', 'user_repo issues.mht',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('<Test\\File> - "*?:|', '_Test_File_ - _____',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?_|',
+                 marks=pytest.mark.fake_os('mac')),
+    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?:|',
+                 marks=pytest.mark.fake_os('posix')),
 ])
-def test_sanitize_filename(inp, expected):
+def test_sanitize_filename(inp, expected, monkeypatch):
     assert utils.sanitize_filename(inp) == expected
 
 
+@pytest.mark.fake_os('windows')
 def test_sanitize_filename_empty_replacement():
     name = '/<Bad File>/'
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
@@ -812,3 +824,16 @@ def test_chunk(elems, n, expected):
 def test_chunk_invalid(n):
     with pytest.raises(ValueError):
         list(utils.chunk([], n))
+
+
+@pytest.mark.parametrize('filename, expected', [
+    ('test.jpg', 'image/jpeg'),
+    ('test.blabla', 'application/octet-stream'),
+])
+def test_guess_mimetype(filename, expected):
+    assert utils.guess_mimetype(filename, fallback=True) == expected
+
+
+def test_guess_mimetype_no_fallback():
+    with pytest.raises(ValueError):
+        utils.guess_mimetype('test.blabla')

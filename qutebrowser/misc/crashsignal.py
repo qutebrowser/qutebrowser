@@ -36,7 +36,6 @@ except ImportError:
 import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.commands import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc
@@ -206,7 +205,6 @@ class CrashHandler(QObject):
         gracefully.
         """
         exc = (exctype, excvalue, tb)
-        qapp = QApplication.instance()
 
         if not self._quitter.quit_status['crash']:
             log.misc.error("ARGH, there was an exception while the crash "

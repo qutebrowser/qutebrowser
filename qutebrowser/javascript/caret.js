@@ -1,5 +1,5 @@
 /* eslint-disable max-len, max-statements, complexity,
-max-params, default-case, valid-jsdoc */
+default-case, valid-jsdoc */
 
 // Copyright 2014 The Chromium Authors. All rights reserved.
 //
@@ -756,31 +756,6 @@ window._qutebrowser.caret = (function() {
     CaretBrowsing.isSelectionCollapsed = false;
 
     /**
-     * The id returned by window.setInterval for our blink function, so
-     * we can cancel it when caret browsing is disabled.
-     * @type {number?}
-     */
-    CaretBrowsing.blinkFunctionId = null;
-
-    /**
-     * The desired x-coordinate to match when moving the caret up and down.
-     * To match the behavior as documented in Mozilla's caret browsing spec
-     * (http://www.mozilla.org/access/keyboard/proposal), we keep track of the
-     * initial x position when the user starts moving the caret up and down,
-     * so that the x position doesn't drift as you move throughout lines, but
-     * stays as close as possible to the initial position. This is reset when
-     * moving left or right or clicking.
-     * @type {number?}
-     */
-    CaretBrowsing.targetX = null;
-
-    /**
-     * A flag that flips on or off as the caret blinks.
-     * @type {boolean}
-     */
-    CaretBrowsing.blinkFlag = true;
-
-    /**
      * Whether we're running on Windows.
      * @type {boolean}
      */
@@ -788,9 +763,17 @@ window._qutebrowser.caret = (function() {
 
     /**
      * Whether we're running on on old Qt 5.7.1.
+     * There, we need to use -webkit-filter.
      * @type {boolean}
      */
-    CaretBrowsing.isOldQt = null;
+    CaretBrowsing.needsFilterPrefix = null;
+
+    /**
+     * The id returned by window.setInterval for our stopAnimation function, so
+     * we can cancel it when we call stopAnimation again.
+     * @type {number?}
+     */
+    CaretBrowsing.animationFunctionId = null;
 
     /**
      * Check if a node is a control that normally allows the user to interact
@@ -868,7 +851,7 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.injectCaretStyles = function() {
-        const prefix = CaretBrowsing.isOldQt ? "-webkit-" : "";
+        const prefix = CaretBrowsing.needsFilterPrefix ? "-webkit-" : "";
         const style = `
             .CaretBrowsing_Caret {
               position: absolute;
@@ -987,7 +970,6 @@ window._qutebrowser.caret = (function() {
      */
     CaretBrowsing.recreateCaretElement = function() {
         if (CaretBrowsing.caretElement) {
-            window.clearInterval(CaretBrowsing.blinkFunctionId);
             CaretBrowsing.caretElement.parentElement.removeChild(
                 CaretBrowsing.caretElement);
             CaretBrowsing.caretElement = null;
@@ -1163,47 +1145,47 @@ window._qutebrowser.caret = (function() {
             }
         };
 
-    CaretBrowsing.move = function(direction, granularity) {
+    CaretBrowsing.move = function(direction, granularity, count = 1) {
         let action = "move";
         if (CaretBrowsing.selectionEnabled) {
             action = "extend";
         }
-        window.
-            getSelection().
-            modify(action, direction, granularity);
+
+        for (let i = 0; i < count; i++) {
+            window.
+                getSelection().
+                modify(action, direction, granularity);
+        }
 
         if (CaretBrowsing.isWindows &&
                 (direction === "forward" ||
                     direction === "right") &&
                 granularity === "word") {
             CaretBrowsing.move("left", "character");
-        } else {
-            window.setTimeout(() => {
-                CaretBrowsing.updateCaretOrSelection(true);
-            }, 0);
         }
+    };
 
+    CaretBrowsing.finishMove = function() {
+        window.setTimeout(() => {
+            CaretBrowsing.updateCaretOrSelection(true);
+        }, 0);
         CaretBrowsing.stopAnimation();
     };
 
-    CaretBrowsing.moveToBlock = function(paragraph, boundary) {
+    CaretBrowsing.moveToBlock = function(paragraph, boundary, count = 1) {
         let action = "move";
         if (CaretBrowsing.selectionEnabled) {
             action = "extend";
         }
-        window.
-            getSelection().
-            modify(action, paragraph, "paragraph");
+        for (let i = 0; i < count; i++) {
+            window.
+                getSelection().
+                modify(action, paragraph, "paragraph");
 
-        window.
-            getSelection().
-            modify(action, boundary, "paragraphboundary");
-
-        window.setTimeout(() => {
-            CaretBrowsing.updateCaretOrSelection(true);
-        }, 0);
-
-        CaretBrowsing.stopAnimation();
+            window.
+                getSelection().
+                modify(action, boundary, "paragraphboundary");
+        }
     };
 
     CaretBrowsing.toggle = function(value) {
@@ -1232,7 +1214,6 @@ window._qutebrowser.caret = (function() {
             return true;
         }
         window.setTimeout(() => {
-            CaretBrowsing.targetX = null;
             CaretBrowsing.updateCaretOrSelection(false);
         }, 0);
         return true;
@@ -1250,7 +1231,6 @@ window._qutebrowser.caret = (function() {
             CaretBrowsing.updateCaretOrSelection(true);
         } else if (!CaretBrowsing.isCaretVisible &&
             CaretBrowsing.caretElement) {
-            window.clearInterval(CaretBrowsing.blinkFunctionId);
             if (CaretBrowsing.caretElement) {
                 CaretBrowsing.isSelectionCollapsed = false;
                 CaretBrowsing.caretElement.parentElement.removeChild(
@@ -1271,14 +1251,20 @@ window._qutebrowser.caret = (function() {
     };
 
     CaretBrowsing.startAnimation = function() {
-        CaretBrowsing.caretElement.style.animationIterationCount = "infinite";
+        if (CaretBrowsing.caretElement) {
+            CaretBrowsing.caretElement.style.animationIterationCount = "infinite";
+        }
     };
 
     CaretBrowsing.stopAnimation = function() {
-        CaretBrowsing.caretElement.style.animationIterationCount = 0;
-        window.setTimeout(() => {
-            CaretBrowsing.startAnimation();
-        }, 1000);
+        if (CaretBrowsing.caretElement) {
+            CaretBrowsing.caretElement.style.animationIterationCount = 0;
+            window.clearTimeout(CaretBrowsing.animationFunctionId);
+
+            CaretBrowsing.animationFunctionId = window.setTimeout(() => {
+                CaretBrowsing.startAnimation();
+            }, 1000);
+        }
     };
 
     CaretBrowsing.init = function() {
@@ -1318,9 +1304,9 @@ window._qutebrowser.caret = (function() {
         return CaretBrowsing.selectionEnabled;
     };
 
-    funcs.setPlatform = (platform, qtVersion) => {
-        CaretBrowsing.isWindows = platform.startsWith("win");
-        CaretBrowsing.isOldQt = qtVersion === "5.7.1";
+    funcs.setFlags = (flags) => {
+        CaretBrowsing.isWindows = flags.includes("windows");
+        CaretBrowsing.needsFilterPrefix = flags.includes("filter-prefix");
     };
 
     funcs.disableCaret = () => {
@@ -1331,67 +1317,80 @@ window._qutebrowser.caret = (function() {
         CaretBrowsing.toggle();
     };
 
-    funcs.moveRight = () => {
+    funcs.moveRight = (count = 1) => {
+        CaretBrowsing.move("right", "character", count);
+        CaretBrowsing.finishMove();
+    };
+
+    funcs.moveLeft = (count = 1) => {
+        CaretBrowsing.move("left", "character", count);
+        CaretBrowsing.finishMove();
+    };
+
+    funcs.moveDown = (count = 1) => {
+        CaretBrowsing.move("forward", "line", count);
+        CaretBrowsing.finishMove();
+    };
+
+    funcs.moveUp = (count = 1) => {
+        CaretBrowsing.move("backward", "line", count);
+        CaretBrowsing.finishMove();
+    };
+
+    funcs.moveToEndOfWord = (count = 1) => {
+        CaretBrowsing.move("forward", "word", count);
+        CaretBrowsing.finishMove();
+    };
+
+    funcs.moveToNextWord = (count = 1) => {
+        CaretBrowsing.move("forward", "word", count);
         CaretBrowsing.move("right", "character");
+        CaretBrowsing.finishMove();
     };
 
-    funcs.moveLeft = () => {
-        CaretBrowsing.move("left", "character");
-    };
-
-    funcs.moveDown = () => {
-        CaretBrowsing.move("forward", "line");
-    };
-
-    funcs.moveUp = () => {
-        CaretBrowsing.move("backward", "line");
-    };
-
-    funcs.moveToEndOfWord = () => {
-        funcs.moveToNextWord();
-        funcs.moveLeft();
-    };
-
-    funcs.moveToNextWord = () => {
-        CaretBrowsing.move("forward", "word");
-        funcs.moveRight();
-    };
-
-    funcs.moveToPreviousWord = () => {
-        CaretBrowsing.move("backward", "word");
+    funcs.moveToPreviousWord = (count = 1) => {
+        CaretBrowsing.move("backward", "word", count);
+        CaretBrowsing.finishMove();
     };
 
     funcs.moveToStartOfLine = () => {
         CaretBrowsing.move("left", "lineboundary");
+        CaretBrowsing.finishMove();
     };
 
     funcs.moveToEndOfLine = () => {
         CaretBrowsing.move("right", "lineboundary");
+        CaretBrowsing.finishMove();
     };
 
-    funcs.moveToStartOfNextBlock = () => {
-        CaretBrowsing.moveToBlock("forward", "backward");
+    funcs.moveToStartOfNextBlock = (count = 1) => {
+        CaretBrowsing.moveToBlock("forward", "backward", count);
+        CaretBrowsing.finishMove();
     };
 
-    funcs.moveToStartOfPrevBlock = () => {
-        CaretBrowsing.moveToBlock("backward", "backward");
+    funcs.moveToStartOfPrevBlock = (count = 1) => {
+        CaretBrowsing.moveToBlock("backward", "backward", count);
+        CaretBrowsing.finishMove();
     };
 
-    funcs.moveToEndOfNextBlock = () => {
-        CaretBrowsing.moveToBlock("forward", "forward");
+    funcs.moveToEndOfNextBlock = (count = 1) => {
+        CaretBrowsing.moveToBlock("forward", "forward", count);
+        CaretBrowsing.finishMove();
     };
 
-    funcs.moveToEndOfPrevBlock = () => {
-        CaretBrowsing.moveToBlock("backward", "forward");
+    funcs.moveToEndOfPrevBlock = (count = 1) => {
+        CaretBrowsing.moveToBlock("backward", "forward", count);
+        CaretBrowsing.finishMove();
     };
 
     funcs.moveToStartOfDocument = () => {
         CaretBrowsing.move("backward", "documentboundary");
+        CaretBrowsing.finishMove();
     };
 
     funcs.moveToEndOfDocument = () => {
         CaretBrowsing.move("forward", "documentboundary");
-        funcs.moveLeft();
+        CaretBrowsing.finishMove();
     };
 
     funcs.dropSelection = () => {

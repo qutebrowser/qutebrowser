@@ -25,9 +25,17 @@ demonstration can be seen here: https://i.imgur.com/KN3XuZP.gif.
 USAGE = """The domain of the site has to appear as a segment in the pass path, for example: "github.com/cryzed" or
 "websites/github.com". How the username and password are determined is freely configurable using the CLI arguments. The
 login information is inserted by emulating key events using qutebrowser's fake-key command in this manner:
-[USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms."""
+[USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms.
 
-EPILOG = """Dependencies: tldextract (Python 3 module), pass.
+Suggested bindings similar to Uzbl's `formfiller` script:
+
+    config.bind('<z><l>', 'spawn --userscript qute-pass')
+    config.bind('<z><u><l>', 'spawn --userscript qute-pass --username-only')
+    config.bind('<z><p><l>', 'spawn --userscript qute-pass --password-only')
+    config.bind('<z><o><l>', 'spawn --userscript qute-pass --otp-only')
+"""
+
+EPILOG = """Dependencies: tldextract (Python 3 module), pass, pass-otp (optional).
 For issues and feedback please use: https://github.com/cryzed/qutebrowser-userscripts.
 
 WARNING: The login details are viewable as plaintext in qutebrowser's debug log (qute://log) and might be shared if
@@ -66,6 +74,7 @@ argument_parser.add_argument('--merge-candidates', '-m', action='store_true',
 group = argument_parser.add_mutually_exclusive_group()
 group.add_argument('--username-only', '-e', action='store_true', help='Only insert username')
 group.add_argument('--password-only', '-w', action='store_true', help='Only insert password')
+group.add_argument('--otp-only', '-o', action='store_true', help='Only insert OTP code')
 
 stderr = functools.partial(print, file=sys.stderr)
 
@@ -87,7 +96,7 @@ def qute_command(command):
 
 def find_pass_candidates(domain, password_store_path):
     candidates = []
-    for path, directories, file_names in os.walk(password_store_path):
+    for path, directories, file_names in os.walk(password_store_path, followlinks=True):
         if directories or domain not in path.split(os.path.sep):
             continue
 
@@ -98,9 +107,17 @@ def find_pass_candidates(domain, password_store_path):
     return candidates
 
 
-def pass_(path, encoding):
-    process = subprocess.run(['pass', path], stdout=subprocess.PIPE)
+def _run_pass(command, encoding):
+    process = subprocess.run(command, stdout=subprocess.PIPE)
     return process.stdout.decode(encoding).strip()
+
+
+def pass_(path, encoding):
+    return _run_pass(['pass', path], encoding)
+
+
+def pass_otp(path, encoding):
+    return _run_pass(['pass', 'otp', path], encoding)
 
 
 def dmenu(items, invocation, encoding):
@@ -152,7 +169,7 @@ def main(arguments):
 
     # Match username
     target = selection if arguments.username_target == 'path' else secret
-    match = re.match(arguments.username_pattern, target)
+    match = re.search(arguments.username_pattern, target, re.MULTILINE)
     if not match:
         stderr('Failed to match username pattern on {}!'.format(arguments.username_target))
         return ExitCodes.COULD_NOT_MATCH_USERNAME
@@ -169,6 +186,9 @@ def main(arguments):
         fake_key_raw(username)
     elif arguments.password_only:
         fake_key_raw(password)
+    elif arguments.otp_only:
+        otp = pass_otp(selection, arguments.io_encoding)
+        fake_key_raw(otp)
     else:
         # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
         # back into insert-mode, so the form can be directly submitted by hitting enter afterwards

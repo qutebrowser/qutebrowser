@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=qutebrowser
 GenericName=Web Browser
+Comment=A keyboard-driven, vim-like browser based on PyQt5
 Icon=qutebrowser
 Type=Application
 Categories=Network;WebBrowser;

@@ -49,7 +49,7 @@ def string_escape(text):
     return text
 
 
-def _convert_js_arg(arg):
+def to_js(arg):
     """Convert the given argument so it's the equivalent in JS."""
     if arg is None:
         return 'undefined'
@@ -59,6 +59,8 @@ def _convert_js_arg(arg):
         return str(arg).lower()
     elif isinstance(arg, (int, float)):
         return str(arg)
+    elif isinstance(arg, list):
+        return '[{}]'.format(', '.join(to_js(e) for e in arg))
     else:
         raise TypeError("Don't know how to handle {!r} of type {}!".format(
             arg, type(arg).__name__))
@@ -66,7 +68,7 @@ def _convert_js_arg(arg):
 
 def assemble(module, function, *args):
     """Assemble a javascript file and a function call."""
-    js_args = ', '.join(_convert_js_arg(arg) for arg in args)
+    js_args = ', '.join(to_js(arg) for arg in args)
     if module == 'window':
         parts = ['window', function]
     else:

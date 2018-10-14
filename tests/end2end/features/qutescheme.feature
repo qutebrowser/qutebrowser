@@ -73,7 +73,16 @@ Feature: Special qute:// pages
         And I open qute://help/index.html/../ without waiting
         Then qute://help/ should be loaded
 
-    Scenario: Opening a link with qute://help/img/
+    @qtwebengine_skip
+    Scenario: Opening a link with qute://help/img/ (QtWebKit)
+        When the documentation is up to date
+        And I open qute://help/img/ without waiting
+        Then "*Error while * qute://*" should be logged
+        And "*Is a directory*" should be logged
+        And "* url='qute://help/img'* LoadStatus.error" should be logged
+
+    @qtwebkit_skip
+    Scenario: Opening a link with qute://help/img/ (QtWebEngine)
         When the documentation is up to date
         And I open qute://help/img/ without waiting
         Then "*Error while * qute://*" should be logged
@@ -98,8 +107,8 @@ Feature: Special qute:// pages
 
     # qute://settings
 
-    # Sometimes, an unrelated value gets set
-    @flaky
+    # Sometimes, an unrelated value gets set, which also breaks other tests
+    @skip
     Scenario: Focusing input fields in qute://settings and entering valid value
         When I set search.ignore_case to never
         And I open qute://settings
@@ -116,7 +125,8 @@ Feature: Special qute:// pages
         Then the option search.ignore_case should be set to always
 
     # Sometimes, an unrelated value gets set
-    @flaky
+    # Too flaky...
+    @skip
     Scenario: Focusing input fields in qute://settings and entering invalid value
         When I open qute://settings
         # scroll to the right - the table does not fit in the default screen
@@ -130,36 +140,86 @@ Feature: Special qute:// pages
         And I press the key "<Tab>"
         Then "Invalid value 'foo' *" should be logged
 
+    @qtwebkit_skip
+    Scenario: qute://settings CSRF via img (webengine)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-img
+        Then "Blocking malicious request from http://localhost:*/data/misc/qutescheme_csrf.html to qute://settings/set?*" should be logged
+
+    @qtwebkit_skip
+    Scenario: qute://settings CSRF via link (webengine)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-link
+        Then "Blocking malicious request from qute://settings/set?* to qute://settings/set?*" should be logged
+
+    @qtwebkit_skip
+    Scenario: qute://settings CSRF via redirect (webengine)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-redirect
+        Then "Blocking malicious request from qute://settings/set?* to qute://settings/set?*" should be logged
+
+    @qtwebkit_skip
+    Scenario: qute://settings CSRF via form (webengine)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-form
+        Then "Blocking malicious request from qute://settings/set?* to qute://settings/set?*" should be logged
+
+    @qtwebkit_skip
+    Scenario: qute://settings CSRF token (webengine)
+        When I open qute://settings
+        And I run :jseval const xhr = new XMLHttpRequest(); xhr.open("GET", "qute://settings/set"); xhr.send()
+        Then "RequestDeniedError while handling qute://* URL" should be logged
+        And the error "Invalid CSRF token for qute://settings!" should be shown
+
+    @qtwebengine_skip
+    Scenario: qute://settings CSRF via img (webkit)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-img
+        Then "Blocking malicious request from http://localhost:*/data/misc/qutescheme_csrf.html to qute://settings/set?*" should be logged
+
+    @qtwebengine_skip
+    Scenario: qute://settings CSRF via link (webkit)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-link
+        Then "Blocking malicious request from http://localhost:*/data/misc/qutescheme_csrf.html to qute://settings/set?*" should be logged
+        And "Error while loading qute://settings/set?*: Invalid qute://settings request" should be logged
+
+    @qtwebengine_skip
+    Scenario: qute://settings CSRF via redirect (webkit)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-redirect
+        Then "Blocking malicious request from http://localhost:*/data/misc/qutescheme_csrf.html to qute://settings/set?*" should be logged
+        And "Error while loading qute://settings/set?*: Invalid qute://settings request" should be logged
+
+    @qtwebengine_skip
+    Scenario: qute://settings CSRF via form (webkit)
+        When I open data/misc/qutescheme_csrf.html
+        And I run :click-element id via-form
+        Then "Error while loading qute://settings/set?*: Unsupported request type" should be logged
+
     # pdfjs support
 
-    @qtwebengine_skip: pdfjs is not implemented yet
     Scenario: pdfjs is used for pdf files
         Given pdfjs is available
         When I set content.pdfjs to true
-        And I open data/misc/test.pdf
+        And I open data/misc/test.pdf without waiting
         Then the javascript message "PDF * [*] (PDF.js: *)" should be logged
 
-    @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: pdfjs is not used when disabled
         When I set content.pdfjs to false
         And I set downloads.location.prompt to false
-        And I open data/misc/test.pdf
+        And I open data/misc/test.pdf without waiting
         Then "Download test.pdf finished" should be logged
 
-    @qtwebengine_skip: pdfjs is not implemented yet
+    @qtwebengine_skip: Might work with Qt 5.12
     Scenario: Downloading a pdf via pdf.js button (issue 1214)
         Given pdfjs is available
-        # WORKAROUND to prevent the "Painter ended with 2 saved states" warning
-        # Might be related to https://bugreports.qt.io/browse/QTBUG-13524 and
-        # a weird interaction with the previous test.
-        And I have a fresh instance
         When I set content.pdfjs to true
-        And I set downloads.location.suggestion to filename
         And I set downloads.location.prompt to true
-        And I open data/misc/test.pdf
+        And I open data/misc/test.pdf without waiting
         And I wait for "[qute://pdfjs/*] PDF * (PDF.js: *)" in the log
         And I run :jseval document.getElementById("download").click()
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='test.pdf' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=* mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
         And I run :leave-mode
         Then no crash should happen
 

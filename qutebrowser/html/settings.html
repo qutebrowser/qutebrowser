@@ -3,7 +3,8 @@
 {% block script %}
 var cset = function(option, value) {
   // FIXME:conf we might want some error handling here?
-  var url = "qute://settings/set?option=" + encodeURIComponent(option);
+  var url = "qute://user:{{csrf_token}}@settings/set"
+  url += "?option=" + encodeURIComponent(option);
   url += "&value=" + encodeURIComponent(value);
   var xhr = new XMLHttpRequest();
   xhr.open("GET", url);
@@ -33,7 +34,7 @@ input { width: 98%; }
         <th>Setting</th>
         <th>Value</th>
     </tr>
-  {% for option in configdata.DATA.values() if not option.no_autoconfig %}
+  {% for option in configdata.DATA.values()|sort(attribute='name') if not option.no_autoconfig %}
     <tr>
       <!-- FIXME: convert to string properly -->
       <td class="setting">{{ option.name }} (Current: {{ confget(option.name) | string |truncate(100) }})

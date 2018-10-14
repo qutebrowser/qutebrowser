@@ -46,7 +46,8 @@ class GreasemonkeyScript:
 
     """Container class for userscripts, parses metadata blocks."""
 
-    def __init__(self, properties, code):
+    def __init__(self, properties, code,  # noqa: C901 pragma: no mccabe
+                 filename=None):
         self._code = code
         self.includes = []
         self.matches = []
@@ -58,6 +59,7 @@ class GreasemonkeyScript:
         self.run_at = None
         self.script_meta = None
         self.runs_on_sub_frames = True
+        self.jsworld = "main"
         for name, value in properties:
             if name == 'name':
                 self.name = value
@@ -77,12 +79,22 @@ class GreasemonkeyScript:
                 self.runs_on_sub_frames = False
             elif name == 'require':
                 self.requires.append(value)
+            elif name == 'qute-js-world':
+                self.jsworld = value
+
+        if not self.name:
+            if filename:
+                self.name = filename
+            else:
+                raise ValueError(
+                    "@name key required or pass filename to init."
+                )
 
     HEADER_REGEX = r'// ==UserScript==|\n+// ==/UserScript==\n'
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s*(?P<val>.*)'
 
     @classmethod
-    def parse(cls, source):
+    def parse(cls, source, filename=None):
         """GreasemonkeyScript factory.
 
         Takes a userscript source and returns a GreasemonkeyScript.
@@ -94,7 +106,11 @@ class GreasemonkeyScript:
             _head, props, _code = matches
         except ValueError:
             props = ""
-        script = cls(re.findall(cls.PROPS_REGEX, props), source)
+        script = cls(
+            re.findall(cls.PROPS_REGEX, props),
+            source,
+            filename=filename
+        )
         script.script_meta = props
         if not script.includes and not script.matches:
             script.includes = ['*']
@@ -118,7 +134,7 @@ class GreasemonkeyScript:
             scriptName=javascript.string_escape(
                 "/".join([self.namespace or '', self.name])),
             scriptInfo=self._meta_json(),
-            scriptMeta=javascript.string_escape(self.script_meta),
+            scriptMeta=javascript.string_escape(self.script_meta or ''),
             scriptSource=self._code,
             use_proxy=use_proxy)
 
@@ -142,7 +158,7 @@ class GreasemonkeyScript:
 
 
 @attr.s
-class MatchingScripts(object):
+class MatchingScripts:
 
     """All userscripts registered to run on a particular url."""
 
@@ -231,8 +247,9 @@ class GreasemonkeyManager(QObject):
             if not os.path.isfile(script_filename):
                 continue
             script_path = os.path.join(scripts_dir, script_filename)
-            with open(script_path, encoding='utf-8') as script_file:
-                script = GreasemonkeyScript.parse(script_file.read())
+            with open(script_path, encoding='utf-8-sig') as script_file:
+                script = GreasemonkeyScript.parse(script_file.read(),
+                                                  script_filename)
                 if not script.name:
                     script.name = script_filename
                 self.add_script(script, force)

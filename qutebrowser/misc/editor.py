@@ -140,11 +140,9 @@ class ExternalEditor(QObject):
         # the file from the external editor, see
         # https://github.com/qutebrowser/qutebrowser/issues/1767
         with tempfile.NamedTemporaryFile(
-                # pylint: disable=bad-continuation
                 mode='w', prefix=prefix,
                 encoding=config.val.editor.encoding,
                 delete=False) as fobj:
-                # pylint: enable=bad-continuation
             if text:
                 fobj.write(text)
             return fobj.name

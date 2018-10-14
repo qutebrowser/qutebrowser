@@ -492,6 +492,17 @@ class TestConfig:
         expected = False if fallback else configutils.UNSET
         assert val == expected
 
+    @pytest.mark.parametrize('fallback, expected', [
+        (True, True),
+        (False, configutils.UNSET)
+    ])
+    def test_get_for_url_fallback(self, conf, fallback, expected):
+        """Test conf.get() with an URL and fallback."""
+        value = conf.get('content.javascript.enabled',
+                         url=QUrl('https://example.com/'),
+                         fallback=fallback)
+        assert value is expected
+
     @pytest.mark.parametrize('value', [{}, {'normal': {'a': 'nop'}}])
     def test_get_bindings(self, config_stub, conf, value):
         """Test conf.get() with bindings which have missing keys."""
@@ -654,8 +665,8 @@ class TestConfig:
         meth = getattr(conf, method)
         with pytest.raises(configexc.BackendError):
             with qtbot.assert_not_emitted(conf.changed):
-                meth('content.cookies.accept', 'all')
-        assert not conf._values['content.cookies.accept']
+                meth('hints.find_implementation', 'javascript')
+        assert not conf._values['hints.find_implementation']
 
     @pytest.mark.parametrize('method, value', [
         ('set_obj', {}),

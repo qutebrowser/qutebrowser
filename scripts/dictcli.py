@@ -36,6 +36,7 @@ import attr
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import configdata
+from qutebrowser.utils import standarddir
 
 
 API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/master/'
@@ -257,6 +258,8 @@ def remove_old(languages):
 def main():
     if configdata.DATA is None:
         configdata.init()
+    standarddir.init(None)
+
     parser = get_argparser()
     argv = sys.argv[1:]
     args = parser.parse_args(argv)

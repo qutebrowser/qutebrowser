@@ -228,7 +228,7 @@ Feature: Saving and loading sessions
             url: http://localhost:*/data/hello.txt
 
   # Seems like that bug is fixed upstream in QtWebEngine
-  @qtwebkit_skip
+  @qtwebkit_skip @flaky
   Scenario: Saving a session with a page using history.replaceState() and navigating away
     When I open data/sessions/history_replace_state.html without waiting
     And I wait for "* Called history.replaceState" in the log
@@ -363,7 +363,7 @@ Feature: Saving and loading sessions
     And I replace "about:blank" by "http://localhost:(port)/data/numbers/2.txt" in the "loaded_session" session file
     And I run :session-load loaded_session
     Then data/numbers/2.txt should be loaded
-  
+
   @qtwebengine_flaky
   Scenario: Loading and deleting a session
     When I open about:blank

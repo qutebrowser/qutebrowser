@@ -135,6 +135,10 @@ class WebEngineElement(webelem.AbstractWebElement):
     def set_value(self, value):
         self._js_call('set_value', value)
 
+    def dispatch_event(self, event, bubbles=False,
+                       cancelable=False, composed=False):
+        self._js_call('dispatch_event', event, bubbles, cancelable, composed)
+
     def caret_position(self):
         """Get the text caret position for the current element.
 
@@ -203,6 +207,8 @@ class WebEngineElement(webelem.AbstractWebElement):
         url = self.resolve_url(baseurl)
         if url is None:
             return True
+        if baseurl.scheme() == url.scheme():  # e.g. a qute:// link
+            return False
         return url.scheme() not in urlutils.WEBENGINE_SCHEMES
 
     def _click_editable(self, click_target):

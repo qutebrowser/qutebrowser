@@ -166,7 +166,7 @@ def clean_open_tabs(quteproc):
 
 
 @bdd.given('pdfjs is available')
-def pdfjs_available():
+def pdfjs_available(data_tmpdir):
     if not pdfjs.is_available():
         pytest.skip("No pdfjs installation found.")
 

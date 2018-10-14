@@ -276,7 +276,24 @@ class YamlConfig(QObject):
             del settings['bindings.default']
             self._mark_changed()
 
+        # content.webrtc_public_interfaces_only got merged into
+        # content.webrtc_ip_handling_policy.
+        old = 'content.webrtc_public_interfaces_only'
+        new = 'content.webrtc_ip_handling_policy'
+        if old in settings:
+            settings[new] = {}
+            for scope, val in settings[old].items():
+                if val:
+                    settings[new][scope] = 'default-public-interface-only'
+                else:
+                    settings[new][scope] = 'all-interfaces'
+
+            del settings[old]
+            self._mark_changed()
+
         self._migrate_bool(settings, 'tabs.favicons.show', 'always', 'never')
+        self._migrate_bool(settings, 'scrolling.bar',
+                           'when-searching', 'never')
         self._migrate_bool(settings, 'qt.force_software_rendering',
                            'software-opengl', 'none')
 

@@ -22,7 +22,7 @@
 import functools
 
 import attr
-from PyQt5.QtWidgets import QSizePolicy, QWidget
+from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 from PyQt5.QtGui import QIcon
 
@@ -462,6 +462,8 @@ class TabbedBrowser(QWidget):
                           "related {}, idx {}".format(
                               url, background, related, idx))
 
+        prev_focus = QApplication.focusWidget()
+
         if (config.val.tabs.tabs_are_windows and self.widget.count() > 0 and
                 not ignore_tabs_are_windows):
             window = mainwindow.MainWindow(private=self.private)
@@ -491,11 +493,21 @@ class TabbedBrowser(QWidget):
             tab.resize(self.widget.currentWidget().size())
             self.widget.tab_index_changed.emit(self.widget.currentIndex(),
                                                self.widget.count())
+            # Refocus webview in case we lost it by spawning a bg tab
+            self.widget.currentWidget().setFocus()
         else:
             self.widget.setCurrentWidget(tab)
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
             # Still seems to be needed with Qt 5.11.1
             tab.setFocus()
+
+        mode = modeman.instance(self._win_id).mode
+        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
+                    usertypes.KeyMode.yesno]:
+            # If we were in a command prompt, restore old focus
+            # The above commands need to be run to switch tabs
+            if prev_focus is not None:
+                prev_focus.setFocus()
 
         tab.show()
         self.new_tab.emit(tab, idx)
@@ -515,14 +527,20 @@ class TabbedBrowser(QWidget):
         else:
             pos = config.val.tabs.new_position.unrelated
         if pos == 'prev':
-            idx = self._tab_insert_idx_left
-            # On first sight, we'd think we have to decrement
-            # self._tab_insert_idx_left here, as we want the next tab to be
-            # *before* the one we just opened. However, since we opened a tab
-            # *before* the currently focused tab, indices will shift by
-            # 1 automatically.
+            if config.val.tabs.new_position.stacking:
+                idx = self._tab_insert_idx_left
+                # On first sight, we'd think we have to decrement
+                # self._tab_insert_idx_left here, as we want the next tab to be
+                # *before* the one we just opened. However, since we opened a
+                # tab *before* the currently focused tab, indices will shift by
+                # 1 automatically.
+            else:
+                idx = self.widget.currentIndex()
         elif pos == 'next':
-            idx = self._tab_insert_idx_right
+            if config.val.tabs.new_position.stacking:
+                idx = self._tab_insert_idx_right
+            else:
+                idx = self.widget.currentIndex() + 1
             self._tab_insert_idx_right += 1
         elif pos == 'first':
             idx = 0
@@ -634,23 +652,31 @@ class TabbedBrowser(QWidget):
             self.widget.window().setWindowIcon(icon)
 
     @pyqtSlot(usertypes.KeyMode)
+    def on_mode_entered(self, mode):
+        """Save input mode when tabs.mode_on_change = restore."""
+        if (config.val.tabs.mode_on_change == 'restore' and
+                mode in modeman.INPUT_MODES):
+            tab = self.widget.currentWidget()
+            if tab is not None:
+                tab.data.input_mode = mode
+
+    @pyqtSlot(usertypes.KeyMode)
     def on_mode_left(self, mode):
         """Give focus to current tab if command mode was left."""
-        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno]:
-            widget = self.widget.currentWidget()
+        widget = self.widget.currentWidget()
+        if widget is None:
+            return
+        if mode in [usertypes.KeyMode.command] + modeman.PROMPT_MODES:
             log.modes.debug("Left status-input mode, focusing {!r}".format(
                 widget))
-            if widget is None:
-                return
             widget.setFocus()
+        if config.val.tabs.mode_on_change == 'restore':
+            widget.data.input_mode = usertypes.KeyMode.normal
 
     @pyqtSlot(int)
     def on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
         mode_on_change = config.val.tabs.mode_on_change
-        modes_to_save = [usertypes.KeyMode.insert,
-                         usertypes.KeyMode.passthrough]
         if idx == -1 or self.shutting_down:
             # closing the last tab (before quitting) or shutting down
             return
@@ -659,26 +685,28 @@ class TabbedBrowser(QWidget):
             log.webview.debug("on_current_changed got called with invalid "
                               "index {}".format(idx))
             return
-        if self._now_focused is not None and mode_on_change == 'restore':
-            current_mode = modeman.instance(self._win_id).mode
-            if current_mode not in modes_to_save:
-                current_mode = usertypes.KeyMode.normal
-            self._now_focused.data.input_mode = current_mode
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
 
         modes_to_leave = [usertypes.KeyMode.hint, usertypes.KeyMode.caret]
-        if mode_on_change != 'persist':
-            modes_to_leave += modes_to_save
+
+        mm_instance = modeman.instance(self._win_id)
+        current_mode = mm_instance.mode
+        log.modes.debug("Mode before tab change: {} (mode_on_change = {})"
+                        .format(current_mode.name, mode_on_change))
+        if mode_on_change == 'normal':
+            modes_to_leave += modeman.INPUT_MODES
         for mode in modes_to_leave:
             modeman.leave(self._win_id, mode, 'tab changed', maybe=True)
-        if mode_on_change == 'restore':
-            modeman.enter(self._win_id, tab.data.input_mode,
-                          'restore input mode for tab')
+        if (mode_on_change == 'restore' and
+                current_mode not in modeman.PROMPT_MODES):
+            modeman.enter(self._win_id, tab.data.input_mode, 'restore')
         if self._now_focused is not None:
             objreg.register('last-focused-tab', self._now_focused, update=True,
                             scope='window', window=self._win_id)
+        log.modes.debug("Mode after tab change: {} (mode_on_change = {})"
+                        .format(current_mode.name, mode_on_change))
         self._now_focused = tab
         self.current_tab_changed.emit(tab)
         QTimer.singleShot(0, self._update_window_title)
@@ -697,9 +725,9 @@ class TabbedBrowser(QWidget):
         except TabDeletedError:
             # We can get signals for tabs we already deleted...
             return
-        start = config.val.colors.tabs.indicator.start
-        stop = config.val.colors.tabs.indicator.stop
-        system = config.val.colors.tabs.indicator.system
+        start = config.cache['colors.tabs.indicator.start']
+        stop = config.cache['colors.tabs.indicator.stop']
+        system = config.cache['colors.tabs.indicator.system']
         color = utils.interpolate_color(start, stop, perc, system)
         self.widget.set_tab_indicator_color(idx, color)
         self.widget.update_tab_title(idx)

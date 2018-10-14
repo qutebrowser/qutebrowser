@@ -61,13 +61,14 @@ class TestSet:
         commands.set(win_id=0)
         assert tabbed_browser_stubs[0].opened_url == QUrl('qute://settings')
 
-    def test_get(self, config_stub, commands, message_mock):
-        """Run ':set url.auto_search?'.
+    @pytest.mark.parametrize('option', ['url.auto_search?', 'url.auto_search'])
+    def test_get(self, config_stub, commands, message_mock, option):
+        """Run ':set url.auto_search?' / ':set url.auto_search'.
 
         Should show the value.
         """
         config_stub.val.url.auto_search = 'never'
-        commands.set(win_id=0, option='url.auto_search?')
+        commands.set(win_id=0, option=option)
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == 'url.auto_search = never'
 
@@ -183,17 +184,14 @@ class TestSet:
                            "not available with the QtWebEngine backend!"):
             commands.set(0, 'hints.find_implementation', 'javascript')
 
-    @pytest.mark.parametrize('option', ['?', 'url.auto_search'])
-    def test_empty(self, commands, option):
-        """Run ':set ?' / ':set url.auto_search'.
+    def test_empty(self, commands):
+        """Run ':set ?'.
 
         Should show an error.
         See https://github.com/qutebrowser/qutebrowser/issues/1109
         """
-        with pytest.raises(cmdexc.CommandError,
-                           match="The following arguments are required: "
-                                 "value"):
-            commands.set(win_id=0, option=option)
+        with pytest.raises(cmdexc.CommandError, match="No option '?'"):
+            commands.set(win_id=0, option='?')
 
     def test_toggle(self, commands):
         """Try toggling a value.
@@ -247,7 +245,7 @@ class TestCycle:
         commands.config_cycle(opt, '[foo]', '[bar]')
         assert config_stub.get(opt) == ['foo']
 
-    def test_toggle(self, commands, config_stub):
+    def test_toggle(self, commands, config_stub, yaml_value):
         """Run ':config-cycle auto_save.session'.
 
         Should toggle the value.
@@ -282,6 +280,134 @@ class TestCycle:
         commands.config_cycle('auto_save.session', print_=True)
         msg = message_mock.getmsg(usertypes.MessageLevel.info)
         assert msg.text == 'auto_save.session = true'
+
+
+class TestAdd:
+
+    """Test :config-list-add and :config-dict-add."""
+
+    @pytest.mark.parametrize('temp', [True, False])
+    @pytest.mark.parametrize('value', ['test1', 'test2'])
+    def test_list_add(self, commands, config_stub, yaml_value, temp, value):
+        name = 'content.host_blocking.whitelist'
+
+        commands.config_list_add(name, value, temp=temp)
+
+        assert str(config_stub.get(name)[-1]) == value
+        if temp:
+            assert yaml_value(name) == configutils.UNSET
+        else:
+            assert yaml_value(name)[-1] == value
+
+    def test_list_add_non_list(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match=":config-list-add can only be used for lists"):
+            commands.config_list_add('history_gap_interval', 'value')
+
+    @pytest.mark.parametrize('value', ['', None, 42])
+    def test_list_add_invalid_values(self, commands, value):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match="Invalid value '{}'".format(value)):
+            commands.config_list_add('content.host_blocking.whitelist', value)
+
+    @pytest.mark.parametrize('value', ['test1', 'test2'])
+    @pytest.mark.parametrize('temp', [True, False])
+    def test_dict_add(self, commands, config_stub, yaml_value, value, temp):
+        name = 'aliases'
+        key = 'missingkey'
+
+        commands.config_dict_add(name, key, value, temp=temp)
+
+        assert str(config_stub.get(name)[key]) == value
+        if temp:
+            assert yaml_value(name) == configutils.UNSET
+        else:
+            assert yaml_value(name)[key] == value
+
+    @pytest.mark.parametrize('replace', [True, False])
+    def test_dict_add_replace(self, commands, config_stub, replace):
+        name = 'aliases'
+        key = 'w'
+        value = 'anything'
+
+        if replace:
+            commands.config_dict_add(name, key, value, replace=True)
+            assert str(config_stub.get(name)[key]) == value
+        else:
+            with pytest.raises(
+                    cmdexc.CommandError,
+                    match="w already exists in aliases - use --replace to "
+                          "overwrite!"):
+                commands.config_dict_add(name, key, value, replace=False)
+
+    def test_dict_add_non_dict(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match=":config-dict-add can only be used for dicts"):
+            commands.config_dict_add('history_gap_interval', 'key', 'value')
+
+    @pytest.mark.parametrize('value', ['', None, 42])
+    def test_dict_add_invalid_values(self, commands, value):
+        with pytest.raises(cmdexc.CommandError,
+                           match="Invalid value '{}'".format(value)):
+            commands.config_dict_add('aliases', 'missingkey', value)
+
+
+class TestRemove:
+
+    """Test :config-list-remove and :config-dict-remove."""
+
+    @pytest.mark.parametrize('value', ['25%', '50%'])
+    @pytest.mark.parametrize('temp', [True, False])
+    def test_list_remove(self, commands, config_stub, yaml_value, value, temp):
+        name = 'zoom.levels'
+        commands.config_list_remove(name, value, temp=temp)
+
+        assert value not in config_stub.get(name)
+        if temp:
+            assert yaml_value(name) == configutils.UNSET
+        else:
+            assert value not in yaml_value(name)
+
+    def test_list_remove_non_list(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match=":config-list-remove can only be used for lists"):
+            commands.config_list_remove('content.javascript.enabled',
+                                        'never')
+
+    def test_list_remove_no_value(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match="never is not in colors.completion.fg!"):
+            commands.config_list_remove('colors.completion.fg', 'never')
+
+    @pytest.mark.parametrize('key', ['w', 'q'])
+    @pytest.mark.parametrize('temp', [True, False])
+    def test_dict_remove(self, commands, config_stub, yaml_value, key, temp):
+        name = 'aliases'
+        commands.config_dict_remove(name, key, temp=temp)
+
+        assert key not in config_stub.get(name)
+        if temp:
+            assert yaml_value(name) == configutils.UNSET
+        else:
+            assert key not in yaml_value(name)
+
+    def test_dict_remove_non_dict(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match=":config-dict-remove can only be used for dicts"):
+            commands.config_dict_remove('content.javascript.enabled',
+                                        'never')
+
+    def test_dict_remove_no_value(self, commands):
+        with pytest.raises(
+                cmdexc.CommandError,
+                match="never is not in aliases!"):
+            commands.config_dict_remove('aliases', 'never')
 
 
 class TestUnsetAndClear:

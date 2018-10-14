@@ -37,21 +37,11 @@ class TestBaseLineParser:
         """Fixture providing a BaseLineParser."""
         return lineparsermod.BaseLineParser(self.CONFDIR, self.FILENAME)
 
-    def test_prepare_save_existing(self, mocker, lineparser):
-        """Test if _prepare_save does what it's supposed to do."""
-        os_mock = mocker.patch('qutebrowser.misc.lineparser.os')
-        os_mock.path.exists.return_value = True
-
-        lineparser._prepare_save()
-        assert not os_mock.makedirs.called
-
     def test_prepare_save_missing(self, mocker, lineparser):
         """Test if _prepare_save does what it's supposed to do."""
         os_mock = mocker.patch('qutebrowser.misc.lineparser.os')
-        os_mock.path.exists.return_value = False
-
         lineparser._prepare_save()
-        os_mock.makedirs.assert_called_with(self.CONFDIR, 0o755)
+        os_mock.makedirs.assert_called_with(self.CONFDIR, 0o755, exist_ok=True)
 
     def test_double_open(self, mocker, lineparser):
         """Test if _open refuses reentry."""

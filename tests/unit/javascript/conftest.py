@@ -27,7 +27,6 @@ import jinja2
 
 from PyQt5.QtCore import QUrl
 
-import helpers.utils
 from qutebrowser.utils import utils
 
 
@@ -110,9 +109,9 @@ class JSTester:
             expected: The value expected return from the javascript execution
             world: The scope the javascript will run in
         """
-        callback_checker = helpers.utils.CallbackChecker(self.qtbot)
-        self.tab.run_js_async(source, callback_checker.callback, world=world)
-        callback_checker.check(expected)
+        with self.qtbot.wait_callback() as callback:
+            self.tab.run_js_async(source, callback, world=world)
+        callback.assert_called_with(expected)
 
 
 @pytest.fixture

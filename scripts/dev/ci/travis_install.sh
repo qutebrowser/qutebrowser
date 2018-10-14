@@ -43,11 +43,6 @@ travis_retry() {
     return $result
 }
 
-brew_install() {
-    brew update
-    brew install "$@"
-}
-
 pip_install() {
     travis_retry python3 -m pip install "$@"
 }
@@ -62,7 +57,10 @@ check_pyqt() {
     python3 <<EOF
 import sys
 from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
-from sip import SIP_VERSION_STR
+try:
+    from PyQt.sip import SIP_VERSION_STR
+except ModuleNotFoundError:
+    from sip import SIP_VERSION_STR
 
 print("Python {}".format(sys.version))
 print("PyQt5 {}".format(PYQT_VERSION_STR))
@@ -84,8 +82,8 @@ elif [[ $TRAVIS_OS_NAME == osx ]]; then
 
     brew --version
     brew update
-    brew upgrade python
-    brew install qt5 pyqt5 libyaml
+    brew upgrade python libyaml
+    brew install qt5 pyqt5
 
     pip_install -r misc/requirements/requirements-tox.txt
     python3 -m pip --version

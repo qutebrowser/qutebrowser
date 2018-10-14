@@ -22,7 +22,6 @@
 import html
 import functools
 
-import sip
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
@@ -31,10 +30,11 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import config
-from qutebrowser.browser import pdfjs, shared
+from qutebrowser.browser import pdfjs, shared, downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import message, usertypes, log, jinja, objreg
+from qutebrowser.qt import sip
 
 
 class BrowserPage(QWebPage):
@@ -206,17 +206,6 @@ class BrowserPage(QWebPage):
                                                           suggested_file)
         return True
 
-    def _show_pdfjs(self, reply):
-        """Show the reply with pdfjs."""
-        try:
-            page = pdfjs.generate_pdfjs_page(reply.url())
-        except pdfjs.PDFJSNotFound:
-            page = jinja.render('no_pdfjs.html',
-                                url=reply.url().toDisplayString())
-        self.mainFrame().setContent(page.encode('utf-8'), 'text/html',
-                                    reply.url())
-        reply.deleteLater()
-
     def shutdown(self):
         """Prepare the web page for being deleted."""
         self._is_shutting_down = True
@@ -279,10 +268,10 @@ class BrowserPage(QWebPage):
             else:
                 reply.finished.connect(functools.partial(
                     self.display_content, reply, 'image/jpeg'))
-        elif (mimetype in ['application/pdf', 'application/x-pdf'] and
-              config.val.content.pdfjs):
-            # Use pdf.js to display the page
-            self._show_pdfjs(reply)
+        elif pdfjs.should_use_pdfjs(mimetype, reply.url()):
+            download_manager.fetch(reply,
+                                   target=downloads.PDFJSDownloadTarget(),
+                                   auto_remove=True)
         else:
             # Unknown mimetype, so download anyways.
             download_manager.fetch(reply,
@@ -415,7 +404,7 @@ class BrowserPage(QWebPage):
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
-        ua = config.val.content.headers.user_agent
+        ua = config.instance.get('content.headers.user_agent', url=url)
         if ua is None:
             return super().userAgentForUrl(url)
         else:

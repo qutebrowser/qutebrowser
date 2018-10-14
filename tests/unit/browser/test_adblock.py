@@ -28,12 +28,13 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import adblock
+from qutebrowser.utils import urlmatch
 
 pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
 # TODO See ../utils/test_standarddirutils for OSError and caplog assertion
 
-WHITELISTED_HOSTS = ('qutebrowser.org', 'mediumhost.io')
+WHITELISTED_HOSTS = ('qutebrowser.org', 'mediumhost.io', 'http://*.edu')
 
 BLOCKLIST_HOSTS = ('localhost',
                    'mediumhost.io',
@@ -50,7 +51,8 @@ URLS_TO_CHECK = ('http://localhost',
                  'http://ads.worsthostever.net',
                  'http://goodhost.gov',
                  'ftp://verygoodhost.com',
-                 'http://qutebrowser.org')
+                 'http://qutebrowser.org',
+                 'http://veryverygoodhost.edu')
 
 
 class BaseDirStub:
@@ -215,6 +217,23 @@ def test_disabled_blocking_update(basedir, config_stub, download_stub,
         assert not host_blocker.is_blocked(QUrl(str_url))
 
 
+def test_disabled_blocking_per_url(config_stub, data_tmpdir):
+    example_com = 'https://www.example.com/'
+
+    config_stub.val.content.host_blocking.lists = []
+    pattern = urlmatch.UrlPattern(example_com)
+    config_stub.set_obj('content.host_blocking.enabled', False,
+                        pattern=pattern)
+
+    url = QUrl('blocked.example.com')
+
+    host_blocker = adblock.HostBlocker()
+    host_blocker._blocked_hosts.add(url.host())
+
+    assert host_blocker.is_blocked(url)
+    assert not host_blocker.is_blocked(url, first_party_url=QUrl(example_com))
+
+
 def test_no_blocklist_update(config_stub, download_stub,
                              data_tmpdir, basedir, tmpdir, win_registry):
     """Ensure no URL is blocked when no block list exists."""
@@ -257,6 +276,33 @@ def test_parsing_multiple_hosts_on_line(config_stub, basedir, download_stub,
     bytes_host_line = ' '.join(BLOCKLIST_HOSTS).encode('utf-8')
     host_blocker._parse_line(bytes_host_line)
     assert_urls(host_blocker, whitelisted=[])
+
+
+@pytest.mark.parametrize('ip, host', [
+    ('127.0.0.1', 'localhost'),
+    ('27.0.0.1', 'localhost.localdomain'),
+    ('27.0.0.1', 'local'),
+    ('55.255.255.255', 'broadcasthost'),
+    (':1', 'localhost'),
+    (':1', 'ip6-localhost'),
+    (':1', 'ip6-loopback'),
+    ('e80::1%lo0', 'localhost'),
+    ('f00::0', 'ip6-localnet'),
+    ('f00::0', 'ip6-mcastprefix'),
+    ('f02::1', 'ip6-allnodes'),
+    ('f02::2', 'ip6-allrouters'),
+    ('ff02::3', 'ip6-allhosts'),
+    ('.0.0.0', '0.0.0.0'),
+    ('127.0.1.1', 'myhostname'),
+    ('127.0.0.53', 'myhostname'),
+])
+def test_whitelisted_lines(config_stub, basedir, download_stub, data_tmpdir,
+                           tmpdir, win_registry, caplog, ip, host):
+    """Make sure we don't block hosts we don't want to."""
+    host_blocker = adblock.HostBlocker()
+    line = ('{} {}'.format(ip, host)).encode('ascii')
+    host_blocker._parse_line(line)
+    assert host not in host_blocker._blocked_hosts
 
 
 def test_failed_dl_update(config_stub, basedir, download_stub,
@@ -402,7 +448,26 @@ def test_config_change(config_stub, basedir, download_stub,
 
     host_blocker = adblock.HostBlocker()
     host_blocker.read_hosts()
-    config_stub.set_obj('content.host_blocking.lists', None)
+    config_stub.val.content.host_blocking.lists = None
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
+
+
+def test_add_directory(config_stub, basedir, download_stub,
+                       data_tmpdir, tmpdir):
+    """Ensure adblocker can import all files in a directory."""
+    blocklist_hosts2 = []
+    for i in BLOCKLIST_HOSTS[1:]:
+        blocklist_hosts2.append('1' + i)
+
+    create_blocklist(tmpdir, blocked_hosts=BLOCKLIST_HOSTS,
+                     name='blocked-hosts', line_format='one_per_line')
+    create_blocklist(tmpdir, blocked_hosts=blocklist_hosts2,
+                     name='blocked-hosts2', line_format='one_per_line')
+
+    config_stub.val.content.host_blocking.lists = [tmpdir.strpath]
+    config_stub.val.content.host_blocking.enabled = True
+    host_blocker = adblock.HostBlocker()
+    host_blocker.adblock_update()
+    assert len(host_blocker._blocked_hosts) == len(blocklist_hosts2) * 2

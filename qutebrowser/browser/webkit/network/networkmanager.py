@@ -373,23 +373,8 @@ class NetworkManager(QNetworkAccessManager):
                     req, proxy_error, QNetworkReply.UnknownProxyError,
                     self)
 
-        scheme = req.url().scheme()
-        if scheme in self._scheme_handlers:
-            result = self._scheme_handlers[scheme](req)
-            if result is not None:
-                result.setParent(self)
-                return result
-
-        for header, value in shared.custom_headers():
+        for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
-
-        host_blocker = objreg.get('host-blocker')
-        if host_blocker.is_blocked(req.url()):
-            log.webview.info("Request to {} blocked by host blocker.".format(
-                req.url().host()))
-            return networkreply.ErrorNetworkReply(
-                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
-                self)
 
         # There are some scenarios where we can't figure out current_url:
         # - There's a generic NetworkManager, e.g. for downloads
@@ -408,6 +393,14 @@ class NetworkManager(QNetworkAccessManager):
                 # the webpage shutdown here.
                 current_url = QUrl()
 
+        host_blocker = objreg.get('host-blocker')
+        if host_blocker.is_blocked(req.url(), current_url):
+            log.webview.info("Request to {} blocked by host blocker.".format(
+                req.url().host()))
+            return networkreply.ErrorNetworkReply(
+                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
+                self)
+
         if 'log-requests' in self._args.debug_flags:
             operation = debug.qenum_key(QNetworkAccessManager, op)
             operation = operation.replace('Operation', '').upper()
@@ -415,6 +408,13 @@ class NetworkManager(QNetworkAccessManager):
                 operation,
                 req.url().toDisplayString(),
                 current_url.toDisplayString()))
+
+        scheme = req.url().scheme()
+        if scheme in self._scheme_handlers:
+            result = self._scheme_handlers[scheme](req, op, current_url)
+            if result is not None:
+                result.setParent(self)
+                return result
 
         self.set_referer(req, current_url)
         return super().createRequest(op, req, outgoing_data)

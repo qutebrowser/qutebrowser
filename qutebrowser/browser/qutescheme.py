@@ -24,62 +24,72 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
+import html
 import json
 import os
 import time
 import textwrap
-import mimetypes
 import urllib
 import collections
+import base64
 
-import pkg_resources
-import sip
-from PyQt5.QtCore import QUrlQuery, QUrl
+try:
+    import secrets
+except ImportError:
+    # New in Python 3.6
+    secrets = None
+
+from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
 import qutebrowser
+from qutebrowser.browser import pdfjs, downloads
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, urlutils)
-from qutebrowser.misc import objects
+from qutebrowser.qt import sip
 
 
 pyeval_output = ":pyeval was never called"
 spawn_output = ":spawn was never called"
+csrf_token = None
 
 
 _HANDLERS = {}
 
 
-class NoHandlerFound(Exception):
+class Error(Exception):
 
-    """Raised when no handler was found for the given URL."""
-
-    pass
-
-
-class QuteSchemeOSError(Exception):
-
-    """Called when there was an OSError inside a handler."""
+    """Exception for generic errors on a qute:// page."""
 
     pass
 
 
-class QuteSchemeError(Exception):
+class NotFoundError(Error):
 
-    """Exception to signal that a handler should return an ErrorReply.
+    """Raised when the given URL was not found."""
 
-    Attributes correspond to the arguments in
-    networkreply.ErrorNetworkReply.
+    pass
 
-    Attributes:
-        errorstring: Error string to print.
-        error: Numerical error value.
-    """
 
-    def __init__(self, errorstring, error):
-        self.errorstring = errorstring
-        self.error = error
-        super().__init__(errorstring)
+class SchemeOSError(Error):
+
+    """Raised when there was an OSError inside a handler."""
+
+    pass
+
+
+class UrlInvalidError(Error):
+
+    """Raised when an invalid URL was opened."""
+
+    pass
+
+
+class RequestDeniedError(Error):
+
+    """Raised when the request is forbidden."""
+
+    pass
 
 
 class Redirect(Exception):
@@ -101,12 +111,10 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     Attributes:
         _name: The 'foo' part of qute://foo
-        backend: Limit which backends the handler can run with.
     """
 
-    def __init__(self, name, backend=None):
+    def __init__(self, name):
         self._name = name
-        self._backend = backend
         self._function = None
 
     def __call__(self, function):
@@ -116,19 +124,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def wrapper(self, *args, **kwargs):
         """Call the underlying function."""
-        if self._backend is not None and objects.backend != self._backend:
-            return self.wrong_backend_handler(*args, **kwargs)
-        else:
-            return self._function(*args, **kwargs)
-
-    def wrong_backend_handler(self, url):
-        """Show an error page about using the invalid backend."""
-        html = jinja.render('error.html',
-                            title="Error while opening qute://url",
-                            url=url.toDisplayString(),
-                            error='{} is not available with this '
-                                  'backend'.format(url.toDisplayString()))
-        return 'text/html', html
+        return self._function(*args, **kwargs)
 
 
 def data_for_url(url):
@@ -170,15 +166,13 @@ def data_for_url(url):
     try:
         handler = _HANDLERS[host]
     except KeyError:
-        raise NoHandlerFound(url)
+        raise NotFoundError("No handler found for {}".format(
+            url.toDisplayString()))
 
     try:
         mimetype, data = handler(url)
     except OSError as e:
-        # FIXME:qtwebengine how to handle this?
-        raise QuteSchemeOSError(e)
-    except QuteSchemeError:
-        raise
+        raise SchemeOSError(e)
 
     assert mimetype is not None, url
     if mimetype == 'text/html' and isinstance(data, str):
@@ -196,11 +190,11 @@ def qute_bookmarks(_url):
     quickmarks = sorted(objreg.get('quickmark-manager').marks.items(),
                         key=lambda x: x[0])  # Sort by name
 
-    html = jinja.render('bookmarks.html',
-                        title='Bookmarks',
-                        bookmarks=bookmarks,
-                        quickmarks=quickmarks)
-    return 'text/html', html
+    src = jinja.render('bookmarks.html',
+                       title='Bookmarks',
+                       bookmarks=bookmarks,
+                       quickmarks=quickmarks)
+    return 'text/html', src
 
 
 @add_handler('tabs')
@@ -218,10 +212,10 @@ def qute_tabs(_url):
                 urlstr = tab.url().toDisplayString()
                 tabs[str(win_id)].append((tab.title(), urlstr))
 
-    html = jinja.render('tabs.html',
-                        title='Tabs',
-                        tab_list_by_window=tabs)
-    return 'text/html', html
+    src = jinja.render('tabs.html',
+                       title='Tabs',
+                       tab_list_by_window=tabs)
+    return 'text/html', src
 
 
 def history_data(start_time, offset=None):
@@ -241,8 +235,9 @@ def history_data(start_time, offset=None):
         end_time = start_time - 24*60*60
         entries = hist.entries_between(end_time, start_time)
 
-    return [{"url": e.url, "title": e.title or e.url, "time": e.atime}
-            for e in entries]
+    return [{"url": e.url,
+             "title": html.escape(e.title) or html.escape(e.url),
+             "time": e.atime} for e in entries]
 
 
 @add_handler('history')
@@ -252,14 +247,14 @@ def qute_history(url):
         try:
             offset = QUrlQuery(url).queryItemValue("offset")
             offset = int(offset) if offset else None
-        except ValueError as e:
-            raise QuteSchemeError("Query parameter offset is invalid", e)
+        except ValueError:
+            raise UrlInvalidError("Query parameter offset is invalid")
         # Use start_time in query or current time.
         try:
             start_time = QUrlQuery(url).queryItemValue("start_time")
             start_time = float(start_time) if start_time else time.time()
-        except ValueError as e:
-            raise QuteSchemeError("Query parameter start_time is invalid", e)
+        except ValueError:
+            raise UrlInvalidError("Query parameter start_time is invalid")
 
         return 'text/html', json.dumps(history_data(start_time, offset))
     else:
@@ -281,31 +276,31 @@ def qute_javascript(url):
         path = "javascript" + os.sep.join(path.split('/'))
         return 'text/html', utils.read_file(path, binary=False)
     else:
-        raise QuteSchemeError("No file specified", ValueError())
+        raise UrlInvalidError("No file specified")
 
 
 @add_handler('pyeval')
 def qute_pyeval(_url):
     """Handler for qute://pyeval."""
-    html = jinja.render('pre.html', title='pyeval', content=pyeval_output)
-    return 'text/html', html
+    src = jinja.render('pre.html', title='pyeval', content=pyeval_output)
+    return 'text/html', src
 
 
 @add_handler('spawn-output')
 def qute_spawn_output(_url):
     """Handler for qute://spawn-output."""
-    html = jinja.render('pre.html', title='spawn output', content=spawn_output)
-    return 'text/html', html
+    src = jinja.render('pre.html', title='spawn output', content=spawn_output)
+    return 'text/html', src
 
 
 @add_handler('version')
 @add_handler('verizon')
 def qute_version(_url):
     """Handler for qute://version."""
-    html = jinja.render('version.html', title='Version info',
-                        version=version.version(),
-                        copyright=qutebrowser.__copyright__)
-    return 'text/html', html
+    src = jinja.render('version.html', title='Version info',
+                       version=version.version(),
+                       copyright=qutebrowser.__copyright__)
+    return 'text/html', src
 
 
 @add_handler('plainlog')
@@ -323,8 +318,8 @@ def qute_plainlog(url):
         if not level:
             level = 'vdebug'
         text = log.ram_handler.dump_log(html=False, level=level)
-    html = jinja.render('pre.html', title='log', content=text)
-    return 'text/html', html
+    src = jinja.render('pre.html', title='log', content=text)
+    return 'text/html', src
 
 
 @add_handler('log')
@@ -343,14 +338,31 @@ def qute_log(url):
             level = 'vdebug'
         html_log = log.ram_handler.dump_log(html=True, level=level)
 
-    html = jinja.render('log.html', title='log', content=html_log)
-    return 'text/html', html
+    src = jinja.render('log.html', title='log', content=html_log)
+    return 'text/html', src
 
 
 @add_handler('gpl')
 def qute_gpl(_url):
     """Handler for qute://gpl. Return HTML content as string."""
     return 'text/html', utils.read_file('html/license.html')
+
+
+def _asciidoc_fallback_path(html_path):
+    """Fall back to plaintext asciidoc if the HTML is unavailable."""
+    asciidoc_path = html_path.replace('.html', '.asciidoc')
+    asciidoc_paths = [asciidoc_path]
+    if asciidoc_path.startswith('html/doc/'):
+        asciidoc_paths += [asciidoc_path.replace('html/doc/', '../doc/help/'),
+                           asciidoc_path.replace('html/doc/', '../doc/')]
+
+    for path in asciidoc_paths:
+        try:
+            return utils.read_file(path)
+        except OSError:
+            pass
+
+    return None
 
 
 @add_handler('help')
@@ -370,23 +382,14 @@ def qute_help(url):
         try:
             bdata = utils.read_file(path, binary=True)
         except OSError as e:
-            raise QuteSchemeOSError(e)
-        mimetype, _encoding = mimetypes.guess_type(urlpath)
-        assert mimetype is not None, url
+            raise SchemeOSError(e)
+        mimetype = utils.guess_mimetype(urlpath)
         return mimetype, bdata
 
     try:
         data = utils.read_file(path)
     except OSError:
-        # No .html around, let's see if we find the asciidoc
-        asciidoc_path = path.replace('.html', '.asciidoc')
-        if asciidoc_path.startswith('html/doc/'):
-            asciidoc_path = asciidoc_path.replace('html/doc/', '../doc/help/')
-
-        try:
-            asciidoc = utils.read_file(asciidoc_path)
-        except OSError:
-            asciidoc = None
+        asciidoc = _asciidoc_fallback_path(path)
 
         if asciidoc is None:
             raise
@@ -410,17 +413,6 @@ def qute_help(url):
         return 'text/plain', (preamble + asciidoc).encode('utf-8')
     else:
         return 'text/html', data
-
-
-@add_handler('backend-warning')
-def qute_backend_warning(_url):
-    """Handler for qute://backend-warning."""
-    html = jinja.render('backend-warning.html',
-                        distribution=version.distribution(),
-                        Distribution=version.Distribution,
-                        version=pkg_resources.parse_version,
-                        title="Legacy backend warning")
-    return 'text/html', html
 
 
 def _qute_settings_set(url):
@@ -447,13 +439,29 @@ def _qute_settings_set(url):
 @add_handler('settings')
 def qute_settings(url):
     """Handler for qute://settings. View/change qute configuration."""
+    global csrf_token
+
     if url.path() == '/set':
+        if url.password() != csrf_token:
+            message.error("Invalid CSRF token for qute://settings!")
+            raise RequestDeniedError("Invalid CSRF token!")
         return _qute_settings_set(url)
 
-    html = jinja.render('settings.html', title='settings',
-                        configdata=configdata,
-                        confget=config.instance.get_str)
-    return 'text/html', html
+    # Requests to qute://settings/set should only be allowed from
+    # qute://settings. As an additional security precaution, we generate a CSRF
+    # token to use here.
+    if secrets:
+        csrf_token = secrets.token_urlsafe()
+    else:
+        # On Python < 3.6, from secrets.py
+        token = base64.urlsafe_b64encode(os.urandom(32))
+        csrf_token = token.rstrip(b'=').decode('ascii')
+
+    src = jinja.render('settings.html', title='settings',
+                       configdata=configdata,
+                       confget=config.instance.get_str,
+                       csrf_token=csrf_token)
+    return 'text/html', src
 
 
 @add_handler('bindings')
@@ -467,9 +475,9 @@ def qute_bindings(_url):
     for mode in modes:
         bindings[mode] = config.key_instance.get_bindings_for(mode)
 
-    html = jinja.render('bindings.html', title='Bindings',
-                        bindings=bindings)
-    return 'text/html', html
+    src = jinja.render('bindings.html', title='Bindings',
+                       bindings=bindings)
+    return 'text/html', src
 
 
 @add_handler('back')
@@ -478,10 +486,10 @@ def qute_back(url):
 
     Simple page to free ram / lazy load a site, goes back on focusing the tab.
     """
-    html = jinja.render(
+    src = jinja.render(
         'back.html',
         title='Suspended: ' + urllib.parse.unquote(url.fragment()))
-    return 'text/html', html
+    return 'text/html', src
 
 
 @add_handler('configdiff')
@@ -504,3 +512,59 @@ def qute_pastebin_version(_url):
     """Handler that pastebins the version string."""
     version.pastebin_version()
     return 'text/plain', b'Paste called.'
+
+
+@add_handler('pdfjs')
+def qute_pdfjs(url):
+    """Handler for qute://pdfjs. Return the pdf.js viewer."""
+    if url.path() == '/file':
+        filename = QUrlQuery(url).queryItemValue('filename')
+        if not filename:
+            raise UrlInvalidError("Missing filename")
+        if '/' in filename or os.sep in filename:
+            raise RequestDeniedError("Path separator in filename.")
+
+        path = os.path.join(downloads.temp_download_manager.get_tmpdir().name,
+                            filename)
+
+        with open(path, 'rb') as f:
+            data = f.read()
+
+        mimetype = utils.guess_mimetype(filename, fallback=True)
+        return mimetype, data
+
+    if url.path() == '/web/viewer.html':
+        filename = QUrlQuery(url).queryItemValue("filename")
+        if not filename:
+            raise UrlInvalidError("Missing filename")
+        data = pdfjs.generate_pdfjs_page(filename, url)
+        return 'text/html', data
+
+    try:
+        data = pdfjs.get_pdfjs_res(url.path())
+    except pdfjs.PDFJSNotFound as e:
+        # Logging as the error might get lost otherwise since we're not showing
+        # the error page if a single asset is missing. This way we don't lose
+        # information, as the failed pdfjs requests are still in the log.
+        log.misc.warning(
+            "pdfjs resource requested but not found: {}".format(e.path))
+        raise NotFoundError("Can't find pdfjs resource '{}'".format(e.path))
+    else:
+        mimetype = utils.guess_mimetype(url.fileName(), fallback=True)
+        return mimetype, data
+
+
+@add_handler('warning')
+def qute_warning(url):
+    """Handler for qute://warning."""
+    path = url.path()
+    if path == '/old-qt':
+        src = jinja.render('warning-old-qt.html',
+                           title='Old Qt warning',
+                           qt_version=qVersion())
+    elif path == '/webkit':
+        src = jinja.render('warning-webkit.html',
+                           title='QtWebKit backend warning')
+    else:
+        raise NotFoundError("Invalid warning page {}".format(path))
+    return 'text/html', src

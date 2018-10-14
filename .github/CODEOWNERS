@@ -1,5 +1,5 @@
 qutebrowser/browser/history.py  @rcorre
-qutebrowser/completion/*  @rcorre
+qutebrowser/completion/**  @rcorre
 qutebrowser/misc/sql.py  @rcorre
 tests/end2end/features/completion.feature  @rcorre
 tests/end2end/features/test_completion_bdd.py  @rcorre

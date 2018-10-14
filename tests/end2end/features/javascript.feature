@@ -8,7 +8,7 @@ Feature: Javascript stuff
         When I open data/javascript/consolelog.html
         Then the javascript message "console.log works!" should be logged
 
-    @flaky
+    @skip   # Too flaky
     Scenario: Opening/Closing a window via JS
         When I open data/javascript/window_open.html
         And I run :tab-only
@@ -21,7 +21,7 @@ Feature: Javascript stuff
         And the following tabs should be open:
             - data/javascript/window_open.html (active)
 
-    @qtwebkit_skip @flaky
+    @skip   # Too flaky
     Scenario: Opening/closing a modal window via JS
         When I open data/javascript/window_open.html
         And I run :tab-only
@@ -124,6 +124,9 @@ Feature: Javascript stuff
     # https://github.com/qutebrowser/qutebrowser/issues/1190
     # https://github.com/qutebrowser/qutebrowser/issues/2495
 
+    # Currently broken on Windows:
+    # https://github.com/qutebrowser/qutebrowser/issues/4230
+    @posix
     Scenario: Checking visible/invisible window size
         When I run :tab-only
         And I open data/javascript/windowsize.html in a new background tab
@@ -131,6 +134,7 @@ Feature: Javascript stuff
         And I run :tab-next
         Then the window sizes should be the same
 
+    @flaky
     Scenario: Checking visible/invisible window size with vertical tabbar
         When I run :tab-only
         And I set tabs.position to left
@@ -164,7 +168,7 @@ Feature: Javascript stuff
 
     Scenario: Per-URL localstorage setting
         When I set content.local_storage to false
-        And I run :set -u http://localhost:*/data2/* content.local_storage true
+        And I run :set -tu http://localhost:*/data2/* content.local_storage true
         And I open data/javascript/localstorage.html
         And I wait for "[*] local storage is not working" in the log
         And I open data2/javascript/localstorage.html
@@ -172,7 +176,7 @@ Feature: Javascript stuff
 
     Scenario: Per-URL JavaScript setting
         When I set content.javascript.enabled to false
-        And I run :set -u http://localhost:*/data2/* content.javascript.enabled true
+        And I run :set -tu http://localhost:*/data2/* content.javascript.enabled true
         And I open data2/javascript/enabled.html
         And I wait for "[*] JavaScript is enabled" in the log
         And I open data/javascript/enabled.html

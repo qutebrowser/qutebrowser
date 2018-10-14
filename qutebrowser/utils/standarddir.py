@@ -240,8 +240,7 @@ def _writable_location(typ):
 
     # Add the application name to the given path if needed.
     # This is in order for this to work without a QApplication (and thus
-    # QStandardsPaths not knowing the application name), as well as a
-    # workaround for https://bugreports.qt.io/browse/QTBUG-38872
+    # QStandardsPaths not knowing the application name).
     if (typ != QStandardPaths.DownloadLocation and
             path.split(os.sep)[-1] != APPNAME):
         path = os.path.join(path, APPNAME)
@@ -290,10 +289,7 @@ def _create(path):
         0700. If the destination directory exists already the permissions
         should not be changed.
     """
-    try:
-        os.makedirs(path, 0o700)
-    except FileExistsError:
-        pass
+    os.makedirs(path, 0o700, exist_ok=True)
 
 
 def _init_dirs(args=None):

@@ -79,6 +79,8 @@ def test_progress_affecting_statusbar_height(config_stub, fake_statusbar,
     # For some reason on Windows, with Courier, there's a 1px difference.
     config_stub.val.fonts.statusbar = '8pt Monospace'
 
+    fake_statusbar.container.expose()
+
     expected_height = fake_statusbar.fontMetrics().height()
     assert fake_statusbar.height() == expected_height
 

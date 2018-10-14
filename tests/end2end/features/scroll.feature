@@ -145,6 +145,7 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
+    @skip  # Too flaky
     Scenario: Scrolling down with a very big count
         When I run :scroll down with count 99999999999
         # Make sure it doesn't hang
@@ -162,6 +163,7 @@ Feature: Scrolling
         When I run :scroll-to-perc 100
         Then the page should be scrolled vertically
 
+    @flaky
     Scenario: Scrolling to bottom and to top with :scroll-to-perc
         When I run :scroll-to-perc 100
         And I wait until the scroll position changed
@@ -173,10 +175,12 @@ Feature: Scrolling
         When I run :scroll-to-perc 50
         Then the page should be scrolled vertically
 
+    @flaky
     Scenario: Scrolling to middle with :scroll-to-perc (float)
         When I run :scroll-to-perc 50.5
         Then the page should be scrolled vertically
 
+    @flaky
     Scenario: Scrolling to middle and to top with :scroll-to-perc
         When I run :scroll-to-perc 50
         And I wait until the scroll position changed
@@ -231,7 +235,7 @@ Feature: Scrolling
     Scenario: :scroll-to-perc with count and argument
         When I run :scroll-to-perc 0 with count 50
         Then the page should be scrolled vertically
-        
+
     # https://github.com/qutebrowser/qutebrowser/issues/1821
     @issue3572
     Scenario: :scroll-to-perc without doctype
@@ -249,6 +253,7 @@ Feature: Scrolling
         When I run :scroll-page 0 1.5
         Then the page should be scrolled vertically
 
+    @flaky
     Scenario: Scrolling down and up with :scroll-page
         When I run :scroll-page 0 1
         And I wait until the scroll position changed
@@ -289,6 +294,7 @@ Feature: Scrolling
     @issue3572
     Scenario: :scroll-page with --bottom-navigate and zoom
         When I run :zoom 200
+        And I wait 0.5s
         And I run :scroll-to-perc 100
         And I wait until the scroll position changed
         And I run :scroll-page --bottom-navigate next 0 1

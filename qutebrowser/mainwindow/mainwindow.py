@@ -24,7 +24,8 @@ import base64
 import itertools
 import functools
 
-from PyQt5.QtCore import pyqtSlot, QRect, QPoint, QTimer, Qt
+from PyQt5.QtCore import (pyqtSlot, QRect, QPoint, QTimer, Qt,
+                          QCoreApplication, QEventLoop)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners, cmdutils
@@ -98,6 +99,9 @@ def raise_window(window, alert=True):
     window.setWindowState(window.windowState() & ~Qt.WindowMinimized)
     window.setWindowState(window.windowState() | Qt.WindowActive)
     window.raise_()
+    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
+    QCoreApplication.processEvents(
+        QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
     window.activateWindow()
 
     if alert:
@@ -492,6 +496,7 @@ class MainWindow(QWidget):
         self.tabbed_browser.cur_fullscreen_requested.connect(status.maybe_hide)
 
         # command input / completion
+        mode_manager.entered.connect(self.tabbed_browser.on_mode_entered)
         mode_manager.left.connect(self.tabbed_browser.on_mode_left)
         cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)

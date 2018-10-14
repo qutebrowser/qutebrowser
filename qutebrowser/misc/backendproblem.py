@@ -68,6 +68,11 @@ def _other_backend(backend):
 def _error_text(because, text, backend):
     """Get an error text for the given information."""
     other_backend, other_setting = _other_backend(backend)
+    if other_backend == usertypes.Backend.QtWebKit:
+        warning = ("<i>Note that QtWebKit hasn't been updated since "
+                   "July 2017 (including security updates).</i>")
+    else:
+        warning = ""
     return ("<b>Failed to start with the {backend} backend!</b>"
             "<p>qutebrowser tried to start with the {backend} backend but "
             "failed because {because}.</p>{text}"
@@ -75,9 +80,10 @@ def _error_text(because, text, backend):
             "<p>This forces usage of the {other_backend.name} backend by "
             "setting the <i>backend = '{other_setting}'</i> option "
             "(if you have a <i>config.py</i> file, you'll need to set "
-            "this manually).</p>".format(
+            "this manually). {warning}</p>".format(
                 backend=backend.name, because=because, text=text,
-                other_backend=other_backend, other_setting=other_setting))
+                other_backend=other_backend, other_setting=other_setting,
+                warning=warning))
 
 
 class _Dialog(QDialog):
@@ -102,8 +108,10 @@ class _Dialog(QDialog):
         quit_button.clicked.connect(lambda: self.done(_Result.quit))
         hbox.addWidget(quit_button)
 
-        backend_button = QPushButton("Force {} backend".format(
-            other_backend.name))
+        backend_text = "Force {} backend".format(other_backend.name)
+        if other_backend == usertypes.Backend.QtWebKit:
+            backend_text += ' (not recommended)'
+        backend_button = QPushButton(backend_text)
         backend_button.clicked.connect(functools.partial(
             self._change_setting, 'backend', other_setting))
         hbox.addWidget(backend_button)
@@ -172,6 +180,11 @@ def _nvidia_shader_workaround():
 
 
 def _handle_nouveau_graphics():
+    """Force software rendering when using the Nouveau driver.
+
+    WORKAROUND for https://bugreports.qt.io/browse/QTBUG-41242
+    Should be fixed in Qt 5.10 via https://codereview.qt-project.org/#/c/208664/
+    """
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
 
     if os.environ.get('QUTE_SKIP_NOUVEAU_CHECK'):
@@ -181,7 +194,11 @@ def _handle_nouveau_graphics():
         return
 
     if (os.environ.get('LIBGL_ALWAYS_SOFTWARE') == '1' or
-            'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ):
+            # qt.force_software_rendering = 'software-opengl'
+            'QT_XCB_FORCE_SOFTWARE_OPENGL' in os.environ or
+            # qt.force_software_rendering = 'chromium', also see:
+            # https://build.opensuse.org/package/view_file/openSUSE:Factory/libqt5-qtwebengine/disable-gpu-when-using-nouveau-boo-1005323.diff?expand=1
+            'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND' in os.environ):
         return
 
     button = _Button("Force software rendering", 'qt.force_software_rendering',
@@ -230,9 +247,9 @@ def _handle_wayland():
                  "(if you have a <i>config.py</i> file, you'll need to set "
                  "this manually).</p>")
     else:
-        text.append("<p><b>Set up XWayland</b></p>"
-                    "<p>This allows you to use the newer QtWebEngine backend "
-                    "(based on Chromium). ")
+        text += ("<p><b>Set up XWayland</b></p>"
+                 "<p>This allows you to use the newer QtWebEngine backend "
+                 "(based on Chromium). ")
 
     if has_qt511:
         buttons.append(_Button("Force software rendering",

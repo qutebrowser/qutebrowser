@@ -65,9 +65,16 @@ def temp_basedir_env(tmpdir, short_tmpdir):
     runtime_dir.ensure(dir=True)
     runtime_dir.chmod(0o700)
 
-    (data_dir / 'qutebrowser' / 'state').write_text(
-        '[general]\nquickstart-done = 1\nbackend-warning-shown=1',
-        encoding='utf-8', ensure=True)
+    lines = [
+        '[general]',
+        'quickstart-done = 1',
+        'backend-warning-shown = 1',
+        'old-qt-warning-shown = 1',
+        'webkit-warning-shown = 1',
+    ]
+
+    state_file = data_dir / 'qutebrowser' / 'state'
+    state_file.write_text('\n'.join(lines), encoding='utf-8', ensure=True)
 
     env = {
         'XDG_DATA_HOME': str(data_dir),
@@ -368,8 +375,11 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
     """Make sure settings from qute://settings are persistent."""
     args = _base_args(request.config) + ['--basedir', str(short_tmpdir)]
     quteproc_new.start(args)
-    quteproc_new.open_path(
-        'qute://settings/set?option=search.ignore_case&value=always')
+    quteproc_new.open_path('qute://settings/')
+    quteproc_new.send_cmd(':jseval --world main '
+                          'cset("search.ignore_case", "always")')
+    quteproc_new.wait_for(message='No output or error')
+
     assert quteproc_new.get_setting('search.ignore_case') == 'always'
 
     quteproc_new.send_cmd(':quit')

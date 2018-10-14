@@ -25,6 +25,7 @@ import html as pyhtml
 import logging
 import contextlib
 import collections
+import copy
 import faulthandler
 import traceback
 import warnings
@@ -209,6 +210,11 @@ def _init_py_warnings():
     """Initialize Python warning handling."""
     warnings.simplefilter('default')
     warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
+    # This happens in many qutebrowser dependencies...
+    warnings.filterwarnings('ignore', category=DeprecationWarning,
+                            message="Using or importing the ABCs from "
+                            "'collections' instead of from 'collections.abc' "
+                            "is deprecated, and in 3.8 it will stop working")
 
 
 @contextlib.contextmanager
@@ -425,7 +431,6 @@ def qt_message_handler(msg_type, context, msg):
     # import the utils module here.
     if sys.platform == 'darwin':
         suppressed_msgs += [
-            'libpng warning: iCCP: known incorrect sRGB profile',
             # https://bugreports.qt.io/browse/QTBUG-47154
             ('virtual void QSslSocketBackendPrivate::transmit() SSLRead '
              'failed with: -9805'),
@@ -563,16 +568,14 @@ class RAMHandler(logging.Handler):
         https://github.com/qutebrowser/qutebrowser/issues/34
         """
         minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
-        lines = []
         fmt = self.html_formatter.format if html else self.format
         self.acquire()
         try:
-            records = list(self._data)
+            lines = [fmt(record)
+                     for record in self._data
+                     if record.levelno >= minlevel]
         finally:
             self.release()
-        for record in records:
-            if record.levelno >= minlevel:
-                lines.append(fmt(record))
         return '\n'.join(lines)
 
     def change_log_capacity(self, capacity):
@@ -632,17 +635,18 @@ class HTMLFormatter(logging.Formatter):
         self._colordict['reset'] = '</font>'
 
     def format(self, record):
-        record.__dict__.update(self._colordict)
-        if record.levelname in self._log_colors:
-            color = self._log_colors[record.levelname]
-            record.log_color = self._colordict[color]
+        record_clone = copy.copy(record)
+        record_clone.__dict__.update(self._colordict)
+        if record_clone.levelname in self._log_colors:
+            color = self._log_colors[record_clone.levelname]
+            record_clone.log_color = self._colordict[color]
         else:
-            record.log_color = ''
+            record_clone.log_color = ''
         for field in ['msg', 'filename', 'funcName', 'levelname', 'module',
                       'name', 'pathname', 'processName', 'threadName']:
-            data = str(getattr(record, field))
-            setattr(record, field, pyhtml.escape(data))
-        msg = super().format(record)
+            data = str(getattr(record_clone, field))
+            setattr(record_clone, field, pyhtml.escape(data))
+        msg = super().format(record_clone)
         if not msg.endswith(self._colordict['reset']):
             msg += self._colordict['reset']
         return msg
