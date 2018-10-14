@@ -274,6 +274,14 @@ def get_tab(win_id, target):
     return tabbed_browser.tabopen(url=None, background=bg_tab)
 
 
+def _wrap_bar(css: str, searching: bool):
+    """Wrap the passed css in a bar if needed, depending on settings."""
+    if css is not configutils.UNSET and \
+        (config.val.scrolling.bar == 'never' or
+            config.val.scrolling.bar == 'when-searching' and not searching):
+        css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
+    return css
+
 def get_user_stylesheet(searching=False, url=None):
     """Get the combined user-stylesheet.
 
@@ -284,17 +292,13 @@ def get_user_stylesheet(searching=False, url=None):
     stylesheets = config.instance.get('content.user_stylesheets', url,
                                       fallback=url is None)
     if stylesheets is configutils.UNSET:
-        return stylesheets
+        return _wrap_bar(stylesheets, searching)
 
     for filename in stylesheets:
         with open(filename, 'r', encoding='utf-8') as f:
             css += f.read()
 
-    if (config.val.scrolling.bar == 'never' or
-            config.val.scrolling.bar == 'when-searching' and not searching):
-        css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
-
-    return css
+    return _wrap_bar(css, searching)
 
 
 def netrc_authentication(url, authenticator):

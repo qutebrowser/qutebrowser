@@ -855,19 +855,21 @@ class _WebEngineScripts(QObject):
         self._tab.url_changed.connect(self._update_stylesheet)
         self._tab.load_finished.connect(self._on_load_finished)
 
-        self._tab.search.cleared.connect(functools.partial(
-            self._update_stylesheet, searching=False))
-        self._tab.search.finished.connect(self._on_load_finished)
+        self._tab.search.cleared.connect(
+            lambda: self._update_stylesheet(self._tab.url(), searching=False, force=True))
+        self._tab.search.finished.connect(
+            lambda found: self._update_stylesheet(self._tab.url(), searching=found, force=True))
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
-            self._update_stylesheet(url=self._tab.url(), force=True)
+            self._init_stylesheet()
+            self._update_stylesheet(self._tab.url(), force=True)
 
     @pyqtSlot()
-    def _on_load_finished(self):
+    def _on_load_finished(self, searching=False):
         url = self._tab.url()
-        self._update_stylesheet(url)
+        self._update_stylesheet(url, searching=searching)
 
     @pyqtSlot(QUrl)
     def _update_stylesheet(self, url, searching=False, force=False):
@@ -879,7 +881,7 @@ class _WebEngineScripts(QObject):
         """
         css = shared.get_user_stylesheet(searching=searching, url=url)
         if css is configutils.UNSET and force:
-            css = shared.get_user_stylesheet(url=None)
+            css = shared.get_user_stylesheet(searching=searching, url=None)
 
         if css is not configutils.UNSET:
             code = javascript.assemble('stylesheet', 'set_css', css)
