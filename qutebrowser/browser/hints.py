@@ -149,11 +149,11 @@ class HintLabel(QLabel):
         create a new one.
         """
         try:
-            self = HintLabel._object_pool.pop() # type: HintLabel
+            label = HintLabel._object_pool.pop()  # type: HintLabel
         except IndexError:
             return HintLabel(elem, context)
-        self.__init__(elem, context, first_time=False)
-        return self
+        label.__init__(elem, context, first_time=False)
+        return label
 
 
 @attr.s
