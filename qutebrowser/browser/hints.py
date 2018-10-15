@@ -78,18 +78,16 @@ class HintLabel(QLabel):
 
     _object_pool = []
 
-    def __init__(self, elem, context, first_time=True):
-        if first_time:
-            super().__init__(parent=context.tab)
-        else:
-            self.setParent(context.tab)
+    def __init__(self, elem, context):
+        super().__init__()
+        self.setAttribute(Qt.WA_StyledBackground, True)
+        config.set_register_stylesheet(self)
+        self.reset(elem, context)
 
+    def reset(self, elem, context):
+        self.setParent(context.tab)
         self._context = context
         self.elem = elem
-
-        if first_time:
-            self.setAttribute(Qt.WA_StyledBackground, True)
-            config.set_register_stylesheet(self)
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
         self._move_to_elem()
@@ -152,7 +150,7 @@ class HintLabel(QLabel):
             label = HintLabel._object_pool.pop()  # type: HintLabel
         except IndexError:
             return HintLabel(elem, context)
-        label.__init__(elem, context, first_time=False)
+        label.reset(elem, context)
         return label
 
 
