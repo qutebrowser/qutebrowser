@@ -28,11 +28,14 @@ import functools
 import socket
 import re
 import shlex
+import math
 
 import attr
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard
 import pytest
+import hypothesis
+from hypothesis import strategies
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
@@ -837,3 +840,24 @@ def test_guess_mimetype(filename, expected):
 def test_guess_mimetype_no_fallback():
     with pytest.raises(ValueError):
         utils.guess_mimetype('test.blabla')
+
+
+@hypothesis.given(number=strategies.integers(min_value=1),
+                  base=strategies.integers(min_value=2))
+@hypothesis.example(number=125, base=5)
+def test_ceil_log_hypothesis(number, base):
+    exponent = utils.ceil_log(number, base)
+    assert base ** exponent >= number
+    # With base=2, number=1 we get exponent=1
+    # 2**1 > 1, but 2**0 == 1.
+    if exponent > 1:
+        assert base ** (exponent - 1) < number
+
+
+@pytest.mark.parametrize('number, base', [(64, 0), (0, 64), (64, -1),
+                                          (-1, 64), (1, 1)])
+def test_ceil_log_invalid(number, base):
+    with pytest.raises(Exception):  # ValueError/ZeroDivisionError
+        math.log(number, base)
+    with pytest.raises(ValueError):
+        utils.ceil_log(number, base)
