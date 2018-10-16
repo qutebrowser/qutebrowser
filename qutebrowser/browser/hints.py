@@ -76,15 +76,24 @@ class HintLabel(QLabel):
         }
     """
 
+    # Objects which are currently not used but can be reused by calling _reset
     _object_pool = []
+
+    # Total number of objects
+    _object_count = 0
+
+    # Number of consecutive cleanup calls where _object_pool is not freed and is
+    # larger than half of _object_count
+    _inactive_count = 0
 
     def __init__(self, elem, context):
         super().__init__()
         self.setAttribute(Qt.WA_StyledBackground, True)
         config.set_register_stylesheet(self)
-        self.reset(elem, context)
+        self._reset(elem, context)
+        HintLabel._object_count += 1
 
-    def reset(self, elem, context):
+    def _reset(self, elem, context):
         self.setParent(context.tab)
         self._context = context
         self.elem = elem
@@ -139,6 +148,21 @@ class HintLabel(QLabel):
         self._context.tab.contents_size_changed.disconnect(self._move_to_elem)
         HintLabel._object_pool.append(self)
 
+        if len(HintLabel._object_pool)*2 > HintLabel._object_count:
+            HintLabel._inactive_count += 1
+            # when the object pool is relatively inactive, we will free up some
+            # of them
+            if HintLabel._inactive_count > HintLabel._object_count*2:
+                delete_count = HintLabel._object_count // 2
+                for _ in range(delete_count):
+                    label = HintLabel._object_pool.pop()
+                    label.deleteLater()
+                HintLabel._object_count -= delete_count
+                HintLabel._inactive_count = 0
+
+        else:
+            HintLabel._inactive_count = 0
+
     @staticmethod
     def create(elem, context):
         """Returns a HintLabel object with the parameters (elem, context).
@@ -150,7 +174,7 @@ class HintLabel(QLabel):
             label = HintLabel._object_pool.pop()  # type: HintLabel
         except IndexError:
             return HintLabel(elem, context)
-        label.reset(elem, context)
+        label._reset(elem, context)
         return label
 
 
