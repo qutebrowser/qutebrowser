@@ -502,6 +502,7 @@ class TabbedBrowserStub(QObject):
         self.widget = TabWidgetStub()
         self.shutting_down = False
         self.opened_url = None
+        self.cur_url = None
 
     def on_tab_close_requested(self, idx):
         del self.widget.tabs[idx]
@@ -514,6 +515,11 @@ class TabbedBrowserStub(QObject):
 
     def openurl(self, url, *, newtab):
         self.opened_url = url
+
+    def current_url(self):
+        if self.current_url is None:
+            raise ValueError("current_url got called with cur_url None!")
+        return self.cur_url
 
 
 class TabWidgetStub(QObject):
