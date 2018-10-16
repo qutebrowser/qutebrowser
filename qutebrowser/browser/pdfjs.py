@@ -53,12 +53,8 @@ def is_pdfjs_page(browsertab):
     Return:
         True if the view displays PDF.js, False otherwise.
     """
-    if objects.backend == usertypes.Backend.QtWebEngine:
-        url = browsertab.url().url()
-        return url.startswith('qute://pdfjs/web/viewer.html')
-    else:
-        # TODO implement this
-        return False
+    return browsertab.url().matches(QUrl('qute://pdfjs/web/viewer.html'),
+                                    QUrl.RemoveQuery)
 
 
 def zoom_in(browsertab, count=1):
