@@ -24,7 +24,6 @@ from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg
 from qutebrowser.keyinput import modeman
-from qutebrowser.browser.pdfjs import is_pdfjs_page
 
 
 class ChildEventFilter(QObject):
@@ -140,9 +139,6 @@ class MouseEventFilter(QObject):
         Args:
             e: The QWheelEvent.
         """
-        if is_pdfjs_page(self._tab):
-            return False
-
         if self._ignore_wheel_event:
             # See https://github.com/qutebrowser/qutebrowser/issues/395
             self._ignore_wheel_event = False
