@@ -166,11 +166,11 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._painter.save()
 
         if self._opt.state & QStyle.State_Selected:
-            color = config.val.colors.completion.item.selected.fg
+            color = config.cache['colors.completion.item.selected.fg']
         elif not self._opt.state & QStyle.State_Enabled:
-            color = config.val.colors.completion.category.fg
+            color = config.cache['colors.completion.category.fg']
         else:
-            colors = config.val.colors.completion.fg
+            colors = config.cache['colors.completion.fg']
             # if multiple colors are set, use different colors per column
             color = colors[col % len(colors)]
         self._painter.setPen(color)
