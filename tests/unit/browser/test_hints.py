@@ -25,7 +25,7 @@ import operator
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, qtutils
 import qutebrowser.browser.hints
 
 
@@ -40,6 +40,11 @@ def tabbed_browser(tabbed_browser_stubs, web_tab):
     tb.widget.tabs = [web_tab]
     tb.widget.current_index = 1
     tb.widget.cur_url = QUrl('https://www.example.com/')
+
+    if not qtutils.version_check('5.11', compiled=False):
+        # No elements found if we don't do this.
+        web_tab.container.expose()
+
     return tb
 
 
