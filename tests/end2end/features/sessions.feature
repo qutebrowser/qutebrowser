@@ -398,3 +398,28 @@ Feature: Saving and loading sessions
         - data/numbers/1.txt
         - data/numbers/2.txt (active) (pinned)
         - data/numbers/3.txt
+
+  Scenario: Saving session then adding URL to session
+    When I open data/numbers/1.txt
+    And I open data/numbers/2.txt in a new tab
+    And I run :session-save window_session_name
+    And I open data/numbers/3.txt in a new tab
+    And I run :tab-only
+    And I run :session-add-url window_session_name
+    And I run :session-load window_session_name
+    And I wait until data/numbers/3.txt is loaded
+    Then the session should look like:
+      windows:
+        - tabs:
+            - history:
+                - active: true
+                  url: http://localhost:*/data/numbers/3.txt
+        - tabs:
+            - history:
+                - url: about:blank
+                - active: true
+                  url: http://localhost:*/data/numbers/1.txt
+            - history:
+                - url: http://localhost:*/data/numbers/2.txt
+            - history:
+                - url: http://localhost:*/data/numbers/3.txt

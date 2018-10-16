@@ -483,6 +483,7 @@ class SessionManager(QObject):
         return sorted(sessions)
 
     def add_url_to_session(self, name):
+        """Appends the current tab's URL to a named session."""
         data = self._load_session_file(name)
 
         if data is None:
@@ -500,8 +501,12 @@ class SessionManager(QObject):
 
         data['windows'][0]['tabs'].append(self._save_tab(current_tab, False))
 
-        log.sessions.info("Session path {}.".format(self._get_session_path(name)))
-        log.sessions.info("Add URL {} to session {}.".format(name, current_tab.url()))
+        log.sessions.info(
+            "Session path {}.".format(self._get_session_path(name))
+        )
+        log.sessions.info(
+            "Add URL {} to session {}.".format(name, current_tab.url())
+        )
 
         self._save_session_file(name, data)
 
@@ -629,8 +634,6 @@ class SessionManager(QObject):
             force: Force adding URL to internal sessions (starting with an
                    underline).
         """
-        """Get a dict with data for all windows/tabs."""
-
         if name.startswith('_') and not force:
             raise cmdexc.CommandError("{} is an internal session, use --force "
                                       "to load anyways.".format(name))
