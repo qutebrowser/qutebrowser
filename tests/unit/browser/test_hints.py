@@ -22,15 +22,75 @@ import functools
 import operator
 
 import pytest
+from PyQt5.QtCore import QUrl
 
+from qutebrowser.utils import usertypes
 import qutebrowser.browser.hints
+
+
+@pytest.fixture(autouse=True)
+def setup(win_registry, mode_manager):
+    pass
+
+
+@pytest.fixture
+def tabbed_browser(tabbed_browser_stubs, web_tab):
+    tb = tabbed_browser_stubs[0]
+    tb.widget.tabs = [web_tab]
+    tb.widget.current_index = 1
+    tb.widget.cur_url = QUrl('https://www.example.com/')
+    return tb
+
+
+def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
+                        mode_manager):
+    """Benchmark showing/drawing of hint labels."""
+    tab = tabbed_browser.widget.tabs[0]
+
+    with qtbot.wait_signal(tab.load_finished):
+        tab.openurl(QUrl('qute://testdata/data/hints/benchmark.html'))
+
+    manager = qutebrowser.browser.hints.HintManager(0, 0)
+
+    def bench():
+        with qtbot.wait_signal(mode_manager.entered):
+            manager.start()
+
+        with qtbot.wait_signal(mode_manager.left):
+            mode_manager.leave(usertypes.KeyMode.hint)
+
+    benchmark(bench)
+
+
+def test_match_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
+                         mode_manager, qapp):
+    """Benchmark matching of hint labels."""
+    tab = tabbed_browser.widget.tabs[0]
+
+    with qtbot.wait_signal(tab.load_finished):
+        tab.openurl(QUrl('qute://testdata/data/hints/benchmark.html'))
+
+    manager = qutebrowser.browser.hints.HintManager(0, 0)
+
+    with qtbot.wait_signal(mode_manager.entered):
+        manager.start()
+
+    def bench():
+        manager.handle_partial_key('a')
+        qapp.processEvents()
+        manager.handle_partial_key('')
+        qapp.processEvents()
+
+    benchmark(bench)
+
+    with qtbot.wait_signal(mode_manager.left):
+        mode_manager.leave(usertypes.KeyMode.hint)
 
 
 @pytest.mark.parametrize('min_len', [0, 3])
 @pytest.mark.parametrize('num_chars', [9])
 @pytest.mark.parametrize('num_elements', range(1, 26))
-def test_scattered_hints_count(win_registry, mode_manager, min_len,
-                               num_chars, num_elements):
+def test_scattered_hints_count(min_len, num_chars, num_elements):
     """Test scattered hints function.
 
     Tests many properties from an invocation of _hint_scattered, including
