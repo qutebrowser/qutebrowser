@@ -719,6 +719,8 @@ def ceil_log(number, base):
 
     Use only integer arithmetic in order to avoid numerical error.
     """
+    if number < 1 or base < 2:
+        raise ValueError("math domain error")
     result = 1
     accum = base
     while accum < number:
