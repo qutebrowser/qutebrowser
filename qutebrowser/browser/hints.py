@@ -639,9 +639,8 @@ class HintManager(QObject):
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
                        star_args_optional=True, maxsplit=2)
-    @cmdutils.argument('win_id', win_id=True)
     def start(self,  # pylint: disable=keyword-arg-before-vararg
-              group='all', target=Target.normal, *args, win_id, mode=None,
+              group='all', target=Target.normal, *args, mode=None,
               add_history=False, rapid=False, first=False):
         """Start hinting.
 
@@ -715,7 +714,7 @@ class HintManager(QObject):
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
-            modeman.leave(win_id, usertypes.KeyMode.hint, 're-hinting')
+            modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
 
         if rapid:
             if target in [Target.tab_bg, Target.window, Target.run,
