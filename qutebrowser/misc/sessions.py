@@ -19,23 +19,23 @@
 
 """Management of sessions - saved tabs/windows."""
 
+import itertools
 import os
 import os.path
-import itertools
-import urllib
 import typing
+import urllib
 
-from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
-from PyQt5.QtWidgets import QApplication
 import yaml
+from PyQt5.QtCore import QObject, QPoint, QTimer, QUrl
+from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
-                               utils)
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configfiles
+from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.config import config, configfiles
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
+from qutebrowser.utils import log, message, objreg, qtutils, standarddir, utils
 
 
 class Sentinel:
@@ -288,10 +288,6 @@ class SessionManager(QObject):
         Return:
             The name of the saved session.
         """
-        name = self._get_session_name(name)
-        path = self._get_session_path(name)
-
-        log.sessions.debug("Saving session {} to {}...".format(name, path))
         if last_window:
             data = self._last_window_session
             if data is None:
@@ -300,12 +296,8 @@ class SessionManager(QObject):
         else:
             data = self._save_all(only_window=only_window,
                                   with_private=with_private)
-        log.sessions.vdebug("Saving data: {}".format(data))
-        try:
-            with qtutils.savefile_open(path) as f:
-                utils.yaml_dump(data, f)
-        except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
-            raise SessionError(e)
+
+        self._save_session_file(name, data)
 
         if load_next_time:
             configfiles.state['general']['session'] = name
@@ -425,6 +417,29 @@ class SessionManager(QObject):
         if win.get('active', False):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
+    def _save_session_file(self, name, data):
+        name = self._get_session_name(name)
+        path = self._get_session_path(name)
+
+        log.sessions.debug("Saving session {} to {}...".format(name, path))
+        log.sessions.vdebug("Saving data: {}".format(data))
+        try:
+            with qtutils.savefile_open(path) as f:
+                utils.yaml_dump(data, f)
+        except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
+            raise SessionError(e)
+
+    def _load_session_file(self, name):
+        """Load the session's YAML file."""
+        path = self._get_session_path(name, check_exists=True)
+        log.sessions.debug("Loading session {} from {}...".format(name, path))
+        try:
+            with open(path, encoding='utf-8') as f:
+                return utils.yaml_load(f)
+        except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
+            raise SessionError(e)
+======= end
+
     def load(self, name, temp=False):
         """Load a named session.
 
@@ -432,14 +447,8 @@ class SessionManager(QObject):
             name: The name of the session to load.
             temp: If given, don't set the current session.
         """
-        path = self._get_session_path(name, check_exists=True)
-        try:
-            with open(path, encoding='utf-8') as f:
-                data = utils.yaml_load(f)
-        except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
-            raise SessionError(e)
+        data = self._load_session_file(name)
 
-        log.sessions.debug("Loading session {} from {}...".format(name, path))
         if data is None:
             raise SessionError("Got empty session file")
 
@@ -472,6 +481,29 @@ class SessionManager(QObject):
             if ext == '.yml':
                 sessions.append(base)
         return sorted(sessions)
+
+    def add_url_to_session(self, name):
+        data = self._load_session_file(name)
+
+        if data is None:
+            raise SessionError("Got empty session file")
+
+        winlist = objreg.window_registry
+        current_tab = None
+        for win_id in sorted(winlist):
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+
+            active_window = QApplication.instance().activeWindow()
+            if getattr(active_window, 'win_id', None) == win_id:
+                current_tab = tabbed_browser.widget.currentWidget()
+
+        data['windows'][0]['tabs'].append(self._save_tab(current_tab, False))
+
+        log.sessions.info("Session path {}.".format(self._get_session_path(name)))
+        log.sessions.info("Add URL {} to session {}.".format(name, current_tab.url()))
+
+        self._save_session_file(name, data)
 
     @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=miscmodels.session)
@@ -586,3 +618,30 @@ class SessionManager(QObject):
                                         .format(e))
         else:
             log.sessions.debug("Deleted session {}.".format(name))
+
+    @cmdutils.register(instance='session-manager')
+    @cmdutils.argument('name', completion=miscmodels.session)
+    def session_add_url(self, name, force=False):
+        """Add URL to session.
+
+        Args:
+            name: The name of the session.
+            force: Force adding URL to internal sessions (starting with an
+                   underline).
+        """
+        """Get a dict with data for all windows/tabs."""
+
+        if name.startswith('_') and not force:
+            raise cmdexc.CommandError("{} is an internal session, use --force "
+                                      "to load anyways.".format(name))
+
+        try:
+            self.add_url_to_session(name)
+        except SessionNotFoundError:
+            raise cmdexc.CommandError("Session {} not found!".format(name))
+        except SessionError as e:
+            log.sessions.exception("Error while adding url to session!")
+            raise cmdexc.CommandError("Error while adding url to session: {}"
+                                      .format(e))
+        else:
+            log.sessions.debug("URL added to session {}.".format(name))
