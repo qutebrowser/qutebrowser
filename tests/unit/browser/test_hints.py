@@ -19,6 +19,7 @@
 
 import string
 import functools
+import itertools
 import operator
 
 import pytest
@@ -88,8 +89,8 @@ def test_match_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
 
 
 @pytest.mark.parametrize('min_len', [0, 3])
-@pytest.mark.parametrize('num_chars', [9])
-@pytest.mark.parametrize('num_elements', range(1, 26))
+@pytest.mark.parametrize('num_chars', [5, 9])
+@pytest.mark.parametrize('num_elements', itertools.chain(range(1, 26), [125]))
 def test_scattered_hints_count(min_len, num_chars, num_elements):
     """Test scattered hints function.
 
@@ -122,7 +123,9 @@ def test_scattered_hints_count(min_len, num_chars, num_elements):
         # 'ab' and 'c' can
         assert abs(functools.reduce(operator.sub, hint_lens)) <= 1
 
-    longest_hints = [x for x in hints if len(x) == max(hint_lens)]
+    longest_hint_len = max(hint_lens)
+    shortest_hint_len = min(hint_lens)
+    longest_hints = [x for x in hints if len(x) == longest_hint_len]
 
     if min_len < max(hint_lens) - 1:
         # Check if we have any unique prefixes. For example, 'la'
@@ -132,3 +135,18 @@ def test_scattered_hints_count(min_len, num_chars, num_elements):
             prefix = x[:-1]
             count_map[prefix] = count_map.get(prefix, 0) + 1
         assert all(e != 1 for e in count_map.values())
+
+    # Check that the longest hint length isn't too long
+    if longest_hint_len > min_len and longest_hint_len > 1:
+        assert num_chars ** (longest_hint_len - 1) < num_elements
+
+    # Check longest hint is not too short
+    assert num_chars ** longest_hint_len >= num_elements
+
+    if longest_hint_len > min_len and longest_hint_len > 1:
+        # Check that the longest hint length isn't too long
+        assert num_chars ** (longest_hint_len - 1) < num_elements
+        if shortest_hint_len == longest_hint_len:
+            # Check that we really couldn't use any short links
+            assert ((num_chars ** longest_hint_len) - num_elements <
+                    len(chars) - 1)

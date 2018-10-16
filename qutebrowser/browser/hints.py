@@ -21,7 +21,6 @@
 
 import collections
 import functools
-import math
 import os
 import re
 import html
@@ -457,21 +456,15 @@ class HintManager(QObject):
         # Determine how many digits the link hints will require in the worst
         # case. Usually we do not need all of these digits for every link
         # single hint, so we can show shorter hints for a few of the links.
-        needed = max(min_chars, math.ceil(math.log(len(elems), len(chars))))
+        needed = max(min_chars, utils.ceil_log(len(elems), len(chars)))
+
         # Short hints are the number of hints we can possibly show which are
         # (needed - 1) digits in length.
-        if needed > min_chars:
+        if needed > min_chars and needed > 1:
             total_space = len(chars) ** needed
-            # Calculate short_count naively, by finding the avaiable space and
-            # dividing by the number of spots we would loose by adding a
-            # short element
-            short_count = math.floor((total_space - len(elems)) /
-                                     len(chars))
-            # Check if we double counted above to warrant another short_count
-            # https://github.com/qutebrowser/qutebrowser/issues/3242
-            if total_space - (short_count * len(chars) +
-                              (len(elems) - short_count)) >= len(chars) - 1:
-                short_count += 1
+            # For each 1 short link being added, len(chars) long links are
+            # removed, therefore the space removed is len(chars) - 1.
+            short_count = (total_space - len(elems)) // (len(chars) - 1)
         else:
             short_count = 0
 
@@ -498,7 +491,7 @@ class HintManager(QObject):
             elems: The elements to generate labels for.
         """
         strings = []
-        needed = max(min_chars, math.ceil(math.log(len(elems), len(chars))))
+        needed = max(min_chars, utils.ceil_log(len(elems), len(chars)))
         for i in range(len(elems)):
             strings.append(self._number_to_hint_str(i, chars, needed))
         return strings
