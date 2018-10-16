@@ -44,15 +44,6 @@ class PDFJSNotFound(Exception):
         super().__init__(message)
 
 
-def _run_js(browsertab, code):
-    # Execute javascript code globally.
-    if objects.backend == usertypes.Backend.QtWebEngine:
-        from PyQt5.QtWebEngineWidgets import QWebEngineScript
-        browsertab.run_js_async(code, world=QWebEngineScript.MainWorld)
-    else:
-        browsertab.run_js_async(code)
-
-
 def is_pdfjs_page(browsertab):
     """Check whether the given browsertab displays a pdfjs site.
 
@@ -77,7 +68,9 @@ def zoom_in(browsertab, count=1):
         browsertab: The qutebrowser.browser.browsertab.AbstractTab instance.
         count: How many steps to zoom in.
     """
-    _run_js(browsertab, 'PDFViewerApplication.zoomIn({})'.format(count))
+    browsertab.run_js_async('''
+        (window.PDFView || PDFViewerApplication).zoomIn({})
+    '''.format(javascript.to_js(count)), world=usertypes.JsWorld.main)
 
 
 def zoom_out(browsertab, count=1):
@@ -87,7 +80,9 @@ def zoom_out(browsertab, count=1):
         browsertab: The qutebrowser.browser.browsertab.AbstractTab instance.
         count: How many steps to zoom out.
     """
-    _run_js(browsertab, 'PDFViewerApplication.zoomOut({})'.format(count))
+    browsertab.run_js_async('''
+        (window.PDFView || PDFViewerApplication).zoomOut({})
+    '''.format(javascript.to_js(count)), world=usertypes.JsWorld.main)
 
 
 def zoom(browsertab, factor='auto'):
@@ -96,9 +91,9 @@ def zoom(browsertab, factor='auto'):
     Args:
         factor: Zoom factor as a number. If not passed, reset the zoom factor.
     """
-    _run_js(
-        browsertab,
-        'PDFViewerApplication.pdfViewer.currentScaleValue={!r}'.format(factor))
+    browsertab.run_js_async('''
+        (window.PDFView || PDFViewerApplication).pdfViewer.currentScaleValue={}
+    '''.format(javascript.to_js(factor)), world=usertypes.JsWorld.main)
 
 
 def generate_pdfjs_page(filename, url):
