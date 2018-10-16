@@ -883,7 +883,7 @@ class CommandDispatcher:
         """Increase the zoom level for the current tab.
 
         Args:
-            no_pdfjs: Use browser's zoom even if the tab displays pdfjs.
+            no_pdfjs: Use browser's zoom even if the tab displays PDF.js.
             count: How many steps to zoom in.
             quiet: Don't show a zoom level message.
         """
@@ -904,7 +904,7 @@ class CommandDispatcher:
         """Decrease the zoom level for the current tab.
 
         Args:
-            no_pdfjs: Use browser's zoom even if the tab displays pdfjs.
+            no_pdfjs: Use browser's zoom even if the tab displays PDF.js.
             count: How many steps to zoom out.
             quiet: Don't show a zoom level message.
         """
@@ -930,7 +930,7 @@ class CommandDispatcher:
 
         Args:
             zoom: The zoom percentage to set.
-            no_pdfjs: Use browser's zoom even if the tab displays pdfjs.
+            no_pdfjs: Use browser's zoom even if the tab displays PDF.js.
             count: The zoom percentage to set.
             quiet: Don't show a zoom level message.
         """

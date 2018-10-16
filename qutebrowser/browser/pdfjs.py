@@ -32,7 +32,7 @@ from qutebrowser.config import config
 
 class PDFJSNotFound(Exception):
 
-    """Raised when no pdf.js installation is found.
+    """Raised when no PDF.js installation is found.
 
     Attributes:
         path: path of the file that was requested but not found.
@@ -45,13 +45,13 @@ class PDFJSNotFound(Exception):
 
 
 def is_pdfjs_page(browsertab):
-    """Check whether the given browsertab displays a pdfjs site.
+    """Check whether the given browsertab displays a PDF.js site.
 
     Args:
         browsertab: The qutebrowser.browser.browsertab.AbstractTab instance.
 
     Return:
-        True if the view displays pdfjs, False otherwise.
+        True if the view displays PDF.js, False otherwise.
     """
     if objects.backend == usertypes.Backend.QtWebEngine:
         url = browsertab.url().url()
@@ -62,7 +62,7 @@ def is_pdfjs_page(browsertab):
 
 
 def zoom_in(browsertab, count=1):
-    """Increase the zoom level for the current tab, using pdfjs zoom feature.
+    """Increase the zoom level for the current tab, using PDF.js zoom feature.
 
     Args:
         browsertab: The qutebrowser.browser.browsertab.AbstractTab instance.
@@ -74,7 +74,7 @@ def zoom_in(browsertab, count=1):
 
 
 def zoom_out(browsertab, count=1):
-    """Decrease the zoom level for the current tab, using pdfjs zoom feature.
+    """Decrease the zoom level for the current tab, using PDF.js zoom feature.
 
     Args:
         browsertab: The qutebrowser.browser.browsertab.AbstractTab instance.
@@ -86,7 +86,7 @@ def zoom_out(browsertab, count=1):
 
 
 def zoom(browsertab, factor='auto'):
-    """Set the current pdfjs zoom factor.
+    """Set the current PDF.js zoom factor.
 
     Args:
         factor: Zoom factor as a number. If not passed, reset the zoom factor.
@@ -97,7 +97,7 @@ def zoom(browsertab, factor='auto'):
 
 
 def generate_pdfjs_page(filename, url):
-    """Return the html content of a page that displays a file with pdfjs.
+    """Return the html content of a page that displays a file with PDF.js.
 
     Returns a string.
 
@@ -126,7 +126,7 @@ def generate_pdfjs_page(filename, url):
 
 
 def _generate_pdfjs_script(filename):
-    """Generate the script that shows the pdf with pdf.js.
+    """Generate the script that shows the pdf with PDF.js.
 
     Args:
         filename: The name of the file to open.
@@ -268,7 +268,7 @@ def _read_from_system(system_path, names):
 
 
 def is_available():
-    """Return true if a pdfjs installation is available."""
+    """Return true if a PDF.js installation is available."""
     try:
         get_pdfjs_res('build/pdf.js')
     except PDFJSNotFound:
