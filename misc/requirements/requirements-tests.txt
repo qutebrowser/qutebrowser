@@ -13,7 +13,7 @@ fields==5.0.0
 Flask==1.0.2
 glob2==0.6
 hunter==2.0.2
-hypothesis==3.74.3
+hypothesis==3.76.0
 itsdangerous==0.24
 # Jinja2==2.10
 Mako==1.0.7
@@ -22,7 +22,7 @@ more-itertools==4.3.0
 parse==1.9.0
 parse-type==0.4.2
 pluggy==0.7.1
-py==1.6.0
+py==1.7.0
 py-cpuinfo==4.0.0
 pytest==3.6.4  # rq.filter: <3.7
 pytest-bdd==2.21.0
