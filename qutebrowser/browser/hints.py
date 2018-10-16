@@ -111,8 +111,11 @@ class HintLabel(QLabel):
             unmatched = html.escape(unmatched)
 
         match_color = html.escape(config.val.colors.hints.match.fg)
-        self.setText('<font color="{}">{}</font>{}'.format(
-            match_color, matched, unmatched))
+        if matched:
+            self.setText('<font color="{}">{}</font>{}'.format(
+                match_color, matched, unmatched))
+        else:
+            self.setText(unmatched)
         self.adjustSize()
 
     @pyqtSlot()
