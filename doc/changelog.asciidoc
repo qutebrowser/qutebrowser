@@ -56,6 +56,7 @@ Fixed
 - Invalid world IDs now get rejected for `:jseval` and GreaseMonkey scripts.
 - When websites suggest download filenames with invalid characters, those are
   now correctly replaced.
+- Invalid hint length calculation in certain rare cases.
 
 v1.5.1
 ------
