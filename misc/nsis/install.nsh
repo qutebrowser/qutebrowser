@@ -349,7 +349,7 @@ SectionEnd
 Section /o "Set as default browser" SectionDefaultBrowser
   SectionIn 1
 
-  !insertmacro UAC_AsUser_Call Function Get_Default_Browser $UAC_SYNCREGISTERS
+  !insertmacro UAC_AsUser_Call Function Get_Default_Browser ${UAC_SYNCREGISTERS}
   ${ifnot} $0 == "${PRODUCT_NAME}URL"
   ${orifnot} $1 == "${PRODUCT_NAME}URL"
   ${orifnot} $2 == "${PRODUCT_NAME}HTML"
@@ -360,7 +360,7 @@ Section /o "Set as default browser" SectionDefaultBrowser
       ExecShell "open" "control.exe" "/name Microsoft.DefaultPrograms /page \
         pageDefaultProgram\pageAdvancedSettings?pszAppName=${PRODUCT_NAME}"
     ${else}
-      !insertmacro UAC_AsUser_Call Function Set_Default_Browser $UAC_SYNCREGISTERS
+      !insertmacro UAC_AsUser_Call Function Set_Default_Browser ${UAC_SYNCREGISTERS}
     ${endif}
   ${endif}
 SectionEnd
@@ -515,7 +515,7 @@ Function PageInstallModeChangeMode
     !insertmacro SelectSection ${SectionWindowsRegister}
 
     ; Select 'Default browser' if already set in registry
-    !insertmacro UAC_AsUser_Call Function Get_Default_Browser $UAC_SYNCREGISTERS
+    !insertmacro UAC_AsUser_Call Function Get_Default_Browser ${UAC_SYNCREGISTERS}
     ${if} $0 == "${PRODUCT_NAME}URL"
     ${orif} $1 == "${PRODUCT_NAME}URL"
     ${orif} $2 == "${PRODUCT_NAME}HTML"
