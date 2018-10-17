@@ -833,9 +833,10 @@ class HintManager(QObject):
 
         Args:
             filterstr: The string to filter with, or None to use the filter
-                       from previous call (saved in `self._filterstr`). If
-                       `filterstr` is an empty string or if both `filterstr`
-                       and `self._filterstr` are None, all hints are shown.
+                       from previous call (saved in `self._context.filterstr`).
+                       If `filterstr` is an empty string or if both `filterstr`
+                       and `self._context.filterstr` are None, all hints are
+                       shown.
         """
         if filterstr is None:
             filterstr = self._context.filterstr
