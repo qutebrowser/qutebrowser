@@ -405,8 +405,7 @@ Section "-Write Install Info" ; hidden section, write install info as the final 
   StrCpy $4 '0$4'
   WriteRegStr SHCTX "${MULTIUSER_INSTALLMODE_UNINSTALL_REGISTRY_KEY_PATH}$0" "InstallDate" "$1$2$4"
 
-  ; Refresh Shell Icons
-  System::Call "shell32::SHChangeNotify(i 0x08000000, i 0, i 0, i 0)"
+  ${RefreshShellIcons}
 SectionEnd
 
 ; Modern install component descriptions
