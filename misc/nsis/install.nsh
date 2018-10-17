@@ -148,14 +148,14 @@ var KeepReg
 !macroend
 
 ; Functions
-Function Get_Default_Browser
+Function GetDefaultBrowser
   ReadRegStr $0 HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" "ProgId"
   ReadRegStr $1 HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" "ProgId"
   ReadRegStr $2 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.htm\UserChoice" "ProgId"
   ReadRegStr $3 HKCU "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.html\UserChoice" "ProgId"
 FunctionEnd
 
-Function Set_Default_Browser
+Function SetDefaultBrowser
   StrCmp $0 "${PRODUCT_NAME}URL" +2 0
   WriteRegStr HKCU "SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" \
     "ProgId" "${PRODUCT_NAME}URL"
@@ -349,7 +349,7 @@ SectionEnd
 Section /o "Set as default browser" SectionDefaultBrowser
   SectionIn 1
 
-  !insertmacro UAC_AsUser_Call Function Get_Default_Browser ${UAC_SYNCREGISTERS}
+  !insertmacro UAC_AsUser_Call Function GetDefaultBrowser ${UAC_SYNCREGISTERS}
   ${ifnot} $0 == "${PRODUCT_NAME}URL"
   ${orifnot} $1 == "${PRODUCT_NAME}URL"
   ${orifnot} $2 == "${PRODUCT_NAME}HTML"
@@ -360,7 +360,7 @@ Section /o "Set as default browser" SectionDefaultBrowser
       ExecShell "open" "control.exe" "/name Microsoft.DefaultPrograms /page \
         pageDefaultProgram\pageAdvancedSettings?pszAppName=${PRODUCT_NAME}"
     ${else}
-      !insertmacro UAC_AsUser_Call Function Set_Default_Browser ${UAC_SYNCREGISTERS}
+      !insertmacro UAC_AsUser_Call Function SetDefaultBrowser ${UAC_SYNCREGISTERS}
     ${endif}
   ${endif}
 SectionEnd
@@ -514,7 +514,7 @@ Function PageInstallModeChangeMode
     !insertmacro SelectSection ${SectionWindowsRegister}
 
     ; Select 'Default browser' if already set in registry
-    !insertmacro UAC_AsUser_Call Function Get_Default_Browser ${UAC_SYNCREGISTERS}
+    !insertmacro UAC_AsUser_Call Function GetDefaultBrowser ${UAC_SYNCREGISTERS}
     ${if} $0 == "${PRODUCT_NAME}URL"
     ${orif} $1 == "${PRODUCT_NAME}URL"
     ${orif} $2 == "${PRODUCT_NAME}HTML"
