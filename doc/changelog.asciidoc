@@ -49,6 +49,7 @@ Changed
   adblocker can be disabled on a given page.
 - Elements with a `tabindex` attribute now also get hints by default.
 - Various small performance improvements for hints and the completion.
+- The `[bot]` bottom indicator was replaced by `[btm]` for clarity.
 
 Fixed
 ~~~~~

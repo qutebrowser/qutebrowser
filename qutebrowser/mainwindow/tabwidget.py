@@ -208,7 +208,7 @@ class TabWidget(QTabWidget):
         elif y <= 0:
             scroll_pos = 'top'
         elif y >= 100:
-            scroll_pos = 'bot'
+            scroll_pos = 'btm'
         else:
             scroll_pos = '{:2}%'.format(y)
 
