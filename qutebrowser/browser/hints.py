@@ -101,7 +101,7 @@ class HintLabel(QLabel):
             matched: The part of the text which was typed.
             unmatched: The part of the text which was not typed yet.
         """
-        if (config.val.hints.uppercase and
+        if (config.cache['hints.uppercase'] and
                 self._context.hint_mode in ['letter', 'word']):
             matched = html.escape(matched.upper())
             unmatched = html.escape(unmatched.upper())
@@ -109,7 +109,7 @@ class HintLabel(QLabel):
             matched = html.escape(matched)
             unmatched = html.escape(unmatched)
 
-        match_color = html.escape(config.val.colors.hints.match.fg)
+        match_color = html.escape(config.cache['colors.hints.match.fg'])
         if matched:
             self.setText('<font color="{}">{}</font>{}'.format(
                 match_color, matched, unmatched))
@@ -125,7 +125,7 @@ class HintLabel(QLabel):
             log.hints.debug("Frame for {!r} vanished!".format(self))
             self.hide()
             return
-        no_js = config.val.hints.find_implementation != 'javascript'
+        no_js = config.cache['hints.find_implementation'] != 'javascript'
         rect = self.elem.rect_on_view(no_js=no_js)
         self.move(rect.x(), rect.y())
 
