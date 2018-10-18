@@ -153,7 +153,9 @@ class HintLabel(QLabel):
             active_object_peak_count = HintLabel._active_object_peak_count
 
             # Shrink the object pool if it is not used for the last 5 peaks
-            del HintLabel._object_pool[max(active_object_peak_count):]
+            # and it has more than 500 elements
+            if len(HintLabel._object_pool) > 500:
+                del HintLabel._object_pool[max(active_object_peak_count):]
 
             active_object_peak_count.append(0)
             if len(active_object_peak_count) > 5:
