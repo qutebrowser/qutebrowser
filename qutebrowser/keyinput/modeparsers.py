@@ -71,6 +71,7 @@ class NormalKeyParser(CommandKeyParser):
         self._read_config('normal')
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
+        self._partial_timer.timeout.connect(self._clear_partial_match)
         self._inhibited = False
         self._inhibited_timer = usertypes.Timer(self, 'normal-inhibited')
         self._inhibited_timer.setSingleShot(True)
@@ -101,7 +102,6 @@ class NormalKeyParser(CommandKeyParser):
             timeout = config.val.input.partial_timeout
             if timeout != 0:
                 self._partial_timer.setInterval(timeout)
-                self._partial_timer.timeout.connect(self._clear_partial_match)
                 self._partial_timer.start()
         return match
 
@@ -133,11 +133,7 @@ class NormalKeyParser(CommandKeyParser):
     def _stop_timers(self):
         super()._stop_timers()
         self._partial_timer.stop()
-        try:
-            self._partial_timer.timeout.disconnect(self._clear_partial_match)
-        except TypeError:
-            # no connections
-            pass
+        self._partial_timer.timeout.disconnect(self._clear_partial_match)
         self._inhibited_timer.stop()
         try:
             self._inhibited_timer.timeout.disconnect(self._clear_inhibited)
