@@ -2244,7 +2244,6 @@ class CommandDispatcher:
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
 
-
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-mute')
     @cmdutils.argument('count', count=True)
