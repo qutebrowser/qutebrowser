@@ -32,7 +32,7 @@ ManifestSupportedOS all
 SetDatablockOptimize on
 SetCompressor /SOLID /FINAL lzma
 SetCompressorDictSize 32
-CRCCheck force
+CRCCheck on
 AllowSkipFiles off
 SetOverwrite on
 ShowInstDetails hide
