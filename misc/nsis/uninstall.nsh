@@ -26,6 +26,18 @@ Var RunningFromInstaller ; installer started uninstaller using /uninstall parame
 !insertmacro DeleteRetryAbortFunc "un."
 !insertmacro CheckSingleInstanceFunc "un."
 
+Function un.GetConfigDir
+  SetShellVarContext current
+  StrCpy $0 ${CONFIG_DIR}
+  SetShellVarContext all
+FunctionEnd
+
+Function un.GetCacheDir
+  SetShellVarContext current
+  StrCpy $0 ${CACHE_DIR}
+  SetShellVarContext all
+FunctionEnd
+
 Section "un.Program Files" SectionUninstallProgram
   SectionIn RO
 
@@ -75,24 +87,25 @@ SectionEnd
 
 Section /o "!un.Program Settings" SectionRemoveSettings
   ; this section is executed only explicitly and shouldn't be placed in SectionUninstallProgram
-  SetShellVarContext current
-  RMDIR /r "${CONFIG_DIR}\data"
-  RMDIR /r "${CONFIG_DIR}\config"
-  RMDIR "${CONFIG_DIR}"
-  ${if} $MultiUser.InstallMode == "AllUsers"
-    SetShellVarContext all
+  ${if} $MultiUser.InstallMode == "CurrentUser"
+    !insertmacro UAC_AsUser_GetGlobal $0 ${CONFIG_DIR}
+  ${else}
+    !insertmacro UAC_AsUser_Call Function un.GetConfigDir ${UAC_SYNCREGISTERS}
   ${endif}
+  RMDIR /r "$0\data"
+  RMDIR /r "$0\config"
+  RMDIR "$0"
 SectionEnd
 
 Section /o "un.Program Cache" SectionRemoveCache
   ; this section is executed only explicitly and shouldn't be placed in SectionUninstallProgram
-  SetShellVarContext current
-  RMDIR /r "${CACHE_DIR}\cache"
-  RMDIR "${CACHE_DIR}"
-  ${if} $MultiUser.InstallMode == "AllUsers"
-    SetShellVarContext all
+  ${if} $MultiUser.InstallMode == "CurrentUser"
+    !insertmacro UAC_AsUser_GetGlobal $0 ${CACHE_DIR}
+  ${else}
+    !insertmacro UAC_AsUser_Call Function un.GetCacheDir ${UAC_SYNCREGISTERS}
   ${endif}
-
+  RMDIR /r "$0\cache"
+  RMDIR "$0"
 SectionEnd
 
 Section "-Uninstall" ; hidden section, must always be the last one!
