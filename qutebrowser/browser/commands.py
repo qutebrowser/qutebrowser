@@ -32,7 +32,7 @@ from PyQt5.QtPrintSupport import QPrintPreviewDialog
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
 from qutebrowser.config import config, configdata
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
-                                 webelem, downloads)
+                                 webelem, downloads, pdfjs)
 from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, standarddir)
@@ -879,14 +879,18 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom_in(self, count=1, quiet=False):
+    def zoom_in(self, no_pdfjs=False, count=1, quiet=False):
         """Increase the zoom level for the current tab.
 
         Args:
+            no_pdfjs: Use browser's zoom even if the tab displays PDF.js.
             count: How many steps to zoom in.
             quiet: Don't show a zoom level message.
         """
         tab = self._current_widget()
+        if pdfjs.is_pdfjs_page(tab) and not no_pdfjs:
+            pdfjs.zoom_in(tab, count)
+            return
         try:
             perc = tab.zoom.offset(count)
         except ValueError as e:
@@ -896,14 +900,18 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom_out(self, count=1, quiet=False):
+    def zoom_out(self, no_pdfjs=False, count=1, quiet=False):
         """Decrease the zoom level for the current tab.
 
         Args:
+            no_pdfjs: Use browser's zoom even if the tab displays PDF.js.
             count: How many steps to zoom out.
             quiet: Don't show a zoom level message.
         """
         tab = self._current_widget()
+        if pdfjs.is_pdfjs_page(tab) and not no_pdfjs:
+            pdfjs.zoom_out(tab, count)
+            return
         try:
             perc = tab.zoom.offset(-count)
         except ValueError as e:
@@ -913,7 +921,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom(self, zoom=None, count=None, quiet=False):
+    def zoom(self, zoom=None, no_pdfjs=False, count=None, quiet=False):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither is
@@ -922,6 +930,7 @@ class CommandDispatcher:
 
         Args:
             zoom: The zoom percentage to set.
+            no_pdfjs: Use browser's zoom even if the tab displays PDF.js.
             count: The zoom percentage to set.
             quiet: Don't show a zoom level message.
         """
@@ -933,9 +942,17 @@ class CommandDispatcher:
                                           .format(zoom))
 
         level = count if count is not None else zoom
+
+        tab = self._current_widget()
+        if pdfjs.is_pdfjs_page(tab) and not no_pdfjs:
+            if level is None:
+                pdfjs.zoom(tab)
+            else:
+                pdfjs.zoom(tab, float(level) / 100)
+            return
+
         if level is None:
             level = config.val.zoom.default
-        tab = self._current_widget()
 
         try:
             tab.zoom.set_factor(float(level) / 100)
