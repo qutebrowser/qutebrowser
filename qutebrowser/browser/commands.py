@@ -30,7 +30,7 @@ from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 
 from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
-from qutebrowser.config import config, configdata
+from qutebrowser.config import config, configdata, configfiles
 from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
 from qutebrowser.keyinput import modeman, keyutils
@@ -1438,23 +1438,49 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
-    def toggle_inspector(self):
+    @cmdutils.argument('position', choices=['right', 'left', 'top', 'bottom', 'window'])
+    def toggle_inspector(self, position = None):
         """Toggle the web inspector.
 
         Note: Due a bug in Qt, the inspector will show incorrect request
         headers in the network tab.
+
+        Args:
+            position: Where to open the inspector
+                      (right/left/top/bottom/window).
         """
         tab = self._current_widget()
         # FIXME:qtwebengine have a proper API for this
         page = tab._widget.page()  # pylint: disable=protected-access
 
+        @pyqtSlot()
+        def _on_inspector_closed():
+            tab.data.inspector = None
+
         try:
             if tab.data.inspector is None:
-                tab.data.inspector = inspector.create()
+                if position is None:
+                    try:
+                        position = configfiles.state['general']['inspector_last_position']
+                    except KeyError:
+                        position = 'right'
+                tab.data.inspector = inspector.create(position)
                 tab.data.inspector.inspect(page)
+                tab.data.inspector.closed.connect(_on_inspector_closed)
                 tab.data.inspector.show()
+                if position != 'window':
+                    tab.data.splitter.setInspector(tab.data.inspector, position)
+            elif position == 'window':
+                if tab.data.inspector.position != 'window':
+                    tab.data.inspector.detach()
+            elif position is not None:
+                tab.data.splitter.setInspector(tab.data.inspector, position)
             else:
-                tab.data.inspector.toggle(page)
+                tab.data.inspector.close()
+
+            if position:
+                configfiles.state['general']['inspector_last_position'] = position
+
         except inspector.WebInspectorError as e:
             raise cmdexc.CommandError(e)
 

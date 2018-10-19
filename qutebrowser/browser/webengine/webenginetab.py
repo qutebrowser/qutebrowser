@@ -36,8 +36,7 @@ from qutebrowser.browser import browsertab, mouse, shared, webelem
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
-                                           webenginesettings, certificateerror,
-                                           split_inspector)
+                                           webenginesettings, certificateerror)
 from qutebrowser.misc import miscwidgets
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
@@ -1026,11 +1025,6 @@ class WebEngineTab(browsertab.AbstractTab):
                          private=private, parent=parent)
         widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
                                        private=private)
-        inspector_webview = webview.WebEngineView(tabdata=self.data,
-                                       win_id=win_id, private=private)
-        inspector = split_inspector.SplitInspector(widget, inspector_webview)
-        self.data.inspector = inspector
-
         self.history = WebEngineHistory(tab=self)
         self.scroller = WebEngineScroller(tab=self, parent=self)
         self.caret = WebEngineCaret(mode_manager=mode_manager,
@@ -1045,8 +1039,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
-        self._set_widget(widget, splitter=inspector)
-
+        self._set_widget(widget)
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebEngine
         self._child_event_filter = None
@@ -1054,9 +1047,9 @@ class WebEngineTab(browsertab.AbstractTab):
         self._reload_url = None
         self._scripts.init()
 
-    def _set_widget(self, widget, splitter=None):
+    def _set_widget(self, widget):
         # pylint: disable=protected-access
-        super()._set_widget(widget, splitter=splitter)
+        super()._set_widget(widget)
         self._permissions._widget = widget
         self._scripts._widget = widget
 

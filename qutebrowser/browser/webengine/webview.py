@@ -40,7 +40,6 @@ class WebEngineView(QWebEngineView):
         super().__init__(parent)
         self._win_id = win_id
         self._tabdata = tabdata
-        self._private = private
 
         theme_color = self.style().standardPalette().color(QPalette.Base)
         if private:
@@ -262,9 +261,3 @@ class WebEnginePage(QWebEnginePage):
                                                  is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
         return navigation.accepted
-
-    def triggerAction(self, action, checked):
-        """Trigger the specified contextmenu action."""
-        super().triggerAction(action, checked)
-        if action == QWebEnginePage.InspectElement:
-            self.parent()._tabdata.inspector.show()

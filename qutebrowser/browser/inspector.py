@@ -23,26 +23,28 @@ import base64
 import binascii
 
 from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import pyqtSignal
 
 from qutebrowser.config import configfiles
 from qutebrowser.utils import log, usertypes
 from qutebrowser.misc import miscwidgets, objects
 
 
-def create(parent=None):
+def create(position, parent=None):
     """Get a WebKitInspector/WebEngineInspector.
 
     Args:
+        position: position of the inspector (right/left/top/bottom/window).
         parent: The Qt parent to set.
     """
     # Importing modules here so we don't depend on QtWebEngine without the
     # argument and to avoid circular imports.
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webengineinspector
-        return webengineinspector.WebEngineInspector(parent)
+        return webengineinspector.WebEngineInspector(position, parent)
     else:
         from qutebrowser.browser.webkit import webkitinspector
-        return webkitinspector.WebKitInspector(parent)
+        return webkitinspector.WebKitInspector(position, parent)
 
 
 class WebInspectorError(Exception):
@@ -54,17 +56,36 @@ class WebInspectorError(Exception):
 
 class AbstractWebInspector(QWidget):
 
-    """A customized WebInspector which stores its geometry."""
+    """A customized WebInspector which stores its geometry.
 
-    def __init__(self, parent=None):
+    Attributes:
+        position: position of the inspector (right/left/top/bottom/window)
+
+    Signals:
+        closed: Emitted when the inspector is closed.
+    """
+
+    position = None
+    closed = pyqtSignal()
+
+    def __init__(self, position, parent=None):
         super().__init__(parent)
+        self.position = position
         self._widget = None
         self._layout = miscwidgets.WrapperLayout(self)
-        self._load_state_geometry()
+        if position == 'window':
+            self._load_state_geometry()
 
     def _set_widget(self, widget):
         self._widget = widget
         self._layout.wrap(self, widget)
+
+    def detach(self):
+        self.hide()
+        self.setParent(None)
+        self.position = 'window'
+        self._load_state_geometry()
+        self.show()
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
@@ -83,22 +104,16 @@ class AbstractWebInspector(QWidget):
                 log.init.warning("Error while loading geometry.")
 
     def closeEvent(self, e):
-        """Save the geometry when closed."""
-        data = bytes(self.saveGeometry())
-        geom = base64.b64encode(data).decode('ASCII')
-        configfiles.state['geometry']['inspector'] = geom
+        """Save the window geometry when closed."""
 
-        self.inspect(None)
+        if self.position == 'window':
+            data = bytes(self.saveGeometry())
+            geom = base64.b64encode(data).decode('ASCII')
+            configfiles.state['geometry']['inspector'] = geom
+
         super().closeEvent(e)
+        self.closed.emit()
 
     def inspect(self, page):
         """Inspect the given QWeb(Engine)Page."""
         raise NotImplementedError
-
-    def toggle(self, page):
-        """Show/hide the inspector."""
-        if self._widget.isVisible():
-            self.hide()
-        else:
-            self.inspect(page)
-            self.show()
