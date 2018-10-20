@@ -22,9 +22,14 @@
 ; Variables
 Var SemiSilentMode ; installer started uninstaller in semi-silent mode using /SS parameter
 Var RunningFromInstaller ; installer started uninstaller using /uninstall parameter
+Var UserName
 
 !insertmacro DeleteRetryAbortFunc "un."
 !insertmacro CheckSingleInstanceFunc "un."
+
+Function un.GetUserName
+  System::Call "advapi32::GetUserName(t .r0, *i ${NSIS_MAX_STRLEN} r1) i.r2"
+FunctionEnd
 
 Function un.GetConfigDir
   SetShellVarContext current
@@ -85,6 +90,8 @@ Section "un.Program Files" SectionUninstallProgram
   ${endif}
 SectionEnd
 
+SectionGroup /e "un.$UserName's Files" SectionGroupRemoveUserFiles
+
 Section /o "!un.Program Settings" SectionRemoveSettings
   ; this section is executed only explicitly and shouldn't be placed in SectionUninstallProgram
   ${if} $MultiUser.InstallMode == "CurrentUser"
@@ -108,6 +115,8 @@ Section /o "un.Program Cache" SectionRemoveCache
   RMDIR "$0"
 SectionEnd
 
+SectionGroupEnd
+
 Section "-Uninstall" ; hidden section, must always be the last one!
   ; we cannot use DeleteRetryAbort here - when using the _? parameter the
   ; uninstaller cannot delete itself and Delete fails, which is OK
@@ -122,6 +131,8 @@ SectionEnd
 
 ; Modern install component descriptions
 !insertmacro MUI_UNFUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionGroupRemoveUserFiles} \
+    "Remove quterbowser files of user $UserName."
   !insertmacro MUI_DESCRIPTION_TEXT ${SectionUninstallProgram} \
     "Remove ${PRODUCT_NAME} application files."
   !insertmacro MUI_DESCRIPTION_TEXT ${SectionRemoveSettings} \
@@ -133,6 +144,9 @@ SectionEnd
 
 ; Callbacks
 Function un.onInit
+  !insertmacro UAC_AsUser_Call Function un.GetUserName ${UAC_SYNCREGISTERS}
+  StrCpy $UserName $0
+
   ${GetParameters} $R0
 
   ${GetOptions} $R0 "/uninstall" $R1
