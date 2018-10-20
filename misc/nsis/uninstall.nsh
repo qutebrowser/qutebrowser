@@ -85,7 +85,6 @@ Section "un.Program Files" SectionUninstallProgram
       DeleteRegValue SHCTX "SOFTWARE\Classes\.xht\OpenWithProgids" "${PRODUCT_NAME}HTML"
       DeleteRegValue SHCTX "SOFTWARE\Classes\.xhtml\OpenWithProgids" "${PRODUCT_NAME}HTML"
       DeleteRegValue SHCTX "SOFTWARE\Classes\.webp\OpenWithProgids" "${PRODUCT_NAME}HTML"
-      ${RefreshShellIcons}
     ${endif}
   ${endif}
 SectionEnd
@@ -127,6 +126,8 @@ Section "-Uninstall" ; hidden section, must always be the last one!
   ; Remove the uninstaller from registry as the very last step
   ; if something goes wrong, let the user run it again
   !insertmacro MULTIUSER_RegistryRemoveInstallInfo ; Remove registry keys
+  
+  ${RefreshShellIcons}
 SectionEnd
 
 ; Modern install component descriptions
