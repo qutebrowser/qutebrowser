@@ -1476,7 +1476,9 @@ class CommandDispatcher:
             elif position is not None:
                 tab.data.splitter.setInspector(tab.data.inspector, position)
             else:
-                tab.data.inspector.close()
+                tab.data.inspector.hide()
+                tab.data.inspector.deleteLater()
+                tab.data.inspector = None
 
             if position:
                 configfiles.state['general']['inspector_last_position'] = position
