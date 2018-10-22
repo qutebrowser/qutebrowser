@@ -37,43 +37,31 @@ from qutebrowser.config import configdata
 
 def download_nsis_plugins():
     """Download the plugins required by the NSIS script"""
-    cwd = os.getcwd()
     github_url = 'https://raw.githubusercontent.com/Drizin/NsisMultiUser'
-    git_commit = '79914dbb0875dea57ff38976a9e2f1b4dd691e5c'
-    nsh_1 = 'Include/NsisMultiUser.nsh'
-    nsh_2 = 'Include/NsisMultiUserLang.nsh'
-    nsh_3 = 'Include/UAC.nsh'
-    nsh_4 = 'Demos/Common/Utils.nsh'
-    dll_1 = 'Plugins/x86-unicode/UAC.dll'
-    nsh_files = (nsh_1, nsh_2, nsh_3, nsh_4)
-    include_dir = 'include'
-    plugins_dir = 'plugins/x86-unicode'
-
-    os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          '..', '..', 'misc', 'nsis'))
+    git_commit = 'master'
+    nsh_files = ('Include/NsisMultiUser.nsh', 'Include/NsisMultiUserLang.nsh',
+                 'Include/UAC.nsh', 'Include/StdUtils.nsh',
+                 'Demos/Common/Utils.nsh')
+    dll_files = ('Plugins/x86-unicode/UAC.dll',
+                 'Plugins/x86-unicode/StdUtils.dll')
+    include_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                               '..', '..', 'misc', 'nsis',
+                                               'include')
+    plugins_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                               '..', '..', 'misc', 'nsis',
+                                               'plugins', 'x86-unicode')
     os.makedirs(include_dir, exist_ok=True)
     os.makedirs(plugins_dir, exist_ok=True)
-
     print("=> Downloading NSIS plugins")
     for nsh_file in nsh_files:
-        file_name = os.path.basename(nsh_file)
-        target_path = os.path.join(include_dir, file_name)
-        try:
-            urllib.request.urlretrieve('{}/{}/{}'.format(github_url,
-                                                         git_commit, nsh_file),
-                                       target_path)
-        except urllib.error.HTTPError as error:
-            print("Could not retrieve '{}': {}".format(file_name, error))
-    file_name = os.path.basename(dll_1)
-    target_path = os.path.join(plugins_dir, file_name)
-    try:
-        urllib.request.urlretrieve('{}/{}/{}'.format(github_url,
-                                                     git_commit, dll_1),
-                                   target_path)
-    except urllib.error.HTTPError as error:
-        print("Could not retrieve '{}': {}".format(file_name, error))
+        target_path = os.path.join(include_dir, os.path.basename(nsh_file))
+        urllib.request.urlretrieve('{}/{}/{}'.format(github_url, git_commit,
+                                                     nsh_file), target_path)
+    for dll_file in dll_files:
+        target_path = os.path.join(plugins_dir, os.path.basename(dll_file))
+        urllib.request.urlretrieve('{}/{}/{}'.format(github_url, git_commit,
+                                                     dll_file), target_path)
     urllib.request.urlcleanup()
-    os.chdir(cwd)
 
 
 def get_latest_pdfjs_url():
