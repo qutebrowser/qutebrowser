@@ -14,7 +14,7 @@ Flask==1.0.2
 glob2==0.6
 hunter==2.0.2
 hypothesis==3.79.0
-itsdangerous==0.24
+itsdangerous==1.0.0
 # Jinja2==2.10
 Mako==1.0.7
 # MarkupSafe==1.0
