@@ -346,7 +346,7 @@ Section "Register with Windows" SectionWindowsRegister
   ${endif}
 SectionEnd
 
-Section /o "Set as default browser" SectionDefaultBrowser
+Section /o "Open default browser settings" SectionDefaultBrowser
   SectionIn 1
 
   !insertmacro UAC_AsUser_Call Function GetDefaultBrowser ${UAC_SYNCREGISTERS}
@@ -367,7 +367,7 @@ SectionEnd
 
 SectionGroupEnd
 
-SectionGroup "Shortcuts" SectionGroupShortcuts
+SectionGroup /e "Shortcuts" SectionGroupShortcuts
 
 Section "Dektop Icon" SectionDesktopIcon
   SectionIn 1 2
@@ -495,39 +495,39 @@ FunctionEnd
 
 Function PageInstallModeChangeMode
   ; Disable integration for single user install on Win7 and older, as it's not supported
-  ${if} $MultiUser.InstallMode == "CurrentUser"
-  ${andif} ${AtMostWin7}
-    SectionSetText ${SectionGroupIntegration} "System Integration (not supported)"
-    IntOP $0 ${SF_RO} & ${SECTION_OFF}
-    SectionSetFlags ${SectionWindowsRegister} $0
-    SectionSetFlags ${SectionDefaultBrowser} $0
-    !insertmacro SetSectionFlag ${SectionGroupIntegration} ${SF_RO}
-    !insertmacro ClearSectionFlag ${SectionGroupIntegration} ${SF_EXPAND}
-  ${else}
-    ; This is necessary because if the installer started under Win7/Vista as Administrator with UAC disabled,
-    ; going back to All users after first selecting Single user, the integration component would still be disabled
-    SectionSetText ${SectionGroupIntegration} "System Integration"
-    !insertmacro ClearSectionFlag ${SectionWindowsRegister} ${SF_RO}
-    !insertmacro ClearSectionFlag ${SectionDefaultBrowser} ${SF_RO}
-    !insertmacro ClearSectionFlag ${SectionGroupIntegration} ${SF_RO}
-    !insertmacro SetSectionFlag ${SectionGroupIntegration} ${SF_EXPAND}
-    !insertmacro SelectSection ${SectionWindowsRegister}
-
-    ; Select 'Default browser' if already set in registry
-    !insertmacro UAC_AsUser_Call Function GetDefaultBrowser ${UAC_SYNCREGISTERS}
-    ${if} $0 == "${PRODUCT_NAME}URL"
-    ${orif} $1 == "${PRODUCT_NAME}URL"
-    ${orif} $2 == "${PRODUCT_NAME}HTML"
-    ${orif} $3 == "${PRODUCT_NAME}HTML"
-      !insertmacro SetSectionFlag ${SectionWindowsRegister} ${SF_RO}
-      !insertmacro SelectSection ${SectionDefaultBrowser}
+  ${if} ${AtMostWin7}
+    SectionSetText ${SectionDefaultBrowser} "Set as default browser"
+    ${if} $MultiUser.InstallMode == "CurrentUser"
+      SectionSetText ${SectionGroupIntegration} "System Integration (not supported)"
+      IntOP $0 ${SF_RO} & ${SECTION_OFF}
+      SectionSetFlags ${SectionWindowsRegister} $0
+      SectionSetFlags ${SectionDefaultBrowser} $0
+      !insertmacro SetSectionFlag ${SectionGroupIntegration} ${SF_RO}
+      !insertmacro ClearSectionFlag ${SectionGroupIntegration} ${SF_EXPAND}
     ${else}
-      !insertmacro UnselectSection ${SectionDefaultBrowser}
+      ; This is necessary because if the installer started under Win7/Vista as Administrator with UAC disabled,
+      ; going back to All users after first selecting Single user, the integration component would still be disabled
+      SectionSetText ${SectionGroupIntegration} "System Integration"
+      !insertmacro ClearSectionFlag ${SectionWindowsRegister} ${SF_RO}
+      !insertmacro ClearSectionFlag ${SectionDefaultBrowser} ${SF_RO}
+      !insertmacro ClearSectionFlag ${SectionGroupIntegration} ${SF_RO}
+      !insertmacro SetSectionFlag ${SectionGroupIntegration} ${SF_EXPAND}
+      !insertmacro SelectSection ${SectionWindowsRegister}
+
+      ; Select 'Default browser' if already set in registry
+      !insertmacro UAC_AsUser_Call Function GetDefaultBrowser ${UAC_SYNCREGISTERS}
+      ${if} $0 == "${PRODUCT_NAME}URL"
+      ${orif} $1 == "${PRODUCT_NAME}URL"
+      ${orif} $2 == "${PRODUCT_NAME}HTML"
+      ${orif} $3 == "${PRODUCT_NAME}HTML"
+        !insertmacro SetSectionFlag ${SectionWindowsRegister} ${SF_RO}
+        !insertmacro SelectSection ${SectionDefaultBrowser}
+      ${else}
+        !insertmacro UnselectSection ${SectionDefaultBrowser}
+      ${endif}
     ${endif}
   ${endif}
 
-  ; Expand 'Shortcuts' group
-  !insertmacro SetSectionFlag ${SectionGroupShortcuts} ${SF_EXPAND}
 FunctionEnd
 
 Function PageDirectoryPre
