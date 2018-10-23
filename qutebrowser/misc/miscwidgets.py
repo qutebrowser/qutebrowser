@@ -77,6 +77,7 @@ class CommandLineEdit(QLineEdit):
         self.setValidator(self._validator)
         self.textEdited.connect(self.on_text_edited)
         self.cursorPositionChanged.connect(self.__on_cursor_position_changed)
+        self.selectionChanged.connect(self.__on_selection_changed)
         self._promptlen = 0
 
     def __repr__(self):
@@ -93,8 +94,28 @@ class CommandLineEdit(QLineEdit):
 
         We use __ here to avoid accidentally overriding it in subclasses.
         """
+        if self.hasSelectedText():
+            # Let __on_selection_changed handle it
+            return
+
         if new < self._promptlen:
             self.setCursorPosition(self._promptlen)
+
+    @pyqtSlot()
+    def __on_selection_changed(self):
+        """Prevent the prompt from being selected.
+
+        We use __ here to avoid accidentally overriding it in subclasses.
+        """
+        if (not self.hasSelectedText() or
+                self.selectionStart() >= self._promptlen):
+            return
+        selectionEnd = self.selectionEnd()
+        if self.selectionStart() == self.cursorPosition():
+            self.setSelection(selectionEnd, self._promptlen - selectionEnd)
+        else:
+            assert self.selectionEnd() == self.cursorPosition()
+            self.setSelection(self._promptlen, selectionEnd - self._promptlen)
 
     def set_prompt(self, text):
         """Set the current prompt to text.
