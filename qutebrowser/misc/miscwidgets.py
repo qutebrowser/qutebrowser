@@ -94,10 +94,6 @@ class CommandLineEdit(QLineEdit):
 
         We use __ here to avoid accidentally overriding it in subclasses.
         """
-        if self.hasSelectedText():
-            # Let __on_selection_changed handle it
-            return
-
         if new < self._promptlen:
             self.setCursorPosition(self._promptlen)
 
