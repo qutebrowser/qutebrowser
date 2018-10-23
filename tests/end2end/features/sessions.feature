@@ -423,3 +423,26 @@ Feature: Saving and loading sessions
                 - url: http://localhost:*/data/numbers/2.txt
             - history:
                 - url: http://localhost:*/data/numbers/3.txt
+
+  Scenario: Adding URL to non-existing session
+    When I open data/numbers/1.txt
+    And I open data/numbers/2.txt in a new tab
+    And I open data/numbers/3.txt in a new tab
+    And I run :session-add-url new-session
+    And I run :session-load new-session
+    And I wait until data/numbers/3.txt is loaded
+    Then the session should look like:
+      windows:
+        - tabs:
+            - history:
+                - url: about:blank
+                - active: true
+                  url: http://localhost:*/data/numbers/1.txt
+            - history:
+                - url: http://localhost:*/data/numbers/2.txt
+            - history:
+                - url: http://localhost:*/data/numbers/3.txt
+        - tabs:
+            - history:
+                - active: true
+                  url: http://localhost:*/data/numbers/3.txt
