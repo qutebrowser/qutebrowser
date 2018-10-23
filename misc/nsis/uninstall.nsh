@@ -22,7 +22,7 @@
 ; Variables
 Var SemiSilentMode ; installer started uninstaller in semi-silent mode using /SS parameter
 Var RunningFromInstaller ; installer started uninstaller using /uninstall parameter
-Var RunningAsUser ; uninstaller restared itself using the user of the running shell
+Var RunningAsUser ; uninstaller restarted itself using the user of the running shell
 Var UserName
 
 !insertmacro DeleteRetryAbortFunc "un."
