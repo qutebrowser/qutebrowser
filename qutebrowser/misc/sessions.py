@@ -27,12 +27,14 @@ import urllib
 import yaml
 from PyQt5.QtCore import QObject, QPoint, QTimer, QUrl
 from PyQt5.QtWidgets import QApplication
+
 from qutebrowser.commands import cmdexc, cmdutils
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.config import config, configfiles
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
 from qutebrowser.utils import log, message, objreg, qtutils, standarddir, utils
+
 
 default = object()  # Sentinel value
 
@@ -213,6 +215,21 @@ class SessionManager(QObject):
                 data['history'].append(item_data)
         return data
 
+    def _get_window_properties(self, window, private=False, active=False):
+        """Get a dict with data specific to a window."""
+        win_data = {}
+
+        win_data['geometry'] = bytes(window.saveGeometry())
+        win_data['tabs'] = []
+
+        if active:
+            win_data['active'] = True
+
+        if private:
+            win_data['private'] = True
+
+        return win_data
+
     def _save_all(self, *, only_window=None, with_private=False):
         """Get a dict with data for all windows/tabs."""
         data = {'windows': []}
@@ -234,18 +251,21 @@ class SessionManager(QObject):
             if tabbed_browser.private and not with_private:
                 continue
 
-            win_data = {}
             active_window = QApplication.instance().activeWindow()
+            is_active = False
             if getattr(active_window, 'win_id', None) == win_id:
-                win_data['active'] = True
-            win_data['geometry'] = bytes(main_window.saveGeometry())
-            win_data['tabs'] = []
-            if tabbed_browser.private:
-                win_data['private'] = True
+                is_active = True
+
+            win_data = self._get_window_properties(
+                main_window,
+                tabbed_browser.private,
+                is_active
+            )
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.widget.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active))
             data['windows'].append(win_data)
+
         return data
 
     def _get_session_name(self, name):
@@ -466,29 +486,37 @@ class SessionManager(QObject):
 
     def add_url_to_session(self, name):
         """Appends the current tab's URL to a named session."""
-        data = self._load_session_file(name)
+        main_window = objreg.get(
+            'main-window',
+            scope='window',
+            window='current'
+        )
+        tabbed_browser = objreg.get(
+            'tabbed-browser',
+            scope='window',
+            window='current'
+        )
 
-        if data is None:
-            raise SessionError("Got empty session file")
+        try:
+            data = self._load_session_file(name)
+        except SessionNotFoundError:
+            data = {'windows': [
+                self._get_window_properties(
+                    main_window,
+                    tabbed_browser.private,
+                    True
+                )
+            ]}
 
-        winlist = objreg.window_registry
         current_tab = None
-        for win_id in sorted(winlist):
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
 
-            active_window = QApplication.instance().activeWindow()
-            if getattr(active_window, 'win_id', None) == win_id:
-                current_tab = tabbed_browser.widget.currentWidget()
+        current_tab = tabbed_browser.widget.currentWidget()
 
-        data['windows'][0]['tabs'].append(self._save_tab(current_tab, False))
+        windows = data.get('windows', [])
+        if not windows:
+            raise SessionError('Session is is either corrupt or invalid')
 
-        log.sessions.info(
-            "Session path {}.".format(self._get_session_path(name))
-        )
-        log.sessions.info(
-            "Add URL {} to session {}.".format(name, current_tab.url())
-        )
+        windows[0]['tabs'].append(self._save_tab(current_tab, False))
 
         self._save_session_file(name, data)
 
