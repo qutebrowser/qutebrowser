@@ -22,6 +22,7 @@
 ; Variables
 Var SemiSilentMode ; installer started uninstaller in semi-silent mode using /SS parameter
 Var RunningFromInstaller ; installer started uninstaller using /uninstall parameter
+Var RunningAsUser ; uninstaller restared itself using the user of the running shell
 Var UserName
 
 !insertmacro DeleteRetryAbortFunc "un."
@@ -150,13 +151,19 @@ Function un.onInit
 
   ${GetParameters} $R0
 
+  ${GetOptions} $R0 "/user" $R1
+  ${ifnot} ${errors}
+    StrCpy $RunningAsUser 1
+  ${else}
+    StrCpy $RunningAsUser 0
+  ${endif}
+
   ${GetOptions} $R0 "/uninstall" $R1
   ${ifnot} ${errors}
     StrCpy $RunningFromInstaller 1
   ${else}
     StrCpy $RunningFromInstaller 0
   ${endif}
-
   
   ${GetOptions} $R0 "/upgrade" $R1
   ${ifnot} ${errors}
@@ -178,6 +185,11 @@ Function un.onInit
 
   ${ifnot} ${UAC_IsInnerInstance}
   ${andif} $RunningFromInstaller = 0
+    ${if} ${UAC_IsAdmin}
+    ${andif} $RunningAsUser = 0
+      ${StdUtils.ExecShellAsUser} $0 "$INSTDIR\${UNINSTALL_FILENAME}" "open" "/user $R0"
+      Quit
+    ${endif}
     !insertmacro CheckSingleInstance "Setup" "Global" "${SETUP_MUTEX}"
     !insertmacro CheckSingleInstance "Application" "Local" "${APP_MUTEX}"
   ${endif}

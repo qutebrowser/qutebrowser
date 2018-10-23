@@ -43,6 +43,7 @@ ShowUninstDetails hide
 
 !include MUI2.nsh
 !include NsisMultiUser.nsh
+!include StdUtils.nsh
 
 ; Installer defines
 !define PRODUCT_NAME "qutebrowser" ; name of the application as displayed to the user
