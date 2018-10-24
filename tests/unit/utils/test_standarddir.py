@@ -186,7 +186,7 @@ class TestStandardDir:
         tmpdir_env = tmpdir / 'temp'
         tmpdir_env.ensure(dir=True)
         monkeypatch.setenv('XDG_RUNTIME_DIR', str(tmpdir / 'does-not-exist'))
-        monkeypatch.setenv('TMPDIR', tmpdir_env)
+        monkeypatch.setenv('TMPDIR', str(tmpdir_env))
 
         standarddir._init_dirs()
         assert standarddir.runtime() == str(tmpdir_env / APPNAME)
