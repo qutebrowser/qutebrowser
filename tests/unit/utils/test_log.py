@@ -271,7 +271,7 @@ def test_stub(caplog, suffix, expected):
     with caplog.at_level(logging.WARNING, 'misc'):
         log.stub(suffix)
     assert len(caplog.records) == 1
-    assert caplog.records[0].message == expected
+    assert caplog.messages[0] == expected
 
 
 def test_ignore_py_warnings(caplog):
@@ -281,7 +281,7 @@ def test_ignore_py_warnings(caplog):
     with caplog.at_level(logging.WARNING):
         warnings.warn("not hidden", UserWarning)
     assert len(caplog.records) == 1
-    msg = caplog.records[0].message.splitlines()[0]
+    msg = caplog.messages[0].splitlines()[0]
     assert msg.endswith("UserWarning: not hidden")
 
 
@@ -301,4 +301,4 @@ class TestQtMessageHandler:
         """Make sure there's no crash with an empty message."""
         log.qt_message_handler(QtCore.QtDebugMsg, self.Context(), "")
         assert len(caplog.records) == 1
-        assert caplog.records[0].msg == "Logged empty message!"
+        assert caplog.messages[0] == "Logged empty message!"

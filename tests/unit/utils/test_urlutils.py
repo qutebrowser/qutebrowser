@@ -263,7 +263,7 @@ class TestFuzzyUrl:
 
         msg = ("URL contains characters which are not present in the current "
                "locale")
-        assert caplog.records[-1].message == msg
+        assert caplog.messages[-1] == msg
 
 
 @pytest.mark.parametrize('url, special', [

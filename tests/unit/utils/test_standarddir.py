@@ -289,7 +289,7 @@ class TestInitCacheDirTag:
         with caplog.at_level(logging.ERROR, 'init'):
             standarddir._init_cachedir_tag()
         assert len(caplog.records) == 1
-        assert caplog.records[0].message == 'Failed to create CACHEDIR.TAG'
+        assert caplog.messages[0] == 'Failed to create CACHEDIR.TAG'
         assert not tmpdir.listdir()
 
 
@@ -455,8 +455,8 @@ class TestMove:
     def test_no_old_dir(self, dirs, caplog):
         """Nothing should happen without any old directory."""
         standarddir._move_data(str(dirs.old), str(dirs.new))
-        assert not any(rec.message.startswith('Migrating data from')
-                       for rec in caplog.records)
+        assert not any(message.startswith('Migrating data from')
+                       for message in caplog.messages)
 
     @pytest.mark.parametrize('empty_dest', [True, False])
     def test_moving_data(self, dirs, empty_dest):
@@ -475,10 +475,9 @@ class TestMove:
         with caplog.at_level(logging.ERROR):
             standarddir._move_data(str(dirs.old), str(dirs.new))
 
-        record = caplog.records[-1]
         expected = "Failed to move data from {} as {} is non-empty!".format(
             dirs.old, dirs.new)
-        assert record.message == expected
+        assert caplog.messages[-1] == expected
 
     def test_deleting_error(self, dirs, monkeypatch, mocker, caplog):
         """When there was an error it should be logged."""
@@ -489,10 +488,9 @@ class TestMove:
         with caplog.at_level(logging.ERROR):
             standarddir._move_data(str(dirs.old), str(dirs.new))
 
-        record = caplog.records[-1]
         expected = "Failed to move data from {} to {}: error".format(
             dirs.old, dirs.new)
-        assert record.message == expected
+        assert caplog.messages[-1] == expected
 
 
 @pytest.mark.parametrize('args_kind', ['basedir', 'normal', 'none'])

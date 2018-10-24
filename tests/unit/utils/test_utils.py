@@ -471,8 +471,7 @@ class TestPreventExceptions:
         assert ret == 42
         assert len(caplog.records) == 1
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
-        actual = caplog.records[0].message
-        assert actual == expected
+        assert caplog.messages[0] == expected
 
     @utils.prevent_exceptions(42)
     def func_not_raising(self):
@@ -691,7 +690,7 @@ class TestGetSetClipboard:
         utils.set_clipboard(text, selection=selection)
         assert not clipboard_mock.setText.called
         expected = 'Setting fake {}: "{}"'.format(what, expected)
-        assert caplog.records[0].message == expected
+        assert caplog.messages[0] == expected
 
     def test_get(self):
         assert utils.get_clipboard() == 'mocked clipboard text'
@@ -742,7 +741,7 @@ class TestOpenFile:
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
         utils.open_file('/foo/bar', cmdline)
-        result = caplog.records[0].message
+        result = caplog.messages[0]
         assert re.fullmatch(
             r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
 
@@ -751,7 +750,7 @@ class TestOpenFile:
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass {{}} raboof'.format(executable)
         utils.open_file('/foo/bar', cmdline)
-        result = caplog.records[0].message
+        result = caplog.messages[0]
         assert re.fullmatch(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
 
@@ -761,7 +760,7 @@ class TestOpenFile:
         cmdline = '{} -c pass'.format(executable)
         config_stub.val.downloads.open_dispatcher = cmdline
         utils.open_file('/foo/bar')
-        result = caplog.records[1].message
+        result = caplog.messages[1]
         assert re.fullmatch(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
 
@@ -769,7 +768,7 @@ class TestOpenFile:
         m = mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
                          new_callable=mocker.Mock)
         utils.open_file('/foo/bar')
-        result = caplog.records[0].message
+        result = caplog.messages[0]
         assert re.fullmatch(
             r"Opening /foo/bar with the system application", result)
         m.assert_called_with(QUrl('file:///foo/bar'))

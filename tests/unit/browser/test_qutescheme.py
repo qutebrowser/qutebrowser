@@ -204,7 +204,7 @@ class TestPDFJSHandler:
             with pytest.raises(qutescheme.NotFoundError):
                 qutescheme.data_for_url(QUrl('qute://pdfjs/no/file.html'))
         assert len(caplog.records) == 1
-        assert (caplog.records[0].message ==
+        assert (caplog.messages[0] ==
                 'pdfjs resource requested but not found: /no/file.html')
 
     def test_viewer_page(self, data_tmpdir):

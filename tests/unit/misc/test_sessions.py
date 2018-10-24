@@ -217,7 +217,7 @@ class TestSave:
 
         assert len(caplog.records) == 1
         msg = "last_window_session is None while saving!"
-        assert caplog.records[0].msg == msg
+        assert caplog.messages[0] == msg
         assert not session_path.exists()
 
     def test_last_window_session(self, sess_man, tmpdir):

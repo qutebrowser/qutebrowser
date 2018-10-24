@@ -295,7 +295,7 @@ class TestGitStr:
         with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() == '0deadcode'
         assert len(caplog.records) == 1
-        assert caplog.records[0].message == "Error while getting git path"
+        assert caplog.messages[0] == "Error while getting git path"
 
 
 def _has_git():
@@ -457,7 +457,7 @@ def test_release_info(files, expected, caplog, monkeypatch):
         assert version._release_info() == expected
     if files is None:
         assert len(caplog.records) == 1
-        assert caplog.records[0].message == "Error while reading fake-file."
+        assert caplog.messages[0] == "Error while reading fake-file."
 
 
 @pytest.mark.parametrize('equal', [True, False])

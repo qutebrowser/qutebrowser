@@ -61,7 +61,7 @@ def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
         'post_text: post',
         'exception text: {}'.format(exc_text),
     ]
-    assert caplog.records[0].msg == '\n'.join(expected)
+    assert caplog.messages[0] == '\n'.join(expected)
 
 
 # This happens on Xvfb for some reason
