@@ -26,11 +26,11 @@ Module attributes:
 import traceback
 import enum
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import pyqtSlot, Qt, QEvent
 from PyQt5.QtGui import QKeySequence
 
 from qutebrowser.commands import runners, cmdexc
-from qutebrowser.config import config
 from qutebrowser.keyinput import basekeyparser, keyutils
 from qutebrowser.utils import usertypes, log, message, objreg, utils
 
@@ -60,17 +60,11 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
 
 class NormalKeyParser(CommandKeyParser):
 
-    """KeyParser for normal mode with added STARTCHARS detection and more.
-
-    Attributes:
-        _partial_timer: Timer to clear partial keypresses.
-    """
+    """KeyParser for normal mode with added STARTCHARS detection and more."""
 
     def __init__(self, win_id, parent=None):
         super().__init__(win_id, parent, supports_count=True)
         self._read_config('normal')
-        self._partial_timer = usertypes.Timer(self, 'partial-match')
-        self._partial_timer.setSingleShot(True)
         self._inhibited = False
         self._inhibited_timer = usertypes.Timer(self, 'normal-inhibited')
         self._inhibited_timer.setSingleShot(True)
@@ -95,15 +89,7 @@ class NormalKeyParser(CommandKeyParser):
                             "currently inhibited.".format(txt))
             return QKeySequence.NoMatch
 
-        match = super().handle(e, dry_run=dry_run)
-
-        if match == QKeySequence.PartialMatch and not dry_run:
-            timeout = config.val.input.partial_timeout
-            if timeout != 0:
-                self._partial_timer.setInterval(timeout)
-                self._partial_timer.timeout.connect(self._clear_partial_match)
-                self._partial_timer.start()
-        return match
+        return super().handle(e, dry_run=dry_run)
 
     def set_inhibited_timeout(self, timeout):
         """Ignore keypresses for the given duration."""
@@ -116,34 +102,10 @@ class NormalKeyParser(CommandKeyParser):
             self._inhibited_timer.start()
 
     @pyqtSlot()
-    def _clear_partial_match(self):
-        """Clear a partial keystring after a timeout."""
-        self._debug_log("Clearing partial keystring {}".format(
-            self._sequence))
-        self._sequence = keyutils.KeySequence()
-        self.keystring_updated.emit(str(self._sequence))
-
-    @pyqtSlot()
     def _clear_inhibited(self):
         """Reset inhibition state after a timeout."""
         self._debug_log("Releasing inhibition state of normal mode.")
         self._inhibited = False
-
-    @pyqtSlot()
-    def _stop_timers(self):
-        super()._stop_timers()
-        self._partial_timer.stop()
-        try:
-            self._partial_timer.timeout.disconnect(self._clear_partial_match)
-        except TypeError:
-            # no connections
-            pass
-        self._inhibited_timer.stop()
-        try:
-            self._inhibited_timer.timeout.disconnect(self._clear_inhibited)
-        except TypeError:
-            # no connections
-            pass
 
 
 class PassthroughKeyParser(CommandKeyParser):
@@ -154,6 +116,7 @@ class PassthroughKeyParser(CommandKeyParser):
 
     Attributes:
         _mode: The mode this keyparser is for.
+        _orig_sequence: Current sequence with no key_mappings applied.
     """
 
     do_log = False
@@ -169,10 +132,64 @@ class PassthroughKeyParser(CommandKeyParser):
         """
         super().__init__(win_id, parent)
         self._read_config(mode)
+        self._orig_sequence = keyutils.KeySequence()
         self._mode = mode
 
     def __repr__(self):
         return utils.get_repr(self, mode=self._mode)
+
+    def handle(self, e, *, dry_run=False):
+        """Override to pass the chain through on NoMatch.
+
+        Args:
+            e: the KeyPressEvent from Qt.
+            dry_run: Don't actually execute anything, only check whether there
+                     would be a match.
+
+        Return:
+            A self.Match member.
+        """
+        if (keyutils.is_modifier_key(e.key()) or
+                getattr(e, "ignore_event", False)):
+            return QKeySequence.NoMatch
+
+        orig_sequence = self._orig_sequence.append_event(e)
+        match = super().handle(e, dry_run=dry_run)
+
+        if not dry_run and match == QKeySequence.PartialMatch:
+            self._orig_sequence = orig_sequence
+
+        if dry_run or len(orig_sequence) == 1 or match != QKeySequence.NoMatch:
+            return match
+
+        self._forward_keystring(orig_sequence)
+        return QKeySequence.ExactMatch
+
+    def _forward_keystring(self, orig_sequence):
+        window = QApplication.focusWindow()
+        if window is None:
+            return
+
+        first = True
+        for keyinfo in orig_sequence:
+            press_event = keyinfo.to_event(QEvent.KeyPress)
+            if first:
+                press_event.ignore_event = True
+                first = False
+            release_event = keyinfo.to_event(QEvent.KeyRelease)
+            QApplication.postEvent(window, press_event)
+            QApplication.postEvent(window, release_event)
+
+    @pyqtSlot()
+    def clear_partial_match(self):
+        """Override to forward the original sequence to browser."""
+        self._forward_keystring(self._orig_sequence)
+        self.clear_keystring()
+
+    def clear_keystring(self):
+        """Override to also clear the original sequence."""
+        super().clear_keystring()
+        self._orig_sequence = keyutils.KeySequence()
 
 
 class PromptKeyParser(CommandKeyParser):
@@ -295,6 +312,12 @@ class HintKeyParser(CommandKeyParser):
                               'follow-hint -s ' + s for s in strings})
         if not preserve_filter:
             self._filtertext = ''
+
+    @pyqtSlot()
+    def clear_partial_match(self):
+        """Override to avoid clearing filter text after a timeout."""
+        if self._last_press != LastPress.filtertext:
+            super().clear_partial_match()
 
     @pyqtSlot(str)
     def on_keystring_updated(self, keystr):
