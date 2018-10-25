@@ -469,9 +469,8 @@ class TestPreventExceptions:
             ret = self.func_raising()
             # pylint: enable=assignment-from-no-return
         assert ret == 42
-        assert len(caplog.records) == 1
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
-        assert caplog.messages[0] == expected
+        assert caplog.messages == [expected]
 
     @utils.prevent_exceptions(42)
     def func_not_raising(self):

@@ -388,9 +388,8 @@ class TestConfig:
             conf._set_value(opt, 'never')
 
         assert blocker.args == ['tabs.show']
-        assert len(caplog.records) == 1
         expected_message = 'Config option changed: tabs.show = never'
-        assert caplog.messages[0] == expected_message
+        assert caplog.messages == [expected_message]
 
     def test_set_value_no_backend(self, monkeypatch, conf):
         """Make sure setting values when the backend is still unknown works."""

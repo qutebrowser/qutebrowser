@@ -35,6 +35,5 @@ def test_on_focus_changed_issue1484(monkeypatch, qapp, caplog):
     buf = QBuffer()
     app.on_focus_changed(buf, buf)
 
-    assert len(caplog.records) == 1
     expected = "on_focus_changed called with non-QWidget {!r}".format(buf)
-    assert caplog.messages[0] == expected
+    assert caplog.messages == [expected]

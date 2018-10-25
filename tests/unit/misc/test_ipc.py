@@ -698,8 +698,6 @@ class TestSendOrListen:
             with pytest.raises(ipc.Error):
                 ipc.send_or_listen(args)
 
-        assert len(caplog.records) == 1
-
         error_msgs = [
             'Handling fatal misc.ipc.{} with --no-err-windows!'.format(
                 exc_name),
@@ -709,7 +707,7 @@ class TestSendOrListen:
             'post_text: Maybe another instance is running but frozen?',
             'exception text: {}'.format(exc_msg),
         ]
-        assert caplog.messages[0] == '\n'.join(error_msgs)
+        assert caplog.messages == ['\n'.join(error_msgs)]
 
     @pytest.mark.posix(reason="Flaky on Windows")
     def test_error_while_listening(self, qlocalserver_mock, caplog, args):

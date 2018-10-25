@@ -154,9 +154,8 @@ class TestResources:
                                match="Path 'web/test' not found"):
                 pdfjs.get_pdfjs_res_and_path('web/test')
 
-        assert len(caplog.records) == 1
-        msg = caplog.messages[0]
-        assert msg == 'OSError while reading PDF.js file: Message'
+        expected = 'OSError while reading PDF.js file: Message'
+        assert caplog.messages == [expected]
 
 
 @pytest.mark.parametrize('path, expected', [

@@ -41,8 +41,7 @@ def test_log_events(qapp, caplog):
     obj = EventObject()
     qapp.sendEvent(obj, QEvent(QEvent.User))
     qapp.processEvents()
-    assert len(caplog.records) == 1
-    assert caplog.messages[0] == 'Event in test_debug.EventObject: User'
+    assert caplog.messages == ['Event in test_debug.EventObject: User']
 
 
 class SignalObject(QObject):
@@ -74,9 +73,8 @@ def test_log_signals(caplog, signal_obj):
     signal_obj.signal1.emit()
     signal_obj.signal2.emit('foo', 'bar')
 
-    assert len(caplog.records) == 2
-    assert caplog.messages[0] == 'Signal in <repr>: signal1()'
-    assert caplog.messages[1] == "Signal in <repr>: signal2('foo', 'bar')"
+    assert caplog.messages == ['Signal in <repr>: signal1()',
+                               "Signal in <repr>: signal2('foo', 'bar')"]
 
 
 class TestLogTime:
