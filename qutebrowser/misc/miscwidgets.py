@@ -94,7 +94,7 @@ class CommandLineEdit(QLineEdit):
         We use __ here to avoid accidentally overriding it in subclasses.
         """
         if new < self._promptlen:
-            self.setCursorPosition(self._promptlen)
+            self.cursorForward(self.hasSelectedText(), self._promptlen - new)
 
     def set_prompt(self, text):
         """Set the current prompt to text.
