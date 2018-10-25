@@ -226,7 +226,9 @@ class TabWidget(QTabWidget):
         work.
         """
         bar = self.tabBar()
-        toggle = self.count() > 10 and bar.isVisible()
+        toggle = (self.count() > 10 and
+                  not bar.drag_in_progress and
+                  bar.isVisible())
         if toggle:
             bar.setUpdatesEnabled(False)
             bar.setVisible(False)
@@ -384,6 +386,7 @@ class TabBar(QTabBar):
         self._on_show_switching_delay_changed()
         self.setAutoFillBackground(True)
         self._set_colors()
+        self.drag_in_progress = False
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
@@ -507,8 +510,16 @@ class TabBar(QTabBar):
         p.setColor(QPalette.Window, config.val.colors.tabs.bar.bg)
         self.setPalette(p)
 
+    def mouseReleaseEvent(self, e):
+        """Override mouseReleaseEvent to know when drags stop."""
+        self.drag_in_progress = False
+        super().mouseReleaseEvent(e)
+
     def mousePressEvent(self, e):
-        """Override mousePressEvent to close tabs if configured."""
+        """Override mousePressEvent to close tabs if configured.
+
+        Also keep track of if we are currently in a drag."""
+        self.drag_in_progress = True
         button = config.val.tabs.close_mouse_button
         if (e.button() == Qt.RightButton and button == 'right' or
                 e.button() == Qt.MiddleButton and button == 'middle'):
