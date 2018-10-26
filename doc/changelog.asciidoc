@@ -15,6 +15,16 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.5.2
+------
+
+Changed
+~~~~~~~
+
+- The `content.cookies.accept` setting is now set to `all` instead of
+  `no-3rdparty` by default, as `no-3rdparty` breaks various pages such as
+  GMail.
+
 v1.5.1
 ------
 
