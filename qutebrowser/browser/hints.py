@@ -75,13 +75,18 @@ class HintLabel(QLabel):
         }
     """
 
-    def __init__(self, elem, context):
-        super().__init__(parent=context.tab)
-        self._context = context
-        self.elem = elem
+    _object_pool = []
 
+    def __init__(self, elem, context):
+        super().__init__()
         self.setAttribute(Qt.WA_StyledBackground, True)
         config.set_register_stylesheet(self)
+        self._reset(elem, context)
+
+    def _reset(self, elem, context):
+        self.setParent(context.tab)
+        self._context = context
+        self.elem = elem
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
         self._move_to_elem()
@@ -132,7 +137,23 @@ class HintLabel(QLabel):
     def cleanup(self):
         """Clean up this element and hide it."""
         self.hide()
-        self.deleteLater()
+        self.setParent(None)
+        self._context.tab.contents_size_changed.disconnect(self._move_to_elem)
+        HintLabel._object_pool.append(self)
+
+    @staticmethod
+    def create(elem, context):
+        """Returns a HintLabel object with the parameters (elem, context).
+
+        Try to reuse an object in the object pool if possible. If not possible,
+        create a new one.
+        """
+        try:
+            label = HintLabel._object_pool.pop()
+        except IndexError:
+            return HintLabel(elem, context)
+        label._reset(elem, context)  # pylint: disable=W0212
+        return label
 
 
 @attr.s
@@ -611,7 +632,7 @@ class HintManager(QObject):
         log.hints.debug("hints: {}".format(', '.join(strings)))
 
         for elem, string in zip(elems, strings):
-            label = HintLabel(elem, self._context)
+            label = HintLabel.create(elem, self._context)
             label.update_text('', string)
             self._context.all_labels.append(label)
             self._context.labels[string] = label
