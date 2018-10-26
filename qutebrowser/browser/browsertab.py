@@ -917,7 +917,12 @@ class AbstractTab(QWidget):
             # https://github.com/qutebrowser/qutebrowser/issues/3498
             return
 
-        sess_manager = objreg.get('session-manager')
+        try:
+            sess_manager = objreg.get('session-manager')
+        except KeyError:
+            # https://github.com/qutebrowser/qutebrowser/issues/4311
+            return
+
         sess_manager.save_autosave()
 
         if ok and not self._has_ssl_errors:
