@@ -75,6 +75,7 @@ Feature: Using :navigate
         And I run :navigate next
         Then data/navigate/next.html should be loaded
 
+    @qtwebkit_skip
     Scenario: Navigating with invalid selector
         When I open data/navigate
         And I set hints.selectors to {"links": ["@"]}
