@@ -203,6 +203,11 @@ class DownloadManager(downloads.AbstractDownloadManager):
         super().__init__(parent)
         self._mhtml_target = None
 
+    def install(self, profile):
+        """Set up the download manager on a QWebEngineProfile."""
+        profile.downloadRequested.connect(self.handle_download,
+                                          Qt.DirectConnection)
+
     @pyqtSlot(QWebEngineDownloadItem)
     def handle_download(self, qt_item):
         """Start a download coming from a QWebEngineProfile."""

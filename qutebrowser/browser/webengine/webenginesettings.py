@@ -26,17 +26,14 @@ Module attributes:
 
 import os
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEnginePage)
-from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.browser.webengine import (spell, cookies, webenginedownloads,
-                                           interceptor, webenginequtescheme)
+from qutebrowser.browser.webengine import spell
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
-from qutebrowser.utils import utils, standarddir, qtutils, message, log, objreg
+from qutebrowser.utils import utils, standarddir, qtutils, message, log
 
 # The default QWebEngineProfile
 default_profile = None
@@ -44,12 +41,6 @@ default_profile = None
 private_profile = None
 # The global WebEngineSettings object
 global_settings = None
-# For some reason we need to keep a reference, otherwise the scheme handler
-# won't work...
-# https://www.riverbankcomputing.com/pipermail/pyqt/2016-September/038075.html
-_qute_scheme_handler = None
-_req_interceptor = None
-_download_manager = None
 
 
 class _SettingsWrapper:
@@ -59,41 +50,37 @@ class _SettingsWrapper:
     For read operations, the default profile value is always used.
     """
 
-    @staticmethod
-    def setAttribute(*args, **kwargs):
-        default_profile.settings().setAttribute(*args, **kwargs)
-        private_profile.settings().setAttribute(*args, **kwargs)
+    def __init__(self):
+        self._settings = [default_profile.settings(),
+                          private_profile.settings()]
 
-    @staticmethod
-    def setFontFamily(*args, **kwargs):
-        default_profile.settings().setFontFamily(*args, **kwargs)
-        private_profile.settings().setFontFamily(*args, **kwargs)
+    def setAttribute(self, *args, **kwargs):
+        for settings in self._settings:
+            settings.setAttribute(*args, **kwargs)
 
-    @staticmethod
-    def setFontSize(*args, **kwargs):
-        default_profile.settings().setFontSize(*args, **kwargs)
-        private_profile.settings().setFontSize(*args, **kwargs)
+    def setFontFamily(self, *args, **kwargs):
+        for settings in self._settings:
+            settings.setFontFamily(*args, **kwargs)
 
-    @staticmethod
-    def setDefaultTextEncoding(*args, **kwargs):
-        default_profile.settings().setDefaultTextEncoding(*args, **kwargs)
-        private_profile.settings().setDefaultTextEncoding(*args, **kwargs)
+    def setFontSize(self, *args, **kwargs):
+        for settings in self._settings:
+            settings.setFontSize(*args, **kwargs)
 
-    @staticmethod
-    def testAttribute(*args, **kwargs):
-        return default_profile.settings().testAttribute(*args, **kwargs)
+    def setDefaultTextEncoding(self, *args, **kwargs):
+        for settings in self._settings:
+            settings.setDefaultTextEncoding(*args, **kwargs)
 
-    @staticmethod
-    def fontSize(*args, **kwargs):
-        return default_profile.settings().fontSize(*args, **kwargs)
+    def testAttribute(self, *args, **kwargs):
+        return self._settings[0].testAttribute(*args, **kwargs)
 
-    @staticmethod
-    def fontFamily(*args, **kwargs):
-        return default_profile.settings().fontFamily(*args, **kwargs)
+    def fontSize(self, *args, **kwargs):
+        return self._settings[0].fontSize(*args, **kwargs)
 
-    @staticmethod
-    def defaultTextEncoding(*args, **kwargs):
-        return default_profile.settings().defaultTextEncoding(*args, **kwargs)
+    def fontFamily(self, *args, **kwargs):
+        return self._settings[0].fontFamily(*args, **kwargs)
+
+    def defaultTextEncoding(self, *args, **kwargs):
+        return self._settings[0].defaultTextEncoding(*args, **kwargs)
 
 
 class WebEngineSettings(websettings.AbstractSettings):
@@ -288,66 +275,28 @@ def _update_settings(option):
         private_profile.setter.set_dictionary_language(warn=False)
 
 
-def create_profile(storage_name=None, private=False):
-    """Create a QWebEngineProfile and install all required extensions on it
+def _init_default_profile():
+    """Init the default QWebEngineProfiles."""
+    global default_profile
 
-    Args:
-        storage_name: Name of the persistent storage for this profile. Must be
-                      unique across profiles. This name is ignored for private
-                      profiles and, if omitted but private=False, the default
-                      profile will be returned.
-        private: If True, an off-the-record profile will be created and
-                 storage_name will be ignored.
-    """
-    if private:
-        profile = QWebEngineProfile()
-        assert profile.isOffTheRecord()
-    elif storage_name:
-        profile = QWebEngineProfile(storage_name)
-        # TODO: set custom paths for cache and storage?
-    else:
-        profile = QWebEngineProfile.defaultProfile()
-        profile.setCachePath(
-            os.path.join(standarddir.cache(), 'webengine'))
-        profile.setPersistentStoragePath(
-            os.path.join(standarddir.data(), 'webengine'))
-    profile.setter = ProfileSetter(profile)
-    profile.setter.init_profile()
-
-    # Install qute scheme handler
-    profile.installUrlSchemeHandler(b'qute', _qute_scheme_handler)
-    if qtutils.version_check('5.11', compiled=False):
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
-        profile.installUrlSchemeHandler(b'chrome-error', _qute_scheme_handler)
-        profile.installUrlSchemeHandler(b'chrome-extension',
-                                        _qute_scheme_handler)
-
-    # Install request interceptor
-    profile.setRequestInterceptor(_req_interceptor)
-
-    # Install download manager
-    profile.downloadRequested.connect(_download_manager.handle_download,
-                                      Qt.DirectConnection)
-
-    # Install cookie filter
-    # On Qt < 5.11, the cookie filter isn't installed.
-    try:
-        profile.cookieStore().setCookieFilter(cookies.accept_cookie)
-    except AttributeError:
-        pass
-
-    # Clear visited links on web history clear
-    hist = objreg.get('web-history')
-    hist.history_cleared.connect(profile.clearAllVisitedLinks)
-    hist.url_cleared.connect(lambda url, profile=profile:
-                             profile.clearVisitedLinks([url]))
-    return profile
+    default_profile = QWebEngineProfile.defaultProfile()
+    default_profile.setter = ProfileSetter(default_profile)
+    default_profile.setCachePath(
+        os.path.join(standarddir.cache(), 'webengine'))
+    default_profile.setPersistentStoragePath(
+        os.path.join(standarddir.data(), 'webengine'))
+    default_profile.setter.init_profile()
+    default_profile.setter.set_persistent_cookie_policy()
 
 
-def reset_private_profile():
-    """Replace the private profile with a new instance"""
+def init_private_profile():
+    """Init the private QWebEngineProfiles."""
     global private_profile
-    private_profile = create_profile(private=True)
+
+    private_profile = QWebEngineProfile()
+    private_profile.setter = ProfileSetter(private_profile)
+    assert private_profile.isOffTheRecord()
+    private_profile.setter.init_profile()
 
 
 def init(args):
@@ -358,31 +307,12 @@ def init(args):
 
     spell.init()
 
-    app = QApplication.instance()
-
-    log.init.debug("Initializing qute://* handler...")
-    global _qute_scheme_handler
-    _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
-
-    log.init.debug("Initializing request interceptor...")
-    global _req_interceptor
-    host_blocker = objreg.get('host-blocker')
-    args = objreg.get('args')
-    _req_interceptor = interceptor.RequestInterceptor(host_blocker, args=args,
-                                                      parent=app)
-
-    log.init.debug("Initializing QtWebEngine downloads...")
-    global _download_manager
-    _download_manager = webenginedownloads.DownloadManager(parent=app)
-    objreg.register('webengine-download-manager', _download_manager)
-
-    global default_profile, private_profile
-    default_profile = create_profile()
-    private_profile = create_profile(private=True)
+    _init_default_profile()
+    init_private_profile()
     config.instance.changed.connect(_update_settings)
 
     global global_settings
-    global_settings = WebEngineSettings(_SettingsWrapper)
+    global_settings = WebEngineSettings(_SettingsWrapper())
     global_settings.init_settings()
 
 

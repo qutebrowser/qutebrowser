@@ -65,6 +65,13 @@ def create(win_id, private, parent=None):
                      parent=parent)
 
 
+def init():
+    """Initialize backend-specific modules."""
+    if objects.backend == usertypes.Backend.QtWebEngine:
+        from qutebrowser.browser.webengine import webenginetab
+        webenginetab.init()
+
+
 class WebTabError(Exception):
 
     """Base class for various errors."""
