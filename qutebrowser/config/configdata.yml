@@ -327,7 +327,7 @@ content.cache.appcache:
     ask the application cache for the contents, before hitting the network.
 
 content.cookies.accept:
-  default: no-3rdparty
+  default: all
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.11
@@ -335,7 +335,8 @@ content.cookies.accept:
     name: String
     valid_values:
       - all: "Accept all cookies."
-      - no-3rdparty: "Accept cookies from the same origin only."
+      - no-3rdparty: "Accept cookies from the same origin only. This is known
+          to break some sites, such as GMail."
       - no-unknown-3rdparty: "Accept cookies from the same origin only, unless
           a cookie is already set for the domain. On QtWebEngine, this is the
           same as no-3rdparty."
