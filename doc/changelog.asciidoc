@@ -57,6 +57,7 @@ Fixed
 - When websites suggest download filenames with invalid characters, those are
   now correctly replaced.
 - Invalid hint length calculation in certain rare cases.
+- Dragging tabs in the tab bar (which was broken in v1.5.0)
 
 v1.5.1
 ------
