@@ -75,7 +75,14 @@ class HintLabel(QLabel):
         }
     """
 
+    # Objects which are currently not used but can be reused by calling _reset
     _object_pool = []
+
+    # Number of active objects (initialized and not in the object pool)
+    _active_object_count = 0
+
+    # Maximum value of _active_object_count, resetted each time it reaches 0
+    _active_object_peak_count = [0]
 
     def __init__(self, elem, context):
         super().__init__()
@@ -141,6 +148,17 @@ class HintLabel(QLabel):
         self._context.tab.contents_size_changed.disconnect(self._move_to_elem)
         HintLabel._object_pool.append(self)
 
+        HintLabel._active_object_count -= 1
+        if HintLabel._active_object_count == 0:
+            active_object_peak_count = HintLabel._active_object_peak_count
+
+            # Shrink the object pool if it is not used for the last 5 peaks
+            del HintLabel._object_pool[max(active_object_peak_count):]
+
+            active_object_peak_count.append(0)
+            if len(active_object_peak_count) > 5:
+                del active_object_peak_count[0]
+
     @staticmethod
     def create(elem, context):
         """Returns a HintLabel object with the parameters (elem, context).
@@ -148,6 +166,11 @@ class HintLabel(QLabel):
         Try to reuse an object in the object pool if possible. If not possible,
         create a new one.
         """
+        HintLabel._active_object_count += 1
+        HintLabel._active_object_peak_count[-1] = max(
+            HintLabel._active_object_count,
+            HintLabel._active_object_peak_count[-1])
+
         try:
             label = HintLabel._object_pool.pop()
         except IndexError:
