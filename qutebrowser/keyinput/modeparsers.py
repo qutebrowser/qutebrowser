@@ -243,9 +243,8 @@ class HintKeyParser(CommandKeyParser):
         Returns:
             True if the match has been handled, False otherwise.
         """
-        dry_run_match = super().handle(e, dry_run=True)
         if dry_run:
-            return dry_run_match
+            return super().handle(e, dry_run=True)
 
         if keyutils.is_special(e.key(), e.modifiers()):
             log.keyboard.debug("Got special key, clearing keychain")
