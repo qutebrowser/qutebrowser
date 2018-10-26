@@ -562,15 +562,19 @@ class MainWindow(QWidget):
             pass
         objreg.get('session-manager').save_last_window_session()
         self._save_geometry()
+
+        # Wipe private data if we close the last private window, but there are
+        # still other windows
         if (
-                len(objreg.window_registry) > 1
-                and all(window is self and self.private or not window.private
-                        for window
-                        in objreg.window_registry.values())
+                self.private
+                and len(objreg.window_registry) > 1
+                and len([window for window in objreg.window_registry.values()
+                         if window.private]) == 1
         ):
             log.destroy.debug("Wiping private data before closing last "
                               "private window")
             websettings.clear_private_data()
+
         log.destroy.debug("Closing window {}".format(self.win_id))
         self.tabbed_browser.shutdown()
 
