@@ -9,8 +9,7 @@ import functools
 import xml.etree.ElementTree
 from typing import cast, Iterable, Optional
 
-from qutebrowser.qt.core import (pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize,
-                                 QObject, pyqtSignal)
+from qutebrowser.qt.core import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from qutebrowser.qt.gui import QIcon
 from qutebrowser.qt.widgets import QWidget
 # pylint: disable=no-name-in-module
@@ -849,18 +848,9 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
         return webkitinspector.WebKitInspector(splitter, win_id, parent)
 
 
-class _WebKitPermissions(QObject):
+class _WebKitPermissions(browsertab.AbstractPermissions):
 
-    """Handling of various permission-related signals."""
-
-    _abort_questions = pyqtSignal()
-
-    def __init__(self, tab, parent=None):
-        super().__init__(parent)
-        self._tab = tab
-        self._widget = None
-        self.features = {}
-        self._init_features()
+    """Handling web API permissions for QtWebKit."""
 
     def _init_features(self):
         self.features.update({
@@ -875,7 +865,7 @@ class _WebKitPermissions(QObject):
         page = self._widget.page()
         page.featurePermissionRequested.connect(self._on_feature_permission_requested)
 
-        self._tab.shutting_down.connect(self._abort_questions)
+        self._tab.shutting_down.connect(self._tab.abort_questions)
         self._tab.load_started.connect(self._on_load_started)
 
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
@@ -906,7 +896,7 @@ class _WebKitPermissions(QObject):
             msg=self.features[feature].requesting_message,
             yes_action=yes_action,
             no_action=no_action,
-            abort_on=[self._abort_questions])
+            abort_on=[self._tab.abort_questions])
 
         if question is not None:
             page = self._widget.page()
@@ -944,13 +934,6 @@ class _WebKitPermissions(QObject):
         page.setFeaturePermission(frame, feature, policy)
         self._tab.feature_permission_changed.emit(setting_name, enabled)
 
-    @pyqtSlot()
-    def _on_load_started(self):
-        """Reset some state when loading of a new page started."""
-        for feat in self.features.values():
-            feat.enabled = None
-        self._abort_questions.emit()
-
 
 class WebKitTab(browsertab.AbstractTab):
 
@@ -979,7 +962,7 @@ class WebKitTab(browsertab.AbstractTab):
         self.audio = WebKitAudio(tab=self, parent=self)
         self.private_api = WebKitTabPrivate(mode_manager=mode_manager,
                                             tab=self)
-        self._permissions = _WebKitPermissions(tab=self, parent=self)
+        self.permissions = _WebKitPermissions(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)
@@ -1152,4 +1135,4 @@ class WebKitTab(browsertab.AbstractTab):
             self._on_history_trigger)
         page.navigation_request.connect(  # type: ignore[attr-defined]
             self._on_navigation_request)
-        self._permissions.connect_signals()
+        self.permissions.connect_signals()
