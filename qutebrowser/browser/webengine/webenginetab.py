@@ -1326,7 +1326,6 @@ class WebEngineTab(browsertab.AbstractTab):
     def _set_widget(self, widget):
         # pylint: disable=protected-access
         super()._set_widget(widget)
-        self._permissions._widget = widget
         self._scripts._widget = widget
 
     def _install_event_filter(self):

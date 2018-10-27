@@ -1086,6 +1086,7 @@ class AbstractTab(QWidget):
         self.elements._widget = widget
         self.audio._widget = widget
         self.private_api._widget = widget
+        self._permissions._widget = widget
         self.settings._settings = widget.settings()
 
         self._install_event_filter()
