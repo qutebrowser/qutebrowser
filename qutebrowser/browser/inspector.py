@@ -34,7 +34,7 @@ def create(splitter, parent=None):
     """Get a WebKitInspector/WebEngineInspector.
 
     Args:
-        splitter: QSplitter where the inspector can be placed.
+        splitter: InspectorSplitter where the inspector can be placed.
         parent: The Qt parent to set.
     """
     # Importing modules here so we don't depend on QtWebEngine without the
@@ -59,14 +59,15 @@ class AbstractWebInspector(QWidget):
     """A customized WebInspector which stores its geometry.
 
     Attributes:
-        position: position of the inspector (right/left/top/bottom/window)
+        _position: position of the inspector (right/left/top/bottom/window)
+        _splitter: InspectorSplitter where the inspector can be placed.
 
     Signals:
         closed: Emitted when the inspector is closed.
     """
 
-    position = None
     closed = pyqtSignal()
+    _position = None
     _splitter = None
 
     def __init__(self, splitter, parent=None):
@@ -80,9 +81,12 @@ class AbstractWebInspector(QWidget):
         self._layout.wrap(self, widget)
 
     def set_position(self, position):
-        if position != self.position:
-            if self.position == 'window':
+        if position != self._position:
+            if self._position == 'window':
                 self._save_state_geometry()
+
+            self._position = position
+
             if position is None:
                 self.hide()
                 self.deleteLater()
@@ -93,7 +97,6 @@ class AbstractWebInspector(QWidget):
                 self._load_state_geometry()
             else:
                 self._splitter.set_inspector(self, position)
-            self.position = position
             self.show()
 
     def _load_state_geometry(self):

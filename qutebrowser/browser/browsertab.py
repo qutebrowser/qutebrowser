@@ -151,7 +151,6 @@ class InspectorSplitter(QSplitter):
                             else Qt.Vertical)
         self.insertWidget(self._inspector_idx(), inspector)
         self._inspector = inspector
-        inspector.position = position
         self._adjust_size()
 
     def _inspector_idx(self):
