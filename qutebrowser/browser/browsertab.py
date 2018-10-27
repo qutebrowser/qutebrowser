@@ -141,9 +141,8 @@ class InspectorSplitter(QSplitter):
 
         self.preferred_size = [max(300, self.width() / 2),
                                max(300, self.height() / 2)]
-        print('set', self.preferred_size)
 
-    def setInspector(self, inspector, position):
+    def set_inspector(self, inspector, position):
         assert position in ['right', 'left', 'top', 'bottom']
         self.main_idx = 0 if position in ['right', 'bottom'] else 1
         self.setStretchFactor(self.main_idx, 1)
@@ -153,7 +152,6 @@ class InspectorSplitter(QSplitter):
         self.insertWidget(self._inspector_idx(), inspector)
         self._inspector = inspector
         inspector.position = position
-        print(self.preferred_size)
         self._adjust_size()
 
     def _inspector_idx(self):

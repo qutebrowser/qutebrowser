@@ -1464,21 +1464,10 @@ class CommandDispatcher:
                         position = configfiles.state['general']['inspector_last_position']
                     except KeyError:
                         position = 'right'
-                tab.data.inspector = inspector.create(position)
+                tab.data.inspector = inspector.create(tab.data.splitter)
                 tab.data.inspector.inspect(page)
                 tab.data.inspector.closed.connect(_on_inspector_closed)
-                tab.data.inspector.show()
-                if position != 'window':
-                    tab.data.splitter.setInspector(tab.data.inspector, position)
-            elif position == 'window':
-                if tab.data.inspector.position != 'window':
-                    tab.data.inspector.detach()
-            elif position is not None:
-                tab.data.splitter.setInspector(tab.data.inspector, position)
-            else:
-                tab.data.inspector.hide()
-                tab.data.inspector.deleteLater()
-                tab.data.inspector = None
+            tab.data.inspector.set_position(position)
 
             if position:
                 configfiles.state['general']['inspector_last_position'] = position

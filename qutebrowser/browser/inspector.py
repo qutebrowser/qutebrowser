@@ -30,21 +30,21 @@ from qutebrowser.utils import log, usertypes
 from qutebrowser.misc import miscwidgets, objects
 
 
-def create(position, parent=None):
+def create(splitter, parent=None):
     """Get a WebKitInspector/WebEngineInspector.
 
     Args:
-        position: position of the inspector (right/left/top/bottom/window).
+        splitter: QSplitter where the inspector can be placed.
         parent: The Qt parent to set.
     """
     # Importing modules here so we don't depend on QtWebEngine without the
     # argument and to avoid circular imports.
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webengineinspector
-        return webengineinspector.WebEngineInspector(position, parent)
+        return webengineinspector.WebEngineInspector(splitter, parent)
     else:
         from qutebrowser.browser.webkit import webkitinspector
-        return webkitinspector.WebKitInspector(position, parent)
+        return webkitinspector.WebKitInspector(splitter, parent)
 
 
 class WebInspectorError(Exception):
@@ -67,25 +67,34 @@ class AbstractWebInspector(QWidget):
 
     position = None
     closed = pyqtSignal()
+    _splitter = None
 
-    def __init__(self, position, parent=None):
+    def __init__(self, splitter, parent=None):
         super().__init__(parent)
-        self.position = position
         self._widget = None
         self._layout = miscwidgets.WrapperLayout(self)
-        if position == 'window':
-            self._load_state_geometry()
+        self._splitter = splitter
 
     def _set_widget(self, widget):
         self._widget = widget
         self._layout.wrap(self, widget)
 
-    def detach(self):
-        self.hide()
-        self.setParent(None)
-        self.position = 'window'
-        self._load_state_geometry()
-        self.show()
+    def set_position(self, position):
+        if position != self.position:
+            if self.position == 'window':
+                self._save_state_geometry()
+            if position is None:
+                self.hide()
+                self.deleteLater()
+                self.closed.emit()
+            elif position == 'window':
+                self.hide()
+                self.setParent(None)
+                self._load_state_geometry()
+            else:
+                self._splitter.set_inspector(self, position)
+            self.position = position
+            self.show()
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
@@ -103,16 +112,16 @@ class AbstractWebInspector(QWidget):
             if not ok:
                 log.init.warning("Error while loading geometry.")
 
+    def _save_state_geometry(self):
+        """Save the geometry to the state file."""
+        data = bytes(self.saveGeometry())
+        geom = base64.b64encode(data).decode('ASCII')
+        configfiles.state['geometry']['inspector'] = geom
+
     def closeEvent(self, e):
         """Save the window geometry when closed."""
-
-        if self.position == 'window':
-            data = bytes(self.saveGeometry())
-            geom = base64.b64encode(data).decode('ASCII')
-            configfiles.state['geometry']['inspector'] = geom
-
+        self.set_position(None)
         super().closeEvent(e)
-        self.closed.emit()
 
     def inspect(self, page):
         """Inspect the given QWeb(Engine)Page."""
