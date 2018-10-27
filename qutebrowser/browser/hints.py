@@ -21,7 +21,6 @@
 
 import collections
 import functools
-import math
 import os
 import re
 import html
@@ -102,7 +101,7 @@ class HintLabel(QLabel):
             matched: The part of the text which was typed.
             unmatched: The part of the text which was not typed yet.
         """
-        if (config.val.hints.uppercase and
+        if (config.cache['hints.uppercase'] and
                 self._context.hint_mode in ['letter', 'word']):
             matched = html.escape(matched.upper())
             unmatched = html.escape(unmatched.upper())
@@ -110,9 +109,12 @@ class HintLabel(QLabel):
             matched = html.escape(matched)
             unmatched = html.escape(unmatched)
 
-        match_color = html.escape(config.val.colors.hints.match.fg)
-        self.setText('<font color="{}">{}</font>{}'.format(
-            match_color, matched, unmatched))
+        match_color = html.escape(config.cache['colors.hints.match.fg'])
+        if matched:
+            self.setText('<font color="{}">{}</font>{}'.format(
+                match_color, matched, unmatched))
+        else:
+            self.setText(unmatched)
         self.adjustSize()
 
     @pyqtSlot()
@@ -123,7 +125,7 @@ class HintLabel(QLabel):
             log.hints.debug("Frame for {!r} vanished!".format(self))
             self.hide()
             return
-        no_js = config.val.hints.find_implementation != 'javascript'
+        no_js = config.cache['hints.find_implementation'] != 'javascript'
         rect = self.elem.rect_on_view(no_js=no_js)
         self.move(rect.x(), rect.y())
 
@@ -454,21 +456,15 @@ class HintManager(QObject):
         # Determine how many digits the link hints will require in the worst
         # case. Usually we do not need all of these digits for every link
         # single hint, so we can show shorter hints for a few of the links.
-        needed = max(min_chars, math.ceil(math.log(len(elems), len(chars))))
+        needed = max(min_chars, utils.ceil_log(len(elems), len(chars)))
+
         # Short hints are the number of hints we can possibly show which are
         # (needed - 1) digits in length.
-        if needed > min_chars:
+        if needed > min_chars and needed > 1:
             total_space = len(chars) ** needed
-            # Calculate short_count naively, by finding the avaiable space and
-            # dividing by the number of spots we would loose by adding a
-            # short element
-            short_count = math.floor((total_space - len(elems)) /
-                                     len(chars))
-            # Check if we double counted above to warrant another short_count
-            # https://github.com/qutebrowser/qutebrowser/issues/3242
-            if total_space - (short_count * len(chars) +
-                              (len(elems) - short_count)) >= len(chars) - 1:
-                short_count += 1
+            # For each 1 short link being added, len(chars) long links are
+            # removed, therefore the space removed is len(chars) - 1.
+            short_count = (total_space - len(elems)) // (len(chars) - 1)
         else:
             short_count = 0
 
@@ -495,7 +491,7 @@ class HintManager(QObject):
             elems: The elements to generate labels for.
         """
         strings = []
-        needed = max(min_chars, math.ceil(math.log(len(elems), len(chars))))
+        needed = max(min_chars, utils.ceil_log(len(elems), len(chars)))
         for i in range(len(elems)):
             strings.append(self._number_to_hint_str(i, chars, needed))
         return strings
@@ -639,9 +635,8 @@ class HintManager(QObject):
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
                        star_args_optional=True, maxsplit=2)
-    @cmdutils.argument('win_id', win_id=True)
     def start(self,  # pylint: disable=keyword-arg-before-vararg
-              group='all', target=Target.normal, *args, win_id, mode=None,
+              group='all', target=Target.normal, *args, mode=None,
               add_history=False, rapid=False, first=False):
         """Start hinting.
 
@@ -715,7 +710,7 @@ class HintManager(QObject):
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
-            modeman.leave(win_id, usertypes.KeyMode.hint, 're-hinting')
+            modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
 
         if rapid:
             if target in [Target.tab_bg, Target.window, Target.run,
@@ -838,9 +833,10 @@ class HintManager(QObject):
 
         Args:
             filterstr: The string to filter with, or None to use the filter
-                       from previous call (saved in `self._filterstr`). If
-                       `filterstr` is an empty string or if both `filterstr`
-                       and `self._filterstr` are None, all hints are shown.
+                       from previous call (saved in `self._context.filterstr`).
+                       If `filterstr` is an empty string or if both `filterstr`
+                       and `self._context.filterstr` are None, all hints are
+                       shown.
         """
         if filterstr is None:
             filterstr = self._context.filterstr

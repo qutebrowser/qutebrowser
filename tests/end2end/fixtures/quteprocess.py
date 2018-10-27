@@ -778,7 +778,7 @@ class QuteProc(testprocess.Process):
                 data = f.read()
 
         self._log('\nCurrent session data:\n' + data)
-        return yaml.load(data)
+        return utils.yaml_load(data)
 
     def get_content(self, plain=True):
         """Get the contents of the current page."""

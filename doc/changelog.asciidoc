@@ -40,7 +40,7 @@ Changed
   (`:close`), while `:qa` quits (`:quit`). The behavior of `:wq` remains
   unchanged (`:quit --save`), as closing a window while saving the session
   doesn't make sense.
-- Completion highlighting is now done differently (using QSyntaxHighlither),
+- Completion highlighting is now done differently (using `QSyntaxHighlighter`),
   which should fix some highlighting corner-cases.
 - The `QtColor` config type now also understands colors like `rgb(...)`.
 - `:yank` now has a `--quiet` option which causes it to not display a message.
@@ -48,6 +48,7 @@ Changed
 - The `content.host_blocking.enabled` setting now supports URL patterns, so the
   adblocker can be disabled on a given page.
 - Elements with a `tabindex` attribute now also get hints by default.
+- Various small performance improvements for hints and the completion.
 
 Fixed
 ~~~~~
@@ -55,6 +56,18 @@ Fixed
 - Invalid world IDs now get rejected for `:jseval` and GreaseMonkey scripts.
 - When websites suggest download filenames with invalid characters, those are
   now correctly replaced.
+- Invalid hint length calculation in certain rare cases.
+- Dragging tabs in the tab bar (which was broken in v1.5.0)
+
+v1.5.2
+------
+
+Changed
+~~~~~~~
+
+- The `content.cookies.accept` setting is now set to `all` instead of
+  `no-3rdparty` by default, as `no-3rdparty` breaks various pages such as
+  GMail.
 
 v1.5.1
 ------

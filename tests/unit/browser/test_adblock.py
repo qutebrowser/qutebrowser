@@ -366,7 +366,7 @@ def test_invalid_utf8(config_stub, download_stub, tmpdir, data_tmpdir,
             current_download.finished.emit()
         expected = (r"Failed to decode: "
                     r"b'https://www.example.org/\xa0localhost")
-        assert caplog.records[-2].message.startswith(expected)
+        assert caplog.messages[-2].startswith(expected)
     else:
         current_download.successful = True
         current_download.finished.emit()
@@ -391,7 +391,7 @@ def test_invalid_utf8_compiled(config_stub, config_tmpdir, data_tmpdir,
     host_blocker = adblock.HostBlocker()
     with caplog.at_level(logging.ERROR):
         host_blocker.read_hosts()
-    assert caplog.records[-1].message == "Failed to read host blocklist!"
+    assert caplog.messages[-1] == "Failed to read host blocklist!"
 
 
 def test_blocking_with_whitelist(config_stub, basedir, download_stub,
