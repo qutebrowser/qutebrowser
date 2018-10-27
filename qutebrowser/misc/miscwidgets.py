@@ -105,13 +105,6 @@ class CommandLineEdit(QLineEdit):
         self._validator.prompt = text
         self._promptlen = len(text)
 
-    def home(self, mark):
-        """Override home so it works properly with our cursor restriction."""
-        oldpos = self.cursorPosition()
-        self.setCursorPosition(self._promptlen)
-        if mark:
-            self.setSelection(self._promptlen, oldpos - self._promptlen)
-
 
 class _CommandValidator(QValidator):
 
