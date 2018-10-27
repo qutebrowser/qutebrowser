@@ -816,11 +816,6 @@ class WebKitTab(browsertab.AbstractTab):
         self._connect_signals()
         self.backend = usertypes.Backend.QtWebKit
 
-    def _set_widget(self, widget):
-        # pylint: disable=protected-access
-        super()._set_widget(widget)
-        self._permissions._widget = widget
-
     def _install_event_filter(self):
         self._widget.installEventFilter(self._mouse_event_filter)
 
