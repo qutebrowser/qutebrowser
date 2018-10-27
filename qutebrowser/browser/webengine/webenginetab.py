@@ -711,16 +711,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         self._on_url_changed(self._tab.url())
 
 
-class _WebEnginePermissions(QObject):
-
-    """Handling of various permission-related signals."""
-
-    def __init__(self, tab, parent=None):
-        super().__init__(parent)
-        self._tab = tab
-        self._widget = None
-        self.features = {}
-        self._init_features()
+class _WebEnginePermissions(browsertab.AbstractPermissions):
 
     def _init_features(self):
         self.features.update({
@@ -861,12 +852,6 @@ class _WebEnginePermissions(QObject):
             setting_name = "<unknown>"
         self._widget.page().setFeaturePermission(origin, feature, policy)
         self._tab.feature_permission_changed.emit(setting_name, enabled)
-
-    @pyqtSlot()
-    def _on_load_started(self):
-        """Reset some state when loading of a new page started."""
-        for feat in self.features.values():
-            feat.enabled = None
 
 
 class _WebEngineScripts(QObject):
@@ -1119,7 +1104,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.audio = WebEngineAudio(tab=self, parent=self)
         self.private_api = WebEngineTabPrivate(mode_manager=mode_manager,
                                                tab=self)
-        self._permissions = _WebEnginePermissions(tab=self, parent=self)
+        self.permissions = _WebEnginePermissions(tab=self, parent=self)
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
         self.settings = webenginesettings.WebEngineSettings(settings=None)
@@ -1553,5 +1538,5 @@ class WebEngineTab(browsertab.AbstractTab):
 
         # pylint: disable=protected-access
         self.audio._connect_signals()
-        self._permissions.connect_signals()
+        self.permissions.connect_signals()
         self._scripts.connect_signals()

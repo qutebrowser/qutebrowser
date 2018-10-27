@@ -45,7 +45,7 @@ class BooleanSettings(textbase.TextBase):
         if not tab:
             return default
         try:
-            return tab.test_feature(setting_name)
+            return tab.permissions.test_feature(setting_name)
         except WebTabError:
             return default
 
