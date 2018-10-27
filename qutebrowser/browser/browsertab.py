@@ -818,6 +818,57 @@ class AbstractTabPrivate:
         raise NotImplementedError
 
 
+class AbstractPermissions(QObject):
+
+    """Handling a tab's access to web APIs.
+
+    Attributes:
+        features: A dict with a Qt feature enum -> shared.Feature mapping.
+    """
+
+    def __init__(self, tab, parent=None):
+        super().__init__(parent)
+        self._tab = tab
+        self._widget = None
+        self.features = {}
+        self._init_features()
+
+    def _init_features(self):
+        """Initializes the self.features dict."""
+        raise NotImplementedError
+
+    @pyqtSlot()
+    def _on_load_started(self):
+        """Reset some state when loading of a new page started."""
+        for feat in self.features.values():
+            feat.enabled = None
+
+    def test_feature(self, setting_name):
+        """Return true if the user has granted permission for `setting_name`.
+
+        Raises KeyError if `setting_name` doesn't map to a grantable
+        feature.
+        """
+        feats = [
+            f for f in self.features.values()
+            if f.setting_name == setting_name
+        ]
+        if not feats:
+            raise WebTabError("No feature called {}.".format(setting_name))
+
+        set_feats = [f for f in feats if f.enabled is not None]
+        if set_feats:
+            return any(f.enabled for f in set_feats)
+
+        try:
+            opt = config.instance.get(setting_name, url=self._tab.url())
+        except configexc.NoPatternError:
+            opt = config.instance.get(setting_name, url=None)
+
+        # "ask" is False too
+        return opt is True
+
+
 class AbstractTab(QWidget):
 
     """An adapter for QWebView/QWebEngineView representing a single tab."""
@@ -881,7 +932,6 @@ class AbstractTab(QWidget):
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
         self._widget = None  # type: typing.Optional[QWidget]
-        self._permissions = None
         self._progress = 0
         self._has_ssl_errors = False
         self._load_status = usertypes.LoadStatus.none
@@ -914,7 +964,7 @@ class AbstractTab(QWidget):
         self.elements._widget = widget
         self.audio._widget = widget
         self.private_api._widget = widget
-        self._permissions._widget = widget
+        self.permissions._widget = widget
         self.settings._settings = widget.settings()
 
         self._install_event_filter()
@@ -1135,27 +1185,3 @@ class AbstractTab(QWidget):
     def is_deleted(self) -> bool:
         assert self._widget is not None
         return sip.isdeleted(self._widget)
-
-    def test_feature(self, setting_name):
-        """Return true if the user has granted permission for `setting_name`.
-
-        Raises WebTabError if `setting_name` doesn't map to a grantable
-        feature.
-        """
-        feats = [
-            f for f in self._permissions.features.values()
-            if f.setting_name == setting_name
-        ]
-        if not feats:
-            raise WebTabError("No feature called {}.".format(setting_name))
-
-        set_feats = [f for f in feats if f.enabled is not None]
-        if set_feats:
-            return any(f.enabled for f in set_feats)
-
-        try:
-            opt = config.instance.get(setting_name, url=self.url())
-        except configexc.NoPatternError:
-            opt = config.instance.get(setting_name, url=None)
-        # "ask" is False too
-        return opt is True
