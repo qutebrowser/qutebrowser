@@ -348,6 +348,7 @@ content.cookies.accept:
 content.cookies.store:
   default: true
   type: Bool
+  supports_pattern: true
   desc: >-
     Store cookies.
 

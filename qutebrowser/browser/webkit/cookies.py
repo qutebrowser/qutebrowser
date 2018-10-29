@@ -20,7 +20,7 @@
 """Handling of HTTP cookies."""
 
 from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
-from PyQt5.QtCore import pyqtSignal, QDateTime
+from PyQt5.QtCore import pyqtSignal, QDateTime, QUrl
 
 from qutebrowser.config import config
 from qutebrowser.utils import utils, standarddir, objreg
@@ -75,9 +75,8 @@ class CookieJar(RAMCookieJar):
                 standarddir.data(), 'cookies', binary=True, parent=self)
         self.parse_cookies()
         config.instance.changed.connect(self._on_cookies_store_changed)
-        objreg.get('save-manager').add_saveable(
-            'cookies', self.save, self.changed,
-            config_opt='content.cookies.store')
+        objreg.get('save-manager').add_saveable('cookies', self.save,
+                                                self.changed)
 
     def parse_cookies(self):
         """Parse cookies from lineparser and store them."""
@@ -101,7 +100,17 @@ class CookieJar(RAMCookieJar):
         lines = []
         for cookie in self.allCookies():
             if not cookie.isSessionCookie():
-                lines.append(cookie.toRawForm())
+                domain = (cookie.domain()[1:]
+                          if cookie.domain().startswith('.')
+                          else cookie.domain())
+                store_http = config.instance.get(
+                    'content.cookies.store',
+                    QUrl('http://{}{}'.format(domain, cookie.path())))
+                store_https = config.instance.get(
+                    'content.cookies.store',
+                    QUrl('https://{}{}'.format(domain, cookie.path())))
+                if store_http or store_https:
+                    lines.append(cookie.toRawForm())
         self._lineparser.data = lines
         self._lineparser.save()
 
