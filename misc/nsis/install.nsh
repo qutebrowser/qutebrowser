@@ -534,12 +534,20 @@ Function PageInstallModeChangeMode
       ${endif}
     ${endif}
   ${endif}
+FunctionEnd
 
+Function PageComponentsPre
+  GetDlgItem $0 $HWNDPARENT 1
+  SendMessage $0 ${BCM_SETSHIELD} 0 0 ; hide SHIELD (Windows Vista and above)
 FunctionEnd
 
 Function PageDirectoryPre
-  GetDlgItem $0 $HWNDPARENT 1
-    SendMessage $0 ${WM_SETTEXT} 0 "STR:$(^InstallBtn)" ; this is the last page before installing
+  GetDlgItem $1 $HWNDPARENT 1
+  SendMessage $1 ${WM_SETTEXT} 0 "STR:$(^InstallBtn)" ; this is the last page before installing
+  Call MultiUser.CheckPageElevationRequired
+  ${if} $0 = 2
+    SendMessage $1 ${BCM_SETSHIELD} 0 1 ; display SHIELD (Windows Vista and above)
+  ${endif}
 FunctionEnd
 
 Function PageDirectoryShow
@@ -552,6 +560,11 @@ Function PageDirectoryShow
     GetDlgItem $0 $R1 1001 ; Browse button
     EnableWindow $0 0
   ${endif}
+FunctionEnd
+
+Function PageInstFilesPre
+  GetDlgItem $0 $HWNDPARENT 1
+  SendMessage $0 ${BCM_SETSHIELD} 0 0 ; hide SHIELD (Windows Vista and above)
 FunctionEnd
 
 Function PageFinishRun
