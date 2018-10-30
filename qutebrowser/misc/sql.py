@@ -333,12 +333,17 @@ class SqlTable(QObject):
             raise KeyError('No row with {} = "{}"'.format(field, value))
         self.changed.emit()
 
-    def _insert_query(self, values, replace):
+    def _insert_query(self, values, replace=False, ignore=False):
         params = ', '.join(':{}'.format(key) for key in values)
-        verb = "REPLACE" if replace else "INSERT"
-        return Query("{verb} INTO {table} ({columns}) values({params})".format(
+        verb = 'INSERT'
+        if replace:
+            verb += ' OR REPLACE'
+        elif ignore:
+            verb += ' OR IGNORE'
+
+        return "{verb} INTO {table} ({columns}) values ({params})".format(
             verb=verb, table=self._name, columns=', '.join(values),
-            params=params))
+            params=params)
 
     def insert(self, values, replace=False):
         """Append a row to the table.
@@ -347,7 +352,7 @@ class SqlTable(QObject):
             values: A dict with a value to insert for each field name.
             replace: If set, replace existing values.
         """
-        q = self._insert_query(values, replace)
+        q = Query(self._insert_query(values, replace))
         q.run(**values)
         self.changed.emit()
 
@@ -358,9 +363,57 @@ class SqlTable(QObject):
             values: A dict with a list of values to insert for each field name.
             replace: If true, overwrite rows with a primary key match.
         """
-        q = self._insert_query(values, replace)
+        q = Query(self._insert_query(values, replace))
         q.run_batch(values)
         self.changed.emit()
+
+    def update(self, update, where, escape=True):
+        """Execute update rows statement.
+
+        Args:
+            update: column:value dict with new values to set
+            where: column:value dict for filtering
+            escape: enable new values SQL-escaping
+        """
+        if escape:
+            u = ', '.join(('{} = :{}'.format(k, k) for k in update.keys()))
+        else:
+            u = ', '.join(('{} = {}'.format(k, v) for k, v in update.items()))
+
+        s = 'UPDATE {} SET {}'.format(self._name, u)
+        if where:
+            w = ' AND '.join(('{} = :w_{}'.format(f, f) for f in where.keys()))
+            s += ' WHERE {}'.format(w)
+
+        p = update.copy()
+        p.update({'w_' + k: v for k, v in where.items()})
+
+        Query(s).run(**p)
+        self.changed.emit()
+
+    def upsert(self, values, index, update, escape=True):
+        """
+        Insert or update row if it is alredy exists.
+
+        Args:
+            update: column:value dict for insert operation
+            index: column name used as a primary index
+            update: column:value dict for update operation
+            escape: enable SQL-escaping for update operation
+        """
+
+        # TODO: ON CONFLICT can be used after updating to SQLite v3.24.0.
+        #       Something like
+        #       q = self._insert_query(values, False)
+        #       q += ' ON CONFLICT ({}) DO UPDATE SET {}'.format(index, update)
+
+        q = Query(self._insert_query(values, ignore=True))
+        q.run(**values)
+
+        if not q.rows_affected() and update:
+            self.update(update, {index: values[index]}, escape)
+        else:
+            self.changed.emit()
 
     def delete_all(self):
         """Remove all rows from the table."""

@@ -40,27 +40,6 @@ class HistoryCategory(QSqlQueryModel):
         self.columns_to_filter = [0, 1]
         self.delete_func = delete_func
 
-    def _atime_expr(self):
-        """If max_items is set, return an expression to limit the query."""
-        max_items = config.val.completion.web_history.max_items
-        # HistoryCategory should not be added to the completion in that case.
-        assert max_items != 0
-
-        if max_items < 0:
-            return ''
-
-        min_atime = sql.Query(' '.join([
-            'SELECT min(last_atime) FROM',
-            '(SELECT last_atime FROM CompletionHistory',
-            'ORDER BY last_atime DESC LIMIT :limit)',
-        ])).run(limit=max_items).value()
-
-        if not min_atime:
-            # if there are no history items, min_atime may be '' (issue #2849)
-            return ''
-
-        return "AND last_atime >= {}".format(min_atime)
-
     def set_pattern(self, pattern):
         """Set the pattern used to filter results.
 
@@ -79,22 +58,20 @@ class HistoryCategory(QSqlQueryModel):
             "(url || title) LIKE :{} escape '\\'".format(i)
             for i in range(len(words)))
 
-        # replace ' in timestamp-format to avoid breaking the query
-        timestamp_format = config.val.completion.timestamp_format or ''
-        timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
-                   .format(timestamp_format.replace("'", "`")))
-
+        # if the number of words changed, we need to generate a new query
+        # otherwise, we can reuse the prepared query for performance
         if not self._query or len(words) != len(self._query.bound_values()):
-            # if the number of words changed, we need to generate a new query
-            # otherwise, we can reuse the prepared query for performance
+            # replace ' in timestamp-format to avoid breaking the query
+            timestamp_format = config.val.completion.timestamp_format or ''
+            timefmt = ("strftime('{}', last_atime_ts, 'unixepoch', 'localtime')"
+                       .format(timestamp_format.replace("'", "`")))
             self._query = sql.Query(' '.join([
                 "SELECT url, title, {}".format(timefmt),
                 "FROM CompletionHistory",
                 # the incoming pattern will have literal % and _ escaped
                 # we need to tell sql to treat '\' as an escape character
                 'WHERE ({})'.format(where_clause),
-                self._atime_expr(),
-                "ORDER BY last_atime DESC",
+                "ORDER BY frecency DESC",
             ]), forward_only=False)
 
         with debug.log_time('sql', 'Running completion query'):

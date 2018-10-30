@@ -150,6 +150,50 @@ def test_insert_batch_replace(qtbot):
                             'lucky': [True, True]})
 
 
+def test_update(qtbot):
+    table = sql.SqlTable('Foo', ['a', 'b', 'c'])
+    table.insert({'a': 10, 'b': 10, 'c': 10})
+    table.insert({'a': 20, 'b': 20, 'c': 20})
+
+    with qtbot.waitSignal(table.changed):
+        table.update({'a': 11, 'b': 12, 'c': 13}, {'a': 10, 'b': 10})
+    with qtbot.waitSignal(table.changed):
+        table.update({'a': 21}, {'c': 20})
+
+    assert list(table) == [(11, 12, 13), (21, 20, 20)]
+
+    with qtbot.waitSignal(table.changed):
+        table.update({'a': 'a * a', 'b': 'b + 3'}, {'a': 11, 'b': 12}, False)
+
+    assert list(table) == [(121, 15, 13), (21, 20, 20)]
+
+
+def test_upsert(qtbot):
+    table = sql.SqlTable('Foo', ['key', 'foo', 'bar'],
+                         constraints={'key': 'TEXT PRIMARY KEY'})
+    with qtbot.waitSignal(table.changed):
+        table.upsert({'key': 'one', 'foo': 1, 'bar': 1},
+                     'key', {'foo': 0})
+    with qtbot.waitSignal(table.changed):
+        table.upsert({'key': 'one', 'foo': 1, 'bar': 1},
+                     'key', {'foo': 2})
+    with qtbot.waitSignal(table.changed):
+        table.upsert({'key': 'two', 'foo': 1, 'bar': 1},
+                     'key', {'bar': 0})
+    with qtbot.waitSignal(table.changed):
+        table.upsert({'key': 'two', 'foo': 1, 'bar': 1},
+                     'key', {'bar': 2})
+    assert list(table) == [('one', 2, 1), ('two', 1, 2)]
+
+    with qtbot.waitSignal(table.changed):
+        table.upsert({'key': 'one', 'foo': 1, 'bar': 1},
+                     'key', {'foo': 'foo + 1'}, False)
+    with qtbot.waitSignal(table.changed):
+        table.upsert({'key': 'one', 'foo': 1, 'bar': 1},
+                     'key', {'foo': 'foo + 1', 'bar': 'bar + 1'}, False)
+    assert list(table) == [('one', 4, 2), ('two', 1, 2)]
+
+
 def test_iter():
     table = sql.SqlTable('Foo', ['name', 'val', 'lucky'])
     table.insert({'name': 'one', 'val': 1, 'lucky': False})
