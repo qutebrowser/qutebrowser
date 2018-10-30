@@ -241,6 +241,7 @@ Section "Core Files (required)" SectionCoreFiles
         ${Switch} $0
           ${Case} 0 ; uninstaller completed successfully - continue with installation
             BringToFront
+            Sleep 1000 ; wait for cmd.exe (called by the uninstaller) to finish
             ${Break}
           ${Case} 1 ; Installation aborted by user (cancel button)
           ${Case} 2 ; Installation aborted by script
