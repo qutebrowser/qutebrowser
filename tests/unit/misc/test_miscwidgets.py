@@ -83,12 +83,12 @@ class TestCommandLineEdit:
         assert cmd_edit.cursorPosition() == len(':')
         assert cmd_edit.selectionStart() == len(':')
 
-    def test_selection_backspace(self, qtbot, cmd_edit):
-        """Test selection persisting when backspacing to the first char."""
+    def test_selection_cursor_left(self, qtbot, cmd_edit):
+        """Test selection persisting when moving to the first char."""
         qtbot.keyClicks(cmd_edit, ':hello')
         assert cmd_edit.text() == ':hello'
         assert cmd_edit.cursorPosition() == len(':hello')
-        for _ in range(len(':hello')):
+        for _ in ':hello':
             qtbot.keyClick(cmd_edit, Qt.Key_Left, modifier=Qt.ShiftModifier)
         assert cmd_edit.cursorPosition() == len(':')
         assert cmd_edit.selectionStart() == len(':')
