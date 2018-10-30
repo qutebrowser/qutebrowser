@@ -58,6 +58,7 @@ Fixed
   now correctly replaced.
 - Invalid hint length calculation in certain rare cases.
 - Dragging tabs in the tab bar (which was broken in v1.5.0)
+- Using Shift-Home in command mode now works properly.
 
 v1.5.2
 ------
