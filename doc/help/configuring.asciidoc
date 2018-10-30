@@ -423,6 +423,19 @@ config = config  # type: ConfigAPI # noqa: F821 pylint: disable=E0602,C0103
 c = c  # type: ConfigContainer # noqa: F821 pylint: disable=E0602,C0103
 ----
 
+emacs-like config
+^^^^^^^^^^^^^^^^^
+
+Various emacs/conkeror-like keybinding configs exist:
+
+- https://gitlab.com/jgkamat/qutemacs/blob/master/qutemacs.py[jgkamat]
+- https://gitlab.com/Kaligule/qutebrowser-emacs-config/blob/master/config.py[Kaligule]
+- http://me0w.net/pit/1540882719[nm0i]
+
+It's also mostly possible to get rid of modal keybindings by setting
+`input.insert_mode.auto_enter` to `false`, and `input.forward_unbound_keys` to
+`all`.
+
 [[migrating]]
 Migrating older configurations
 ------------------------------
