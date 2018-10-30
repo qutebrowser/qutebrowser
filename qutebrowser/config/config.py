@@ -461,15 +461,15 @@ class Config(QObject):
         Return:
             The changed config part as string.
         """
-        blocks = []
-        for values in sorted(self, key=lambda v: v.opt.name):
-            if values:
-                blocks.append(str(values))
+        options = []
+        for values in self:
+            for scoped in values:
+                options.append((scoped.pattern, values.opt, scoped.value))
+        bindings = dict(self.get_mutable_obj('bindings.commands'))
+        generator = configutils.ConfigPyGenerator(options, bindings,
+                                                  commented=False)
 
-        if not blocks:
-            return '<Default configuration>'
-
-        return '\n'.join(blocks)
+        return generator.gen_text()
 
 
 class ConfigContainer:
