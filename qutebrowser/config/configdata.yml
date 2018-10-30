@@ -333,6 +333,7 @@ content.cookies.accept:
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.11
+  supports_pattern: true
   type:
     name: String
     valid_values:

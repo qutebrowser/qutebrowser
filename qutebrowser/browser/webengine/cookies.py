@@ -25,7 +25,7 @@ from qutebrowser.utils import utils
 
 def _accept_cookie(request):
     """Check whether the given cookie should be accepted."""
-    accept = config.val.content.cookies.accept
+    accept = config.instance.get('content.cookies.accept', url=request.origin)
     if accept == 'all':
         return True
     elif accept in ['no-3rdparty', 'no-unknown-3rdparty']:
