@@ -244,6 +244,7 @@ class WebHistory(sql.SqlTable):
 
         if old_ver or rebuild:
             CompletionHistory.drop()
+            self._metainfo['force_rebuild'] = False
         self.completion = CompletionHistory(self)
         if not self.completion:
             self.completion.init(self._grouped())
