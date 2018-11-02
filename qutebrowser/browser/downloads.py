@@ -725,10 +725,6 @@ class AbstractDownloadItem(QObject):
                    "it anyways?".format(html.escape(self._filename)))
             self._ask_confirm_question("Overwrite special file?", txt)
         else:
-            # Touch the destination filename so a new download won't overwrite
-            # it while this one hasn't finished
-            with open(self._filename, 'w'):
-                os.utime(self._filename)
             self._after_set_filename()
 
     def _open_if_successful(self, cmdline):
