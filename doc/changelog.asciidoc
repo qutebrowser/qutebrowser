@@ -58,6 +58,11 @@ Fixed
   now correctly replaced.
 - Invalid hint length calculation in certain rare cases.
 - Dragging tabs in the tab bar (which was broken in v1.5.0)
+- Using Shift-Home in command mode now works properly.
+- Workaround for a Qt bug which prevented
+  `content.cookies.accept = no-3rdparty` from working properly on some pages
+  like GMail. However, the default for `content.cookies.accept` is still `all`
+  to be in line with what other browsers do.
 
 v1.5.2
 ------
