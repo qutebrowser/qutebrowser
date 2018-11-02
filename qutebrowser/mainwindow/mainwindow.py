@@ -566,10 +566,10 @@ class MainWindow(QWidget):
         # Wipe private data if we close the last private window, but there are
         # still other windows
         if (
-                self.private
-                and len(objreg.window_registry) > 1
-                and len([window for window in objreg.window_registry.values()
-                         if window.private]) == 1
+                self.private and
+                len(objreg.window_registry) > 1 and
+                len([window for window in objreg.window_registry.values()
+                     if window.private]) == 1
         ):
             log.destroy.debug("Wiping private data before closing last "
                               "private window")
