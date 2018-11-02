@@ -284,6 +284,13 @@ Feature: Searching on a page
             - data/iframe_search.html
             - data/hello.txt (active)
 
+    Scenario: Click a non-hint link with selection
+        When I open data/click_element.html
+        And I run :tab-only
+        When I run :jseval --file (testdata)/search_select.js
+        And I run :follow-selected
+        Then the javascript message "id with dot" should be logged
+
     Scenario: Closing a tab during a search
         When I run :open -b about:blank
         And I run :search a

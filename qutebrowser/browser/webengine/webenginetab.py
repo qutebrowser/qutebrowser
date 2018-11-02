@@ -372,14 +372,12 @@ class WebEngineCaret(browsertab.AbstractCaret):
         else:
             click_type = usertypes.ClickTarget.normal
 
-        # Only click if we see a link
-        if elem.is_link():
-            log.webview.debug("Found link in selection, clicking. ClickTarget "
-                              "{}, elem {}".format(click_type, elem))
-            try:
-                elem.click(click_type)
-            except webelem.Error as e:
-                message.error(str(e))
+        log.webview.debug("Clicking selection. ClickTarget {}, elem {}"
+                          .format(click_type, elem))
+        try:
+            elem.click(click_type)
+        except webelem.Error as e:
+            message.error(str(e))
 
     def follow_selected(self, *, tab=False):
         if self._tab.search.search_displayed:
