@@ -28,6 +28,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import adblock
+from qutebrowser.utils import urlmatch
 
 pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
@@ -216,6 +217,23 @@ def test_disabled_blocking_update(basedir, config_stub, download_stub,
         assert not host_blocker.is_blocked(QUrl(str_url))
 
 
+def test_disabled_blocking_per_url(config_stub, data_tmpdir):
+    example_com = 'https://www.example.com/'
+
+    config_stub.val.content.host_blocking.lists = []
+    pattern = urlmatch.UrlPattern(example_com)
+    config_stub.set_obj('content.host_blocking.enabled', False,
+                        pattern=pattern)
+
+    url = QUrl('blocked.example.com')
+
+    host_blocker = adblock.HostBlocker()
+    host_blocker._blocked_hosts.add(url.host())
+
+    assert host_blocker.is_blocked(url)
+    assert not host_blocker.is_blocked(url, first_party_url=QUrl(example_com))
+
+
 def test_no_blocklist_update(config_stub, download_stub,
                              data_tmpdir, basedir, tmpdir, win_registry):
     """Ensure no URL is blocked when no block list exists."""
@@ -348,7 +366,7 @@ def test_invalid_utf8(config_stub, download_stub, tmpdir, data_tmpdir,
             current_download.finished.emit()
         expected = (r"Failed to decode: "
                     r"b'https://www.example.org/\xa0localhost")
-        assert caplog.records[-2].message.startswith(expected)
+        assert caplog.messages[-2].startswith(expected)
     else:
         current_download.successful = True
         current_download.finished.emit()
@@ -373,7 +391,7 @@ def test_invalid_utf8_compiled(config_stub, config_tmpdir, data_tmpdir,
     host_blocker = adblock.HostBlocker()
     with caplog.at_level(logging.ERROR):
         host_blocker.read_hosts()
-    assert caplog.records[-1].message == "Failed to read host blocklist!"
+    assert caplog.messages[-1] == "Failed to read host blocklist!"
 
 
 def test_blocking_with_whitelist(config_stub, basedir, download_stub,
@@ -434,3 +452,22 @@ def test_config_change(config_stub, basedir, download_stub,
     host_blocker.read_hosts()
     for str_url in URLS_TO_CHECK:
         assert not host_blocker.is_blocked(QUrl(str_url))
+
+
+def test_add_directory(config_stub, basedir, download_stub,
+                       data_tmpdir, tmpdir):
+    """Ensure adblocker can import all files in a directory."""
+    blocklist_hosts2 = []
+    for i in BLOCKLIST_HOSTS[1:]:
+        blocklist_hosts2.append('1' + i)
+
+    create_blocklist(tmpdir, blocked_hosts=BLOCKLIST_HOSTS,
+                     name='blocked-hosts', line_format='one_per_line')
+    create_blocklist(tmpdir, blocked_hosts=blocklist_hosts2,
+                     name='blocked-hosts2', line_format='one_per_line')
+
+    config_stub.val.content.host_blocking.lists = [tmpdir.strpath]
+    config_stub.val.content.host_blocking.enabled = True
+    host_blocker = adblock.HostBlocker()
+    host_blocker.adblock_update()
+    assert len(host_blocker._blocked_hosts) == len(blocklist_hosts2) * 2

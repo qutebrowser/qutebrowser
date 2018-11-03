@@ -389,8 +389,7 @@ class TestArgument:
                 # no docstring
                 pass
         assert len(caplog.records) == 1
-        msg = caplog.records[0].message
-        assert msg.endswith('test_cmdutils.py has no docstring')
+        assert caplog.messages[0].endswith('test_cmdutils.py has no docstring')
 
     def test_no_docstring_with_optimize(self, monkeypatch):
         """With -OO we'd get a warning on start, but no warning afterwards."""

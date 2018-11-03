@@ -13,6 +13,11 @@ Feature: Using :navigate
         And I run :navigate up
         Then data/navigate should be loaded
 
+    Scenario: Navigating up with a query
+        When I open data/navigate/sub?foo=bar
+        And I run :navigate up
+        Then data/navigate should be loaded
+
     Scenario: Navigating up by count
         When I open data/navigate/sub/index.html
         And I run :navigate up with count 2
@@ -69,6 +74,18 @@ Feature: Using :navigate
         When I open data/navigate/rel_nofollow.html
         And I run :navigate next
         Then data/navigate/next.html should be loaded
+
+    @qtwebkit_skip
+    Scenario: Navigating with invalid selector
+        When I open data/navigate
+        And I set hints.selectors to {"links": ["@"]}
+        And I run :navigate next
+        Then the error "SyntaxError: Failed to execute 'querySelectorAll' on 'Document': '@' is not a valid selector." should be shown
+
+    Scenario: Navigating with no next selector
+        When I set hints.selectors to {'all': ['a']}
+        And I run :navigate next
+        Then the error "Undefined hinting group 'links'" should be shown
 
     # increment/decrement
 

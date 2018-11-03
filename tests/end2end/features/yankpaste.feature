@@ -41,6 +41,13 @@ Feature: Yanking and pasting.
         Then the message "Yanked title to clipboard: Test title" should be shown
         And the clipboard should contain "Test title"
 
+    Scenario: Yanking markdown URL to clipboard
+        When I open data/title.html
+        And I wait for regex "Changing title for idx \d to 'Test title'" in the log
+        And I run :yank markdown
+        Then the message "Yanked markdown URL to clipboard: *" should be shown
+        And the clipboard should contain "[Test title](http://localhost:(port)/data/title.html)"
+
     Scenario: Yanking domain to clipboard
         When I open data/title.html
         And I run :yank domain
@@ -76,6 +83,11 @@ Feature: Yanking and pasting.
 		And I run :yank
 		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a;b&c=d" should be shown
 		And the clipboard should contain "http://localhost:(port)/data/title.html?a;b&c=d"
+
+    Scenario: Yanking with --quiet
+        When I open data/title.html
+        And I run :yank --quiet
+        Then "Yanked URL to clipboard: *" should not be logged
 
     #### {clipboard} and {primary}
 

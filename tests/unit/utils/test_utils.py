@@ -28,11 +28,14 @@ import functools
 import socket
 import re
 import shlex
+import math
 
 import attr
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard
 import pytest
+import hypothesis
+from hypothesis import strategies
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
@@ -466,10 +469,8 @@ class TestPreventExceptions:
             ret = self.func_raising()
             # pylint: enable=assignment-from-no-return
         assert ret == 42
-        assert len(caplog.records) == 1
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
-        actual = caplog.records[0].message
-        assert actual == expected
+        assert caplog.messages == [expected]
 
     @utils.prevent_exceptions(42)
     def func_not_raising(self):
@@ -634,14 +635,22 @@ def test_force_encoding(inp, enc, expected):
 
 
 @pytest.mark.parametrize('inp, expected', [
-    ('normal.txt', 'normal.txt'),
-    ('user/repo issues.mht', 'user_repo issues.mht'),
-    ('<Test\\File> - "*?:|', '_Test_File_ - _____'),
+    pytest.param('normal.txt', 'normal.txt',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('user/repo issues.mht', 'user_repo issues.mht',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('<Test\\File> - "*?:|', '_Test_File_ - _____',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?_|',
+                 marks=pytest.mark.fake_os('mac')),
+    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?:|',
+                 marks=pytest.mark.fake_os('posix')),
 ])
-def test_sanitize_filename(inp, expected):
+def test_sanitize_filename(inp, expected, monkeypatch):
     assert utils.sanitize_filename(inp) == expected
 
 
+@pytest.mark.fake_os('windows')
 def test_sanitize_filename_empty_replacement():
     name = '/<Bad File>/'
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
@@ -680,7 +689,7 @@ class TestGetSetClipboard:
         utils.set_clipboard(text, selection=selection)
         assert not clipboard_mock.setText.called
         expected = 'Setting fake {}: "{}"'.format(what, expected)
-        assert caplog.records[0].message == expected
+        assert caplog.messages[0] == expected
 
     def test_get(self):
         assert utils.get_clipboard() == 'mocked clipboard text'
@@ -731,7 +740,7 @@ class TestOpenFile:
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass'.format(executable)
         utils.open_file('/foo/bar', cmdline)
-        result = caplog.records[0].message
+        result = caplog.messages[0]
         assert re.fullmatch(
             r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
 
@@ -740,7 +749,7 @@ class TestOpenFile:
         executable = shlex.quote(sys.executable)
         cmdline = '{} -c pass {{}} raboof'.format(executable)
         utils.open_file('/foo/bar', cmdline)
-        result = caplog.records[0].message
+        result = caplog.messages[0]
         assert re.fullmatch(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
 
@@ -750,7 +759,7 @@ class TestOpenFile:
         cmdline = '{} -c pass'.format(executable)
         config_stub.val.downloads.open_dispatcher = cmdline
         utils.open_file('/foo/bar')
-        result = caplog.records[1].message
+        result = caplog.messages[1]
         assert re.fullmatch(
             r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
 
@@ -758,7 +767,7 @@ class TestOpenFile:
         m = mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
                          new_callable=mocker.Mock)
         utils.open_file('/foo/bar')
-        result = caplog.records[0].message
+        result = caplog.messages[0]
         assert re.fullmatch(
             r"Opening /foo/bar with the system application", result)
         m.assert_called_with(QUrl('file:///foo/bar'))
@@ -829,3 +838,24 @@ def test_guess_mimetype(filename, expected):
 def test_guess_mimetype_no_fallback():
     with pytest.raises(ValueError):
         utils.guess_mimetype('test.blabla')
+
+
+@hypothesis.given(number=strategies.integers(min_value=1),
+                  base=strategies.integers(min_value=2))
+@hypothesis.example(number=125, base=5)
+def test_ceil_log_hypothesis(number, base):
+    exponent = utils.ceil_log(number, base)
+    assert base ** exponent >= number
+    # With base=2, number=1 we get exponent=1
+    # 2**1 > 1, but 2**0 == 1.
+    if exponent > 1:
+        assert base ** (exponent - 1) < number
+
+
+@pytest.mark.parametrize('number, base', [(64, 0), (0, 64), (64, -1),
+                                          (-1, 64), (1, 1)])
+def test_ceil_log_invalid(number, base):
+    with pytest.raises(Exception):  # ValueError/ZeroDivisionError
+        math.log(number, base)
+    with pytest.raises(ValueError):
+        utils.ceil_log(number, base)

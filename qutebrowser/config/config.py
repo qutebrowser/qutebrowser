@@ -312,10 +312,14 @@ class Config(QObject):
                 name, deleted=deleted, renamed=renamed)
             raise exception from None
 
-    def get(self, name, url=None):
-        """Get the given setting converted for Python code."""
+    def get(self, name, url=None, *, fallback=True):
+        """Get the given setting converted for Python code.
+
+        Args:
+            fallback: Use the global value if there's no URL-specific one.
+        """
         opt = self.get_opt(name)
-        obj = self.get_obj(name, url=url)
+        obj = self.get_obj(name, url=url, fallback=fallback)
         return opt.typ.to_py(obj)
 
     def _maybe_copy(self, value):
@@ -329,14 +333,14 @@ class Config(QObject):
             assert value.__hash__ is not None, value
             return value
 
-    def get_obj(self, name, *, url=None):
+    def get_obj(self, name, *, url=None, fallback=True):
         """Get the given setting as object (for YAML/config.py).
 
         Note that the returned values are not watched for mutation.
         If a URL is given, return the value which should be used for that URL.
         """
         self.get_opt(name)  # To make sure it exists
-        value = self._values[name].get_for_url(url)
+        value = self._values[name].get_for_url(url, fallback=fallback)
         return self._maybe_copy(value)
 
     def get_obj_for_pattern(self, name, *, pattern):

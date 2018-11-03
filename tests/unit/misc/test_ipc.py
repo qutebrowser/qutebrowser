@@ -338,7 +338,7 @@ class TestListen:
         with caplog.at_level(logging.ERROR):
             ipc_server.update_atime()
 
-        assert caplog.records[-1].msg == "In update_atime with no server path!"
+        assert caplog.messages[-1] == "In update_atime with no server path!"
 
     @pytest.mark.posix
     def test_atime_shutdown_typeerror(self, qtbot, ipc_server):
@@ -381,22 +381,20 @@ class TestHandleConnection:
 
     def test_no_connection(self, ipc_server, caplog):
         ipc_server.handle_connection()
-        assert caplog.records[-1].message == "No new connection to handle."
+        assert caplog.messages[-1] == "No new connection to handle."
 
     def test_double_connection(self, qlocalsocket, ipc_server, caplog):
         ipc_server._socket = qlocalsocket
         ipc_server.handle_connection()
         msg = ("Got new connection but ignoring it because we're still "
                "handling another one")
-        assert any(rec.message.startswith(msg) for rec in caplog.records)
+        assert any(message.startswith(msg) for message in caplog.messages)
 
     def test_disconnected_immediately(self, ipc_server, caplog):
         socket = FakeSocket(state=QLocalSocket.UnconnectedState)
         ipc_server._server = FakeServer(socket)
         ipc_server.handle_connection()
-        msg = "Socket was disconnected immediately."
-        all_msgs = [r.message for r in caplog.records]
-        assert msg in all_msgs
+        assert "Socket was disconnected immediately." in caplog.messages
 
     def test_error_immediately(self, ipc_server, caplog):
         socket = FakeSocket(error=QLocalSocket.ConnectionError)
@@ -406,9 +404,7 @@ class TestHandleConnection:
                            r"connection: Error string \(error 7\)"):
             ipc_server.handle_connection()
 
-        msg = "We got an error immediately."
-        all_msgs = [r.message for r in caplog.records]
-        assert msg in all_msgs
+        assert "We got an error immediately." in caplog.messages
 
     def test_read_line_immediately(self, qtbot, ipc_server, caplog):
         data = ('{{"args": ["foo"], "target_arg": "tab", '
@@ -421,8 +417,7 @@ class TestHandleConnection:
             ipc_server.handle_connection()
 
         assert blocker.args == [['foo'], 'tab', '']
-        all_msgs = [r.message for r in caplog.records]
-        assert "We can read a line immediately." in all_msgs
+        assert "We can read a line immediately." in caplog.messages
 
 
 @pytest.fixture
@@ -475,9 +470,9 @@ def test_invalid_data(qtbot, ipc_server, connected_socket, caplog, data, msg):
             with qtbot.waitSignals(signals, order='strict'):
                 connected_socket.write(data)
 
-    messages = [r.message for r in caplog.records]
-    assert messages[-1].startswith('Ignoring invalid IPC data from socket ')
-    assert messages[-2].startswith(msg)
+    invalid_msg = 'Ignoring invalid IPC data from socket '
+    assert caplog.messages[-1].startswith(invalid_msg)
+    assert caplog.messages[-2].startswith(msg)
 
 
 def test_multiline(qtbot, ipc_server, connected_socket):
@@ -504,8 +499,7 @@ class TestSendToRunningInstance:
     def test_no_server(self, caplog):
         sent = ipc.send_to_running_instance('qute-test', [], None)
         assert not sent
-        msg = caplog.records[-1].message
-        assert msg == "No existing instance present (error 2)"
+        assert caplog.messages[-1] == "No existing instance present (error 2)"
 
     @pytest.mark.parametrize('has_cwd', [True, False])
     @pytest.mark.linux(reason="Causes random trouble on Windows and macOS")
@@ -571,7 +565,7 @@ def test_timeout(qtbot, caplog, qlocalsocket, ipc_server):
         with qtbot.waitSignal(qlocalsocket.disconnected, timeout=5000):
             pass
 
-    assert caplog.records[-1].message.startswith("IPC connection timed out")
+    assert caplog.messages[-1].startswith("IPC connection timed out")
 
 
 def test_ipcserver_socket_none_readyread(ipc_server, caplog):
@@ -580,7 +574,7 @@ def test_ipcserver_socket_none_readyread(ipc_server, caplog):
     with caplog.at_level(logging.WARNING):
         ipc_server.on_ready_read()
     msg = "In on_ready_read with None socket and old_socket!"
-    assert msg in [r.message for r in caplog.records]
+    assert msg in caplog.messages
 
 
 @pytest.mark.posix
@@ -588,7 +582,7 @@ def test_ipcserver_socket_none_error(ipc_server, caplog):
     assert ipc_server._socket is None
     ipc_server.on_error(0)
     msg = "In on_error with None socket!"
-    assert msg in [r.message for r in caplog.records]
+    assert msg in caplog.messages
 
 
 class TestSendOrListen:
@@ -627,8 +621,7 @@ class TestSendOrListen:
     def test_normal_connection(self, caplog, qtbot, args):
         ret_server = ipc.send_or_listen(args)
         assert isinstance(ret_server, ipc.IPCServer)
-        msgs = [e.message for e in caplog.records]
-        assert "Starting IPC server..." in msgs
+        assert "Starting IPC server..." in caplog.messages
         assert ret_server is ipc.server
 
         with qtbot.waitSignal(ret_server.got_args):
@@ -667,8 +660,7 @@ class TestSendOrListen:
 
         ret = ipc.send_or_listen(args)
         assert ret is None
-        msgs = [e.message for e in caplog.records]
-        assert "Got AddressInUseError, trying again." in msgs
+        assert "Got AddressInUseError, trying again." in caplog.messages
 
     @pytest.mark.parametrize('has_error, exc_name, exc_msg', [
         (True, 'SocketError',
@@ -706,8 +698,6 @@ class TestSendOrListen:
             with pytest.raises(ipc.Error):
                 ipc.send_or_listen(args)
 
-        assert len(caplog.records) == 1
-
         error_msgs = [
             'Handling fatal misc.ipc.{} with --no-err-windows!'.format(
                 exc_name),
@@ -717,7 +707,7 @@ class TestSendOrListen:
             'post_text: Maybe another instance is running but frozen?',
             'exception text: {}'.format(exc_msg),
         ]
-        assert caplog.records[0].msg == '\n'.join(error_msgs)
+        assert caplog.messages == ['\n'.join(error_msgs)]
 
     @pytest.mark.posix(reason="Flaky on Windows")
     def test_error_while_listening(self, qlocalserver_mock, caplog, args):
@@ -739,7 +729,7 @@ class TestSendOrListen:
             ('exception text: Error while listening to IPC server: Error '
              'string (error 4)'),
         ]
-        assert caplog.records[-1].msg == '\n'.join(error_msgs)
+        assert caplog.messages[-1] == '\n'.join(error_msgs)
 
 
 @pytest.mark.windows

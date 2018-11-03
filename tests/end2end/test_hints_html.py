@@ -24,9 +24,10 @@ import os.path
 import textwrap
 
 import attr
-import yaml
 import pytest
 import bs4
+
+from qutebrowser.utils import utils
 
 
 def collect_tests():
@@ -58,12 +59,13 @@ def _parse_file(test_name):
     with open(file_path, 'r', encoding='utf-8') as html:
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
-    comment = soup.find(text=lambda text: isinstance(text, bs4.Comment))
+    comment = str(soup.find(text=lambda text: isinstance(text, bs4.Comment)))
 
     if comment is None:
         raise InvalidFile(test_name, "no comment found")
 
-    data = yaml.load(comment)
+    data = utils.yaml_load(comment)
+
     if not isinstance(data, dict):
         raise InvalidFile(test_name, "expected yaml dict but got {}".format(
             type(data).__name__))

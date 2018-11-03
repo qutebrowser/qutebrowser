@@ -24,7 +24,7 @@ import textwrap
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import usertypes, qtutils
 
 
 @pytest.fixture
@@ -330,6 +330,17 @@ class TestFollowSelected:
     @pytest.fixture(params=[True, False], autouse=True)
     def toggle_js(self, request, config_stub):
         config_stub.val.content.javascript.enabled = request.param
+
+    @pytest.fixture(autouse=True)
+    def expose(self, web_tab):
+        """Expose the web view if needed.
+
+        On QtWebKit, or Qt < 5.11 on QtWebEngine, we need to show the tab for
+        selections to work properly.
+        """
+        if (web_tab.backend == usertypes.Backend.QtWebKit or
+                not qtutils.version_check('5.11', compiled=False)):
+            web_tab.container.expose()
 
     def test_follow_selected_without_a_selection(self, qtbot, caret, selection, web_tab,
                                                  mode_manager):

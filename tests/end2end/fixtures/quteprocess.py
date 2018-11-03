@@ -667,7 +667,7 @@ class QuteProc(testprocess.Process):
         # \ and " in a value should be treated literally, so escape them
         value = value.replace('\\', r'\\')
         value = value.replace('"', '\\"')
-        self.send_cmd(':set "{}" "{}"'.format(option, value), escape=False)
+        self.send_cmd(':set -t "{}" "{}"'.format(option, value), escape=False)
         self.wait_for(category='config', message='Config option changed: *')
 
     @contextlib.contextmanager
@@ -778,7 +778,7 @@ class QuteProc(testprocess.Process):
                 data = f.read()
 
         self._log('\nCurrent session data:\n' + data)
-        return yaml.load(data)
+        return utils.yaml_load(data)
 
     def get_content(self, plain=True):
         """Get the contents of the current page."""

@@ -60,7 +60,7 @@ from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.commands import cmdutils
-from qutebrowser.config import configexc
+from qutebrowser.config import configexc, configutils
 from qutebrowser.utils import standarddir, utils, qtutils, urlutils, urlmatch
 from qutebrowser.keyinput import keyutils
 
@@ -149,6 +149,9 @@ class BaseType:
             value: The value to check.
             pytype: A Python type to check the value against.
         """
+        if value is configutils.UNSET:
+            return
+
         if (value is None or (pytype == list and value == []) or
                 (pytype == dict and value == {})):
             if not self.none_ok:
@@ -309,7 +312,9 @@ class MappingType(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
         self._validate_valid_values(value.lower())
         return self.MAPPING[value.lower()]
@@ -367,7 +372,9 @@ class String(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         self._validate_encoding(value)
@@ -399,7 +406,9 @@ class UniqueCharString(String):
 
     def to_py(self, value):
         value = super().to_py(value)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         # Check for duplicate values
@@ -455,7 +464,9 @@ class List(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, list)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return []
 
         for val in value:
@@ -534,6 +545,9 @@ class ListOrValue(BaseType):
         return value
 
     def to_py(self, value):
+        if value is configutils.UNSET:
+            return value
+
         try:
             return [self.valtype.to_py(value)]
         except configexc.ValidationError:
@@ -577,7 +591,8 @@ class FlagList(List):
 
     def to_py(self, value):
         vals = super().to_py(value)
-        self._check_duplicates(vals)
+        if vals is not configutils.UNSET:
+            self._check_duplicates(vals)
         return vals
 
     def complete(self):
@@ -764,7 +779,9 @@ class Perc(_Numeric):
 
     def to_py(self, value):
         self._basic_py_validation(value, (float, int, str))
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         if isinstance(value, str):
@@ -903,12 +920,48 @@ class QtColor(BaseType):
     * An SVG color name as specified in
       http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
     * transparent (no color)
+    * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
+    * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
     """
+
+    def _parse_value(self, val):
+        try:
+            return int(val)
+        except ValueError:
+            pass
+
+        mult = 255.0
+        if val.endswith('%'):
+            val = val[:-1]
+            mult = 255.0 / 100
+
+        try:
+            return int(float(val) * mult)
+        except ValueError:
+            raise configexc.ValidationError(val, "must be a valid color value")
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
+
+        if '(' in value and value.endswith(')'):
+            openparen = value.index('(')
+            kind = value[:openparen]
+            vals = value[openparen+1:-1].split(',')
+            vals = [self._parse_value(v) for v in vals]
+            if kind == 'rgba' and len(vals) == 4:
+                return QColor.fromRgb(*vals)
+            elif kind == 'rgb' and len(vals) == 3:
+                return QColor.fromRgb(*vals)
+            elif kind == 'hsva' and len(vals) == 4:
+                return QColor.fromHsv(*vals)
+            elif kind == 'hsv' and len(vals) == 3:
+                return QColor.fromHsv(*vals)
+            else:
+                raise configexc.ValidationError(value, "must be a valid color")
 
         color = QColor(value)
         if color.isValid():
@@ -936,7 +989,9 @@ class QssColor(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         functions = ['rgb', 'rgba', 'hsv', 'hsva', 'qlineargradient',
@@ -981,7 +1036,9 @@ class Font(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         if not self.font_regex.fullmatch(value):  # pragma: no cover
@@ -1000,7 +1057,9 @@ class FontFamily(Font):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         match = self.font_regex.fullmatch(value)
@@ -1024,7 +1083,9 @@ class QtFont(Font):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         style_map = {
@@ -1136,7 +1197,9 @@ class Regex(BaseType):
     def to_py(self, value):
         """Get a compiled regex from either a string or a regex object."""
         self._basic_py_validation(value, (str, self._regex_type))
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
         elif isinstance(value, str):
             return self._compile_regex(value)
@@ -1214,7 +1277,9 @@ class Dict(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, dict)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return self._fill_fixed_keys({})
 
         self._validate_keys(value)
@@ -1230,7 +1295,7 @@ class Dict(BaseType):
         if not value:
             # An empty Dict is treated just like None -> empty string
             return ''
-        return json.dumps(value)
+        return json.dumps(value, sort_keys=True)
 
     def to_doc(self, value, indent=0):
         if not value:
@@ -1256,7 +1321,9 @@ class File(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         value = os.path.expanduser(value)
@@ -1282,7 +1349,9 @@ class Directory(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
         value = os.path.expandvars(value)
         value = os.path.expanduser(value)
@@ -1309,7 +1378,9 @@ class FormatString(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         try:
@@ -1341,8 +1412,10 @@ class ShellCommand(List):
 
     def to_py(self, value):
         value = super().to_py(value)
-        if not value:
+        if value is configutils.UNSET:
             return value
+        elif not value:
+            return []
 
         if (self.placeholder and
                 '{}' not in ' '.join(value) and
@@ -1365,7 +1438,9 @@ class Proxy(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         try:
@@ -1401,7 +1476,9 @@ class SearchEngineUrl(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         if not ('{}' in value or '{0}' in value):
@@ -1429,7 +1506,9 @@ class FuzzyUrl(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         try:
@@ -1463,6 +1542,9 @@ class Padding(Dict):
 
     def to_py(self, value):
         d = super().to_py(value)
+        if d is configutils.UNSET:
+            return d
+
         return PaddingValues(**d)
 
 
@@ -1472,7 +1554,9 @@ class Encoding(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
         try:
             codecs.lookup(value)
@@ -1529,7 +1613,9 @@ class Url(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         qurl = QUrl.fromUserInput(value)
@@ -1545,7 +1631,9 @@ class SessionName(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
         if value.startswith('_'):
             raise configexc.ValidationError(value, "may not start with '_'!")
@@ -1593,8 +1681,10 @@ class ConfirmQuit(FlagList):
 
     def to_py(self, value):
         values = super().to_py(value)
-        if not values:
+        if values is configutils.UNSET:
             return values
+        elif not values:
+            return []
 
         # Never can't be set with other options
         if 'never' in values and len(values) > 1:
@@ -1630,7 +1720,9 @@ class TimestampTemplate(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         try:
@@ -1654,7 +1746,9 @@ class Key(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         try:
@@ -1673,7 +1767,9 @@ class UrlPattern(BaseType):
 
     def to_py(self, value):
         self._basic_py_validation(value, str)
-        if not value:
+        if value is configutils.UNSET:
+            return value
+        elif not value:
             return None
 
         try:

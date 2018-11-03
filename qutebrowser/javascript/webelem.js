@@ -214,7 +214,14 @@ window._qutebrowser.webelem = (function() {
     }
 
     funcs.find_css = (selector, only_visible) => {
-        const elems = document.querySelectorAll(selector);
+        let elems;
+
+        try {
+            elems = document.querySelectorAll(selector);
+        } catch (ex) {
+            return {"success": false, "error": ex.toString()};
+        }
+
         const subelem_frames = window.frames;
         const out = [];
 
@@ -239,7 +246,7 @@ window._qutebrowser.webelem = (function() {
             }
         }
 
-        return out;
+        return {"success": true, "result": out};
     };
 
     // Runs a function in a frame until the result is not null, then return
@@ -333,13 +340,13 @@ window._qutebrowser.webelem = (function() {
     // it). If nothing is selected but there is something focused, returns
     // "focused"
     funcs.find_selected_focused_link = () => {
-        const elem = window.getSelection().baseNode;
+        const elem = window.getSelection().anchorNode;
         if (elem) {
             return serialize_elem(elem.parentNode);
         }
 
         const serialized_frame_elem = run_frames((frame) => {
-            const node = frame.window.getSelection().baseNode;
+            const node = frame.window.getSelection().anchorNode;
             if (node) {
                 return serialize_elem(node.parentNode, frame);
             }

@@ -492,12 +492,13 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.other_buffer)
-    def tab_take(self, index):
+    def tab_take(self, index, keep=False):
         """Take a tab from another window.
 
         Args:
             index: The [win_id/]index of the tab to take. Or a substring
                    in which case the closest match will be taken.
+            keep: If given, keep the old tab around.
         """
         tabbed_browser, tab = self._resolve_buffer_index(index)
 
@@ -505,18 +506,20 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Can't take a tab from the same window")
 
         self._open(tab.url(), tab=True)
-        tabbed_browser.close_tab(tab, add_undo=False)
+        if not keep:
+            tabbed_browser.close_tab(tab, add_undo=False)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
     @cmdutils.argument('count', count=True)
-    def tab_give(self, win_id: int = None, count=None):
+    def tab_give(self, win_id: int = None, keep=False, count=None):
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
 
         Args:
             win_id: The window ID of the window to give the current tab to.
+            keep: If given, keep the old tab around.
             count: Overrides win_id (index starts at 1 for win_id=0).
         """
         if count is not None:
@@ -526,7 +529,7 @@ class CommandDispatcher:
             raise cmdexc.CommandError("Can't give a tab to the same window")
 
         if win_id is None:
-            if self._count() < 2:
+            if self._count() < 2 and not keep:
                 raise cmdexc.CommandError("Cannot detach from a window with "
                                           "only one tab")
 
@@ -541,7 +544,9 @@ class CommandDispatcher:
                                         window=win_id)
 
         tabbed_browser.tabopen(self._current_url())
-        self._tabbed_browser.close_tab(self._current_widget(), add_undo=False)
+        if not keep:
+            self._tabbed_browser.close_tab(self._current_widget(),
+                                           add_undo=False)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
@@ -611,11 +616,11 @@ class CommandDispatcher:
                 - `up`: Go up a level in the current URL.
                 - `increment`: Increment the last number in the URL.
                   Uses the
-                  link:settings.html#url.incdec_segments[url.incdec_segments]
+                  link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
                   config option.
                 - `decrement`: Decrement the last number in the URL.
                   Uses the
-                  link:settings.html#url.incdec_segments[url.incdec_segments]
+                  link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
                   config option.
 
             tab: Open in a new tab.
@@ -629,7 +634,8 @@ class CommandDispatcher:
 
         cmdutils.check_exclusive((tab, bg, window), 'tbw')
         widget = self._current_widget()
-        url = self._current_url().adjusted(QUrl.RemoveFragment)
+        url = self._current_url()
+        url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
 
         handlers = {
             'prev': functools.partial(navigate.prevnext, prev=True),
@@ -789,7 +795,7 @@ class CommandDispatcher:
 
     def _yank_url(self, what):
         """Helper method for yank() to get the URL to copy."""
-        assert what in ['url', 'pretty-url'], what
+        assert what in ['url', 'pretty-url', 'markdown'], what
         flags = QUrl.RemovePassword
         if what == 'pretty-url':
             flags |= QUrl.DecodeReserved
@@ -809,8 +815,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
-                                        'title', 'domain'])
-    def yank(self, what='url', sel=False, keep=False):
+                                        'title', 'domain', 'markdown'])
+    def yank(self, what='url', sel=False, keep=False, quiet=False):
         """Yank something to the clipboard or primary selection.
 
         Args:
@@ -821,9 +827,11 @@ class CommandDispatcher:
                 - `title`: The current page's title.
                 - `domain`: The current scheme, domain, and port number.
                 - `selection`: The selection under the cursor.
+                - `markdown`: Yank title and URL in markdown format.
 
             sel: Use the primary selection instead of the clipboard.
             keep: Stay in visual mode after yanking the selection.
+            quiet: Don't show an information message.
         """
         if what == 'title':
             s = self._current_widget().title()
@@ -837,20 +845,26 @@ class CommandDispatcher:
             what = 'URL'  # For printing
         elif what == 'selection':
             def _selection_callback(s):
-                if not s:
+                if not s and not quiet:
                     message.info("Nothing to yank")
                     return
-                self._yank_to_target(s, sel, what, keep)
+                self._yank_to_target(s, sel, what, keep, quiet)
 
             caret = self._current_widget().caret
             caret.selection(callback=_selection_callback)
             return
+        elif what == 'markdown':
+            idx = self._current_index()
+            title = self._tabbed_browser.widget.page_title(idx)
+            url = self._yank_url(what)
+            s = '[{}]({})'.format(title, url)
+            what = 'markdown URL'  # For printing
         else:  # pragma: no cover
             raise ValueError("Invalid value {!r} for `what'.".format(what))
 
-        self._yank_to_target(s, sel, what, keep)
+        self._yank_to_target(s, sel, what, keep, quiet)
 
-    def _yank_to_target(self, s, sel, what, keep):
+    def _yank_to_target(self, s, sel, what, keep, quiet):
         if sel and utils.supports_selection():
             target = "primary selection"
         else:
@@ -859,47 +873,53 @@ class CommandDispatcher:
 
         utils.set_clipboard(s, selection=sel)
         if what != 'selection':
-            message.info("Yanked {} to {}: {}".format(what, target, s))
+            if not quiet:
+                message.info("Yanked {} to {}: {}".format(what, target, s))
         else:
-            message.info("{} {} yanked to {}".format(
-                len(s), "char" if len(s) == 1 else "chars", target))
+            if not quiet:
+                message.info("{} {} yanked to {}".format(
+                    len(s), "char" if len(s) == 1 else "chars", target))
             if not keep:
                 modeman.leave(self._win_id, KeyMode.caret, "yank selected",
                               maybe=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom_in(self, count=1):
+    def zoom_in(self, count=1, quiet=False):
         """Increase the zoom level for the current tab.
 
         Args:
             count: How many steps to zoom in.
+            quiet: Don't show a zoom level message.
         """
         tab = self._current_widget()
         try:
             perc = tab.zoom.offset(count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        message.info("Zoom level: {}%".format(int(perc)), replace=True)
+        if not quiet:
+            message.info("Zoom level: {}%".format(int(perc)), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom_out(self, count=1):
+    def zoom_out(self, count=1, quiet=False):
         """Decrease the zoom level for the current tab.
 
         Args:
             count: How many steps to zoom out.
+            quiet: Don't show a zoom level message.
         """
         tab = self._current_widget()
         try:
             perc = tab.zoom.offset(-count)
         except ValueError as e:
             raise cmdexc.CommandError(e)
-        message.info("Zoom level: {}%".format(int(perc)), replace=True)
+        if not quiet:
+            message.info("Zoom level: {}%".format(int(perc)), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def zoom(self, zoom=None, count=None):
+    def zoom(self, zoom=None, count=None, quiet=False):
         """Set the zoom level for the current tab.
 
         The zoom can be given as argument or as [count]. If neither is
@@ -909,6 +929,7 @@ class CommandDispatcher:
         Args:
             zoom: The zoom percentage to set.
             count: The zoom percentage to set.
+            quiet: Don't show a zoom level message.
         """
         if zoom is not None:
             try:
@@ -926,7 +947,8 @@ class CommandDispatcher:
             tab.zoom.set_factor(float(level) / 100)
         except ValueError:
             raise cmdexc.CommandError("Can't zoom {}%!".format(level))
-        message.info("Zoom level: {}%".format(int(level)), replace=True)
+        if not quiet:
+            message.info("Zoom level: {}%".format(int(level)), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_only(self, prev=False, next_=False, force=False):
@@ -2091,7 +2113,10 @@ class CommandDispatcher:
                 raise cmdexc.CommandError(str(e))
 
         widget = self._current_widget()
-        widget.run_js_async(js_code, callback=jseval_cb, world=world)
+        try:
+            widget.run_js_async(js_code, callback=jseval_cb, world=world)
+        except browsertab.WebTabError as e:
+            raise cmdexc.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def fake_key(self, keystring, global_=False):
@@ -2228,6 +2253,6 @@ class CommandDispatcher:
         if tab is None:
             return
         try:
-            tab.audio.toggle_muted()
+            tab.audio.toggle_muted(override=True)
         except browsertab.WebTabError as e:
             raise cmdexc.CommandError(e)

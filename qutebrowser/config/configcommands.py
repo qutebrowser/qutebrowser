@@ -245,10 +245,113 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
-            temp: Don't touch autoconfig.yml.
+            temp: Set value temporarily until qutebrowser is closed.
         """
         with self._handle_config_error():
             self._config.unset(option, save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.list_option)
+    def config_list_add(self, option, value, temp=False):
+        """Append a value to a config option that is a list.
+
+        Args:
+            option: The name of the option.
+            value: The value to append to the end of the list.
+            temp: Add value temporarily until qutebrowser is closed.
+        """
+        opt = self._config.get_opt(option)
+        valid_list_types = (configtypes.List, configtypes.ListOrValue)
+        if not isinstance(opt.typ, valid_list_types):
+            raise cmdexc.CommandError(":config-list-add can only be used for "
+                                      "lists")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+            option_value.append(value)
+            self._config.update_mutables(save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.dict_option)
+    def config_dict_add(self, option, key, value, temp=False, replace=False):
+        """Add a key/value pair to a dictionary option.
+
+        Args:
+            option: The name of the option.
+            key: The key to use.
+            value: The value to place in the dictionary.
+            temp: Add value temporarily until qutebrowser is closed.
+            replace: Replace existing values. By default, existing values are
+                     not overwritten.
+        """
+        opt = self._config.get_opt(option)
+        if not isinstance(opt.typ, configtypes.Dict):
+            raise cmdexc.CommandError(":config-dict-add can only be used for "
+                                      "dicts")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+
+            if key in option_value and not replace:
+                raise cmdexc.CommandError("{} already exists in {} - use "
+                                          "--replace to overwrite!"
+                                          .format(key, option))
+
+            option_value[key] = value
+            self._config.update_mutables(save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.list_option)
+    def config_list_remove(self, option, value, temp=False):
+        """Remove a value from a list.
+
+        Args:
+            option: The name of the option.
+            value: The value to remove from the list.
+            temp: Remove value temporarily until qutebrowser is closed.
+        """
+        opt = self._config.get_opt(option)
+        valid_list_types = (configtypes.List, configtypes.ListOrValue)
+        if not isinstance(opt.typ, valid_list_types):
+            raise cmdexc.CommandError(":config-list-remove can only be used "
+                                      "for lists")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+
+            if value not in option_value:
+                raise cmdexc.CommandError("{} is not in {}!".format(value,
+                                                                    option))
+
+            option_value.remove(value)
+
+            self._config.update_mutables(save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.dict_option)
+    def config_dict_remove(self, option, key, temp=False):
+        """Remove a key from a dict.
+
+        Args:
+            option: The name of the option.
+            key: The key to remove from the dict.
+            temp: Remove value temporarily until qutebrowser is closed.
+        """
+        opt = self._config.get_opt(option)
+        if not isinstance(opt.typ, configtypes.Dict):
+            raise cmdexc.CommandError(":config-dict-remove can only be used "
+                                      "for dicts")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+
+            if key not in option_value:
+                raise cmdexc.CommandError("{} is not in {}!".format(key,
+                                                                    option))
+
+            del option_value[key]
+
+            self._config.update_mutables(save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
     def config_clear(self, save=False):

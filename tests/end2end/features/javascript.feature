@@ -168,7 +168,7 @@ Feature: Javascript stuff
 
     Scenario: Per-URL localstorage setting
         When I set content.local_storage to false
-        And I run :set -u http://localhost:*/data2/* content.local_storage true
+        And I run :set -tu http://localhost:*/data2/* content.local_storage true
         And I open data/javascript/localstorage.html
         And I wait for "[*] local storage is not working" in the log
         And I open data2/javascript/localstorage.html
@@ -176,7 +176,7 @@ Feature: Javascript stuff
 
     Scenario: Per-URL JavaScript setting
         When I set content.javascript.enabled to false
-        And I run :set -u http://localhost:*/data2/* content.javascript.enabled true
+        And I run :set -tu http://localhost:*/data2/* content.javascript.enabled true
         And I open data2/javascript/enabled.html
         And I wait for "[*] JavaScript is enabled" in the log
         And I open data/javascript/enabled.html

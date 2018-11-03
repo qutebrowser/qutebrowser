@@ -110,10 +110,14 @@ class HostBlocker:
 
         config.instance.changed.connect(self._update_files)
 
-    def is_blocked(self, url):
+    def is_blocked(self, url, first_party_url=None):
         """Check if the given URL (as QUrl) is blocked."""
-        if not config.val.content.host_blocking.enabled:
+        if first_party_url is not None and not first_party_url.isValid():
+            first_party_url = None
+        if not config.instance.get('content.host_blocking.enabled',
+                                   url=first_party_url):
             return False
+
         host = url.host()
         return ((host in self._blocked_hosts or
                  host in self._config_blocked_hosts) and
@@ -173,15 +177,12 @@ class HostBlocker:
         for url in config.val.content.host_blocking.lists:
             if url.scheme() == 'file':
                 filename = url.toLocalFile()
-                try:
-                    fileobj = open(filename, 'rb')
-                except OSError as e:
-                    message.error("adblock: Error while reading {}: {}".format(
-                        filename, e.strerror))
-                    continue
-                download = _FakeDownload(fileobj)
-                self._in_progress.append(download)
-                self._on_download_finished(download)
+                if os.path.isdir(filename):
+                    for entry in os.scandir(filename):
+                        if entry.is_file():
+                            self._import_local(entry.path)
+                else:
+                    self._import_local(filename)
             else:
                 fobj = io.BytesIO()
                 fobj.name = 'adblock: ' + url.host()
@@ -191,6 +192,22 @@ class HostBlocker:
                 self._in_progress.append(download)
                 download.finished.connect(
                     functools.partial(self._on_download_finished, download))
+
+    def _import_local(self, filename):
+        """Adds the contents of a file to the blocklist.
+
+        Args:
+            filename: path to a local file to import.
+        """
+        try:
+            fileobj = open(filename, 'rb')
+        except OSError as e:
+            message.error("adblock: Error while reading {}: {}".format(
+                filename, e.strerror))
+            return
+        download = _FakeDownload(fileobj)
+        self._in_progress.append(download)
+        self._on_download_finished(download)
 
     def _parse_line(self, line):
         """Parse a line from a host file.

@@ -21,6 +21,7 @@
 
 import functools
 import enum
+import contextlib
 
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
@@ -195,10 +196,35 @@ class TabWidget(QTabWidget):
         fields['scroll_pos'] = scroll_pos
         return fields
 
+    @contextlib.contextmanager
+    def _toggle_visibility(self):
+        """Toggle visibility while running.
+
+        Every single call to setTabText calls the size hinting functions for
+        every single tab, which are slow. Since we know we are updating all
+        the tab's titles, we can delay this processing by making the tab
+        non-visible. To avoid flickering, disable repaint updates whlie we
+        work.
+        """
+        bar = self.tabBar()
+        toggle = (self.count() > 10 and
+                  not bar.drag_in_progress and
+                  bar.isVisible())
+        if toggle:
+            bar.setUpdatesEnabled(False)
+            bar.setVisible(False)
+
+        yield
+
+        if toggle:
+            bar.setVisible(True)
+            bar.setUpdatesEnabled(True)
+
     def update_tab_titles(self):
         """Update all texts."""
-        for idx in range(self.count()):
-            self.update_tab_title(idx)
+        with self._toggle_visibility():
+            for idx in range(self.count()):
+                self.update_tab_title(idx)
 
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
@@ -345,6 +371,7 @@ class TabBar(QTabBar):
         self._on_show_switching_delay_changed()
         self.setAutoFillBackground(True)
         self._set_colors()
+        self.drag_in_progress = False
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
@@ -428,8 +455,16 @@ class TabBar(QTabBar):
         p.setColor(QPalette.Window, config.val.colors.tabs.bar.bg)
         self.setPalette(p)
 
+    def mouseReleaseEvent(self, e):
+        """Override mouseReleaseEvent to know when drags stop."""
+        self.drag_in_progress = False
+        super().mouseReleaseEvent(e)
+
     def mousePressEvent(self, e):
-        """Override mousePressEvent to close tabs if configured."""
+        """Override mousePressEvent to close tabs if configured.
+
+        Also keep track of if we are currently in a drag."""
+        self.drag_in_progress = True
         button = config.val.tabs.close_mouse_button
         if (e.button() == Qt.RightButton and button == 'right' or
                 e.button() == Qt.MiddleButton and button == 'middle'):
@@ -495,19 +530,20 @@ class TabBar(QTabBar):
             return self.fontMetrics().size(Qt.TextShowMnemonic, text).width()
         text_width = min(_text_to_width(text),
                          _text_to_width(tab_text))
-        padding = config.val.tabs.padding
-        indicator_width = config.val.tabs.indicator.width
-        indicator_padding = config.val.tabs.indicator.padding
+        padding = config.cache['tabs.padding']
+        indicator_width = config.cache['tabs.indicator.width']
+        indicator_padding = config.cache['tabs.indicator.padding']
         padding_h = padding.left + padding.right
+
         # Only add padding if indicator exists
         if indicator_width != 0:
             padding_h += indicator_padding.left + indicator_padding.right
         height = self._minimum_tab_height()
         width = (text_width + icon_width +
                  padding_h + indicator_width)
-        min_width = config.val.tabs.min_width
+        min_width = config.cache['tabs.min_width']
         if (not self.vertical and min_width > 0 and
-                not pinned or not config.val.tabs.pinned.shrink):
+                not pinned or not config.cache['tabs.pinned.shrink']):
             width = max(min_width, width)
         return QSize(width, height)
 
@@ -562,6 +598,9 @@ class TabBar(QTabBar):
                 # Qt shrink us down. If for some reason (tests, bugs)
                 # self.width() gives 0, use a sane min of 10 px
                 width = max(self.width(), 10)
+                max_width = config.cache['tabs.max_width']
+                if max_width > 0:
+                    width = min(max_width, width)
             size = QSize(width, height)
         qtutils.ensure_valid(size)
         return size

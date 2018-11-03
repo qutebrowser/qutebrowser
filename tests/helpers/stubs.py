@@ -257,7 +257,7 @@ class FakeWebTab(browsertab.AbstractTab):
         self.history = FakeWebTabHistory(self, can_go_back=can_go_back,
                                          can_go_forward=can_go_forward)
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
-        self.audio = FakeWebTabAudio()
+        self.audio = FakeWebTabAudio(self)
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
 
@@ -475,7 +475,7 @@ class HostBlockerStub:
     def __init__(self):
         self.blocked_hosts = set()
 
-    def is_blocked(self, url):
+    def is_blocked(self, url, first_party_url=None):
         return url in self.blocked_hosts
 
 
@@ -502,6 +502,7 @@ class TabbedBrowserStub(QObject):
         self.widget = TabWidgetStub()
         self.shutting_down = False
         self.opened_url = None
+        self.cur_url = None
 
     def on_tab_close_requested(self, idx):
         del self.widget.tabs[idx]
@@ -514,6 +515,11 @@ class TabbedBrowserStub(QObject):
 
     def openurl(self, url, *, newtab):
         self.opened_url = url
+
+    def current_url(self):
+        if self.current_url is None:
+            raise ValueError("current_url got called with cur_url None!")
+        return self.cur_url
 
 
 class TabWidgetStub(QObject):

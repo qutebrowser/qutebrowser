@@ -274,7 +274,7 @@ def get_tab(win_id, target):
     return tabbed_browser.tabopen(url=None, background=bg_tab)
 
 
-def get_user_stylesheet():
+def get_user_stylesheet(searching=False):
     """Get the combined user-stylesheet."""
     css = ''
     stylesheets = config.val.content.user_stylesheets
@@ -283,7 +283,8 @@ def get_user_stylesheet():
         with open(filename, 'r', encoding='utf-8') as f:
             css += f.read()
 
-    if not config.val.scrolling.bar:
+    if (config.val.scrolling.bar == 'never' or
+            config.val.scrolling.bar == 'when-searching' and not searching):
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     return css
