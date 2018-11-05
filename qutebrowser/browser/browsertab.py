@@ -33,7 +33,7 @@ import pygments.lexers
 import pygments.formatters
 
 from qutebrowser.keyinput import modeman
-from qutebrowser.config import config
+from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
@@ -131,53 +131,76 @@ class TabData:
 
 class InspectorSplitter(QSplitter):
 
-    """Allows putting an inspector inside the tab."""
+    """Allows putting an inspector inside the tab.
+    
+    Attributes:
+        _main_idx: index of the main webview widget
+        _position: position of the inspector (right/left/top/bottom)
+        _preferred_size: the preferred size of the inpector widget in pixels
+    """
 
     def __init__(self, main_webview):
         super().__init__()
         self.addWidget(main_webview)
-        self.main_idx = 0
+        self._main_idx = 0
         self.splitterMoved.connect(self._onSplitterMoved)
 
-        self.preferred_size = [max(300, self.width() / 2),
-                               max(300, self.height() / 2)]
-
     def set_inspector(self, inspector, position):
+        """Set the position of the inspector."""
         assert position in ['right', 'left', 'top', 'bottom']
-        self.main_idx = 0 if position in ['right', 'bottom'] else 1
-        self.setStretchFactor(self.main_idx, 1)
+        self._main_idx = 0 if position in ['right', 'bottom'] else 1
+        self.setStretchFactor(self._main_idx, 1)
         self.setStretchFactor(self._inspector_idx(), 0)
         self.setOrientation(Qt.Horizontal if position in ['right', 'left']
                             else Qt.Vertical)
         self.insertWidget(self._inspector_idx(), inspector)
-        self._inspector = inspector
+        self._position = position
+        self._load_preferred_size()
         self._adjust_size()
 
-    def _inspector_idx(self):
-        return 1 - self.main_idx
+    def save_preferred_size(self):
+        """Save the preferred size of the inspector widget."""
+        configfiles.state['geometry']['inspector_' + self._position] = str(
+            self._preferred_size)
 
-    def _orientation_int(self):
-        return 0 if self.orientation() == Qt.Horizontal else 1
+    def _load_preferred_size(self):
+        """Load the preferred size of the inspector widget."""
+        if self.orientation() == Qt.Horizontal:
+            full = self.width()
+        else:
+            full = self.height()
+        self._preferred_size = max(300, full / 2)
+
+        try:
+            self._preferred_size = int(
+                configfiles.state['geometry']['inspector_' + self._position])
+        except KeyError:
+            # First start
+            pass
+        except:
+            log.misc.exception("Error while reading preferred size")
+
+    def _inspector_idx(self):
+        return 1 - self._main_idx
 
     def _adjust_size(self):
         sizes = self.sizes()
         total = sizes[0] + sizes[1]
         protected_main_size = 150
-        preferred_size = self.preferred_size[self._orientation_int()]
+        preferred_size = self._preferred_size
         if (total >= preferred_size + protected_main_size and
                 sizes[self._inspector_idx()] != preferred_size):
             sizes[self._inspector_idx()] = preferred_size
-            sizes[self.main_idx] = total - preferred_size
+            sizes[self._main_idx] = total - preferred_size
             self.setSizes(sizes)
-        if sizes[self.main_idx] < protected_main_size and total >= 300:
-            sizes[self.main_idx] = protected_main_size
+        if sizes[self._main_idx] < protected_main_size and total >= 300:
+            sizes[self._main_idx] = protected_main_size
             sizes[self._inspector_idx()] = total - protected_main_size
             self.setSizes(sizes)
 
     def _onSplitterMoved(self, _pos, _index):
         sizes = self.sizes()
-        self.preferred_size[self._orientation_int()] = sizes[
-            self._inspector_idx()]
+        self._preferred_size = sizes[self._inspector_idx()]
 
     def resizeEvent(self, e):
         """Window resize event."""
