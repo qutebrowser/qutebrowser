@@ -29,7 +29,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import adblock
-from qutebrowser.utils import urlmatch, standarddir
+from qutebrowser.utils import urlmatch
 from tests.helpers import utils
 
 
