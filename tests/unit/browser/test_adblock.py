@@ -22,13 +22,16 @@ import os
 import os.path
 import zipfile
 import logging
+import shutil
 
 import pytest
 
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import adblock
-from qutebrowser.utils import urlmatch
+from qutebrowser.utils import urlmatch, standarddir
+from tests.helpers import utils
+
 
 pytestmark = pytest.mark.usefixtures('qapp', 'config_tmpdir')
 
@@ -471,3 +474,15 @@ def test_add_directory(config_stub, basedir, download_stub,
     host_blocker = adblock.HostBlocker()
     host_blocker.adblock_update()
     assert len(host_blocker._blocked_hosts) == len(blocklist_hosts2) * 2
+
+
+def test_adblock_benchmark(config_stub, data_tmpdir, basedir, benchmark):
+    blocked_hosts = os.path.join(utils.abs_datapath(), 'blocked-hosts')
+    shutil.copy(blocked_hosts, str(data_tmpdir))
+
+    url = QUrl('https://www.example.org/')
+    blocker = adblock.HostBlocker()
+    blocker.read_hosts()
+    assert blocker._blocked_hosts
+
+    benchmark(lambda: blocker.is_blocked(url))
