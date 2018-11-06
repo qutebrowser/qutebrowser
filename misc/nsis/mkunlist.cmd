@@ -23,14 +23,14 @@ if exist "%ULIST%" del "%ULIST%" || exit 3
 if exist "%DLIST%" del "%DLIST%" || exit 3
 
 rem Add release files deletion commands
-for /r "%DIST%" %%i in (*) do call:AddToNSH Delete "%%i" "%ULIST%"
+for /r "%DIST%" %%i in (*) do call:AddToNSH f "%%i" "%ULIST%"
 
 rem '*' doesn't catch hidden files and there are a couple files starting with
 rem a '.', which will appear as hidden if mapped from a linux file system.
-for /f "tokens=*" %%i in ('dir "%DIST%" /a:h-d /b /s') do call:AddToNSH Delete "%%i" "%ULIST%"
+for /f "tokens=*" %%i in ('dir "%DIST%" /a:h-d /b /s') do call:AddToNSH f "%%i" "%ULIST%"
 
 rem Add to the temporary file the directories removal commands
-for /r "%DIST%" %%i in (.) do call:AddToNSH RMDir "%%i" "%DLIST%"
+for /r "%DIST%" %%i in (.) do call:AddToNSH d "%%i" "%DLIST%"
 
 rem Reverse dir-list items (so each child will get deleted first)
 rem and append them to the nsh.
@@ -38,7 +38,7 @@ sort /r "%DLIST%" >> "%ULIST%"
 del "%DLIST%"
 goto:eof
 
-rem AddToNSH <command> <item> <out_file>
+rem AddToNSH <f|d> <name> <out_file>
 :AddToNSH
 rem Strip quotes from file/dir name
 set "FN=%~2"
@@ -46,4 +46,9 @@ rem Strip leading path
 set "FN=!FN:%DIST%=!"
 rem If the name contains a '$', escape it by adding another '$'
 set "FN=!FN:$=$$!"
-(echo:%1 "$INSTDIR!FN!") >> %3
+rem Writing to out_file. EnableDelayedExpansion is weird with '!'
+if %1==f (
+  (echo:^^!insertmacro DeleteRetryAbort "$INSTDIR!FN!") >> %3
+) else (
+  (echo:RMDir "$INSTDIR!FN!") >> %3
+)
