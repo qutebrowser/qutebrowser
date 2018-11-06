@@ -58,10 +58,6 @@ Section "un.Program Files" SectionUninstallProgram
   ; Try to delete the EXE as the first step - if it's in use, don't remove anything else
   !insertmacro DeleteRetryAbort "$INSTDIR\${PROGEXE}"
 
-  ; Include and then delete the uninstall nsh file
-  !include "${UNLIST}"
-  !delfile "${UNLIST}"
-
   ; Clean up "Dektop Icon"
   !insertmacro MULTIUSER_GetCurrentUserString $0
   !insertmacro DeleteRetryAbort "$DESKTOP\${PRODUCT_NAME}$0.lnk"
@@ -88,6 +84,10 @@ Section "un.Program Files" SectionUninstallProgram
       DeleteRegValue SHCTX "SOFTWARE\Classes\.webp\OpenWithProgids" "${PRODUCT_NAME}HTML"
     ${endif}
   ${endif}
+
+  ; Include and then delete the uninstall nsh file
+  !include "${UNLIST}"
+  !delfile "${UNLIST}"
 SectionEnd
 
 SectionGroup /e "un.$UserName's Files" SectionGroupRemoveUserFiles
