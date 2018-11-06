@@ -76,7 +76,7 @@ class HistoryCategory(QSqlQueryModel):
         # given the search term "a b", the WHERE clause would be:
         # ((url || title) LIKE '%a%') AND ((url || title) LIKE '%b%')
         where_clause = ' AND '.join(
-            "(url || title) LIKE :{} escape '\\'".format(i)
+            "(url || ' ' || title) LIKE :{} escape '\\'".format(i)
             for i in range(len(words)))
 
         # replace ' in timestamp-format to avoid breaking the query
