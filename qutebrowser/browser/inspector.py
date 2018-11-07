@@ -85,8 +85,6 @@ class AbstractWebInspector(QWidget):
         if position != self._position:
             if self._position == 'window':
                 self._save_state_geometry()
-            elif self._position is not None:
-                self._splitter.save_preferred_size()
 
             self._position = position
 

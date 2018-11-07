@@ -161,7 +161,7 @@ class InspectorSplitter(QSplitter):
         self._load_preferred_size()
         self._adjust_size()
 
-    def save_preferred_size(self):
+    def _save_preferred_size(self):
         """Save the preferred size of the inspector widget."""
         configfiles.state['geometry']['inspector_' + self._position] = str(
             self._preferred_size)
@@ -204,6 +204,7 @@ class InspectorSplitter(QSplitter):
     def _onSplitterMoved(self, _pos, _index):
         sizes = self.sizes()
         self._preferred_size = sizes[self._inspector_idx()]
+        self._save_preferred_size()
 
     def resizeEvent(self, e):
         """Window resize event."""
