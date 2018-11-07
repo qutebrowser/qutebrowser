@@ -132,17 +132,20 @@ class TabData:
 class InspectorSplitter(QSplitter):
 
     """Allows putting an inspector inside the tab.
-    
+
     Attributes:
         _main_idx: index of the main webview widget
         _position: position of the inspector (right/left/top/bottom)
         _preferred_size: the preferred size of the inpector widget in pixels
     """
 
+    _main_idx = 0
+    _position = None
+    _preferred_size = None
+
     def __init__(self, main_webview):
         super().__init__()
         self.addWidget(main_webview)
-        self._main_idx = 0
         self.splitterMoved.connect(self._onSplitterMoved)
 
     def set_inspector(self, inspector, position):
