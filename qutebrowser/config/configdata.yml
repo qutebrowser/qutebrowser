@@ -1817,7 +1817,9 @@ url.searchengines:
   type:
     name: Dict
     required_keys: ['DEFAULT']
-    keytype: String
+    keytype:
+      name: String
+      forbidden: ' '
     valtype: SearchEngineUrl
   desc: >-
     Search engines which can be used via the address bar.
