@@ -1472,6 +1472,7 @@ Yank something to the clipboard or primary selection.
  - `title`: The current page's title.
  - `domain`: The current scheme, domain, and port number.
  - `selection`: The selection under the cursor.
+ - `markdown`: Yank title and URL in markdown format.
  
 
 

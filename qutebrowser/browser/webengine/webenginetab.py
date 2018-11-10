@@ -1246,15 +1246,21 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(QUrl, 'QAuthenticator*')
     def _on_authentication_required(self, url, authenticator):
+        log.network.debug("Authentication requested for {}, netrc_used {}"
+                          .format(url.toDisplayString(), self.data.netrc_used))
+
         netrc_success = False
         if not self.data.netrc_used:
             self.data.netrc_used = True
             netrc_success = shared.netrc_authentication(url, authenticator)
+
         if not netrc_success:
+            log.network.debug("Asking for credentials")
             abort_on = [self.shutting_down, self.load_started]
             answer = shared.authentication_required(url, authenticator,
                                                     abort_on)
         if not netrc_success and answer is None:
+            log.network.debug("Aborting auth")
             try:
                 # pylint: disable=no-member, useless-suppression
                 sip.assign(authenticator, QAuthenticator())
