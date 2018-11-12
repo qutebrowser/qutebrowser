@@ -63,7 +63,7 @@ class HistoryCategory(QSqlQueryModel):
         if not self._query or len(words) != len(self._query.bound_values()):
             # replace ' in timestamp-format to avoid breaking the query
             timestamp_format = config.val.completion.timestamp_format or ''
-            timefmt = ("strftime('{}', last_atime_ts, 'unixepoch', 'localtime')"
+            timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
                        .format(timestamp_format.replace("'", "`")))
             self._query = sql.Query(' '.join([
                 "SELECT url, title, {}".format(timefmt),

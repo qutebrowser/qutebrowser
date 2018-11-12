@@ -21,7 +21,6 @@
 
 import os
 import time
-import datetime
 import contextlib
 
 from PyQt5.QtCore import pyqtSlot, QUrl, pyqtSignal
@@ -126,15 +125,13 @@ class CompletionHistory(sql.SqlTable):
 
     def __init__(self, parent=None, db=None):
         super().__init__(self._NAME, ['id', 'url', 'title', 'first_atime',
-                                      'last_atime', 'last_atime_ts',
-                                      'visits', 'frecency'],
+                                      'last_atime', 'visits', 'frecency'],
                          constraints={'id': 'INTEGER PRIMARY KEY',
                                       'url': 'TEXT NOT NULL',
                                       'title': 'TEXT NOT NULL',
                                       'visits': 'INTEGER NOT NULL',
                                       'first_atime': 'INTEGER NOT NULL',
                                       'last_atime': 'INTEGER NOT NULL',
-                                      'last_atime_ts': 'INTEGER NOT NULL',
                                       'frecency': 'INTEGER NOT NULL'},
                          parent=parent, db=db)
         self.create_index(self._NAME + 'UrlIndex', 'url', unique=True)
@@ -146,7 +143,7 @@ class CompletionHistory(sql.SqlTable):
             self._progress.start("Rebuilding completion...", len(items))
 
         data = {'url': [], 'title': [], 'visits': [], 'first_atime': [],
-                'last_atime': [], 'last_atime_ts': [], 'frecency': []}
+                'last_atime': [], 'frecency': []}
         for item in items:
             self._progress.tick()
             url = QUrl(item.url)
@@ -156,9 +153,8 @@ class CompletionHistory(sql.SqlTable):
             data['url'].append(self._format_completion_url(url))
             data['title'].append(item.title)
             data['visits'].append(item.visits)
-            data['first_atime'].append(self._days(item.first_atime))
-            data['last_atime'].append(self._days(item.last_atime))
-            data['last_atime_ts'].append(item.last_atime)
+            data['first_atime'].append(item.first_atime)
+            data['last_atime'].append(item.last_atime)
             # Frecency will be calculated later, with periodic recalculation.
             data['frecency'].append(0)
 
@@ -172,14 +168,12 @@ class CompletionHistory(sql.SqlTable):
         u = {'url': self._format_completion_url(url['url']),
              'title': url['title'],
              'visits': 1,
-             'first_atime': self._days(url['atime']),
-             'last_atime': self._days(url['atime']),
-             'last_atime_ts': url['atime'],
+             'first_atime': url['atime'],
+             'last_atime': url['atime'],
              'frecency': 1}
         update = {'visits': 'visits + 1',
                   'frecency': 'frecency + 1',
-                  'last_atime': u['last_atime'],
-                  'last_atime_ts': u['last_atime_ts']}
+                  'last_atime': u['last_atime']}
 
         self.upsert(u, 'url', update, False)
 
@@ -188,10 +182,13 @@ class CompletionHistory(sql.SqlTable):
 
     def update_frecency(self):
         def update(executor):
-            today = self._days(int(time.time()))
+            day_secs = 60 * 60 * 24
+            today = int(time.time())
             s = ('UPDATE ' + self._NAME + ' SET '
-                 'frecency = visits * MAX(last_atime - first_atime, 1) '
-                 '/ (MAX(:today - last_atime, 1) * MAX(:today - last_atime, 1)) '
+                 'frecency = visits '
+                 '* (MAX(last_atime - first_atime, :day_secs) / :day_secs) '
+                 '/ ((MAX(:today - last_atime, :day_secs) / :day_secs) '
+                 '* (MAX(:today - last_atime, :day_secs) / :day_secs)) '
                  'WHERE id >= :start AND id < :end')
             db = sql.open_db(history_db_path(), 'completion')
             size = 5000
@@ -204,7 +201,7 @@ class CompletionHistory(sql.SqlTable):
                 # gets a chance to aquire the lock.
                 while not executor.is_shutting_down():
                     q = sql.Query(s, db=db)
-                    q.run(today=today, start=i - size, end=i)
+                    q.run(today=today, day_secs=day_secs, start=i - size, end=i)
                     if not q.rows_affected():
                         break
                     i += size
@@ -230,11 +227,6 @@ class CompletionHistory(sql.SqlTable):
         patterns = config.cache['completion.web_history.exclude']
 
         return any(pattern.matches(url) for pattern in patterns)
-
-    def _days(self, ts):
-        d = datetime.date.fromtimestamp(ts) - datetime.date.fromtimestamp(0)
-
-        return d.days
 
     @staticmethod
     def drop():
