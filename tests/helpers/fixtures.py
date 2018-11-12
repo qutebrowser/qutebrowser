@@ -590,9 +590,11 @@ def short_tmpdir():
 def init_sql(data_tmpdir):
     """Initialize the SQL module, and shut it down after the test."""
     path = str(data_tmpdir / 'test.db')
-    sql.init(path)
+    db = sql.open_db(path)
     yield
-    sql.close()
+    name = db.connectionName()
+    del db
+    sql.close_db(name)
 
 
 class ModelValidator:

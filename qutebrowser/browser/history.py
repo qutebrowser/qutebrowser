@@ -30,6 +30,7 @@ from PyQt5.QtWidgets import QProgressDialog, QApplication
 from qutebrowser.config import config
 from qutebrowser.commands import cmdutils, cmdexc
 from qutebrowser.utils import utils, objreg, log, usertypes, message, qtutils
+from qutebrowser.utils import standarddir
 from qutebrowser.misc import objects, sql
 
 
@@ -123,21 +124,22 @@ class CompletionHistory(sql.SqlTable):
     _PROGRESS_THRESHOLD = 1000
     _NAME = 'CompletionHistory'
 
-    def __init__(self, parent=None):
-        super().__init__(self._NAME, ['url', 'title', 'first_atime',
+    def __init__(self, parent=None, db=None):
+        super().__init__(self._NAME, ['id', 'url', 'title', 'first_atime',
                                       'last_atime', 'last_atime_ts',
                                       'visits', 'frecency'],
-                         constraints={'url': 'TEXT PRIMARY KEY',
+                         constraints={'id': 'INTEGER PRIMARY KEY',
+                                      'url': 'TEXT NOT NULL',
                                       'title': 'TEXT NOT NULL',
                                       'visits': 'INTEGER NOT NULL',
                                       'first_atime': 'INTEGER NOT NULL',
                                       'last_atime': 'INTEGER NOT NULL',
                                       'last_atime_ts': 'INTEGER NOT NULL',
                                       'frecency': 'INTEGER NOT NULL'},
-                         parent=parent)
+                         parent=parent, db=db)
+        self.create_index(self._NAME + 'UrlIndex', 'url', unique=True)
         self.create_index(self._NAME + 'FrecencyIndex', 'frecency')
         self._progress = HistoryProgress()
-        self._update_frecency()
 
     def init(self, items):
         if len(items) > self._PROGRESS_THRESHOLD:
@@ -157,12 +159,11 @@ class CompletionHistory(sql.SqlTable):
             data['first_atime'].append(self._days(item.first_atime))
             data['last_atime'].append(self._days(item.last_atime))
             data['last_atime_ts'].append(item.last_atime)
-            # Frecency will be calculated with _update_frecency() call below.
+            # Frecency will be calculated later, with periodic recalculation.
             data['frecency'].append(0)
 
         self._progress.finish()
         self.insert_batch(data, replace=True)
-        self._update_frecency()
 
     def add_url(self, url):
         if self._is_excluded(url):
@@ -185,16 +186,41 @@ class CompletionHistory(sql.SqlTable):
     def delete_url(self, url):
         self.delete('url', self._format_completion_url(url))
 
-    def _update_frecency(self):
-        start = time.time()
-        today = self._days(int(time.time()))
+    def update_frecency(self):
+        def update(executor):
+            today = self._days(int(time.time()))
+            s = ('UPDATE ' + self._NAME + ' SET '
+                 'frecency = visits * MAX(last_atime - first_atime, 1) '
+                 '/ (MAX(:today - last_atime, 1) * MAX(:today - last_atime, 1)) '
+                 'WHERE id >= :start AND id < :end')
+            db = sql.open_db(history_db_path(), 'completion')
+            size = 5000
+            i = size
 
-        u = ('visits * MAX(last_atime - first_atime, 1) '
-             '/ (MAX({today} - last_atime, 1) * MAX({today} - last_atime, 1))')
-        self.update({'frecency': u.format(today=today)},
-                    {}, False)
-        log.misc.info('Completion frecency recalculation took {:.3f} seconds.'
-                      .format(time.time() - start))
+            try:
+                # SQLite locks DB during write, so other connections cannot
+                # write at that time. To prevent very long lock hold we break
+                # whole table update in smaller chunks, so other connection
+                # gets a chance to aquire the lock.
+                while not executor.is_shutting_down():
+                    q = sql.Query(s, db=db)
+                    q.run(today=today, start=i - size, end=i)
+                    if not q.rows_affected():
+                        break
+                    i += size
+                    # In my tests I can see that other thread cannot aquire
+                    # (most of the time) DB lock without this sleep. Anyway,
+                    # We do not care about speed to much here.
+                    time.sleep(0.02)
+            except Exception as e:
+                log.misc.error('Update history frecency: {}'.format(e))
+            finally:
+                name = db.connectionName()
+                del db
+                sql.close_db(db)
+
+        log.misc.info('Updating history frecency scores...')
+        objreg.get('task-executor').submit(update)
 
     def _format_completion_url(self, url):
         return url.toString(QUrl.RemovePassword)
@@ -249,6 +275,7 @@ class WebHistory(sql.SqlTable):
         if not self.completion:
             self.completion.init(self._grouped())
             self._set_version(_USER_VERSION)
+        self.completion.update_frecency()
 
         self.create_index('HistoryIndex', 'url')
         self.create_index('HistoryAtimeIndex', 'atime')
@@ -436,6 +463,9 @@ class WebHistory(sql.SqlTable):
         sql.Query('pragma user_version = {}'.format(ver)).run()
 
 
+def history_db_path():
+    return os.path.join(standarddir.data(), 'history.sqlite')
+
 
 def init(parent=None):
     """Initialize the web history.
@@ -443,6 +473,8 @@ def init(parent=None):
     Args:
         parent: The parent to use for WebHistory.
     """
+    sql.open_db(history_db_path())
+
     history = WebHistory(parent=parent)
     objreg.register('web-history', history)
 

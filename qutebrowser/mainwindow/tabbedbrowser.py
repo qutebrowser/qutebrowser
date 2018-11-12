@@ -261,6 +261,7 @@ class TabbedBrowser(QWidget):
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
         self.shutting_down = True
+        objreg.get('task-executor').shutdown()
         # Reverse tabs so we don't have to recacluate tab titles over and over
         # Removing first causes [2..-1] to be recomputed
         # Removing the last causes nothing to be recomputed

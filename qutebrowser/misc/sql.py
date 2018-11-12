@@ -120,9 +120,12 @@ def raise_sqlite_error(msg, error):
         raise SqlBugError(msg, error)
 
 
-def init(db_path):
+def open_db(db_path, conn_name=None):
     """Initialize the SQL database connection."""
-    database = QSqlDatabase.addDatabase('QSQLITE')
+    if conn_name:
+        database = QSqlDatabase.addDatabase('QSQLITE', conn_name)
+    else:
+        database = QSqlDatabase.addDatabase('QSQLITE')
     if not database.isValid():
         raise SqlEnvironmentError('Failed to add database. Are sqlite and Qt '
                                   'sqlite support installed?')
@@ -135,24 +138,27 @@ def init(db_path):
 
     # Enable write-ahead-logging and reduce disk write frequency
     # see https://sqlite.org/pragma.html and issues #2930 and #3507
-    Query("PRAGMA journal_mode=WAL").run()
-    Query("PRAGMA synchronous=NORMAL").run()
+    Query("PRAGMA journal_mode=WAL", db=database).run()
+    Query("PRAGMA synchronous=NORMAL", db=database).run()
+
+    return database
 
 
-def close():
+def close_db(name):
     """Close the SQL connection."""
-    QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
+    QSqlDatabase.removeDatabase(name)
 
 
 def version():
     """Return the sqlite version string."""
     try:
-        if not QSqlDatabase.database().isOpen():
-            init(':memory:')
-            ver = Query("select sqlite_version()").run().value()
-            close()
-            return ver
-        return Query("select sqlite_version()").run().value()
+        name = ':memory:'
+        db = open_db(name, 'version')
+        try:
+            return Query("select sqlite_version()", db=db).run().value()
+        finally:
+            del db
+            close_db(name)
     except SqlEnvironmentError as e:
         return 'UNAVAILABLE ({})'.format(e)
 
@@ -161,15 +167,17 @@ class Query:
 
     """A prepared SQL Query."""
 
-    def __init__(self, querystr, forward_only=True):
+    def __init__(self, querystr, forward_only=True, db=None):
         """Prepare a new sql query.
 
         Args:
             querystr: String to prepare query from.
             forward_only: Optimization for queries that will only step forward.
                           Must be false for completion queries.
+            db: QSqlDatabase database object to use or default if None.
         """
-        self.query = QSqlQuery(QSqlDatabase.database())
+        self._db = db or QSqlDatabase.database()
+        self.query = QSqlQuery(self._db)
 
         log.sql.debug('Preparing SQL query: "{}"'.format(querystr))
         ok = self.query.prepare(querystr)
@@ -221,8 +229,7 @@ class Query:
 
         self._bind_values(values)
 
-        db = QSqlDatabase.database()
-        ok = db.transaction()
+        ok = self._db.transaction()
         self._check_ok('transaction', ok)
 
         ok = self.query.execBatch()
@@ -230,10 +237,10 @@ class Query:
             self._check_ok('execBatch', ok)
         except SqlError:
             # Not checking the return value here, as we're failing anyways...
-            db.rollback()
+            self._db.rollback()
             raise
 
-        ok = db.commit()
+        ok = self._db.commit()
         self._check_ok('commit', ok)
 
     def value(self):
@@ -262,7 +269,7 @@ class SqlTable(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, name, fields, constraints=None, parent=None):
+    def __init__(self, name, fields, constraints=None, parent=None, db=None):
         """Create a new table in the sql database.
 
         Does nothing if the table already exists.
@@ -271,32 +278,34 @@ class SqlTable(QObject):
             name: Name of the table.
             fields: A list of field names.
             constraints: A dict mapping field names to constraint strings.
+            db: QSqlDatabase database object to use or default if None.
         """
         super().__init__(parent)
         self._name = name
+        self._db = db or QSqlDatabase.database()
 
         constraints = constraints or {}
         column_defs = ['{} {}'.format(field, constraints.get(field, ''))
                        for field in fields]
-        q = Query("CREATE TABLE IF NOT EXISTS {name} ({column_defs})"
-                  .format(name=name, column_defs=', '.join(column_defs)))
+        s = "CREATE TABLE IF NOT EXISTS {name} ({column_defs})".format(
+            name=name, column_defs=', '.join(column_defs))
+        Query(s, db=self._db).run()
 
-        q.run()
-
-    def create_index(self, name, field):
+    def create_index(self, name, field, unique=False):
         """Create an index over this table.
 
         Args:
             name: Name of the index, should be unique.
             field: Name of the field to index.
         """
-        q = Query("CREATE INDEX IF NOT EXISTS {name} ON {table} ({field})"
-                  .format(name=name, table=self._name, field=field))
-        q.run()
+        tpl = "CREATE {uniq} INDEX IF NOT EXISTS {name} ON {table} ({field})"
+        s = tpl.format(uniq='UNIQUE' if unique else '',
+                       name=name, table=self._name, field=field)
+        Query(s, db=self._db).run()
 
     def __iter__(self):
         """Iterate rows in the table."""
-        q = Query("SELECT * FROM {table}".format(table=self._name))
+        q = Query("SELECT * FROM {table}".format(table=self._name), db=self._db)
         q.run()
         return iter(q)
 
@@ -306,13 +315,14 @@ class SqlTable(QObject):
         Args:
             field: Field to match.
         """
-        return Query(
-            "SELECT EXISTS(SELECT * FROM {table} WHERE {field} = :val)"
-            .format(table=self._name, field=field))
+        s = "SELECT EXISTS(SELECT * FROM {table} WHERE {field} = :val)".format(
+            table=self._name, field=field)
+        return Query(s, db=self._db)
 
     def __len__(self):
         """Return the count of rows in the table."""
-        q = Query("SELECT count(*) FROM {table}".format(table=self._name))
+        q = Query("SELECT count(*) FROM {table}".format(table=self._name),
+                  db=self._db)
         q.run()
         return q.value()
 
@@ -326,8 +336,9 @@ class SqlTable(QObject):
         Return:
             The number of rows deleted.
         """
-        q = Query("DELETE FROM {table} where {field} = :val"
-                  .format(table=self._name, field=field))
+        s = "DELETE FROM {table} where {field} = :val".format(table=self._name,
+                                                              field=field)
+        q = Query(s, db=self._db)
         q.run(val=value)
         if not q.rows_affected():
             raise KeyError('No row with {} = "{}"'.format(field, value))
@@ -352,7 +363,7 @@ class SqlTable(QObject):
             values: A dict with a value to insert for each field name.
             replace: If set, replace existing values.
         """
-        q = Query(self._insert_query(values, replace))
+        q = Query(self._insert_query(values, replace), db=self._db)
         q.run(**values)
         self.changed.emit()
 
@@ -363,7 +374,7 @@ class SqlTable(QObject):
             values: A dict with a list of values to insert for each field name.
             replace: If true, overwrite rows with a primary key match.
         """
-        q = Query(self._insert_query(values, replace))
+        q = Query(self._insert_query(values, replace), db=self._db)
         q.run_batch(values)
         self.changed.emit()
 
@@ -388,7 +399,7 @@ class SqlTable(QObject):
         p = update.copy()
         p.update({'w_' + k: v for k, v in where.items()})
 
-        Query(s).run(**p)
+        Query(s, db=self._db).run(**p)
         self.changed.emit()
 
     def upsert(self, values, index, update, escape=True):
@@ -407,7 +418,7 @@ class SqlTable(QObject):
         #       q = self._insert_query(values, False)
         #       q += ' ON CONFLICT ({}) DO UPDATE SET {}'.format(index, update)
 
-        q = Query(self._insert_query(values, ignore=True))
+        q = Query(self._insert_query(values, ignore=True), db=self._db)
         q.run(**values)
 
         if not q.rows_affected() and update:
@@ -417,7 +428,7 @@ class SqlTable(QObject):
 
     def delete_all(self):
         """Remove all rows from the table."""
-        Query("DELETE FROM {table}".format(table=self._name)).run()
+        Query("DELETE FROM {table}".format(table=self._name), db=self._db).run()
         self.changed.emit()
 
     def select(self, sort_by, sort_order, limit=-1):
@@ -433,6 +444,7 @@ class SqlTable(QObject):
         q = Query("SELECT * FROM {table} ORDER BY {sort_by} {sort_order} "
                   "LIMIT :limit"
                   .format(table=self._name, sort_by=sort_by,
-                          sort_order=sort_order))
+                          sort_order=sort_order),
+                  db=self._db)
         q.run(limit=limit)
         return q

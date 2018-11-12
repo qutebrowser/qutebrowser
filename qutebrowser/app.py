@@ -72,7 +72,7 @@ from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
                               crashsignal, earlyinit, sql, cmdhistory,
-                              backendproblem, objects)
+                              backendproblem, objects, executor)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
                                usertypes, standarddir, error, qtutils)
 # pylint: disable=unused-import
@@ -421,6 +421,9 @@ def _init_modules(args, crash_handler):
         args: The argparse namespace.
         crash_handler: The CrashHandler instance.
     """
+    log.init.debug("Initializing task executor...")
+    executor.init()
+
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(qApp)
     objreg.register('save-manager', save_manager)
@@ -443,9 +446,6 @@ def _init_modules(args, crash_handler):
     objreg.register('readline-bridge', readline_bridge)
 
     try:
-        log.init.debug("Initializing sql...")
-        sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
-
         log.init.debug("Initializing web history...")
         history.init(qApp)
     except sql.SqlEnvironmentError as e:
