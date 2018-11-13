@@ -653,7 +653,7 @@ class CommandDispatcher:
                 handler(browsertab=widget, win_id=self._win_id, baseurl=url,
                         tab=tab, background=bg, window=window)
             elif where in ['up', 'increment', 'decrement']:
-                if where is 'up':
+                if where == 'up':
                     url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
                 new_url = handlers[where](url, count)
                 self._open(new_url, tab, bg, window, related=True)
