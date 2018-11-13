@@ -65,6 +65,7 @@ Fixed
   `content.cookies.accept = no-3rdparty` from working properly on some pages
   like GMail. However, the default for `content.cookies.accept` is still `all`
   to be in line with what other browsers do.
+- `:navigate` not incrementing in anchors or queries or anchors.
 
 v1.5.2
 ------
