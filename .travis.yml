@@ -1,4 +1,4 @@
-dist: trusty
+dist: xenial
 language: python
 group: edge
 python: 3.6
@@ -26,11 +26,8 @@ matrix:
           - xfonts-base
     - os: linux
       env: TESTENV=py36-pyqt511-cov
-    # https://github.com/travis-ci/travis-ci/issues/9069
     - os: linux
       python: 3.7
-      sudo: required
-      dist: xenial
       env: TESTENV=py37-pyqt511
     - os: osx
       env: TESTENV=py37 OSX=sierra
