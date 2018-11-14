@@ -161,7 +161,7 @@ class CompletionHistory(sql.SqlTable):
         self._progress.finish()
         self.insert_batch(data, replace=True)
 
-    def add_url(self, url):
+    def add(self, url):
         if self._is_excluded(url):
             return
 
@@ -175,9 +175,9 @@ class CompletionHistory(sql.SqlTable):
                   'frecency': 'frecency + 1',
                   'last_atime': u['last_atime']}
 
-        self.upsert(u, 'url', update, False)
+        self.upsert(u, 'url', update, escape=False)
 
-    def delete_url(self, url):
+    def delete(self, url):
         self.delete('url', self._format_completion_url(url))
 
     def update_frecency(self):
@@ -375,7 +375,7 @@ class WebHistory(sql.SqlTable):
         qurl = QUrl(url)
         qtutils.ensure_valid(qurl)
         self.delete('url', self._format_url(qurl))
-        self.completion.delete_url(qurl)
+        self.completion.delete(qurl)
         self.url_cleared.emit(qurl)
 
     @pyqtSlot(QUrl, QUrl, str)
@@ -422,8 +422,8 @@ class WebHistory(sql.SqlTable):
                          'redirect': redirect})
 
             if not redirect:
-                self.completion.add_url({'url': url, 'title': title,
-                                         'atime': atime})
+                self.completion.add({'url': url, 'title': title,
+                                     'atime': atime})
 
     def _format_url(self, url):
         return url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)

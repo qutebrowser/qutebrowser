@@ -351,10 +351,11 @@ class SqlTable(QObject):
             verb += ' OR REPLACE'
         elif ignore:
             verb += ' OR IGNORE'
-
-        return "{verb} INTO {table} ({columns}) values ({params})".format(
+        s = "{verb} INTO {table} ({columns}) values ({params})".format(
             verb=verb, table=self._name, columns=', '.join(values),
             params=params)
+
+        return Query(s, db=self._db)
 
     def insert(self, values, replace=False):
         """Append a row to the table.
@@ -363,8 +364,7 @@ class SqlTable(QObject):
             values: A dict with a value to insert for each field name.
             replace: If set, replace existing values.
         """
-        q = Query(self._insert_query(values, replace), db=self._db)
-        q.run(**values)
+        self._insert_query(values, replace).run(**values)
         self.changed.emit()
 
     def insert_batch(self, values, replace=False):
@@ -374,8 +374,7 @@ class SqlTable(QObject):
             values: A dict with a list of values to insert for each field name.
             replace: If true, overwrite rows with a primary key match.
         """
-        q = Query(self._insert_query(values, replace), db=self._db)
-        q.run_batch(values)
+        self._insert_query(values, replace).run_batch(values)
         self.changed.emit()
 
     def update(self, update, where, escape=True):
@@ -407,18 +406,13 @@ class SqlTable(QObject):
         Insert or update row if it is alredy exists.
 
         Args:
-            update: column:value dict for insert operation
+            values: column:value dict used for insert operation
             index: column name used as a primary index
-            update: column:value dict for update operation
+            update: column:value dict used for update operation
             escape: enable SQL-escaping for update operation
         """
-
         # TODO: ON CONFLICT can be used after updating to SQLite v3.24.0.
-        #       Something like
-        #       q = self._insert_query(values, False)
-        #       q += ' ON CONFLICT ({}) DO UPDATE SET {}'.format(index, update)
-
-        q = Query(self._insert_query(values, ignore=True), db=self._db)
+        q = self._insert_query(values, ignore=True)
         q.run(**values)
 
         if not q.rows_affected() and update:
