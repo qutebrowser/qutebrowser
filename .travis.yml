@@ -33,6 +33,9 @@ matrix:
       env: TESTENV=py37 OSX=sierra
       osx_image: xcode9.2
       language: generic
+    - os: windows
+      python: 3.7
+      env: TESTENV=py37-pyqt511
     # https://github.com/qutebrowser/qutebrowser/issues/2013
     # - os: osx
     #   env: TESTENV=py35 OSX=yosemite
