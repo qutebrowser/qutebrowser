@@ -114,6 +114,10 @@ class HostBlocker:
         """Check if the given URL (as QUrl) is blocked."""
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
+        if (first_party_url is not None and
+                config.cache['content.host_blocking.whitelist_current'] and
+                first_party_url == url):
+            return False
         if not config.instance.get('content.host_blocking.enabled',
                                    url=first_party_url):
             return False

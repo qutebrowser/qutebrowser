@@ -534,6 +534,12 @@ content.host_blocking.enabled:
   type: Bool
   desc: Enable host blocking.
 
+content.host_blocking.whitelist_current:
+  default: true
+  supports_pattern: false
+  type: Bool
+  desc: Whitelist the current url being visited.
+
 content.host_blocking.lists:
   default:
     - "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
