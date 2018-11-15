@@ -538,7 +538,10 @@ content.host_blocking.whitelist_current:
   default: true
   supports_pattern: false
   type: Bool
-  desc: Whitelist the current url being visited.
+  desc: >-
+    Whitelist the current url being visited.
+
+    This setting does not work properly through redirects on QtWebKit
 
 content.host_blocking.lists:
   default:
