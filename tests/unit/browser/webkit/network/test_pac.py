@@ -183,7 +183,7 @@ def test_fail_return():
 ])
 @pytest.mark.parametrize('from_file', [True, False])
 def test_secret_url(url, has_secret, from_file):
-    """Make sure secret parts in an URL are stripped correctly.
+    """Make sure secret parts in a URL are stripped correctly.
 
     The following parts are considered secret:
         - If the PAC info is loaded from a local file, nothing.

@@ -845,7 +845,7 @@ class AbstractTab(QWidget):
 
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):
-        """Adjust the title if we are going to visit an URL soon."""
+        """Adjust the title if we are going to visit a URL soon."""
         qtutils.ensure_valid(url)
         url_string = url.toDisplayString()
         log.webview.debug("Predicted navigation: {}".format(url_string))

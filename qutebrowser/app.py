@@ -303,10 +303,10 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
 
 
 def open_url(url, target=None, no_raise=False, via_ipc=True):
-    """Open an URL in new window/tab.
+    """Open a URL in new window/tab.
 
     Args:
-        url: An URL to open.
+        url: A URL to open.
         target: same as new_instance_open_target (used as a default).
         no_raise: suppress target window raising.
         via_ipc: Whether the arguments were transmitted over IPC.
