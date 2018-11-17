@@ -1390,7 +1390,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(QUrl)
     def _on_predicted_navigation(self, url):
-        """If we know we're going to visit an URL soon, change the settings.
+        """If we know we're going to visit a URL soon, change the settings.
 
         This is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
         """

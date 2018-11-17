@@ -357,7 +357,7 @@ class Config(QObject):
         """Get an object which can be mutated, e.g. in a config.py.
 
         If a pattern is given, return the value for that pattern.
-        Note that it's impossible to get a mutable object for an URL as we
+        Note that it's impossible to get a mutable object for a URL as we
         wouldn't know what pattern to apply.
         """
         self.get_opt(name)  # To make sure it exists

@@ -60,7 +60,7 @@
         details.method = details.method ? details.method.toUpperCase() : "GET";
 
         if (!details.url) {
-            throw new Error("GM_xmlhttpRequest requires an URL.");
+            throw new Error("GM_xmlhttpRequest requires a URL.");
         }
 
         // build XMLHttpRequest object
