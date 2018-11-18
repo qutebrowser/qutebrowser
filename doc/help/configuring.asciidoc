@@ -19,10 +19,10 @@ hand, you can simply use those - see
 <<autoconfig,"Configuring qutebrowser via the user interface">> for details.
 
 For more advanced configuration, you can write a `config.py` file - see
-<<configpy,"Configuring qutebrowser via config.py">>. As soon as a `config.py`
+<<configpy,"Configuring qutebrowser via config.py">>. When `config.py`
 exists, the `autoconfig.yml` file **is not read anymore** by default. You need
-to <<configpy-autoconfig,load it by hand>> if you want settings done via
-`:set`/`:bind` to still persist.
+to <<configpy-autoconfig,load it from `config.py`>> if you want settings changed via
+`:set`/`:bind` to persist between restarts.
 
 [[autoconfig]]
 Configuring qutebrowser via the user interface
@@ -229,18 +229,18 @@ Loading `autoconfig.yml`
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 All customization done via the UI (`:set`, `:bind` and `:unbind`) is
-stored in the `autoconfig.yml` file, which is not loaded automatically as soon
-as a `config.py` exists. If you want those settings to be loaded, you'll need to
-explicitly load the `autoconfig.yml` file in your `config.py` by doing:
+stored in file `autoconfig.yml`. When file `config.py` exists, `autoconfig.yml`
+is not loaded automatically. To load `autoconfig.yml` automatically, add the
+following snippet to `config.py`:
 
-.config.py:
 [source,python]
 ----
 config.load_autoconfig()
 ----
 
-If you do so at the top of your file, your `config.py` settings will take
-precedence as they overwrite the settings done in `autoconfig.yml`.
+You can configure which file overrides the other by the location of the above code snippet.
+Place the snippet at the top to allow `config.py` override `autoconfig.yml` settings.
+Place the snippet at the bottom to for the opposite effect.
 
 Importing other modules
 ~~~~~~~~~~~~~~~~~~~~~~~
