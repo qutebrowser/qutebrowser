@@ -239,8 +239,8 @@ config.load_autoconfig()
 ----
 
 You can configure which file overrides the other by the location of the above code snippet.
-Place the snippet at the top to allow `config.py` override `autoconfig.yml` settings.
-Place the snippet at the bottom to for the opposite effect.
+Place the snippet at the top to allow `config.py` to override `autoconfig.yml`.
+Place the snippet at the bottom for the opposite effect.
 
 Importing other modules
 ~~~~~~~~~~~~~~~~~~~~~~~
