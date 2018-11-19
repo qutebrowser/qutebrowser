@@ -539,9 +539,9 @@ content.host_blocking.whitelist_current:
   supports_pattern: false
   type: Bool
   desc: >-
-    Whitelist the current url being visited.
+    Ignore host blocking rules for direct navigation requests.
 
-    This setting does not work properly through redirects on QtWebKit
+    This setting does not work properly through redirects on QtWebKit.
 
 content.host_blocking.lists:
   default:
