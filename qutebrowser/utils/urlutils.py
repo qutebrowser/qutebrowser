@@ -116,7 +116,7 @@ def _get_search_url(txt):
     if engine is None:
         engine = 'DEFAULT'
     template = config.val.url.searchengines[engine]
-    url = qurl_from_user_input(template.format(urllib.parse.quote(term)))
+    url = qurl_from_user_input(template.format(urllib.parse.quote(term, safe='')))
 
     if config.val.url.open_base_url and term in config.val.url.searchengines:
         url = qurl_from_user_input(config.val.url.searchengines[term])
