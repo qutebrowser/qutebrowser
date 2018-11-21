@@ -46,7 +46,7 @@ from qutebrowser.qt.widgets import QTabWidget, QTabBar
 from qutebrowser.qt.network import QNetworkProxy
 
 from qutebrowser.misc import objects, debugcachestats
-from qutebrowser.config import configexc, configutils
+from qutebrowser.config import configexc, configutils, config
 from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
                                usertypes, log)
 from qutebrowser.keyinput import keyutils
@@ -2015,3 +2015,37 @@ class StatusbarWidget(String):
         if value.startswith("text:") or value.startswith("clock:"):
             return
         super()._validate_valid_values(value)
+
+
+class StatusbarSettings(Dict):
+
+    """A mapping of settings to indicator strings."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            keytype=String(),
+            valtype=String(),
+            *args,
+            **kwargs
+        )
+
+    def to_py(self, value):
+        value = super().to_py(value)
+        if not isinstance(value, dict):
+            return value
+
+        for key in value:
+            try:
+                opt = config.instance.get_opt(key)
+            except config.configexc.Error as err:
+                raise configexc.ValidationError(key, str(err))
+            if isinstance(opt.typ, BoolAsk):
+                continue
+            elif isinstance(opt.typ, Bool):
+                continue
+
+            raise configexc.ValidationError(
+                key,
+                "must be a boolean setting."
+            )
+        return value
