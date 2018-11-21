@@ -2142,6 +2142,34 @@ class TestUrlPattern:
             klass().to_py('http://')
 
 
+class TestStatusbarSettings:
+
+    @pytest.fixture
+    def klass(self):
+        return configtypes.StatusbarSettings
+
+    @pytest.fixture(autouse=True)
+    def patch_aliases(self, config_stub):
+        """Patch aliases so Command works."""
+        config_stub.val.aliases = {}
+
+    def test_config_error(self, klass):
+        with pytest.raises(configexc.ValidationError):
+            klass().to_py({'not.an.option': 'foo'})
+
+    @pytest.mark.parametrize('key', [
+        'content.ssl_strict',  # BoolAsk
+        'content.images',  # Bool
+    ])
+    def test_config_type_okay(self, klass, key):
+        val = {key: 'X'}
+        assert klass().to_py(val) == val
+
+    def test_config_type_bad(self, klass):
+        with pytest.raises(configexc.ValidationError):
+            klass().to_py({'editor.command': 'foo'})  # List
+
+
 @pytest.mark.parametrize('first, second, equal', [
     (re.compile('foo'), RegexEq('foo'), True),
     (RegexEq('bar'), re.compile('bar'), True),

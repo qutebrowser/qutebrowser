@@ -3177,9 +3177,9 @@ Default: +pass:[bottom]+
 [[statusbar.settings]]
 === statusbar.settings
 Which boolean settings to display in the statusbar settings widget.
-Specified in the form indicator-string|setting.name where the indicator-string will be displayed when the setting is true.
+The keys should be setting names and the values should be strings which are shown if the setting is true for the current tab.
 
-Type: <<types,List of String>>
+Type: <<types,StatusbarSettings>>
 
 Default: empty
 
@@ -3759,6 +3759,7 @@ When setting from `config.py`, both a string or a `re.compile(...)` object are v
 |ShellCommand|A shell command as a list.
 
 See the documentation for `List`.
+|StatusbarSettings|A mapping of settings to indicator strings.
 |String|A string value.
 
 See the setting's valid values for more information on allowed values.

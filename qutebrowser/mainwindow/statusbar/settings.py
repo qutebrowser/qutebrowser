@@ -23,7 +23,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl
 
 from qutebrowser.config import config, configtypes
 from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.utils import objreg, message, usertypes
+from qutebrowser.utils import objreg, usertypes
 from qutebrowser.browser.browsertab import WebTabError
 
 
@@ -36,8 +36,8 @@ class BooleanSettings(textbase.TextBase):
     def __init__(self, parent, win_id, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self._win_id = win_id
-        # A list of indicator, setting_name pairs.
-        self._config = []
+        # A dict of setting_name -> indicator mappings.
+        self._config = {}
         self._parse_config()
 
     def _test_feature(self, setting_name, default=False):
@@ -51,43 +51,19 @@ class BooleanSettings(textbase.TextBase):
 
     def _to_bool(self, setting_name, url):
         """Return a bool for Bool and BoolAsk settings."""
-        try:
-            opt = config.instance.get_opt(setting_name)
-        except config.configexc.Error as err:
-            raise ValueError(str(err))
+        opt = config.instance.get_opt(setting_name)
         if not opt.supports_pattern:
             url = None
         obj = config.instance.get_obj(setting_name, url=url)
         if isinstance(opt.typ, configtypes.BoolAsk):
             default = False if obj == 'ask' else obj
             return self._test_feature(setting_name, default=default)
-        elif isinstance(opt.typ, configtypes.Bool):
-            return obj
-        raise ValueError(
-            "Setting '{}' is not a boolean setting."
-            .format(setting_name)
-        )
+        return obj
 
     def _parse_config(self):
-        """Parse settings from the config option.
+        """Parse and apply settings from the config option."""
+        self._config = config.instance.get(self.config_option)
 
-        A ValueError will be raised for any errors in parsing or
-        applying the settings.
-        """
-        raw = config.instance.get(self.config_option)
-        config_ = [x.split('|') for x in raw if x.strip()]
-        # Use `_to_bool()` to do some early validation
-        for part in config_:
-            try:
-                _indicater, value = part
-                self._to_bool(value, None)
-            except ValueError as err:
-                message.error(
-                    "Error parsing '{}' setting value {}: {}"
-                    .format(self.config_option, part, err)
-                )
-                return
-        self._config = config_
         tab = self._current_tab()
         if tab:
             self.on_url_changed(tab.url())
@@ -98,8 +74,8 @@ class BooleanSettings(textbase.TextBase):
         if not url.isValid():
             url = None
         parts = [
-            t[0] for t in self._config
-            if self._to_bool(t[1], url)
+            indicator for setting, indicator in self._config.items()
+            if self._to_bool(setting, url)
         ]
         self.setText("[{}]".format(''.join(parts)))
 
@@ -125,11 +101,11 @@ class BooleanSettings(textbase.TextBase):
         """Update the widget when the config changes."""
         if option == self.config_option:
             self._parse_config()
-        elif option in [t[1] for t in self._config]:
+        elif option in self._config:
             self.on_tab_changed(self._current_tab())
 
     @pyqtSlot(str, bool)
     def on_feature_permission_changed(self, option, _enabled):
         """Update the widget when a pages feature permissions change."""
-        if option in [t[1] for t in self._config]:
+        if option in self._config:
             self.on_tab_changed(self._current_tab())
