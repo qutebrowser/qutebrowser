@@ -1471,16 +1471,13 @@ statusbar.widgets:
 
 statusbar.settings:
   type:
-    name: List
-    valtype:
-      name: String
+    name: StatusbarSettings
     none_ok: true
-  default: []
+  default: {}
   desc: >-
     Which boolean settings to display in the statusbar settings widget.
 
-    Specified in the form indicator-string|setting.name where
-    the indicator-string will be displayed when the setting is true.
+    The keys should be setting names and the values should be strings which are shown if the setting is true for the current tab.
 
 ## tabs
 
