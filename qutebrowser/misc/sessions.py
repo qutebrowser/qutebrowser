@@ -23,6 +23,7 @@ import os
 import os.path
 import itertools
 import urllib
+import typing
 
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
@@ -37,7 +38,12 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
 
 
-default = object()  # Sentinel value
+class Sentinel:
+
+    pass
+
+
+default = Sentinel()
 
 
 def init(parent=None):
@@ -109,7 +115,7 @@ class SessionManager(QObject):
 
     def __init__(self, base_path, parent=None):
         super().__init__(parent)
-        self._current = None
+        self._current = None  # type: typing.Optional[str]
         self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
@@ -504,8 +510,9 @@ class SessionManager(QObject):
     @cmdutils.argument('name', completion=miscmodels.session)
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('with_private', flag='p')
-    def session_save(self, name: str = default, current=False, quiet=False,
-                     force=False, only_active_window=False, with_private=False,
+    def session_save(self, name: typing.Union[str, Sentinel] = default,
+                     current=False, quiet=False, force=False,
+                     only_active_window=False, with_private=False,
                      win_id=None):
         """Save a session.
 
@@ -518,7 +525,9 @@ class SessionManager(QObject):
             only_active_window: Saves only tabs of the currently active window.
             with_private: Include private windows.
         """
-        if name is not default and name.startswith('_') and not force:
+        if (not isinstance(name, Sentinel) and
+                name.startswith('_') and
+                not force):
             raise cmdexc.CommandError("{} is an internal session, use --force "
                                       "to save anyways.".format(name))
         if current:
