@@ -52,6 +52,7 @@ import datetime
 import functools
 import operator
 import json
+import typing
 
 import attr
 import yaml
@@ -304,7 +305,7 @@ class MappingType(BaseType):
         MAPPING: The mapping to use.
     """
 
-    MAPPING = {}
+    MAPPING = {}  # type: typing.Dict[str, typing.Any]
 
     def __init__(self, none_ok=False, valid_values=None):
         super().__init__(none_ok)
@@ -576,7 +577,7 @@ class FlagList(List):
     the valid values of the setting.
     """
 
-    combinable_values = None
+    combinable_values = None  # type: typing.Optional[typing.Iterable]
 
     _show_valtype = False
 

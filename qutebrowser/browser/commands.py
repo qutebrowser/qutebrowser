@@ -645,7 +645,7 @@ class CommandDispatcher:
                                            inc_or_dec='decrement'),
             'increment': functools.partial(navigate.incdec,
                                            inc_or_dec='increment'),
-        }
+        }  # type: typing.Dict[str, typing.Callable]
 
         try:
             if where in ['prev', 'next']:

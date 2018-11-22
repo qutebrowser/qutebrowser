@@ -17,18 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Contains various command utils and a global command dict.
-
-Module attributes:
-    cmd_dict: A mapping from command-strings to command objects.
-"""
+"""Contains various command utils and a global command dict."""
 
 import inspect
+import typing
 
 from qutebrowser.utils import qtutils, log
 from qutebrowser.commands import command, cmdexc
 
-cmd_dict = {}
+cmd_dict = {}  # type: typing.Dict[str, command.Command]
 
 
 def check_overflow(arg, ctype):
