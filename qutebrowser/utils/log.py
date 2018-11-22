@@ -76,29 +76,19 @@ LOG_COLORS = {
 
 # We first monkey-patch logging to support our VDEBUG level before getting the
 # loggers.  Based on http://stackoverflow.com/a/13638084
+# mypy doesn't know about this, so we need to ignore it.
 VDEBUG_LEVEL = 9
 logging.addLevelName(VDEBUG_LEVEL, 'VDEBUG')
-logging.VDEBUG = VDEBUG_LEVEL
+logging.VDEBUG = VDEBUG_LEVEL  # type: ignore
 
 LOG_LEVELS = {
-    'VDEBUG': logging.VDEBUG,
+    'VDEBUG': logging.VDEBUG,  # type: ignore
     'DEBUG': logging.DEBUG,
     'INFO': logging.INFO,
     'WARNING': logging.WARNING,
     'ERROR': logging.ERROR,
     'CRITICAL': logging.CRITICAL,
 }
-
-LOGGER_NAMES = [
-    'statusbar', 'completion', 'init', 'url',
-    'destroy', 'modes', 'webview', 'misc',
-    'mouse', 'procs', 'hints', 'keyboard',
-    'commands', 'signals', 'downloads',
-    'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
-    'save', 'message', 'config', 'sessions',
-    'webelem', 'prompt', 'network', 'sql',
-    'greasemonkey'
-]
 
 
 def vdebug(self, msg, *args, **kwargs):
@@ -114,7 +104,7 @@ def vdebug(self, msg, *args, **kwargs):
         # pylint: enable=protected-access
 
 
-logging.Logger.vdebug = vdebug
+logging.Logger.vdebug = vdebug  # type: ignore
 
 
 # The different loggers used.
@@ -147,6 +137,17 @@ prompt = logging.getLogger('prompt')
 network = logging.getLogger('network')
 sql = logging.getLogger('sql')
 greasemonkey = logging.getLogger('greasemonkey')
+
+LOGGER_NAMES = [
+    'statusbar', 'completion', 'init', 'url',
+    'destroy', 'modes', 'webview', 'misc',
+    'mouse', 'procs', 'hints', 'keyboard',
+    'commands', 'signals', 'downloads',
+    'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
+    'save', 'message', 'config', 'sessions',
+    'webelem', 'prompt', 'network', 'sql',
+    'greasemonkey'
+]
 
 
 ram_handler = None
