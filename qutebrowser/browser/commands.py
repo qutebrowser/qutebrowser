@@ -681,7 +681,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def scroll(self, direction: typing.Union[str, int], count=1):
+    def scroll(self, direction: str, count=1):
         """Scroll the current tab in the given direction.
 
         Note you can use `:run-with-count` to have a keybinding with a bigger
