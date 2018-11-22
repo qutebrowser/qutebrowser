@@ -37,8 +37,11 @@ from qutebrowser.misc import objects
 from qutebrowser.browser import browsertab
 
 
-PixelMetrics = enum.IntEnum('PixelMetrics', ['icon_padding'],
-                            start=QStyle.PM_CustomBase)
+class PixelMetrics(enum.IntEnum):
+
+    """Custom PixelMetrics attributes."""
+
+    icon_padding = QStyle.PM_CustomBase
 
 
 class TabWidget(QTabWidget):

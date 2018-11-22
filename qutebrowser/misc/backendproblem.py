@@ -38,10 +38,14 @@ from qutebrowser.utils import usertypes, objreg, version, qtutils, log, utils
 from qutebrowser.misc import objects, msgbox
 
 
-_Result = enum.IntEnum(
-    '_Result',
-    ['quit', 'restart', 'restart_webkit', 'restart_webengine'],
-    start=QDialog.Accepted + 1)
+class _Result(enum.IntEnum):
+
+    """The result code returned by the backend problem dialog."""
+
+    quit = QDialog.Accepted + 1
+    restart = QDialog.Accepted + 2
+    restart_webkit = QDialog.Accepted + 3
+    restart_webengine = QDialog.Accepted + 4
 
 
 @attr.s

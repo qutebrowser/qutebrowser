@@ -221,10 +221,17 @@ KeyMode = enum.Enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
                                 'jump_mark', 'record_macro', 'run_macro'])
 
 
-# Exit statuses for errors. Needs to be an int for sys.exit.
-Exit = enum.IntEnum('Exit', ['ok', 'reserved', 'exception', 'err_ipc',
-                             'err_init', 'err_config', 'err_key_config'],
-                    start=0)
+class Exit(enum.IntEnum):
+
+    """Exit statuses for errors. Needs to be an int for sys.exit."""
+
+    ok = 0
+    reserved = 1
+    exception = 2
+    err_ipc = 3
+    err_init = 4
+    err_config = 5
+    err_key_config = 6
 
 
 # Load status of a tab

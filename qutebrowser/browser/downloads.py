@@ -40,7 +40,11 @@ from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
 from qutebrowser.qt import sip
 
 
-ModelRole = enum.IntEnum('ModelRole', ['item'], start=Qt.UserRole)
+class ModelRole(enum.IntEnum):
+
+    """Custom download model roles."""
+
+    item = Qt.UserRole
 
 
 # Remember the last used directory

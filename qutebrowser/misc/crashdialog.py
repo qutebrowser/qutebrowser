@@ -42,8 +42,12 @@ from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
 from qutebrowser.config import config, configfiles
 
 
-Result = enum.IntEnum('Result', ['restore', 'no_restore'],
-                      start=QDialog.Accepted + 1)
+class Result(enum.IntEnum):
+
+    """The result code returned by the crash dialog."""
+
+    restore = QDialog.Accepted + 1
+    no_restore = QDialog.Accepted + 2
 
 
 def parse_fatal_stacktrace(text):
