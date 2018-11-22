@@ -312,6 +312,7 @@ def log_capacity(capacity: int):
     if capacity < 0:
         raise cmdexc.CommandError("Can't set a negative log capacity!")
     else:
+        assert log.ram_handler is not None
         log.ram_handler.change_log_capacity(capacity)
 
 
@@ -326,6 +327,7 @@ def debug_log_level(level: str):
         level: The log level to set.
     """
     log.change_console_formatter(log.LOG_LEVELS[level.upper()])
+    assert log.console_handler is not None
     log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
 
 
