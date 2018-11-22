@@ -58,6 +58,9 @@ def _current_url(tabbed_browser):
 
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+
     variables = {
         'url': lambda: _current_url(tabbed_browser).toString(
             QUrl.FullyEncoded | QUrl.RemovePassword),
@@ -67,13 +70,13 @@ def replace_variables(win_id, arglist):
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
     }
+
     for key in list(variables):
         modified_key = '{' + key + '}'
         variables[modified_key] = lambda x=modified_key: x
+
     values = {}
     args = []
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window=win_id)
 
     def repl_cb(matchobj):
         """Return replacement for given match."""
