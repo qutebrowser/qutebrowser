@@ -75,7 +75,7 @@ class CommandDispatcher:
         new_window.show()
         return new_window.tabbed_browser
 
-    def _count(self):
+    def _count(self) -> int:
         """Convenience method to get the widget count."""
         return self._tabbed_browser.widget.count()
 
@@ -1143,6 +1143,8 @@ class CommandDispatcher:
             self.tab_next()
             return
 
+        assert isinstance(index, int)
+
         if index < 0:
             index = self._count() + index + 1
 
@@ -1184,6 +1186,7 @@ class CommandDispatcher:
             if config.val.tabs.wrap:
                 new_idx %= self._count()
         else:
+            assert isinstance(index, int)
             # absolute moving
             if count is not None:
                 new_idx = count - 1
