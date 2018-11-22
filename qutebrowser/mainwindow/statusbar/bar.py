@@ -145,7 +145,7 @@ class StatusBar(QWidget):
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
     _severity = None
-    _color_flags = []
+    _color_flags = None
 
     STYLESHEET = _generate_stylesheet()
 
