@@ -737,7 +737,7 @@ class HintManager(QObject):
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
             raise cmdexc.CommandError("No URL set for this page yet!")
-        self._context.args = args
+        self._context.args = list(args)
         self._context.group = group
 
         try:
