@@ -468,7 +468,7 @@ def qt_message_handler(msg_type, context, msg):
         stack = ''.join(traceback.format_stack())
     else:
         stack = None
-    record = qt.makeRecord(name, level, context.file, context.line, msg, None,
+    record = qt.makeRecord(name, level, context.file, context.line, msg, (),
                            None, func, sinfo=stack)
     qt.handle(record)
 
