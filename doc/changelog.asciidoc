@@ -34,6 +34,8 @@ Added
   are used for hints, and also allows adding custom hint groups.
 - New `:yank markdown` feature which yanks the current URL and title in
   markdown format.
+- New command `:navigate strip` which removes queries and parameters from the
+  current URL (bound to `gs`/`gS` by default).
 
 Changed
 ~~~~~~~

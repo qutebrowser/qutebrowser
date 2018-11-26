@@ -599,7 +599,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
-                                         'decrement'])
+                                         'decrement', 'strip'])
     @cmdutils.argument('count', count=True)
     def navigate(self, where: str, tab=False, bg=False, window=False, count=1):
         """Open typical prev/next links or navigate using the URL path.
@@ -623,6 +623,7 @@ class CommandDispatcher:
                   Uses the
                   link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
                   config option.
+                - `strip`: Strip parameters from the current URL.
 
             tab: Open in a new tab.
             bg: Open in a background tab.
@@ -657,6 +658,9 @@ class CommandDispatcher:
                     url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
                 new_url = handlers[where](url, count)
                 self._open(new_url, tab, bg, window, related=True)
+            elif where == 'strip':
+                url = url.adjusted(QUrl.RemoveFragment | QUrl.RemoveQuery)
+                self._open(url, tab, bg, window, related=True)
             else:  # pragma: no cover
                 raise ValueError("Got called with invalid value {} for "
                                  "`where'.".format(where))
