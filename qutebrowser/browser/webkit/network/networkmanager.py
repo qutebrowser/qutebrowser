@@ -297,9 +297,9 @@ class NetworkManager(QNetworkAccessManager):
         """Called when a proxy needs authentication."""
         proxy_id = ProxyId(proxy.type(), proxy.hostName(), proxy.port())
         if proxy_id in _proxy_auth_cache:
-            user, password = _proxy_auth_cache[proxy_id]
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
+            authinfo = _proxy_auth_cache[proxy_id]
+            authenticator.setUser(authinfo.user)
+            authenticator.setPassword(authinfo.password)
         else:
             msg = '<b>{}</b> says:<br/>{}'.format(
                 html.escape(proxy.hostName()),
