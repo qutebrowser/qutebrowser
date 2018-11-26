@@ -1119,7 +1119,7 @@ class QtFont(Font):
             font.setWeight(weight_map[namedweight])
         if weight:
             # based on qcssparser.cpp:setFontWeightFromValue
-            font.setWeight(min(int(weight) / 8, 99))
+            font.setWeight(min(int(weight) // 8, 99))
         if size:
             if size.lower().endswith('pt'):
                 font.setPointSizeF(float(size[:-2]))
