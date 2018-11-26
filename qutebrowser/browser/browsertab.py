@@ -136,8 +136,8 @@ class AbstractAction:
         action_base: The type of the actions (QWeb{Engine,}Page.WebAction)
     """
 
-    action_class = None
-    action_base = None
+    action_class = None  # type: type
+    action_base = None  # type: type
 
     def __init__(self, tab):
         self._widget = None
