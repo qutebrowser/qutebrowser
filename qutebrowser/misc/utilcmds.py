@@ -44,7 +44,7 @@ from qutebrowser.qt import sip
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
 @cmdutils.argument('win_id', win_id=True)
-def later(ms: int, command, win_id):
+def later(ms: int, command: str, win_id: int) -> None:
     """Execute a command after some time.
 
     Args:
@@ -75,7 +75,7 @@ def later(ms: int, command, win_id):
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
 @cmdutils.argument('win_id', win_id=True)
 @cmdutils.argument('count', count=True)
-def repeat(times: int, command, win_id, count=None):
+def repeat(times: int, command: str, win_id: int, count: int = None) -> None:
     """Repeat a given command.
 
     Args:
@@ -96,7 +96,8 @@ def repeat(times: int, command, win_id, count=None):
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
 @cmdutils.argument('win_id', win_id=True)
 @cmdutils.argument('count', count=True)
-def run_with_count(count_arg: int, command, win_id, count=1):
+def run_with_count(count_arg: int, command: str, win_id: int,
+                   count: int = 1) -> None:
     """Run a command with the given count.
 
     If run_with_count itself is run with a count, it multiplies count_arg.
@@ -303,7 +304,7 @@ def repeat_command(win_id, count=None):
 
 
 @cmdutils.register(debug=True, name='debug-log-capacity')
-def log_capacity(capacity: int):
+def log_capacity(capacity: int) -> None:
     """Change the number of log lines to be stored in RAM.
 
     Args:
@@ -320,7 +321,7 @@ def log_capacity(capacity: int):
 @cmdutils.argument('level', choices=sorted(
     (level.lower() for level in log.LOG_LEVELS),
     key=lambda e: log.LOG_LEVELS[e.upper()]))
-def debug_log_level(level: str):
+def debug_log_level(level: str) -> None:
     """Change the log level for console logging.
 
     Args:
@@ -332,7 +333,7 @@ def debug_log_level(level: str):
 
 
 @cmdutils.register(debug=True)
-def debug_log_filter(filters: str):
+def debug_log_filter(filters: str) -> None:
     """Change the log filter for console logging.
 
     Args:

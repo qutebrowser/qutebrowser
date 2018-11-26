@@ -513,7 +513,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
     @cmdutils.argument('count', count=True)
-    def tab_give(self, win_id: int = None, keep=False, count=None):
+    def tab_give(self, win_id: int = None, keep: bool = False,
+                 count: int = None) -> None:
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
@@ -601,7 +602,8 @@ class CommandDispatcher:
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
                                          'decrement'])
     @cmdutils.argument('count', count=True)
-    def navigate(self, where: str, tab=False, bg=False, window=False, count=1):
+    def navigate(self, where: str, tab: bool = False, bg: bool = False,
+                 window: bool = False, count: int = 1) -> None:
         """Open typical prev/next links or navigate using the URL path.
 
         This tries to automatically click on typical _Previous Page_ or
@@ -665,7 +667,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def scroll_px(self, dx: int, dy: int, count=1):
+    def scroll_px(self, dx: int, dy: int, count: int = 1) -> None:
         """Scroll the current tab by 'count * dx/dy' pixels.
 
         Args:
@@ -681,7 +683,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
-    def scroll(self, direction: str, count=1):
+    def scroll(self, direction: str, count: int = 1) -> None:
         """Scroll the current tab in the given direction.
 
         Note you can use `:run-with-count` to have a keybinding with a bigger
@@ -719,7 +721,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', count=True)
     @cmdutils.argument('horizontal', flag='x')
-    def scroll_to_perc(self, perc: float = None, horizontal=False, count=None):
+    def scroll_to_perc(self, perc: float = None, horizontal: bool = False,
+                       count: int = None) -> None:
         """Scroll to a specific percentage of the page.
 
         The percentage can be given either as argument or as count.
@@ -764,7 +767,7 @@ class CommandDispatcher:
                        choices=('next', 'increment'))
     def scroll_page(self, x: float, y: float, *,
                     top_navigate: str = None, bottom_navigate: str = None,
-                    count=1):
+                    count: int = 1) -> None:
         """Scroll the frame page-wise.
 
         Args:
@@ -1120,7 +1123,7 @@ class CommandDispatcher:
     @cmdutils.argument('index', choices=['last'])
     @cmdutils.argument('count', count=True)
     def tab_focus(self, index: typing.Union[str, int] = None,
-                  count=None, no_last=False):
+                  count: int = None, no_last: bool = False) -> None:
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -1161,7 +1164,8 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['+', '-'])
     @cmdutils.argument('count', count=True)
-    def tab_move(self, index: typing.Union[str, int] = None, count=None):
+    def tab_move(self, index: typing.Union[str, int] = None,
+                 count: int = None) -> None:
         """Move the current tab according to the argument and [count].
 
         If neither is given, move it to the first position.
@@ -1718,10 +1722,10 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('filter_', choices=['id'])
-    def click_element(self, filter_: str, value, *,
+    def click_element(self, filter_: str, value: str, *,
                       target: usertypes.ClickTarget =
                       usertypes.ClickTarget.normal,
-                      force_event=False):
+                      force_event: bool = False) -> None:
         """Click the element matching the given filter.
 
         The given filter needs to result in exactly one element, otherwise, an
@@ -2070,8 +2074,8 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
-    def jseval(self, js_code, file=False, quiet=False, *,
-               world: typing.Union[usertypes.JsWorld, int] = None):
+    def jseval(self, js_code: str, file: bool = False, quiet: bool = False, *,
+               world: typing.Union[usertypes.JsWorld, int] = None) -> None:
         """Evaluate a JavaScript string.
 
         Args:

@@ -670,7 +670,7 @@ class WebEngineAudio(browsertab.AbstractAudio):
         self._tab.url_changed.connect(self._on_url_changed)
         config.instance.changed.connect(self._on_config_changed)
 
-    def set_muted(self, muted: bool, override: bool = False):
+    def set_muted(self, muted: bool, override: bool = False) -> None:
         self._overridden = override
         page = self._widget.page()
         page.setAudioMuted(muted)

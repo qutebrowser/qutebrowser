@@ -511,9 +511,12 @@ class SessionManager(QObject):
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('with_private', flag='p')
     def session_save(self, name: typing.Union[str, Sentinel] = default,
-                     current=False, quiet=False, force=False,
-                     only_active_window=False, with_private=False,
-                     win_id=None):
+                     current: bool = False,
+                     quiet: bool = False,
+                     force: bool = False,
+                     only_active_window: bool = False,
+                     with_private: bool = False,
+                     win_id: int = None) -> None:
         """Save a session.
 
         Args:

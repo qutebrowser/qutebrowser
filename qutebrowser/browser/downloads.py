@@ -1062,7 +1062,7 @@ class DownloadModel(QAbstractListModel):
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
-    def download_open(self, cmdline: str = None, count=0):
+    def download_open(self, cmdline: str = None, count: int = 0) -> None:
         """Open the last/[count]th download.
 
         If no specific command is given, this will use the system's default
