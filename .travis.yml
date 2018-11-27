@@ -50,9 +50,6 @@ matrix:
       env: TESTENV=shellcheck
       services: docker
   fast_finish: true
-  allow_failures:
-    # https://github.com/qutebrowser/qutebrowser/issues/4055
-    - env: TESTENV=py36-pyqt510
 
 cache:
   directories:
