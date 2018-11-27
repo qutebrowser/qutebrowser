@@ -40,6 +40,8 @@ from qutebrowser.qt import sip
 
 class Sentinel:
 
+    """Sentinel value for default argument."""
+
     pass
 
 
