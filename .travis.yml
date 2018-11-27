@@ -42,6 +42,8 @@ matrix:
     - os: linux
       env: TESTENV=flake8
     - os: linux
+      env: TESTENV=mypy
+    - os: linux
       env: TESTENV=docs
       addons:
          apt:
