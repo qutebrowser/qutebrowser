@@ -230,8 +230,6 @@ class Exit(enum.IntEnum):
     exception = 2
     err_ipc = 3
     err_init = 4
-    err_config = 5
-    err_key_config = 6
 
 
 # Load status of a tab
