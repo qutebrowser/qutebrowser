@@ -33,7 +33,8 @@ from qutebrowser.keyinput import keyutils
 
 MYPY = False
 if MYPY:
-    from qutebrowser.config import configcache  # pylint: disable=unused-import
+    # pylint: disable=unused-import
+    from qutebrowser.config import configcache  # pragma: no cover
 
 # An easy way to access the config from other code via config.val.foo
 val = typing.cast('ConfigContainer', None)
