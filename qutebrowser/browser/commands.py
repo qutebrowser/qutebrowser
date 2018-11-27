@@ -1190,11 +1190,11 @@ class CommandDispatcher:
             if config.val.tabs.wrap:
                 new_idx %= self._count()
         else:
-            assert isinstance(index, int)
             # absolute moving
             if count is not None:
                 new_idx = count - 1
             elif index is not None:
+                assert isinstance(index, int)
                 new_idx = index - 1 if index >= 0 else index + self._count()
             else:
                 new_idx = 0
