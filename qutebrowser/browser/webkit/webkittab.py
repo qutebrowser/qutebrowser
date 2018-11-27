@@ -513,6 +513,12 @@ class WebKitHistory(browsertab.AbstractHistory):
 
     """QtWebKit implementations related to page history."""
 
+    def __len__(self):
+        return len(self._history)
+
+    def __iter__(self):
+        return iter(self._history.items())
+
     def current_idx(self):
         return self._history.currentItemIndex()
 
@@ -533,7 +539,7 @@ class WebKitHistory(browsertab.AbstractHistory):
         return qtutils.serialize(self._history)
 
     def deserialize(self, data):
-        return qtutils.deserialize(data, self._history)
+        qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
         if items:
