@@ -19,7 +19,7 @@
 
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
-import typing
+import typing  # pylint: disable=unused-import
 
 from PyQt5.QtGui import QFont
 

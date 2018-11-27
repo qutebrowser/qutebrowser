@@ -52,7 +52,7 @@ import datetime
 import functools
 import operator
 import json
-import typing
+import typing  # pylint: disable=unused-import
 
 import attr
 import yaml

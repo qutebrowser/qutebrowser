@@ -38,7 +38,7 @@ matrix:
     #   env: TESTENV=py35 OSX=yosemite
     #   osx_image: xcode6.4
     - os: linux
-      env: TESTENV=pylint PYTHON=python3.6
+      env: TESTENV=pylint
     - os: linux
       env: TESTENV=flake8
     - os: linux

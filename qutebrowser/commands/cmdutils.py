@@ -20,7 +20,7 @@
 """Contains various command utils and a global command dict."""
 
 import inspect
-import typing
+import typing  # pylint: disable=unused-import
 
 from qutebrowser.utils import qtutils, log
 from qutebrowser.commands import command, cmdexc
