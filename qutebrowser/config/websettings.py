@@ -19,6 +19,8 @@
 
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
+import typing  # pylint: disable=unused-import
+
 from PyQt5.QtGui import QFont
 
 from qutebrowser.config import config, configutils
@@ -44,10 +46,10 @@ class AbstractSettings:
 
     """Abstract base class for settings set via QWeb(Engine)Settings."""
 
-    _ATTRIBUTES = None
-    _FONT_SIZES = None
-    _FONT_FAMILIES = None
-    _FONT_TO_QFONT = None
+    _ATTRIBUTES = {}  # type: typing.Dict[str, AttributeInfo]
+    _FONT_SIZES = {}  # type: typing.Dict[str, typing.Any]
+    _FONT_FAMILIES = {}  # type: typing.Dict[str, typing.Any]
+    _FONT_TO_QFONT = {}  # type: typing.Dict[typing.Any, QFont.StyleHint]
 
     def __init__(self, settings):
         self._settings = settings

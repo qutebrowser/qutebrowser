@@ -32,6 +32,7 @@ include doc/changelog.asciidoc
 prune tests
 prune qutebrowser/3rdparty
 exclude pytest.ini
+exclude mypy.ini
 exclude qutebrowser/javascript/.eslintrc.yaml
 exclude qutebrowser/javascript/.eslintignore
 exclude doc/help

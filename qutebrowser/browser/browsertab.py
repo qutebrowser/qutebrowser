@@ -136,8 +136,8 @@ class AbstractAction:
         action_base: The type of the actions (QWeb{Engine,}Page.WebAction)
     """
 
-    action_class = None
-    action_base = None
+    action_class = None  # type: type
+    action_base = None  # type: type
 
     def __init__(self, tab):
         self._widget = None
@@ -685,7 +685,7 @@ class AbstractAudio(QObject):
         self._widget = None
         self._tab = tab
 
-    def set_muted(self, muted: bool, override: bool = False):
+    def set_muted(self, muted: bool, override: bool = False) -> None:
         """Set this tab as muted or not.
 
         Arguments:
@@ -699,7 +699,7 @@ class AbstractAudio(QObject):
         """Whether this tab is muted."""
         raise NotImplementedError
 
-    def toggle_muted(self, *, override: bool = False):
+    def toggle_muted(self, *, override: bool = False) -> None:
         self.set_muted(not self.is_muted(), override=override)
 
     def is_recently_audible(self):

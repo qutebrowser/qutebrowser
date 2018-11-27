@@ -39,7 +39,7 @@ from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None
+    qWebKitVersion = None  # type: ignore
 
 
 MAXVALS = {

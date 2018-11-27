@@ -41,7 +41,8 @@ from PyQt5.QtWidgets import QApplication
 import pkg_resources
 import yaml
 try:
-    from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
+    from yaml import (CSafeLoader as YamlLoader,  # type: ignore
+                      CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
     from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper

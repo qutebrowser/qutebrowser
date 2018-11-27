@@ -37,8 +37,11 @@ from qutebrowser.misc import objects
 from qutebrowser.browser import browsertab
 
 
-PixelMetrics = enum.IntEnum('PixelMetrics', ['icon_padding'],
-                            start=QStyle.PM_CustomBase)
+class PixelMetrics(enum.IntEnum):
+
+    """Custom PixelMetrics attributes."""
+
+    icon_padding = QStyle.PM_CustomBase
 
 
 class TabWidget(QTabWidget):
@@ -339,7 +342,7 @@ class TabWidget(QTabWidget):
         qtutils.ensure_valid(url)
         return url
 
-    def update_tab_favicon(self, tab: QWidget):
+    def update_tab_favicon(self, tab: QWidget) -> None:
         """Update favicon of the given tab."""
         idx = self.indexOf(tab)
 
@@ -397,7 +400,7 @@ class TabBar(QTabBar):
         return self.parent().currentWidget()
 
     @pyqtSlot(str)
-    def _on_config_changed(self, option: str):
+    def _on_config_changed(self, option: str) -> None:
         if option == 'fonts.tabs':
             self._set_font()
         elif option == 'tabs.favicons.scale':
@@ -540,7 +543,7 @@ class TabBar(QTabBar):
             return
         super().mousePressEvent(e)
 
-    def minimumTabSizeHint(self, index, ellipsis: bool = True) -> QSize:
+    def minimumTabSizeHint(self, index: int, ellipsis: bool = True) -> QSize:
         """Set the minimum tab size to indicator/icon/... text.
 
         Args:
@@ -620,7 +623,7 @@ class TabBar(QTabBar):
             return False
         return widget.data.pinned
 
-    def tabSizeHint(self, index: int):
+    def tabSizeHint(self, index: int) -> QSize:
         """Override tabSizeHint to customize qb's tab size.
 
         https://wiki.python.org/moin/PyQt/Customising%20tab%20bars

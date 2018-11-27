@@ -22,6 +22,7 @@
 import copy
 import contextlib
 import functools
+import typing
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
@@ -30,11 +31,16 @@ from qutebrowser.utils import utils, log, jinja
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
 
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import
+    from qutebrowser.config import configcache  # pragma: no cover
+
 # An easy way to access the config from other code via config.val.foo
-val = None
-instance = None
-key_instance = None
-cache = None
+val = typing.cast('ConfigContainer', None)
+instance = typing.cast('Config', None)
+key_instance = typing.cast('KeyConfig', None)
+cache = typing.cast('configcache.ConfigCache', None)
 
 # Keeping track of all change filters to validate them later.
 change_filters = []
