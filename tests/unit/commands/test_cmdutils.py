@@ -376,6 +376,7 @@ class TestArgument:
         @cmdutils.register()
         def fun():
             # no docstring
+            pass
 
 
 class TestRun:
