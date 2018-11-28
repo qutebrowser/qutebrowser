@@ -734,6 +734,67 @@ class AbstractAudio(QObject):
         raise NotImplementedError
 
 
+class AbstractTabPrivate:
+
+    """Tab-related methods which are only needed in the core.
+
+    Those methods are not part of the API which is exposed to extensions, and
+    should ideally be removed at some point in the future.
+    """
+
+    def __init__(self, mode_manager: modeman.ModeManager,
+                 tab: 'AbstractTab') -> None:
+        self._widget = None  # type: typing.Optional[QWidget]
+        self._tab = tab
+        self._mode_manager = mode_manager
+
+    def event_target(self) -> QWidget:
+        """Return the widget events should be sent to."""
+        raise NotImplementedError
+
+    def handle_auto_insert_mode(self, ok: bool) -> None:
+        """Handle `input.insert_mode.auto_load` after loading finished."""
+        if not config.val.input.insert_mode.auto_load or not ok:
+            return
+
+        cur_mode = self._mode_manager.mode
+        if cur_mode == usertypes.KeyMode.insert:
+            return
+
+        def _auto_insert_mode_cb(elem: webelem.AbstractWebElement) -> None:
+            """Called from JS after finding the focused element."""
+            if elem is None:
+                log.webview.debug("No focused element!")
+                return
+            if elem.is_editable():
+                modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
+                              'load finished', only_if_normal=True)
+
+        self._tab.elements.find_focused(_auto_insert_mode_cb)
+
+    def clear_ssl_errors(self) -> None:
+        raise NotImplementedError
+
+    def networkaccessmanager(self) -> typing.Optional[QNetworkAccessManager]:
+        """Get the QNetworkAccessManager for this tab.
+
+        This is only implemented for QtWebKit.
+        For QtWebEngine, always returns None.
+        """
+        raise NotImplementedError
+
+    def user_agent(self) -> typing.Optional[str]:
+        """Get the user agent for this tab.
+
+        This is only implemented for QtWebKit.
+        For QtWebEngine, always returns None.
+        """
+        raise NotImplementedError
+
+    def shutdown(self) -> None:
+        raise NotImplementedError
+
+
 class AbstractTab(QWidget):
 
     """A wrapper over the given widget to hide its API and expose another one.
@@ -785,10 +846,7 @@ class AbstractTab(QWidget):
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
     predicted_navigation = pyqtSignal(QUrl)
 
-    def __init__(self, *,
-                 win_id: int,
-                 mode_manager: modeman.ModeManager,
-                 private: bool,
+    def __init__(self, *, win_id: int, private: bool,
                  parent: QWidget = None) -> None:
         self.is_private = private
         self.win_id = win_id
@@ -806,7 +864,6 @@ class AbstractTab(QWidget):
         self._widget = None  # type: typing.Optional[QWidget]
         self._progress = 0
         self._has_ssl_errors = False
-        self._mode_manager = mode_manager
         self._load_status = usertypes.LoadStatus.none
         self._mouse_event_filter = mouse.MouseEventFilter(
             self, parent=self)
@@ -833,6 +890,7 @@ class AbstractTab(QWidget):
         self.action._widget = widget
         self.elements._widget = widget
         self.audio._widget = widget
+        self.private_api._widget = widget
         self.settings._settings = widget.settings()
 
         self._install_event_filter()
@@ -849,10 +907,6 @@ class AbstractTab(QWidget):
         self._load_status = val
         self.load_status_changed.emit(val.name)
 
-    def event_target(self) -> QWidget:
-        """Return the widget events should be sent to."""
-        raise NotImplementedError
-
     def send_event(self, evt: QEvent) -> None:
         """Send the given event to the underlying widget.
 
@@ -865,7 +919,7 @@ class AbstractTab(QWidget):
             raise utils.Unreachable("Can't re-use an event which was already "
                                     "posted!")
 
-        recipient = self.event_target()
+        recipient = self.private_api.event_target()
         if recipient is None:
             # https://github.com/qutebrowser/qutebrowser/issues/3888
             log.webview.warning("Unable to find event target!")
@@ -924,26 +978,6 @@ class AbstractTab(QWidget):
                                   navigation.url.toDisplayString(),
                                   navigation.url.errorString()))
             navigation.accepted = False
-
-    def handle_auto_insert_mode(self, ok: bool) -> None:
-        """Handle `input.insert_mode.auto_load` after loading finished."""
-        if not config.val.input.insert_mode.auto_load or not ok:
-            return
-
-        cur_mode = self._mode_manager.mode
-        if cur_mode == usertypes.KeyMode.insert:
-            return
-
-        def _auto_insert_mode_cb(elem: webelem.AbstractWebElement) -> None:
-            """Called from JS after finding the focused element."""
-            if elem is None:
-                log.webview.debug("No focused element!")
-                return
-            if elem.is_editable():
-                modeman.enter(self.win_id, usertypes.KeyMode.insert,
-                              'load finished', only_if_normal=True)
-
-        self.elements.find_focused(_auto_insert_mode_cb)
 
     @pyqtSlot(bool)
     def _on_load_finished(self, ok: bool) -> None:
@@ -1010,9 +1044,6 @@ class AbstractTab(QWidget):
     def stop(self) -> None:
         raise NotImplementedError
 
-    def clear_ssl_errors(self) -> None:
-        raise NotImplementedError
-
     def key_press(self,
                   key: Qt.Key,
                   modifier: Qt.KeyboardModifier = Qt.NoModifier) -> None:
@@ -1048,9 +1079,6 @@ class AbstractTab(QWidget):
         """
         raise NotImplementedError
 
-    def shutdown(self) -> None:
-        raise NotImplementedError
-
     def title(self) -> str:
         raise NotImplementedError
 
@@ -1058,22 +1086,6 @@ class AbstractTab(QWidget):
         raise NotImplementedError
 
     def set_html(self, html: str, base_url: QUrl = QUrl()) -> None:
-        raise NotImplementedError
-
-    def networkaccessmanager(self) -> typing.Optional[QNetworkAccessManager]:
-        """Get the QNetworkAccessManager for this tab.
-
-        This is only implemented for QtWebKit.
-        For QtWebEngine, always returns None.
-        """
-        raise NotImplementedError
-
-    def user_agent(self) -> typing.Optional[str]:
-        """Get the user agent for this tab.
-
-        This is only implemented for QtWebKit.
-        For QtWebEngine, always returns None.
-        """
         raise NotImplementedError
 
     def __repr__(self) -> str:

@@ -1516,7 +1516,7 @@ class CommandDispatcher:
             else:
                 download_manager.get_mhtml(tab, target)
         else:
-            qnam = tab.networkaccessmanager()
+            qnam = tab.private_api.networkaccessmanager()
 
             suggested_fn = downloads.suggested_fn_from_title(
                 self._current_url().path(), tab.title()
@@ -2165,7 +2165,7 @@ class CommandDispatcher:
                        debug=True, backend=usertypes.Backend.QtWebKit)
     def debug_clear_ssl_errors(self):
         """Clear remembered SSL error answers."""
-        self._current_widget().clear_ssl_errors()
+        self._current_widget().private_api.clear_ssl_errors()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def edit_url(self, url=None, bg=False, tab=False, window=False,
