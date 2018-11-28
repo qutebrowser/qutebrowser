@@ -285,7 +285,7 @@ class PyQIODevice(io.BufferedIOBase):
         if not ok:
             raise QtOSError(self.dev, msg="seek failed!")
 
-    def truncate(self, size=None):  # pylint: disable=unused-argument
+    def truncate(self, size=None):
         raise io.UnsupportedOperation
 
     @property

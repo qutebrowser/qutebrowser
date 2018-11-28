@@ -133,7 +133,7 @@ def init_faulthandler(fileobj=sys.__stderr__):
 def check_pyqt_core():
     """Check if PyQt core is installed."""
     try:
-        import PyQt5.QtCore  # pylint: disable=unused-variable
+        import PyQt5.QtCore
     except ImportError as e:
         text = _missing_str('PyQt5')
         text = text.replace('<b>', '')
@@ -187,7 +187,6 @@ def check_qt_version():
 
 def check_ssl_support():
     """Check if SSL support is available."""
-    # pylint: disable=unused-variable
     try:
         from PyQt5.QtNetwork import QSslSocket
     except ImportError:
