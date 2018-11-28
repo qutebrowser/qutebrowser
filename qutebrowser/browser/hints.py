@@ -305,7 +305,7 @@ class HintActions:
 
         prompt = False if context.rapid else None
         qnam = context.tab.private_api.networkaccessmanager()
-        user_agent = context.tab.user_agent()
+        user_agent = context.tab.private_api.user_agent()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager')

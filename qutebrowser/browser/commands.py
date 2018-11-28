@@ -1495,7 +1495,7 @@ class CommandDispatcher:
             target = downloads.FileDownloadTarget(dest)
 
         tab = self._current_widget()
-        user_agent = tab.user_agent()
+        user_agent = tab.private_api.user_agent()
 
         if url:
             if mhtml_:
