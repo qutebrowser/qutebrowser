@@ -135,7 +135,7 @@ def _get_command_quickref(cmds):
     out.append('|Command|Description')
     for name, cmd in cmds:
         desc = inspect.getdoc(cmd.handler).splitlines()[0]
-        out.append('|<<{},{}>>|{}'.format(name, name, desc))
+        out.append('|<<{name},{name}>>|{desc}'.format(name=name, desc=desc))
     out.append('|==============')
     return '\n'.join(out)
 

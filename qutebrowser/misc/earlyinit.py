@@ -133,7 +133,7 @@ def init_faulthandler(fileobj=sys.__stderr__):
 def check_pyqt_core():
     """Check if PyQt core is installed."""
     try:
-        import PyQt5.QtCore
+        import PyQt5.QtCore  # pylint: disable=unused-import
     except ImportError as e:
         text = _missing_str('PyQt5')
         text = text.replace('<b>', '')
@@ -188,7 +188,7 @@ def check_qt_version():
 def check_ssl_support():
     """Check if SSL support is available."""
     try:
-        from PyQt5.QtNetwork import QSslSocket
+        from PyQt5.QtNetwork import QSslSocket  # pylint: disable=unused-import
     except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
 
