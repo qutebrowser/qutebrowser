@@ -61,35 +61,25 @@ class Error(Exception):
 
     """Exception for generic errors on a qute:// page."""
 
-    pass
-
 
 class NotFoundError(Error):
 
     """Raised when the given URL was not found."""
-
-    pass
 
 
 class SchemeOSError(Error):
 
     """Raised when there was an OSError inside a handler."""
 
-    pass
-
 
 class UrlInvalidError(Error):
 
     """Raised when an invalid URL was opened."""
 
-    pass
-
 
 class RequestDeniedError(Error):
 
     """Raised when the request is forbidden."""
-
-    pass
 
 
 class Redirect(Exception):

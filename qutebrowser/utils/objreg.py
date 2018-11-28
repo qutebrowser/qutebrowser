@@ -42,8 +42,6 @@ class RegistryUnavailableError(Exception):
 
     """Exception raised when a certain registry does not exist yet."""
 
-    pass
-
 
 class NoWindow(Exception):
 

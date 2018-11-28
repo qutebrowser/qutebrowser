@@ -29,14 +29,10 @@ class HistoryEmptyError(Exception):
 
     """Raised when the history is empty."""
 
-    pass
-
 
 class HistoryEndReachedError(Exception):
 
     """Raised when the end of the history is reached."""
-
-    pass
 
 
 class History(QObject):

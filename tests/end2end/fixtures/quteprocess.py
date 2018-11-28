@@ -842,8 +842,6 @@ class YamlLoader(yaml.SafeLoader):
 
     """Custom YAML loader used in compare_session."""
 
-    pass
-
 
 # Translate ... to ellipsis in YAML.
 YamlLoader.add_constructor('!ellipsis', lambda loader, node: ...)

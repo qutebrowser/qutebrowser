@@ -336,8 +336,6 @@ class SavefileTestException(Exception):
 
     """Exception raised in TestSavefileOpen for testing."""
 
-    pass
-
 
 @pytest.mark.usefixtures('qapp')
 class TestSavefileOpen:
@@ -541,7 +539,6 @@ if test_file is not None:
 
         def testReadinto_text(self):
             """Skip this test as BufferedIOBase seems to fail it."""
-            pass
 
     class PyOtherFileTests(PyIODeviceTestMixin, test_file.OtherFileTests,
                            unittest.TestCase):
@@ -550,11 +547,9 @@ if test_file is not None:
 
         def testSetBufferSize(self):
             """Skip this test as setting buffer size is unsupported."""
-            pass
 
         def testTruncateOnWindows(self):
             """Skip this test truncating is unsupported."""
-            pass
 
 
 class FailingQIODevice(QIODevice):

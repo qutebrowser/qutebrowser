@@ -34,14 +34,10 @@ class Error(Exception):
 
     """Base class for WebElement errors."""
 
-    pass
-
 
 class OrphanedError(Error):
 
     """Raised when a webelement's parent has vanished."""
-
-    pass
 
 
 def css_selector(group, url):

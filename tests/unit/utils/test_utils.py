@@ -409,8 +409,6 @@ class GotException(Exception):
 
     """Exception used for TestDisabledExcepthook."""
 
-    pass
-
 
 def excepthook(_exc, _val, _tb):
     pass
@@ -512,8 +510,6 @@ class Obj:
 
     """Test object for test_get_repr()."""
 
-    pass
-
 
 @pytest.mark.parametrize('constructor, attrs, expected', [
     (False, {}, '<test_utils.Obj>'),
@@ -534,12 +530,10 @@ class QualnameObj():
 
     def func(self):
         """Test method for test_qualname."""
-        pass
 
 
 def qualname_func(_blah):
     """Test function for test_qualname."""
-    pass
 
 
 QUALNAME_OBJ = QualnameObj()
@@ -578,8 +572,6 @@ class TestIsEnum:
 
             """Test class for is_enum."""
 
-            pass
-
         assert not utils.is_enum(Test)
 
     def test_object(self):
@@ -597,7 +589,6 @@ class TestRaises:
 
     def do_nothing(self):
         """Helper function which does nothing."""
-        pass
 
     @pytest.mark.parametrize('exception, value, expected', [
         (ValueError, 'a', True),

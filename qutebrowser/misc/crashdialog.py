@@ -197,7 +197,6 @@ class _CrashDialog(QDialog):
 
     def _init_checkboxes(self):
         """Initialize the checkboxes."""
-        pass
 
     def _init_buttons(self):
         """Initialize the buttons."""
@@ -569,7 +568,6 @@ class ReportDialog(_CrashDialog):
 
     def _init_info_text(self):
         """We don't want an info text as the user wanted to report."""
-        pass
 
     def _get_error_type(self):
         return 'report'

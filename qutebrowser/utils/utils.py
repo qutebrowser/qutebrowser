@@ -630,7 +630,6 @@ def open_file(filename, cmdline=None):
 
 def unused(_arg):
     """Function which does nothing to avoid pylint complaining."""
-    pass
 
 
 def expand_windows_drive(path):
