@@ -356,7 +356,7 @@ class TabbedBrowser(QWidget):
                 else:
                     self._undo_stack[-1].append(entry)
 
-        tab.shutdown()
+        tab.private_api.shutdown()
         self.widget.removeTab(idx)
         if not crashed:
             # WORKAROUND for a segfault when we delete the crashed tab.
