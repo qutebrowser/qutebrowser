@@ -30,10 +30,6 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import
-    from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 import pygments
 import pygments.lexers
@@ -46,6 +42,7 @@ from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import mouse, hints, webelem
 from qutebrowser.qt import sip
+MYPY = False
 if MYPY:
     # pylint: disable=unused-import
     from qutebrowser.browser.inspector import AbstractWebInspector
@@ -153,7 +150,7 @@ class AbstractAction:
     action_base = None  # type: type
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = typing.cast('QWebEngineView', None)
+        self._widget = typing.cast(QWidget, None)
         self._tab = tab
 
     def exit_fullscreen(self) -> None:
@@ -169,7 +166,7 @@ class AbstractAction:
         member = getattr(self.action_class, name, None)
         if not isinstance(member, self.action_base):
             raise WebTabError("{} is not a valid web action!".format(name))
-        self._widget.triggerPageAction(member)  # type: ignore
+        self._widget.triggerPageAction(member)
 
     def show_source(
             self,
@@ -521,7 +518,7 @@ class AbstractScroller(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = None  # type: typing.Optional[QWebEngineView]
+        self._widget = None  # type: typing.Optional[QWidget]
         self.perc_changed.connect(self._log_scroll_pos_change)
 
     @pyqtSlot()
@@ -529,7 +526,7 @@ class AbstractScroller(QObject):
         log.webview.vdebug(  # type: ignore
             "Scroll position changed to {}".format(self.pos_px()))
 
-    def _init_widget(self, widget: 'QWebEngineView') -> None:
+    def _init_widget(self, widget: QWidget) -> None:
         self._widget = widget
 
     def pos_px(self) -> int:
@@ -712,7 +709,7 @@ class AbstractAudio(QObject):
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = None  # type: typing.Optional[QWebEngineView]
+        self._widget = None  # type: typing.Optional[QWidget]
         self._tab = tab
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
@@ -806,7 +803,7 @@ class AbstractTab(QWidget):
 
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
-        self._widget = None  # type: typing.Optional[QWebEngineView]
+        self._widget = None  # type: typing.Optional[QWidget]
         self._progress = 0
         self._has_ssl_errors = False
         self._mode_manager = mode_manager
@@ -823,7 +820,7 @@ class AbstractTab(QWidget):
 
         self.predicted_navigation.connect(self._on_predicted_navigation)
 
-    def _set_widget(self, widget: 'QWebEngineView') -> None:
+    def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
         self._widget = widget
         self._layout.wrap(self, widget)
