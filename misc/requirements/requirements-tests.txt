@@ -6,10 +6,9 @@ backports.functools-lru-cache==1.5
 beautifulsoup4==4.6.3
 cheroot==6.5.2
 Click==7.0
-# colorama==0.4.0
+# colorama==0.4.1
 coverage==4.5.2
 EasyProcess==0.2.3
-fields==5.0.0
 Flask==1.0.2
 glob2==0.6
 hunter==2.1.0
