@@ -306,7 +306,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do some sanity
         checking on the slot.
         """
-        pass
 
     def disconnect(self, slot=None):
         """Disconnect the signal from a slot.
@@ -314,7 +313,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do some sanity
         checking on the slot and see if it actually got connected.
         """
-        pass
 
     def emit(self, *args):
         """Emit the signal.
@@ -322,7 +320,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do type checking based
         on a signature given to __init__.
         """
-        pass
 
 
 @attr.s
@@ -456,8 +453,6 @@ class UrlMarkManagerStub(QObject):
 class BookmarkManagerStub(UrlMarkManagerStub):
 
     """Stub for the bookmark-manager object."""
-
-    pass
 
 
 class QuickmarkManagerStub(UrlMarkManagerStub):

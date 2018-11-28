@@ -28,8 +28,6 @@ class Error(Exception):
 
     """Base exception for config-related errors."""
 
-    pass
-
 
 class NoAutoconfigError(Error):
 

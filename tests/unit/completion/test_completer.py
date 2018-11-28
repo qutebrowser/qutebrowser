@@ -105,35 +105,29 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
     @cmdutils.argument('value', completion=miscmodels_patch.value)
     def set_command(section_=None, option=None, value=None):
         """docstring."""
-        pass
 
     @cmdutils.argument('topic', completion=miscmodels_patch.helptopic)
     def show_help(tab=False, bg=False, window=False, topic=None):
         """docstring."""
-        pass
 
     @cmdutils.argument('url', completion=miscmodels_patch.url)
     @cmdutils.argument('count', count=True)
     def openurl(url=None, related=False, bg=False, tab=False, window=False,
                 count=None):
         """docstring."""
-        pass
 
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('command', completion=miscmodels_patch.command)
     def bind(key, win_id, command=None, *, mode='normal'):
         """docstring."""
-        pass
 
     def tab_give():
         """docstring."""
-        pass
 
     @cmdutils.argument('option', completion=miscmodels_patch.option)
     @cmdutils.argument('values', completion=miscmodels_patch.value)
     def config_cycle(option, *values):
         """For testing varargs."""
-        pass
 
     cmd_utils = stubs.FakeCmdUtils({
         'set': command.Command(name='set', handler=set_command),

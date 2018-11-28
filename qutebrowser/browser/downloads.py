@@ -64,8 +64,6 @@ class UnsupportedAttribute:
     supported with QtWebengine.
     """
 
-    pass
-
 
 class UnsupportedOperationError(Exception):
 

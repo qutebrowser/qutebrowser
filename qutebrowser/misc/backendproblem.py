@@ -284,7 +284,7 @@ class BackendImports:
 
 def _try_import_backends():
     """Check whether backends can be imported and return BackendImports."""
-    # pylint: disable=unused-variable
+    # pylint: disable=unused-import
     results = BackendImports()
 
     try:
