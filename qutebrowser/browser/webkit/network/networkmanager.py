@@ -29,7 +29,12 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket
 
 from qutebrowser.config import config
-from qutebrowser.mainwindow import prompt  # pylint: disable=unused-import
+
+MYPY = False
+if MYPY:
+    # pylint can't interpret type comments with Python 3.7
+    # pylint: disable=unused-import,useless-suppression
+    from qutebrowser.mainwindow import prompt
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)
 from qutebrowser.browser import shared

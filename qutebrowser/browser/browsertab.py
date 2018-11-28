@@ -44,7 +44,8 @@ from qutebrowser.browser import mouse, hints, webelem
 from qutebrowser.qt import sip
 MYPY = False
 if MYPY:
-    # pylint: disable=unused-import
+    # pylint can't interpret type comments with Python 3.7
+    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser.inspector import AbstractWebInspector
 
 

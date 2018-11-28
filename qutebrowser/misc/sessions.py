@@ -42,8 +42,6 @@ class Sentinel:
 
     """Sentinel value for default argument."""
 
-    pass
-
 
 default = Sentinel()
 
