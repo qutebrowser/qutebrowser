@@ -241,7 +241,7 @@ class FakeWebTabAudio(browsertab.AbstractAudio):
         return False
 
 
-class FakeWebTabPrivate:
+class FakeWebTabPrivate(browsertab.AbstractTabPrivate):
 
     def shutdown(self):
         pass
@@ -255,7 +255,7 @@ class FakeWebTab(browsertab.AbstractTab):
                  scroll_pos_perc=(0, 0),
                  load_status=usertypes.LoadStatus.success,
                  progress=0, can_go_back=None, can_go_forward=None):
-        super().__init__(win_id=0, mode_manager=None, private=False)
+        super().__init__(win_id=0, private=False)
         self._load_status = load_status
         self._title = title
         self._url = url
@@ -264,7 +264,7 @@ class FakeWebTab(browsertab.AbstractTab):
                                          can_go_forward=can_go_forward)
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
         self.audio = FakeWebTabAudio(self)
-        self.private_api = FakeWebTabPrivate()
+        self.private_api = FakeWebTabPrivate(tab=self, mode_manager=None)
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
 
