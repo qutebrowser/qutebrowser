@@ -260,6 +260,12 @@ Note that there are some missing features which you may run into:
 . Any greasemonkey API function to do with adding UI elements is not currently
   supported. That means context menu extentensions and background pages.
 
+How do I change the `WM_CLASS` used by qutebrowser windows?::
+    Qt only supports setting `WM_CLASS` globally, which you can do by starting
+    with `--qt-arg name foo`. Note that all windows are part of the same
+    qutebrowser instance (unless you use `--temp-basedir` or `--basedir`), so
+    they all will share the same `WM_CLASS`.
+
 == Troubleshooting
 
 Unable to view flash content.::
