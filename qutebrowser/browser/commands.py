@@ -126,7 +126,7 @@ class CommandDispatcher:
         tabbed_browser = self._tabbed_browser
         cmdutils.check_exclusive((tab, background, window, private), 'tbwp')
         if window and private is None:
-            private = self._tabbed_browser.private
+            private = self._tabbed_browser.is_private
 
         if window or private:
             tabbed_browser = self._new_tabbed_browser(private)
@@ -470,7 +470,7 @@ class CommandDispatcher:
         # tabs.tabs_are_windows being set)
         if window:
             new_tabbed_browser = self._new_tabbed_browser(
-                private=self._tabbed_browser.private)
+                private=self._tabbed_browser.is_private)
         else:
             new_tabbed_browser = self._tabbed_browser
         newtab = new_tabbed_browser.tabopen(background=bg)
@@ -536,7 +536,7 @@ class CommandDispatcher:
                                           "only one tab")
 
             tabbed_browser = self._new_tabbed_browser(
-                private=self._tabbed_browser.private)
+                private=self._tabbed_browser.is_private)
         else:
             if win_id not in objreg.window_registry:
                 raise cmdexc.CommandError(

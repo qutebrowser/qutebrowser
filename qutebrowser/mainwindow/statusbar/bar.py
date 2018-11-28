@@ -367,7 +367,7 @@ class StatusBar(QWidget):
         self.percentage.on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
         self.maybe_hide()
-        assert tab.private == self._color_flags.private
+        assert tab.is_private == self._color_flags.private
 
     @pyqtSlot(bool)
     def on_caret_selection_toggled(self, selection):

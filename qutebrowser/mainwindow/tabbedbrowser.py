@@ -76,7 +76,7 @@ class TabbedBrowser(QWidget):
         _local_marks: Jump markers local to each page
         _global_marks: Jump markers used across all pages
         default_window_icon: The qutebrowser window icon
-        private: Whether private browsing is on for this window.
+        is_private: Whether private browsing is on for this window.
 
     Signals:
         cur_progress: Progress of the current tab changed (load_progress).
@@ -131,7 +131,7 @@ class TabbedBrowser(QWidget):
         self._local_marks = {}
         self._global_marks = {}
         self.default_window_icon = self.widget.window().windowIcon()
-        self.private = private
+        self.is_private = private
         config.instance.changed.connect(self._on_config_changed)
 
     def __repr__(self):
@@ -243,7 +243,7 @@ class TabbedBrowser(QWidget):
         tab.audio.recently_audible_changed.connect(
             functools.partial(self._on_audio_changed, tab))
         tab.new_tab_requested.connect(self.tabopen)
-        if not self.private:
+        if not self.is_private:
             web_history = objreg.get('web-history')
             tab.add_history_item.connect(web_history.add_from_tab)
 
@@ -466,14 +466,15 @@ class TabbedBrowser(QWidget):
 
         if (config.val.tabs.tabs_are_windows and self.widget.count() > 0 and
                 not ignore_tabs_are_windows):
-            window = mainwindow.MainWindow(private=self.private)
+            window = mainwindow.MainWindow(private=self.is_private)
             window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=window.win_id)
             return tabbed_browser.tabopen(url=url, background=background,
                                           related=related)
 
-        tab = browsertab.create(win_id=self._win_id, private=self.private,
+        tab = browsertab.create(win_id=self._win_id,
+                                private=self.is_private,
                                 parent=self.widget)
         self._connect_tab_signals(tab)
 

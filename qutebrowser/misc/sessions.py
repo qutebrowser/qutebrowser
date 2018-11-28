@@ -242,7 +242,7 @@ class SessionManager(QObject):
             if sip.isdeleted(main_window):
                 continue
 
-            if tabbed_browser.private and not with_private:
+            if tabbed_browser.is_private and not with_private:
                 continue
 
             win_data = {}
@@ -251,7 +251,7 @@ class SessionManager(QObject):
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())
             win_data['tabs'] = []
-            if tabbed_browser.private:
+            if tabbed_browser.is_private:
                 win_data['private'] = True
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.widget.currentIndex()

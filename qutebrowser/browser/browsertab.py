@@ -743,7 +743,7 @@ class AbstractTab(QWidget):
     Attributes:
         history: The AbstractHistory for the current tab.
         registry: The ObjectRegistry associated with this tab.
-        private: Whether private browsing is turned on for this tab.
+        is_private: Whether private browsing is turned on for this tab.
 
         _load_status: loading status of this page
                       Accessible via load_status() method.
@@ -790,7 +790,7 @@ class AbstractTab(QWidget):
                  mode_manager: modeman.ModeManager,
                  private: bool,
                  parent: QWidget = None) -> None:
-        self.private = private
+        self.is_private = private
         self.win_id = win_id
         self.tab_id = next(tab_id_gen)
         super().__init__(parent)

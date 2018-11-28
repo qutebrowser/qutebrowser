@@ -382,7 +382,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             background = click_target == usertypes.ClickTarget.tab_bg
             tabbed_browser.tabopen(url, background=background)
         elif click_target == usertypes.ClickTarget.window:
-            window = mainwindow.MainWindow(private=tabbed_browser.private)
+            window = mainwindow.MainWindow(private=tabbed_browser.is_private)
             window.show()
             window.tabbed_browser.tabopen(url)
         else:
