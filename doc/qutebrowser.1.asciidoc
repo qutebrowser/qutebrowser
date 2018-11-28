@@ -107,7 +107,7 @@ show it.
 
 - '~/.config/qutebrowser/config.py': Configuration file.
 - '~/.config/qutebrowser/autoconfig.yml': Configuration done via the GUI.
-- '~/.config/qutebrowser/quickmarks': Saved quickmarks.
+- '~/.config/qutebrowser/bookmarks/urls': Saved bookmarks.
 - '~/.local/share/qutebrowser/': Various state information.
 - '~/.cache/qutebrowser/': Temporary data.
 

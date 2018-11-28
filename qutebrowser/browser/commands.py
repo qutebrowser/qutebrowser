@@ -323,7 +323,7 @@ class CommandDispatcher:
                     curtab.openurl(cur_url)
 
     def _parse_url(self, url, *, force_search=False):
-        """Parse a URL or quickmark or search query.
+        """Parse a URL or search query.
 
         Args:
             url: The URL to parse.
@@ -334,15 +334,12 @@ class CommandDispatcher:
             A URL that can be opened.
         """
         try:
-            return objreg.get('quickmark-manager').get(url)
-        except urlmarks.Error:
-            try:
-                return urlutils.fuzzy_url(url, force_search=force_search)
-            except urlutils.InvalidUrlError as e:
-                # We don't use cmdexc.CommandError here as this can be
-                # called async from edit_url
-                message.error(str(e))
-                return None
+            return urlutils.fuzzy_url(url, force_search=force_search)
+        except urlutils.InvalidUrlError as e:
+            # We don't use cmdexc.CommandError here as this can be
+            # called async from edit_url
+            message.error(str(e))
+            return None
 
     def _parse_url_input(self, url):
         """Parse a URL or newline-separated list of URLs.
@@ -1316,55 +1313,8 @@ class CommandDispatcher:
         return runner
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def quickmark_save(self):
-        """Save the current page as a quickmark."""
-        quickmark_manager = objreg.get('quickmark-manager')
-        quickmark_manager.prompt_save(self._current_url())
-
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0)
-    @cmdutils.argument('name', completion=miscmodels.quickmark)
-    def quickmark_load(self, name, tab=False, bg=False, window=False):
-        """Load a quickmark.
-
-        Args:
-            name: The name of the quickmark to load.
-            tab: Load the quickmark in a new tab.
-            bg: Load the quickmark in a new background tab.
-            window: Load the quickmark in a new window.
-        """
-        try:
-            url = objreg.get('quickmark-manager').get(name)
-        except urlmarks.Error as e:
-            raise cmdexc.CommandError(str(e))
-        self._open(url, tab, bg, window)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0)
-    @cmdutils.argument('name', completion=miscmodels.quickmark)
-    def quickmark_del(self, name=None):
-        """Delete a quickmark.
-
-        Args:
-            name: The name of the quickmark to delete. If not given, delete the
-                  quickmark for the current page (choosing one arbitrarily
-                  if there are more than one).
-        """
-        quickmark_manager = objreg.get('quickmark-manager')
-        if name is None:
-            url = self._current_url()
-            try:
-                name = quickmark_manager.get_by_qurl(url)
-            except urlmarks.DoesNotExistError as e:
-                raise cmdexc.CommandError(str(e))
-        try:
-            quickmark_manager.delete(name)
-        except KeyError:
-            raise cmdexc.CommandError("Quickmark '{}' not found!".format(name))
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
     def bookmark_add(self, url=None, title=None, toggle=False):
-        """Save the current page as a bookmark, or a specific url.
+        """Save the current page (or a specified url) as a bookmark.
 
         If no url and title are provided, then save the current page as a
         bookmark.
@@ -1385,15 +1335,8 @@ class CommandDispatcher:
             raise cmdexc.CommandError('Title must be provided if url has '
                                       'been provided')
         bookmark_manager = objreg.get('bookmark-manager')
-        if not url:
-            url = self._current_url()
-        else:
-            try:
-                url = urlutils.fuzzy_url(url)
-            except urlutils.InvalidUrlError as e:
-                raise cmdexc.CommandError(e)
-        if not title:
-            title = self._current_title()
+        url = QUrl(url or self._current_url())
+        title = title or self._current_title()
         try:
             was_added = bookmark_manager.add(url, title, toggle=toggle)
         except urlmarks.Error as e:
@@ -1402,31 +1345,78 @@ class CommandDispatcher:
             msg = "Bookmarked {}" if was_added else "Removed bookmark {}"
             message.info(msg.format(url.toDisplayString()))
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0)
-    @cmdutils.argument('url', completion=miscmodels.bookmark)
-    def bookmark_load(self, url, tab=False, bg=False, window=False,
-                      delete=False):
-        """Load a bookmark.
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('url', completion=urlmodel.url)
+    @cmdutils.argument('tags', completion=urlmodel.bookmark_tag)
+    @cmdutils.argument('purge', flag='R')
+    def bookmark_tag(self, url, *tags, remove=False, purge=False,
+                     unique=False):
+        """Modify bookmark tags for the given url.
+
+        The given url will be bookmarked if it is not already.
 
         Args:
-            url: The url of the bookmark to load.
+            url: url to save as a bookmark.
+            tags: One or more tags to add.
+            remove: Remove tags instead of adding.
+            purge: Remove tags, and remove the mark if it has no more tags.
+            unique: Refuse non-unique tags.
+        """
+        bookmark_manager = objreg.get('bookmark-manager')
+        url = QUrl(url)
+
+        try:
+            bookmark_manager.add(url, '')
+            message.info("Bookmarked {}".format(url.toDisplayString()))
+        except urlmarks.AlreadyExistsError:
+            pass
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(str(e))
+
+        try:
+            if remove or purge:
+                bookmark_manager.untag(url, tags, purge=purge)
+            else:
+                bookmark_manager.tag(url, tags, unique=unique)
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(str(e))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       maxsplit=0)
+    @cmdutils.argument('tags', completion=urlmodel.bookmark_tag)
+    @cmdutils.argument('open_all', flag='a')
+    def bookmark_load(self, *tags, tab=False, bg=False, window=False,
+                      delete=False, open_all=False):
+        """Load one or more bookmark matching the given tags.
+
+        Includes only bookmarks that have all the given tags.
+
+        Args:
+            tags: Tags to filter by.
+            open_all: Open all matching bookmarks, not just the first.
             tab: Load the bookmark in a new tab.
             bg: Load the bookmark in a new background tab.
             window: Load the bookmark in a new window.
             delete: Whether to delete the bookmark afterwards.
         """
-        try:
-            qurl = urlutils.fuzzy_url(url)
-        except urlutils.InvalidUrlError as e:
-            raise cmdexc.CommandError(e)
-        self._open(qurl, tab, bg, window)
-        if delete:
-            self.bookmark_del(url)
+        if not tags:
+            raise cmdexc.CommandError("No tags provided")
+        if open_all and not (tab or bg or window):
+            raise cmdexc.CommandError("-a requires one of -t/-b/-w")
+
+        bookmark_manager = objreg.get('bookmark-manager')
+        marks = bookmark_manager.get_tagged(tags)
+
+        for m in marks:
+            self._open(QUrl(m.url), tab, bg, window)
+            if delete:
+                bookmark_manager.delete(m.url)
+            if not open_all:
+                return
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
-    @cmdutils.argument('url', completion=miscmodels.bookmark)
+    @cmdutils.argument('url', completion=urlmodel.bookmark)
     def bookmark_del(self, url=None):
         """Delete a bookmark.
 
@@ -1434,13 +1424,11 @@ class CommandDispatcher:
             url: The url of the bookmark to delete. If not given, use the
                  current page's url.
         """
-        if url is None:
-            url = self._current_url().toString(QUrl.RemovePassword |
-                                               QUrl.FullyEncoded)
+        url = QUrl(url or self._current_url())
         try:
             objreg.get('bookmark-manager').delete(url)
-        except KeyError:
-            raise cmdexc.CommandError("Bookmark '{}' not found!".format(url))
+        except urlmarks.Error as e:
+            raise cmdexc.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def follow_selected(self, *, tab=False):

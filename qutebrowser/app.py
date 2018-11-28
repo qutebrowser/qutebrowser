@@ -470,10 +470,6 @@ def _init_modules(args, crash_handler):
     host_blocker.read_hosts()
     objreg.register('host-blocker', host_blocker)
 
-    log.init.debug("Initializing quickmarks...")
-    quickmark_manager = urlmarks.QuickmarkManager(qApp)
-    objreg.register('quickmark-manager', quickmark_manager)
-
     log.init.debug("Initializing bookmarks...")
     bookmark_manager = urlmarks.BookmarkManager(qApp)
     objreg.register('bookmark-manager', bookmark_manager)

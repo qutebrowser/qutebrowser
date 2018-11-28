@@ -73,6 +73,10 @@ class MessageMock:
             assert msg.level == level
         return msg
 
+    def get_messages(self, level):
+        """Get the text of all messages at the given level as a list."""
+        return [m.text for m in self.messages if m.level == level]
+
     def patch(self):
         """Start recording messages."""
         message.global_bridge.show_message.connect(self._record_message)

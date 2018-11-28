@@ -43,19 +43,11 @@ def _delete_bookmark(data):
     bookmark_manager.delete(urlstr)
 
 
-def _delete_quickmark(data):
-    name = data[_TEXTCOL]
-    quickmark_manager = objreg.get('quickmark-manager')
-    log.completion.debug('Deleting quickmark {}'.format(name))
-    quickmark_manager.delete(name)
-
-
 def url(*, info):
     """A model which combines various URLs.
 
     This combines:
     - bookmarks
-    - quickmarks
     - search engines
     - web history URLs
 
@@ -63,13 +55,13 @@ def url(*, info):
     """
     model = completionmodel.CompletionModel(column_widths=(40, 50, 10))
 
-    # pylint: disable=bad-config-option
-    quickmarks = [(url, name) for (name, url)
-                  in objreg.get('quickmark-manager').marks.items()]
-    bookmarks = objreg.get('bookmark-manager').marks.items()
+    bookmarks = [(m.url, m.title, ' '.join(m.tags)) for m in
+                 objreg.get('bookmark-manager')]
+
     searchengines = [(k, v) for k, v
                      in sorted(config.val.url.searchengines.items())
                      if k != 'DEFAULT']
+
     # pylint: enable=bad-config-option
     categories = config.val.completion.open_categories
     models = {}
@@ -78,10 +70,6 @@ def url(*, info):
         models['searchengines'] = listcategory.ListCategory(
             'Search engines', searchengines, sort=False)
 
-    if quickmarks and 'quickmarks' in categories:
-        models['quickmarks'] = listcategory.ListCategory(
-            'Quickmarks', quickmarks, delete_func=_delete_quickmark,
-            sort=False)
     if bookmarks and 'bookmarks' in categories:
         models['bookmarks'] = listcategory.ListCategory(
             'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False)
@@ -95,4 +83,25 @@ def url(*, info):
         if category in models:
             model.add_category(models[category])
 
+    return model
+
+
+def bookmark(*, info=None):  # pylint: disable=unused-argument
+    """A CompletionModel filled with all bookmarks."""
+    model = completionmodel.CompletionModel(column_widths=(30, 50, 20))
+    marks = ((m.url, m.title, ' '.join(m.tags))
+             for m in objreg.get('bookmark-manager'))
+    model.add_category(listcategory.ListCategory('Bookmarks', marks,
+                                                 delete_func=_delete_bookmark,
+                                                 sort=False))
+    return model
+
+
+def bookmark_tag(*args, info=None):  # pylint: disable=unused-argument
+    """A CompletionModel filled with all bookmark tags."""
+    model = completionmodel.CompletionModel(column_widths=(20, 80, 0))
+    bookmarks = objreg.get('bookmark-manager')
+    tags = ((t, '') for t in bookmarks.all_tags() if t not in args)
+    cat = listcategory.ListCategory('Tags', tags)
+    model.add_category(cat)
     return model

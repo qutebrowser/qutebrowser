@@ -317,7 +317,7 @@ def test_command_on_start(request, quteproc_new):
     See https://github.com/qutebrowser/qutebrowser/issues/2408
     """
     args = (['--temp-basedir'] + _base_args(request.config) +
-            [':quickmark-add https://www.example.com/ example'])
+            [':bookmark-add https://www.example.com/ example'])
     quteproc_new.start(args)
     quteproc_new.send_cmd(':quit')
     quteproc_new.wait_for_quit()

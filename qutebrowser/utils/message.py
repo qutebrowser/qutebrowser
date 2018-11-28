@@ -89,7 +89,7 @@ def info(message, *, replace=False):
 
 def _build_question(title, text=None, *, mode, default=None, abort_on=(),
                     url=None):
-    """Common function for ask/ask_async."""
+    """Prepare a question object."""
     if not isinstance(mode, usertypes.PromptMode):
         raise TypeError("Mode {} is no PromptMode member!".format(mode))
     question = usertypes.Question()
@@ -121,22 +121,6 @@ def ask(*args, **kwargs):
     answer = question.answer
     question.deleteLater()
     return answer
-
-
-def ask_async(title, mode, handler, **kwargs):
-    """Ask an async question in the statusbar.
-
-    Args:
-        message: The message to display to the user.
-        mode: A PromptMode.
-        handler: The function to get called with the answer as argument.
-        default: The default value to display.
-        text: Additional text to show.
-    """
-    question = _build_question(title, mode=mode, **kwargs)
-    question.answered.connect(handler)
-    question.completed.connect(question.deleteLater)
-    global_bridge.ask(question, blocking=False)
 
 
 def confirm_async(*, yes_action, no_action=None, cancel_action=None,

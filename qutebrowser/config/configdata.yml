@@ -987,11 +987,10 @@ downloads.location.suggestion:
 completion.open_categories:
   type:
     name: FlagList
-    valid_values: [searchengines, quickmarks, bookmarks, history]
+    valid_values: [searchengines, bookmarks, history]
     none_ok: true
   default:
     - searchengines
-    - quickmarks
     - bookmarks
     - history
   desc: Which categories to show (in which order) in the :open completion.
@@ -2625,10 +2624,7 @@ bindings.default:
       PP: open -t -- {primary}
       wp: open -w -- {clipboard}
       wP: open -w -- {primary}
-      m: quickmark-save
-      b: set-cmd-text -s :quickmark-load
-      B: set-cmd-text -s :quickmark-load -t
-      wb: set-cmd-text -s :quickmark-load -w
+      m: set-cmd-text -s :bookmark-tag {url}
       M: bookmark-add
       gb: set-cmd-text -s :bookmark-load
       gB: set-cmd-text -s :bookmark-load -t

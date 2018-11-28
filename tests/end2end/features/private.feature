@@ -139,11 +139,11 @@ Feature: Using private browsing
         And I run :jseval localStorage.qute_private_test
         Then "No output or error" should be logged
 
-    Scenario: Opening quickmark in private window
+    Scenario: Opening bookmark in private window
         When I open data/numbers/1.txt in a private window
         And I run :window-only
-        And I run :quickmark-add http://localhost:(port)/data/numbers/2.txt two
-        And I run :quickmark-load two
+        And I run :bookmark-tag http://localhost:(port)/data/numbers/2.txt two
+        And I run :bookmark-load two
         And I wait until data/numbers/2.txt is loaded
         Then the session should look like:
             windows:
