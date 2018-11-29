@@ -2960,7 +2960,7 @@ Default: +pass:[false]+
 === search.ignore_case
 When to find text on a page case-insensitively.
 
-Type: <<types,String>>
+Type: <<types,IgnoreCase>>
 
 Valid values:
 
@@ -3624,6 +3624,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 |FontFamily|A Qt font family.
 |FormatString|A string with placeholders.
 |FuzzyUrl|A URL which gets interpreted as search if needed.
+|IgnoreCase|Whether to search case insensitively.
 |Int|Base class for an integer setting.
 |Key|A name of a key.
 |List|A list of values.

@@ -125,8 +125,8 @@ class WebKitSearch(browsertab.AbstractSearch):
         self._widget.findText('')
         self._widget.findText('', QWebPage.HighlightAllOccurrences)
 
-    def search(self, text, *, ignore_case='never', reverse=False,
-               result_cb=None):
+    def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
+               reverse=False, result_cb=None):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"

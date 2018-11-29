@@ -297,7 +297,7 @@ class AbstractSearch(QObject):
         self.text = None  # type: typing.Optional[str]
         self.search_displayed = False
 
-    def _is_case_sensitive(self, ignore_case: str) -> bool:
+    def _is_case_sensitive(self, ignore_case: usertypes.IgnoreCase) -> bool:
         """Check if case-sensitivity should be used.
 
         This assumes self.text is already set properly.
@@ -307,21 +307,21 @@ class AbstractSearch(QObject):
         """
         assert self.text is not None
         mapping = {
-            'smart': not self.text.islower(),
-            'never': True,
-            'always': False,
+            usertypes.IgnoreCase.smart: not self.text.islower(),
+            usertypes.IgnoreCase.never: True,
+            usertypes.IgnoreCase.always: False,
         }
         return mapping[ignore_case]
 
     def search(self, text: str, *,
-               ignore_case: str = 'never',
+               ignore_case: usertypes.IgnoreCase = usertypes.IgnoreCase.never,
                reverse: bool = False,
                result_cb: _Callback = None) -> None:
         """Find the given text on the page.
 
         Args:
             text: The text to search for.
-            ignore_case: Search case-insensitively. ('always'/'never/'smart')
+            ignore_case: Search case-insensitively.
             reverse: Reverse search direction.
             result_cb: Called with a bool indicating whether a match was found.
         """

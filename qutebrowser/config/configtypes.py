@@ -62,7 +62,8 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 
 from qutebrowser.misc import objects
 from qutebrowser.config import configexc, configutils
-from qutebrowser.utils import standarddir, utils, qtutils, urlutils, urlmatch
+from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
+                               usertypes)
 from qutebrowser.keyinput import keyutils
 
 
@@ -908,6 +909,26 @@ class ColorSystem(MappingType):
         'hsv': QColor.Hsv,
         'hsl': QColor.Hsl,
         'none': None,
+    }
+
+
+class IgnoreCase(MappingType):
+
+    """Whether to search case insensitively."""
+
+    def __init__(self, none_ok=False):
+        super().__init__(
+            none_ok,
+            valid_values=ValidValues(
+                ('always', "Search case-insensitively."),
+                ('never', "Search case-sensitively."),
+                ('smart', ("Search case-sensitively if there are capital "
+                           "characters.")))),
+
+    MAPPING = {
+        'always': usertypes.IgnoreCase.always,
+        'never': usertypes.IgnoreCase.never,
+        'smart': usertypes.IgnoreCase.smart,
     }
 
 

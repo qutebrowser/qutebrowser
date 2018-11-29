@@ -253,6 +253,9 @@ JsLogLevel = enum.Enum('JsLogLevel', ['unknown', 'info', 'warning', 'error'])
 MessageLevel = enum.Enum('MessageLevel', ['error', 'warning', 'info'])
 
 
+IgnoreCase = enum.Enum('IgnoreCase', ['smart', 'never', 'always'])
+
+
 class Question(QObject):
 
     """A question asked to the user, e.g. via the status bar.
