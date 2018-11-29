@@ -60,7 +60,7 @@ from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QTabWidget, QTabBar
 
-from qutebrowser.commands import cmdutils
+from qutebrowser.misc import objects
 from qutebrowser.config import configexc, configutils
 from qutebrowser.utils import standarddir, utils, qtutils, urlutils, urlmatch
 from qutebrowser.keyinput import keyutils
@@ -881,7 +881,7 @@ class Command(BaseType):
 
     def complete(self):
         out = []
-        for cmdname, obj in cmdutils.cmd_dict.items():
+        for cmdname, obj in objects.commands.items():
             out.append((cmdname, obj.desc))
         return out
 

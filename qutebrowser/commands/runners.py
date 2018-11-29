@@ -26,9 +26,9 @@ import attr
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
-from qutebrowser.misc import split
+from qutebrowser.misc import split, objects
 
 
 last_command = {}
@@ -193,7 +193,7 @@ class CommandParser:
             cmdstr = self._completion_match(cmdstr)
 
         try:
-            cmd = cmdutils.cmd_dict[cmdstr]
+            cmd = objects.commands[cmdstr]
         except KeyError:
             if not fallback:
                 raise cmdexc.NoSuchCommandError(
@@ -220,7 +220,7 @@ class CommandParser:
         Return:
             cmdstr modified to the matching completion or unmodified
         """
-        matches = [cmd for cmd in sorted(cmdutils.cmd_dict, key=len)
+        matches = [cmd for cmd in sorted(objects.commands, key=len)
                    if cmdstr in cmd]
         if len(matches) == 1:
             cmdstr = matches[0]

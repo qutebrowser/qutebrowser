@@ -33,6 +33,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
+from qutebrowser.misc import objects
 from qutebrowser.config import configtypes, configexc, configutils
 from qutebrowser.utils import debug, utils, qtutils, urlmatch
 from qutebrowser.browser.network import pac
@@ -1208,11 +1209,11 @@ class TestCommand:
     @pytest.fixture
     def patch_cmdutils(self, monkeypatch, stubs):
         """Patch the cmdutils module to provide fake commands."""
-        cmd_utils = stubs.FakeCmdUtils({
+        commands = {
             'cmd1': stubs.FakeCommand(desc="desc 1"),
-            'cmd2': stubs.FakeCommand(desc="desc 2")})
-        monkeypatch.setattr(configtypes, 'cmdutils', cmd_utils)
-        monkeypatch.setattr('qutebrowser.commands.runners.cmdutils', cmd_utils)
+            'cmd2': stubs.FakeCommand(desc="desc 2"),
+        }
+        monkeypatch.setattr(objects, 'commands', commands)
 
     @pytest.fixture
     def klass(self):

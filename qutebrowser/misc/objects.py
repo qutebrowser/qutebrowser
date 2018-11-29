@@ -28,6 +28,7 @@ MYPY = False
 if MYPY:
     # pylint: disable=unused-import,useless-suppression
     from qutebrowser.utils import usertypes
+    from qutebrowser.commands import command
 
 
 class NoBackend:
@@ -39,3 +40,4 @@ class NoBackend:
 
 
 backend = NoBackend()  # type: typing.Union[usertypes.Backend, NoBackend]
+commands = {}  # type: typing.Dict[str, command.Command]

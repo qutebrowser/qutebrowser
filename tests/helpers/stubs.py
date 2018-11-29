@@ -326,14 +326,6 @@ class FakeSignal:
         """
 
 
-@attr.s
-class FakeCmdUtils:
-
-    """Stub for cmdutils which provides a cmd_dict."""
-
-    cmd_dict = attr.ib()
-
-
 @attr.s(frozen=True)
 class FakeCommand:
 

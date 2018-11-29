@@ -129,7 +129,7 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
     def config_cycle(option, *values):
         """For testing varargs."""
 
-    cmd_utils = stubs.FakeCmdUtils({
+    commands = {
         'set': command.Command(name='set', handler=set_command),
         'help': command.Command(name='help', handler=show_help),
         'open': command.Command(name='open', handler=openurl, maxsplit=0),
@@ -137,8 +137,8 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
         'tab-give': command.Command(name='tab-give', handler=tab_give),
         'config-cycle': command.Command(name='config-cycle',
                                         handler=config_cycle),
-    })
-    monkeypatch.setattr(completer, 'cmdutils', cmd_utils)
+    }
+    monkeypatch.setattr(completer.objects, 'commands', commands)
 
 
 def _set_cmd_prompt(cmd, txt):

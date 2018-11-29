@@ -35,9 +35,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
 from qutebrowser import qutebrowser, commands
-from qutebrowser.commands import cmdutils, argparser
+from qutebrowser.commands import argparser
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import docutils, usertypes
+from qutebrowser.misc import objects
 from scripts import asciidoc2html, utils
 
 FILE_HEADER = """
@@ -350,7 +351,7 @@ def generate_commands(filename):
         normal_cmds = []
         other_cmds = []
         debug_cmds = []
-        for name, cmd in cmdutils.cmd_dict.items():
+        for name, cmd in objects.commands.items():
             if cmd.deprecated:
                 continue
             if usertypes.KeyMode.normal not in cmd.modes:

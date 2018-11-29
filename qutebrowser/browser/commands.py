@@ -37,7 +37,7 @@ from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, standarddir)
 from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.misc import editor, guiprocess
+from qutebrowser.misc import editor, guiprocess, objects
 from qutebrowser.completion.models import urlmodel, miscmodels
 from qutebrowser.mainwindow import mainwindow
 
@@ -1612,7 +1612,7 @@ class CommandDispatcher:
             path = 'index.html'
         elif topic.startswith(':'):
             command = topic[1:]
-            if command not in cmdutils.cmd_dict:
+            if command not in objects.commands:
                 raise cmdexc.CommandError("Invalid command {}!".format(
                     command))
             path = 'commands.html#{}'.format(command)

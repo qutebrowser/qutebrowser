@@ -30,7 +30,7 @@ import argparse
 import vulture
 
 import qutebrowser.app  # pylint: disable=unused-import
-from qutebrowser.commands import cmdutils
+from qutebrowser.misc import objects
 from qutebrowser.utils import utils
 from qutebrowser.browser.webkit import rfc6266
 # To run the decorators from there
@@ -44,7 +44,7 @@ from qutebrowser.config import configtypes
 def whitelist_generator():  # noqa
     """Generator which yields lines to add to a vulture whitelist."""
     # qutebrowser commands
-    for cmd in cmdutils.cmd_dict.values():
+    for cmd in objects.commands.values():
         yield utils.qualname(cmd.handler)
 
     # pyPEG2 classes

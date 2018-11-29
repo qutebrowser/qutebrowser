@@ -22,10 +22,9 @@
 import inspect
 import typing  # pylint: disable=unused-import
 
+from qutebrowser.misc import objects
 from qutebrowser.utils import qtutils, log
 from qutebrowser.commands import command, cmdexc
-
-cmd_dict = {}  # type: typing.Dict[str, command.Command]
 
 
 def check_overflow(arg, ctype):
@@ -89,7 +88,7 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         Gets called when a function should be decorated.
 
         Doesn't actually decorate anything, but creates a Command object and
-        registers it in the cmd_dict.
+        registers it in the global commands dict.
 
         Args:
             func: The function to be decorated.
@@ -104,11 +103,11 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
             name = self._name
         log.commands.vdebug("Registering command {} (from {}:{})".format(
             name, func.__module__, func.__qualname__))
-        if name in cmd_dict:
+        if name in objects.commands:
             raise ValueError("{} is already registered!".format(name))
         cmd = command.Command(name=name, instance=self._instance,
                               handler=func, **self._kwargs)
-        cmd_dict[name] = cmd
+        objects.commands[name] = cmd
         return func
 
 
