@@ -19,7 +19,8 @@
 
 """Keyboard macro system."""
 
-from qutebrowser.commands import cmdexc, cmdutils, runners
+from qutebrowser.commands import runners
+from qutebrowser.api import cmdutils
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, objreg, usertypes
 
@@ -89,12 +90,12 @@ class MacroRecorder:
         """Run a recorded macro."""
         if register == '@':
             if self._last_register is None:
-                raise cmdexc.CommandError("No previous macro")
+                raise cmdutils.CommandError("No previous macro")
             register = self._last_register
         self._last_register = register
 
         if register not in self._macros:
-            raise cmdexc.CommandError(
+            raise cmdutils.CommandError(
                 "No macro recorded in '{}'!".format(register))
 
         commandrunner = runners.CommandRunner(win_id)

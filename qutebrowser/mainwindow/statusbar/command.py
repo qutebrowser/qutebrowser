@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import QSizePolicy
 
 from qutebrowser.keyinput import modeman, modeparsers
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
 from qutebrowser.utils import usertypes, log, objreg, message, utils
@@ -137,11 +137,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             text += ' '
         if append:
             if not self.text():
-                raise cmdexc.CommandError("No current text!")
+                raise cmdutils.CommandError("No current text!")
             text = self.text() + text
 
         if not text or text[0] not in modeparsers.STARTCHARS:
-            raise cmdexc.CommandError(
+            raise cmdutils.CommandError(
                 "Invalid command text '{}'.".format(text))
         if run_on_count and count is not None:
             self.got_cmd[str, int].emit(text, count)

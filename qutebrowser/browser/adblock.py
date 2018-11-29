@@ -28,7 +28,7 @@ import zipfile
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, standarddir, log, message
-from qutebrowser.commands import cmdutils
+from qutebrowser.api import cmdutils
 
 
 def _guess_zip_filename(zf):

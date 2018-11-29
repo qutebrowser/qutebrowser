@@ -35,7 +35,8 @@ from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
-from qutebrowser.commands import cmdutils, runners, cmdexc
+from qutebrowser.commands import runners
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configdata
 from qutebrowser.misc import consolewidget
 from qutebrowser.utils.version import pastebin_version
@@ -52,7 +53,7 @@ def later(ms: int, command: str, win_id: int) -> None:
         command: The command to run, with optional args.
     """
     if ms < 0:
-        raise cmdexc.CommandError("I can't run something in the past!")
+        raise cmdutils.CommandError("I can't run something in the past!")
     commandrunner = runners.CommandRunner(win_id)
     app = objreg.get('app')
     timer = usertypes.Timer(name='later', parent=app)
@@ -61,8 +62,8 @@ def later(ms: int, command: str, win_id: int) -> None:
         try:
             timer.setInterval(ms)
         except OverflowError:
-            raise cmdexc.CommandError("Numeric argument is too large for "
-                                      "internal int representation.")
+            raise cmdutils.CommandError("Numeric argument is too large for "
+                                        "internal int representation.")
         timer.timeout.connect(
             functools.partial(commandrunner.run_safely, command))
         timer.timeout.connect(timer.deleteLater)
@@ -87,7 +88,7 @@ def repeat(times: int, command: str, win_id: int, count: int = None) -> None:
         times *= count
 
     if times < 0:
-        raise cmdexc.CommandError("A negative count doesn't make sense.")
+        raise cmdutils.CommandError("A negative count doesn't make sense.")
     commandrunner = runners.CommandRunner(win_id)
     for _ in range(times):
         commandrunner.run_safely(command)
@@ -227,12 +228,12 @@ def debug_trace(expr=""):
         expr: What to trace, passed to hunter.
     """
     if hunter is None:
-        raise cmdexc.CommandError("You need to install 'hunter' to use this "
-                                  "command!")
+        raise cmdutils.CommandError("You need to install 'hunter' to use this "
+                                    "command!")
     try:
         eval('hunter.trace({})'.format(expr))
     except Exception as e:
-        raise cmdexc.CommandError("{}: {}".format(e.__class__.__name__, e))
+        raise cmdutils.CommandError("{}: {}".format(e.__class__.__name__, e))
 
 
 @cmdutils.register(maxsplit=0, debug=True, no_cmd_split=True)
@@ -251,7 +252,7 @@ def debug_pyeval(s, file=False, quiet=False):
             with open(path, 'r', encoding='utf-8') as f:
                 s = f.read()
         except OSError as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdutils.CommandError(str(e))
         try:
             exec(s)
             out = "No error"
@@ -297,7 +298,7 @@ def repeat_command(win_id, count=None):
     """
     mode_manager = objreg.get('mode-manager', scope='window', window=win_id)
     if mode_manager.mode not in runners.last_command:
-        raise cmdexc.CommandError("You didn't do anything yet.")
+        raise cmdutils.CommandError("You didn't do anything yet.")
     cmd = runners.last_command[mode_manager.mode]
     commandrunner = runners.CommandRunner(win_id)
     commandrunner.run(cmd[0], count if count is not None else cmd[1])
@@ -311,7 +312,7 @@ def log_capacity(capacity: int) -> None:
        capacity: Number of lines for the log.
     """
     if capacity < 0:
-        raise cmdexc.CommandError("Can't set a negative log capacity!")
+        raise cmdutils.CommandError("Can't set a negative log capacity!")
     else:
         assert log.ram_handler is not None
         log.ram_handler.change_log_capacity(capacity)
@@ -341,17 +342,17 @@ def debug_log_filter(filters: str) -> None:
                  clear any existing filters.
     """
     if log.console_filter is None:
-        raise cmdexc.CommandError("No log.console_filter. Not attached "
-                                  "to a console?")
+        raise cmdutils.CommandError("No log.console_filter. Not attached "
+                                    "to a console?")
 
     if filters.strip().lower() == 'none':
         log.console_filter.names = None
         return
 
     if not set(filters.split(',')).issubset(log.LOGGER_NAMES):
-        raise cmdexc.CommandError("filters: Invalid value {} - expected one "
-                                  "of: {}".format(filters,
-                                                  ', '.join(log.LOGGER_NAMES)))
+        raise cmdutils.CommandError("filters: Invalid value {} - expected one "
+                                    "of: {}".format(
+                                        filters, ', '.join(log.LOGGER_NAMES)))
 
     log.console_filter.names = filters.split(',')
 

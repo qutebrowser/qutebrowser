@@ -60,7 +60,8 @@ except ImportError:
 import qutebrowser
 import qutebrowser.resources
 from qutebrowser.completion.models import miscmodels
-from qutebrowser.commands import cmdutils, runners, cmdexc
+from qutebrowser.commands import runners
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config, websettings, configfiles, configinit
 from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
                                  qtnetworkdownloads, downloads, greasemonkey)
@@ -619,10 +620,11 @@ class Quitter:
             ok = self.restart(session='_restart')
         except sessions.SessionError as e:
             log.destroy.exception("Failed to save session!")
-            raise cmdexc.CommandError("Failed to save session: {}!".format(e))
+            raise cmdutils.CommandError("Failed to save session: {}!"
+                                        .format(e))
         except SyntaxError as e:
             log.destroy.exception("Got SyntaxError")
-            raise cmdexc.CommandError("SyntaxError in {}:{}: {}".format(
+            raise cmdutils.CommandError("SyntaxError in {}:{}: {}".format(
                 e.filename, e.lineno, e))
         if ok:
             self.shutdown(restart=True)
@@ -684,7 +686,7 @@ class Quitter:
             session: The name of the session to save.
         """
         if session is not None and not save:
-            raise cmdexc.CommandError("Session name given without --save!")
+            raise cmdutils.CommandError("Session name given without --save!")
         if save:
             if session is None:
                 session = sessions.default

@@ -27,6 +27,23 @@ from qutebrowser.utils import qtutils, log
 from qutebrowser.commands import command, cmdexc
 
 
+class CommandError(cmdexc.Error):
+
+    """Raised when a command encounters an error while running.
+
+    If your command handler encounters an error and cannot continue, raise this
+    exception with an appropriate error message:
+
+        raise cmdexc.CommandError("Message")
+
+    The message will then be shown in the qutebrowser status bar.
+
+    Note that you should only raise this exception while a command handler is
+    run. Raising it at another point causes qutebrowser to crash due to an
+    unhandled exception.
+    """
+
+
 def check_overflow(arg: int, ctype: str) -> None:
     """Check if the given argument is in bounds for the given type.
 
@@ -37,9 +54,8 @@ def check_overflow(arg: int, ctype: str) -> None:
     try:
         qtutils.check_overflow(arg, ctype)
     except OverflowError:
-        raise cmdexc.CommandError(
-            "Numeric argument is too large for internal {} "
-            "representation.".format(ctype))
+        raise CommandError("Numeric argument is too large for internal {} "
+                           "representation.".format(ctype))
 
 
 def check_exclusive(flags: typing.Iterable[bool],
@@ -54,8 +70,7 @@ def check_exclusive(flags: typing.Iterable[bool],
     """
     if sum(1 for e in flags if e) > 1:
         argstr = '/'.join('-' + e for e in names)
-        raise cmdexc.CommandError("Only one of {} can be given!".format(
-            argstr))
+        raise CommandError("Only one of {} can be given!".format(argstr))
 
 
 class register:  # noqa: N801,N806 pylint: disable=invalid-name

@@ -28,7 +28,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.misc import utilcmds
-from qutebrowser.commands import cmdexc
+from qutebrowser.api import cmdutils
 from qutebrowser.utils import utils, objreg
 
 
@@ -83,14 +83,14 @@ def test_debug_trace_exception(mocker):
 
     hunter_mock = mocker.patch('qutebrowser.misc.utilcmds.hunter')
     hunter_mock.trace.side_effect = _mock_exception
-    with pytest.raises(cmdexc.CommandError, match='Exception: message'):
+    with pytest.raises(cmdutils.CommandError, match='Exception: message'):
         utilcmds.debug_trace()
 
 
 def test_debug_trace_no_hunter(monkeypatch):
     """Test that an error is shown if debug_trace is called without hunter."""
     monkeypatch.setattr(utilcmds, 'hunter', None)
-    with pytest.raises(cmdexc.CommandError, match="You need to install "
+    with pytest.raises(cmdutils.CommandError, match="You need to install "
                        "'hunter' to use this command!"):
         utilcmds.debug_trace()
 
@@ -103,7 +103,7 @@ def test_repeat_command_initial(mocker, mode_manager):
     """
     objreg_mock = mocker.patch('qutebrowser.misc.utilcmds.objreg')
     objreg_mock.get.return_value = mode_manager
-    with pytest.raises(cmdexc.CommandError,
+    with pytest.raises(cmdutils.CommandError,
                        match="You didn't do anything yet."):
         utilcmds.repeat_command(win_id=0)
 

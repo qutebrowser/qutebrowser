@@ -28,7 +28,8 @@ from PyQt5.QtCore import (pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
-from qutebrowser.commands import runners, cmdutils
+from qutebrowser.commands import runners
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja)

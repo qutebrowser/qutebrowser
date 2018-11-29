@@ -33,7 +33,7 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel, QUrl)
 
 from qutebrowser.browser import pdfjs
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
                                qtutils, objreg)
@@ -1009,8 +1009,8 @@ class DownloadModel(QAbstractListModel):
             count: The index of the download
         """
         if not count:
-            raise cmdexc.CommandError("There's no download!")
-        raise cmdexc.CommandError("There's no download {}!".format(count))
+            raise cmdutils.CommandError("There's no download!")
+        raise cmdutils.CommandError("There's no download {}!".format(count))
 
     @cmdutils.register(instance='download-model', scope='window')
     @cmdutils.argument('count', count=True)
@@ -1034,8 +1034,8 @@ class DownloadModel(QAbstractListModel):
             if download.done:
                 if not count:
                     count = len(self)
-                raise cmdexc.CommandError("Download {} is already done!"
-                                          .format(count))
+                raise cmdutils.CommandError("Download {} is already done!"
+                                            .format(count))
             download.cancel()
 
     @cmdutils.register(instance='download-model', scope='window')
@@ -1053,7 +1053,8 @@ class DownloadModel(QAbstractListModel):
         if not download.successful:
             if not count:
                 count = len(self)
-            raise cmdexc.CommandError("Download {} is not done!".format(count))
+            raise cmdutils.CommandError("Download {} is not done!"
+                                        .format(count))
         download.delete()
         download.remove()
         log.downloads.debug("deleted download {}".format(download))
@@ -1080,7 +1081,8 @@ class DownloadModel(QAbstractListModel):
         if not download.successful:
             if not count:
                 count = len(self)
-            raise cmdexc.CommandError("Download {} is not done!".format(count))
+            raise cmdutils.CommandError("Download {} is not done!"
+                                        .format(count))
         download.open_file(cmdline)
 
     @cmdutils.register(instance='download-model', scope='window')
@@ -1097,12 +1099,12 @@ class DownloadModel(QAbstractListModel):
             except IndexError:
                 self._raise_no_download(count)
             if download.successful or not download.done:
-                raise cmdexc.CommandError("Download {} did not fail!".format(
-                    count))
+                raise cmdutils.CommandError("Download {} did not fail!"
+                                            .format(count))
         else:
             to_retry = [d for d in self if d.done and not d.successful]
             if not to_retry:
-                raise cmdexc.CommandError("No failed downloads!")
+                raise cmdutils.CommandError("No failed downloads!")
             else:
                 download = to_retry[0]
         download.try_retry()
@@ -1137,8 +1139,8 @@ class DownloadModel(QAbstractListModel):
             if not download.done:
                 if not count:
                     count = len(self)
-                raise cmdexc.CommandError("Download {} is not done!"
-                                          .format(count))
+                raise cmdutils.CommandError("Download {} is not done!"
+                                            .format(count))
             download.remove()
 
     def running_downloads(self):

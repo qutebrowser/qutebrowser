@@ -19,7 +19,7 @@
 
 # pylint: disable=unused-variable
 
-"""Tests for qutebrowser.commands.cmdutils."""
+"""Tests for qutebrowser.api.cmdutils."""
 
 import sys
 import logging
@@ -30,7 +30,8 @@ import enum
 import pytest
 
 from qutebrowser.misc import objects
-from qutebrowser.commands import cmdexc, argparser, command, cmdutils
+from qutebrowser.commands import cmdexc, argparser, command
+from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes
 
 
@@ -59,7 +60,7 @@ class TestCheckOverflow:
     def test_bad(self):
         int32_max = 2 ** 31 - 1
 
-        with pytest.raises(cmdexc.CommandError, match="Numeric argument is "
+        with pytest.raises(cmdutils.CommandError, match="Numeric argument is "
                            "too large for internal int representation."):
             cmdutils.check_overflow(int32_max + 1, 'int')
 
@@ -71,7 +72,7 @@ class TestCheckExclusive:
         cmdutils.check_exclusive(flags, [])
 
     def test_bad(self):
-        with pytest.raises(cmdexc.CommandError,
+        with pytest.raises(cmdutils.CommandError,
                            match="Only one of -x/-y/-z can be given!"):
             cmdutils.check_exclusive([True, True], 'xyz')
 

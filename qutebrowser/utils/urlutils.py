@@ -29,9 +29,9 @@ import urllib.parse
 from PyQt5.QtCore import QUrl, QUrlQuery
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
 
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import log, qtutils, message, utils
-from qutebrowser.commands import cmdexc
 from qutebrowser.browser.network import pac
 
 
@@ -361,7 +361,7 @@ def invalid_url_error(url, action):
 def raise_cmdexc_if_invalid(url):
     """Check if the given QUrl is invalid, and if so, raise a CommandError."""
     if not url.isValid():
-        raise cmdexc.CommandError(get_errstring(url))
+        raise cmdutils.CommandError(get_errstring(url))
 
 
 def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):

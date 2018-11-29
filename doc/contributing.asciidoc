@@ -407,7 +407,7 @@ Creating a new command is straightforward:
 
 [source,python]
 ----
-import qutebrowser.commands.cmdutils
+from qutebrowser.api import cmdutils
 
 ...
 
@@ -429,7 +429,7 @@ selects which object registry (global, per-tab, etc.) to use.  See the
 
 There are also other arguments to customize the way the command is
 registered; see the class documentation for `register` in
-`qutebrowser.commands.cmdutils` for details.
+`qutebrowser.api.cmdutils` for details.
 
 The types of the function arguments are inferred based on their default values,
 e.g., an argument `foo=True` will be converted to a flag `-f`/`--foo` in

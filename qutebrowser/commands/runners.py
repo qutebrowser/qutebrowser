@@ -25,6 +25,7 @@ import re
 import attr
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
@@ -53,7 +54,7 @@ def _current_url(tabbed_browser):
         if e.reason:
             msg += " ({})".format(e.reason)
         msg += "!"
-        raise cmdexc.CommandError(msg)
+        raise cmdutils.CommandError(msg)
 
 
 def replace_variables(win_id, arglist):
@@ -93,7 +94,7 @@ def replace_variables(win_id, arglist):
             # "{url}" from clipboard is not expanded)
             args.append(repl_pattern.sub(repl_cb, arg))
     except utils.ClipboardError as e:
-        raise cmdexc.CommandError(e)
+        raise cmdutils.CommandError(e)
     return args
 
 

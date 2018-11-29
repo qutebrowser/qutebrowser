@@ -24,7 +24,7 @@ import contextlib
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.completion.models import configmodel
 from qutebrowser.utils import objreg, message, standarddir, urlmatch
 from qutebrowser.config import configtypes, configexc, configfiles, configdata
@@ -46,7 +46,7 @@ class ConfigCommands:
         try:
             yield
         except configexc.Error as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdutils.CommandError(str(e))
 
     def _parse_pattern(self, pattern):
         """Parse a pattern string argument to a pattern."""
@@ -56,15 +56,15 @@ class ConfigCommands:
         try:
             return urlmatch.UrlPattern(pattern)
         except urlmatch.ParseError as e:
-            raise cmdexc.CommandError("Error while parsing {}: {}"
-                                      .format(pattern, str(e)))
+            raise cmdutils.CommandError("Error while parsing {}: {}"
+                                        .format(pattern, str(e)))
 
     def _parse_key(self, key):
         """Parse a key argument."""
         try:
             return keyutils.KeySequence.parse(key)
         except keyutils.KeyParseError as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdutils.CommandError(str(e))
 
     def _print_value(self, option, pattern):
         """Print the value of the given option."""
@@ -105,8 +105,8 @@ class ConfigCommands:
             return
 
         if option.endswith('!'):
-            raise cmdexc.CommandError("Toggling values was moved to the "
-                                      ":config-cycle command")
+            raise cmdutils.CommandError("Toggling values was moved to the "
+                                        ":config-cycle command")
 
         pattern = self._parse_pattern(pattern)
 
@@ -213,8 +213,8 @@ class ConfigCommands:
             values = ['true', 'false']
 
         if len(values) < 2:
-            raise cmdexc.CommandError("Need at least two values for "
-                                      "non-boolean settings.")
+            raise cmdutils.CommandError("Need at least two values for "
+                                        "non-boolean settings.")
 
         # Use the next valid value from values, or the first if the current
         # value does not appear in the list
@@ -263,8 +263,8 @@ class ConfigCommands:
         opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
         if not isinstance(opt.typ, valid_list_types):
-            raise cmdexc.CommandError(":config-list-add can only be used for "
-                                      "lists")
+            raise cmdutils.CommandError(":config-list-add can only be used "
+                                        "for lists")
 
         with self._handle_config_error():
             option_value = self._config.get_mutable_obj(option)
@@ -286,16 +286,16 @@ class ConfigCommands:
         """
         opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):
-            raise cmdexc.CommandError(":config-dict-add can only be used for "
-                                      "dicts")
+            raise cmdutils.CommandError(":config-dict-add can only be used "
+                                        "for dicts")
 
         with self._handle_config_error():
             option_value = self._config.get_mutable_obj(option)
 
             if key in option_value and not replace:
-                raise cmdexc.CommandError("{} already exists in {} - use "
-                                          "--replace to overwrite!"
-                                          .format(key, option))
+                raise cmdutils.CommandError("{} already exists in {} - use "
+                                            "--replace to overwrite!"
+                                            .format(key, option))
 
             option_value[key] = value
             self._config.update_mutables(save_yaml=not temp)
@@ -313,15 +313,15 @@ class ConfigCommands:
         opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
         if not isinstance(opt.typ, valid_list_types):
-            raise cmdexc.CommandError(":config-list-remove can only be used "
-                                      "for lists")
+            raise cmdutils.CommandError(":config-list-remove can only be used "
+                                        "for lists")
 
         with self._handle_config_error():
             option_value = self._config.get_mutable_obj(option)
 
             if value not in option_value:
-                raise cmdexc.CommandError("{} is not in {}!".format(value,
-                                                                    option))
+                raise cmdutils.CommandError("{} is not in {}!".format(
+                    value, option))
 
             option_value.remove(value)
 
@@ -339,15 +339,15 @@ class ConfigCommands:
         """
         opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):
-            raise cmdexc.CommandError(":config-dict-remove can only be used "
-                                      "for dicts")
+            raise cmdutils.CommandError(":config-dict-remove can only be used "
+                                        "for dicts")
 
         with self._handle_config_error():
             option_value = self._config.get_mutable_obj(option)
 
             if key not in option_value:
-                raise cmdexc.CommandError("{} is not in {}!".format(key,
-                                                                    option))
+                raise cmdutils.CommandError("{} is not in {}!".format(
+                    key, option))
 
             del option_value[key]
 
@@ -383,7 +383,7 @@ class ConfigCommands:
         try:
             configfiles.read_config_py(filename)
         except configexc.ConfigFileErrors as e:
-            raise cmdexc.CommandError(e)
+            raise cmdutils.CommandError(e)
 
     @cmdutils.register(instance='config-commands')
     def config_edit(self, no_source=False):
@@ -395,7 +395,7 @@ class ConfigCommands:
         def on_file_updated():
             """Source the new config when editing finished.
 
-            This can't use cmdexc.CommandError as it's run async.
+            This can't use cmdutils.CommandError as it's run async.
             """
             try:
                 configfiles.read_config_py(filename)
@@ -426,8 +426,8 @@ class ConfigCommands:
             filename = os.path.expanduser(filename)
 
         if os.path.exists(filename) and not force:
-            raise cmdexc.CommandError("{} already exists - use --force to "
-                                      "overwrite!".format(filename))
+            raise cmdutils.CommandError("{} already exists - use --force to "
+                                        "overwrite!".format(filename))
 
         if defaults:
             options = [(None, opt, opt.default)
@@ -447,4 +447,4 @@ class ConfigCommands:
         try:
             writer.write(filename)
         except OSError as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdutils.CommandError(str(e))

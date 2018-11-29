@@ -34,7 +34,7 @@ from qutebrowser.browser import downloads
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
-from qutebrowser.commands import cmdutils, cmdexc
+from qutebrowser.api import cmdutils
 from qutebrowser.qt import sip
 
 
@@ -384,7 +384,7 @@ class PromptContainer(QWidget):
         try:
             done = self._prompt.accept(value)
         except Error as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdutils.CommandError(str(e))
         if done:
             message.global_bridge.prompt_done.emit(self._prompt.KEY_MODE)
             question.done()

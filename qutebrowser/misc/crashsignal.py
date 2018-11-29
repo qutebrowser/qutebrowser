@@ -37,7 +37,7 @@ import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 
-from qutebrowser.commands import cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 

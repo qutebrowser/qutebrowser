@@ -26,7 +26,8 @@ from PyQt5.QtCore import QObject
 from PyQt5.QtGui import QStandardItemModel
 
 from qutebrowser.completion import completer
-from qutebrowser.commands import command, cmdutils
+from qutebrowser.commands import command
+from qutebrowser.api import cmdutils
 
 
 class FakeCompletionModel(QStandardItemModel):

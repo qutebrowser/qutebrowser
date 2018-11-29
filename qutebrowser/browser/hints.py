@@ -34,7 +34,8 @@ from PyQt5.QtWidgets import QLabel
 from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
-from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
+from qutebrowser.commands import userscripts, runners
+from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 
 
@@ -563,12 +564,12 @@ class HintManager(QObject):
         if target in [Target.userscript, Target.spawn, Target.run,
                       Target.fill]:
             if not args:
-                raise cmdexc.CommandError(
+                raise cmdutils.CommandError(
                     "'args' is required with target userscript/spawn/run/"
                     "fill.")
         else:
             if args:
-                raise cmdexc.CommandError(
+                raise cmdutils.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
 
     def _filter_matches(self, filterstr, elemstr):
@@ -705,7 +706,7 @@ class HintManager(QObject):
                                     window=self._win_id)
         tab = tabbed_browser.widget.currentWidget()
         if tab is None:
-            raise cmdexc.CommandError("No WebView available yet!")
+            raise cmdutils.CommandError("No WebView available yet!")
 
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
@@ -722,8 +723,8 @@ class HintManager(QObject):
                 pass
             else:
                 name = target.name.replace('_', '-')
-                raise cmdexc.CommandError("Rapid hinting makes no sense with "
-                                          "target {}!".format(name))
+                raise cmdutils.CommandError("Rapid hinting makes no sense "
+                                            "with target {}!".format(name))
 
         self._check_args(target, *args)
         self._context = HintContext()
@@ -736,7 +737,7 @@ class HintManager(QObject):
         try:
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
-            raise cmdexc.CommandError("No URL set for this page yet!")
+            raise cmdutils.CommandError("No URL set for this page yet!")
         self._context.args = list(args)
         self._context.group = group
 
@@ -744,7 +745,7 @@ class HintManager(QObject):
             selector = webelem.css_selector(self._context.group,
                                             self._context.baseurl)
         except webelem.Error as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdutils.CommandError(str(e))
 
         self._context.tab.elements.find_css(selector, self._start_cb,
                                             only_visible=True)
@@ -758,7 +759,7 @@ class HintManager(QObject):
         try:
             opt.typ.to_py(mode)
         except configexc.ValidationError as e:
-            raise cmdexc.CommandError("Invalid mode: {}".format(e))
+            raise cmdutils.CommandError("Invalid mode: {}".format(e))
         return mode
 
     def current_mode(self):
@@ -960,13 +961,13 @@ class HintManager(QObject):
         """
         if keystring is None:
             if self._context.to_follow is None:
-                raise cmdexc.CommandError("No hint to follow")
+                raise cmdutils.CommandError("No hint to follow")
             elif select:
-                raise cmdexc.CommandError("Can't use --select without hint.")
+                raise cmdutils.CommandError("Can't use --select without hint.")
             else:
                 keystring = self._context.to_follow
         elif keystring not in self._context.labels:
-            raise cmdexc.CommandError("No hint {}!".format(keystring))
+            raise cmdutils.CommandError("No hint {}!".format(keystring))
 
         if select:
             self.handle_partial_key(keystring)
