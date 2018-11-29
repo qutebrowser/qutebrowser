@@ -132,7 +132,7 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
     """QtWebEngine implementations related to printing."""
 
     def check_pdf_support(self):
-        return True
+        pass
 
     def check_printer_support(self):
         if not hasattr(self._widget.page(), 'print'):

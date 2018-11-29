@@ -205,7 +205,7 @@ class AbstractPrinting:
         self._widget = None
         self._tab = tab
 
-    def check_pdf_support(self) -> bool:
+    def check_pdf_support(self) -> None:
         """Check whether writing to PDFs is supported.
 
         If it's not supported (by the current Qt version), a WebTabError is
@@ -213,7 +213,7 @@ class AbstractPrinting:
         """
         raise NotImplementedError
 
-    def check_printer_support(self) -> bool:
+    def check_printer_support(self) -> None:
         """Check whether writing to a printer is supported.
 
         If it's not supported (by the current Qt version), a WebTabError is
@@ -221,7 +221,7 @@ class AbstractPrinting:
         """
         raise NotImplementedError
 
-    def check_preview_support(self) -> bool:
+    def check_preview_support(self) -> None:
         """Check whether showing a print preview is supported.
 
         If it's not supported (by the current Qt version), a WebTabError is
