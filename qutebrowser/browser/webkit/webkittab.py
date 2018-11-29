@@ -25,7 +25,7 @@ import xml.etree.ElementTree
 
 from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
                           QSize)
-from PyQt5.QtGui import QKeyEvent, QIcon
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
@@ -754,13 +754,6 @@ class WebKitTab(browsertab.AbstractTab):
 
     def title(self):
         return self._widget.title()
-
-    def key_press(self, key, modifier=Qt.NoModifier):
-        press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
-        release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
-                                0, 0, 0)
-        self.send_event(press_evt)
-        self.send_event(release_evt)
 
     @pyqtSlot()
     def _on_history_trigger(self):

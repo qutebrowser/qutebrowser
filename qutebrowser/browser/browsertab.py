@@ -26,7 +26,7 @@ import typing
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint)
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
@@ -1041,7 +1041,11 @@ class AbstractTab(QWidget):
                   key: Qt.Key,
                   modifier: Qt.KeyboardModifier = Qt.NoModifier) -> None:
         """Send a fake key event to this tab."""
-        raise NotImplementedError
+        press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
+        release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
+                                0, 0, 0)
+        self.send_event(press_evt)
+        self.send_event(release_evt)
 
     def dump_async(self,
                    callback: typing.Callable[[str], None], *,
