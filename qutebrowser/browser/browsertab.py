@@ -206,15 +206,31 @@ class AbstractPrinting:
         self._tab = tab
 
     def check_pdf_support(self) -> bool:
+        """Check whether writing to PDFs is supported.
+
+        If it's not supported (by the current Qt version), a WebTabError is
+        raised.
+        """
         raise NotImplementedError
 
     def check_printer_support(self) -> bool:
+        """Check whether writing to a printer is supported.
+
+        If it's not supported (by the current Qt version), a WebTabError is
+        raised.
+        """
         raise NotImplementedError
 
     def check_preview_support(self) -> bool:
+        """Check whether showing a print preview is supported.
+
+        If it's not supported (by the current Qt version), a WebTabError is
+        raised.
+        """
         raise NotImplementedError
 
     def to_pdf(self, filename: str) -> bool:
+        """Print the tab to a PDF with the given filename."""
         raise NotImplementedError
 
     def to_printer(self, printer: QPrinter,
@@ -668,6 +684,7 @@ class AbstractElements:
 
         Args:
             callback: The callback to be called when the search finished.
+                      Called with a WebEngineElement or None.
             elem_id: The ID to search for.
         """
         raise NotImplementedError
@@ -717,7 +734,6 @@ class AbstractAudio(QObject):
         raise NotImplementedError
 
     def is_muted(self) -> bool:
-        """Whether this tab is muted."""
         raise NotImplementedError
 
     def is_recently_audible(self) -> bool:
@@ -788,21 +804,7 @@ class AbstractTabPrivate:
 
 class AbstractTab(QWidget):
 
-    """A wrapper over the given widget to hide its API and expose another one.
-
-    We use this to unify QWebView and QWebEngineView.
-
-    Attributes:
-        history: The AbstractHistory for the current tab.
-        registry: The ObjectRegistry associated with this tab.
-        is_private: Whether private browsing is turned on for this tab.
-
-        _load_status: loading status of this page
-                      Accessible via load_status() method.
-        _has_ssl_errors: Whether SSL errors happened.
-                         Needs to be set by subclasses.
-
-        for properties, see WebView/WebEngineView docs.
+    """An adapter for QWebView/QWebEngineView representing a single tab.
 
     Signals:
         See related Qt signals.
@@ -902,7 +904,7 @@ class AbstractTab(QWidget):
         """Send the given event to the underlying widget.
 
         The event will be sent via QApplication.postEvent.
-        Note that a posted event may not be re-used in any way!
+        Note that a posted event must not be re-used in any way!
         """
         # This only gives us some mild protection against re-using events, but
         # it's certainly better than a segfault.
