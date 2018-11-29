@@ -748,6 +748,7 @@ class AbstractDownloadItem(QObject):
         ]
 
     def _cancel_conflicting_downloads(self):
+        """Cancel conflicting downloads and call _after_set_filename."""
         for download in self._get_conflicting_downloads():
             download.cancel()
         self._after_set_filename()
