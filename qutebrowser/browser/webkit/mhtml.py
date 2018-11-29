@@ -516,7 +516,6 @@ class _NoCloseBytesIO(io.BytesIO):
 
     def close(self):
         """Do nothing."""
-        pass
 
     def actual_close(self):
         """Close the stream."""

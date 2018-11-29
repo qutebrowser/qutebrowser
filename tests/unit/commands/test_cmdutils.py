@@ -48,7 +48,6 @@ def _get_cmd(*args, **kwargs):
     @cmdutils.register(*args, **kwargs)
     def fun():
         """Blah."""
-        pass
     return cmdutils.cmd_dict['fun']
 
 
@@ -83,7 +82,6 @@ class TestRegister:
         @cmdutils.register()
         def fun():
             """Blah."""
-            pass
 
         cmd = cmdutils.cmd_dict['fun']
         assert cmd.handler is fun
@@ -95,7 +93,6 @@ class TestRegister:
         @cmdutils.register()
         def eggs_bacon():
             """Blah."""
-            pass
 
         assert cmdutils.cmd_dict['eggs-bacon'].name == 'eggs-bacon'
         assert 'eggs_bacon' not in cmdutils.cmd_dict
@@ -105,7 +102,6 @@ class TestRegister:
         @cmdutils.register()
         def Test():  # noqa: N801,N806 pylint: disable=invalid-name
             """Blah."""
-            pass
 
         assert cmdutils.cmd_dict['test'].name == 'test'
         assert 'Test' not in cmdutils.cmd_dict
@@ -115,7 +111,6 @@ class TestRegister:
         @cmdutils.register(name='foobar')
         def fun():
             """Blah."""
-            pass
 
         assert cmdutils.cmd_dict['foobar'].name == 'foobar'
         assert 'fun' not in cmdutils.cmd_dict
@@ -126,20 +121,17 @@ class TestRegister:
         @cmdutils.register(name='foobar')
         def fun():
             """Blah."""
-            pass
 
         with pytest.raises(ValueError):
             @cmdutils.register(name='foobar')
             def fun2():
                 """Blah."""
-                pass
 
     def test_instance(self):
         """Make sure the instance gets passed to Command."""
         @cmdutils.register(instance='foobar')
         def fun(self):
             """Blah."""
-            pass
         assert cmdutils.cmd_dict['fun']._instance == 'foobar'
 
     def test_star_args(self):
@@ -147,7 +139,6 @@ class TestRegister:
         @cmdutils.register()
         def fun(*args):
             """Blah."""
-            pass
         with pytest.raises(argparser.ArgumentParserError):
             cmdutils.cmd_dict['fun'].parser.parse_args([])
 
@@ -195,14 +186,12 @@ class TestRegister:
         @cmdutils.argument('arg1', flag='b')
         def fun(arg1=False, arg2=False):
             """Blah."""
-            pass
 
     def test_win_id(self):
         @cmdutils.register()
         @cmdutils.argument('win_id', win_id=True)
         def fun(win_id):
             """Blah."""
-            pass
         assert cmdutils.cmd_dict['fun']._get_call_args(42) == ([42], {})
 
     def test_count(self):
@@ -210,7 +199,6 @@ class TestRegister:
         @cmdutils.argument('count', count=True)
         def fun(count=0):
             """Blah."""
-            pass
         assert cmdutils.cmd_dict['fun']._get_call_args(42) == ([0], {})
 
     def test_count_without_default(self):
@@ -220,7 +208,6 @@ class TestRegister:
             @cmdutils.argument('count', count=True)
             def fun(count):
                 """Blah."""
-                pass
 
     @pytest.mark.parametrize('hide', [True, False])
     def test_pos_args(self, hide):
@@ -228,7 +215,6 @@ class TestRegister:
         @cmdutils.argument('arg', hide=hide)
         def fun(arg):
             """Blah."""
-            pass
 
         pos_args = cmdutils.cmd_dict['fun'].pos_args
         if hide:
@@ -283,7 +269,6 @@ class TestRegister:
         @cmdutils.argument('arg', choices=['foo', 'bar'])
         def fun(arg):
             """Blah."""
-            pass
 
         cmd = cmdutils.cmd_dict['fun']
         cmd.namespace = cmd.parser.parse_args(['fish'])
@@ -297,7 +282,6 @@ class TestRegister:
         @cmdutils.argument('arg', choices=['foo', 'bar'])
         def fun(*, arg='foo'):
             """Blah."""
-            pass
 
         cmd = cmdutils.cmd_dict['fun']
         cmd.namespace = cmd.parser.parse_args(['--arg=fish'])
@@ -312,7 +296,6 @@ class TestRegister:
         @cmdutils.argument('opt')
         def fun(foo, bar, opt=False):
             """Blah."""
-            pass
 
         cmd = cmdutils.cmd_dict['fun']
         assert cmd.get_pos_arg_info(0) == command.ArgInfo(choices=('a', 'b'))
@@ -324,7 +307,6 @@ class TestRegister:
         # https://github.com/qutebrowser/qutebrowser/issues/1872
         def fun(*, target):
             """Blah."""
-            pass
 
         with pytest.raises(TypeError, match="fun: handler has keyword only "
                            "argument 'target' without default!"):
@@ -334,7 +316,6 @@ class TestRegister:
         # https://github.com/qutebrowser/qutebrowser/issues/1872
         def fun(*, target: int):
             """Blah."""
-            pass
 
         with pytest.raises(TypeError, match="fun: handler has keyword only "
                            "argument 'target' without default!"):
@@ -350,14 +331,12 @@ class TestArgument:
             @cmdutils.argument('foo')
             def fun(bar):
                 """Blah."""
-                pass
 
     def test_storage(self):
         @cmdutils.argument('foo', flag='x')
         @cmdutils.argument('bar', flag='y')
         def fun(foo, bar):
             """Blah."""
-            pass
         expected = {
             'foo': command.ArgInfo(flag='x'),
             'bar': command.ArgInfo(flag='y')
@@ -372,7 +351,6 @@ class TestArgument:
             @cmdutils.register()
             def fun(bar):
                 """Blah."""
-                pass
 
     def test_count_and_win_id_same_arg(self):
         with pytest.raises(TypeError,
@@ -380,7 +358,6 @@ class TestArgument:
             @cmdutils.argument('arg', count=True, win_id=True)
             def fun(arg=0):
                 """Blah."""
-                pass
 
     def test_no_docstring(self, caplog):
         with caplog.at_level(logging.WARNING):
@@ -388,6 +365,7 @@ class TestArgument:
             def fun():
                 # no docstring
                 pass
+
         assert len(caplog.records) == 1
         assert caplog.messages[0].endswith('test_cmdutils.py has no docstring')
 
@@ -441,7 +419,6 @@ class TestRun:
                            backend=usertypes.Backend.QtWebEngine)
         def fun(self):
             """Blah."""
-            pass
 
         monkeypatch.setattr(command.objects, 'backend',
                             usertypes.Backend.QtWebKit)

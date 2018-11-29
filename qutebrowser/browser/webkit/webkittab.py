@@ -513,6 +513,12 @@ class WebKitHistory(browsertab.AbstractHistory):
 
     """QtWebKit implementations related to page history."""
 
+    def __len__(self):
+        return len(self._history)
+
+    def __iter__(self):
+        return iter(self._history.items())
+
     def current_idx(self):
         return self._history.currentItemIndex()
 
@@ -533,7 +539,7 @@ class WebKitHistory(browsertab.AbstractHistory):
         return qtutils.serialize(self._history)
 
     def deserialize(self, data):
-        return qtutils.deserialize(data, self._history)
+        qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
         if items:
@@ -641,7 +647,7 @@ class WebKitAudio(browsertab.AbstractAudio):
 
     """Dummy handling of audio status for QtWebKit."""
 
-    def set_muted(self, muted: bool, override: bool = False):
+    def set_muted(self, muted: bool, override: bool = False) -> None:
         raise browsertab.WebTabError('Muting is not supported on QtWebKit!')
 
     def is_muted(self):
@@ -651,13 +657,33 @@ class WebKitAudio(browsertab.AbstractAudio):
         return False
 
 
+class WebKitTabPrivate(browsertab.AbstractTabPrivate):
+
+    """QtWebKit-related methods which aren't part of the public API."""
+
+    def networkaccessmanager(self):
+        return self._widget.page().networkAccessManager()
+
+    def user_agent(self):
+        page = self._widget.page()
+        return page.userAgentForUrl(self._tab.url())
+
+    def clear_ssl_errors(self):
+        self.networkaccessmanager().clear_all_ssl_errors()
+
+    def event_target(self):
+        return self._widget
+
+    def shutdown(self):
+        self._widget.shutdown()
+
+
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
-        super().__init__(win_id=win_id, mode_manager=mode_manager,
-                         private=private, parent=parent)
+        super().__init__(win_id=win_id, private=private, parent=parent)
         widget = webview.WebView(win_id=win_id, tab_id=self.tab_id,
                                  private=private, tab=self)
         if private:
@@ -672,6 +698,8 @@ class WebKitTab(browsertab.AbstractTab):
         self.elements = WebKitElements(tab=self)
         self.action = WebKitAction(tab=self)
         self.audio = WebKitAudio(tab=self, parent=self)
+        self.private_api = WebKitTabPrivate(mode_manager=mode_manager,
+                                            tab=self)
         # We're assigning settings in _set_widget
         self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)
@@ -714,9 +742,6 @@ class WebKitTab(browsertab.AbstractTab):
     def icon(self):
         return self._widget.icon()
 
-    def shutdown(self):
-        self._widget.shutdown()
-
     def reload(self, *, force=False):
         if force:
             action = QWebPage.ReloadAndBypassCache
@@ -729,9 +754,6 @@ class WebKitTab(browsertab.AbstractTab):
 
     def title(self):
         return self._widget.title()
-
-    def clear_ssl_errors(self):
-        self.networkaccessmanager().clear_all_ssl_errors()
 
     def key_press(self, key, modifier=Qt.NoModifier):
         press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
@@ -749,17 +771,11 @@ class WebKitTab(browsertab.AbstractTab):
     def set_html(self, html, base_url=QUrl()):
         self._widget.setHtml(html, base_url)
 
-    def networkaccessmanager(self):
-        return self._widget.page().networkAccessManager()
-
-    def user_agent(self):
-        page = self._widget.page()
-        return page.userAgentForUrl(self.url())
-
     @pyqtSlot()
     def _on_load_started(self):
         super()._on_load_started()
-        self.networkaccessmanager().netrc_used = False
+        nam = self._widget.page().networkAccessManager()
+        nam.netrc_used = False
         # Make sure the icon is cleared when navigating to a page without one.
         self.icon_changed.emit(QIcon())
 
@@ -841,6 +857,3 @@ class WebKitTab(browsertab.AbstractTab):
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
         page.navigation_request.connect(self._on_navigation_request)
-
-    def event_target(self):
-        return self._widget

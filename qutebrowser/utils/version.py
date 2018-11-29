@@ -42,12 +42,12 @@ from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None
+    qWebKitVersion = None  # type: ignore
 
 try:
     from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 except ImportError:  # pragma: no cover
-    QWebEngineProfile = None
+    QWebEngineProfile = None  # type: ignore
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message

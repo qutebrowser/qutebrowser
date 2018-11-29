@@ -522,6 +522,12 @@ class WebEngineHistory(browsertab.AbstractHistory):
 
     """QtWebEngine implementations related to page history."""
 
+    def __len__(self):
+        return len(self._history)
+
+    def __iter__(self):
+        return iter(self._history.items())
+
     def current_idx(self):
         return self._history.currentItemIndex()
 
@@ -551,7 +557,7 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return qtutils.serialize(self._history)
 
     def deserialize(self, data):
-        return qtutils.deserialize(data, self._history)
+        qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
         if items:
@@ -670,8 +676,9 @@ class WebEngineAudio(browsertab.AbstractAudio):
         self._tab.url_changed.connect(self._on_url_changed)
         config.instance.changed.connect(self._on_config_changed)
 
-    def set_muted(self, muted: bool, override: bool = False):
+    def set_muted(self, muted: bool, override: bool = False) -> None:
         self._overridden = override
+        assert self._widget is not None
         page = self._widget.page()
         page.setAudioMuted(muted)
 
@@ -1031,6 +1038,28 @@ class _WebEngineScripts(QObject):
             page_scripts.insert(new_script)
 
 
+class WebEngineTabPrivate(browsertab.AbstractTabPrivate):
+
+    """QtWebEngine-related methods which aren't part of the public API."""
+
+    def networkaccessmanager(self):
+        return None
+
+    def user_agent(self):
+        return None
+
+    def clear_ssl_errors(self):
+        raise browsertab.UnsupportedOperationError
+
+    def event_target(self):
+        return self._widget.render_widget()
+
+    def shutdown(self):
+        self._tab.shutting_down.emit()
+        self._tab.action.exit_fullscreen()
+        self._widget.shutdown()
+
+
 class WebEngineTab(browsertab.AbstractTab):
 
     """A QtWebEngine tab in the browser.
@@ -1044,8 +1073,7 @@ class WebEngineTab(browsertab.AbstractTab):
     _load_finished_fake = pyqtSignal(bool)
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
-        super().__init__(win_id=win_id, mode_manager=mode_manager,
-                         private=private, parent=parent)
+        super().__init__(win_id=win_id, private=private, parent=parent)
         widget = webview.WebEngineView(tabdata=self.data, win_id=win_id,
                                        private=private)
         self.history = WebEngineHistory(tab=self)
@@ -1058,6 +1086,8 @@ class WebEngineTab(browsertab.AbstractTab):
         self.elements = WebEngineElements(tab=self)
         self.action = WebEngineAction(tab=self)
         self.audio = WebEngineAudio(tab=self, parent=self)
+        self.private_api = WebEngineTabPrivate(mode_manager=mode_manager,
+                                               tab=self)
         self._permissions = _WebEnginePermissions(tab=self, parent=self)
         self._scripts = _WebEngineScripts(tab=self, parent=self)
         # We're assigning settings in _set_widget
@@ -1139,11 +1169,6 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             self._widget.page().runJavaScript(code, world_id, callback)
 
-    def shutdown(self):
-        self.shutting_down.emit()
-        self.action.exit_fullscreen()
-        self._widget.shutdown()
-
     def reload(self, *, force=False):
         if force:
             action = QWebEnginePage.ReloadAndBypassCache
@@ -1167,15 +1192,6 @@ class WebEngineTab(browsertab.AbstractTab):
         # renderer via IPC. This may increase its size. The maximum size of the
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
-
-    def networkaccessmanager(self):
-        return None
-
-    def user_agent(self):
-        return None
-
-    def clear_ssl_errors(self):
-        raise browsertab.UnsupportedOperationError
 
     def key_press(self, key, modifier=Qt.NoModifier):
         press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
@@ -1478,6 +1494,3 @@ class WebEngineTab(browsertab.AbstractTab):
         self.audio._connect_signals()
         self._permissions.connect_signals()
         self._scripts.connect_signals()
-
-    def event_target(self):
-        return self._widget.render_widget()

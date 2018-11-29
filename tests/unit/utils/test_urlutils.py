@@ -97,6 +97,7 @@ def init_config(config_stub):
     config_stub.val.url.searchengines = {
         'test': 'http://www.qutebrowser.org/?q={}',
         'test-with-dash': 'http://www.example.org/?q={}',
+        'path-search': 'http://www.example.org/{}',
         'DEFAULT': 'http://www.example.com/?q={}',
     }
 
@@ -288,6 +289,7 @@ def test_special_urls(url, special):
     ('blub testfoo', 'www.example.com', 'q=blub testfoo'),
     ('stripped ', 'www.example.com', 'q=stripped'),
     ('test-with-dash testfoo', 'www.example.org', 'q=testfoo'),
+    ('test/with/slashes', 'www.example.com', 'q=test%2Fwith%2Fslashes'),
 ])
 def test_get_search_url(config_stub, url, host, query, open_base_url):
     """Test _get_search_url().

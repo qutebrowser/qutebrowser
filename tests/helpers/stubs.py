@@ -241,6 +241,12 @@ class FakeWebTabAudio(browsertab.AbstractAudio):
         return False
 
 
+class FakeWebTabPrivate(browsertab.AbstractTabPrivate):
+
+    def shutdown(self):
+        pass
+
+
 class FakeWebTab(browsertab.AbstractTab):
 
     """Fake AbstractTab to use in tests."""
@@ -249,7 +255,7 @@ class FakeWebTab(browsertab.AbstractTab):
                  scroll_pos_perc=(0, 0),
                  load_status=usertypes.LoadStatus.success,
                  progress=0, can_go_back=None, can_go_forward=None):
-        super().__init__(win_id=0, mode_manager=None, private=False)
+        super().__init__(win_id=0, private=False)
         self._load_status = load_status
         self._title = title
         self._url = url
@@ -258,6 +264,7 @@ class FakeWebTab(browsertab.AbstractTab):
                                          can_go_forward=can_go_forward)
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
         self.audio = FakeWebTabAudio(self)
+        self.private_api = FakeWebTabPrivate(tab=self, mode_manager=None)
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
 
@@ -273,9 +280,6 @@ class FakeWebTab(browsertab.AbstractTab):
 
     def load_status(self):
         return self._load_status
-
-    def shutdown(self):
-        pass
 
     def icon(self):
         return QIcon()
@@ -306,7 +310,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do some sanity
         checking on the slot.
         """
-        pass
 
     def disconnect(self, slot=None):
         """Disconnect the signal from a slot.
@@ -314,7 +317,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do some sanity
         checking on the slot and see if it actually got connected.
         """
-        pass
 
     def emit(self, *args):
         """Emit the signal.
@@ -322,7 +324,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do type checking based
         on a signature given to __init__.
         """
-        pass
 
 
 @attr.s
@@ -456,8 +457,6 @@ class UrlMarkManagerStub(QObject):
 class BookmarkManagerStub(UrlMarkManagerStub):
 
     """Stub for the bookmark-manager object."""
-
-    pass
 
 
 class QuickmarkManagerStub(UrlMarkManagerStub):

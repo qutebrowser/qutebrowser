@@ -193,7 +193,7 @@ def _init_icon():
     icon = QIcon()
     fallback_icon = QIcon()
     for size in [16, 24, 32, 48, 64, 96, 128, 256, 512]:
-        filename = ':/icons/qutebrowser-{}x{}.png'.format(size, size)
+        filename = ':/icons/qutebrowser-{size}x{size}.png'.format(size=size)
         pixmap = QPixmap(filename)
         if pixmap.isNull():
             log.init.warning("Failed to load {}".format(filename))

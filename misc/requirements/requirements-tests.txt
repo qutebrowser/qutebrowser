@@ -6,13 +6,12 @@ backports.functools-lru-cache==1.5
 beautifulsoup4==4.6.3
 cheroot==6.5.2
 Click==7.0
-# colorama==0.4.0
+# colorama==0.4.1
 coverage==4.5.2
 EasyProcess==0.2.3
-fields==5.0.0
 Flask==1.0.2
 glob2==0.6
-hunter==2.0.2
+hunter==2.1.0
 hypothesis==3.82.1
 itsdangerous==1.1.0
 # Jinja2==2.10
@@ -24,7 +23,7 @@ parse-type==0.4.2
 pluggy==0.8.0
 py==1.7.0
 py-cpuinfo==4.0.0
-pytest==4.0.0
+pytest==4.0.1
 pytest-bdd==3.0.0
 pytest-benchmark==3.1.1
 pytest-cov==2.6.0

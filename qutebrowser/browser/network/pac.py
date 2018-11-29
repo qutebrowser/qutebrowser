@@ -35,14 +35,10 @@ class ParseProxyError(Exception):
 
     """Error while parsing PAC result string."""
 
-    pass
-
 
 class EvalProxyError(Exception):
 
     """Error while evaluating PAC script."""
-
-    pass
 
 
 def _js_slot(*args):

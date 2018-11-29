@@ -23,6 +23,7 @@ import os
 import os.path
 import itertools
 import urllib
+import typing
 
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
@@ -37,7 +38,12 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
 
 
-default = object()  # Sentinel value
+class Sentinel:
+
+    """Sentinel value for default argument."""
+
+
+default = Sentinel()
 
 
 def init(parent=None):
@@ -109,7 +115,7 @@ class SessionManager(QObject):
 
     def __init__(self, base_path, parent=None):
         super().__init__(parent)
-        self._current = None
+        self._current = None  # type: typing.Optional[str]
         self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
@@ -234,7 +240,7 @@ class SessionManager(QObject):
             if sip.isdeleted(main_window):
                 continue
 
-            if tabbed_browser.private and not with_private:
+            if tabbed_browser.is_private and not with_private:
                 continue
 
             win_data = {}
@@ -243,7 +249,7 @@ class SessionManager(QObject):
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())
             win_data['tabs'] = []
-            if tabbed_browser.private:
+            if tabbed_browser.is_private:
                 win_data['private'] = True
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.widget.currentIndex()
@@ -504,9 +510,13 @@ class SessionManager(QObject):
     @cmdutils.argument('name', completion=miscmodels.session)
     @cmdutils.argument('win_id', win_id=True)
     @cmdutils.argument('with_private', flag='p')
-    def session_save(self, name: str = default, current=False, quiet=False,
-                     force=False, only_active_window=False, with_private=False,
-                     win_id=None):
+    def session_save(self, name: typing.Union[str, Sentinel] = default,
+                     current: bool = False,
+                     quiet: bool = False,
+                     force: bool = False,
+                     only_active_window: bool = False,
+                     with_private: bool = False,
+                     win_id: int = None) -> None:
         """Save a session.
 
         Args:
@@ -518,7 +528,9 @@ class SessionManager(QObject):
             only_active_window: Saves only tabs of the currently active window.
             with_private: Include private windows.
         """
-        if name is not default and name.startswith('_') and not force:
+        if (not isinstance(name, Sentinel) and
+                name.startswith('_') and
+                not force):
             raise cmdexc.CommandError("{} is an internal session, use --force "
                                       "to save anyways.".format(name))
         if current:

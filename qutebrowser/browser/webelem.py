@@ -34,14 +34,10 @@ class Error(Exception):
 
     """Base class for WebElement errors."""
 
-    pass
-
 
 class OrphanedError(Error):
 
     """Raised when a webelement's parent has vanished."""
-
-    pass
 
 
 def css_selector(group, url):
@@ -386,7 +382,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             background = click_target == usertypes.ClickTarget.tab_bg
             tabbed_browser.tabopen(url, background=background)
         elif click_target == usertypes.ClickTarget.window:
-            window = mainwindow.MainWindow(private=tabbed_browser.private)
+            window = mainwindow.MainWindow(private=tabbed_browser.is_private)
             window.show()
             window.tabbed_browser.tabopen(url)
         else:

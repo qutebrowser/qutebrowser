@@ -39,7 +39,7 @@ from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None
+    qWebKitVersion = None  # type: ignore
 
 
 MAXVALS = {
@@ -285,7 +285,7 @@ class PyQIODevice(io.BufferedIOBase):
         if not ok:
             raise QtOSError(self.dev, msg="seek failed!")
 
-    def truncate(self, size=None):  # pylint: disable=unused-argument
+    def truncate(self, size=None):
         raise io.UnsupportedOperation
 
     @property

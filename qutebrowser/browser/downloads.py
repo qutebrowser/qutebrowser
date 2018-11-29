@@ -40,7 +40,11 @@ from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
 from qutebrowser.qt import sip
 
 
-ModelRole = enum.IntEnum('ModelRole', ['item'], start=Qt.UserRole)
+class ModelRole(enum.IntEnum):
+
+    """Custom download model roles."""
+
+    item = Qt.UserRole
 
 
 # Remember the last used directory
@@ -59,8 +63,6 @@ class UnsupportedAttribute:
     This is used for attributes like "fileobj" for downloads which are not
     supported with QtWebengine.
     """
-
-    pass
 
 
 class UnsupportedOperationError(Exception):
@@ -1058,7 +1060,7 @@ class DownloadModel(QAbstractListModel):
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
     @cmdutils.argument('count', count=True)
-    def download_open(self, cmdline: str = None, count=0):
+    def download_open(self, cmdline: str = None, count: int = 0) -> None:
         """Open the last/[count]th download.
 
         If no specific command is given, this will use the system's default

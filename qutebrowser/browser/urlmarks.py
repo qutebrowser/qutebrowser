@@ -43,28 +43,20 @@ class Error(Exception):
 
     """Base class for all errors in this module."""
 
-    pass
-
 
 class InvalidUrlError(Error):
 
     """Exception emitted when a URL is invalid."""
-
-    pass
 
 
 class DoesNotExistError(Error):
 
     """Exception emitted when a given URL does not exist."""
 
-    pass
-
 
 class AlreadyExistsError(Error):
 
     """Exception emitted when a given URL does already exist."""
-
-    pass
 
 
 class UrlMarkManager(QObject):

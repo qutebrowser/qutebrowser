@@ -31,8 +31,6 @@ class IsNullError(webelem.Error):
 
     """Gets raised by WebKitElement if an element is null."""
 
-    pass
-
 
 class WebKitElement(webelem.AbstractWebElement):
 

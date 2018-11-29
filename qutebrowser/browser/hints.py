@@ -304,8 +304,8 @@ class HintActions:
             raise HintingError("No suitable link found for this element.")
 
         prompt = False if context.rapid else None
-        qnam = context.tab.networkaccessmanager()
-        user_agent = context.tab.user_agent()
+        qnam = context.tab.private_api.networkaccessmanager()
+        user_agent = context.tab.private_api.user_agent()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager')
@@ -737,7 +737,7 @@ class HintManager(QObject):
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
             raise cmdexc.CommandError("No URL set for this page yet!")
-        self._context.args = args
+        self._context.args = list(args)
         self._context.group = group
 
         try:
