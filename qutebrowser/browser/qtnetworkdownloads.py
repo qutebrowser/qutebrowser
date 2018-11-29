@@ -198,11 +198,11 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _after_set_filename(self):
         self._create_fileobj()
 
-    def _ask_confirm_question(self, title, msg):
+    def _ask_confirm_question(self, title, msg, custom_yes_action=None):
+        yes_action = custom_yes_action or self._after_set_filename
         no_action = functools.partial(self.cancel, remove_data=False)
         url = 'file://{}'.format(self._filename)
-        message.confirm_async(title=title, text=msg,
-                              yes_action=self._after_set_filename,
+        message.confirm_async(title=title, text=msg, yes_action=yes_action,
                               no_action=no_action, cancel_action=no_action,
                               abort_on=[self.cancelled, self.error], url=url)
 

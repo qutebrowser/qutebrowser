@@ -616,7 +616,7 @@ class AbstractDownloadItem(QObject):
         """Finish initialization based on self._filename."""
         raise NotImplementedError
 
-    def _ask_confirm_question(self, title, msg):
+    def _ask_confirm_question(self, title, msg, custom_yes_action=None):
         """Ask a confirmation question for the download."""
         raise NotImplementedError
 
@@ -710,7 +710,16 @@ class AbstractDownloadItem(QObject):
             last_used_directory = os.path.dirname(self._filename)
 
         log.downloads.debug("Setting filename to {}".format(self._filename))
-        if force_overwrite:
+        conflicting_downloads = self._get_conflicting_downloads()
+        if conflicting_downloads:
+            # There is a download in progress with the same name, ask the user
+            # if it/they should be cancelled.
+            txt = "<b>{}</b> is already downloading. " \
+                  "Cancel and re-download?".format(html.escape(self._filename))
+            self._ask_confirm_question(
+                "Cancel other download(s)?", txt,
+                custom_yes_action=self._cancel_conflicting_downloads)
+        elif force_overwrite:
             self._after_set_filename()
         elif os.path.isfile(self._filename):
             # The file already exists, so ask the user if it should be
@@ -726,6 +735,22 @@ class AbstractDownloadItem(QObject):
             self._ask_confirm_question("Overwrite special file?", txt)
         else:
             self._after_set_filename()
+
+    def _get_conflicting_downloads(self):
+        """Returns a list of other active downloads with the same name."""
+        return [
+            download for download in
+            objreg.get('download-model', scope='window',
+                       window='current')._all_downloads()
+            if download is not self and
+            download._filename == self._filename and
+            not download.done
+        ]
+
+    def _cancel_conflicting_downloads(self):
+        for download in self._get_conflicting_downloads():
+            download.cancel()
+        self._after_set_filename()
 
     def _open_if_successful(self, cmdline):
         """Open the downloaded file, but only if it was successful.
