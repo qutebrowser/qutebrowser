@@ -1015,7 +1015,7 @@ class AbstractTab(QWidget):
         self._progress = perc
         self.load_progress.emit(perc)
 
-    def url(self, requested: bool = False) -> QUrl:
+    def url(self, *, requested: bool = False) -> QUrl:
         raise NotImplementedError
 
     def progress(self) -> int:

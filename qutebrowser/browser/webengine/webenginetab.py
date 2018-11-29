@@ -1139,7 +1139,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self._openurl_prepare(url, predict=predict)
         self._widget.load(url)
 
-    def url(self, requested=False):
+    def url(self, *, requested=False):
         page = self._widget.page()
         if requested:
             return page.requestedUrl()

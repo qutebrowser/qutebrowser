@@ -268,7 +268,7 @@ class FakeWebTab(browsertab.AbstractTab):
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
 
-    def url(self, requested=False):
+    def url(self, *, requested=False):
         assert not requested
         return self._url
 
