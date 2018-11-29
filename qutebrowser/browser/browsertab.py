@@ -349,13 +349,6 @@ class AbstractZoom(QObject):
         config.instance.changed.connect(self._on_config_changed)
         self._zoom_factor = float(config.val.zoom.default) / 100
 
-        # # FIXME:qtwebengine is this needed?
-        # # For some reason, this signal doesn't get disconnected automatically
-        # # when the WebView is destroyed on older PyQt versions.
-        # # See https://github.com/qutebrowser/qutebrowser/issues/390
-        # self.destroyed.connect(functools.partial(
-        #     cfg.changed.disconnect, self.init_neighborlist))
-
     @pyqtSlot(str)
     def _on_config_changed(self, option: str) -> None:
         if option in ['zoom.levels', 'zoom.default']:
