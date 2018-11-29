@@ -19,7 +19,7 @@ hand, you can simply use those - see
 <<autoconfig,"Configuring qutebrowser via the user interface">> for details.
 
 For more advanced configuration, you can write a `config.py` file - see
-<<configpy,"Configuring qutebrowser via config.py">>. When `config.py`
+<<configpy,"Configuring qutebrowser via config.py">>. When a `config.py`
 exists, the `autoconfig.yml` file **is not read anymore** by default. You need
 to <<configpy-autoconfig,load it from `config.py`>> if you want settings changed via
 `:set`/`:bind` to persist between restarts.
