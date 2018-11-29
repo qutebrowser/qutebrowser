@@ -229,7 +229,7 @@ Loading `autoconfig.yml`
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 All customization done via the UI (`:set`, `:bind` and `:unbind`) is
-stored in file `autoconfig.yml`. When file `config.py` exists, `autoconfig.yml`
+stored in the `autoconfig.yml` file. When a `config.py` file exists, `autoconfig.yml`
 is not loaded automatically. To load `autoconfig.yml` automatically, add the
 following snippet to `config.py`:
 
