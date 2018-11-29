@@ -40,12 +40,13 @@ from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.browser import mouse, hints, webelem
+from qutebrowser.browser import mouse, hints
 from qutebrowser.qt import sip
 MYPY = False
 if MYPY:
     # pylint can't interpret type comments with Python 3.7
     # pylint: disable=unused-import,useless-suppression
+    from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector
 
 
@@ -656,9 +657,9 @@ class AbstractElements:
     """Finding and handling of elements on the page."""
 
     _MultiCallback = typing.Callable[
-        [typing.Sequence[webelem.AbstractWebElement]], None]
+        [typing.Sequence['webelem.AbstractWebElement']], None]
     _SingleCallback = typing.Callable[
-        [typing.Optional[webelem.AbstractWebElement]], None]
+        [typing.Optional['webelem.AbstractWebElement']], None]
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._widget = None
@@ -768,7 +769,7 @@ class AbstractTabPrivate:
         if cur_mode == usertypes.KeyMode.insert:
             return
 
-        def _auto_insert_mode_cb(elem: webelem.AbstractWebElement) -> None:
+        def _auto_insert_mode_cb(elem: 'webelem.AbstractWebElement') -> None:
             """Called from JS after finding the focused element."""
             if elem is None:
                 log.webview.debug("No focused element!")
