@@ -423,7 +423,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
     def _repeated_key_press(self, key, count=1, modifier=Qt.NoModifier):
         """Send count fake key presses to this scroller's WebEngineTab."""
         for _ in range(min(count, 1000)):
-            self._tab.key_press(key, modifier)
+            self._tab.fake_key_press(key, modifier)
 
     @pyqtSlot(QPointF)
     def _update_pos(self, pos):
@@ -500,10 +500,10 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._repeated_key_press(Qt.Key_Right, count)
 
     def top(self):
-        self._tab.key_press(Qt.Key_Home)
+        self._tab.fake_key_press(Qt.Key_Home)
 
     def bottom(self):
-        self._tab.key_press(Qt.Key_End)
+        self._tab.fake_key_press(Qt.Key_End)
 
     def page_up(self, count=1):
         self._repeated_key_press(Qt.Key_PageUp, count)

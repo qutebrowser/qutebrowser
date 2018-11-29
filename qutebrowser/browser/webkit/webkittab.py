@@ -474,7 +474,7 @@ class WebKitScroller(browsertab.AbstractScroller):
             if (getter is not None and
                     frame.scrollBarValue(direction) == getter(direction)):
                 return
-            self._tab.key_press(key)
+            self._tab.fake_key_press(key)
 
     def up(self, count=1):
         self._key_press(Qt.Key_Up, count, 'scrollBarMinimum', Qt.Vertical)

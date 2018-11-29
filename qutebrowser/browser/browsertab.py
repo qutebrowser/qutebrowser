@@ -512,9 +512,9 @@ class AbstractCaret(QObject):
     def _follow_enter(self, tab: bool) -> None:
         """Follow a link by faking an enter press."""
         if tab:
-            self._tab.key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
+            self._tab.fake_key_press(Qt.Key_Enter, modifier=Qt.ControlModifier)
         else:
-            self._tab.key_press(Qt.Key_Enter)
+            self._tab.fake_key_press(Qt.Key_Enter)
 
     def follow_selected(self, *, tab: bool = False) -> None:
         raise NotImplementedError
@@ -1045,9 +1045,9 @@ class AbstractTab(QWidget):
     def stop(self) -> None:
         raise NotImplementedError
 
-    def key_press(self,
-                  key: Qt.Key,
-                  modifier: Qt.KeyboardModifier = Qt.NoModifier) -> None:
+    def fake_key_press(self,
+                       key: Qt.Key,
+                       modifier: Qt.KeyboardModifier = Qt.NoModifier) -> None:
         """Send a fake key event to this tab."""
         press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
         release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
