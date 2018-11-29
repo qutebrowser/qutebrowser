@@ -720,9 +720,6 @@ class AbstractAudio(QObject):
         """Whether this tab is muted."""
         raise NotImplementedError
 
-    def toggle_muted(self, *, override: bool = False) -> None:
-        self.set_muted(not self.is_muted(), override=override)
-
     def is_recently_audible(self) -> bool:
         """Whether this tab has had audio playing recently."""
         raise NotImplementedError
