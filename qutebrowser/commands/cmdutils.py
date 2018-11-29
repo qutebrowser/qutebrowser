@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Contains various command utils and a global command dict."""
+"""Utilities for command handlers."""
 
 import inspect
 import typing
@@ -31,8 +31,8 @@ def check_overflow(arg: int, ctype: str) -> None:
     """Check if the given argument is in bounds for the given type.
 
     Args:
-        arg: The argument to check
-        ctype: The C/Qt type to check as a string.
+        arg: The argument to check.
+        ctype: The C++/Qt type to check as a string ('int'/'int64').
     """
     try:
         qtutils.check_overflow(arg, ctype)
@@ -49,8 +49,8 @@ def check_exclusive(flags: typing.Iterable[bool],
     Raise a CommandError if not.
 
     Args:
-        flags: An iterable of booleans to check.
-        names: An iterable of flag names for the error message.
+        flags: The flag values to check.
+        names: A list of names (corresponding to the flags argument).
     """
     if sum(1 for e in flags if e) > 1:
         argstr = '/'.join('-' + e for e in names)
@@ -61,9 +61,6 @@ def check_exclusive(flags: typing.Iterable[bool],
 class register:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to register a new command handler.
-
-    This could also be a function, but as a class (with a "wrong" name) it's
-    much cleaner to implement.
 
     Attributes:
         _instance: The object from the object registry to be used as "self".
@@ -119,9 +116,6 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
 class argument:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to customize an argument for @cmdutils.register.
-
-    This could also be a function, but as a class (with a "wrong" name) it's
-    much cleaner to implement.
 
     Attributes:
         _argname: The name of the argument to handle.
