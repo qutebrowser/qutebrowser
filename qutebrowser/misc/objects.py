@@ -25,7 +25,7 @@
 import typing
 
 MYPY = False
-if MYPY:
+if MYPY:  # pragma: no cover
     # pylint: disable=unused-import,useless-suppression
     from qutebrowser.utils import usertypes
     from qutebrowser.commands import command
