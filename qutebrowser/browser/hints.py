@@ -597,13 +597,6 @@ class HintManager(QObject):
             log.hints.debug("In _start_cb without context!")
             return
 
-        if elems is None:
-            message.error("Unknown error while getting hint elements.")
-            return
-        elif isinstance(elems, webelem.Error):
-            message.error(str(elems))
-            return
-
         if not elems:
             message.error("No elements found.")
             return
@@ -747,8 +740,11 @@ class HintManager(QObject):
         except webelem.Error as e:
             raise cmdutils.CommandError(str(e))
 
-        self._context.tab.elements.find_css(selector, self._start_cb,
-                                            only_visible=True)
+        self._context.tab.elements.find_css(
+            selector,
+            callback=self._start_cb,
+            error_cb=lambda err: message.error(str(err)),
+            only_visible=True)
 
     def _get_hint_mode(self, mode):
         """Get the hinting mode to use based on a mode argument."""

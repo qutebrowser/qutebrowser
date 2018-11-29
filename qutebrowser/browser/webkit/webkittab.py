@@ -563,7 +563,8 @@ class WebKitElements(browsertab.AbstractElements):
 
     """QtWebKit implemementations related to elements on the page."""
 
-    def find_css(self, selector, callback, *, only_visible=False):
+    def find_css(self, selector, callback, error_cb, *, only_visible=False):
+        utils.unused(error_cb)
         mainframe = self._widget.page().mainFrame()
         if mainframe is None:
             raise browsertab.WebTabError("No frame focused!")
@@ -592,7 +593,8 @@ class WebKitElements(browsertab.AbstractElements):
         # Escape non-alphanumeric characters in the selector
         # https://www.w3.org/TR/CSS2/syndata.html#value-def-identifier
         elem_id = re.sub(r'[^a-zA-Z0-9_-]', r'\\\g<0>', elem_id)
-        self.find_css('#' + elem_id, find_id_cb)
+        self.find_css('#' + elem_id, find_id_cb,
+                      error_callback=lambda exc: None)
 
     def find_focused(self, callback):
         frame = self._widget.page().currentFrame()

@@ -667,13 +667,15 @@ class AbstractElements:
         [typing.Sequence['webelem.AbstractWebElement']], None]
     _SingleCallback = typing.Callable[
         [typing.Optional['webelem.AbstractWebElement']], None]
+    _ErrorCallback = typing.Callable[[Exception], None]
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._widget = None
         self._tab = tab
 
     def find_css(self, selector: str,
-                 callback: _MultiCallback, *,
+                 callback: _MultiCallback,
+                 error_callback: _ErrorCallback, *,
                  only_visible: bool = False) -> None:
         """Find all HTML elements matching a given selector async.
 

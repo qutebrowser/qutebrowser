@@ -591,19 +591,20 @@ class WebEngineElements(browsertab.AbstractElements):
 
     """QtWebEngine implemementations related to elements on the page."""
 
-    def _js_cb_multiple(self, callback, js_elems):
+    def _js_cb_multiple(self, callback, error_cb, js_elems):
         """Handle found elements coming from JS and call the real callback.
 
         Args:
             callback: The callback to call with the found elements.
-                      Called with None if there was an error.
+            error_cb: The callback to call in case of an error.
             js_elems: The elements serialized from javascript.
         """
         if js_elems is None:
-            callback(None)
+            error_cb(webelem.Error("Unknown error while getting "
+                                   "elements"))
             return
         elif not js_elems['success']:
-            callback(webelem.Error(js_elems['error']))
+            error_cb(webelem.Error(js_elems['error']))
             return
 
         elems = []
@@ -630,10 +631,11 @@ class WebEngineElements(browsertab.AbstractElements):
             elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
             callback(elem)
 
-    def find_css(self, selector, callback, *, only_visible=False):
+    def find_css(self, selector, callback, error_cb, *,
+                 only_visible=False):
         js_code = javascript.assemble('webelem', 'find_css', selector,
                                       only_visible)
-        js_cb = functools.partial(self._js_cb_multiple, callback)
+        js_cb = functools.partial(self._js_cb_multiple, callback, error_cb)
         self._tab.run_js_async(js_code, js_cb)
 
     def find_id(self, elem_id, callback):
