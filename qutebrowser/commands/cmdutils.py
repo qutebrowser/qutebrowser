@@ -20,14 +20,14 @@
 """Contains various command utils and a global command dict."""
 
 import inspect
-import typing  # pylint: disable=unused-import
+import typing
 
 from qutebrowser.misc import objects
 from qutebrowser.utils import qtutils, log
 from qutebrowser.commands import command, cmdexc
 
 
-def check_overflow(arg, ctype):
+def check_overflow(arg: int, ctype: str) -> None:
     """Check if the given argument is in bounds for the given type.
 
     Args:
@@ -42,7 +42,8 @@ def check_overflow(arg, ctype):
             "representation.".format(ctype))
 
 
-def check_exclusive(flags, names):
+def check_exclusive(flags: typing.Iterable[bool],
+                    names: typing.Iterable[str]) -> None:
     """Check if only one flag is set with exclusive flags.
 
     Raise a CommandError if not.
@@ -70,7 +71,10 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         _kwargs: The arguments to pass to Command.
     """
 
-    def __init__(self, *, instance=None, name=None, **kwargs):
+    def __init__(self, *,
+                 instance: str = None,
+                 name: str = None,
+                 **kwargs: typing.Any) -> None:
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -82,7 +86,7 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         self._name = name
         self._kwargs = kwargs
 
-    def __call__(self, func):
+    def __call__(self, func: typing.Callable) -> typing.Callable:
         """Register the command before running the function.
 
         Gets called when a function should be decorated.
@@ -101,8 +105,9 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         else:
             assert isinstance(self._name, str), self._name
             name = self._name
-        log.commands.vdebug("Registering command {} (from {}:{})".format(
-            name, func.__module__, func.__qualname__))
+        log.commands.vdebug(  # type: ignore
+            "Registering command {} (from {}:{})"
+            .format(name, func.__module__, func.__qualname__))
         if name in objects.commands:
             raise ValueError("{} is already registered!".format(name))
         cmd = command.Command(name=name, instance=self._instance,
@@ -123,21 +128,23 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
         _kwargs: Keyword arguments, valid ArgInfo members
     """
 
-    def __init__(self, argname, **kwargs):
+    def __init__(self, argname: str, **kwargs: typing.Any) -> None:
         self._argname = argname
         self._kwargs = kwargs
 
-    def __call__(self, func):
+    def __call__(self, func: typing.Callable) -> typing.Callable:
         funcname = func.__name__
 
         if self._argname not in inspect.signature(func).parameters:
             raise ValueError("{} has no argument {}!".format(funcname,
                                                              self._argname))
         if not hasattr(func, 'qute_args'):
-            func.qute_args = {}
-        elif func.qute_args is None:
+            func.qute_args = {}  # type: ignore
+        elif func.qute_args is None:  # type: ignore
             raise ValueError("@cmdutils.argument got called above (after) "
                              "@cmdutils.register for {}!".format(funcname))
 
-        func.qute_args[self._argname] = command.ArgInfo(**self._kwargs)
+        arginfo = command.ArgInfo(**self._kwargs)
+        func.qute_args[self._argname] = arginfo  # type: ignore
+
         return func
