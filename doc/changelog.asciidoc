@@ -67,6 +67,7 @@ Fixed
   to be in line with what other browsers do.
 - `:navigate` not incrementing in anchors or queries or anchors.
 - Crash when trying to use a proxy requiring authentication with QtWebKit.
+- Slashes in search terms are now percent-escaped.
 
 v1.5.2
 ------
