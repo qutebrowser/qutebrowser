@@ -837,7 +837,7 @@ class AbstractTab(QWidget):
     load_finished = pyqtSignal(bool)
     icon_changed = pyqtSignal(QIcon)
     title_changed = pyqtSignal(str)
-    load_status_changed = pyqtSignal(str)
+    load_status_changed = pyqtSignal(usertypes.LoadStatus)
     new_tab_requested = pyqtSignal(QUrl)
     url_changed = pyqtSignal(QUrl)
     shutting_down = pyqtSignal()
@@ -906,7 +906,7 @@ class AbstractTab(QWidget):
             raise TypeError("Type {} is no LoadStatus member!".format(val))
         log.webview.debug("load status for {}: {}".format(repr(self), val))
         self._load_status = val
-        self.load_status_changed.emit(val.name)
+        self.load_status_changed.emit(val)
 
     def send_event(self, evt: QEvent) -> None:
         """Send the given event to the underlying widget.

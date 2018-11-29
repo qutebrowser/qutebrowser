@@ -102,7 +102,7 @@ class TabbedBrowser(QWidget):
     cur_url_changed = pyqtSignal(QUrl)
     cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
-    cur_load_status_changed = pyqtSignal(str)
+    cur_load_status_changed = pyqtSignal(usertypes.LoadStatus)
     cur_fullscreen_requested = pyqtSignal(bool)
     cur_caret_selection_toggled = pyqtSignal(bool)
     close_window = pyqtSignal()
