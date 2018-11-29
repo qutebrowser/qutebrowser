@@ -606,11 +606,17 @@ class AbstractHistory:
     def __iter__(self) -> typing.Iterable:
         raise NotImplementedError
 
+    def _check_count(self, count: int) -> None:
+        """Check whether the count is positive."""
+        if count < 0:
+            raise WebTabError("count needs to be positive!")
+
     def current_idx(self) -> int:
         raise NotImplementedError
 
     def back(self, count: int = 1) -> None:
         """Go back in the tab's history."""
+        self._check_count(count)
         idx = self.current_idx() - count
         if idx >= 0:
             self._go_to_item(self._item_at(idx))
@@ -620,6 +626,7 @@ class AbstractHistory:
 
     def forward(self, count: int = 1) -> None:
         """Go forward in the tab's history."""
+        self._check_count(count)
         idx = self.current_idx() + count
         if idx < len(self):
             self._go_to_item(self._item_at(idx))
