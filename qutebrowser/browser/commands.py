@@ -901,7 +901,7 @@ class CommandDispatcher:
         """
         tab = self._current_widget()
         try:
-            perc = tab.zoom.offset(count)
+            perc = tab.zoom.apply_offset(count)
         except ValueError as e:
             raise cmdutils.CommandError(e)
         if not quiet:
@@ -918,7 +918,7 @@ class CommandDispatcher:
         """
         tab = self._current_widget()
         try:
-            perc = tab.zoom.offset(-count)
+            perc = tab.zoom.apply_offset(-count)
         except ValueError as e:
             raise cmdutils.CommandError(e)
         if not quiet:

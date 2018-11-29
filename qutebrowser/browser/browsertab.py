@@ -381,7 +381,7 @@ class AbstractZoom(QObject):
             levels, mode=usertypes.NeighborList.Modes.edge)
         self._neighborlist.fuzzyval = config.val.zoom.default
 
-    def offset(self, offset: int) -> None:
+    def apply_offset(self, offset: int) -> None:
         """Increase/Decrease the zoom level by the given offset.
 
         Args:
@@ -418,10 +418,10 @@ class AbstractZoom(QObject):
     def factor(self) -> float:
         return self._zoom_factor
 
-    def set_default(self) -> None:
+    def apply_default(self) -> None:
         self._set_factor_internal(float(config.val.zoom.default) / 100)
 
-    def set_current(self) -> None:
+    def reapply(self) -> None:
         self._set_factor_internal(self._zoom_factor)
 
 
@@ -888,7 +888,7 @@ class AbstractTab(QWidget):
         self.settings._settings = widget.settings()
 
         self._install_event_filter()
-        self.zoom.set_default()
+        self.zoom.apply_default()
 
     def _install_event_filter(self) -> None:
         raise NotImplementedError
@@ -1003,7 +1003,7 @@ class AbstractTab(QWidget):
         if not self.title():
             self.title_changed.emit(self.url().toDisplayString())
 
-        self.zoom.set_current()
+        self.zoom.reapply()
 
     @pyqtSlot()
     def _on_history_trigger(self) -> None:
