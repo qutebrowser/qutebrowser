@@ -113,7 +113,7 @@ PERFECT_FILES = [
      'misc/keyhintwidget.py'),
     ('tests/unit/misc/test_pastebin.py',
      'misc/pastebin.py'),
-    (None,
+    ('tests/unit/misc/test_objects.py',
      'misc/objects.py'),
 
     (None,
