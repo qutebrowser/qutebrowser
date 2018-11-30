@@ -34,15 +34,10 @@ def _log_stack(typ, stack):
 
     Args:
         typ: The type of the message (str)
-        stack: The stack as an iterable of strings or a single string
+        stack: The stacktrace as a string.
     """
-    try:
-        # traceback.format_exc() produces a list of strings, while
-        # traceback.format_stack() produces a single string...
-        stack = stack.splitlines()
-    except AttributeError:
-        pass
-    stack_text = '\n'.join(line.rstrip() for line in stack)
+    lines = stack.splitlines()
+    stack_text = '\n'.join(line.rstrip() for line in lines)
     log.message.debug("Stack for {} message:\n{}".format(typ, stack_text))
 
 
@@ -55,7 +50,7 @@ def error(message, *, stack=None, replace=False):
         replace: Replace existing messages with replace=True
     """
     if stack is None:
-        stack = traceback.format_stack()
+        stack = ''.join(traceback.format_stack())
         typ = 'error'
     else:
         typ = 'error (from exception)'
@@ -71,7 +66,7 @@ def warning(message, *, replace=False):
         message: The message to show
         replace: Replace existing messages with replace=True
     """
-    _log_stack('warning', traceback.format_stack())
+    _log_stack('warning', ''.join(traceback.format_stack()))
     log.message.warning(message)
     global_bridge.show(usertypes.MessageLevel.warning, message, replace)
 
