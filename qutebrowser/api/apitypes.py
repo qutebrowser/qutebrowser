@@ -20,4 +20,4 @@
 """A single tab."""
 
 # pylint: disable=unused-import
-from qutebrowser.browser.browsertab import AbstractTab as Tab
+from qutebrowser.browser.browsertab import WebTabError, AbstractTab as Tab
