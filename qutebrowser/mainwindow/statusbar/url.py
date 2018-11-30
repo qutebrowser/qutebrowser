@@ -119,6 +119,7 @@ class UrlText(textbase.TextBase):
         Args:
             status: The usertypes.LoadStatus.
         """
+        assert isinstance(status, usertypes.LoadStatus), status
         if status in [usertypes.LoadStatus.success,
                       usertypes.LoadStatus.success_https,
                       usertypes.LoadStatus.error,
