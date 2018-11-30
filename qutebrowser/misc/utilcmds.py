@@ -21,7 +21,6 @@
 
 import functools
 import os
-import signal
 import traceback
 
 from PyQt5.QtCore import QUrl

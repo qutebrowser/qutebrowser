@@ -218,7 +218,7 @@ class HintActions:
 
         if context.target in [Target.normal, Target.current]:
             # Set the pre-jump mark ', so we can jump back here after following
-            context.tab.scroll.before_jump_requested.emit()
+            context.tab.scroller.before_jump_requested.emit()
 
         try:
             if context.target == Target.hover:

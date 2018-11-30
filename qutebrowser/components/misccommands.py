@@ -22,7 +22,6 @@
 import os
 import signal
 import functools
-import typing
 import logging
 
 try:
@@ -30,16 +29,15 @@ try:
 except ImportError:
     hunter = None
 
-from qutebrowser.api import cmdutils, apitypes, message, config
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtPrintSupport import QPrintPreviewDialog
 
+from qutebrowser.api import cmdutils, apitypes, message, config
+
 
 @cmdutils.register(name='reload')
-@cmdutils.argument('count', value=cmdutils.Value.count)
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def reloadpage(tab, force=False, count=None):
+def reloadpage(tab, force=False):
     """Reload the current/[count]th tab.
 
     Args:
@@ -51,9 +49,8 @@ def reloadpage(tab, force=False, count=None):
 
 
 @cmdutils.register()
-@cmdutils.argument('count', value=cmdutils.Value.count)
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def stop(tab, count=None):
+def stop(tab):
     """Stop loading in the current/[count]th tab.
 
     Args:
@@ -92,9 +89,8 @@ def _print_pdf(tab, filename):
 
 @cmdutils.register(name='print')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-@cmdutils.argument('count', value=cmdutils.Value.count)
 @cmdutils.argument('pdf', flag='f', metavar='file')
-def printpage(tab, preview=False, count=None, *, pdf=None):
+def printpage(tab, preview=False, *, pdf=None):
     """Print the current/[count]th tab.
 
     Args:
@@ -228,8 +224,7 @@ def debug_webaction(tab, action, count=1):
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-@cmdutils.argument('count', value=cmdutils.Value.count)
-def tab_mute(tab, count=None):
+def tab_mute(tab):
     """Mute/Unmute the current/[count]th tab.
 
     Args:

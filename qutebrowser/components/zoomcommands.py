@@ -61,7 +61,7 @@ def zoom_out(tab: apitypes.Tab, count=1, quiet=False):
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def zoom(tab: apitypes.Tab, zoom=None, count=None, quiet=False):
+def zoom(tab: apitypes.Tab, level=None, count=None, quiet=False):
     """Set the zoom level for the current tab.
 
     The zoom can be given as argument or as [count]. If neither is
@@ -69,19 +69,20 @@ def zoom(tab: apitypes.Tab, zoom=None, count=None, quiet=False):
     use [count].
 
     Args:
-        zoom: The zoom percentage to set.
+        level: The zoom percentage to set.
         count: The zoom percentage to set.
         quiet: Don't show a zoom level message.
     """
-    if zoom is not None:
+    if level is not None:
         try:
-            zoom = int(zoom.rstrip('%'))
+            level = int(level.rstrip('%'))
         except ValueError:
             raise cmdutils.CommandError("zoom: Invalid int value {}"
-                                        .format(zoom))
+                                        .format(level))
 
-    level = count if count is not None else zoom
-    if level is None:
+    if count is not None:
+        level = count
+    elif level is None:
         level = config.val.zoom.default
 
     try:

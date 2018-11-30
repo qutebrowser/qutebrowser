@@ -21,6 +21,9 @@
 
 import typing
 
-from qutebrowser.config import config
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import,useless-suppression
+    from qutebrowser.config import config
 
 val = typing.cast('config.ConfigContainer', None)
