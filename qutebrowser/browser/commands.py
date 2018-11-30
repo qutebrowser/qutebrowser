@@ -138,7 +138,7 @@ class CommandDispatcher:
             tabbed_browser.tabopen(url, background=True, related=related)
         else:
             widget = self._current_widget()
-            widget.openurl(url)
+            widget.load_url(url)
 
     def _cntwidget(self, count=None):
         """Return a widget based on a count/idx.
@@ -321,7 +321,7 @@ class CommandDispatcher:
                 elif curtab.data.pinned:
                     message.info("Tab is pinned!")
                 else:
-                    curtab.openurl(cur_url)
+                    curtab.load_url(cur_url)
 
     def _parse_url(self, url, *, force_search=False):
         """Parse a URL or quickmark or search query.
@@ -1247,7 +1247,7 @@ class CommandDispatcher:
             if output:
                 tb = objreg.get('tabbed-browser', scope='window',
                                 window='last-focused')
-                tb.openurl(QUrl('qute://spawn-output'), newtab=True)
+                tb.load_url(QUrl('qute://spawn-output'), newtab=True)
 
         if userscript:
             def _selection_callback(s):

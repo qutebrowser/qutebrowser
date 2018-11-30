@@ -59,7 +59,7 @@ class TestSet:
 
         Should open qute://settings."""
         commands.set(win_id=0)
-        assert tabbed_browser_stubs[0].opened_url == QUrl('qute://settings')
+        assert tabbed_browser_stubs[0].loaded_url == QUrl('qute://settings')
 
     @pytest.mark.parametrize('option', ['url.auto_search?', 'url.auto_search'])
     def test_get(self, config_stub, commands, message_mock, option):
@@ -620,7 +620,7 @@ class TestBind:
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
         commands.bind(win_id=0)
-        assert tabbed_browser_stubs[0].opened_url == QUrl('qute://bindings')
+        assert tabbed_browser_stubs[0].loaded_url == QUrl('qute://bindings')
 
     @pytest.mark.parametrize('command', ['nop', 'nope'])
     def test_bind(self, commands, config_stub, no_bindings, key_config_stub,

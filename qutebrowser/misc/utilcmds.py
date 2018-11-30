@@ -271,7 +271,7 @@ def debug_pyeval(s, file=False, quiet=False):
     else:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-        tabbed_browser.openurl(QUrl('qute://pyeval'), newtab=True)
+        tabbed_browser.load_url(QUrl('qute://pyeval'), newtab=True)
 
 
 @cmdutils.register(debug=True)
@@ -386,7 +386,7 @@ def version(win_id, paste=False):
     """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    tabbed_browser.openurl(QUrl('qute://version'), newtab=True)
+    tabbed_browser.load_url(QUrl('qute://version'), newtab=True)
 
     if paste:
         pastebin_version()

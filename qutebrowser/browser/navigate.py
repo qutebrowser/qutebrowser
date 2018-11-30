@@ -141,7 +141,7 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         elif tab:
             cur_tabbed_browser.tabopen(url, background=background)
         else:
-            browsertab.openurl(url)
+            browsertab.load_url(url)
 
     try:
         link_selector = webelem.css_selector('links', baseurl)

@@ -391,7 +391,7 @@ class WebKitCaret(browsertab.AbstractCaret):
                 if tab:
                     self._tab.new_tab_requested.emit(url)
                 else:
-                    self._tab.openurl(url)
+                    self._tab.load_url(url)
 
     def follow_selected(self, *, tab=False):
         try:
@@ -722,9 +722,9 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def openurl(self, url, *, predict=True):
+    def load_url(self, url, *, predict=True):
         self._openurl_prepare(url, predict=predict)
-        self._widget.openurl(url)
+        self._widget.load(url)
 
     def url(self, requested=False):
         frame = self._widget.page().mainFrame()
@@ -829,7 +829,7 @@ class WebKitTab(browsertab.AbstractTab):
         if (navigation.navigation_type == navigation.Type.link_clicked and
                 target != usertypes.ClickTarget.normal):
             tab = shared.get_tab(self.win_id, target)
-            tab.openurl(navigation.url)
+            tab.load_url(navigation.url)
             self.data.open_target = usertypes.ClickTarget.normal
             navigation.accepted = False
 

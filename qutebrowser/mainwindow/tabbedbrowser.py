@@ -303,12 +303,12 @@ class TabbedBrowser(QWidget):
             if last_close == 'close':
                 self.close_window.emit()
             elif last_close == 'blank':
-                self.openurl(QUrl('about:blank'), newtab=True)
+                self.load_url(QUrl('about:blank'), newtab=True)
             elif last_close == 'startpage':
                 for url in config.val.url.start_pages:
-                    self.openurl(url, newtab=True)
+                    self.load_url(url, newtab=True)
             elif last_close == 'default-page':
-                self.openurl(config.val.url.default_page, newtab=True)
+                self.load_url(config.val.url.default_page, newtab=True)
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
@@ -395,7 +395,7 @@ class TabbedBrowser(QWidget):
             self.widget.set_tab_pinned(newtab, entry.pinned)
 
     @pyqtSlot('QUrl', bool)
-    def openurl(self, url, newtab):
+    def load_url(self, url, newtab):
         """Open a URL, used as a slot.
 
         Args:
@@ -406,7 +406,7 @@ class TabbedBrowser(QWidget):
         if newtab or self.widget.currentWidget() is None:
             self.tabopen(url, background=False)
         else:
-            self.widget.currentWidget().openurl(url)
+            self.widget.currentWidget().load_url(url)
 
     @pyqtSlot(int)
     def on_tab_close_requested(self, idx):
@@ -483,7 +483,7 @@ class TabbedBrowser(QWidget):
         self.widget.insertTab(idx, tab, "")
 
         if url is not None:
-            tab.openurl(url)
+            tab.load_url(url)
 
         if background is None:
             background = config.val.tabs.background
@@ -879,7 +879,7 @@ class TabbedBrowser(QWidget):
                         self.cur_load_finished.disconnect(callback)
                         tab.scroller.to_point(point)
 
-                self.openurl(url, newtab=False)
+                self.load_url(url, newtab=False)
                 self.cur_load_finished.connect(callback)
             else:
                 message.error("Mark {} is not set".format(key))

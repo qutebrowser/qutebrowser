@@ -478,7 +478,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
     def to_anchor(self, name):
         url = self._tab.url()
         url.setFragment(name)
-        self._tab.openurl(url)
+        self._tab.load_url(url)
 
     def delta(self, x=0, y=0):
         self._tab.run_js_async(javascript.assemble('window', 'scrollBy', x, y))
@@ -1134,11 +1134,11 @@ class WebEngineTab(browsertab.AbstractTab):
         self.zoom.set_factor(self._saved_zoom)
         self._saved_zoom = None
 
-    def openurl(self, url, *, predict=True):
-        """Open the given URL in this tab.
+    def load_url(self, url, *, predict=True):
+        """Load the given URL in this tab.
 
         Arguments:
-            url: The QUrl to open.
+            url: The QUrl to load.
             predict: If set to False, predicted_navigation is not emitted.
         """
         if sip.isdeleted(self._widget):

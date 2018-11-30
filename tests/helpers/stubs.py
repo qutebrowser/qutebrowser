@@ -492,7 +492,7 @@ class TabbedBrowserStub(QObject):
         super().__init__(parent)
         self.widget = TabWidgetStub()
         self.shutting_down = False
-        self.opened_url = None
+        self.loaded_url = None
         self.cur_url = None
 
     def on_tab_close_requested(self, idx):
@@ -502,10 +502,10 @@ class TabbedBrowserStub(QObject):
         return self.widget.tabs
 
     def tabopen(self, url):
-        self.opened_url = url
+        self.loaded_url = url
 
-    def openurl(self, url, *, newtab):
-        self.opened_url = url
+    def load_url(self, url, *, newtab):
+        self.loaded_url = url
 
     def current_url(self):
         if self.current_url is None:
