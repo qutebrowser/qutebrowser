@@ -336,27 +336,18 @@ class Command:
         else:
             return str
 
-    def _get_self_arg(self, win_id, param, args):
-        """Get the self argument for a function call.
-
-        Arguments:
-            win_id: The window id this command should be executed in.
-            param: The count parameter.
-            args: The positional argument list. Gets modified directly.
-        """
-        assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-        if self._scope == 'global':
+    def _get_objreg(self, *, win_id, name, scope):
+        """Get an object from the objreg."""
+        if scope == 'global':
             tab_id = None
             win_id = None
-        elif self._scope == 'tab':
+        elif scope == 'tab':
             tab_id = 'current'
-        elif self._scope == 'window':
+        elif scope == 'window':
             tab_id = None
         else:
-            raise ValueError("Invalid scope {}!".format(self._scope))
-        obj = objreg.get(self._instance, scope=self._scope, window=win_id,
-                         tab=tab_id)
-        args.append(obj)
+            raise ValueError("Invalid scope {}!".format(scope))
+        return objreg.get(name, scope=scope, window=win_id, tab=tab_id)
 
     def _add_special_arg(self, *, value, param, args, kwargs, optional=False):
         """Add a special argument value to a function call.
@@ -435,8 +426,12 @@ class Command:
         for i, param in enumerate(signature.parameters.values()):
             arg_info = self.get_arg_info(param)
             if i == 0 and self._instance is not None:
-                # Special case for 'self'.
-                self._get_self_arg(win_id, param, args)
+                assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+                self_value = self._get_objreg(win_id=win_id,
+                                              name=self._instance,
+                                              scope=self._scope)
+                self._add_special_arg(value=self_value, param=param,
+                                      args=args, kwargs=kwargs)
                 continue
             elif arg_info.value == usertypes.CommandValue.count:
                 self._add_special_arg(value=self._count, param=param,
