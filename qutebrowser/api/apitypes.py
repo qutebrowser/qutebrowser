@@ -21,3 +21,5 @@
 
 # pylint: disable=unused-import
 from qutebrowser.browser.browsertab import WebTabError, AbstractTab as Tab
+from qutebrowser.browser.webelem import Error as WebElemError
+from qutebrowser.utils.usertypes import ClickTarget, JsWorld
