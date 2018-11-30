@@ -44,7 +44,7 @@ from qutebrowser.qt import sip
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
-@cmdutils.argument('win_id', win_id=True)
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 def later(ms: int, command: str, win_id: int) -> None:
     """Execute a command after some time.
 
@@ -74,8 +74,8 @@ def later(ms: int, command: str, win_id: int) -> None:
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
-@cmdutils.argument('win_id', win_id=True)
-@cmdutils.argument('count', count=True)
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+@cmdutils.argument('count', value=cmdutils.Value.count)
 def repeat(times: int, command: str, win_id: int, count: int = None) -> None:
     """Repeat a given command.
 
@@ -95,8 +95,8 @@ def repeat(times: int, command: str, win_id: int, count: int = None) -> None:
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
-@cmdutils.argument('win_id', win_id=True)
-@cmdutils.argument('count', count=True)
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+@cmdutils.argument('count', value=cmdutils.Value.count)
 def run_with_count(count_arg: int, command: str, win_id: int,
                    count: int = 1) -> None:
     """Run a command with the given count.
@@ -122,7 +122,7 @@ def message_error(text):
 
 
 @cmdutils.register()
-@cmdutils.argument('count', count=True)
+@cmdutils.argument('count', value=cmdutils.Value.count)
 def message_info(text, count=1):
     """Show an info message in the statusbar.
 
@@ -288,8 +288,8 @@ def debug_set_fake_clipboard(s=None):
 
 
 @cmdutils.register()
-@cmdutils.argument('win_id', win_id=True)
-@cmdutils.argument('count', count=True)
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+@cmdutils.argument('count', value=cmdutils.Value.count)
 def repeat_command(win_id, count=None):
     """Repeat the last executed command.
 
@@ -358,7 +358,7 @@ def debug_log_filter(filters: str) -> None:
 
 
 @cmdutils.register()
-@cmdutils.argument('current_win_id', win_id=True)
+@cmdutils.argument('current_win_id', value=cmdutils.Value.win_id)
 def window_only(current_win_id):
     """Close all windows except for the current one."""
     for win_id, window in objreg.window_registry.items():
@@ -377,7 +377,7 @@ def nop():
 
 
 @cmdutils.register()
-@cmdutils.argument('win_id', win_id=True)
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 def version(win_id, paste=False):
     """Show version information.
 

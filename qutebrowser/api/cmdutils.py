@@ -21,9 +21,12 @@
 
 import inspect
 import typing
+import enum
 
 from qutebrowser.utils import qtutils
 from qutebrowser.commands import command, cmdexc
+# pylint: disable=unused-import
+from qutebrowser.utils.usertypes import CommandValue as Value
 
 
 class CommandError(cmdexc.Error):

@@ -112,12 +112,12 @@ def cmdutils_patch(monkeypatch, stubs, miscmodels_patch):
         """docstring."""
 
     @cmdutils.argument('url', completion=miscmodels_patch.url)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def openurl(url=None, related=False, bg=False, tab=False, window=False,
                 count=None):
         """docstring."""
 
-    @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('command', completion=miscmodels_patch.command)
     def bind(key, win_id, command=None, *, mode='normal'):
         """docstring."""

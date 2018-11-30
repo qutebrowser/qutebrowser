@@ -1013,7 +1013,7 @@ class DownloadModel(QAbstractListModel):
         raise cmdutils.CommandError("There's no download {}!".format(count))
 
     @cmdutils.register(instance='download-model', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def download_cancel(self, all_=False, count=0):
         """Cancel the last/[count]th download.
 
@@ -1039,7 +1039,7 @@ class DownloadModel(QAbstractListModel):
             download.cancel()
 
     @cmdutils.register(instance='download-model', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def download_delete(self, count=0):
         """Delete the last/[count]th download from disk.
 
@@ -1060,7 +1060,7 @@ class DownloadModel(QAbstractListModel):
         log.downloads.debug("deleted download {}".format(download))
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def download_open(self, cmdline: str = None, count: int = 0) -> None:
         """Open the last/[count]th download.
 
@@ -1086,7 +1086,7 @@ class DownloadModel(QAbstractListModel):
         download.open_file(cmdline)
 
     @cmdutils.register(instance='download-model', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def download_retry(self, count=0):
         """Retry the first failed/[count]th download.
 
@@ -1121,7 +1121,7 @@ class DownloadModel(QAbstractListModel):
                 download.remove()
 
     @cmdutils.register(instance='download-model', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def download_remove(self, all_=False, count=0):
         """Remove the last/[count]th download from the list.
 

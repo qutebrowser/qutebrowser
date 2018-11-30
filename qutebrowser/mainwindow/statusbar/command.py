@@ -115,7 +115,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @cmdutils.register(instance='status-command', name='set-cmd-text',
                        scope='window', maxsplit=0)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def set_cmd_text_command(self, text, count=None, space=False, append=False,
                              run_on_count=False):
         """Preset the statusbar to some text.

@@ -508,7 +508,7 @@ class SessionManager(QObject):
 
     @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=miscmodels.session)
-    @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('with_private', flag='p')
     def session_save(self, name: typing.Union[str, Sentinel] = default,
                      current: bool = False,

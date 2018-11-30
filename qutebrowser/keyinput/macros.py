@@ -45,7 +45,7 @@ class MacroRecorder:
         self._last_register = None
 
     @cmdutils.register(instance='macro-recorder', name='record-macro')
-    @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     def record_macro_command(self, win_id, register=None):
         """Start or stop recording a macro.
 
@@ -70,8 +70,8 @@ class MacroRecorder:
         self._recording_macro = register
 
     @cmdutils.register(instance='macro-recorder', name='run-macro')
-    @cmdutils.argument('win_id', win_id=True)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def run_macro_command(self, win_id, count=1, register=None):
         """Run a recorded macro.
 

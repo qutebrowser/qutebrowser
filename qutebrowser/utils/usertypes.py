@@ -256,6 +256,14 @@ MessageLevel = enum.Enum('MessageLevel', ['error', 'warning', 'info'])
 IgnoreCase = enum.Enum('IgnoreCase', ['smart', 'never', 'always'])
 
 
+class CommandValue(enum.Enum):
+
+    """Special values which are injected when running a command handler."""
+
+    count = 1
+    win_id = 2
+
+
 class Question(QObject):
 
     """A question asked to the user, e.g. via the status bar.

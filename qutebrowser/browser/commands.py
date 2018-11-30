@@ -230,7 +230,7 @@ class CommandDispatcher:
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_close(self, prev=False, next_=False, opposite=False,
                   force=False, count=None):
         """Close the current/[count]th tab.
@@ -253,7 +253,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-pin')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_pin(self, count=None):
         """Pin/Unpin the current/[count]th tab.
 
@@ -274,7 +274,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
     @cmdutils.argument('url', completion=urlmodel.url)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def openurl(self, url=None, related=False,
                 bg=False, tab=False, window=False, count=None, secure=False,
                 private=False):
@@ -372,7 +372,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', name='reload',
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def reloadpage(self, force=False, count=None):
         """Reload the current/[count]th tab.
 
@@ -385,7 +385,7 @@ class CommandDispatcher:
             tab.reload(force=force)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def stop(self, count=None):
         """Stop loading in the current/[count]th tab.
 
@@ -423,7 +423,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', name='print',
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('pdf', flag='f', metavar='file')
     def printpage(self, preview=False, count=None, *, pdf=None):
         """Print the current/[count]th tab.
@@ -514,7 +514,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('win_id', completion=miscmodels.window)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_give(self, win_id: int = None, keep: bool = False,
                  count: int = None) -> None:
         """Give the current tab to a new or existing window if win_id given.
@@ -575,7 +575,7 @@ class CommandDispatcher:
             raise cmdutils.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def back(self, tab=False, bg=False, window=False, count=1):
         """Go back in the history of the current tab.
 
@@ -588,7 +588,7 @@ class CommandDispatcher:
         self._back_forward(tab, bg, window, count, forward=False)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def forward(self, tab=False, bg=False, window=False, count=1):
         """Go forward in the history of the current tab.
 
@@ -603,7 +603,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('where', choices=['prev', 'next', 'up', 'increment',
                                          'decrement'])
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def navigate(self, where: str, tab: bool = False, bg: bool = False,
                  window: bool = False, count: int = 1) -> None:
         """Open typical prev/next links or navigate using the URL path.
@@ -668,7 +668,7 @@ class CommandDispatcher:
             raise cmdutils.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def scroll_px(self, dx: int, dy: int, count: int = 1) -> None:
         """Scroll the current tab by 'count * dx/dy' pixels.
 
@@ -684,7 +684,7 @@ class CommandDispatcher:
         self._current_widget().scroller.delta(dx, dy)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def scroll(self, direction: str, count: int = 1) -> None:
         """Scroll the current tab in the given direction.
 
@@ -721,7 +721,7 @@ class CommandDispatcher:
             func(count=count)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('horizontal', flag='x')
     def scroll_to_perc(self, perc: float = None, horizontal: bool = False,
                        count: int = None) -> None:
@@ -762,7 +762,7 @@ class CommandDispatcher:
         self._current_widget().scroller.to_anchor(name)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('top_navigate', metavar='ACTION',
                        choices=('prev', 'decrement'))
     @cmdutils.argument('bottom_navigate', metavar='ACTION',
@@ -891,7 +891,7 @@ class CommandDispatcher:
                               maybe=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def zoom_in(self, count=1, quiet=False):
         """Increase the zoom level for the current tab.
 
@@ -908,7 +908,7 @@ class CommandDispatcher:
             message.info("Zoom level: {}%".format(int(perc)), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def zoom_out(self, count=1, quiet=False):
         """Decrease the zoom level for the current tab.
 
@@ -925,7 +925,7 @@ class CommandDispatcher:
             message.info("Zoom level: {}%".format(int(perc)), replace=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def zoom(self, zoom=None, count=None, quiet=False):
         """Set the zoom level for the current tab.
 
@@ -1005,7 +1005,7 @@ class CommandDispatcher:
             raise cmdutils.CommandError("Nothing to undo!")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_prev(self, count=1):
         """Switch to the previous tab, or switch [count] tabs back.
 
@@ -1025,7 +1025,7 @@ class CommandDispatcher:
             log.webview.debug("First tab")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_next(self, count=1):
         """Switch to the next tab, or switch [count] tabs forward.
 
@@ -1093,7 +1093,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.buffer)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def buffer(self, index=None, count=None):
         """Select tab by index or url/title best match.
 
@@ -1123,7 +1123,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last'])
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_focus(self, index: typing.Union[str, int] = None,
                   count: int = None, no_last: bool = False) -> None:
         """Select the tab given as argument/[count].
@@ -1165,7 +1165,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['+', '-'])
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_move(self, index: typing.Union[str, int] = None,
                  count: int = None) -> None:
         """Move the current tab according to the argument and [count].
@@ -1212,7 +1212,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def spawn(self, cmdline, userscript=False, verbose=False,
               output=False, detach=False, count=None):
         """Spawn a command in a shell.
@@ -1830,7 +1830,7 @@ class CommandDispatcher:
         tab.search.search(text, **options)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def search_next(self, count=1):
         """Continue the search to the ([count]th) next term.
 
@@ -1864,7 +1864,7 @@ class CommandDispatcher:
         tab.search.next_result(result_cb=cb)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def search_prev(self, count=1):
         """Continue the search to the ([count]th) previous term.
 
@@ -1899,7 +1899,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_next_line(self, count=1):
         """Move the cursor or selection to the next line.
 
@@ -1910,7 +1910,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_prev_line(self, count=1):
         """Move the cursor or selection to the prev line.
 
@@ -1921,7 +1921,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_next_char(self, count=1):
         """Move the cursor or selection to the next char.
 
@@ -1932,7 +1932,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_prev_char(self, count=1):
         """Move the cursor or selection to the previous char.
 
@@ -1943,7 +1943,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_end_of_word(self, count=1):
         """Move the cursor or selection to the end of the word.
 
@@ -1954,7 +1954,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_next_word(self, count=1):
         """Move the cursor or selection to the next word.
 
@@ -1965,7 +1965,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_prev_word(self, count=1):
         """Move the cursor or selection to the previous word.
 
@@ -1988,7 +1988,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_start_of_next_block(self, count=1):
         """Move the cursor or selection to the start of next block.
 
@@ -1999,7 +1999,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_start_of_prev_block(self, count=1):
         """Move the cursor or selection to the start of previous block.
 
@@ -2010,7 +2010,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_end_of_next_block(self, count=1):
         """Move the cursor or selection to the end of next block.
 
@@ -2021,7 +2021,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', modes=[KeyMode.caret],
                        scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def move_to_end_of_prev_block(self, count=1):
         """Move the cursor or selection to the end of previous block.
 
@@ -2056,7 +2056,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        debug=True)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def debug_webaction(self, action, count=1):
         """Execute a webaction.
 
@@ -2256,7 +2256,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-mute')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_mute(self, count=None):
         """Mute/Unmute the current/[count]th tab.
 

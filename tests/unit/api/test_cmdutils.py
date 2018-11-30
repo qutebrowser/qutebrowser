@@ -190,23 +190,39 @@ class TestRegister:
 
     def test_win_id(self):
         @cmdutils.register()
-        @cmdutils.argument('win_id', win_id=True)
+        @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
         def fun(win_id):
             """Blah."""
         assert objects.commands['fun']._get_call_args(42) == ([42], {})
 
     def test_count(self):
         @cmdutils.register()
-        @cmdutils.argument('count', count=True)
+        @cmdutils.argument('count', value=cmdutils.Value.count)
         def fun(count=0):
             """Blah."""
         assert objects.commands['fun']._get_call_args(42) == ([0], {})
+
+    def test_fill_self(self):
+        with pytest.raises(TypeError, match="fun: Can't fill 'self' with "
+                           "value!"):
+            @cmdutils.register(instance='foobar')
+            @cmdutils.argument('self', value=cmdutils.Value.count)
+            def fun(self):
+                """Blah."""
+
+    def test_fill_invalid(self):
+        with pytest.raises(TypeError, match="fun: Invalid value='foo' for "
+                           "argument 'arg'!"):
+            @cmdutils.register()
+            @cmdutils.argument('arg', value='foo')
+            def fun(arg):
+                """Blah."""
 
     def test_count_without_default(self):
         with pytest.raises(TypeError, match="fun: handler has count parameter "
                            "without default!"):
             @cmdutils.register()
-            @cmdutils.argument('count', count=True)
+            @cmdutils.argument('count', value=cmdutils.Value.count)
             def fun(count):
                 """Blah."""
 
@@ -344,6 +360,17 @@ class TestArgument:
         }
         assert fun.qute_args == expected
 
+    def test_arginfo_boolean(self):
+        @cmdutils.argument('special1', value=cmdutils.Value.count)
+        @cmdutils.argument('special2', value=cmdutils.Value.win_id)
+        @cmdutils.argument('normal')
+        def fun(special1, special2, normal):
+            """Blah."""
+
+        assert fun.qute_args['special1'].value
+        assert fun.qute_args['special2'].value
+        assert not fun.qute_args['normal'].value
+
     def test_wrong_order(self):
         """When @cmdutils.argument is used above (after) @register, fail."""
         with pytest.raises(ValueError, match=r"@cmdutils.argument got called "
@@ -351,13 +378,6 @@ class TestArgument:
             @cmdutils.argument('bar', flag='y')
             @cmdutils.register()
             def fun(bar):
-                """Blah."""
-
-    def test_count_and_win_id_same_arg(self):
-        with pytest.raises(TypeError,
-                           match="Argument marked as both count/win_id!"):
-            @cmdutils.argument('arg', count=True, win_id=True)
-            def fun(arg=0):
                 """Blah."""
 
     def test_no_docstring(self, caplog):

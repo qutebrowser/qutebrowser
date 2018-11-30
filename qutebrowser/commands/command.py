@@ -37,17 +37,12 @@ class ArgInfo:
 
     """Information about an argument."""
 
-    win_id = attr.ib(False)
-    count = attr.ib(False)
+    value = attr.ib(None)
     hide = attr.ib(False)
     metavar = attr.ib(None)
     flag = attr.ib(None)
     completion = attr.ib(None)
     choices = attr.ib(None)
-
-    def __attrs_post_init__(self):
-        if self.win_id and self.count:
-            raise TypeError("Argument marked as both count/win_id!")
 
 
 class Command:
@@ -116,7 +111,6 @@ class Command:
         self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
-        self._check_func()
         self.opt_args = collections.OrderedDict()
         self.namespace = None
         self._count = None
@@ -130,6 +124,7 @@ class Command:
         self._qute_args = getattr(self.handler, 'qute_args', {})
         self.handler.qute_args = None
 
+        self._check_func()
         self._inspect_func()
 
     def _check_prerequisites(self, win_id):
@@ -154,9 +149,14 @@ class Command:
     def _check_func(self):
         """Make sure the function parameters don't violate any rules."""
         signature = inspect.signature(self.handler)
-        if 'self' in signature.parameters and self._instance is None:
-            raise TypeError("{} is a class method, but instance was not "
-                            "given!".format(self.name[0]))
+        if 'self' in signature.parameters:
+            if self._instance is None:
+                raise TypeError("{} is a class method, but instance was not "
+                                "given!".format(self.name[0]))
+            arg_info = self.get_arg_info(signature.parameters['self'])
+            if arg_info.value is not None:
+                raise TypeError("{}: Can't fill 'self' with value!"
+                                .format(self.name))
         elif 'self' not in signature.parameters and self._instance is not None:
             raise TypeError("{} is not a class method, but instance was "
                             "given!".format(self.name[0]))
@@ -186,13 +186,18 @@ class Command:
             True if the parameter is special, False otherwise.
         """
         arg_info = self.get_arg_info(param)
-        if arg_info.count:
+        if arg_info.value is None:
+            return False
+        elif arg_info.value == usertypes.CommandValue.count:
             if param.default is inspect.Parameter.empty:
                 raise TypeError("{}: handler has count parameter "
                                 "without default!".format(self.name))
             return True
-        elif arg_info.win_id:
+        elif arg_info.value == usertypes.CommandValue.win_id:
             return True
+        else:
+            raise TypeError("{}: Invalid value={!r} for argument '{}'!"
+                            .format(self.name, arg_info.value, param.name))
         return False
 
     def _inspect_func(self):
@@ -325,9 +330,8 @@ class Command:
             return param.annotation
         elif param.default not in [None, inspect.Parameter.empty]:
             return type(param.default)
-        elif arginfo.count or arginfo.win_id or param.kind in [
-                inspect.Parameter.VAR_POSITIONAL,
-                inspect.Parameter.VAR_KEYWORD]:
+        elif arginfo.value or param.kind in [inspect.Parameter.VAR_POSITIONAL,
+                                             inspect.Parameter.VAR_KEYWORD]:
             return None
         else:
             return str
@@ -447,15 +451,13 @@ class Command:
                 # Special case for 'self'.
                 self._get_self_arg(win_id, param, args)
                 continue
-            elif arg_info.count:
-                # Special case for count parameter.
+            elif arg_info.value == usertypes.CommandValue.count:
                 self._get_count_arg(param, args, kwargs)
                 continue
-            # elif arg_info.win_id:
-            elif arg_info.win_id:
-                # Special case for win_id parameter.
+            elif arg_info.value == usertypes.CommandValue.win_id:
                 self._get_win_id_arg(win_id, param, args, kwargs)
                 continue
+
             value = self._get_param_value(param)
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
                 args.append(value)
