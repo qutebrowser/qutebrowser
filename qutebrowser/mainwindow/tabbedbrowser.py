@@ -245,7 +245,7 @@ class TabbedBrowser(QWidget):
         tab.new_tab_requested.connect(self.tabopen)
         if not self.is_private:
             web_history = objreg.get('web-history')
-            tab.add_history_item.connect(web_history.add_from_tab)
+            tab.history_item_triggered.connect(web_history.add_from_tab)
 
     def current_url(self):
         """Get the URL of the current tab.

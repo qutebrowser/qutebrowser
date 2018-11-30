@@ -854,7 +854,8 @@ class AbstractTab(QWidget):
     url_changed = pyqtSignal(QUrl)
     shutting_down = pyqtSignal()
     contents_size_changed = pyqtSignal(QSizeF)
-    add_history_item = pyqtSignal(QUrl, QUrl, str)  # url, requested url, title
+    # url, requested url, title
+    history_item_triggered = pyqtSignal(QUrl, QUrl, str)
     fullscreen_requested = pyqtSignal(bool)
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
     before_load_started = pyqtSignal(QUrl)
@@ -1027,7 +1028,7 @@ class AbstractTab(QWidget):
 
     @pyqtSlot()
     def _on_history_trigger(self) -> None:
-        """Emit add_history_item when triggered by backend-specific signal."""
+        """Emit history_item_triggered based on backend-specific signal."""
         raise NotImplementedError
 
     @pyqtSlot(int)

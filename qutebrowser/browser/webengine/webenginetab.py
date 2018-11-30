@@ -1240,7 +1240,7 @@ class WebEngineTab(browsertab.AbstractTab):
             log.misc.debug("Ignoring invalid URL being added to history")
             return
 
-        self.add_history_item.emit(url, requested_url, title)
+        self.history_item_triggered.emit(url, requested_url, title)
 
     @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
     def _on_proxy_authentication_required(self, url, authenticator,
