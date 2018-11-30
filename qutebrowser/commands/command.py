@@ -358,39 +358,26 @@ class Command:
                          tab=tab_id)
         args.append(obj)
 
-    def _get_count_arg(self, param, args, kwargs):
-        """Add the count argument to a function call.
+    def _add_special_arg(self, *, value, param, args, kwargs, optional=False):
+        """Add a special argument value to a function call.
 
         Arguments:
-            param: The count parameter.
+            value: The value to add.
+            param: The parameter being filled.
             args: The positional argument list. Gets modified directly.
             kwargs: The keyword argument dict. Gets modified directly.
+            optional: Whether the value can be optional.
         """
+        if not optional:
+            assert value is not None
         if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            if self._count is not None:
-                args.append(self._count)
+            if value is not None:
+                args.append(value)
             else:
                 args.append(param.default)
         elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-            if self._count is not None:
-                kwargs[param.name] = self._count
-        else:
-            raise TypeError("{}: invalid parameter type {} for argument "
-                            "{!r}!".format(self.name, param.kind, param.name))
-
-    def _get_win_id_arg(self, win_id, param, args, kwargs):
-        """Add the win_id argument to a function call.
-
-        Arguments:
-            win_id: The window ID to add.
-            param: The count parameter.
-            args: The positional argument list. Gets modified directly.
-            kwargs: The keyword argument dict. Gets modified directly.
-        """
-        if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            args.append(win_id)
-        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-            kwargs[param.name] = win_id
+            if value is not None:
+                kwargs[param.name] = value
         else:
             raise TypeError("{}: invalid parameter type {} for argument "
                             "{!r}!".format(self.name, param.kind, param.name))
@@ -452,10 +439,12 @@ class Command:
                 self._get_self_arg(win_id, param, args)
                 continue
             elif arg_info.value == usertypes.CommandValue.count:
-                self._get_count_arg(param, args, kwargs)
+                self._add_special_arg(value=self._count, param=param,
+                                      args=args, kwargs=kwargs, optional=True)
                 continue
             elif arg_info.value == usertypes.CommandValue.win_id:
-                self._get_win_id_arg(win_id, param, args, kwargs)
+                self._add_special_arg(value=win_id, param=param,
+                                      args=args, kwargs=kwargs)
                 continue
 
             value = self._get_param_value(param)
