@@ -19,7 +19,6 @@
 
 """Command dispatcher for TabbedBrowser."""
 
-import os
 import os.path
 import shlex
 import functools
@@ -27,7 +26,6 @@ import typing
 
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
-from PyQt5.QtPrintSupport import QPrintPreviewDialog
 
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
@@ -369,83 +367,6 @@ class CommandDispatcher:
             parsed = self._parse_url(cur_url, force_search=force_search)
             if parsed is not None:
                 yield parsed
-
-    @cmdutils.register(instance='command-dispatcher', name='reload',
-                       scope='window')
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    def reloadpage(self, force=False, count=None):
-        """Reload the current/[count]th tab.
-
-        Args:
-            count: The tab index to reload, or None.
-            force: Bypass the page cache.
-        """
-        tab = self._cntwidget(count)
-        if tab is not None:
-            tab.reload(force=force)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    def stop(self, count=None):
-        """Stop loading in the current/[count]th tab.
-
-        Args:
-            count: The tab index to stop, or None.
-        """
-        tab = self._cntwidget(count)
-        if tab is not None:
-            tab.stop()
-
-    def _print_preview(self, tab):
-        """Show a print preview."""
-        def print_callback(ok):
-            if not ok:
-                message.error("Printing failed!")
-
-        tab.printing.check_preview_support()
-        diag = QPrintPreviewDialog(tab)
-        diag.setAttribute(Qt.WA_DeleteOnClose)
-        diag.setWindowFlags(diag.windowFlags() | Qt.WindowMaximizeButtonHint |
-                            Qt.WindowMinimizeButtonHint)
-        diag.paintRequested.connect(functools.partial(
-            tab.printing.to_printer, callback=print_callback))
-        diag.exec_()
-
-    def _print_pdf(self, tab, filename):
-        """Print to the given PDF file."""
-        tab.printing.check_pdf_support()
-        filename = os.path.expanduser(filename)
-        directory = os.path.dirname(filename)
-        if directory and not os.path.exists(directory):
-            os.mkdir(directory)
-        tab.printing.to_pdf(filename)
-        log.misc.debug("Print to file: {}".format(filename))
-
-    @cmdutils.register(instance='command-dispatcher', name='print',
-                       scope='window')
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('pdf', flag='f', metavar='file')
-    def printpage(self, preview=False, count=None, *, pdf=None):
-        """Print the current/[count]th tab.
-
-        Args:
-            preview: Show preview instead of printing.
-            count: The tab index to print, or None.
-            pdf: The file path to write the PDF to.
-        """
-        tab = self._cntwidget(count)
-        if tab is None:
-            return
-
-        try:
-            if preview:
-                self._print_preview(tab)
-            elif pdf:
-                self._print_pdf(tab, pdf)
-            else:
-                tab.printing.show_dialog()
-        except browsertab.WebTabError as e:
-            raise cmdutils.CommandError(e)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tab_clone(self, bg=False, window=False):
@@ -1110,11 +1031,6 @@ class CommandDispatcher:
                 proc.start(cmd, args)
             proc.finished.connect(_on_proc_finished)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    def home(self):
-        """Open main startpage in current tab."""
-        self.openurl(config.val.url.start_pages[0])
-
     def _run_userscript(self, selection, cmd, args, verbose, count):
         """Run a userscript given as argument.
 
@@ -1384,30 +1300,6 @@ class CommandDispatcher:
         else:
             tab.action.show_source(pygments)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       debug=True)
-    def debug_dump_page(self, dest, plain=False):
-        """Dump the current page's content to a file.
-
-        Args:
-            dest: Where to write the file to.
-            plain: Write plain text instead of HTML.
-        """
-        tab = self._current_widget()
-        dest = os.path.expanduser(dest)
-
-        def callback(data):
-            """Write the data to disk."""
-            try:
-                with open(dest, 'w', encoding='utf-8') as f:
-                    f.write(data)
-            except OSError as e:
-                message.error('Could not write page: {}'.format(e))
-            else:
-                message.info("Dumped page to {}.".format(dest))
-
-        tab.dump_async(callback, plain=plain)
-
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def history(self, tab=True, bg=False, window=False):
         """Show browsing history.
@@ -1524,75 +1416,6 @@ class CommandDispatcher:
         except webelem.Error as e:
             message.error(str(e))
             ed.backup()
-
-    @cmdutils.register(instance='command-dispatcher', maxsplit=0,
-                       scope='window')
-    def insert_text(self, text):
-        """Insert text at cursor position.
-
-        Args:
-            text: The text to insert.
-        """
-        tab = self._current_widget()
-
-        def _insert_text_cb(elem):
-            if elem is None:
-                message.error("No element focused!")
-                return
-            try:
-                elem.insert_text(text)
-            except webelem.Error as e:
-                message.error(str(e))
-                return
-
-        tab.elements.find_focused(_insert_text_cb)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('filter_', choices=['id'])
-    def click_element(self, filter_: str, value: str, *,
-                      target: usertypes.ClickTarget =
-                      usertypes.ClickTarget.normal,
-                      force_event: bool = False) -> None:
-        """Click the element matching the given filter.
-
-        The given filter needs to result in exactly one element, otherwise, an
-        error is shown.
-
-        Args:
-            filter_: How to filter the elements.
-                     id: Get an element based on its ID.
-            value: The value to filter for.
-            target: How to open the clicked element (normal/tab/tab-bg/window).
-            force_event: Force generating a fake click event.
-        """
-        tab = self._current_widget()
-
-        def single_cb(elem):
-            """Click a single element."""
-            if elem is None:
-                message.error("No element found with id {}!".format(value))
-                return
-            try:
-                elem.click(target, force_event=force_event)
-            except webelem.Error as e:
-                message.error(str(e))
-                return
-
-        # def multiple_cb(elems):
-        #     """Click multiple elements (with only one expected)."""
-        #     if not elems:
-        #         message.error("No element found!")
-        #         return
-        #     elif len(elems) != 1:
-        #         message.error("{} elements found!".format(len(elems)))
-        #         return
-        #     elems[0].click(target)
-
-        handlers = {
-            'id': (tab.elements.find_id, single_cb),
-        }
-        handler, callback = handlers[filter_]
-        handler(value, callback)
 
     def _search_cb(self, found, *, tab, old_scroll_pos, options, text, prev):
         """Callback called from search/search_next/search_prev.
@@ -1720,27 +1543,6 @@ class CommandDispatcher:
         for _ in range(count - 1):
             tab.search.prev_result()
         tab.search.prev_result(result_cb=cb)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       debug=True)
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    def debug_webaction(self, action, count=1):
-        """Execute a webaction.
-
-        Available actions:
-        http://doc.qt.io/archives/qt-5.5/qwebpage.html#WebAction-enum (WebKit)
-        http://doc.qt.io/qt-5/qwebenginepage.html#WebAction-enum (WebEngine)
-
-        Args:
-            action: The action to execute, e.g. MoveToNextChar.
-            count: How many times to repeat the action.
-        """
-        tab = self._current_widget()
-        for _ in range(count):
-            try:
-                tab.action.run_string(action)
-            except browsertab.WebTabError as e:
-                raise cmdutils.CommandError(str(e))
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
@@ -1920,20 +1722,3 @@ class CommandDispatcher:
 
         window = self._tabbed_browser.widget.window()
         window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       name='tab-mute')
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_mute(self, count=None):
-        """Mute/Unmute the current/[count]th tab.
-
-        Args:
-            count: The tab index to mute or unmute, or None
-        """
-        tab = self._cntwidget(count)
-        if tab is None:
-            return
-        try:
-            tab.audio.set_muted(tab.audio.is_muted(), override=True)
-        except browsertab.WebTabError as e:
-            raise cmdutils.CommandError(e)

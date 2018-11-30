@@ -24,11 +24,6 @@ import os
 import signal
 import traceback
 
-try:
-    import hunter
-except ImportError:
-    hunter = None
-
 from PyQt5.QtCore import QUrl
 # so it's available for :debug-pyeval
 from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
@@ -112,57 +107,9 @@ def run_with_count(count_arg: int, command: str, win_id: int,
 
 
 @cmdutils.register()
-def message_error(text):
-    """Show an error message in the statusbar.
-
-    Args:
-        text: The text to show.
-    """
-    message.error(text)
-
-
-@cmdutils.register()
-@cmdutils.argument('count', value=cmdutils.Value.count)
-def message_info(text, count=1):
-    """Show an info message in the statusbar.
-
-    Args:
-        text: The text to show.
-        count: How many times to show the message
-    """
-    for _ in range(count):
-        message.info(text)
-
-
-@cmdutils.register()
-def message_warning(text):
-    """Show a warning message in the statusbar.
-
-    Args:
-        text: The text to show.
-    """
-    message.warning(text)
-
-
-@cmdutils.register()
 def clear_messages():
     """Clear all message notifications."""
     message.global_bridge.clear_messages.emit()
-
-
-@cmdutils.register(debug=True)
-@cmdutils.argument('typ', choices=['exception', 'segfault'])
-def debug_crash(typ='exception'):
-    """Crash for debugging purposes.
-
-    Args:
-        typ: either 'exception' or 'segfault'.
-    """
-    if typ == 'segfault':
-        os.kill(os.getpid(), signal.SIGSEGV)
-        raise Exception("Segfault failed (wat.)")
-    else:
-        raise Exception("Forced crash")
 
 
 @cmdutils.register(debug=True)
@@ -218,22 +165,6 @@ def debug_console():
     else:
         log.misc.debug('showing debug console')
         con_widget.show()
-
-
-@cmdutils.register(debug=True, maxsplit=0, no_cmd_split=True)
-def debug_trace(expr=""):
-    """Trace executed code via hunter.
-
-    Args:
-        expr: What to trace, passed to hunter.
-    """
-    if hunter is None:
-        raise cmdutils.CommandError("You need to install 'hunter' to use this "
-                                    "command!")
-    try:
-        eval('hunter.trace({})'.format(expr))
-    except Exception as e:
-        raise cmdutils.CommandError("{}: {}".format(e.__class__.__name__, e))
 
 
 @cmdutils.register(maxsplit=0, debug=True, no_cmd_split=True)
@@ -369,11 +300,6 @@ def window_only(current_win_id):
 
         if win_id != current_win_id:
             window.close()
-
-
-@cmdutils.register()
-def nop():
-    """Do nothing."""
 
 
 @cmdutils.register()
