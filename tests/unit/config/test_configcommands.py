@@ -466,7 +466,8 @@ class TestSource:
 
         assert not config_stub.val.content.javascript.enabled
         ignore_case = config_stub.val.search.ignore_case
-        assert ignore_case == ('smart' if clear else 'always')
+        assert ignore_case == (usertypes.IgnoreCase.smart if clear
+                               else usertypes.IgnoreCase.always)
 
     def test_errors(self, commands, config_tmpdir):
         pyfile = config_tmpdir / 'config.py'
