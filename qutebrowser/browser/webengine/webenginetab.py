@@ -1366,7 +1366,7 @@ class WebEngineTab(browsertab.AbstractTab):
             log.config.debug(
                 "Loading {} again because of config change".format(
                     self._reload_url.toDisplayString()))
-            QTimer.singleShot(100, functools.partial(self.openurl,
+            QTimer.singleShot(100, functools.partial(self.load_url,
                                                      self._reload_url,
                                                      predict=False))
             self._reload_url = None
