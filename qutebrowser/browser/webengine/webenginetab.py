@@ -518,31 +518,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         return self._at_bottom
 
 
-class WebEngineHistory(browsertab.AbstractHistory):
-
-    """QtWebEngine implementations related to page history."""
-
-    def __len__(self):
-        return len(self._history)
-
-    def __iter__(self):
-        return iter(self._history.items())
-
-    def current_idx(self):
-        return self._history.currentItemIndex()
-
-    def can_go_back(self):
-        return self._history.canGoBack()
-
-    def can_go_forward(self):
-        return self._history.canGoForward()
-
-    def _item_at(self, i):
-        return self._history.itemAt(i)
-
-    def _go_to_item(self, item):
-        self._tab.predicted_navigation.emit(item.url())
-        self._history.goToItem(item)
+class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     def serialize(self):
         if not qtutils.version_check('5.9', compiled=False):
@@ -577,6 +553,37 @@ class WebEngineHistory(browsertab.AbstractHistory):
             if ('scroll-pos' in cur_data and
                     self._tab.scroller.pos_px() == QPoint(0, 0)):
                 self._tab.load_finished.connect(_on_load_finished)
+
+
+class WebEngineHistory(browsertab.AbstractHistory):
+
+    """QtWebEngine implementations related to page history."""
+
+    def __init__(self, tab):
+        super().__init__(tab)
+        self.private_api = WebEngineHistoryPrivate(tab)
+
+    def __len__(self):
+        return len(self._history)
+
+    def __iter__(self):
+        return iter(self._history.items())
+
+    def current_idx(self):
+        return self._history.currentItemIndex()
+
+    def can_go_back(self):
+        return self._history.canGoBack()
+
+    def can_go_forward(self):
+        return self._history.canGoForward()
+
+    def _item_at(self, i):
+        return self._history.itemAt(i)
+
+    def _go_to_item(self, item):
+        self._tab.predicted_navigation.emit(item.url())
+        self._history.goToItem(item)
 
 
 class WebEngineZoom(browsertab.AbstractZoom):

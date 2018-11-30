@@ -592,6 +592,27 @@ class AbstractScroller(QObject):
         raise NotImplementedError
 
 
+class AbstractHistoryPrivate:
+
+    """Private API related to the history."""
+
+    def __init__(self, tab: 'AbstractTab'):
+        self._tab = tab
+        self._history = None
+
+    def serialize(self) -> bytes:
+        """Serialize into an opaque format understood by self.deserialize."""
+        raise NotImplementedError
+
+    def deserialize(self, data: bytes) -> None:
+        """Deserialize from a format produced by self.serialize."""
+        raise NotImplementedError
+
+    def load_items(self, items: typing.Sequence) -> None:
+        """Deserialize from a list of WebHistoryItems."""
+        raise NotImplementedError
+
+
 class AbstractHistory:
 
     """The history attribute of a AbstractTab."""
@@ -599,6 +620,7 @@ class AbstractHistory:
     def __init__(self, tab: 'AbstractTab') -> None:
         self._tab = tab
         self._history = None
+        self.private_api = AbstractHistoryPrivate(tab)
 
     def __len__(self) -> int:
         raise NotImplementedError
@@ -644,18 +666,6 @@ class AbstractHistory:
         raise NotImplementedError
 
     def _go_to_item(self, item: typing.Any) -> None:
-        raise NotImplementedError
-
-    def serialize(self) -> bytes:
-        """Serialize into an opaque format understood by self.deserialize."""
-        raise NotImplementedError
-
-    def deserialize(self, data: bytes) -> None:
-        """Deserialize from a format produced by self.serialize."""
-        raise NotImplementedError
-
-    def load_items(self, items: typing.Sequence) -> None:
-        """Deserialize from a list of WebHistoryItems."""
         raise NotImplementedError
 
 
@@ -885,6 +895,7 @@ class AbstractTab(QWidget):
         self._widget = widget
         self._layout.wrap(self, widget)
         self.history._history = widget.history()
+        self.history.private_api._history = widget.history()
         self.scroller._init_widget(widget)
         self.caret._widget = widget
         self.zoom._widget = widget

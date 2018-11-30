@@ -509,31 +509,7 @@ class WebKitScroller(browsertab.AbstractScroller):
         return self.pos_px().y() >= frame.scrollBarMaximum(Qt.Vertical)
 
 
-class WebKitHistory(browsertab.AbstractHistory):
-
-    """QtWebKit implementations related to page history."""
-
-    def __len__(self):
-        return len(self._history)
-
-    def __iter__(self):
-        return iter(self._history.items())
-
-    def current_idx(self):
-        return self._history.currentItemIndex()
-
-    def can_go_back(self):
-        return self._history.canGoBack()
-
-    def can_go_forward(self):
-        return self._history.canGoForward()
-
-    def _item_at(self, i):
-        return self._history.itemAt(i)
-
-    def _go_to_item(self, item):
-        self._tab.predicted_navigation.emit(item.url())
-        self._history.goToItem(item)
+class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     def serialize(self):
         return qtutils.serialize(self._history)
@@ -557,6 +533,37 @@ class WebKitHistory(browsertab.AbstractHistory):
                     self._tab.scroller.pos_px() == QPoint(0, 0)):
                 QTimer.singleShot(0, functools.partial(
                     self._tab.scroller.to_point, cur_data['scroll-pos']))
+
+
+class WebKitHistory(browsertab.AbstractHistory):
+
+    """QtWebKit implementations related to page history."""
+
+    def __init__(self, tab):
+        super().__init__(tab)
+        self.private_api = WebKitHistoryPrivate(tab)
+
+    def __len__(self):
+        return len(self._history)
+
+    def __iter__(self):
+        return iter(self._history.items())
+
+    def current_idx(self):
+        return self._history.currentItemIndex()
+
+    def can_go_back(self):
+        return self._history.canGoBack()
+
+    def can_go_forward(self):
+        return self._history.canGoForward()
+
+    def _item_at(self, i):
+        return self._history.itemAt(i)
+
+    def _go_to_item(self, item):
+        self._tab.predicted_navigation.emit(item.url())
+        self._history.goToItem(item)
 
 
 class WebKitElements(browsertab.AbstractElements):

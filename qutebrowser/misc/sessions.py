@@ -401,7 +401,7 @@ class SessionManager(QObject):
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
-            new_tab.history.load_items(entries)
+            new_tab.history.private_api.load_items(entries)
         except ValueError as e:
             raise SessionError(e)
 

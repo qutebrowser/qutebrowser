@@ -345,7 +345,7 @@ class TabbedBrowser(QWidget):
             urlutils.invalid_url_error(tab.url(), "saving tab")
         elif add_undo:
             try:
-                history_data = tab.history.serialize()
+                history_data = tab.history.private_api.serialize()
             except browsertab.WebTabError:
                 pass  # special URL
             else:
@@ -391,7 +391,7 @@ class TabbedBrowser(QWidget):
             else:
                 newtab = self.tabopen(background=False, idx=entry.index)
 
-            newtab.history.deserialize(entry.history)
+            newtab.history.private_api.deserialize(entry.history)
             self.widget.set_tab_pinned(newtab, entry.pinned)
 
     @pyqtSlot('QUrl', bool)

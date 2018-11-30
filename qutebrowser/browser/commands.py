@@ -463,7 +463,7 @@ class CommandDispatcher:
         cur_title = self._tabbed_browser.widget.page_title(
             self._current_index())
         try:
-            history = curtab.history.serialize()
+            history = curtab.history.private_api.serialize()
         except browsertab.WebTabError as e:
             raise cmdutils.CommandError(e)
 
@@ -486,7 +486,7 @@ class CommandDispatcher:
                 new_tabbed_browser.widget.window().setWindowIcon(curtab.icon())
 
         newtab.data.keep_icon = True
-        newtab.history.deserialize(history)
+        newtab.history.private_api.deserialize(history)
         newtab.zoom.set_factor(curtab.zoom.factor())
         new_tabbed_browser.widget.set_tab_pinned(newtab, curtab.data.pinned)
         return newtab
