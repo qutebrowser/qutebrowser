@@ -21,7 +21,6 @@
 
 import inspect
 import typing
-import enum
 
 from qutebrowser.utils import qtutils
 from qutebrowser.commands import command, cmdexc
