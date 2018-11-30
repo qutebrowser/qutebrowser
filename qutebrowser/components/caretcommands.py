@@ -168,24 +168,28 @@ def move_to_end_of_prev_block(tab: apitypes.Tab, count: int = 1):
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def move_to_start_of_document(tab: apitypes.Tab):
     """Move the cursor or selection to the start of the document."""
     tab.caret.move_to_start_of_document()
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def move_to_end_of_document(tab: apitypes.Tab):
     """Move the cursor or selection to the end of the document."""
     tab.caret.move_to_end_of_document()
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def toggle_selection(tab: apitypes.Tab):
     """Toggle caret selection mode."""
     tab.caret.toggle_selection()
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def drop_selection(tab: apitypes.Tab):
     """Drop selection and keep selection mode enabled."""
     tab.caret.drop_selection()
