@@ -116,7 +116,10 @@ def printpage(tab, preview=False, *, pdf=None):
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def home(tab):
     """Open main startpage in current tab."""
-    tab.load_url(config.val.url.start_pages[0])
+    if tab.data.pinned:
+        message.info("Tab is pinned!")
+    else:
+        tab.load_url(config.val.url.start_pages[0])
 
 
 @cmdutils.register(debug=True)
