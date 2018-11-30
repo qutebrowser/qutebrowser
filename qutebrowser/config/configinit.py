@@ -24,6 +24,7 @@ import sys
 
 from PyQt5.QtWidgets import QMessageBox
 
+from qutebrowser.api import config as configapi
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc, configcommands)
 from qutebrowser.utils import (objreg, usertypes, log, standarddir, message,
@@ -44,6 +45,7 @@ def early_init(args):
 
     config.instance = config.Config(yaml_config=yaml_config)
     config.val = config.ConfigContainer(config.instance)
+    configapi.val = config.ConfigContainer(config.instance)
     config.key_instance = config.KeyConfig(config.instance)
     config.cache = configcache.ConfigCache()
     yaml_config.setParent(config.instance)
