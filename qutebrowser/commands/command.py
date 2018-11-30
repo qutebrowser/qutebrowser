@@ -420,6 +420,55 @@ class Command:
 
         return value
 
+    def _handle_special_call_arg(self, *, pos, param, win_id, args, kwargs):
+        """Check whether the argument is special, and if so, fill it in.
+
+        Args:
+            pos: The position of the argument.
+            param: The argparse.Parameter.
+            win_id: The window ID the command is run in.
+            args/kwargs: The args/kwargs to fill.
+
+        Return:
+            True if it was a special arg, False otherwise.
+        """
+        arg_info = self.get_arg_info(param)
+        if pos == 0 and self._instance is not None:
+            assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+            self_value = self._get_objreg(win_id=win_id, name=self._instance,
+                                          scope=self._scope)
+            self._add_special_arg(value=self_value, param=param,
+                                  args=args, kwargs=kwargs)
+            return True
+        elif arg_info.value == usertypes.CommandValue.count:
+            if self._count is None:
+                assert param.default is not inspect.Parameter.empty
+                value = param.default
+            else:
+                value = self._count
+            self._add_special_arg(value=value, param=param,
+                                  args=args, kwargs=kwargs)
+            return True
+        elif arg_info.value == usertypes.CommandValue.win_id:
+            self._add_special_arg(value=win_id, param=param,
+                                  args=args, kwargs=kwargs)
+            return True
+        elif arg_info.value == usertypes.CommandValue.cur_tab:
+            tab = self._get_objreg(win_id=win_id, name='tab', scope='tab')
+            self._add_special_arg(value=tab, param=param,
+                                  args=args, kwargs=kwargs)
+            return True
+        elif arg_info.value == usertypes.CommandValue.count_tab:
+            self._add_count_tab(win_id=win_id, param=param, args=args,
+                                kwargs=kwargs)
+            return True
+        elif arg_info.value is None:
+            pass
+        else:
+            raise utils.Unreachable(arg_info)
+
+        return False
+
     def _get_call_args(self, win_id):
         """Get arguments for a function call.
 
@@ -434,42 +483,10 @@ class Command:
         signature = inspect.signature(self.handler)
 
         for i, param in enumerate(signature.parameters.values()):
-            arg_info = self.get_arg_info(param)
-            if i == 0 and self._instance is not None:
-                assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-                self_value = self._get_objreg(win_id=win_id,
-                                              name=self._instance,
-                                              scope=self._scope)
-                self._add_special_arg(value=self_value, param=param,
-                                      args=args, kwargs=kwargs)
+            if self._handle_special_call_arg(pos=i, param=param,
+                                             win_id=win_id, args=args,
+                                             kwargs=kwargs):
                 continue
-            elif arg_info.value == usertypes.CommandValue.count:
-                if self._count is None:
-                    assert param.default is not inspect.Parameter.empty
-                    value = param.default
-                else:
-                    value = self._count
-                self._add_special_arg(value=value, param=param,
-                                      args=args, kwargs=kwargs)
-                continue
-            elif arg_info.value == usertypes.CommandValue.win_id:
-                self._add_special_arg(value=win_id, param=param,
-                                      args=args, kwargs=kwargs)
-                continue
-            elif arg_info.value == usertypes.CommandValue.cur_tab:
-                tab = self._get_objreg(win_id=win_id, name='tab', scope='tab')
-                self._add_special_arg(value=tab, param=param,
-                                      args=args, kwargs=kwargs)
-                continue
-            elif arg_info.value == usertypes.CommandValue.count_tab:
-                self._add_count_tab(win_id=win_id, param=param, args=args,
-                                    kwargs=kwargs)
-                continue
-
-            elif arg_info.value is None:
-                pass
-            else:
-                raise utils.Unreachable(arg_info)
 
             value = self._get_param_value(param)
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
