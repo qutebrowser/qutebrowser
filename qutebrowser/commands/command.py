@@ -193,7 +193,7 @@ class Command:
                 raise TypeError("{}: handler has count parameter "
                                 "without default!".format(self.name))
             return True
-        elif arg_info.value == usertypes.CommandValue.win_id:
+        elif isinstance(arg_info.value, usertypes.CommandValue):
             return True
         else:
             raise TypeError("{}: Invalid value={!r} for argument '{}'!"
@@ -439,6 +439,11 @@ class Command:
                 continue
             elif arg_info.value == usertypes.CommandValue.win_id:
                 self._add_special_arg(value=win_id, param=param,
+                                      args=args, kwargs=kwargs)
+                continue
+            elif arg_info.value == usertypes.CommandValue.tab:
+                tab = self._get_objreg(win_id=win_id, name='tab', scope='tab')
+                self._add_special_arg(value=tab, param=param,
                                       args=args, kwargs=kwargs)
                 continue
             elif arg_info.value is None:

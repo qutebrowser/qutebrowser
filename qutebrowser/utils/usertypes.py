@@ -262,6 +262,7 @@ class CommandValue(enum.Enum):
 
     count = 1
     win_id = 2
+    tab = 3
 
 
 class Question(QObject):
