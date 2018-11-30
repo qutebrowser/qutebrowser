@@ -685,7 +685,7 @@ class AbstractElements:
 
     def find_css(self, selector: str,
                  callback: _MultiCallback,
-                 error_callback: _ErrorCallback, *,
+                 error_cb: _ErrorCallback, *,
                  only_visible: bool = False) -> None:
         """Find all HTML elements matching a given selector async.
 
@@ -694,6 +694,7 @@ class AbstractElements:
 
         Args:
             callback: The callback to be called when the search finished.
+            error_cb: The callback to be called when an error occurred.
             selector: The CSS selector to search for.
             only_visible: Only show elements which are visible on screen.
         """

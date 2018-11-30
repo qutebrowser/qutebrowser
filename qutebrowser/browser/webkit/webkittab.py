@@ -23,8 +23,7 @@ import re
 import functools
 import xml.etree.ElementTree
 
-from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
-                          QSize)
+from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
@@ -511,6 +510,8 @@ class WebKitScroller(browsertab.AbstractScroller):
 
 class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
+    """History-related methods which are not part of the extension API."""
+
     def serialize(self):
         return qtutils.serialize(self._history)
 
@@ -600,8 +601,7 @@ class WebKitElements(browsertab.AbstractElements):
         # Escape non-alphanumeric characters in the selector
         # https://www.w3.org/TR/CSS2/syndata.html#value-def-identifier
         elem_id = re.sub(r'[^a-zA-Z0-9_-]', r'\\\g<0>', elem_id)
-        self.find_css('#' + elem_id, find_id_cb,
-                      error_callback=lambda exc: None)
+        self.find_css('#' + elem_id, find_id_cb, error_cb=lambda exc: None)
 
     def find_focused(self, callback):
         frame = self._widget.page().currentFrame()
@@ -727,7 +727,7 @@ class WebKitTab(browsertab.AbstractTab):
             url, emit_before_load_started=emit_before_load_started)
         self._widget.load(url)
 
-    def url(self, requested=False):
+    def url(self, *, requested=False):
         frame = self._widget.page().mainFrame()
         if requested:
             return frame.requestedUrl()

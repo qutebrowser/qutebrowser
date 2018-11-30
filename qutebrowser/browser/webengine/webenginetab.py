@@ -24,8 +24,8 @@ import functools
 import re
 import html as html_utils
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
-                          QUrl, QTimer, QObject)
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
+                          QTimer, QObject)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
@@ -519,6 +519,8 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
 
 class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
+
+    """History-related methods which are not part of the extension API."""
 
     def serialize(self):
         if not qtutils.version_check('5.9', compiled=False):

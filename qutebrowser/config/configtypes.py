@@ -923,7 +923,7 @@ class IgnoreCase(MappingType):
                 ('always', "Search case-insensitively."),
                 ('never', "Search case-sensitively."),
                 ('smart', ("Search case-sensitively if there are capital "
-                           "characters.")))),
+                           "characters."))))
 
     MAPPING = {
         'always': usertypes.IgnoreCase.always,
