@@ -26,6 +26,7 @@ import typing
 
 import attr
 
+from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, argparser
 from qutebrowser.utils import log, message, docutils, objreg, usertypes, utils
 from qutebrowser.utils import debug as debug_utils
@@ -373,6 +374,22 @@ class Command:
             raise TypeError("{}: invalid parameter type {} for argument "
                             "{!r}!".format(self.name, param.kind, param.name))
 
+    def _add_count_tab(self, *, win_id, param, args, kwargs):
+        """Add the count_tab widget argument."""
+        tabbed_browser = self._get_objreg(
+            win_id=win_id, name='tabbed-browser', scope='window')
+
+        if self._count is None:
+            tab = tabbed_browser.widget.currentWidget()
+        elif 1 <= self._count <= tabbed_browser.widget.count():
+            cmdutils.check_overflow(self._count + 1, 'int')
+            tab = tabbed_browser.widget.widget(self._count - 1)
+        else:
+            tab = None
+
+        self._add_special_arg(value=tab, param=param, args=args,
+                              kwargs=kwargs, optional=True)
+
     def _get_param_value(self, param):
         """Get the converted value for an inspect.Parameter."""
         value = getattr(self.namespace, param.name)
@@ -446,6 +463,11 @@ class Command:
                 self._add_special_arg(value=tab, param=param,
                                       args=args, kwargs=kwargs)
                 continue
+            elif arg_info.value == usertypes.CommandValue.count_tab:
+                self._add_count_tab(win_id=win_id, param=param, args=args,
+                                    kwargs=kwargs)
+                continue
+
             elif arg_info.value is None:
                 pass
             else:
