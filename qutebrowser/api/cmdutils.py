@@ -22,8 +22,7 @@
 import inspect
 import typing
 
-from qutebrowser.misc import objects
-from qutebrowser.utils import qtutils, log
+from qutebrowser.utils import qtutils
 from qutebrowser.commands import command, cmdexc
 
 
