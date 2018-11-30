@@ -537,7 +537,10 @@ class Command:
 
     def takes_count(self):
         """Return true iff this command can take a count argument."""
-        return any(arg.count for arg in self._qute_args)
+        count_values = [usertypes.CommandValue.count,
+                        usertypes.CommandValue.count_tab]
+        return any(info.value in count_values
+                   for info in self._qute_args.values())
 
     def register(self):
         """Register this command in objects.commands."""
