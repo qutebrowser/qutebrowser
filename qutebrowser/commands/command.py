@@ -350,7 +350,7 @@ class Command:
             raise ValueError("Invalid scope {}!".format(scope))
         return objreg.get(name, scope=scope, window=win_id, tab=tab_id)
 
-    def _add_special_arg(self, *, value, param, args, kwargs, optional=False):
+    def _add_special_arg(self, *, value, param, args, kwargs):
         """Add a special argument value to a function call.
 
         Arguments:
@@ -358,18 +358,11 @@ class Command:
             param: The parameter being filled.
             args: The positional argument list. Gets modified directly.
             kwargs: The keyword argument dict. Gets modified directly.
-            optional: Whether the value can be optional.
         """
-        if not optional:
-            assert value is not None
         if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            if value is not None:
-                args.append(value)
-            else:
-                args.append(param.default)
+            args.append(value)
         elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-            if value is not None:
-                kwargs[param.name] = value
+            kwargs[param.name] = value
         else:
             raise TypeError("{}: invalid parameter type {} for argument "
                             "{!r}!".format(self.name, param.kind, param.name))
@@ -388,7 +381,7 @@ class Command:
             tab = None
 
         self._add_special_arg(value=tab, param=param, args=args,
-                              kwargs=kwargs, optional=True)
+                              kwargs=kwargs)
 
     def _get_param_value(self, param):
         """Get the converted value for an inspect.Parameter."""
@@ -451,8 +444,13 @@ class Command:
                                       args=args, kwargs=kwargs)
                 continue
             elif arg_info.value == usertypes.CommandValue.count:
-                self._add_special_arg(value=self._count, param=param,
-                                      args=args, kwargs=kwargs, optional=True)
+                if self._count is None:
+                    assert param.default is not inspect.Parameter.empty
+                    value = param.default
+                else:
+                    value = self._count
+                self._add_special_arg(value=value, param=param,
+                                      args=args, kwargs=kwargs)
                 continue
             elif arg_info.value == usertypes.CommandValue.win_id:
                 self._add_special_arg(value=win_id, param=param,
