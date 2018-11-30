@@ -483,7 +483,7 @@ The following arguments are supported for `@cmdutils.argument`:
 - `value`: Tell qutebrowser to fill the argument with special values:
    - `value=cmdutils.Value.count`: The `count` given by the user to the command.
    - `value=cmdutils.Value.win_id`: The window ID of the current window.
-   - `value=cmdutils.Value.tab`: The tab object which is currently focused.
+   - `value=cmdutils.Value.cur_tab`: The tab object which is currently focused.
 - `completion`: A completion function (see `qutebrowser.completions.models.*`)
   to use when completing arguments for the given command.
 - `choices`: The allowed string choices for the argument.

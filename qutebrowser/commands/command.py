@@ -441,7 +441,7 @@ class Command:
                 self._add_special_arg(value=win_id, param=param,
                                       args=args, kwargs=kwargs)
                 continue
-            elif arg_info.value == usertypes.CommandValue.tab:
+            elif arg_info.value == usertypes.CommandValue.cur_tab:
                 tab = self._get_objreg(win_id=win_id, name='tab', scope='tab')
                 self._add_special_arg(value=tab, param=param,
                                       args=args, kwargs=kwargs)

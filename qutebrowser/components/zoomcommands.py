@@ -23,7 +23,7 @@ from qutebrowser.api import cmdutils, apitypes, message, config
 
 
 @cmdutils.register()
-@cmdutils.argument('tab', value=cmdutils.Value.tab)
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
 def zoom_in(tab: apitypes.Tab, count=1, quiet=False):
     """Increase the zoom level for the current tab.
@@ -41,7 +41,7 @@ def zoom_in(tab: apitypes.Tab, count=1, quiet=False):
 
 
 @cmdutils.register()
-@cmdutils.argument('tab', value=cmdutils.Value.tab)
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
 def zoom_out(tab: apitypes.Tab, count=1, quiet=False):
     """Decrease the zoom level for the current tab.
@@ -59,7 +59,7 @@ def zoom_out(tab: apitypes.Tab, count=1, quiet=False):
 
 
 @cmdutils.register()
-@cmdutils.argument('tab', value=cmdutils.Value.tab)
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
 def zoom(tab: apitypes.Tab, zoom=None, count=None, quiet=False):
     """Set the zoom level for the current tab.

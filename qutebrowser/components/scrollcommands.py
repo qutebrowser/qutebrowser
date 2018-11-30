@@ -23,7 +23,7 @@ from qutebrowser.api import cmdutils, apitypes
 
 
 @cmdutils.register()
-@cmdutils.argument('tab', value=cmdutils.Value.tab)
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
 def scroll_px(tab: apitypes.Tab, dx: int, dy: int, count: int = 1) -> None:
     """Scroll the current tab by 'count * dx/dy' pixels.
@@ -41,7 +41,7 @@ def scroll_px(tab: apitypes.Tab, dx: int, dy: int, count: int = 1) -> None:
 
 
 @cmdutils.register()
-@cmdutils.argument('tab', value=cmdutils.Value.tab)
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
 def scroll(tab: apitypes.Tab, direction: str, count: int = 1) -> None:
     """Scroll the current tab in the given direction.
@@ -79,7 +79,7 @@ def scroll(tab: apitypes.Tab, direction: str, count: int = 1) -> None:
 
 
 @cmdutils.register()
-@cmdutils.argument('tab', value=cmdutils.Value.tab)
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
 @cmdutils.argument('horizontal', flag='x')
 def scroll_to_perc(tab: apitypes.Tab, count: int = None,
@@ -111,7 +111,7 @@ def scroll_to_perc(tab: apitypes.Tab, count: int = None,
 
 
 @cmdutils.register()
-@cmdutils.argument('tab', value=cmdutils.Value.tab)
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def scroll_to_anchor(tab: apitypes.Tab, name):
     """Scroll to the given anchor in the document.
 
