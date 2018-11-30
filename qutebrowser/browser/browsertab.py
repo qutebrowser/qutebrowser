@@ -839,7 +839,7 @@ class AbstractTab(QWidget):
                                      process terminated.
                                      arg 0: A TerminationStatus member.
                                      arg 1: The exit code.
-        predicted_navigation: Emitted before we tell Qt to open a URL.
+        before_load_started: Emitted before we tell Qt to open a URL.
     """
 
     window_close_requested = pyqtSignal()
@@ -857,7 +857,7 @@ class AbstractTab(QWidget):
     add_history_item = pyqtSignal(QUrl, QUrl, str)  # url, requested url, title
     fullscreen_requested = pyqtSignal(bool)
     renderer_process_terminated = pyqtSignal(TerminationStatus, int)
-    predicted_navigation = pyqtSignal(QUrl)
+    before_load_started = pyqtSignal(QUrl)
 
     def __init__(self, *, win_id: int, private: bool,
                  parent: QWidget = None) -> None:
@@ -888,7 +888,7 @@ class AbstractTab(QWidget):
         objreg.register('hintmanager', hintmanager, scope='tab',
                         window=self.win_id, tab=self.tab_id)
 
-        self.predicted_navigation.connect(self._on_predicted_navigation)
+        self.before_load_started.connect(self._on_before_load_started)
 
     def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
@@ -943,11 +943,11 @@ class AbstractTab(QWidget):
         QApplication.postEvent(recipient, evt)
 
     @pyqtSlot(QUrl)
-    def _on_predicted_navigation(self, url: QUrl) -> None:
+    def _on_before_load_started(self, url: QUrl) -> None:
         """Adjust the title if we are going to visit a URL soon."""
         qtutils.ensure_valid(url)
         url_string = url.toDisplayString()
-        log.webview.debug("Predicted navigation: {}".format(url_string))
+        log.webview.debug("Going to start loading: {}".format(url_string))
         self.title_changed.emit(url_string)
 
     @pyqtSlot(QUrl)
@@ -1044,12 +1044,14 @@ class AbstractTab(QWidget):
     def load_status(self) -> usertypes.LoadStatus:
         return self._load_status
 
-    def _openurl_prepare(self, url: QUrl, *, predict: bool = True) -> None:
+    def _openurl_prepare(self, url: QUrl, *,
+                         emit_before_load_started: bool = True) -> None:
         qtutils.ensure_valid(url)
-        if predict:
-            self.predicted_navigation.emit(url)
+        if emit_before_load_started:
+            self.before_load_started.emit(url)
 
-    def load_url(self, url: QUrl, *, predict: bool = True) -> None:
+    def load_url(self, url: QUrl, *,
+                 emit_before_load_started: bool = True) -> None:
         raise NotImplementedError
 
     def reload(self, *, force: bool = False) -> None:

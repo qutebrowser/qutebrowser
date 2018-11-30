@@ -537,7 +537,7 @@ class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     def load_items(self, items):
         if items:
-            self._tab.predicted_navigation.emit(items[-1].url)
+            self._tab.before_load_started.emit(items[-1].url)
 
         stream, _data, cur_data = tabhistory.serialize(items)
         qtutils.deserialize_stream(stream, self._history)
@@ -582,7 +582,7 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return self._history.itemAt(i)
 
     def _go_to_item(self, item):
-        self._tab.predicted_navigation.emit(item.url())
+        self._tab.before_load_started.emit(item.url())
         self._history.goToItem(item)
 
 
@@ -1134,18 +1134,20 @@ class WebEngineTab(browsertab.AbstractTab):
         self.zoom.set_factor(self._saved_zoom)
         self._saved_zoom = None
 
-    def load_url(self, url, *, predict=True):
+    def load_url(self, url, *, emit_before_load_started=True):
         """Load the given URL in this tab.
 
         Arguments:
             url: The QUrl to load.
-            predict: If set to False, predicted_navigation is not emitted.
+            emit_before_load_started: If set to False, before_load_started is
+                                      not emitted.
         """
         if sip.isdeleted(self._widget):
             # https://github.com/qutebrowser/qutebrowser/issues/3896
             return
         self._saved_zoom = self.zoom.factor()
-        self._openurl_prepare(url, predict=predict)
+        self._openurl_prepare(
+            url, emit_before_load_started=emit_before_load_started)
         self._widget.load(url)
 
     def url(self, *, requested=False):
@@ -1366,9 +1368,9 @@ class WebEngineTab(browsertab.AbstractTab):
             log.config.debug(
                 "Loading {} again because of config change".format(
                     self._reload_url.toDisplayString()))
-            QTimer.singleShot(100, functools.partial(self.load_url,
-                                                     self._reload_url,
-                                                     predict=False))
+            QTimer.singleShot(100, functools.partial(
+                self.load_url, self._reload_url,
+                emit_before_load_started=False))
             self._reload_url = None
 
         if not qtutils.version_check('5.10', compiled=False):
@@ -1407,12 +1409,12 @@ class WebEngineTab(browsertab.AbstractTab):
             self._show_error_page(url, str(error))
 
     @pyqtSlot(QUrl)
-    def _on_predicted_navigation(self, url):
+    def _on_before_load_started(self, url):
         """If we know we're going to visit a URL soon, change the settings.
 
         This is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
         """
-        super()._on_predicted_navigation(url)
+        super()._on_before_load_started(url)
         if not qtutils.version_check('5.11.1', compiled=False):
             self.settings.update_for_url(url)
 
@@ -1490,7 +1492,7 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadFinished.connect(self._restore_zoom)
             page.loadFinished.connect(self._on_load_finished)
 
-        self.predicted_navigation.connect(self._on_predicted_navigation)
+        self.before_load_started.connect(self._on_before_load_started)
 
         # pylint: disable=protected-access
         self.audio._connect_signals()

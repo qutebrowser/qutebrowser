@@ -519,7 +519,7 @@ class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     def load_items(self, items):
         if items:
-            self._tab.predicted_navigation.emit(items[-1].url)
+            self._tab.before_load_started.emit(items[-1].url)
 
         stream, _data, user_data = tabhistory.serialize(items)
         qtutils.deserialize_stream(stream, self._history)
@@ -562,7 +562,7 @@ class WebKitHistory(browsertab.AbstractHistory):
         return self._history.itemAt(i)
 
     def _go_to_item(self, item):
-        self._tab.predicted_navigation.emit(item.url())
+        self._tab.before_load_started.emit(item.url())
         self._history.goToItem(item)
 
 
@@ -722,8 +722,9 @@ class WebKitTab(browsertab.AbstractTab):
         settings = widget.settings()
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def load_url(self, url, *, predict=True):
-        self._openurl_prepare(url, predict=predict)
+    def load_url(self, url, *, emit_before_load_started=True):
+        self._openurl_prepare(
+            url, emit_before_load_started=emit_before_load_started)
         self._widget.load(url)
 
     def url(self, requested=False):
