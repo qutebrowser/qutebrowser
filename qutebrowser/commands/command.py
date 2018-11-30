@@ -521,3 +521,12 @@ class Command:
     def takes_count(self):
         """Return true iff this command can take a count argument."""
         return any(arg.count for arg in self._qute_args)
+
+    def register(self):
+        """Register this command in objects.commands."""
+        log.commands.vdebug(  # type: ignore
+            "Registering command {} (from {}:{})".format(
+                self.name, self.handler.__module__, self.handler.__qualname__))
+        if self.name in objects.commands:
+            raise ValueError("{} is already registered!".format(self.name))
+        objects.commands[self.name] = self
