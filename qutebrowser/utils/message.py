@@ -29,19 +29,19 @@ from PyQt5.QtCore import pyqtSignal, QObject
 from qutebrowser.utils import usertypes, log, utils
 
 
-def _log_stack(typ, stack):
+def _log_stack(typ: str, stack: str) -> None:
     """Log the given message stacktrace.
 
     Args:
-        typ: The type of the message (str)
-        stack: The stacktrace as a string.
+        typ: The type of the message.
+        stack: An optional stacktrace.
     """
     lines = stack.splitlines()
     stack_text = '\n'.join(line.rstrip() for line in lines)
     log.message.debug("Stack for {} message:\n{}".format(typ, stack_text))
 
 
-def error(message, *, stack=None, replace=False):
+def error(message: str, *, stack: str = None, replace: bool = False) -> None:
     """Convenience function to display an error message in the statusbar.
 
     Args:
@@ -59,7 +59,7 @@ def error(message, *, stack=None, replace=False):
     global_bridge.show(usertypes.MessageLevel.error, message, replace)
 
 
-def warning(message, *, replace=False):
+def warning(message: str, *, replace: bool = False) -> None:
     """Convenience function to display a warning message in the statusbar.
 
     Args:
@@ -71,7 +71,7 @@ def warning(message, *, replace=False):
     global_bridge.show(usertypes.MessageLevel.warning, message, replace)
 
 
-def info(message, *, replace=False):
+def info(message: str, *, replace: bool = False) -> None:
     """Convenience function to display an info message in the statusbar.
 
     Args:
