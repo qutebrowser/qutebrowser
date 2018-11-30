@@ -218,9 +218,7 @@ class HintActions:
 
         if context.target in [Target.normal, Target.current]:
             # Set the pre-jump mark ', so we can jump back here after following
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=self._win_id)
-            tabbed_browser.set_mark("'")
+            context.tab.scroll.before_jump_requested.emit()
 
         try:
             if context.target == Target.hover:

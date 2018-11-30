@@ -522,9 +522,17 @@ class AbstractCaret(QObject):
 
 class AbstractScroller(QObject):
 
-    """Attribute of AbstractTab to manage scroll position."""
+    """Attribute of AbstractTab to manage scroll position.
+
+    Signals:
+        perc_changed: The scroll position changed.
+        before_jump_requested:
+            Emitted by other code when the user requested a jump.
+            Used to set the special ' mark so the user can return.
+    """
 
     perc_changed = pyqtSignal(int, int)
+    before_jump_requested = pyqtSignal()
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)

@@ -222,6 +222,7 @@ class TabbedBrowser(QWidget):
             self._filter.create(self.cur_caret_selection_toggled, tab))
         # misc
         tab.scroller.perc_changed.connect(self.on_scroll_pos_changed)
+        tab.scroller.before_jump_requested.connect(lambda: self.set_mark("'"))
         tab.url_changed.connect(
             functools.partial(self.on_url_changed, tab))
         tab.title_changed.connect(
@@ -891,8 +892,7 @@ class TabbedBrowser(QWidget):
             # save the pre-jump position in the special ' mark
             # this has to happen after we read the mark, otherwise jump_mark
             # "'" would just jump to the current position every time
-            self.set_mark("'")
-
+            tab.scroller.before_jump_requested.emit()
             tab.scroller.to_point(point)
         else:
             message.error("Mark {} is not set".format(key))

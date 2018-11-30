@@ -94,9 +94,6 @@ def scroll_to_perc(tab: tab.Tab, count: int = None,
         horizontal: Scroll horizontally instead of vertically.
         count: Percentage to scroll.
     """
-    # save the pre-jump position in the special ' mark
-    self.set_mark("'")
-
     if perc is None and count is None:
         perc = 100
     elif count is not None:
@@ -109,6 +106,7 @@ def scroll_to_perc(tab: tab.Tab, count: int = None,
         x = None
         y = perc
 
+    tab.scroller.before_jump_requested.emit()
     tab.scroller.to_perc(x, y)
 
 
@@ -120,4 +118,5 @@ def scroll_to_anchor(tab: tab.Tab, name):
     Args:
         name: The anchor to scroll to.
     """
+    tab.scroller.before_jump_requested.emit()
     tab.scroller.to_anchor(name)

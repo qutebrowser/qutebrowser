@@ -634,9 +634,6 @@ class CommandDispatcher:
             count: For `increment` and `decrement`, the number to change the
                    URL by. For `up`, the number of levels to go up in the URL.
         """
-        # save the pre-jump position in the special ' mark
-        self.set_mark("'")
-
         cmdutils.check_exclusive((tab, bg, window), 'tbw')
         widget = self._current_widget()
         url = self._current_url()
@@ -1712,7 +1709,6 @@ class CommandDispatcher:
             text: The text to search for.
             reverse: Reverse search direction.
         """
-        self.set_mark("'")
         tab = self._current_widget()
 
         if not text:
@@ -1733,6 +1729,7 @@ class CommandDispatcher:
                                options=options, text=text, prev=False)
         options['result_cb'] = cb
 
+        tab.scroller.before_jump_requested.emit()
         tab.search.search(text, **options)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -1750,7 +1747,7 @@ class CommandDispatcher:
         if window_text is None:
             raise cmdutils.CommandError("No search done yet.")
 
-        self.set_mark("'")
+        tab.scroller.before_jump_requested.emit()
 
         if window_text is not None and window_text != tab.search.text:
             tab.search.clear()
@@ -1784,7 +1781,7 @@ class CommandDispatcher:
         if window_text is None:
             raise cmdutils.CommandError("No search done yet.")
 
-        self.set_mark("'")
+        tab.scroller.before_jump_requested.emit()
 
         if window_text is not None and window_text != tab.search.text:
             tab.search.clear()
