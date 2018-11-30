@@ -27,7 +27,7 @@ import typing
 import attr
 
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import log, message, docutils, objreg, usertypes
+from qutebrowser.utils import log, message, docutils, objreg, usertypes, utils
 from qutebrowser.utils import debug as debug_utils
 from qutebrowser.misc import objects
 
@@ -441,6 +441,10 @@ class Command:
                 self._add_special_arg(value=win_id, param=param,
                                       args=args, kwargs=kwargs)
                 continue
+            elif arg_info.value is None:
+                pass
+            else:
+                raise utils.Unreachable(arg_info)
 
             value = self._get_param_value(param)
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
