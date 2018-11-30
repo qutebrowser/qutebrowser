@@ -723,7 +723,7 @@ class WebKitTab(browsertab.AbstractTab):
         settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
     def load_url(self, url, *, emit_before_load_started=True):
-        self._openurl_prepare(
+        self._load_url_prepare(
             url, emit_before_load_started=emit_before_load_started)
         self._widget.load(url)
 

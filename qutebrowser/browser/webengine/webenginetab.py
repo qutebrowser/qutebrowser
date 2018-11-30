@@ -1146,7 +1146,7 @@ class WebEngineTab(browsertab.AbstractTab):
             # https://github.com/qutebrowser/qutebrowser/issues/3896
             return
         self._saved_zoom = self.zoom.factor()
-        self._openurl_prepare(
+        self._load_url_prepare(
             url, emit_before_load_started=emit_before_load_started)
         self._widget.load(url)
 

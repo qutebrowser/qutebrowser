@@ -1044,8 +1044,8 @@ class AbstractTab(QWidget):
     def load_status(self) -> usertypes.LoadStatus:
         return self._load_status
 
-    def _openurl_prepare(self, url: QUrl, *,
-                         emit_before_load_started: bool = True) -> None:
+    def _load_url_prepare(self, url: QUrl, *,
+                          emit_before_load_started: bool = True) -> None:
         qtutils.ensure_valid(url)
         if emit_before_load_started:
             self.before_load_started.emit(url)
