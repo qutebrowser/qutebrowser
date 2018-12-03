@@ -154,6 +154,15 @@ class TestRegister:
         args, kwargs = cmd._get_call_args(win_id=0)
         fun(*args, **kwargs)
 
+    def test_star_args_optional_annotated(self):
+        @cmdutils.register(star_args_optional=True)
+        def fun(*args: str):
+            """Blah."""
+
+        cmd = objects.commands['fun']
+        cmd.namespace = cmd.parser.parse_args([])
+        cmd._get_call_args(win_id=0)
+
     @pytest.mark.parametrize('inp, expected', [
         (['--arg'], True), (['-a'], True), ([], False)])
     def test_flag(self, inp, expected):

@@ -333,13 +333,18 @@ class Command:
             param: The inspect.Parameter to look at.
         """
         arginfo = self.get_arg_info(param)
-        if param.annotation is not inspect.Parameter.empty:
+        if arginfo.value:
+            # Filled values are passed 1:1
+            return None
+        elif param.kind in [inspect.Parameter.VAR_POSITIONAL,
+                            inspect.Parameter.VAR_KEYWORD]:
+            # For *args/**kwargs we only support strings
+            assert param.annotation in [inspect.Parameter.empty, str], param
+            return None
+        elif param.annotation is not inspect.Parameter.empty:
             return param.annotation
         elif param.default not in [None, inspect.Parameter.empty]:
             return type(param.default)
-        elif arginfo.value or param.kind in [inspect.Parameter.VAR_POSITIONAL,
-                                             inspect.Parameter.VAR_KEYWORD]:
-            return None
         else:
             return str
 
