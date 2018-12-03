@@ -433,18 +433,13 @@ class ConfigCommands:
             options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]
             bindings = dict(configdata.DATA['bindings.default'].default)
-            commented = True
+            text = configutils.ConfigPyGenerator(options, bindings,
+                                                 commented=True).gen_text()
         else:
-            options = []
-            for values in self._config:
-                for scoped in values:
-                    options.append((scoped.pattern, values.opt, scoped.value))
-            bindings = dict(self._config.get_mutable_obj('bindings.commands'))
-            commented = False
+            text = self._config.dump_userconfig()
 
-        writer = configfiles.ConfigPyWriter(options, bindings,
-                                            commented=commented)
         try:
-            writer.write(filename)
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write(text)
         except OSError as e:
             raise cmdutils.CommandError(str(e))
