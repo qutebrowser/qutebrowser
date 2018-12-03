@@ -298,6 +298,8 @@ class Command:
         name = argparser.arg_name(param.name)
         arg_info = self.get_arg_info(param)
 
+        assert not arg_info.value, name
+
         if arg_info.flag is not None:
             shortname = arg_info.flag
         else:
