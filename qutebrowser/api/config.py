@@ -22,7 +22,7 @@
 import typing
 
 MYPY = False
-if MYPY:
+if MYPY:  # pragma: no cover
     # pylint: disable=unused-import,useless-suppression
     from qutebrowser.config import config
 

@@ -53,10 +53,17 @@ MsgType = enum.Enum('MsgType', 'insufficent_coverage, perfect_file')
 PERFECT_FILES = [
     (None,
      'commands/cmdexc.py'),
-    ('tests/unit/api/test_cmdutils.py',
-     'api/cmdutils.py'),
     ('tests/unit/commands/test_argparser.py',
      'commands/argparser.py'),
+
+    ('tests/unit/api/test_cmdutils.py',
+     'api/cmdutils.py'),
+    (None,
+     'api/apitypes.py'),
+    (None,
+     'api/config.py'),
+    (None,
+     'api/message.py'),
 
     ('tests/unit/browser/webkit/test_cache.py',
      'browser/webkit/cache.py'),
