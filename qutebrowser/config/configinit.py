@@ -19,10 +19,8 @@
 
 """Initialization of the configuration."""
 
-import argparse
 import os.path
 import sys
-import typing
 
 from PyQt5.QtWidgets import QMessageBox
 
@@ -32,14 +30,14 @@ from qutebrowser.config import (config, configdata, configfiles, configtypes,
 from qutebrowser.utils import (objreg, usertypes, log, standarddir, message,
                                qtutils)
 from qutebrowser.config import configcache
-from qutebrowser.misc import msgbox, objects, savemanager
+from qutebrowser.misc import msgbox, objects
 
 
 # Error which happened during init, so we can show a message box.
 _init_errors = None
 
 
-def early_init(args: argparse.Namespace) -> None:
+def early_init(args):
     """Initialize the part of the config which works without a QApplication."""
     configdata.init()
 
@@ -87,7 +85,7 @@ def early_init(args: argparse.Namespace) -> None:
     _init_envvars()
 
 
-def _init_envvars() -> None:
+def _init_envvars():
     """Initialize environment variables which need to be set early."""
     if objects.backend == usertypes.Backend.QtWebEngine:
         software_rendering = config.val.qt.force_software_rendering
@@ -109,7 +107,7 @@ def _init_envvars() -> None:
 
 
 @config.change_filter('fonts.monospace', function=True)
-def _update_monospace_fonts() -> None:
+def _update_monospace_fonts():
     """Update all fonts if fonts.monospace was set."""
     configtypes.Font.monospace_fonts = config.val.fonts.monospace
     for name, opt in configdata.DATA.items():
@@ -125,7 +123,7 @@ def _update_monospace_fonts() -> None:
         config.instance.changed.emit(name)
 
 
-def get_backend(args: argparse.Namespace) -> usertypes.Backend:
+def get_backend(args):
     """Find out what backend to use based on available libraries."""
     str_to_backend = {
         'webkit': usertypes.Backend.QtWebKit,
@@ -138,7 +136,7 @@ def get_backend(args: argparse.Namespace) -> usertypes.Backend:
         return str_to_backend[config.val.backend]
 
 
-def late_init(save_manager: savemanager.SaveManager) -> None:
+def late_init(save_manager):
     """Initialize the rest of the config after the QApplication is created."""
     global _init_errors
     if _init_errors is not None:
@@ -154,7 +152,7 @@ def late_init(save_manager: savemanager.SaveManager) -> None:
     configfiles.state.init_save_manager(save_manager)
 
 
-def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
+def qt_args(namespace):
     """Get the Qt QApplication arguments based on an argparse namespace.
 
     Args:
@@ -180,7 +178,7 @@ def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
     return argv
 
 
-def _qtwebengine_args() -> typing.Iterator[str]:
+def _qtwebengine_args():
     """Get the QtWebEngine arguments to use based on the config."""
     if not qtutils.version_check('5.11', compiled=False):
         # WORKAROUND equivalent to
@@ -226,7 +224,7 @@ def _qtwebengine_args() -> typing.Iterator[str]:
             'never': '--no-referrers',
             'same-domain': '--reduced-referrer-granularity',
         }
-    }  # type: typing.Dict[str, typing.Dict[typing.Any, typing.Optional[str]]]
+    }
 
     if not qtutils.version_check('5.11'):
         # On Qt 5.11, we can control this via QWebEngineSettings

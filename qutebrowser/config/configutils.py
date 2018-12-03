@@ -21,18 +21,10 @@
 """Utilities and data structures used by various config code."""
 
 
-import typing
-
 import attr
-from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlmatch
+from qutebrowser.utils import utils
 from qutebrowser.config import configexc
-
-MYPY = False
-if MYPY:  # pragma: no cover
-    # pylint: disable=unused-import,useless-suppression
-    from qutebrowser.config import configdata
 
 
 class _UnsetObject:
@@ -41,7 +33,7 @@ class _UnsetObject:
 
     __slots__ = ()
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return '<UNSET>'
 
 
@@ -58,8 +50,8 @@ class ScopedValue:
         pattern: The UrlPattern for the value, or None for global values.
     """
 
-    value = attr.ib()  # type: typing.Any
-    pattern = attr.ib()  # type: typing.Optional[urlmatch.UrlPattern]
+    value = attr.ib()
+    pattern = attr.ib()
 
 
 class Values:
@@ -81,17 +73,15 @@ class Values:
         opt: The Option being customized.
     """
 
-    def __init__(self,
-                 opt: 'configdata.Option',
-                 values: typing.MutableSequence = None) -> None:
+    def __init__(self, opt, values=None):
         self.opt = opt
         self._values = values or []
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return utils.get_repr(self, opt=self.opt, values=self._values,
                               constructor=True)
 
-    def __str__(self) -> str:
+    def __str__(self):
         """Get the values as human-readable string."""
         if not self:
             return '{}: <unchanged>'.format(self.opt.name)
@@ -106,7 +96,7 @@ class Values:
                     scoped.pattern, self.opt.name, str_value))
         return '\n'.join(lines)
 
-    def __iter__(self) -> typing.Iterator['ScopedValue']:
+    def __iter__(self):
         """Yield ScopedValue elements.
 
         This yields in "normal" order, i.e. global and then first-set settings
@@ -114,25 +104,23 @@ class Values:
         """
         yield from self._values
 
-    def __bool__(self) -> bool:
+    def __bool__(self):
         """Check whether this value is customized."""
         return bool(self._values)
 
-    def _check_pattern_support(
-            self, arg: typing.Optional[urlmatch.UrlPattern]) -> None:
+    def _check_pattern_support(self, arg):
         """Make sure patterns are supported if one was given."""
         if arg is not None and not self.opt.supports_pattern:
             raise configexc.NoPatternError(self.opt.name)
 
-    def add(self, value: typing.Any,
-            pattern: urlmatch.UrlPattern = None) -> None:
+    def add(self, value, pattern=None):
         """Add a value with the given pattern to the list of values."""
         self._check_pattern_support(pattern)
         self.remove(pattern)
         scoped = ScopedValue(value, pattern)
         self._values.append(scoped)
 
-    def remove(self, pattern: urlmatch.UrlPattern = None) -> bool:
+    def remove(self, pattern=None):
         """Remove the value with the given pattern.
 
         If a matching pattern was removed, True is returned.
@@ -143,11 +131,11 @@ class Values:
         self._values = [v for v in self._values if v.pattern != pattern]
         return old_len != len(self._values)
 
-    def clear(self) -> None:
+    def clear(self):
         """Clear all customization for this value."""
         self._values = []
 
-    def _get_fallback(self, fallback: typing.Any) -> typing.Any:
+    def _get_fallback(self, fallback):
         """Get the fallback global/default value."""
         for scoped in self._values:
             if scoped.pattern is None:
@@ -158,8 +146,7 @@ class Values:
         else:
             return UNSET
 
-    def get_for_url(self, url: QUrl = None, *,
-                    fallback: bool = True) -> typing.Any:
+    def get_for_url(self, url=None, *, fallback=True):
         """Get a config value, falling back when needed.
 
         This first tries to find a value matching the URL (if given).
@@ -178,9 +165,7 @@ class Values:
 
         return self._get_fallback(fallback)
 
-    def get_for_pattern(self,
-                        pattern: typing.Optional[urlmatch.UrlPattern], *,
-                        fallback: bool = True) -> typing.Any:
+    def get_for_pattern(self, pattern, *, fallback=True):
         """Get a value only if it's been overridden for the given pattern.
 
         This is useful when showing values to the user.

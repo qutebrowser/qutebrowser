@@ -24,18 +24,14 @@ Module attributes:
 DATA: A dict of Option objects after init() has been called.
 """
 
-import typing
-from typing import Optional  # pylint: disable=unused-import
 import functools
 
 import attr
 from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes, qtutils, utils
 
-DATA = typing.cast(typing.Mapping[str, 'Option'], None)
-MIGRATIONS = typing.cast('Migrations', None)
-
-_BackendDict = typing.Mapping[str, typing.Union[str, bool]]
+DATA = None
+MIGRATIONS = None
 
 
 @attr.s
@@ -46,15 +42,15 @@ class Option:
     Note that this is just an option which exists, with no value associated.
     """
 
-    name = attr.ib()  # type: str
-    typ = attr.ib()  # type: configtypes.BaseType
-    default = attr.ib()  # type: typing.Any
-    backends = attr.ib()  # type: typing.Iterable[usertypes.Backend]
-    raw_backends = attr.ib()  # type: Optional[typing.Mapping[str, bool]]
-    description = attr.ib()  # type: str
-    supports_pattern = attr.ib(default=False)  # type: bool
-    restart = attr.ib(default=False)  # type: bool
-    no_autoconfig = attr.ib(default=False)  # type: bool
+    name = attr.ib()
+    typ = attr.ib()
+    default = attr.ib()
+    backends = attr.ib()
+    raw_backends = attr.ib()
+    description = attr.ib()
+    supports_pattern = attr.ib(default=False)
+    restart = attr.ib(default=False)
+    no_autoconfig = attr.ib(default=False)
 
 
 @attr.s
@@ -67,13 +63,11 @@ class Migrations:
         deleted: A list of option names which have been removed.
     """
 
-    renamed = attr.ib(
-        default=attr.Factory(dict))  # type: typing.Dict[str, str]
-    deleted = attr.ib(
-        default=attr.Factory(list))  # type: typing.List[str]
+    renamed = attr.ib(default=attr.Factory(dict))
+    deleted = attr.ib(default=attr.Factory(list))
 
 
-def _raise_invalid_node(name: str, what: str, node: typing.Any) -> None:
+def _raise_invalid_node(name, what, node):
     """Raise an exception for an invalid configdata YAML node.
 
     Args:
@@ -85,16 +79,13 @@ def _raise_invalid_node(name: str, what: str, node: typing.Any) -> None:
         name, what, node))
 
 
-def _parse_yaml_type(
-        name: str,
-        node: typing.Union[str, typing.Mapping[str, typing.Any]],
-) -> configtypes.BaseType:
+def _parse_yaml_type(name, node):
     if isinstance(node, str):
         # e.g:
         #  type: Bool
         # -> create the type object without any arguments
         type_name = node
-        kwargs = {}  # type: typing.MutableMapping[str, typing.Any]
+        kwargs = {}
     elif isinstance(node, dict):
         # e.g:
         #  type:
@@ -132,10 +123,7 @@ def _parse_yaml_type(
             type_name, node, e))
 
 
-def _parse_yaml_backends_dict(
-        name: str,
-        node: _BackendDict,
-) -> typing.Sequence[usertypes.Backend]:
+def _parse_yaml_backends_dict(name, node):
     """Parse a dict definition for backends.
 
     Example:
@@ -172,10 +160,7 @@ def _parse_yaml_backends_dict(
     return backends
 
 
-def _parse_yaml_backends(
-        name: str,
-        node: typing.Union[None, str, _BackendDict],
-) -> typing.Sequence[usertypes.Backend]:
+def _parse_yaml_backends(name, node):
     """Parse a backend node in the yaml.
 
     It can have one of those four forms:
@@ -202,9 +187,7 @@ def _parse_yaml_backends(
     raise utils.Unreachable
 
 
-def _read_yaml(
-        yaml_data: str,
-) -> typing.Tuple[typing.Mapping[str, Option], Migrations]:
+def _read_yaml(yaml_data):
     """Read config data from a YAML file.
 
     Args:
@@ -266,12 +249,12 @@ def _read_yaml(
 
 
 @functools.lru_cache(maxsize=256)
-def is_valid_prefix(prefix: str) -> bool:
+def is_valid_prefix(prefix):
     """Check whether the given prefix is a valid prefix for some option."""
     return any(key.startswith(prefix + '.') for key in DATA)
 
 
-def init() -> None:
+def init():
     """Initialize configdata from the YAML file."""
     global DATA, MIGRATIONS
     DATA, MIGRATIONS = _read_yaml(utils.read_file('config/configdata.yml'))

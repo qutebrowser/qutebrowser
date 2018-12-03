@@ -19,7 +19,6 @@
 
 """Commands related to the configuration."""
 
-import typing
 import os.path
 import contextlib
 
@@ -32,34 +31,24 @@ from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
 from qutebrowser.keyinput import keyutils
 
-MYPY = False
-if MYPY:  # pragma: no cover
-    # pylint: disable=unused-import,useless-suppression
-    from qutebrowser.config.config import Config, KeyConfig
-
 
 class ConfigCommands:
 
     """qutebrowser commands related to the configuration."""
 
-    def __init__(self,
-                 config: 'Config',
-                 keyconfig: 'KeyConfig') -> None:
+    def __init__(self, config, keyconfig):
         self._config = config
         self._keyconfig = keyconfig
 
     @contextlib.contextmanager
-    def _handle_config_error(self) -> typing.Iterator[None]:
+    def _handle_config_error(self):
         """Catch errors in set_command and raise CommandError."""
         try:
             yield
         except configexc.Error as e:
             raise cmdutils.CommandError(str(e))
 
-    def _parse_pattern(
-            self,
-            pattern: typing.Optional[str]
-    ) -> typing.Optional[urlmatch.UrlPattern]:
+    def _parse_pattern(self, pattern):
         """Parse a pattern string argument to a pattern."""
         if pattern is None:
             return None
@@ -70,15 +59,14 @@ class ConfigCommands:
             raise cmdutils.CommandError("Error while parsing {}: {}"
                                         .format(pattern, str(e)))
 
-    def _parse_key(self, key: str) -> keyutils.KeySequence:
+    def _parse_key(self, key):
         """Parse a key argument."""
         try:
             return keyutils.KeySequence.parse(key)
         except keyutils.KeyParseError as e:
             raise cmdutils.CommandError(str(e))
 
-    def _print_value(self, option: str,
-                     pattern: typing.Optional[urlmatch.UrlPattern]) -> None:
+    def _print_value(self, option, pattern):
         """Print the value of the given option."""
         with self._handle_config_error():
             value = self._config.get_str(option, pattern=pattern)
@@ -93,9 +81,8 @@ class ConfigCommands:
     @cmdutils.argument('value', completion=configmodel.value)
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('pattern', flag='u')
-    def set(self, win_id: int, option: str = None, value: str = None,
-            temp: bool = False, print_: bool = False,
-            *, pattern: str = None) -> None:
+    def set(self, win_id, option=None, value=None, temp=False, print_=False,
+            *, pattern=None):
         """Set an option.
 
         If the option name ends with '?' or no value is provided, the
@@ -121,28 +108,28 @@ class ConfigCommands:
             raise cmdutils.CommandError("Toggling values was moved to the "
                                         ":config-cycle command")
 
-        parsed_pattern = self._parse_pattern(pattern)
+        pattern = self._parse_pattern(pattern)
 
         if option.endswith('?') and option != '?':
-            self._print_value(option[:-1], pattern=parsed_pattern)
+            self._print_value(option[:-1], pattern=pattern)
             return
 
         with self._handle_config_error():
             if value is None:
-                self._print_value(option, pattern=parsed_pattern)
+                self._print_value(option, pattern=pattern)
             else:
-                self._config.set_str(option, value, pattern=parsed_pattern,
+                self._config.set_str(option, value, pattern=pattern,
                                      save_yaml=not temp)
 
         if print_:
-            self._print_value(option, pattern=parsed_pattern)
+            self._print_value(option, pattern=pattern)
 
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
     @cmdutils.argument('command', completion=configmodel.bind)
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-    def bind(self, win_id: str, key: str = None, command: str = None, *,
-             mode: str = 'normal', default: bool = False) -> None:
+    def bind(self, win_id, key=None, command=None, *, mode='normal',
+             default=False):
         """Bind a key to a command.
 
         If no command is given, show the current binding for the given key.
@@ -187,7 +174,7 @@ class ConfigCommands:
             self._keyconfig.bind(seq, command, mode=mode, save_yaml=True)
 
     @cmdutils.register(instance='config-commands')
-    def unbind(self, key: str, *, mode: str = 'normal') -> None:
+    def unbind(self, key, *, mode='normal'):
         """Unbind a keychain.
 
         Args:
@@ -204,9 +191,8 @@ class ConfigCommands:
     @cmdutils.argument('option', completion=configmodel.option)
     @cmdutils.argument('values', completion=configmodel.value)
     @cmdutils.argument('pattern', flag='u')
-    def config_cycle(self, option: str, *values: str,
-                     pattern: str = None,
-                     temp: bool = False, print_: bool = False) -> None:
+    def config_cycle(self, option, *values, pattern=None, temp=False,
+                     print_=False):
         """Cycle an option between multiple values.
 
         Args:
@@ -216,15 +202,15 @@ class ConfigCommands:
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
-        parsed_pattern = self._parse_pattern(pattern)
+        pattern = self._parse_pattern(pattern)
 
         with self._handle_config_error():
             opt = self._config.get_opt(option)
-            old_value = self._config.get_obj_for_pattern(
-                option, pattern=parsed_pattern)
+            old_value = self._config.get_obj_for_pattern(option,
+                                                         pattern=pattern)
 
         if not values and isinstance(opt.typ, configtypes.Bool):
-            values = ('true', 'false')
+            values = ['true', 'false']
 
         if len(values) < 2:
             raise cmdutils.CommandError("Need at least two values for "
@@ -233,25 +219,25 @@ class ConfigCommands:
         # Use the next valid value from values, or the first if the current
         # value does not appear in the list
         with self._handle_config_error():
-            cycle_values = [opt.typ.from_str(val) for val in values]
+            values = [opt.typ.from_str(val) for val in values]
 
         try:
-            idx = cycle_values.index(old_value)
-            idx = (idx + 1) % len(cycle_values)
-            value = cycle_values[idx]
+            idx = values.index(old_value)
+            idx = (idx + 1) % len(values)
+            value = values[idx]
         except ValueError:
-            value = cycle_values[0]
+            value = values[0]
 
         with self._handle_config_error():
-            self._config.set_obj(option, value, pattern=parsed_pattern,
+            self._config.set_obj(option, value, pattern=pattern,
                                  save_yaml=not temp)
 
         if print_:
-            self._print_value(option, pattern=parsed_pattern)
+            self._print_value(option, pattern=pattern)
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.customized_option)
-    def config_unset(self, option: str, temp: bool = False) -> None:
+    def config_unset(self, option, temp=False):
         """Unset an option.
 
         This sets an option back to its default and removes it from
@@ -266,8 +252,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.list_option)
-    def config_list_add(self, option: str, value: str,
-                        temp: bool = False) -> None:
+    def config_list_add(self, option, value, temp=False):
         """Append a value to a config option that is a list.
 
         Args:
@@ -288,8 +273,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.dict_option)
-    def config_dict_add(self, option: str, key: str, value: str,
-                        temp: bool = False, replace: bool = False) -> None:
+    def config_dict_add(self, option, key, value, temp=False, replace=False):
         """Add a key/value pair to a dictionary option.
 
         Args:
@@ -318,8 +302,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.list_option)
-    def config_list_remove(self, option: str, value: str,
-                           temp: bool = False) -> None:
+    def config_list_remove(self, option, value, temp=False):
         """Remove a value from a list.
 
         Args:
@@ -346,8 +329,7 @@ class ConfigCommands:
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.dict_option)
-    def config_dict_remove(self, option: str, key: str,
-                           temp: bool = False) -> None:
+    def config_dict_remove(self, option, key, temp=False):
         """Remove a key from a dict.
 
         Args:
@@ -372,7 +354,7 @@ class ConfigCommands:
             self._config.update_mutables(save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
-    def config_clear(self, save: bool = False) -> None:
+    def config_clear(self, save=False):
         """Set all settings back to their default.
 
         Args:
@@ -382,7 +364,7 @@ class ConfigCommands:
         self._config.clear(save_yaml=save)
 
     @cmdutils.register(instance='config-commands')
-    def config_source(self, filename: str = None, clear: bool = False) -> None:
+    def config_source(self, filename=None, clear=False):
         """Read a config.py file.
 
         Args:
@@ -404,13 +386,13 @@ class ConfigCommands:
             raise cmdutils.CommandError(e)
 
     @cmdutils.register(instance='config-commands')
-    def config_edit(self, no_source: bool = False) -> None:
+    def config_edit(self, no_source=False):
         """Open the config.py file in the editor.
 
         Args:
             no_source: Don't re-source the config file after editing.
         """
-        def on_file_updated() -> None:
+        def on_file_updated():
             """Source the new config when editing finished.
 
             This can't use cmdutils.CommandError as it's run async.
@@ -428,8 +410,7 @@ class ConfigCommands:
         ed.edit_file(filename)
 
     @cmdutils.register(instance='config-commands')
-    def config_write_py(self, filename: str = None,
-                        force: bool = False, defaults: bool = False) -> None:
+    def config_write_py(self, filename=None, force=False, defaults=False):
         """Write the current configuration to a config.py file.
 
         Args:
@@ -448,13 +429,13 @@ class ConfigCommands:
             raise cmdutils.CommandError("{} already exists - use --force to "
                                         "overwrite!".format(filename))
 
-        options = []  # type: typing.List
         if defaults:
             options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]
             bindings = dict(configdata.DATA['bindings.default'].default)
             commented = True
         else:
+            options = []
             for values in self._config:
                 for scoped in values:
                     options.append((scoped.pattern, values.opt, scoped.value))
