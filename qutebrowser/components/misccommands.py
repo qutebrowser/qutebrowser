@@ -226,7 +226,7 @@ def debug_webaction(tab, action, count=1):
 
 
 @cmdutils.register()
-@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+@cmdutils.argument('tab', value=cmdutils.Value.count_tab)
 def tab_mute(tab):
     """Mute/Unmute the current/[count]th tab.
 

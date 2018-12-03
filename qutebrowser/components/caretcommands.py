@@ -108,12 +108,14 @@ def move_to_prev_word(tab: apitypes.Tab, count: int = 1):
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def move_to_start_of_line(tab: apitypes.Tab):
     """Move the cursor or selection to the start of the line."""
     tab.caret.move_to_start_of_line()
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def move_to_end_of_line(tab: apitypes.Tab):
     """Move the cursor or selection to the end of line."""
     tab.caret.move_to_end_of_line()
