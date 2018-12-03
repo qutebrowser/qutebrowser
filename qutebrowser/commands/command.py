@@ -71,6 +71,10 @@ class Command:
         _scope: The scope to get _instance for in the object registry.
     """
 
+    # CommandValue values which need a count
+    COUNT_COMMAND_VALUES = [usertypes.CommandValue.count,
+                            usertypes.CommandValue.count_tab]
+
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  modes=None, not_modes=None, debug=False, deprecated=False,
                  no_cmd_split=False, star_args_optional=False, scope='global',
@@ -554,9 +558,7 @@ class Command:
 
     def takes_count(self):
         """Return true iff this command can take a count argument."""
-        count_values = [usertypes.CommandValue.count,
-                        usertypes.CommandValue.count_tab]
-        return any(info.value in count_values
+        return any(info.value in self.COUNT_COMMAND_VALUES
                    for info in self._qute_args.values())
 
     def register(self):

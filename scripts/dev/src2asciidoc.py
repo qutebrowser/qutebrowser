@@ -252,7 +252,7 @@ def _get_command_doc_count(cmd, parser):
         Strings which should be added to the docs.
     """
     for param in inspect.signature(cmd.handler).parameters.values():
-        if cmd.get_arg_info(param).count:
+        if cmd.get_arg_info(param).value in cmd.COUNT_COMMAND_VALUES:
             yield ""
             yield "==== count"
             try:
