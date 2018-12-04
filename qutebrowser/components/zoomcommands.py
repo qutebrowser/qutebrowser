@@ -82,10 +82,9 @@ def zoom(tab: apitypes.Tab,
         except ValueError:
             raise cmdutils.CommandError("zoom: Invalid int value {}"
                                         .format(level))
-
-    if count is not None:
+    elif count is not None:
         int_level = count
-    elif int_level is None:
+    else:
         int_level = config.val.zoom.default
 
     try:
