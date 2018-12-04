@@ -25,7 +25,7 @@ from qutebrowser.api import cmdutils, apitypes, message, config
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def zoom_in(tab: apitypes.Tab, count=1, quiet=False):
+def zoom_in(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
     """Increase the zoom level for the current tab.
 
     Args:
@@ -43,7 +43,7 @@ def zoom_in(tab: apitypes.Tab, count=1, quiet=False):
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def zoom_out(tab: apitypes.Tab, count=1, quiet=False):
+def zoom_out(tab: apitypes.Tab, count: int = 1, quiet: bool = False) -> None:
     """Decrease the zoom level for the current tab.
 
     Args:
@@ -61,7 +61,10 @@ def zoom_out(tab: apitypes.Tab, count=1, quiet=False):
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def zoom(tab: apitypes.Tab, level=None, count=None, quiet=False):
+def zoom(tab: apitypes.Tab,
+         level: str = None,
+         count: int = None,
+         quiet: bool = False) -> None:
     """Set the zoom level for the current tab.
 
     The zoom can be given as argument or as [count]. If neither is
@@ -75,19 +78,19 @@ def zoom(tab: apitypes.Tab, level=None, count=None, quiet=False):
     """
     if level is not None:
         try:
-            level = int(level.rstrip('%'))
+            int_level = int(level.rstrip('%'))
         except ValueError:
             raise cmdutils.CommandError("zoom: Invalid int value {}"
                                         .format(level))
 
     if count is not None:
-        level = count
-    elif level is None:
-        level = config.val.zoom.default
+        int_level = count
+    elif int_level is None:
+        int_level = config.val.zoom.default
 
     try:
-        tab.zoom.set_factor(float(level) / 100)
+        tab.zoom.set_factor(int_level / 100)
     except ValueError:
-        raise cmdutils.CommandError("Can't zoom {}%!".format(level))
+        raise cmdutils.CommandError("Can't zoom {}%!".format(int_level))
     if not quiet:
-        message.info("Zoom level: {}%".format(int(level)), replace=True)
+        message.info("Zoom level: {}%".format(int_level), replace=True)

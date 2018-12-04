@@ -26,7 +26,7 @@ from qutebrowser.api import cmdutils, apitypes
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_next_line(tab: apitypes.Tab, count: int = 1):
+def move_to_next_line(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the next line.
 
     Args:
@@ -38,7 +38,7 @@ def move_to_next_line(tab: apitypes.Tab, count: int = 1):
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_prev_line(tab: apitypes.Tab, count: int = 1):
+def move_to_prev_line(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the prev line.
 
     Args:
@@ -50,7 +50,7 @@ def move_to_prev_line(tab: apitypes.Tab, count: int = 1):
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_next_char(tab: apitypes.Tab, count: int = 1):
+def move_to_next_char(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the next char.
 
     Args:
@@ -62,7 +62,7 @@ def move_to_next_char(tab: apitypes.Tab, count: int = 1):
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_prev_char(tab: apitypes.Tab, count: int = 1):
+def move_to_prev_char(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the previous char.
 
     Args:
@@ -74,7 +74,7 @@ def move_to_prev_char(tab: apitypes.Tab, count: int = 1):
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_end_of_word(tab: apitypes.Tab, count: int = 1):
+def move_to_end_of_word(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the end of the word.
 
     Args:
@@ -86,7 +86,7 @@ def move_to_end_of_word(tab: apitypes.Tab, count: int = 1):
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_next_word(tab: apitypes.Tab, count: int = 1):
+def move_to_next_word(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the next word.
 
     Args:
@@ -98,7 +98,7 @@ def move_to_next_word(tab: apitypes.Tab, count: int = 1):
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_prev_word(tab: apitypes.Tab, count: int = 1):
+def move_to_prev_word(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the previous word.
 
     Args:
@@ -109,14 +109,14 @@ def move_to_prev_word(tab: apitypes.Tab, count: int = 1):
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def move_to_start_of_line(tab: apitypes.Tab):
+def move_to_start_of_line(tab: apitypes.Tab) -> None:
     """Move the cursor or selection to the start of the line."""
     tab.caret.move_to_start_of_line()
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def move_to_end_of_line(tab: apitypes.Tab):
+def move_to_end_of_line(tab: apitypes.Tab) -> None:
     """Move the cursor or selection to the end of line."""
     tab.caret.move_to_end_of_line()
 
@@ -124,7 +124,7 @@ def move_to_end_of_line(tab: apitypes.Tab):
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_start_of_next_block(tab: apitypes.Tab, count: int = 1):
+def move_to_start_of_next_block(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the start of next block.
 
     Args:
@@ -136,7 +136,7 @@ def move_to_start_of_next_block(tab: apitypes.Tab, count: int = 1):
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_start_of_prev_block(tab: apitypes.Tab, count: int = 1):
+def move_to_start_of_prev_block(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the start of previous block.
 
     Args:
@@ -148,7 +148,7 @@ def move_to_start_of_prev_block(tab: apitypes.Tab, count: int = 1):
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_end_of_next_block(tab: apitypes.Tab, count: int = 1):
+def move_to_end_of_next_block(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the end of next block.
 
     Args:
@@ -160,7 +160,7 @@ def move_to_end_of_next_block(tab: apitypes.Tab, count: int = 1):
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def move_to_end_of_prev_block(tab: apitypes.Tab, count: int = 1):
+def move_to_end_of_prev_block(tab: apitypes.Tab, count: int = 1) -> None:
     """Move the cursor or selection to the end of previous block.
 
     Args:
@@ -171,35 +171,35 @@ def move_to_end_of_prev_block(tab: apitypes.Tab, count: int = 1):
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def move_to_start_of_document(tab: apitypes.Tab):
+def move_to_start_of_document(tab: apitypes.Tab) -> None:
     """Move the cursor or selection to the start of the document."""
     tab.caret.move_to_start_of_document()
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def move_to_end_of_document(tab: apitypes.Tab):
+def move_to_end_of_document(tab: apitypes.Tab) -> None:
     """Move the cursor or selection to the end of the document."""
     tab.caret.move_to_end_of_document()
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def toggle_selection(tab: apitypes.Tab):
+def toggle_selection(tab: apitypes.Tab) -> None:
     """Toggle caret selection mode."""
     tab.caret.toggle_selection()
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def drop_selection(tab: apitypes.Tab):
+def drop_selection(tab: apitypes.Tab) -> None:
     """Drop selection and keep selection mode enabled."""
     tab.caret.drop_selection()
 
 
 @cmdutils.register()
 @cmdutils.argument('tab_obj', value=cmdutils.Value.cur_tab)
-def follow_selected(tab_obj: apitypes.Tab, *, tab=False):
+def follow_selected(tab_obj: apitypes.Tab, *, tab: bool = False) -> None:
     """Follow the selected text.
 
     Args:

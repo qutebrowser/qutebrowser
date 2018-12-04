@@ -37,7 +37,7 @@ from qutebrowser.api import cmdutils, apitypes, message, config
 
 @cmdutils.register(name='reload')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def reloadpage(tab, force=False):
+def reloadpage(tab: apitypes.Tab, force: bool = False) -> None:
     """Reload the current/[count]th tab.
 
     Args:
@@ -50,7 +50,7 @@ def reloadpage(tab, force=False):
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def stop(tab):
+def stop(tab: apitypes.Tab) -> None:
     """Stop loading in the current/[count]th tab.
 
     Args:
@@ -60,9 +60,9 @@ def stop(tab):
         tab.stop()
 
 
-def _print_preview(tab):
+def _print_preview(tab: apitypes.Tab) -> None:
     """Show a print preview."""
-    def print_callback(ok):
+    def print_callback(ok: bool) -> None:
         if not ok:
             message.error("Printing failed!")
 
@@ -76,7 +76,7 @@ def _print_preview(tab):
     diag.exec_()
 
 
-def _print_pdf(tab, filename):
+def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
     """Print to the given PDF file."""
     tab.printing.check_pdf_support()
     filename = os.path.expanduser(filename)
@@ -90,7 +90,9 @@ def _print_pdf(tab, filename):
 @cmdutils.register(name='print')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
 @cmdutils.argument('pdf', flag='f', metavar='file')
-def printpage(tab, preview=False, *, pdf=None):
+def printpage(tab: apitypes.Tab,
+              preview: bool = False, *,
+              pdf: str = None) -> None:
     """Print the current/[count]th tab.
 
     Args:
@@ -114,7 +116,7 @@ def printpage(tab, preview=False, *, pdf=None):
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def home(tab):
+def home(tab: apitypes.Tab) -> None:
     """Open main startpage in current tab."""
     if tab.data.pinned:
         message.info("Tab is pinned!")
@@ -124,7 +126,7 @@ def home(tab):
 
 @cmdutils.register(debug=True)
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def debug_dump_page(tab, dest, plain=False):
+def debug_dump_page(tab: apitypes.Tab, dest: str, plain: bool = False) -> None:
     """Dump the current page's content to a file.
 
     Args:
@@ -133,7 +135,7 @@ def debug_dump_page(tab, dest, plain=False):
     """
     dest = os.path.expanduser(dest)
 
-    def callback(data):
+    def callback(data: str) -> None:
         """Write the data to disk."""
         try:
             with open(dest, 'w', encoding='utf-8') as f:
@@ -148,13 +150,13 @@ def debug_dump_page(tab, dest, plain=False):
 
 @cmdutils.register(maxsplit=0)
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def insert_text(tab, text):
+def insert_text(tab: apitypes.Tab, text: str) -> None:
     """Insert text at cursor position.
 
     Args:
         text: The text to insert.
     """
-    def _insert_text_cb(elem):
+    def _insert_text_cb(elem: apitypes.WebElement) -> None:
         if elem is None:
             message.error("No element focused!")
             return
@@ -170,7 +172,7 @@ def insert_text(tab, text):
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('filter_', choices=['id'])
-def click_element(tab, filter_: str, value: str, *,
+def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
                   target: apitypes.ClickTarget =
                   apitypes.ClickTarget.normal,
                   force_event: bool = False) -> None:
@@ -186,7 +188,7 @@ def click_element(tab, filter_: str, value: str, *,
         target: How to open the clicked element (normal/tab/tab-bg/window).
         force_event: Force generating a fake click event.
     """
-    def single_cb(elem):
+    def single_cb(elem: apitypes.WebElement) -> None:
         """Click a single element."""
         if elem is None:
             message.error("No element found with id {}!".format(value))
@@ -207,7 +209,7 @@ def click_element(tab, filter_: str, value: str, *,
 @cmdutils.register(debug=True)
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def debug_webaction(tab, action, count=1):
+def debug_webaction(tab: apitypes.Tab, action: str, count: int = 1) -> None:
     """Execute a webaction.
 
     Available actions:
@@ -227,7 +229,7 @@ def debug_webaction(tab, action, count=1):
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def tab_mute(tab):
+def tab_mute(tab: apitypes.Tab) -> None:
     """Mute/Unmute the current/[count]th tab.
 
     Args:
@@ -242,12 +244,12 @@ def tab_mute(tab):
 
 
 @cmdutils.register()
-def nop():
+def nop() -> None:
     """Do nothing."""
 
 
 @cmdutils.register()
-def message_error(text):
+def message_error(text: str) -> None:
     """Show an error message in the statusbar.
 
     Args:
@@ -258,7 +260,7 @@ def message_error(text):
 
 @cmdutils.register()
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def message_info(text, count=1):
+def message_info(text: str, count: int = 1) -> None:
     """Show an info message in the statusbar.
 
     Args:
@@ -270,7 +272,7 @@ def message_info(text, count=1):
 
 
 @cmdutils.register()
-def message_warning(text):
+def message_warning(text: str) -> None:
     """Show a warning message in the statusbar.
 
     Args:
@@ -281,7 +283,7 @@ def message_warning(text):
 
 @cmdutils.register(debug=True)
 @cmdutils.argument('typ', choices=['exception', 'segfault'])
-def debug_crash(typ='exception'):
+def debug_crash(typ: str = 'exception') -> None:
     """Crash for debugging purposes.
 
     Args:
@@ -295,7 +297,7 @@ def debug_crash(typ='exception'):
 
 
 @cmdutils.register(debug=True, maxsplit=0, no_cmd_split=True)
-def debug_trace(expr=""):
+def debug_trace(expr: str = "") -> None:
     """Trace executed code via hunter.
 
     Args:

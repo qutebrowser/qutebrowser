@@ -112,7 +112,7 @@ def scroll_to_perc(tab: apitypes.Tab, count: int = None,
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
-def scroll_to_anchor(tab: apitypes.Tab, name):
+def scroll_to_anchor(tab: apitypes.Tab, name: str) -> None:
     """Scroll to the given anchor in the document.
 
     Args:
