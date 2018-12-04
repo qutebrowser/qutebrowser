@@ -190,6 +190,27 @@ class TestRegister:
         args, kwargs = cmd._get_call_args(win_id=0)
         fun(*args, **kwargs)
 
+    def test_self_without_instance(self):
+        with pytest.raises(TypeError, match="fun is a class method, but "
+                           "instance was not given!"):
+            @cmdutils.register()
+            def fun(self):
+                """Blah."""
+
+    def test_instance_without_self(self):
+        with pytest.raises(TypeError, match="fun is not a class method, but "
+                           "instance was given!"):
+            @cmdutils.register(instance='inst')
+            def fun():
+                """Blah."""
+
+    def test_var_kw(self):
+        with pytest.raises(TypeError, match="fun: functions with varkw "
+                           "arguments are not supported!"):
+            @cmdutils.register()
+            def fun(**kwargs):
+                """Blah."""
+
     def test_partial_arg(self):
         """Test with only some arguments decorated with @cmdutils.argument."""
         @cmdutils.register()

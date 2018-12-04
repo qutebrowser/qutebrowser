@@ -157,18 +157,18 @@ class Command:
         if 'self' in signature.parameters:
             if self._instance is None:
                 raise TypeError("{} is a class method, but instance was not "
-                                "given!".format(self.name[0]))
+                                "given!".format(self.name))
             arg_info = self.get_arg_info(signature.parameters['self'])
             if arg_info.value is not None:
                 raise TypeError("{}: Can't fill 'self' with value!"
                                 .format(self.name))
         elif 'self' not in signature.parameters and self._instance is not None:
             raise TypeError("{} is not a class method, but instance was "
-                            "given!".format(self.name[0]))
+                            "given!".format(self.name))
         elif any(param.kind == inspect.Parameter.VAR_KEYWORD
                  for param in signature.parameters.values()):
             raise TypeError("{}: functions with varkw arguments are not "
-                            "supported!".format(self.name[0]))
+                            "supported!".format(self.name))
 
     def get_arg_info(self, param):
         """Get an ArgInfo tuple for the given inspect.Parameter."""
