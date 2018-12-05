@@ -2123,6 +2123,9 @@ class TestKey:
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
 
+    def test_normalized(self, klass):
+        assert klass().from_obj('<ctrl-q>') == '<Ctrl+q>'
+
 
 class TestUrlPattern:
 
