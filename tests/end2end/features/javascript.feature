@@ -188,6 +188,7 @@ Feature: Javascript stuff
         And I open 500 without waiting
         Then "Showing error page for* 500" should be logged
 
+    @flaky
     Scenario: Using JS after window.open
         When I open data/hello.txt
         And I set content.javascript.can_open_tabs_automatically to true
