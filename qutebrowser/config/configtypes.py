@@ -847,7 +847,10 @@ class Perc(_Numeric):
     def to_str(self, value: typing.Union[None, float, int, str]) -> str:
         if value is None:
             return ''
-        return value
+        elif isinstance(value, str):
+            return value
+        else:
+            return '{}%'.format(value)
 
 
 class PercOrInt(_Numeric):

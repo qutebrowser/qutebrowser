@@ -1113,8 +1113,13 @@ class TestPerc:
         with pytest.raises(configexc.ValidationError):
             klass(**kwargs).to_py(val)
 
-    def test_to_str(self, klass):
-        assert klass().to_str('42%') == '42%'
+    @pytest.mark.parametrize('value, expected', [
+        ('42%', '42%'),
+        (42, '42%'),
+        (42.5, '42.5%'),
+    ])
+    def test_to_str(self, klass, value, expected):
+        assert klass().to_str(value) == expected
 
 
 class TestPercOrInt:
