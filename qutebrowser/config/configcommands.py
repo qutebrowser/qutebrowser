@@ -33,7 +33,7 @@ from qutebrowser.misc import editor
 from qutebrowser.keyinput import keyutils
 
 MYPY = False
-if MYPY:  # pragma: no cover
+if MYPY:
     # pylint: disable=unused-import,useless-suppression
     from qutebrowser.config.config import Config, KeyConfig
 
