@@ -76,16 +76,16 @@ def zoom(tab: apitypes.Tab,
         count: The zoom percentage to set.
         quiet: Don't show a zoom level message.
     """
-    if level is not None:
+    if count is not None:
+        int_level = count
+    elif level is not None:
         try:
             int_level = int(level.rstrip('%'))
         except ValueError:
             raise cmdutils.CommandError("zoom: Invalid int value {}"
                                         .format(level))
-    elif count is not None:
-        int_level = count
     else:
-        int_level = config.val.zoom.default
+        int_level = int(config.val.zoom.default)
 
     try:
         tab.zoom.set_factor(int_level / 100)
