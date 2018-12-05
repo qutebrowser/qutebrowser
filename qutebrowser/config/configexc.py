@@ -76,7 +76,8 @@ class ValidationError(Error):
         msg: Additional error message.
     """
 
-    def __init__(self, value: typing.Any, msg: str) -> None:
+    def __init__(self, value: typing.Any,
+                 msg: typing.Union[str, Exception]) -> None:
         super().__init__("Invalid value '{}' - {}".format(value, msg))
         self.option = None
 

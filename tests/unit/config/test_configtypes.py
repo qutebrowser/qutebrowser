@@ -1542,7 +1542,7 @@ class TestRegex:
             regex.to_py('foo')
 
     @pytest.mark.parametrize('flags, expected', [
-        (0, 0),
+        (None, 0),
         ('IGNORECASE', re.IGNORECASE),
         ('IGNORECASE | VERBOSE', re.IGNORECASE | re.VERBOSE),
     ])

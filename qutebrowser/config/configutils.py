@@ -35,7 +35,7 @@ if MYPY:
     from qutebrowser.config import configdata
 
 
-class _UnsetObject:
+class Unset:
 
     """Sentinel object."""
 
@@ -45,7 +45,7 @@ class _UnsetObject:
         return '<UNSET>'
 
 
-UNSET = _UnsetObject()
+UNSET = Unset()
 
 
 @attr.s
