@@ -571,12 +571,17 @@ class MainWindow(QWidget):
             e.accept()
             return
         tab_count = self.tabbed_browser.widget.count()
+        has_pinned = any(self.tabbed_browser.tabData(i).get('pinned') for i in range(tab_count))
         download_model = objreg.get('download-model', scope='window',
                                     window=self.win_id)
         download_count = download_model.running_downloads()
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in config.val.confirm_quit and tab_count > 1:
+            quit_texts.append("{} {} open.".format(
+                tab_count, "tab is" if tab_count == 1 else "tabs are"))
+        # Ask if pinned-tabs are open
+        if 'pinned-tabs' in config.val.confirm_quit and has_pinned:
             quit_texts.append("{} {} open.".format(
                 tab_count, "tab is" if tab_count == 1 else "tabs are"))
         # Ask if multiple downloads running
