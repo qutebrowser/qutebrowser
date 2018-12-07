@@ -582,7 +582,7 @@ class MainWindow(QWidget):
                 tab_count, "tab is" if tab_count == 1 else "tabs are"))
         # Ask if pinned-tabs are open
         if 'pinned-tabs' in config.val.confirm_quit and has_pinned:
-            quit_texts.append("{} {} open.".format(
+            quit_texts.append("{} {} pinned.".format(
                 tab_count, "tab is" if tab_count == 1 else "tabs are"))
         # Ask if multiple downloads running
         if 'downloads' in config.val.confirm_quit and download_count > 0:
