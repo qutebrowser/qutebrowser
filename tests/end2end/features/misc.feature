@@ -331,7 +331,6 @@ Feature: Various utility commands.
         When I set content.headers.do_not_track to true
         And I open headers
         Then the header DNT should be set to 1
-        And the header DNT should be set to 1
 
     Scenario: DNT header (off)
         When I set content.headers.do_not_track to false
