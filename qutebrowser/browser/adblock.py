@@ -119,9 +119,15 @@ class HostBlocker:
             return False
 
         host = url.host()
-        return ((host in self._blocked_hosts or
-                 host in self._config_blocked_hosts) and
-                not _is_whitelisted_url(url))
+        blocked = ((host in self._blocked_hosts or
+                    host in self._config_blocked_hosts) and
+                   not _is_whitelisted_url(url))
+
+        if blocked:
+            logger.info("Request to {} blocked by host blocker."
+                        .format(url.host()))
+
+        return blocked
 
     def _read_hosts_file(self, filename, target):
         """Read hosts from the given filename.

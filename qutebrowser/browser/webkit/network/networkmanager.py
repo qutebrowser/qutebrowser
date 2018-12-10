@@ -38,6 +38,7 @@ if MYPY:
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)
 from qutebrowser.browser import shared
+from qutebrowser.extensions import requests
 from qutebrowser.browser.webkit import certificateerror
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
@@ -405,10 +406,10 @@ class NetworkManager(QNetworkAccessManager):
                 # the webpage shutdown here.
                 current_url = QUrl()
 
-        host_blocker = objreg.get('host-blocker')
-        if host_blocker.is_blocked(req.url(), current_url):
-            log.webview.info("Request to {} blocked by host blocker.".format(
-                req.url().host()))
+        request = requests.Request(first_party_url=current_url,
+                                   request_url=req.url())
+        requests.run_filters(request)
+        if request.is_blocked:
             return networkreply.ErrorNetworkReply(
                 req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
                 self)
