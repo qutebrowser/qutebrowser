@@ -36,6 +36,6 @@ pytest-rerunfailures==5.0
 pytest-travis-fold==1.3.0
 pytest-xvfb==1.1.0
 PyVirtualDisplay==0.2.1
-six==1.11.0
+six==1.12.0
 vulture==1.0
 Werkzeug==0.14.1
