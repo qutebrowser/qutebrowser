@@ -63,7 +63,7 @@ from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config, websettings, configfiles, configinit
-from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
+from qutebrowser.browser import (urlmarks, history, browsertab,
                                  qtnetworkdownloads, downloads, greasemonkey)
 from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
