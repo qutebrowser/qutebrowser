@@ -44,6 +44,7 @@ from PyQt5.QtNetwork import QNetworkCookieJar
 import helpers.stubs as stubsmod
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache)
+from qutebrowser.api import config as configapi
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
 from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies
@@ -306,6 +307,7 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
 
     container = config.ConfigContainer(conf)
     monkeypatch.setattr(config, 'val', container)
+    monkeypatch.setattr(configapi, 'val', container)
 
     cache = configcache.ConfigCache()
     monkeypatch.setattr(config, 'cache', cache)

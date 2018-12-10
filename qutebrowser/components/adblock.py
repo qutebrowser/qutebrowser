@@ -108,25 +108,25 @@ class HostBlocker:
 
         self._config_hosts_file = str(config_dir / 'blocked-hosts')
 
-    def filter_request(self, info: requests.Request) -> None:
-        """Block the given request if necessary."""
-        if info.first_party_url is None:
+    def _is_blocked(self, request_url: QUrl,
+                    first_party_url: QUrl = None) -> None:
+        """Check whether the given request is blocked."""
+        if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
-        elif not info.first_party_url.isValid():
-            first_party_url = None
-        else:
-            first_party_url = info.first_party_url
 
         if not config.get('content.host_blocking.enabled',
                           url=first_party_url):
-            return
+            return False
 
-        host = info.request_url.host()
-        blocked = ((host in self._blocked_hosts or
-                    host in self._config_blocked_hosts) and
-                   not _is_whitelisted_url(info.request_url))
+        host = request_url.host()
+        return ((host in self._blocked_hosts or
+                 host in self._config_blocked_hosts) and
+                not _is_whitelisted_url(request_url))
 
-        if blocked:
+    def filter_request(self, info: requests.Request) -> None:
+        """Block the given request if necessary."""
+        if self._is_blocked(request_url=info.request_url,
+                            first_party_url=info.first_party_url):
             logger.info("Request to {} blocked by host blocker."
                         .format(info.request_url.host()))
             info.block()
