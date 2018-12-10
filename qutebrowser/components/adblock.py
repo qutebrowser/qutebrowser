@@ -31,6 +31,7 @@ from qutebrowser.api import (cmdutils, hook, config, message, downloads,
 
 
 logger = logging.getLogger('misc')
+_host_blocker = None
 
 
 def _guess_zip_filename(zf):
@@ -170,13 +171,8 @@ class HostBlocker:
                     config.val.content.host_blocking.enabled):
                 message.info("Run :adblock-update to get adblock lists.")
 
-    @cmdutils.register(instance='host-blocker')
     def adblock_update(self):
-        """Update the adblock block lists.
-
-        This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded
-        host lists and re-reads `~/.config/qutebrowser/blocked-hosts`.
-        """
+        """Update the adblock block lists."""
         self._read_hosts_file(self._config_hosts_file,
                               self._config_blocked_hosts)
         self._blocked_hosts = set()
@@ -329,12 +325,25 @@ class HostBlocker:
                 logger.exception("Failed to write host block list!")
 
 
+@cmdutils.register()
+def adblock_update():
+    """Update the adblock block lists.
+
+    This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded
+    host lists and re-reads `~/.config/qutebrowser/blocked-hosts`.
+    """
+    # FIXME: As soon as we can register instances again, we should move this
+    # back to the class.
+    _host_blocker.adblock_update()
+
+
 @hook.init()
 def init(context):
-    host_blocker = HostBlocker(data_dir=context.data_dir,
-                               config_dir=context.config_dir,
-                               args=context.args)
-    host_blocker.read_hosts()
+    global _host_blocker
+    _host_blocker = HostBlocker(data_dir=context.data_dir,
+                                config_dir=context.config_dir,
+                                args=context.args)
+    _host_blocker.read_hosts()
 
-    context.signals.config_changed.connect(host_blocker.update_files)
-    requests.register_filter(host_blocker.filter_request)
+    context.signals.config_changed.connect(_host_blocker.update_files)
+    requests.register_filter(_host_blocker.filter_request)
