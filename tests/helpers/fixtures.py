@@ -190,8 +190,8 @@ def testdata_scheme(qapp):
 
 @pytest.fixture
 def web_tab_setup(qtbot, tab_registry, session_manager_stub,
-                  greasemonkey_manager, fake_args, host_blocker_stub,
-                  config_stub, testdata_scheme):
+                  greasemonkey_manager, fake_args, config_stub,
+                  testdata_scheme):
     """Shared setup for webkit_tab/webengine_tab."""
     # Make sure error logging via JS fails tests
     config_stub.val.content.javascript.log = {
@@ -326,15 +326,6 @@ def key_config_stub(config_stub, monkeypatch):
     keyconf = config.KeyConfig(config_stub)
     monkeypatch.setattr(config, 'key_instance', keyconf)
     return keyconf
-
-
-@pytest.fixture
-def host_blocker_stub(stubs):
-    """Fixture which provides a fake host blocker object."""
-    stub = stubs.HostBlockerStub()
-    objreg.register('host-blocker', stub)
-    yield stub
-    objreg.delete('host-blocker')
 
 
 @pytest.fixture

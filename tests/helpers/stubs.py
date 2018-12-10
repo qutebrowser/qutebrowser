@@ -459,17 +459,6 @@ class QuickmarkManagerStub(UrlMarkManagerStub):
         self.delete(key)
 
 
-class HostBlockerStub:
-
-    """Stub for the host-blocker object."""
-
-    def __init__(self):
-        self.blocked_hosts = set()
-
-    def is_blocked(self, url, first_party_url=None):
-        return url in self.blocked_hosts
-
-
 class SessionManagerStub:
 
     """Stub for the session-manager object."""
