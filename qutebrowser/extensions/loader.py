@@ -24,6 +24,7 @@ import pkgutil
 import types
 import typing
 import sys
+import pathlib
 
 import attr
 
@@ -36,7 +37,8 @@ class InitContext:
 
     """Context an extension gets in its init hook."""
 
-    data_dir = attr.ib()  # type: str
+    data_dir = attr.ib()  # type: pathlib.Path
+    config_dir = attr.ib()  # type: pathlib.Path
 
 
 @attr.s
@@ -114,6 +116,12 @@ def _walk_pyinstaller() -> typing.Iterator[ExtensionInfo]:
             yield ExtensionInfo(name=name)
 
 
+def _get_init_context() -> InitContext:
+    """Get an InitContext object."""
+    return InitContext(data_dir=pathlib.Path(standarddir.data()),
+                       config_dir=pathlib.Path(standarddir.config()))
+
+
 def _load_component(info: ExtensionInfo) -> types.ModuleType:
     """Load the given extension and run its init hook (if any)."""
     log.extensions.debug("Importing {}".format(info.name))
@@ -123,7 +131,6 @@ def _load_component(info: ExtensionInfo) -> types.ModuleType:
     if mod_info.init_hook is not None:
         log.extensions.debug("Running init hook {!r}"
                              .format(mod_info.init_hook.__name__))
-        context = InitContext(data_dir=standarddir.data())
-        mod_info.init_hook(context)
+        mod_info.init_hook(_get_init_context())
 
     return mod
