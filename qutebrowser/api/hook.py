@@ -48,9 +48,10 @@ class config_changed:
 
     """Decorator to get notified about changed configs."""
 
-    def __init__(self, option_filter=None):
+    def __init__(self, option_filter: str = None) -> None:
         self._filter = option_filter
 
     def __call__(self, func: typing.Callable) -> typing.Callable:
         info = _add_module_info(func)
         info.config_changed_hooks.append((self._filter, func))
+        return func

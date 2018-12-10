@@ -23,6 +23,11 @@ import typing
 
 import attr
 
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import,useless-suppression
+    from PyQt5.QtCore import QUrl
+
 
 @attr.s
 class Request:
@@ -33,7 +38,7 @@ class Request:
     request_url = attr.ib()  # type: QUrl
     is_blocked = attr.ib(False)  # type: bool
 
-    def block(self):
+    def block(self) -> None:
         """Block this request."""
         self.is_blocked = True
 
@@ -48,6 +53,6 @@ def register_filter(reqfilter: RequestFilterType) -> None:
     _request_filters.append(reqfilter)
 
 
-def run_filters(info):
+def run_filters(info: Request) -> None:
     for reqfilter in _request_filters:
         reqfilter(info)

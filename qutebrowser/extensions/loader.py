@@ -34,6 +34,11 @@ from qutebrowser import components
 from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir, objreg
 
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import,useless-suppression
+    import argparse
+
 
 # ModuleInfo objects for all loaded plugins
 _module_infos = []
@@ -57,7 +62,8 @@ class ModuleInfo:
     This gets used by qutebrowser.api.hook.
     """
 
-    _ConfigChangedHooksType = typing.List[typing.Tuple[str, typing.Callable]]
+    _ConfigChangedHooksType = typing.List[typing.Tuple[typing.Optional[str],
+                                                       typing.Callable]]
 
     init_hook = attr.ib(None)  # type: typing.Optional[typing.Callable]
     config_changed_hooks = attr.ib(
@@ -156,10 +162,13 @@ def _on_config_changed(changed_name: str) -> None:
     """Call config_changed hooks if the config changed."""
     for mod_info in _module_infos:
         for option, hook in mod_info.config_changed_hooks:
-            cfilter = config.change_filter(option)
-            cfilter.validate()
-            if cfilter.check_match(changed_name):
+            if option is None:
                 hook()
+            else:
+                cfilter = config.change_filter(option)
+                cfilter.validate()
+                if cfilter.check_match(changed_name):
+                    hook()
 
 
 def init() -> None:
