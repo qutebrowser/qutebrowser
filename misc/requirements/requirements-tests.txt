@@ -12,7 +12,7 @@ EasyProcess==0.2.3
 Flask==1.0.2
 glob2==0.6
 hunter==2.1.0
-hypothesis==3.82.1
+hypothesis==3.82.5
 itsdangerous==1.1.0
 # Jinja2==2.10
 Mako==1.0.7
