@@ -20,7 +20,7 @@
 """Commands related to caret browsing."""
 
 
-from qutebrowser.api import cmdutils, apitypes, hook
+from qutebrowser.api import cmdutils, apitypes
 
 
 @cmdutils.register(modes=[cmdutils.KeyMode.caret])

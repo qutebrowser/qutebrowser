@@ -1,3 +1,5 @@
+# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
+
 # Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -18,7 +20,6 @@
 """Hooks for extensions."""
 
 import importlib
-import types
 import typing
 
 
@@ -33,3 +34,4 @@ class init:  # noqa: N801,N806 pylint: disable=invalid-name
         module = importlib.import_module(func.__module__)
         info = loader.add_module_info(module)
         info.init_hook = func
+        return func

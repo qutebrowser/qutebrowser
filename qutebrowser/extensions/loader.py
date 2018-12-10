@@ -60,9 +60,10 @@ class ExtensionInfo:
 
 def add_module_info(module: types.ModuleType) -> ModuleInfo:
     """Add ModuleInfo to a module (if not added yet)."""
+    # pylint: disable=protected-access
     if not hasattr(module, '__qute_module_info'):
-        module.__qute_module_info = ModuleInfo()
-    return module.__qute_module_info
+        module.__qute_module_info = ModuleInfo()  # type: ignore
+    return module.__qute_module_info  # type: ignore
 
 
 def load_components() -> None:
@@ -118,11 +119,11 @@ def _load_component(info: ExtensionInfo) -> types.ModuleType:
     log.extensions.debug("Importing {}".format(info.name))
     mod = importlib.import_module(info.name)
 
-    info = add_module_info(mod)
-    if info.init_hook is not None:
+    mod_info = add_module_info(mod)
+    if mod_info.init_hook is not None:
         log.extensions.debug("Running init hook {!r}"
-                             .format(info.init_hook.__name__))
+                             .format(mod_info.init_hook.__name__))
         context = InitContext(data_dir=standarddir.data())
-        info.init_hook(context)
+        mod_info.init_hook(context)
 
     return mod
