@@ -32,7 +32,9 @@ from qutebrowser.utils import log
 
 
 @attr.s
-class ComponentInfo:
+class ExtensionInfo:
+
+    """Information about a qutebrowser extension."""
 
     name = attr.ib()  # type: str
 
@@ -43,43 +45,48 @@ def load_components() -> None:
         _load_component(info)
 
 
-def walk_components() -> typing.Iterator[ComponentInfo]:
-    """Yield ComponentInfo objects for all modules."""
+def walk_components() -> typing.Iterator[ExtensionInfo]:
+    """Yield ExtensionInfo objects for all modules."""
     if hasattr(sys, 'frozen'):
         yield from _walk_pyinstaller()
     else:
         yield from _walk_normal()
 
 
-def _walk_error(name: str):
+def _on_walk_error(name: str) -> None:
     raise ImportError("Failed to import {}".format(name))
 
 
-def _walk_normal() -> typing.Iterator[ComponentInfo]:
+def _walk_normal() -> typing.Iterator[ExtensionInfo]:
     """Walk extensions when not using PyInstaller."""
     for _finder, name, ispkg in pkgutil.walk_packages(
-            path=components.__path__,
+            # Only packages have a __path__ attribute,
+            # but we're sure this is one.
+            path=components.__path__,  # type: ignore
             prefix=components.__name__ + '.',
-            onerror=_walk_error):
+            onerror=_on_walk_error):
         if ispkg:
             continue
-        yield ComponentInfo(name=name)
+        yield ExtensionInfo(name=name)
 
 
-def _walk_pyinstaller() -> typing.Iterator[ComponentInfo]:
+def _walk_pyinstaller() -> typing.Iterator[ExtensionInfo]:
     """Walk extensions when using PyInstaller.
 
     See https://github.com/pyinstaller/pyinstaller/issues/1905
+
+    Inspired by:
+    https://github.com/webcomics/dosage/blob/master/dosagelib/loader.py
     """
-    toc = set()
+    toc = set()  # type: typing.Set[str]
     for importer in pkgutil.iter_importers('qutebrowser'):
         if hasattr(importer, 'toc'):
             toc |= importer.toc
     for name in toc:
         if name.startswith(components.__name__ + '.'):
-            yield ComponentInfo(name=name)
+            yield ExtensionInfo(name=name)
 
 
-def _load_component(info: ComponentInfo) -> types.ModuleType:
+def _load_component(info: ExtensionInfo) -> types.ModuleType:
     log.extensions.debug("Importing {}".format(info.name))
     return importlib.import_module(info.name)
