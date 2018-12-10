@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
 from qutebrowser import qutebrowser, commands
+from qutebrowser.extensions import loader
 from qutebrowser.commands import argparser
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import docutils, usertypes
@@ -549,6 +550,7 @@ def regenerate_cheatsheet():
 def main():
     """Regenerate all documentation."""
     utils.change_cwd()
+    loader.load_components()
     print("Generating manpage...")
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
     print("Generating settings help...")

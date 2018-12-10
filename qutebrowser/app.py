@@ -68,6 +68,7 @@ from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
 from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
+from qutebrowser.extensions import loader
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
@@ -77,8 +78,6 @@ from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
                                usertypes, standarddir, error, qtutils)
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
-from qutebrowser.components import (scrollcommands, caretcommands,
-                                    zoomcommands, misccommands)
 from qutebrowser.mainwindow.statusbar import command
 from qutebrowser.misc import utilcmds
 # pylint: enable=unused-import
@@ -166,6 +165,7 @@ def init(args, crash_handler):
     qApp.setQuitOnLastWindowClosed(False)
     _init_icon()
 
+    loader.load_components()
     try:
         _init_modules(args, crash_handler)
     except (OSError, UnicodeDecodeError, browsertab.WebTabError) as e:

@@ -137,6 +137,7 @@ prompt = logging.getLogger('prompt')
 network = logging.getLogger('network')
 sql = logging.getLogger('sql')
 greasemonkey = logging.getLogger('greasemonkey')
+extensions = logging.getLogger('extensions')
 
 LOGGER_NAMES = [
     'statusbar', 'completion', 'init', 'url',
@@ -146,7 +147,7 @@ LOGGER_NAMES = [
     'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
     'save', 'message', 'config', 'sessions',
     'webelem', 'prompt', 'network', 'sql',
-    'greasemonkey'
+    'greasemonkey', 'extensions',
 ]
 
 
