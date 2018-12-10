@@ -27,7 +27,6 @@ import zipfile
 import logging
 import typing
 import pathlib
-import argparse
 
 from PyQt5.QtCore import QUrl
 
@@ -93,11 +92,12 @@ class HostBlocker:
         _done_count: How many files have been read successfully.
         _local_hosts_file: The path to the blocked-hosts file.
         _config_hosts_file: The path to a blocked-hosts in ~/.config
+        _has_basedir: Whether a custom --basedir is set.
     """
 
     def __init__(self, *, data_dir: pathlib.Path, config_dir: pathlib.Path,
-                 args: argparse.Namespace) -> None:
-        self._args = args
+                 has_basedir: bool = False) -> None:
+        self._has_basedir = has_basedir
         self._blocked_hosts = set()  # type: typing.Set[str]
         self._config_blocked_hosts = set()  # type: typing.Set[str]
         self._in_progress = []  # type: typing.List[downloads.TempDownload]
@@ -165,7 +165,7 @@ class HostBlocker:
 
         if not found:
             if (config.val.content.host_blocking.lists and
-                    self._args.basedir is None and
+                    not self._has_basedir and
                     config.val.content.host_blocking.enabled):
                 message.info("Run :adblock-update to get adblock lists.")
 
@@ -342,6 +342,6 @@ def init(context: apitypes.InitContext) -> None:
     global _host_blocker
     _host_blocker = HostBlocker(data_dir=context.data_dir,
                                 config_dir=context.config_dir,
-                                args=context.args)
+                                has_basedir=context.args.basedir is not None)
     _host_blocker.read_hosts()
     requests.register_filter(_host_blocker.filter_request)
