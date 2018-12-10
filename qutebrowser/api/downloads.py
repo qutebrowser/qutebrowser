@@ -18,6 +18,9 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 
+"""APIs related to downloading files."""
+
+
 import io
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
@@ -33,6 +36,7 @@ class TempDownload(QObject):
     finished = pyqtSignal()
 
     def __init__(self, item: qtnetworkdownloads.DownloadItem) -> None:
+        super().__init__()
         self._item = item
         self._item.finished.connect(self._on_download_finished)
         self.successful = False

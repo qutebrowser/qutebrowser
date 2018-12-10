@@ -76,7 +76,8 @@ class _FakeDownload(downloads.TempDownload):
 
     """A download stub to use on_download_finished with local files."""
 
-    def __init__(self, fileobj: typing.IO[bytes]) -> None:
+    def __init__(self,  # pylint: disable=super-init-not-called
+                 fileobj: typing.IO[bytes]) -> None:
         self.fileobj = fileobj
         self.successful = True
 
@@ -337,6 +338,7 @@ def on_config_changed() -> None:
 
 @hook.init()
 def init(context: apitypes.InitContext) -> None:
+    """Initialize the host blocker."""
     global _host_blocker
     _host_blocker = HostBlocker(data_dir=context.data_dir,
                                 config_dir=context.config_dir,

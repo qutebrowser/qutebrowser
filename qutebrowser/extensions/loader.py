@@ -28,7 +28,7 @@ import pathlib
 
 import attr
 
-from PyQt5.QtCore import pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser import components
 from qutebrowser.config import config

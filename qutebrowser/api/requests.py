@@ -19,11 +19,6 @@
 
 """APIs related to intercepting/blocking requests."""
 
-import typing
-
-import attr
-from PyQt5.QtCore import QUrl
-
 from qutebrowser.extensions import requests
 # pylint: disable=unused-import
 from qutebrowser.extensions.requests import Request

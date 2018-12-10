@@ -130,6 +130,9 @@ def whitelist_generator():  # noqa
     yield 'scripts.get_coredumpctl_traces.Line.gid'
     yield 'scripts.importer.import_moz_places.places.row_factory'
 
+    # component hooks
+    yield 'qutebrowser.components.adblock.on_config_changed'
+
 
 def filter_func(item):
     """Check if a missing function should be filtered or not.
