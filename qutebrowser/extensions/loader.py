@@ -19,7 +19,9 @@
 
 """Loader for qutebrowser extensions."""
 
+import importlib.abc
 import pkgutil
+import types
 
 from qutebrowser import components
 from qutebrowser.utils import log
@@ -27,9 +29,15 @@ from qutebrowser.utils import log
 
 def load_components() -> None:
     """Load everything from qutebrowser.components."""
-    for info in pkgutil.walk_packages(components.__path__):
-        if info.ispkg:
+    for finder, name, ispkg in pkgutil.walk_packages(components.__path__):
+        if ispkg:
             continue
-        log.extensions.debug("Importing {}".format(info.name))
-        loader = info.module_finder.find_module(info.name)
-        loader.load_module(info.name)
+        _load_module(finder, name)
+
+
+def _load_module(finder: importlib.abc.PathEntryFinder,
+                 name: str) -> types.ModuleType:
+    log.extensions.debug("Importing {}".format(name))
+    loader = finder.find_module(name)
+    assert loader is not None
+    return loader.load_module(name)
