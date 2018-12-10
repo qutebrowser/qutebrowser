@@ -32,11 +32,35 @@ from qutebrowser.utils import log
 
 
 @attr.s
+class InitContext:
+
+    """Context an extension gets in its init hook."""
+
+
+@attr.s
+class ModuleInfo:
+
+    """Information attached to an extension module.
+
+    This gets used by qutebrowser.api.hook.
+    """
+
+    init_hook = attr.ib(None)  # type: typing.Optional[typing.Callable]
+
+
+@attr.s
 class ExtensionInfo:
 
     """Information about a qutebrowser extension."""
 
     name = attr.ib()  # type: str
+
+
+def add_module_info(module: types.ModuleType) -> ModuleInfo:
+    """Add ModuleInfo to a module (if not added yet)."""
+    if not hasattr(module, '__qute_module_info'):
+        module.__qute_module_info = ModuleInfo()
+    return module.__qute_module_info
 
 
 def load_components() -> None:
@@ -88,5 +112,14 @@ def _walk_pyinstaller() -> typing.Iterator[ExtensionInfo]:
 
 
 def _load_component(info: ExtensionInfo) -> types.ModuleType:
+    """Load the given extension and run its init hook (if any)."""
     log.extensions.debug("Importing {}".format(info.name))
-    return importlib.import_module(info.name)
+    mod = importlib.import_module(info.name)
+
+    info = add_module_info(mod)
+    if info.init_hook is not None:
+        log.extensions.debug("Running init hook {!r}"
+                             .format(info.init_hook.__name__))
+        info.init_hook(InitContext())
+
+    return mod

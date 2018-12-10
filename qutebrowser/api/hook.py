@@ -1,5 +1,3 @@
-# vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-
 # Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
@@ -17,4 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""qutebrowser "extensions" which only use the qutebrowser.api API."""
+"""Hooks for extensions."""
+
+import importlib
+import types
+import typing
+
+
+from qutebrowser.extensions import loader
+
+
+class init:  # noqa: N801,N806 pylint: disable=invalid-name
+
+    """Decorator to mark a function to run when initializing."""
+
+    def __call__(self, func: typing.Callable) -> typing.Callable:
+        module = importlib.import_module(func.__module__)
+        info = loader.add_module_info(module)
+        info.init_hook = func
