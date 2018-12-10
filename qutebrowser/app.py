@@ -165,6 +165,7 @@ def init(args, crash_handler):
     qApp.setQuitOnLastWindowClosed(False)
     _init_icon()
 
+    loader.init()
     loader.load_components()
     try:
         _init_modules(args, crash_handler)
