@@ -28,13 +28,15 @@ import sys
 import attr
 
 from qutebrowser import components
-from qutebrowser.utils import log
+from qutebrowser.utils import log, standarddir
 
 
 @attr.s
 class InitContext:
 
     """Context an extension gets in its init hook."""
+
+    data_dir = attr.ib()  # type: str
 
 
 @attr.s
@@ -120,6 +122,7 @@ def _load_component(info: ExtensionInfo) -> types.ModuleType:
     if info.init_hook is not None:
         log.extensions.debug("Running init hook {!r}"
                              .format(info.init_hook.__name__))
-        info.init_hook(InitContext())
+        context = InitContext(data_dir=standarddir.data())
+        info.init_hook(context)
 
     return mod
