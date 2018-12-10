@@ -23,6 +23,7 @@ import importlib.abc
 import pkgutil
 import types
 import typing
+import sys
 
 import attr
 
@@ -34,7 +35,6 @@ from qutebrowser.utils import log
 class ComponentInfo:
 
     name = attr.ib()  # type: str
-    finder = attr.ib()  # type: importlib.abc.PathEntryFinder
 
 
 def load_components() -> None:
@@ -45,14 +45,35 @@ def load_components() -> None:
 
 def walk_components() -> typing.Iterator[ComponentInfo]:
     """Yield ComponentInfo objects for all modules."""
-    for finder, name, ispkg in pkgutil.walk_packages(components.__path__):
+    if hasattr(sys, 'frozen'):
+        yield from _walk_pyinstaller()
+    else:
+        yield from _walk_normal()
+
+
+def _walk_normal() -> typing.Iterator[ComponentInfo]:
+    """Walk extensions when not using PyInstaller."""
+    for _finder, name, ispkg in pkgutil.walk_packages(components.__path__):
         if ispkg:
             continue
-        yield ComponentInfo(name=name, finder=finder)
+        fullname = components.__name__ + '.' + name
+        yield ComponentInfo(name=fullname)
+
+
+def _walk_pyinstaller() -> typing.Iterator[ComponentInfo]:
+    """Walk extensions when using PyInstaller.
+
+    See https://github.com/pyinstaller/pyinstaller/issues/1905
+    """
+    toc = set()
+    for importer in pkgutil.iter_importers('qutebrowser'):
+        if hasattr(importer, 'toc'):
+            toc |= importer.toc
+    for name in toc:
+        if name.startswith(components.__name__ + '.'):
+            yield ComponentInfo(name=name)
 
 
 def _load_component(info: ComponentInfo) -> types.ModuleType:
     log.extensions.debug("Importing {}".format(info.name))
-    loader = info.finder.find_module(info.name)
-    assert loader is not None
-    return loader.load_module(info.name)
+    return importlib.import_module(info.name)
