@@ -24,8 +24,6 @@ import typing
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
-# pylint: disable=unused-import
-from qutebrowser.config.config import change_filter
 
 val = typing.cast('config.ConfigContainer', None)
 

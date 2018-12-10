@@ -28,11 +28,15 @@ import pathlib
 
 import attr
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSlot, QObject
 
 from qutebrowser import components
 from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir, objreg
+
+
+# ModuleInfo objects for all loaded plugins
+_module_infos = []
 
 
 @attr.s
@@ -43,14 +47,6 @@ class InitContext:
     data_dir = attr.ib()  # type: pathlib.Path
     config_dir = attr.ib()  # type: pathlib.Path
     args = attr.ib()  # type: argparse.Namespace
-    signals = attr.ib()  # type: ExtensionSignals
-
-
-class ExtensionSignals(QObject):
-
-    """Signals exposed to an extension."""
-
-    config_changed = pyqtSignal(str)
 
 
 @attr.s
@@ -61,7 +57,11 @@ class ModuleInfo:
     This gets used by qutebrowser.api.hook.
     """
 
+    _ConfigChangedHooksType = typing.List[typing.Tuple[str, typing.Callable]]
+
     init_hook = attr.ib(None)  # type: typing.Optional[typing.Callable]
+    config_changed_hooks = attr.ib(
+        attr.Factory(list))  # type: _ConfigChangedHooksType
 
 
 @attr.s
@@ -70,12 +70,6 @@ class ExtensionInfo:
     """Information about a qutebrowser extension."""
 
     name = attr.ib()  # type: str
-
-
-# Global extension signals, shared between all extensions.
-# At some point we might want to make this per-extension, but then we'll need
-# to find out what to set as its Qt parent so it's kept alive.
-_extension_signals = ExtensionSignals()
 
 
 def add_module_info(module: types.ModuleType) -> ModuleInfo:
@@ -138,8 +132,7 @@ def _get_init_context() -> InitContext:
     """Get an InitContext object."""
     return InitContext(data_dir=pathlib.Path(standarddir.data()),
                        config_dir=pathlib.Path(standarddir.config()),
-                       args=objreg.get('args'),
-                       signals=_extension_signals)
+                       args=objreg.get('args'))
 
 
 def _load_component(info: ExtensionInfo) -> types.ModuleType:
@@ -153,8 +146,21 @@ def _load_component(info: ExtensionInfo) -> types.ModuleType:
                              .format(mod_info.init_hook.__name__))
         mod_info.init_hook(_get_init_context())
 
+    _module_infos.append(mod_info)
+
     return mod
 
 
+@pyqtSlot(str)
+def _on_config_changed(changed_name: str) -> None:
+    """Call config_changed hooks if the config changed."""
+    for mod_info in _module_infos:
+        for option, hook in mod_info.config_changed_hooks:
+            cfilter = config.change_filter(option)
+            cfilter.validate()
+            if cfilter.check_match(changed_name):
+                hook()
+
+
 def init() -> None:
-    config.instance.changed.connect(_extension_signals.config_changed)
+    config.instance.changed.connect(_on_config_changed)

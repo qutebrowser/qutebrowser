@@ -294,7 +294,6 @@ class HostBlocker:
             message.info("adblock: Read {} hosts from {} sources.".format(
                 len(self._blocked_hosts), self._done_count))
 
-    @config.change_filter('content.host_blocking.lists')
     def update_files(self):
         """Update files when the config changed."""
         if not config.val.content.host_blocking.lists:
@@ -337,6 +336,11 @@ def adblock_update():
     _host_blocker.adblock_update()
 
 
+@hook.config_changed('content.host_blocking.lists')
+def on_config_changed():
+    _host_blocker.update_files()
+
+
 @hook.init()
 def init(context):
     global _host_blocker
@@ -344,6 +348,4 @@ def init(context):
                                 config_dir=context.config_dir,
                                 args=context.args)
     _host_blocker.read_hosts()
-
-    context.signals.config_changed.connect(_host_blocker.update_files)
     requests.register_filter(_host_blocker.filter_request)
