@@ -38,7 +38,7 @@ if MYPY:
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)
 from qutebrowser.browser import shared
-from qutebrowser.extensions import requests
+from qutebrowser.extensions import interceptors
 from qutebrowser.browser.webkit import certificateerror
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
@@ -406,9 +406,9 @@ class NetworkManager(QNetworkAccessManager):
                 # the webpage shutdown here.
                 current_url = QUrl()
 
-        request = requests.Request(first_party_url=current_url,
-                                   request_url=req.url())
-        requests.run_filters(request)
+        request = interceptors.Request(first_party_url=current_url,
+                                       request_url=req.url())
+        interceptors.run(request)
         if request.is_blocked:
             return networkreply.ErrorNetworkReply(
                 req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,

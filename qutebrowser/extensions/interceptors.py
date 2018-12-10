@@ -17,16 +17,42 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""APIs related to intercepting/blocking requests."""
+"""Infrastructure for intercepting requests."""
 
-from qutebrowser.extensions import requests
-# pylint: disable=unused-import
-from qutebrowser.extensions.requests import Request
+import typing
+
+import attr
+
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import,useless-suppression
+    from PyQt5.QtCore import QUrl
 
 
-def register_filter(reqfilter: requests.RequestFilterType) -> None:
-    """Register a request filter.
+@attr.s
+class Request:
 
-    Whenever a request happens, the filter gets called with a Request object.
-    """
-    requests.register_filter(reqfilter)
+    """A request which can be intercepted/blocked."""
+
+    first_party_url = attr.ib()  # type: QUrl
+    request_url = attr.ib()  # type: QUrl
+    is_blocked = attr.ib(False)  # type: bool
+
+    def block(self) -> None:
+        """Block this request."""
+        self.is_blocked = True
+
+
+InterceptorType = typing.Callable[[Request], None]
+
+
+_interceptors = []  # type: typing.List[InterceptorType]
+
+
+def register(interceptor: InterceptorType) -> None:
+    _interceptors.append(interceptor)
+
+
+def run(info: Request) -> None:
+    for interceptor in _interceptors:
+        interceptor(info)

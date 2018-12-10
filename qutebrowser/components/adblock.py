@@ -31,7 +31,7 @@ import pathlib
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.api import (cmdutils, hook, config, message, downloads,
-                             requests, apitypes)
+                             interceptor, apitypes)
 
 
 logger = logging.getLogger('misc')
@@ -123,7 +123,7 @@ class HostBlocker:
                  host in self._config_blocked_hosts) and
                 not _is_whitelisted_url(request_url))
 
-    def filter_request(self, info: requests.Request) -> None:
+    def filter_request(self, info: interceptor.Request) -> None:
         """Block the given request if necessary."""
         if self._is_blocked(request_url=info.request_url,
                             first_party_url=info.first_party_url):
@@ -344,4 +344,4 @@ def init(context: apitypes.InitContext) -> None:
                                 config_dir=context.config_dir,
                                 has_basedir=context.args.basedir is not None)
     _host_blocker.read_hosts()
-    requests.register_filter(_host_blocker.filter_request)
+    interceptor.register(_host_blocker.filter_request)

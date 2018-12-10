@@ -39,7 +39,7 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
-from qutebrowser.extensions import requests
+from qutebrowser.extensions import interceptors
 
 
 @attr.s
@@ -355,8 +355,8 @@ class _Downloader:
         # qute, see the comments/discussion on
         # https://github.com/qutebrowser/qutebrowser/pull/962#discussion_r40256987
         # and https://github.com/qutebrowser/qutebrowser/issues/1053
-        request = requests.Request(first_party_url=None, request_url=url)
-        requests.run_filters(request)
+        request = interceptors.Request(first_party_url=None, request_url=url)
+        interceptors.run(request)
         if request.is_blocked:
             log.downloads.debug("Skipping {}, host-blocked".format(url))
             # We still need an empty file in the output, QWebView can be pretty

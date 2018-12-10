@@ -26,7 +26,7 @@ from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
 from qutebrowser.config import config
 from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log, debug
-from qutebrowser.extensions import requests
+from qutebrowser.extensions import interceptors
 
 
 class RequestInterceptor(QWebEngineUrlRequestInterceptor):
@@ -84,9 +84,9 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                 return
 
         # FIXME:qtwebengine only block ads for NavigationTypeOther?
-        request = requests.Request(first_party_url=first_party,
-                                   request_url=url)
-        requests.run_filters(request)
+        request = interceptors.Request(first_party_url=first_party,
+                                       request_url=url)
+        interceptors.run(request)
         if request.is_blocked:
             info.block(True)
 
