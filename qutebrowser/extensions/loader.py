@@ -51,13 +51,19 @@ def walk_components() -> typing.Iterator[ComponentInfo]:
         yield from _walk_normal()
 
 
+def _walk_error(name: str):
+    raise ImportError("Failed to import {}".format(name))
+
+
 def _walk_normal() -> typing.Iterator[ComponentInfo]:
     """Walk extensions when not using PyInstaller."""
-    for _finder, name, ispkg in pkgutil.walk_packages(components.__path__):
+    for _finder, name, ispkg in pkgutil.walk_packages(
+            path=components.__path__,
+            prefix=components.__name__ + '.',
+            onerror=_walk_error):
         if ispkg:
             continue
-        fullname = components.__name__ + '.' + name
-        yield ComponentInfo(name=fullname)
+        yield ComponentInfo(name=name)
 
 
 def _walk_pyinstaller() -> typing.Iterator[ComponentInfo]:
