@@ -22,22 +22,37 @@
 import importlib.abc
 import pkgutil
 import types
+import typing
+
+import attr
 
 from qutebrowser import components
 from qutebrowser.utils import log
 
 
+@attr.s
+class ComponentInfo:
+
+    name = attr.ib()  # type: str
+    finder = attr.ib()  # type: importlib.abc.PathEntryFinder
+
+
 def load_components() -> None:
     """Load everything from qutebrowser.components."""
+    for info in walk_components():
+        _load_component(info)
+
+
+def walk_components() -> typing.Iterator[ComponentInfo]:
+    """Yield ComponentInfo objects for all modules."""
     for finder, name, ispkg in pkgutil.walk_packages(components.__path__):
         if ispkg:
             continue
-        _load_module(finder, name)
+        yield ComponentInfo(name=name, finder=finder)
 
 
-def _load_module(finder: importlib.abc.PathEntryFinder,
-                 name: str) -> types.ModuleType:
-    log.extensions.debug("Importing {}".format(name))
-    loader = finder.find_module(name)
+def _load_component(info: ComponentInfo) -> types.ModuleType:
+    log.extensions.debug("Importing {}".format(info.name))
+    loader = info.finder.find_module(info.name)
     assert loader is not None
-    return loader.load_module(name)
+    return loader.load_module(info.name)
