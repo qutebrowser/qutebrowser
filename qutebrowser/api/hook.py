@@ -33,5 +33,7 @@ class init:  # noqa: N801,N806 pylint: disable=invalid-name
     def __call__(self, func: typing.Callable) -> typing.Callable:
         module = importlib.import_module(func.__module__)
         info = loader.add_module_info(module)
+        if info.init_hook is not None:
+            raise ValueError("init hook is already registered!")
         info.init_hook = func
         return func
