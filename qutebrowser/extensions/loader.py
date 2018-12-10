@@ -29,7 +29,7 @@ import pathlib
 import attr
 
 from qutebrowser import components
-from qutebrowser.utils import log, standarddir
+from qutebrowser.utils import log, standarddir, objreg
 
 
 @attr.s
@@ -39,6 +39,7 @@ class InitContext:
 
     data_dir = attr.ib()  # type: pathlib.Path
     config_dir = attr.ib()  # type: pathlib.Path
+    args = attr.ib()  # type: argparse.Namespace
 
 
 @attr.s
@@ -119,7 +120,8 @@ def _walk_pyinstaller() -> typing.Iterator[ExtensionInfo]:
 def _get_init_context() -> InitContext:
     """Get an InitContext object."""
     return InitContext(data_dir=pathlib.Path(standarddir.data()),
-                       config_dir=pathlib.Path(standarddir.config()))
+                       config_dir=pathlib.Path(standarddir.config()),
+                       args=objreg.get('args'))
 
 
 def _load_component(info: ExtensionInfo) -> types.ModuleType:

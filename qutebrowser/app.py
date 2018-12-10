@@ -468,11 +468,6 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing websettings...")
     websettings.init(args)
 
-    log.init.debug("Initializing adblock...")
-    host_blocker = adblock.HostBlocker()
-    host_blocker.read_hosts()
-    objreg.register('host-blocker', host_blocker)
-
     log.init.debug("Initializing quickmarks...")
     quickmark_manager = urlmarks.QuickmarkManager(qApp)
     objreg.register('quickmark-manager', quickmark_manager)

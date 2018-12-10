@@ -24,11 +24,12 @@ import os.path
 import functools
 import posixpath
 import zipfile
+import logging
 
-from qutebrowser.api import downloads
-from qutebrowser.config import config
-from qutebrowser.utils import objreg, standarddir, log, message
-from qutebrowser.api import cmdutils
+from qutebrowser.api import cmdutils, hook, config, message, downloads
+
+
+logger = logging.getLogger('misc')
 
 
 def _guess_zip_filename(zf):
@@ -95,18 +96,17 @@ class HostBlocker:
         _config_hosts_file: The path to a blocked-hosts in ~/.config
     """
 
-    def __init__(self):
+    def __init__(self, *, data_dir, config_dir, args):
+        self._args = args
         self._blocked_hosts = set()
         self._config_blocked_hosts = set()
         self._in_progress = []
         self._done_count = 0
 
-        data_dir = standarddir.data()
-        self._local_hosts_file = os.path.join(data_dir, 'blocked-hosts')
+        self._local_hosts_file = str(data_dir / 'blocked-hosts')
         self._update_files()
 
-        config_dir = standarddir.config()
-        self._config_hosts_file = os.path.join(config_dir, 'blocked-hosts')
+        self._config_hosts_file = str(config_dir / 'blocked-hosts')
 
         config.instance.changed.connect(self._update_files)
 
@@ -141,7 +141,7 @@ class HostBlocker:
                 for line in f:
                     target.add(line.strip())
         except (OSError, UnicodeDecodeError):
-            log.misc.exception("Failed to read host blocklist!")
+            logger.exception("Failed to read host blocklist!")
 
         return True
 
@@ -156,9 +156,8 @@ class HostBlocker:
                                       self._blocked_hosts)
 
         if not found:
-            args = objreg.get('args')
             if (config.val.content.host_blocking.lists and
-                    args.basedir is None and
+                    self._args.basedir is None and
                     config.val.content.host_blocking.enabled):
                 message.info("Run :adblock-update to get adblock lists.")
 
@@ -221,7 +220,7 @@ class HostBlocker:
         try:
             line = line.decode('utf-8')
         except UnicodeDecodeError:
-            log.misc.error("Failed to decode: {!r}".format(line))
+            logger.error("Failed to decode: {!r}".format(line))
             return False
 
         # Remove comments
@@ -277,7 +276,7 @@ class HostBlocker:
             if not ok:
                 error_count += 1
 
-        log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
+        logger.debug("{}: read {} lines".format(byte_io.name, line_count))
         if error_count > 0:
             message.error("adblock: {} read errors for {}".format(
                 error_count, byte_io.name))
@@ -299,7 +298,7 @@ class HostBlocker:
             except FileNotFoundError:
                 pass
             except OSError as e:
-                log.misc.exception("Failed to delete hosts file: {}".format(e))
+                logger.exception("Failed to delete hosts file: {}".format(e))
 
     def _on_download_finished(self, download):
         """Check if all downloads are finished and if so, trigger reading.
@@ -318,4 +317,12 @@ class HostBlocker:
             try:
                 self._on_lists_downloaded()
             except OSError:
-                log.misc.exception("Failed to write host block list!")
+                logger.exception("Failed to write host block list!")
+
+
+@hook.init()
+def init(context):
+    host_blocker = HostBlocker(data_dir=context.data_dir,
+                               config_dir=context.config_dir,
+                               args=context.args)
+    host_blocker.read_hosts()
