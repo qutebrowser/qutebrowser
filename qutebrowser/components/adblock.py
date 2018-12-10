@@ -109,7 +109,7 @@ class HostBlocker:
         self._config_hosts_file = str(config_dir / 'blocked-hosts')
 
     def _is_blocked(self, request_url: QUrl,
-                    first_party_url: QUrl = None) -> None:
+                    first_party_url: QUrl = None) -> bool:
         """Check whether the given request is blocked."""
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None

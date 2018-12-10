@@ -75,6 +75,7 @@ def test_get_init_context(data_tmpdir, config_tmpdir, fake_args):
 
 
 def test_add_module_info():
+    # pylint: disable=no-member
     mod = types.ModuleType('testmodule')
     info1 = loader.add_module_info(mod)
     assert mod.__qute_module_info is info1

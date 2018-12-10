@@ -87,7 +87,7 @@ def add_module_info(module: types.ModuleType) -> ModuleInfo:
     return module.__qute_module_info  # type: ignore
 
 
-def load_components(*, skip_hooks=False) -> None:
+def load_components(*, skip_hooks: bool = False) -> None:
     """Load everything from qutebrowser.components."""
     for info in walk_components():
         _load_component(info, skip_hooks=skip_hooks)
@@ -143,7 +143,7 @@ def _get_init_context() -> InitContext:
 
 
 def _load_component(info: ExtensionInfo, *,
-                    skip_hooks=False) -> types.ModuleType:
+                    skip_hooks: bool = False) -> types.ModuleType:
     """Load the given extension and run its init hook (if any).
 
     Args:
