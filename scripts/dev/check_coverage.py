@@ -204,6 +204,7 @@ WHITELISTED_FILES = [
     'browser/webkit/webkitinspector.py',
     'keyinput/macros.py',
     'browser/webkit/webkitelem.py',
+    'api/interceptor.py',
 ]
 
 
