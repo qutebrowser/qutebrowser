@@ -43,7 +43,7 @@ def test_load_component(monkeypatch):
     monkeypatch.setattr(objects, 'commands', {})
 
     info = loader.ExtensionInfo(name='qutebrowser.components.scrollcommands')
-    module = loader._load_component(info)
+    module = loader._load_component(info, skip_hooks=True)
 
     assert hasattr(module, 'scroll_to_perc')
     assert 'scroll-to-perc' in objects.commands

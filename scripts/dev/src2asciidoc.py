@@ -550,7 +550,7 @@ def regenerate_cheatsheet():
 def main():
     """Regenerate all documentation."""
     utils.change_cwd()
-    loader.load_components()
+    loader.load_components(skip_hooks=True)
     print("Generating manpage...")
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
     print("Generating settings help...")

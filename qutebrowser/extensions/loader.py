@@ -65,6 +65,7 @@ class ModuleInfo:
     _ConfigChangedHooksType = typing.List[typing.Tuple[typing.Optional[str],
                                                        typing.Callable]]
 
+    skip_hooks = attr.ib(False)  # type: bool
     init_hook = attr.ib(None)  # type: typing.Optional[typing.Callable]
     config_changed_hooks = attr.ib(
         attr.Factory(list))  # type: _ConfigChangedHooksType
@@ -86,10 +87,10 @@ def add_module_info(module: types.ModuleType) -> ModuleInfo:
     return module.__qute_module_info  # type: ignore
 
 
-def load_components() -> None:
+def load_components(*, skip_hooks=False) -> None:
     """Load everything from qutebrowser.components."""
     for info in walk_components():
-        _load_component(info)
+        _load_component(info, skip_hooks=skip_hooks)
 
 
 def walk_components() -> typing.Iterator[ExtensionInfo]:
@@ -141,13 +142,21 @@ def _get_init_context() -> InitContext:
                        args=objreg.get('args'))
 
 
-def _load_component(info: ExtensionInfo) -> types.ModuleType:
-    """Load the given extension and run its init hook (if any)."""
+def _load_component(info: ExtensionInfo, *, skip_hooks) -> types.ModuleType:
+    """Load the given extension and run its init hook (if any).
+
+    Args:
+        skip_hooks: Whether to skip all hooks for this module.
+                    This is used to only run @cmdutils.register decorators.
+    """
     log.extensions.debug("Importing {}".format(info.name))
     mod = importlib.import_module(info.name)
 
     mod_info = add_module_info(mod)
-    if mod_info.init_hook is not None:
+    if skip_hooks:
+        mod_info.skip_hooks = True
+
+    if mod_info.init_hook is not None and not skip_hooks:
         log.extensions.debug("Running init hook {!r}"
                              .format(mod_info.init_hook.__name__))
         mod_info.init_hook(_get_init_context())
@@ -161,6 +170,8 @@ def _load_component(info: ExtensionInfo) -> types.ModuleType:
 def _on_config_changed(changed_name: str) -> None:
     """Call config_changed hooks if the config changed."""
     for mod_info in _module_infos:
+        if mod_info.skip_hooks:
+            continue
         for option, hook in mod_info.config_changed_hooks:
             if option is None:
                 hook()

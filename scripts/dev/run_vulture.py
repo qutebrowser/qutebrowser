@@ -44,7 +44,7 @@ from qutebrowser.config import configtypes
 
 def whitelist_generator():  # noqa
     """Generator which yields lines to add to a vulture whitelist."""
-    loader.load_components()
+    loader.load_components(skip_hooks=True)
 
     # qutebrowser commands
     for cmd in objects.commands.values():
