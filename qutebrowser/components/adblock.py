@@ -26,7 +26,8 @@ import posixpath
 import zipfile
 import logging
 
-from qutebrowser.api import cmdutils, hook, config, message, downloads
+from qutebrowser.api import (cmdutils, hook, config, message, downloads,
+                             requests)
 
 
 logger = logging.getLogger('misc')
@@ -108,24 +109,28 @@ class HostBlocker:
 
         self._config_hosts_file = str(config_dir / 'blocked-hosts')
 
-    def is_blocked(self, url, first_party_url=None):
-        """Check if the given URL (as QUrl) is blocked."""
-        if first_party_url is not None and not first_party_url.isValid():
+    def filter_request(self, info: requests.Request) -> None:
+        """Block the given request if necessary."""
+        if info.first_party_url is None:
             first_party_url = None
+        elif not info.first_party_url.isValid():
+            first_party_url = None
+        else:
+            first_party_url = info.first_party_url
+
         if not config.get('content.host_blocking.enabled',
                           url=first_party_url):
             return False
 
-        host = url.host()
+        host = info.request_url.host()
         blocked = ((host in self._blocked_hosts or
                     host in self._config_blocked_hosts) and
-                   not _is_whitelisted_url(url))
+                   not _is_whitelisted_url(info.request_url))
 
         if blocked:
             logger.info("Request to {} blocked by host blocker."
-                        .format(url.host()))
-
-        return blocked
+                        .format(info.request_url.host()))
+            info.block()
 
     def _read_hosts_file(self, filename, target):
         """Read hosts from the given filename.
@@ -329,5 +334,7 @@ def init(context):
     host_blocker = HostBlocker(data_dir=context.data_dir,
                                config_dir=context.config_dir,
                                args=context.args)
-    context.signals.config_changed.connect(host_blocker.update_files)
     host_blocker.read_hosts()
+
+    context.signals.config_changed.connect(host_blocker.update_files)
+    requests.register_filter(host_blocker.filter_request)
