@@ -45,7 +45,8 @@ try:
                       CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
+    from yaml import (SafeLoader as YamlLoader,  # type: ignore
+                      SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
 import qutebrowser
