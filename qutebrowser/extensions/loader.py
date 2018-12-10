@@ -142,7 +142,8 @@ def _get_init_context() -> InitContext:
                        args=objreg.get('args'))
 
 
-def _load_component(info: ExtensionInfo, *, skip_hooks) -> types.ModuleType:
+def _load_component(info: ExtensionInfo, *,
+                    skip_hooks=False) -> types.ModuleType:
     """Load the given extension and run its init hook (if any).
 
     Args:

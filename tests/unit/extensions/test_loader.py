@@ -17,10 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import types
+
 import pytest
 
 from qutebrowser.extensions import loader
 from qutebrowser.misc import objects
+
+
+pytestmark = pytest.mark.usefixtures('data_tmpdir', 'config_tmpdir',
+                                     'fake_args')
 
 
 def test_on_walk_error():
@@ -43,7 +49,94 @@ def test_load_component(monkeypatch):
     monkeypatch.setattr(objects, 'commands', {})
 
     info = loader.ExtensionInfo(name='qutebrowser.components.scrollcommands')
-    module = loader._load_component(info, skip_hooks=True)
+    mod = loader._load_component(info, skip_hooks=True)
 
-    assert hasattr(module, 'scroll_to_perc')
+    assert hasattr(mod, 'scroll_to_perc')
     assert 'scroll-to-perc' in objects.commands
+
+
+@pytest.fixture
+def module(monkeypatch, request):
+    mod = types.ModuleType('testmodule')
+
+    monkeypatch.setattr(loader, '_module_infos', [])
+    monkeypatch.setattr(loader.importlib, 'import_module',
+                        lambda _name: mod)
+
+    mod.info = loader.add_module_info(mod)
+    return mod
+
+
+def test_get_init_context(data_tmpdir, config_tmpdir, fake_args):
+    ctx = loader._get_init_context()
+    assert str(ctx.data_dir) == data_tmpdir
+    assert str(ctx.config_dir) == config_tmpdir
+    assert ctx.args == fake_args
+
+
+def test_add_module_info():
+    mod = types.ModuleType('testmodule')
+    info1 = loader.add_module_info(mod)
+    assert mod.__qute_module_info is info1
+
+    info2 = loader.add_module_info(mod)
+    assert mod.__qute_module_info is info1
+    assert info2 is info1
+
+
+class _Hook:
+
+    """Hook to use in tests."""
+
+    __name__ = '_Hook'
+
+    def __init__(self):
+        self.called = False
+        self.raising = False
+
+    def __call__(self, *args):
+        if self.raising:
+            raise Exception("Should not be called!")
+        self.called = True
+
+
+@pytest.fixture
+def hook():
+    return _Hook()
+
+
+def test_skip_hooks(hook, module):
+    hook.raising = True
+
+    module.info.init_hook = hook
+    module.info.config_changed_hooks = [(None, hook)]
+
+    info = loader.ExtensionInfo(name='testmodule')
+    loader._load_component(info, skip_hooks=True)
+    loader._on_config_changed('test')
+
+    assert not hook.called
+
+
+@pytest.mark.parametrize('option_filter, option, called', [
+    (None, 'content.javascript.enabled', True),
+    ('content.javascript', 'content.javascript.enabled', True),
+    ('content.javascript.enabled', 'content.javascript.enabled', True),
+    ('content.javascript.log', 'content.javascript.enabled', False),
+])
+def test_on_config_changed(configdata_init, hook, module,
+                           option_filter, option, called):
+    module.info.config_changed_hooks = [(option_filter, hook)]
+
+    info = loader.ExtensionInfo(name='testmodule')
+    loader._load_component(info)
+    loader._on_config_changed(option)
+
+    assert hook.called == called
+
+
+def test_init_hook(hook, module):
+    module.info.init_hook = hook
+    info = loader.ExtensionInfo(name='testmodule')
+    loader._load_component(info)
+    assert hook.called
