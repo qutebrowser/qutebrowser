@@ -356,7 +356,10 @@ class QuteProc(testprocess.Process):
             self._focus_ready = True
         else:
             raise ValueError("Invalid value {!r} for 'what'.".format(what))
-        if self._load_ready and self._focus_ready:
+
+        is_qt_5_12 = qtutils.version_check('5.12', compiled=False)
+        if ((self._load_ready and self._focus_ready) or
+                (self._load_ready and is_qt_5_12)):
             self._load_ready = False
             self._focus_ready = False
             self.ready.emit()
