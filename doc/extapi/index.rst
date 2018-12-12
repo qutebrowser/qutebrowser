@@ -10,53 +10,9 @@ Welcome to qutebrowser extensions's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-cmdutils module
----------------
+   api
+   tab
 
-.. automodule:: qutebrowser.api.cmdutils
-   :members:
-
-.. FIXME: What about imported things?
-
-apitypes module
----------------
-
-.. automodule:: qutebrowser.api.apitypes
-   :members:
-   :imported-members:
-
-config module
--------------
-
-.. automodule:: qutebrowser.api.config
-   :members:
-
-downloads module
-----------------
-
-.. automodule:: qutebrowser.api.downloads
-   :members:
-
-hook module
------------
-
-.. automodule:: qutebrowser.api.hook
-   :members:
-
-interceptor module
-------------------
-
-.. automodule:: qutebrowser.api.interceptor
-   :members:
-
-.. FIXME: What about imported things?
-
-message module
---------------
-
-.. automodule:: qutebrowser.api.message
-   :members:
-   :imported-members:
 
 Indices and tables
 ==================

@@ -27,7 +27,13 @@ from qutebrowser.extensions.interceptors import Request
 def register(interceptor: interceptors.InterceptorType) -> None:
     """Register a request interceptor.
 
-    Whenever a request happens, the interceptor gets called with a Request
-    object.
+    Whenever a request happens, the interceptor gets called with a
+    :class:`Request` object.
+
+    Example::
+
+        def intercept(request: interceptor.Request) -> None:
+            if request.request_url.host() == 'badhost.example.com':
+                request.block()
     """
     interceptors.register(interceptor)
