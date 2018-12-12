@@ -17,9 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-qutebrowser has the concept of functions which are exposed to the user as
-commands.
+"""qutebrowser has the concept of functions, exposed to the user as commands.
 
 Creating a new command is straightforward::
 
@@ -43,7 +41,8 @@ The type can be overridden using Python's function annotations::
 
 Possible values:
 
-- A callable (``int``, ``float``, etc.): Gets called to validate/convert the value.
+- A callable (``int``, ``float``, etc.): Gets called to validate/convert the
+  value.
 - A python enum type: All members of the enum are possible values.
 - A ``typing.Union`` of multiple types above: Any of these types are valid
   values, e.g., ``typing.Union[str, int]``.
@@ -159,40 +158,43 @@ class argument:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to customize an argument.
 
-    You can customize how an argument is handled using the ``@cmdutils.argument``
-    decorator *after* ``@cmdutils.register``. This can, for example, be used to
-    customize the flag an argument should get::
+    You can customize how an argument is handled using the
+    ``@cmdutils.argument`` decorator *after* ``@cmdutils.register``. This can,
+    for example, be used to customize the flag an argument should get::
 
       @cmdutils.register(...)
       @cmdutils.argument('bar', flag='c')
       def foo(bar):
           ...
 
-    For a ``str`` argument, you can restrict the allowed strings using ``choices``::
+    For a ``str`` argument, you can restrict the allowed strings using
+    ``choices``::
 
       @cmdutils.register(...)
       @cmdutils.argument('bar', choices=['val1', 'val2'])
       def foo(bar: str):
           ...
 
-    For ``typing.Union`` types, the given ``choices`` are only checked if other types
-    (like ``int``) don't match.
+    For ``typing.Union`` types, the given ``choices`` are only checked if other
+    types (like ``int``) don't match.
 
     The following arguments are supported for ``@cmdutils.argument``:
 
     - ``flag``: Customize the short flag (``-x``) the argument will get.
     - ``value``: Tell qutebrowser to fill the argument with special values:
 
-      * ``value=cmdutils.Value.count``: The ``count`` given by the user to the command.
+      * ``value=cmdutils.Value.count``: The ``count`` given by the user to the
+        command.
       * ``value=cmdutils.Value.win_id``: The window ID of the current window.
-      * ``value=cmdutils.Value.cur_tab``: The tab object which is currently focused.
+      * ``value=cmdutils.Value.cur_tab``: The tab object which is currently
+        focused.
 
-    - ``completion``: A completion function to use when completing arguments for
-      the given command.
+    - ``completion``: A completion function to use when completing arguments
+      for the given command.
     - ``choices``: The allowed string choices for the argument.
 
-    The name of an argument will always be the parameter name, with any trailing
-    underscores stripped and underscores replaced by dashes.
+    The name of an argument will always be the parameter name, with any
+    trailing underscores stripped and underscores replaced by dashes.
     """
 
     def __init__(self, argname: str, **kwargs: typing.Any) -> None:

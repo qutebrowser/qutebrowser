@@ -40,5 +40,6 @@ exclude .*
 exclude misc/qutebrowser.spec
 exclude misc/qutebrowser.nsi
 exclude misc/qutebrowser.rcc
+prune doc/extapi
 
 global-exclude __pycache__ *.pyc *.pyo
