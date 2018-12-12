@@ -34,8 +34,12 @@ class Request:
 
     """A request which can be intercepted/blocked."""
 
+    #: The URL of the page being shown.
     first_party_url = attr.ib()  # type: QUrl
+
+    #: The URL of the file being requested.
     request_url = attr.ib()  # type: QUrl
+
     is_blocked = attr.ib(False)  # type: bool
 
     def block(self) -> None:

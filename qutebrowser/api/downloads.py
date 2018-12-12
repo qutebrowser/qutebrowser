@@ -52,6 +52,21 @@ def download_temp(url: QUrl) -> TempDownload:
     """Download the given URL into a file object.
 
     The download is not saved to disk.
+
+    Returns a ``TempDownload`` object, which triggers a ``finished`` signal
+    when the download has finished::
+
+        dl = downloads.download_temp(QUrl("https://www.example.com/"))
+        dl.finished.connect(functools.partial(on_download_finished, dl))
+
+    After the download has finished, its ``successful`` attribute can be
+    checked to make sure it finished successfully. If so, its contents can be
+    read by accessing the ``fileobj`` attribute::
+
+        def on_download_finished(download: downloads.TempDownload) -> None:
+            if download.successful:
+                print(download.fileobj.read())
+                download.fileobj.close()
     """
     fobj = io.BytesIO()
     fobj.name = 'temporary: ' + url.host()

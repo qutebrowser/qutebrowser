@@ -36,7 +36,17 @@ def _add_module_info(func: typing.Callable) -> loader.ModuleInfo:
 
 class init:
 
-    """Decorator to mark a function to run when initializing."""
+    """Decorator to mark a function to run when initializing.
+
+    The decorated function gets called with a
+    :class:`qutebrowser.api.apitypes.InitContext` as argument.
+
+    Example::
+
+        @hook.init()
+        def init(_context):
+            message.info("Extension initialized.")
+    """
 
     def __call__(self, func: typing.Callable) -> typing.Callable:
         info = _add_module_info(func)
@@ -48,7 +58,30 @@ class init:
 
 class config_changed:
 
-    """Decorator to get notified about changed configs."""
+    """Decorator to get notified about changed configs.
+
+    By default, the decorated function is called when any change in the config
+    occurs::
+
+        @hook.config_changed()
+        def on_config_changed():
+            ...
+
+    When an option name is passed, it's only called when the given option was
+    changed::
+
+        @hook.config_changed('content.javascript.enabled')
+        def on_config_changed():
+            ...
+
+    Alternatively, a part of an option name can be specified. In the following
+    snippet, ``on_config_changed`` gets called when either
+    ``bindings.commands`` or ``bindings.key_mappings`` have changed::
+
+        @hook.config_changed('bindings')
+        def on_config_changed():
+            ...
+    """
 
     def __init__(self, option_filter: str = None) -> None:
         self._filter = option_filter

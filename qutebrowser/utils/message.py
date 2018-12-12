@@ -42,12 +42,12 @@ def _log_stack(typ: str, stack: str) -> None:
 
 
 def error(message: str, *, stack: str = None, replace: bool = False) -> None:
-    """Convenience function to display an error message in the statusbar.
+    """Display an error message.
 
     Args:
-        message: The message to show
-        stack: The stack trace to show.
-        replace: Replace existing messages with replace=True
+        message: The message to show.
+        stack: The stack trace to show (if any).
+        replace: Replace existing messages which are still being shown.
     """
     if stack is None:
         stack = ''.join(traceback.format_stack())
@@ -60,11 +60,11 @@ def error(message: str, *, stack: str = None, replace: bool = False) -> None:
 
 
 def warning(message: str, *, replace: bool = False) -> None:
-    """Convenience function to display a warning message in the statusbar.
+    """Display a warning message.
 
     Args:
-        message: The message to show
-        replace: Replace existing messages with replace=True
+        message: The message to show.
+        replace: Replace existing messages which are still being shown.
     """
     _log_stack('warning', ''.join(traceback.format_stack()))
     log.message.warning(message)
@@ -72,11 +72,11 @@ def warning(message: str, *, replace: bool = False) -> None:
 
 
 def info(message: str, *, replace: bool = False) -> None:
-    """Convenience function to display an info message in the statusbar.
+    """Display an info message.
 
     Args:
-        message: The message to show
-        replace: Replace existing messages with replace=True
+        message: The message to show.
+        replace: Replace existing messages which are still being shown.
     """
     log.message.info(message)
     global_bridge.show(usertypes.MessageLevel.info, message, replace)
