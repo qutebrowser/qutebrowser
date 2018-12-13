@@ -62,11 +62,7 @@ def css_selector(group: str, url: QUrl) -> str:
 
 class AbstractWebElement(collections.abc.MutableMapping):
 
-    """A wrapper around QtWebKit/QtWebEngine web element.
-
-    Attributes:
-        tab: The tab associated with this element.
-    """
+    """A wrapper around QtWebKit/QtWebEngine web element."""
 
     def __init__(self, tab: 'browsertab.AbstractTab') -> None:
         self._tab = tab
