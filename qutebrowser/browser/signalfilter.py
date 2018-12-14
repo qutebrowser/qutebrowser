@@ -56,9 +56,10 @@ class SignalFilter(QObject):
         Return:
             A partial function calling _filter_signals with a signal.
         """
-        return functools.partial(self._filter_signals, signal, tab)
+        log_signal = debug.signal_name(signal) not in self.BLACKLIST
+        return functools.partial(self._filter_signals, signal, log_signal, tab)
 
-    def _filter_signals(self, signal, tab, *args):
+    def _filter_signals(self, signal, log_signal, tab, *args):
         """Filter signals and trigger TabbedBrowser signals if needed.
 
         Triggers signal if the original signal was sent from the _current_ tab
@@ -72,7 +73,6 @@ class SignalFilter(QObject):
             tab: The WebView which the filter belongs to.
             *args: The args to pass to the signal.
         """
-        log_signal = debug.signal_name(signal) not in self.BLACKLIST
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
         try:
