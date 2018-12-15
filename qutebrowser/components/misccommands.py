@@ -238,7 +238,7 @@ def tab_mute(tab: apitypes.Tab) -> None:
     if tab is None:
         return
     try:
-        tab.audio.set_muted(tab.audio.is_muted(), override=True)
+        tab.audio.set_muted(not tab.audio.is_muted(), override=True)
     except apitypes.WebTabError as e:
         raise cmdutils.CommandError(e)
 
