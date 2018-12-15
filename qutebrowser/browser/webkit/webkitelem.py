@@ -30,6 +30,7 @@ from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
 MYPY = False
 if MYPY:
+    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser.webkit import webkittab
 
 
