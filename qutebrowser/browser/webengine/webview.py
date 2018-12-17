@@ -19,7 +19,9 @@
 
 """The main browser widget for QtWebEngine."""
 
-from PyQt5.QtCore import pyqtSignal, QUrl, PYQT_VERSION
+import tempfile
+
+from PyQt5.QtCore import pyqtSignal, QUrl, QEventLoop, PYQT_VERSION
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
@@ -28,7 +30,7 @@ from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
-from qutebrowser.misc import miscwidgets
+from qutebrowser.misc import miscwidgets, guiprocess
 from qutebrowser.qt import sip
 
 
@@ -261,3 +263,26 @@ class WebEnginePage(QWebEnginePage):
                                                  is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
         return navigation.accepted
+
+    def chooseFiles(self, mode, oldFiles, acceptedMimeTypes):
+        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+            filename = tmpfile.name
+
+        if mode == QWebEnginePage.FileSelectOpen:
+            command = ['xterm', '-e', 'ranger', '--choosefile={}']
+        else:
+            command = ['xterm', '-e', 'ranger', '--choosefiles={}']
+
+        if not command:
+            return super().chooseFiles(mode, oldFiles, acceptedMimeTypes)
+
+        proc = guiprocess.GUIProcess(what='choose-file')
+        proc.start(command[0],
+                [arg.replace('{}', filename) for arg in command[1:]])
+
+        loop = QEventLoop()
+        proc.finished.connect(lambda code, status: loop.exit())
+        loop.exec_()
+
+        with open(filename, 'r') as tmpfile:
+            return tmpfile.read().splitlines()
