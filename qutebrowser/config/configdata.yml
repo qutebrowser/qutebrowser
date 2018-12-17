@@ -1201,6 +1201,44 @@ editor.encoding:
   default: utf-8
   desc: Encoding to use for the editor.
 
+## fileselect
+
+fileselect.handler:
+  default: default
+  type:
+    name: String
+    valid_values:
+      - default: "Use the default file selector."
+      - external: "Use an external command."
+  desc: Handler for selecting file(s) in forms.
+
+fileselect.single_file.command:
+  type:
+    name: ShellCommand
+    placeholder: true
+  default: ['xterm', '-e', 'export COLUMNS= LINES=;ranger --choosefile={}']
+  desc: >-
+    Command (and arguments) to use for selecting a file in forms.
+    The command should write the selected file path to the specified file.
+
+    The following placeholders are defined:
+
+    * `{}`: Filename of the file to be written to.
+
+fileselect.multiple_files.command:
+  type:
+    name: ShellCommand
+    placeholder: true
+  default: ['xterm', '-e', 'export COLUMNS= LINES=;ranger --choosefiles={}']
+  desc: >-
+    Command (and arguments) to use for selecting multiple files in forms.
+    The command should write the selected file paths to the specified file,
+    separated by newlines.
+
+    The following placeholders are defined:
+
+    * `{}`: Filename of the file to be written to.
+
 ## hints
 
 hints.auto_follow:

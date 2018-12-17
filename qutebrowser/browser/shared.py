@@ -23,12 +23,15 @@ import os
 import html
 import netrc
 from typing import Callable, Mapping
+import tempfile
 
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, message, log, objreg, jinja, utils
+from qutebrowser.utils import (usertypes, message, log, objreg, jinja, utils,
+                               qtutils)
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.misc import guiprocess
 
 
 class CallSuper(Exception):
@@ -339,3 +342,39 @@ def netrc_authentication(url, authenticator):
     authenticator.setPassword(password)
 
     return True
+
+
+def choose_file(multiple: bool):
+    """Select file(s) for uploading, using external command defined in config.
+
+    Args:
+        multiple: Should selecting multiple files be allowed.
+
+    Return:
+        A list of selected file paths, or empty list if no file is selected.
+        If multiple is False, the return value will have at most 1 item.
+    """
+    with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+        filename = tmpfile.name
+
+    if multiple:
+        command = config.val.fileselect.multiple_files.command
+    else:
+        command = config.val.fileselect.single_file.command
+
+    proc = guiprocess.GUIProcess(what='choose-file')
+    proc.start(command[0],
+               [arg.replace('{}', filename) for arg in command[1:]])
+
+    loop = qtutils.EventLoop()
+    proc.finished.connect(lambda _code, _status: loop.exit())
+    loop.exec_()
+
+    with open(filename, 'r', encoding='utf8') as tmpfile:
+        selected_file_list = tmpfile.read().splitlines()
+    os.remove(filename)
+
+    if not multiple:
+        assert len(selected_file_list) <= 1
+
+    return selected_file_list

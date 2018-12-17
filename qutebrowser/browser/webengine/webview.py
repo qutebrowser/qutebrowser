@@ -238,3 +238,12 @@ class WebEnginePage(QWebEnginePage):
             is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
         return navigation.accepted
+
+    def chooseFiles(self, mode, old_files, accepted_mimetypes):
+        """Override chooseFiles to (optionally) invoke custom file uploader."""
+        handler = config.val.fileselect.handler
+        if handler == "default":
+            return super().chooseFiles(mode, old_files, accepted_mimetypes)
+
+        return shared.choose_file(
+            multiple=(mode == QWebEnginePage.FileSelectOpenMultiple))
