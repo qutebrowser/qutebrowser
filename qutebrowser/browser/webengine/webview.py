@@ -269,9 +269,9 @@ class WebEnginePage(QWebEnginePage):
             filename = tmpfile.name
 
         if mode == QWebEnginePage.FileSelectOpen:
-            command = ['xterm', '-e', 'ranger', '--choosefile={}']
+            command = config.val.fileselect.single_file.command
         else:
-            command = ['xterm', '-e', 'ranger', '--choosefiles={}']
+            command = config.val.fileselect.multiple_files.command
 
         if not command:
             return super().chooseFiles(mode, oldFiles, acceptedMimeTypes)
