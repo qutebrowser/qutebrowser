@@ -266,6 +266,10 @@ class WebEnginePage(QWebEnginePage):
 
     def chooseFiles(self, mode, old_files, accepted_mimetypes):
         """Override chooseFiles to (optionally) invoke custom file uploader."""
+        handler = config.val.fileselect.handler
+        if handler == "default":
+            return super().chooseFiles(mode, old_files, accepted_mimetypes)
+
         with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
             filename = tmpfile.name
 
@@ -273,9 +277,6 @@ class WebEnginePage(QWebEnginePage):
             command = config.val.fileselect.single_file.command
         else:
             command = config.val.fileselect.multiple_files.command
-
-        if not command:
-            return super().chooseFiles(mode, old_files, accepted_mimetypes)
 
         proc = guiprocess.GUIProcess(what='choose-file')
         proc.start(command[0],

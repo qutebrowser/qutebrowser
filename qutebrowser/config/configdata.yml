@@ -1044,16 +1044,23 @@ editor.encoding:
 
 ## fileselect
 
+fileselect.handler:
+  default: default
+  type:
+    name: String
+    valid_values:
+      - default: "Use the default file selector."
+      - external: "Use an external command."
+  desc: Handler for selecting file(s) in forms.
+
 fileselect.single_file.command:
   type:
     name: ShellCommand
     placeholder: true
-    none_ok: true
   default: ['xterm', '-e', 'ranger', '--choosefile={}']
   desc: >-
     Command (and arguments) to use for selecting a file in forms.
     The command should write the selected file path to the specified file.
-    Set this to empty list to use default file selector.
 
     The following placeholders are defined:
 
@@ -1063,13 +1070,11 @@ fileselect.multiple_files.command:
   type:
     name: ShellCommand
     placeholder: true
-    none_ok: true
   default: ['xterm', '-e', 'ranger', '--choosefiles={}']
   desc: >-
     Command (and arguments) to use for selecting multiple files in forms.
     The command should write the selected file paths to the specified file,
     separated by newlines.
-    Set this to empty list to use default file selector.
 
     The following placeholders are defined:
 
