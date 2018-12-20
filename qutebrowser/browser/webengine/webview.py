@@ -19,6 +19,7 @@
 
 """The main browser widget for QtWebEngine."""
 
+import os
 import tempfile
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QEventLoop, PYQT_VERSION
@@ -287,4 +288,6 @@ class WebEnginePage(QWebEnginePage):
         loop.exec_()
 
         with open(filename, 'r', encoding='utf8') as tmpfile:
-            return tmpfile.read().splitlines()
+            selected_file_list = tmpfile.read().splitlines()
+        os.remove(filename)
+        return selected_file_list
