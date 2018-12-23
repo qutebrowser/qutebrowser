@@ -268,7 +268,7 @@ class FakeWebTab(browsertab.AbstractTab):
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
 
-    def url(self, requested=False):
+    def url(self, *, requested=False):
         assert not requested
         return self._url
 
@@ -324,14 +324,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do type checking based
         on a signature given to __init__.
         """
-
-
-@attr.s
-class FakeCmdUtils:
-
-    """Stub for cmdutils which provides a cmd_dict."""
-
-    cmd_dict = attr.ib()
 
 
 @attr.s(frozen=True)
@@ -467,17 +459,6 @@ class QuickmarkManagerStub(UrlMarkManagerStub):
         self.delete(key)
 
 
-class HostBlockerStub:
-
-    """Stub for the host-blocker object."""
-
-    def __init__(self):
-        self.blocked_hosts = set()
-
-    def is_blocked(self, url, first_party_url=None):
-        return url in self.blocked_hosts
-
-
 class SessionManagerStub:
 
     """Stub for the session-manager object."""
@@ -500,7 +481,7 @@ class TabbedBrowserStub(QObject):
         super().__init__(parent)
         self.widget = TabWidgetStub()
         self.shutting_down = False
-        self.opened_url = None
+        self.loaded_url = None
         self.cur_url = None
 
     def on_tab_close_requested(self, idx):
@@ -510,10 +491,10 @@ class TabbedBrowserStub(QObject):
         return self.widget.tabs
 
     def tabopen(self, url):
-        self.opened_url = url
+        self.loaded_url = url
 
-    def openurl(self, url, *, newtab):
-        self.opened_url = url
+    def load_url(self, url, *, newtab):
+        self.loaded_url = url
 
     def current_url(self):
         if self.current_url is None:

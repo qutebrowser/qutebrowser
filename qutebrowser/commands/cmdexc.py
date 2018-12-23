@@ -28,11 +28,6 @@ class Error(Exception):
     """Base class for all cmdexc errors."""
 
 
-class CommandError(Error):
-
-    """Raised when a command encounters an error while running."""
-
-
 class NoSuchCommandError(Error):
 
     """Raised when a command wasn't found."""

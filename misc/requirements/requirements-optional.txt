@@ -4,4 +4,4 @@ colorama==0.4.1
 cssutils==1.0.2
 hunter==2.1.0
 Pympler==0.6
-six==1.11.0
+six==1.12.0

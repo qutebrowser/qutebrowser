@@ -35,7 +35,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
                                standarddir, objreg, log)
-from qutebrowser.commands import cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.misc import lineparser
 
 
@@ -166,7 +166,7 @@ class QuickmarkManager(UrlMarkManager):
             url: The url to add as quickmark.
             name: The name for the new quickmark.
         """
-        # We don't raise cmdexc.CommandError here as this can be called async
+        # We don't raise cmdutils.CommandError here as this can be called async
         # via prompt_save.
         if not name:
             message.error("Can't set mark with empty name!")

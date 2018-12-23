@@ -27,7 +27,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkProxy
 import pytest
 
-from qutebrowser.commands import cmdexc
+from qutebrowser.api import cmdutils
 from qutebrowser.browser.network import pac
 from qutebrowser.utils import utils, urlutils, qtutils, usertypes
 from helpers import utils as testutils
@@ -495,7 +495,7 @@ def test_raise_cmdexc_if_invalid(url, valid, has_err_string):
             expected_text = "Invalid URL - " + qurl.errorString()
         else:
             expected_text = "Invalid URL"
-        with pytest.raises(cmdexc.CommandError, match=expected_text):
+        with pytest.raises(cmdutils.CommandError, match=expected_text):
             urlutils.raise_cmdexc_if_invalid(qurl)
 
 

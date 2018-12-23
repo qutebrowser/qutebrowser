@@ -30,7 +30,8 @@ import argparse
 import vulture
 
 import qutebrowser.app  # pylint: disable=unused-import
-from qutebrowser.commands import cmdutils
+from qutebrowser.extensions import loader
+from qutebrowser.misc import objects
 from qutebrowser.utils import utils
 from qutebrowser.browser.webkit import rfc6266
 # To run the decorators from there
@@ -43,8 +44,10 @@ from qutebrowser.config import configtypes
 
 def whitelist_generator():  # noqa
     """Generator which yields lines to add to a vulture whitelist."""
+    loader.load_components(skip_hooks=True)
+
     # qutebrowser commands
-    for cmd in cmdutils.cmd_dict.values():
+    for cmd in objects.commands.values():
         yield utils.qualname(cmd.handler)
 
     # pyPEG2 classes
@@ -126,6 +129,9 @@ def whitelist_generator():  # noqa
     yield 'scripts.get_coredumpctl_traces.Line.uid'
     yield 'scripts.get_coredumpctl_traces.Line.gid'
     yield 'scripts.importer.import_moz_places.places.row_factory'
+
+    # component hooks
+    yield 'qutebrowser.components.adblock.on_config_changed'
 
 
 def filter_func(item):

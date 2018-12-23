@@ -116,13 +116,6 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         window: True to open in a new window, False for the current one.
     """
     def _prevnext_cb(elems):
-        if elems is None:
-            message.error("Unknown error while getting hint elements")
-            return
-        elif isinstance(elems, webelem.Error):
-            message.error(str(elems))
-            return
-
         elem = _find_prevnext(prev, elems)
         word = 'prev' if prev else 'forward'
 
@@ -148,11 +141,12 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         elif tab:
             cur_tabbed_browser.tabopen(url, background=background)
         else:
-            browsertab.openurl(url)
+            browsertab.load_url(url)
 
     try:
         link_selector = webelem.css_selector('links', baseurl)
     except webelem.Error as e:
         raise Error(str(e))
 
-    browsertab.elements.find_css(link_selector, _prevnext_cb)
+    browsertab.elements.find_css(link_selector, callback=_prevnext_cb,
+                                 error_cb=lambda err: message.error(str(err)))

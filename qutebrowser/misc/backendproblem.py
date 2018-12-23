@@ -238,6 +238,9 @@ def _handle_wayland():
     if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
         return
 
+    if qtutils.version_check('5.11.2', compiled=False):
+        return
+
     buttons = []
     text = "<p>You can work around this in one of the following ways:</p>"
 

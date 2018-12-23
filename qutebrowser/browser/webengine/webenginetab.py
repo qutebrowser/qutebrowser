@@ -24,9 +24,9 @@ import functools
 import re
 import html as html_utils
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QEvent, QPoint, QPointF,
-                          QUrl, QTimer, QObject)
-from PyQt5.QtGui import QKeyEvent, QIcon
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
+                          QTimer, QObject)
+from PyQt5.QtGui import QIcon
 from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
@@ -60,10 +60,8 @@ def init():
     _qute_scheme_handler.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing request interceptor...")
-    host_blocker = objreg.get('host-blocker')
     args = objreg.get('args')
-    req_interceptor = interceptor.RequestInterceptor(
-        host_blocker, args=args, parent=app)
+    req_interceptor = interceptor.RequestInterceptor(args=args, parent=app)
     req_interceptor.install(webenginesettings.default_profile)
     req_interceptor.install(webenginesettings.private_profile)
 
@@ -132,7 +130,7 @@ class WebEnginePrinting(browsertab.AbstractPrinting):
     """QtWebEngine implementations related to printing."""
 
     def check_pdf_support(self):
-        return True
+        pass
 
     def check_printer_support(self):
         if not hasattr(self._widget.page(), 'print'):
@@ -205,8 +203,8 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
         self._widget.findText(text, flags, wrapped_callback)
 
-    def search(self, text, *, ignore_case='never', reverse=False,
-               result_cb=None):
+    def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
+               reverse=False, result_cb=None):
         # Don't go to next entry on duplicate search
         if self.text == text and self.search_displayed:
             log.webview.debug("Ignoring duplicate search request"
@@ -423,7 +421,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
     def _repeated_key_press(self, key, count=1, modifier=Qt.NoModifier):
         """Send count fake key presses to this scroller's WebEngineTab."""
         for _ in range(min(count, 1000)):
-            self._tab.key_press(key, modifier)
+            self._tab.fake_key_press(key, modifier)
 
     @pyqtSlot(QPointF)
     def _update_pos(self, pos):
@@ -478,7 +476,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
     def to_anchor(self, name):
         url = self._tab.url()
         url.setFragment(name)
-        self._tab.openurl(url)
+        self._tab.load_url(url)
 
     def delta(self, x=0, y=0):
         self._tab.run_js_async(javascript.assemble('window', 'scrollBy', x, y))
@@ -500,10 +498,10 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._repeated_key_press(Qt.Key_Right, count)
 
     def top(self):
-        self._tab.key_press(Qt.Key_Home)
+        self._tab.fake_key_press(Qt.Key_Home)
 
     def bottom(self):
-        self._tab.key_press(Qt.Key_End)
+        self._tab.fake_key_press(Qt.Key_End)
 
     def page_up(self, count=1):
         self._repeated_key_press(Qt.Key_PageUp, count)
@@ -518,9 +516,52 @@ class WebEngineScroller(browsertab.AbstractScroller):
         return self._at_bottom
 
 
+class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
+
+    """History-related methods which are not part of the extension API."""
+
+    def serialize(self):
+        if not qtutils.version_check('5.9', compiled=False):
+            # WORKAROUND for
+            # https://github.com/qutebrowser/qutebrowser/issues/2289
+            # Don't use the history's currentItem here, because of
+            # https://bugreports.qt.io/browse/QTBUG-59599 and because it doesn't
+            # contain view-source.
+            scheme = self._tab.url().scheme()
+            if scheme in ['view-source', 'chrome']:
+                raise browsertab.WebTabError("Can't serialize special URL!")
+        return qtutils.serialize(self._history)
+
+    def deserialize(self, data):
+        qtutils.deserialize(data, self._history)
+
+    def load_items(self, items):
+        if items:
+            self._tab.before_load_started.emit(items[-1].url)
+
+        stream, _data, cur_data = tabhistory.serialize(items)
+        qtutils.deserialize_stream(stream, self._history)
+
+        @pyqtSlot()
+        def _on_load_finished():
+            self._tab.scroller.to_point(cur_data['scroll-pos'])
+            self._tab.load_finished.disconnect(_on_load_finished)
+
+        if cur_data is not None:
+            if 'zoom' in cur_data:
+                self._tab.zoom.set_factor(cur_data['zoom'])
+            if ('scroll-pos' in cur_data and
+                    self._tab.scroller.pos_px() == QPoint(0, 0)):
+                self._tab.load_finished.connect(_on_load_finished)
+
+
 class WebEngineHistory(browsertab.AbstractHistory):
 
     """QtWebEngine implementations related to page history."""
+
+    def __init__(self, tab):
+        super().__init__(tab)
+        self.private_api = WebEngineHistoryPrivate(tab)
 
     def __len__(self):
         return len(self._history)
@@ -541,42 +582,8 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return self._history.itemAt(i)
 
     def _go_to_item(self, item):
-        self._tab.predicted_navigation.emit(item.url())
+        self._tab.before_load_started.emit(item.url())
         self._history.goToItem(item)
-
-    def serialize(self):
-        if not qtutils.version_check('5.9', compiled=False):
-            # WORKAROUND for
-            # https://github.com/qutebrowser/qutebrowser/issues/2289
-            # Don't use the history's currentItem here, because of
-            # https://bugreports.qt.io/browse/QTBUG-59599 and because it doesn't
-            # contain view-source.
-            scheme = self._tab.url().scheme()
-            if scheme in ['view-source', 'chrome']:
-                raise browsertab.WebTabError("Can't serialize special URL!")
-        return qtutils.serialize(self._history)
-
-    def deserialize(self, data):
-        qtutils.deserialize(data, self._history)
-
-    def load_items(self, items):
-        if items:
-            self._tab.predicted_navigation.emit(items[-1].url)
-
-        stream, _data, cur_data = tabhistory.serialize(items)
-        qtutils.deserialize_stream(stream, self._history)
-
-        @pyqtSlot()
-        def _on_load_finished():
-            self._tab.scroller.to_point(cur_data['scroll-pos'])
-            self._tab.load_finished.disconnect(_on_load_finished)
-
-        if cur_data is not None:
-            if 'zoom' in cur_data:
-                self._tab.zoom.set_factor(cur_data['zoom'])
-            if ('scroll-pos' in cur_data and
-                    self._tab.scroller.pos_px() == QPoint(0, 0)):
-                self._tab.load_finished.connect(_on_load_finished)
 
 
 class WebEngineZoom(browsertab.AbstractZoom):
@@ -591,19 +598,20 @@ class WebEngineElements(browsertab.AbstractElements):
 
     """QtWebEngine implemementations related to elements on the page."""
 
-    def _js_cb_multiple(self, callback, js_elems):
+    def _js_cb_multiple(self, callback, error_cb, js_elems):
         """Handle found elements coming from JS and call the real callback.
 
         Args:
             callback: The callback to call with the found elements.
-                      Called with None if there was an error.
+            error_cb: The callback to call in case of an error.
             js_elems: The elements serialized from javascript.
         """
         if js_elems is None:
-            callback(None)
+            error_cb(webelem.Error("Unknown error while getting "
+                                   "elements"))
             return
         elif not js_elems['success']:
-            callback(webelem.Error(js_elems['error']))
+            error_cb(webelem.Error(js_elems['error']))
             return
 
         elems = []
@@ -630,10 +638,11 @@ class WebEngineElements(browsertab.AbstractElements):
             elem = webengineelem.WebEngineElement(js_elem, tab=self._tab)
             callback(elem)
 
-    def find_css(self, selector, callback, *, only_visible=False):
+    def find_css(self, selector, callback, error_cb, *,
+                 only_visible=False):
         js_code = javascript.assemble('webelem', 'find_css', selector,
                                       only_visible)
-        js_cb = functools.partial(self._js_cb_multiple, callback)
+        js_cb = functools.partial(self._js_cb_multiple, callback, error_cb)
         self._tab.run_js_async(js_code, js_cb)
 
     def find_id(self, elem_id, callback):
@@ -1125,21 +1134,23 @@ class WebEngineTab(browsertab.AbstractTab):
         self.zoom.set_factor(self._saved_zoom)
         self._saved_zoom = None
 
-    def openurl(self, url, *, predict=True):
-        """Open the given URL in this tab.
+    def load_url(self, url, *, emit_before_load_started=True):
+        """Load the given URL in this tab.
 
         Arguments:
-            url: The QUrl to open.
-            predict: If set to False, predicted_navigation is not emitted.
+            url: The QUrl to load.
+            emit_before_load_started: If set to False, before_load_started is
+                                      not emitted.
         """
         if sip.isdeleted(self._widget):
             # https://github.com/qutebrowser/qutebrowser/issues/3896
             return
         self._saved_zoom = self.zoom.factor()
-        self._openurl_prepare(url, predict=predict)
+        self._load_url_prepare(
+            url, emit_before_load_started=emit_before_load_started)
         self._widget.load(url)
 
-    def url(self, requested=False):
+    def url(self, *, requested=False):
         page = self._widget.page()
         if requested:
             return page.requestedUrl()
@@ -1193,13 +1204,6 @@ class WebEngineTab(browsertab.AbstractTab):
         # percent encoded content is 2 megabytes minus 30 bytes.
         self._widget.setHtml(html, base_url)
 
-    def key_press(self, key, modifier=Qt.NoModifier):
-        press_evt = QKeyEvent(QEvent.KeyPress, key, modifier, 0, 0, 0)
-        release_evt = QKeyEvent(QEvent.KeyRelease, key, modifier,
-                                0, 0, 0)
-        self.send_event(press_evt)
-        self.send_event(release_evt)
-
     def _show_error_page(self, url, error):
         """Show an error page in the tab."""
         log.misc.debug("Showing error page for {}".format(error))
@@ -1236,7 +1240,7 @@ class WebEngineTab(browsertab.AbstractTab):
             log.misc.debug("Ignoring invalid URL being added to history")
             return
 
-        self.add_history_item.emit(url, requested_url, title)
+        self.history_item_triggered.emit(url, requested_url, title)
 
     @pyqtSlot(QUrl, 'QAuthenticator*', 'QString')
     def _on_proxy_authentication_required(self, url, authenticator,
@@ -1364,9 +1368,9 @@ class WebEngineTab(browsertab.AbstractTab):
             log.config.debug(
                 "Loading {} again because of config change".format(
                     self._reload_url.toDisplayString()))
-            QTimer.singleShot(100, functools.partial(self.openurl,
-                                                     self._reload_url,
-                                                     predict=False))
+            QTimer.singleShot(100, functools.partial(
+                self.load_url, self._reload_url,
+                emit_before_load_started=False))
             self._reload_url = None
 
         if not qtutils.version_check('5.10', compiled=False):
@@ -1405,12 +1409,12 @@ class WebEngineTab(browsertab.AbstractTab):
             self._show_error_page(url, str(error))
 
     @pyqtSlot(QUrl)
-    def _on_predicted_navigation(self, url):
+    def _on_before_load_started(self, url):
         """If we know we're going to visit a URL soon, change the settings.
 
         This is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
         """
-        super()._on_predicted_navigation(url)
+        super()._on_before_load_started(url)
         if not qtutils.version_check('5.11.1', compiled=False):
             self.settings.update_for_url(url)
 
@@ -1488,7 +1492,7 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadFinished.connect(self._restore_zoom)
             page.loadFinished.connect(self._on_load_finished)
 
-        self.predicted_navigation.connect(self._on_predicted_navigation)
+        self.before_load_started.connect(self._on_before_load_started)
 
         # pylint: disable=protected-access
         self.audio._connect_signals()

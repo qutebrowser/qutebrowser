@@ -118,14 +118,6 @@ class WebView(QWebView):
         self.stop()
         self.page().shutdown()
 
-    def openurl(self, url):
-        """Open a URL in the browser.
-
-        Args:
-            url: The URL to load as QUrl
-        """
-        self.load(url)
-
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
 

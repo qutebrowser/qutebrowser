@@ -102,7 +102,7 @@ class TabbedBrowser(QWidget):
     cur_url_changed = pyqtSignal(QUrl)
     cur_link_hovered = pyqtSignal(str)
     cur_scroll_perc_changed = pyqtSignal(int, int)
-    cur_load_status_changed = pyqtSignal(str)
+    cur_load_status_changed = pyqtSignal(usertypes.LoadStatus)
     cur_fullscreen_requested = pyqtSignal(bool)
     cur_caret_selection_toggled = pyqtSignal(bool)
     close_window = pyqtSignal()
@@ -222,6 +222,7 @@ class TabbedBrowser(QWidget):
             self._filter.create(self.cur_caret_selection_toggled, tab))
         # misc
         tab.scroller.perc_changed.connect(self.on_scroll_pos_changed)
+        tab.scroller.before_jump_requested.connect(lambda: self.set_mark("'"))
         tab.url_changed.connect(
             functools.partial(self.on_url_changed, tab))
         tab.title_changed.connect(
@@ -245,7 +246,7 @@ class TabbedBrowser(QWidget):
         tab.new_tab_requested.connect(self.tabopen)
         if not self.is_private:
             web_history = objreg.get('web-history')
-            tab.add_history_item.connect(web_history.add_from_tab)
+            tab.history_item_triggered.connect(web_history.add_from_tab)
 
     def current_url(self):
         """Get the URL of the current tab.
@@ -303,12 +304,12 @@ class TabbedBrowser(QWidget):
             if last_close == 'close':
                 self.close_window.emit()
             elif last_close == 'blank':
-                self.openurl(QUrl('about:blank'), newtab=True)
+                self.load_url(QUrl('about:blank'), newtab=True)
             elif last_close == 'startpage':
                 for url in config.val.url.start_pages:
-                    self.openurl(url, newtab=True)
+                    self.load_url(url, newtab=True)
             elif last_close == 'default-page':
-                self.openurl(config.val.url.default_page, newtab=True)
+                self.load_url(config.val.url.default_page, newtab=True)
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
@@ -345,7 +346,7 @@ class TabbedBrowser(QWidget):
             urlutils.invalid_url_error(tab.url(), "saving tab")
         elif add_undo:
             try:
-                history_data = tab.history.serialize()
+                history_data = tab.history.private_api.serialize()
             except browsertab.WebTabError:
                 pass  # special URL
             else:
@@ -391,11 +392,11 @@ class TabbedBrowser(QWidget):
             else:
                 newtab = self.tabopen(background=False, idx=entry.index)
 
-            newtab.history.deserialize(entry.history)
+            newtab.history.private_api.deserialize(entry.history)
             self.widget.set_tab_pinned(newtab, entry.pinned)
 
     @pyqtSlot('QUrl', bool)
-    def openurl(self, url, newtab):
+    def load_url(self, url, newtab):
         """Open a URL, used as a slot.
 
         Args:
@@ -406,7 +407,7 @@ class TabbedBrowser(QWidget):
         if newtab or self.widget.currentWidget() is None:
             self.tabopen(url, background=False)
         else:
-            self.widget.currentWidget().openurl(url)
+            self.widget.currentWidget().load_url(url)
 
     @pyqtSlot(int)
     def on_tab_close_requested(self, idx):
@@ -483,7 +484,7 @@ class TabbedBrowser(QWidget):
         self.widget.insertTab(idx, tab, "")
 
         if url is not None:
-            tab.openurl(url)
+            tab.load_url(url)
 
         if background is None:
             background = config.val.tabs.background
@@ -879,7 +880,7 @@ class TabbedBrowser(QWidget):
                         self.cur_load_finished.disconnect(callback)
                         tab.scroller.to_point(point)
 
-                self.openurl(url, newtab=False)
+                self.load_url(url, newtab=False)
                 self.cur_load_finished.connect(callback)
             else:
                 message.error("Mark {} is not set".format(key))
@@ -891,8 +892,7 @@ class TabbedBrowser(QWidget):
             # save the pre-jump position in the special ' mark
             # this has to happen after we read the mark, otherwise jump_mark
             # "'" would just jump to the current position every time
-            self.set_mark("'")
-
+            tab.scroller.before_jump_requested.emit()
             tab.scroller.to_point(point)
         else:
             message.error("Mark {} is not set".format(key))

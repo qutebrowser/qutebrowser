@@ -60,13 +60,15 @@ except ImportError:
 import qutebrowser
 import qutebrowser.resources
 from qutebrowser.completion.models import miscmodels
-from qutebrowser.commands import cmdutils, runners, cmdexc
+from qutebrowser.commands import runners
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config, websettings, configfiles, configinit
-from qutebrowser.browser import (urlmarks, adblock, history, browsertab,
+from qutebrowser.browser import (urlmarks, history, browsertab,
                                  qtnetworkdownloads, downloads, greasemonkey)
 from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
+from qutebrowser.extensions import loader
 from qutebrowser.keyinput import macros
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
@@ -163,6 +165,8 @@ def init(args, crash_handler):
     qApp.setQuitOnLastWindowClosed(False)
     _init_icon()
 
+    loader.init()
+    loader.load_components()
     try:
         _init_modules(args, crash_handler)
     except (OSError, UnicodeDecodeError, browsertab.WebTabError) as e:
@@ -465,11 +469,6 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing websettings...")
     websettings.init(args)
 
-    log.init.debug("Initializing adblock...")
-    host_blocker = adblock.HostBlocker()
-    host_blocker.read_hosts()
-    objreg.register('host-blocker', host_blocker)
-
     log.init.debug("Initializing quickmarks...")
     quickmark_manager = urlmarks.QuickmarkManager(qApp)
     objreg.register('quickmark-manager', quickmark_manager)
@@ -619,10 +618,11 @@ class Quitter:
             ok = self.restart(session='_restart')
         except sessions.SessionError as e:
             log.destroy.exception("Failed to save session!")
-            raise cmdexc.CommandError("Failed to save session: {}!".format(e))
+            raise cmdutils.CommandError("Failed to save session: {}!"
+                                        .format(e))
         except SyntaxError as e:
             log.destroy.exception("Got SyntaxError")
-            raise cmdexc.CommandError("SyntaxError in {}:{}: {}".format(
+            raise cmdutils.CommandError("SyntaxError in {}:{}: {}".format(
                 e.filename, e.lineno, e))
         if ok:
             self.shutdown(restart=True)
@@ -684,7 +684,7 @@ class Quitter:
             session: The name of the session to save.
         """
         if session is not None and not save:
-            raise cmdexc.CommandError("Session name given without --save!")
+            raise cmdutils.CommandError("Session name given without --save!")
         if save:
             if session is None:
                 session = sessions.default
