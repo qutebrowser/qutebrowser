@@ -8,7 +8,7 @@ cheroot==6.5.2
 Click==7.0
 # colorama==0.4.1
 coverage==4.5.2
-EasyProcess==0.2.3
+EasyProcess==0.2.5
 Flask==1.0.2
 glob2==0.6
 hunter==2.1.0
