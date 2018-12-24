@@ -167,7 +167,7 @@ def test_key_info_str(key, modifiers, expected):
 
 def test_extended_unicode():
     assert str(keyutils.KeyInfo(0xd83c, Qt.NoModifier, "🏻")) == "🏻"
-    assert str(keyutils.KeyInfo(0xd83c, Qt.NoModifier, "𩷶")) == "𩷶"
+    assert str(keyutils.KeyInfo(0xd867, Qt.NoModifier, "𩷶")) == "𩷶"
 
 @pytest.mark.parametrize('keystr, expected', [
     ('foo', "Could not parse 'foo': error"),

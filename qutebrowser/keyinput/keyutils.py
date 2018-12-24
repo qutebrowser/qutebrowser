@@ -308,7 +308,7 @@ class KeyInfo:
 
     key = attr.ib()
     modifiers = attr.ib()
-    key_text = attr.ib()
+    key_text = attr.ib(default="")
 
     @classmethod
     def from_event(cls, e):
@@ -324,9 +324,9 @@ class KeyInfo:
         # These are Unicode characters (such as emoji)
         if _is_extended_unicode(self.key):
             _check_valid_utf8(self.key_text, self.key)
-            key_string = self.key_text
-        else:
-            key_string = _key_to_string(self.key)
+            return self.key_text
+
+        key_string = _key_to_string(self.key)
 
         modifiers = int(self.modifiers)
 
@@ -426,7 +426,7 @@ class KeySequence:
             key = int(key_and_modifiers) & ~Qt.KeyboardModifierMask
             modifiers = Qt.KeyboardModifiers(int(key_and_modifiers) &
                                              Qt.KeyboardModifierMask)
-            yield KeyInfo(key=key, modifiers=modifiers, key_text="")
+            yield KeyInfo(key=key, modifiers=modifiers)
 
     def __repr__(self):
         return utils.get_repr(self, keys=str(self))
