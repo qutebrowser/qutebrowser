@@ -298,14 +298,16 @@ class KeyInfo:
     Attributes:
         key: A Qt::Key member.
         modifiers: A Qt::KeyboardModifiers enum value.
+        text: A QString with the value of QKeyEvent::text()
     """
 
     key = attr.ib()
     modifiers = attr.ib()
+    key_text = attr.ib()
 
     @classmethod
     def from_event(cls, e):
-        return cls(e.key(), e.modifiers())
+        return cls(e.key(), e.modifiers(), e.text())
 
     def __str__(self):
         """Convert this KeyInfo to a meaningful name.
@@ -313,6 +315,12 @@ class KeyInfo:
         Return:
             A name of the key (combination) as a string.
         """
+
+        # These are Unicode characters (such as emoji)
+        if self.key > 0xff and self.key < 0x01000000:
+            _check_valid_utf8(self.key_text, self.key)
+            return self.key_text
+
         key_string = _key_to_string(self.key)
         modifiers = int(self.modifiers)
 
@@ -412,7 +420,7 @@ class KeySequence:
             key = int(key_and_modifiers) & ~Qt.KeyboardModifierMask
             modifiers = Qt.KeyboardModifiers(int(key_and_modifiers) &
                                              Qt.KeyboardModifierMask)
-            yield KeyInfo(key=key, modifiers=modifiers)
+            yield KeyInfo(key=key, modifiers=modifiers, key_text="")
 
     def __repr__(self):
         return utils.get_repr(self, keys=str(self))
