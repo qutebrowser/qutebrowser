@@ -25,6 +25,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import shared
+from qutebrowser.browser.browsertab import WebTabError
 from qutebrowser.config import configexc
 
 
@@ -48,7 +49,7 @@ class TestTestFeature:
         url = QUrl(url) if url else None
         monkeypatch.setattr(web_tab, 'url', mock.Mock(return_value=url))
 
-        web_tab.test_feature(self.setting)
+        web_tab.permissions.test_feature(self.setting)
 
         config_get_stub.assert_called_once_with(self.setting, url=url)
 
@@ -63,13 +64,13 @@ class TestTestFeature:
         monkeypatch.setattr(config_stub, 'get', mock.Mock(return_value=value))
         monkeypatch.setattr(web_tab, 'url', mock.Mock(return_value=None))
 
-        ret = web_tab.test_feature(self.setting)
+        ret = web_tab.permissions.test_feature(self.setting)
 
         assert ret == expect
 
-    def test_key_error_on_unknown_setting_name(self, web_tab):
-        with pytest.raises(KeyError):
-            web_tab.test_feature('not.a.real.thing')
+    def test_error_on_unknown_setting_name(self, web_tab):
+        with pytest.raises(WebTabError):
+            web_tab.permissions.test_feature('not.a.real.thing')
 
     def test_no_pattern_support(self, web_tab, config_stub, monkeypatch):
         """Test features with pattern support can be queried."""
@@ -82,7 +83,7 @@ class TestTestFeature:
         ]
         monkeypatch.setattr(config_stub, 'get', config_get_stub)
 
-        web_tab.test_feature(self.setting)
+        web_tab.permissions.test_feature(self.setting)
 
         assert config_get_stub.call_args_list == [
             mock.call(self.setting, url=url),
@@ -112,11 +113,10 @@ class TestTestFeature:
         config_get_stub = mock.Mock(return_value=setting)
         monkeypatch.setattr(config_stub, 'get', config_get_stub)
 
-        permissions_mock = mock.Mock()
-        permissions_mock.features = {
+        features = {
             1: shared.Feature(self.setting, "plz?", granted)
         }
 
-        monkeypatch.setattr(web_tab, '_permissions', permissions_mock)
+        monkeypatch.setattr(web_tab.permissions, 'features', features)
 
-        assert web_tab.test_feature(self.setting) == expect
+        assert web_tab.permissions.test_feature(self.setting) == expect
