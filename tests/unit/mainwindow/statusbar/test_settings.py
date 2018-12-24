@@ -34,12 +34,12 @@ CONFIG_OPTION = settings.BooleanSettings.config_option
 class TestData:
     """Common data usedfor initing config_stub and making assertions about."""
 
-    config = [
-        ['G', 'content.webgl'],
-        ['I', 'content.images'],
-        ['L', 'content.geolocation'],
-        ['Y', 'content.javascript.enabled'],
-    ]
+    config = {
+        'content.webgl': 'G',
+        'content.images': 'I',
+        'content.geolocation': 'L',
+        'content.javascript.enabled': 'Y',
+    }
 
     @property
     def setting(self):
@@ -52,7 +52,6 @@ def no_winreg(monkeypatch):
     """Mock out the only function that relies on windows and tabs existing."""
     monkeypatch.setattr(settings.BooleanSettings, '_current_tab',
                         mock.Mock(return_value=None))
-    yield
 
 
 @pytest.fixture()
@@ -70,9 +69,9 @@ def data(config_stub):
     data = TestData()
     config_stub.set_obj(
         CONFIG_OPTION,
-        data.setting,
+        data.config,
     )
-    for _indicator, setting_name in data.config:
+    for setting_name in data.config:
         config_stub.set_obj(setting_name, True)
     yield data
 
@@ -80,14 +79,14 @@ def data(config_stub):
 def test_setting_is_parsed_on_init(qtbot, monkeypatch, data):
     """Test the config string is parsed at init time."""
     parse_mock = mock.Mock()
-    monkeypatch.setattr(settings.BooleanSettings, 'parse_config', parse_mock)
-    settings.BooleanSettings()
+    monkeypatch.setattr(settings.BooleanSettings, '_parse_config', parse_mock)
+    settings.BooleanSettings(None, 0)
     assert parse_mock.call_count == 1
 
 
 def test_setting_can_be_correctly_parsed(qtbot, no_winreg, data):
     """Test the config string is parsed to the expected structure."""
-    uut = settings.BooleanSettings()
+    uut = settings.BooleanSettings(None, 0)
     assert uut._config == data.config
 
 
@@ -100,8 +99,8 @@ def test_settings_are_reparsed_on_config_change(
 ):
     """Make sure the config is updated when the relevant setting is."""
     parse_mock = mock.Mock()
-    monkeypatch.setattr(settings.BooleanSettings, 'parse_config', parse_mock)
-    uut = settings.BooleanSettings()
+    monkeypatch.setattr(settings.BooleanSettings, '_parse_config', parse_mock)
+    uut = settings.BooleanSettings(None, 0)
     parse_mock.reset_mock()
 
     uut.on_config_changed(setting_name)
@@ -113,39 +112,13 @@ def test_settings_are_reparsed_on_config_change(
 
 def test_changed_setting_is_handled(qtbot, config_stub, no_winreg, data):
     """Make sure changes in the setting are reflect in the internal config."""
-    uut = settings.BooleanSettings()
+    uut = settings.BooleanSettings(None, 0)
     assert uut._config == data.config
 
-    to = ["foo|content.images"]
+    to = {"content.images": "foo"}
     config_stub.set_obj(CONFIG_OPTION, to)
-    uut.parse_config()
+    uut._parse_config()
     assert uut._config != data.config
-
-
-@pytest.mark.parametrize("setting_val", [
-    ["foo+content.javascript.enabled"],
-    ["foo|absolutely.not.an.option"],
-])
-def test_malformed_setting_is_flashed(qtbot, no_winreg, config_stub, data,
-                                      message_mock, caplog, setting_val):
-    """Malformed setting values should be reported."""
-    uut = settings.BooleanSettings()
-    config_stub.set_obj(CONFIG_OPTION, setting_val)
-    with caplog.at_level(logging.ERROR):
-        uut.parse_config()
-    assert CONFIG_OPTION in message_mock.getmsg().text
-
-
-def test_malformed_setting_doesnt_stick(qtbot, no_winreg, config_stub, data,
-                                        caplog):
-    """Malformed setting values shouldn't replace good ones."""
-    uut = settings.BooleanSettings()
-    good_conf = uut._config
-    to = ["foo+content.javascript.enabled"]
-    config_stub.set_obj(CONFIG_OPTION, to)
-    with caplog.at_level(logging.ERROR):
-        uut.parse_config()
-    assert uut._config is good_conf
 
 
 @pytest.mark.parametrize("with_webgl, expected", [
@@ -157,7 +130,7 @@ def test_text_matches_config(qtbot, data, no_winreg, monkeypatch,
     """Test the widget text is what we expect given the config."""
     bool_mock = mock.Mock()
     text_mock = mock.Mock()
-    uut = settings.BooleanSettings()
+    uut = settings.BooleanSettings(None, 0)
     monkeypatch.setattr(uut, '_to_bool', bool_mock)
     monkeypatch.setattr(uut, 'setText', text_mock)
     bool_mock.side_effect = [
@@ -172,19 +145,6 @@ def test_text_matches_config(qtbot, data, no_winreg, monkeypatch,
     assert sorted(actual) == sorted(expected)
 
 
-@pytest.mark.parametrize("setting_name, error_msg", [
-    ('foo', "No option 'foo'"),
-    ('bindings.commands',
-     "Setting 'bindings.commands' is not a boolean setting"),
-])
-def test_setting_casting_errors(qtbot, data, no_winreg,
-                                setting_name, error_msg):
-    """Test validation of the configured settings."""
-    uut = settings.BooleanSettings()
-    with pytest.raises(ValueError, match=error_msg):
-        uut._to_bool(setting_name, QUrl(''))
-
-
 @pytest.mark.parametrize("supports_pattern, expect_none", [
     (True, False),
     (False, True),
@@ -194,7 +154,7 @@ def test_setting_casting_handles_url_patterns(
         supports_pattern, expect_none
 ):
     """Test we provide a url only for options that support it."""
-    uut = settings.BooleanSettings()
+    uut = settings.BooleanSettings(None, 0)
     get_obj_mock = mock.Mock()
     get_opt_mock = mock.Mock()
     get_opt_mock.return_value.supports_pattern = supports_pattern
@@ -217,7 +177,7 @@ def test_setting_casting_ask_defers_to_tab(
     test_feature_mock = mock.Mock()
     monkeypatch.setattr(settings.BooleanSettings, '_test_feature',
                         test_feature_mock)
-    uut = settings.BooleanSettings()
+    uut = settings.BooleanSettings(None, 0)
     test_feature_mock.reset_mock()
     get_obj_mock = mock.Mock(return_value='ask')
     get_opt_mock = mock.Mock()
@@ -235,32 +195,6 @@ def test_integration(fake_statusbar, with_tab, monkeypatch, data):
     """Test everything works while hitting a real tab.
 
     Basically an integration test, requires graphics."""
-    uut = settings.BooleanSettings(fake_statusbar)
-    assert uut._config == data.config
-    assert uut.text() == "[{}]".format(''.join(t[0] for t in data.config))
-
-
-def test_duplicates_are_allowed(qtbot, config_stub, no_winreg, monkeypatch):
-    """Test that having duplicate settings and labels is fine.
-
-    This is an incedental "feature" of the design and this test is to
-    make it explicit."""
-    data = TestData()
-    data.config = [
-        ['1', 'content.webgl'],
-        ['1', 'content.webgl'],
-        ['1', 'content.webgl'],
-        ['S', 'content.javascript.enabled'],
-    ]
-    config_stub.set_obj(
-        CONFIG_OPTION,
-        data.setting,
-    )
-
-    uut = settings.BooleanSettings()
-    bool_mock = mock.Mock()
-    monkeypatch.setattr(settings.BooleanSettings, '_to_bool', bool_mock)
-    bool_mock.return_value = True
-
-    uut.on_url_changed(QUrl(''))
-    assert uut.text() == "[111S]"
+    uut = settings.BooleanSettings(fake_statusbar, 0)
+    expected ="[{}]".format(''.join(t[1] for t in data.config.items()))
+    assert uut.text() == expected
