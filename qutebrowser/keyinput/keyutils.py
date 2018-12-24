@@ -53,10 +53,10 @@ def _is_printable(key):
     return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
 # Unicode characters such as emoji and extended CJK characters land here
-# These get key codes that are above ASCII range but aren't Qt::Key enum members
-# Qt::Key_Escape is the first "special" Qt::Key
+# These get key codes above ASCII range, but not as high as the special
+# Qt::Key enum members. Qt::Key_Escape is the first special Qt::Key.
 def _is_extended_unicode(key):
-    return key > 0xff and key < Qt.Key_Escape
+    return 0xff < key < Qt.Key_Escape
 
 def is_special(key, modifiers):
     """Check whether this key requires special key syntax."""
