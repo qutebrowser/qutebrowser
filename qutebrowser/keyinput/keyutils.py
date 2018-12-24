@@ -52,6 +52,8 @@ def _is_printable(key):
     _assert_plain_key(key)
     return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
+def _is_extended_unicode(key):
+    return key > 0xff and key < 0x010000000
 
 def is_special(key, modifiers):
     """Check whether this key requires special key syntax."""
@@ -317,11 +319,12 @@ class KeyInfo:
         """
 
         # These are Unicode characters (such as emoji)
-        if self.key > 0xff and self.key < 0x01000000:
+        if _is_extended_unicode(self.key):
             _check_valid_utf8(self.key_text, self.key)
-            return self.key_text
+            key_string = self.key_text
+        else:
+            key_string = _key_to_string(self.key)
 
-        key_string = _key_to_string(self.key)
         modifiers = int(self.modifiers)
 
         if self.key in _MODIFIER_MAP:
