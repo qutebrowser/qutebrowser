@@ -37,8 +37,11 @@ from qutebrowser.misc import objects
 from qutebrowser.browser import browsertab
 
 
-PixelMetrics = enum.IntEnum('PixelMetrics', ['icon_padding'],
-                            start=QStyle.PM_CustomBase)
+class PixelMetrics(enum.IntEnum):
+
+    """Custom PixelMetrics attributes."""
+
+    icon_padding = QStyle.PM_CustomBase
 
 
 class TabWidget(QTabWidget):
@@ -174,7 +177,7 @@ class TabWidget(QTabWidget):
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
-        fields['private'] = ' [Private Mode] ' if tab.private else ''
+        fields['private'] = ' [Private Mode] ' if tab.is_private else ''
         try:
             if tab.audio.is_muted():
                 fields['audio'] = TabWidget.MUTE_STRING
@@ -226,7 +229,9 @@ class TabWidget(QTabWidget):
         work.
         """
         bar = self.tabBar()
-        toggle = self.count() > 10 and bar.isVisible()
+        toggle = (self.count() > 10 and
+                  not bar.drag_in_progress and
+                  bar.isVisible())
         if toggle:
             bar.setUpdatesEnabled(False)
             bar.setVisible(False)
@@ -337,7 +342,7 @@ class TabWidget(QTabWidget):
         qtutils.ensure_valid(url)
         return url
 
-    def update_tab_favicon(self, tab: QWidget):
+    def update_tab_favicon(self, tab: QWidget) -> None:
         """Update favicon of the given tab."""
         idx = self.indexOf(tab)
 
@@ -384,6 +389,7 @@ class TabBar(QTabBar):
         self._on_show_switching_delay_changed()
         self.setAutoFillBackground(True)
         self._set_colors()
+        self.drag_in_progress = False
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
@@ -394,7 +400,7 @@ class TabBar(QTabBar):
         return self.parent().currentWidget()
 
     @pyqtSlot(str)
-    def _on_config_changed(self, option: str):
+    def _on_config_changed(self, option: str) -> None:
         if option == 'fonts.tabs':
             self._set_font()
         elif option == 'tabs.favicons.scale':
@@ -507,8 +513,16 @@ class TabBar(QTabBar):
         p.setColor(QPalette.Window, config.val.colors.tabs.bar.bg)
         self.setPalette(p)
 
+    def mouseReleaseEvent(self, e):
+        """Override mouseReleaseEvent to know when drags stop."""
+        self.drag_in_progress = False
+        super().mouseReleaseEvent(e)
+
     def mousePressEvent(self, e):
-        """Override mousePressEvent to close tabs if configured."""
+        """Override mousePressEvent to close tabs if configured.
+
+        Also keep track of if we are currently in a drag."""
+        self.drag_in_progress = True
         button = config.val.tabs.close_mouse_button
         if (e.button() == Qt.RightButton and button == 'right' or
                 e.button() == Qt.MiddleButton and button == 'middle'):
@@ -529,7 +543,7 @@ class TabBar(QTabBar):
             return
         super().mousePressEvent(e)
 
-    def minimumTabSizeHint(self, index, ellipsis: bool = True) -> QSize:
+    def minimumTabSizeHint(self, index: int, ellipsis: bool = True) -> QSize:
         """Set the minimum tab size to indicator/icon/... text.
 
         Args:
@@ -609,7 +623,7 @@ class TabBar(QTabBar):
             return False
         return widget.data.pinned
 
-    def tabSizeHint(self, index: int):
+    def tabSizeHint(self, index: int) -> QSize:
         """Override tabSizeHint to customize qb's tab size.
 
         https://wiki.python.org/moin/PyQt/Customising%20tab%20bars

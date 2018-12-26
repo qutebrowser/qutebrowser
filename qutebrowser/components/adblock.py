@@ -24,19 +24,22 @@ import os.path
 import functools
 import posixpath
 import zipfile
+import logging
+import typing
+import pathlib
 
-from qutebrowser.browser import downloads
-from qutebrowser.config import config
-from qutebrowser.utils import objreg, standarddir, log, message
-from qutebrowser.commands import cmdutils
+from PyQt5.QtCore import QUrl
+
+from qutebrowser.api import (cmdutils, hook, config, message, downloads,
+                             interceptor, apitypes)
 
 
-def _guess_zip_filename(zf):
-    """Guess which file to use inside a zip file.
+logger = logging.getLogger('misc')
+_host_blocker = typing.cast('HostBlocker', None)
 
-    Args:
-        zf: A ZipFile instance.
-    """
+
+def _guess_zip_filename(zf: zipfile.ZipFile) -> str:
+    """Guess which file to use inside a zip file."""
     files = zf.namelist()
     if len(files) == 1:
         return files[0]
@@ -47,7 +50,7 @@ def _guess_zip_filename(zf):
     raise FileNotFoundError("No hosts file found in zip")
 
 
-def get_fileobj(byte_io):
+def get_fileobj(byte_io: typing.IO[bytes]) -> typing.IO[bytes]:
     """Get a usable file object to read the hosts file from."""
     byte_io.seek(0)  # rewind downloaded file
     if zipfile.is_zipfile(byte_io):
@@ -60,24 +63,20 @@ def get_fileobj(byte_io):
     return byte_io
 
 
-def _is_whitelisted_url(url):
-    """Check if the given URL is on the adblock whitelist.
-
-    Args:
-        url: The URL to check as QUrl.
-    """
+def _is_whitelisted_url(url: QUrl) -> bool:
+    """Check if the given URL is on the adblock whitelist."""
     for pattern in config.val.content.host_blocking.whitelist:
         if pattern.matches(url):
             return True
     return False
 
 
-class _FakeDownload:
+class _FakeDownload(downloads.TempDownload):
 
     """A download stub to use on_download_finished with local files."""
 
-    def __init__(self, fileobj):
-        self.basename = os.path.basename(fileobj.name)
+    def __init__(self,  # pylint: disable=super-init-not-called
+                 fileobj: typing.IO[bytes]) -> None:
         self.fileobj = fileobj
         self.successful = True
 
@@ -93,37 +92,46 @@ class HostBlocker:
         _done_count: How many files have been read successfully.
         _local_hosts_file: The path to the blocked-hosts file.
         _config_hosts_file: The path to a blocked-hosts in ~/.config
+        _has_basedir: Whether a custom --basedir is set.
     """
 
-    def __init__(self):
-        self._blocked_hosts = set()
-        self._config_blocked_hosts = set()
-        self._in_progress = []
+    def __init__(self, *, data_dir: pathlib.Path, config_dir: pathlib.Path,
+                 has_basedir: bool = False) -> None:
+        self._has_basedir = has_basedir
+        self._blocked_hosts = set()  # type: typing.Set[str]
+        self._config_blocked_hosts = set()  # type: typing.Set[str]
+        self._in_progress = []  # type: typing.List[downloads.TempDownload]
         self._done_count = 0
 
-        data_dir = standarddir.data()
-        self._local_hosts_file = os.path.join(data_dir, 'blocked-hosts')
-        self._update_files()
+        self._local_hosts_file = str(data_dir / 'blocked-hosts')
+        self.update_files()
 
-        config_dir = standarddir.config()
-        self._config_hosts_file = os.path.join(config_dir, 'blocked-hosts')
+        self._config_hosts_file = str(config_dir / 'blocked-hosts')
 
-        config.instance.changed.connect(self._update_files)
-
-    def is_blocked(self, url, first_party_url=None):
-        """Check if the given URL (as QUrl) is blocked."""
+    def _is_blocked(self, request_url: QUrl,
+                    first_party_url: QUrl = None) -> bool:
+        """Check whether the given request is blocked."""
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
-        if not config.instance.get('content.host_blocking.enabled',
-                                   url=first_party_url):
+
+        if not config.get('content.host_blocking.enabled',
+                          url=first_party_url):
             return False
 
-        host = url.host()
+        host = request_url.host()
         return ((host in self._blocked_hosts or
                  host in self._config_blocked_hosts) and
-                not _is_whitelisted_url(url))
+                not _is_whitelisted_url(request_url))
 
-    def _read_hosts_file(self, filename, target):
+    def filter_request(self, info: interceptor.Request) -> None:
+        """Block the given request if necessary."""
+        if self._is_blocked(request_url=info.request_url,
+                            first_party_url=info.first_party_url):
+            logger.info("Request to {} blocked by host blocker."
+                        .format(info.request_url.host()))
+            info.block()
+
+    def _read_hosts_file(self, filename: str, target: typing.Set[str]) -> bool:
         """Read hosts from the given filename.
 
         Args:
@@ -141,11 +149,11 @@ class HostBlocker:
                 for line in f:
                     target.add(line.strip())
         except (OSError, UnicodeDecodeError):
-            log.misc.exception("Failed to read host blocklist!")
+            logger.exception("Failed to read host blocklist!")
 
         return True
 
-    def read_hosts(self):
+    def read_hosts(self) -> None:
         """Read hosts from the existing blocked-hosts file."""
         self._blocked_hosts = set()
 
@@ -156,24 +164,17 @@ class HostBlocker:
                                       self._blocked_hosts)
 
         if not found:
-            args = objreg.get('args')
             if (config.val.content.host_blocking.lists and
-                    args.basedir is None and
+                    not self._has_basedir and
                     config.val.content.host_blocking.enabled):
                 message.info("Run :adblock-update to get adblock lists.")
 
-    @cmdutils.register(instance='host-blocker')
-    def adblock_update(self):
-        """Update the adblock block lists.
-
-        This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded
-        host lists and re-reads `~/.config/qutebrowser/blocked-hosts`.
-        """
+    def adblock_update(self) -> None:
+        """Update the adblock block lists."""
         self._read_hosts_file(self._config_hosts_file,
                               self._config_blocked_hosts)
         self._blocked_hosts = set()
         self._done_count = 0
-        download_manager = objreg.get('qtnetwork-download-manager')
         for url in config.val.content.host_blocking.lists:
             if url.scheme() == 'file':
                 filename = url.toLocalFile()
@@ -184,16 +185,12 @@ class HostBlocker:
                 else:
                     self._import_local(filename)
             else:
-                fobj = io.BytesIO()
-                fobj.name = 'adblock: ' + url.host()
-                target = downloads.FileObjDownloadTarget(fobj)
-                download = download_manager.get(url, target=target,
-                                                auto_remove=True)
+                download = downloads.download_temp(url)
                 self._in_progress.append(download)
                 download.finished.connect(
                     functools.partial(self._on_download_finished, download))
 
-    def _import_local(self, filename):
+    def _import_local(self, filename: str) -> None:
         """Adds the contents of a file to the blocklist.
 
         Args:
@@ -209,24 +206,24 @@ class HostBlocker:
         self._in_progress.append(download)
         self._on_download_finished(download)
 
-    def _parse_line(self, line):
+    def _parse_line(self, raw_line: bytes) -> bool:
         """Parse a line from a host file.
 
         Args:
-            line: The bytes object to parse.
+            raw_line: The bytes object to parse.
 
         Returns:
             True if parsing succeeded, False otherwise.
         """
-        if line.startswith(b'#'):
+        if raw_line.startswith(b'#'):
             # Ignoring comments early so we don't have to care about
             # encoding errors in them.
             return True
 
         try:
-            line = line.decode('utf-8')
+            line = raw_line.decode('utf-8')
         except UnicodeDecodeError:
-            log.misc.error("Failed to decode: {!r}".format(line))
+            logger.error("Failed to decode: {!r}".format(raw_line))
             return False
 
         # Remove comments
@@ -257,14 +254,11 @@ class HostBlocker:
 
         return True
 
-    def _merge_file(self, byte_io):
+    def _merge_file(self, byte_io: io.BytesIO) -> None:
         """Read and merge host files.
 
         Args:
             byte_io: The BytesIO object of the completed download.
-
-        Return:
-            A set of the merged hosts.
         """
         error_count = 0
         line_count = 0
@@ -282,12 +276,12 @@ class HostBlocker:
             if not ok:
                 error_count += 1
 
-        log.misc.debug("{}: read {} lines".format(byte_io.name, line_count))
+        logger.debug("{}: read {} lines".format(byte_io.name, line_count))
         if error_count > 0:
             message.error("adblock: {} read errors for {}".format(
                 error_count, byte_io.name))
 
-    def _on_lists_downloaded(self):
+    def _on_lists_downloaded(self) -> None:
         """Install block lists after files have been downloaded."""
         with open(self._local_hosts_file, 'w', encoding='utf-8') as f:
             for host in sorted(self._blocked_hosts):
@@ -295,8 +289,7 @@ class HostBlocker:
             message.info("adblock: Read {} hosts from {} sources.".format(
                 len(self._blocked_hosts), self._done_count))
 
-    @config.change_filter('content.host_blocking.lists')
-    def _update_files(self):
+    def update_files(self) -> None:
         """Update files when the config changed."""
         if not config.val.content.host_blocking.lists:
             try:
@@ -304,13 +297,13 @@ class HostBlocker:
             except FileNotFoundError:
                 pass
             except OSError as e:
-                log.misc.exception("Failed to delete hosts file: {}".format(e))
+                logger.exception("Failed to delete hosts file: {}".format(e))
 
-    def _on_download_finished(self, download):
+    def _on_download_finished(self, download: downloads.TempDownload) -> None:
         """Check if all downloads are finished and if so, trigger reading.
 
         Arguments:
-            download: The finished DownloadItem.
+            download: The finished download.
         """
         self._in_progress.remove(download)
         if download.successful:
@@ -323,4 +316,32 @@ class HostBlocker:
             try:
                 self._on_lists_downloaded()
             except OSError:
-                log.misc.exception("Failed to write host block list!")
+                logger.exception("Failed to write host block list!")
+
+
+@cmdutils.register()
+def adblock_update() -> None:
+    """Update the adblock block lists.
+
+    This updates `~/.local/share/qutebrowser/blocked-hosts` with downloaded
+    host lists and re-reads `~/.config/qutebrowser/blocked-hosts`.
+    """
+    # FIXME: As soon as we can register instances again, we should move this
+    # back to the class.
+    _host_blocker.adblock_update()
+
+
+@hook.config_changed('content.host_blocking.lists')
+def on_config_changed() -> None:
+    _host_blocker.update_files()
+
+
+@hook.init()
+def init(context: apitypes.InitContext) -> None:
+    """Initialize the host blocker."""
+    global _host_blocker
+    _host_blocker = HostBlocker(data_dir=context.data_dir,
+                                config_dir=context.config_dir,
+                                has_basedir=context.args.basedir is not None)
+    _host_blocker.read_hosts()
+    interceptor.register(_host_blocker.filter_request)

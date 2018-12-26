@@ -39,12 +39,7 @@ ignore_case:
   renamed: search.ignore_case
 
 search.ignore_case:
-  type:
-    name: String
-    valid_values:
-      - always: Search case-insensitively.
-      - never: Search case-sensitively.
-      - smart: Search case-sensitively if there are capital characters.
+  type: IgnoreCase
   default: smart
   desc: When to find text on a page case-insensitively.
 
@@ -329,7 +324,7 @@ content.cache.appcache:
     ask the application cache for the contents, before hitting the network.
 
 content.cookies.accept:
-  default: no-3rdparty
+  default: all
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.11
@@ -337,7 +332,8 @@ content.cookies.accept:
     name: String
     valid_values:
       - all: "Accept all cookies."
-      - no-3rdparty: "Accept cookies from the same origin only."
+      - no-3rdparty: "Accept cookies from the same origin only. This is known
+          to break some sites, such as GMail."
       - no-unknown-3rdparty: "Accept cookies from the same origin only, unless
           a cookie is already set for the domain. On QtWebEngine, this is the
           same as no-3rdparty."
@@ -1816,7 +1812,9 @@ url.searchengines:
   type:
     name: Dict
     required_keys: ['DEFAULT']
-    keytype: String
+    keytype:
+      name: String
+      forbidden: ' '
     valtype: SearchEngineUrl
   desc: >-
     Search engines which can be used via the address bar.
@@ -2614,6 +2612,8 @@ bindings.default:
       yD: yank domain -s
       yp: yank pretty-url
       yP: yank pretty-url -s
+      ym: yank markdown
+      yM: yank markdown -s
       pp: open -- {clipboard}
       pP: open -- {primary}
       Pp: open -t -- {clipboard}

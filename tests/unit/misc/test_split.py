@@ -131,7 +131,7 @@ class TestSplit:
     """Test split."""
 
     @pytest.fixture(params=list(_parse_split_test_data_str()),
-                    ids=lambda e: e.input)
+                    ids=lambda e: e.inp)
     def split_test_case(self, request):
         """Fixture to automatically parametrize all depending tests.
 

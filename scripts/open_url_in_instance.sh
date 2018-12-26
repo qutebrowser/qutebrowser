@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # initial idea: Florian Bruhin (The-Compiler)
 # author: Thore Bödecker (foxxx0)
 

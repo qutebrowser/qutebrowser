@@ -68,14 +68,13 @@ class TestSqlError:
         with pytest.raises(sql.SqlBugError):
             sql.raise_sqlite_error("Message", sql_err)
 
-        lines = [r.message for r in caplog.records]
         expected = ['SQL error:',
                     'type: UnknownError',
                     'database text: db text',
                     'driver text: driver text',
                     'error code: 23']
 
-        assert lines == expected
+        assert caplog.messages == expected
 
     @pytest.mark.parametrize('klass',
                              [sql.SqlEnvironmentError, sql.SqlBugError])

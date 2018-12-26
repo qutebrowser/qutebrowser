@@ -41,10 +41,12 @@ from PyQt5.QtWidgets import QApplication
 import pkg_resources
 import yaml
 try:
-    from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
+    from yaml import (CSafeLoader as YamlLoader,  # type: ignore
+                      CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
+    from yaml import (SafeLoader as YamlLoader,  # type: ignore
+                      SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
 import qutebrowser
@@ -630,7 +632,6 @@ def open_file(filename, cmdline=None):
 
 def unused(_arg):
     """Function which does nothing to avoid pylint complaining."""
-    pass
 
 
 def expand_windows_drive(path):
