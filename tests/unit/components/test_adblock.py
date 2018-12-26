@@ -246,21 +246,23 @@ def test_no_blocklist_update(config_stub, download_stub, host_blocker_factory):
         assert not host_blocker._is_blocked(QUrl(str_url))
 
 
-def test_whitelist_current_blocking_per_url(config_stub, data_tmpdir):
+def test_whitelist_current_blocking_per_url(config_stub, data_tmpdir, host_blocker_factory):
     config_stub.val.content.host_blocking.lists = []
     config_stub.set_obj('content.host_blocking.enabled', True)
 
     ad_url = QUrl('blocked.example.com/test')
     nav_url = QUrl('blocked.example.com')
 
-    host_blocker = adblock.HostBlocker()
+    host_blocker = host_blocker_factory()
+    host_blocker.adblock_update()
+    host_blocker.read_hosts()
     host_blocker._blocked_hosts.add(ad_url.host())
 
-    assert host_blocker.is_blocked(ad_url)
-    assert host_blocker.is_blocked(ad_url, first_party_url=nav_url)
-    assert not host_blocker.is_blocked(ad_url, first_party_url=ad_url)
+    assert host_blocker._is_blocked(ad_url)
+    assert host_blocker._is_blocked(ad_url, first_party_url=nav_url)
+    assert not host_blocker._is_blocked(ad_url, first_party_url=ad_url)
     config_stub.val.content.host_blocking.whitelist_current = False
-    assert host_blocker.is_blocked(ad_url, first_party_url=ad_url)
+    assert host_blocker._is_blocked(ad_url, first_party_url=ad_url)
 
 
 def test_successful_update(config_stub, tmpdir, caplog, host_blocker_factory):

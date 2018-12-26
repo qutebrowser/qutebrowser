@@ -32,6 +32,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.api import (cmdutils, hook, config, message, downloads,
                              interceptor, apitypes)
+import qutebrowser.config
 
 
 logger = logging.getLogger('misc')
@@ -114,7 +115,8 @@ class HostBlocker:
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
         if (first_party_url is not None and
-                config.config.cache['content.host_blocking.whitelist_current'] and
+                qutebrowser.config.config.cache[
+                    'content.host_blocking.whitelist_current'] and
                 first_party_url == request_url):
             return False
         if not config.get('content.host_blocking.enabled',
