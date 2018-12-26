@@ -1,5 +1,5 @@
 /* eslint-disable max-len, max-statements, complexity,
-default-case, valid-jsdoc */
+default-case */
 
 // Copyright 2014 The Chromium Authors. All rights reserved.
 //

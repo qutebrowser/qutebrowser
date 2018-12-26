@@ -26,7 +26,7 @@ from qutebrowser.utils import urlmatch
 
 
 def test_unset_object_identity():
-    assert configutils._UnsetObject() is not configutils._UnsetObject()
+    assert configutils.Unset() is not configutils.Unset()
     assert configutils.UNSET is configutils.UNSET
 
 

@@ -142,7 +142,7 @@ def test_parse_path(pattern, path):
     ("data:monkey", 'data', None, 'monkey'),  # existing scheme
 ])
 def test_lightweight_patterns(pattern, scheme, host, path):
-    """Make sure we can leave off parts of an URL.
+    """Make sure we can leave off parts of a URL.
 
     This is a deviation from Chromium to make patterns more user-friendly.
     """

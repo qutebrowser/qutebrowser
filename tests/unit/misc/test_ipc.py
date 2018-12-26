@@ -34,7 +34,7 @@ from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
-from qutebrowser.utils import standarddir, utils
+from qutebrowser.utils import standarddir, utils, qtutils
 from helpers import stubs
 
 
@@ -630,6 +630,8 @@ class TestSendOrListen:
         assert ret_client is None
 
     @pytest.mark.posix(reason="Unneeded on Windows")
+    @pytest.mark.xfail(qtutils.version_check('5.12', compiled=False) and
+                       utils.is_mac, reason="Broken, see #4471")
     def test_correct_socket_name(self, args):
         server = ipc.send_or_listen(args)
         expected_dir = ipc._get_socketname(args.basedir)

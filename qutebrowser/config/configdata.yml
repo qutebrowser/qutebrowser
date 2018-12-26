@@ -39,12 +39,7 @@ ignore_case:
   renamed: search.ignore_case
 
 search.ignore_case:
-  type:
-    name: String
-    valid_values:
-      - always: Search case-insensitively.
-      - never: Search case-sensitively.
-      - smart: Search case-sensitively if there are capital characters.
+  type: IgnoreCase
   default: smart
   desc: When to find text on a page case-insensitively.
 

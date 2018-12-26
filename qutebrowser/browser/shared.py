@@ -262,7 +262,7 @@ def get_tab(win_id, target):
     elif target == usertypes.ClickTarget.window:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
-        window = mainwindow.MainWindow(private=tabbed_browser.private)
+        window = mainwindow.MainWindow(private=tabbed_browser.is_private)
         window.show()
         win_id = window.win_id
         bg_tab = False
