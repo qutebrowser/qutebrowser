@@ -53,10 +53,10 @@ def _is_printable(key):
     return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
 # Unicode characters such as emoji and extended CJK characters land here
-# These get key codes above ASCII range, but not as high as the special
-# Qt::Key enum members. Qt::Key_Escape is the first special Qt::Key.
+# This checks for unicode codepoints above ASCII range. The highest unicode
+# is below Qt::Key modifiers and "special" keys, which start at 0x1000000
 def _is_extended_unicode(key):
-    return 0xff < key < Qt.Key_Escape
+    return 0xff < key < 0x10ffff
 
 def is_special(key, modifiers):
     """Check whether this key requires special key syntax."""
@@ -76,6 +76,17 @@ def is_modifier_key(key):
     _assert_plain_key(key)
     return key in _MODIFIER_MAP
 
+def _remap_unicode(key, text):
+    # Work around Qt having bad values for higher Unicode characters
+    # Qt events have the upper half of the UTF-16 representation as key()
+    # instead of the unicode codepoint. We re-parse these from text()
+    if _is_extended_unicode(key):
+        if len(text) != 1:
+            raise KeyParseError(text[0], "Key had too many characters!")
+        else:
+            return ord(text[0])
+    else:
+        return key
 
 def _check_valid_utf8(s, data):
     """Make sure the given string is valid UTF-8.
@@ -308,11 +319,10 @@ class KeyInfo:
 
     key = attr.ib()
     modifiers = attr.ib()
-    key_text = attr.ib(default="")
 
     @classmethod
     def from_event(cls, e):
-        return cls(e.key(), e.modifiers(), e.text())
+        return cls(_remap_unicode(e.key(), e.text()), e.modifiers())
 
     def __str__(self):
         """Convert this KeyInfo to a meaningful name.
@@ -320,11 +330,6 @@ class KeyInfo:
         Return:
             A name of the key (combination) as a string.
         """
-
-        # These are Unicode characters (such as emoji)
-        if _is_extended_unicode(self.key):
-            _check_valid_utf8(self.key_text, self.key)
-            return self.key_text
 
         key_string = _key_to_string(self.key)
 
@@ -521,7 +526,7 @@ class KeySequence:
 
     def append_event(self, ev):
         """Create a new KeySequence object with the given QKeyEvent added."""
-        key = ev.key()
+        key = _remap_unicode(ev.key(), ev.text())
         modifiers = ev.modifiers()
 
         _assert_plain_key(key)
