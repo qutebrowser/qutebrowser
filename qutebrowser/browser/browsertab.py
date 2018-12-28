@@ -1007,10 +1007,8 @@ class AbstractPermissions(QObject):
         url = self._tab.url()
         if not url.isValid():
             url = None
-        try:
-            opt = config.instance.get(setting_name, url=url)
-        except configexc.NoPatternError:
-            opt = config.instance.get(setting_name, url=None)
+
+        opt = config.instance.get(setting_name, url=url)
 
         # "ask" is False too
         return opt is True
