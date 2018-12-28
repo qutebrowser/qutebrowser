@@ -944,7 +944,9 @@ class _WebEnginePermissions(browsertab.AbstractPermissions):
         if feature not in self.features:
             log.webview.error("Unhandled feature permission {}".format(
                 permission_str))
-            deny_permission()
+            page.setFeaturePermission(
+                url, feature, QWebEnginePage.PermissionPolicy.PermissionDeniedByUser
+            )
             return
 
         question = shared.feature_permission(
@@ -1001,11 +1003,8 @@ class _WebEnginePermissions(browsertab.AbstractPermissions):
         pending.
         """
         enabled = policy == QWebEnginePage.PermissionPolicy.PermissionGrantedByUser
-        try:
-            self.features[feature].enabled = enabled
-            setting_name = self.features[feature].setting_name
-        except KeyError:
-            setting_name = "<unknown>"
+        self.features[feature].enabled = enabled
+        setting_name = self.features[feature].setting_name
         self._widget.page().setFeaturePermission(origin, feature, policy)
         self._tab.feature_permission_changed.emit(setting_name, enabled)
 
