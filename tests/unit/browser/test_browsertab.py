@@ -26,7 +26,6 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import shared
 from qutebrowser.browser.browsertab import WebTabError
-from qutebrowser.config import configexc
 
 
 class TestTestFeature:
@@ -71,24 +70,6 @@ class TestTestFeature:
     def test_error_on_unknown_setting_name(self, web_tab):
         with pytest.raises(WebTabError):
             web_tab.permissions.test_feature('not.a.real.thing')
-
-    def test_no_pattern_support(self, web_tab, config_stub, monkeypatch):
-        """Test features with pattern support can be queried."""
-        url = QUrl('https://example.com')
-        monkeypatch.setattr(web_tab, 'url', mock.Mock(return_value=url))
-        config_get_stub = mock.Mock()
-        config_get_stub.side_effect = [
-            configexc.NoPatternError(self.setting),
-            True,
-        ]
-        monkeypatch.setattr(config_stub, 'get', config_get_stub)
-
-        web_tab.permissions.test_feature(self.setting)
-
-        assert config_get_stub.call_args_list == [
-            mock.call(self.setting, url=url),
-            mock.call(self.setting, url=None),
-        ]
 
     @pytest.mark.parametrize("setting, granted, expect", [
         ("ask", False, False),

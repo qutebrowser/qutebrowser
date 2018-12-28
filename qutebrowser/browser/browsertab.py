@@ -860,10 +860,7 @@ class AbstractPermissions(QObject):
         if set_feats:
             return any(f.enabled for f in set_feats)
 
-        try:
-            opt = config.instance.get(setting_name, url=self._tab.url())
-        except configexc.NoPatternError:
-            opt = config.instance.get(setting_name, url=None)
+        opt = config.instance.get(setting_name, url=self._tab.url())
 
         # "ask" is False too
         return opt is True
