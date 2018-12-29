@@ -186,6 +186,18 @@ class BrowserPage(QWebPage):
             errpage.encoding = 'utf-8'
             return True
 
+    def chooseFile(self, parent_frame: QWebFrame, suggested_file: str):
+        """Override chooseFiles to (optionally) invoke custom file uploader."""
+        handler = config.val.fileselect.handler
+        if handler == "default":
+            return super().chooseFile(parent_frame, suggested_file)
+
+        selected_file = shared.choose_file(multiple=False)
+        if selected_file == []:
+            return ''
+        else:
+            return selected_file[0]
+
     def _handle_multiple_files(self, info, files):
         """Handle uploading of multiple files.
 
@@ -199,11 +211,16 @@ class BrowserPage(QWebPage):
         Return:
             True on success, the superclass return value on failure.
         """
-        suggested_file = ""
-        if info.suggestedFileNames:
-            suggested_file = info.suggestedFileNames[0]
-        files.fileNames, _ = QFileDialog.getOpenFileNames(None, None,
-                                                          suggested_file)
+        handler = config.val.fileselect.handler
+        if handler == "default":
+            suggested_file = ""
+            if info.suggestedFileNames:
+                suggested_file = info.suggestedFileNames[0]
+            files.fileNames, _ = QFileDialog.getOpenFileNames(None, None,
+                                                              suggested_file)
+            return True
+
+        files.fileNames = shared.choose_file(multiple=True)
         return True
 
     def shutdown(self):
