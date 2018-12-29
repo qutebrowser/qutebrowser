@@ -34,7 +34,7 @@ from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
 from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils, standarddir)
+                               objreg, utils, standarddir, debug)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess, objects
 from qutebrowser.completion.models import urlmodel, miscmodels
@@ -1721,4 +1721,10 @@ class CommandDispatcher:
             return
 
         window = self._tabbed_browser.widget.window()
+
+        if not window.isFullScreen():
+            window.state_before_fullscreen = window.windowState()
         window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
+
+        log.misc.debug('state before fullscreen: {}'.format(
+            debug.qflags_key(Qt, window.state_before_fullscreen)))
