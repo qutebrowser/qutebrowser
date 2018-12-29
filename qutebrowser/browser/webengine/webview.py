@@ -283,7 +283,7 @@ class WebEnginePage(QWebEnginePage):
         proc.start(command[0],
                    [arg.replace('{}', filename) for arg in command[1:]])
 
-        loop = QEventLoop()
+        loop = qtutils.EventLoop()
         proc.finished.connect(lambda _code, _status: loop.exit())
         loop.exec_()
 
