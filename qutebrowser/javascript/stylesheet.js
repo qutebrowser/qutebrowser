@@ -41,6 +41,7 @@ window._qutebrowser.stylesheet = (function() {
     // https://github.com/openstyles/stylus/blob/1.1.4.2/content/apply.js#L235-L355
     function watch_root() {
         if (!document.documentElement) {
+            root_observer.observe(document, {"childList": true});
             return;
         }
 
