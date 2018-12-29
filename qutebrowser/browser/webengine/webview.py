@@ -20,7 +20,6 @@
 """The main browser widget for QtWebEngine."""
 
 import os
-import tempfile
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QEventLoop, PYQT_VERSION
 from PyQt5.QtGui import QPalette
@@ -31,7 +30,7 @@ from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
-from qutebrowser.misc import miscwidgets, guiprocess
+from qutebrowser.misc import miscwidgets
 from qutebrowser.qt import sip
 
 
@@ -271,23 +270,5 @@ class WebEnginePage(QWebEnginePage):
         if handler == "default":
             return super().chooseFiles(mode, old_files, accepted_mimetypes)
 
-        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
-            filename = tmpfile.name
-
-        if mode == QWebEnginePage.FileSelectOpen:
-            command = config.val.fileselect.single_file.command
-        else:
-            command = config.val.fileselect.multiple_files.command
-
-        proc = guiprocess.GUIProcess(what='choose-file')
-        proc.start(command[0],
-                   [arg.replace('{}', filename) for arg in command[1:]])
-
-        loop = qtutils.EventLoop()
-        proc.finished.connect(lambda _code, _status: loop.exit())
-        loop.exec_()
-
-        with open(filename, 'r', encoding='utf8') as tmpfile:
-            selected_file_list = tmpfile.read().splitlines()
-        os.remove(filename)
-        return selected_file_list
+        return shared.choose_file(
+                multiple=(mode == QWebEnginePage.FileSelectOpenMultiple))
