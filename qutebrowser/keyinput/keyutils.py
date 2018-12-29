@@ -52,10 +52,12 @@ def _is_printable(key):
     _assert_plain_key(key)
     return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
-# Unicode characters such as emoji and extended CJK characters land here
-# This checks for unicode codepoints above ASCII range. The highest unicode
-# is below Qt::Key modifiers and "special" keys, which start at 0x1000000
 def _is_extended_unicode(key):
+    """Check for Unicode characters such as emoji and extended CJK characters
+    Necessary to work around poor handling of higher codepoints by QKeyEvent
+    This checks for unicode codepoints above ASCII range. The highest unicode
+    is below Qt::Key modifiers and "special" keys, which start at 0x1000000
+    """
     return 0xff < key < 0x10ffff
 
 def is_special(key, modifiers):
@@ -77,12 +79,13 @@ def is_modifier_key(key):
     return key in _MODIFIER_MAP
 
 def _remap_unicode(key, text):
-    # Work around Qt having bad values for higher Unicode characters
-    # Qt events have the upper half of the UTF-16 representation as key()
-    # instead of the unicode codepoint. We re-parse these from text()
+    """Work around Qt having bad values for higher Unicode characters
+    Qt events have the upper half of the UTF-16 representation as key()
+    instead of the unicode codepoint. We re-parse these from text()
+    """
     if _is_extended_unicode(key):
         if len(text) != 1:
-            raise KeyParseError(text[0], "Key had too many characters!")
+            raise KeyParseError(text, "Key had too many characters!")
         else:
             return ord(text[0])
     else:
@@ -314,7 +317,6 @@ class KeyInfo:
     Attributes:
         key: A Qt::Key member.
         modifiers: A Qt::KeyboardModifiers enum value.
-        text: A QString with the value of QKeyEvent::text()
     """
 
     key = attr.ib()
@@ -330,9 +332,7 @@ class KeyInfo:
         Return:
             A name of the key (combination) as a string.
         """
-
         key_string = _key_to_string(self.key)
-
         modifiers = int(self.modifiers)
 
         if self.key in _MODIFIER_MAP:
