@@ -32,7 +32,7 @@ CONFIG_OPTION = settings.BooleanSettings.config_option
 
 
 class TestData:
-    """Common data usedfor initing config_stub and making assertions about."""
+    """Common data used for initing config_stub and making assertions about."""
 
     config = {
         'content.webgl': 'G',
@@ -186,9 +186,7 @@ def test_setting_casting_ask_defers_to_tab(
     monkeypatch.setattr(config_stub, 'get_obj', get_obj_mock)
 
     uut._to_bool('foobar', QUrl(''))
-    test_feature_mock.assert_called_once_with(
-        'foobar', default=False
-    )
+    test_feature_mock.assert_called_once_with('foobar')
 
 
 def test_integration(fake_statusbar, with_tab, monkeypatch, data):
@@ -196,5 +194,5 @@ def test_integration(fake_statusbar, with_tab, monkeypatch, data):
 
     Basically an integration test, requires graphics."""
     uut = settings.BooleanSettings(fake_statusbar, 0)
-    expected ="[{}]".format(''.join(t[1] for t in data.config.items()))
+    expected = "[{}]".format(''.join(t[1] for t in data.config.items()))
     assert uut.text() == expected

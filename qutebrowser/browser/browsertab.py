@@ -40,7 +40,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.browser import mouse, hints
+from qutebrowser.browser import mouse, hints, shared
 from qutebrowser.qt import sip
 MYPY = False
 if MYPY:
@@ -841,11 +841,12 @@ class AbstractPermissions(QObject):
     def _on_load_started(self):
         """Reset some state when loading of a new page started."""
         for feat in self.features.values():
-            feat.enabled = None
+            feat.state = None
 
     def test_feature(self, setting_name):
-        """Return true if the user has granted permission for `setting_name`.
+        """Return whether the user has granted permission for `setting_name`.
 
+        Returns a value of `shared.FeatureState'.
         Raises KeyError if `setting_name` doesn't map to a grantable
         feature.
         """
@@ -856,14 +857,15 @@ class AbstractPermissions(QObject):
         if not feats:
             raise WebTabError("No feature called {}.".format(setting_name))
 
-        set_feats = [f for f in feats if f.enabled is not None]
+        set_feats = [f for f in feats if f.state is not None]
         if set_feats:
-            return any(f.enabled for f in set_feats)
+            granted = any(
+                f.state == shared.FeatureState.granted for f in set_feats
+            )
+        else:
+            granted = config.instance.get(setting_name, url=self._tab.url())
 
-        opt = config.instance.get(setting_name, url=self._tab.url())
-
-        # "ask" is False too
-        return opt is True
+        return shared.FeatureState(granted)
 
 
 class AbstractTab(QWidget):
@@ -898,8 +900,8 @@ class AbstractTab(QWidget):
     #: Signal emitted when a new load started or we're shutting down.
     abort_questions = pyqtSignal()
     #: Signal emitted when a tab's permission for a web API has been
-    #: granted or denied (setting as str, current access as bool)
-    feature_permission_changed = pyqtSignal(str, bool)
+    #: changed (setting as str, current access as shared.FeatureState)
+    feature_permission_changed = pyqtSignal(str, shared.FeatureState)
 
     # Signal emitted when a page's load status changed
     # (argument: usertypes.LoadStatus)
