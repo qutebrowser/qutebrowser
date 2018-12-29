@@ -1002,11 +1002,19 @@ class _WebEnginePermissions(browsertab.AbstractPermissions):
         Should only be called when an interactive permission request is
         pending.
         """
-        enabled = policy == QWebEnginePage.PermissionPolicy.PermissionGrantedByUser
-        self.features[feature].enabled = enabled
-        setting_name = self.features[feature].setting_name
         self._widget.page().setFeaturePermission(origin, feature, policy)
-        self._tab.feature_permission_changed.emit(setting_name, enabled)
+
+        if policy == QWebEnginePage.PermissionPolicy.PermissionGrantedByUser:
+            self.features[feature].state = shared.FeatureState.granted
+        elif policy == QWebEnginePage.PermissionPolicy.PermissionDeniedByUser:
+            self.features[feature].state = shared.FeatureState.denied
+        else:
+            self.features[feature].state = shared.FeatureState.ask
+
+        self._tab.feature_permission_changed.emit(
+            self.features[feature].setting_name,
+            self.features[feature].state,
+        )
 
 
 @dataclasses.dataclass

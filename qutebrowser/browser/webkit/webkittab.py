@@ -924,15 +924,20 @@ class _WebKitPermissions(browsertab.AbstractPermissions):
         Should only be called when an interactive permission request is
         pending.
         """
-        enabled = policy == QWebPage.PermissionPolicy.PermissionGrantedByUser
-        try:
-            self.features[feature].enabled = enabled
-            setting_name = self.features[feature].setting_name
-        except KeyError:
-            setting_name = "<unknown>"
         page = self._widget.page()
         page.setFeaturePermission(frame, feature, policy)
-        self._tab.feature_permission_changed.emit(setting_name, enabled)
+
+        if policy == QWebPage.PermissionPolicy.PermissionGrantedByUser:
+            self.features[feature].state = shared.FeatureState.granted
+        elif policy == QWebPage.PermissionPolicy.PermissionDeniedByUser:
+            self.features[feature].state = shared.FeatureState.denied
+        else:
+            self.features[feature].state = shared.FeatureState.ask
+
+        self._tab.feature_permission_changed.emit(
+            self.features[feature].setting_name,
+            self.features[feature].state,
+        )
 
 
 class WebKitTab(browsertab.AbstractTab):

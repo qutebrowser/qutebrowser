@@ -26,16 +26,24 @@ class CallSuper(Exception):
     """Raised when the caller should call the superclass instead."""
 
 
+class FeatureState(enum.Enum):
+    """The possible states of a web API that can request user permission."""
+
+    granted = True
+    denied = False
+    ask = "ask"
+
+
 @dataclasses.dataclass
 class Feature:
     """A web api that the user can interactively grant permission to.
 
-    `enabled` is None until a permission has been requested.
+    `state` is a value of 'FeatureState'.
     """
 
     setting_name: str
     requesting_message: str
-    enabled: Optional[bool] = None
+    state: Optional[FeatureState] = None
 
 
 def custom_headers(url):
