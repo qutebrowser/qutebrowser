@@ -284,7 +284,7 @@ class WebEnginePage(QWebEnginePage):
                    [arg.replace('{}', filename) for arg in command[1:]])
 
         loop = QEventLoop()
-        proc.finished.connect(lambda code, status: loop.exit())
+        proc.finished.connect(lambda _code, _status: loop.exit())
         loop.exec_()
 
         with open(filename, 'r', encoding='utf8') as tmpfile:
