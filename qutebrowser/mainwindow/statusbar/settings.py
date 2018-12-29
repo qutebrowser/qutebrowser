@@ -24,7 +24,7 @@ from PyQt5.QtCore import pyqtSlot, QUrl
 from qutebrowser.config import config, configtypes
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.utils import objreg, usertypes
-from qutebrowser.browser.browsertab import WebTabError
+from qutebrowser.browser.browsertab import WebTabError, shared
 
 
 class BooleanSettings(textbase.TextBase):
@@ -40,14 +40,12 @@ class BooleanSettings(textbase.TextBase):
         self._config = {}
         self._parse_config()
 
-    def _test_feature(self, setting_name, default=False):
+    def _test_feature(self, setting_name):
         tab = self._current_tab()
         if not tab:
-            return default
-        try:
-            return tab.permissions.test_feature(setting_name)
-        except WebTabError:
-            return default
+            raise WebTabError
+        state = tab.permissions.test_feature(setting_name)
+        return state == shared.FeatureState.granted
 
     def _to_bool(self, setting_name, url):
         """Return a bool for Bool and BoolAsk settings."""
@@ -56,8 +54,10 @@ class BooleanSettings(textbase.TextBase):
             url = None
         obj = config.instance.get_obj(setting_name, url=url)
         if isinstance(opt.typ, configtypes.BoolAsk):
-            default = False if obj == 'ask' else obj
-            return self._test_feature(setting_name, default=default)
+            try:
+                return self._test_feature(setting_name)
+            except WebTabError:
+                return obj is True
         return obj
 
     def _parse_config(self):
@@ -104,8 +104,8 @@ class BooleanSettings(textbase.TextBase):
         elif option in self._config:
             self.on_tab_changed(self._current_tab())
 
-    @pyqtSlot(str, bool)
-    def on_feature_permission_changed(self, option, _enabled):
+    @pyqtSlot(str, shared.FeatureState)
+    def on_feature_permission_changed(self, option, _state):
         """Update the widget when a pages feature permissions change."""
         if option in self._config:
             self.on_tab_changed(self._current_tab())

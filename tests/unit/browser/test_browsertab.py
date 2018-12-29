@@ -42,7 +42,7 @@ class TestTestFeature:
     def test_calls_config_right(self, web_tab, config_stub, monkeypatch,
                                 url):
         """Check call to config given current url and passed arg."""
-        config_get_stub = mock.Mock()
+        config_get_stub = mock.Mock(return_value=shared.FeatureState.granted)
         monkeypatch.setattr(config_stub, 'get', config_get_stub)
 
         url = QUrl(url) if url else None
@@ -53,7 +53,7 @@ class TestTestFeature:
         config_get_stub.assert_called_once_with(self.setting, url=url)
 
     @pytest.mark.parametrize("value, expect", [
-        ("ask", False),
+        ("ask", "ask"),
         (True, True),
         (False, False),
     ])
@@ -65,7 +65,7 @@ class TestTestFeature:
 
         ret = web_tab.permissions.test_feature(self.setting)
 
-        assert ret == expect
+        assert ret.value == expect
 
     def test_error_on_unknown_setting_name(self, web_tab):
         with pytest.raises(WebTabError):
@@ -74,7 +74,7 @@ class TestTestFeature:
     @pytest.mark.parametrize("setting, granted, expect", [
         ("ask", False, False),
         ("ask", True, True),
-        ("ask", None, False),
+        ("ask", None, "ask"),
         (True, True, True),
         (True, False, False),
         (True, None, True),
@@ -95,9 +95,13 @@ class TestTestFeature:
         monkeypatch.setattr(config_stub, 'get', config_get_stub)
 
         features = {
-            1: shared.Feature(self.setting, "plz?", granted)
+            1: shared.Feature(
+                self.setting,
+                "plz?",
+                granted if granted is None else shared.FeatureState(granted)
+            )
         }
 
         monkeypatch.setattr(web_tab.permissions, 'features', features)
 
-        assert web_tab.permissions.test_feature(self.setting) == expect
+        assert web_tab.permissions.test_feature(self.setting).value == expect
