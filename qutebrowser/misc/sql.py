@@ -72,8 +72,6 @@ class SqlEnvironmentError(SqlError):
     disk or I/O errors), where qutebrowser isn't to blame.
     """
 
-    pass
-
 
 class SqlBugError(SqlError):
 
@@ -81,8 +79,6 @@ class SqlBugError(SqlError):
 
     This is raised for errors resulting from a qutebrowser bug.
     """
-
-    pass
 
 
 def raise_sqlite_error(msg, error):

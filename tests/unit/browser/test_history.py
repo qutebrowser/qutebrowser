@@ -26,7 +26,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
 from qutebrowser.utils import objreg, urlutils, usertypes
-from qutebrowser.commands import cmdexc
+from qutebrowser.api import cmdutils
 from qutebrowser.misc import sql
 
 
@@ -324,7 +324,7 @@ class TestDump:
 
     def test_nonexistent(self, web_history, tmpdir):
         histfile = tmpdir / 'nonexistent' / 'history'
-        with pytest.raises(cmdexc.CommandError):
+        with pytest.raises(cmdutils.CommandError):
             web_history.debug_dump_history(str(histfile))
 
 

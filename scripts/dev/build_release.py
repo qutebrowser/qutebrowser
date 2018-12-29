@@ -370,7 +370,7 @@ def main():
     if args.upload is not None:
         # Fail early when trying to upload without github3 installed
         # or without API token
-        import github3  # pylint: disable=unused-variable
+        import github3  # pylint: disable=unused-import
         read_github_token()
 
     if args.no_asciidoc:

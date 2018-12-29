@@ -86,7 +86,7 @@ class JSTester:
         """
         with self.qtbot.waitSignal(self.tab.load_finished,
                                    timeout=2000) as blocker:
-            self.tab.openurl(url)
+            self.tab.load_url(url)
         if not force:
             assert blocker.args == [True]
 
