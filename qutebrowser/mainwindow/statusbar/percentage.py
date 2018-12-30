@@ -35,8 +35,8 @@ class Percentage(textbase.TextBase):
         self.set_perc(0, 0)
         self.raw = False
 
-    @throttle(100)
     @pyqtSlot(int, int)
+    @throttle(100)
     def set_perc(self, x, y):  # pylint: disable=unused-argument
         """Setter to be used as a Qt slot.
 
