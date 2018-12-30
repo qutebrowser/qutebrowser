@@ -35,6 +35,14 @@ def test_throttle_imm(qtbot):
     func.assert_called_once_with("foo")
 
 
+def test_throttle_imm_kw(qtbot):
+    func = mock.Mock()
+    throttled_func = throttle(100)(func)
+    throttled_func(foo="bar")
+    throttled_func(foo="bar")
+    func.assert_called_once_with(foo="bar")
+
+
 def test_throttle_delay(qtbot):
     func = mock.Mock()
     throttled_func = throttle(100)(func)

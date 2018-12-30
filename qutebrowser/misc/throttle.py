@@ -21,6 +21,7 @@
 
 import typing
 import time
+import functools
 
 from PyQt5.QtCore import QTimer
 
@@ -40,33 +41,39 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
 
         Args:
             throttle_ms: The time to wait before allowing another call of the
-                         function.
+                         function. -1 disables the wrapper.
         """
         self.throttle_ms = throttle_ms
         # False if no call is pending, a list of arguments (to call with) if a
         # call is pending.
-        self.pending_call = False
-        self.last_call_ms = 0
+        self._pending_call = False
+        self._last_call_ms = 0
 
     def __call__(self, func: typing.Callable) -> typing.Callable:
-        def wrapped_fn(*args):
+        @functools.wraps(func)
+        def wrapped_fn(*args, **kwargs):
             cur_time_ms = int(time.time() * 1000)
-            if self.pending_call is False:
-                if cur_time_ms - self.last_call_ms > self.throttle_ms:
+            if self._pending_call is False:
+                if (cur_time_ms - self._last_call_ms > self.throttle_ms or
+                        self.throttle_ms < 0):
                     # Call right now
-                    self.last_call_ms = cur_time_ms
-                    func(*args)
+                    self._last_call_ms = cur_time_ms
+                    func(*args, **kwargs)
+                    return
 
-                if self.pending_call is False:
-                    # Start a pending call
-                    def call_pending():
-                        func(*self.pending_call)
-                        self.pending_call = False
-                        self.last_call_ms = int(time.time() * 1000)
+                # Start a pending call
+                def call_pending():
+                    func(*self._pending_call[0], **self._pending_call[1])
+                    self._pending_call = False
+                    self._last_call_ms = int(time.time() * 1000)
 
-                    QTimer.singleShot(
-                        self.throttle_ms - (cur_time_ms - self.last_call_ms),
-                        call_pending)
+                QTimer.singleShot(
+                    self.throttle_ms - (cur_time_ms - self._last_call_ms),
+                    call_pending)
             # Update arguments for an existing pending call
-            self.pending_call = args
+            self._pending_call = (args, kwargs)
+        wrapped_fn.throttle_set = self.throttle_set
         return wrapped_fn
+
+    def throttle_set(self, throttle_val: int) -> None:
+        self.throttle_ms = throttle_val

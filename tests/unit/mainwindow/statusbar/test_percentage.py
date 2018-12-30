@@ -29,6 +29,8 @@ from qutebrowser.mainwindow.statusbar.percentage import Percentage
 def percentage(qtbot):
     """Fixture providing a Percentage widget."""
     widget = Percentage()
+    # Force immedate update of percentage widget
+    widget.set_perc.throttle_set(-1)
     qtbot.add_widget(widget)
     return widget
 
