@@ -1638,6 +1638,17 @@ tabs.title.alignment:
   type: TextAlignment
   desc: Alignment of the text inside of tabs.
 
+tabs.title.audio_indicator:
+  default: '[A] '
+  type: String
+  desc: Value of the `{audio}` title format placeholder when the tab has been
+    recently audible.
+
+tabs.title.audio_mute_indicator:
+  default: '[M] '
+  type: String
+  desc: Value of the `{audio}` title format placeholder when the tab is muted.
+
 tabs.title.format:
   default: '{audio}{index}: {title}'
   type:
