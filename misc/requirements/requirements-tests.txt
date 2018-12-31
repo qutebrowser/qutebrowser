@@ -3,7 +3,7 @@
 atomicwrites==1.2.1
 attrs==18.2.0
 backports.functools-lru-cache==1.5
-beautifulsoup4==4.6.3
+beautifulsoup4==4.7.0
 cheroot==6.5.2
 Click==7.0
 # colorama==0.4.1
