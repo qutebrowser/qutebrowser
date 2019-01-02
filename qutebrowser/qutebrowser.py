@@ -51,10 +51,10 @@ except ImportError:
         sys.stderr.flush()
         sys.exit(100)
 check_python_version()
-from qutebrowser.utils import log
+from qutebrowser.utils import log, usertypes, standarddir, utils
 
 import argparse  # pylint: disable=wrong-import-order
-from qutebrowser.misc import earlyinit
+from qutebrowser.misc import earlyinit, ipc
 
 
 def get_argparser():
@@ -187,8 +187,38 @@ def main():
         # from json.
         data = json.loads(args.json_args)
         args = argparse.Namespace(**data)
+
+    # We do some imports late here for various reasons:
+    # - earlyinit needs to be run first (because of version checking and other
+    #   early initialization)
+    # - Importing Qt stuff takes rather long, so we avoid it if we can.
+
+    earlyinit.init_log(args)
+
+    log.init.debug("Initializing directories...")
+    standarddir.init(args)
+    utils.preload_resources()
+
+    if not args.version:
+        try:
+            server = ipc.send_or_listen(args)
+        except ipc.Error:
+            # ipc.send_or_listen already displays the error message for us.
+            # We didn't really initialize much so far, so we just quit hard.
+            sys.exit(usertypes.Exit.err_ipc)
+
+        if server is None:
+            if args.backend is not None:
+                log.init.warning(
+                    "Backend from the running instance will be used")
+            sys.exit(usertypes.Exit.ok)
+        else:
+            server.got_args.connect(lambda args, target_arg, cwd:
+                                    process_pos_args(args, cwd=cwd,
+                                                     via_ipc=True,
+                                                     target_arg=target_arg))
+
     earlyinit.early_init(args)
-    # We do this imports late as earlyinit needs to be run first (because of
-    # version checking and other early initialization)
+
     from qutebrowser import app
     return app.run(args)

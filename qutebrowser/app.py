@@ -94,10 +94,6 @@ def run(args):
     quitter = Quitter(args)
     objreg.register('quitter', quitter)
 
-    log.init.debug("Initializing directories...")
-    standarddir.init(args)
-    utils.preload_resources()
-
     log.init.debug("Initializing config...")
     configinit.early_init(args)
 
@@ -122,23 +118,6 @@ def run(args):
                                                parent=qApp)
     signal_handler.activate()
     objreg.register('signal-handler', signal_handler)
-
-    try:
-        server = ipc.send_or_listen(args)
-    except ipc.Error:
-        # ipc.send_or_listen already displays the error message for us.
-        # We didn't really initialize much so far, so we just quit hard.
-        sys.exit(usertypes.Exit.err_ipc)
-
-    if server is None:
-        if args.backend is not None:
-            log.init.warning(
-                "Backend from the running instance will be used")
-        sys.exit(usertypes.Exit.ok)
-    else:
-        server.got_args.connect(lambda args, target_arg, cwd:
-                                process_pos_args(args, cwd=cwd, via_ipc=True,
-                                                 target_arg=target_arg))
 
     init(args, crash_handler)
     ret = qt_mainloop()
