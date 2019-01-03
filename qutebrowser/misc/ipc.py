@@ -19,6 +19,7 @@
 
 """Utilities for IPC with existing instances."""
 
+import sys
 import os
 import time
 import json
@@ -415,19 +416,16 @@ class IPCServer(QObject):
         self._remove_server()
 
 
-def send_to_running_instance(socketname, command, target_arg, *, socket=None):
+def send_to_running_instance(socketname, args, *, socket=None):
     """Try to send a commandline to a running instance.
 
-    Blocks for CONNECT_TIMEOUT ms.
+    Blocks for CONNECT_TIMEOUT ms. Exits the program if successful.
 
     Args:
         socketname: The name which should be used for the socket.
-        command: The command to send to the running instance.
-        target_arg: --target command line argument
+        args: The argparse namespace. The 'command' and 'target' parameters are
+        sent to the running instance.
         socket: The socket to read data from, or None.
-
-    Return:
-        True if connecting was successful, False if no connection was made.
     """
     if socket is None:
         socket = QLocalSocket()
@@ -438,7 +436,7 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
     connected = socket.waitForConnected(CONNECT_TIMEOUT)
     if connected:
         log.ipc.info("Opening in existing instance")
-        json_data = {'args': command, 'target_arg': target_arg,
+        json_data = {'args': args.command, 'target_arg': args.target,
                      'version': qutebrowser.__version__,
                      'protocol_version': PROTOCOL_VERSION}
         try:
@@ -458,7 +456,10 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
             socket.disconnectFromServer()
             if socket.state() != QLocalSocket.UnconnectedState:
                 socket.waitForDisconnected(CONNECT_TIMEOUT)
-            return True
+            if args.backend is not None:
+                log.init.warning(
+                    "Backend from the running instance will be used")
+            sys.exit(usertypes.Exit.ok)
     else:
         if socket.error() not in [QLocalSocket.ConnectionRefusedError,
                                   QLocalSocket.ServerNotFoundError]:
@@ -466,7 +467,6 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
         else:
             log.ipc.debug("No existing instance present (error {})".format(
                 socket.error()))
-            return False
 
 
 def display_error(exc, args):
@@ -489,11 +489,9 @@ def send_or_listen(args):
     global server
     socketname = _get_socketname(args.basedir)
     try:
+        send_to_running_instance(socketname, args)
+
         try:
-            sent = send_to_running_instance(socketname, args.command,
-                                            args.target)
-            if sent:
-                return None
             log.init.debug("Starting IPC server...")
             server = IPCServer(socketname)
             server.listen()
@@ -502,12 +500,8 @@ def send_or_listen(args):
             # This could be a race condition...
             log.init.debug("Got AddressInUseError, trying again.")
             time.sleep(0.5)
-            sent = send_to_running_instance(socketname, args.command,
-                                            args.target)
-            if sent:
-                return None
-            else:
-                raise
+            send_to_running_instance(socketname, args)
+            raise
     except Error as e:
         display_error(e, args)
         raise

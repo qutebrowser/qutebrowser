@@ -130,15 +130,9 @@ def run(args):
         # We didn't really initialize much so far, so we just quit hard.
         sys.exit(usertypes.Exit.err_ipc)
 
-    if server is None:
-        if args.backend is not None:
-            log.init.warning(
-                "Backend from the running instance will be used")
-        sys.exit(usertypes.Exit.ok)
-    else:
-        server.got_args.connect(lambda args, target_arg, cwd:
-                                process_pos_args(args, cwd=cwd, via_ipc=True,
-                                                 target_arg=target_arg))
+    server.got_args.connect(lambda args, target_arg, cwd:
+                            process_pos_args(args, cwd=cwd, via_ipc=True,
+                                             target_arg=target_arg))
 
     init(args, crash_handler)
     ret = qt_mainloop()
