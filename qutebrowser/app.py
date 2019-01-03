@@ -86,19 +86,8 @@ from qutebrowser.misc import utilcmds
 qApp = None
 
 
-def run(args):
+def run(socketname, args):
     """Initialize everything and run the application."""
-    if args.temp_basedir:
-        args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
-
-    log.init.debug("Initializing directories...")
-    standarddir.init(args)
-    utils.preload_resources()
-
-    if not args.version:
-        socketname = ipc.get_socketname(args.basedir)
-        ipc.send_to_running_instance(socketname, args)
-
     quitter = Quitter(args)
     objreg.register('quitter', quitter)
 

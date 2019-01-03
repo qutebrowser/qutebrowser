@@ -35,6 +35,7 @@ qutebrowser's initialization process roughly looks like this:
 
 import sys
 import json
+import tempfile
 
 import qutebrowser
 try:
@@ -51,10 +52,10 @@ except ImportError:
         sys.stderr.flush()
         sys.exit(100)
 check_python_version()
-from qutebrowser.utils import log
+from qutebrowser.utils import log, standarddir, utils
 
 import argparse  # pylint: disable=wrong-import-order
-from qutebrowser.misc import earlyinit
+from qutebrowser.misc import earlyinit, ipc
 
 
 def get_argparser():
@@ -188,7 +189,21 @@ def main():
         data = json.loads(args.json_args)
         args = argparse.Namespace(**data)
     earlyinit.early_init(args)
-    # We do this imports late as earlyinit needs to be run first (because of
-    # version checking and other early initialization)
+
+    # We do some imports late here for various reasons:
+    # - earlyinit needs to be run first (because of version checking and other
+    #   early initialization)
+    # - Importing Qt stuff takes rather long, so we avoid it if we can.
+    if args.temp_basedir:
+        args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
+
+    log.init.debug("Initializing directories...")
+    standarddir.init(args)
+    utils.preload_resources()
+
+    if not args.version:
+        socketname = ipc.get_socketname(args.basedir)
+        ipc.send_to_running_instance(socketname, args)
+
     from qutebrowser import app
-    return app.run(args)
+    return app.run(socketname, args)
