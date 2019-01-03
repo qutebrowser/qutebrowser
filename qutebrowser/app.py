@@ -91,12 +91,16 @@ def run(args):
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
-    quitter = Quitter(args)
-    objreg.register('quitter', quitter)
-
     log.init.debug("Initializing directories...")
     standarddir.init(args)
     utils.preload_resources()
+
+    if not args.version:
+        socketname = ipc.get_socketname(args.basedir)
+        ipc.send_to_running_instance(socketname, args)
+
+    quitter = Quitter(args)
+    objreg.register('quitter', quitter)
 
     log.init.debug("Initializing config...")
     configinit.early_init(args)
@@ -124,8 +128,6 @@ def run(args):
     objreg.register('signal-handler', signal_handler)
 
     try:
-        socketname = ipc.get_socketname(args.basedir)
-        ipc.send_to_running_instance(socketname, args)
         server = ipc.listen_or_send(socketname, args)
     except ipc.Error:
         # ipc.listen_or_send already displays the error message for us.
