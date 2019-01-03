@@ -289,8 +289,6 @@ def early_init(args):
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
     check_pyqt_core()
-    # Init logging as early as possible
-    init_log(args)
     # Now we can be sure QtCore is available, so we can print dialogs on
     # errors, so people only using the GUI notice them as well.
     check_libraries()

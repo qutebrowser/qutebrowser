@@ -188,12 +188,13 @@ def main():
         # from json.
         data = json.loads(args.json_args)
         args = argparse.Namespace(**data)
-    earlyinit.early_init(args)
 
     # We do some imports late here for various reasons:
     # - earlyinit needs to be run first (because of version checking and other
     #   early initialization)
     # - Importing Qt stuff takes rather long, so we avoid it if we can.
+    earlyinit.init_log(args)
+
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
@@ -205,5 +206,6 @@ def main():
         socketname = ipc.get_socketname(args.basedir)
         ipc.send_to_running_instance(socketname, args)
 
+    earlyinit.early_init(args)
     from qutebrowser import app
     return app.run(socketname, args)
