@@ -124,9 +124,11 @@ def run(args):
     objreg.register('signal-handler', signal_handler)
 
     try:
-        server = ipc.send_or_listen(args)
+        socketname = ipc.get_socketname(args.basedir)
+        ipc.send_to_running_instance(socketname, args)
+        server = ipc.listen_or_send(socketname, args)
     except ipc.Error:
-        # ipc.send_or_listen already displays the error message for us.
+        # ipc.listen_or_send already displays the error message for us.
         # We didn't really initialize much so far, so we just quit hard.
         sys.exit(usertypes.Exit.err_ipc)
 

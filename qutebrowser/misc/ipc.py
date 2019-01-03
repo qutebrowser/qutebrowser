@@ -54,7 +54,7 @@ def _get_socketname_windows(basedir):
     return '-'.join(parts)
 
 
-def _get_socketname(basedir):
+def get_socketname(basedir):
     """Get a socketname to use."""
     if utils.is_windows:  # pragma: no cover
         return _get_socketname_windows(basedir)
@@ -476,10 +476,12 @@ def display_error(exc, args):
         post_text="Maybe another instance is running but frozen?")
 
 
-def send_or_listen(args):
-    """Send the args to a running instance or start a new IPCServer.
+def listen_or_send(socketname, args):
+    """Start a new IPCServer. If fails due to AddressInUseError, try sending the
+    args to a running instance.
 
     Args:
+        socketname: The socketname to use.
         args: The argparse namespace.
 
     Return:
@@ -487,10 +489,7 @@ def send_or_listen(args):
         None if an instance was running and received our request.
     """
     global server
-    socketname = _get_socketname(args.basedir)
     try:
-        send_to_running_instance(socketname, args)
-
         try:
             log.init.debug("Starting IPC server...")
             server = IPCServer(socketname)
