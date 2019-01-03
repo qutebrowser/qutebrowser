@@ -34,7 +34,8 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
     def install(self, profile):
         """Install the handler for qute:// URLs on the given profile."""
         profile.installUrlSchemeHandler(b'qute', self)
-        if qtutils.version_check('5.11', compiled=False):
+        if (qtutils.version_check('5.11', compiled=False) and
+                not qtutils.version_check('5.12', compiled=False)):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
             profile.installUrlSchemeHandler(b'chrome-error', self)
             profile.installUrlSchemeHandler(b'chrome-extension', self)
