@@ -316,11 +316,10 @@ class CommandDispatcher:
                     else:
                         # Explicit count with a tab that doesn't exist.
                         return
+                elif curtab.navigation_blocked():
+                    message.info("Tab is pinned!")
                 else:
-                    if curtab.navigation_blocked():
-                        message.info("Tab is pinned!")
-                    else:
-                        curtab.load_url(cur_url)
+                    curtab.load_url(cur_url)
 
     def _parse_url(self, url, *, force_search=False):
         """Parse a URL or quickmark or search query.
