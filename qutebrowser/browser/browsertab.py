@@ -500,6 +500,9 @@ class AbstractCaret(QObject):
     def selection(self, callback: typing.Callable[[str], None]) -> None:
         raise NotImplementedError
 
+    def reverse_selection(self) -> None:
+        raise NotImplementedError
+
     def _follow_enter(self, tab: bool) -> None:
         """Follow a link by faking an enter press."""
         if tab:

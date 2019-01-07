@@ -1404,5 +1404,13 @@ window._qutebrowser.caret = (function() {
         return CaretBrowsing.selectionEnabled;
     };
 
+    funcs.reverseSelection = () => {
+        let sel = window.getSelection();
+        sel.setBaseAndExtent(
+            sel.extentNode, sel.extentOffset, sel.baseNode,
+            sel.baseOffset
+        );
+    }
+
     return funcs;
 })();
