@@ -1771,7 +1771,7 @@ tabs.pinned.shrink:
 tabs.pinned.frozen:
     type: Bool
     default: True
-    desc: If true, then pinned tabs cannot have their URL changed.
+    desc: Force pinned tabs to stay at fixed URL.
 
 tabs.wrap:
   default: true
