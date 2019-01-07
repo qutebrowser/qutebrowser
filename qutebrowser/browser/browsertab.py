@@ -945,7 +945,7 @@ class AbstractTab(QWidget):
 
     def navigation_blocked(self) -> bool:
         """Test if navigation is allowed on the current tab."""
-        return self.data.pinned and config.val.pinned.tab.frozen
+        return self.data.pinned and config.val.tabs.pinned.frozen
 
     @pyqtSlot(QUrl)
     def _on_before_load_started(self, url: QUrl) -> None:

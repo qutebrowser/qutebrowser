@@ -1289,8 +1289,8 @@ Feature: Tab management
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
 
-    Scenario: :tab-pin open url with pinned.tab.frozen = false
-        When I set pinned.tab.frozen to false
+    Scenario: :tab-pin open url with tabs.pinned.frozen = false
+        When I set tabs.pinned.frozen to false
         And I open data/numbers/1.txt
         And I run :tab-pin
         And I open data/numbers/2.txt
@@ -1305,9 +1305,9 @@ Feature: Tab management
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
 
-    Scenario: :home on a pinned tab with pinned.tab.frozen = false
+    Scenario: :home on a pinned tab with tabs.pinned.frozen = false
         When I set url.start_pages to ["http://localhost:(port)/data/numbers/2.txt"]
-        And I set pinned.tab.frozen to false
+        And I set tabs.pinned.frozen to false
         And I open data/numbers/1.txt
         And I run :tab-pin
         And I run :home

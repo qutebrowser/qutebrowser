@@ -1768,6 +1768,11 @@ tabs.pinned.shrink:
   type: Bool
   desc: Shrink pinned tabs down to their contents.
 
+tabs.pinned.frozen:
+    type: Bool
+    default: True
+    desc: If true, then pinned tabs cannot have their URL changed.
+
 tabs.wrap:
   default: true
   type: Bool
@@ -2917,8 +2922,3 @@ bindings.commands:
 
     * register: Entered when qutebrowser is waiting for a register name/key for
       commands like `:set-mark`.
-
-pinned.tab.frozen:
-    type: Bool
-    default: True
-    desc: If true, then pinned tabs cannot have their URL changed.
