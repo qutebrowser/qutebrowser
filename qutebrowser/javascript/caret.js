@@ -1405,12 +1405,12 @@ window._qutebrowser.caret = (function() {
     };
 
     funcs.reverseSelection = () => {
-        let sel = window.getSelection();
+        const sel = window.getSelection();
         sel.setBaseAndExtent(
             sel.extentNode, sel.extentOffset, sel.baseNode,
             sel.baseOffset
         );
-    }
+    };
 
     return funcs;
 })();
