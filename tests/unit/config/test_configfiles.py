@@ -255,6 +255,10 @@ class TestYaml:
         ('tabs.favicons.show', False, 'never'),
         ('tabs.favicons.show', 'always', 'always'),
 
+        ('scrolling.bar', True, 'always'),
+        ('scrolling.bar', False, 'when-searching'),
+        ('scrolling.bar', 'always', 'always'),
+
         ('qt.force_software_rendering', True, 'software-opengl'),
         ('qt.force_software_rendering', False, 'none'),
         ('qt.force_software_rendering', 'chromium', 'chromium'),
