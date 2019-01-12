@@ -2021,15 +2021,23 @@ class StatusbarSettings(Dict):
 
     """A mapping of settings to indicator strings."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        *,
+        none_ok: bool = False,
+        completions: _Completions = None,
+    ) -> None:
         super().__init__(
             keytype=String(),
             valtype=String(),
-            *args,
-            **kwargs
+            none_ok=none_ok,
+            completions=completions,
         )
 
-    def to_py(self, value):
+    def to_py(
+            self,
+            value: Union[DictType, usertypes.Unset, None]
+    ) -> Union[DictType, usertypes.Unset]:
         value = super().to_py(value)
         if not isinstance(value, dict):
             return value
