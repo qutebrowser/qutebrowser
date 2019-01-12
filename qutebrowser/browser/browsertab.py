@@ -826,24 +826,24 @@ class AbstractPermissions(QObject):
         features: A dict with a Qt feature enum -> shared.Feature mapping.
     """
 
-    def __init__(self, tab, parent=None):
+    def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab
         self._widget = None
-        self.features = {}
+        self.features = {}  # type: typing.Dict[int, shared.Feature]
         self._init_features()
 
-    def _init_features(self):
+    def _init_features(self) -> None:
         """Initializes the self.features dict."""
         raise NotImplementedError
 
     @pyqtSlot()
-    def _on_load_started(self):
+    def _on_load_started(self) -> None:
         """Reset some state when loading of a new page started."""
         for feat in self.features.values():
             feat.state = None
 
-    def test_feature(self, setting_name):
+    def test_feature(self, setting_name: str) -> shared.FeatureState:
         """Return whether the user has granted permission for `setting_name`.
 
         Returns a value of `shared.FeatureState'.

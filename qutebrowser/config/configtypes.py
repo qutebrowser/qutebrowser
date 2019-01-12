@@ -1898,15 +1898,17 @@ class StatusbarSettings(Dict):
 
     """A mapping of settings to indicator strings."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, none_ok: bool = False) -> None:
         super().__init__(
             keytype=String(),
             valtype=String(),
-            *args,
-            **kwargs
+            none_ok=none_ok
         )
 
-    def to_py(self, value):
+    def to_py(
+            self,
+            value: typing.Union[typing.Dict, configutils.Unset, None]
+    ) -> typing.Union[typing.Dict, configutils.Unset]:
         value = super().to_py(value)
         if not isinstance(value, dict):
             return value
