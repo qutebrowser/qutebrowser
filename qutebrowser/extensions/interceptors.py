@@ -20,6 +20,7 @@
 """Infrastructure for intercepting requests."""
 
 import typing
+import enum
 
 import attr
 
@@ -27,6 +28,17 @@ MYPY = False
 if MYPY:
     # pylint: disable=unused-import,useless-suppression
     from PyQt5.QtCore import QUrl
+
+
+# Possible request types that can be received. Currently correspond to the
+# QWebEngineUrlRequestInfo Enum:
+# https://doc.qt.io/qt-5/qwebengineurlrequestinfo.html#ResourceType-enum
+ResourceType = enum.Enum('ResourceType',
+                         ['main_frame', 'sub_frame', 'stylesheet', 'script',
+                          'image', 'font_resource', 'sub_resource', 'object',
+                          'media', 'worker', 'shared_worker', 'prefetch',
+                          'favicon', 'xhr', 'ping', 'service_worker',
+                          'csp_report', 'plugin_resource', 'unknown'])
 
 
 @attr.s
@@ -41,6 +53,10 @@ class Request:
     request_url = attr.ib()  # type: QUrl
 
     is_blocked = attr.ib(False)  # type: bool
+
+    #: The resource type of the request. None if not supported on this backend,
+    # or if there was an error finding the resource type.
+    resource_type = attr.ib(None)  # type: typing.Optional[ResourceType]
 
     def block(self) -> None:
         """Block this request."""
