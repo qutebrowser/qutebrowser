@@ -1768,6 +1768,11 @@ tabs.pinned.shrink:
   type: Bool
   desc: Shrink pinned tabs down to their contents.
 
+tabs.pinned.frozen:
+    type: Bool
+    default: True
+    desc: Force pinned tabs to stay at fixed URL.
+
 tabs.wrap:
   default: true
   type: Bool

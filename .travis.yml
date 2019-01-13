@@ -68,16 +68,3 @@ after_success:
 
 after_failure:
   - bash scripts/dev/ci/travis_backtrace.sh
-
-notifications:
-  webhooks:
-    - https://buildtimetrend.herokuapp.com/travis
-  irc:
-    channels:
-      - "chat.freenode.net#qutebrowser-dev"
-    on_success: always
-    on_failure: always
-    skip_join: true
-    template:
-      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
-      - "%{compare_url} - %{build_url}"
