@@ -514,11 +514,11 @@ class WebEngineHistory(browsertab.AbstractHistory):
     def can_go_forward(self):
         return self._history.canGoForward()
 
-    def back_items(self, max_items: int = 99999):
-        return self._history.backItems(max_items)
+    def back_items(self):
+        return self._history.backItems(self._history.count())
 
-    def forward_items(self, max_items: int = 99999):
-        return self._history.forwardItems(max_items)
+    def forward_items(self):
+        return self._history.forwardItems(self._history.count())
 
     def _item_at(self, i):
         return self._history.itemAt(i)
