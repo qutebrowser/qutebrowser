@@ -552,11 +552,11 @@ class CommandDispatcher:
         else:
             widget = self._current_widget()
 
-        if not count and index:
-            count = abs(history.current_idx() - index)
-
-        if not count:
-            count = 1
+        if count is None:
+            if index is None:
+                count = 1
+            else:
+                count = abs(history.current_idx() - index)
 
         try:
             if forward:
