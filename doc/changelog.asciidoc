@@ -25,6 +25,7 @@ Added
   opened from a page should stack on each other or not.
 - New `completion.open_categories` setting which allows to configure which
   categories are shown in the `:open` completion, and how they are ordered.
+- New `tabs.pinned.frozen` setting to allow/deny navigating in pinned tabs.
 - New config manipulation commands:
   * `:config-dict-add` and `:config-list-add` to a new element to a dict/list
     setting.
