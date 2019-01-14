@@ -24,7 +24,7 @@ import os.path
 import itertools
 import urllib
 
-from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer, QDateTime
+from PyQt5.QtCore import Qt, QUrl, QObject, QPoint, QTimer, QDateTime
 from PyQt5.QtWidgets import QApplication
 import yaml
 
@@ -181,7 +181,7 @@ class SessionManager(QObject):
             # QtWebEngine
             user_data = None
 
-        data['last_visited'] = item.lastVisited().toString()
+        data['last_visited'] = item.lastVisited().toString(Qt.ISODate)
 
         if tab.history.current_idx() == idx:
             pos = tab.scroller.pos_px()
@@ -392,7 +392,10 @@ class SessionManager(QObject):
             else:
                 orig_url = url
             if histentry.get("last_visited"):
-                last_visited = QDateTime.fromString(histentry.get("last_visited"))
+                last_visited = QDateTime.fromString(
+                    histentry.get("last_visited"),
+                    Qt.ISODate,
+                )
             else:
                 last_visited = None
             entry = TabHistoryItem(url=url, original_url=orig_url,
