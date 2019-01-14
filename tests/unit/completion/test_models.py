@@ -27,7 +27,12 @@ from unittest import mock
 
 import pytest
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWebEngineWidgets import QWebEngineHistory, QWebEngineHistoryItem
+try:
+    from PyQt5.QtWebEngineWidgets import (
+        QWebEngineHistory, QWebEngineHistoryItem
+    )
+except ImportError:
+    pass
 
 from qutebrowser.completion import completer
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
@@ -945,6 +950,7 @@ def test_url_completion_benchmark(benchmark, info,
 @pytest.fixture
 def tab_with_history(fake_web_tab, tabbed_browser_stubs, info, monkeypatch):
     """Returns a fake tab with some fake history items."""
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
     tab = fake_web_tab(QUrl('https://github.com'), 'GitHub', 0)
     current_idx = 2
     monkeypatch.setattr(
