@@ -54,8 +54,7 @@ class Request:
 
     is_blocked = attr.ib(False)  # type: bool
 
-    #: The resource type of the request. None if not supported on this backend,
-    # or if there was an error finding the resource type.
+    #: The resource type of the request. None if not supported on this backend.
     resource_type = attr.ib(None)  # type: typing.Optional[ResourceType]
 
     def block(self) -> None:

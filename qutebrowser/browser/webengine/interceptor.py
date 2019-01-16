@@ -116,9 +116,9 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         url = info.requestUrl()
         first_party = info.firstPartyUrl()
         # Per QWebEngineUrlRequestInfo::ResourceType documentation, if we fail
-        # our lookup, we should not fall back to ResourceTypeUnknown
+        # our lookup, we should fall back to ResourceTypeUnknown
         resource_type = RequestInterceptor.QWebEngineResourceTypeMap.get(
-            info.resourceType(), None)
+            info.resourceType(), interceptors.ResourceType.unknown)
 
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):
