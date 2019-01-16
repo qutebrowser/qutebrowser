@@ -60,7 +60,14 @@ def _serialize_item(item, stream):
     ## entry->GetIsOverridingUserAgent();
     stream.writeBool(False)
     ## static_cast<qint64>(entry->GetTimestamp().ToInternalValue());
-    stream.writeInt64(int(time.time()))
+    if item.last_visited is None:
+        unix_msecs = 0
+    else:
+        unix_msecs = item.last_visited.toMSecsSinceEpoch()
+    # 11644516800000 is the number of milliseconds from
+    # 1601-01-01T00:00 (Windows NT Epoch) to 1970-01-01T00:00 (UNIX Epoch)
+    nt_usecs = (unix_msecs + 11644516800000) * 1000
+    stream.writeInt64(nt_usecs)
     ## entry->GetHttpStatusCode();
     stream.writeInt(200)
 

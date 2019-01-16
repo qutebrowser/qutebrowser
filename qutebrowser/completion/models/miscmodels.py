@@ -182,7 +182,13 @@ def window(*, info):
     return model
 
 def _qdatetime_to_completion_format(qdate):
-    pydate = datetime.datetime.fromtimestamp(qdate.toSecsSinceEpoch())
+    if not qdate.isValid():
+        ts = 0
+    else:
+        ts = qdate.toSecsSinceEpoch()
+        if ts < 0:
+            ts = 0
+    pydate = datetime.datetime.fromtimestamp(ts)
     return pydate.strftime(config.val.completion.timestamp_format)
 
 def _back_forward(info, go_forward):
@@ -198,8 +204,12 @@ def _back_forward(info, go_forward):
         start = 0
         items = history.back_items()
     entries = [
-        (str(idx), entry.url().toDisplayString(), entry.title(),
-         _qdatetime_to_completion_format(entry.lastVisited()))
+        (
+            str(idx),
+            entry.url().toDisplayString(),
+            entry.title(),
+            _qdatetime_to_completion_format(entry.lastVisited())
+        )
         for idx, entry in enumerate(items, start)
     ]
     if not go_forward:
