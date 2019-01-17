@@ -476,7 +476,7 @@ Function .onInit
       !insertmacro RemoveOld $R0 "/S _?=$0"
     ${endif}
     ${if} $R1 != ""
-      !insertmacro RemoveOld "msiexec.exe" "/X$R1 /passive /promptrestart"
+      !insertmacro RemoveOld "$SYSDIR\msiexec.exe" "/X$R1 /passive /promptrestart"
     ${endif}
   ${endif}
 
