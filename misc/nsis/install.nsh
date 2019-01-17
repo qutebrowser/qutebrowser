@@ -148,7 +148,7 @@ var KeepReg
 !macroend
 
 ; Functions
-Function CheckInstallation 
+Function CheckInstallation
   ; if there's an installed version, uninstall it first (I chose not to start the uninstaller silently, so that user sees what failed)
   ; if both per-user and per-machine versions are installed, unistall the one that matches $MultiUser.InstallMode
   StrCpy $0 ""
@@ -363,7 +363,7 @@ Section "Register with Windows" SectionWindowsRegister
   ${endif}
 SectionEnd
 
-Section /o "Open default browser settings" SectionDefaultBrowser
+Section /o "Open Default Browser Settings" SectionDefaultBrowser
   SectionIn 1
 
   !insertmacro UAC_AsUser_Call Function GetDefaultBrowser ${UAC_SYNCREGISTERS}
@@ -511,7 +511,7 @@ FunctionEnd
 Function PageInstallModeChangeMode
   ; Disable integration for single user install on Win7 and older, as it's not supported
   ${if} ${AtMostWin7}
-    SectionSetText ${SectionDefaultBrowser} "Set as default browser"
+    SectionSetText ${SectionDefaultBrowser} "Set as Default Browser"
     ${if} $MultiUser.InstallMode == "CurrentUser"
       SectionSetText ${SectionGroupIntegration} "System Integration (not supported)"
       IntOP $0 ${SF_RO} & ${SECTION_OFF}

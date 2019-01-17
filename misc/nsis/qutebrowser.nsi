@@ -21,8 +21,9 @@
 # Includes modified graphics from the NSIS distribution.
 
 # Requires:
-# - NsisMultiUser plugin @ 79914db   https://github.com/Drizin/NsisMultiUser
-# - UAC plugin v2.4.5c (20150526)    http://nsis.sourceforge.net/UAC_plug-in
+# - NsisMultiUser plugin        https://github.com/Drizin/NsisMultiUser
+# - UAC plugin                  https://nsis.sourceforge.net/UAC_plug-in
+# - StdUtils plugin             https://nsis.sourceforge.io/StdUtils_plug-in
 
 
 ; Installer Attributes

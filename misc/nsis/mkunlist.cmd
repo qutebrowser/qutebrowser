@@ -25,7 +25,7 @@ if exist "%DLIST%" del "%DLIST%" || exit 3
 rem Add release files deletion commands
 for /r "%DIST%" %%i in (*) do call:AddToNSH f "%%i" "%ULIST%"
 
-rem '*' doesn't catch hidden files and there are a couple files starting with
+rem '*' doesn't catch hidden files and there are a couple of files starting with
 rem a '.', which will appear as hidden if mapped from a linux file system.
 for /f "tokens=*" %%i in ('dir "%DIST%" /a:h-d /b /s') do call:AddToNSH f "%%i" "%ULIST%"
 

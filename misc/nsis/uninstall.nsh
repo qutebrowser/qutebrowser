@@ -127,7 +127,7 @@ Section "-Uninstall" ; hidden section, must always be the last one!
   ; Remove the uninstaller from registry as the very last step
   ; if something goes wrong, let the user run it again
   !insertmacro MULTIUSER_RegistryRemoveInstallInfo ; Remove registry keys
-  
+
   ${RefreshShellIcons}
 
   ; If the uninstaller still exists, use cmd.exe on exit to remove it (along with $INSTDIR if it's empty)
@@ -169,7 +169,7 @@ Function un.onInit
   ${else}
     StrCpy $RunningFromInstaller 0
   ${endif}
-  
+
   ${GetOptions} $R0 "/upgrade" $R1
   ${ifnot} ${errors}
     StrCpy $KeepReg 1
@@ -188,6 +188,11 @@ Function un.onInit
     StrCpy $SemiSilentMode 0
   ${endif}
 
+  ; Windows stars the uninstallers elevated when called from 'Cotrol Panel' or
+  ; from 'Apps & features' (where it elevates even for per user installations).
+  ; This causes the uninstaller to run for the account used for elevation, which
+  ; may be different than the user doing the uninstall. As a workaround, the
+  ; uninstaller is restarted using the non-elevated user.
   ${ifnot} ${UAC_IsInnerInstance}
   ${andif} $RunningFromInstaller = 0
     ${if} ${UAC_IsAdmin}
