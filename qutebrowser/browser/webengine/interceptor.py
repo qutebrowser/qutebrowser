@@ -36,45 +36,45 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
     # A simple mapping from QWebEngine Resource Types to qutebrowser extension
     # ResourceTypes. If a ResourceType is added to Qt, this table should be
     # updated too.
-    QWebEngineResourceTypeMap = {
+    RESOURCE_TYPES = {
         QWebEngineUrlRequestInfo.ResourceTypeMainFrame:
-            interceptors.ResourceType.main_frame,
+            interceptors.ResourceType.MAIN_FRAME,
         QWebEngineUrlRequestInfo.ResourceTypeSubFrame:
-            interceptors.ResourceType.sub_frame,
+            interceptors.ResourceType.SUB_FRAME,
         QWebEngineUrlRequestInfo.ResourceTypeStylesheet:
-            interceptors.ResourceType.stylesheet,
+            interceptors.ResourceType.STYLESHEET,
         QWebEngineUrlRequestInfo.ResourceTypeScript:
-            interceptors.ResourceType.script,
+            interceptors.ResourceType.SCRIPT,
         QWebEngineUrlRequestInfo.ResourceTypeImage:
-            interceptors.ResourceType.image,
+            interceptors.ResourceType.IMAGE,
         QWebEngineUrlRequestInfo.ResourceTypeFontResource:
-            interceptors.ResourceType.font_resource,
+            interceptors.ResourceType.FONT_RESOURCE,
         QWebEngineUrlRequestInfo.ResourceTypeSubResource:
-            interceptors.ResourceType.sub_resource,
+            interceptors.ResourceType.SUB_RESOURCE,
         QWebEngineUrlRequestInfo.ResourceTypeObject:
-            interceptors.ResourceType.object,
+            interceptors.ResourceType.OBJECT,
         QWebEngineUrlRequestInfo.ResourceTypeMedia:
-            interceptors.ResourceType.media,
+            interceptors.ResourceType.MEDIA,
         QWebEngineUrlRequestInfo.ResourceTypeWorker:
-            interceptors.ResourceType.worker,
+            interceptors.ResourceType.WORKER,
         QWebEngineUrlRequestInfo.ResourceTypeSharedWorker:
-            interceptors.ResourceType.shared_worker,
+            interceptors.ResourceType.SHARED_WORKER,
         QWebEngineUrlRequestInfo.ResourceTypePrefetch:
-            interceptors.ResourceType.prefetch,
+            interceptors.ResourceType.PREFETCH,
         QWebEngineUrlRequestInfo.ResourceTypeFavicon:
-            interceptors.ResourceType.favicon,
+            interceptors.ResourceType.FAVICON,
         QWebEngineUrlRequestInfo.ResourceTypeXhr:
-            interceptors.ResourceType.xhr,
+            interceptors.ResourceType.XHR,
         QWebEngineUrlRequestInfo.ResourceTypePing:
-            interceptors.ResourceType.ping,
+            interceptors.ResourceType.PING,
         QWebEngineUrlRequestInfo.ResourceTypeServiceWorker:
-            interceptors.ResourceType.service_worker,
+            interceptors.ResourceType.SERVICE_WORKER,
         QWebEngineUrlRequestInfo.ResourceTypeCspReport:
-            interceptors.ResourceType.csp_report,
+            interceptors.ResourceType.CSP_REPORT,
         QWebEngineUrlRequestInfo.ResourceTypePluginResource:
-            interceptors.ResourceType.plugin_resource,
+            interceptors.ResourceType.PLUGIN_RESOURCE,
         QWebEngineUrlRequestInfo.ResourceTypeUnknown:
-            interceptors.ResourceType.unknown,
+            interceptors.ResourceType.UNKNOWN,
     }
 
     def __init__(self, args, parent=None):
@@ -117,8 +117,15 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         first_party = info.firstPartyUrl()
         # Per QWebEngineUrlRequestInfo::ResourceType documentation, if we fail
         # our lookup, we should fall back to ResourceTypeUnknown
-        resource_type = RequestInterceptor.QWebEngineResourceTypeMap.get(
-            info.resourceType(), interceptors.ResourceType.unknown)
+        try:
+            resource_type = RequestInterceptor.RESOURCE_TYPES[
+                info.resourceType()]
+        except KeyError:
+            log.webview.warning(
+                "Resource type {} not found in RequestInterceptor map."
+                .format(debug.qenum_key(QWebEngineUrlRequestInfo,
+                                        info.resourceType())))
+            resource_type = interceptors.ResourceType.UNKNOWN
 
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):

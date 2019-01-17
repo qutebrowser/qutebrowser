@@ -30,15 +30,32 @@ if MYPY:
     from PyQt5.QtCore import QUrl
 
 
-# Possible request types that can be received. Currently correspond to the
-# QWebEngineUrlRequestInfo Enum:
-# https://doc.qt.io/qt-5/qwebengineurlrequestinfo.html#ResourceType-enum
-ResourceType = enum.Enum('ResourceType',
-                         ['main_frame', 'sub_frame', 'stylesheet', 'script',
-                          'image', 'font_resource', 'sub_resource', 'object',
-                          'media', 'worker', 'shared_worker', 'prefetch',
-                          'favicon', 'xhr', 'ping', 'service_worker',
-                          'csp_report', 'plugin_resource', 'unknown'])
+class ResourceType(enum.Enum):
+    """Possible request types that can be received.
+
+    Currently corresponds to the QWebEngineUrlRequestInfo Enum:
+    https://doc.qt.io/qt-5/qwebengineurlrequestinfo.html#ResourceType-enum
+    """
+
+    MAIN_FRAME = 1
+    SUB_FRAME = 2
+    STYLESHEET = 3
+    SCRIPT = 4
+    IMAGE = 5
+    FONT_RESOURCE = 6
+    SUB_RESOURCE = 7
+    OBJECT = 8
+    MEDIA = 9
+    WORKER = 10
+    SHARED_WORKER = 11
+    PREFETCH = 12
+    FAVICON = 13
+    XHR = 14
+    PING = 15
+    SERVICE_WORKER = 16
+    CSP_REPORT = 17
+    PLUGIN_RESOURCE = 18
+    UNKNOWN = 19
 
 
 @attr.s
