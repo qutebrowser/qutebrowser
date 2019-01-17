@@ -128,8 +128,7 @@ var KeepReg
       ; Remove the quotes from path in $R0
       System::Call 'Shlwapi::PathUnquoteSpaces(t r10r10)'
       IfFileExists $R0 +3 0
-      ; Delete the registry key if the uninstaller is missing.
-      DeleteRegKey HKLM "${REG_UN}\${PRODUCT_NAME}"
+      ; Return 0 if the uninstaller is missing.
       StrCpy $R0 ""
     ${endif}
   ${endif}
@@ -262,9 +261,19 @@ Section "Core Files (required)" SectionCoreFiles
     ${endif}
   ${endif}
 
-  ; Remove the old uninstaller if it's leftover
+  ; Remove any leftovers from the old NSIS installer
   IfFileExists "$INSTDIR\uninst.exe" 0 +2
   Delete "$INSTDIR\uninst.exe"
+  ${if} $MultiUser.InstallMode == "AllUsers"
+    SetRegView 32 ; The old NSIS installer writes to 32-bit registry space
+    ReadRegStr $R0 HKLM "${REG_UN}\${PRODUCT_NAME}" "QuietUninstallString"
+    ${if} $R0 != ""
+      DeleteRegKey HKLM "${REG_UN}\${PRODUCT_NAME}"
+    ${endif}
+    ${if} ${RunningX64}
+      SetRegView 64
+    ${endif}
+  ${endif}
 
   SetOutPath $INSTDIR
   ; Write uninstaller and registry uninstall info as the first step,
