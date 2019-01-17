@@ -135,9 +135,10 @@ var KeepReg
   ${endif}
 !macroend
 
-!macro RemoveOld UninstCmd
+!macro RemoveOld PRG ARGS
   ClearErrors
-  ExecWait "${UninstCmd}"
+  ; Using ExecShellWait so the EXE will get the elevation prompt.
+  ExecShellWait "open" "${PRG}" "${ARGS}"
   ${if} ${errors}
     MessageBox MB_ICONSTOP \
       "The uninstaller has failed to complete.$\r$\n\
@@ -463,12 +464,10 @@ Function .onInit
     Abort
     ${if} $R0 != ""
       ${GetParent} $R0 $0
-      ${GetFileName} $R0 $1
-      ; Using cmd.exe for elevation to work
-      !insertmacro RemoveOld "cmd.exe /c start /wait /d $\"$0$\" $1 /S _?=$0"
+      !insertmacro RemoveOld $R0 "/S _?=$0"
     ${endif}
     ${if} $R1 != ""
-      !insertmacro RemoveOld "msiexec.exe /X$R1 /passive /promptrestart"
+      !insertmacro RemoveOld "msiexec.exe" "/X$R1 /passive /promptrestart"
     ${endif}
   ${endif}
 
