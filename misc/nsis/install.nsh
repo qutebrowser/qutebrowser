@@ -270,9 +270,7 @@ Section "Core Files (required)" SectionCoreFiles
     ${if} $R0 != ""
       DeleteRegKey HKLM "${REG_UN}\${PRODUCT_NAME}"
     ${endif}
-    ${if} ${RunningX64}
-      SetRegView 64
-    ${endif}
+    SetRegView lastused
   ${endif}
 
   SetOutPath $INSTDIR
