@@ -127,7 +127,7 @@ var KeepReg
     ${if} $R0 != ""
       ; Remove the quotes from path in $R0
       System::Call 'Shlwapi::PathUnquoteSpaces(t r10r10)'
-      IfFileExists $R0 +3 0
+      IfFileExists $R0 +2 0
       ; Return 0 if the uninstaller is missing.
       StrCpy $R0 ""
     ${endif}
