@@ -104,28 +104,3 @@ Feature: Caret mode
         And I run :fake-key <tab>
         And I run :follow-selected --tab
         Then data/hello.txt should be loaded
-        
-    # :reverse-selection
-    
-    Scenario: :reverse-selection on an empty selection should stay empty
-        When I run :toggle-selection
-        And I run :reverse-selection
-        And I run :yank selection
-        Then the message "Nothing to yank" should be shown.
-
-    Scenario: reverse -> movement -> reverse -> movement should result in empty selection
-        When I run :toggle-selection
-        And I run :move-to-next-char
-        And I run :reverse-selection
-        And I run :move-to-next-char
-        And I run :yank selection
-        Then the message "Nothing to yank" should be shown.
-
-    Scenario: :reverse-selection "ne"
-        When I run :toggle-selection
-        And I run :move-to-end-of-word
-        And I run :reverse-selection
-        And I run :move-to-next-char
-        And I run :yank selection --sel
-        Then the message "2 chars yanked to primary selection" should be shown.
-        And the primary selection should contain "ne"
