@@ -353,7 +353,7 @@ class WebKitCaret(browsertab.AbstractCaret):
 
     def reverse_selection(self):
         self._tab.run_js_async("""{
-            let sel = window.getSelection();
+            const sel = window.getSelection();
             sel.setBaseAndExtent(
                 sel.extentNode, sel.extentOffset, sel.baseNode,
                 sel.baseOffset
