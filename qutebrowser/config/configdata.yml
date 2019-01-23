@@ -523,6 +523,23 @@ content.headers.user_agent:
 
     Note that the value read from JavaScript is always the global value.
 
+content.brave_adblock.enabled:
+  default: true
+  supports_pattern: true
+  type: Bool
+  desc: Enable Brave AdBlock.
+
+content.brave_adblock.lists:
+  default:
+    - "https://easylist.to/easylist/easylist.txt"
+    - "https://easylist.to/easylist/fanboy-annoyance.txt"
+  type:
+    name: List
+    valtype: Url
+    none_ok: true
+  desc: |
+    List of URLs of lists which contain adblock rules.
+
 content.host_blocking.enabled:
   default: true
   supports_pattern: true

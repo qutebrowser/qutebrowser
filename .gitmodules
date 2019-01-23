@@ -1,0 +1,9 @@
+[submodule "vendor/hashset-cpp"]
+	path = vendor/hashset-cpp
+	url = https://github.com/bbondy/hashset-cpp
+[submodule "vendor/bloom-filter-cpp"]
+	path = vendor/bloom-filter-cpp
+	url = https://github.com/bbondy/bloom-filter-cpp
+[submodule "vendor/ad-block"]
+	path = vendor/ad-block
+	url = https://github.com/brave/ad-block

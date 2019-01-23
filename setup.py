@@ -32,9 +32,39 @@ import setuptools
 
 
 try:
-    BASEDIR = os.path.dirname(os.path.realpath(__file__))
+    BASEDIR = os.path.dirname(os.path.relpath(__file__))
 except NameError:
     BASEDIR = None
+
+
+bloom_dir = os.path.join(BASEDIR, "vendor", "bloom-filter-cpp")
+hashset_dir = os.path.join(BASEDIR, "vendor", "hashset-cpp")
+adblock_dir = os.path.join(BASEDIR, "vendor", "ad-block")
+
+
+if "CC" not in os.environ:
+    # force g++, not sure why but else gcc is used and the code does not
+    # compile...
+    os.environ["CC"] = "g++"
+
+adblocker = setuptools.Extension(
+    '_adblock',
+    define_macros=[],
+    language="c++",
+    include_dirs=[bloom_dir, hashset_dir, adblock_dir],
+    # not sure if that help for speed. Careful it strip the debug symbols
+    extra_compile_args=["-g0", "-std=c++11"],
+    sources=[
+        os.path.join(bloom_dir, "BloomFilter.cpp"),
+        os.path.join(bloom_dir, "hashFn.cpp"),
+        os.path.join(hashset_dir, "hash_set.cc"),
+        os.path.join(adblock_dir, "ad_block_client.cc"),
+        os.path.join(adblock_dir, "filter.cc"),
+        os.path.join(adblock_dir, "cosmetic_filter.cc"),
+        os.path.join(adblock_dir, "no_fingerprint_domain.cc"),
+        os.path.join(adblock_dir, "protocol.cc"),
+        os.path.join(BASEDIR, "c", "adblock.c"),
+    ])
 
 
 def read_file(name):
@@ -102,6 +132,7 @@ try:
             'Topic :: Internet :: WWW/HTTP :: Browsers',
         ],
         keywords='pyqt browser web qt webkit qtwebkit qtwebengine',
+        ext_modules=[adblocker],
     )
 finally:
     if BASEDIR is not None:
