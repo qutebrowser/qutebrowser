@@ -313,6 +313,8 @@ class SessionManager(QObject):
             configfiles.state['general']['session'] = name
         return name
 
+    # throttle autosaves to one minute apart
+    @throttle.throttle(60 * 1000)
     def save_autosave(self):
         """Save the autosave session."""
         try:
@@ -322,6 +324,10 @@ class SessionManager(QObject):
 
     def delete_autosave(self):
         """Delete the autosave session."""
+        # pylint: disable=no-member
+        # cancel any in-flight saves
+        self.save_autosave.throttle_cancel()
+        # pylint: enable=no-member
         try:
             self.delete('_autosave')
         except SessionNotFoundError:
