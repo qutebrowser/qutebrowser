@@ -60,9 +60,7 @@ class TestDebugLog:
 
     def test_log(self, keyparser, caplog):
         keyparser._debug_log('foo')
-        assert len(caplog.records) == 1
-        record = caplog.records[0]
-        assert record.message == 'foo'
+        assert caplog.messages == ['foo']
 
     def test_no_log(self, keyparser, caplog):
         keyparser.do_log = False

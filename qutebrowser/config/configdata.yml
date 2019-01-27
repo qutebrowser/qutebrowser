@@ -3,8 +3,10 @@
 aliases:
   default:
     w: session-save
-    q: quit
+    q: close
+    qa: quit
     wq: quit --save
+    wqa: quit --save
   type:
     name: Dict
     keytype:
@@ -37,12 +39,7 @@ ignore_case:
   renamed: search.ignore_case
 
 search.ignore_case:
-  type:
-    name: String
-    valid_values:
-      - always: Search case-insensitively.
-      - never: Search case-sensitively.
-      - smart: Search case-sensitively if there are capital characters.
+  type: IgnoreCase
   default: smart
   desc: When to find text on a page case-insensitively.
 
@@ -327,7 +324,7 @@ content.cache.appcache:
     ask the application cache for the contents, before hitting the network.
 
 content.cookies.accept:
-  default: no-3rdparty
+  default: all
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.11
@@ -335,7 +332,8 @@ content.cookies.accept:
     name: String
     valid_values:
       - all: "Accept all cookies."
-      - no-3rdparty: "Accept cookies from the same origin only."
+      - no-3rdparty: "Accept cookies from the same origin only. This is known
+          to break some sites, such as GMail."
       - no-unknown-3rdparty: "Accept cookies from the same origin only, unless
           a cookie is already set for the domain. On QtWebEngine, this is the
           same as no-3rdparty."
@@ -527,6 +525,7 @@ content.headers.user_agent:
 
 content.host_blocking.enabled:
   default: true
+  supports_pattern: true
   type: Bool
   desc: Enable host blocking.
 
@@ -547,6 +546,11 @@ content.host_blocking.lists:
     - A zip-file of any of the above, with either only one file, or a file
       named `hosts` (with any extension).
 
+    It's also possible to add a local file or directory via a `file://` URL. In
+    case of a directory, all files in the directory are read as adblock lists.
+
+    The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
+
 content.host_blocking.whitelist:
   default:
   - piwik.org
@@ -556,6 +560,12 @@ content.host_blocking.whitelist:
     none_ok: true
   desc: >-
     A list of patterns that should always be loaded, despite being ad-blocked.
+
+    Note this whitelists blocked hosts, not first-party URLs. As an example, if
+    `example.org` loads an ad from `ads.example.org`, the whitelisted host
+    should be `ads.example.org`. If you want to disable the adblocker on a
+    given page, use the `content.host_blocking.enabled` setting with a URL
+    pattern instead.
 
     Local domains are always exempt from hostblocking.
 
@@ -969,6 +979,18 @@ downloads.location.suggestion:
       - both: Show download path and filename.
   desc: What to display in the download filename input.
 
+completion.open_categories:
+  type:
+    name: FlagList
+    valid_values: [searchengines, quickmarks, bookmarks, history]
+    none_ok: true
+  default:
+    - searchengines
+    - quickmarks
+    - bookmarks
+    - history
+  desc: Which categories to show (in which order) in the :open completion.
+
 downloads.open_dispatcher:
   type:
     name: String
@@ -1135,6 +1157,71 @@ hints.scatter:
     Scatter hint key chains (like Vimium) or not (like dwb).
 
     Ignored for number hints.
+
+hints.selectors:
+  no_autoconfig: true
+  default:
+    all:
+      - 'a'
+      - 'area'
+      - 'textarea'
+      - 'select'
+      - 'input:not([type="hidden"])'
+      - 'button'
+      - 'frame'
+      - 'iframe'
+      - 'img'
+      - 'link'
+      - 'summary'
+      - '[onclick]'
+      - '[onmousedown]'
+      - '[role="link"]'
+      - '[role="option"]'
+      - '[role="button"]'
+      - '[ng-click]'
+      - '[ngClick]'
+      - '[data-ng-click]'
+      - '[x-ng-click]'
+      - '[tabindex]'
+    links:
+      - 'a[href]'
+      - 'area[href]'
+      - 'link[href]'
+      - '[role="link"][href]'
+    images:
+      - 'img'
+    media:
+      - 'audio'
+      - 'img'
+      - 'video'
+    url:
+      - '[src]'
+      - '[href]'
+    inputs:
+      - 'input[type="text"]'
+      - 'input[type="date"]'
+      - 'input[type="datetime-local"]'
+      - 'input[type="email"]'
+      - 'input[type="month"]'
+      - 'input[type="number"]'
+      - 'input[type="password"]'
+      - 'input[type="search"]'
+      - 'input[type="tel"]'
+      - 'input[type="time"]'
+      - 'input[type="url"]'
+      - 'input[type="week"]'
+      - 'input:not([type])'
+      - 'textarea'
+  type:
+    name: Dict
+    keytype: String
+    valtype:
+      name: List
+      none_ok: true
+      valtype: String
+  supports_pattern: true
+  desc: CSS selectors used to determine which elements on a page should have
+    hints.
 
 hints.uppercase:
   default: false
@@ -1470,12 +1557,27 @@ tabs.mousewheel_switching:
 tabs.new_position.related:
   default: next
   type: NewTabPosition
-  desc: Position of new tabs opened from another tab.
+  desc: >-
+    Position of new tabs opened from another tab.
+
+    See `tabs.new_position.stacking` for controlling stacking behavior.
 
 tabs.new_position.unrelated:
   default: last
   type: NewTabPosition
-  desc: "Position of new tabs which aren't opened from another tab."
+  desc: >-
+    Position of new tabs which are not opened from another tab.
+
+    See `tabs.new_position.stacking` for controlling stacking behavior.
+
+tabs.new_position.stacking:
+  default: true
+  type: Bool
+  desc: >-
+    Stack related tabs on top of each other when opened consecutively.
+
+    Only applies for `next` and `prev` values of `tabs.new_position.related`
+    and `tabs.new_position.unrelated`.
 
 tabs.padding:
   default:
@@ -1666,6 +1768,11 @@ tabs.pinned.shrink:
   type: Bool
   desc: Shrink pinned tabs down to their contents.
 
+tabs.pinned.frozen:
+    type: Bool
+    default: True
+    desc: Force pinned tabs to stay at fixed URL.
+
 tabs.wrap:
   default: true
   type: Bool
@@ -1710,7 +1817,9 @@ url.searchengines:
   type:
     name: Dict
     required_keys: ['DEFAULT']
-    keytype: String
+    keytype:
+      name: String
+      forbidden: ' '
     valtype: SearchEngineUrl
   desc: >-
     Search engines which can be used via the address bar.
@@ -1891,7 +2000,7 @@ colors.completion.item.selected.border.bottom:
 
 colors.completion.match.fg:
   default: '#ff4444'
-  type: QssColor
+  type: QtColor
   desc: Foreground color of the matched text in the completion.
 
 colors.completion.scrollbar.fg:
@@ -2508,6 +2617,8 @@ bindings.default:
       yD: yank domain -s
       yp: yank pretty-url
       yP: yank pretty-url -s
+      ym: yank markdown
+      yM: yank markdown -s
       pp: open -- {clipboard}
       pP: open -- {primary}
       Pp: open -t -- {clipboard}

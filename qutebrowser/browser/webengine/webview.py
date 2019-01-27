@@ -240,7 +240,7 @@ class WebEnginePage(QWebEnginePage):
     def acceptNavigationRequest(self,
                                 url: QUrl,
                                 typ: QWebEnginePage.NavigationType,
-                                is_main_frame: bool):
+                                is_main_frame: bool) -> bool:
         """Override acceptNavigationRequest to forward it to the tab API."""
         type_map = {
             QWebEnginePage.NavigationTypeLinkClicked:

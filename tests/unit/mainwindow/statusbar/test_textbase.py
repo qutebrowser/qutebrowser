@@ -44,6 +44,8 @@ def test_elided_text(fake_statusbar, qtbot, elidemode, check):
         check: function that receives the elided text and must return True
         if the ellipsis is placed correctly according to elidemode.
     """
+    fake_statusbar.container.expose()
+
     label = TextBase(elidemode=elidemode)
     qtbot.add_widget(label)
     fake_statusbar.hbox.addWidget(label)
@@ -53,17 +55,6 @@ def test_elided_text(fake_statusbar, qtbot, elidemode, check):
     label.show()
 
     assert check(label._elided_text)
-
-
-def test_settext_empty(mocker, qtbot):
-    """Make sure using setText('') works and runs repaint."""
-    label = TextBase()
-    qtbot.add_widget(label)
-    mocker.patch('qutebrowser.mainwindow.statusbar.textbase.TextBase.repaint',
-                 autospec=True)
-
-    label.setText('')
-    label.repaint.assert_called_with()  # pylint: disable=no-member
 
 
 def test_resize(qtbot):

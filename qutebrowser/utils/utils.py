@@ -41,10 +41,12 @@ from PyQt5.QtWidgets import QApplication
 import pkg_resources
 import yaml
 try:
-    from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
+    from yaml import (CSafeLoader as YamlLoader,  # type: ignore
+                      CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
+    from yaml import (SafeLoader as YamlLoader,  # type: ignore
+                      SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
 import qutebrowser
@@ -500,10 +502,22 @@ def sanitize_filename(name, replacement='_'):
     """
     if replacement is None:
         replacement = ''
-    # Bad characters taken from Windows, there are even fewer on Linux
+
+    # Remove chars which can't be encoded in the filename encoding.
+    # See https://github.com/qutebrowser/qutebrowser/issues/427
+    encoding = sys.getfilesystemencoding()
+    name = force_encoding(name, encoding)
+
     # See also
     # https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words
-    bad_chars = '\\/:*?"<>|'
+    if is_windows:
+        bad_chars = '\\/:*?"<>|'
+    elif is_mac:
+        # Colons can be confusing in finder https://superuser.com/a/326627
+        bad_chars = '/:'
+    else:
+        bad_chars = '/'
+
     for bad_char in bad_chars:
         name = name.replace(bad_char, replacement)
     return name
@@ -618,7 +632,6 @@ def open_file(filename, cmdline=None):
 
 def unused(_arg):
     """Function which does nothing to avoid pylint complaining."""
-    pass
 
 
 def expand_windows_drive(path):
@@ -700,3 +713,18 @@ def guess_mimetype(filename, fallback=False):
         else:
             raise ValueError("Got None mimetype for {}".format(filename))
     return mimetype
+
+
+def ceil_log(number, base):
+    """Compute max(1, ceil(log(number, base))).
+
+    Use only integer arithmetic in order to avoid numerical error.
+    """
+    if number < 1 or base < 2:
+        raise ValueError("math domain error")
+    result = 1
+    accum = base
+    while accum < number:
+        result += 1
+        accum *= base
+    return result

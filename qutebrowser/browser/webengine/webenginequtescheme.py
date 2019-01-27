@@ -22,6 +22,11 @@
 from PyQt5.QtCore import QBuffer, QIODevice, QUrl
 from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
                                    QWebEngineUrlRequestJob)
+try:
+    from PyQt5.QtWebEngineCore import QWebEngineUrlScheme  # type: ignore
+except ImportError:
+    # Added in Qt 5.12
+    QWebEngineUrlScheme = None
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
@@ -33,8 +38,12 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
     def install(self, profile):
         """Install the handler for qute:// URLs on the given profile."""
+        if QWebEngineUrlScheme is not None:
+            assert QWebEngineUrlScheme.schemeByName(b'qute') is not None
+
         profile.installUrlSchemeHandler(b'qute', self)
-        if qtutils.version_check('5.11', compiled=False):
+        if (qtutils.version_check('5.11', compiled=False) and
+                not qtutils.version_check('5.12', compiled=False)):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
             profile.installUrlSchemeHandler(b'chrome-error', self)
             profile.installUrlSchemeHandler(b'chrome-extension', self)
@@ -112,7 +121,7 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
                     QWebEngineUrlRequestJob.RequestFailed,
             }
             exctype = type(e)
-            log.misc.exception("{} while handling qute://* URL".format(
+            log.misc.error("{} while handling qute://* URL".format(
                 exctype.__name__))
             job.fail(errors[exctype])
         except qutescheme.Redirect as e:
@@ -130,3 +139,16 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             buf.seek(0)
             buf.close()
             job.reply(mimetype.encode('ascii'), buf)
+
+
+def init():
+    """Register the qute:// scheme.
+
+    Note this needs to be called early, before constructing any QtWebEngine
+    classes.
+    """
+    if QWebEngineUrlScheme is not None:
+        scheme = QWebEngineUrlScheme(b'qute')
+        scheme.setFlags(QWebEngineUrlScheme.LocalScheme |
+                        QWebEngineUrlScheme.LocalAccessAllowed)
+        QWebEngineUrlScheme.registerScheme(scheme)

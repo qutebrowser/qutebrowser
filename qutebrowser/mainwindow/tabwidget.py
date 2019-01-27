@@ -21,6 +21,7 @@
 
 import functools
 import enum
+import contextlib
 
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
@@ -36,8 +37,11 @@ from qutebrowser.misc import objects
 from qutebrowser.browser import browsertab
 
 
-PixelMetrics = enum.IntEnum('PixelMetrics', ['icon_padding'],
-                            start=QStyle.PM_CustomBase)
+class PixelMetrics(enum.IntEnum):
+
+    """Custom PixelMetrics attributes."""
+
+    icon_padding = QStyle.PM_CustomBase
 
 
 class TabWidget(QTabWidget):
@@ -173,7 +177,7 @@ class TabWidget(QTabWidget):
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
-        fields['private'] = ' [Private Mode] ' if tab.private else ''
+        fields['private'] = ' [Private Mode] ' if tab.is_private else ''
         try:
             if tab.audio.is_muted():
                 fields['audio'] = TabWidget.MUTE_STRING
@@ -214,10 +218,35 @@ class TabWidget(QTabWidget):
         fields['scroll_pos'] = scroll_pos
         return fields
 
+    @contextlib.contextmanager
+    def _toggle_visibility(self):
+        """Toggle visibility while running.
+
+        Every single call to setTabText calls the size hinting functions for
+        every single tab, which are slow. Since we know we are updating all
+        the tab's titles, we can delay this processing by making the tab
+        non-visible. To avoid flickering, disable repaint updates whlie we
+        work.
+        """
+        bar = self.tabBar()
+        toggle = (self.count() > 10 and
+                  not bar.drag_in_progress and
+                  bar.isVisible())
+        if toggle:
+            bar.setUpdatesEnabled(False)
+            bar.setVisible(False)
+
+        yield
+
+        if toggle:
+            bar.setVisible(True)
+            bar.setUpdatesEnabled(True)
+
     def update_tab_titles(self):
         """Update all texts."""
-        for idx in range(self.count()):
-            self.update_tab_title(idx)
+        with self._toggle_visibility():
+            for idx in range(self.count()):
+                self.update_tab_title(idx)
 
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
@@ -313,7 +342,7 @@ class TabWidget(QTabWidget):
         qtutils.ensure_valid(url)
         return url
 
-    def update_tab_favicon(self, tab: QWidget):
+    def update_tab_favicon(self, tab: QWidget) -> None:
         """Update favicon of the given tab."""
         idx = self.indexOf(tab)
 
@@ -360,6 +389,7 @@ class TabBar(QTabBar):
         self._on_show_switching_delay_changed()
         self.setAutoFillBackground(True)
         self._set_colors()
+        self.drag_in_progress = False
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
@@ -370,7 +400,7 @@ class TabBar(QTabBar):
         return self.parent().currentWidget()
 
     @pyqtSlot(str)
-    def _on_config_changed(self, option: str):
+    def _on_config_changed(self, option: str) -> None:
         if option == 'fonts.tabs':
             self._set_font()
         elif option == 'tabs.favicons.scale':
@@ -483,8 +513,16 @@ class TabBar(QTabBar):
         p.setColor(QPalette.Window, config.val.colors.tabs.bar.bg)
         self.setPalette(p)
 
+    def mouseReleaseEvent(self, e):
+        """Override mouseReleaseEvent to know when drags stop."""
+        self.drag_in_progress = False
+        super().mouseReleaseEvent(e)
+
     def mousePressEvent(self, e):
-        """Override mousePressEvent to close tabs if configured."""
+        """Override mousePressEvent to close tabs if configured.
+
+        Also keep track of if we are currently in a drag."""
+        self.drag_in_progress = True
         button = config.val.tabs.close_mouse_button
         if (e.button() == Qt.RightButton and button == 'right' or
                 e.button() == Qt.MiddleButton and button == 'middle'):
@@ -505,7 +543,7 @@ class TabBar(QTabBar):
             return
         super().mousePressEvent(e)
 
-    def minimumTabSizeHint(self, index, ellipsis: bool = True) -> QSize:
+    def minimumTabSizeHint(self, index: int, ellipsis: bool = True) -> QSize:
         """Set the minimum tab size to indicator/icon/... text.
 
         Args:
@@ -550,19 +588,20 @@ class TabBar(QTabBar):
             return self.fontMetrics().size(Qt.TextShowMnemonic, text).width()
         text_width = min(_text_to_width(text),
                          _text_to_width(tab_text))
-        padding = config.val.tabs.padding
-        indicator_width = config.val.tabs.indicator.width
-        indicator_padding = config.val.tabs.indicator.padding
+        padding = config.cache['tabs.padding']
+        indicator_width = config.cache['tabs.indicator.width']
+        indicator_padding = config.cache['tabs.indicator.padding']
         padding_h = padding.left + padding.right
+
         # Only add padding if indicator exists
         if indicator_width != 0:
             padding_h += indicator_padding.left + indicator_padding.right
         height = self._minimum_tab_height()
         width = (text_width + icon_width +
                  padding_h + indicator_width)
-        min_width = config.val.tabs.min_width
+        min_width = config.cache['tabs.min_width']
         if (not self.vertical and min_width > 0 and
-                not pinned or not config.val.tabs.pinned.shrink):
+                not pinned or not config.cache['tabs.pinned.shrink']):
             width = max(min_width, width)
         return QSize(width, height)
 
@@ -576,9 +615,15 @@ class TabBar(QTabBar):
         if not 0 <= index < self.count():
             raise IndexError("Tab index ({}) out of range ({})!".format(
                 index, self.count()))
-        return self.parent().widget(index).data.pinned
 
-    def tabSizeHint(self, index: int):
+        widget = self.parent().widget(index)
+        if widget is None:
+            # This could happen when Qt calls tabSizeHint while initializing
+            # tabs.
+            return False
+        return widget.data.pinned
+
+    def tabSizeHint(self, index: int) -> QSize:
         """Override tabSizeHint to customize qb's tab size.
 
         https://wiki.python.org/moin/PyQt/Customising%20tab%20bars

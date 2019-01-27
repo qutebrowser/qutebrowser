@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ $DOCKER ]]; then
+if [[ -n $DOCKER ]]; then
     docker run \
            --privileged \
            -v "$PWD:/outside" \

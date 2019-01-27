@@ -41,7 +41,6 @@ class WebHistoryInterface(QWebHistoryInterface):
 
     def addHistoryEntry(self, url_string):
         """Required for a QWebHistoryInterface impl, obsoleted by add_url."""
-        pass
 
     @functools.lru_cache(maxsize=32768)
     def historyContains(self, url_string):

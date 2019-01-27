@@ -1,37 +1,26 @@
-sudo: false
-dist: trusty
+dist: xenial
 language: python
 group: edge
 python: 3.6
+os: linux
 
 matrix:
   include:
-    - os: linux
-      env: DOCKER=archlinux
+    - env: DOCKER=archlinux
       services: docker
-    - os: linux
-      env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
+    - env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
       services: docker
-    - os: linux
-      env: TESTENV=py36-pyqt571
-    - os: linux
-      python: 3.5
+    - env: TESTENV=py36-pyqt571
+    - python: 3.5
       env: TESTENV=py35-pyqt571
-    - os: linux
-      env: TESTENV=py36-pyqt59
-    - os: linux
-      env: TESTENV=py36-pyqt510
+    - env: TESTENV=py36-pyqt59
+    - env: TESTENV=py36-pyqt510
       addons:
         apt:
           packages:
           - xfonts-base
-    - os: linux
-      env: TESTENV=py36-pyqt511-cov
-    # https://github.com/travis-ci/travis-ci/issues/9069
-    - os: linux
-      python: 3.7
-      sudo: required
-      dist: xenial
+    - env: TESTENV=py36-pyqt511-cov
+    - python: 3.7
       env: TESTENV=py37-pyqt511
     - os: osx
       env: TESTENV=py37 OSX=sierra
@@ -41,38 +30,26 @@ matrix:
     # - os: osx
     #   env: TESTENV=py35 OSX=yosemite
     #   osx_image: xcode6.4
-    - os: linux
-      env: TESTENV=pylint PYTHON=python3.6
-    - os: linux
-      env: TESTENV=flake8
-    - os: linux
-      env: TESTENV=docs
+    - env: TESTENV=pylint
+    - env: TESTENV=flake8
+    - env: TESTENV=mypy
+    - env: TESTENV=docs
       addons:
          apt:
            packages:
            - asciidoc
-    - os: linux
-      env: TESTENV=vulture
-    - os: linux
-      env: TESTENV=misc
-    - os: linux
-      env: TESTENV=pyroma
-    - os: linux
-      env: TESTENV=check-manifest
-    - os: linux
-      env: TESTENV=eslint
+    - env: TESTENV=vulture
+    - env: TESTENV=misc
+    - env: TESTENV=pyroma
+    - env: TESTENV=check-manifest
+    - env: TESTENV=eslint
       language: node_js
       python: null
       node_js: "lts/*"
-    - os: linux
-      language: generic
+    - language: generic
       env: TESTENV=shellcheck
       services: docker
   fast_finish: true
-  allow_failures:
-    # https://github.com/qutebrowser/qutebrowser/issues/4055
-    - os: linux
-      env: TESTENV=py36-pyqt510
 
 cache:
   directories:
@@ -91,16 +68,3 @@ after_success:
 
 after_failure:
   - bash scripts/dev/ci/travis_backtrace.sh
-
-notifications:
-  webhooks:
-    - https://buildtimetrend.herokuapp.com/travis
-  irc:
-    channels:
-      - "chat.freenode.net#qutebrowser-dev"
-    on_success: always
-    on_failure: always
-    skip_join: true
-    template:
-      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
-      - "%{compare_url} - %{build_url}"

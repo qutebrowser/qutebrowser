@@ -116,9 +116,13 @@ class MouseEventFilter(QObject):
 
         self._ignore_wheel_event = True
 
+        pos = e.pos()
+        if pos.x() < 0 or pos.y() < 0:
+            log.mouse.warning("Ignoring invalid click at {}".format(pos))
+            return False
+
         if e.button() != Qt.NoButton:
-            self._tab.elements.find_at_pos(e.pos(),
-                                           self._mousepress_insertmode_cb)
+            self._tab.elements.find_at_pos(pos, self._mousepress_insertmode_cb)
 
         return False
 
@@ -236,7 +240,7 @@ class MouseEventFilter(QObject):
         evtype = event.type()
         if evtype not in self._handlers:
             return False
-        if obj is not self._tab.event_target():
+        if obj is not self._tab.private_api.event_target():
             log.mouse.debug("Ignoring {} to {}".format(
                 event.__class__.__name__, obj))
             return False

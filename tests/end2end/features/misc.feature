@@ -118,6 +118,16 @@ Feature: Various utility commands.
         Then the javascript message "Hello from the page!" should be logged
         And "No output or error" should be logged
 
+    @qtwebkit_skip
+    Scenario: :jseval using too high of a world
+        When I run :jseval --world=257 console.log("Hello from JS!");
+        Then the error "World ID should be between 0 and *" should be shown
+
+    @qtwebkit_skip
+    Scenario: :jseval using a negative world id
+        When I run :jseval --world=-1 console.log("Hello from JS!");
+        Then the error "World ID should be between 0 and *" should be shown
+
     Scenario: :jseval --file using a file that exists as js-code
         When I run :jseval --file (testdata)/misc/jseval_file.js
         Then the javascript message "Hello from JS!" should be logged
@@ -187,7 +197,7 @@ Feature: Various utility commands.
         # We can't use "When I open" because we don't want to wait for load
         # finished
         When I run :open http://localhost:(port)/redirect-later?delay=-1
-        And I wait for "emitting: cur_load_status_changed('loading') (tab *)" in the log
+        And I wait for "emitting: cur_load_status_changed(<LoadStatus.loading: *>) (tab *)" in the log
         And I wait 1s
         And I run :stop
         And I open redirect-later-continue in a new tab

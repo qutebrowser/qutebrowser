@@ -356,7 +356,10 @@ class QuteProc(testprocess.Process):
             self._focus_ready = True
         else:
             raise ValueError("Invalid value {!r} for 'what'.".format(what))
-        if self._load_ready and self._focus_ready:
+
+        is_qt_5_12 = qtutils.version_check('5.12', compiled=False)
+        if ((self._load_ready and self._focus_ready) or
+                (self._load_ready and is_qt_5_12)):
             self._load_ready = False
             self._focus_ready = False
             self.ready.emit()
@@ -667,7 +670,7 @@ class QuteProc(testprocess.Process):
         # \ and " in a value should be treated literally, so escape them
         value = value.replace('\\', r'\\')
         value = value.replace('"', '\\"')
-        self.send_cmd(':set "{}" "{}"'.format(option, value), escape=False)
+        self.send_cmd(':set -t "{}" "{}"'.format(option, value), escape=False)
         self.wait_for(category='config', message='Config option changed: *')
 
     @contextlib.contextmanager
@@ -778,7 +781,7 @@ class QuteProc(testprocess.Process):
                 data = f.read()
 
         self._log('\nCurrent session data:\n' + data)
-        return yaml.load(data)
+        return utils.yaml_load(data)
 
     def get_content(self, plain=True):
         """Get the contents of the current page."""
@@ -841,8 +844,6 @@ class QuteProc(testprocess.Process):
 class YamlLoader(yaml.SafeLoader):
 
     """Custom YAML loader used in compare_session."""
-
-    pass
 
 
 # Translate ... to ellipsis in YAML.

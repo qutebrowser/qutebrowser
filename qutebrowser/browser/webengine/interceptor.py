@@ -26,15 +26,15 @@ from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
 from qutebrowser.config import config
 from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log, debug
+from qutebrowser.extensions import interceptors
 
 
 class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
     """Handle ad blocking and custom headers."""
 
-    def __init__(self, host_blocker, args, parent=None):
+    def __init__(self, args, parent=None):
         super().__init__(parent)
-        self._host_blocker = host_blocker
         self._args = args
 
     def install(self, profile):
@@ -70,23 +70,24 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                                   resource_type, navigation_type))
 
         url = info.requestUrl()
-        firstparty = info.firstPartyUrl()
+        first_party = info.firstPartyUrl()
 
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):
-            if (firstparty != QUrl('qute://settings/') or
+            if (first_party != QUrl('qute://settings/') or
                     info.resourceType() !=
                     QWebEngineUrlRequestInfo.ResourceTypeXhr):
                 log.webview.warning("Blocking malicious request from {} to {}"
-                                    .format(firstparty.toDisplayString(),
+                                    .format(first_party.toDisplayString(),
                                             url.toDisplayString()))
                 info.block(True)
                 return
 
         # FIXME:qtwebengine only block ads for NavigationTypeOther?
-        if self._host_blocker.is_blocked(url):
-            log.webview.info("Request to {} blocked by host blocker.".format(
-                url.host()))
+        request = interceptors.Request(first_party_url=first_party,
+                                       request_url=url)
+        interceptors.run(request)
+        if request.is_blocked:
             info.block(True)
 
         for header, value in shared.custom_headers(url=url):

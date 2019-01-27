@@ -227,7 +227,7 @@ def test_temporary_files_failed_cleanup(caplog, qtbot, py_proc, runner):
 
     assert len(caplog.records) == 1
     expected = "Failed to delete tempfile"
-    assert caplog.records[0].message.startswith(expected)
+    assert caplog.messages[0].startswith(expected)
 
 
 def test_unicode_error(caplog, qtbot, py_proc, runner):
@@ -244,7 +244,7 @@ def test_unicode_error(caplog, qtbot, py_proc, runner):
 
     assert len(caplog.records) == 1
     expected = "Invalid unicode in userscript output: "
-    assert caplog.records[0].message.startswith(expected)
+    assert caplog.messages[0].startswith(expected)
 
 
 @pytest.mark.fake_os('unknown')

@@ -24,7 +24,8 @@ import os
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 
-from qutebrowser.utils import utils, javascript, jinja, qtutils, usertypes
+from qutebrowser.utils import (utils, javascript, jinja, qtutils, usertypes,
+                               standarddir, log)
 from qutebrowser.misc import objects
 from qutebrowser.config import config
 
@@ -53,9 +54,11 @@ def generate_pdfjs_page(filename, url):
         url: The URL being opened.
     """
     if not is_available():
+        pdfjs_dir = os.path.join(standarddir.data(), 'pdfjs')
         return jinja.render('no_pdfjs.html',
                             url=url.toDisplayString(),
-                            title="PDF.js not found")
+                            title="PDF.js not found",
+                            pdfjs_dir=pdfjs_dir)
     html = get_pdfjs_res('web/viewer.html').decode('utf-8')
 
     script = _generate_pdfjs_script(filename)
@@ -110,19 +113,6 @@ def _generate_pdfjs_script(filename):
             objects.backend == usertypes.Backend.QtWebEngine))
 
 
-SYSTEM_PDFJS_PATHS = [
-    # Debian pdf.js-common
-    # Arch Linux pdfjs (AUR)
-    '/usr/share/pdf.js/',
-    # Arch Linux pdf.js (AUR)
-    '/usr/share/javascript/pdf.js/',
-    # Debian libjs-pdf
-    '/usr/share/javascript/pdf/',
-    # fallback
-    os.path.expanduser('~/.local/share/qutebrowser/pdfjs/'),
-]
-
-
 def get_pdfjs_res_and_path(path):
     """Get a pdf.js resource in binary format.
 
@@ -137,11 +127,25 @@ def get_pdfjs_res_and_path(path):
     content = None
     file_path = None
 
+    system_paths = [
+        # Debian pdf.js-common
+        # Arch Linux pdfjs (AUR)
+        '/usr/share/pdf.js/',
+        # Arch Linux pdf.js (AUR)
+        '/usr/share/javascript/pdf.js/',
+        # Debian libjs-pdf
+        '/usr/share/javascript/pdf/',
+        # fallback
+        os.path.join(standarddir.data(), 'pdfjs'),
+        # hardcoded fallback for --temp-basedir
+        os.path.expanduser('~/.local/share/qutebrowser/pdfjs/'),
+    ]
+
     # First try a system wide installation
     # System installations might strip off the 'build/' or 'web/' prefixes.
     # qute expects them, so we need to adjust for it.
     names_to_try = [path, _remove_prefix(path)]
-    for system_path in SYSTEM_PDFJS_PATHS:
+    for system_path in system_paths:
         content, file_path = _read_from_system(system_path, names_to_try)
         if content is not None:
             break
@@ -152,6 +156,9 @@ def get_pdfjs_res_and_path(path):
         try:
             content = utils.read_file(res_path, binary=True)
         except FileNotFoundError:
+            raise PDFJSNotFound(path) from None
+        except OSError as e:
+            log.misc.warning("OSError while reading PDF.js file: {}".format(e))
             raise PDFJSNotFound(path) from None
 
     return content, file_path
@@ -200,7 +207,10 @@ def _read_from_system(system_path, names):
             full_path = os.path.join(system_path, name)
             with open(full_path, 'rb') as f:
                 return (f.read(), full_path)
-        except OSError:
+        except FileNotFoundError:
+            continue
+        except OSError as e:
+            log.misc.warning("OSError while reading PDF.js file: {}".format(e))
             continue
     return (None, None)
 

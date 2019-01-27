@@ -283,3 +283,9 @@ Feature: Searching on a page
         Then the following tabs should be open:
             - data/iframe_search.html
             - data/hello.txt (active)
+
+    Scenario: Closing a tab during a search
+        When I run :open -b about:blank
+        And I run :search a
+        And I run :tab-close
+        Then no crash should happen

@@ -25,7 +25,7 @@ import collections
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.utils import utils, log, message, usertypes
 
 
