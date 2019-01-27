@@ -55,6 +55,8 @@ Changed
 - The Wayland check for QtWebEngine is now disabled on Qt >= 5.11.2, as those
   versions should work without any issues.
 - The JavaScript `console` object is now available in PAC files.
+- The metainfo file `qutebrowser.appdata.xml` is now renamed to
+  `org.qutebrowser.qutebrowser.appdata.xml`.
 
 Fixed
 ~~~~~
