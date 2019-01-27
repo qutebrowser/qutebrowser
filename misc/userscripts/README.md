@@ -53,9 +53,10 @@ The following userscripts can be found on their own repositories.
 - [qtb.us](https://github.com/Chinggis6/qtb.us): small pack of userscripts.
 - [pinboard.zsh](https://github.com/dmix/pinboard.zsh): Add URL to your
   [Pinboard][] bookmark manager.
+- [qute-capture](https://github.com/alcah/qute-capture): Capture links with
+  Emacs's org-mode to a read-later file.
 
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
 [Instapaper]: https://www.instapaper.com/
 [Pinboard]: https://pinboard.in/
-

@@ -35,14 +35,10 @@ class ParseProxyError(Exception):
 
     """Error while parsing PAC result string."""
 
-    pass
-
 
 class EvalProxyError(Exception):
 
     """Error while evaluating PAC script."""
-
-    pass
 
 
 def _js_slot(*args):
@@ -183,6 +179,8 @@ class PACResolver:
             pac_str: JavaScript code containing PAC resolver.
         """
         self._engine = QJSEngine()
+
+        self._engine.installExtensions(QJSEngine.ConsoleExtension)
 
         self._ctx = _PACContext(self._engine)
         self._engine.globalObject().setProperty(

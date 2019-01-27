@@ -67,7 +67,6 @@ class FixedDataNetworkReply(QNetworkReply):
     @pyqtSlot()
     def abort(self):
         """Abort the operation."""
-        pass
 
     def bytesAvailable(self):
         """Determine the bytes available for being read.
@@ -123,7 +122,6 @@ class ErrorNetworkReply(QNetworkReply):
 
     def abort(self):
         """Do nothing since it's a fake reply."""
-        pass
 
     def bytesAvailable(self):
         """We always have 0 bytes available."""
@@ -151,7 +149,6 @@ class RedirectNetworkReply(QNetworkReply):
 
     def abort(self):
         """Called when there's e.g. a redirection limit."""
-        pass
 
     def readData(self, _maxlen):
         return bytes()

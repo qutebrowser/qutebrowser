@@ -31,7 +31,7 @@ from qutebrowser.browser.webkit import http, rfc6266
     'attachment; filename="{}"',
     'inline; {}',
     'attachment; {}="foo"',
-    'attachment; filename*=iso-8859-1''{}',
+    "attachment; filename*=iso-8859-1''{}",
     'attachment; filename*={}',
 ])
 @hypothesis.given(strategies.text(alphabet=[chr(x) for x in range(255)]))

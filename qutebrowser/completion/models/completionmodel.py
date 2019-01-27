@@ -22,7 +22,7 @@
 from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
 
 from qutebrowser.utils import log, qtutils
-from qutebrowser.commands import cmdexc
+from qutebrowser.api import cmdutils
 
 
 class CompletionModel(QAbstractItemModel):
@@ -224,7 +224,7 @@ class CompletionModel(QAbstractItemModel):
         cat = self._cat_from_idx(parent)
         assert cat, "CompletionView sent invalid index for deletion"
         if not cat.delete_func:
-            raise cmdexc.CommandError("Cannot delete this item.")
+            raise cmdutils.CommandError("Cannot delete this item.")
 
         data = [cat.data(cat.index(index.row(), i))
                 for i in range(cat.columnCount())]

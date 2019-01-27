@@ -28,7 +28,7 @@ from PyQt5.QtCore import QModelIndex
 
 from qutebrowser.completion.models import completionmodel, listcategory
 from qutebrowser.utils import qtutils
-from qutebrowser.commands import cmdexc
+from qutebrowser.api import cmdutils
 
 
 @hypothesis.given(strategies.lists(
@@ -102,7 +102,7 @@ def test_delete_cur_item_no_func():
     model.rowsRemoved.connect(callback)
     model.add_category(cat)
     parent = model.index(0, 0)
-    with pytest.raises(cmdexc.CommandError):
+    with pytest.raises(cmdutils.CommandError):
         model.delete_cur_item(model.index(0, 0, parent))
     callback.assert_not_called()
 
