@@ -57,6 +57,8 @@ Changed
 - The JavaScript `console` object is now available in PAC files.
 - The metainfo file `qutebrowser.appdata.xml` is now renamed to
   `org.qutebrowser.qutebrowser.appdata.xml`.
+- The `qute-pass` userscript now understands domains in gpg filenames
+  in addition to directory names.
 
 Fixed
 ~~~~~
@@ -71,7 +73,7 @@ Fixed
   `content.cookies.accept = no-3rdparty` from working properly on some pages
   like GMail. However, the default for `content.cookies.accept` is still `all`
   to be in line with what other browsers do.
-- `:navigate` not incrementing in anchors or queries or anchors.
+- `:navigate` not incrementing in anchors or queries.
 - Crash when trying to use a proxy requiring authentication with QtWebKit.
 - Slashes in search terms are now percent-escaped.
 - When `scrolling.bar = True` was set in versions before v1.5.0, this now
