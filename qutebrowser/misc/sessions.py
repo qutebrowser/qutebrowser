@@ -36,6 +36,7 @@ from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
+from qutebrowser.misc import throttle
 
 
 class Sentinel:

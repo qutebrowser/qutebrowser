@@ -22,7 +22,7 @@
 from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.misc.throttle import throttle
+from qutebrowser.misc import throttle
 
 
 class Percentage(textbase.TextBase):
@@ -36,7 +36,7 @@ class Percentage(textbase.TextBase):
         self.raw = False
 
     @pyqtSlot(int, int)
-    @throttle(100)
+    @throttle.throttle(100)
     def set_perc(self, x, y):  # pylint: disable=unused-argument
         """Setter to be used as a Qt slot.
 

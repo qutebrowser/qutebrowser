@@ -116,3 +116,41 @@ def test_throttle_delay_delay(qtbot):
 
     func.assert_called_once_with("bop")
     func.reset_mock()
+
+
+def test_throttle_cancel(qtbot):
+    func = mock.Mock()
+    throttled_func = throttle(100)(func)
+    throttled_func("foo")
+    throttled_func("foo")
+    throttled_func("foo")
+    throttled_func("bar")
+    func.assert_called_once_with("foo")
+    func.reset_mock()
+    throttled_func.throttle_cancel()
+
+    t = usertypes.Timer()
+    with qtbot.waitSignal(t.timeout, timeout=500):
+        t.start(150)
+
+    func.assert_not_called()
+    func.reset_mock()
+
+
+def test_throttle_set(qtbot):
+    func = mock.Mock()
+    throttled_func = throttle(1000)(func)
+    throttled_func.throttle_set(100)
+    throttled_func("foo")
+    throttled_func("foo")
+    throttled_func("foo")
+    throttled_func("bar")
+    func.assert_called_once_with("foo")
+    func.reset_mock()
+
+    t = usertypes.Timer()
+    with qtbot.waitSignal(t.timeout, timeout=500):
+        t.start(150)
+
+    func.assert_called_once_with("bar")
+    func.reset_mock()

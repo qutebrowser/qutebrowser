@@ -23,7 +23,7 @@ import typing
 import time
 import functools
 
-from PyQt5.QtCore import QTimer
+from qutebrowser.utils import usertypes
 
 
 class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
@@ -48,6 +48,8 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
         # if a call is pending.
         self._pending_call = False
         self._last_call_ms = None
+        self._timer = usertypes.Timer(None, 'throttle-timer')
+        self._timer.setSingleShot(True)
 
     def __call__(self, func: typing.Callable) -> typing.Callable:
         @functools.wraps(func)
@@ -67,13 +69,24 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
                     self._pending_call = False
                     self._last_call_ms = int(time.monotonic() * 1000)
 
-                QTimer.singleShot(
-                    self.throttle_ms - (cur_time_ms - self._last_call_ms),
-                    call_pending)
+                self._timer.setInterval(self.throttle_ms -
+                                        (cur_time_ms - self._last_call_ms))
+                # Disconnect any existing calls, continue if no connections.
+                try:
+                    self._timer.timeout.disconnect()
+                except TypeError:
+                    pass
+                self._timer.timeout.connect(call_pending)
+                self._timer.start()
             # Update arguments for an existing pending call
             self._pending_call = (args, kwargs)
         wrapped_fn.throttle_set = self.throttle_set  # type: ignore
+        wrapped_fn.throttle_cancel = self.throttle_cancel  # type: ignore
         return wrapped_fn
 
     def throttle_set(self, throttle_val: int) -> None:
         self.throttle_ms = throttle_val
+
+    def throttle_cancel(self) -> None:
+        """Cancel any pending instance of this timer."""
+        self._timer.stop()
