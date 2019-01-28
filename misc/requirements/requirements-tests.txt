@@ -11,7 +11,7 @@ coverage==4.5.2
 EasyProcess==0.2.5
 Flask==1.0.2
 glob2==0.6
-hunter==2.1.0
+hunter==2.2.1
 hypothesis==3.85.2
 itsdangerous==1.1.0
 # Jinja2==2.10
