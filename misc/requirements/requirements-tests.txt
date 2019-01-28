@@ -26,7 +26,7 @@ py-cpuinfo==4.0.0
 pytest==4.1.1
 pytest-bdd==3.0.1
 pytest-benchmark==3.2.2
-pytest-cov==2.6.0
+pytest-cov==2.6.1
 pytest-faulthandler==1.5.0
 pytest-instafail==0.4.0
 pytest-mock==1.10.0
