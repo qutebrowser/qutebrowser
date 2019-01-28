@@ -12,7 +12,7 @@ recursive-include scripts *.py *.sh *.js
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
 include LICENSE doc/* README.asciidoc
-include misc/qutebrowser.desktop
+include misc/org.qutebrowser.qutebrowser.desktop
 include misc/org.qutebrowser.qutebrowser.appdata.xml
 include misc/Makefile
 include requirements.txt
