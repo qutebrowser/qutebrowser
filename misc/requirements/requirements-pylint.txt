@@ -5,7 +5,7 @@ astroid==2.1.0
 certifi==2018.11.29
 cffi==1.11.5
 chardet==3.0.4
-cryptography==2.4.2
+cryptography==2.5
 github3.py==1.2.0
 idna==2.8
 isort==4.3.4
