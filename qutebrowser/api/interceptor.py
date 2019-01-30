@@ -24,7 +24,11 @@ from qutebrowser.extensions import interceptors
 from qutebrowser.extensions.interceptors import Request
 
 
-def register(interceptor: interceptors.InterceptorType) -> None:
+#: Type annotation for an interceptor function.
+InterceptorType = interceptors.InterceptorType
+
+
+def register(interceptor: InterceptorType) -> None:
     """Register a request interceptor.
 
     Whenever a request happens, the interceptor gets called with a

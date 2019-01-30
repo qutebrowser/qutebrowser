@@ -47,6 +47,7 @@ class Request:
         self.is_blocked = True
 
 
+#: Type annotation for an interceptor function.
 InterceptorType = typing.Callable[[Request], None]
 
 

@@ -943,6 +943,10 @@ class AbstractTab(QWidget):
         evt.posted = True
         QApplication.postEvent(recipient, evt)
 
+    def navigation_blocked(self) -> bool:
+        """Test if navigation is allowed on the current tab."""
+        return self.data.pinned and config.val.tabs.pinned.frozen
+
     @pyqtSlot(QUrl)
     def _on_before_load_started(self, url: QUrl) -> None:
         """Adjust the title if we are going to visit a URL soon."""
