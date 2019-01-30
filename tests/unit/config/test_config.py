@@ -712,6 +712,9 @@ class TestConfig:
         conf.set_obj('content.headers.user_agent', strings[case])
         benchmark(functools.partial(conf.get, 'content.headers.user_agent'))
 
+    def test_get_dict_benchmark(self, conf, qtbot, benchmark):
+        benchmark(functools.partial(conf.get, 'bindings.default'))
+
 
 class TestContainer:
 
