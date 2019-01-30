@@ -31,7 +31,7 @@ from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configdata
+from qutebrowser.config import config, configdata, configtypes
 from qutebrowser.misc import consolewidget
 from qutebrowser.utils.version import pastebin_version
 from qutebrowser.qt import sip
@@ -140,12 +140,16 @@ def debug_cache_stats():
     # pylint: disable=protected-access
     tab_bar = tabbed_browser.widget.tabBar()
     tabbed_browser_info = tab_bar._minimum_tab_size_hint_helper.cache_info()
+
+    str_validation_info = (configtypes.BaseType.
+                           _basic_str_validation_cache.cache_info())
     # pylint: enable=protected-access
 
     log.misc.info('is_valid_prefix: {}'.format(prefix_info))
     log.misc.info('_render_stylesheet: {}'.format(render_stylesheet_info))
     log.misc.info('history: {}'.format(history_info))
     log.misc.info('tab width cache: {}'.format(tabbed_browser_info))
+    log.misc.info('str validation cache: {}'.format(str_validation_info))
 
 
 @cmdutils.register(debug=True)
