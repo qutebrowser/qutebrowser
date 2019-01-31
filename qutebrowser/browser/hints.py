@@ -76,6 +76,8 @@ class HintLabel(QLabel):
         }
     """
 
+    HINT_CACHE_MIN_ELT = 500
+
     # Objects which are currently not used but can be reused by calling _reset
     _object_pool = []
 
@@ -154,9 +156,10 @@ class HintLabel(QLabel):
             active_object_peak_count = HintLabel._active_object_peak_count
 
             # Shrink the object pool if it is not used for the last 5 peaks
-            # and it has more than 500 elements
-            if len(HintLabel._object_pool) > 500:
-                del HintLabel._object_pool[max(active_object_peak_count):]
+            # and it has more than HINT_CACHE_MIN elements
+            if len(HintLabel._object_pool) > HintLabel.HINT_CACHE_MIN_ELT:
+                del HintLabel._object_pool[min(HintLabel.HINT_CACHE_MIN_ELT,
+                                               max(active_object_peak_count)):]
 
             active_object_peak_count.append(0)
             if len(active_object_peak_count) > 5:
