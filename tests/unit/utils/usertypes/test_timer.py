@@ -29,8 +29,6 @@ class Parent(QObject):
 
     """Class for test_parent()."""
 
-    pass
-
 
 def test_parent():
     """Make sure the parent is set correctly."""

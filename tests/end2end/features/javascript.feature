@@ -124,9 +124,9 @@ Feature: Javascript stuff
     # https://github.com/qutebrowser/qutebrowser/issues/1190
     # https://github.com/qutebrowser/qutebrowser/issues/2495
 
-    # Currently broken on Windows:
+    # Currently broken on Windows and on Qt 5.12
     # https://github.com/qutebrowser/qutebrowser/issues/4230
-    @posix
+    @posix @qt<5.12
     Scenario: Checking visible/invisible window size
         When I run :tab-only
         And I open data/javascript/windowsize.html in a new background tab
@@ -134,7 +134,7 @@ Feature: Javascript stuff
         And I run :tab-next
         Then the window sizes should be the same
 
-    @flaky
+    @flaky @qt<5.12
     Scenario: Checking visible/invisible window size with vertical tabbar
         When I run :tab-only
         And I set tabs.position to left
@@ -188,6 +188,7 @@ Feature: Javascript stuff
         And I open 500 without waiting
         Then "Showing error page for* 500" should be logged
 
+    @flaky
     Scenario: Using JS after window.open
         When I open data/hello.txt
         And I set content.javascript.can_open_tabs_automatically to true
