@@ -30,11 +30,9 @@ from qutebrowser.browser import shared
     (False, None, {}, {b'DNT': b'0'}),
     (None, None, {}, {}),
     # Accept-Language
-    (False, 'de, en', {}, {b'DNT': b'0',
-                           b'Accept-Language': b'de, en'}),
+    (False, 'de, en', {}, {b'DNT': b'0', b'Accept-Language': b'de, en'}),
     # Custom headers
-    (False, None, {'X-Qute': 'yes'}, {b'DNT': b'0',
-                                      b'X-Qute': b'yes'}),
+    (False, None, {'X-Qute': 'yes'}, {b'DNT': b'0', b'X-Qute': b'yes'}),
     # Mixed
     (False, 'de, en', {'X-Qute': 'yes'}, {b'DNT': b'0',
                                           b'Accept-Language': b'de, en',
