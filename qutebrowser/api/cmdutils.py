@@ -17,7 +17,37 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utilities for command handlers."""
+"""qutebrowser has the concept of functions, exposed to the user as commands.
+
+Creating a new command is straightforward::
+
+  from qutebrowser.api import cmdutils
+
+  @cmdutils.register(...)
+  def foo():
+      ...
+
+The commands arguments are automatically deduced by inspecting your function.
+
+The types of the function arguments are inferred based on their default values,
+e.g., an argument `foo=True` will be converted to a flag `-f`/`--foo` in
+qutebrowser's commandline.
+
+The type can be overridden using Python's function annotations::
+
+  @cmdutils.register(...)
+  def foo(bar: int, baz=True):
+      ...
+
+Possible values:
+
+- A callable (``int``, ``float``, etc.): Gets called to validate/convert the
+  value.
+- A python enum type: All members of the enum are possible values.
+- A ``typing.Union`` of multiple types above: Any of these types are valid
+  values, e.g., ``typing.Union[str, int]``.
+"""
+
 
 import inspect
 import typing
@@ -33,15 +63,17 @@ class CommandError(cmdexc.Error):
     """Raised when a command encounters an error while running.
 
     If your command handler encounters an error and cannot continue, raise this
-    exception with an appropriate error message:
+    exception with an appropriate error message::
 
         raise cmdexc.CommandError("Message")
 
     The message will then be shown in the qutebrowser status bar.
 
-    Note that you should only raise this exception while a command handler is
-    run. Raising it at another point causes qutebrowser to crash due to an
-    unhandled exception.
+    .. note::
+
+       You should only raise this exception while a command handler is run.
+       Raising it at another point causes qutebrowser to crash due to an
+       unhandled exception.
     """
 
 
@@ -76,13 +108,7 @@ def check_exclusive(flags: typing.Iterable[bool],
 
 class register:  # noqa: N801,N806 pylint: disable=invalid-name
 
-    """Decorator to register a new command handler.
-
-    Attributes:
-        _instance: The object from the object registry to be used as "self".
-        _name: The name (as string) or names (as list) of the command.
-        _kwargs: The arguments to pass to Command.
-    """
+    """Decorator to register a new command handler."""
 
     def __init__(self, *,
                  instance: str = None,
@@ -95,8 +121,11 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
         Args:
             See class attributes.
         """
+        # The object from the object registry to be used as "self".
         self._instance = instance
+        # The name (as string) or names (as list) of the command.
         self._name = name
+        # The arguments to pass to Command.
         self._kwargs = kwargs
 
     def __call__(self, func: typing.Callable) -> typing.Callable:
@@ -127,16 +156,50 @@ class register:  # noqa: N801,N806 pylint: disable=invalid-name
 
 class argument:  # noqa: N801,N806 pylint: disable=invalid-name
 
-    """Decorator to customize an argument for @cmdutils.register.
+    """Decorator to customize an argument.
 
-    Attributes:
-        _argname: The name of the argument to handle.
-        _kwargs: Keyword arguments, valid ArgInfo members
+    You can customize how an argument is handled using the
+    ``@cmdutils.argument`` decorator *after* ``@cmdutils.register``. This can,
+    for example, be used to customize the flag an argument should get::
+
+      @cmdutils.register(...)
+      @cmdutils.argument('bar', flag='c')
+      def foo(bar):
+          ...
+
+    For a ``str`` argument, you can restrict the allowed strings using
+    ``choices``::
+
+      @cmdutils.register(...)
+      @cmdutils.argument('bar', choices=['val1', 'val2'])
+      def foo(bar: str):
+          ...
+
+    For ``typing.Union`` types, the given ``choices`` are only checked if other
+    types (like ``int``) don't match.
+
+    The following arguments are supported for ``@cmdutils.argument``:
+
+    - ``flag``: Customize the short flag (``-x``) the argument will get.
+    - ``value``: Tell qutebrowser to fill the argument with special values:
+
+      * ``value=cmdutils.Value.count``: The ``count`` given by the user to the
+        command.
+      * ``value=cmdutils.Value.win_id``: The window ID of the current window.
+      * ``value=cmdutils.Value.cur_tab``: The tab object which is currently
+        focused.
+
+    - ``completion``: A completion function to use when completing arguments
+      for the given command.
+    - ``choices``: The allowed string choices for the argument.
+
+    The name of an argument will always be the parameter name, with any
+    trailing underscores stripped and underscores replaced by dashes.
     """
 
     def __init__(self, argname: str, **kwargs: typing.Any) -> None:
-        self._argname = argname
-        self._kwargs = kwargs
+        self._argname = argname   # The name of the argument to handle.
+        self._kwargs = kwargs  # Valid ArgInfo members.
 
     def __call__(self, func: typing.Callable) -> typing.Callable:
         funcname = func.__name__

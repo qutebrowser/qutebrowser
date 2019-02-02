@@ -86,7 +86,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
                 not configdata.is_valid_prefix(self._option)):
             raise configexc.NoOptionError(self._option)
 
-    def _check_match(self, option: typing.Optional[str]) -> bool:
+    def check_match(self, option: typing.Optional[str]) -> bool:
         """Check if the given option matches the filter."""
         if option is None:
             # Called directly, not from a config change event.
@@ -119,7 +119,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
             @functools.wraps(func)
             def func_wrapper(option: str = None) -> typing.Any:
                 """Call the underlying function."""
-                if self._check_match(option):
+                if self.check_match(option):
                     return func()
                 return None
             return func_wrapper
@@ -128,7 +128,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
             def meth_wrapper(wrapper_self: typing.Any,
                              option: str = None) -> typing.Any:
                 """Call the underlying function."""
-                if self._check_match(option):
+                if self.check_match(option):
                     return func(wrapper_self)
                 return None
             return meth_wrapper

@@ -25,7 +25,7 @@ DATA: A dict of Option objects after init() has been called.
 """
 
 import typing
-from typing import Optional  # pylint: disable=unused-import
+from typing import Optional  # pylint: disable=unused-import,useless-suppression
 import functools
 
 import attr

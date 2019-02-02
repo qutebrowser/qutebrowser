@@ -11,7 +11,7 @@ flake8-deprecated==1.3
 flake8-docstrings==1.3.0
 flake8-future-import==0.4.5
 flake8-mock==0.3
-flake8-per-file-ignores==0.6
+flake8-per-file-ignores==0.7
 flake8-polyfill==1.0.2
 flake8-string-format==0.2.3
 flake8-tidy-imports==1.1.0
@@ -22,6 +22,6 @@ pep8-naming==0.7.0
 pycodestyle==2.4.0
 pydocstyle==3.0.0
 pyflakes==2.0.0
-six==1.11.0
+six==1.12.0
 snowballstemmer==1.2.1
 typing==3.6.6

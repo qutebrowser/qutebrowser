@@ -24,3 +24,4 @@ from qutebrowser.browser.browsertab import WebTabError, AbstractTab as Tab
 from qutebrowser.browser.webelem import (Error as WebElemError,
                                          AbstractWebElement as WebElement)
 from qutebrowser.utils.usertypes import ClickTarget, JsWorld
+from qutebrowser.extensions.loader import InitContext

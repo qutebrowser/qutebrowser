@@ -60,10 +60,8 @@ def init():
     _qute_scheme_handler.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing request interceptor...")
-    host_blocker = objreg.get('host-blocker')
     args = objreg.get('args')
-    req_interceptor = interceptor.RequestInterceptor(
-        host_blocker, args=args, parent=app)
+    req_interceptor = interceptor.RequestInterceptor(args=args, parent=app)
     req_interceptor.install(webenginesettings.default_profile)
     req_interceptor.install(webenginesettings.private_profile)
 
