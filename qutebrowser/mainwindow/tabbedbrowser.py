@@ -597,7 +597,7 @@ class TabbedBrowser(QWidget):
         else:
             log.modes.debug("Ignoring leave_on_load request due to setting.")
         modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                        'load started', maybe=True)
+                      'load started', maybe=True)
 
     @pyqtSlot(browsertab.AbstractTab, str)
     def on_title_changed(self, tab, text):

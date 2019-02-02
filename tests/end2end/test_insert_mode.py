@@ -92,7 +92,8 @@ def test_auto_leave_insert_mode_reload(quteproc, leave_on_load):
     url_path = 'data/hello.txt'
     quteproc.open_path(url_path)
 
-    quteproc.set_setting('input.insert_mode.leave_on_load', str(leave_on_load).lower())
+    quteproc.set_setting('input.insert_mode.leave_on_load',
+                         str(leave_on_load).lower())
     quteproc.send_cmd(':enter-mode insert')
     quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
     quteproc.send_cmd(':reload')
