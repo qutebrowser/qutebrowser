@@ -42,12 +42,12 @@ from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None
+    qWebKitVersion = None  # type: ignore
 
 try:
     from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 except ImportError:  # pragma: no cover
-    QWebEngineProfile = None
+    QWebEngineProfile = None  # type: ignore
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message
@@ -335,7 +335,8 @@ def _chromium_version():
              5.11.2: Security fixes up to 68.0.3440.75 (2018-07-24)
 
     Qt 5.12: Chromium 69
-             current 5.12 branch: 69.0.3497.70 (2018-09-11)
+             69.0.3497.128 (~2018-09-17)
+             5.12.0: Security fixes up to 70.0.3538.67 (2018-10-16)
 
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/

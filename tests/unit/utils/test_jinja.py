@@ -109,8 +109,8 @@ def test_not_found(caplog):
         data = jinja.render('does_not_exist.html')
     assert "The does_not_exist.html template could not be found!" in data
 
-    assert caplog.records[0].msg.startswith("The does_not_exist.html template"
-                                            " could not be loaded from")
+    assert caplog.messages[0].startswith("The does_not_exist.html template"
+                                         " could not be loaded from")
 
 
 def test_utf8():

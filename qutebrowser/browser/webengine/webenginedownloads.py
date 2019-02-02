@@ -117,8 +117,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _get_open_filename(self):
         return self._filename
 
-    def _set_fileobj(self, fileobj, *,
-                     autoclose=True):  # pylint: disable=unused-argument
+    def _set_fileobj(self, fileobj, *, autoclose=True):
         raise downloads.UnsupportedOperationError
 
     def _set_tempfile(self, fileobj):

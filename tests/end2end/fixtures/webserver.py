@@ -82,7 +82,8 @@ class Request(testprocess.Line):
         for i in range(15):
             path_to_statuses['/redirect/{}'.format(i)] = [HTTPStatus.FOUND]
         for suffix in ['', '1', '2', '3', '4', '5', '6']:
-            key = '/basic-auth/user{}/password{}'.format(suffix, suffix)
+            key = ('/basic-auth/user{suffix}/password{suffix}'
+                   .format(suffix=suffix))
             path_to_statuses[key] = [HTTPStatus.UNAUTHORIZED, HTTPStatus.OK]
 
         default_statuses = [HTTPStatus.OK, HTTPStatus.NOT_MODIFIED]

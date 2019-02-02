@@ -241,6 +241,12 @@ class FakeWebTabAudio(browsertab.AbstractAudio):
         return False
 
 
+class FakeWebTabPrivate(browsertab.AbstractTabPrivate):
+
+    def shutdown(self):
+        pass
+
+
 class FakeWebTab(browsertab.AbstractTab):
 
     """Fake AbstractTab to use in tests."""
@@ -249,7 +255,7 @@ class FakeWebTab(browsertab.AbstractTab):
                  scroll_pos_perc=(0, 0),
                  load_status=usertypes.LoadStatus.success,
                  progress=0, can_go_back=None, can_go_forward=None):
-        super().__init__(win_id=0, mode_manager=None, private=False)
+        super().__init__(win_id=0, private=False)
         self._load_status = load_status
         self._title = title
         self._url = url
@@ -258,10 +264,11 @@ class FakeWebTab(browsertab.AbstractTab):
                                          can_go_forward=can_go_forward)
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
         self.audio = FakeWebTabAudio(self)
+        self.private_api = FakeWebTabPrivate(tab=self, mode_manager=None)
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
 
-    def url(self, requested=False):
+    def url(self, *, requested=False):
         assert not requested
         return self._url
 
@@ -273,9 +280,6 @@ class FakeWebTab(browsertab.AbstractTab):
 
     def load_status(self):
         return self._load_status
-
-    def shutdown(self):
-        pass
 
     def icon(self):
         return QIcon()
@@ -306,7 +310,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do some sanity
         checking on the slot.
         """
-        pass
 
     def disconnect(self, slot=None):
         """Disconnect the signal from a slot.
@@ -314,7 +317,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do some sanity
         checking on the slot and see if it actually got connected.
         """
-        pass
 
     def emit(self, *args):
         """Emit the signal.
@@ -322,15 +324,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do type checking based
         on a signature given to __init__.
         """
-        pass
-
-
-@attr.s
-class FakeCmdUtils:
-
-    """Stub for cmdutils which provides a cmd_dict."""
-
-    cmd_dict = attr.ib()
 
 
 @attr.s(frozen=True)
@@ -457,8 +450,6 @@ class BookmarkManagerStub(UrlMarkManagerStub):
 
     """Stub for the bookmark-manager object."""
 
-    pass
-
 
 class QuickmarkManagerStub(UrlMarkManagerStub):
 
@@ -466,17 +457,6 @@ class QuickmarkManagerStub(UrlMarkManagerStub):
 
     def quickmark_del(self, key):
         self.delete(key)
-
-
-class HostBlockerStub:
-
-    """Stub for the host-blocker object."""
-
-    def __init__(self):
-        self.blocked_hosts = set()
-
-    def is_blocked(self, url, first_party_url=None):
-        return url in self.blocked_hosts
 
 
 class SessionManagerStub:
@@ -501,7 +481,8 @@ class TabbedBrowserStub(QObject):
         super().__init__(parent)
         self.widget = TabWidgetStub()
         self.shutting_down = False
-        self.opened_url = None
+        self.loaded_url = None
+        self.cur_url = None
 
     def on_tab_close_requested(self, idx):
         del self.widget.tabs[idx]
@@ -510,10 +491,15 @@ class TabbedBrowserStub(QObject):
         return self.widget.tabs
 
     def tabopen(self, url):
-        self.opened_url = url
+        self.loaded_url = url
 
-    def openurl(self, url, *, newtab):
-        self.opened_url = url
+    def load_url(self, url, *, newtab):
+        self.loaded_url = url
+
+    def current_url(self):
+        if self.current_url is None:
+            raise ValueError("current_url got called with cur_url None!")
+        return self.cur_url
 
 
 class TabWidgetStub(QObject):

@@ -82,14 +82,14 @@ def test_generate_pdfjs_script_disable_object_url(monkeypatch,
     if qt == 'new':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True:
-                            False if version == '5.7.1' else True)
+                            version != '5.7.1')
     elif qt == 'old':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True: False)
     elif qt == '5.7':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True:
-                            True if version == '5.7.1' else False)
+                            version == '5.7.1')
     else:
         raise utils.Unreachable
 
@@ -154,9 +154,8 @@ class TestResources:
                                match="Path 'web/test' not found"):
                 pdfjs.get_pdfjs_res_and_path('web/test')
 
-        assert len(caplog.records) == 1
-        rec = caplog.records[0]
-        assert rec.message == 'OSError while reading PDF.js file: Message'
+        expected = 'OSError while reading PDF.js file: Message'
+        assert caplog.messages == [expected]
 
 
 @pytest.mark.parametrize('path, expected', [
@@ -204,8 +203,8 @@ def test_read_from_system_oserror(tmpdir, caplog):
         assert pdfjs._read_from_system(str(tmpdir), ['unreadable']) == expected
 
     assert len(caplog.records) == 1
-    rec = caplog.records[0]
-    assert rec.message.startswith('OSError while reading PDF.js file:')
+    message = caplog.messages[0]
+    assert message.startswith('OSError while reading PDF.js file:')
 
 
 @pytest.mark.parametrize('available', [True, False])

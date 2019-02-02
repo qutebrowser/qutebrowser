@@ -50,7 +50,7 @@ class TestWebengineScripts:
             webengine_scripts._inject_greasemonkey_scripts(scripts)
 
         assert len(caplog.records) == 1
-        msg = caplog.records[0].message
+        msg = caplog.messages[0]
         assert "has invalid value for '@qute-js-world': Mars" in msg
         collection = webengine_scripts._widget.page().scripts().toList()
         assert not any(script.name().startswith('GM-')
@@ -69,7 +69,7 @@ class TestWebengineScripts:
             webengine_scripts._inject_greasemonkey_scripts(scripts)
 
         assert len(caplog.records) == 1
-        msg = caplog.records[0].message
+        msg = caplog.messages[0]
         assert "has invalid value for '@qute-js-world': " in msg
         assert "should be between 0 and" in msg
         collection = webengine_scripts._widget.page().scripts().toList()
