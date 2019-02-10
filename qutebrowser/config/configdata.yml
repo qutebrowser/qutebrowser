@@ -379,7 +379,9 @@ content.developer_extras:
 content.dns_prefetch:
   default: true
   type: Bool
-  backend: QtWebKit
+  backend:
+    QtWebKit: true
+    QtWebEngine: Qt 5.12
   supports_pattern: true
   desc: Try to pre-fetch DNS entries to speed up browsing.
 
