@@ -14,7 +14,7 @@ lazy-object-proxy==1.3.1
 mccabe==0.6.1
 pycparser==2.19
 pylint==2.2.2
-python-dateutil==2.7.5
+python-dateutil==2.8.0
 ./scripts/dev/pylint_checkers
 requests==2.21.0
 six==1.12.0
