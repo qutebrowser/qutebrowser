@@ -19,7 +19,7 @@ flake8-tuple==0.2.13
 mccabe==0.6.1
 pathmatch==0.2.1
 pep8-naming==0.8.2
-pycodestyle==2.4.0
+pycodestyle==2.5.0
 pydocstyle==3.0.0
 pyflakes==2.0.0
 six==1.12.0
