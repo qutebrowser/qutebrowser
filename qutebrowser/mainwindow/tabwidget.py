@@ -381,6 +381,7 @@ class TabWidget(QTabWidget):
 
         # positions cannot be changed before setting the title
         self.update_tree_tab_positions('insertTab')
+        self.update_tab_titles()
 
         return new_idx
 
