@@ -1782,7 +1782,7 @@ class CommandDispatcher:
                 self._tabbed_browser.widget.update_tree_tab_positions('command: tree_tab_demote')
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tree_tab_rotate_up(self):
+    def tree_tab_rotate(self, direction):
         """Tets
 
         Args:
@@ -1793,7 +1793,12 @@ class CommandDispatcher:
         siblings = list(parent.children)
 
         if siblings:
-            siblings.append(siblings.pop(0))
+            if direction == 'up':
+                siblings.append(siblings.pop(0))
+            elif direction == 'down':
+                siblings.insert(0, siblings.pop())
+            else:
+              raise cmdutils.CommandError("direction should be 'up' or 'down'")
 
             parent.children = siblings
 
