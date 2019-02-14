@@ -510,7 +510,7 @@ class TabbedBrowser(QWidget):
         # this was necessary to remove otherwise it was making a hell of a mess in tree structure
         # if idx is None:
         #     idx = self._get_new_tab_idx(explicit)
-        idx = self._get_new_tab_idx(explicit)
+        idx = self._get_new_tab_idx(related)
 
         self.widget.insertTab(idx, tab, "")
 
