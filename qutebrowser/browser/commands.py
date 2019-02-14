@@ -1812,6 +1812,6 @@ class CommandDispatcher:
             # we want upper tab in the same subtree as current node
             node_idx = siblings.index(cur_node)
 
-            next_node = siblings[node_idx+1]
+            next_node = siblings[node_idx+1 if node_idx+1 < len(siblings) else 0]
 
-            self._set_current_index(self._tabbed_browser.indexOf(next_node.name))
+            self._set_current_index(self._tabbed_browser.widget.indexOf(next_node.name))
