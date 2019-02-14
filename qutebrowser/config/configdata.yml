@@ -2712,6 +2712,12 @@ bindings.default:
       tIH: config-cycle -p -u *://*.{url:host}/* content.images ;; reload
       tiu: config-cycle -p -t -u {url} content.images ;; reload
       tIu: config-cycle -p -u {url} content.images ;; reload
+      zp: tree-tab-promote
+      zd: tree-tab-demote
+      zr: tree-tab-rotate up
+      zR: tree-tab-rotate down
+      zf: tree-tab-navigate-on-same-level next
+      zb: tree-tab-navigate-on-same-level prev
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text {primary}
