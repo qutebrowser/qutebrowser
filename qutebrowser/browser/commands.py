@@ -1800,7 +1800,7 @@ class CommandDispatcher:
         self._tabbed_browser.widget.update_tree_tab_positions('command: tree_tab_rotate_up')
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tree_tab_next_on_same_level(self):
+    def tree_tab_navigate_on_same_level(self, direction):
 
         cur_node = self._current_widget().node
 
@@ -1811,7 +1811,14 @@ class CommandDispatcher:
 
             # we want upper tab in the same subtree as current node
             node_idx = siblings.index(cur_node)
+            if direction == 'next':
+                diff = 1
+            elif direction == 'prev' or direction == 'previous':
+                diff = -1
+            else:
+              raise cmdutils.CommandError("direction should be 'next' or 'prev'")
 
-            next_node = siblings[node_idx+1 if node_idx+1 < len(siblings) else 0]
+            target_node = siblings[node_idx+diff \
+                                   if node_idx+diff < len(siblings) else 0]
 
-            self._set_current_index(self._tabbed_browser.widget.indexOf(next_node.name))
+            self._set_current_index(self._tabbed_browser.widget.indexOf(target_node.name))
