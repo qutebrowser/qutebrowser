@@ -40,6 +40,11 @@ window._qutebrowser.stylesheet = (function() {
     // then move the stylesheet to the end. Partially inspired by Stylus:
     // https://github.com/openstyles/stylus/blob/1.1.4.2/content/apply.js#L235-L355
     function watch_root() {
+        if (!document.documentElement) {
+            root_observer.observe(document, {"childList": true});
+            return;
+        }
+
         if (root_elem !== document.documentElement) {
             root_elem = document.documentElement;
             root_observer.disconnect();
@@ -53,7 +58,8 @@ window._qutebrowser.stylesheet = (function() {
 
     function create_style() {
         let ns = xhtml_ns;
-        if (document.documentElement.namespaceURI === svg_ns) {
+        if (document.documentElement &&
+            document.documentElement.namespaceURI === svg_ns) {
             ns = svg_ns;
         }
         style_elem = document.createElementNS(ns, "style");
