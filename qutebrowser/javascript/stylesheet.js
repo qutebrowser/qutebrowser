@@ -58,7 +58,8 @@ window._qutebrowser.stylesheet = (function() {
 
     function create_style() {
         let ns = xhtml_ns;
-        if (document.documentElement && document.documentElement.namespaceURI === svg_ns) {
+        if (document.documentElement &&
+            document.documentElement.namespaceURI === svg_ns) {
             ns = svg_ns;
         }
         style_elem = document.createElementNS(ns, "style");
