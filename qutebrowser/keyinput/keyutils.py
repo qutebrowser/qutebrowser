@@ -246,7 +246,10 @@ def _parse_keystring(keystr):
                 yield '>'
                 assert not key, key
         elif c == '<':
-            special = True
+            if special:
+                key += c
+            else:
+                special = True
         elif special:
             key += c
         else:
