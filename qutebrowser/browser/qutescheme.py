@@ -32,6 +32,7 @@ import textwrap
 import urllib
 import collections
 import base64
+import os.path
 
 try:
     import secrets
@@ -348,7 +349,7 @@ def _asciidoc_fallback_path(html_path):
 
     for path in asciidoc_paths:
         try:
-            return utils.read_file(path)
+            return utils.read_file(os.path.normpath(path))
         except OSError:
             pass
 
