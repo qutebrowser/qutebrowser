@@ -30,6 +30,7 @@ import datetime
 import traceback
 import functools
 import contextlib
+import posixpath
 import socket
 import shlex
 import glob
@@ -165,6 +166,9 @@ def read_file(filename, binary=False):
     Return:
         The file contents as string.
     """
+    assert not posixpath.isabs(filename), filename
+    assert os.path.pardir not in filename.split(posixpath.sep), filename
+
     if not binary and filename in _resource_cache:
         return _resource_cache[filename]
 
