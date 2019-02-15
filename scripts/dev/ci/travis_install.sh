@@ -71,7 +71,7 @@ EOF
 
 set -e
 
-if [[ $DOCKER ]]; then
+if [[ -n $DOCKER ]]; then
     exit 0
 elif [[ $TRAVIS_OS_NAME == osx ]]; then
     # Disable App Nap

@@ -25,6 +25,7 @@ Added
   opened from a page should stack on each other or not.
 - New `completion.open_categories` setting which allows to configure which
   categories are shown in the `:open` completion, and how they are ordered.
+- New `tabs.pinned.frozen` setting to allow/deny navigating in pinned tabs.
 - New config manipulation commands:
   * `:config-dict-add` and `:config-list-add` to a new element to a dict/list
     setting.
@@ -53,6 +54,11 @@ Changed
 - Various small performance improvements for hints and the completion.
 - The Wayland check for QtWebEngine is now disabled on Qt >= 5.11.2, as those
   versions should work without any issues.
+- The JavaScript `console` object is now available in PAC files.
+- The metainfo file `qutebrowser.appdata.xml` is now renamed to
+  `org.qutebrowser.qutebrowser.appdata.xml`.
+- The `qute-pass` userscript now understands domains in gpg filenames
+  in addition to directory names.
 
 Fixed
 ~~~~~
@@ -67,9 +73,13 @@ Fixed
   `content.cookies.accept = no-3rdparty` from working properly on some pages
   like GMail. However, the default for `content.cookies.accept` is still `all`
   to be in line with what other browsers do.
-- `:navigate` not incrementing in anchors or queries or anchors.
+- `:navigate` not incrementing in anchors or queries.
 - Crash when trying to use a proxy requiring authentication with QtWebKit.
 - Slashes in search terms are now percent-escaped.
+- When `scrolling.bar = True` was set in versions before v1.5.0, this now
+  correctly gets migrated to `always` instead of `when-searching`.
+- Completion highlighting now works again on Qt 5.11.3 and 5.12.1.
+- The outdated header `X-Do-Not-Track` is no longer sent.
 
 v1.5.2
 ------

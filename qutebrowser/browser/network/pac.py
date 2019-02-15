@@ -180,6 +180,8 @@ class PACResolver:
         """
         self._engine = QJSEngine()
 
+        self._engine.installExtensions(QJSEngine.ConsoleExtension)
+
         self._ctx = _PACContext(self._engine)
         self._engine.globalObject().setProperty(
             "PAC", self._engine.newQObject(self._ctx))

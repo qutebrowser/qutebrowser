@@ -316,7 +316,7 @@ class CommandDispatcher:
                     else:
                         # Explicit count with a tab that doesn't exist.
                         return
-                elif curtab.data.pinned:
+                elif curtab.navigation_blocked():
                     message.info("Tab is pinned!")
                 else:
                     curtab.load_url(cur_url)

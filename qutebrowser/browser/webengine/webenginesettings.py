@@ -30,7 +30,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEnginePage)
 
-from qutebrowser.browser.webengine import spell
+from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import utils, standarddir, qtutils, message, log
@@ -298,6 +298,7 @@ def init(args):
             not hasattr(QWebEnginePage, 'setInspectedPage')):  # only Qt < 5.11
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
 
+    webenginequtescheme.init()
     spell.init()
 
     _init_profiles()
