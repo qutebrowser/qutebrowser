@@ -927,10 +927,14 @@ class _WebEngineScripts(QObject):
             utils.read_file('javascript/webelem.js'),
             utils.read_file('javascript/caret.js'),
         )
-        self._inject_early_js('js',
-                              utils.read_file('javascript/print.js'),
-                              subframes=True,
-                              world=QWebEngineScript.MainWorld)
+        if not qtutils.version_check('5.12'):
+            # WORKAROUND for Qt versions < 5.12 not exposing window.print().
+            # Qt 5.12 has a printRequested() signal so we don't need this hack
+            # anymore.
+            self._inject_early_js('js',
+                                  utils.read_file('javascript/print.js'),
+                                  subframes=True,
+                                  world=QWebEngineScript.MainWorld)
         # FIXME:qtwebengine what about subframes=True?
         self._inject_early_js('js', js_code, subframes=True)
         self._init_stylesheet()
@@ -1418,15 +1422,20 @@ class WebEngineTab(browsertab.AbstractTab):
         if not qtutils.version_check('5.11.1', compiled=False):
             self.settings.update_for_url(url)
 
+    @pyqtSlot()
+    def _on_print_requested(self):
+        """Slot for window.print() in JS."""
+        try:
+            self.printing.show_dialog()
+        except browsertab.WebTabError as e:
+            message.error(str(e))
+
     @pyqtSlot(usertypes.NavigationRequest)
     def _on_navigation_request(self, navigation):
         super()._on_navigation_request(navigation)
 
         if navigation.url == QUrl('qute://print'):
-            try:
-                self.printing.show_dialog()
-            except browsertab.WebTabError as e:
-                message.error(str(e))
+            self._on_print_requested()
             navigation.accepted = False
 
         if not navigation.accepted or not navigation.is_main_frame:
@@ -1472,6 +1481,11 @@ class WebEngineTab(browsertab.AbstractTab):
             self._on_proxy_authentication_required)
         page.contentsSizeChanged.connect(self.contents_size_changed)
         page.navigation_request.connect(self._on_navigation_request)
+        try:
+            page.printRequested.connect(self._on_print_requested)
+        except AttributeError:
+            # Added in Qt 5.12
+            pass
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)

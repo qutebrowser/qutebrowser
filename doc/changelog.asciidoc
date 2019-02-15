@@ -81,6 +81,7 @@ Fixed
 - Completion highlighting now works again on Qt 5.11.3 and 5.12.1.
 - The outdated header `X-Do-Not-Track` is no longer sent.
 - A javascript error on page load when using Qt 5.12 was fixed.
+- `window.print()` works with Qt 5.12 now.
 
 v1.5.2
 ------
