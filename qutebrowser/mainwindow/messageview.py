@@ -20,7 +20,7 @@
 """Showing messages above the statusbar."""
 
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt, QSize
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
 from qutebrowser.config import config
@@ -89,12 +89,6 @@ class MessageView(QWidget):
         config.instance.changed.connect(self._set_clear_timer_interval)
 
         self._last_text = None
-
-    def sizeHint(self):
-        """Get the proposed height for the view."""
-        height = sum(label.sizeHint().height() for label in self._messages)
-        # The width isn't really relevant as we're expanding anyways.
-        return QSize(-1, height)
 
     @config.change_filter('messages.timeout')
     def _set_clear_timer_interval(self):
