@@ -17,15 +17,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
-
 """Tests for misc.notree"""
-
-from qutebrowser.misc import notree
-
-from notree import TreeError
-from notree import Node
-from notree import traverse, render_tree
 import pytest
+
+from qutebrowser.misc.notree import TreeError, Node, traverse, render_tree
+
 
 @pytest.fixture
 def tree():
@@ -40,11 +36,13 @@ def tree():
     n9 = Node('n9', n6)
     n10 = Node('n10', n9)
     n11 = Node('n11', n3)
-    return n1,n2,n3,n4,n5,n6,n7,n8,n9,n10,n11
+    return n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11
+
 
 @pytest.fixture
 def node(tree):
     return tree[0]
+
 
 def test_creation():
     node = Node('foo')
@@ -52,7 +50,8 @@ def test_creation():
 
     child = Node('bar', node)
     assert child.parent == node
-    assert node.children == (child,)
+    assert node.children == (child, )
+
 
 def test_attach_parent():
     n1 = Node('n1', None, [])
@@ -62,8 +61,9 @@ def test_attach_parent():
 
     n2.parent = n3
     assert n2.parent == n3
-    assert n3.children == (n2,)
+    assert n3.children == (n2, )
     assert n1.children == tuple()
+
 
 def test_duplicate_child():
     p = Node('n1')
@@ -78,6 +78,7 @@ def test_duplicate_child():
         if len(p.children) == 3:
             raise AssertionError("Can add duplicate child")
 
+
 def test_replace_parent():
     p1 = Node('foo')
     p2 = Node('bar')
@@ -88,14 +89,15 @@ def test_replace_parent():
     assert c not in p1.children
     assert c in p2.children
 
+
 def test_replace_children(tree):
     n2 = tree[1]
     n3 = tree[2]
     n6 = tree[5]
     n11 = tree[10]
     n3.children = [n11]
-    n2.children = (n6,) + n2.children
-    print('\n'.join(render_tree(tree[0])))
+    n2.children = (n6, ) + n2.children
+    print('\n'.join(''.join((char, str(node))) for char, node in render_tree(tree[0])))
     assert n6.parent is n2
     assert n6 in n2.children
     assert n11.parent is n3
@@ -103,25 +105,22 @@ def test_replace_children(tree):
     assert n6 not in n3.children
     assert len(n3.children) == 1
 
+
 def test_traverse(node):
     len_traverse = len(list(traverse(node)))
     len_render = len(render_tree(node))
     assert len_traverse == len_render
 
+
 def test_render_tree(node):
-    expected = ['n1',
-                '├─n2',
-                '│ ├─n4',
-                '│ └─n5',
-                '└─n3',
-                '  ├─n6',
-                '  │ ├─n7',
-                '  │ ├─n8',
-                '  │ └─n9',
-                '  │   └─n10',
-                '  └─n11']
-    result = render_tree(node)
+    expected = [
+        'n1', '├─n2', '│ ├─n4', '│ └─n5', '└─n3', '  ├─n6', '  │ ├─n7',
+        '  │ ├─n8', '  │ └─n9', '  │   └─n10', '  └─n11'
+    ]
+    result = [char + str(n) for char, n in render_tree(node)]
+    print('\n'.join(result))
     assert expected == result
+
 
 def test_siblings():
     n1 = Node('n1')
@@ -138,4 +137,3 @@ def test_siblings():
     n10 = Node('n10', n9)
     assert list(n2.siblings) == [n3]
     assert list(n52.siblings) == [n4, n5, n53]
-

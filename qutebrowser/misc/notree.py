@@ -92,6 +92,10 @@ class Node():
         # return "<Node '%s'>" % self.name
         return "<Node '%s'>" % self.sep.join(self.path)
 
+    def __str__(self):
+        # return "<Node '%s'>" % self.name
+        return self.name
+
 corner = '└─'
 intersection = '├─'
 pipe = '│'
@@ -106,23 +110,24 @@ def traverse(node):
     for child in node.children:
         yield from traverse(child)
 
+
 def render_tree(node):
-    result = [node.name]
+    result = [('', node)]
     for child in node.children:
         if child.children:
             subtree = render_tree(child)
             if child is not node.children[-1]:
-                subtree = [pipe + ' ' + line for line in subtree]
+                subtree = [(pipe + ' ' + c, n) for c, n in subtree]
                 char = intersection
             else:
-                subtree = ['  ' + line for line in subtree]
+                subtree = [('  ' + c, n) for c, n in subtree]
                 char = corner
-            subtree[0] = char + subtree[0][2:]
+            subtree[0] = (char, subtree[0][1])
             result += subtree
         else:
             if child is node.children[-1]:
-                result.append(corner + child.name)
+                result.append((corner, child))
             else:
-                result.append(intersection + child.name)
+                result.append((intersection, child))
     # return '\n'.join(result)
     return result
