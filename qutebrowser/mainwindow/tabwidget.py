@@ -45,17 +45,8 @@ class PixelMetrics(enum.IntEnum):
 
     icon_padding = QStyle.PM_CustomBase
 
-from anytree import Node, PreOrderIter, RenderTree, AsciiStyle, AbstractStyle
 
-
-class TreeTabStyle(AbstractStyle):
-    """Class used only to set style of tree guidelines
-    """
-
-    def __init__(self):
-        super(TreeTabStyle, self).__init__(u'\u2502  ',
-                                        u'\u251c\u2500 ',
-                                        u'\u2514\u2500 ')
+from qutebrowser.misc.notree import Node, traverse, render_tree
 
 class TabWidget(QTabWidget):
     """The tab widget used for TabbedBrowser.
@@ -167,7 +158,9 @@ class TabWidget(QTabWidget):
         fields['title'] = fields['title'].replace('&', '&&')
 
         # TODO move to custom TreeTab class as a function with memoziation
-        tree_prefixes = [pre[3:] for pre, _, _ in RenderTree(self.tree_root, style=TreeTabStyle)]
+        # we remove the first two chars because every tab is child of tree root
+        # and that gets rendered as well
+        tree_prefixes = [pre[2:] for pre, _ in render_tree(self.tree_root)]
 
         # probably a hack, I believe there is a better way to check if the window and the first tab is initialized before tree root
         if len(tree_prefixes) > self.count():
@@ -281,7 +274,7 @@ class TabWidget(QTabWidget):
 
             cur_tab = self.tabBar()._current_tab()
 
-            for pre, _, node in RenderTree(self.tree_root, style=AsciiStyle()):
+            for pre, node in render_tree(self.tree_root):
                 name = node.name.tab_id if node.name else 'ROOT'
                 curr = '*' if cur_tab and cur_tab.node == node else ''
 
@@ -291,7 +284,7 @@ class TabWidget(QTabWidget):
 
     def update_tree_tab_positions(self, caller_info):
         """Update tab positions acording tree structure"""
-        for idx, node in enumerate(PreOrderIter(self.tree_root)):
+        for idx, node in enumerate(traverse(self.tree_root)):
             if idx > 0:
                 cur_idx = self.indexOf(node.name)
                 self.tabBar().moveTab(cur_idx, idx-1)

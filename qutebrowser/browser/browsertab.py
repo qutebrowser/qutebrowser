@@ -49,7 +49,7 @@ if MYPY:
     from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector
 
-from anytree import Node
+from qutebrowser.misc.notree import Node
 
 tab_id_gen = itertools.count(0)
 
