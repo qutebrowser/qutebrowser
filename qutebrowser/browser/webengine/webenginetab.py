@@ -1262,9 +1262,7 @@ class WebEngineTab(browsertab.AbstractTab):
             authenticator.setPassword(answer.password)
         else:
             try:
-                # pylint: disable=no-member, useless-suppression
                 sip.assign(authenticator, QAuthenticator())
-                # pylint: enable=no-member, useless-suppression
             except AttributeError:
                 self._show_error_page(url, "Proxy authentication required")
 
@@ -1286,9 +1284,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if not netrc_success and answer is None:
             log.network.debug("Aborting auth")
             try:
-                # pylint: disable=no-member, useless-suppression
                 sip.assign(authenticator, QAuthenticator())
-                # pylint: enable=no-member, useless-suppression
             except AttributeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html
