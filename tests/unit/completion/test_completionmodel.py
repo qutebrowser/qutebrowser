@@ -41,7 +41,7 @@ def test_first_last_item(counts):
         cat = mock.Mock(spec=['layoutChanged', 'layoutAboutToBeChanged'])
         cat.rowCount = mock.Mock(return_value=c, spec=[])
         model.add_category(cat)
-    data = [i for i, rowCount in enumerate(counts) if rowCount > 0]
+    data = [i for i, row_count in enumerate(counts) if row_count > 0]
     if not data:
         # with no items, first and last should be an invalid index
         assert not model.first_item().isValid()

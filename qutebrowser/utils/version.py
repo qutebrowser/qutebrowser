@@ -42,7 +42,7 @@ from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None  # type: ignore
+    qWebKitVersion = None  # type: ignore  # noqa: N816
 
 try:
     from PyQt5.QtWebEngineWidgets import QWebEngineProfile

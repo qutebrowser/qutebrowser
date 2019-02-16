@@ -8,7 +8,6 @@ flake8-deprecated
 flake8-docstrings
 flake8-future-import
 flake8-mock
-flake8-per-file-ignores
 flake8-string-format
 flake8-tidy-imports
 flake8-tuple

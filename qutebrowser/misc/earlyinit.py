@@ -199,19 +199,11 @@ def _check_modules(modules):
 
     for name, text in modules.items():
         try:
-            # https://github.com/pallets/jinja/pull/628
-            # https://bitbucket.org/birkenfeld/pygments-main/issues/1314/
-            # https://github.com/pallets/jinja/issues/646
             # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
-            messages = ['invalid escape sequence',
-                        'Flags not at the start of the expression']
             # pylint: disable=bad-continuation
             with log.ignore_py_warnings(
                 category=DeprecationWarning,
-                message=r'({})'.format('|'.join(messages))
-            ), log.ignore_py_warnings(
-                category=PendingDeprecationWarning,
-                module='imp'
+                message=r'invalid escape sequence'
             ), log.ignore_py_warnings(
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'
