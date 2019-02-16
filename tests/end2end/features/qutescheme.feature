@@ -8,7 +8,8 @@ Feature: Special qute:// pages
     # :help
 
     Scenario: :help without topic
-        When I run :tab-only
+        When the documentation is up to date
+        And I run :tab-only
         And I run :help
         And I wait until qute://help/index.html is loaded
         Then the following tabs should be open:
@@ -39,7 +40,8 @@ Feature: Special qute:// pages
             - qute://help/settings.html#editor.command (active)
 
     Scenario: :help with -t
-        When I run :tab-only
+        When the documentation is up to date
+        And I run :tab-only
         And I run :help -t
         And I wait until qute://help/index.html is loaded
         Then the following tabs should be open:
