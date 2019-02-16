@@ -51,6 +51,10 @@ matrix:
       env: TESTENV=shellcheck
       services: docker
   fast_finish: true
+  allow_failures:
+    - env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
+      services: docker
+    - env: TESTENV=py36-pyqt512
 
 cache:
   directories:
