@@ -588,6 +588,8 @@ class WebEngineHistory(browsertab.AbstractHistory):
         return self._history.currentItemIndex()
 
     def can_go_back(self):
+        if self.to_load:
+            return self.current_idx() > 0
         return self._history.canGoBack()
 
     def can_go_forward(self):
