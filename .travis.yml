@@ -22,6 +22,7 @@ matrix:
     - env: TESTENV=py36-pyqt511-cov
     - python: 3.7
       env: TESTENV=py37-pyqt511
+    - env: TESTENV=py36-pyqt512
     - os: osx
       env: TESTENV=py37 OSX=sierra
       osx_image: xcode9.2
