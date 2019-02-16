@@ -98,7 +98,7 @@ class FakeSocket(QObject):
         _connect_successful: The value returned for waitForConnected().
     """
 
-    readyRead = pyqtSignal()
+    readyRead = pyqtSignal()  # noqa: N815
     disconnected = pyqtSignal()
 
     def __init__(self, *, error=QLocalSocket.UnknownSocketError, state=None,

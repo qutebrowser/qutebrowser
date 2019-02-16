@@ -91,15 +91,15 @@ def _parse_yaml_type(
 ) -> configtypes.BaseType:
     if isinstance(node, str):
         # e.g:
-        #  type: Bool
+        #   > type: Bool
         # -> create the type object without any arguments
         type_name = node
         kwargs = {}  # type: typing.MutableMapping[str, typing.Any]
     elif isinstance(node, dict):
         # e.g:
-        #  type:
-        #    name: String
-        #    none_ok: true
+        #   > type:
+        #   >   name: String
+        #   >   none_ok: true
         # -> create the type object and pass arguments
         type_name = node.pop('name')
         kwargs = node
