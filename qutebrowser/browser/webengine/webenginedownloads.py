@@ -180,7 +180,21 @@ def _get_suggested_filename(path):
     See https://bugreports.qt.io/browse/QTBUG-56978
     """
     filename = os.path.basename(path)
-    filename = re.sub(r'\([0-9]+\)(?=\.|$)', '', filename)
+
+    suffix_re = re.compile(r"""
+      \ ?  # Optional space between filename and suffix
+      (
+        # Numerical suffix
+        \([0-9]+\)
+      |
+        # ISO-8601 suffix
+        # https://cs.chromium.org/chromium/src/base/time/time_to_iso8601.cc
+        \ -\ \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z
+      )
+      (?=\.|$)  # Begin of extension, or filename without extension
+    """, re.VERBOSE)
+
+    filename = suffix_re.sub('', filename)
     if not qtutils.version_check('5.9', compiled=False):
         # https://bugreports.qt.io/browse/QTBUG-58155
         filename = urllib.parse.unquote(filename)
