@@ -20,6 +20,10 @@
 import re
 
 import pytest_bdd as bdd
+
+from qutebrowser.utils import qtutils
+
+
 bdd.scenarios('qutescheme.feature')
 
 
@@ -32,13 +36,27 @@ def request_blocked(request, quteproc, kind):
         "Blocking malicious request from "
         "http://localhost:*/data/misc/qutescheme_csrf.html to "
         "qute://settings/set?*")
+    blocking_js_msg = (
+        "[http://localhost:*/data/misc/qutescheme_csrf.html:0] Not allowed to "
+        "load local resource: qute://settings/set?*"
+    )
+
     webkit_error_invalid = (
         "Error while loading qute://settings/set?*: Invalid qute://settings "
         "request")
     webkit_error_unsupported = (
         "Error while loading qute://settings/set?*: Unsupported request type")
 
-    if request.config.webengine:
+    if request.config.webengine and qtutils.version_check('5.12'):
+        # On Qt 5.12, we mark qute:// as a local scheme, causing most requests
+        # being blocked by Chromium internally (logging to the JS console).
+        expected_messages = {
+            'img': [blocking_js_msg],
+            'link': [blocking_js_msg],
+            'redirect': [blocking_set_msg],
+            'form': [blocking_js_msg],
+        }
+    elif request.config.webengine:
         expected_messages = {
             'img': [blocking_csrf_msg],
             'link': [blocking_set_msg],
