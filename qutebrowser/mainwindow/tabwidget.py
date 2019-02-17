@@ -80,11 +80,13 @@ class TabWidget(QTabWidget):
         self.setElideMode(Qt.ElideRight)
         self.setUsesScrollButtons(True)
         bar.setDrawBase(False)
-        self._init_config()
-        config.instance.changed.connect(self._init_config)
 
         # root of the tab tree, common for all tabs in the window
         self.tree_root = Node(None)
+
+        self._init_config()
+        config.instance.changed.connect(self._init_config)
+
 
     @config.change_filter('tabs')
     def _init_config(self):
@@ -98,6 +100,12 @@ class TabWidget(QTabWidget):
         tabbar.vertical = position in [QTabWidget.West, QTabWidget.East]
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
+
+        # For tree-tabs
+        self.update_tab_titles()  # Must also be called when deactivating
+        if config.cache['tabs.tree_tabs']:
+          # Positions matter only if enabling
+          self.update_tree_tab_positions('configChange')
 
     def set_tab_indicator_color(self, idx, color):
         """Set the tab indicator color.
@@ -157,18 +165,21 @@ class TabWidget(QTabWidget):
         fields = self.get_tab_fields(idx)
         fields['title'] = fields['title'].replace('&', '&&')
 
-        # TODO move to custom TreeTab class as a function with memoziation
-        # we remove the first two chars because every tab is child of tree root
-        # and that gets rendered as well
-        tree_prefixes = [pre[2:] for pre, _ in render_tree(self.tree_root)]
+        if config.val.tabs.tree_tabs:
+          # TODO move to custom TreeTab class as a function with memoziation
+          # we remove the first two chars because every tab is child of tree root
+          # and that gets rendered as well
+          tree_prefixes = [pre[2:] for pre, _ in render_tree(self.tree_root)]
 
-        # probably a hack, I believe there is a better way to check if the window and the first tab is initialized before tree root
-        if len(tree_prefixes) > self.count():
-            tree_prefix = tree_prefixes[idx+1]
+          # probably a hack, I believe there is a better way to check if the window and the first tab is initialized before tree root
+          if len(tree_prefixes) > self.count():
+              tree_prefix = tree_prefixes[idx+1]
+          else:
+              tree_prefix = ""
+
+          fields['index'] = tree_prefix + str(idx + 1)
         else:
-            tree_prefix = ""
-
-        fields['index'] = tree_prefix + str(idx + 1)
+          fields['index'] = idx
 
         title = '' if fmt is None else fmt.format(**fields)
         tabbar = self.tabBar()

@@ -1780,6 +1780,11 @@ tabs.wrap:
   type: Bool
   desc: Wrap when changing tabs.
 
+tabs.tree_tabs:
+  default: false
+  type: Bool
+  desc: Enable tree-tabs
+
 ## url
 
 url.auto_search:
