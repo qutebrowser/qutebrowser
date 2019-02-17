@@ -1505,13 +1505,11 @@ class WebEngineTab(browsertab.AbstractTab):
             self._on_proxy_authentication_required)
         page.contentsSizeChanged.connect(self.contents_size_changed)
         page.navigation_request.connect(self._on_navigation_request)
-        try:
+
+        if qtutils.version_check('5.12'):
             page.printRequested.connect(self._on_print_requested)
             page.selectClientCertificate.connect(
                 self._on_select_client_certificate)
-        except AttributeError:
-            # Added in Qt 5.12
-            pass
 
         view.titleChanged.connect(self.title_changed)
         view.urlChanged.connect(self._on_url_changed)
