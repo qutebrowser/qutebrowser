@@ -715,8 +715,6 @@ class _WebEnginePermissions(QObject):
 
     """Handling of various permission-related signals."""
 
-    _abort_questions = pyqtSignal()
-
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
@@ -735,9 +733,6 @@ class _WebEnginePermissions(QObject):
                 self._on_quota_requested)
             page.registerProtocolHandlerRequested.connect(
                 self._on_register_protocol_handler_requested)
-
-        self._tab.shutting_down.connect(self._abort_questions)
-        self._tab.load_started.connect(self._abort_questions)
 
     @pyqtSlot('QWebEngineFullScreenRequest')
     def _on_fullscreen_requested(self, request):
@@ -816,7 +811,7 @@ class _WebEnginePermissions(QObject):
         question = shared.feature_permission(
             url=url, option=options[feature], msg=messages[feature],
             yes_action=yes_action, no_action=no_action,
-            abort_on=[self._abort_questions])
+            abort_on=[self._tab.abort_questions])
 
         if question is not None:
             page.featurePermissionRequestCanceled.connect(
@@ -844,7 +839,7 @@ class _WebEnginePermissions(QObject):
             option='content.persistent_storage',
             msg='use {} of persistent storage'.format(size),
             yes_action=request.accept, no_action=request.reject,
-            abort_on=[self._abort_questions],
+            abort_on=[self._tab.abort_questions],
             blocking=True)
 
     def _on_register_protocol_handler_requested(self, request):
@@ -853,7 +848,7 @@ class _WebEnginePermissions(QObject):
             option='content.register_protocol_handler',
             msg='open all {} links'.format(request.scheme()),
             yes_action=request.accept, no_action=request.reject,
-            abort_on=[self._abort_questions],
+            abort_on=[self._tab.abort_questions],
             blocking=True)
 
 
@@ -1080,10 +1075,13 @@ class WebEngineTab(browsertab.AbstractTab):
     Signals:
         _load_finished_fake:
             Used in place of unreliable loadFinished
+        abort_questions: Emitted when a new load started or we're shutting
+            down.
     """
 
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
     _load_finished_fake = pyqtSignal(bool)
+    abort_questions = pyqtSignal()
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id, private=private, parent=parent)
@@ -1256,7 +1254,7 @@ class WebEngineTab(browsertab.AbstractTab):
         answer = message.ask(
             title="Proxy authentication required", text=msg,
             mode=usertypes.PromptMode.user_pwd,
-            abort_on=[self.shutting_down, self.load_started], url=urlstr)
+            abort_on=[self.abort_questions], url=urlstr)
         if answer is not None:
             authenticator.setUser(answer.user)
             authenticator.setPassword(answer.password)
@@ -1278,9 +1276,8 @@ class WebEngineTab(browsertab.AbstractTab):
 
         if not netrc_success:
             log.network.debug("Asking for credentials")
-            abort_on = [self.shutting_down, self.load_started]
-            answer = shared.authentication_required(url, authenticator,
-                                                    abort_on)
+            answer = shared.authentication_required(
+                url, authenticator, abort_on=[self.abort_questions])
         if not netrc_success and answer is None:
             log.network.debug("Aborting auth")
             try:
@@ -1389,7 +1386,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
         if error.is_overridable():
             error.ignore = shared.ignore_certificate_errors(
-                url, [error], abort_on=[self.shutting_down, self.load_started])
+                url, [error], abort_on=[self.abort_questions])
         else:
             log.webview.error("Non-overridable certificate error: "
                               "{}".format(error))
@@ -1486,7 +1483,7 @@ class WebEngineTab(browsertab.AbstractTab):
             title='Present client certificate to {}?'.format(urlstr),
             text=text,
             mode=usertypes.PromptMode.yesno,
-            abort_on=[self.shutting_down, self.load_started],
+            abort_on=[self.abort_questions],
             url=urlstr)
 
         if present:
@@ -1536,6 +1533,8 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadFinished.connect(self._on_load_finished)
 
         self.before_load_started.connect(self._on_before_load_started)
+        self.shutting_down.connect(self.abort_questions)
+        self.load_started.connect(self.abort_questions)
 
         # pylint: disable=protected-access
         self.audio._connect_signals()
