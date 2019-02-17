@@ -511,6 +511,11 @@ class TabbedBrowser(QWidget):
 
         self.widget.insertTab(idx, tab, "")
 
+        if not related:
+            tab.node.parent = self.widget.tree_root
+            self.widget.update_tab_titles()
+            self.widget.update_tree_tab_positions()
+
         if url is not None:
             tab.load_url(url)
 
