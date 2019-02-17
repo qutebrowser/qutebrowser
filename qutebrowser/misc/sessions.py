@@ -249,11 +249,17 @@ class SessionManager(QObject):
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())
             win_data['tabs'] = []
+            win_data['tree'] = []
             if tabbed_browser.is_private:
                 win_data['private'] = True
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.widget.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active))
+                if tab.node.parent is not None and tab.node.parent.name:
+                    win_data['tree'].append(
+                        tabbed_browser.widgets().index(tab.node.parent.name))
+                else:
+                    win_data['tree'].append(None)
             data['windows'].append(win_data)
         return data
 
@@ -442,6 +448,18 @@ class SessionManager(QObject):
                 tabbed_browser.widget.setCurrentIndex(tab_to_focus)
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
+
+            # tree is a list of int, so that tree[i] is the index of the parent tab
+            # of the ith tab
+            tree = win.get('tree', None)
+            if tree:
+                tabs = tabbed_browser.widgets()
+                for i, tab in enumerate(tabs):
+                    if tree[i] is not None:
+                        tab.node.parent = tabs[tree[i]].node
+                    else:
+                        tab.node.parent = tabbed_browser.widget.tree_root
+
 
         if data['windows']:
             self.did_load = True
