@@ -164,6 +164,7 @@ class WebEngineSettings(websettings.AbstractSettings):
             # Qt 5.8
             'content.print_element_backgrounds':
                 ('PrintElementBackgrounds', None),
+
             # Qt 5.11
             'content.autoplay':
                 ('PlaybackRequiresUserGesture', operator.not_),
