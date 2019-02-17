@@ -1740,15 +1740,6 @@ class CommandDispatcher:
             debug.qflags_key(Qt, window.state_before_fullscreen)))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tree_tab_print(self):
-        """Test
-
-        Args:
-
-        """
-        self._tabbed_browser.widget.print_tree_tab_structure("---- Printing from Command tree_tab_printf----\n")
-
-    @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_promote(self):
         """Test
 
@@ -1765,7 +1756,7 @@ class CommandDispatcher:
 
 
         self._tabbed_browser.widget.update_tab_titles()
-        self._tabbed_browser.widget.update_tree_tab_positions('command: tree_tab_promote')
+        self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_demote(self):
@@ -1789,7 +1780,7 @@ class CommandDispatcher:
                 cur_node.parent = siblings[node_idx]
 
                 self._tabbed_browser.widget.update_tab_titles()
-                self._tabbed_browser.widget.update_tree_tab_positions('command: tree_tab_demote')
+                self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_rotate(self, direction):
@@ -1812,7 +1803,7 @@ class CommandDispatcher:
 
             parent.children = siblings
 
-        self._tabbed_browser.widget.update_tree_tab_positions('command: tree_tab_rotate_up')
+        self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_navigate_on_same_level(self, direction):

@@ -105,7 +105,7 @@ class TabWidget(QTabWidget):
         self.update_tab_titles()  # Must also be called when deactivating
         if config.cache['tabs.tree_tabs']:
           # Positions matter only if enabling
-          self.update_tree_tab_positions('configChange')
+          self.update_tree_tab_positions()
 
     def set_tab_indicator_color(self, idx, color):
         """Set the tab indicator color.
@@ -277,31 +277,13 @@ class TabWidget(QTabWidget):
             for idx in range(self.count()):
                 self.update_tab_title(idx)
 
-    def print_tree_tab_structure(self, notes=""):
-        """A debugging function for logging state of the tree tabs"""
-        with open("qutebrowser_treetab.log", 'a') as f:
 
-            f.write("%s" % notes)
-
-            cur_tab = self.tabBar()._current_tab()
-
-            for pre, node in render_tree(self.tree_root):
-                name = node.name.tab_id if node.name else 'ROOT'
-                curr = '*' if cur_tab and cur_tab.node == node else ''
-
-                f.write("%s%s%s\n" % (pre, name, curr))
-
-            f.write("\n")
-
-    def update_tree_tab_positions(self, caller_info):
+    def update_tree_tab_positions(self):
         """Update tab positions acording tree structure"""
         for idx, node in enumerate(traverse(self.tree_root)):
             if idx > 0:
                 cur_idx = self.indexOf(node.name)
                 self.tabBar().moveTab(cur_idx, idx-1)
-
-        # debbuging
-        self.print_tree_tab_structure("---- Tree Tab Update ---- " + caller_info + "\n")
 
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
@@ -313,7 +295,7 @@ class TabWidget(QTabWidget):
         super().tabRemoved(idx)
         self.update_tab_titles()
 
-        self.update_tree_tab_positions('tabRemoved')
+        self.update_tree_tab_positions()
 
     def addTab(self, page, icon_or_text, text_or_empty=None):
         """Override addTab to use our own text setting logic.
@@ -384,7 +366,7 @@ class TabWidget(QTabWidget):
             new_node.parent = self.tree_root
 
         # positions cannot be changed before setting the title
-        self.update_tree_tab_positions('insertTab')
+        self.update_tree_tab_positions()
         self.update_tab_titles()
 
         return new_idx

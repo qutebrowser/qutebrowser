@@ -362,7 +362,6 @@ class TabbedBrowser(QWidget):
         node_parent   = cur_node.parent
 
         if node_parent:
-
             node_siblings = list(node_parent.children)
             node_children = cur_node.children
 
@@ -381,8 +380,6 @@ class TabbedBrowser(QWidget):
                 cur_node.children = tuple()
 
             cur_node.parent = None
-        else:
-            self.print_tree_tab_structure("!!! ERROR !!! Tab ID %s\n" % tab.tab_id)
 
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
