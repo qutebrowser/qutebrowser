@@ -5,6 +5,7 @@ python: 3.6
 os: linux
 
 matrix:
+  fast_finish: true
   include:
     ### Archlinux QtWebKit
     - env: DOCKER=archlinux
@@ -82,12 +83,6 @@ matrix:
     - language: generic
       env: TESTENV=shellcheck
       services: docker
-
-  fast_finish: true
-  allow_failures:
-    - env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
-      services: docker
-    - env: TESTENV=py36-pyqt512
 
 cache:
   directories:
