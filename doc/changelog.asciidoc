@@ -37,6 +37,7 @@ Added
   markdown format.
 - Basic support for client certificates with Qt 5.12. Selecting the certificate
   to show when there are multiple matching certificates isn't implemented yet.
+- Support for DNS prefetching (`content.dns_prefetch`) with QtWebEngine on 5.12.
 
 Changed
 ~~~~~~~
