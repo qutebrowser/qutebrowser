@@ -35,6 +35,8 @@ Added
   are used for hints, and also allows adding custom hint groups.
 - New `:yank markdown` feature which yanks the current URL and title in
   markdown format.
+- Basic support for client certificates with Qt 5.12. Selecting the certificate
+  to show when there are multiple matching certificates isn't implemented yet.
 
 Changed
 ~~~~~~~

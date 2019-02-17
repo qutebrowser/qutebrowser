@@ -1463,6 +1463,37 @@ class WebEngineTab(browsertab.AbstractTab):
         if reload_needed:
             self._reload_url = navigation.url
 
+    def _on_select_client_certificate(self, selection):
+        """Handle client certificates.
+
+        Currently, we simply pick the first available certificate and show an
+        additional note if there are multiple matches.
+        """
+        certificate = selection.certificates()[0]
+        text = ('<b>Subject:</b> {subj}<br/>'
+                '<b>Issuer:</b> {issuer}<br/>'
+                '<b>Serial:</b> {serial}'.format(
+                    subj=html_utils.escape(certificate.subjectDisplayName()),
+                    issuer=html_utils.escape(certificate.issuerDisplayName()),
+                    serial=bytes(certificate.serialNumber()).decode('ascii')))
+        if len(selection.certificates()) > 1:
+            text += ('<br/><br/><b>Note:</b> Multiple matching certificates '
+                     'were found, but certificate selection is not '
+                     'implemented yet!')
+        urlstr = selection.host().host()
+
+        present = message.ask(
+            title='Present client certificate to {}?'.format(urlstr),
+            text=text,
+            mode=usertypes.PromptMode.yesno,
+            abort_on=[self.shutting_down, self.load_started],
+            url=urlstr)
+
+        if present:
+            selection.select(certificate)
+        else:
+            selection.selectNone()
+
     def _connect_signals(self):
         view = self._widget
         page = view.page()
@@ -1479,6 +1510,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.navigation_request.connect(self._on_navigation_request)
         try:
             page.printRequested.connect(self._on_print_requested)
+            page.selectClientCertificate.connect(
+                self._on_select_client_certificate)
         except AttributeError:
             # Added in Qt 5.12
             pass
