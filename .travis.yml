@@ -38,6 +38,10 @@ matrix:
 
     ### PyQt 5.12
     - env: TESTENV=py36-pyqt512
+      addons:
+        apt:
+          packages:
+          - libxkbcommon-x11-0
 
     ### macOS sierra
     - os: osx
