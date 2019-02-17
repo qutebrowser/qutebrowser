@@ -20,7 +20,7 @@
 """Tests for misc.notree"""
 import pytest
 
-from qutebrowser.misc.notree import TreeError, Node, traverse, render_tree
+from qutebrowser.misc.notree import TreeError, Node, traverse, TraverseOrder, render_tree
 
 
 @pytest.fixture
@@ -111,11 +111,25 @@ def test_traverse(node):
     len_render = len(render_tree(node))
     assert len_traverse == len_render
 
+def test_traverse_postorder(tree):
+    n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11 = tree
+    actual = list(traverse(n1, TraverseOrder.POST))
+    print('\n'.join([str(n) for n in actual]))
+    assert actual == [n4, n5, n2, n7, n8, n10, n9, n6, n11, n3, n1]
 
 def test_render_tree(node):
     expected = [
-        'n1', '├─n2', '│ ├─n4', '│ └─n5', '└─n3', '  ├─n6', '  │ ├─n7',
-        '  │ ├─n8', '  │ └─n9', '  │   └─n10', '  └─n11'
+        'n1',
+        '├─n2',
+        '│ ├─n4',
+        '│ └─n5',
+        '└─n3',
+        '  ├─n6',
+        '  │ ├─n7',
+        '  │ ├─n8',
+        '  │ └─n9',
+        '  │   └─n10',
+        '  └─n11'
     ]
     result = [char + str(n) for char, n in render_tree(node)]
     print('\n'.join(result))

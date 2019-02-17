@@ -2723,6 +2723,7 @@ bindings.default:
       zR: tree-tab-rotate down
       zf: tree-tab-navigate-on-same-level next
       zb: tree-tab-navigate-on-same-level prev
+      zd: tab-close -r
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text {primary}

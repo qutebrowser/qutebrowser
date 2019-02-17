@@ -22,6 +22,7 @@
 Tree library for tree-tabs.
 The fundamental unit is the Node class.
 """
+import enum
 
 class TreeError(RuntimeError):
     pass
@@ -100,15 +101,27 @@ corner = '└─'
 intersection = '├─'
 pipe = '│'
 
-def traverse(node):
+class TraverseOrder(enum.Enum):
     """
-    Generator for all descendants of `node`, yield pre-order depth-first.
+    To be used as argument to traverse().
+    Currently only pre-order and post-order are implemented (as they are the
+    only useful ones).
+    """
+    PRE = enum.auto()
+    POST = enum.auto()
+
+def traverse(node, order=TraverseOrder.PRE):
+    """
+    Generator for all descendants of `node`, yield pre-order depth-first by default.
     In particular, the order of elements yield here will be the same as their order
     (line-wise, ignoring markup) when calling render_tree.
     """
-    yield node
+    if order == TraverseOrder.PRE:
+      yield node
     for child in node.children:
-        yield from traverse(child)
+        yield from traverse(child, order)
+    if order == TraverseOrder.POST:
+      yield node
 
 
 def render_tree(node):

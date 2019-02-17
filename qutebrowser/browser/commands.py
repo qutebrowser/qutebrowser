@@ -36,7 +36,7 @@ from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
                                objreg, utils, standarddir, debug)
 from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.misc import editor, guiprocess, objects
+from qutebrowser.misc import editor, guiprocess, objects, notree
 from qutebrowser.completion.models import urlmodel, miscmodels
 from qutebrowser.mainwindow import mainwindow
 
@@ -228,9 +228,10 @@ class CommandDispatcher:
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('recursive')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_close(self, prev=False, next_=False, opposite=False,
-                  force=False, count=None):
+                  force=False, count=None, recursive=False):
         """Close the current/[count]th tab.
 
         Args:
@@ -244,10 +245,19 @@ class CommandDispatcher:
         tab = self._cntwidget(count)
         if tab is None:
             return
-        close = functools.partial(self._tab_close, tab, prev,
-                                  next_, opposite)
+        if recursive and config.val.tabs.tree_tabs:
+            # we traverse by post-order so that parents never get closed
+            # before their children
+            for descendent in notree.traverse(tab.node, notree.TraverseOrder.POST):
+                close = functools.partial(self._tab_close, descendent.name, prev,
+                                          next_, opposite)
+                self._tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
+        else:
+            close = functools.partial(self._tab_close, tab, prev,
+                                      next_, opposite)
 
-        self._tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
+            self._tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
+
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-pin')
