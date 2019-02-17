@@ -34,8 +34,7 @@ class FixedDataNetworkReply(QNetworkReply):
 
     """QNetworkReply subclass for fixed data."""
 
-    def __init__(self, request,  # pylint: disable=invalid-name
-                 fileData, mimeType, parent=None):  # noqa: N803
+    def __init__(self, request, fileData, mimeType, parent=None):  # noqa: N803
         """Constructor.
 
         Args:
