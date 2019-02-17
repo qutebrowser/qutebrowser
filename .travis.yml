@@ -41,7 +41,7 @@ matrix:
 
     ### macOS sierra
     - os: osx
-      env: TESTENV=py37 OSX=sierra
+      env: TESTENV=py37-pyqt511 OSX=sierra
       osx_image: xcode9.2
       language: generic
     ### macOS yosemite
