@@ -68,6 +68,7 @@ class Node():
         for child in new_children:
             if child.parent is not self:
                 child.parent = self
+        self.__children = new_children
 
     @property
     def path(self):
