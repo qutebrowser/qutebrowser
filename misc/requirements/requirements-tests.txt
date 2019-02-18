@@ -23,7 +23,7 @@ parse-type==0.4.2
 pluggy==0.8.1
 py==1.7.0
 py-cpuinfo==4.0.0
-pytest==4.2.0
+pytest==4.2.1
 pytest-bdd==3.0.1
 pytest-benchmark==3.2.2
 pytest-cov==2.6.1
