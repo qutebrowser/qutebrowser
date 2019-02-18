@@ -21,25 +21,52 @@
 """
 Tree library for tree-tabs.
 The fundamental unit is the Node class.
+
+Create a tree with with Node(name, parent):
+root = Node('foo')
+child = Node('bar', root)
+child2 = Node('baz', root)
+child3 = Node('lorem', child)
+
+You can also assign parent after instantiation, or even reassign it:
+child4 = Node('ipsum')
+child4.parent = root
+
+Assign children:
+child.children = []
+child2.children = [child4, child3]
+child3.parent
+> Node('foo/bar/baz')
+
+Render a tree with render_tree(root_node):
+render_tree(root)
+
+> ('', 'foo')
+> ('├─', 'bar')
+> ('│ ├─', 'lorem')
+> ('│ └─', 'ipsum')
+> ('└─', 'baz')
 """
 import enum
 
 class TreeError(RuntimeError):
+    """Exception used for tree-related errors"""
     pass
 
 class Node():
+    """Fundamental unit of notree library"""
     sep = '/'
 
     def __init__(self, name, parent=None, childs=tuple()):
-        self.name = name
+        self.name = name  # TODO rename to value
         # set initial values so there's no need for AttributeError checks
         self.__parent = None
         self.__children = []
 
         if parent:
-            self.parent = parent
+            self.parent = parent  # calls setter
         if childs:
-            self.children = childs
+            self.children = childs  # this too
 
     @property
     def parent(self):
@@ -47,6 +74,7 @@ class Node():
 
     @parent.setter
     def parent(self, value):
+        """Set parent property. Also adds self to value.children"""
         assert(value is None or isinstance(value, Node))
         if self.__parent:
             self.__parent.__disown(self)
@@ -61,6 +89,10 @@ class Node():
 
     @children.setter
     def children(self, value):
+        """
+        Set children property, preserving order.
+        Also sets n.parent = self for n in value. Does not allow duplicates.
+        """
         seen = set(value)
         if len(seen) != len(value):
             raise TreeError("A duplicate item is present in in %r" % value)
@@ -72,6 +104,7 @@ class Node():
 
     @property
     def path(self):
+        """Get a list of all nodes from the root node to self"""
         if self.parent is None:
             return [self.name]
         else:
@@ -79,6 +112,7 @@ class Node():
 
     @property
     def siblings(self):
+        """Get siblings. Can not be set."""
         if self.parent:
             return (i for i in self.parent.children if i is not self)
 
@@ -105,18 +139,15 @@ pipe = '│'
 class TraverseOrder(enum.Enum):
     """
     To be used as argument to traverse().
-    Currently only pre-order and post-order are implemented (as they are the
-    only useful ones).
+    Implemented orders are pre-order and post-order.
+    PRE yields nodes in the same order as they appear in the result of render_tree.
+    POST yields them so the children of a node are always yield before their parent.
     """
     PRE = enum.auto()
     POST = enum.auto()
 
 def traverse(node, order=TraverseOrder.PRE):
-    """
-    Generator for all descendants of `node`, yield pre-order depth-first by default.
-    In particular, the order of elements yield here will be the same as their order
-    (line-wise, ignoring markup) when calling render_tree.
-    """
+    """Generator for all descendants of `node`"""
     if order == TraverseOrder.PRE:
       yield node
     for child in node.children:
@@ -126,6 +157,12 @@ def traverse(node, order=TraverseOrder.PRE):
 
 
 def render_tree(node):
+    """
+    Render a tree with ascii symbols.
+    Tabs always appear in the same order as in traverse() with TraverseOrder.PRE
+    return: list of tuples where the first item is the symbol,
+            and the second is the node it refers to
+    """
     result = [('', node)]
     for child in node.children:
         if child.children:

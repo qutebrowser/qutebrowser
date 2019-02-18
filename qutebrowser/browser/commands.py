@@ -1741,11 +1741,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_promote(self):
-        """Test
-
-        Args:
-
-        """
+        """Promotes a tab so it becomes next sibling of its parent"""
 
         tab = self._current_widget()
 
@@ -1760,10 +1756,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_demote(self):
-        """Tets
-
-        Args:
-        """
+        """Demotes a tab so it becomes a children of its previous adjacent sibling """
 
         cur_node = self._current_widget().node
 
@@ -1783,10 +1776,15 @@ class CommandDispatcher:
                 self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('direction', choices=['up', 'down'] )
     def tree_tab_bubble(self, direction):
-        """Tets
+        """
+        Swaps position with its siblings, depending on direction
 
         Args:
+            direction:
+                'up': Swap position with previous sibling
+                'down': Swap position with next sibling
         """
         if direction not in ('up', 'down'):
             raise cmdutils.CommandError("direction should be 'up' or 'down'")
@@ -1806,10 +1804,15 @@ class CommandDispatcher:
         self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('direction', choices=['up', 'down'] )
     def tree_tab_rotate(self, direction):
-        """Tets
+        """Rotates the entire tree so that first child becomes last or vice-versa
 
         Args:
+            direction: Which direction to rotate the tree towards
+                'up': First tab becomes last, and [i]th tab becomes [i-1]th
+                'down': Last tab becomes first, and [i]th tab becomes [i+1]th
+
         """
         node = self._current_widget().node
 
@@ -1829,7 +1832,16 @@ class CommandDispatcher:
         self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('direction', choices=['next', 'prev'] )
     def tree_tab_navigate_on_same_level(self, direction):
+        """
+        Jump to next/previous sibling
+
+        args:
+            direction: Which sibling to jump to
+                'next': Jump to next sibling
+                'prev': Jump to previous sibling
+        """
 
         cur_node = self._current_widget().node
 
