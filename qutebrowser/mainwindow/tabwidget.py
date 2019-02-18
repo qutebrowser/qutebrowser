@@ -169,7 +169,8 @@ class TabWidget(QTabWidget):
           # TODO move to custom TreeTab class as a function with memoziation
           # we remove the first two chars because every tab is child of tree root
           # and that gets rendered as well
-          tree_prefixes = [pre[2:] for pre, _ in render_tree(self.tree_root)]
+          rendered_tree = render_tree(self.tree_root, False)
+          tree_prefixes = [pre[2:] for pre, _ in rendered_tree]
 
           # probably a hack, I believe there is a better way to check if the window and the first tab is initialized before tree root
           if len(tree_prefixes) > self.count():
@@ -208,11 +209,7 @@ class TabWidget(QTabWidget):
         fields['backend'] = objects.backend.name
         fields['private'] = ' [Private Mode] ' if tab.is_private else ''
 
-        # TODO think of a better check for collapsed tabs
-        if tab.node.children and self.indexOf(tab.node.children[0].name) == -1:
-            fields['collapsed'] = ' [...] '
-        else:
-            fields['collapsed'] = ''
+        fields['collapsed'] = ' [...] ' if tab.node.collapsed else ''
 
         try:
             if tab.audio.is_muted():
@@ -287,7 +284,7 @@ class TabWidget(QTabWidget):
 
     def update_tree_tab_positions(self):
         """Update tab positions acording tree structure"""
-        for idx, node in enumerate(traverse(self.tree_root)):
+        for idx, node in enumerate(traverse(self.tree_root, render_collapsed=False)):
             if idx > 0:
                 cur_idx = self.indexOf(node.name)
                 self.tabBar().moveTab(cur_idx, idx-1)

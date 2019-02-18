@@ -1876,7 +1876,7 @@ class CommandDispatcher:
         cur_idx = self._tabbed_browser.widgets().index(tab)
         if not tab.node.children:
             return
-        collapsed = tab.node.children[0].name not in self._tabbed_browser.widgets()
+        collapsed = tab.node.collapsed
 
         if collapsed:
             order = notree.TraverseOrder.PRE
@@ -1896,7 +1896,11 @@ class CommandDispatcher:
                 cur_tab = descendent.name
                 idx = self._tabbed_browser.widgets().index(cur_tab)
                 tabwidget.removeTab(idx)
+
+        tab.node.collapsed = not tab.node.collapsed
+
         tabwidget.update_tab_titles()
+        tabwidget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)

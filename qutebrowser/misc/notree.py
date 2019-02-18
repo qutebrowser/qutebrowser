@@ -54,7 +54,7 @@ class TreeError(RuntimeError):
     pass
 
 class Node():
-    """Fundamental unit of notree library"""
+    """Fundamental unit of notree library """
     sep = '/'
 
     def __init__(self, name, parent=None, childs=tuple()):
@@ -67,6 +67,8 @@ class Node():
             self.parent = parent  # calls setter
         if childs:
             self.children = childs  # this too
+
+        self.collapsed = False
 
     @property
     def parent(self):
@@ -146,17 +148,20 @@ class TraverseOrder(enum.Enum):
     PRE = enum.auto()
     POST = enum.auto()
 
-def traverse(node, order=TraverseOrder.PRE):
+def traverse(node, order=TraverseOrder.PRE, render_collapsed=True):
     """Generator for all descendants of `node`"""
     if order == TraverseOrder.PRE:
-      yield node
+        yield node
     for child in node.children:
-        yield from traverse(child, order)
+        if render_collapsed or not child.collapsed:
+            yield from traverse(child, order)
+        else:
+            yield child
     if order == TraverseOrder.POST:
-      yield node
+        yield node
 
 
-def render_tree(node):
+def render_tree(node, render_collapsed=True):
     """
     Render a tree with ascii symbols.
     Tabs always appear in the same order as in traverse() with TraverseOrder.PRE
@@ -166,7 +171,7 @@ def render_tree(node):
     result = [('', node)]
     for child in node.children:
         if child.children:
-            subtree = render_tree(child)
+            subtree = render_tree(child, render_collapsed)
             if child is not node.children[-1]:
                 subtree = [(pipe + ' ' + c, n) for c, n in subtree]
                 char = intersection
@@ -174,7 +179,10 @@ def render_tree(node):
                 subtree = [('  ' + c, n) for c, n in subtree]
                 char = corner
             subtree[0] = (char, subtree[0][1])
-            result += subtree
+            if child.collapsed and not render_collapsed:
+                result += [subtree[0]]
+            else:
+                result += subtree
         else:
             if child is node.children[-1]:
                 result.append((corner, child))
