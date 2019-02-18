@@ -1783,6 +1783,29 @@ class CommandDispatcher:
                 self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tree_tab_bubble(self, direction):
+        """Tets
+
+        Args:
+        """
+        if direction not in ('up', 'down'):
+            raise cmdutils.CommandError("direction should be 'up' or 'down'")
+        node = self._current_widget().node
+
+        parent = node.parent
+        siblings = list(parent.children)
+
+        if siblings:
+            idx = siblings.index(node)
+            diff = -1 if direction == 'up' else 1
+            siblings.pop(idx)
+            siblings.insert(idx + diff, node)
+
+            parent.children = siblings
+
+        self._tabbed_browser.widget.update_tree_tab_positions()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_rotate(self, direction):
         """Tets
 
