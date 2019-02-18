@@ -23,6 +23,7 @@ import os.path
 import shlex
 import functools
 import typing
+import urllib.parse
 
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
@@ -1863,3 +1864,10 @@ class CommandDispatcher:
                                    if node_idx+diff < len(siblings) else 0]
 
             self._set_current_index(self._tabbed_browser.widget.indexOf(target_node.name))
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tree_tab_create_group(self, name: str, related=False, count=None):
+        path = urllib.parse.quote(name)
+        count = None if count is None else count+1
+        self.openurl('qute://treegroup/' + path, tab=True, related=related, count=count)

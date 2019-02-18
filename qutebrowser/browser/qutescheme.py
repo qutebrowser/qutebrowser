@@ -550,3 +550,9 @@ def qute_warning(url):
     else:
         raise NotFoundError("Invalid warning page {}".format(path))
     return 'text/html', src
+
+@add_handler('treegroup')
+def qute_tree(url):
+    src = jinja.render('tree_group.html',
+                       title=url.path()[1:])
+    return 'text/html', src

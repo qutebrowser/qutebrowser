@@ -2726,6 +2726,8 @@ bindings.default:
       zJ: tree-tab-navigate-on-same-level next
       zK: tree-tab-navigate-on-same-level prev
       zd: tab-close -r
+      zg: set-cmd-text -s :tree-tab-create-group -r
+      zG: set-cmd-text -s :tree-tab-create-group
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text {primary}
