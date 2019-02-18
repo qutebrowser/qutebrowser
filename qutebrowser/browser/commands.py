@@ -1866,6 +1866,39 @@ class CommandDispatcher:
             self._set_current_index(self._tabbed_browser.widget.indexOf(target_node.name))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tree_tab_toggle_hide(self):
+        """
+        If the current tab's children are shown. hide them.
+        If they are hidden, show them.
+        """
+        tabwidget = self._tabbed_browser.widget
+        tab = self._current_widget()
+        cur_idx = self._tabbed_browser.widgets().index(tab)
+        if not tab.node.children:
+            return
+        collapsed = tab.node.children[0].name not in self._tabbed_browser.widgets()
+
+        if collapsed:
+            order = notree.TraverseOrder.PRE
+            descendents = list(notree.traverse(tab.node, order))[1:]
+            for descendent in descendents:
+                cur_tab = descendent.name
+                cur_parent = descendent.parent
+                name = cur_tab.title()
+                icon = cur_tab.icon()
+                tabwidget.insertTab(cur_idx + 1, cur_tab, icon, name)
+                cur_tab.node.parent = cur_parent  # node gets reset in insertTab
+                cur_idx += 1
+        else:
+            order = notree.TraverseOrder.POST
+            descendents = list(notree.traverse(tab.node, order))[:-1]
+            for descendent in descendents:
+                cur_tab = descendent.name
+                idx = self._tabbed_browser.widgets().index(cur_tab)
+                tabwidget.removeTab(idx)
+        tabwidget.update_tab_titles()
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tree_tab_create_group(self, name: str, related=False, count=None):
         path = urllib.parse.quote(name)

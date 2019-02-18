@@ -207,6 +207,13 @@ class TabWidget(QTabWidget):
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
         fields['private'] = ' [Private Mode] ' if tab.is_private else ''
+
+        # TODO think of a better check for collapsed tabs
+        if tab.node.children and self.indexOf(tab.node.children[0].name) == -1:
+            fields['collapsed'] = ' [...] '
+        else:
+            fields['collapsed'] = ''
+
         try:
             if tab.audio.is_muted():
                 fields['audio'] = TabWidget.MUTE_STRING

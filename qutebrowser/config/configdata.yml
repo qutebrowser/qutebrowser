@@ -1657,6 +1657,7 @@ tabs.title.format:
       - current_url
       - protocol
       - audio
+      - collapsed
     none_ok: true
   desc: |
     Format to use for the tab title.
@@ -2728,6 +2729,7 @@ bindings.default:
       zd: tab-close -r
       zg: set-cmd-text -s :tree-tab-create-group -r
       zG: set-cmd-text -s :tree-tab-create-group
+      za: tree-tab-toggle-hide
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text {primary}
