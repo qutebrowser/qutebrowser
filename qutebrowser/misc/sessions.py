@@ -255,9 +255,9 @@ class SessionManager(QObject):
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.widget.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active))
-                if tab.node.parent is not None and tab.node.parent.name:
+                if tab.node.parent is not None and tab.node.parent.value:
                     win_data['tree'].append(
-                        tabbed_browser.widgets().index(tab.node.parent.name))
+                        tabbed_browser.widgets().index(tab.node.parent.value))
                 else:
                     win_data['tree'].append(None)
             data['windows'].append(win_data)

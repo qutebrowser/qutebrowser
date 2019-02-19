@@ -250,7 +250,7 @@ class CommandDispatcher:
             # we traverse by post-order so that parents never get closed
             # before their children
             for descendent in notree.traverse(tab.node, notree.TraverseOrder.POST):
-                close = functools.partial(self._tab_close, descendent.name, prev,
+                close = functools.partial(self._tab_close, descendent.value, prev,
                                           next_, opposite)
                 self._tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
         else:
@@ -1866,7 +1866,7 @@ class CommandDispatcher:
 
             target_node = siblings[(node_idx+diff) % len(siblings)]
 
-            self._set_current_index(self._tabbed_browser.widget.indexOf(target_node.name))
+            self._set_current_index(self._tabbed_browser.widget.indexOf(target_node.value))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_toggle_hide(self):
@@ -1885,7 +1885,7 @@ class CommandDispatcher:
             order = notree.TraverseOrder.PRE
             descendents = list(notree.traverse(tab.node, order))[1:]
             for descendent in descendents:
-                cur_tab = descendent.name
+                cur_tab = descendent.value
                 cur_parent = descendent.parent
                 name = cur_tab.title()
                 icon = cur_tab.icon()
@@ -1896,7 +1896,7 @@ class CommandDispatcher:
             order = notree.TraverseOrder.POST
             descendents = list(notree.traverse(tab.node, order))[:-1]
             for descendent in descendents:
-                cur_tab = descendent.name
+                cur_tab = descendent.value
                 idx = self._tabbed_browser.widgets().index(cur_tab)
                 tabwidget.removeTab(idx)
 

@@ -286,7 +286,7 @@ class TabWidget(QTabWidget):
         """Update tab positions acording tree structure"""
         for idx, node in enumerate(traverse(self.tree_root, render_collapsed=False)):
             if idx > 0:
-                cur_idx = self.indexOf(node.name)
+                cur_idx = self.indexOf(node.value)
                 self.tabBar().moveTab(cur_idx, idx-1)
 
     def tabInserted(self, idx):

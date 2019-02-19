@@ -46,7 +46,7 @@ def node(tree):
 
 def test_creation():
     node = Node('foo')
-    assert node.name == 'foo'
+    assert node.value == 'foo'
 
     child = Node('bar', node)
     assert child.parent == node

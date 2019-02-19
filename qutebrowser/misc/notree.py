@@ -22,7 +22,7 @@
 Tree library for tree-tabs.
 The fundamental unit is the Node class.
 
-Create a tree with with Node(name, parent):
+Create a tree with with Node(value, parent):
 root = Node('foo')
 child = Node('bar', root)
 child2 = Node('baz', root)
@@ -57,8 +57,8 @@ class Node():
     """Fundamental unit of notree library """
     sep = '/'
 
-    def __init__(self, name, parent=None, childs=tuple()):
-        self.name = name  # TODO rename to value
+    def __init__(self, value, parent=None, childs=tuple()):
+        self.value = value
         # set initial values so there's no need for AttributeError checks
         self.__parent = None
         self.__children = []
@@ -108,9 +108,9 @@ class Node():
     def path(self):
         """Get a list of all nodes from the root node to self"""
         if self.parent is None:
-            return [self.name]
+            return [self.value]
         else:
-            return self.parent.path + [self.name]
+            return self.parent.path + [self.value]
 
     @property
     def siblings(self):
@@ -127,12 +127,12 @@ class Node():
             self.__children.remove(value)
 
     def __repr__(self):
-        # return "<Node '%s'>" % self.name
+        # return "<Node '%s'>" % self.value
         return "<Node '%s'>" % self.sep.join(self.path)
 
     def __str__(self):
-        # return "<Node '%s'>" % self.name
-        return self.name
+        # return "<Node '%s'>" % self.value
+        return self.value
 
 corner = '└─'
 intersection = '├─'
