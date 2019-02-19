@@ -447,10 +447,6 @@ class TestKeySequence:
         ('a<', keyutils.KeySequence(Qt.Key_A, Qt.Key_Less)),
         ('>a', keyutils.KeySequence(Qt.Key_Greater, Qt.Key_A)),
         ('<a', keyutils.KeySequence(Qt.Key_Less, Qt.Key_A)),
-        ('<alt+greater>',
-         keyutils.KeySequence(Qt.Key_Greater | Qt.AltModifier)),
-        ('<alt+less>',
-         keyutils.KeySequence(Qt.Key_Less | Qt.AltModifier)),
 
         ('<<', keyutils.KeySequence(Qt.Key_Less, Qt.Key_Less)),
         ('>>', keyutils.KeySequence(Qt.Key_Greater, Qt.Key_Greater)),
