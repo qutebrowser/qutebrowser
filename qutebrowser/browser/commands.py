@@ -1741,16 +1741,17 @@ class CommandDispatcher:
             debug.qflags_key(Qt, window.state_before_fullscreen)))
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def tree_tab_promote(self):
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tree_tab_promote(self, count=1):
         """Promotes a tab so it becomes next sibling of its parent"""
 
         tab = self._current_widget()
 
-        grandparent = tab.node.parent.parent
-
-        if grandparent:
-            tab.node.parent = grandparent
-
+        while count > 0:
+            grandparent = tab.node.parent.parent
+            if grandparent:
+                tab.node.parent = grandparent
+            count -= 1
 
         self._tabbed_browser.widget.update_tab_titles()
         self._tabbed_browser.widget.update_tree_tab_positions()
@@ -1777,8 +1778,9 @@ class CommandDispatcher:
                 self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('direction', choices=['up', 'down'] )
-    def tree_tab_bubble(self, direction):
+    def tree_tab_bubble(self, direction, count=1):
         """
         Swaps position with its siblings, depending on direction
 
@@ -1796,17 +1798,18 @@ class CommandDispatcher:
 
         if siblings:
             idx = siblings.index(node)
-            diff = -1 if direction == 'up' else 1
+            diff = -count if direction == 'up' else count
             siblings.pop(idx)
-            siblings.insert(idx + diff, node)
+            siblings.insert(((idx + diff) % len(siblings)), node)
 
             parent.children = siblings
 
         self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('direction', choices=['up', 'down'] )
-    def tree_tab_rotate(self, direction):
+    def tree_tab_rotate(self, direction, count=1):
         """Rotates the entire tree so that first child becomes last or vice-versa
 
         Args:
@@ -1822,9 +1825,9 @@ class CommandDispatcher:
 
         if siblings:
             if direction == 'up':
-                siblings.append(siblings.pop(0))
+                siblings = siblings[count:] + siblings [:count]
             elif direction == 'down':
-                siblings.insert(0, siblings.pop())
+                siblings = siblings [:count] +  siblings[count:]
             else:
               raise cmdutils.CommandError("direction should be 'up' or 'down'")
 
@@ -1833,8 +1836,9 @@ class CommandDispatcher:
         self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('direction', choices=['next', 'prev'] )
-    def tree_tab_navigate_on_same_level(self, direction):
+    def tree_tab_navigate_on_same_level(self, direction, count=1):
         """
         Jump to next/previous sibling
 
@@ -1854,14 +1858,13 @@ class CommandDispatcher:
             # we want upper tab in the same subtree as current node
             node_idx = siblings.index(cur_node)
             if direction == 'next':
-                diff = 1
+                diff = count
             elif direction == 'prev' or direction == 'previous':
-                diff = -1
+                diff = - count
             else:
               raise cmdutils.CommandError("direction should be 'next' or 'prev'")
 
-            target_node = siblings[node_idx+diff \
-                                   if node_idx+diff < len(siblings) else 0]
+            target_node = siblings[(node_idx+diff) % len(siblings)]
 
             self._set_current_index(self._tabbed_browser.widget.indexOf(target_node.name))
 
