@@ -2727,8 +2727,8 @@ bindings.default:
       zrd: tree-tab-rotate down
       zu: tree-tab-bubble up
       zd: tree-tab-bubble down
-      zJ: tree-tab-navigate-on-same-level next
-      zK: tree-tab-navigate-on-same-level prev
+      zJ: tree-tab-navigate-on-same-level down
+      zK: tree-tab-navigate-on-same-level up
       zd: tab-close -r
       zg: set-cmd-text -s :tree-tab-create-group -r
       zG: set-cmd-text -s :tree-tab-create-group
