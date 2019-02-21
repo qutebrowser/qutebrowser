@@ -208,6 +208,8 @@ class PACResolver:
         Return:
             A list of QNetworkProxy objects in order of preference.
         """
+        qtutils.ensure_valid(query.url())
+
         if from_file:
             string_flags = QUrl.PrettyDecoded
         else:

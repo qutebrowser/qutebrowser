@@ -85,6 +85,8 @@ Fixed
 - The outdated header `X-Do-Not-Track` is no longer sent.
 - A javascript error on page load when using Qt 5.12 was fixed.
 - `window.print()` works with Qt 5.12 now.
+- PAC proxies were never correctly supported with QtWebEngine, but are now
+  explicitly disallowed.
 
 v1.5.2
 ------
