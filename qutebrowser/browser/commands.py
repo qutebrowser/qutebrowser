@@ -1796,11 +1796,11 @@ class CommandDispatcher:
         parent = node.parent
         siblings = list(parent.children)
 
-        if siblings:
+        if len(siblings) > 1:
             idx = siblings.index(node)
             diff = -count if direction == 'up' else count
             siblings.pop(idx)
-            siblings.insert(((idx + diff) % len(siblings)), node)
+            siblings.insert(((idx + diff) % (len(siblings)+1)), node)
 
             parent.children = siblings
 
