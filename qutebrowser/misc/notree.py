@@ -75,6 +75,10 @@ class Node():
         self.__parent = None
         self.__children = []
 
+        # For render memoization
+        self.__set_modified()
+        self.__rendered = []
+
         if parent:
             self.parent = parent  # calls setter
         if childs:
@@ -91,11 +95,13 @@ class Node():
         """Set parent property. Also adds self to value.children"""
         assert(value is None or isinstance(value, Node))
         if self.__parent:
+            self.__parent.__set_modified()
             self.__parent.__disown(self)
             self.__parent = None
         if value is not None:
             value.__add_child(self)
             self.__parent = value
+        self.__set_modified()
 
     @property
     def children(self):
@@ -115,20 +121,26 @@ class Node():
             if child.parent is not self:
                 child.parent = self
         self.__children = new_children
+        self.__set_modified()
 
     @property
     def path(self):
         """Get a list of all nodes from the root node to self"""
         if self.parent is None:
-            return [self.value]
+            return [self]
         else:
-            return self.parent.path + [self.value]
+            return self.parent.path + [self]
 
     @property
     def siblings(self):
         """Get siblings. Can not be set."""
         if self.parent:
             return (i for i in self.parent.children if i is not self)
+
+    def __set_modified(self):
+        """If self is modified, every ancestor is modified as well"""
+        for node in self.path:
+            node.__modified = True
 
     def render(self):
         """
@@ -140,6 +152,9 @@ class Node():
         Return: list of tuples where the first item is the symbol,
                 and the second is the node it refers to
         """
+        if not self.__modified:
+            return self.__rendered
+
         result = [('', self)]
         for child in self.children:
             if child.children:
@@ -160,6 +175,8 @@ class Node():
                     result.append((corner, child))
                 else:
                     result.append((intersection, child))
+        self.__modified = False
+        self.__rendered = result
         return result
 
 

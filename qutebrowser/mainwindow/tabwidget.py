@@ -166,7 +166,6 @@ class TabWidget(QTabWidget):
 
         fields['index'] = str(idx + 1)
         if config.val.tabs.tree_tabs:
-          # TODO move to custom TreeTab class as a function with memoziation
           # we remove the first two chars because every tab is child of tree root
           # and that gets rendered as well
           rendered_tree = self.tree_root.render()
