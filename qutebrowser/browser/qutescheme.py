@@ -553,6 +553,10 @@ def qute_warning(url):
 
 @add_handler('treegroup')
 def qute_tree(url):
+    """
+    Empty tab with a title.
+    For use with tree-tabs as a grouping feature.
+    """
     src = jinja.render('tree_group.html',
                        title=url.path()[1:])
     return 'text/html', src

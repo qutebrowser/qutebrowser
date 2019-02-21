@@ -229,7 +229,6 @@ class CommandDispatcher:
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('recursive')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_close(self, prev=False, next_=False, opposite=False,
                   force=False, count=None, recursive=False):
@@ -241,6 +240,7 @@ class CommandDispatcher:
             opposite: Force selecting the tab in the opposite direction of
                       what's configured in 'tabs.select_on_remove'.
             force: Avoid confirmation for pinned tabs.
+            recursive: Close all descendents (tree-tabs) as well as current tab
             count: The tab index to close, or None
         """
         tab = self._cntwidget(count)
@@ -1873,6 +1873,8 @@ class CommandDispatcher:
         """
         If the current tab's children are shown. hide them.
         If they are hidden, show them.
+
+        This toggles the current tab's node's `collapsed` attribute.
         """
         tabwidget = self._tabbed_browser.widget
         tab = self._current_widget()
@@ -1906,8 +1908,17 @@ class CommandDispatcher:
         tabwidget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tree_tab_create_group(self, name: str, related=False, count=None):
+    def tree_tab_create_group(self, name: str, related=False):
+        """
+        Wrapper around :open qute://treegroup/name. Correctly escapes titles.
+
+        Example: `:tree-tab-create-group Foo Bar` calls
+            `:open qute://treegroup/Foo%20Bar`
+
+        Args:
+            name: Name of the group to create
+            related: whether to open as a child of current tab or under root
+        """
         path = urllib.parse.quote(name)
         count = None if count is None else count+1
         self.openurl('qute://treegroup/' + path, tab=True, related=related, count=count)
