@@ -165,6 +165,7 @@ class TabWidget(QTabWidget):
         fields = self.get_tab_fields(idx)
         fields['title'] = fields['title'].replace('&', '&&')
 
+        fields['index'] = str(idx + 1)
         if config.val.tabs.tree_tabs:
           # TODO move to custom TreeTab class as a function with memoziation
           # we remove the first two chars because every tab is child of tree root
@@ -178,9 +179,9 @@ class TabWidget(QTabWidget):
           else:
               tree_prefix = ""
 
-          fields['index'] = tree_prefix + str(idx + 1)
+          fields['tree'] = tree_prefix
         else:
-          fields['index'] = idx
+          fields['tree'] = ''
 
         title = '' if fmt is None else fmt.format(**fields)
         tabbar = self.tabBar()

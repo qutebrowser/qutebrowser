@@ -1641,7 +1641,7 @@ tabs.title.alignment:
   desc: Alignment of the text inside of tabs.
 
 tabs.title.format:
-  default: '{audio}{index}: {title}'
+  default: '{audio}{tree}{index}: {title}'
   type:
     name: FormatString
     fields:
@@ -1658,6 +1658,7 @@ tabs.title.format:
       - protocol
       - audio
       - collapsed
+      - tree
     none_ok: true
   desc: |
     Format to use for the tab title.
