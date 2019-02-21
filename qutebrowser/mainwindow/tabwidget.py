@@ -35,6 +35,7 @@ from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.browser import browsertab
+from qutebrowser.misc.notree import Node, traverse
 
 # FIXME: only for debugging - remove before releasing
 # import ipdb
@@ -45,8 +46,6 @@ class PixelMetrics(enum.IntEnum):
 
     icon_padding = QStyle.PM_CustomBase
 
-
-from qutebrowser.misc.notree import Node, traverse, render_tree
 
 class TabWidget(QTabWidget):
     """The tab widget used for TabbedBrowser.
@@ -170,7 +169,7 @@ class TabWidget(QTabWidget):
           # TODO move to custom TreeTab class as a function with memoziation
           # we remove the first two chars because every tab is child of tree root
           # and that gets rendered as well
-          rendered_tree = render_tree(self.tree_root, False)
+          rendered_tree = self.tree_root.render(False)
           tree_prefixes = [pre[2:] for pre, _ in rendered_tree]
 
           # probably a hack, I believe there is a better way to check if the window and the first tab is initialized before tree root

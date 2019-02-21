@@ -2,6 +2,7 @@
 
 # Copyright 2015-2018 Alexander Cogneau (acogneau) <alexander.cogneau@gmail.com>
 # Copyright 2015-2018 Florian Bruhin (The-Compiler) <me@the-compiler.org>
+
 #
 # This file is part of qutebrowser.
 #
@@ -129,6 +130,42 @@ class Node():
         if self.parent:
             return (i for i in self.parent.children if i is not self)
 
+    def render(self, render_collapsed=True):
+        """
+        Render a tree with ascii symbols.
+        Tabs always appear in the same order as in traverse() with TraverseOrder.PRE
+        Args:
+            node; the root of the tree to render
+            render_collapsed: whether to render children of collapsed nodes.
+        NOTE: even if render_collapsed is set to False, collapsed nodes will be rendered.
+        It's their children that won't.
+
+        Return: list of tuples where the first item is the symbol,
+                and the second is the node it refers to
+        """
+        result = [('', self)]
+        for child in self.children:
+            if child.children:
+                subtree = child.render(render_collapsed)
+                if child is not self.children[-1]:
+                    subtree = [(pipe + ' ' + c, n) for c, n in subtree]
+                    char = intersection
+                else:
+                    subtree = [('  ' + c, n) for c, n in subtree]
+                    char = corner
+                subtree[0] = (char, subtree[0][1])
+                if child.collapsed and not render_collapsed:
+                    result += [subtree[0]]
+                else:
+                    result += subtree
+            else:
+                if child is self.children[-1]:
+                    result.append((corner, child))
+                else:
+                    result.append((intersection, child))
+        return result
+
+
     def __add_child(self, node):
         if node not in self.__children:
             self.__children.append(node)
@@ -179,39 +216,3 @@ def traverse(node, order=TraverseOrder.PRE, render_collapsed=True):
             yield child
     if order == TraverseOrder.POST:
         yield node
-
-
-def render_tree(node, render_collapsed=True):
-    """
-    Render a tree with ascii symbols.
-    Tabs always appear in the same order as in traverse() with TraverseOrder.PRE
-    Args:
-        node; the root of the tree to render
-        render_collapsed: whether to render children of collapsed nodes.
-    NOTE: even if render_collapsed is set to False, collapsed nodes will be rendered.
-    It's their children that won't.
-
-    Return: list of tuples where the first item is the symbol,
-            and the second is the node it refers to
-    """
-    result = [('', node)]
-    for child in node.children:
-        if child.children:
-            subtree = render_tree(child, render_collapsed)
-            if child is not node.children[-1]:
-                subtree = [(pipe + ' ' + c, n) for c, n in subtree]
-                char = intersection
-            else:
-                subtree = [('  ' + c, n) for c, n in subtree]
-                char = corner
-            subtree[0] = (char, subtree[0][1])
-            if child.collapsed and not render_collapsed:
-                result += [subtree[0]]
-            else:
-                result += subtree
-        else:
-            if child is node.children[-1]:
-                result.append((corner, child))
-            else:
-                result.append((intersection, child))
-    return result
