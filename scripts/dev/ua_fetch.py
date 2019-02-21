@@ -75,42 +75,17 @@ def filter_list(complete_list, browsers):
     return table
 
 
-def add_diversity(table):
-    """Insert a few additional entries for diversity into the dict.
-
-    (as returned by filter_list())
-    """
-    table["Obscure"] = [
-        ('Mozilla/5.0 (compatible; Googlebot/2.1; '
-         '+http://www.google.com/bot.html',
-         "Google Bot"),
-        ('Wget/1.16.1 (linux-gnu)',
-         "wget 1.16.1"),
-        ('curl/7.40.0',
-         "curl 7.40.0"),
-        ('Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 '
-         '(KHTML, like Gecko) Version/4.0 Mobile Safari/534.30',
-         "Mobile Generic Android"),
-        ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
-         'Gecko',
-         "IE 11.0 for Desktop  Win7 64-bit"),
-    ]
-    return table
-
-
 def main():
     """Generate user agent code."""
     fetched = fetch()
     lut = {
-        "Firefox": {"Win", "MacOSX", "Linux", "Android"},
-        "Chrome": {"Win", "MacOSX", "Linux"},
-        "Safari": {"MacOSX", "iOS"}
+        "Chrome": {"Win10", "Linux"},
     }
     filtered = filter_list(fetched, lut)
-    filtered = add_diversity(filtered)
+    filtered["empty"] = [('', "Use default QtWebKit/QtWebEngine User-Agent")]
 
     tab = "  "
-    for browser in ["Firefox", "Safari", "Chrome", "Obscure"]:
+    for browser in ["Chrome", "empty"]:
         for it in filtered[browser]:
             print('{}- - "{}"'.format(3 * tab, it[0]))
             desc = it[1].replace('\xa0', ' ').replace('  ', ' ')
