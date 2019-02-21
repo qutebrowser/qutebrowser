@@ -976,6 +976,28 @@ class CommandDispatcher:
         cur_idx = self._current_index()
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
+
+        if config.val.tabs.tree_tabs:
+            new_idx += 1
+            tab = self._current_widget()
+
+            # traverse order is the same as display order
+            # so indexing works correctly
+            tabs = list(self._tabbed_browser.widget.tree_root.traverse())
+            new_parent = tabs[new_idx].parent
+
+            # we need index relative to parent as well for correct placement
+            dest_tab = tabs[new_idx]
+            new_idx_relative = new_parent.children.index(dest_tab)
+
+            tab.node.parent = None  # avoid duplicate errors
+            siblings = list(new_parent.children)
+            siblings.insert(new_idx_relative, tab.node)
+            new_parent.children = siblings
+
+            self._tabbed_browser.widget.update_tab_titles()
+            self._tabbed_browser.widget.update_tree_tab_positions()
+            return
         self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
