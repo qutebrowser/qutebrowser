@@ -512,7 +512,7 @@ class TabbedBrowser(QWidget):
             cur_tab = self.widget.tabBar()._current_tab()
             tab.node.parent = self.widget.tree_root
             if related:
-                if cur_tab and cur_tab != self.widget.widget(idx):
+                if tab is not cur_tab:  # tab is cur_tab when opening the first tab
                     tab.node.parent = cur_tab.node
             else:
                 pos = config.val.tabs.new_position.unrelated
