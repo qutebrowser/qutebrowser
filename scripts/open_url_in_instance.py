@@ -2,11 +2,8 @@
 
 # This script greatly speeds up execution of qutebrowser commands when a
 # qutebrowser instance already exists.  Call it in place of your system's
-# qutebrowser executable.  It is based on the following work:
-#
-# scripts/open_url_in_instance.sh
+# qutebrowser executable.
 
-import codecs
 import hashlib
 import json
 import os
@@ -15,7 +12,7 @@ import socket
 import subprocess
 import sys
 
-version = '1.0.4'
+version = '1.6.0'
 protocol_version = 1
 
 m = hashlib.md5()
@@ -24,8 +21,7 @@ socket_name = 'ipc-' + m.hexdigest()
 
 socket_path = os.path.join(os.getenv('XDG_RUNTIME_DIR'), 'qutebrowser', socket_name)
 
-command = \
-{
+command = {
     'args' : sys.argv[1:],
     'target_arg' : 'null',
     'version' : version,
@@ -39,5 +35,5 @@ try:
     s.sendall(bytes(json.dumps(command) + '\n', 'utf8'))
     s.close()
 except Exception as e:
-    print(e, file = sys.stderr)
+    print(e, file=sys.stderr)
     subprocess.run(['/usr/bin/qutebrowser', *sys.argv[1:]])
