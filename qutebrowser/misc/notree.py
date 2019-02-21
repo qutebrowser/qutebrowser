@@ -130,15 +130,12 @@ class Node():
         if self.parent:
             return (i for i in self.parent.children if i is not self)
 
-    def render(self, render_collapsed=True):
+    def render(self):
         """
         Render a tree with ascii symbols.
         Tabs always appear in the same order as in traverse() with TraverseOrder.PRE
         Args:
             node; the root of the tree to render
-            render_collapsed: whether to render children of collapsed nodes.
-        NOTE: even if render_collapsed is set to False, collapsed nodes will be rendered.
-        It's their children that won't.
 
         Return: list of tuples where the first item is the symbol,
                 and the second is the node it refers to
@@ -146,7 +143,7 @@ class Node():
         result = [('', self)]
         for child in self.children:
             if child.children:
-                subtree = child.render(render_collapsed)
+                subtree = child.render()
                 if child is not self.children[-1]:
                     subtree = [(pipe + ' ' + c, n) for c, n in subtree]
                     char = intersection
@@ -154,7 +151,7 @@ class Node():
                     subtree = [('  ' + c, n) for c, n in subtree]
                     char = corner
                 subtree[0] = (char, subtree[0][1])
-                if child.collapsed and not render_collapsed:
+                if child.collapsed:
                     result += [subtree[0]]
                 else:
                     result += subtree
