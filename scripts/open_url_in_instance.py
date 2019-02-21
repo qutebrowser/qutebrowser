@@ -34,6 +34,5 @@ try:
     s.connect(socket_path)
     s.sendall(bytes(json.dumps(command) + '\n', 'utf8'))
     s.close()
-except Exception as e:
-    print(e, file=sys.stderr)
+except OSError:
     subprocess.run(['/usr/bin/qutebrowser', *sys.argv[1:]])
