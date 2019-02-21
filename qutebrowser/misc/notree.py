@@ -215,18 +215,18 @@ class Node():
             yield self
 
 
-        def __add_child(self, node):
-            if node not in self.__children:
-                self.__children.append(node)
+    def __add_child(self, node):
+        if node not in self.__children:
+            self.__children.append(node)
 
-        def __disown(self, value):
-            if value in self.__children:
-                self.__children.remove(value)
+    def __disown(self, value):
+        if value in self.__children:
+            self.__children.remove(value)
 
-        def __repr__(self):
-            # return "<Node '%s'>" % self.value
-            return "<Node '%s'>" % self.sep.join(self.path)
+    def __repr__(self):
+        # return "<Node '%s'>" % self.value
+        return "<Node '%s'>" % self.sep.join(self.path)
 
-        def __str__(self):
-            # return "<Node '%s'>" % self.value
-            return self.value
+    def __str__(self):
+        # return "<Node '%s'>" % self.value
+        return self.value
