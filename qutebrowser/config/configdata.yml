@@ -1665,6 +1665,8 @@ tabs.title.format:
     The following placeholders are defined:
 
     * `{perc}`: Percentage as a string like `[10%]`.
+    * `{collapsed}`: If children tabs are hidden, the string `[...]`, empty otherwise
+    * `{tree}`: The ASCII tree prefix of current tab. 
     * `{perc_raw}`: Raw percentage, e.g. `10`.
     * `{title}`: Title of the current web page.
     * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
