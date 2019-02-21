@@ -54,7 +54,18 @@ class TreeError(RuntimeError):
     pass
 
 class Node():
-    """Fundamental unit of notree library """
+    """
+    Fundamental unit of notree library.
+    Attributes:
+        value: The element (ususally a tab) the node represents
+        parent: Node's parent.
+        children: Node's children elements.
+        siblings: Children of parent node that are not self.
+        path: List of nodes from root of tree to self
+    value, parent, and children can all be set by user. Everything else will be
+    updated accordingly, so that if `node.parent = root_node`, then `node in
+    root_node.children` will be True.
+    """
     sep = '/'
 
     def __init__(self, value, parent=None, childs=tuple()):
@@ -141,15 +152,24 @@ pipe = '│'
 class TraverseOrder(enum.Enum):
     """
     To be used as argument to traverse().
-    Implemented orders are pre-order and post-order.
-    PRE yields nodes in the same order as they appear in the result of render_tree.
-    POST yields them so the children of a node are always yield before their parent.
+    Implemented orders are pre-order and post-order. 
+    Attributes:
+        PRE: yield nodes in the same order as they appear in the result of render_tree.
+        POST: yield them so the children of a node are always yield before their parent.
     """
     PRE = enum.auto()
     POST = enum.auto()
 
 def traverse(node, order=TraverseOrder.PRE, render_collapsed=True):
-    """Generator for all descendants of `node`"""
+    """
+    Generator for all descendants of `node`.
+    Args:
+        node: the root of the tree to traverse
+        order: a TraverseOrder object. See TraverseOrder documentation.
+        render_collapsed: whether to yield children of collapsed nodes
+    NOTE: even if render_collapsed is set to False, collapsed nodes will be rendered.
+    It's their children that won't.
+    """
     if order == TraverseOrder.PRE:
         yield node
     for child in node.children:
@@ -165,7 +185,13 @@ def render_tree(node, render_collapsed=True):
     """
     Render a tree with ascii symbols.
     Tabs always appear in the same order as in traverse() with TraverseOrder.PRE
-    return: list of tuples where the first item is the symbol,
+    Args:
+        node; the root of the tree to render
+        render_collapsed: whether to render children of collapsed nodes.
+    NOTE: even if render_collapsed is set to False, collapsed nodes will be rendered.
+    It's their children that won't.
+
+    Return: list of tuples where the first item is the symbol,
             and the second is the node it refers to
     """
     result = [('', node)]
@@ -188,5 +214,4 @@ def render_tree(node, render_collapsed=True):
                 result.append((corner, child))
             else:
                 result.append((intersection, child))
-    # return '\n'.join(result)
     return result
