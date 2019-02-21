@@ -361,17 +361,6 @@ class TabWidget(QTabWidget):
 
         self.set_page_title(new_idx, text)
 
-        new_node = self.widget(new_idx).node
-
-        if cur_tab and cur_tab != self.widget(new_idx):
-            new_node.parent = cur_tab.node
-        else:
-            new_node.parent = self.tree_root
-
-        # positions cannot be changed before setting the title
-        self.update_tree_tab_positions()
-        self.update_tab_titles()
-
         return new_idx
 
     @pyqtSlot(int)

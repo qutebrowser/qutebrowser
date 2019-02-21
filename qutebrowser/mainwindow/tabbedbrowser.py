@@ -504,17 +504,18 @@ class TabbedBrowser(QWidget):
                                 parent=self.widget)
         self._connect_tab_signals(tab)
 
-        # this was necessary to remove otherwise it was making a hell of a mess in tree structure
-        # if idx is None:
-        #     idx = self._get_new_tab_idx(explicit)
-        idx = self._get_new_tab_idx(related)
-
-        self.widget.insertTab(idx, tab, "")
-
-        if not related:
-            tab.node.parent = self.widget.tree_root
+        if config.val.tabs.tree_tabs:
+            if related:  # no need to set if not related, tree_root is default
+                cur_tab = self.widget.tabBar()._current_tab()
+                if cur_tab:
+                    tab.node.parent = cur_tab.node
             self.widget.update_tab_titles()
             self.widget.update_tree_tab_positions()
+            idx = 0
+        else:
+            idx = self._get_new_tab_idx(related)
+
+        self.widget.insertTab(idx, tab, "")
 
         if url is not None:
             tab.load_url(url)
