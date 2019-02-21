@@ -35,4 +35,9 @@ try:
     s.sendall(bytes(json.dumps(command) + '\n', 'utf8'))
     s.close()
 except OSError:
-    subprocess.run(['/usr/bin/qutebrowser', *sys.argv[1:]])
+    for exec_path in reversed(os.get_exec_path()):
+        try:
+            subprocess.run([os.path.join(exec_path, 'qutebrowser'), *sys.argv[1:]])
+            break
+        except OSError:
+            continue
