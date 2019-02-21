@@ -208,7 +208,7 @@ class Node():
             yield self
         for child in self.children:
             if render_collapsed or not child.collapsed:
-                yield from traverse(child, order)
+                yield from child.traverse(order)
             else:
                 yield child
         if order == TraverseOrder.POST:
