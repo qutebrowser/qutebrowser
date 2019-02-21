@@ -16,10 +16,10 @@ version = '1.6.0'
 protocol_version = 1
 
 m = hashlib.md5()
-m.update(bytes(os.getenv('USER'), 'utf8'))
+m.update(os.getenv('USER').encode('utf8'))
 socket_name = 'ipc-' + m.hexdigest()
 
-socket_path = os.path.join(os.getenv('XDG_RUNTIME_DIR'), 'qutebrowser', socket_name)
+socket_path = os.path.join(os.environ['XDG_RUNTIME_DIR'], 'qutebrowser', socket_name)
 
 command = {
     'args' : sys.argv[1:],
@@ -32,7 +32,7 @@ command = {
 try:
     s = socket.socket(socket.AF_UNIX)
     s.connect(socket_path)
-    s.sendall(bytes(json.dumps(command) + '\n', 'utf8'))
+    s.sendall((json.dumps(command) + '\n').encode('utf8'))
     s.close()
 except OSError:
     for exec_path in reversed(os.get_exec_path()):
