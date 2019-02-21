@@ -16,7 +16,7 @@ version = '1.6.0'
 protocol_version = 1
 
 m = hashlib.md5()
-m.update(os.getenv('USER').encode('utf8'))
+m.update(os.environ['USER'].encode('utf8'))
 socket_name = 'ipc-' + m.hexdigest()
 
 socket_path = os.path.join(os.environ['XDG_RUNTIME_DIR'], 'qutebrowser', socket_name)
