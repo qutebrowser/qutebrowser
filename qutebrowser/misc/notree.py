@@ -179,22 +179,41 @@ class Node():
         self.__rendered = result
         return result
 
+    def traverse(self, order=TraverseOrder.PRE, render_collapsed=True):
+        """
+        Generator for all descendants of `self`.
+        Args:
+            order: a TraverseOrder object. See TraverseOrder documentation.
+            render_collapsed: whether to yield children of collapsed nodes
+        NOTE: even if render_collapsed is set to False, collapsed nodes will be rendered.
+        It's their children that won't.
+        """
+        if order == TraverseOrder.PRE:
+            yield self
+        for child in self.children:
+            if render_collapsed or not child.collapsed:
+                yield from traverse(child, order)
+            else:
+                yield child
+        if order == TraverseOrder.POST:
+            yield self
 
-    def __add_child(self, node):
-        if node not in self.__children:
-            self.__children.append(node)
 
-    def __disown(self, value):
-        if value in self.__children:
-            self.__children.remove(value)
+        def __add_child(self, node):
+            if node not in self.__children:
+                self.__children.append(node)
 
-    def __repr__(self):
-        # return "<Node '%s'>" % self.value
-        return "<Node '%s'>" % self.sep.join(self.path)
+        def __disown(self, value):
+            if value in self.__children:
+                self.__children.remove(value)
 
-    def __str__(self):
-        # return "<Node '%s'>" % self.value
-        return self.value
+        def __repr__(self):
+            # return "<Node '%s'>" % self.value
+            return "<Node '%s'>" % self.sep.join(self.path)
+
+        def __str__(self):
+            # return "<Node '%s'>" % self.value
+            return self.value
 
 corner = '└─'
 intersection = '├─'
@@ -210,23 +229,3 @@ class TraverseOrder(enum.Enum):
     """
     PRE = enum.auto()
     POST = enum.auto()
-
-def traverse(node, order=TraverseOrder.PRE, render_collapsed=True):
-    """
-    Generator for all descendants of `node`.
-    Args:
-        node: the root of the tree to traverse
-        order: a TraverseOrder object. See TraverseOrder documentation.
-        render_collapsed: whether to yield children of collapsed nodes
-    NOTE: even if render_collapsed is set to False, collapsed nodes will be rendered.
-    It's their children that won't.
-    """
-    if order == TraverseOrder.PRE:
-        yield node
-    for child in node.children:
-        if render_collapsed or not child.collapsed:
-            yield from traverse(child, order)
-        else:
-            yield child
-    if order == TraverseOrder.POST:
-        yield node

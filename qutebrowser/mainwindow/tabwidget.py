@@ -35,7 +35,7 @@ from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.browser import browsertab
-from qutebrowser.misc.notree import Node, traverse
+from qutebrowser.misc.notree import Node
 
 # FIXME: only for debugging - remove before releasing
 # import ipdb
@@ -283,7 +283,7 @@ class TabWidget(QTabWidget):
 
     def update_tree_tab_positions(self):
         """Update tab positions acording tree structure"""
-        for idx, node in enumerate(traverse(self.tree_root, render_collapsed=False)):
+        for idx, node in enumerate(self.tree_root.traverse(render_collapsed=False)):
             if idx > 0:
                 cur_idx = self.indexOf(node.value)
                 self.tabBar().moveTab(cur_idx, idx-1)
