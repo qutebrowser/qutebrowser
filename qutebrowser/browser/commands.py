@@ -1837,7 +1837,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('direction', choices=['next', 'prev'] )
+    @cmdutils.argument('direction', choices=['up', 'down'] )
     def tree_tab_navigate_on_same_level(self, direction, count=1):
         """
         Jump to next/previous sibling
@@ -1857,9 +1857,9 @@ class CommandDispatcher:
 
             # we want upper tab in the same subtree as current node
             node_idx = siblings.index(cur_node)
-            if direction == 'next':
+            if direction == 'up':
                 diff = count
-            elif direction == 'prev' or direction == 'previous':
+            elif direction == 'down':
                 diff = - count
             else:
               raise cmdutils.CommandError("direction should be 'next' or 'prev'")
