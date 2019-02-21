@@ -1825,9 +1825,9 @@ class CommandDispatcher:
 
         if siblings:
             if direction == 'up':
-                siblings = siblings[count:] + siblings [:count]
+                siblings = siblings[count:] + siblings[:count]
             elif direction == 'down':
-                siblings = siblings [:count] +  siblings[count:]
+                siblings =  siblings[-count:] + siblings[:-count]
             else:
               raise cmdutils.CommandError("direction should be 'up' or 'down'")
 
