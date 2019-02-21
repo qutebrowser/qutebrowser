@@ -50,9 +50,25 @@ render_tree(root)
 """
 import enum
 
+# For Node.render
+corner = '└─'
+intersection = '├─'
+pipe = '│'
+
 class TreeError(RuntimeError):
     """Exception used for tree-related errors"""
     pass
+
+class TraverseOrder(enum.Enum):
+    """
+    To be used as argument to traverse().
+    Implemented orders are pre-order and post-order. 
+    Attributes:
+        PRE: yield nodes in the same order as they appear in the result of render_tree.
+        POST: yield them so the children of a node are always yield before their parent.
+    """
+    PRE = enum.auto()
+    POST = enum.auto()
 
 class Node():
     """
@@ -214,18 +230,3 @@ class Node():
         def __str__(self):
             # return "<Node '%s'>" % self.value
             return self.value
-
-corner = '└─'
-intersection = '├─'
-pipe = '│'
-
-class TraverseOrder(enum.Enum):
-    """
-    To be used as argument to traverse().
-    Implemented orders are pre-order and post-order. 
-    Attributes:
-        PRE: yield nodes in the same order as they appear in the result of render_tree.
-        POST: yield them so the children of a node are always yield before their parent.
-    """
-    PRE = enum.auto()
-    POST = enum.auto()
