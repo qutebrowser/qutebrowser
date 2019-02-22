@@ -984,12 +984,12 @@ class CommandDispatcher:
             # traverse order is the same as display order
             # so indexing works correctly
             tabs = list(self._tabbed_browser.widget.tree_root.traverse())
-            target_tab = tabs[new_idx]
-            if tab.node in target_tab.path:
+            target_node = tabs[new_idx]
+            if tab.node in target_node.path:
                 raise cmdutils.CommandError("Can't move tab to a descendent" \
                                             " of itself")
 
-            new_parent = target_tab.parent
+            new_parent = target_node.parent
             # we need index relative to parent for correct placement
             dest_tab = tabs[new_idx]
             new_idx_relative = new_parent.children.index(dest_tab)
