@@ -1942,5 +1942,4 @@ class CommandDispatcher:
             related: whether to open as a child of current tab or under root
         """
         path = urllib.parse.quote(name)
-        count = None if count is None else count+1
-        self.openurl('qute://treegroup/' + path, tab=True, related=related, count=count)
+        self.openurl('qute://treegroup/' + path, tab=True, related=related)
