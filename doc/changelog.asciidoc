@@ -62,6 +62,9 @@ Changed
   `org.qutebrowser.qutebrowser.appdata.xml`.
 - The `qute-pass` userscript now understands domains in gpg filenames
   in addition to directory names.
+- macOS: The IPC socket path used to communicate with existing instances
+  changed due to changes in Qt 5.12. Please make sure to quit qutebrowser
+  before upgrading.
 
 Fixed
 ~~~~~
