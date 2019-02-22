@@ -67,8 +67,8 @@ class TraverseOrder(enum.Enum):
         POST: children of a node are always yield before their parent.
     """
 
-    PRE = enum.auto()
-    POST = enum.auto()
+    PRE = 'pre-order'
+    POST = 'post-order'
 
 
 class Node():
