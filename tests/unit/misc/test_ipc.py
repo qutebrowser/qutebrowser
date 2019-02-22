@@ -34,7 +34,7 @@ from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
-from qutebrowser.utils import standarddir, utils, qtutils
+from qutebrowser.utils import standarddir, utils
 from helpers import stubs
 
 
