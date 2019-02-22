@@ -49,9 +49,9 @@ render_tree(root)
 import enum
 
 # For Node.render
-corner = '└─'
-intersection = '├─'
-pipe = '│'
+CORNER = '└─'
+INTERSECTION = '├─'
+PIPE = '│'
 
 
 class TreeError(RuntimeError):
@@ -183,11 +183,11 @@ class Node():
             if child.children:
                 subtree = child.render()
                 if child is not self.children[-1]:
-                    subtree = [(pipe + ' ' + c, n) for c, n in subtree]
-                    char = intersection
+                    subtree = [(PIPE + ' ' + c, n) for c, n in subtree]
+                    char = INTERSECTION
                 else:
                     subtree = [('  ' + c, n) for c, n in subtree]
-                    char = corner
+                    char = CORNER
                 subtree[0] = (char, subtree[0][1])
                 if child.collapsed:
                     result += [subtree[0]]
@@ -195,9 +195,9 @@ class Node():
                     result += subtree
             else:
                 if child is self.children[-1]:
-                    result.append((corner, child))
+                    result.append((CORNER, child))
                 else:
-                    result.append((intersection, child))
+                    result.append((INTERSECTION, child))
         self.__modified = False
         self.__rendered = result
         return result
