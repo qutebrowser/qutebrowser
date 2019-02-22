@@ -1808,8 +1808,6 @@ class CommandDispatcher:
                 'up': Swap position with previous sibling
                 'down': Swap position with next sibling
         """
-        if direction not in ('up', 'down'):
-            raise cmdutils.CommandError("direction should be 'up' or 'down'")
         node = self._current_widget().node
 
         parent = node.parent
@@ -1847,8 +1845,6 @@ class CommandDispatcher:
                 siblings = siblings[count:] + siblings[:count]
             elif direction == 'down':
                 siblings = siblings[-count:] + siblings[:-count]
-            else:
-                raise cmdutils.CommandError("direction must be 'up' or 'down'")
 
             parent.children = siblings
 
@@ -1878,8 +1874,6 @@ class CommandDispatcher:
                 diff = count
             elif direction == 'down':
                 diff = - count
-            else:
-                raise cmdutils.CommandError("direction must be 'next' or 'prev'")
 
             target_node = siblings[(node_idx+diff) % len(siblings)]
 
