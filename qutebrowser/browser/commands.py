@@ -250,7 +250,7 @@ class CommandDispatcher:
         if recursive and config.val.tabs.tree_tabs:
             # we traverse by post-order so that parents never get closed
             # before their children
-            for descendent in notree.traverse(tab.node, notree.TraverseOrder.POST):
+            for descendent in tab.node.traverse(notree.TraverseOrder.POST):
                 close = functools.partial(self._tab_close, descendent.value,
                                           prev, next_, opposite)
                 tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
