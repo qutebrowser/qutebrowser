@@ -885,9 +885,9 @@ class AbstractTab(QWidget):
         self.backend = None
 
         if parent:
-            self.node = Node(self, parent = parent.tree_root)
+            self.node = Node(self, parent=parent.tree_root)
         else:
-            self.node = Node(self, parent = None)
+            self.node = Node(self, parent=None)
 
         # FIXME:qtwebengine  Should this be public api via self.hints?
         #                    Also, should we get it out of objreg?

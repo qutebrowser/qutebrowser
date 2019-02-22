@@ -551,10 +551,11 @@ def qute_warning(url):
         raise NotFoundError("Invalid warning page {}".format(path))
     return 'text/html', src
 
+
 @add_handler('treegroup')
 def qute_tree(url):
-    """
-    Empty tab with a title.
+    """Empty tab with a title.
+
     For use with tree-tabs as a grouping feature.
     """
     src = jinja.render('tree_group.html',

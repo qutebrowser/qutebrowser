@@ -244,21 +244,21 @@ class CommandDispatcher:
             count: The tab index to close, or None
         """
         tab = self._cntwidget(count)
+        tabbed_browser = self._tabbed_browser
         if tab is None:
             return
         if recursive and config.val.tabs.tree_tabs:
             # we traverse by post-order so that parents never get closed
             # before their children
             for descendent in notree.traverse(tab.node, notree.TraverseOrder.POST):
-                close = functools.partial(self._tab_close, descendent.value, prev,
-                                          next_, opposite)
-                self._tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
+                close = functools.partial(self._tab_close, descendent.value,
+                                          prev, next_, opposite)
+                tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
         else:
             close = functools.partial(self._tab_close, tab, prev,
                                       next_, opposite)
 
-            self._tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
-
+            tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        name='tab-pin')
@@ -1765,8 +1765,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tree_tab_promote(self, count=1):
-        """Promotes a tab so it becomes next sibling of its parent"""
-
+        """Promote a tab so it becomes next sibling of its parent."""
         tab = self._current_widget()
 
         while count > 0:
@@ -1780,8 +1779,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_demote(self):
-        """Demotes a tab so it becomes a children of its previous adjacent sibling """
-
+        """Demote a tab making it children of its previous adjacent sibling."""
         cur_node = self._current_widget().node
 
         # always assume there is a parent
@@ -1801,10 +1799,9 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('direction', choices=['up', 'down'] )
+    @cmdutils.argument('direction', choices=['up', 'down'])
     def tree_tab_bubble(self, direction, count=1):
-        """
-        Swaps position with its siblings, depending on direction
+        """Swaps position with its siblings, depending on direction.
 
         Args:
             direction:
@@ -1830,9 +1827,9 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('direction', choices=['up', 'down'] )
+    @cmdutils.argument('direction', choices=['up', 'down'])
     def tree_tab_rotate(self, direction, count=1):
-        """Rotates the entire tree so that first child becomes last or vice-versa
+        """Rotate the entire tree making first tab last or vice-versa.
 
         Args:
             direction: Which direction to rotate the tree towards
@@ -1849,9 +1846,9 @@ class CommandDispatcher:
             if direction == 'up':
                 siblings = siblings[count:] + siblings[:count]
             elif direction == 'down':
-                siblings =  siblings[-count:] + siblings[:-count]
+                siblings = siblings[-count:] + siblings[:-count]
             else:
-              raise cmdutils.CommandError("direction should be 'up' or 'down'")
+                raise cmdutils.CommandError("direction must be 'up' or 'down'")
 
             parent.children = siblings
 
@@ -1859,17 +1856,15 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('direction', choices=['up', 'down'] )
+    @cmdutils.argument('direction', choices=['up', 'down'])
     def tree_tab_navigate_on_same_level(self, direction, count=1):
-        """
-        Jump to next/previous sibling
+        """Jump to next/previous sibling.
 
-        args:
+        Args:
             direction: Which sibling to jump to
                 'next': Jump to next sibling
                 'prev': Jump to previous sibling
         """
-
         cur_node = self._current_widget().node
 
         # always assume there is a parent
@@ -1884,17 +1879,16 @@ class CommandDispatcher:
             elif direction == 'down':
                 diff = - count
             else:
-              raise cmdutils.CommandError("direction should be 'next' or 'prev'")
+                raise cmdutils.CommandError("direction must be 'next' or 'prev'")
 
             target_node = siblings[(node_idx+diff) % len(siblings)]
 
-            self._set_current_index(self._tabbed_browser.widget.indexOf(target_node.value))
+            idx = self._tabbed_browser.widget.indexOf(target_node.value)
+            self._set_current_index(idx)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_toggle_hide(self):
-        """
-        If the current tab's children are shown. hide them.
-        If they are hidden, show them.
+        """If the current tab's children are shown hide them, and vice-versa
 
         This toggles the current tab's node's `collapsed` attribute.
         """
@@ -1914,7 +1908,7 @@ class CommandDispatcher:
                 name = cur_tab.title()
                 icon = cur_tab.icon()
                 tabwidget.insertTab(cur_idx + 1, cur_tab, icon, name)
-                cur_tab.node.parent = cur_parent  # node gets reset in insertTab
+                cur_tab.node.parent = cur_parent  #  insertTab resets node
                 cur_idx += 1
         else:
             order = notree.TraverseOrder.POST
@@ -1931,8 +1925,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_create_group(self, name: str, related=False):
-        """
-        Wrapper around :open qute://treegroup/name. Correctly escapes titles.
+        """Wrapper around :open qute://treegroup/name. Correctly escapes names.
 
         Example: `:tree-tab-create-group Foo Bar` calls
             `:open qute://treegroup/Foo%20Bar`

@@ -37,8 +37,6 @@ from qutebrowser.misc import objects
 from qutebrowser.browser import browsertab
 from qutebrowser.misc.notree import Node
 
-# FIXME: only for debugging - remove before releasing
-# import ipdb
 
 class PixelMetrics(enum.IntEnum):
 
@@ -86,7 +84,6 @@ class TabWidget(QTabWidget):
         self._init_config()
         config.instance.changed.connect(self._init_config)
 
-
     @config.change_filter('tabs')
     def _init_config(self):
         """Initialize attributes based on the config."""
@@ -103,8 +100,8 @@ class TabWidget(QTabWidget):
         # For tree-tabs
         self.update_tab_titles()  # Must also be called when deactivating
         if config.cache['tabs.tree_tabs']:
-          # Positions matter only if enabling
-          self.update_tree_tab_positions()
+            # Positions matter only if enabling
+            self.update_tree_tab_positions()
 
     def set_tab_indicator_color(self, idx, color):
         """Set the tab indicator color.
@@ -166,20 +163,21 @@ class TabWidget(QTabWidget):
 
         fields['index'] = str(idx + 1)
         if config.val.tabs.tree_tabs:
-          # we remove the first two chars because every tab is child of tree root
-          # and that gets rendered as well
-          rendered_tree = self.tree_root.render()
-          tree_prefixes = [pre[2:] for pre, _ in rendered_tree]
+            # we remove the first two chars because every tab is child of tree
+            # root and that gets rendered as well
+            rendered_tree = self.tree_root.render()
+            tree_prefixes = [pre[2:] for pre, _ in rendered_tree]
 
-          # probably a hack, I believe there is a better way to check if the window and the first tab is initialized before tree root
-          if len(tree_prefixes) > self.count():
-              tree_prefix = tree_prefixes[idx+1]
-          else:
-              tree_prefix = ""
+            # probably a hack, I believe there is a better way to check if the
+            # window and the first tab is initialized before tree root
+            if len(tree_prefixes) > self.count():
+                tree_prefix = tree_prefixes[idx+1]
+            else:
+                tree_prefix = ""
 
-          fields['tree'] = tree_prefix
+            fields['tree'] = tree_prefix
         else:
-          fields['tree'] = ''
+            fields['tree'] = ''
 
         title = '' if fmt is None else fmt.format(**fields)
         tabbar = self.tabBar()
@@ -280,10 +278,9 @@ class TabWidget(QTabWidget):
             for idx in range(self.count()):
                 self.update_tab_title(idx)
 
-
     def update_tree_tab_positions(self):
-        """Update tab positions acording tree structure"""
-        for idx, node in enumerate(self.tree_root.traverse(render_collapsed=False)):
+        """Update tab positions acording tree structure."""
+        for idx, node in enumerate(self.tree_root.traverse()):
             if idx > 0:
                 cur_idx = self.indexOf(node.value)
                 self.tabBar().moveTab(cur_idx, idx-1)
@@ -347,9 +344,6 @@ class TabWidget(QTabWidget):
         Return:
             The index of the newly added tab.
         """
-
-        cur_tab = self.tabBar()._current_tab()
-
         if text_or_empty is None:
             icon = None
             text = icon_or_text

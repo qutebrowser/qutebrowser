@@ -449,8 +449,8 @@ class SessionManager(QObject):
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
-            # tree is a list of int, so that tree[i] is the index of the parent tab
-            # of the ith tab
+            # tree is a list of int, so that tree[i] is the index of the parent
+            # tab of the ith tab
             tree = win.get('tree', None)
             if tree:
                 tabs = tabbed_browser.widgets()
@@ -459,7 +459,6 @@ class SessionManager(QObject):
                         tab.node.parent = tabs[tree[i]].node
                     else:
                         tab.node.parent = tabbed_browser.widget.tree_root
-
 
         if data['windows']:
             self.did_load = True

@@ -19,8 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-Tree library for tree-tabs.
+"""Tree library for tree-tabs.
+
 The fundamental unit is the Node class.
 
 Create a tree with with Node(value, parent):
@@ -55,24 +55,27 @@ corner = '└─'
 intersection = '├─'
 pipe = '│'
 
+
 class TreeError(RuntimeError):
-    """Exception used for tree-related errors"""
-    pass
+    """Exception used for tree-related errors."""
+
 
 class TraverseOrder(enum.Enum):
-    """
-    To be used as argument to traverse().
-    Implemented orders are pre-order and post-order. 
+    """To be used as argument to traverse().
+
+    Implemented orders are pre-order and post-order.
     Attributes:
-        PRE: yield nodes in the same order as they appear in the result of render_tree.
-        POST: yield them so the children of a node are always yield before their parent.
+        PRE: pre-order (parents before children). Same as in Node.render
+        POST: children of a node are always yield before their parent.
     """
+
     PRE = enum.auto()
     POST = enum.auto()
 
+
 class Node():
-    """
-    Fundamental unit of notree library.
+    """Fundamental unit of notree library.
+
     Attributes:
         value: The element (ususally a tab) the node represents
         parent: Node's parent.
@@ -83,16 +86,19 @@ class Node():
     updated accordingly, so that if `node.parent = root_node`, then `node in
     root_node.children` will be True.
     """
-    sep = '/'
 
-    def __init__(self, value, parent=None, childs=tuple()):
+    sep = '/'
+    __parent: 'Node' = None
+
+    def __init__(self, value, parent=None, childs=()):
         self.value = value
         # set initial values so there's no need for AttributeError checks
         self.__parent = None
         self.__children = []
 
         # For render memoization
-        self.__set_modified()
+        self.__modified = False
+        self.__set_modified()  # not the same as line above
         self.__rendered = []
 
         if parent:
@@ -108,7 +114,8 @@ class Node():
 
     @parent.setter
     def parent(self, value):
-        """Set parent property. Also adds self to value.children"""
+        """Set parent property. Also adds self to value.children."""
+        # pylint: disable=protected-access
         assert(value is None or isinstance(value, Node))
         if self.__parent:
             self.__parent.__set_modified()
@@ -125,8 +132,8 @@ class Node():
 
     @children.setter
     def children(self, value):
-        """
-        Set children property, preserving order.
+        """Set children property, preserving order.
+
         Also sets n.parent = self for n in value. Does not allow duplicates.
         """
         seen = set(value)
@@ -141,7 +148,7 @@ class Node():
 
     @property
     def path(self):
-        """Get a list of all nodes from the root node to self"""
+        """Get a list of all nodes from the root node to self."""
         if self.parent is None:
             return [self]
         else:
@@ -152,16 +159,18 @@ class Node():
         """Get siblings. Can not be set."""
         if self.parent:
             return (i for i in self.parent.children if i is not self)
+        else:
+            return ()
 
     def __set_modified(self):
-        """If self is modified, every ancestor is modified as well"""
+        """If self is modified, every ancestor is modified as well."""
         for node in self.path:
-            node.__modified = True
+            node.__modified = True  # pylint: disable=protected-access
 
     def render(self):
-        """
-        Render a tree with ascii symbols.
-        Tabs always appear in the same order as in traverse() with TraverseOrder.PRE
+        """Render a tree with ascii symbols.
+
+        Tabs appear in the same order as in traverse() with TraverseOrder.PRE
         Args:
             node; the root of the tree to render
 
@@ -196,12 +205,12 @@ class Node():
         return result
 
     def traverse(self, order=TraverseOrder.PRE, render_collapsed=True):
-        """
-        Generator for all descendants of `self`.
+        """Generator for all descendants of `self`.
+
         Args:
             order: a TraverseOrder object. See TraverseOrder documentation.
             render_collapsed: whether to yield children of collapsed nodes
-        NOTE: even if render_collapsed is set to False, collapsed nodes will be rendered.
+        Even if render_collapsed is False, collapsed nodes will be rendered.
         It's their children that won't.
         """
         if order == TraverseOrder.PRE:
@@ -213,7 +222,6 @@ class Node():
                 yield child
         if order == TraverseOrder.POST:
             yield self
-
 
     def __add_child(self, node):
         if node not in self.__children:

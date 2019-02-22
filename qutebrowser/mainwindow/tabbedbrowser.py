@@ -359,7 +359,7 @@ class TabbedBrowser(QWidget):
 
         cur_node = tab.node
 
-        node_parent   = cur_node.parent
+        node_parent = cur_node.parent
 
         if node_parent:
             node_siblings = list(node_parent.children)
@@ -377,7 +377,7 @@ class TabbedBrowser(QWidget):
                 node_siblings[node_idx] = next_node
 
                 node_parent.children = tuple(node_siblings)
-                cur_node.children = tuple()
+                cur_node.children = ()
 
             cur_node.parent = None
 
@@ -504,15 +504,14 @@ class TabbedBrowser(QWidget):
                                 parent=self.widget)
         self._connect_tab_signals(tab)
 
-
         idx = self._get_new_tab_idx(related)  # ignored by tree-tabs
         idx = self.widget.insertTab(idx, tab, "")
 
         if config.val.tabs.tree_tabs:
-            cur_tab = self.widget.tabBar()._current_tab()
+            cur_tab = self.widget.currentWidget()
             tab.node.parent = self.widget.tree_root
             if related:
-                if tab is not cur_tab:  # tab is cur_tab when opening the first tab
+                if tab is not cur_tab:  # check we're not opening first tab
                     tab.node.parent = cur_tab.node
             else:
                 pos = config.val.tabs.new_position.unrelated
