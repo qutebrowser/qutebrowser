@@ -280,7 +280,7 @@ class TabWidget(QTabWidget):
 
     def update_tree_tab_positions(self):
         """Update tab positions acording tree structure."""
-        for idx, node in enumerate(self.tree_root.traverse()):
+        for idx, node in enumerate(self.tree_root.traverse(render_collapsed=False)):
             if idx > 0:
                 cur_idx = self.indexOf(node.value)
                 self.tabBar().moveTab(cur_idx, idx-1)
