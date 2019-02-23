@@ -47,6 +47,7 @@ render_tree(root)
 > ('└─', 'baz')
 """
 import enum
+import typing
 
 # For Node.render
 CORNER = '└─'
@@ -85,19 +86,24 @@ class Node():
     root_node.children` will be True.
     """
 
-    sep = '/'
-    __parent: 'Node' = None
+    sep: str = '/'
+    __parent: typing.Optional['Node'] = None
 
-    def __init__(self, value, parent=None, childs=()):
+    PARENT_TYPE = typing.TypeVar('PARENT_TYPE')
+
+    def __init__(self,
+                 value: PARENT_TYPE,
+                 parent: typing.Optional['Node'] = None,
+                 childs: typing.Sequence['Node'] = ()) -> None:
         self.value = value
         # set initial values so there's no need for AttributeError checks
-        self.__parent = None
-        self.__children = []
+        self.__parent = None  # type: typing.Optional['Node']
+        self.__children = []  # type: typing.List['Node']
 
         # For render memoization
         self.__modified = False
         self.__set_modified()  # not the same as line above
-        self.__rendered = []
+        self.__rendered = []  # type: typing.List[typing.Tuple[str, 'Node']]
 
         if parent:
             self.parent = parent  # calls setter
@@ -107,11 +113,11 @@ class Node():
         self.collapsed = False
 
     @property
-    def parent(self):
+    def parent(self) -> typing.Optional['Node']:
         return self.__parent
 
     @parent.setter
-    def parent(self, value):
+    def parent(self, value) -> None:
         """Set parent property. Also adds self to value.children."""
         # pylint: disable=protected-access
         assert(value is None or isinstance(value, Node))
@@ -125,11 +131,11 @@ class Node():
         self.__set_modified()
 
     @property
-    def children(self):
+    def children(self) -> typing.Sequence['Node']:
         return tuple(self.__children)
 
     @children.setter
-    def children(self, value):
+    def children(self, value: typing.Sequence['Node']):
         """Set children property, preserving order.
 
         Also sets n.parent = self for n in value. Does not allow duplicates.
@@ -145,7 +151,7 @@ class Node():
         self.__set_modified()
 
     @property
-    def path(self):
+    def path(self) -> typing.List['Node']:
         """Get a list of all nodes from the root node to self."""
         if self.parent is None:
             return [self]
@@ -153,19 +159,19 @@ class Node():
             return self.parent.path + [self]
 
     @property
-    def siblings(self):
+    def siblings(self) -> typing.Iterable['Node']:
         """Get siblings. Can not be set."""
         if self.parent:
             return (i for i in self.parent.children if i is not self)
         else:
             return ()
 
-    def __set_modified(self):
+    def __set_modified(self) -> None:
         """If self is modified, every ancestor is modified as well."""
         for node in self.path:
             node.__modified = True  # pylint: disable=protected-access
 
-    def render(self):
+    def render(self) -> typing.Iterable[typing.Tuple[str, "Node"]]:
         """Render a tree with ascii symbols.
 
         Tabs appear in the same order as in traverse() with TraverseOrder.PRE
@@ -202,7 +208,8 @@ class Node():
         self.__rendered = result
         return result
 
-    def traverse(self, order=TraverseOrder.PRE, render_collapsed=True):
+    def traverse(self, order: TraverseOrder = TraverseOrder.PRE,
+                 render_collapsed: bool = True) -> typing.Iterable['Node']:
         """Generator for all descendants of `self`.
 
         Args:
@@ -221,18 +228,20 @@ class Node():
         if order == TraverseOrder.POST:
             yield self
 
-    def __add_child(self, node):
+    def __add_child(self, node: 'Node') -> None:
         if node not in self.__children:
             self.__children.append(node)
 
-    def __disown(self, value):
+    def __disown(self, value: 'Node') -> None:
         if value in self.__children:
             self.__children.remove(value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         # return "<Node '%s'>" % self.value
-        return "<Node '%s'>" % self.sep.join(self.path)
+        # pylint: disable=bad-builtin
+        return "<Node '%s'>" % self.sep.join(map(str, self.path))
+        # pylint: enable=bad-builtin
 
-    def __str__(self):
+    def __str__(self) -> str:
         # return "<Node '%s'>" % self.value
-        return self.value
+        return str(self.value)
