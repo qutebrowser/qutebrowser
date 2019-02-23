@@ -588,6 +588,8 @@ class TabbedBrowser(QWidget):
         """Leave insert/hint mode when loading started."""
         try:
             url = self.current_url()
+            if not url.isValid():
+                url = None
         except qtutils.QtValueError:
             url = None
         if config.instance.get('input.insert_mode.leave_on_load',
