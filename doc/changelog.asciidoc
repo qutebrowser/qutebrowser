@@ -35,6 +35,9 @@ Added
   are used for hints, and also allows adding custom hint groups.
 - New `:yank markdown` feature which yanks the current URL and title in
   markdown format.
+- Basic support for client certificates with Qt 5.12. Selecting the certificate
+  to show when there are multiple matching certificates isn't implemented yet.
+- Support for DNS prefetching (`content.dns_prefetch`) with QtWebEngine on 5.12.
 
 Changed
 ~~~~~~~
@@ -59,6 +62,9 @@ Changed
   `org.qutebrowser.qutebrowser.appdata.xml`.
 - The `qute-pass` userscript now understands domains in gpg filenames
   in addition to directory names.
+- macOS: The IPC socket path used to communicate with existing instances
+  changed due to changes in Qt 5.12. Please make sure to quit qutebrowser
+  before upgrading.
 
 Fixed
 ~~~~~
@@ -79,6 +85,11 @@ Fixed
 - When `scrolling.bar = True` was set in versions before v1.5.0, this now
   correctly gets migrated to `always` instead of `when-searching`.
 - Completion highlighting now works again on Qt 5.11.3 and 5.12.1.
+- The outdated header `X-Do-Not-Track` is no longer sent.
+- A javascript error on page load when using Qt 5.12 was fixed.
+- `window.print()` works with Qt 5.12 now.
+- PAC proxies were never correctly supported with QtWebEngine, but are now
+  explicitly disallowed.
 
 v1.5.2
 ------
@@ -378,11 +389,11 @@ v1.3.3
 Security
 ~~~~~~~~
 
-- An XSS vulnerability on the `qute://history` page allowed websites to inject
-  HTML into the page via a crafted title tag. This could allow them to steal
-  your browsing history. If you're currently unable to upgrade, avoid using
-  `:history`. A CVE request for this issue is pending, see
-  https://github.com/qutebrowser/qutebrowser/issues/4011[#4011] for updates.
+- CVE-2018-1000559: An XSS vulnerability on the `qute://history` page allowed
+  websites to inject HTML into the page via a crafted title tag. This could
+  allow them to steal your browsing history. If you're currently unable to
+  upgrade, avoid using `:history`. See the related GitHub issue for details:
+  https://github.com/qutebrowser/qutebrowser/issues/4011.
 
 Fixed
 ~~~~~

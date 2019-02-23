@@ -1647,7 +1647,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-This setting is only available with the QtWebKit backend.
+On QtWebEngine, this setting requires Qt 5.12 or newer.
 
 [[content.frame_flattening]]
 === content.frame_flattening

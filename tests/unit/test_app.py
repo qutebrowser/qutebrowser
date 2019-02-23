@@ -30,7 +30,7 @@ def test_on_focus_changed_issue1484(monkeypatch, qapp, caplog):
     For some reason, Qt sometimes calls on_focus_changed() with a QBuffer as
     argument. Let's make sure we handle that gracefully.
     """
-    monkeypatch.setattr(app, 'qApp', qapp)
+    monkeypatch.setattr(app, 'q_app', qapp)
 
     buf = QBuffer()
     app.on_focus_changed(buf, buf)

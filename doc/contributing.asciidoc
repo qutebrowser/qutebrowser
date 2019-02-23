@@ -710,6 +710,7 @@ qutebrowser release
 
 * Update changelog (remove *(unreleased)*).
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
+* Consider updating the completions for `content.headers.user_agent` in `configdata.yml`.
 * Commit.
 
 * Create annotated git tag (`git tag -s "v1.$x.$y" -m "Release v1.$x.$y"`).

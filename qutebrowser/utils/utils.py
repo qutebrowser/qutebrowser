@@ -30,6 +30,7 @@ import datetime
 import traceback
 import functools
 import contextlib
+import posixpath
 import socket
 import shlex
 import glob
@@ -165,6 +166,9 @@ def read_file(filename, binary=False):
     Return:
         The file contents as string.
     """
+    assert not posixpath.isabs(filename), filename
+    assert os.path.pardir not in filename.split(posixpath.sep), filename
+
     if not binary and filename in _resource_cache:
         return _resource_cache[filename]
 
@@ -655,7 +659,15 @@ def expand_windows_drive(path):
 def yaml_load(f):
     """Wrapper over yaml.load using the C loader if possible."""
     start = datetime.datetime.now()
-    data = yaml.load(f, Loader=YamlLoader)
+
+    # WORKAROUND for https://github.com/yaml/pyyaml/pull/181
+    with log.ignore_py_warnings(
+            category=DeprecationWarning,
+            message=r"Using or importing the ABCs from 'collections' instead "
+            r"of from 'collections\.abc' is deprecated, and in 3\.8 it will "
+            r"stop working"):
+        data = yaml.load(f, Loader=YamlLoader)
+
     end = datetime.datetime.now()
 
     delta = (end - start).total_seconds()

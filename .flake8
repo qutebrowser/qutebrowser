@@ -46,12 +46,11 @@ ignore =
 min-version = 3.4.0
 max-complexity = 12
 per-file-ignores =
-    /qutebrowser/api/hook.py : N801
-    /tests/**/*.py : D100,D101,D401
-    /tests/unit/browser/test_history.py : N806
-    /tests/helpers/fixtures.py : N806
-    /tests/unit/browser/webkit/http/test_content_disposition.py : D400
-    /scripts/dev/ci/appveyor_install.py : FI53
+    qutebrowser/api/hook.py : N801
+    tests/* : D100,D101
+    tests/unit/browser/test_history.py : D100,D101,N806
+    tests/helpers/fixtures.py : D100,D101,N806
+    tests/unit/browser/webkit/http/test_content_disposition.py : D100,D101,D400
 copyright-check = True
 copyright-regexp = # Copyright [\d-]+ .*
 copyright-min-file-size = 110

@@ -25,6 +25,7 @@ Module attributes:
 """
 
 import os
+import operator
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
@@ -163,9 +164,14 @@ class WebEngineSettings(websettings.AbstractSettings):
             # Qt 5.8
             'content.print_element_backgrounds':
                 ('PrintElementBackgrounds', None),
+
             # Qt 5.11
             'content.autoplay':
-                ('PlaybackRequiresUserGesture', lambda val: not val),
+                ('PlaybackRequiresUserGesture', operator.not_),
+
+            # Qt 5.12
+            'content.dns_prefetch':
+                ('DnsPrefetchEnabled', None),
         }
         for name, (attribute, converter) in new_attributes.items():
             try:

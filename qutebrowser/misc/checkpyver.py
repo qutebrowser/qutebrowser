@@ -31,7 +31,7 @@ except ImportError:  # pragma: no cover
     try:
         # Python2
         from Tkinter import Tk  # type: ignore
-        import tkMessageBox as messagebox  # type: ignore
+        import tkMessageBox as messagebox  # type: ignore  # noqa: N813
     except ImportError:
         # Some Python without Tk
         Tk = None  # type: ignore
