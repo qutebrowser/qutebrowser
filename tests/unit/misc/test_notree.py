@@ -1,7 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Alexander Cogneau (acogneau) <alexander.cogneau@gmail.com>
-# Copyright 2015-2018 Florian Bruhin (The-Compiler) <me@the-compiler.org>
+# Copyright 2019 Florian Bruhin (The-Compiler) <me@the-compiler.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,7 +19,7 @@
 """Tests for misc.notree"""
 import pytest
 
-from qutebrowser.misc.notree import TreeError, Node, traverse, TraverseOrder, render_tree
+from qutebrowser.misc.notree import TreeError, Node, TraverseOrder
 
 
 @pytest.fixture
@@ -97,7 +96,7 @@ def test_replace_children(tree):
     n11 = tree[10]
     n3.children = [n11]
     n2.children = (n6, ) + n2.children
-    print('\n'.join(''.join((char, str(node))) for char, node in render_tree(tree[0])))
+    print('\n'.join(''.join((char, str(node))) for char, node in tree[0].render()))
     assert n6.parent is n2
     assert n6 in n2.children
     assert n11.parent is n3
@@ -107,13 +106,13 @@ def test_replace_children(tree):
 
 
 def test_traverse(node):
-    len_traverse = len(list(traverse(node)))
-    len_render = len(render_tree(node))
+    len_traverse = len(list(node.traverse()))
+    len_render = len(node.render())
     assert len_traverse == len_render
 
 def test_traverse_postorder(tree):
     n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11 = tree
-    actual = list(traverse(n1, TraverseOrder.POST))
+    actual = list(n1.traverse(TraverseOrder.POST))
     print('\n'.join([str(n) for n in actual]))
     assert actual == [n4, n5, n2, n7, n8, n10, n9, n6, n11, n3, n1]
 
@@ -131,7 +130,7 @@ def test_render_tree(node):
         '  │   └─n10',
         '  └─n11'
     ]
-    result = [char + str(n) for char, n in render_tree(node)]
+    result = [char + str(n) for char, n in node.render()]
     print('\n'.join(result))
     assert expected == result
 
