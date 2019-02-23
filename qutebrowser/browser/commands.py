@@ -1862,8 +1862,8 @@ class CommandDispatcher:
 
         Args:
             direction: Which sibling to jump to
-                'next': Jump to next sibling
-                'prev': Jump to previous sibling
+                'up': Jump to previous sibling
+                'down': Jump to next sibling
         """
         cur_node = self._current_widget().node
 
