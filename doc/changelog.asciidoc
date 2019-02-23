@@ -33,6 +33,8 @@ Added
     dict/list setting.
 - New `hints.selectors` setting which allows to configure what CSS selectors
   are used for hints, and also allows adding custom hint groups.
+- New `input.insert_mode.leave_on_load` setting to turn off leaving insert mode
+  when a new page is loaded.
 - New `:yank markdown` feature which yanks the current URL and title in
   markdown format.
 - Basic support for client certificates with Qt 5.12. Selecting the certificate
