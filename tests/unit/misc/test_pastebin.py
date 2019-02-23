@@ -1,5 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2016-2019 Florian Bruhin (The-Compiler) <me@the-compiler.org>
 # Copyright 2016-2018 Anna Kobak (avk) <awerk@onet.eu>:
 #
 # This file is part of qutebrowser.
