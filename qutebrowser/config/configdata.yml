@@ -1236,6 +1236,16 @@ input.insert_mode.plugins:
   type: Bool
   desc: Switch to insert mode when clicking flash and other plugins.
 
+input.insert_mode.leave_on_load:
+  default: true
+  type: Bool
+  supports_pattern: true
+  desc: >-
+    Leave insert mode when starting a new page load.
+
+    Patterns may be unreliable on this setting, and they may match the url you
+    are navigating to, or the URL you are navigating from.
+
 input.links_included_in_focus_chain:
   default: true
   type: Bool

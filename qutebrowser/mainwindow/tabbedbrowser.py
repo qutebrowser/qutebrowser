@@ -586,10 +586,20 @@ class TabbedBrowser(QWidget):
     @pyqtSlot()
     def on_cur_load_started(self):
         """Leave insert/hint mode when loading started."""
-        modeman.leave(self._win_id, usertypes.KeyMode.insert, 'load started',
-                      maybe=True)
-        modeman.leave(self._win_id, usertypes.KeyMode.hint, 'load started',
-                      maybe=True)
+        try:
+            url = self.current_url()
+            if not url.isValid():
+                url = None
+        except qtutils.QtValueError:
+            url = None
+        if config.instance.get('input.insert_mode.leave_on_load',
+                               url=url):
+            modeman.leave(self._win_id, usertypes.KeyMode.insert,
+                          'load started', maybe=True)
+        else:
+            log.modes.debug("Ignoring leave_on_load request due to setting.")
+        modeman.leave(self._win_id, usertypes.KeyMode.hint,
+                      'load started', maybe=True)
 
     @pyqtSlot(browsertab.AbstractTab, str)
     def on_title_changed(self, tab, text):
