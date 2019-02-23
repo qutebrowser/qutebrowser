@@ -1875,9 +1875,9 @@ class CommandDispatcher:
             # we want upper tab in the same subtree as current node
             node_idx = siblings.index(cur_node)
             if direction == 'up':
-                diff = count
-            elif direction == 'down':
                 diff = - count
+            elif direction == 'down':
+                diff = count
 
             target_node = siblings[(node_idx+diff) % len(siblings)]
 
