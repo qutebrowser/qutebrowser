@@ -110,7 +110,7 @@ class Node():
         if childs:
             self.children = childs  # this too
 
-        self.collapsed = False
+        self.__collapsed = False
 
     @property
     def parent(self) -> typing.Optional['Node']:
@@ -164,6 +164,15 @@ class Node():
             return (i for i in self.parent.children if i is not self)
         else:
             return ()
+
+    @property
+    def collapsed(self) -> bool:
+        return self.__collapsed
+
+    @collapsed.setter
+    def collapsed(self, val: bool) -> None:
+        self.__collapsed = val
+        self.__set_modified()
 
     def __set_modified(self) -> None:
         """If self is modified, every ancestor is modified as well."""
