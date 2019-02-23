@@ -122,7 +122,6 @@ class Node():
         # pylint: disable=protected-access
         assert(value is None or isinstance(value, Node))
         if self.__parent:
-            self.__parent.__set_modified()
             self.__parent.__disown(self)
             self.__parent = None
         if value is not None:
@@ -233,6 +232,7 @@ class Node():
             self.__children.append(node)
 
     def __disown(self, value: 'Node') -> None:
+        self.__set_modified()
         if value in self.__children:
             self.__children.remove(value)
 
