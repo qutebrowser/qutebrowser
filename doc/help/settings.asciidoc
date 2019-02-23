@@ -261,6 +261,7 @@
 |<<tabs.new_position.stacking,tabs.new_position.stacking>>|Stack related tabs on top of each other when opened consecutively.
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which are not opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
+|<<tabs.pinned.frozen,tabs.pinned.frozen>>|Force pinned tabs to stay at fixed URL.
 |<<tabs.pinned.shrink,tabs.pinned.shrink>>|Shrink pinned tabs down to their contents.
 |<<tabs.position,tabs.position>>|Position of the tab bar.
 |<<tabs.select_on_remove,tabs.select_on_remove>>|Which tab to select when the focused tab is removed.
@@ -640,10 +641,12 @@ Default:
 * +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
 * +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
+* +pass:[yM]+: +pass:[yank markdown -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
 * +pass:[yT]+: +pass:[yank title -s]+
 * +pass:[yY]+: +pass:[yank -s]+
 * +pass:[yd]+: +pass:[yank domain]+
+* +pass:[ym]+: +pass:[yank markdown]+
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
@@ -1591,11 +1594,11 @@ Type: <<types,String>>
 Valid values:
 
  * +all+: Accept all cookies.
- * +no-3rdparty+: Accept cookies from the same origin only.
+ * +no-3rdparty+: Accept cookies from the same origin only. This is known to break some sites, such as GMail.
  * +no-unknown-3rdparty+: Accept cookies from the same origin only, unless a cookie is already set for the domain. On QtWebEngine, this is the same as no-3rdparty.
  * +never+: Don't accept cookies at all.
 
-Default: +pass:[no-3rdparty]+
+Default: +pass:[all]+
 
 On QtWebEngine, this setting requires Qt 5.11 or newer.
 
@@ -1644,7 +1647,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-This setting is only available with the QtWebKit backend.
+On QtWebEngine, this setting requires Qt 5.12 or newer.
 
 [[content.frame_flattening]]
 === content.frame_flattening
@@ -2958,7 +2961,7 @@ Default: +pass:[false]+
 === search.ignore_case
 When to find text on a page case-insensitively.
 
-Type: <<types,String>>
+Type: <<types,IgnoreCase>>
 
 Valid values:
 
@@ -3305,6 +3308,14 @@ Default:
 - +pass:[right]+: +pass:[5]+
 - +pass:[top]+: +pass:[0]+
 
+[[tabs.pinned.frozen]]
+=== tabs.pinned.frozen
+Force pinned tabs to stay at fixed URL.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[tabs.pinned.shrink]]
 === tabs.pinned.shrink
 Shrink pinned tabs down to their contents.
@@ -3622,6 +3633,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 |FontFamily|A Qt font family.
 |FormatString|A string with placeholders.
 |FuzzyUrl|A URL which gets interpreted as search if needed.
+|IgnoreCase|Whether to search case insensitively.
 |Int|Base class for an integer setting.
 |Key|A name of a key.
 |List|A list of values.

@@ -25,6 +25,7 @@ Added
   opened from a page should stack on each other or not.
 - New `completion.open_categories` setting which allows to configure which
   categories are shown in the `:open` completion, and how they are ordered.
+- New `tabs.pinned.frozen` setting to allow/deny navigating in pinned tabs.
 - New config manipulation commands:
   * `:config-dict-add` and `:config-list-add` to a new element to a dict/list
     setting.
@@ -32,6 +33,11 @@ Added
     dict/list setting.
 - New `hints.selectors` setting which allows to configure what CSS selectors
   are used for hints, and also allows adding custom hint groups.
+- New `:yank markdown` feature which yanks the current URL and title in
+  markdown format.
+- Basic support for client certificates with Qt 5.12. Selecting the certificate
+  to show when there are multiple matching certificates isn't implemented yet.
+- Support for DNS prefetching (`content.dns_prefetch`) with QtWebEngine on 5.12.
 
 Changed
 ~~~~~~~
@@ -40,7 +46,7 @@ Changed
   (`:close`), while `:qa` quits (`:quit`). The behavior of `:wq` remains
   unchanged (`:quit --save`), as closing a window while saving the session
   doesn't make sense.
-- Completion highlighting is now done differently (using QSyntaxHighlither),
+- Completion highlighting is now done differently (using `QSyntaxHighlighter`),
   which should fix some highlighting corner-cases.
 - The `QtColor` config type now also understands colors like `rgb(...)`.
 - `:yank` now has a `--quiet` option which causes it to not display a message.
@@ -48,6 +54,17 @@ Changed
 - The `content.host_blocking.enabled` setting now supports URL patterns, so the
   adblocker can be disabled on a given page.
 - Elements with a `tabindex` attribute now also get hints by default.
+- Various small performance improvements for hints and the completion.
+- The Wayland check for QtWebEngine is now disabled on Qt >= 5.11.2, as those
+  versions should work without any issues.
+- The JavaScript `console` object is now available in PAC files.
+- The metainfo file `qutebrowser.appdata.xml` is now renamed to
+  `org.qutebrowser.qutebrowser.appdata.xml`.
+- The `qute-pass` userscript now understands domains in gpg filenames
+  in addition to directory names.
+- macOS: The IPC socket path used to communicate with existing instances
+  changed due to changes in Qt 5.12. Please make sure to quit qutebrowser
+  before upgrading.
 
 Fixed
 ~~~~~
@@ -55,6 +72,34 @@ Fixed
 - Invalid world IDs now get rejected for `:jseval` and GreaseMonkey scripts.
 - When websites suggest download filenames with invalid characters, those are
   now correctly replaced.
+- Invalid hint length calculation in certain rare cases.
+- Dragging tabs in the tab bar (which was broken in v1.5.0)
+- Using Shift-Home in command mode now works properly.
+- Workaround for a Qt bug which prevented
+  `content.cookies.accept = no-3rdparty` from working properly on some pages
+  like GMail. However, the default for `content.cookies.accept` is still `all`
+  to be in line with what other browsers do.
+- `:navigate` not incrementing in anchors or queries.
+- Crash when trying to use a proxy requiring authentication with QtWebKit.
+- Slashes in search terms are now percent-escaped.
+- When `scrolling.bar = True` was set in versions before v1.5.0, this now
+  correctly gets migrated to `always` instead of `when-searching`.
+- Completion highlighting now works again on Qt 5.11.3 and 5.12.1.
+- The outdated header `X-Do-Not-Track` is no longer sent.
+- A javascript error on page load when using Qt 5.12 was fixed.
+- `window.print()` works with Qt 5.12 now.
+- PAC proxies were never correctly supported with QtWebEngine, but are now
+  explicitly disallowed.
+
+v1.5.2
+------
+
+Changed
+~~~~~~~
+
+- The `content.cookies.accept` setting is now set to `all` instead of
+  `no-3rdparty` by default, as `no-3rdparty` breaks various pages such as
+  GMail.
 
 v1.5.1
 ------
@@ -344,11 +389,11 @@ v1.3.3
 Security
 ~~~~~~~~
 
-- An XSS vulnerability on the `qute://history` page allowed websites to inject
-  HTML into the page via a crafted title tag. This could allow them to steal
-  your browsing history. If you're currently unable to upgrade, avoid using
-  `:history`. A CVE request for this issue is pending, see
-  https://github.com/qutebrowser/qutebrowser/issues/4011[#4011] for updates.
+- CVE-2018-1000559: An XSS vulnerability on the `qute://history` page allowed
+  websites to inject HTML into the page via a crafted title tag. This could
+  allow them to steal your browsing history. If you're currently unable to
+  upgrade, avoid using `:history`. See the related GitHub issue for details:
+  https://github.com/qutebrowser/qutebrowser/issues/4011.
 
 Fixed
 ~~~~~
@@ -1223,7 +1268,7 @@ Added
 - New `:debug-log-filter` command to change console log filtering on-the-fly.
 - New `:debug-log-level` command to change the console loglevel on-the-fly.
 - New `general -> yank-ignored-url-parameters` option to configure which URL
-  parameters (like `utm_source` etc.) to strip off when yanking an URL.
+  parameters (like `utm_source` etc.) to strip off when yanking a URL.
 - Support for the
   https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API[HTML5 page visibility API]
 - New `readability` userscript which shows a readable version of a page (using
@@ -1334,7 +1379,7 @@ Changed
 - `:hint` has a new `--add-history` argument to add the URL to the history for
   yank/spawn targets.
 - `:set` now cycles through values if more than one argument is given.
-- `:open` now opens `default-page` without an URL even without `-t`/`-b`/`-w` given.
+- `:open` now opens `default-page` without a URL even without `-t`/`-b`/`-w` given.
 
 Deprecated
 ~~~~~~~~~~

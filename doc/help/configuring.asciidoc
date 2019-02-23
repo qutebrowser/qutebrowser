@@ -19,10 +19,10 @@ hand, you can simply use those - see
 <<autoconfig,"Configuring qutebrowser via the user interface">> for details.
 
 For more advanced configuration, you can write a `config.py` file - see
-<<configpy,"Configuring qutebrowser via config.py">>. As soon as a `config.py`
+<<configpy,"Configuring qutebrowser via config.py">>. When a `config.py`
 exists, the `autoconfig.yml` file **is not read anymore** by default. You need
-to <<configpy-autoconfig,load it by hand>> if you want settings done via
-`:set`/`:bind` to still persist.
+to <<configpy-autoconfig,load it from `config.py`>> if you want settings changed via
+`:set`/`:bind` to persist between restarts.
 
 [[autoconfig]]
 Configuring qutebrowser via the user interface
@@ -229,18 +229,18 @@ Loading `autoconfig.yml`
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 All customization done via the UI (`:set`, `:bind` and `:unbind`) is
-stored in the `autoconfig.yml` file, which is not loaded automatically as soon
-as a `config.py` exists. If you want those settings to be loaded, you'll need to
-explicitly load the `autoconfig.yml` file in your `config.py` by doing:
+stored in the `autoconfig.yml` file. When a `config.py` file exists, `autoconfig.yml`
+is not loaded automatically. To load `autoconfig.yml` automatically, add the
+following snippet to `config.py`:
 
-.config.py:
 [source,python]
 ----
 config.load_autoconfig()
 ----
 
-If you do so at the top of your file, your `config.py` settings will take
-precedence as they overwrite the settings done in `autoconfig.yml`.
+You can configure which file overrides the other by the location of the above code snippet.
+Place the snippet at the top to allow `config.py` to override `autoconfig.yml`.
+Place the snippet at the bottom for the opposite effect.
 
 Importing other modules
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -396,6 +396,7 @@ Pre-built colorschemes
 - A collection of https://github.com/chriskempson/base16[base16] color-schemes can be found in https://github.com/theova/base16-qutebrowser[base16-qutebrowser] and used with https://github.com/AuditeMarlow/base16-manager[base16-manager].
 - Two implementations of the https://github.com/arcticicestudio/nord[Nord] colorscheme for qutebrowser exist: https://github.com/Linuus/nord-qutebrowser[Linuus], https://github.com/KnownAsDon/QuteBrowser-Nord-Theme[KnownAsDon]
 - https://github.com/evannagle/qutebrowser-dracula-theme[Dracula]
+- https://github.com/jjzmajic/qutewal[Pywal theme]
 
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -422,6 +423,19 @@ from qutebrowser.config.config import ConfigContainer  # noqa: F401
 config = config  # type: ConfigAPI # noqa: F821 pylint: disable=E0602,C0103
 c = c  # type: ConfigContainer # noqa: F821 pylint: disable=E0602,C0103
 ----
+
+emacs-like config
+^^^^^^^^^^^^^^^^^
+
+Various emacs/conkeror-like keybinding configs exist:
+
+- https://gitlab.com/jgkamat/qutemacs/blob/master/qutemacs.py[jgkamat]
+- https://gitlab.com/Kaligule/qutebrowser-emacs-config/blob/master/config.py[Kaligule]
+- http://me0w.net/pit/1540882719[nm0i]
+
+It's also mostly possible to get rid of modal keybindings by setting
+`input.insert_mode.auto_enter` to `false`, and `input.forward_unbound_keys` to
+`all`.
 
 [[migrating]]
 Migrating older configurations

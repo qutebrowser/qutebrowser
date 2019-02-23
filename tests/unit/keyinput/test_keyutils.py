@@ -26,7 +26,7 @@ from PyQt5.QtCore import Qt, QEvent, pyqtSignal
 from PyQt5.QtGui import QKeyEvent, QKeySequence
 from PyQt5.QtWidgets import QWidget
 
-from tests.unit.keyinput import key_data
+from unit.keyinput import key_data
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import utils
 

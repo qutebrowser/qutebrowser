@@ -73,7 +73,7 @@ def test_patched_errwindow(capfd, mocker, monkeypatch):
     monkeypatch.setattr(checkpyver.sys, 'exit', lambda status: None)
 
     try:
-        import tkinter  # pylint: disable=unused-variable
+        import tkinter  # pylint: disable=unused-import
     except ImportError:
         tk_mock = mocker.patch('qutebrowser.misc.checkpyver.Tk',
                                spec=['withdraw'], new_callable=mocker.Mock)

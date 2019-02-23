@@ -25,7 +25,7 @@ import pytest
 
 from qutebrowser.completion import completionwidget
 from qutebrowser.completion.models import completionmodel, listcategory
-from qutebrowser.commands import cmdexc
+from qutebrowser.api import cmdutils
 
 
 @pytest.fixture
@@ -241,7 +241,7 @@ def test_completion_item_del_no_selection(completionview):
     cat = listcategory.ListCategory('', [('foo',)], delete_func=func)
     model.add_category(cat)
     completionview.set_model(model)
-    with pytest.raises(cmdexc.CommandError, match='No item selected!'):
+    with pytest.raises(cmdutils.CommandError, match='No item selected!'):
         completionview.completion_item_del()
     func.assert_not_called()
 

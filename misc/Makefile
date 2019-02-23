@@ -17,8 +17,8 @@ doc/qutebrowser.1.html:
 
 install: doc/qutebrowser.1.html
 	$(PYTHON) setup.py install --prefix="$(PREFIX)" --optimize=1 $(SETUPTOOLSOPTS)
-	install -Dm644 misc/qutebrowser.appdata.xml \
-		"$(DESTDIR)$(DATADIR)/metainfo/qutebrowser.appdata.xml"
+	install -Dm644 misc/org.qutebrowser.qutebrowser.appdata.xml \
+		"$(DESTDIR)$(DATADIR)/metainfo/org.qutebrowser.qutebrowser.appdata.xml"
 	install -Dm644 doc/qutebrowser.1 \
 		"$(DESTDIR)$(MANDIR)/man1/qutebrowser.1"
 	install -Dm644 misc/qutebrowser.desktop \

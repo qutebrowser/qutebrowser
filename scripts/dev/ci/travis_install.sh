@@ -53,43 +53,13 @@ npm_install() {
     travis_retry npm install -g "$@"
 }
 
-check_pyqt() {
-    python3 <<EOF
-import sys
-from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
-try:
-    from PyQt.sip import SIP_VERSION_STR
-except ModuleNotFoundError:
-    from sip import SIP_VERSION_STR
-
-print("Python {}".format(sys.version))
-print("PyQt5 {}".format(PYQT_VERSION_STR))
-print("Qt5 {} (runtime {})".format(QT_VERSION_STR, qVersion()))
-print("sip {}".format(SIP_VERSION_STR))
-EOF
-}
-
 set -e
 
-if [[ $DOCKER ]]; then
+if [[ -n $DOCKER ]]; then
     exit 0
 elif [[ $TRAVIS_OS_NAME == osx ]]; then
-    # Disable App Nap
-    defaults write NSGlobalDomain NSAppSleepDisabled -bool YES
-
-    curl -LO https://bootstrap.pypa.io/get-pip.py
-    sudo -H python get-pip.py
-
-    brew --version
     brew update
-    brew upgrade python libyaml
-    brew install qt5 pyqt5
-
-    pip_install -r misc/requirements/requirements-tox.txt
-    python3 -m pip --version
-    tox --version
-    check_pyqt
-    exit 0
+    brew upgrade python
 fi
 
 case $TESTENV in

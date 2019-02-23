@@ -42,7 +42,6 @@ def custom_headers(url):
     if dnt_config is not None:
         dnt = b'1' if dnt_config else b'0'
         headers[b'DNT'] = dnt
-        headers[b'X-Do-Not-Track'] = dnt
 
     conf_headers = config.instance.get('content.headers.custom', url=url)
     for header, value in conf_headers.items():
@@ -262,7 +261,7 @@ def get_tab(win_id, target):
     elif target == usertypes.ClickTarget.window:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
-        window = mainwindow.MainWindow(private=tabbed_browser.private)
+        window = mainwindow.MainWindow(private=tabbed_browser.is_private)
         window.show()
         win_id = window.win_id
         bg_tab = False

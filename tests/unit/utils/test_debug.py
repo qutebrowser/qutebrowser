@@ -41,8 +41,7 @@ def test_log_events(qapp, caplog):
     obj = EventObject()
     qapp.sendEvent(obj, QEvent(QEvent.User))
     qapp.processEvents()
-    assert len(caplog.records) == 1
-    assert caplog.records[0].msg == 'Event in test_debug.EventObject: User'
+    assert caplog.messages == ['Event in test_debug.EventObject: User']
 
 
 class SignalObject(QObject):
@@ -74,9 +73,8 @@ def test_log_signals(caplog, signal_obj):
     signal_obj.signal1.emit()
     signal_obj.signal2.emit('foo', 'bar')
 
-    assert len(caplog.records) == 2
-    assert caplog.records[0].msg == 'Signal in <repr>: signal1()'
-    assert caplog.records[1].msg == "Signal in <repr>: signal2('foo', 'bar')"
+    assert caplog.messages == ['Signal in <repr>: signal1()',
+                               "Signal in <repr>: signal2('foo', 'bar')"]
 
 
 class TestLogTime:
@@ -91,7 +89,7 @@ class TestLogTime:
             assert len(caplog.records) == 1
 
             pattern = re.compile(r'Foobar took ([\d.]*) seconds\.')
-            match = pattern.fullmatch(caplog.records[0].msg)
+            match = pattern.fullmatch(caplog.messages[0])
             assert match
 
             duration = float(match.group(1))
@@ -119,7 +117,7 @@ class TestLogTime:
             func(1, kwarg=2)
 
         assert len(caplog.records) == 1
-        assert caplog.records[0].msg.startswith('Foo took')
+        assert caplog.messages[0].startswith('Foo took')
 
 
 class TestQEnumKey:

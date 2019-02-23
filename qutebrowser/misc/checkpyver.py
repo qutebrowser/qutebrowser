@@ -30,12 +30,12 @@ try:
 except ImportError:  # pragma: no cover
     try:
         # Python2
-        from Tkinter import Tk
-        import tkMessageBox as messagebox
+        from Tkinter import Tk  # type: ignore
+        import tkMessageBox as messagebox  # type: ignore  # noqa: N813
     except ImportError:
         # Some Python without Tk
-        Tk = None
-        messagebox = None
+        Tk = None  # type: ignore
+        messagebox = None  # type: ignore
 
 
 # First we check the version of Python. This code should run fine with python2

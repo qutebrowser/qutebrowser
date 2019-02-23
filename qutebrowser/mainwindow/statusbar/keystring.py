@@ -25,5 +25,3 @@ from qutebrowser.mainwindow.statusbar import textbase
 class KeyString(textbase.TextBase):
 
     """Keychain string displayed in the statusbar."""
-
-    pass

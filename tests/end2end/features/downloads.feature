@@ -93,7 +93,7 @@ Feature: Downloading things from a website.
         Then no crash should happen
 
     # https://github.com/qutebrowser/qutebrowser/issues/4240
-    @qt!=5.11.2
+    @qt<5.11.2
     Scenario: Downloading with SSL errors (issue 1413)
         When SSL is supported
         And I clear SSL errors

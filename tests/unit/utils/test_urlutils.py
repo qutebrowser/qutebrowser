@@ -27,7 +27,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkProxy
 import pytest
 
-from qutebrowser.commands import cmdexc
+from qutebrowser.api import cmdutils
 from qutebrowser.browser.network import pac
 from qutebrowser.utils import utils, urlutils, qtutils, usertypes
 from helpers import utils as testutils
@@ -97,6 +97,7 @@ def init_config(config_stub):
     config_stub.val.url.searchengines = {
         'test': 'http://www.qutebrowser.org/?q={}',
         'test-with-dash': 'http://www.example.org/?q={}',
+        'path-search': 'http://www.example.org/{}',
         'DEFAULT': 'http://www.example.com/?q={}',
     }
 
@@ -263,7 +264,7 @@ class TestFuzzyUrl:
 
         msg = ("URL contains characters which are not present in the current "
                "locale")
-        assert caplog.records[-1].message == msg
+        assert caplog.messages[-1] == msg
 
 
 @pytest.mark.parametrize('url, special', [
@@ -288,6 +289,7 @@ def test_special_urls(url, special):
     ('blub testfoo', 'www.example.com', 'q=blub testfoo'),
     ('stripped ', 'www.example.com', 'q=stripped'),
     ('test-with-dash testfoo', 'www.example.org', 'q=testfoo'),
+    ('test/with/slashes', 'www.example.com', 'q=test%2Fwith%2Fslashes'),
 ])
 def test_get_search_url(config_stub, url, host, query, open_base_url):
     """Test _get_search_url().
@@ -493,7 +495,7 @@ def test_raise_cmdexc_if_invalid(url, valid, has_err_string):
             expected_text = "Invalid URL - " + qurl.errorString()
         else:
             expected_text = "Invalid URL"
-        with pytest.raises(cmdexc.CommandError, match=expected_text):
+        with pytest.raises(cmdutils.CommandError, match=expected_text):
             urlutils.raise_cmdexc_if_invalid(qurl)
 
 

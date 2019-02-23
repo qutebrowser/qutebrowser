@@ -247,7 +247,7 @@ class TestWebKitElement:
         pytest.param(lambda e: e[None], id='getitem'),
         pytest.param(lambda e: operator.setitem(e, None, None), id='setitem'),
         pytest.param(lambda e: operator.delitem(e, None), id='delitem'),
-        pytest.param(lambda e: None in e, id='contains'),
+        pytest.param(lambda e: '' in e, id='contains'),
         pytest.param(list, id='iter'),
         pytest.param(len, id='len'),
         pytest.param(lambda e: e.has_frame(), id='has_frame'),

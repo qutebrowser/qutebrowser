@@ -86,9 +86,8 @@ def test_logging(caplog, objects, tabbed_browser_stubs, index_of, verb):
     with caplog.at_level(logging.DEBUG, logger='signals'):
         objects.signaller.signal.emit('foo')
 
-    assert len(caplog.records) == 1
     expected_msg = "{}: filtered_signal('foo') (tab {})".format(verb, index_of)
-    assert caplog.records[0].msg == expected_msg
+    assert caplog.messages == [expected_msg]
 
 
 @pytest.mark.parametrize('index_of', [0, 1])

@@ -13,7 +13,7 @@ include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
 include LICENSE doc/* README.asciidoc
 include misc/qutebrowser.desktop
-include misc/qutebrowser.appdata.xml
+include misc/org.qutebrowser.qutebrowser.appdata.xml
 include misc/Makefile
 include requirements.txt
 include tox.ini
@@ -32,6 +32,7 @@ include doc/changelog.asciidoc
 prune tests
 prune qutebrowser/3rdparty
 exclude pytest.ini
+exclude mypy.ini
 exclude qutebrowser/javascript/.eslintrc.yaml
 exclude qutebrowser/javascript/.eslintignore
 exclude doc/help
@@ -39,5 +40,6 @@ exclude .*
 exclude misc/qutebrowser.spec
 exclude misc/qutebrowser.nsi
 exclude misc/qutebrowser.rcc
+prune doc/extapi
 
 global-exclude __pycache__ *.pyc *.pyo

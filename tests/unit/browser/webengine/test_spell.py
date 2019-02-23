@@ -141,8 +141,7 @@ class TestInit:
         with caplog.at_level(logging.ERROR):
             spell.init()
 
-        record = caplog.records[0]
-        assert record.message == 'Failed to copy old dictionaries'
+        assert caplog.messages[0] == 'Failed to copy old dictionaries'
 
     def test_moving_existing_destdir(self, old_dict_dir, dict_dir,
                                      patch_new_qt):

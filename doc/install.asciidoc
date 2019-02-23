@@ -102,17 +102,11 @@ $ python3 scripts/asciidoc2html.py
 On Fedora
 ---------
 
-NOTE: Fedora's packages used to be outdated for a long time, but are
-now (November 2017) maintained and up-to-date again.
-
 qutebrowser is available in the official repositories:
 
 -----
 # dnf install qutebrowser
 -----
-
-However, note that Fedora 25/26 won't be updated to qutebrowser v1.0, so you
-might want to <<tox,install qutebrowser via tox>> instead there.
 
 Additional hints
 ~~~~~~~~~~~~~~~~

@@ -33,8 +33,6 @@ class Error(Exception):
 
     """Exception for errors in this module."""
 
-    pass
-
 
 def parse():
     """Parse command line arguments."""

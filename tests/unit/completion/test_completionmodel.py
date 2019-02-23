@@ -28,7 +28,7 @@ from PyQt5.QtCore import QModelIndex
 
 from qutebrowser.completion.models import completionmodel, listcategory
 from qutebrowser.utils import qtutils
-from qutebrowser.commands import cmdexc
+from qutebrowser.api import cmdutils
 
 
 @hypothesis.given(strategies.lists(
@@ -41,7 +41,7 @@ def test_first_last_item(counts):
         cat = mock.Mock(spec=['layoutChanged', 'layoutAboutToBeChanged'])
         cat.rowCount = mock.Mock(return_value=c, spec=[])
         model.add_category(cat)
-    data = [i for i, rowCount in enumerate(counts) if rowCount > 0]
+    data = [i for i, row_count in enumerate(counts) if row_count > 0]
     if not data:
         # with no items, first and last should be an invalid index
         assert not model.first_item().isValid()
@@ -102,7 +102,7 @@ def test_delete_cur_item_no_func():
     model.rowsRemoved.connect(callback)
     model.add_category(cat)
     parent = model.index(0, 0)
-    with pytest.raises(cmdexc.CommandError):
+    with pytest.raises(cmdutils.CommandError):
         model.delete_cur_item(model.index(0, 0, parent))
     callback.assert_not_called()
 

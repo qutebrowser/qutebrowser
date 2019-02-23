@@ -24,7 +24,8 @@ Feature: Using :navigate
         Then data/navigate should be loaded
 
     Scenario: Navigating up in qute://help/
-        When I open qute://help/commands.html
+        When the documentation is up to date
+        And I open qute://help/commands.html
         And I run :navigate up
         Then qute://help/ should be loaded
 
@@ -75,8 +76,10 @@ Feature: Using :navigate
         And I run :navigate next
         Then data/navigate/next.html should be loaded
 
+    @qtwebkit_skip
     Scenario: Navigating with invalid selector
-        When I set hints.selectors to {"links": ["@"]}
+        When I open data/navigate
+        And I set hints.selectors to {"links": ["@"]}
         And I run :navigate next
         Then the error "SyntaxError: Failed to execute 'querySelectorAll' on 'Document': '@' is not a valid selector." should be shown
 
@@ -122,6 +125,12 @@ Feature: Using :navigate
         And I open data/numbers/1.txt
         And I run :navigate increment
         Then the error "No number found in URL!" should be shown
+
+    Scenario: Incrementing query
+        When I set url.incdec_segments to ["query"]
+        And I open data/numbers/1.txt?value=2
+        And I run :navigate increment
+        Then data/numbers/1.txt?value=3 should be loaded
 
     @qtwebengine_todo: Doesn't find any elements
     Scenario: Navigating multiline links

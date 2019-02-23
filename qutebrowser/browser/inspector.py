@@ -49,8 +49,6 @@ class WebInspectorError(Exception):
 
     """Raised when the inspector could not be initialized."""
 
-    pass
-
 
 class AbstractWebInspector(QWidget):
 

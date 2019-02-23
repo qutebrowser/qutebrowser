@@ -1472,6 +1472,7 @@ Yank something to the clipboard or primary selection.
  - `title`: The current page's title.
  - `domain`: The current scheme, domain, and port number.
  - `selection`: The selection under the cursor.
+ - `markdown`: Yank title and URL in markdown format.
  
 
 
@@ -1483,14 +1484,14 @@ Yank something to the clipboard or primary selection.
 
 [[zoom]]
 === zoom
-Syntax: +:zoom [*--quiet*] ['zoom']+
+Syntax: +:zoom [*--quiet*] ['level']+
 
 Set the zoom level for the current tab.
 
 The zoom can be given as argument or as [count]. If neither is given, the zoom is set to the default zoom. If both are given, use [count].
 
 ==== positional arguments
-* +'zoom'+: The zoom percentage to set.
+* +'level'+: The zoom percentage to set.
 
 ==== optional arguments
 * +*-q*+, +*--quiet*+: Don't show a zoom level message.

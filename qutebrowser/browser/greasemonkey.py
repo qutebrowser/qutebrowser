@@ -32,7 +32,7 @@ from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
                                javascript, urlmatch, version, usertypes)
-from qutebrowser.commands import cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
 

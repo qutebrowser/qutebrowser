@@ -27,7 +27,7 @@ import os.path
 import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-from qutebrowser.browser import adblock
+from qutebrowser.components import adblock
 from qutebrowser.config import configdata
 
 

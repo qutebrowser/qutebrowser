@@ -469,7 +469,7 @@ class BrowserPage(QWebPage):
     def acceptNavigationRequest(self,
                                 frame: QWebFrame,
                                 request: QNetworkRequest,
-                                typ: QWebPage.NavigationType):
+                                typ: QWebPage.NavigationType) -> bool:
         """Override acceptNavigationRequest to handle clicked links.
 
         Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound

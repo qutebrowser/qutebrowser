@@ -4,7 +4,7 @@ coverage
 Flask
 hunter
 hypothesis
-pytest<3.7
+pytest
 pytest-bdd
 pytest-benchmark
 pytest-cov
@@ -19,4 +19,3 @@ pytest-xvfb
 vulture
 
 #@ ignore: Jinja2, MarkupSafe, colorama
-#@ filter: pytest <3.7

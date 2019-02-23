@@ -162,7 +162,7 @@ class ConsoleWidget(QWidget):
         namespace = {
             '__name__': '__console__',
             '__doc__': None,
-            'qApp': QApplication.instance(),
+            'q_app': QApplication.instance(),
             # We use parent as self here because the user "feels" the whole
             # console, not just the line edit.
             'self': parent,

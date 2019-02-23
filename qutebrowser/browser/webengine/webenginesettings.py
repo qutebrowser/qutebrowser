@@ -25,12 +25,13 @@ Module attributes:
 """
 
 import os
+import operator
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEnginePage)
 
-from qutebrowser.browser.webengine import spell
+from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import utils, standarddir, qtutils, message, log
@@ -163,9 +164,14 @@ class WebEngineSettings(websettings.AbstractSettings):
             # Qt 5.8
             'content.print_element_backgrounds':
                 ('PrintElementBackgrounds', None),
+
             # Qt 5.11
             'content.autoplay':
-                ('PlaybackRequiresUserGesture', lambda val: not val),
+                ('PlaybackRequiresUserGesture', operator.not_),
+
+            # Qt 5.12
+            'content.dns_prefetch':
+                ('DnsPrefetchEnabled', None),
         }
         for name, (attribute, converter) in new_attributes.items():
             try:
@@ -298,6 +304,7 @@ def init(args):
             not hasattr(QWebEnginePage, 'setInspectedPage')):  # only Qt < 5.11
         os.environ['QTWEBENGINE_REMOTE_DEBUGGING'] = str(utils.random_port())
 
+    webenginequtescheme.init()
     spell.init()
 
     _init_profiles()

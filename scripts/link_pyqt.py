@@ -34,8 +34,6 @@ class Error(Exception):
 
     """Exception raised when linking fails."""
 
-    pass
-
 
 def run_py(executable, *code):
     """Run the given python code with the given executable."""

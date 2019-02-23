@@ -60,7 +60,7 @@ class TestArgumentParser:
             parser.parse_args(['--help'])
 
         expected_url = QUrl('qute://help/commands.html#foo')
-        assert tabbed_browser_stubs[1].opened_url == expected_url
+        assert tabbed_browser_stubs[1].loaded_url == expected_url
 
 
 @pytest.mark.parametrize('types, value, expected', [
