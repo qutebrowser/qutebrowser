@@ -246,9 +246,11 @@ class Node():
             self.__children.remove(value)
 
     def __repr__(self) -> str:
-        # pylint: disable=bad-builtin
-        return "<Node '%s'>" % self.sep.join(map(str, self.path))
-        # pylint: enable=bad-builtin
+        try:
+            value = str(self.value.url().url())
+        except:
+            value = str(self.value)
+        return "<Node '%s'>" % value
 
     def __str__(self) -> str:
         # return "<Node '%s'>" % self.value
