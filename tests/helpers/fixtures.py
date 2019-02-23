@@ -171,6 +171,7 @@ def testdata_scheme(qapp):
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
         from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)
         _qute_scheme_handler.install(QWebEngineProfile.defaultProfile())
