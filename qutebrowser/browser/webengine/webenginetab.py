@@ -890,6 +890,9 @@ class _WebEngineScripts(QObject):
             url: The url to get the stylesheet for.
             force: Also update the global stylesheet.
         """
+        if not url.isValid():
+            # FIXME should we be dropping this request completely?
+            url = None
         css = shared.get_user_stylesheet(searching=searching, url=url)
         if css is configutils.UNSET and force:
             css = shared.get_user_stylesheet(searching=searching, url=None)
