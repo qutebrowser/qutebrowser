@@ -40,6 +40,9 @@ Added
 - Basic support for client certificates with Qt 5.12. Selecting the certificate
   to show when there are multiple matching certificates isn't implemented yet.
 - Support for DNS prefetching (`content.dns_prefetch`) with QtWebEngine on 5.12.
+- A 32-bit build for Windows is available again
+- The Windows build now bundle the Universal CRT DLLs, causing them to work on
+  earlier versions of Windows 10.
 
 Changed
 ~~~~~~~
@@ -60,6 +63,8 @@ Changed
 - The Wayland check for QtWebEngine is now disabled on Qt >= 5.11.2, as those
   versions should work without any issues.
 - The JavaScript `console` object is now available in PAC files.
+- PAC proxies currently don't work properly on QtWebEngine (and never did), so
+  an error is now shown when trying to configure a PAC proxy.
 - The metainfo file `qutebrowser.appdata.xml` is now renamed to
   `org.qutebrowser.qutebrowser.appdata.xml`.
 - The `qute-pass` userscript now understands domains in gpg filenames
@@ -67,6 +72,11 @@ Changed
 - macOS: The IPC socket path used to communicate with existing instances
   changed due to changes in Qt 5.12. Please make sure to quit qutebrowser
   before upgrading.
+- The autocompletion for `content.headers.user_agent` got updated to only
+  include the default and Chrome, as setting the UA to Firefox has various
+  bad side-effects.
+- Combining Qt 5.12 with an older PyQt can lead to issues, so a warning is
+  now shown when starting qutebrowser with that combination.
 
 Fixed
 ~~~~~
@@ -92,6 +102,17 @@ Fixed
 - `window.print()` works with Qt 5.12 now.
 - PAC proxies were never correctly supported with QtWebEngine, but are now
   explicitly disallowed.
+- Qt 5.12: Fixed handling of duplicate download filenames.
+- Qt 5.12: Fixed broken `qute://history` page.
+- Qt 5.12: Fixed PDF.js not working properly.
+- Qt 5.12: The download button in PDF.js now works (it's not possible to make
+  it work with earlier Qt versions).
+- Qt 5.12: Issues with `content.user_stylesheets`.
+- macOS: Context menus for download items now show in the correct macOS style.
+- Issues with fullscreen handling when exiting a video player.
+- Qt 5.12: Since Greasemonkey scripts modifying the DOM fail when being run at
+  document-start, some known-broken scripts (Iridium, userstyles.org) are now
+  forced to run at document-end.
 
 v1.5.2
 ------
