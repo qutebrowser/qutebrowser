@@ -25,7 +25,7 @@ import pytest
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
 QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
 
-from qutebrowser.utils import javascript, qtutils
+from qutebrowser.utils import javascript
 
 
 DEFAULT_BODY_BG = "rgba(0, 0, 0, 0)"
@@ -128,8 +128,6 @@ def test_set_error(stylesheet_tester, config_stub):
     stylesheet_tester.check_set(GREEN_BODY_BG)
 
 
-@pytest.mark.skip(qtutils.version_check('5.12', compiled=False),
-                  reason='Broken with Qt 5.12')
 def test_appendchild(stylesheet_tester):
     stylesheet_tester.js.load('stylesheet/simple.html')
     stylesheet_tester.init_stylesheet()
