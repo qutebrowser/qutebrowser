@@ -50,7 +50,7 @@ class CaretTester:
 
     def check(self):
         """Check whether the caret is before the MARKER text."""
-        self.js.run_file('position_caret.js')
+        self.js.run_file('javascript/position_caret.js')
         self.js.tab.caret.toggle_selection()
         self.js.tab.caret.move_to_next_word()
 
