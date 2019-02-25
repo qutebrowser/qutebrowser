@@ -32,6 +32,7 @@ from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.browser import signalfilter, browsertab
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja)
+from qutebrowser.misc import notree
 
 
 @attr.s
@@ -43,6 +44,7 @@ class UndoEntry:
     history = attr.ib()
     index = attr.ib()
     pinned = attr.ib()
+    uid = attr.ib(None)
     parent_node_uid = attr.ib(None)
     children_node_uids = attr.ib([])
 
@@ -354,11 +356,12 @@ class TabbedBrowser(QWidget):
             else:
                 if config.val.tabs.tree_tabs:
                     node = tab.node
+                    uid = node.uid
                     parent_uid = node.parent.uid
                     children = [n.uid for n in node.children]
                     entry = UndoEntry(tab.url(), history_data, idx,
                                       tab.data.pinned,
-                                      parent_uid, children)
+                                      uid, parent_uid, children)
                 else:
                     entry = UndoEntry(tab.url(), history_data, idx,
                                       tab.data.pinned)
@@ -428,24 +431,24 @@ class TabbedBrowser(QWidget):
                 use_current_tab = False
             else:
                 newtab = self.tabopen(background=False, idx=entry.index)
+                if (config.val.tabs.tree_tabs and
+                        entry.uid is not None and entry.parent_node_uid is not None):
+                    root = self.widget.tree_root
+                    uid = entry.uid
+                    parent_uid = entry.parent_node_uid
+                    parent_node = root.get_descendent_by_uid(parent_uid)
+
+                    children = []
+                    for child_uid in entry.children_node_uids:
+                        child_node = root.get_descendent_by_uid(child_uid)
+                        children.append(child_node)
+                    newtab.node.parent = None  # Remove the node from the tree
+                    newtab.node = notree.Node(newtab, parent_node, children, uid)
+
+                    self.widget.update_tree_tab_positions()
+                    self.widget.update_tab_titles()
 
             newtab.history.private_api.deserialize(entry.history)
-
-            if config.val.tabs.tree_tabs and entry.parent_node_uid is not None:
-                root = self.widget.tree_root
-                parent_uid = entry.parent_node_uid
-                parent_node = root.get_descendent_by_uid(parent_uid)
-
-                children = []
-                for child_uid in entry.children_node_uids:
-                    child_node = root.get_descendent_by_uid(child_uid)
-                    children.append(child_node)
-                newtab.node.parent = parent_node
-                newtab.node.children = children
-
-                self.widget.update_tree_tab_positions()
-                self.widget.update_tab_titles()
-
             self.widget.set_tab_pinned(newtab, entry.pinned)
 
     @pyqtSlot('QUrl', bool)
