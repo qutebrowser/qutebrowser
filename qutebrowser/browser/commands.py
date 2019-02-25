@@ -205,7 +205,7 @@ class CommandDispatcher:
                                  "{!r}!".format(conf_selection))
         return None
 
-    def _tab_close(self, tab, prev=False, next_=False, opposite=False):
+    def _tab_close(self, tab, prev=False, next_=False, opposite=False, new_undo=True):
         """Helper function for tab_close be able to handle message.async.
 
         Args:
@@ -221,11 +221,11 @@ class CommandDispatcher:
                                                           opposite)
 
         if selection_override is None:
-            self._tabbed_browser.close_tab(tab)
+            self._tabbed_browser.close_tab(tab, new_undo=new_undo)
         else:
             old_selection_behavior = tabbar.selectionBehaviorOnRemove()
             tabbar.setSelectionBehaviorOnRemove(selection_override)
-            self._tabbed_browser.close_tab(tab)
+            self._tabbed_browser.close_tab(tab, new_undo=new_undo)
             tabbar.setSelectionBehaviorOnRemove(old_selection_behavior)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
@@ -252,7 +252,7 @@ class CommandDispatcher:
             # before their children
             for descendent in tab.node.traverse(notree.TraverseOrder.POST):
                 close = functools.partial(self._tab_close, descendent.value,
-                                          prev, next_, opposite)
+                                          prev, next_, opposite, False)
                 tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
         else:
             close = functools.partial(self._tab_close, tab, prev,
