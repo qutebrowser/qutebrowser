@@ -31,14 +31,11 @@ matrix:
           packages:
           - xfonts-base
 
-    ### PyQt 5.11 (with coverage)
-    - env: TESTENV=py36-pyqt511-cov
-    ### PyQt 5.11 (Python 3.7)
-    - python: 3.7
-      env: TESTENV=py37-pyqt511
+    ### PyQt 5.11
+    - env: TESTENV=py36-pyqt511
 
-    ### PyQt 5.12
-    - env: TESTENV=py36-pyqt512
+    ### PyQt 5.12 (Python 3.7, with coverage)
+    - env: TESTENV=py37-pyqt512-cov
       addons:
         apt:
           packages:
@@ -46,7 +43,7 @@ matrix:
 
     ### macOS sierra
     - os: osx
-      env: TESTENV=py37-pyqt511 OSX=sierra
+      env: TESTENV=py37-pyqt512 OSX=sierra
       osx_image: xcode9.2
       language: generic
     ### macOS yosemite
