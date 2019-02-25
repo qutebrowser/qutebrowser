@@ -230,6 +230,11 @@ def is_ignored_chromium_message(line):
         # content.mojom.RendererAudioOutputStreamFactory
         'InterfaceRequest was dropped, the document is no longer active: '
         'content.mojom.RendererAudioOutputStreamFactory',
+        # [1920:2168:0225/112442.664:ERROR:in_progress_cache_impl.cc(124)]
+        # Could not write download entries to file: C:\Users\appveyor\AppData\
+        # Local\Temp\1\qutebrowser-basedir-1l3jmxq4\data\webengine\
+        # in_progress_download_metadata_store
+        'Could not write download entries to file: *',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
