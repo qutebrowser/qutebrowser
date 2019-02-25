@@ -1038,9 +1038,15 @@ class _WebEngineScripts(QObject):
             new_script.setSourceCode(script.code())
             new_script.setName("GM-{}".format(script.name))
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
+
             # Override the @run-at value parsed by QWebEngineScript if desired.
             if injection_point:
                 new_script.setInjectionPoint(injection_point)
+            elif script.force_document_end():
+                log.greasemonkey.debug("Forcing @run-at document-end for {}"
+                                       .format(script.name))
+                new_script.setInjectionPoint(QWebEngineScript.DocumentReady)
+
             log.greasemonkey.debug('adding script: {}'
                                    .format(new_script.name()))
             page_scripts.insert(new_script)
