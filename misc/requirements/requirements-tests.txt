@@ -24,7 +24,7 @@ pluggy==0.9.0
 py==1.8.0
 py-cpuinfo==4.0.0
 pytest==4.3.0
-pytest-bdd==3.0.1
+pytest-bdd==3.1.0
 pytest-benchmark==3.2.2
 pytest-cov==2.6.1
 pytest-faulthandler==1.5.0
