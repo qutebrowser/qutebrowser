@@ -43,6 +43,8 @@ class UndoEntry:
     history = attr.ib()
     index = attr.ib()
     pinned = attr.ib()
+    parent_node_uid = attr.ib(None)
+    children_node_uids = attr.ib([])
 
 
 class TabDeletedError(Exception):
@@ -350,8 +352,17 @@ class TabbedBrowser(QWidget):
             except browsertab.WebTabError:
                 pass  # special URL
             else:
-                entry = UndoEntry(tab.url(), history_data, idx,
-                                  tab.data.pinned)
+                if config.val.tabs.tree_tabs:
+                    node = tab.node
+                    parent_uid = node.parent.uid
+                    children = [n.uid for n in node.children]
+                    entry = UndoEntry(tab.url(), history_data, idx,
+                                      tab.data.pinned,
+                                      parent_uid, children)
+                else:
+                    entry = UndoEntry(tab.url(), history_data, idx,
+                                      tab.data.pinned)
+
                 if new_undo or not self._undo_stack:
                     self._undo_stack.append([entry])
                 else:
@@ -419,6 +430,22 @@ class TabbedBrowser(QWidget):
                 newtab = self.tabopen(background=False, idx=entry.index)
 
             newtab.history.private_api.deserialize(entry.history)
+
+            if config.val.tabs.tree_tabs and entry.parent_node_uid is not None:
+                root = self.widget.tree_root
+                parent_uid = entry.parent_node_uid
+                parent_node = root.get_descendent_by_uid(parent_uid)
+
+                children = []
+                for child_uid in entry.children_node_uids:
+                    child_node = root.get_descendent_by_uid(child_uid)
+                    children.append(child_node)
+                newtab.node.parent = parent_node
+                newtab.node.children = children
+
+                self.widget.update_tree_tab_positions()
+                self.widget.update_tab_titles()
+
             self.widget.set_tab_pinned(newtab, entry.pinned)
 
     @pyqtSlot('QUrl', bool)
@@ -508,6 +535,9 @@ class TabbedBrowser(QWidget):
         if idx is None:
             idx = self._get_new_tab_idx(related)  # ignored by tree-tabs
         idx = self.widget.insertTab(idx, tab, "")
+
+
+        log.misc.debug('\n'.join(''.join((char, repr(node))) for char, node in self.widget.tree_root.render()))
 
         if config.val.tabs.tree_tabs:
             cur_tab = self.widget.currentWidget()
