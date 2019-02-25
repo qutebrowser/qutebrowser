@@ -24,6 +24,8 @@ from qutebrowser.misc.notree import TreeError, Node, TraverseOrder
 
 @pytest.fixture
 def tree():
+    # pylint: disable=unused-variable
+    # these are actually used because they appear in expected strings
     n1 = Node('n1')
     n2 = Node('n2', n1)
     n4 = Node('n4', n2)
@@ -35,6 +37,7 @@ def tree():
     n9 = Node('n9', n6)
     n10 = Node('n10', n9)
     n11 = Node('n11', n3)
+    # pylint: enable=unused-variable
     return n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11
 
 
