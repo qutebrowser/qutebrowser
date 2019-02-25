@@ -357,29 +357,30 @@ class TabbedBrowser(QWidget):
                 else:
                     self._undo_stack[-1].append(entry)
 
-        cur_node = tab.node
+        if config.val.tabs.tree_tabs:
+            cur_node = tab.node
 
-        node_parent = cur_node.parent
+            node_parent = cur_node.parent
 
-        if node_parent:
-            node_siblings = list(node_parent.children)
-            node_children = cur_node.children
+            if node_parent:
+                node_siblings = list(node_parent.children)
+                node_children = cur_node.children
 
-            if node_children:
-                next_node = node_children[0]
+                if node_children:
+                    next_node = node_children[0]
 
-                # prvni node se stane parentem pro ostatní děti
-                for n in node_children[1:]:
-                    n.parent = next_node
+                    # prvni node se stane parentem pro ostatní děti
+                    for n in node_children[1:]:
+                        n.parent = next_node
 
-                # swap nodes
-                node_idx = node_siblings.index(cur_node)
-                node_siblings[node_idx] = next_node
+                    # swap nodes
+                    node_idx = node_siblings.index(cur_node)
+                    node_siblings[node_idx] = next_node
 
-                node_parent.children = tuple(node_siblings)
-                cur_node.children = ()
+                    node_parent.children = tuple(node_siblings)
+                    cur_node.children = ()
 
-            cur_node.parent = None
+                cur_node.parent = None
 
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
