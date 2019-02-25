@@ -1,7 +1,7 @@
 dist: xenial
 language: python
 group: edge
-python: 3.6
+python: 3.7
 os: linux
 
 matrix:
@@ -18,21 +18,22 @@ matrix:
     ### PyQt 5.7.1 (Python 3.5)
     - python: 3.5
       env: TESTENV=py35-pyqt571
-    ### PyQt 5.7.1
-    - env: TESTENV=py36-pyqt571
+    ### PyQt 5.7.1 (Python 3.6)
+    - python: 3.6
+      env: TESTENV=py36-pyqt571
 
     ### PyQt 5.9
-    - env: TESTENV=py36-pyqt59
+    - env: TESTENV=py37-pyqt59
 
     ### PyQt 5.10
-    - env: TESTENV=py36-pyqt510
+    - env: TESTENV=py37-pyqt510
       addons:
         apt:
           packages:
           - xfonts-base
 
     ### PyQt 5.11
-    - env: TESTENV=py36-pyqt511
+    - env: TESTENV=py37-pyqt511
 
     ### PyQt 5.12 (Python 3.7, with coverage)
     - env: TESTENV=py37-pyqt512-cov
