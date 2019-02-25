@@ -96,8 +96,12 @@ class Node():
     def __init__(self,
                  value: PARENT_TYPE,
                  parent: typing.Optional['Node'] = None,
-                 childs: typing.Sequence['Node'] = ()) -> None:
-        self.__uid = self.__get_new_uid()
+                 childs: typing.Sequence['Node'] = (),
+                 uid: typing.Optional[int] = None) -> None:
+        if uid is not None:
+            self.__uid = uid  # TODO find a way to check if given ID exists already
+        else:
+            self.__uid = self.__get_new_uid()
 
         self.value = value
         # set initial values so there's no need for AttributeError checks
