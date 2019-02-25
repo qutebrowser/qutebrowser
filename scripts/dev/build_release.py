@@ -274,7 +274,6 @@ def build_windows():
          'Windows 64bit installer'),
     ]
 
-
     utils.print_title("Zipping 32bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-win32'.format(
         qutebrowser.__version__)

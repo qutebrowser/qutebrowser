@@ -215,6 +215,7 @@
 |<<input.insert_mode.auto_enter,input.insert_mode.auto_enter>>|Enter insert mode if an editable element is clicked.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
 |<<input.insert_mode.auto_load,input.insert_mode.auto_load>>|Automatically enter insert mode if an editable element is focused after loading the page.
+|<<input.insert_mode.leave_on_load,input.insert_mode.leave_on_load>>|Leave insert mode when starting a new page load.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
@@ -2710,6 +2711,17 @@ Automatically enter insert mode if an editable element is focused after loading 
 Type: <<types,Bool>>
 
 Default: +pass:[false]+
+
+[[input.insert_mode.leave_on_load]]
+=== input.insert_mode.leave_on_load
+Leave insert mode when starting a new page load.
+Patterns may be unreliable on this setting, and they may match the url you are navigating to, or the URL you are navigating from.
+
+This setting supports URL patterns.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[input.insert_mode.plugins]]
 === input.insert_mode.plugins
