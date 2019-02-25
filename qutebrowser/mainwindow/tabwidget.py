@@ -168,11 +168,9 @@ class TabWidget(QTabWidget):
             rendered_tree = self.tree_root.render()
             tree_prefixes = [pre[2:] for pre, _ in rendered_tree]
 
-            # probably a hack, I believe there is a better way to check if the
-            # window and the first tab is initialized before tree root
-            if len(tree_prefixes) > self.count():
+            try:
                 tree_prefix = tree_prefixes[idx+1]
-            else:
+            except IndexError:  # window or first tab are not initialized yet
                 tree_prefix = ""
 
             fields['tree'] = tree_prefix
