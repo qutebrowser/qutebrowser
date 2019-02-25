@@ -117,7 +117,7 @@ class GreasemonkeyScript:
             script.includes = ['*']
         return script
 
-    def force_document_end(self):
+    def needs_document_end_workaround(self):
         """Check whether to force @run-at document-end.
 
         This needs to be done on QtWebEngine with Qt 5.12 for known-broken

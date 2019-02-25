@@ -94,8 +94,8 @@ class TestWebengineScripts:
         collection = webengine_scripts._widget.page().scripts()
         assert collection.toList()[-1].worldId() == worldid
 
-    def test_greasemonkey_force_document_end(self, monkeypatch,
-                                             webengine_scripts):
+    def test_greasemonkey_document_end_workaround(self, monkeypatch,
+                                                  webengine_scripts):
         """Make sure document-end is forced when needed."""
         monkeypatch.setattr(greasemonkey.objects, 'backend',
                             usertypes.Backend.QtWebEngine)

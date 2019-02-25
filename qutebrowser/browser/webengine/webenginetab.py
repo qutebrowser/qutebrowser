@@ -1042,7 +1042,7 @@ class _WebEngineScripts(QObject):
             # Override the @run-at value parsed by QWebEngineScript if desired.
             if injection_point:
                 new_script.setInjectionPoint(injection_point)
-            elif script.force_document_end():
+            elif script.needs_document_end_workaround():
                 log.greasemonkey.debug("Forcing @run-at document-end for {}"
                                        .format(script.name))
                 new_script.setInjectionPoint(QWebEngineScript.DocumentReady)

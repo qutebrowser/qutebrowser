@@ -201,7 +201,7 @@ class TestForceDocumentEnd:
         patch(backend=backend, qt_512=qt_512)
         script = self._get_script(namespace='https://github.com/ParticleCore',
                                   name='Iridium')
-        assert not script.force_document_end()
+        assert not script.needs_document_end_workaround()
 
     @pytest.mark.parametrize('namespace, name, force', [
         ('http://userstyles.org', 'foobar', True),
@@ -213,7 +213,7 @@ class TestForceDocumentEnd:
         """Test matching based on namespace/name."""
         patch(backend=usertypes.Backend.QtWebEngine, qt_512=True)
         script = self._get_script(namespace=namespace, name=name)
-        assert script.force_document_end() == force
+        assert script.needs_document_end_workaround() == force
 
 
 def test_required_scripts_are_included(download_stub, tmpdir):
