@@ -21,33 +21,43 @@ v1.6.0 (unreleased)
 Added
 ~~~~~
 
-- New `tabs.new_position.stacking` setting which controls whether new tabs
-  opened from a page should stack on each other or not.
-- New `completion.open_categories` setting which allows to configure which
-  categories are shown in the `:open` completion, and how they are ordered.
-- New `tabs.pinned.frozen` setting to allow/deny navigating in pinned tabs.
+- New settings:
+  * `tabs.new_position.stacking` which controls whether new tabs opened from a
+    page should stack on each other or not.
+  * `completion.open_categories` which allows to configure which categories are
+    shown in the `:open` completion, and how they are ordered.
+  * `tabs.pinned.frozen` to allow/deny navigating in pinned tabs.
+  * `hints.selectors` which allows to configure what CSS selectors are used for
+    hints, and also allows adding custom hint groups.
+  * `input.insert_mode.leave_on_load` to turn off leaving insert mode when a
+    new page is loaded.
 - New config manipulation commands:
   * `:config-dict-add` and `:config-list-add` to a new element to a dict/list
     setting.
   * `:config-dict-remove` and `:config-list-remove` to remove an element from a
     dict/list setting.
-- New `hints.selectors` setting which allows to configure what CSS selectors
-  are used for hints, and also allows adding custom hint groups.
-- New `input.insert_mode.leave_on_load` setting to turn off leaving insert mode
-  when a new page is loaded.
 - New `:yank markdown` feature which yanks the current URL and title in
   markdown format.
-- Basic support for client certificates with Qt 5.12. Selecting the certificate
-  to show when there are multiple matching certificates isn't implemented yet.
-- Support for DNS prefetching (`content.dns_prefetch`) with QtWebEngine on 5.12.
-- A 32-bit build for Windows is available again
-- The Windows build now bundle the Universal CRT DLLs, causing them to work on
-  earlier versions of Windows 10.
+- Support for new QtWebEngine features in Qt 5.12:
+  * Basic support for client certificates. Selecting the certificate to use
+    when there are multiple matching certificates isn't implemented yet.
+  * Support for DNS prefetching (plus new `content.dns_prefetch` setting).
 
 Changed
 ~~~~~~~
 
-- `:q` now closes current window instead of quitting qutebrowser completely
+- Various changes to the Windows and macOS builds:
+  * Bundling Qt 5.12.1, based on Chromium 69.0.3497.128 with security fixes up
+    to 71.0.3578.94.
+  * Windows: A 32-bit build is available again.
+  * Windows: The builds now bundle the Universal CRT DLLs, causing them to work
+    on earlier versions of Windows 10.
+  * macOS: Support for OS X 10.11 El Capitan was dropped, requiring macOS 10.12
+    Sierra or newer.
+  * macOS: The IPC socket path used to communicate with existing instances
+    changed due to changes in Qt 5.12. Please make sure to quit qutebrowser
+    before upgrading.
+- `:q` now closes the current window instead of quitting qutebrowser completely
   (`:close`), while `:qa` quits (`:quit`). The behavior of `:wq` remains
   unchanged (`:quit --save`), as closing a window while saving the session
   doesn't make sense.
@@ -69,9 +79,6 @@ Changed
   `org.qutebrowser.qutebrowser.appdata.xml`.
 - The `qute-pass` userscript now understands domains in gpg filenames
   in addition to directory names.
-- macOS: The IPC socket path used to communicate with existing instances
-  changed due to changes in Qt 5.12. Please make sure to quit qutebrowser
-  before upgrading.
 - The autocompletion for `content.headers.user_agent` got updated to only
   include the default and Chrome, as setting the UA to Firefox has various
   bad side-effects.
@@ -97,22 +104,22 @@ Fixed
 - When `scrolling.bar = True` was set in versions before v1.5.0, this now
   correctly gets migrated to `always` instead of `when-searching`.
 - Completion highlighting now works again on Qt 5.11.3 and 5.12.1.
-- The outdated header `X-Do-Not-Track` is no longer sent.
-- A javascript error on page load when using Qt 5.12 was fixed.
-- `window.print()` works with Qt 5.12 now.
+- The non-standard header `X-Do-Not-Track` is no longer sent.
 - PAC proxies were never correctly supported with QtWebEngine, but are now
   explicitly disallowed.
-- Qt 5.12: Fixed handling of duplicate download filenames.
-- Qt 5.12: Fixed broken `qute://history` page.
-- Qt 5.12: Fixed PDF.js not working properly.
-- Qt 5.12: The download button in PDF.js now works (it's not possible to make
-  it work with earlier Qt versions).
-- Qt 5.12: Issues with `content.user_stylesheets`.
 - macOS: Context menus for download items now show in the correct macOS style.
 - Issues with fullscreen handling when exiting a video player.
-- Qt 5.12: Since Greasemonkey scripts modifying the DOM fail when being run at
-  document-start, some known-broken scripts (Iridium, userstyles.org) are now
-  forced to run at document-end.
+- Various fixes for Qt 5.12 issues:
+  * A javascript error on page load was fixed.
+  * `window.print()` works with Qt 5.12 now.
+  * Fixed handling of duplicate download filenames.
+  * Fixed broken `qute://history` page.
+  * Fixed PDF.js not working properly.
+  * The download button in PDF.js now works (it's not possible to make
+    it work with earlier Qt versions).
+  * Since Greasemonkey scripts modifying the DOM fail when being run at
+    document-start, some known-broken scripts (Iridium, userstyles.org) are now
+    forced to run at document-end.
 
 v1.5.2
 ------
