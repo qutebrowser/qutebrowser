@@ -331,9 +331,14 @@ class PromptContainer(QWidget):
 
         if not question.interrupted:
             # If this question was interrupted, we already connected the signal
-            question.aborted.connect(
-                lambda: modeman.leave(self._win_id, prompt.KEY_MODE, 'aborted',
-                                      maybe=True))
+            def on_aborted():
+                try:
+                    modeman.leave(self._win_id, prompt.KEY_MODE,
+                                  'aborted', maybe=True)
+                except objreg.RegistryUnavailableError:
+                    # window was deleted: ignore
+                    pass
+            question.aborted.connect(on_aborted)
         modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
 
         self.setSizePolicy(prompt.sizePolicy())
