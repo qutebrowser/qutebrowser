@@ -24,7 +24,6 @@ from qutebrowser.misc.notree import TreeError, Node, TraverseOrder
 
 @pytest.fixture
 def tree():
-    # pylint: disable=unused-variable
     # these are actually used because they appear in expected strings
     n1 = Node('n1')
     n2 = Node('n2', n1)
@@ -37,7 +36,6 @@ def tree():
     n9 = Node('n9', n6)
     n10 = Node('n10', n9)
     n11 = Node('n11', n3)
-    # pylint: enable=unused-variable
     return n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11
 
 
@@ -99,7 +97,6 @@ def test_replace_children(tree):
     n11 = tree[10]
     n3.children = [n11]
     n2.children = (n6, ) + n2.children
-    print('\n'.join(''.join((char, str(node))) for char, node in tree[0].render()))
     assert n6.parent is n2
     assert n6 in n2.children
     assert n11.parent is n3
@@ -147,9 +144,6 @@ def test_siblings():
     n53 = Node('n53', n2)
     n3 = Node('n3', n1)
     n6 = Node('n6', n3)
-    n7 = Node('n7', n6)
-    n8 = Node('n8', n6)
     n9 = Node('n9', n6)
-    n10 = Node('n10', n9)
     assert list(n2.siblings) == [n3]
     assert list(n52.siblings) == [n4, n5, n53]
