@@ -28,7 +28,6 @@ import jinja2
 from PyQt5.QtCore import QUrl
 
 import qutebrowser
-from qutebrowser.utils import utils
 
 
 class JSTester:
