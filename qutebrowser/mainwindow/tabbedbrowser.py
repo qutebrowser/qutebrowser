@@ -505,7 +505,8 @@ class TabbedBrowser(QWidget):
                                 parent=self.widget)
         self._connect_tab_signals(tab)
 
-        idx = self._get_new_tab_idx(related)  # ignored by tree-tabs
+        if idx is None:
+            idx = self._get_new_tab_idx(related)  # ignored by tree-tabs
         idx = self.widget.insertTab(idx, tab, "")
 
         if config.val.tabs.tree_tabs:
