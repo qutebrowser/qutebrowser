@@ -88,6 +88,8 @@ class Node():
 
     sep: str = '/'
     __parent: typing.Optional['Node'] = None
+    __uid: int
+    __last_uid: int = 0  # this is a global 'static' class attribute
 
     PARENT_TYPE = typing.TypeVar('PARENT_TYPE')
 
@@ -95,6 +97,8 @@ class Node():
                  value: PARENT_TYPE,
                  parent: typing.Optional['Node'] = None,
                  childs: typing.Sequence['Node'] = ()) -> None:
+        self.__uid = self.__get_new_uid()
+
         self.value = value
         # set initial values so there's no need for AttributeError checks
         self.__parent = None  # type: typing.Optional['Node']
@@ -111,6 +115,10 @@ class Node():
             self.children = childs  # this too
 
         self.__collapsed = False
+
+    @property
+    def uid(self) -> int:
+        return self.__uid
 
     @property
     def parent(self) -> typing.Optional['Node']:
@@ -245,12 +253,21 @@ class Node():
         if value in self.__children:
             self.__children.remove(value)
 
+    def __get_new_uid(self) -> int:
+        Node.__last_uid += 1
+        return Node.__last_uid
+
+    def get_descendent_by_uid(self, uid: int) -> 'Node':
+        for descendent in self.traverse():
+            if descendent.uid == uid:
+                return descendent
+
     def __repr__(self) -> str:
         try:
             value = str(self.value.url().url())
         except:
             value = str(self.value)
-        return "<Node '%s'>" % value
+        return "<Node -%d- '%s'>" % (self.__uid, value)
 
     def __str__(self) -> str:
         # return "<Node '%s'>" % self.value
