@@ -21,7 +21,7 @@ more-itertools==6.0.0
 parse==1.11.1
 parse-type==0.4.2
 pluggy==0.9.0
-py==1.7.0
+py==1.8.0
 py-cpuinfo==4.0.0
 pytest==4.2.1
 pytest-bdd==3.0.1
