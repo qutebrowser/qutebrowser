@@ -77,6 +77,8 @@ Changed
   an error is now shown when trying to configure a PAC proxy.
 - The metainfo file `qutebrowser.appdata.xml` is now renamed to
   `org.qutebrowser.qutebrowser.appdata.xml`.
+- The desktop file `qutebrowser.desktop` is now renamed to
+  `org.qutebrowser.qutebrowser.desktop`.
 - The `qute-pass` userscript now understands domains in gpg filenames
   in addition to directory names.
 - The autocompletion for `content.headers.user_agent` got updated to only
