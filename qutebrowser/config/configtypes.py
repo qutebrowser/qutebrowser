@@ -1041,7 +1041,7 @@ class QtColor(BaseType):
             if not conv:
                 raise configexc.ValidationError(
                     value,
-                    '{} not in {}'.format(kind, list(converters.keys())))
+                    '{} not in {}'.format(kind, list(sorted(converters))))
 
             if len(kind) != len(vals):
                 raise configexc.ValidationError(

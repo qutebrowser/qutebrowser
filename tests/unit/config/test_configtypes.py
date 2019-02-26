@@ -1262,7 +1262,7 @@ class TestQtColor:
         ('#12', 'must be a valid color'),
         ('foobar', 'must be a valid color'),
         ('42', 'must be a valid color'),
-        ('foo(1, 2, 3)', "foo not in ['rgba', 'rgb', 'hsva', 'hsv']"),
+        ('foo(1, 2, 3)', "foo not in ['hsv', 'hsva', 'rgb', 'rgba']"),
         ('rgb(1, 2, 3', 'must be a valid color'),
         ('rgb)', 'must be a valid color'),
         ('rgb(1, 2, 3))', 'must be a valid color value'),
