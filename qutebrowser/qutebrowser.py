@@ -176,9 +176,9 @@ def debug_flag_error(flag):
                                          .format(', '.join(valid_flags)))
 
 
-def main():
+def main(argv):
+    argv = argv[1:]  # remove program name
     parser = get_argparser()
-    argv = sys.argv[1:]
     args = parser.parse_args(argv)
     if args.json_args is not None:
         # Restoring after a restart.
