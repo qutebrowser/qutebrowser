@@ -277,6 +277,8 @@ def _parse_special_key(keystr):
         ('command', 'meta'),
         ('cmd', 'meta'),
         ('mod1', 'alt'),
+        ('less', '<'),
+        ('greater', '>'),
     )
     for (orig, repl) in replacements:
         keystr = keystr.replace(orig, repl)
