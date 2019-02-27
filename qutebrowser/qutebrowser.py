@@ -176,7 +176,7 @@ def debug_flag_error(flag):
                                          .format(', '.join(valid_flags)))
 
 
-def main(argv):
+def main(argv=sys.argv):
     argv = argv[1:]  # remove program name
     parser = get_argparser()
     args = parser.parse_args(argv)
