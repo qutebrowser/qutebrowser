@@ -1035,7 +1035,7 @@ class QtColor(BaseType):
                 'rgb': QColor.fromRgb,
                 'hsva': QColor.fromHsv,
                 'hsv': QColor.fromHsv,
-            }
+            }  # type: typing.Dict[str, typing.Callable[..., QColor]]
 
             conv = converters.get(kind)
             if not conv:
