@@ -864,7 +864,7 @@ class CommandDispatcher:
     def switch_buffer_or_open(self, text=None):
         try:
             self.buffer(index=text)
-        except cmdexc.CommandError:
+        except cmdutils.CommandError:
             self.openurl(url=text)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
@@ -873,7 +873,7 @@ class CommandDispatcher:
     def switch_buffer_or_open_tab(self, text=None):
         try:
             self.buffer(index=text)
-        except cmdexc.CommandError:
+        except cmdutils.CommandError:
             self.openurl(url=text, tab=True)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
