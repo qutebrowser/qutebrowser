@@ -180,6 +180,11 @@ class Node():
             return ()
 
     @property
+    def index(self) -> int:
+        """Get self's position among its siblings (self.parent.children)"""
+        return self.parent.children.index(self)
+
+    @property
     def collapsed(self) -> bool:
         return self.__collapsed
 

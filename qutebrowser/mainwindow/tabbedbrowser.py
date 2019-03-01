@@ -47,6 +47,7 @@ class UndoEntry:
     uid = attr.ib(None)
     parent_node_uid = attr.ib(None)
     children_node_uids = attr.ib([])
+    local_index = attr.ib(None)  # index of the tab relative to its siblings
 
 
 class TabDeletedError(Exception):
@@ -359,9 +360,10 @@ class TabbedBrowser(QWidget):
                     uid = node.uid
                     parent_uid = node.parent.uid
                     children = [n.uid for n in node.children]
+                    local_idx = node.index
                     entry = UndoEntry(tab.url(), history_data, idx,
                                       tab.data.pinned,
-                                      uid, parent_uid, children)
+                                      uid, parent_uid, children, local_idx)
                 else:
                     entry = UndoEntry(tab.url(), history_data, idx,
                                       tab.data.pinned)
@@ -444,6 +446,13 @@ class TabbedBrowser(QWidget):
                         children.append(child_node)
                     newtab.node.parent = None  # Remove the node from the tree
                     newtab.node = notree.Node(newtab, parent_node, children, uid)
+
+                    # correctly reposition the tab
+                    local_idx = entry.local_index
+                    new_siblings = list(newtab.node.parent.children)
+                    new_siblings.remove(newtab.node)
+                    new_siblings.insert(local_idx, newtab.node)
+                    newtab.node.parent.children = new_siblings
 
                     self.widget.update_tree_tab_positions()
                     self.widget.update_tab_titles()
