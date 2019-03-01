@@ -1774,10 +1774,24 @@ class CommandDispatcher:
         """Promote a tab so it becomes next sibling of its parent."""
         tab = self._current_widget()
 
+        config_position = config.val.tabs.new_position.related
+        position = {'first': 0, 'last': -1}.get(config_position, None)
+        diff = {'next':1, 'prev': 0}.get(config_position, 1)
         while count > 0:
             grandparent = tab.node.parent.parent
             if grandparent:
-                tab.node.parent = grandparent
+                if position is not None:
+                    idx = position
+                else:  # diff is necessarily not none
+                    idx = tab.node.parent.index + diff
+                tab.node.parent = None
+
+                siblings = list(grandparent.children)
+                if idx != -1:
+                    siblings.insert(idx, tab.node)
+                else:
+                    siblings.append(tab.node)
+                grandparent.children = siblings
             count -= 1
 
         self._tabbed_browser.widget.update_tab_titles()
