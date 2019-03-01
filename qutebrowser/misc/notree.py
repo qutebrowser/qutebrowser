@@ -66,10 +66,12 @@ class TraverseOrder(enum.Enum):
     Attributes:
         PRE: pre-order (parents before children). Same as in Node.render
         POST: children of a node are always yield before their parent.
+        POST_R: Like POST, but children are yield in reverse order
     """
 
     PRE = 'pre-order'
     POST = 'post-order'
+    POST_R = 'post-order-reverse'
 
 
 class Node():
@@ -240,12 +242,14 @@ class Node():
         """
         if order == TraverseOrder.PRE:
             yield self
-        for child in self.children:
+
+        f = reversed if order is TraverseOrder.POST_R else tuple
+        for child in f(self.children):
             if render_collapsed or not child.collapsed:
                 yield from child.traverse(order)
             else:
                 yield child
-        if order == TraverseOrder.POST:
+        if order in [TraverseOrder.POST, TraverseOrder.POST_R]:
             yield self
 
     def __add_child(self, node: 'Node') -> None:
