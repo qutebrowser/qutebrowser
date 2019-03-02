@@ -988,7 +988,7 @@ class CommandDispatcher:
             tabs = list(self._tabbed_browser.widget.tree_root.traverse())
             target_node = tabs[new_idx]
             if tab.node in target_node.path:
-                raise cmdutils.CommandError("Can't move tab to a descendent" \
+                raise cmdutils.CommandError("Can't move tab to a descendent"
                                             " of itself")
 
             new_parent = target_node.parent
@@ -1781,7 +1781,7 @@ class CommandDispatcher:
 
         config_position = config.val.tabs.new_position.related
         position = {'first': 0, 'last': -1}.get(config_position, None)
-        diff = {'next':1, 'prev': 0}.get(config_position, 1)
+        diff = {'next': 1, 'prev': 0}.get(config_position, 1)
         while count > 0:
             grandparent = tab.node.parent.parent
             if grandparent:
@@ -1910,7 +1910,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_toggle_hide(self):
-        """If the current tab's children are shown hide them, and vice-versa
+        """If the current tab's children are shown hide them, and vice-versa.
 
         This toggles the current tab's node's `collapsed` attribute.
         """
@@ -1930,7 +1930,7 @@ class CommandDispatcher:
                 name = cur_tab.title()
                 icon = cur_tab.icon()
                 tabwidget.insertTab(cur_idx + 1, cur_tab, icon, name)
-                cur_tab.node.parent = cur_parent  #  insertTab resets node
+                cur_tab.node.parent = cur_parent  # insertTab resets node
                 cur_idx += 1
         else:
             order = notree.TraverseOrder.POST

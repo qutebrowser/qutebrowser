@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
-"""Tests for misc.notree"""
+"""Tests for misc.notree library."""
 import pytest
 
 from qutebrowser.misc.notree import TreeError, Node, TraverseOrder
@@ -62,7 +62,7 @@ def test_attach_parent():
     n2.parent = n3
     assert n2.parent == n3
     assert n3.children == (n2, )
-    assert n1.children == tuple()
+    assert n1.children == ()
 
 
 def test_duplicate_child():
@@ -110,11 +110,13 @@ def test_traverse(node):
     len_render = len(node.render())
     assert len_traverse == len_render
 
+
 def test_traverse_postorder(tree):
     n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11 = tree
     actual = list(n1.traverse(TraverseOrder.POST))
     print('\n'.join([str(n) for n in actual]))
     assert actual == [n4, n5, n2, n7, n8, n10, n9, n6, n11, n3, n1]
+
 
 def test_render_tree(node):
     expected = [
@@ -144,6 +146,6 @@ def test_siblings():
     n53 = Node('n53', n2)
     n3 = Node('n3', n1)
     n6 = Node('n6', n3)
-    n9 = Node('n9', n6)
+    _ = Node('n9', n6)
     assert list(n2.siblings) == [n3]
     assert list(n52.siblings) == [n4, n5, n53]

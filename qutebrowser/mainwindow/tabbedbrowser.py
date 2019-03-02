@@ -548,7 +548,6 @@ class TabbedBrowser(QWidget):
             idx = self._get_new_tab_idx(related)  # ignored by tree-tabs
         idx = self.widget.insertTab(idx, tab, "")
 
-
         log.misc.debug('\n'.join(''.join((char, repr(node))) for char, node in self.widget.tree_root.render()))
 
         if config.val.tabs.tree_tabs:
