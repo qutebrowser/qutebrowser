@@ -31,6 +31,7 @@ def turn_on_scroll_logging(quteproc):
     quteproc.send_cmd(":debug-pyeval -q objreg.get('args')."
                       "debug_flags.append('log-scroll-pos')")
 
+
 @bdd.when(bdd.parsers.parse('I have a "{name}" session file:\n{contents}'))
 def create_session_file(quteproc, name, contents):
     filename = os.path.join(quteproc.basedir, 'data', 'sessions',
