@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,6 +25,7 @@ Module attributes:
 """
 
 import os
+import operator
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
@@ -163,9 +164,14 @@ class WebEngineSettings(websettings.AbstractSettings):
             # Qt 5.8
             'content.print_element_backgrounds':
                 ('PrintElementBackgrounds', None),
+
             # Qt 5.11
             'content.autoplay':
-                ('PlaybackRequiresUserGesture', lambda val: not val),
+                ('PlaybackRequiresUserGesture', operator.not_),
+
+            # Qt 5.12
+            'content.dns_prefetch':
+                ('DnsPrefetchEnabled', None),
         }
         for name, (attribute, converter) in new_attributes.items():
             try:

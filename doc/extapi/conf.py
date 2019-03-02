@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'qutebrowser extensions'
-copyright = '2018, Florian Bruhin'
+copyright = '2018-2019, Florian Bruhin'
 author = 'Florian Bruhin'
 
 # The short X.Y version
