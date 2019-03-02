@@ -19,7 +19,7 @@
 
 """Scroll percentage displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.misc import throttle
@@ -31,7 +31,7 @@ class Percentage(textbase.TextBase):
 
     def __init__(self, parent=None):
         """Constructor. Set percentage to 0%."""
-        super().__init__(parent)
+        super().__init__(parent, elidemode=Qt.ElideNone)
         self.set_perc(0, 0)
         self.raw = False
 
