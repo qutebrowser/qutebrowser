@@ -28,3 +28,5 @@ def turn_on_scroll_logging(quteproc):
     """Make sure all scrolling changes are logged."""
     quteproc.send_cmd(":debug-pyeval -q objreg.get('args')."
                       "debug_flags.append('no-scroll-filtering')")
+    quteproc.send_cmd(":debug-pyeval -q objreg.get('args')."
+                      "debug_flags.append('log-scroll-pos')")
