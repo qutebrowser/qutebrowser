@@ -340,8 +340,7 @@ class TabbedBrowser(QWidget):
             cur_node.parent = None
 
     def _add_undo_entry(self, tab, idx, new_undo):
-        """
-        Add a removed tab to the undo stack.
+        """Add a removed tab to the undo stack.
 
         Args:
             tab: The tab about to be closed
@@ -446,7 +445,8 @@ class TabbedBrowser(QWidget):
             else:
                 newtab = self.tabopen(background=False, idx=entry.index)
                 if (config.val.tabs.tree_tabs and
-                        entry.uid is not None and entry.parent_node_uid is not None):
+                        entry.uid is not None and
+                        entry.parent_node_uid is not None):
                     root = self.widget.tree_root
                     uid = entry.uid
                     parent_uid = entry.parent_node_uid
@@ -457,7 +457,8 @@ class TabbedBrowser(QWidget):
                         child_node = root.get_descendent_by_uid(child_uid)
                         children.append(child_node)
                     newtab.node.parent = None  # Remove the node from the tree
-                    newtab.node = notree.Node(newtab, parent_node, children, uid)
+                    newtab.node = notree.Node(newtab, parent_node,
+                                              children, uid)
 
                     # correctly reposition the tab
                     local_idx = entry.local_index
@@ -507,10 +508,10 @@ class TabbedBrowser(QWidget):
                               "exist!".format(widget))
 
     def _tree_tab_pre_open(self, tab, related):
-        """
-        Set tab's parent and position relatively to its siblings/root.
+        """Set tab's parent and position relatively to its siblings/root.
 
-        If related is True, the tab is placed as the last children of current tab.
+        If related is True, the tab is placed as the last children of current
+        tab.
         Else, the tab is placed as a children of tree_root, and its placement
         relatively to its siblings follows tabs.new_position.unrelated config
         setting.

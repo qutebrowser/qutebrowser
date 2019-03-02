@@ -205,7 +205,8 @@ class CommandDispatcher:
                                  "{!r}!".format(conf_selection))
         return None
 
-    def _tab_close(self, tab, prev=False, next_=False, opposite=False, new_undo=True):
+    def _tab_close(self, tab, prev=False, next_=False,
+                   opposite=False, new_undo=True):
         """Helper function for tab_close be able to handle message.async.
 
         Args:

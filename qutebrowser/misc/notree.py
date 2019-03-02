@@ -101,7 +101,7 @@ class Node():
                  childs: typing.Sequence['Node'] = (),
                  uid: typing.Optional[int] = None) -> None:
         if uid is not None:
-            self.__uid = uid  # TODO find a way to check if given ID exists already
+            self.__uid = uid  # TODO check if given ID exists already
         else:
             self.__uid = self.__get_new_uid()
 
@@ -271,9 +271,19 @@ class Node():
         return Node.__last_uid
 
     def get_descendent_by_uid(self, uid: int) -> 'Node':
+        """Return descendent identified by the provided uid.
+
+        Raises an error if there is no such descendent.
+
+        Args:
+            uid: The uid of the node to return
+        """
         for descendent in self.traverse():
             if descendent.uid == uid:
                 return descendent
+        else:
+            raise TreeError("No descendent with uid = %s" % uid)
+
 
     def __repr__(self) -> str:
         try:
