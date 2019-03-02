@@ -411,6 +411,26 @@ class SessionManager(QObject):
         except ValueError as e:
             raise SessionError(e)
 
+    def _load_tree(self, tabs, tree_data, tree_root):
+        """
+        Correctly set tab hierarchy in a window.
+
+        Args:
+            tabs: The list of AbstractTabs in a windows
+            tree_data: List of indexes of parent tabs (so that tree_data[i]
+                       is the index of the parent of the ith tab)
+            tree_root: The root node of the current window
+        """
+        if tree_data is None:
+            return
+        elif len(tree_data) != len(tabs):
+            raise SessionError("Tree session data is corrupt")
+        for i, tab in enumerate(tabs):
+            if tree_data[i] is not None:
+                tab.node.parent = tabs[tree_data[i]].node
+            else:
+                tab.node.parent = tree_root
+
     def load(self, name, temp=False):
         """Load a named session.
 
@@ -449,16 +469,9 @@ class SessionManager(QObject):
             if win.get('active', False):
                 QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
-            # tree is a list of int, so that tree[i] is the index of the parent
-            # tab of the ith tab
             tree = win.get('tree', None)
-            if tree:
-                tabs = tabbed_browser.widgets()
-                for i, tab in enumerate(tabs):
-                    if tree[i] is not None:
-                        tab.node.parent = tabs[tree[i]].node
-                    else:
-                        tab.node.parent = tabbed_browser.widget.tree_root
+            tabs = tabbed_browser.widgets()
+            self._load_tree(tabs, tree, tabbed_browser.widget.tree_root)
 
         if data['windows']:
             self.did_load = True

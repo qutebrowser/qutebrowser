@@ -316,6 +316,61 @@ class TabbedBrowser(QWidget):
             elif last_close == 'default-page':
                 self.load_url(config.val.url.default_page, newtab=True)
 
+    def _tree_tab_hierarchy_post_remove(self, cur_node):
+        node_parent = cur_node.parent
+
+        if node_parent:
+            node_siblings = list(node_parent.children)
+            node_children = cur_node.children
+
+            if node_children:
+                next_node = node_children[0]
+
+                # prvni node se stane parentem pro ostatní děti
+                for n in node_children[1:]:
+                    n.parent = next_node
+
+                # swap nodes
+                node_idx = node_siblings.index(cur_node)
+                node_siblings[node_idx] = next_node
+
+                node_parent.children = tuple(node_siblings)
+                cur_node.children = ()
+
+            cur_node.parent = None
+
+    def _add_undo_entry(self, tab, idx, new_undo):
+        """
+        Add a removed tab to the undo stack.
+
+        Args:
+            tab: The tab about to be closed
+            idx: The current position (index) of the tab
+            new_undo: Whether the entry should be a new item in the stack
+        """
+        try:
+            history_data = tab.history.private_api.serialize()
+        except browsertab.WebTabError:
+            pass  # special URL
+        else:
+            if config.val.tabs.tree_tabs:
+                node = tab.node
+                uid = node.uid
+                parent_uid = node.parent.uid
+                children = [n.uid for n in node.children]
+                local_idx = node.index
+                entry = UndoEntry(tab.url(), history_data, idx,
+                                  tab.data.pinned,
+                                  uid, parent_uid, children, local_idx)
+            else:
+                entry = UndoEntry(tab.url(), history_data, idx,
+                                  tab.data.pinned)
+
+            if new_undo or not self._undo_stack:
+                self._undo_stack.append([entry])
+            else:
+                self._undo_stack[-1].append(entry)
+
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Remove a tab from the tab list and delete it properly.
 
@@ -350,53 +405,10 @@ class TabbedBrowser(QWidget):
             # way.
             urlutils.invalid_url_error(tab.url(), "saving tab")
         elif add_undo:
-            try:
-                history_data = tab.history.private_api.serialize()
-            except browsertab.WebTabError:
-                pass  # special URL
-            else:
-                if config.val.tabs.tree_tabs:
-                    node = tab.node
-                    uid = node.uid
-                    parent_uid = node.parent.uid
-                    children = [n.uid for n in node.children]
-                    local_idx = node.index
-                    entry = UndoEntry(tab.url(), history_data, idx,
-                                      tab.data.pinned,
-                                      uid, parent_uid, children, local_idx)
-                else:
-                    entry = UndoEntry(tab.url(), history_data, idx,
-                                      tab.data.pinned)
-
-                if new_undo or not self._undo_stack:
-                    self._undo_stack.append([entry])
-                else:
-                    self._undo_stack[-1].append(entry)
+            self._add_undo_entry(tab, idx, new_undo)
 
         if config.val.tabs.tree_tabs:
-            cur_node = tab.node
-
-            node_parent = cur_node.parent
-
-            if node_parent:
-                node_siblings = list(node_parent.children)
-                node_children = cur_node.children
-
-                if node_children:
-                    next_node = node_children[0]
-
-                    # prvni node se stane parentem pro ostatní děti
-                    for n in node_children[1:]:
-                        n.parent = next_node
-
-                    # swap nodes
-                    node_idx = node_siblings.index(cur_node)
-                    node_siblings[node_idx] = next_node
-
-                    node_parent.children = tuple(node_siblings)
-                    cur_node.children = ()
-
-                cur_node.parent = None
+            self._tree_tab_hierarchy_post_remove(tab.node)
 
         tab.private_api.shutdown()
         self.widget.removeTab(idx)
@@ -494,6 +506,44 @@ class TabbedBrowser(QWidget):
             log.webview.debug("Requested to close {!r} which does not "
                               "exist!".format(widget))
 
+    def _tree_tab_pre_open(self, tab, related):
+        """
+        Set tab's parent and position relatively to its siblings/root.
+
+        If related is True, the tab is placed as the last children of current tab.
+        Else, the tab is placed as a children of tree_root, and its placement
+        relatively to its siblings follows tabs.new_position.unrelated config
+        setting.
+
+        Args:
+            tab: The AbstractTab that is about to be opened
+            related: Whether the tab is related to the current one or not
+
+        """
+        cur_tab = self.widget.currentWidget()
+        tab.node.parent = self.widget.tree_root
+        if related:
+            if tab is not cur_tab:  # check we're not opening first tab
+                tab.node.parent = cur_tab.node
+        else:
+            pos = config.val.tabs.new_position.unrelated
+            if pos == 'first':
+                children = list(tab.node.parent.children)
+                children.insert(0, children.pop())
+                tab.node.parent.children = children
+            elif pos in ['next', 'prev']:
+                diff = 1 if pos == 'next' else 0
+                root_children = list(self.widget.tree_root.children)
+                root_children.remove(tab.node)
+
+                cur_topmost = cur_tab.node.path[1]
+                cur_top_idx = root_children.index(cur_topmost)
+                root_children.insert(cur_top_idx + diff, tab.node)
+                self.widget.tree_root.children = root_children
+
+        self.widget.update_tab_titles()
+        self.widget.update_tree_tab_positions()
+
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
     @pyqtSlot('QUrl', bool, bool)
@@ -551,29 +601,7 @@ class TabbedBrowser(QWidget):
         log.misc.debug('\n'.join(''.join((char, repr(node))) for char, node in self.widget.tree_root.render()))
 
         if config.val.tabs.tree_tabs:
-            cur_tab = self.widget.currentWidget()
-            tab.node.parent = self.widget.tree_root
-            if related:
-                if tab is not cur_tab:  # check we're not opening first tab
-                    tab.node.parent = cur_tab.node
-            else:
-                pos = config.val.tabs.new_position.unrelated
-                if pos == 'first':
-                    children = list(tab.node.parent.children)
-                    children.insert(0, children.pop())
-                    tab.node.parent.children = children
-                elif pos in ['next', 'prev']:
-                    diff = 1 if pos == 'next' else 0
-                    root_children = list(self.widget.tree_root.children)
-                    root_children.remove(tab.node)
-
-                    cur_topmost = cur_tab.node.path[1]
-                    cur_top_idx = root_children.index(cur_topmost)
-                    root_children.insert(cur_top_idx + diff, tab.node)
-                    self.widget.tree_root.children = root_children
-
-            self.widget.update_tab_titles()
-            self.widget.update_tree_tab_positions()
+            self._tree_tabs_post_open(tab, related)
 
         if url is not None:
             tab.load_url(url)
