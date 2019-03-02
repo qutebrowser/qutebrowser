@@ -51,8 +51,8 @@ class Percentage(textbase.TextBase):
         elif y is None:
             self.setText('[???]')
         else:
-            text = '[{:02}]' if self.raw else '[{:02}%]'
-            self.setText(text.format(y))
+            text = '[%02d]' if self.raw else '[%02d%%]'
+            self.setText(text % y)
 
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""
