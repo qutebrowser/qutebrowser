@@ -1771,7 +1771,12 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tree_tab_promote(self, count=1):
-        """Promote a tab so it becomes next sibling of its parent."""
+        """
+        Promote a tab so it becomes next sibling of its parent.
+
+        Args:
+            count: How many levels the tabs should be promoted to
+        """
         tab = self._current_widget()
 
         config_position = config.val.tabs.new_position.related
@@ -1825,8 +1830,9 @@ class CommandDispatcher:
 
         Args:
             direction:
-                'up': Swap position with previous sibling
-                'down': Swap position with next sibling
+                'up': Swap position with previous sibling(s)
+                'down': Swap position with next sibling(s)
+            count: How many tabs to switch position with
         """
         node = self._current_widget().node
 
@@ -1854,6 +1860,7 @@ class CommandDispatcher:
                 'up': First tab becomes last, and [i]th tab becomes [i-1]th
                 'down': Last tab becomes first, and [i]th tab becomes [i+1]th
 
+            count: How many tabs to rotate
         """
         node = self._current_widget().node
 
@@ -1880,6 +1887,7 @@ class CommandDispatcher:
             direction: Which sibling to jump to
                 'up': Jump to previous sibling
                 'down': Jump to next sibling
+            count: How many tabs to switch up or down
         """
         cur_node = self._current_widget().node
 
