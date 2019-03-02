@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Jay Kamat <jaygkamat@gmail.com>:
+# Copyright 2018-2019 Jay Kamat <jaygkamat@gmail.com>:
 #
 # This file is part of qutebrowser.
 #
@@ -17,18 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# False-positives
-
 """Tests for qutebrowser.misc.throttle."""
 
 from unittest import mock
 
 from qutebrowser.misc.throttle import throttle
-from qutebrowser.utils import usertypes
 
 
 def test_throttle_imm(qtbot):
-    func = mock.Mock()
+    func = mock.Mock(spec=[])
     throttled_func = throttle(100)(func)
     throttled_func("foo")
     throttled_func("foo")
@@ -36,7 +33,7 @@ def test_throttle_imm(qtbot):
 
 
 def test_throttle_imm_kw(qtbot):
-    func = mock.Mock()
+    func = mock.Mock(spec=[])
     throttled_func = throttle(100)(func)
     throttled_func(foo="bar")
     throttled_func(foo="bar")
@@ -44,7 +41,7 @@ def test_throttle_imm_kw(qtbot):
 
 
 def test_throttle_delay(qtbot):
-    func = mock.Mock()
+    func = mock.Mock(spec=[])
     throttled_func = throttle(100)(func)
     throttled_func("foo")
     throttled_func("foo")
@@ -53,15 +50,13 @@ def test_throttle_delay(qtbot):
     func.assert_called_once_with("foo")
     func.reset_mock()
 
-    t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=500):
-        t.start(200)
+    qtbot.wait(200)
 
     func.assert_called_once_with("bar")
 
 
 def test_throttle_delay_imm_delay(qtbot):
-    func = mock.Mock()
+    func = mock.Mock(spec=[])
     throttled_func = throttle(100)(func)
     throttled_func("foo")
     throttled_func("foo")
@@ -70,9 +65,7 @@ def test_throttle_delay_imm_delay(qtbot):
     func.assert_called_once_with("foo")
     func.reset_mock()
 
-    t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=500):
-        t.start(400)
+    qtbot.wait(400)
 
     func.assert_called_once_with("bar")
     func.reset_mock()
@@ -83,15 +76,13 @@ def test_throttle_delay_imm_delay(qtbot):
     func.assert_called_once_with("baz")
     func.reset_mock()
 
-    t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=500):
-        t.start(200)
+    qtbot.wait(200)
 
     func.assert_called_once_with("bop")
 
 
 def test_throttle_delay_delay(qtbot):
-    func = mock.Mock()
+    func = mock.Mock(spec=[])
     throttled_func = throttle(100)(func)
     throttled_func("foo")
     throttled_func("foo")
@@ -100,9 +91,7 @@ def test_throttle_delay_delay(qtbot):
     func.assert_called_once_with("foo")
     func.reset_mock()
 
-    t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=500):
-        t.start(150)
+    qtbot.wait(150)
 
     func.assert_called_once_with("bar")
     func.reset_mock()
@@ -110,16 +99,14 @@ def test_throttle_delay_delay(qtbot):
     throttled_func("baz")
     throttled_func("bop")
 
-    t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=500):
-        t.start(200)
+    qtbot.wait(200)
 
     func.assert_called_once_with("bop")
     func.reset_mock()
 
 
 def test_throttle_cancel(qtbot):
-    func = mock.Mock()
+    func = mock.Mock(spec=[])
     throttled_func = throttle(100)(func)
     throttled_func("foo")
     throttled_func("foo")
@@ -129,16 +116,14 @@ def test_throttle_cancel(qtbot):
     func.reset_mock()
     throttled_func.throttle_cancel()
 
-    t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=500):
-        t.start(150)
+    qtbot.wait(150)
 
     func.assert_not_called()
     func.reset_mock()
 
 
 def test_throttle_set(qtbot):
-    func = mock.Mock()
+    func = mock.Mock(spec=[])
     throttled_func = throttle(1000)(func)
     throttled_func.throttle_set(100)
     throttled_func("foo")
@@ -148,9 +133,7 @@ def test_throttle_set(qtbot):
     func.assert_called_once_with("foo")
     func.reset_mock()
 
-    t = usertypes.Timer()
-    with qtbot.waitSignal(t.timeout, timeout=500):
-        t.start(150)
+    qtbot.wait(150)
 
     func.assert_called_once_with("bar")
     func.reset_mock()
