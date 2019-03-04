@@ -85,7 +85,7 @@ class TestTabWidget:
             widget.addTab(fake_web_tab(), 'foobar' + str(i))
 
         # Set pinned title format longer than unpinned
-        config_stub.val.tabs.title.format_pinned = "_" * 20
+        config_stub.val.tabs.title.format_pinned = "_" * 10
         config_stub.val.tabs.title.format = "_" * 2
         config_stub.val.tabs.pinned.shrink = shrink_pinned
         if vertical:

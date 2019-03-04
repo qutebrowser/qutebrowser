@@ -355,6 +355,17 @@ class TabWidget(QTabWidget):
             if config.val.tabs.tabs_are_windows:
                 self.window().setWindowIcon(self.window().windowIcon())
 
+    def setTabIcon(self, idx: int, icon: QIcon):
+        """Add overrides for setting tab icon sometimes when it is empty."""
+        tab = self.widget(idx)
+        if (icon.isNull() and
+                config.cache['tabs.favicons.show'] != 'never' and
+                config.cache['tabs.pinned.shrink'] and
+                not self.tabBar().vertical and
+                tab is not None and tab.data.pinned):
+            icon = self.style().standardIcon(QStyle.SP_FileIcon)
+        super().setTabIcon(idx, icon)
+
 
 class TabBar(QTabBar):
 
