@@ -26,6 +26,8 @@ Changed
 
 - The desktop file `qutebrowser.desktop` is now renamed to
   `org.qutebrowser.qutebrowser.desktop`.
+- Pinned tabs now always show a favicon (even if the site doesn't provide one)
+  when shrinking.
 
 Fixed
 ~~~~~
