@@ -37,25 +37,25 @@ class ResourceType(enum.Enum):
     https://doc.qt.io/qt-5/qwebengineurlrequestinfo.html#ResourceType-enum
     """
 
-    MAIN_FRAME = 1
-    SUB_FRAME = 2
-    STYLESHEET = 3
-    SCRIPT = 4
-    IMAGE = 5
-    FONT_RESOURCE = 6
-    SUB_RESOURCE = 7
-    OBJECT = 8
-    MEDIA = 9
-    WORKER = 10
-    SHARED_WORKER = 11
-    PREFETCH = 12
-    FAVICON = 13
-    XHR = 14
-    PING = 15
-    SERVICE_WORKER = 16
-    CSP_REPORT = 17
-    PLUGIN_RESOURCE = 18
-    UNKNOWN = 19
+    main_frame = 1
+    sub_frame = 2
+    stylesheet = 3
+    script = 4
+    image = 5
+    font_resource = 6
+    sub_resource = 7
+    object = 8
+    media = 9
+    worker = 10
+    shared_worker = 11
+    prefetch = 12
+    favicon = 13
+    xhr = 14
+    ping = 15
+    service_worker = 16
+    csp_report = 17
+    plugin_resource = 18
+    unknown = 19
 
 
 @attr.s

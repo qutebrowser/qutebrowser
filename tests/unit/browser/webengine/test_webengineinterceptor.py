@@ -31,8 +31,6 @@ from qutebrowser.browser.webengine import interceptor
 
 class TestWebengineInterceptor:
 
-    """Test WebEngine Specific Interceptors."""
-
     def test_requestinfo_map_valid(self):
         """Test that the RESOURCE_TYPES map is not missing any values."""
         qb_keys = interceptor.RequestInterceptor.RESOURCE_TYPES.keys()

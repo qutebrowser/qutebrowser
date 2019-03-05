@@ -33,48 +33,48 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
     """Handle ad blocking and custom headers."""
 
-    # A simple mapping from QWebEngine Resource Types to qutebrowser extension
-    # ResourceTypes. If a ResourceType is added to Qt, this table should be
-    # updated too.
+    # This dict should be from QWebEngine Resource Types to qutebrowser
+    # extension ResourceTypes. If a ResourceType is added to Qt, this table
+    # should be updated too.
     RESOURCE_TYPES = {
         QWebEngineUrlRequestInfo.ResourceTypeMainFrame:
-            interceptors.ResourceType.MAIN_FRAME,
+            interceptors.ResourceType.main_frame,
         QWebEngineUrlRequestInfo.ResourceTypeSubFrame:
-            interceptors.ResourceType.SUB_FRAME,
+            interceptors.ResourceType.sub_frame,
         QWebEngineUrlRequestInfo.ResourceTypeStylesheet:
-            interceptors.ResourceType.STYLESHEET,
+            interceptors.ResourceType.stylesheet,
         QWebEngineUrlRequestInfo.ResourceTypeScript:
-            interceptors.ResourceType.SCRIPT,
+            interceptors.ResourceType.script,
         QWebEngineUrlRequestInfo.ResourceTypeImage:
-            interceptors.ResourceType.IMAGE,
+            interceptors.ResourceType.image,
         QWebEngineUrlRequestInfo.ResourceTypeFontResource:
-            interceptors.ResourceType.FONT_RESOURCE,
+            interceptors.ResourceType.font_resource,
         QWebEngineUrlRequestInfo.ResourceTypeSubResource:
-            interceptors.ResourceType.SUB_RESOURCE,
+            interceptors.ResourceType.sub_resource,
         QWebEngineUrlRequestInfo.ResourceTypeObject:
-            interceptors.ResourceType.OBJECT,
+            interceptors.ResourceType.object,
         QWebEngineUrlRequestInfo.ResourceTypeMedia:
-            interceptors.ResourceType.MEDIA,
+            interceptors.ResourceType.media,
         QWebEngineUrlRequestInfo.ResourceTypeWorker:
-            interceptors.ResourceType.WORKER,
+            interceptors.ResourceType.worker,
         QWebEngineUrlRequestInfo.ResourceTypeSharedWorker:
-            interceptors.ResourceType.SHARED_WORKER,
+            interceptors.ResourceType.shared_worker,
         QWebEngineUrlRequestInfo.ResourceTypePrefetch:
-            interceptors.ResourceType.PREFETCH,
+            interceptors.ResourceType.prefetch,
         QWebEngineUrlRequestInfo.ResourceTypeFavicon:
-            interceptors.ResourceType.FAVICON,
+            interceptors.ResourceType.favicon,
         QWebEngineUrlRequestInfo.ResourceTypeXhr:
-            interceptors.ResourceType.XHR,
+            interceptors.ResourceType.xhr,
         QWebEngineUrlRequestInfo.ResourceTypePing:
-            interceptors.ResourceType.PING,
+            interceptors.ResourceType.ping,
         QWebEngineUrlRequestInfo.ResourceTypeServiceWorker:
-            interceptors.ResourceType.SERVICE_WORKER,
+            interceptors.ResourceType.service_worker,
         QWebEngineUrlRequestInfo.ResourceTypeCspReport:
-            interceptors.ResourceType.CSP_REPORT,
+            interceptors.ResourceType.csp_report,
         QWebEngineUrlRequestInfo.ResourceTypePluginResource:
-            interceptors.ResourceType.PLUGIN_RESOURCE,
+            interceptors.ResourceType.plugin_resource,
         QWebEngineUrlRequestInfo.ResourceTypeUnknown:
-            interceptors.ResourceType.UNKNOWN,
+            interceptors.ResourceType.unknown,
     }
 
     def __init__(self, args, parent=None):
@@ -122,10 +122,10 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                 info.resourceType()]
         except KeyError:
             log.webview.warning(
-                "Resource type {} not found in RequestInterceptor map."
+                "Resource type {} not found in RequestInterceptor dict."
                 .format(debug.qenum_key(QWebEngineUrlRequestInfo,
                                         info.resourceType())))
-            resource_type = interceptors.ResourceType.UNKNOWN
+            resource_type = interceptors.ResourceType.unknown
 
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):
