@@ -89,7 +89,7 @@ You can run `:config-edit` inside qutebrowser to open the file in your editor,
 The file should be located in the "config" location listed on
 link:qute://version[], which is typically `~/.config/qutebrowser/config.py` on
 Linux, `~/.qutebrowser/config.py` on macOS, and
-`%APPDATA%/qutebrowser/config.py` on Windows.
+`%APPDATA%/qutebrowser/config/config.py` on Windows.
 
 Two global objects are pre-defined when running `config.py`: `c` and `config`.
 
