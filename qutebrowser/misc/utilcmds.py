@@ -311,7 +311,7 @@ def version(win_id, paste=False):
     """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    tabbed_browser.load_url(QUrl('qute://version'), newtab=True)
+    tabbed_browser.load_url(QUrl('qute://version/'), newtab=True)
 
     if paste:
         pastebin_version()
