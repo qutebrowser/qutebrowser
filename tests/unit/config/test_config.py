@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -473,7 +473,7 @@ class TestConfig:
         assert conf.get('colors.completion.category.fg') == QColor('white')
 
     def test_get_for_url(self, conf):
-        """Test conf.get() with an URL/pattern."""
+        """Test conf.get() with a URL/pattern."""
         pattern = urlmatch.UrlPattern('*://example.com/')
         name = 'content.javascript.enabled'
         conf.set_obj(name, False, pattern=pattern)
@@ -484,7 +484,7 @@ class TestConfig:
         (False, configutils.UNSET)
     ])
     def test_get_for_url_fallback(self, conf, fallback, expected):
-        """Test conf.get() with an URL and fallback."""
+        """Test conf.get() with a URL and fallback."""
         value = conf.get('content.javascript.enabled',
                          url=QUrl('https://example.com/'),
                          fallback=fallback)

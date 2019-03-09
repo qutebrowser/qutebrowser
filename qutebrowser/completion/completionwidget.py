@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,7 +29,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 from qutebrowser.config import config
 from qutebrowser.completion import completiondelegate
 from qutebrowser.utils import utils, usertypes, debug, log, objreg
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.api import cmdutils
 
 
 class CompletionView(QTreeView):
@@ -251,8 +251,8 @@ class CompletionView(QTreeView):
                     status.command_history_prev()
                     return
                 else:
-                    raise cmdexc.CommandError("Can't combine --history with "
-                                              "{}!".format(which))
+                    raise cmdutils.CommandError("Can't combine --history with "
+                                                "{}!".format(which))
 
         if not self._active:
             return
@@ -394,7 +394,7 @@ class CompletionView(QTreeView):
         """Delete the current completion item."""
         index = self.currentIndex()
         if not index.isValid():
-            raise cmdexc.CommandError("No item selected!")
+            raise cmdutils.CommandError("No item selected!")
         self.model().delete_cur_item(index)
 
     @cmdutils.register(instance='completion',
@@ -411,6 +411,6 @@ class CompletionView(QTreeView):
         if not text:
             index = self.currentIndex()
             if not index.isValid():
-                raise cmdexc.CommandError("No item selected!")
+                raise cmdutils.CommandError("No item selected!")
             text = self.model().data(index)
         utils.set_clipboard(text, selection=sel)

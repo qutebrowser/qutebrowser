@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -84,7 +84,7 @@ class ExternalEditor(QObject):
             message.error("Failed to delete tempfile... ({})".format(e))
 
     @pyqtSlot(int, QProcess.ExitStatus)
-    def on_proc_closed(self, _exitcode, exitstatus):
+    def _on_proc_closed(self, _exitcode, exitstatus):
         """Write the editor text into the form field and clean up tempfile.
 
         Callback for QProcess when the editor was closed.
@@ -100,7 +100,7 @@ class ExternalEditor(QObject):
         self._cleanup()
 
     @pyqtSlot(QProcess.ProcessError)
-    def on_proc_error(self, _err):
+    def _on_proc_error(self, _err):
         self._cleanup()
 
     def edit(self, text, caret_position=None):
@@ -176,8 +176,8 @@ class ExternalEditor(QObject):
             column: the column number to pass to the editor
         """
         self._proc = guiprocess.GUIProcess(what='editor', parent=self)
-        self._proc.finished.connect(self.on_proc_closed)
-        self._proc.error.connect(self.on_proc_error)
+        self._proc.finished.connect(self._on_proc_closed)
+        self._proc.error.connect(self._on_proc_error)
         editor = config.val.editor.command
         executable = editor[0]
 

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -21,6 +21,7 @@
 
 import pytest
 
+from qutebrowser.misc import objects
 from qutebrowser.misc.keyhintwidget import KeyHintView
 
 
@@ -120,7 +121,7 @@ def test_suggestions_special(keyhint, config_stub):
 
 def test_suggestions_with_count(keyhint, config_stub, monkeypatch, stubs):
     """Test that a count prefix filters out commands that take no count."""
-    monkeypatch.setattr('qutebrowser.commands.cmdutils.cmd_dict', {
+    monkeypatch.setattr(objects, 'commands', {
         'foo': stubs.FakeCommand(name='foo', takes_count=lambda: False),
         'bar': stubs.FakeCommand(name='bar', takes_count=lambda: True),
     })

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -117,14 +117,6 @@ class WebView(QWebView):
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
         self.page().shutdown()
-
-    def openurl(self, url):
-        """Open a URL in the browser.
-
-        Args:
-            url: The URL to load as QUrl
-        """
-        self.load(url)
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.

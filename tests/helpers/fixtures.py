@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -44,6 +44,7 @@ from PyQt5.QtNetwork import QNetworkCookieJar
 import helpers.stubs as stubsmod
 from qutebrowser.config import (config, configdata, configtypes, configexc,
                                 configfiles, configcache)
+from qutebrowser.api import config as configapi
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
 from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies
@@ -170,6 +171,7 @@ def testdata_scheme(qapp):
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
         from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)
         _qute_scheme_handler.install(QWebEngineProfile.defaultProfile())
@@ -190,8 +192,8 @@ def testdata_scheme(qapp):
 
 @pytest.fixture
 def web_tab_setup(qtbot, tab_registry, session_manager_stub,
-                  greasemonkey_manager, fake_args, host_blocker_stub,
-                  config_stub, testdata_scheme):
+                  greasemonkey_manager, fake_args, config_stub,
+                  testdata_scheme):
     """Shared setup for webkit_tab/webengine_tab."""
     # Make sure error logging via JS fails tests
     config_stub.val.content.javascript.log = {
@@ -306,6 +308,7 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
 
     container = config.ConfigContainer(conf)
     monkeypatch.setattr(config, 'val', container)
+    monkeypatch.setattr(configapi, 'val', container)
 
     cache = configcache.ConfigCache()
     monkeypatch.setattr(config, 'cache', cache)
@@ -326,15 +329,6 @@ def key_config_stub(config_stub, monkeypatch):
     keyconf = config.KeyConfig(config_stub)
     monkeypatch.setattr(config, 'key_instance', keyconf)
     return keyconf
-
-
-@pytest.fixture
-def host_blocker_stub(stubs):
-    """Fixture which provides a fake host blocker object."""
-    stub = stubs.HostBlockerStub()
-    objreg.register('host-blocker', stub)
-    yield stub
-    objreg.delete('host-blocker')
 
 
 @pytest.fixture

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,7 +19,7 @@
 
 # pylint: disable=unused-variable
 
-"""Tests for qutebrowser.commands.cmdutils."""
+"""Tests for qutebrowser.api.cmdutils."""
 
 import sys
 import logging
@@ -29,14 +29,15 @@ import enum
 
 import pytest
 
-from qutebrowser.commands import cmdutils, cmdexc, argparser, command
+from qutebrowser.misc import objects
+from qutebrowser.commands import cmdexc, argparser, command
+from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes
 
 
 @pytest.fixture(autouse=True)
 def clear_globals(monkeypatch):
-    """Clear the cmdutils globals between each test."""
-    monkeypatch.setattr(cmdutils, 'cmd_dict', {})
+    monkeypatch.setattr(objects, 'commands', {})
 
 
 def _get_cmd(*args, **kwargs):
@@ -48,8 +49,7 @@ def _get_cmd(*args, **kwargs):
     @cmdutils.register(*args, **kwargs)
     def fun():
         """Blah."""
-        pass
-    return cmdutils.cmd_dict['fun']
+    return objects.commands['fun']
 
 
 class TestCheckOverflow:
@@ -60,7 +60,7 @@ class TestCheckOverflow:
     def test_bad(self):
         int32_max = 2 ** 31 - 1
 
-        with pytest.raises(cmdexc.CommandError, match="Numeric argument is "
+        with pytest.raises(cmdutils.CommandError, match="Numeric argument is "
                            "too large for internal int representation."):
             cmdutils.check_overflow(int32_max + 1, 'int')
 
@@ -72,7 +72,7 @@ class TestCheckExclusive:
         cmdutils.check_exclusive(flags, [])
 
     def test_bad(self):
-        with pytest.raises(cmdexc.CommandError,
+        with pytest.raises(cmdutils.CommandError,
                            match="Only one of -x/-y/-z can be given!"):
             cmdutils.check_exclusive([True, True], 'xyz')
 
@@ -83,73 +83,65 @@ class TestRegister:
         @cmdutils.register()
         def fun():
             """Blah."""
-            pass
 
-        cmd = cmdutils.cmd_dict['fun']
+        cmd = objects.commands['fun']
         assert cmd.handler is fun
         assert cmd.name == 'fun'
-        assert len(cmdutils.cmd_dict) == 1
+        assert len(objects.commands) == 1
 
     def test_underlines(self):
         """Make sure the function name is normalized correctly (_ -> -)."""
         @cmdutils.register()
         def eggs_bacon():
             """Blah."""
-            pass
 
-        assert cmdutils.cmd_dict['eggs-bacon'].name == 'eggs-bacon'
-        assert 'eggs_bacon' not in cmdutils.cmd_dict
+        assert objects.commands['eggs-bacon'].name == 'eggs-bacon'
+        assert 'eggs_bacon' not in objects.commands
 
     def test_lowercasing(self):
         """Make sure the function name is normalized correctly (uppercase)."""
         @cmdutils.register()
         def Test():  # noqa: N801,N806 pylint: disable=invalid-name
             """Blah."""
-            pass
 
-        assert cmdutils.cmd_dict['test'].name == 'test'
-        assert 'Test' not in cmdutils.cmd_dict
+        assert objects.commands['test'].name == 'test'
+        assert 'Test' not in objects.commands
 
     def test_explicit_name(self):
         """Test register with explicit name."""
         @cmdutils.register(name='foobar')
         def fun():
             """Blah."""
-            pass
 
-        assert cmdutils.cmd_dict['foobar'].name == 'foobar'
-        assert 'fun' not in cmdutils.cmd_dict
-        assert len(cmdutils.cmd_dict) == 1
+        assert objects.commands['foobar'].name == 'foobar'
+        assert 'fun' not in objects.commands
+        assert len(objects.commands) == 1
 
     def test_multiple_registrations(self):
         """Make sure registering the same name twice raises ValueError."""
         @cmdutils.register(name='foobar')
         def fun():
             """Blah."""
-            pass
 
         with pytest.raises(ValueError):
             @cmdutils.register(name='foobar')
             def fun2():
                 """Blah."""
-                pass
 
     def test_instance(self):
         """Make sure the instance gets passed to Command."""
         @cmdutils.register(instance='foobar')
         def fun(self):
             """Blah."""
-            pass
-        assert cmdutils.cmd_dict['fun']._instance == 'foobar'
+        assert objects.commands['fun']._instance == 'foobar'
 
     def test_star_args(self):
         """Check handling of *args."""
         @cmdutils.register()
         def fun(*args):
             """Blah."""
-            pass
         with pytest.raises(argparser.ArgumentParserError):
-            cmdutils.cmd_dict['fun'].parser.parse_args([])
+            objects.commands['fun'].parser.parse_args([])
 
     def test_star_args_optional(self):
         """Check handling of *args withstar_args_optional."""
@@ -157,10 +149,19 @@ class TestRegister:
         def fun(*args):
             """Blah."""
             assert not args
-        cmd = cmdutils.cmd_dict['fun']
+        cmd = objects.commands['fun']
         cmd.namespace = cmd.parser.parse_args([])
         args, kwargs = cmd._get_call_args(win_id=0)
         fun(*args, **kwargs)
+
+    def test_star_args_optional_annotated(self):
+        @cmdutils.register(star_args_optional=True)
+        def fun(*args: str):
+            """Blah."""
+
+        cmd = objects.commands['fun']
+        cmd.namespace = cmd.parser.parse_args([])
+        cmd._get_call_args(win_id=0)
 
     @pytest.mark.parametrize('inp, expected', [
         (['--arg'], True), (['-a'], True), ([], False)])
@@ -169,7 +170,7 @@ class TestRegister:
         def fun(arg=False):
             """Blah."""
             assert arg == expected
-        cmd = cmdutils.cmd_dict['fun']
+        cmd = objects.commands['fun']
         cmd.namespace = cmd.parser.parse_args(inp)
         assert cmd.namespace.arg == expected
 
@@ -179,7 +180,7 @@ class TestRegister:
         def fun(arg=False):
             """Blah."""
             assert arg
-        cmd = cmdutils.cmd_dict['fun']
+        cmd = objects.commands['fun']
 
         with pytest.raises(argparser.ArgumentParserError):
             cmd.parser.parse_args(['-a'])
@@ -189,38 +190,71 @@ class TestRegister:
         args, kwargs = cmd._get_call_args(win_id=0)
         fun(*args, **kwargs)
 
+    def test_self_without_instance(self):
+        with pytest.raises(TypeError, match="fun is a class method, but "
+                           "instance was not given!"):
+            @cmdutils.register()
+            def fun(self):
+                """Blah."""
+
+    def test_instance_without_self(self):
+        with pytest.raises(TypeError, match="fun is not a class method, but "
+                           "instance was given!"):
+            @cmdutils.register(instance='inst')
+            def fun():
+                """Blah."""
+
+    def test_var_kw(self):
+        with pytest.raises(TypeError, match="fun: functions with varkw "
+                           "arguments are not supported!"):
+            @cmdutils.register()
+            def fun(**kwargs):
+                """Blah."""
+
     def test_partial_arg(self):
         """Test with only some arguments decorated with @cmdutils.argument."""
         @cmdutils.register()
         @cmdutils.argument('arg1', flag='b')
         def fun(arg1=False, arg2=False):
             """Blah."""
-            pass
 
     def test_win_id(self):
         @cmdutils.register()
-        @cmdutils.argument('win_id', win_id=True)
+        @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
         def fun(win_id):
             """Blah."""
-            pass
-        assert cmdutils.cmd_dict['fun']._get_call_args(42) == ([42], {})
+        assert objects.commands['fun']._get_call_args(42) == ([42], {})
 
     def test_count(self):
         @cmdutils.register()
-        @cmdutils.argument('count', count=True)
+        @cmdutils.argument('count', value=cmdutils.Value.count)
         def fun(count=0):
             """Blah."""
-            pass
-        assert cmdutils.cmd_dict['fun']._get_call_args(42) == ([0], {})
+        assert objects.commands['fun']._get_call_args(42) == ([0], {})
+
+    def test_fill_self(self):
+        with pytest.raises(TypeError, match="fun: Can't fill 'self' with "
+                           "value!"):
+            @cmdutils.register(instance='foobar')
+            @cmdutils.argument('self', value=cmdutils.Value.count)
+            def fun(self):
+                """Blah."""
+
+    def test_fill_invalid(self):
+        with pytest.raises(TypeError, match="fun: Invalid value='foo' for "
+                           "argument 'arg'!"):
+            @cmdutils.register()
+            @cmdutils.argument('arg', value='foo')
+            def fun(arg):
+                """Blah."""
 
     def test_count_without_default(self):
         with pytest.raises(TypeError, match="fun: handler has count parameter "
                            "without default!"):
             @cmdutils.register()
-            @cmdutils.argument('count', count=True)
+            @cmdutils.argument('count', value=cmdutils.Value.count)
             def fun(count):
                 """Blah."""
-                pass
 
     @pytest.mark.parametrize('hide', [True, False])
     def test_pos_args(self, hide):
@@ -228,9 +262,8 @@ class TestRegister:
         @cmdutils.argument('arg', hide=hide)
         def fun(arg):
             """Blah."""
-            pass
 
-        pos_args = cmdutils.cmd_dict['fun'].pos_args
+        pos_args = objects.commands['fun'].pos_args
         if hide:
             assert pos_args == []
         else:
@@ -265,7 +298,7 @@ class TestRegister:
             """Blah."""
             assert arg == expected
 
-        cmd = cmdutils.cmd_dict['fun']
+        cmd = objects.commands['fun']
         cmd.namespace = cmd.parser.parse_args([inp])
 
         if expected is cmdexc.ArgumentTypeError:
@@ -283,9 +316,8 @@ class TestRegister:
         @cmdutils.argument('arg', choices=['foo', 'bar'])
         def fun(arg):
             """Blah."""
-            pass
 
-        cmd = cmdutils.cmd_dict['fun']
+        cmd = objects.commands['fun']
         cmd.namespace = cmd.parser.parse_args(['fish'])
 
         with pytest.raises(cmdexc.ArgumentTypeError):
@@ -297,9 +329,8 @@ class TestRegister:
         @cmdutils.argument('arg', choices=['foo', 'bar'])
         def fun(*, arg='foo'):
             """Blah."""
-            pass
 
-        cmd = cmdutils.cmd_dict['fun']
+        cmd = objects.commands['fun']
         cmd.namespace = cmd.parser.parse_args(['--arg=fish'])
 
         with pytest.raises(cmdexc.ArgumentTypeError):
@@ -312,9 +343,8 @@ class TestRegister:
         @cmdutils.argument('opt')
         def fun(foo, bar, opt=False):
             """Blah."""
-            pass
 
-        cmd = cmdutils.cmd_dict['fun']
+        cmd = objects.commands['fun']
         assert cmd.get_pos_arg_info(0) == command.ArgInfo(choices=('a', 'b'))
         assert cmd.get_pos_arg_info(1) == command.ArgInfo(choices=('x', 'y'))
         with pytest.raises(IndexError):
@@ -324,7 +354,6 @@ class TestRegister:
         # https://github.com/qutebrowser/qutebrowser/issues/1872
         def fun(*, target):
             """Blah."""
-            pass
 
         with pytest.raises(TypeError, match="fun: handler has keyword only "
                            "argument 'target' without default!"):
@@ -334,7 +363,6 @@ class TestRegister:
         # https://github.com/qutebrowser/qutebrowser/issues/1872
         def fun(*, target: int):
             """Blah."""
-            pass
 
         with pytest.raises(TypeError, match="fun: handler has keyword only "
                            "argument 'target' without default!"):
@@ -350,19 +378,28 @@ class TestArgument:
             @cmdutils.argument('foo')
             def fun(bar):
                 """Blah."""
-                pass
 
     def test_storage(self):
         @cmdutils.argument('foo', flag='x')
         @cmdutils.argument('bar', flag='y')
         def fun(foo, bar):
             """Blah."""
-            pass
         expected = {
             'foo': command.ArgInfo(flag='x'),
             'bar': command.ArgInfo(flag='y')
         }
         assert fun.qute_args == expected
+
+    def test_arginfo_boolean(self):
+        @cmdutils.argument('special1', value=cmdutils.Value.count)
+        @cmdutils.argument('special2', value=cmdutils.Value.win_id)
+        @cmdutils.argument('normal')
+        def fun(special1, special2, normal):
+            """Blah."""
+
+        assert fun.qute_args['special1'].value
+        assert fun.qute_args['special2'].value
+        assert not fun.qute_args['normal'].value
 
     def test_wrong_order(self):
         """When @cmdutils.argument is used above (after) @register, fail."""
@@ -372,15 +409,6 @@ class TestArgument:
             @cmdutils.register()
             def fun(bar):
                 """Blah."""
-                pass
-
-    def test_count_and_win_id_same_arg(self):
-        with pytest.raises(TypeError,
-                           match="Argument marked as both count/win_id!"):
-            @cmdutils.argument('arg', count=True, win_id=True)
-            def fun(arg=0):
-                """Blah."""
-                pass
 
     def test_no_docstring(self, caplog):
         with caplog.at_level(logging.WARNING):
@@ -388,6 +416,7 @@ class TestArgument:
             def fun():
                 # no docstring
                 pass
+
         assert len(caplog.records) == 1
         assert caplog.messages[0].endswith('test_cmdutils.py has no docstring')
 
@@ -441,10 +470,9 @@ class TestRun:
                            backend=usertypes.Backend.QtWebEngine)
         def fun(self):
             """Blah."""
-            pass
 
         monkeypatch.setattr(command.objects, 'backend',
                             usertypes.Backend.QtWebKit)
-        cmd = cmdutils.cmd_dict['fun']
+        cmd = objects.commands['fun']
         with pytest.raises(cmdexc.PrerequisitesError, match=r'.* backend\.'):
             cmd.run(win_id=0)

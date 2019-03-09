@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,7 +30,7 @@ from qutebrowser.utils import usertypes, qtutils
 @pytest.fixture
 def caret(web_tab, qtbot, mode_manager):
     with qtbot.wait_signal(web_tab.load_finished):
-        web_tab.openurl(QUrl('qute://testdata/data/caret.html'))
+        web_tab.load_url(QUrl('qute://testdata/data/caret.html'))
 
     mode_manager.enter(usertypes.KeyMode.caret)
 

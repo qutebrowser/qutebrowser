@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,8 +26,9 @@ import typing
 
 import attr
 
+from qutebrowser.api import cmdutils
 from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import log, message, docutils, objreg, usertypes
+from qutebrowser.utils import log, message, docutils, objreg, usertypes, utils
 from qutebrowser.utils import debug as debug_utils
 from qutebrowser.misc import objects
 
@@ -37,17 +38,12 @@ class ArgInfo:
 
     """Information about an argument."""
 
-    win_id = attr.ib(False)
-    count = attr.ib(False)
+    value = attr.ib(None)
     hide = attr.ib(False)
     metavar = attr.ib(None)
     flag = attr.ib(None)
     completion = attr.ib(None)
     choices = attr.ib(None)
-
-    def __attrs_post_init__(self):
-        if self.win_id and self.count:
-            raise TypeError("Argument marked as both count/win_id!")
 
 
 class Command:
@@ -74,6 +70,10 @@ class Command:
         _instance: The object to bind 'self' to.
         _scope: The scope to get _instance for in the object registry.
     """
+
+    # CommandValue values which need a count
+    COUNT_COMMAND_VALUES = [usertypes.CommandValue.count,
+                            usertypes.CommandValue.count_tab]
 
     def __init__(self, *, handler, name, instance=None, maxsplit=None,
                  modes=None, not_modes=None, debug=False, deprecated=False,
@@ -116,7 +116,6 @@ class Command:
         self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
-        self._check_func()
         self.opt_args = collections.OrderedDict()
         self.namespace = None
         self._count = None
@@ -130,6 +129,7 @@ class Command:
         self._qute_args = getattr(self.handler, 'qute_args', {})
         self.handler.qute_args = None
 
+        self._check_func()
         self._inspect_func()
 
     def _check_prerequisites(self, win_id):
@@ -154,16 +154,21 @@ class Command:
     def _check_func(self):
         """Make sure the function parameters don't violate any rules."""
         signature = inspect.signature(self.handler)
-        if 'self' in signature.parameters and self._instance is None:
-            raise TypeError("{} is a class method, but instance was not "
-                            "given!".format(self.name[0]))
+        if 'self' in signature.parameters:
+            if self._instance is None:
+                raise TypeError("{} is a class method, but instance was not "
+                                "given!".format(self.name))
+            arg_info = self.get_arg_info(signature.parameters['self'])
+            if arg_info.value is not None:
+                raise TypeError("{}: Can't fill 'self' with value!"
+                                .format(self.name))
         elif 'self' not in signature.parameters and self._instance is not None:
             raise TypeError("{} is not a class method, but instance was "
-                            "given!".format(self.name[0]))
+                            "given!".format(self.name))
         elif any(param.kind == inspect.Parameter.VAR_KEYWORD
                  for param in signature.parameters.values()):
             raise TypeError("{}: functions with varkw arguments are not "
-                            "supported!".format(self.name[0]))
+                            "supported!".format(self.name))
 
     def get_arg_info(self, param):
         """Get an ArgInfo tuple for the given inspect.Parameter."""
@@ -186,13 +191,18 @@ class Command:
             True if the parameter is special, False otherwise.
         """
         arg_info = self.get_arg_info(param)
-        if arg_info.count:
+        if arg_info.value is None:
+            return False
+        elif arg_info.value == usertypes.CommandValue.count:
             if param.default is inspect.Parameter.empty:
                 raise TypeError("{}: handler has count parameter "
                                 "without default!".format(self.name))
             return True
-        elif arg_info.win_id:
+        elif isinstance(arg_info.value, usertypes.CommandValue):
             return True
+        else:
+            raise TypeError("{}: Invalid value={!r} for argument '{}'!"
+                            .format(self.name, arg_info.value, param.name))
         return False
 
     def _inspect_func(self):
@@ -292,6 +302,8 @@ class Command:
         name = argparser.arg_name(param.name)
         arg_info = self.get_arg_info(param)
 
+        assert not arg_info.value, name
+
         if arg_info.flag is not None:
             shortname = arg_info.flag
         else:
@@ -321,75 +333,66 @@ class Command:
             param: The inspect.Parameter to look at.
         """
         arginfo = self.get_arg_info(param)
-        if param.annotation is not inspect.Parameter.empty:
+        if arginfo.value:
+            # Filled values are passed 1:1
+            return None
+        elif param.kind in [inspect.Parameter.VAR_POSITIONAL,
+                            inspect.Parameter.VAR_KEYWORD]:
+            # For *args/**kwargs we only support strings
+            assert param.annotation in [inspect.Parameter.empty, str], param
+            return None
+        elif param.annotation is not inspect.Parameter.empty:
             return param.annotation
         elif param.default not in [None, inspect.Parameter.empty]:
             return type(param.default)
-        elif arginfo.count or arginfo.win_id or param.kind in [
-                inspect.Parameter.VAR_POSITIONAL,
-                inspect.Parameter.VAR_KEYWORD]:
-            return None
         else:
             return str
 
-    def _get_self_arg(self, win_id, param, args):
-        """Get the self argument for a function call.
-
-        Arguments:
-            win_id: The window id this command should be executed in.
-            param: The count parameter.
-            args: The positional argument list. Gets modified directly.
-        """
-        assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
-        if self._scope == 'global':
+    def _get_objreg(self, *, win_id, name, scope):
+        """Get an object from the objreg."""
+        if scope == 'global':
             tab_id = None
             win_id = None
-        elif self._scope == 'tab':
+        elif scope == 'tab':
             tab_id = 'current'
-        elif self._scope == 'window':
+        elif scope == 'window':
             tab_id = None
         else:
-            raise ValueError("Invalid scope {}!".format(self._scope))
-        obj = objreg.get(self._instance, scope=self._scope, window=win_id,
-                         tab=tab_id)
-        args.append(obj)
+            raise ValueError("Invalid scope {}!".format(scope))
+        return objreg.get(name, scope=scope, window=win_id, tab=tab_id)
 
-    def _get_count_arg(self, param, args, kwargs):
-        """Add the count argument to a function call.
+    def _add_special_arg(self, *, value, param, args, kwargs):
+        """Add a special argument value to a function call.
 
         Arguments:
-            param: The count parameter.
+            value: The value to add.
+            param: The parameter being filled.
             args: The positional argument list. Gets modified directly.
             kwargs: The keyword argument dict. Gets modified directly.
         """
         if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            if self._count is not None:
-                args.append(self._count)
-            else:
-                args.append(param.default)
+            args.append(value)
         elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-            if self._count is not None:
-                kwargs[param.name] = self._count
+            kwargs[param.name] = value
         else:
             raise TypeError("{}: invalid parameter type {} for argument "
                             "{!r}!".format(self.name, param.kind, param.name))
 
-    def _get_win_id_arg(self, win_id, param, args, kwargs):
-        """Add the win_id argument to a function call.
+    def _add_count_tab(self, *, win_id, param, args, kwargs):
+        """Add the count_tab widget argument."""
+        tabbed_browser = self._get_objreg(
+            win_id=win_id, name='tabbed-browser', scope='window')
 
-        Arguments:
-            win_id: The window ID to add.
-            param: The count parameter.
-            args: The positional argument list. Gets modified directly.
-            kwargs: The keyword argument dict. Gets modified directly.
-        """
-        if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            args.append(win_id)
-        elif param.kind == inspect.Parameter.KEYWORD_ONLY:
-            kwargs[param.name] = win_id
+        if self._count is None:
+            tab = tabbed_browser.widget.currentWidget()
+        elif 1 <= self._count <= tabbed_browser.widget.count():
+            cmdutils.check_overflow(self._count + 1, 'int')
+            tab = tabbed_browser.widget.widget(self._count - 1)
         else:
-            raise TypeError("{}: invalid parameter type {} for argument "
-                            "{!r}!".format(self.name, param.kind, param.name))
+            tab = None
+
+        self._add_special_arg(value=tab, param=param, args=args,
+                              kwargs=kwargs)
 
     def _get_param_value(self, param):
         """Get the converted value for an inspect.Parameter."""
@@ -428,6 +431,55 @@ class Command:
 
         return value
 
+    def _handle_special_call_arg(self, *, pos, param, win_id, args, kwargs):
+        """Check whether the argument is special, and if so, fill it in.
+
+        Args:
+            pos: The position of the argument.
+            param: The argparse.Parameter.
+            win_id: The window ID the command is run in.
+            args/kwargs: The args/kwargs to fill.
+
+        Return:
+            True if it was a special arg, False otherwise.
+        """
+        arg_info = self.get_arg_info(param)
+        if pos == 0 and self._instance is not None:
+            assert param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+            self_value = self._get_objreg(win_id=win_id, name=self._instance,
+                                          scope=self._scope)
+            self._add_special_arg(value=self_value, param=param,
+                                  args=args, kwargs=kwargs)
+            return True
+        elif arg_info.value == usertypes.CommandValue.count:
+            if self._count is None:
+                assert param.default is not inspect.Parameter.empty
+                value = param.default
+            else:
+                value = self._count
+            self._add_special_arg(value=value, param=param,
+                                  args=args, kwargs=kwargs)
+            return True
+        elif arg_info.value == usertypes.CommandValue.win_id:
+            self._add_special_arg(value=win_id, param=param,
+                                  args=args, kwargs=kwargs)
+            return True
+        elif arg_info.value == usertypes.CommandValue.cur_tab:
+            tab = self._get_objreg(win_id=win_id, name='tab', scope='tab')
+            self._add_special_arg(value=tab, param=param,
+                                  args=args, kwargs=kwargs)
+            return True
+        elif arg_info.value == usertypes.CommandValue.count_tab:
+            self._add_count_tab(win_id=win_id, param=param, args=args,
+                                kwargs=kwargs)
+            return True
+        elif arg_info.value is None:
+            pass
+        else:
+            raise utils.Unreachable(arg_info)
+
+        return False
+
     def _get_call_args(self, win_id):
         """Get arguments for a function call.
 
@@ -442,20 +494,11 @@ class Command:
         signature = inspect.signature(self.handler)
 
         for i, param in enumerate(signature.parameters.values()):
-            arg_info = self.get_arg_info(param)
-            if i == 0 and self._instance is not None:
-                # Special case for 'self'.
-                self._get_self_arg(win_id, param, args)
+            if self._handle_special_call_arg(pos=i, param=param,
+                                             win_id=win_id, args=args,
+                                             kwargs=kwargs):
                 continue
-            elif arg_info.count:
-                # Special case for count parameter.
-                self._get_count_arg(param, args, kwargs)
-                continue
-            # elif arg_info.win_id:
-            elif arg_info.win_id:
-                # Special case for win_id parameter.
-                self._get_win_id_arg(win_id, param, args, kwargs)
-                continue
+
             value = self._get_param_value(param)
             if param.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
                 args.append(value)
@@ -520,4 +563,14 @@ class Command:
 
     def takes_count(self):
         """Return true iff this command can take a count argument."""
-        return any(arg.count for arg in self._qute_args)
+        return any(info.value in self.COUNT_COMMAND_VALUES
+                   for info in self._qute_args.values())
+
+    def register(self):
+        """Register this command in objects.commands."""
+        log.commands.vdebug(
+            "Registering command {} (from {}:{})".format(
+                self.name, self.handler.__module__, self.handler.__qualname__))
+        if self.name in objects.commands:
+            raise ValueError("{} is already registered!".format(self.name))
+        objects.commands[self.name] = self

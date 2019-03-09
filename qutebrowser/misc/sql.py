@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -72,8 +72,6 @@ class SqlEnvironmentError(SqlError):
     disk or I/O errors), where qutebrowser isn't to blame.
     """
 
-    pass
-
 
 class SqlBugError(SqlError):
 
@@ -81,8 +79,6 @@ class SqlBugError(SqlError):
 
     This is raised for errors resulting from a qutebrowser bug.
     """
-
-    pass
 
 
 def raise_sqlite_error(msg, error):

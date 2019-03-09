@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -82,6 +82,14 @@ def hist(init_sql, config_stub):
     ("ample itle",
      [('example.com', 'title'), ('example.com', 'nope')],
      [('example.com', 'title')]),
+
+    # https://github.com/qutebrowser/qutebrowser/issues/4411
+    ("mlfreq",
+     [('https://qutebrowser.org/FAQ.html', 'Frequently Asked Questions')],
+     []),
+    ("ml freq",
+     [('https://qutebrowser.org/FAQ.html', 'Frequently Asked Questions')],
+     [('https://qutebrowser.org/FAQ.html', 'Frequently Asked Questions')]),
 ])
 def test_set_pattern(pattern, before, after, model_validator, hist):
     """Validate the filtering and sorting results of set_pattern."""

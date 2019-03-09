@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,6 +23,7 @@ import os
 import os.path
 import itertools
 import urllib
+import typing
 
 from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
 from PyQt5.QtWidgets import QApplication
@@ -30,14 +31,19 @@ import yaml
 
 from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
                                utils)
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
 
 
-default = object()  # Sentinel value
+class Sentinel:
+
+    """Sentinel value for default argument."""
+
+
+default = Sentinel()
 
 
 def init(parent=None):
@@ -109,7 +115,7 @@ class SessionManager(QObject):
 
     def __init__(self, base_path, parent=None):
         super().__init__(parent)
-        self._current = None
+        self._current = None  # type: typing.Optional[str]
         self._base_path = base_path
         self._last_window_session = None
         self.did_load = False
@@ -234,7 +240,7 @@ class SessionManager(QObject):
             if sip.isdeleted(main_window):
                 continue
 
-            if tabbed_browser.private and not with_private:
+            if tabbed_browser.is_private and not with_private:
                 continue
 
             win_data = {}
@@ -243,7 +249,7 @@ class SessionManager(QObject):
                 win_data['active'] = True
             win_data['geometry'] = bytes(main_window.saveGeometry())
             win_data['tabs'] = []
-            if tabbed_browser.private:
+            if tabbed_browser.is_private:
                 win_data['private'] = True
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.widget.currentIndex()
@@ -395,7 +401,7 @@ class SessionManager(QObject):
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
-            new_tab.history.load_items(entries)
+            new_tab.history.private_api.load_items(entries)
         except ValueError as e:
             raise SessionError(e)
 
@@ -474,16 +480,17 @@ class SessionManager(QObject):
             delete: Delete the saved session once it has loaded.
         """
         if name.startswith('_') and not force:
-            raise cmdexc.CommandError("{} is an internal session, use --force "
-                                      "to load anyways.".format(name))
+            raise cmdutils.CommandError("{} is an internal session, use "
+                                        "--force to load anyways."
+                                        .format(name))
         old_windows = list(objreg.window_registry.values())
         try:
             self.load(name, temp=temp)
         except SessionNotFoundError:
-            raise cmdexc.CommandError("Session {} not found!".format(name))
+            raise cmdutils.CommandError("Session {} not found!".format(name))
         except SessionError as e:
-            raise cmdexc.CommandError("Error while loading session: {}"
-                                      .format(e))
+            raise cmdutils.CommandError("Error while loading session: {}"
+                                        .format(e))
         else:
             if clear:
                 for win in old_windows:
@@ -493,20 +500,23 @@ class SessionManager(QObject):
                     self.delete(name)
                 except SessionError as e:
                     log.sessions.exception("Error while deleting session!")
-                    raise cmdexc.CommandError(
-                        "Error while deleting session: {}"
-                        .format(e))
+                    raise cmdutils.CommandError("Error while deleting "
+                                                "session: {}".format(e))
                 else:
                     log.sessions.debug(
                         "Loaded & deleted session {}.".format(name))
 
     @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=miscmodels.session)
-    @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('with_private', flag='p')
-    def session_save(self, name: str = default, current=False, quiet=False,
-                     force=False, only_active_window=False, with_private=False,
-                     win_id=None):
+    def session_save(self, name: typing.Union[str, Sentinel] = default,
+                     current: bool = False,
+                     quiet: bool = False,
+                     force: bool = False,
+                     only_active_window: bool = False,
+                     with_private: bool = False,
+                     win_id: int = None) -> None:
         """Save a session.
 
         Args:
@@ -518,12 +528,15 @@ class SessionManager(QObject):
             only_active_window: Saves only tabs of the currently active window.
             with_private: Include private windows.
         """
-        if name is not default and name.startswith('_') and not force:
-            raise cmdexc.CommandError("{} is an internal session, use --force "
-                                      "to save anyways.".format(name))
+        if (not isinstance(name, Sentinel) and
+                name.startswith('_') and
+                not force):
+            raise cmdutils.CommandError("{} is an internal session, use "
+                                        "--force to save anyways."
+                                        .format(name))
         if current:
             if self._current is None:
-                raise cmdexc.CommandError("No session loaded currently!")
+                raise cmdutils.CommandError("No session loaded currently!")
             name = self._current
             assert not name.startswith('_')
         try:
@@ -533,8 +546,8 @@ class SessionManager(QObject):
             else:
                 name = self.save(name, with_private=with_private)
         except SessionError as e:
-            raise cmdexc.CommandError("Error while saving session: {}"
-                                      .format(e))
+            raise cmdutils.CommandError("Error while saving session: {}"
+                                        .format(e))
         else:
             if quiet:
                 log.sessions.debug("Saved session {}.".format(name))
@@ -552,15 +565,16 @@ class SessionManager(QObject):
                    underline).
         """
         if name.startswith('_') and not force:
-            raise cmdexc.CommandError("{} is an internal session, use --force "
-                                      "to delete anyways.".format(name))
+            raise cmdutils.CommandError("{} is an internal session, use "
+                                        "--force to delete anyways."
+                                        .format(name))
         try:
             self.delete(name)
         except SessionNotFoundError:
-            raise cmdexc.CommandError("Session {} not found!".format(name))
+            raise cmdutils.CommandError("Session {} not found!".format(name))
         except SessionError as e:
             log.sessions.exception("Error while deleting session!")
-            raise cmdexc.CommandError("Error while deleting session: {}"
-                                      .format(e))
+            raise cmdutils.CommandError("Error while deleting session: {}"
+                                        .format(e))
         else:
             log.sessions.debug("Deleted session {}.".format(name))

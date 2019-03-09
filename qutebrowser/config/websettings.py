@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,6 +19,10 @@
 
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
+import typing
+import argparse
+
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QFont
 
 from qutebrowser.config import config, configutils
@@ -32,7 +36,8 @@ class AttributeInfo:
 
     """Info about a settings attribute."""
 
-    def __init__(self, *attributes, converter=None):
+    def __init__(self, *attributes: typing.Any,
+                 converter: typing.Callable = None) -> None:
         self.attributes = attributes
         if converter is None:
             self.converter = lambda val: val
@@ -44,15 +49,15 @@ class AbstractSettings:
 
     """Abstract base class for settings set via QWeb(Engine)Settings."""
 
-    _ATTRIBUTES = None
-    _FONT_SIZES = None
-    _FONT_FAMILIES = None
-    _FONT_TO_QFONT = None
+    _ATTRIBUTES = {}  # type: typing.Dict[str, AttributeInfo]
+    _FONT_SIZES = {}  # type: typing.Dict[str, typing.Any]
+    _FONT_FAMILIES = {}  # type: typing.Dict[str, typing.Any]
+    _FONT_TO_QFONT = {}  # type: typing.Dict[typing.Any, QFont.StyleHint]
 
-    def __init__(self, settings):
+    def __init__(self, settings: typing.Any) -> None:
         self._settings = settings
 
-    def set_attribute(self, name, value):
+    def set_attribute(self, name: str, value: typing.Any) -> bool:
         """Set the given QWebSettings/QWebEngineSettings attribute.
 
         If the value is configutils.UNSET, the value is reset instead.
@@ -73,7 +78,7 @@ class AbstractSettings:
 
         return old_value != new_value
 
-    def test_attribute(self, name):
+    def test_attribute(self, name: str) -> bool:
         """Get the value for the given attribute.
 
         If the setting resolves to a list of attributes, only the first
@@ -82,7 +87,7 @@ class AbstractSettings:
         info = self._ATTRIBUTES[name]
         return self._settings.testAttribute(info.attributes[0])
 
-    def set_font_size(self, name, value):
+    def set_font_size(self, name: str, value: int) -> bool:
         """Set the given QWebSettings/QWebEngineSettings font size.
 
         Return:
@@ -94,7 +99,7 @@ class AbstractSettings:
         self._settings.setFontSize(family, value)
         return old_value != value
 
-    def set_font_family(self, name, value):
+    def set_font_family(self, name: str, value: typing.Optional[str]) -> bool:
         """Set the given QWebSettings/QWebEngineSettings font family.
 
         With None (the default), QFont is used to get the default font for the
@@ -115,7 +120,7 @@ class AbstractSettings:
 
         return value != old_value
 
-    def set_default_text_encoding(self, encoding):
+    def set_default_text_encoding(self, encoding: str) -> bool:
         """Set the default text encoding to use.
 
         Return:
@@ -126,7 +131,7 @@ class AbstractSettings:
         self._settings.setDefaultTextEncoding(encoding)
         return old_value != encoding
 
-    def _update_setting(self, setting, value):
+    def _update_setting(self, setting: str, value: typing.Any) -> bool:
         """Update the given setting/value.
 
         Unknown settings are ignored.
@@ -144,12 +149,12 @@ class AbstractSettings:
             return self.set_default_text_encoding(value)
         return False
 
-    def update_setting(self, setting):
+    def update_setting(self, setting: str) -> None:
         """Update the given setting."""
         value = config.instance.get(setting)
         self._update_setting(setting, value)
 
-    def update_for_url(self, url):
+    def update_for_url(self, url: QUrl) -> typing.Set[str]:
         """Update settings customized for the given tab.
 
         Return:
@@ -171,14 +176,14 @@ class AbstractSettings:
 
         return changed_settings
 
-    def init_settings(self):
+    def init_settings(self) -> None:
         """Set all supported settings correctly."""
         for setting in (list(self._ATTRIBUTES) + list(self._FONT_SIZES) +
                         list(self._FONT_FAMILIES)):
             self.update_setting(setting)
 
 
-def init(args):
+def init(args: argparse.Namespace) -> None:
     """Initialize all QWeb(Engine)Settings."""
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
@@ -193,7 +198,7 @@ def init(args):
                                 pattern=urlmatch.UrlPattern(pattern))
 
 
-def shutdown():
+def shutdown() -> None:
     """Shut down QWeb(Engine)Settings."""
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings

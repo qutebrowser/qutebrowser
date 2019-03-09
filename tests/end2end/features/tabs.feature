@@ -1289,6 +1289,14 @@ Feature: Tab management
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
 
+    Scenario: :tab-pin open url with tabs.pinned.frozen = false
+        When I set tabs.pinned.frozen to false
+        And I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt
+        Then the following tabs should be open:
+            - data/numbers/2.txt (active) (pinned)
+
     Scenario: :home on a pinned tab
         When I open data/numbers/1.txt
         And I run :tab-pin
@@ -1296,6 +1304,16 @@ Feature: Tab management
         Then the message "Tab is pinned!" should be shown
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
+
+    Scenario: :home on a pinned tab with tabs.pinned.frozen = false
+        When I set url.start_pages to ["http://localhost:(port)/data/numbers/2.txt"]
+        And I set tabs.pinned.frozen to false
+        And I open data/numbers/1.txt
+        And I run :tab-pin
+        And I run :home
+        Then data/numbers/2.txt should be loaded
+        And the following tabs should be open:
+            - data/numbers/2.txt (active) (pinned)
 
     Scenario: Cloning a pinned tab
         When I open data/numbers/1.txt
@@ -1339,6 +1357,7 @@ Feature: Tab management
         And I run :fake-key -g new
         Then the javascript message "contents: existingnew" should be logged
 
+    @flaky
     Scenario: Focused prompt after opening link in bg
         When I open data/hints/link_input.html
         When I run :set-cmd-text -s :message-info
@@ -1347,6 +1366,7 @@ Feature: Tab management
         And I run :command-accept
         Then the message "hello-world" should be shown
 
+    @flaky
     Scenario: Focused prompt after opening link in fg
         When I open data/hints/link_input.html
         When I run :set-cmd-text -s :message-info

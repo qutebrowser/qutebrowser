@@ -1,5 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2016-2018 Jan Verbeek (blyxxyz) <ring@openmailbox.org>
 #
 # This file is part of qutebrowser.
@@ -19,7 +20,8 @@
 
 """Keyboard macro system."""
 
-from qutebrowser.commands import cmdexc, cmdutils, runners
+from qutebrowser.commands import runners
+from qutebrowser.api import cmdutils
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, objreg, usertypes
 
@@ -44,7 +46,7 @@ class MacroRecorder:
         self._last_register = None
 
     @cmdutils.register(instance='macro-recorder', name='record-macro')
-    @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     def record_macro_command(self, win_id, register=None):
         """Start or stop recording a macro.
 
@@ -69,8 +71,8 @@ class MacroRecorder:
         self._recording_macro = register
 
     @cmdutils.register(instance='macro-recorder', name='run-macro')
-    @cmdutils.argument('win_id', win_id=True)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def run_macro_command(self, win_id, count=1, register=None):
         """Run a recorded macro.
 
@@ -89,12 +91,12 @@ class MacroRecorder:
         """Run a recorded macro."""
         if register == '@':
             if self._last_register is None:
-                raise cmdexc.CommandError("No previous macro")
+                raise cmdutils.CommandError("No previous macro")
             register = self._last_register
         self._last_register = register
 
         if register not in self._macros:
-            raise cmdexc.CommandError(
+            raise cmdutils.CommandError(
                 "No macro recorded in '{}'!".format(register))
 
         commandrunner = runners.CommandRunner(win_id)

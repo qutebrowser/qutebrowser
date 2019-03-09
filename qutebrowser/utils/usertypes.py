@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -210,21 +210,44 @@ PromptMode = enum.Enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert',
                                       'download'])
 
 
-# Where to open a clicked link.
-ClickTarget = enum.Enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window',
-                                        'hover'])
+class ClickTarget(enum.Enum):
+
+    """How to open a clicked link."""
+
+    normal = 0  #: Open the link in the current tab
+    tab = 1  #: Open the link in a new foreground tab
+    tab_bg = 2  #: Open the link in a new background tab
+    window = 3  #: Open the link in a new window
+    hover = 4  #: Only hover over the link
 
 
-# Key input modes
-KeyMode = enum.Enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
-                                'insert', 'passthrough', 'caret', 'set_mark',
-                                'jump_mark', 'record_macro', 'run_macro'])
+class KeyMode(enum.Enum):
+
+    """Key input modes."""
+
+    normal = 1  #: Normal mode (no mode was entered)
+    hint = 2  #: Hint mode (showing labels for links)
+    command = 3  #: Command mode (after pressing the colon key)
+    yesno = 4  #: Yes/No prompts
+    prompt = 5  #: Text prompts
+    insert = 6  #: Insert mode (passing through most keys)
+    passthrough = 7  #: Passthrough mode (passing through all keys)
+    caret = 8  #: Caret mode (moving cursor with keys)
+    set_mark = 9
+    jump_mark = 10
+    record_macro = 11
+    run_macro = 12
 
 
-# Exit statuses for errors. Needs to be an int for sys.exit.
-Exit = enum.IntEnum('Exit', ['ok', 'reserved', 'exception', 'err_ipc',
-                             'err_init', 'err_config', 'err_key_config'],
-                    start=0)
+class Exit(enum.IntEnum):
+
+    """Exit statuses for errors. Needs to be an int for sys.exit."""
+
+    ok = 0
+    reserved = 1
+    exception = 2
+    err_ipc = 3
+    err_init = 4
 
 
 # Load status of a tab
@@ -236,8 +259,14 @@ LoadStatus = enum.Enum('LoadStatus', ['none', 'success', 'success_https',
 Backend = enum.Enum('Backend', ['QtWebKit', 'QtWebEngine'])
 
 
-# JS world for QtWebEngine
-JsWorld = enum.Enum('JsWorld', ['main', 'application', 'user', 'jseval'])
+class JsWorld(enum.Enum):
+
+    """World/context to run JavaScript code in."""
+
+    main = 1  #: Same world as the web page's JavaScript.
+    application = 2  #: Application world, used by qutebrowser internally.
+    user = 3  #: User world, currently not used.
+    jseval = 4  #: World used for the jseval-command.
 
 
 # Log level of a JS message. This needs to match up with the keys allowed for
@@ -246,6 +275,19 @@ JsLogLevel = enum.Enum('JsLogLevel', ['unknown', 'info', 'warning', 'error'])
 
 
 MessageLevel = enum.Enum('MessageLevel', ['error', 'warning', 'info'])
+
+
+IgnoreCase = enum.Enum('IgnoreCase', ['smart', 'never', 'always'])
+
+
+class CommandValue(enum.Enum):
+
+    """Special values which are injected when running a command handler."""
+
+    count = 1
+    win_id = 2
+    cur_tab = 3
+    count_tab = 4
 
 
 class Question(QObject):

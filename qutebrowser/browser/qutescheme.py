@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -37,7 +37,7 @@ try:
     import secrets
 except ImportError:
     # New in Python 3.6
-    secrets = None
+    secrets = None  # type: ignore
 
 from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
@@ -61,35 +61,25 @@ class Error(Exception):
 
     """Exception for generic errors on a qute:// page."""
 
-    pass
-
 
 class NotFoundError(Error):
 
     """Raised when the given URL was not found."""
-
-    pass
 
 
 class SchemeOSError(Error):
 
     """Raised when there was an OSError inside a handler."""
 
-    pass
-
 
 class UrlInvalidError(Error):
 
     """Raised when an invalid URL was opened."""
 
-    pass
-
 
 class RequestDeniedError(Error):
 
     """Raised when the request is forbidden."""
-
-    pass
 
 
 class Redirect(Exception):
@@ -350,19 +340,11 @@ def qute_gpl(_url):
 
 def _asciidoc_fallback_path(html_path):
     """Fall back to plaintext asciidoc if the HTML is unavailable."""
-    asciidoc_path = html_path.replace('.html', '.asciidoc')
-    asciidoc_paths = [asciidoc_path]
-    if asciidoc_path.startswith('html/doc/'):
-        asciidoc_paths += [asciidoc_path.replace('html/doc/', '../doc/help/'),
-                           asciidoc_path.replace('html/doc/', '../doc/')]
-
-    for path in asciidoc_paths:
-        try:
-            return utils.read_file(path)
-        except OSError:
-            pass
-
-    return None
+    path = html_path.replace('.html', '.asciidoc')
+    try:
+        return utils.read_file(path)
+    except OSError:
+        return None
 
 
 @add_handler('help')

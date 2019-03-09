@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -145,7 +145,7 @@ class StatusBar(QWidget):
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
     _severity = None
-    _color_flags = []
+    _color_flags = None
 
     STYLESHEET = _generate_stylesheet()
 
@@ -367,7 +367,7 @@ class StatusBar(QWidget):
         self.percentage.on_tab_changed(tab)
         self.backforward.on_tab_changed(tab)
         self.maybe_hide()
-        assert tab.private == self._color_flags.private
+        assert tab.is_private == self._color_flags.private
 
     @pyqtSlot(bool)
     def on_caret_selection_toggled(self, selection):

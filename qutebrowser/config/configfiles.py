@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,6 +27,7 @@ import textwrap
 import traceback
 import configparser
 import contextlib
+import typing
 
 import yaml
 from PyQt5.QtCore import pyqtSignal, QObject, QSettings
@@ -36,16 +37,21 @@ from qutebrowser.config import configexc, config, configdata, configutils
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
 
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import, useless-suppression
+    from qutebrowser.misc import savemanager
+
 
 # The StateConfig instance
-state = None
+state = typing.cast('StateConfig', None)
 
 
 class StateConfig(configparser.ConfigParser):
 
     """The "state" file saving various application state."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._filename = os.path.join(standarddir.data(), 'state')
         self.read(self._filename, encoding='utf-8')
@@ -59,7 +65,8 @@ class StateConfig(configparser.ConfigParser):
         for key in deleted_keys:
             self['general'].pop(key, None)
 
-    def init_save_manager(self, save_manager):
+    def init_save_manager(self,
+                          save_manager: 'savemanager.SaveManager') -> None:
         """Make sure the config gets saved properly.
 
         We do this outside of __init__ because the config gets created before
@@ -67,7 +74,7 @@ class StateConfig(configparser.ConfigParser):
         """
         save_manager.add_saveable('state-config', self._save)
 
-    def _save(self):
+    def _save(self) -> None:
         """Save the state file to the configured location."""
         with open(self._filename, 'w', encoding='utf-8') as f:
             self.write(f)
@@ -84,17 +91,20 @@ class YamlConfig(QObject):
     VERSION = 2
     changed = pyqtSignal()
 
-    def __init__(self, parent=None):
+    _SettingsType = typing.Dict[str, typing.Dict[str, typing.Any]]
+
+    def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._filename = os.path.join(standarddir.config(auto=True),
                                       'autoconfig.yml')
-        self._dirty = None
+        self._dirty = False
 
-        self._values = {}
+        self._values = {}  # type: typing.Dict[str, configutils.Values]
         for name, opt in configdata.DATA.items():
             self._values[name] = configutils.Values(opt)
 
-    def init_save_manager(self, save_manager):
+    def init_save_manager(self,
+                          save_manager: 'savemanager.SaveManager') -> None:
         """Make sure the config gets saved properly.
 
         We do this outside of __init__ because the config gets created before
@@ -102,21 +112,21 @@ class YamlConfig(QObject):
         """
         save_manager.add_saveable('yaml-config', self._save, self.changed)
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[configutils.Values]:
         """Iterate over configutils.Values items."""
         yield from self._values.values()
 
-    def _mark_changed(self):
+    def _mark_changed(self) -> None:
         """Mark the YAML config as changed."""
         self._dirty = True
         self.changed.emit()
 
-    def _save(self):
+    def _save(self) -> None:
         """Save the settings to the YAML file if they've changed."""
         if not self._dirty:
             return
 
-        settings = {}
+        settings = {}  # type: YamlConfig._SettingsType
         for name, values in sorted(self._values.items()):
             if not values:
                 continue
@@ -135,7 +145,10 @@ class YamlConfig(QObject):
             """.lstrip('\n')))
             utils.yaml_dump(data, f)
 
-    def _pop_object(self, yaml_data, key, typ):
+    def _pop_object(self,
+                    yaml_data: typing.Any,
+                    key: str,
+                    typ: type) -> typing.Any:
         """Get a global object from the given data."""
         if not isinstance(yaml_data, dict):
             desc = configexc.ConfigErrorDesc("While loading data",
@@ -158,7 +171,7 @@ class YamlConfig(QObject):
 
         return data
 
-    def load(self):
+    def load(self) -> None:
         """Load configuration from the configured YAML file."""
         try:
             with open(self._filename, 'r', encoding='utf-8') as f:
@@ -189,18 +202,19 @@ class YamlConfig(QObject):
         self._validate(settings)
         self._build_values(settings)
 
-    def _load_settings_object(self, yaml_data):
+    def _load_settings_object(self, yaml_data: typing.Any) -> '_SettingsType':
         """Load the settings from the settings: key."""
         return self._pop_object(yaml_data, 'settings', dict)
 
-    def _load_legacy_settings_object(self, yaml_data):
+    def _load_legacy_settings_object(self,
+                                     yaml_data: typing.Any) -> '_SettingsType':
         data = self._pop_object(yaml_data, 'global', dict)
         settings = {}
         for name, value in data.items():
             settings[name] = {'global': value}
         return settings
 
-    def _build_values(self, settings):
+    def _build_values(self, settings: typing.Mapping) -> None:
         """Build up self._values from the values in the given dict."""
         errors = []
         for name, yaml_values in settings.items():
@@ -233,7 +247,8 @@ class YamlConfig(QObject):
         if errors:
             raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
-    def _migrate_bool(self, settings, name, true_value, false_value):
+    def _migrate_bool(self, settings: _SettingsType, name: str,
+                      true_value: str, false_value: str) -> None:
         """Migrate a boolean in the settings."""
         if name in settings:
             for scope, val in settings[name].items():
@@ -241,7 +256,7 @@ class YamlConfig(QObject):
                     settings[name][scope] = true_value if val else false_value
                     self._mark_changed()
 
-    def _handle_migrations(self, settings):
+    def _handle_migrations(self, settings: _SettingsType) -> '_SettingsType':
         """Migrate older configs to the newest format."""
         # Simple renamed/deleted options
         for name in list(settings):
@@ -293,13 +308,13 @@ class YamlConfig(QObject):
 
         self._migrate_bool(settings, 'tabs.favicons.show', 'always', 'never')
         self._migrate_bool(settings, 'scrolling.bar',
-                           'when-searching', 'never')
+                           'always', 'when-searching')
         self._migrate_bool(settings, 'qt.force_software_rendering',
                            'software-opengl', 'none')
 
         return settings
 
-    def _validate(self, settings):
+    def _validate(self, settings: _SettingsType) -> None:
         """Make sure all settings exist."""
         unknown = []
         for name in settings:
@@ -312,18 +327,19 @@ class YamlConfig(QObject):
                       for e in sorted(unknown)]
             raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
-    def set_obj(self, name, value, *, pattern=None):
+    def set_obj(self, name: str, value: typing.Any, *,
+                pattern: urlmatch.UrlPattern = None) -> None:
         """Set the given setting to the given value."""
         self._values[name].add(value, pattern)
         self._mark_changed()
 
-    def unset(self, name, *, pattern=None):
+    def unset(self, name: str, *, pattern: urlmatch.UrlPattern = None) -> None:
         """Remove the given option name if it's configured."""
         changed = self._values[name].remove(pattern)
         if changed:
             self._mark_changed()
 
-    def clear(self):
+    def clear(self) -> None:
         """Clear all values from the YAML file."""
         for values in self._values.values():
             values.clear()
@@ -346,15 +362,15 @@ class ConfigAPI:
         datadir: The qutebrowser data directory, as pathlib.Path.
     """
 
-    def __init__(self, conf, keyconfig):
+    def __init__(self, conf: config.Config, keyconfig: config.KeyConfig):
         self._config = conf
         self._keyconfig = keyconfig
-        self.errors = []
+        self.errors = []  # type: typing.List[configexc.ConfigErrorDesc]
         self.configdir = pathlib.Path(standarddir.config())
         self.datadir = pathlib.Path(standarddir.data())
 
     @contextlib.contextmanager
-    def _handle_error(self, action, name):
+    def _handle_error(self, action: str, name: str) -> typing.Iterator[None]:
         """Catch config-related exceptions and save them in self.errors."""
         try:
             yield
@@ -372,40 +388,40 @@ class ConfigAPI:
             text = "While {} '{}' and parsing key".format(action, name)
             self.errors.append(configexc.ConfigErrorDesc(text, e))
 
-    def finalize(self):
+    def finalize(self) -> None:
         """Do work which needs to be done after reading config.py."""
         self._config.update_mutables()
 
-    def load_autoconfig(self):
+    def load_autoconfig(self) -> None:
         """Load the autoconfig.yml file which is used for :set/:bind/etc."""
         with self._handle_error('reading', 'autoconfig.yml'):
             read_autoconfig()
 
-    def get(self, name, pattern=None):
+    def get(self, name: str, pattern: str = None) -> typing.Any:
         """Get a setting value from the config, optionally with a pattern."""
         with self._handle_error('getting', name):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             return self._config.get_mutable_obj(name, pattern=urlpattern)
 
-    def set(self, name, value, pattern=None):
+    def set(self, name: str, value: typing.Any, pattern: str = None) -> None:
         """Set a setting value in the config, optionally with a pattern."""
         with self._handle_error('setting', name):
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             self._config.set_obj(name, value, pattern=urlpattern)
 
-    def bind(self, key, command, mode='normal'):
+    def bind(self, key: str, command: str, mode: str = 'normal') -> None:
         """Bind a key to a command, with an optional key mode."""
         with self._handle_error('binding', key):
             seq = keyutils.KeySequence.parse(key)
             self._keyconfig.bind(seq, command, mode=mode)
 
-    def unbind(self, key, mode='normal'):
+    def unbind(self, key: str, mode: str = 'normal') -> None:
         """Unbind a key from a command, with an optional key mode."""
         with self._handle_error('unbinding', key):
             seq = keyutils.KeySequence.parse(key)
             self._keyconfig.unbind(seq, mode=mode)
 
-    def source(self, filename):
+    def source(self, filename: str) -> None:
         """Read the given config file from disk."""
         if not os.path.isabs(filename):
             filename = str(self.configdir / filename)
@@ -416,7 +432,7 @@ class ConfigAPI:
             self.errors += e.errors
 
     @contextlib.contextmanager
-    def pattern(self, pattern):
+    def pattern(self, pattern: str) -> typing.Iterator[config.ConfigContainer]:
         """Get a ConfigContainer for the given pattern."""
         # We need to propagate the exception so we don't need to return
         # something.
@@ -430,17 +446,21 @@ class ConfigPyWriter:
 
     """Writer for config.py files from given settings."""
 
-    def __init__(self, options, bindings, *, commented):
+    def __init__(
+            self,
+            options: typing.List,
+            bindings: typing.MutableMapping[str, typing.Mapping[str, str]], *,
+            commented: bool) -> None:
         self._options = options
         self._bindings = bindings
         self._commented = commented
 
-    def write(self, filename):
+    def write(self, filename: str) -> None:
         """Write the config to the given file."""
         with open(filename, 'w', encoding='utf-8') as f:
             f.write('\n'.join(self._gen_lines()))
 
-    def _line(self, line):
+    def _line(self, line: str) -> str:
         """Get an (optionally commented) line."""
         if self._commented:
             if line.startswith('#'):
@@ -450,7 +470,7 @@ class ConfigPyWriter:
         else:
             return line
 
-    def _gen_lines(self):
+    def _gen_lines(self) -> typing.Iterator[str]:
         """Generate a config.py with the given settings/bindings.
 
         Yields individual lines.
@@ -459,7 +479,7 @@ class ConfigPyWriter:
         yield from self._gen_options()
         yield from self._gen_bindings()
 
-    def _gen_header(self):
+    def _gen_header(self) -> typing.Iterator[str]:
         """Generate the initial header of the config."""
         yield self._line("# Autogenerated config.py")
         yield self._line("# Documentation:")
@@ -481,7 +501,7 @@ class ConfigPyWriter:
             yield self._line("# config.load_autoconfig()")
             yield ''
 
-    def _gen_options(self):
+    def _gen_options(self) -> typing.Iterator[str]:
         """Generate the options part of the config."""
         for pattern, opt, value in self._options:
             if opt.name in ['bindings.commands', 'bindings.default']:
@@ -509,7 +529,7 @@ class ConfigPyWriter:
                     opt.name, value, str(pattern)))
             yield ''
 
-    def _gen_bindings(self):
+    def _gen_bindings(self) -> typing.Iterator[str]:
         """Generate the bindings part of the config."""
         normal_bindings = self._bindings.pop('normal', {})
         if normal_bindings:
@@ -527,7 +547,7 @@ class ConfigPyWriter:
             yield ''
 
 
-def read_config_py(filename, raising=False):
+def read_config_py(filename: str, raising: bool = False) -> None:
     """Read a config.py file.
 
     Arguments;
@@ -543,8 +563,8 @@ def read_config_py(filename, raising=False):
     basename = os.path.basename(filename)
 
     module = types.ModuleType('config')
-    module.config = api
-    module.c = container
+    module.config = api  # type: ignore
+    module.c = container  # type: ignore
     module.__file__ = filename
 
     try:
@@ -589,7 +609,7 @@ def read_config_py(filename, raising=False):
         raise configexc.ConfigFileErrors('config.py', api.errors)
 
 
-def read_autoconfig():
+def read_autoconfig() -> None:
     """Read the autoconfig.yml file."""
     try:
         config.instance.read_yaml()
@@ -601,7 +621,7 @@ def read_autoconfig():
 
 
 @contextlib.contextmanager
-def saved_sys_properties():
+def saved_sys_properties() -> typing.Iterator[None]:
     """Save various sys properties such as sys.path and sys.modules."""
     old_path = sys.path.copy()
     old_modules = sys.modules.copy()
@@ -614,7 +634,7 @@ def saved_sys_properties():
             del sys.modules[module]
 
 
-def init():
+def init() -> None:
     """Initialize config storage not related to the main config."""
     global state
     state = StateConfig()

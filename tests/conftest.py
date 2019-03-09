@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -206,7 +206,6 @@ def pytest_configure(config):
     webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', '')
     config.webengine = bool(webengine_arg or webengine_env)
     # Fail early if QtWebEngine is not available
-    # pylint: disable=unused-variable
     if config.webengine:
         import PyQt5.QtWebEngineWidgets
 
@@ -283,7 +282,7 @@ def apply_fake_os(monkeypatch, request):
 def check_yaml_c_exts():
     """Make sure PyYAML C extensions are available on Travis."""
     if 'TRAVIS' in os.environ:
-        from yaml import CLoader  # pylint: disable=unused-variable
+        from yaml import CLoader
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)

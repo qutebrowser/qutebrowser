@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -35,14 +35,10 @@ class ParseProxyError(Exception):
 
     """Error while parsing PAC result string."""
 
-    pass
-
 
 class EvalProxyError(Exception):
 
     """Error while evaluating PAC script."""
-
-    pass
 
 
 def _js_slot(*args):
@@ -184,6 +180,8 @@ class PACResolver:
         """
         self._engine = QJSEngine()
 
+        self._engine.installExtensions(QJSEngine.ConsoleExtension)
+
         self._ctx = _PACContext(self._engine)
         self._engine.globalObject().setProperty(
             "PAC", self._engine.newQObject(self._ctx))
@@ -210,6 +208,8 @@ class PACResolver:
         Return:
             A list of QNetworkProxy objects in order of preference.
         """
+        qtutils.ensure_valid(query.url())
+
         if from_file:
             string_flags = QUrl.PrettyDecoded
         else:

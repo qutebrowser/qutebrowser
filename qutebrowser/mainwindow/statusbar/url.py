@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -112,19 +112,19 @@ class UrlText(textbase.TextBase):
             self._urltype = UrlType.normal
         config.set_register_stylesheet(self, update=False)
 
-    @pyqtSlot(str)
-    def on_load_status_changed(self, status_str):
+    @pyqtSlot(usertypes.LoadStatus)
+    def on_load_status_changed(self, status):
         """Slot for load_status_changed. Sets URL color accordingly.
 
         Args:
-            status_str: The LoadStatus as string.
+            status: The usertypes.LoadStatus.
         """
-        status = usertypes.LoadStatus[status_str]
+        assert isinstance(status, usertypes.LoadStatus), status
         if status in [usertypes.LoadStatus.success,
                       usertypes.LoadStatus.success_https,
                       usertypes.LoadStatus.error,
                       usertypes.LoadStatus.warn]:
-            self._normal_url_type = UrlType[status_str]
+            self._normal_url_type = UrlType[status.name]
         else:
             self._normal_url_type = UrlType.normal
         self._update_url()
@@ -172,5 +172,5 @@ class UrlText(textbase.TextBase):
             self._normal_url = urlutils.safe_display_string(tab.url())
         else:
             self._normal_url = ''
-        self.on_load_status_changed(tab.load_status().name)
+        self.on_load_status_changed(tab.load_status())
         self._update_url()

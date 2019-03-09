@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -230,6 +230,11 @@ def is_ignored_chromium_message(line):
         # content.mojom.RendererAudioOutputStreamFactory
         'InterfaceRequest was dropped, the document is no longer active: '
         'content.mojom.RendererAudioOutputStreamFactory',
+        # [1920:2168:0225/112442.664:ERROR:in_progress_cache_impl.cc(124)]
+        # Could not write download entries to file: C:\Users\appveyor\AppData\
+        # Local\Temp\1\qutebrowser-basedir-1l3jmxq4\data\webengine\
+        # in_progress_download_metadata_store
+        'Could not write download entries to file: *',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -356,7 +361,10 @@ class QuteProc(testprocess.Process):
             self._focus_ready = True
         else:
             raise ValueError("Invalid value {!r} for 'what'.".format(what))
-        if self._load_ready and self._focus_ready:
+
+        is_qt_5_12 = qtutils.version_check('5.12', compiled=False)
+        if ((self._load_ready and self._focus_ready) or
+                (self._load_ready and is_qt_5_12)):
             self._load_ready = False
             self._focus_ready = False
             self.ready.emit()
@@ -841,8 +849,6 @@ class QuteProc(testprocess.Process):
 class YamlLoader(yaml.SafeLoader):
 
     """Custom YAML loader used in compare_session."""
-
-    pass
 
 
 # Translate ... to ellipsis in YAML.
