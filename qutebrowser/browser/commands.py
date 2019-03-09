@@ -1772,8 +1772,7 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tree_tab_promote(self, count=1):
-        """
-        Promote a tab so it becomes next sibling of its parent.
+        """Promote a tab so it becomes next sibling of its parent.
 
         Args:
             count: How many levels the tabs should be promoted to
@@ -1917,31 +1916,66 @@ class CommandDispatcher:
         """
         tabwidget = self._tabbed_browser.widget
         tab = self._current_widget()
-        cur_idx = self._tabbed_browser.widgets().index(tab)
         if not tab.node.children:
             return
         collapsed = tab.node.collapsed
 
         if collapsed:
-            order = notree.TraverseOrder.PRE
-            descendents = list(tab.node.traverse(order))[1:]
-            for descendent in descendents:
-                cur_tab = descendent.value
-                cur_parent = descendent.parent
-                name = cur_tab.title()
-                icon = cur_tab.icon()
-                tabwidget.insertTab(cur_idx + 1, cur_tab, icon, name)
-                cur_tab.node.parent = cur_parent  # insertTab resets node
-                cur_idx += 1
+            self._tree_tab_show(tab)
         else:
-            order = notree.TraverseOrder.POST
-            descendents = list(tab.node.traverse(order))[:-1]
-            for descendent in descendents:
-                cur_tab = descendent.value
-                idx = self._tabbed_browser.widgets().index(cur_tab)
-                tabwidget.removeTab(idx)
+            self._tree_tab_hide(tab)
 
-        tab.node.collapsed = not tab.node.collapsed
+        tabwidget.update_tab_titles()
+        tabwidget.update_tree_tab_positions()
+
+    def _tree_tab_show(self, tab):
+        tabwidget = self._tabbed_browser.widget
+        cur_idx = self._tabbed_browser.widgets().index(tab)
+        order = notree.TraverseOrder.PRE
+        descendents = list(tab.node.traverse(order))[1:]
+        for descendent in descendents:
+            cur_tab = descendent.value
+            cur_parent = descendent.parent
+            name = cur_tab.title()
+            icon = cur_tab.icon()
+            tabwidget.insertTab(cur_idx + 1, cur_tab, icon, name)
+            cur_tab.node.parent = cur_parent  # insertTab resets node
+            cur_idx += 1
+        tab.node.collapsed = False
+
+    def _tree_tab_hide(self, tab):
+        tabwidget = self._tabbed_browser.widget
+        order = notree.TraverseOrder.POST
+        descendents = list(tab.node.traverse(order, False))[:-1]
+        for descendent in descendents:
+            cur_tab = descendent.value
+            idx = self._tabbed_browser.widgets().index(cur_tab)
+            tabwidget.removeTab(idx)
+        tab.node.collapsed = True
+
+    def _tree_tab_cycle_hide(self, node):
+        if node.collapsed:
+            self._tree_tab_show(node.value)
+            for d in node.traverse():
+                self._tree_tab_show(d.value)
+            return
+
+        all_collapsed_or_leaves = node.children \
+            and all(c.collapsed or not c.children for c in node.children)
+        if all_collapsed_or_leaves:
+            self._tree_tab_hide(node.value)
+            return
+
+        for child in node.children:
+            self._tree_tab_cycle_hide(child)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tree_tab_cycle_hide(self):
+        """Hides levels of descendents: all children, all grandchildren, and so on."""
+        tabwidget = self._tabbed_browser.widget
+        tab = self._current_widget()
+        # cur_idx = self._tabbed_browser.widgets().index(tab)
+        self._tree_tab_cycle_hide(tab.node)
 
         tabwidget.update_tab_titles()
         tabwidget.update_tree_tab_positions()
@@ -1959,3 +1993,4 @@ class CommandDispatcher:
         """
         path = urllib.parse.quote(name)
         self.openurl('qute://treegroup/' + path, tab=True, related=related)
+
