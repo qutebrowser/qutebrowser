@@ -351,14 +351,21 @@ class TestFollowSelected:
                                           wait=self.LOAD_STARTED_DELAY):
                 caret.follow_selected()
 
-    def test_follow_selected_with_text(self, qtbot, caret, selection, web_tab):
+    def test_follow_selected_with_text(self, qtbot, caret, selection, web_tab, config_stub):
+        config_stub.val.input.insert_mode.auto_leave = True
         caret.move_to_next_word()
         selection.toggle()
         caret.move_to_end_of_word()
-        with qtbot.wait_signal(caret.follow_selected_done):
-            with qtbot.assert_not_emitted(web_tab.load_started,
-                                          wait=self.LOAD_STARTED_DELAY):
-                caret.follow_selected()
+        # on webkit, we cannot click non-link elements
+        if web_tab.backend == usertypes.Backend.QtWebKit:
+            with qtbot.wait_signal(caret.follow_selected_done):
+                with qtbot.assert_not_emitted(web_tab.load_started,
+                                            wait=self.LOAD_STARTED_DELAY):
+                    caret.follow_selected()
+        else:
+            with qtbot.wait_signal(web_tab.load_finished):
+                with qtbot.wait_signal(caret.follow_selected_done):
+                    caret.follow_selected()
 
     def test_follow_selected_with_link(self, caret, selection, config_stub,
                                        qtbot, web_tab):
