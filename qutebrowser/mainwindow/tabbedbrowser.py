@@ -602,7 +602,7 @@ class TabbedBrowser(QWidget):
         log.misc.debug('\n'.join(''.join((char, repr(node))) for char, node in self.widget.tree_root.render()))
 
         if config.val.tabs.tree_tabs:
-            self._tree_tabs_post_open(tab, related)
+            self._tree_tab_pre_open(tab, related)
 
         if url is not None:
             tab.load_url(url)
