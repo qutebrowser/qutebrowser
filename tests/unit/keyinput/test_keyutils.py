@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,7 +26,7 @@ from PyQt5.QtCore import Qt, QEvent, pyqtSignal
 from PyQt5.QtGui import QKeyEvent, QKeySequence
 from PyQt5.QtWidgets import QWidget
 
-from tests.unit.keyinput import key_data
+from unit.keyinput import key_data
 from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import utils
 

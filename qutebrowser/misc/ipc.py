@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -65,11 +65,9 @@ def _get_socketname(basedir):
     data_to_hash = '-'.join(parts_to_hash).encode('utf-8')
     md5 = hashlib.md5(data_to_hash).hexdigest()
 
-    target_dir = standarddir.runtime()
-
-    parts = ['ipc']
-    parts.append(md5)
-    return os.path.join(target_dir, '-'.join(parts))
+    prefix = 'i-' if utils.is_mac else 'ipc-'
+    filename = '{}{}'.format(prefix, md5)
+    return os.path.join(standarddir.runtime(), filename)
 
 
 class Error(Exception):

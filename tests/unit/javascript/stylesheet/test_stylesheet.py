@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Jay Kamat
+# Copyright 2017-2019 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -25,7 +25,7 @@ import pytest
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
 QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
 
-from qutebrowser.utils import javascript, qtutils
+from qutebrowser.utils import javascript
 
 
 DEFAULT_BODY_BG = "rgba(0, 0, 0, 0)"
@@ -128,11 +128,9 @@ def test_set_error(stylesheet_tester, config_stub):
     stylesheet_tester.check_set(GREEN_BODY_BG)
 
 
-@pytest.mark.skip(qtutils.version_check('5.12', compiled=False),
-                  reason='Broken with Qt 5.12')
 def test_appendchild(stylesheet_tester):
     stylesheet_tester.js.load('stylesheet/simple.html')
     stylesheet_tester.init_stylesheet()
-    js_test_file_path = ('../../tests/unit/javascript/stylesheet/'
+    js_test_file_path = ('../tests/unit/javascript/stylesheet/'
                          'test_appendchild.js')
     stylesheet_tester.js.run_file(js_test_file_path, {})

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -311,7 +311,7 @@ def version(win_id, paste=False):
     """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    tabbed_browser.load_url(QUrl('qute://version'), newtab=True)
+    tabbed_browser.load_url(QUrl('qute://version/'), newtab=True)
 
     if paste:
         pastebin_version()

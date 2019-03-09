@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -171,6 +171,7 @@ def testdata_scheme(qapp):
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
         from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)
         _qute_scheme_handler.install(QWebEngineProfile.defaultProfile())
