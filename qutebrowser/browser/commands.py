@@ -1925,8 +1925,8 @@ class CommandDispatcher:
         else:
             self._tree_tab_hide(tab)
 
-        tabwidget.update_tab_titles()
         tabwidget.update_tree_tab_positions()
+        tabwidget.update_tab_titles()
 
     def _tree_tab_show(self, tab):
         tabwidget = self._tabbed_browser.widget
@@ -1954,20 +1954,30 @@ class CommandDispatcher:
         tab.node.collapsed = True
 
     def _tree_tab_cycle_hide(self, node):
+        # height = node.height  # height is always rel_height
         if node.collapsed:
             self._tree_tab_show(node.value)
             for d in node.traverse():
                 self._tree_tab_show(d.value)
             return
 
-        all_collapsed_or_leaves = node.children \
-            and all(c.collapsed or not c.children for c in node.children)
-        if all_collapsed_or_leaves:
-            self._tree_tab_hide(node.value)
-            return
-
-        for child in node.children:
-            self._tree_tab_cycle_hide(child)
+        def rel_depth(n):
+            return n.depth - node.depth
+        levels = {}
+        for d in node.traverse():
+            r_depth = rel_depth(d)
+            if r_depth not in levels:
+                levels[r_depth] = []
+            levels[r_depth].append(d)
+        target = 0
+        for level in list(reversed(sorted(levels)))[1:]:
+            nodes = levels[level]
+            if not all(n.collapsed or not n.children for n in nodes):
+                target = level
+                break
+        for n in levels[target]:
+            if not n.collapsed and n.children:
+                self._tree_tab_hide(n.value)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_cycle_hide(self):
@@ -1977,8 +1987,8 @@ class CommandDispatcher:
         # cur_idx = self._tabbed_browser.widgets().index(tab)
         self._tree_tab_cycle_hide(tab.node)
 
-        tabwidget.update_tab_titles()
         tabwidget.update_tree_tab_positions()
+        tabwidget.update_tab_titles()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_create_group(self, name: str, related=False):

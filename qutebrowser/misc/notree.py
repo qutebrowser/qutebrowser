@@ -172,6 +172,17 @@ class Node():
             return self.parent.path + [self]
 
     @property
+    def depth(self) -> int:
+        """Get the number of nodes between self and the root node"""
+        return len(self.path) - 1
+
+    @property
+    def height(self):
+        max_height = 0
+        for d in self.traverse():
+            max_height += d.depth
+
+    @property
     def siblings(self) -> typing.Iterable['Node']:
         """Get siblings. Can not be set."""
         if self.parent:
