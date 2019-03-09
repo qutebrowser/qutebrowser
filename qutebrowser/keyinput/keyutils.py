@@ -52,13 +52,13 @@ def _is_printable(key):
     _assert_plain_key(key)
     return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
-def _is_extended_unicode(key):
+def _is_surrogate(key):
     """Check for Unicode characters such as emoji and extended CJK characters
     Necessary to work around poor handling of higher codepoints by QKeyEvent
     This checks for unicode codepoints above ASCII range. The highest unicode
     is below Qt::Key modifiers and "special" keys, which start at 0x1000000
     """
-    return 0xff < key < 0x10ffff
+    return 0xd800 <= key <= 0xdfff
 
 def is_special(key, modifiers):
     """Check whether this key requires special key syntax."""
@@ -79,11 +79,11 @@ def is_modifier_key(key):
     return key in _MODIFIER_MAP
 
 def _remap_unicode(key, text):
-    """Work around Qt having bad values for higher Unicode characters
+    """Work around Qt having bad values for UTF-16 surrogates
     Qt events have the upper half of the UTF-16 representation as key()
     instead of the unicode codepoint. We re-parse these from text()
     """
-    if _is_extended_unicode(key):
+    if _is_surrogate(key):
         if len(text) != 1:
             raise KeyParseError(text, "Key had too many characters!")
         else:
