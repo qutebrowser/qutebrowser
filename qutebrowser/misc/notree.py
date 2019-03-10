@@ -113,7 +113,7 @@ class Node():
         # For render memoization
         self.__modified = False
         self.__set_modified()  # not the same as line above
-        self.__rendered = []  # type: typing.List[typing.Tuple[str, 'Node']]
+        self.__rendered = ()  # type: typing.Tuple[typing.Tuple[str, 'Node']]
 
         if parent:
             self.parent = parent  # calls setter
@@ -243,8 +243,8 @@ class Node():
                 else:
                     result.append((INTERSECTION, child))
         self.__modified = False
-        self.__rendered = result
-        return result
+        self.__rendered = tuple(result)
+        return tuple(result)
 
     def traverse(self, order: TraverseOrder = TraverseOrder.PRE,
                  render_collapsed: bool = True) -> typing.Iterable['Node']:
