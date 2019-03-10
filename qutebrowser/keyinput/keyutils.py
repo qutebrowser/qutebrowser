@@ -52,13 +52,15 @@ def _is_printable(key):
     _assert_plain_key(key)
     return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
+
 def _is_surrogate(key):
-    """Check for Unicode characters such as emoji and extended CJK characters
-    Necessary to work around poor handling of higher codepoints by QKeyEvent
-    This checks for unicode codepoints above ASCII range. The highest unicode
-    is below Qt::Key modifiers and "special" keys, which start at 0x1000000
-    """
+    """Check if a codepoint is a UTF-16 surrogate.
+
+    UTF-16 surrogates are a reserved range of Unicode from 0xd800
+    to 0xd8ff, used to encode Unicode codepoints above the BMP
+    (Base Multilingual Plane)"""
     return 0xd800 <= key <= 0xdfff
+
 
 def is_special(key, modifiers):
     """Check whether this key requires special key syntax."""
@@ -78,11 +80,19 @@ def is_modifier_key(key):
     _assert_plain_key(key)
     return key in _MODIFIER_MAP
 
+
 def _remap_unicode(key, text):
-    """Work around Qt having bad values for UTF-16 surrogates
-    Qt events have the upper half of the UTF-16 representation as key()
-    instead of the unicode codepoint. We re-parse these from text()
-    """
+    """Work around QtKeyEvent's bad values for high codepoints.
+
+    QKeyEvent handles higher unicode codepoints poorly (see
+    QTBUG-72776). It uses UTF-16 to handle key events, and for
+    higher codepoints that require UTF-16 surrogates (e.g. emoji
+    and some CJK characters), it sets the keycode to just the
+    upper half of the surrogate, which renders it useless, and
+    breaks UTF-8 encoding, causing crashes. So we detect this
+    case, and reassign the key code to be the full Unicode
+    codepoint, which we can recover from the text() property,
+    wihch has the full character."""
     if _is_surrogate(key):
         if len(text) != 1:
             raise KeyParseError(text, "Key had too many characters!")
@@ -90,6 +100,7 @@ def _remap_unicode(key, text):
             return ord(text[0])
     else:
         return key
+
 
 def _check_valid_utf8(s, data):
     """Make sure the given string is valid UTF-8.
