@@ -162,7 +162,7 @@ class TabWidget(QTabWidget):
         fields['title'] = fields['title'].replace('&', '&&')
 
         fields['index'] = str(idx + 1)
-        if config.val.tabs.tree_tabs:
+        if config.cache['tabs.tree_tabs']:
             # we remove the first two chars because every tab is child of tree
             # root and that gets rendered as well
             rendered_tree = self.tree_root.render()
