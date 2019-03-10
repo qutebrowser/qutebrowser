@@ -1940,7 +1940,7 @@ class CommandDispatcher:
         tabwidget = self._tabbed_browser.widget
         cur_idx = self._tabbed_browser.widgets().index(tab)
         order = notree.TraverseOrder.PRE
-        descendents = list(tab.node.traverse(order))[1:]
+        descendents = list(tab.node.traverse(order, False))[1:]
         for descendent in descendents:
             cur_tab = descendent.value
             cur_parent = descendent.parent
