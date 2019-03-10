@@ -88,10 +88,10 @@ class Node():
     root_node.children` will be True.
     """
 
-    sep: str = '/'
-    __parent: typing.Optional['Node'] = None
-    __uid: int
-    __last_uid: int = 0  # this is a global 'static' class attribute
+    sep = '/'  # type: str
+    __parent = None  # type: typing.Optional['Node']
+    # this is a global 'static' class attribute
+    __last_uid = 0  # type: int
 
     PARENT_TYPE = typing.TypeVar('PARENT_TYPE')
 
