@@ -981,7 +981,7 @@ class CommandDispatcher:
         cmdutils.check_overflow(new_idx, 'int')
 
         if config.val.tabs.tree_tabs:
-            new_idx += 1
+            new_idx += 1  # tree-tabs indexes start at 1 (0 is hidden root tab)
             tab = self._current_widget()
 
             # traverse order is the same as display order
@@ -1929,6 +1929,14 @@ class CommandDispatcher:
         tabwidget.update_tab_titles()
 
     def _tree_tab_show(self, tab):
+        """Shows a tab that was previously collapsed through _tree_tab_hide.
+
+        This puts all the descendants of the tab back at the right index and
+        under the right parent.
+
+        Note: this does NOT update tab positions or titles. You have to do it yourself.
+
+        """
         tabwidget = self._tabbed_browser.widget
         cur_idx = self._tabbed_browser.widgets().index(tab)
         order = notree.TraverseOrder.PRE
@@ -1944,6 +1952,10 @@ class CommandDispatcher:
         tab.node.collapsed = False
 
     def _tree_tab_hide(self, tab):
+        """Collapses a tab, hiding all its children and setting tab.node.collapsed.
+
+        Note: this does NOT update tab positions or titles. You have to do it yourself.
+        """
         tabwidget = self._tabbed_browser.widget
         order = notree.TraverseOrder.POST
         descendents = list(tab.node.traverse(order, False))[:-1]
@@ -1954,6 +1966,7 @@ class CommandDispatcher:
         tab.node.collapsed = True
 
     def _tree_tab_cycle_hide(self, node):
+        """Utility function for tree_tab_cycle_hide."""
         # height = node.height  # height is always rel_height
         if node.collapsed:
             self._tree_tab_show(node.value)
