@@ -58,8 +58,9 @@ class Pool(typing.Generic[StoredType]):
 
         If one does not exist, it will be constructed on the fly.
 
-        Pass any arguments that you would pass to the constructor to this function.
-        These arguments may not be used, if an object is pulled from the pool.
+        Pass any arguments that you would pass to the constructor to this
+        function. These arguments may not be used, if an object is pulled from
+        the pool.
 
         Use initialize_fn to finalize any objects being re-used from the pool.
         initialize_fn is not called if constructing a new object.

@@ -21,6 +21,7 @@
 
 import collections
 import functools
+import operator
 import os
 import re
 import html
@@ -37,6 +38,7 @@ from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
+from qutebrowser.misc import pool
 
 
 Target = enum.Enum('Target', ['normal', 'current', 'tab', 'tab_fg', 'tab_bg',
@@ -76,24 +78,14 @@ class HintLabel(QLabel):
         }
     """
 
-    HINT_CACHE_MIN_ELT = 500
-
-    # Objects which are currently not used but can be reused by calling _reset
-    _object_pool = []
-
-    # Number of active objects (initialized and not in the object pool)
-    _active_object_count = 0
-
-    # Maximum value of _active_object_count, resetted each time it reaches 0
-    _active_object_peak_count = [0]
-
     def __init__(self, elem, context):
         super().__init__()
         self.setAttribute(Qt.WA_StyledBackground, True)
         config.set_register_stylesheet(self)
-        self._reset(elem, context)
+        self.reset(elem, context)
 
-    def _reset(self, elem, context):
+    def reset(self, elem, context):
+        """Reset this HintLabel so it can be re-used."""
         self.setParent(context.tab)
         self._context = context
         self.elem = elem
@@ -149,40 +141,6 @@ class HintLabel(QLabel):
         self.hide()
         self.setParent(None)
         self._context.tab.contents_size_changed.disconnect(self._move_to_elem)
-        HintLabel._object_pool.append(self)
-
-        HintLabel._active_object_count -= 1
-        if HintLabel._active_object_count == 0:
-            active_object_peak_count = HintLabel._active_object_peak_count
-
-            # Shrink the object pool if it is not used for the last 5 peaks
-            # and it has more than HINT_CACHE_MIN elements
-            if len(HintLabel._object_pool) > HintLabel.HINT_CACHE_MIN_ELT:
-                del HintLabel._object_pool[min(HintLabel.HINT_CACHE_MIN_ELT,
-                                               max(active_object_peak_count)):]
-
-            active_object_peak_count.append(0)
-            if len(active_object_peak_count) > 5:
-                del active_object_peak_count[0]
-
-    @staticmethod
-    def create(elem, context):
-        """Returns a HintLabel object with the parameters (elem, context).
-
-        Try to reuse an object in the object pool if possible. If not possible,
-        create a new one.
-        """
-        HintLabel._active_object_count += 1
-        HintLabel._active_object_peak_count[-1] = max(
-            HintLabel._active_object_count,
-            HintLabel._active_object_peak_count[-1])
-
-        try:
-            label = HintLabel._object_pool.pop()
-        except IndexError:
-            return HintLabel(elem, context)
-        label._reset(elem, context)  # pylint: disable=W0212
-        return label
 
 
 @attr.s
@@ -413,6 +371,12 @@ class HintManager(QObject):
         See HintActions
     """
 
+    # HintLabel Object Pool
+
+    HINT_CACHE_MIN_ELT = 500
+    HINT_POOL = pool.Pool(HintLabel, HINT_CACHE_MIN_ELT,
+                          operator.methodcaller('cleanup'))
+
     HINT_TEXTS = {
         Target.normal: "Follow hint",
         Target.current: "Follow hint in current tab",
@@ -455,7 +419,7 @@ class HintManager(QObject):
     def _cleanup(self):
         """Clean up after hinting."""
         for label in self._context.all_labels:
-            label.cleanup()
+            HintManager.HINT_POOL.release(label)
 
         text = self._get_text()
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -652,7 +616,12 @@ class HintManager(QObject):
         log.hints.debug("hints: {}".format(', '.join(strings)))
 
         for elem, string in zip(elems, strings):
-            label = HintLabel.create(elem, self._context)
+
+            label = HintManager.HINT_POOL.acquire(
+                elem, self._context,
+                initialize_fn=operator.methodcaller(
+                    'reset', elem, self._context))
+
             label.update_text('', string)
             self._context.all_labels.append(label)
             self._context.labels[string] = label
