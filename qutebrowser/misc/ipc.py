@@ -277,6 +277,8 @@ class IPCServer(QObject):
         log.ipc.debug("Client disconnected from socket 0x{:x}.".format(
             id(self._socket)))
         self._timer.stop()
+        if self._old_socket is not None:
+            self._old_socket.deleteLater()
         self._old_socket = self._socket
         self._socket = None
         # Maybe another connection is waiting.
