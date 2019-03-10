@@ -1810,7 +1810,7 @@ class CommandDispatcher:
         # always assume there is a parent
         siblings = list(cur_node.parent.children)
 
-        if siblings and len(siblings) > 1:
+        if len(siblings) > 1:
 
             # we want upper tab in the same subtree as current node
             node_idx = siblings.index(cur_node) - 1
