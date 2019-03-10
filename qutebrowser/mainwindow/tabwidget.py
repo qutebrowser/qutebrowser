@@ -166,10 +166,9 @@ class TabWidget(QTabWidget):
             # we remove the first two chars because every tab is child of tree
             # root and that gets rendered as well
             rendered_tree = self.tree_root.render()
-            tree_prefixes = [pre[2:] for pre, _ in rendered_tree]
-
             try:
-                tree_prefix = tree_prefixes[idx+1]
+                pre, _ = rendered_tree[idx+1]
+                tree_prefix = pre[2:]
             except IndexError:  # window or first tab are not initialized yet
                 tree_prefix = ""
 
