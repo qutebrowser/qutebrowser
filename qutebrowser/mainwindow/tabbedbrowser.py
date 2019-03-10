@@ -46,7 +46,7 @@ class UndoEntry:
     pinned = attr.ib()
     uid = attr.ib(None)
     parent_node_uid = attr.ib(None)
-    children_node_uids = attr.ib([])
+    children_node_uids = attr.ib(attr.Factory(list))
     local_index = attr.ib(None)  # index of the tab relative to its siblings
 
 
