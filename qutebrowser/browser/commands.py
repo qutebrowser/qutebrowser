@@ -986,7 +986,7 @@ class CommandDispatcher:
 
             # traverse order is the same as display order
             # so indexing works correctly
-            tabs = list(self._tabbed_browser.widget.tree_root.traverse())
+            tabs = list(self._tabbed_browser.widget.tree_root.traverse(render_collapsed=False))
             target_node = tabs[new_idx]
             if tab.node in target_node.path:
                 raise cmdutils.CommandError("Can't move tab to a descendent"
@@ -1970,14 +1970,14 @@ class CommandDispatcher:
         # height = node.height  # height is always rel_height
         if node.collapsed:
             self._tree_tab_show(node.value)
-            for d in node.traverse():
+            for d in node.traverse(render_collapsed=True):
                 self._tree_tab_show(d.value)
             return
 
         def rel_depth(n):
             return n.depth - node.depth
         levels = {}
-        for d in node.traverse():
+        for d in node.traverse(render_collapsed=False):
             r_depth = rel_depth(d)
             if r_depth not in levels:
                 levels[r_depth] = []
