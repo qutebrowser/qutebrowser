@@ -133,6 +133,10 @@ class WebEngineElement(webelem.AbstractWebElement):
         assert isinstance(tag, str), tag
         return tag.lower()
 
+    def title(self) -> str:
+        """Get the title for the current element."""
+        return self._js_dict['attributes']['title']
+
     def outer_xml(self) -> str:
         """Get the full HTML representation of this element."""
         return self._js_dict['outer_xml']
