@@ -2,7 +2,7 @@
 
 asn1crypto==0.24.0
 astroid==2.1.0
-certifi==2018.11.29
+certifi==2019.3.9
 cffi==1.12.1
 chardet==3.0.4
 cryptography==2.5
