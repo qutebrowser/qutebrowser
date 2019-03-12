@@ -111,10 +111,6 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.tagName().lower()
 
-    def title(self) -> str:
-        """Get the title for the current element."""
-        return self._js_dict.get('attributes', {}).get('title', None)
-
     def outer_xml(self) -> str:
         """Get the full HTML representation of this element."""
         self._check_vanished()
