@@ -157,6 +157,7 @@ class HintContext:
         filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
+        extended_filter_targets: If we should include in the filter targets non visible text like the "title" attribute
     """
 
     all_labels = attr.ib(attr.Factory(list))
@@ -173,6 +174,7 @@ class HintContext:
     group = attr.ib(None)
     hint_mode = attr.ib(None)
     first = attr.ib(False)
+    extended_filter_targets = False
 
     def get_args(self, urlstr):
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -569,21 +571,22 @@ class HintManager(QObject):
                     "'args' is only allowed with target userscript/spawn.")
 
     def _filter_matches(self, filterstr: str, elem):
-        """Return True if `filterstr` matches `elemstr`."""
+        """Return True if `filterstr` matches `elem` text or title."""
         # Empty string and None always match
         if not filterstr:
             return True
         filterstr = filterstr.casefold()
         elemstr = str(elem).casefold()
-        try:
+        matchagainst = elemstr
+        if self._context.extended_filter_targets:
             title = elem.title().casefold()
-            elemstr += " " + title
-        except KeyError:
-            pass
-        return all(word in elemstr for word in filterstr.split())
+            if title is not None:
+                matchagainst += ' ' + title.split()
+
+        return all(word in matchagainst for word in filterstr.split())
 
     def _filter_matches_exactly(self, filterstr: str, elem):
-        """Return True if `filterstr` exactly matches `elemstr`."""
+        """Return True if `filterstr` exactly matches `elem`."""
         # Empty string and None never match
         if not filterstr:
             return False
@@ -733,6 +736,7 @@ class HintManager(QObject):
             raise cmdutils.CommandError("No URL set for this page yet!")
         self._context.args = list(args)
         self._context.group = group
+        self._context.extended_filter_targets = config.val.hints.extended_filters
 
         try:
             selector = webelem.css_selector(self._context.group,
