@@ -1106,7 +1106,7 @@ hints.extended_filter_attrs:
         - title: "title attribute"
         - alt: "alt attribute of img elements"
   desc: >-
-    Specify which HTML element nodes to use additionally when filtering links in `hints.mode` number.
+    Specify which HTML element attributes to use additionally when filtering links in `hints.mode` number.
 
 hints.next_regexes:
   default:
