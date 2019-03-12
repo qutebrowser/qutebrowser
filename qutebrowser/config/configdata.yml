@@ -1091,6 +1091,14 @@ hints.mode:
       - word: Use hints words based on the html elements and the extra words.
   desc: Mode to use for hints.
 
+hints.extended_filters:
+  default: false
+  type:
+    name: Bool
+  desc: >-
+    Specify if to use non-visible text contained in the "title" property of an
+    HTML element when filtering in "number" mode.
+
 hints.next_regexes:
   default:
     - "\\bnext\\b"
