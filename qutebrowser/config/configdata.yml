@@ -767,7 +767,6 @@ content.webrtc_ip_handling_policy:
       - disable-non-proxied-udp: WebRTC should only use TCP to contact peers or
             servers unless the proxy server supports UDP. This doesn't expose
             any local addresses either.
-  default: all-interfaces
   backend:
     QtWebKit: false
     QtWebEngine: Qt 5.9.2
@@ -1095,13 +1094,19 @@ hints.mode:
       - word: Use hints words based on the html elements and the extra words.
   desc: Mode to use for hints.
 
-hints.extended_filters:
-  default: false
+hints.extended_filter_attrs:
+  default:
+    - "title"
   type:
-    name: Bool
+    name: List
+    valtype:
+      name: String
+      none_ok: true
+      valid_values:
+        - title: "title attribute"
+        - alt: "alt attribute of img elements"
   desc: >-
-    Specify if to use non-visible text contained in the "title" property of an
-    HTML element when filtering in "number" mode.
+    Specify which HTML element nodes to use additionally when filtering links in `hints.mode` number.
 
 hints.next_regexes:
   default:
