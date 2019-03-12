@@ -157,7 +157,6 @@ class HintContext:
         filterstr: Used to save the filter string for restoring in rapid mode.
         tab: The WebTab object we started hinting in.
         group: The group of web elements to hint.
-        extended_filter_targets: If we should include in the filter targets non visible text like the "title" attribute
     """
 
     all_labels = attr.ib(attr.Factory(list))
