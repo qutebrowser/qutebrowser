@@ -180,7 +180,6 @@ class HintContext:
     group = attr.ib(None)
     hint_mode = attr.ib(None)
     first = attr.ib(False)
-    extended_filter_targets = False
 
     def get_args(self, urlstr):
         """Get the arguments, with {hint-url} replaced by the given URL."""
@@ -573,17 +572,20 @@ class HintManager(QObject):
                     "'args' is only allowed with target userscript/spawn.")
 
     def _filter_matches(self, filterstr: str, elem):
-        """Return True if `filterstr` matches `elem` text or title."""
+        """Return True if `filterstr` matches `elem` text or any of the HTML attributes
+        from the `hints.extended_filter_attrs` configuration list."""
         # Empty string and None always match
         if not filterstr:
             return True
         filterstr = filterstr.casefold()
         elemstr = str(elem).casefold()
+
         matchagainst = elemstr
-        if self._context.extended_filter_targets:
-            title = elem.title().casefold()
-            if title is not None:
-                matchagainst += ' ' + title.split()
+        for _attr in config.val.hints.extended_filter_attrs:
+            try:
+                matchagainst += ' ' + elem[_attr].casefold()
+            except KeyError:
+                pass
 
         return all(word in matchagainst for word in filterstr.split())
 
@@ -738,7 +740,6 @@ class HintManager(QObject):
             raise cmdutils.CommandError("No URL set for this page yet!")
         self._context.args = list(args)
         self._context.group = group
-        self._context.extended_filter_targets = config.val.hints.extended_filters
 
         try:
             selector = webelem.css_selector(self._context.group,
