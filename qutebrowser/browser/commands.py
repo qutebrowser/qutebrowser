@@ -1774,33 +1774,20 @@ class CommandDispatcher:
     def tree_tab_promote(self, count=1):
         """Promote a tab so it becomes next sibling of its parent.
 
+        Honors tabs.new_position.related in positioning the tab among new
+        siblings.
+
         Args:
             count: How many levels the tabs should be promoted to
         """
-        tab = self._current_widget()
-
         config_position = config.val.tabs.new_position.related
-        position = {'first': 0, 'last': -1}.get(config_position, None)
-        diff = {'next': 1, 'prev': 0}.get(config_position, 1)
-        while count > 0:
-            grandparent = tab.node.parent.parent
-            if grandparent:
-                if position is not None:
-                    idx = position
-                else:  # diff is necessarily not none
-                    idx = tab.node.parent.index + diff
-                tab.node.parent = None
-
-                siblings = list(grandparent.children)
-                if idx != -1:
-                    siblings.insert(idx, tab.node)
-                else:
-                    siblings.append(tab.node)
-                grandparent.children = siblings
-            count -= 1
-
-        self._tabbed_browser.widget.update_tab_titles()
-        self._tabbed_browser.widget.update_tree_tab_positions()
+        try:
+            self._current_widget().node.promote(count, config_position)
+        except notree.TreeError:
+            raise cmdutils.CommandError('Tab has no parent!')
+        finally:
+            self._tabbed_browser.widget.update_tab_titles()
+            self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_demote(self):

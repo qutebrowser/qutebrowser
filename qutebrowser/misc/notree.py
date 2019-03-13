@@ -295,6 +295,41 @@ class Node():
         else:
             raise TreeError("No descendent with uid = %s" % uid)
 
+    def promote(self, times: int = 1, to: str = 'first') -> None:
+        """Makes self a child of its grandparent, i.e. sibling of its parent.
+
+        Args:
+            times: How many levels to promote the tab to.
+            to: One of 'next', 'prev', 'first', 'last'. Determines the position
+                among siblings after being promoted. 'next' and 'prev' are relative
+                to the current parent.
+
+        """
+        if not self.parent:
+            raise TreeError("Tab has no parent!")
+        if to not in ['first', 'last', 'next', 'prev']:
+            raise Exception("Invalid value supplied for 'to': " + to)
+        position = {'first': 0, 'last': -1}.get(to, None)
+        diff = {'next': 1, 'prev': 0}.get(to, 1)
+        count = times
+        while count > 0:
+            grandparent = self.parent.parent
+            if grandparent:
+                if position is not None:
+                    idx = position
+                else:  # diff is necessarily not none
+                    idx = self.parent.index + diff
+                self.parent = None
+
+                siblings = list(grandparent.children)
+                if idx != -1:
+                    siblings.insert(idx, self)
+                else:
+                    siblings.append(self)
+                grandparent.children = siblings
+                count -= 1
+            else:
+                raise TreeError("Tab has no parent!")
 
     def __repr__(self) -> str:
         try:
