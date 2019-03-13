@@ -1829,33 +1829,6 @@ class CommandDispatcher:
 
         self._tabbed_browser.widget.update_tree_tab_positions()
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('direction', choices=['up', 'down'])
-    def tree_tab_rotate(self, direction, count=1):
-        """Rotate the entire tree making first tab last or vice-versa.
-
-        Args:
-            direction: Which direction to rotate the tree towards
-                'up': First tab becomes last, and [i]th tab becomes [i-1]th
-                'down': Last tab becomes first, and [i]th tab becomes [i+1]th
-
-            count: How many tabs to rotate
-        """
-        node = self._current_widget().node
-
-        parent = node.parent
-        siblings = list(parent.children)
-
-        if siblings:
-            if direction == 'up':
-                siblings = siblings[count:] + siblings[:count]
-            elif direction == 'down':
-                siblings = siblings[-count:] + siblings[:-count]
-
-            parent.children = siblings
-
-        self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)

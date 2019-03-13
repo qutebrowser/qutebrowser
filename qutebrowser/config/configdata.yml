@@ -2723,8 +2723,6 @@ bindings.default:
       tIu: config-cycle -p -u {url} content.images ;; reload
       zH: tree-tab-promote
       zL: tree-tab-demote
-      zru: tree-tab-rotate up
-      zrd: tree-tab-rotate down
       zu: tree-tab-bubble up
       zd: tree-tab-bubble down
       zJ: tree-tab-navigate-on-same-level down
