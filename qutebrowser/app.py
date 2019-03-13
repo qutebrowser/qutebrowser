@@ -217,7 +217,8 @@ def _process_args(args):
     session_manager = objreg.get('session-manager')
     if not session_manager.did_load:
         log.init.debug("Initializing main window...")
-        window = mainwindow.MainWindow(private=None)
+        private = args.target == 'private-window' or None
+        window = mainwindow.MainWindow(private=private)
         if not args.nowindow:
             window.show()
         q_app.setActiveWindow(window)
@@ -275,8 +276,10 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
                     ipc. If the --target argument was not specified, target_arg
                     will be an empty string.
     """
+    is_private = 'private-window' if target_arg == 'private-window' else None
     if via_ipc and not args:
-        win_id = mainwindow.get_window(via_ipc, force_window=True)
+        win_id = mainwindow.get_window(via_ipc, force_window=True,
+                                       force_target=is_private)
         _open_startpage(win_id)
         return
     win_id = None
@@ -289,7 +292,8 @@ def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
             commandrunner.run_safely(cmd[1:])
         elif not cmd:
             log.init.debug("Empty argument")
-            win_id = mainwindow.get_window(via_ipc, force_window=True)
+            win_id = mainwindow.get_window(via_ipc, force_window=True,
+                                           force_target=is_private)
         else:
             if via_ipc and target_arg and target_arg != 'auto':
                 open_target = target_arg
