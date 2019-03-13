@@ -1891,7 +1891,7 @@ class CommandDispatcher:
 
         """
         tabwidget = self._tabbed_browser.widget
-        cur_idx = self._tabbed_browser.widgets().index(tab)
+        cur_idx = self._tabbed_browser._tab_index(tab)
         order = notree.TraverseOrder.PRE
         descendents = list(tab.node.traverse(order, False))[1:]
         for descendent in descendents:
@@ -1914,7 +1914,7 @@ class CommandDispatcher:
         descendents = list(tab.node.traverse(order, False))[:-1]
         for descendent in descendents:
             cur_tab = descendent.value
-            idx = self._tabbed_browser.widgets().index(cur_tab)
+            idx = self._tabbed_browser._tab_index(cur_tab)
             tabwidget.removeTab(idx)
         tab.node.collapsed = True
 
@@ -1950,7 +1950,6 @@ class CommandDispatcher:
         """Hides levels of descendents: all children, all grandchildren, and so on."""
         tabwidget = self._tabbed_browser.widget
         tab = self._current_widget()
-        # cur_idx = self._tabbed_browser.widgets().index(tab)
         self._tree_tab_cycle_hide(tab.node)
 
         tabwidget.update_tree_tab_positions()
