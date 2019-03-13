@@ -1002,8 +1002,7 @@ class CommandDispatcher:
             siblings.insert(new_idx_relative, tab.node)
             new_parent.children = siblings
 
-            self._tabbed_browser.widget.update_tab_titles()
-            self._tabbed_browser.widget.update_tree_tab_positions()
+            self._tabbed_browser.widget.tree_tab_update()
             return
         self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
 
@@ -1786,8 +1785,7 @@ class CommandDispatcher:
         except notree.TreeError:
             raise cmdutils.CommandError('Tab has no parent!')
         finally:
-            self._tabbed_browser.widget.update_tab_titles()
-            self._tabbed_browser.widget.update_tree_tab_positions()
+            self._tabbed_browser.widget.tree_tab_update()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_demote(self):
@@ -1799,9 +1797,7 @@ class CommandDispatcher:
         except notree.TreeError:
             raise cmdutils.CommandError('Tab has no previous sibling!')
         finally:
-            self._tabbed_browser.widget.update_tab_titles()
-            self._tabbed_browser.widget.update_tree_tab_positions()
-
+            self._tabbed_browser.widget.tree_tab_update()
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('direction', choices=['up', 'down'])
@@ -1878,8 +1874,7 @@ class CommandDispatcher:
         else:
             self._tree_tab_hide(tab)
 
-        tabwidget.update_tree_tab_positions()
-        tabwidget.update_tab_titles()
+        self._tabbed_browser.widget.tree_tab_update()
 
     def _tree_tab_show(self, tab):
         """Shows a tab that was previously collapsed through _tree_tab_hide.
@@ -1952,8 +1947,7 @@ class CommandDispatcher:
         tab = self._current_widget()
         self._tree_tab_cycle_hide(tab.node)
 
-        tabwidget.update_tree_tab_positions()
-        tabwidget.update_tab_titles()
+        self._tabbed_browser.widget.tree_tab_update()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     def tree_tab_create_group(self, name: str, related=False):

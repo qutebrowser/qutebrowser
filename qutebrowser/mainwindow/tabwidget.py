@@ -101,7 +101,7 @@ class TabWidget(QTabWidget):
         self.update_tab_titles()  # Must also be called when deactivating
         if config.cache['tabs.tree_tabs']:
             # Positions matter only if enabling
-            self.update_tree_tab_positions()
+            self.tree_tab_update()
 
     def set_tab_indicator_color(self, idx, color):
         """Set the tab indicator color.
@@ -283,6 +283,10 @@ class TabWidget(QTabWidget):
                 cur_idx = self.indexOf(node.value)
                 self.tabBar().moveTab(cur_idx, idx-1)
 
+    def tree_tab_update(self):
+        self.update_tab_titles()
+        self.update_tree_tab_positions()
+
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
         super().tabInserted(idx)
@@ -292,8 +296,7 @@ class TabWidget(QTabWidget):
         """Update titles when a tab was removed."""
         super().tabRemoved(idx)
         if config.val.tabs.tree_tabs:
-            self.update_tab_titles()
-            self.update_tree_tab_positions()
+            self.tree_tab_update()
 
     def addTab(self, page, icon_or_text, text_or_empty=None):
         """Override addTab to use our own text setting logic.

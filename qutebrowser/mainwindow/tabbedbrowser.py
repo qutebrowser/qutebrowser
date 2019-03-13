@@ -467,8 +467,7 @@ class TabbedBrowser(QWidget):
                     new_siblings.insert(local_idx, newtab.node)
                     newtab.node.parent.children = new_siblings
 
-                    self.widget.update_tree_tab_positions()
-                    self.widget.update_tab_titles()
+                    self.widget.tree_tab_update()
 
             newtab.history.private_api.deserialize(entry.history)
             self.widget.set_tab_pinned(newtab, entry.pinned)
@@ -542,8 +541,7 @@ class TabbedBrowser(QWidget):
                 root_children.insert(cur_top_idx + diff, tab.node)
                 self.widget.tree_root.children = root_children
 
-        self.widget.update_tab_titles()
-        self.widget.update_tree_tab_positions()
+        self.widget.tree_tab_update()
 
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
