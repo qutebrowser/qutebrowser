@@ -207,8 +207,7 @@ class IPCServer(QObject):
         if not ok:
             if self._server.serverError() == QAbstractSocket.AddressInUseError:
                 raise AddressInUseError(self._server)
-            else:
-                raise ListenError(self._server)
+            raise ListenError(self._server)
         if not utils.is_windows:  # pragma: no cover
             # If we use setSocketOptions on Unix with Qt < 5.4, we get a
             # NameError while listening.
@@ -452,19 +451,17 @@ def send_to_running_instance(socketname, command, target_arg, *, socket=None):
         socket.waitForBytesWritten(WRITE_TIMEOUT)
         if socket.error() != QLocalSocket.UnknownSocketError:
             raise SocketError("writing to running instance", socket)
-        else:
-            socket.disconnectFromServer()
-            if socket.state() != QLocalSocket.UnconnectedState:
-                socket.waitForDisconnected(CONNECT_TIMEOUT)
-            return True
+        socket.disconnectFromServer()
+        if socket.state() != QLocalSocket.UnconnectedState:
+            socket.waitForDisconnected(CONNECT_TIMEOUT)
+        return True
     else:
         if socket.error() not in [QLocalSocket.ConnectionRefusedError,
                                   QLocalSocket.ServerNotFoundError]:
             raise SocketError("connecting to running instance", socket)
-        else:
-            log.ipc.debug("No existing instance present (error {})".format(
-                socket.error()))
-            return False
+        log.ipc.debug("No existing instance present (error {})".format(
+            socket.error()))
+        return False
 
 
 def display_error(exc, args):

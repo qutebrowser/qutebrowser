@@ -155,10 +155,10 @@ def run():
     if browser not in query:
         raise Error('Sorry, the selected browser: "{}" is not '
                     'supported.'.format(browser))
-    else:
-        history = extract(source, query[browser])
-        history = clean(history)
-        insert_qb(history, dest)
+
+    history = extract(source, query[browser])
+    history = clean(history)
+    insert_qb(history, dest)
 
 
 def main():

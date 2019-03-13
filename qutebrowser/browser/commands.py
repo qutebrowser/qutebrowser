@@ -479,7 +479,7 @@ class CommandDispatcher:
         # Catch common cases before e.g. cloning tab
         if not forward and not history.can_go_back():
             raise cmdutils.CommandError("At beginning of history.")
-        elif forward and not history.can_go_forward():
+        if forward and not history.can_go_forward():
             raise cmdutils.CommandError("At end of history.")
 
         if tab or bg or window:

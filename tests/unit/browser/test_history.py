@@ -190,8 +190,7 @@ class TestAdd:
         def raise_error(url, replace=False):
             if environmental:
                 raise sql.SqlEnvironmentError("Error message")
-            else:
-                raise sql.SqlBugError("Error message")
+            raise sql.SqlBugError("Error message")
 
         if completion:
             monkeypatch.setattr(web_history.completion, 'insert', raise_error)

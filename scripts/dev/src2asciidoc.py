@@ -499,7 +499,7 @@ def _format_block(filename, what, data):
         if not found_start:
             raise Exception("Marker '// QUTE_{}_START' not found in "
                             "'{}'!".format(what, filename))
-        elif not found_end:
+        if not found_end:
             raise Exception("Marker '// QUTE_{}_END' not found in "
                             "'{}'!".format(what, filename))
     except:

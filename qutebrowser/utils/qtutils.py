@@ -131,13 +131,11 @@ def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
     if arg > maxval:
         if fatal:
             raise OverflowError(arg)
-        else:
-            return maxval
+        return maxval
     elif arg < minval:
         if fatal:
             raise OverflowError(arg)
-        else:
-            return minval
+        return minval
     else:
         return arg
 

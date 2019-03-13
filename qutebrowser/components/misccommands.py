@@ -292,8 +292,7 @@ def debug_crash(typ: str = 'exception') -> None:
     if typ == 'segfault':
         os.kill(os.getpid(), signal.SIGSEGV)
         raise Exception("Segfault failed (wat.)")
-    else:
-        raise Exception("Forced crash")
+    raise Exception("Forced crash")
 
 
 @cmdutils.register(debug=True, maxsplit=0, no_cmd_split=True)
