@@ -955,13 +955,32 @@ class CommandDispatcher:
             # relative moving
             new_idx = self._current_index()
             delta = 1 if count is None else count
-            if index == '-':
-                new_idx -= delta
-            elif index == '+':  # pragma: no branch
-                new_idx += delta
 
-            if config.val.tabs.wrap:
-                new_idx %= self._count()
+            if config.val.tabs.tree_tabs:
+                node = self._current_widget().node
+                parent = node.parent
+                siblings = list(parent.children)
+
+                if len(siblings) > 1:
+                    rel_idx = siblings.index(node)
+                    # siblings.pop(idx)
+                    # siblings.insert(((idx + diff) % (len(siblings)+1)), node)
+                    # parent.children = siblings
+                    if index == '-':
+                        rel_idx -= delta
+                    elif index == '+':  # pragma: no branch
+                        rel_idx += delta
+                    rel_idx %= len(siblings)
+                    new_idx = self._tabbed_browser._tab_index(siblings[rel_idx].value)
+
+            else:
+                if index == '-':
+                    new_idx -= delta
+                elif index == '+':  # pragma: no branch
+                    new_idx += delta
+
+                if config.val.tabs.wrap:
+                    new_idx %= self._count()
         else:
             # absolute moving
             if count is not None:
@@ -1798,33 +1817,6 @@ class CommandDispatcher:
             raise cmdutils.CommandError('Tab has no previous sibling!')
         finally:
             self._tabbed_browser.widget.tree_tab_update()
-    @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('direction', choices=['up', 'down'])
-    def tree_tab_bubble(self, direction, count=1):
-        """Swaps position with its siblings, depending on direction.
-
-        Args:
-            direction:
-                'up': Swap position with previous sibling(s)
-                'down': Swap position with next sibling(s)
-            count: How many tabs to switch position with
-        """
-        node = self._current_widget().node
-
-        parent = node.parent
-        siblings = list(parent.children)
-
-        if len(siblings) > 1:
-            idx = siblings.index(node)
-            diff = -count if direction == 'up' else count
-            siblings.pop(idx)
-            siblings.insert(((idx + diff) % (len(siblings)+1)), node)
-
-            parent.children = siblings
-
-        self._tabbed_browser.widget.update_tree_tab_positions()
-
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
