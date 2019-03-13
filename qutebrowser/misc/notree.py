@@ -331,6 +331,22 @@ class Node():
             else:
                 raise TreeError("Tab has no parent!")
 
+    def demote(self) -> None:
+        """Demote a tab making it a children of its previous adjacent sibling."""
+        # always assume there is a parent
+        siblings = list(self.parent.children)
+
+        if len(siblings) <= 1:
+            raise TreeError("Tab has no siblings!")
+        # we want previous node in the same subtree as current node
+        rel_idx = siblings.index(self) - 1
+
+        if rel_idx >= 0:
+            self.parent = siblings[rel_idx]
+        else:
+            raise TreeError("Tab has no previous sibling!")
+
+
     def __repr__(self) -> str:
         try:
             value = str(self.value.url().url())

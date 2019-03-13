@@ -1794,20 +1794,13 @@ class CommandDispatcher:
         """Demote a tab making it children of its previous adjacent sibling."""
         cur_node = self._current_widget().node
 
-        # always assume there is a parent
-        siblings = list(cur_node.parent.children)
-
-        if len(siblings) > 1:
-
-            # we want upper tab in the same subtree as current node
-            node_idx = siblings.index(cur_node) - 1
-
-            if node_idx >= 0:
-
-                cur_node.parent = siblings[node_idx]
-
-                self._tabbed_browser.widget.update_tab_titles()
-                self._tabbed_browser.widget.update_tree_tab_positions()
+        try:
+            cur_node.demote()
+        except notree.TreeError:
+            raise cmdutils.CommandError('Tab has no previous sibling!')
+        finally:
+            self._tabbed_browser.widget.update_tab_titles()
+            self._tabbed_browser.widget.update_tree_tab_positions()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
