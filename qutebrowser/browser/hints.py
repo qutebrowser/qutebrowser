@@ -577,16 +577,8 @@ class HintManager(QObject):
         if not filterstr:
             return True
         filterstr = filterstr.casefold()
-        elemstr = str(elem).casefold()
-
-        matchagainst = elemstr
-        for _attr in config.val.hints.extended_filter_attrs:
-            try:
-                matchagainst += ' ' + elem[_attr].casefold()
-            except KeyError:
-                pass
-
-        return all(word in matchagainst for word in filterstr.split())
+        _attrs = config.cache['hints.extended_filter_attrs']
+        return elem.matches_hint_filter(filterstr, _attrs)
 
     def _filter_matches_exactly(self, filterstr: str, elem):
         """Return True if `filterstr` exactly matches `elem`."""

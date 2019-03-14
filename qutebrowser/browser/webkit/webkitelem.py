@@ -111,6 +111,25 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.tagName().lower()
 
+    def attr(self, name: str) -> str:
+        """Get 'name' attribute if exists"""
+        return self._js_dict.get('attributes', {}).get(name, '')
+
+    def matches_hint_filter(self, filterstr: str, attrs=['text']) -> str:
+        """Check if 'filter' attribute matches the value of any of the
+            'attrs' attributes """
+        for _attr in attrs:
+            if _attr == 'text':
+                matchstr = str(self).casefold()
+            else:
+                matchstr = self.attr(_attr).casefold()
+
+            if all(word in matchstr for word in filterstr.split()):
+                log.webelem.debug(
+                    "Matched hint {!r} on elem {!r}.".format(filterstr, _attr))
+                return True
+        return False
+
     def outer_xml(self) -> str:
         """Get the full HTML representation of this element."""
         self._check_vanished()
