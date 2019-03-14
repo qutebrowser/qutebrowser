@@ -577,6 +577,7 @@ Feature: Using hints
          And I hint with args "all"
         # this actually presses the keys one by one
         And I press the key "yyi"
+        And I press the key "<Enter>"
         Then data/hello.txt should be loaded
 
     Scenario: Using hints.mode 'number' with title attribute filtering #2
@@ -586,4 +587,5 @@ Feature: Using hints
         And I hint with args "all"
         # this actually presses the keys one by one
         And I press the key "yyy"
+        And I press the key "<Enter>"
         Then /data/numbers/1.txt should be loaded
