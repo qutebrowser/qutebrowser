@@ -1544,6 +1544,15 @@ class CommandDispatcher:
             tab.search.prev_result()
         tab.search.prev_result(result_cb=cb)
 
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def nohl(self):
+        """Remove highlighting displayed from previous search"""
+        tab = self._current_widget()
+        
+        if tab.search.search_displayed:
+            tab.search.clear()
+        return
+
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_cmd_split=True)
     def jseval(self, js_code: str, file: bool = False, quiet: bool = False, *,
