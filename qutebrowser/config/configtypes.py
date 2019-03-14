@@ -176,8 +176,7 @@ class BaseType:
                 (pytype == dict and value == {})):
             if not self.none_ok:
                 raise configexc.ValidationError(value, "may not be null!")
-            else:
-                return
+            return
 
         if (not isinstance(value, pytype) or
                 pytype is int and isinstance(value, bool)):
@@ -365,9 +364,9 @@ class String(BaseType):
 
         if minlen is not None and minlen < 1:
             raise ValueError("minlen ({}) needs to be >= 1!".format(minlen))
-        elif maxlen is not None and maxlen < 1:
+        if maxlen is not None and maxlen < 1:
             raise ValueError("maxlen ({}) needs to be >= 1!".format(maxlen))
-        elif maxlen is not None and minlen is not None and maxlen < minlen:
+        if maxlen is not None and minlen is not None and maxlen < minlen:
             raise ValueError("minlen ({}) needs to be <= maxlen ({})!".format(
                 minlen, maxlen))
         self.minlen = minlen
@@ -1271,8 +1270,7 @@ class Regex(BaseType):
                     str(w.message).startswith('bad escape')):
                 raise configexc.ValidationError(
                     pattern, "must be a valid regex - " + str(w.message))
-            else:
-                warnings.warn(w.message)
+            warnings.warn(w.message)
 
         return compiled
 
@@ -1803,7 +1801,7 @@ class ConfirmQuit(FlagList):
             raise configexc.ValidationError(
                 values, "List cannot contain never!")
         # Always can't be set with other options
-        elif 'always' in values and len(values) > 1:
+        if 'always' in values and len(values) > 1:
             raise configexc.ValidationError(
                 values, "List cannot contain always!")
 

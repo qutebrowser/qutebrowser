@@ -824,9 +824,9 @@ class QuteProc(testprocess.Process):
         message = self.wait_for_js('qute:*').message
         if message.endswith('qute:no elems'):
             raise ValueError('No element with {!r} found'.format(text))
-        elif message.endswith('qute:ambiguous elems'):
+        if message.endswith('qute:ambiguous elems'):
             raise ValueError('Element with {!r} is not unique'.format(text))
-        elif not message.endswith('qute:okay'):
+        if not message.endswith('qute:okay'):
             raise ValueError('Invalid response from qutebrowser: {}'
                              .format(message))
 
