@@ -217,7 +217,7 @@ def _process_args(args):
     session_manager = objreg.get('session-manager')
     if not session_manager.did_load:
         log.init.debug("Initializing main window...")
-        private = args.target == 'private-window' or None
+        private = args.target == 'private-window'
         window = mainwindow.MainWindow(private=private)
         if not args.nowindow:
             window.show()

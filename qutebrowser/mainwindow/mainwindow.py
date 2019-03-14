@@ -23,9 +23,10 @@ import binascii
 import base64
 import itertools
 import functools
+import typing
 
 from PyQt5.QtCore import (pyqtSlot, QRect, QPoint, QTimer, Qt,
-                          QCoreApplication, QEventLoop)
+                          QCoreApplication, QEventLoop, QByteArray, QObject)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners
@@ -43,8 +44,11 @@ from qutebrowser.misc import crashsignal, keyhintwidget
 win_id_gen = itertools.count(0)
 
 
-def get_window(via_ipc, force_window=False, force_tab=False,
-               force_target=None, no_raise=False):
+def get_window(via_ipc: bool,
+               force_window: bool = False,
+               force_tab: bool = False,
+               force_target: typing.Optional[bool] = None,
+               no_raise: bool = False):
     """Helper function for app.py to get a window id.
 
     Args:
@@ -83,7 +87,7 @@ def get_window(via_ipc, force_window=False, force_tab=False,
         window = get_target_window()
         should_raise = open_target not in {'tab-silent', 'tab-bg-silent'}
 
-    is_private = open_target == 'private-window' or None
+    is_private = open_target == 'private-window'
 
     # Otherwise, or if no window was found, create a new one
     if window is None:
@@ -147,7 +151,10 @@ class MainWindow(QWidget):
         _private: Whether the window is in private browsing mode.
     """
 
-    def __init__(self, *, private, geometry=None, parent=None):
+    def __init__(self, *,
+                 private: bool,
+                 geometry: typing.Optional[QByteArray] = None,
+                 parent: typing.Optional[QObject] = None) -> None:
         """Create a new main window.
 
         Args:
@@ -163,7 +170,7 @@ class MainWindow(QWidget):
 
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._commandrunner = None
-        self._overlays = []
+        self._overlays = []  # type: typing.List[typing.Tuple]
         self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()
         objreg.window_registry[self.win_id] = self
