@@ -570,22 +570,10 @@ Feature: Using hints
         And I run :leave-mode
         Then the javascript message "true" should be logged
 
-    Scenario: Using hints.mode 'number' with title attribute filtering #1
+    Scenario: Using hints.mode 'number' with title attribute filtering
         When I open data/hints/filter_title.html
         And I set hints.mode to number
-        And I set hints.extended_filter_attrs to ['title']
-         And I hint with args "all"
-        # this actually presses the keys one by one
-        And I press the key "yyi"
-        And I press the key "<Enter>"
-        Then data/hello.txt should be loaded
-
-    Scenario: Using hints.mode 'number' with title attribute filtering #2
-        When I open data/hints/filter_title.html
-        And I set hints.mode to number
-        And I set hints.extended_filter_attrs to ['title']
+        And I set hints.extended_filter_attrs to ["title"]
         And I hint with args "all"
-        # this actually presses the keys one by one
-        And I press the key "yyy"
-        And I press the key "<Enter>"
-        Then /data/numbers/1.txt should be loaded
+        And I press the key "yyi"
+        Then data/hello.txt should be loaded
