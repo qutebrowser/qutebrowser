@@ -36,6 +36,21 @@ Feature: Invoking a new process
               - history:
                 - url: http://localhost:*/data/search.html
 
+    Scenario: Using new_instance_open_target = private-window
+        When I set new_instance_open_target to private-window
+        And I open data/title.html
+        And I open data/search.html as a URL
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/title.html
+            - private: True
+              tabs:
+              - history:
+                - url: http://localhost:*/data/search.html
+
     Scenario: Using new_instance_open_target_window = last-opened
         When I set new_instance_open_target to tab
         And I set new_instance_open_target_window to last-opened
