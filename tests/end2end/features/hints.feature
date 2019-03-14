@@ -569,3 +569,19 @@ Feature: Using hints
         And I run :jseval console.log(document.activeElement.id == "qute-input");
         And I run :leave-mode
         Then the javascript message "true" should be logged
+
+    Scenario: Using hints.mode 'number' with title attribute filtering #1
+        When I open data/hints/filter_title.html
+        And I set hints.mode to number
+        And I set hints.extended_filter_attrs to ['title']
+        And I hint with args "yyi"
+        And I press the key "<Enter>"
+        Then data/hello.txt should be loaded
+
+    Scenario: Using hints.mode 'number' with title attribute filtering #2
+        When I open data/hints/filter_title.html
+        And I set hints.mode to number
+        And I set hints.extended_filter_attrs to ['title']
+        And I hint with args "yyy"
+        And I press the key "<Enter>"
+        Then /data/numbers/1.txt should be loaded
