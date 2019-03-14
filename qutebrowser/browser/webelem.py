@@ -114,6 +114,14 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """
         raise NotImplementedError
 
+    def matches_hint_filter(self, filterstr: str, attrs=['text']) -> str:
+        """Check if 'filter' attribute matches any 'attrs' attributes """
+        raise NotImplementedError
+
+    def attr(self, name: str) -> str:
+        """Get 'name' attribute if exists"""
+        raise NotImplementedError
+
     def outer_xml(self) -> str:
         """Get the full HTML representation of this element."""
         raise NotImplementedError

@@ -1096,15 +1096,16 @@ hints.mode:
 
 hints.extended_filter_attrs:
   default:
-    - "title"
+    - "text"
   type:
     name: List
     valtype:
       name: String
       none_ok: true
       valid_values:
-        - title: "title attribute"
-        - alt: "alt attribute of img elements"
+        - text: "the actual node text"
+        - title: "the 'title' attribute"
+        - alt: "the 'alt' attribute"
   desc: >-
     Specify which HTML element attributes to use additionally when filtering links in `hints.mode` number.
 
