@@ -17,30 +17,23 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""APIs related to intercepting/blocking requests."""
-
-from qutebrowser.extensions import interceptors
-# pylint: disable=unused-import
-from qutebrowser.extensions.interceptors import Request
+"""Test interceptor.py for webengine."""
 
 
-#: Type annotation for an interceptor function.
-InterceptorType = interceptors.InterceptorType
+import pytest
 
-#: Possible resource types for requests sent to interceptor.
-ResourceType = interceptors.ResourceType
+pytest.importorskip('PyQt5.QtWebEngineWidgets')
+
+from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInfo
+
+from qutebrowser.browser.webengine import interceptor
 
 
-def register(interceptor: InterceptorType) -> None:
-    """Register a request interceptor.
+class TestWebengineInterceptor:
 
-    Whenever a request happens, the interceptor gets called with a
-    :class:`Request` object.
-
-    Example::
-
-        def intercept(request: interceptor.Request) -> None:
-            if request.request_url.host() == 'badhost.example.com':
-                request.block()
-    """
-    interceptors.register(interceptor)
+    def test_requestinfo_dict_valid(self):
+        """Test that the RESOURCE_TYPES dict is not missing any values."""
+        qb_keys = interceptor.RequestInterceptor.RESOURCE_TYPES.keys()
+        qt_keys = {i for i in vars(QWebEngineUrlRequestInfo).values()
+                   if isinstance(i, QWebEngineUrlRequestInfo.ResourceType)}
+        assert qt_keys == qb_keys

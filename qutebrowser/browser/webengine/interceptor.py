@@ -33,6 +33,50 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
     """Handle ad blocking and custom headers."""
 
+    # This dict should be from QWebEngine Resource Types to qutebrowser
+    # extension ResourceTypes. If a ResourceType is added to Qt, this table
+    # should be updated too.
+    RESOURCE_TYPES = {
+        QWebEngineUrlRequestInfo.ResourceTypeMainFrame:
+            interceptors.ResourceType.main_frame,
+        QWebEngineUrlRequestInfo.ResourceTypeSubFrame:
+            interceptors.ResourceType.sub_frame,
+        QWebEngineUrlRequestInfo.ResourceTypeStylesheet:
+            interceptors.ResourceType.stylesheet,
+        QWebEngineUrlRequestInfo.ResourceTypeScript:
+            interceptors.ResourceType.script,
+        QWebEngineUrlRequestInfo.ResourceTypeImage:
+            interceptors.ResourceType.image,
+        QWebEngineUrlRequestInfo.ResourceTypeFontResource:
+            interceptors.ResourceType.font_resource,
+        QWebEngineUrlRequestInfo.ResourceTypeSubResource:
+            interceptors.ResourceType.sub_resource,
+        QWebEngineUrlRequestInfo.ResourceTypeObject:
+            interceptors.ResourceType.object,
+        QWebEngineUrlRequestInfo.ResourceTypeMedia:
+            interceptors.ResourceType.media,
+        QWebEngineUrlRequestInfo.ResourceTypeWorker:
+            interceptors.ResourceType.worker,
+        QWebEngineUrlRequestInfo.ResourceTypeSharedWorker:
+            interceptors.ResourceType.shared_worker,
+        QWebEngineUrlRequestInfo.ResourceTypePrefetch:
+            interceptors.ResourceType.prefetch,
+        QWebEngineUrlRequestInfo.ResourceTypeFavicon:
+            interceptors.ResourceType.favicon,
+        QWebEngineUrlRequestInfo.ResourceTypeXhr:
+            interceptors.ResourceType.xhr,
+        QWebEngineUrlRequestInfo.ResourceTypePing:
+            interceptors.ResourceType.ping,
+        QWebEngineUrlRequestInfo.ResourceTypeServiceWorker:
+            interceptors.ResourceType.service_worker,
+        QWebEngineUrlRequestInfo.ResourceTypeCspReport:
+            interceptors.ResourceType.csp_report,
+        QWebEngineUrlRequestInfo.ResourceTypePluginResource:
+            interceptors.ResourceType.plugin_resource,
+        QWebEngineUrlRequestInfo.ResourceTypeUnknown:
+            interceptors.ResourceType.unknown,
+    }
+
     def __init__(self, args, parent=None):
         super().__init__(parent)
         self._args = args
@@ -71,6 +115,17 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
         url = info.requestUrl()
         first_party = info.firstPartyUrl()
+        # Per QWebEngineUrlRequestInfo::ResourceType documentation, if we fail
+        # our lookup, we should fall back to ResourceTypeUnknown
+        try:
+            resource_type = RequestInterceptor.RESOURCE_TYPES[
+                info.resourceType()]
+        except KeyError:
+            log.webview.warning(
+                "Resource type {} not found in RequestInterceptor dict."
+                .format(debug.qenum_key(QWebEngineUrlRequestInfo,
+                                        info.resourceType())))
+            resource_type = interceptors.ResourceType.unknown
 
         if ((url.scheme(), url.host(), url.path()) ==
                 ('qute', 'settings', '/set')):
@@ -85,7 +140,8 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
         # FIXME:qtwebengine only block ads for NavigationTypeOther?
         request = interceptors.Request(first_party_url=first_party,
-                                       request_url=url)
+                                       request_url=url,
+                                       resource_type=resource_type)
         interceptors.run(request)
         if request.is_blocked:
             info.block(True)
