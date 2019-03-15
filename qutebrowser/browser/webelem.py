@@ -114,9 +114,14 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """
         raise NotImplementedError
 
-    def matches_hint_filter(self, filterstr: str, attrs=['text']) -> str:
-        """Check if 'filter' attribute matches the value of any of the
-            'attrs' attributes """
+    def matches_hint_filter(self, filterstr: str, attrs: map = None) -> bool:
+        """Check if filter matches the value of any of the elem attributes.
+        Args:
+            filterstr: the filter string to match.
+            attrs: the list of element attributes to check values for."""
+        if attrs is None:
+            attrs = ['text']
+
         _words = filterstr.split()
         for _attr in attrs:
             if _attr == 'text':
@@ -131,7 +136,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         return False
 
     def attr(self, name: str) -> str:
-        """Get 'name' attribute if exists"""
+        """Get 'name' attribute if exists."""
         raise NotImplementedError
 
     def outer_xml(self) -> str:
