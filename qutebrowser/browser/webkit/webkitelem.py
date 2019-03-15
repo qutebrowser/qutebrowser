@@ -113,7 +113,7 @@ class WebKitElement(webelem.AbstractWebElement):
 
     def attr(self, name: str) -> str:
         """Get 'name' attribute if exists"""
-        return self._js_dict.get('attributes', {}).get(name, '')
+        return self._elem.attribute(name)
 
     def matches_hint_filter(self, filterstr: str, attrs=['text']) -> str:
         """Check if 'filter' attribute matches the value of any of the
