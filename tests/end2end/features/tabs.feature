@@ -387,6 +387,17 @@ Feature: Tab management
             - data/numbers/5.txt
 
 
+    Scenario: :tab-focus last after moving current tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-move 2
+        And I run :tab-focus last
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/3.txt
+            - data/numbers/2.txt (active)
+
     # tab-prev/tab-next
 
     Scenario: :tab-prev
