@@ -292,6 +292,15 @@ Feature: Tab management
         When I run :tab-focus last
         Then the error "No last focused tab!" should be shown
 
+    Scenario: :tab-focus last after moving current tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-move 1
+        And I run :tab-focus last
+        Then the following tabs should be open:
+            - data/numbers/2.txt
+            - data/numbers/1.txt (active)
+
     # tab-prev/tab-next
 
     Scenario: :tab-prev
