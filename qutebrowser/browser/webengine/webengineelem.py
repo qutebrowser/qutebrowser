@@ -134,7 +134,7 @@ class WebEngineElement(webelem.AbstractWebElement):
         return tag.lower()
 
     def attr(self, name: str) -> str:
-        """Get 'name' attribute if exists"""
+        """Get 'name' attribute if exists."""
         return self._js_dict.get('attributes', {}).get(name, '')
 
     def outer_xml(self) -> str:

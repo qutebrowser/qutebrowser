@@ -112,7 +112,7 @@ class WebKitElement(webelem.AbstractWebElement):
         return self._elem.tagName().lower()
 
     def attr(self, name: str) -> str:
-        """Get 'name' attribute if exists"""
+        """Get 'name' attribute if exists."""
         return self._elem.attribute(name)
 
     def outer_xml(self) -> str:
