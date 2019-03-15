@@ -697,6 +697,8 @@ class TabbedBrowser(QWidget):
             log.webview.debug("on_current_changed got called with invalid "
                               "index {}".format(idx))
             return
+        if self._now_focused is tab:
+            return
 
         log.modes.debug("Current tab changed, focusing {!r}".format(tab))
         tab.setFocus()
