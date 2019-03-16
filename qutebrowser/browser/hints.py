@@ -571,8 +571,9 @@ class HintManager(QObject):
                     "'args' is only allowed with target userscript/spawn.")
 
     def _filter_matches(self, filterstr: str, elem):
-        """Return True if `filterstr` matches `elem` text or any of the HTML attributes
-        from the `hints.extended_filter_attrs` configuration list."""
+        """Return True if `filterstr` matches `elem`.
+
+        Using the values in the extended_filter_attrs configuration setting."""
         # Empty string and None always match
         if not filterstr:
             return True
