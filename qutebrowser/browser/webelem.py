@@ -114,11 +114,14 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """
         raise NotImplementedError
 
-    def matches_hint_filter(self, filterstr: str, attrs: map = None) -> bool:
+    def matches_hint_filter(self, filterstr: str, attrs=None) -> bool:
         """Check if filter matches the value of any of the elem attributes.
+
         Args:
-            filterstr: the filter string to match.
-            attrs: the list of element attributes to check values for."""
+            filterstr: The string that we're filtering against.
+            attrs: The element attributes to use in filtering.
+                   This usually is loaded from the configuration.
+        """
         if attrs is None:
             attrs = ['text']
 
