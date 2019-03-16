@@ -71,7 +71,6 @@ class HintLabel(QLabel):
         self.elem = elem
 
         self.setAttribute(Qt.WA_StyledBackground, True)
-        self.setObjectName("hint")
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
         self._move_to_elem()

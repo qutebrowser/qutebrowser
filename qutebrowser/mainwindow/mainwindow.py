@@ -147,7 +147,7 @@ class MainWindow(QWidget):
 
     # Application wide stylesheets
     STYLESHEET = """
-        QLabel#hint {
+        HintLabel {
             background-color: {{ conf.colors.hints.bg }};
             color: {{ conf.colors.hints.fg }};
             font: {{ conf.fonts.hints }};
