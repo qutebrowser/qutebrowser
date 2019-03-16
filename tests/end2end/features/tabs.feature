@@ -553,6 +553,13 @@ Feature: Tab management
                 - url: http://localhost:*/data/title.html
                   title: Test title
 
+    Scenario: :tab-move in insert mode
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :enter-mode insert
+        And I run :tab-move 1
+        Then "Leaving mode KeyMode.insert (reason: tab changed)" should not be logged
+
     # :tab-clone
 
     Scenario: :tab-clone with -b and -w
