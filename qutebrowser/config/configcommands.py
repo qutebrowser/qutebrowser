@@ -275,7 +275,8 @@ class ConfigCommands:
             value: The value to append to the end of the list.
             temp: Add value temporarily until qutebrowser is closed.
         """
-        opt = self._config.get_opt(option)
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
         if not isinstance(opt.typ, valid_list_types):
             raise cmdutils.CommandError(":config-list-add can only be used "
@@ -300,7 +301,8 @@ class ConfigCommands:
             replace: Replace existing values. By default, existing values are
                      not overwritten.
         """
-        opt = self._config.get_opt(option)
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):
             raise cmdutils.CommandError(":config-dict-add can only be used "
                                         "for dicts")
@@ -327,7 +329,8 @@ class ConfigCommands:
             value: The value to remove from the list.
             temp: Remove value temporarily until qutebrowser is closed.
         """
-        opt = self._config.get_opt(option)
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
         if not isinstance(opt.typ, valid_list_types):
             raise cmdutils.CommandError(":config-list-remove can only be used "
@@ -355,7 +358,8 @@ class ConfigCommands:
             key: The key to remove from the dict.
             temp: Remove value temporarily until qutebrowser is closed.
         """
-        opt = self._config.get_opt(option)
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):
             raise cmdutils.CommandError(":config-dict-remove can only be used "
                                         "for dicts")
