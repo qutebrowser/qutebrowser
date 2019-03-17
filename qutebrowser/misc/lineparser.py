@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,12 +21,11 @@
 
 import os
 import os.path
-import itertools
 import contextlib
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
-from qutebrowser.utils import log, utils, objreg, qtutils
+from qutebrowser.utils import log, utils, qtutils
 from qutebrowser.config import config
 
 
@@ -57,10 +56,7 @@ class BaseLineParser(QObject):
         """
         super().__init__(parent)
         self._configdir = configdir
-        if self._configdir is None:
-            self._configfile = None
-        else:
-            self._configfile = os.path.join(self._configdir, fname)
+        self._configfile = os.path.join(self._configdir, fname)
         self._fname = fname
         self._binary = binary
         self._opened = False
@@ -76,10 +72,7 @@ class BaseLineParser(QObject):
         Return:
             True if the file should be saved, False otherwise.
         """
-        if self._configdir is None:
-            return False
-        if not os.path.exists(self._configdir):
-            os.makedirs(self._configdir, 0o755)
+        os.makedirs(self._configdir, 0o755, exist_ok=True)
         return True
 
     def _after_save(self):
@@ -92,10 +85,16 @@ class BaseLineParser(QObject):
 
         Args:
             mode: The mode to use ('a'/'r'/'w')
+
+        Raises:
+            IOError: if the file is already open
+
+        Yields:
+            a file object for the config file
         """
         assert self._configfile is not None
         if self._opened:
-            raise IOError("Refusing to double-open AppendLineParser.")
+            raise IOError("Refusing to double-open LineParser.")
         self._opened = True
         try:
             if self._binary:
@@ -132,73 +131,6 @@ class BaseLineParser(QObject):
         raise NotImplementedError
 
 
-class AppendLineParser(BaseLineParser):
-
-    """LineParser which reads lazily and appends data to existing one.
-
-    Attributes:
-        _new_data: The data which was added in this session.
-    """
-
-    def __init__(self, configdir, fname, *, parent=None):
-        super().__init__(configdir, fname, binary=False, parent=parent)
-        self.new_data = []
-        self._fileobj = None
-
-    def __iter__(self):
-        if self._fileobj is None:
-            raise ValueError("Iterating without open() being called!")
-        file_iter = (line.rstrip('\n') for line in self._fileobj)
-        return itertools.chain(file_iter, iter(self.new_data))
-
-    @contextlib.contextmanager
-    def open(self):
-        """Open the on-disk history file. Needed for __iter__."""
-        try:
-            with self._open('r') as f:
-                self._fileobj = f
-                yield
-        except FileNotFoundError:
-            self._fileobj = []
-            yield
-        finally:
-            self._fileobj = None
-
-    def get_recent(self, count=4096):
-        """Get the last count bytes from the underlying file."""
-        with self._open('r') as f:
-            f.seek(0, os.SEEK_END)
-            size = f.tell()
-            try:
-                if size - count > 0:
-                    offset = size - count
-                else:
-                    offset = 0
-                f.seek(offset)
-                data = f.readlines()
-            finally:
-                f.seek(0, os.SEEK_END)
-        return data
-
-    def save(self):
-        do_save = self._prepare_save()
-        if not do_save:
-            return
-        with self._open('a') as f:
-            self._write(f, self.new_data)
-        self.new_data = []
-        self._after_save()
-
-    def clear(self):
-        do_save = self._prepare_save()
-        if not do_save:
-            return
-        with self._open('w'):
-            pass
-        self.new_data = []
-        self._after_save()
-
-
 class LineParser(BaseLineParser):
 
     """Parser for configuration files which are simply line-based.
@@ -216,7 +148,7 @@ class LineParser(BaseLineParser):
             binary: Whether to open the file in binary mode.
         """
         super().__init__(configdir, fname, binary=binary, parent=parent)
-        if configdir is None or not os.path.isfile(self._configfile):
+        if not os.path.isfile(self._configfile):
             self.data = []
         else:
             log.init.debug("Reading {}".format(self._configfile))
@@ -239,7 +171,7 @@ class LineParser(BaseLineParser):
     def save(self):
         """Save the config file."""
         if self._opened:
-            raise IOError("Refusing to double-open AppendLineParser.")
+            raise IOError("Refusing to double-open LineParser.")
         do_save = self._prepare_save()
         if not do_save:
             return
@@ -262,8 +194,7 @@ class LimitLineParser(LineParser):
     """A LineParser with a limited count of lines.
 
     Attributes:
-        _limit: The config section/option used to limit the maximum number of
-                lines.
+        _limit: The config option used to limit the maximum number of lines.
     """
 
     def __init__(self, configdir, fname, *, limit, binary=False, parent=None):
@@ -272,33 +203,33 @@ class LimitLineParser(LineParser):
         Args:
             configdir: Directory to read the config from, or None.
             fname: Filename of the config file.
-            limit: Config tuple (section, option) which contains a limit.
+            limit: Config option which contains a limit.
             binary: Whether to open the file in binary mode.
         """
         super().__init__(configdir, fname, binary=binary, parent=parent)
         self._limit = limit
         if limit is not None and configdir is not None:
-            objreg.get('config').changed.connect(self.cleanup_file)
+            config.instance.changed.connect(self._cleanup_file)
 
     def __repr__(self):
         return utils.get_repr(self, constructor=True,
                               configdir=self._configdir, fname=self._fname,
                               limit=self._limit, binary=self._binary)
 
-    @pyqtSlot(str, str)
-    def cleanup_file(self, section, option):
+    @pyqtSlot(str)
+    def _cleanup_file(self, option):
         """Delete the file if the limit was changed to 0."""
         assert self._configfile is not None
-        if (section, option) != self._limit:
+        if option != self._limit:
             return
-        value = config.get(section, option)
+        value = config.instance.get(option)
         if value == 0:
             if os.path.exists(self._configfile):
                 os.remove(self._configfile)
 
     def save(self):
         """Save the config file."""
-        limit = config.get(*self._limit)
+        limit = config.instance.get(self._limit)
         if limit == 0:
             return
         do_save = self._prepare_save()

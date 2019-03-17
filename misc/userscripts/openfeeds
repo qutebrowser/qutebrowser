@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 jnphilipp <me@jnphilipp.org>
 #
 # This file is part of qutebrowser.
@@ -20,7 +21,7 @@
 
 # Opens all links to feeds defined in the head of a site
 #
-# Ideal for use with tabs-are-windows. Set a hotkey to launch this script, then:
+# Ideal for use with tabs_are_windows. Set a hotkey to launch this script, then:
 #   :bind gF spawn --userscript openfeeds
 #
 # Use the hotkey to open the feeds in new tab/window, press 'gF' to open

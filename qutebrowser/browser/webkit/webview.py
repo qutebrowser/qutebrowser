@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,17 +19,15 @@
 
 """The main browser widgets."""
 
-import sys
-
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QUrl
+from PyQt5.QtCore import pyqtSignal, Qt, QUrl
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView, QWebPage, QWebFrame
+from PyQt5.QtWebKitWidgets import QWebView, QWebPage
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import log, usertypes, utils, qtutils, objreg, debug
+from qutebrowser.utils import log, usertypes, utils, objreg, debug
 from qutebrowser.browser.webkit import webpage
 
 
@@ -55,30 +53,32 @@ class WebView(QWebView):
     scroll_pos_changed = pyqtSignal(int, int)
     shutting_down = pyqtSignal()
 
-    def __init__(self, win_id, tab_id, tab, parent=None):
+    def __init__(self, *, win_id, tab_id, tab, private, parent=None):
         super().__init__(parent)
-        if sys.platform == 'darwin' and qtutils.version_check('5.4'):
+        if utils.is_mac:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-42948
-            # See https://github.com/The-Compiler/qutebrowser/issues/462
+            # See https://github.com/qutebrowser/qutebrowser/issues/462
             self.setStyle(QStyleFactory.create('Fusion'))
         # FIXME:qtwebengine this is only used to set the zoom factor from
         # the QWebPage - we should get rid of it somehow (signals?)
         self.tab = tab
+        self._tabdata = tab.data
         self.win_id = win_id
         self.scroll_pos = (-1, -1)
         self._old_scroll_pos = (-1, -1)
         self._set_bg_color()
         self._tab_id = tab_id
 
-        page = webpage.BrowserPage(self.win_id, self._tab_id, tab.data,
+        page = webpage.BrowserPage(win_id=self.win_id, tab_id=self._tab_id,
+                                   tabdata=tab.data, private=private,
                                    parent=self)
+        page.setVisibilityState(
+            QWebPage.VisibilityStateVisible if self.isVisible()
+            else QWebPage.VisibilityStateHidden)
+
         self.setPage(page)
 
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=win_id)
-        mode_manager.entered.connect(self.on_mode_entered)
-        mode_manager.left.connect(self.on_mode_left)
-        objreg.get('config').changed.connect(self._set_bg_color)
+        config.instance.changed.connect(self._set_bg_color)
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)
@@ -97,14 +97,10 @@ class WebView(QWebView):
             # deleted
             pass
 
-    @config.change_filter('colors', 'webpage.bg')
+    @config.change_filter('colors.webpage.bg')
     def _set_bg_color(self):
-        """Set the webpage background color as configured.
-
-        FIXME:qtwebengine
-        For QtWebEngine, doing the same has no effect, so we do it in here.
-        """
-        col = config.get('colors', 'webpage.bg')
+        """Set the webpage background color as configured."""
+        col = config.val.colors.webpage.bg
         palette = self.palette()
         if col is None:
             col = self.style().standardPalette().color(QPalette.Base)
@@ -121,56 +117,6 @@ class WebView(QWebView):
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
         self.stop()
         self.page().shutdown()
-
-    def openurl(self, url):
-        """Open a URL in the browser.
-
-        Args:
-            url: The URL to load as QUrl
-        """
-        self.load(url)
-        if url.scheme() == 'qute':
-            frame = self.page().mainFrame()
-            frame.javaScriptWindowObjectCleared.connect(self.add_js_bridge)
-
-    @pyqtSlot()
-    def add_js_bridge(self):
-        """Add the javascript bridge for qute:... pages."""
-        frame = self.sender()
-        if not isinstance(frame, QWebFrame):
-            log.webview.error("Got non-QWebFrame {!r} in "
-                              "add_js_bridge!".format(frame))
-            return
-
-        if frame.url().scheme() == 'qute':
-            bridge = objreg.get('js-bridge')
-            frame.addToJavaScriptWindowObject('qute', bridge)
-
-    @pyqtSlot(usertypes.KeyMode)
-    def on_mode_entered(self, mode):
-        """Ignore attempts to focus the widget if in any status-input mode.
-
-        FIXME:qtwebengine
-        For QtWebEngine, doing the same has no effect, so we do it in here.
-        """
-        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno]:
-            log.webview.debug("Ignoring focus because mode {} was "
-                              "entered.".format(mode))
-            self.setFocusPolicy(Qt.NoFocus)
-
-    @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self, mode):
-        """Restore focus policy if status-input modes were left.
-
-        FIXME:qtwebengine
-        For QtWebEngine, doing the same has no effect, so we do it in here.
-        """
-        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno]:
-            log.webview.debug("Restoring focus policy because mode {} was "
-                              "left.".format(mode))
-        self.setFocusPolicy(Qt.WheelFocus)
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
@@ -240,3 +186,48 @@ class WebView(QWebView):
         self.shutting_down.connect(menu.close)
         modeman.instance(self.win_id).entered.connect(menu.close)
         menu.exec_(e.globalPos())
+
+    def showEvent(self, e):
+        """Extend showEvent to set the page visibility state to visible.
+
+        Args:
+            e: The QShowEvent.
+
+        Return:
+            The superclass event return value.
+        """
+        super().showEvent(e)
+        self.page().setVisibilityState(QWebPage.VisibilityStateVisible)
+
+    def hideEvent(self, e):
+        """Extend hideEvent to set the page visibility state to hidden.
+
+        Args:
+            e: The QHideEvent.
+
+        Return:
+            The superclass event return value.
+        """
+        super().hideEvent(e)
+        self.page().setVisibilityState(QWebPage.VisibilityStateHidden)
+
+    def mousePressEvent(self, e):
+        """Set the tabdata ClickTarget on a mousepress.
+
+        This is implemented here as we don't need it for QtWebEngine.
+        """
+        if e.button() == Qt.MidButton or e.modifiers() & Qt.ControlModifier:
+            background = config.val.tabs.background
+            if e.modifiers() & Qt.ShiftModifier:
+                background = not background
+            if background:
+                target = usertypes.ClickTarget.tab_bg
+            else:
+                target = usertypes.ClickTarget.tab
+            self._tabdata.open_target = target
+            log.mouse.debug("Ctrl/Middle click, setting target: {}".format(
+                target))
+        else:
+            self._tabdata.open_target = usertypes.ClickTarget.normal
+            log.mouse.debug("Normal click, setting normal target")
+        super().mousePressEvent(e)

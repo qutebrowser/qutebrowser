@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,26 +19,43 @@
 
 """Our own QNetworkAccessManager."""
 
-import os
 import collections
-import netrc
+import html
+import typing  # pylint: disable=unused-import
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, PYQT_VERSION, QCoreApplication,
-                          QUrl, QByteArray)
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslError,
-                             QSslSocket)
+import attr
+from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
+                          QByteArray)
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket
 
 from qutebrowser.config import config
-from qutebrowser.utils import (message, log, usertypes, utils, objreg, qtutils,
+
+MYPY = False
+if MYPY:
+    # pylint can't interpret type comments with Python 3.7
+    # pylint: disable=unused-import,useless-suppression
+    from qutebrowser.mainwindow import prompt
+from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)
 from qutebrowser.browser import shared
-from qutebrowser.browser.webkit.network import qutescheme, networkreply
-from qutebrowser.browser.webkit.network import filescheme
+from qutebrowser.extensions import interceptors
+from qutebrowser.browser.webkit import certificateerror
+from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
+                                                filescheme)
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
-ProxyId = collections.namedtuple('ProxyId', 'type, hostname, port')
-_proxy_auth_cache = {}
+_proxy_auth_cache = {}  # type: typing.Dict[ProxyId, prompt.AuthInfo]
+
+
+@attr.s(frozen=True)
+class ProxyId:
+
+    """Information identifying a proxy server."""
+
+    type = attr.ib()
+    hostname = attr.ib()
+    port = attr.ib()
 
 
 def _is_secure_cipher(cipher):
@@ -48,7 +65,7 @@ def _is_secure_cipher(cipher):
         # https://codereview.qt-project.org/#/c/75943/
         return False
     # OpenSSL should already protect against this in a better way
-    elif cipher.keyExchangeMethod() == 'DH' and os.name == 'nt':
+    elif cipher.keyExchangeMethod() == 'DH' and utils.is_windows:
         # https://weakdh.org/
         return False
     elif cipher.encryptionMethod().upper().startswith('RC4'):
@@ -87,15 +104,9 @@ def _is_secure_cipher(cipher):
 
 def init():
     """Disable insecure SSL ciphers on old Qt versions."""
-    if qtutils.version_check('5.3.0'):
-        default_ciphers = QSslSocket.defaultCiphers()
-        log.init.debug("Default Qt ciphers: {}".format(
-            ', '.join(c.name() for c in default_ciphers)))
-    else:
-        # https://codereview.qt-project.org/#/c/75943/
-        default_ciphers = QSslSocket.supportedCiphers()
-        log.init.debug("Supported Qt ciphers: {}".format(
-            ', '.join(c.name() for c in default_ciphers)))
+    default_ciphers = QSslSocket.defaultCiphers()
+    log.init.debug("Default Qt ciphers: {}".format(
+        ', '.join(c.name() for c in default_ciphers)))
 
     good_ciphers = []
     bad_ciphers = []
@@ -110,24 +121,6 @@ def init():
     QSslSocket.setDefaultCiphers(good_ciphers)
 
 
-class SslError(QSslError):
-
-    """A QSslError subclass which provides __hash__ on Qt < 5.4."""
-
-    def __hash__(self):
-        try:
-            # Qt >= 5.4
-            # pylint: disable=not-callable,useless-suppression
-            return super().__hash__()
-        except TypeError:
-            return hash((self.certificate().toDer(), self.error()))
-
-    def __repr__(self):
-        return utils.get_repr(
-            self, error=debug.qenum_key(QSslError, self.error()),
-            string=self.errorString())
-
-
 class NetworkManager(QNetworkAccessManager):
 
     """Our own QNetworkAccessManager.
@@ -138,13 +131,16 @@ class NetworkManager(QNetworkAccessManager):
                            reparented to the DownloadManager. This counts the
                            still running downloads, so the QNAM can clean
                            itself up when this reaches zero again.
-        _requests: Pending requests.
         _scheme_handlers: A dictionary (scheme -> handler) of supported custom
                           schemes.
         _win_id: The window ID this NetworkManager is associated with.
+                 (or None for generic network managers)
         _tab_id: The tab ID this NetworkManager is associated with.
+                 (or None for generic network managers)
         _rejected_ssl_errors: A {QUrl: [SslError]} dict of rejected errors.
         _accepted_ssl_errors: A {QUrl: [SslError]} dict of accepted errors.
+        _private: Whether we're in private browsing mode.
+        netrc_used: Whether netrc authentication was performed.
 
     Signals:
         shutting_down: Emitted when the QNAM is shutting down.
@@ -152,7 +148,7 @@ class NetworkManager(QNetworkAccessManager):
 
     shutting_down = pyqtSignal()
 
-    def __init__(self, win_id, tab_id, parent=None):
+    def __init__(self, *, win_id, tab_id, private, parent=None):
         log.init.debug("Initializing NetworkManager")
         with log.disable_qt_msghandler():
             # WORKAROUND for a hang when a message is printed - See:
@@ -160,14 +156,15 @@ class NetworkManager(QNetworkAccessManager):
             super().__init__(parent)
         log.init.debug("NetworkManager init done")
         self.adopted_downloads = 0
+        self._args = objreg.get('args')
         self._win_id = win_id
         self._tab_id = tab_id
-        self._requests = []
+        self._private = private
         self._scheme_handlers = {
-            'qute': qutescheme.QuteSchemeHandler(win_id),
-            'file': filescheme.FileSchemeHandler(win_id),
+            'qute': webkitqutescheme.handler,
+            'file': filescheme.handler,
         }
-        self._set_cookiejar(private=config.get('general', 'private-browsing'))
+        self._set_cookiejar()
         self._set_cache()
         self.sslErrors.connect(self.on_ssl_errors)
         self._rejected_ssl_errors = collections.defaultdict(list)
@@ -175,15 +172,11 @@ class NetworkManager(QNetworkAccessManager):
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
-        objreg.get('config').changed.connect(self.on_config_changed)
+        self.netrc_used = False
 
-    def _set_cookiejar(self, private=False):
-        """Set the cookie jar of the NetworkManager correctly.
-
-        Args:
-            private: Whether we're currently in private browsing mode.
-        """
-        if private:
+    def _set_cookiejar(self):
+        """Set the cookie jar of the NetworkManager correctly."""
+        if self._private:
             cookie_jar = objreg.get('ram-cookie-jar')
         else:
             cookie_jar = objreg.get('cookie-jar')
@@ -195,11 +188,9 @@ class NetworkManager(QNetworkAccessManager):
         cookie_jar.setParent(app)
 
     def _set_cache(self):
-        """Set the cache of the NetworkManager correctly.
-
-        We can't switch the whole cache in private mode because QNAM would
-        delete the old cache.
-        """
+        """Set the cache of the NetworkManager correctly."""
+        if self._private:
+            return
         # We have a shared cache - we restore its parent so we don't take
         # ownership of it.
         app = QCoreApplication.instance()
@@ -207,47 +198,28 @@ class NetworkManager(QNetworkAccessManager):
         self.setCache(cache)
         cache.setParent(app)
 
-    def _ask(self, text, mode, owner=None):
-        """Ask a blocking question in the statusbar.
-
-        Args:
-            text: The text to display to the user.
-            mode: A PromptMode.
-            owner: An object which will abort the question if destroyed, or
-                   None.
-
-        Return:
-            The answer the user gave or None if the prompt was cancelled.
-        """
-        q = usertypes.Question()
-        q.text = text
-        q.mode = mode
-        self.shutting_down.connect(q.abort)
+    def _get_abort_signals(self, owner=None):
+        """Get a list of signals which should abort a question."""
+        abort_on = [self.shutting_down]
         if owner is not None:
-            owner.destroyed.connect(q.abort)
-
+            abort_on.append(owner.destroyed)
         # This might be a generic network manager, e.g. one belonging to a
         # DownloadManager. In this case, just skip the webview thing.
         if self._tab_id is not None:
+            assert self._win_id is not None
             tab = objreg.get('tab', scope='tab', window=self._win_id,
                              tab=self._tab_id)
-            tab.load_started.connect(q.abort)
-        bridge = objreg.get('message-bridge', scope='window',
-                            window=self._win_id)
-        bridge.ask(q, blocking=True)
-        q.deleteLater()
-        return q.answer
+            abort_on.append(tab.load_started)
+        return abort_on
 
     def shutdown(self):
         """Abort all running requests."""
         self.setNetworkAccessible(QNetworkAccessManager.NotAccessible)
-        for request in self._requests:
-            request.abort()
-            request.deleteLater()
         self.shutting_down.emit()
 
-    @pyqtSlot('QNetworkReply*', 'QList<QSslError>')
-    def on_ssl_errors(self, reply, errors):  # pragma: no mccabe
+    # No @pyqtSlot here, see
+    # https://github.com/qutebrowser/qutebrowser/issues/2213
+    def on_ssl_errors(self, reply, errors):  # noqa: C901 pragma: no mccabe
         """Decide if SSL errors should be ignored or not.
 
         This slot is called on SSL/TLS errors by the self.sslErrors signal.
@@ -256,11 +228,9 @@ class NetworkManager(QNetworkAccessManager):
             reply: The QNetworkReply that is encountering the errors.
             errors: A list of errors.
         """
-        errors = [SslError(e) for e in errors]
-        ssl_strict = config.get('network', 'ssl-strict')
-        log.webview.debug("SSL errors {!r}, strict {}".format(
-            errors, ssl_strict))
-
+        errors = [certificateerror.CertificateErrorWrapper(e) for e in errors]
+        log.webview.debug("Certificate errors: {!r}".format(
+            ' / '.join(str(err) for err in errors)))
         try:
             host_tpl = urlutils.host_tuple(reply.url())
         except ValueError:
@@ -276,33 +246,22 @@ class NetworkManager(QNetworkAccessManager):
         log.webview.debug("Already accepted: {} / "
                           "rejected {}".format(is_accepted, is_rejected))
 
-        if (ssl_strict and ssl_strict != 'ask') or is_rejected:
+        if is_rejected:
             return
         elif is_accepted:
             reply.ignoreSslErrors()
             return
 
-        if ssl_strict == 'ask':
-            err_string = '\n'.join('- ' + err.errorString() for err in errors)
-            answer = self._ask('SSL errors - continue?\n{}'.format(err_string),
-                               mode=usertypes.PromptMode.yesno, owner=reply)
-            log.webview.debug("Asked for SSL errors, answer {}".format(answer))
-            if answer:
-                reply.ignoreSslErrors()
-                err_dict = self._accepted_ssl_errors
-            else:
-                err_dict = self._rejected_ssl_errors
-            if host_tpl is not None:
-                err_dict[host_tpl] += errors
-        else:
-            log.webview.debug("ssl-strict is False, only warning about errors")
-            for err in errors:
-                # FIXME we might want to use warn here (non-fatal error)
-                # https://github.com/The-Compiler/qutebrowser/issues/114
-                message.error(self._win_id, 'SSL error: {}'.format(
-                    err.errorString()))
+        abort_on = self._get_abort_signals(reply)
+        ignore = shared.ignore_certificate_errors(reply.url(), errors,
+                                                  abort_on=abort_on)
+        if ignore:
             reply.ignoreSslErrors()
-            self._accepted_ssl_errors[host_tpl] += errors
+            err_dict = self._accepted_ssl_errors
+        else:
+            err_dict = self._rejected_ssl_errors
+        if host_tpl is not None:
+            err_dict[host_tpl] += errors
 
     def clear_all_ssl_errors(self):
         """Clear all remembered SSL errors."""
@@ -324,62 +283,41 @@ class NetworkManager(QNetworkAccessManager):
     @pyqtSlot('QNetworkReply*', 'QAuthenticator*')
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
-        user, password = None, None
-        if not hasattr(reply, "netrc_used") and 'HOME' in os.environ:
-            # We'll get an OSError by netrc if 'HOME' isn't available in
-            # os.environ. We don't want to log that, so we prevent it
-            # altogether.
-            reply.netrc_used = True
-            try:
-                net = netrc.netrc()
-                authenticators = net.authenticators(reply.url().host())
-                if authenticators is not None:
-                    (user, _account, password) = authenticators
-            except FileNotFoundError:
-                log.misc.debug("No .netrc file found")
-            except OSError:
-                log.misc.exception("Unable to read the netrc file")
-            except netrc.NetrcParseError:
-                log.misc.exception("Error when parsing the netrc file")
+        url = reply.url()
+        log.network.debug("Authentication requested for {}, netrc_used {}"
+                          .format(url.toDisplayString(), self.netrc_used))
 
-        if user is None:
-            # netrc check failed
-            answer = self._ask("Username ({}):".format(authenticator.realm()),
-                               mode=usertypes.PromptMode.user_pwd,
-                               owner=reply)
-            if answer is not None:
-                user, password = answer.user, answer.password
-        if user is not None:
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
+        netrc_success = False
+        if not self.netrc_used:
+            self.netrc_used = True
+            netrc_success = shared.netrc_authentication(url, authenticator)
+
+        if not netrc_success:
+            log.network.debug("Asking for credentials")
+            abort_on = self._get_abort_signals(reply)
+            shared.authentication_required(url, authenticator,
+                                           abort_on=abort_on)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator*')
     def on_proxy_authentication_required(self, proxy, authenticator):
         """Called when a proxy needs authentication."""
         proxy_id = ProxyId(proxy.type(), proxy.hostName(), proxy.port())
         if proxy_id in _proxy_auth_cache:
-            user, password = _proxy_auth_cache[proxy_id]
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
+            authinfo = _proxy_auth_cache[proxy_id]
+            authenticator.setUser(authinfo.user)
+            authenticator.setPassword(authinfo.password)
         else:
-            answer = self._ask(
-                "Proxy username ({}):".format(authenticator.realm()),
-                mode=usertypes.PromptMode.user_pwd)
+            msg = '<b>{}</b> says:<br/>{}'.format(
+                html.escape(proxy.hostName()),
+                html.escape(authenticator.realm()))
+            abort_on = self._get_abort_signals()
+            answer = message.ask(
+                title="Proxy authentication required", text=msg,
+                mode=usertypes.PromptMode.user_pwd, abort_on=abort_on)
             if answer is not None:
                 authenticator.setUser(answer.user)
                 authenticator.setPassword(answer.password)
                 _proxy_auth_cache[proxy_id] = answer
-
-    @config.change_filter('general', 'private-browsing')
-    def on_config_changed(self):
-        """Set cookie jar when entering/leaving private browsing mode."""
-        private_browsing = config.get('general', 'private-browsing')
-        if private_browsing:
-            # switched from normal mode to private mode
-            self._set_cookiejar(private=True)
-        else:
-            # switched from private mode to normal mode
-            self._set_cookiejar()
 
     @pyqtSlot()
     def on_adopted_download_destroyed(self):
@@ -401,11 +339,11 @@ class NetworkManager(QNetworkAccessManager):
         log.downloads.debug("Adopted download, {} adopted.".format(
             self.adopted_downloads))
         download.destroyed.connect(self.on_adopted_download_destroyed)
-        download.do_retry.connect(self.adopt_download)
+        download.adopt_download.connect(self.adopt_download)
 
     def set_referer(self, req, current_url):
         """Set the referer header."""
-        referer_header_conf = config.get('network', 'referer-header')
+        referer_header_conf = config.val.content.headers.referer
 
         try:
             if referer_header_conf == 'never':
@@ -432,9 +370,6 @@ class NetworkManager(QNetworkAccessManager):
     def createRequest(self, op, req, outgoing_data):
         """Return a new QNetworkReply object.
 
-        Extend QNetworkAccessManager::createRequest to save requests in
-        self._requests and handle custom schemes.
-
         Args:
              op: Operation op
              req: const QNetworkRequest & req
@@ -443,24 +378,16 @@ class NetworkManager(QNetworkAccessManager):
         Return:
             A QNetworkReply.
         """
-        scheme = req.url().scheme()
-        if scheme in self._scheme_handlers:
-            result = self._scheme_handlers[scheme].createRequest(
-                op, req, outgoing_data)
-            if result is not None:
-                return result
+        proxy_factory = objreg.get('proxy-factory', None)
+        if proxy_factory is not None:
+            proxy_error = proxy_factory.get_error()
+            if proxy_error is not None:
+                return networkreply.ErrorNetworkReply(
+                    req, proxy_error, QNetworkReply.UnknownProxyError,
+                    self)
 
-        for header, value in shared.custom_headers():
+        for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
-
-        host_blocker = objreg.get('host-blocker')
-        if (op == QNetworkAccessManager.GetOperation and
-                host_blocker.is_blocked(req.url())):
-            log.webview.info("Request to {} blocked by host blocker.".format(
-                req.url().host()))
-            return networkreply.ErrorNetworkReply(
-                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
-                self)
 
         # There are some scenarios where we can't figure out current_url:
         # - There's a generic NetworkManager, e.g. for downloads
@@ -468,30 +395,39 @@ class NetworkManager(QNetworkAccessManager):
         current_url = QUrl()
 
         if self._tab_id is not None:
+            assert self._win_id is not None
             try:
                 tab = objreg.get('tab', scope='tab', window=self._win_id,
                                  tab=self._tab_id)
                 current_url = tab.url()
-            except (KeyError, RuntimeError, TypeError):
-                # https://github.com/The-Compiler/qutebrowser/issues/889
-                # Catching RuntimeError and TypeError because we could be in
-                # the middle of the webpage shutdown here.
+            except (KeyError, RuntimeError):
+                # https://github.com/qutebrowser/qutebrowser/issues/889
+                # Catching RuntimeError because we could be in the middle of
+                # the webpage shutdown here.
                 current_url = QUrl()
 
-        self.set_referer(req, current_url)
+        request = interceptors.Request(first_party_url=current_url,
+                                       request_url=req.url())
+        interceptors.run(request)
+        if request.is_blocked:
+            return networkreply.ErrorNetworkReply(
+                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
+                self)
 
-        if PYQT_VERSION < 0x050301:
-            # WORKAROUND (remove this when we bump the requirements to 5.3.1)
-            #
-            # If we don't disable our message handler, we get a freeze if a
-            # warning is printed due to a PyQt bug, e.g. when clicking a
-            # currency on http://ch.mouser.com/localsites/
-            #
-            # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034420.html
-            with log.disable_qt_msghandler():
-                reply = super().createRequest(op, req, outgoing_data)
-        else:
-            reply = super().createRequest(op, req, outgoing_data)
-        self._requests.append(reply)
-        reply.destroyed.connect(self._requests.remove)
-        return reply
+        if 'log-requests' in self._args.debug_flags:
+            operation = debug.qenum_key(QNetworkAccessManager, op)
+            operation = operation.replace('Operation', '').upper()
+            log.webview.debug("{} {}, first-party {}".format(
+                operation,
+                req.url().toDisplayString(),
+                current_url.toDisplayString()))
+
+        scheme = req.url().scheme()
+        if scheme in self._scheme_handlers:
+            result = self._scheme_handlers[scheme](req, op, current_url)
+            if result is not None:
+                result.setParent(self)
+                return result
+
+        self.set_referer(req, current_url)
+        return super().createRequest(op, req, outgoing_data)

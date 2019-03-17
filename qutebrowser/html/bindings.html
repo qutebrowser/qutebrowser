@@ -1,0 +1,32 @@
+{% extends "styled.html" %}
+
+{% block style %}
+{{ super() }}
+th { text-align:left; }
+.key { width: 25%; }
+.command { width: 75% }
+{% endblock %}
+
+{% block content %}
+<header><h1>{{ title }}</h1></header>
+{% for mode, binding in bindings.items() %}
+<h2>{{ mode | capitalize }} mode</h2>
+<table>
+    <tr>
+        <th>Key</th>
+        <th>Command</th>
+    </tr>
+  {% for key,command in binding.items() %}
+    <tr>
+      <td class="key">
+        <p>{{ key }}</p>
+      </td>
+      <td class="command">
+        <p>{{ command }}</p>
+      </td>
+    </tr>
+  {% endfor %}
+</table>
+{% endfor %}
+
+{% endblock %}

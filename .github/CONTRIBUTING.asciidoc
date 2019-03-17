@@ -1,0 +1,19 @@
+IMPORTANT: *Currently, bigger changes are going on in qutebrowser, as
+part of a
+https://lists.schokokeks.org/pipermail/qutebrowser-announce/2018-September/000051.html[student research project]
+about adding a plugin API to qutebrowser and moving a lot of code from the code
+into plugins.* Due to that, bandwidth for pull request review is currently
+very limited, and contributions might lead to merge conflicts due to
+ongoing refactorings.
+
+- Before you start to work on something, please leave a comment on the relevant
+  issue (or open one). This makes sure there is no duplicate work done.
+
+- Either run the testsuite locally, or keep an eye on Travis CI / AppVeyor
+  after pushing changes.
+
+- If you are stuck somewhere or have questions,
+  https://github.com/qutebrowser/qutebrowser#getting-help[please ask]!
+
+See the link:../doc/contributing.asciidoc[full contribution documentation] for
+details and other useful hints.

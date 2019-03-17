@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,18 +27,27 @@ import getpass
 import fnmatch
 import traceback
 import datetime
+import enum
 
 import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
                              QVBoxLayout, QHBoxLayout, QCheckBox,
-                             QDialogButtonBox, QMessageBox, QApplication)
+                             QDialogButtonBox, QApplication, QMessageBox)
 
 import qutebrowser
 from qutebrowser.utils import version, log, utils, objreg
 from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
                               pastebin)
-from qutebrowser.config import config
+from qutebrowser.config import config, configfiles
+
+
+class Result(enum.IntEnum):
+
+    """The result code returned by the crash dialog."""
+
+    restore = QDialog.Accepted + 1
+    no_restore = QDialog.Accepted + 2
 
 
 def parse_fatal_stacktrace(text):
@@ -52,54 +61,28 @@ def parse_fatal_stacktrace(text):
         element being the first stacktrace frame.
     """
     lines = [
-        r'Fatal Python error: (.*)',
+        r'(?P<type>Fatal Python error|Windows fatal exception): (?P<msg>.*)',
         r' *',
         r'(Current )?[Tt]hread [^ ]* \(most recent call first\): *',
-        r'  File ".*", line \d+ in (.*)',
+        r'  File ".*", line \d+ in (?P<func>.*)',
     ]
-    m = re.match('\n'.join(lines), text)
+    m = re.search('\n'.join(lines), text)
     if m is None:
         # We got some invalid text.
         return ('', '')
     else:
-        return (m.group(1), m.group(3))
-
-
-def get_fatal_crash_dialog(debug, data):
-    """Get a fatal crash dialog based on a crash log.
-
-    If the crash is a segfault in qt_mainloop and we're on an old Qt version
-    this is a simple error dialog which lets the user know they should upgrade
-    if possible.
-
-    If it's anything else, it's a normal FatalCrashDialog with the possibility
-    to report the crash.
-
-    Args:
-        debug: Whether the debug flag (--debug) was given.
-        data: The crash log data.
-    """
-    ignored_frames = ['qt_mainloop', 'paintEvent']
-    errtype, frame = parse_fatal_stacktrace(data)
-
-    if errtype == 'Segmentation fault' and frame in ignored_frames:
-        title = "qutebrowser was restarted after a fatal crash!"
-        text = ("<b>qutebrowser was restarted after a fatal crash!</b><br/>"
-                "Unfortunately, this crash occurred in Qt (the library "
-                "qutebrowser uses), and QtWebKit (the current backend) is not "
-                "maintained anymore.<br/><br/>Since I can't do much about "
-                "those crashes I disabled the crash reporter for this case, "
-                "but this will likely be resolved in the future with the new "
-                "QtWebEngine backend.")
-        return QMessageBox(QMessageBox.Critical, title, text, QMessageBox.Ok)
-    else:
-        return FatalCrashDialog(debug, data)
+        msg = m.group('msg')
+        typ = m.group('type')
+        func = m.group('func')
+        if typ == 'Windows fatal exception':
+            msg = 'Windows ' + msg
+        return msg, func
 
 
 def _get_environment_vars():
     """Gather environment variables for the crash info."""
     masks = ('DESKTOP_SESSION', 'DE', 'QT_*', 'PYTHON*', 'LC_*', 'LANG',
-             'XDG_*', 'QUTE_*')
+             'XDG_*', 'QUTE_*', 'PATH')
     info = []
     for key, value in os.environ.items():
         for m in masks:
@@ -148,22 +131,7 @@ class _CrashDialog(QDialog):
         self._pypi_client = autoupdate.PyPIVersionClient(self)
         self._init_text()
 
-        contact = QLabel("I'd like to be able to follow up with you, to keep "
-                         "you posted on the status of this crash and get more "
-                         "information if I need it - how can I contact you?",
-                         wordWrap=True)
-        self._vbox.addWidget(contact)
-        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
-        try:
-            state = objreg.get('state-config')
-            try:
-                self._contact.setPlainText(state['general']['contact-info'])
-            except KeyError:
-                self._contact.setPlaceholderText("Mail or IRC nickname")
-        except Exception:
-            log.misc.exception("Failed to get contact information!")
-            self._contact.setPlaceholderText("Mail or IRC nickname")
-        self._vbox.addWidget(self._contact, 2)
+        self._init_contact_input()
 
         info = QLabel("What were you doing when this crash/bug happened?")
         self._vbox.addWidget(info)
@@ -194,8 +162,33 @@ class _CrashDialog(QDialog):
         self._init_info_text()
         self._init_buttons()
 
+    def keyPressEvent(self, e):
+        """Prevent closing :report dialogs when pressing <Escape>."""
+        if config.val.input.escape_quits_reporter or e.key() != Qt.Key_Escape:
+            super().keyPressEvent(e)
+
     def __repr__(self):
         return utils.get_repr(self)
+
+    def _init_contact_input(self):
+        """Initialize the widget asking for contact info."""
+        contact = QLabel("I'd like to be able to follow up with you, to keep "
+                         "you posted on the status of this crash and get more "
+                         "information if I need it - how can I contact you?",
+                         wordWrap=True)
+        self._vbox.addWidget(contact)
+        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
+        try:
+            try:
+                info = configfiles.state['general']['contact-info']
+            except KeyError:
+                self._contact.setPlaceholderText("Mail or IRC nickname")
+            else:
+                self._contact.setPlainText(info)
+        except Exception:
+            log.misc.exception("Failed to get contact information!")
+            self._contact.setPlaceholderText("Mail or IRC nickname")
+        self._vbox.addWidget(self._contact, 2)
 
     def _init_text(self):
         """Initialize the main text to be displayed on an exception.
@@ -208,7 +201,6 @@ class _CrashDialog(QDialog):
 
     def _init_checkboxes(self):
         """Initialize the checkboxes."""
-        pass
 
     def _init_buttons(self):
         """Initialize the buttons."""
@@ -226,8 +218,7 @@ class _CrashDialog(QDialog):
     def _init_info_text(self):
         """Add an info text encouraging the user to report crashes."""
         info_label = QLabel("<br/><b>Note that without your help, I can't fix "
-                            "the bug you encountered.<br/> Crash reports are "
-                            "currently publicly accessible.</b>",
+                            "the bug you encountered.</b>",
                             wordWrap=True)
         self._vbox.addWidget(info_label)
 
@@ -252,8 +243,8 @@ class _CrashDialog(QDialog):
         except Exception:
             self._crash_info.append(("Version info", traceback.format_exc()))
         try:
-            conf = objreg.get('config')
-            self._crash_info.append(("Config", conf.dump_userconfig()))
+            self._crash_info.append(("Config",
+                                     config.instance.dump_userconfig()))
         except Exception:
             self._crash_info.append(("Config", traceback.format_exc()))
         try:
@@ -293,8 +284,8 @@ class _CrashDialog(QDialog):
     def _save_contact_info(self):
         """Save the contact info to disk."""
         try:
-            state = objreg.get('state-config')
-            state['general']['contact-info'] = self._contact.toPlainText()
+            info = self._contact.toPlainText()
+            configfiles.state['general']['contact-info'] = info
         except Exception:
             log.misc.exception("Failed to save contact information!")
 
@@ -310,7 +301,7 @@ class _CrashDialog(QDialog):
         self._paste_text = '\n\n'.join(lines)
         try:
             user = getpass.getuser()
-        except Exception as e:
+        except Exception:
             log.misc.exception("Error while getting user")
             user = 'unknown'
         try:
@@ -365,7 +356,6 @@ class _CrashDialog(QDialog):
                          "but you're currently running v{} - please "
                          "update!".format(newest, qutebrowser.__version__))
         text = '<br/><br/>'.join(lines)
-        self.finish()
         msgbox.information(self, "Report successfully sent!", text,
                            on_finished=self.finish, plain_text=False)
 
@@ -379,10 +369,9 @@ class _CrashDialog(QDialog):
         lines = ['The report has been sent successfully. Thanks!']
         lines.append("There was an error while getting the newest version: "
                      "{}. Please check for a new version on "
-                     "<a href=http://www.qutebrowser.org/>qutebrowser.org</a> "
+                     "<a href=https://www.qutebrowser.org/>qutebrowser.org</a> "
                      "by yourself.".format(msg))
         text = '<br/><br/>'.join(lines)
-        self.finish()
         msgbox.information(self, "Report successfully sent!", text,
                            on_finished=self.finish, plain_text=False)
 
@@ -401,17 +390,17 @@ class ExceptionCrashDialog(_CrashDialog):
         _pages: A list of lists of the open pages (URLs as strings)
         _cmdhist: A list with the command history (as strings)
         _exc: An exception tuple (type, value, traceback)
-        _objects: A list of all QObjects as string.
+        _qobjects: A list of all QObjects as string.
     """
 
-    def __init__(self, debug, pages, cmdhist, exc, objects, parent=None):
+    def __init__(self, debug, pages, cmdhist, exc, qobjects, parent=None):
         self._chk_log = None
         self._chk_restore = None
         super().__init__(debug, parent)
         self._pages = pages
         self._cmdhist = cmdhist
         self._exc = exc
-        self._objects = objects
+        self._qobjects = qobjects
         self.setModal(True)
         self._set_crash_info()
 
@@ -429,7 +418,7 @@ class ExceptionCrashDialog(_CrashDialog):
         self._chk_log = QCheckBox("Include a debug log in the report",
                                   checked=True)
         try:
-            if config.get('general', 'private-browsing'):
+            if config.val.content.private_browsing:
                 self._chk_log.setChecked(False)
         except Exception:
             log.misc.exception("Error while checking private browsing mode")
@@ -458,7 +447,7 @@ class ExceptionCrashDialog(_CrashDialog):
                 ("Commandline args", ' '.join(sys.argv[1:])),
                 ("Open Pages", '\n\n'.join('\n'.join(e) for e in self._pages)),
                 ("Command history", '\n'.join(self._cmdhist)),
-                ("Objects", self._objects),
+                ("Objects", self._qobjects),
             ]
             try:
                 self._crash_info.append(
@@ -470,9 +459,9 @@ class ExceptionCrashDialog(_CrashDialog):
     def finish(self):
         self._save_contact_info()
         if self._chk_restore.isChecked():
-            self.accept()
+            self.done(Result.restore)
         else:
-            self.reject()
+            self.done(Result.no_restore)
 
 
 class FatalCrashDialog(_CrashDialog):
@@ -496,7 +485,8 @@ class FatalCrashDialog(_CrashDialog):
         self._type, self._func = parse_fatal_stacktrace(self._log)
 
     def _get_error_type(self):
-        if self._type == 'Segmentation fault':
+        if self._type in ['Segmentation fault',
+                          'Windows access violation']:
             return 'segv'
         else:
             return self._type
@@ -521,7 +511,7 @@ class FatalCrashDialog(_CrashDialog):
                                       "accessed pages in the report.",
                                       checked=True)
         try:
-            if config.get('general', 'private-browsing'):
+            if config.val.content.private_browsing:
                 self._chk_history.setChecked(False)
         except Exception:
             log.misc.exception("Error while checking private browsing mode")
@@ -534,9 +524,27 @@ class FatalCrashDialog(_CrashDialog):
         if self._chk_history.isChecked():
             try:
                 history = objreg.get('web-history').get_recent()
-                self._crash_info.append(("History", ''.join(history)))
+                self._crash_info.append(("History",
+                                         '\n'.join(str(e) for e in history)))
             except Exception:
                 self._crash_info.append(("History", traceback.format_exc()))
+
+    @pyqtSlot()
+    def on_report_clicked(self):
+        """Prevent empty reports."""
+        if (not self._info.toPlainText().strip() and
+                not self._contact.toPlainText().strip() and
+                self._get_error_type() == 'segv' and
+                self._func == 'qt_mainloop'):
+            msgbox.msgbox(parent=self, title='Empty crash info',
+                          text="Empty reports for fatal crashes are useless "
+                          "and mean I'll spend time deleting reports I could "
+                          "spend on developing qutebrowser instead.\n\nPlease "
+                          "help making qutebrowser better by providing more "
+                          "information, or don't report this.",
+                          icon=QMessageBox.Critical)
+        else:
+            super().on_report_clicked()
 
 
 class ReportDialog(_CrashDialog):
@@ -546,15 +554,15 @@ class ReportDialog(_CrashDialog):
     Attributes:
         _pages: A list of the open pages (URLs as strings)
         _cmdhist: A list with the command history (as strings)
-        _objects: A list of all QObjects as string.
+        _qobjects: A list of all QObjects as string.
     """
 
-    def __init__(self, pages, cmdhist, objects, parent=None):
+    def __init__(self, pages, cmdhist, qobjects, parent=None):
         super().__init__(False, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._pages = pages
         self._cmdhist = cmdhist
-        self._objects = objects
+        self._qobjects = qobjects
         self._set_crash_info()
 
     def _init_text(self):
@@ -564,7 +572,6 @@ class ReportDialog(_CrashDialog):
 
     def _init_info_text(self):
         """We don't want an info text as the user wanted to report."""
-        pass
 
     def _get_error_type(self):
         return 'report'
@@ -575,7 +582,7 @@ class ReportDialog(_CrashDialog):
             ("Commandline args", ' '.join(sys.argv[1:])),
             ("Open Pages", '\n\n'.join('\n'.join(e) for e in self._pages)),
             ("Command history", '\n'.join(self._cmdhist)),
-            ("Objects", self._objects),
+            ("Objects", self._qobjects),
         ]
         try:
             self._crash_info.append(("Debug log", log.ram_handler.dump_log()))
@@ -611,14 +618,14 @@ class ReportErrorDialog(QDialog):
         vbox.addLayout(hbox)
 
 
-def dump_exception_info(exc, pages, cmdhist, objects):
+def dump_exception_info(exc, pages, cmdhist, qobjects):
     """Dump exception info to stderr.
 
     Args:
         exc: An exception tuple (type, value, traceback)
         pages: A list of lists of the open pages (URLs as strings)
         cmdhist: A list with the command history (as strings)
-        objects: A list of all QObjects as string.
+        qobjects: A list of all QObjects as string.
     """
     print(file=sys.stderr)
     print("\n\n===== Handling exception with --no-err-windows... =====\n\n",
@@ -632,8 +639,7 @@ def dump_exception_info(exc, pages, cmdhist, objects):
         traceback.print_exc()
     print("\n---- Config ----", file=sys.stderr)
     try:
-        conf = objreg.get('config')
-        print(conf.dump_userconfig(), file=sys.stderr)
+        print(config.instance.dump_userconfig(), file=sys.stderr)
     except Exception:
         traceback.print_exc()
     print("\n---- Commandline args ----", file=sys.stderr)
@@ -643,7 +649,7 @@ def dump_exception_info(exc, pages, cmdhist, objects):
     print("\n---- Command history ----", file=sys.stderr)
     print('\n'.join(cmdhist), file=sys.stderr)
     print("\n---- Objects ----", file=sys.stderr)
-    print(objects, file=sys.stderr)
+    print(qobjects, file=sys.stderr)
     print("\n---- Environment ----", file=sys.stderr)
     try:
         print(_get_environment_vars(), file=sys.stderr)

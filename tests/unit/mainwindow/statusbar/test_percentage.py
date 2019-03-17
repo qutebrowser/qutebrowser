@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -33,15 +33,21 @@ def percentage(qtbot):
     return widget
 
 
-@pytest.mark.parametrize('y, expected', [
-    (0, '[top]'),
-    (100, '[bot]'),
-    (75, '[75%]'),
-    (25, '[25%]'),
-    (5, '[ 5%]'),
-    (None, '[???]'),
+@pytest.mark.parametrize('y, raw, expected', [
+    (0, False, '[top]'),
+    (100, False, '[bot]'),
+    (75, False, '[75%]'),
+    (25, False, '[25%]'),
+    (5, False, '[05%]'),
+    (None, False, '[???]'),
+    (0, True, '[top]'),
+    (100, True, '[bot]'),
+    (75, True, '[75]'),
+    (25, True, '[25]'),
+    (5, True, '[05]'),
+    (None, True, '[???]'),
 ])
-def test_percentage_text(percentage, y, expected):
+def test_percentage_text(percentage, y, raw, expected):
     """Test text displayed by the widget based on the y position of a page.
 
     Args:
@@ -49,6 +55,7 @@ def test_percentage_text(percentage, y, expected):
            parametrized.
         expected: expected text given y position. parametrized.
     """
+    percentage.raw = raw
     percentage.set_perc(x=None, y=y)
     assert percentage.text() == expected
 

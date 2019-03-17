@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,90 +26,162 @@ Module attributes:
 
 import os.path
 
+from PyQt5.QtGui import QFont
 from PyQt5.QtWebKit import QWebSettings
 
 from qutebrowser.config import config, websettings
-from qutebrowser.utils import standarddir, objreg
+from qutebrowser.config.websettings import AttributeInfo as Attr
+from qutebrowser.utils import standarddir, urlutils
+from qutebrowser.browser import shared
 
 
-class Attribute(websettings.Attribute):
-
-    """A setting set via QWebSettings::setAttribute."""
-
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
-    ENUM_BASE = QWebSettings
+# The global WebKitSettings object
+global_settings = None
 
 
-class Setter(websettings.Setter):
+class WebKitSettings(websettings.AbstractSettings):
 
-    """A setting set via QWebSettings getter/setter methods."""
+    """A wrapper for the config for QWebSettings."""
 
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
+    _ATTRIBUTES = {
+        'content.images':
+            Attr(QWebSettings.AutoLoadImages),
+        'content.javascript.enabled':
+            Attr(QWebSettings.JavascriptEnabled),
+        'content.javascript.can_open_tabs_automatically':
+            Attr(QWebSettings.JavascriptCanOpenWindows),
+        'content.javascript.can_close_tabs':
+            Attr(QWebSettings.JavascriptCanCloseWindows),
+        'content.javascript.can_access_clipboard':
+            Attr(QWebSettings.JavascriptCanAccessClipboard),
+        'content.plugins':
+            Attr(QWebSettings.PluginsEnabled),
+        'content.webgl':
+            Attr(QWebSettings.WebGLEnabled),
+        'content.hyperlink_auditing':
+            Attr(QWebSettings.HyperlinkAuditingEnabled),
+        'content.local_content_can_access_remote_urls':
+            Attr(QWebSettings.LocalContentCanAccessRemoteUrls),
+        'content.local_content_can_access_file_urls':
+            Attr(QWebSettings.LocalContentCanAccessFileUrls),
+        'content.dns_prefetch':
+            Attr(QWebSettings.DnsPrefetchEnabled),
+        'content.frame_flattening':
+            Attr(QWebSettings.FrameFlatteningEnabled),
+        'content.cache.appcache':
+            Attr(QWebSettings.OfflineWebApplicationCacheEnabled),
+        'content.local_storage':
+            Attr(QWebSettings.LocalStorageEnabled,
+                 QWebSettings.OfflineStorageDatabaseEnabled),
+        'content.print_element_backgrounds':
+            Attr(QWebSettings.PrintElementBackgrounds),
+        'content.xss_auditing':
+            Attr(QWebSettings.XSSAuditingEnabled),
+
+        'input.spatial_navigation':
+            Attr(QWebSettings.SpatialNavigationEnabled),
+        'input.links_included_in_focus_chain':
+            Attr(QWebSettings.LinksIncludedInFocusChain),
+
+        'zoom.text_only':
+            Attr(QWebSettings.ZoomTextOnly),
+        'scrolling.smooth':
+            Attr(QWebSettings.ScrollAnimatorEnabled),
+    }
+
+    _FONT_SIZES = {
+        'fonts.web.size.minimum':
+            QWebSettings.MinimumFontSize,
+        'fonts.web.size.minimum_logical':
+            QWebSettings.MinimumLogicalFontSize,
+        'fonts.web.size.default':
+            QWebSettings.DefaultFontSize,
+        'fonts.web.size.default_fixed':
+            QWebSettings.DefaultFixedFontSize,
+    }
+
+    _FONT_FAMILIES = {
+        'fonts.web.family.standard': QWebSettings.StandardFont,
+        'fonts.web.family.fixed': QWebSettings.FixedFont,
+        'fonts.web.family.serif': QWebSettings.SerifFont,
+        'fonts.web.family.sans_serif': QWebSettings.SansSerifFont,
+        'fonts.web.family.cursive': QWebSettings.CursiveFont,
+        'fonts.web.family.fantasy': QWebSettings.FantasyFont,
+    }
+
+    # Mapping from QWebSettings::QWebSettings() in
+    # qtwebkit/Source/WebKit/qt/Api/qwebsettings.cpp
+    _FONT_TO_QFONT = {
+        QWebSettings.StandardFont: QFont.Serif,
+        QWebSettings.FixedFont: QFont.Monospace,
+        QWebSettings.SerifFont: QFont.Serif,
+        QWebSettings.SansSerifFont: QFont.SansSerif,
+        QWebSettings.CursiveFont: QFont.Cursive,
+        QWebSettings.FantasyFont: QFont.Fantasy,
+    }
 
 
-class NullStringSetter(websettings.NullStringSetter):
-
-    """A setter for settings requiring a null QString as default."""
-
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
-
-
-class StaticSetter(websettings.StaticSetter):
-
-    """A setting set via static QWebSettings getter/setter methods."""
-
-    GLOBAL_SETTINGS = QWebSettings.globalSettings
+def _set_user_stylesheet(settings):
+    """Set the generated user-stylesheet."""
+    stylesheet = shared.get_user_stylesheet().encode('utf-8')
+    url = urlutils.data_url('text/css;charset=utf-8', stylesheet)
+    settings.setUserStyleSheetUrl(url)
 
 
-class CookiePolicy(websettings.Base):
-
-    """The ThirdPartyCookiePolicy setting is different from other settings."""
-
-    MAPPING = {
+def _set_cookie_accept_policy(settings):
+    """Update the content.cookies.accept setting."""
+    mapping = {
         'all': QWebSettings.AlwaysAllowThirdPartyCookies,
         'no-3rdparty': QWebSettings.AlwaysBlockThirdPartyCookies,
         'never': QWebSettings.AlwaysBlockThirdPartyCookies,
         'no-unknown-3rdparty': QWebSettings.AllowThirdPartyWithExistingCookies,
     }
-
-    def get(self, settings=None):
-        return config.get('content', 'cookies-accept')
-
-    def _set(self, value, settings=None):
-        QWebSettings.globalSettings().setThirdPartyCookiePolicy(
-            self.MAPPING[value])
+    value = config.val.content.cookies.accept
+    settings.setThirdPartyCookiePolicy(mapping[value])
 
 
-def update_settings(section, option):
+def _set_cache_maximum_pages(settings):
+    """Update the content.cache.maximum_pages setting."""
+    value = config.val.content.cache.maximum_pages
+    settings.setMaximumPagesInCache(value)
+
+
+def _update_settings(option):
     """Update global settings when qwebsettings changed."""
-    cache_path = standarddir.cache()
-    if (section, option) == ('general', 'private-browsing'):
-        if config.get('general', 'private-browsing') or cache_path is None:
-            QWebSettings.setIconDatabasePath('')
-        else:
-            QWebSettings.setIconDatabasePath(cache_path)
-    websettings.update_mappings(MAPPINGS, section, option)
+    global_settings.update_setting(option)
+
+    settings = QWebSettings.globalSettings()
+    if option in ['scrollbar.hide', 'content.user_stylesheets']:
+        _set_user_stylesheet(settings)
+    elif option == 'content.cookies.accept':
+        _set_cookie_accept_policy(settings)
+    elif option == 'content.cache.maximum_pages':
+        _set_cache_maximum_pages(settings)
 
 
-def init():
+def init(_args):
     """Initialize the global QWebSettings."""
     cache_path = standarddir.cache()
     data_path = standarddir.data()
-    if config.get('general', 'private-browsing') or cache_path is None:
-        QWebSettings.setIconDatabasePath('')
-    else:
-        QWebSettings.setIconDatabasePath(cache_path)
-    if cache_path is not None:
-        QWebSettings.setOfflineWebApplicationCachePath(
-            os.path.join(cache_path, 'application-cache'))
-    if data_path is not None:
-        QWebSettings.globalSettings().setLocalStoragePath(
-            os.path.join(data_path, 'local-storage'))
-        QWebSettings.setOfflineStoragePath(
-            os.path.join(data_path, 'offline-storage'))
 
-    websettings.init_mappings(MAPPINGS)
-    objreg.get('config').changed.connect(update_settings)
+    QWebSettings.setIconDatabasePath(standarddir.cache())
+    QWebSettings.setOfflineWebApplicationCachePath(
+        os.path.join(cache_path, 'application-cache'))
+    QWebSettings.globalSettings().setLocalStoragePath(
+        os.path.join(data_path, 'local-storage'))
+    QWebSettings.setOfflineStoragePath(
+        os.path.join(data_path, 'offline-storage'))
+
+    settings = QWebSettings.globalSettings()
+    _set_user_stylesheet(settings)
+    _set_cookie_accept_policy(settings)
+    _set_cache_maximum_pages(settings)
+
+    config.instance.changed.connect(_update_settings)
+
+    global global_settings
+    global_settings = WebKitSettings(QWebSettings.globalSettings())
+    global_settings.init_settings()
 
 
 def shutdown():
@@ -117,142 +189,3 @@ def shutdown():
     QWebSettings.setIconDatabasePath('')
     QWebSettings.setOfflineWebApplicationCachePath('')
     QWebSettings.globalSettings().setLocalStoragePath('')
-
-
-MAPPINGS = {
-    'content': {
-        'allow-images':
-            Attribute(QWebSettings.AutoLoadImages),
-        'allow-javascript':
-            Attribute(QWebSettings.JavascriptEnabled),
-        'javascript-can-open-windows-automatically':
-            Attribute(QWebSettings.JavascriptCanOpenWindows),
-        'javascript-can-close-windows':
-            Attribute(QWebSettings.JavascriptCanCloseWindows),
-        'javascript-can-access-clipboard':
-            Attribute(QWebSettings.JavascriptCanAccessClipboard),
-        #'allow-java':
-        #   Attribute(QWebSettings.JavaEnabled),
-        'allow-plugins':
-            Attribute(QWebSettings.PluginsEnabled),
-        'webgl':
-            Attribute(QWebSettings.WebGLEnabled),
-        'css-regions':
-            Attribute(QWebSettings.CSSRegionsEnabled),
-        'hyperlink-auditing':
-            Attribute(QWebSettings.HyperlinkAuditingEnabled),
-        'local-content-can-access-remote-urls':
-            Attribute(QWebSettings.LocalContentCanAccessRemoteUrls),
-        'local-content-can-access-file-urls':
-            Attribute(QWebSettings.LocalContentCanAccessFileUrls),
-        'cookies-accept':
-            CookiePolicy(),
-    },
-    'network': {
-        'dns-prefetch':
-            Attribute(QWebSettings.DnsPrefetchEnabled),
-    },
-    'input': {
-        'spatial-navigation':
-            Attribute(QWebSettings.SpatialNavigationEnabled),
-        'links-included-in-focus-chain':
-            Attribute(QWebSettings.LinksIncludedInFocusChain),
-    },
-    'fonts': {
-        'web-family-standard':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.StandardFont]),
-        'web-family-fixed':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.FixedFont]),
-        'web-family-serif':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.SerifFont]),
-        'web-family-sans-serif':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.SansSerifFont]),
-        'web-family-cursive':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.CursiveFont]),
-        'web-family-fantasy':
-            Setter(getter=QWebSettings.fontFamily,
-                   setter=QWebSettings.setFontFamily,
-                   args=[QWebSettings.FantasyFont]),
-        'web-size-minimum':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
-                   args=[QWebSettings.MinimumFontSize]),
-        'web-size-minimum-logical':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
-                   args=[QWebSettings.MinimumLogicalFontSize]),
-        'web-size-default':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
-                   args=[QWebSettings.DefaultFontSize]),
-        'web-size-default-fixed':
-            Setter(getter=QWebSettings.fontSize,
-                   setter=QWebSettings.setFontSize,
-                   args=[QWebSettings.DefaultFixedFontSize]),
-    },
-    'ui': {
-        'zoom-text-only':
-            Attribute(QWebSettings.ZoomTextOnly),
-        'frame-flattening':
-            Attribute(QWebSettings.FrameFlatteningEnabled),
-        'user-stylesheet':
-            Setter(getter=QWebSettings.userStyleSheetUrl,
-                   setter=QWebSettings.setUserStyleSheetUrl),
-        'css-media-type':
-            NullStringSetter(getter=QWebSettings.cssMediaType,
-                             setter=QWebSettings.setCSSMediaType),
-        'smooth-scrolling':
-            Attribute(QWebSettings.ScrollAnimatorEnabled),
-        #'accelerated-compositing':
-        #   Attribute(QWebSettings.AcceleratedCompositingEnabled),
-        #'tiled-backing-store':
-        #   Attribute(QWebSettings.TiledBackingStoreEnabled),
-    },
-    'storage': {
-        'offline-storage-database':
-            Attribute(QWebSettings.OfflineStorageDatabaseEnabled),
-        'offline-web-application-storage':
-            Attribute(QWebSettings.OfflineWebApplicationCacheEnabled),
-        'local-storage':
-            Attribute(QWebSettings.LocalStorageEnabled),
-        'maximum-pages-in-cache':
-            StaticSetter(getter=QWebSettings.maximumPagesInCache,
-                         setter=QWebSettings.setMaximumPagesInCache),
-        'object-cache-capacities':
-            StaticSetter(getter=None,
-                         setter=QWebSettings.setObjectCacheCapacities,
-                         unpack=True),
-        'offline-storage-default-quota':
-            StaticSetter(getter=QWebSettings.offlineStorageDefaultQuota,
-                         setter=QWebSettings.setOfflineStorageDefaultQuota),
-        'offline-web-application-cache-quota':
-            StaticSetter(
-                getter=QWebSettings.offlineWebApplicationCacheQuota,
-                setter=QWebSettings.setOfflineWebApplicationCacheQuota),
-    },
-    'general': {
-        'private-browsing':
-            Attribute(QWebSettings.PrivateBrowsingEnabled),
-        'developer-extras':
-            Attribute(QWebSettings.DeveloperExtrasEnabled),
-        'print-element-backgrounds':
-            Attribute(QWebSettings.PrintElementBackgrounds),
-        'xss-auditing':
-            Attribute(QWebSettings.XSSAuditingEnabled),
-        'site-specific-quirks':
-            Attribute(QWebSettings.SiteSpecificQuirksEnabled),
-        'default-encoding':
-            Setter(getter=QWebSettings.defaultTextEncoding,
-                   setter=QWebSettings.setDefaultTextEncoding),
-    }
-}

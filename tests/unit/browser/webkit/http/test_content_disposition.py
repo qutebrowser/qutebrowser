@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -581,7 +581,7 @@ class TestAttachment:
         header_checker.check_ignored('attachment; filename=bar foo=foo')
 
     def test_attmissingdelim3(self, header_checker):
-        """";" missing between disposition type and filename parameter.
+        """';' missing between disposition type and filename parameter.
 
         This is invalid, so UAs should ignore it.
         """

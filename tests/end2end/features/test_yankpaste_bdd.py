@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,14 +31,7 @@ def init_fake_clipboard(quteproc):
     quteproc.send_cmd(':debug-set-fake-clipboard')
 
 
-@bdd.when(bdd.parsers.parse('I set the text field to "{value}"'))
+@bdd.when(bdd.parsers.parse('I insert "{value}" into the text field'))
 def set_text_field(quteproc, value):
-    quteproc.send_cmd(":jseval document.getElementById('qute-textarea').value "
-                      "= '{}';".format(value))
-
-
-@bdd.then(bdd.parsers.parse('the text field should contain "{value}"'))
-def check_text_field(quteproc, value):
-    quteproc.send_cmd(":jseval console.log('text: ' + "
-                      "document.getElementById('qute-textarea').value);")
-    quteproc.wait_for_js('text: ' + value)
+    quteproc.send_cmd(":jseval --world=0 set_text('{}')".format(value))
+    quteproc.wait_for_js('textarea set to: ' + value)

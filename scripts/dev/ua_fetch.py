@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 lamarpavel
-# Copyright 2015-2016 Alexey Nabrodov (Averrin)
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 lamarpavel
+# Copyright 2015-2018 Alexey Nabrodov (Averrin)
 #
 # This file is part of qutebrowser.
 #
@@ -23,7 +24,7 @@
 """Fetch list of popular user-agents.
 
 The script is based on a gist posted by github.com/averrin, the output of this
-script is formatted to be pasted into configtypes.py.
+script is formatted to be pasted into configdata.yml
 """
 
 import requests
@@ -74,51 +75,22 @@ def filter_list(complete_list, browsers):
     return table
 
 
-def add_diversity(table):
-    """Insert a few additional entries for diversity into the dict.
-
-    (as returned by filter_list())
-    """
-    table["Obscure"] = [
-        ('Mozilla/5.0 (compatible; Googlebot/2.1; '
-         '+http://www.google.com/bot.html',
-         "Google Bot"),
-        ('Wget/1.16.1 (linux-gnu)',
-         "wget 1.16.1"),
-        ('curl/7.40.0',
-         "curl 7.40.0")
-    ]
-    return table
-
-
 def main():
     """Generate user agent code."""
     fetched = fetch()
     lut = {
-        "Firefox": {"Win", "MacOSX", "Linux", "Android"},
-        "Chrome": {"Win", "MacOSX", "Linux"},
-        "Safari": {"MacOSX", "iOS"}
+        "Chrome": {"Win10", "Linux"},
     }
     filtered = filter_list(fetched, lut)
-    filtered = add_diversity(filtered)
+    filtered["empty"] = [('', "Use default QtWebKit/QtWebEngine User-Agent")]
 
-    tab = "    "
-    print(tab + "def complete(self):")
-    print((2 * tab) + "\"\"\"Complete a list of common user agents.\"\"\"")
-    print((2 * tab) + "out = [")
-
-    for browser in ["Firefox", "Safari", "Chrome", "Obscure"]:
+    tab = "  "
+    for browser in ["Chrome", "empty"]:
         for it in filtered[browser]:
-            print("{}(\'{}\',\n{} \"{}\"),".format(3 * tab, it[0],
-                                                   3 * tab, it[1]))
+            print('{}- - "{}"'.format(3 * tab, it[0]))
+            desc = it[1].replace('\xa0', ' ').replace('  ', ' ')
+            print("{}- {}".format(4 * tab, desc))
         print("")
-
-    print("""\
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
-             'Gecko',
-             "IE 11.0 for Desktop  Win7 64-bit")""")
-
-    print("{}]\n{}return out\n".format(2 * tab, 2 * tab))
 
 
 if __name__ == '__main__':

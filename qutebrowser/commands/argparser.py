@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +24,7 @@ import argparse
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import utils, objreg
+from qutebrowser.utils import utils, objreg, log
 
 
 SUPPRESS = argparse.SUPPRESS
@@ -76,11 +76,11 @@ class ArgumentParser(argparse.ArgumentParser):
         self.name = name
         super().__init__(*args, add_help=False, prog=name, **kwargs)
 
-    def exit(self, status=0, msg=None):
-        raise ArgumentParserExit(status, msg)
+    def exit(self, status=0, message=None):
+        raise ArgumentParserExit(status, message)
 
-    def error(self, msg):
-        raise ArgumentParserError(msg.capitalize())
+    def error(self, message):
+        raise ArgumentParserError(message.capitalize())
 
 
 def arg_name(name):
@@ -155,9 +155,10 @@ def multitype_conv(param, types, value, *, str_choices=None):
         types.append(str)
 
     for typ in types:
+        log.commands.debug("Trying to parse {!r} as {}".format(value, typ))
         try:
             return type_conv(param, typ, value, str_choices=str_choices)
-        except cmdexc.ArgumentTypeError:
-            pass
+        except cmdexc.ArgumentTypeError as e:
+            log.commands.debug("Got {} for {}".format(e, typ))
     raise cmdexc.ArgumentTypeError('{}: Invalid value {}'.format(
         param.name, value))

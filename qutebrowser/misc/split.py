@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,7 @@
 
 import re
 
-from qutebrowser.utils import log
+from qutebrowser.utils import log, utils
 
 
 class ShellLexer:
@@ -55,9 +55,8 @@ class ShellLexer:
         self.token = ''
         self.state = ' '
 
-    def __iter__(self):  # pragma: no mccabe
+    def __iter__(self):  # noqa: C901 pragma: no mccabe
         """Read a raw token from the input stream."""
-        # pylint: disable=too-many-branches,too-many-statements
         self.reset()
         for nextchar in self.string:
             if self.state == ' ':
@@ -118,7 +117,8 @@ class ShellLexer:
                 else:
                     self.token += nextchar
             else:
-                raise AssertionError("Invalid state {!r}!".format(self.state))
+                raise utils.Unreachable(
+                    "Invalid state {!r}!".format(self.state))
         if self.state in self.escape and not self.keep:
             self.token += self.state
         if self.token or self.quoted:

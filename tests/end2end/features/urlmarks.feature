@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: quickmarks and bookmarks
 
     ## bookmarks
@@ -5,12 +7,12 @@ Feature: quickmarks and bookmarks
     Scenario: Saving a bookmark
         When I open data/title.html
         And I run :bookmark-add
-        Then the message "Bookmarked http://localhost:*/data/title.html!" should be shown
+        Then the message "Bookmarked http://localhost:*/data/title.html" should be shown
         And the bookmark file should contain "http://localhost:*/data/title.html Test title"
 
     Scenario: Saving a bookmark with a provided url and title
         When I run :bookmark-add http://example.com "some example title"
-        Then the message "Bookmarked http://example.com!" should be shown
+        Then the message "Bookmarked http://example.com" should be shown
         And the bookmark file should contain "http://example.com some example title"
 
     Scenario: Saving a bookmark with a url but no title
@@ -18,7 +20,7 @@ Feature: quickmarks and bookmarks
         Then the error "Title must be provided if url has been provided" should be shown
 
     Scenario: Saving a bookmark with an invalid url
-        When I set general -> auto-search to false
+        When I set url.auto_search to never
         And I run :bookmark-add foo! "some example title"
         Then the error "Invalid URL" should be shown
 
@@ -74,7 +76,7 @@ Feature: quickmarks and bookmarks
 
     Scenario: Loading a bookmark with -t and -b
         When I run :bookmark-load -t -b about:blank
-        Then the error "Only one of -t/-b/-w can be given!" should be shown
+        Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
     Scenario: Deleting a bookmark which does not exist
         When I run :bookmark-del doesnotexist
@@ -87,9 +89,9 @@ Feature: quickmarks and bookmarks
         Then the bookmark file should not contain "http://localhost:*/data/numbers/5.txt "
 
     Scenario: Deleting the current page's bookmark if it doesn't exist
-        When I open about:blank
+        When I open data/hello.txt
         And I run :bookmark-del
-        Then the error "Bookmark 'about:blank' not found!" should be shown
+        Then the error "Bookmark 'http://localhost:(port)/data/hello.txt' not found!" should be shown
 
     Scenario: Deleting the current page's bookmark
         When I open data/numbers/6.txt
@@ -114,6 +116,7 @@ Feature: quickmarks and bookmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/9.txt nine
         Then the quickmark file should contain "nine http://localhost:*/data/numbers/9.txt"
 
+    @flaky
     Scenario: Saving a quickmark (:quickmark-save)
         When I open data/numbers/10.txt
         And I run :quickmark-save
@@ -126,14 +129,14 @@ Feature: quickmarks and bookmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/11.txt eleven
         And I run :quickmark-add http://localhost:(port)/data/numbers/11_2.txt eleven
         And I wait for "Entering mode KeyMode.yesno (reason: question asked)" in the log
-        And I run :prompt-no
+        And I run :prompt-accept no
         Then the quickmark file should contain "eleven http://localhost:*/data/numbers/11.txt"
 
     Scenario: Saving a duplicate quickmark (with override)
         When I run :quickmark-add http://localhost:(port)/data/numbers/12.txt twelve
         And I run :quickmark-add http://localhost:(port)/data/numbers/12_2.txt twelve
         And I wait for "Entering mode KeyMode.yesno (reason: question asked)" in the log
-        And I run :prompt-yes
+        And I run :prompt-accept yes
         Then the quickmark file should contain "twelve http://localhost:*/data/numbers/12_2.txt"
 
     Scenario: Adding a quickmark with an empty name
@@ -198,7 +201,7 @@ Feature: quickmarks and bookmarks
     Scenario: Loading a quickmark with -t and -b
         When I run :quickmark-add http://localhost:(port)/data/numbers/17.txt seventeen
         When I run :quickmark-load -t -b seventeen
-        Then the error "Only one of -t/-b/-w can be given!" should be shown
+        Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
     Scenario: Deleting a quickmark which does not exist
         When I run :quickmark-del doesnotexist
@@ -210,9 +213,9 @@ Feature: quickmarks and bookmarks
         Then the quickmark file should not contain "eighteen http://localhost:*/data/numbers/18.txt "
 
     Scenario: Deleting the current page's quickmark if it has none
-        When I open about:blank
+        When I open data/hello.txt
         And I run :quickmark-del
-        Then the error "Quickmark for 'about:blank' not found!" should be shown
+        Then the error "Quickmark for 'http://localhost:(port)/data/hello.txt' not found!" should be shown
 
     Scenario: Deleting the current page's quickmark
         When I open data/numbers/19.txt
@@ -220,17 +223,15 @@ Feature: quickmarks and bookmarks
         And I run :quickmark-del
         Then the quickmark file should not contain "nineteen http://localhost:*/data/numbers/19.txt"
 
-    @qtwebengine_todo: qute:bookmarks is not implemented yet
     Scenario: Listing quickmarks
         When I run :quickmark-add http://localhost:(port)/data/numbers/20.txt twenty
         And I run :quickmark-add http://localhost:(port)/data/numbers/21.txt twentyone
-        And I open qute:bookmarks
+        And I open qute://bookmarks
         Then the page should contain the plaintext "twenty"
         And the page should contain the plaintext "twentyone"
 
-    @qtwebengine_todo: qute:bookmarks is not implemented yet
     Scenario: Listing bookmarks
-        When I open data/title.html
+        When I open data/title.html in a new tab
         And I run :bookmark-add
-        And I open qute:bookmarks
+        And I open qute://bookmarks
         Then the page should contain the plaintext "Test title"

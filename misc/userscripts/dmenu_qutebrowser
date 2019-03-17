@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Zach-Button <zachrey.button@gmail.com>
 #
 # This file is part of qutebrowser.
@@ -22,7 +23,7 @@
 # If run from qutebrowser as a userscript, it runs :open on the URL
 # If not, it opens a new qutebrowser window at the URL
 #
-# Ideal for use with tabs-are-windows. Set a hotkey to launch this script, then:
+# Ideal for use with tabs_are_windows. Set a hotkey to launch this script, then:
 #	:bind o spawn --userscript dmenu_qutebrowser
 #
 # Use the hotkey to open in new tab/window, press 'o' to open URL in current tab/window
@@ -40,7 +41,7 @@
 [ -z "$QUTE_URL" ] && QUTE_URL='http://google.com'
 
 url=$(echo "$QUTE_URL" | cat - "$QUTE_CONFIG_DIR/quickmarks" "$QUTE_DATA_DIR/history" | dmenu -l 15 -p qutebrowser)
-url=$(echo "$url" | sed -E 's/[^ ]+ +//g' | egrep "https?:" || echo "$url")
+url=$(echo "$url" | sed -E 's/[^ ]+ +//g' | grep -E "https?:" || echo "$url")
 
 [ -z "${url// }" ] && exit
 

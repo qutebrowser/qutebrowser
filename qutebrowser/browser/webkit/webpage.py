@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,9 +19,10 @@
 
 """The main browser widgets."""
 
+import html
 import functools
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, PYQT_VERSION, Qt, QUrl, QPoint
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 from PyQt5.QtWidgets import QFileDialog
@@ -29,11 +30,11 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import config
-from qutebrowser.browser import pdfjs
+from qutebrowser.browser import pdfjs, shared, downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
-from qutebrowser.utils import (message, usertypes, log, jinja, qtutils, utils,
-                               objreg, debug)
+from qutebrowser.utils import message, usertypes, log, jinja, objreg
+from qutebrowser.qt import sip
 
 
 class BrowserPage(QWebPage):
@@ -53,14 +54,14 @@ class BrowserPage(QWebPage):
         shutting_down: Emitted when the page is currently shutting down.
         reloading: Emitted before a web page reloads.
                    arg: The URL which gets reloaded.
-        link_clicked: Emitted when a link was clicked on a page.
+        navigation_request: Emitted on acceptNavigationRequest.
     """
 
     shutting_down = pyqtSignal()
     reloading = pyqtSignal(QUrl)
-    link_clicked = pyqtSignal(QUrl)
+    navigation_request = pyqtSignal(usertypes.NavigationRequest)
 
-    def __init__(self, win_id, tab_id, tabdata, parent=None):
+    def __init__(self, win_id, tab_id, tabdata, private, parent=None):
         super().__init__(parent)
         self._win_id = win_id
         self._tabdata = tabdata
@@ -72,7 +73,7 @@ class BrowserPage(QWebPage):
         self._ignore_load_started = False
         self.error_occurred = False
         self._networkmanager = networkmanager.NetworkManager(
-            win_id, tab_id, self)
+            win_id=win_id, tab_id=tab_id, private=private, parent=self)
         self.setNetworkAccessManager(self._networkmanager)
         self.setForwardUnsupportedContent(True)
         self.reloading.connect(self._networkmanager.clear_rejected_ssl_errors)
@@ -81,29 +82,37 @@ class BrowserPage(QWebPage):
         self.unsupportedContent.connect(self.on_unsupported_content)
         self.loadStarted.connect(self.on_load_started)
         self.featurePermissionRequested.connect(
-            self.on_feature_permission_requested)
+            self._on_feature_permission_requested)
         self.saveFrameStateRequested.connect(
             self.on_save_frame_state_requested)
         self.restoreFrameStateRequested.connect(
             self.on_restore_frame_state_requested)
+        self.loadFinished.connect(
+            functools.partial(self._inject_userjs, self.mainFrame()))
+        self.frameCreated.connect(self._connect_userjs_signals)
 
-    if PYQT_VERSION > 0x050300:
-        # WORKAROUND (remove this when we bump the requirements to 5.3.1)
-        # We can't override javaScriptPrompt with older PyQt-versions because
-        # of a bug in PyQt.
-        # See http://www.riverbankcomputing.com/pipermail/pyqt/2014-June/034385.html
+    @pyqtSlot('QWebFrame*')
+    def _connect_userjs_signals(self, frame):
+        """Connect userjs related signals to `frame`.
 
-        def javaScriptPrompt(self, _frame, msg, default):
-            """Override javaScriptPrompt to use the statusbar."""
-            if (self._is_shutting_down or
-                    config.get('content', 'ignore-javascript-prompt')):
-                return (False, "")
-            answer = self._ask("js: {}".format(msg), usertypes.PromptMode.text,
-                               default)
-            if answer is None:
-                return (False, "")
-            else:
-                return (True, answer)
+        Connect the signals used as triggers for injecting user
+        JavaScripts into the passed QWebFrame.
+        """
+        log.greasemonkey.debug("Connecting to frame {} ({})"
+                               .format(frame, frame.url().toDisplayString()))
+        frame.loadFinished.connect(
+            functools.partial(self._inject_userjs, frame))
+
+    def javaScriptPrompt(self, frame, js_msg, default):
+        """Override javaScriptPrompt to use qutebrowser prompts."""
+        if self._is_shutting_down:
+            return (False, "")
+        try:
+            return shared.javascript_prompt(frame.url(), js_msg, default,
+                                            abort_on=[self.loadStarted,
+                                                      self.shutting_down])
+        except shared.CallSuper:
+            return super().javaScriptPrompt(frame, js_msg, default)
 
     def _handle_errorpage(self, info, errpage):
         """Display an error page if needed.
@@ -134,11 +143,13 @@ class BrowserPage(QWebPage):
             # QDesktopServices::openUrl with info.url directly - however it
             # works when we construct a copy of it.
             url = QUrl(info.url)
-            msg = "Open external application for {}-link?\nURL: {}".format(
-                url.scheme(), url.toDisplayString())
+            scheme = url.scheme()
             message.confirm_async(
-                self._win_id, msg,
-                functools.partial(QDesktopServices.openUrl, url))
+                title="Open external application for {}-link?".format(scheme),
+                text="URL: <b>{}</b>".format(
+                    html.escape(url.toDisplayString())),
+                yes_action=functools.partial(QDesktopServices.openUrl, url),
+                url=info.url.toString(QUrl.RemovePassword | QUrl.FullyEncoded))
             return True
         elif (info.domain, info.error) in ignored_errors:
             log.webview.debug("Ignored error on {}: {} (error domain: {}, "
@@ -168,10 +179,10 @@ class BrowserPage(QWebPage):
             log.webview.debug("Error domain: {}, error code: {}".format(
                 info.domain, info.error))
             title = "Error loading page: {}".format(urlstr)
-            html = jinja.render(
+            error_html = jinja.render(
                 'error.html',
-                title=title, url=urlstr, error=error_str, icon='')
-            errpage.content = html.encode('utf-8')
+                title=title, url=urlstr, error=error_str)
+            errpage.content = error_html.encode('utf-8')
             errpage.encoding = 'utf-8'
             return True
 
@@ -195,46 +206,11 @@ class BrowserPage(QWebPage):
                                                           suggested_file)
         return True
 
-    def _ask(self, text, mode, default=None):
-        """Ask a blocking question in the statusbar.
-
-        Args:
-            text: The text to display to the user.
-            mode: A PromptMode.
-            default: The default value to display.
-
-        Return:
-            The answer the user gave or None if the prompt was cancelled.
-        """
-        q = usertypes.Question()
-        q.text = text
-        q.mode = mode
-        q.default = default
-        self.loadStarted.connect(q.abort)
-        self.shutting_down.connect(q.abort)
-        bridge = objreg.get('message-bridge', scope='window',
-                            window=self._win_id)
-        bridge.ask(q, blocking=True)
-        q.deleteLater()
-        return q.answer
-
-    def _show_pdfjs(self, reply):
-        """Show the reply with pdfjs."""
-        try:
-            page = pdfjs.generate_pdfjs_page(reply.url())
-        except pdfjs.PDFJSNotFound:
-            page = jinja.render('no_pdfjs.html',
-                                url=reply.url().toDisplayString())
-        self.mainFrame().setContent(page.encode('utf-8'), 'text/html',
-                                    reply.url())
-        reply.deleteLater()
-
     def shutdown(self):
         """Prepare the web page for being deleted."""
         self._is_shutting_down = True
         self.shutting_down.emit()
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self._win_id)
+        download_manager = objreg.get('qtnetwork-download-manager')
         nam = self.networkAccessManager()
         if download_manager.has_downloads_with_nam(nam):
             nam.setParent(download_manager)
@@ -248,15 +224,10 @@ class BrowserPage(QWebPage):
 
     def on_print_requested(self, frame):
         """Handle printing when requested via javascript."""
-        if not qtutils.check_print_compat():
-            message.error(self._win_id, "Printing on Qt < 5.3.0 on Windows is "
-                          "broken, please upgrade!", immediately=True)
-            return
         printdiag = QPrintDialog()
         printdiag.setAttribute(Qt.WA_DeleteOnClose)
         printdiag.open(lambda: frame.print(printdiag.printer()))
 
-    @pyqtSlot('QNetworkRequest')
     def on_download_requested(self, request):
         """Called when the user wants to download a link.
 
@@ -266,9 +237,8 @@ class BrowserPage(QWebPage):
         after this slot returns.
         """
         req = QNetworkRequest(request)
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self._win_id)
-        download_manager.get_request(req, page=self)
+        download_manager = objreg.get('qtnetwork-download-manager')
+        download_manager.get_request(req, qnam=self.networkAccessManager())
 
     @pyqtSlot('QNetworkReply*')
     def on_unsupported_content(self, reply):
@@ -281,8 +251,7 @@ class BrowserPage(QWebPage):
         here: http://mimesniff.spec.whatwg.org/
         """
         inline, suggested_filename = http.parse_content_disposition(reply)
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self._win_id)
+        download_manager = objreg.get('qtnetwork-download-manager')
         if not inline:
             # Content-Disposition: attachment -> force download
             download_manager.fetch(reply,
@@ -299,10 +268,10 @@ class BrowserPage(QWebPage):
             else:
                 reply.finished.connect(functools.partial(
                     self.display_content, reply, 'image/jpeg'))
-        elif (mimetype in ['application/pdf', 'application/x-pdf'] and
-              config.get('content', 'enable-pdfjs')):
-            # Use pdf.js to display the page
-            self._show_pdfjs(reply)
+        elif pdfjs.should_use_pdfjs(mimetype, reply.url()):
+            download_manager.fetch(reply,
+                                   target=downloads.PDFJSDownloadTarget(),
+                                   auto_remove=True)
         else:
             # Unknown mimetype, so download anyways.
             download_manager.fetch(reply,
@@ -316,60 +285,80 @@ class BrowserPage(QWebPage):
         else:
             self.error_occurred = False
 
+    def _inject_userjs(self, frame):
+        """Inject user JavaScripts into the page.
+
+        Args:
+            frame: The QWebFrame to inject the user scripts into.
+        """
+        if sip.isdeleted(frame):
+            log.greasemonkey.debug("_inject_userjs called for deleted frame!")
+            return
+
+        url = frame.url()
+        if url.isEmpty():
+            url = frame.requestedUrl()
+
+        log.greasemonkey.debug("_inject_userjs called for {} ({})"
+                               .format(frame, url.toDisplayString()))
+
+        greasemonkey = objreg.get('greasemonkey')
+        scripts = greasemonkey.scripts_for(url)
+        # QtWebKit has trouble providing us with signals representing
+        # page load progress at reasonable times, so we just load all
+        # scripts on the same event.
+        toload = scripts.start + scripts.end + scripts.idle
+
+        if url.isEmpty():
+            # This happens during normal usage like with view source but may
+            # also indicate a bug.
+            log.greasemonkey.debug("Not running scripts for frame with no "
+                                   "url: {}".format(frame))
+            assert not toload, toload
+
+        for script in toload:
+            if frame is self.mainFrame() or script.runs_on_sub_frames:
+                log.webview.debug('Running GM script: {}'.format(script.name))
+                frame.evaluateJavaScript(script.code())
+
     @pyqtSlot('QWebFrame*', 'QWebPage::Feature')
-    def on_feature_permission_requested(self, frame, feature):
+    def _on_feature_permission_requested(self, frame, feature):
         """Ask the user for approval for geolocation/notifications."""
+        if not isinstance(frame, QWebFrame):  # pragma: no cover
+            # This makes no sense whatsoever, but someone reported this being
+            # called with a QBuffer...
+            log.misc.error("on_feature_permission_requested got called with "
+                           "{!r}!".format(frame))
+            return
+
         options = {
-            QWebPage.Notifications: ('content', 'notifications'),
-            QWebPage.Geolocation: ('content', 'geolocation'),
+            QWebPage.Notifications: 'content.notifications',
+            QWebPage.Geolocation: 'content.geolocation',
         }
-        config_val = config.get(*options[feature])
-        if config_val == 'ask':
-            bridge = objreg.get('message-bridge', scope='window',
-                                window=self._win_id)
-            q = usertypes.Question(bridge)
-            q.mode = usertypes.PromptMode.yesno
+        messages = {
+            QWebPage.Notifications: 'show notifications',
+            QWebPage.Geolocation: 'access your location',
+        }
+        yes_action = functools.partial(
+            self.setFeaturePermission, frame, feature,
+            QWebPage.PermissionGrantedByUser)
+        no_action = functools.partial(
+            self.setFeaturePermission, frame, feature,
+            QWebPage.PermissionDeniedByUser)
 
-            msgs = {
-                QWebPage.Notifications: 'show notifications',
-                QWebPage.Geolocation: 'access your location',
-            }
+        question = shared.feature_permission(
+            url=frame.url(),
+            option=options[feature], msg=messages[feature],
+            yes_action=yes_action, no_action=no_action,
+            abort_on=[self.shutting_down, self.loadStarted])
 
-            host = frame.url().host()
-            if host:
-                q.text = "Allow the website at {} to {}?".format(
-                    frame.url().host(), msgs[feature])
-            else:
-                q.text = "Allow the website to {}?".format(msgs[feature])
+        if question is not None:
+            self.featurePermissionRequestCanceled.connect(
+                functools.partial(self._on_feature_permission_cancelled,
+                                  question, frame, feature))
 
-            yes_action = functools.partial(
-                self.setFeaturePermission, frame, feature,
-                QWebPage.PermissionGrantedByUser)
-            q.answered_yes.connect(yes_action)
-
-            no_action = functools.partial(
-                self.setFeaturePermission, frame, feature,
-                QWebPage.PermissionDeniedByUser)
-            q.answered_no.connect(no_action)
-            q.cancelled.connect(no_action)
-
-            self.shutting_down.connect(q.abort)
-            q.completed.connect(q.deleteLater)
-
-            self.featurePermissionRequestCanceled.connect(functools.partial(
-                self.on_feature_permission_cancelled, q, frame, feature))
-            self.loadStarted.connect(q.abort)
-
-            bridge.ask(q, blocking=False)
-        elif config_val:
-            self.setFeaturePermission(frame, feature,
-                                      QWebPage.PermissionGrantedByUser)
-        else:
-            self.setFeaturePermission(frame, feature,
-                                      QWebPage.PermissionDeniedByUser)
-
-    def on_feature_permission_cancelled(self, question, frame, feature,
-                                        cancelled_frame, cancelled_feature):
+    def _on_feature_permission_cancelled(self, question, frame, feature,
+                                         cancelled_frame, cancelled_feature):
         """Slot invoked when a feature permission request was cancelled.
 
         To be used with functools.partial.
@@ -389,15 +378,7 @@ class BrowserPage(QWebPage):
             frame: The QWebFrame which gets saved.
             item: The QWebHistoryItem to be saved.
         """
-        try:
-            if frame != self.mainFrame():
-                return
-        except RuntimeError:
-            # With Qt 5.2.1 (Ubuntu Trusty) we get this when closing a tab:
-            #     RuntimeError: wrapped C/C++ object of type BrowserPage has
-            #     been deleted
-            # Since the information here isn't that important for closing web
-            # views anyways, we ignore this error.
+        if frame != self.mainFrame():
             return
         data = {
             'zoom': frame.zoomFactor(),
@@ -423,7 +404,7 @@ class BrowserPage(QWebPage):
 
     def userAgentForUrl(self, url):
         """Override QWebPage::userAgentForUrl to customize the user agent."""
-        ua = config.get('network', 'user-agent')
+        ua = config.instance.get('content.headers.user_agent', url=url)
         if ua is None:
             return super().userAgentForUrl(url)
         else:
@@ -440,9 +421,6 @@ class BrowserPage(QWebPage):
         """
         return ext in self._extension_handlers
 
-    # WORKAROUND for:
-    # http://www.riverbankcomputing.com/pipermail/pyqt/2014-August/034722.html
-    @utils.prevent_exceptions(False, PYQT_VERSION < 0x50302)
     def extension(self, ext, opt, out):
         """Override QWebPage::extension to provide error pages.
 
@@ -461,45 +439,37 @@ class BrowserPage(QWebPage):
             return super().extension(ext, opt, out)
         return handler(opt, out)
 
-    def javaScriptAlert(self, frame, msg):
-        """Override javaScriptAlert to use the statusbar."""
-        log.js.debug("alert: {}".format(msg))
-        if config.get('ui', 'modal-js-dialog'):
-            return super().javaScriptAlert(frame, msg)
-
-        if (self._is_shutting_down or
-                config.get('content', 'ignore-javascript-alert')):
+    def javaScriptAlert(self, frame, js_msg):
+        """Override javaScriptAlert to use qutebrowser prompts."""
+        if self._is_shutting_down:
             return
-        self._ask("[js alert] {}".format(msg), usertypes.PromptMode.alert)
+        try:
+            shared.javascript_alert(frame.url(), js_msg,
+                                    abort_on=[self.loadStarted,
+                                              self.shutting_down])
+        except shared.CallSuper:
+            super().javaScriptAlert(frame, js_msg)
 
-    def javaScriptConfirm(self, frame, msg):
+    def javaScriptConfirm(self, frame, js_msg):
         """Override javaScriptConfirm to use the statusbar."""
-        log.js.debug("confirm: {}".format(msg))
-        if config.get('ui', 'modal-js-dialog'):
-            return super().javaScriptConfirm(frame, msg)
-
         if self._is_shutting_down:
             return False
-        ans = self._ask("[js confirm] {}".format(msg),
-                        usertypes.PromptMode.yesno)
-        return bool(ans)
+        try:
+            return shared.javascript_confirm(frame.url(), js_msg,
+                                             abort_on=[self.loadStarted,
+                                                       self.shutting_down])
+        except shared.CallSuper:
+            return super().javaScriptConfirm(frame, js_msg)
 
     def javaScriptConsoleMessage(self, msg, line, source):
         """Override javaScriptConsoleMessage to use debug log."""
-        log_javascript_console = config.get('general',
-                                            'log-javascript-console')
-        logstring = "[{}:{}] {}".format(source, line, msg)
-        logmap = {
-            'debug': log.js.debug,
-            'info': log.js.info,
-            'none': lambda arg: None
-        }
-        logmap[log_javascript_console](logstring)
+        shared.javascript_log_message(usertypes.JsLogLevel.unknown,
+                                      source, line, msg)
 
     def acceptNavigationRequest(self,
-                                _frame: QWebFrame,
+                                frame: QWebFrame,
                                 request: QNetworkRequest,
-                                typ: QWebPage.NavigationType):
+                                typ: QWebPage.NavigationType) -> bool:
         """Override acceptNavigationRequest to handle clicked links.
 
         Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound
@@ -507,23 +477,29 @@ class BrowserPage(QWebPage):
         have no idea in which frame the link should be opened.
 
         Checks if it should open it in a tab (middle-click or control) or not,
-        and then conditionally opens the URL. Opening it in a new tab/window
-        is handled in the slot connected to link_clicked.
+        and then conditionally opens the URL here or in another tab/window.
         """
-        url = request.url()
-        target = self._tabdata.combined_target()
-        log.webview.debug("navigation request: url {}, type {}, "
-                          "target {}".format(
-                              url.toDisplayString(),
-                              debug.qenum_key(QWebPage, typ),
-                              target))
+        type_map = {
+            QWebPage.NavigationTypeLinkClicked:
+                usertypes.NavigationRequest.Type.link_clicked,
+            QWebPage.NavigationTypeFormSubmitted:
+                usertypes.NavigationRequest.Type.form_submitted,
+            QWebPage.NavigationTypeFormResubmitted:
+                usertypes.NavigationRequest.Type.form_resubmitted,
+            QWebPage.NavigationTypeBackOrForward:
+                usertypes.NavigationRequest.Type.back_forward,
+            QWebPage.NavigationTypeReload:
+                usertypes.NavigationRequest.Type.reloaded,
+            QWebPage.NavigationTypeOther:
+                usertypes.NavigationRequest.Type.other,
+        }
+        is_main_frame = frame is self.mainFrame()
+        navigation = usertypes.NavigationRequest(url=request.url(),
+                                                 navigation_type=type_map[typ],
+                                                 is_main_frame=is_main_frame)
 
-        if typ == QWebPage.NavigationTypeReload:
-            self.reloading.emit(url)
-            return True
-        elif typ != QWebPage.NavigationTypeLinkClicked:
-            return True
+        if navigation.navigation_type == navigation.Type.reloaded:
+            self.reloading.emit(navigation.url)
 
-        self.link_clicked.emit(url)
-
-        return url.isValid() and target == usertypes.ClickTarget.normal
+        self.navigation_request.emit(navigation)
+        return navigation.accepted

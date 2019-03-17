@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,61 +17,72 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Setting options used for qutebrowser."""
+"""Types for options in qutebrowser's configuration.
+
+Those types are used in configdata.yml as type of a setting.
+
+Most of them are pretty generic, but some of them are e.g. specific String
+subclasses with valid_values set, as that particular "type" is used multiple
+times in the config.
+
+A setting value can be represented in three different ways:
+
+1) As an object which can be represented in YAML:
+   str, list, dict, int, float, True/False/None
+   This is what qutebrowser actually saves internally, and also what it gets
+   from the YAML or config.py.
+2) As a string. This is e.g. used by the :set command.
+3) As the value the code which uses it expects, e.g. enum members.
+
+Config types can do different conversations:
+
+- Object to string with .to_str() (1 -> 2)
+- String to object with .from_str() (2 -> 1)
+- Object to code with .to_py() (1 -> 3)
+  This also validates whether the object is actually correct (type/value).
+"""
 
 import re
-import json
-import shlex
-import base64
+import html
 import codecs
 import os.path
 import itertools
-import collections
 import warnings
 import datetime
+import functools
+import operator
+import json
+import typing
 
+import attr
+import yaml
 from PyQt5.QtCore import QUrl, Qt
 from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtNetwork import QNetworkProxy
 from PyQt5.QtWidgets import QTabWidget, QTabBar
+from PyQt5.QtNetwork import QNetworkProxy
 
-from qutebrowser.commands import cmdutils
-from qutebrowser.config import configexc
-from qutebrowser.utils import standarddir, utils
+from qutebrowser.misc import objects
+from qutebrowser.config import configexc, configutils
+from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
+                               usertypes)
+from qutebrowser.keyinput import keyutils
 
 
-SYSTEM_PROXY = object()  # Return value for Proxy type
+class _SystemProxy:
+
+    pass
+
+
+SYSTEM_PROXY = _SystemProxy()  # Return value for Proxy type
 
 # Taken from configparser
 BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
                   '0': False, 'no': False, 'false': False, 'off': False}
 
 
-def _validate_regex(pattern, flags):
-    """Check if the given regex is valid.
-
-    This is more complicated than it could be since there's a warning on
-    invalid escapes with newer Python versions, and we want to catch that case
-    and treat it as invalid.
-    """
-    with warnings.catch_warnings(record=True) as recorded_warnings:
-        warnings.simplefilter('always')
-        try:
-            re.compile(pattern, flags)
-        except re.error as e:
-            raise configexc.ValidationError(
-                pattern, "must be a valid regex - " + str(e))
-        except RuntimeError:
-            raise configexc.ValidationError(
-                pattern, "must be a valid regex - recursion depth exceeded")
-
-    for w in recorded_warnings:
-        if (issubclass(w.category, DeprecationWarning) and
-                str(w.message).startswith('bad escape')):
-            raise configexc.ValidationError(
-                pattern, "must be a valid regex - " + str(w.message))
-        else:
-            warnings.warn(w.message)
+_Completions = typing.Optional[typing.Iterable[typing.Tuple[str, str]]]
+_StrUnset = typing.Union[str, configutils.Unset]
+_StrUnsetNone = typing.Union[None, str, configutils.Unset]
 
 
 class ValidValues:
@@ -81,31 +92,48 @@ class ValidValues:
     Attributes:
         values: A list with the allowed untransformed values.
         descriptions: A dict with value/desc mappings.
+        generate_docs: Whether to show the values in the docs.
     """
 
-    def __init__(self, *vals):
-        if not vals:
+    def __init__(self,
+                 *values: typing.Union[str,
+                                       typing.Dict[str, str],
+                                       typing.Tuple[str, str]],
+                 generate_docs: bool = True) -> None:
+        if not values:
             raise ValueError("ValidValues with no values makes no sense!")
-        self.descriptions = {}
-        self.values = []
-        for v in vals:
-            if isinstance(v, str):
+        self.descriptions = {}  # type: typing.Dict[str, str]
+        self.values = []  # type: typing.List[str]
+        self.generate_docs = generate_docs
+        for value in values:
+            if isinstance(value, str):
                 # Value without description
-                self.values.append(v)
+                self.values.append(value)
+            elif isinstance(value, dict):
+                # List of dicts from configdata.yml
+                assert len(value) == 1, value
+                value, desc = list(value.items())[0]
+                self.values.append(value)
+                self.descriptions[value] = desc
             else:
                 # (value, description) tuple
-                self.values.append(v[0])
-                self.descriptions[v[0]] = v[1]
+                self.values.append(value[0])
+                self.descriptions[value[0]] = value[1]
 
-    def __contains__(self, val):
+    def __contains__(self, val: str) -> bool:
         return val in self.values
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[str]:
         return self.values.__iter__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, values=self.values,
                               descriptions=self.descriptions)
+
+    def __eq__(self, other: object) -> bool:
+        assert isinstance(other, ValidValues)
+        return (self.values == other.values and
+                self.descriptions == other.descriptions)
 
 
 class BaseType:
@@ -113,60 +141,85 @@ class BaseType:
     """A type used for a setting value.
 
     Attributes:
-        none_ok: Whether to convert to None for an empty string.
+        none_ok: Whether to allow None (or an empty string for :set) as value.
 
     Class attributes:
         valid_values: Possible values if they can be expressed as a fixed
                       string. ValidValues instance.
     """
 
-    def __init__(self, none_ok=False):
+    def __init__(self, none_ok: bool = False) -> None:
         self.none_ok = none_ok
-        self.valid_values = None
+        self.valid_values = None  # type: typing.Optional[ValidValues]
 
-    def get_name(self):
+    def get_name(self) -> str:
         """Get a name for the type for documentation."""
         return self.__class__.__name__
 
-    def get_valid_values(self):
+    def get_valid_values(self) -> typing.Optional[ValidValues]:
         """Get the type's valid values for documentation."""
         return self.valid_values
 
-    def _basic_validation(self, value):
-        """Do some basic validation for the value (empty, non-printable chars).
+    def _basic_py_validation(
+            self, value: typing.Any,
+            pytype: typing.Union[type, typing.Tuple[type, ...]]) -> None:
+        """Do some basic validation for Python values (emptyness, type).
+
+        Arguments:
+            value: The value to check.
+            pytype: A Python type to check the value against.
+        """
+        if isinstance(value, configutils.Unset):
+            return
+
+        if (value is None or (pytype == list and value == []) or
+                (pytype == dict and value == {})):
+            if not self.none_ok:
+                raise configexc.ValidationError(value, "may not be null!")
+            return
+
+        if (not isinstance(value, pytype) or
+                pytype is int and isinstance(value, bool)):
+            if isinstance(pytype, tuple):
+                expected = ' or '.join(typ.__name__ for typ in pytype)
+            else:
+                expected = pytype.__name__
+            raise configexc.ValidationError(
+                value, "expected a value of type {} but got {}.".format(
+                    expected, type(value).__name__))
+
+        if isinstance(value, str):
+            self._basic_str_validation(value)
+
+    def _basic_str_validation(self, value: str) -> None:
+        """Do some basic validation for string values.
+
+        This checks that the value isn't empty and doesn't contain any
+        unprintable chars.
 
         Arguments:
             value: The value to check.
         """
-        if not value:
-            if self.none_ok:
-                return
-            else:
-                raise configexc.ValidationError(value, "may not be empty!")
-
+        assert isinstance(value, str), value
+        if not value and not self.none_ok:
+            raise configexc.ValidationError(value, "may not be empty!")
         if any(ord(c) < 32 or ord(c) == 0x7f for c in value):
-            raise configexc.ValidationError(value, "may not contain "
-                                            "unprintable chars!")
+            raise configexc.ValidationError(
+                value, "may not contain unprintable chars!")
 
-    def transform(self, value):
-        """Transform the setting value.
+    def _validate_surrogate_escapes(self, full_value: typing.Any,
+                                    value: typing.Any) -> None:
+        """Make sure the given value doesn't contain surrogate escapes.
 
-        This method can assume the value is indeed a valid value.
-
-        The default implementation returns the original value.
-
-        Args:
-            value: The original string value.
-
-        Return:
-            The transformed value.
+        This is used for values passed to json.dump, as it can't handle those.
         """
-        if not value:
-            return None
-        else:
-            return value
+        if not isinstance(value, str):
+            return
+        if any(ord(c) > 0xFFFF for c in value):
+            raise configexc.ValidationError(
+                full_value, "may not contain surrogate escapes!")
 
-    def validate(self, value):
+    def _validate_valid_values(self, value: str) -> None:
         """Validate value against possible values.
 
         The default implementation checks the value against self.valid_values
@@ -175,19 +228,71 @@ class BaseType:
         Args:
             value: The value to validate.
         """
-        self._basic_validation(value)
-        if not value:
-            return
         if self.valid_values is not None:
             if value not in self.valid_values:
                 raise configexc.ValidationError(
                     value,
                     "valid values: {}".format(', '.join(self.valid_values)))
-        else:
-            raise NotImplementedError("{} does not implement validate.".format(
-                self.__class__.__name__))
 
-    def complete(self):
+    def from_str(self, value: str) -> typing.Any:
+        """Get the setting value from a string.
+
+        By default this invokes to_py() for validation and returns the
+        unaltered value. This means that if to_py() returns a string rather
+        than something more sophisticated, this doesn't need to be implemented.
+
+        Args:
+            value: The original string value.
+
+        Return:
+            The transformed value.
+        """
+        self._basic_str_validation(value)
+        self.to_py(value)  # for validation
+        if not value:
+            return None
+        return value
+
+    def from_obj(self, value: typing.Any) -> typing.Any:
+        """Get the setting value from a config.py/YAML object."""
+        return value
+
+    def to_py(self, value: typing.Any) -> typing.Any:
+        """Get the setting value from a Python value.
+
+        Args:
+            value: The value we got from Python/YAML.
+
+        Return:
+            The transformed value.
+
+        Raise:
+            configexc.ValidationError if the value was invalid.
+        """
+        raise NotImplementedError
+
+    def to_str(self, value: typing.Any) -> str:
+        """Get a string from the setting value.
+
+        The resulting string should be parseable again by from_str.
+        """
+        if value is None:
+            return ''
+        assert isinstance(value, str), value
+        return value
+
+    def to_doc(self, value: typing.Any, indent: int = 0) -> str:
+        """Get a string with the given value for the documentation.
+
+        This currently uses asciidoc syntax.
+        """
+        utils.unused(indent)  # only needed for Dict/List
+        str_value = self.to_str(value)
+        if not str_value:
+            return 'empty'
+        return '+pass:[{}]+'.format(html.escape(str_value))
+
+    def complete(self) -> _Completions:
         """Return a list of possible values for completion.
 
         The default implementation just returns valid_values, but it might be
@@ -219,60 +324,84 @@ class MappingType(BaseType):
         MAPPING: The mapping to use.
     """
 
-    MAPPING = {}
+    MAPPING = {}  # type: typing.Dict[str, typing.Any]
 
-    def __init__(self, none_ok=False,
-                 valid_values=None):
+    def __init__(self, none_ok: bool = False,
+                 valid_values: ValidValues = None) -> None:
         super().__init__(none_ok)
         self.valid_values = valid_values
 
-    def validate(self, value):
-        super().validate(value.lower())
-
-    def transform(self, value):
-        if not value:
+    def to_py(self, value: typing.Any) -> typing.Any:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
             return None
+        self._validate_valid_values(value.lower())
         return self.MAPPING[value.lower()]
 
 
 class String(BaseType):
 
-    """Base class for a string setting (case-insensitive).
+    """A string value.
+
+    See the setting's valid values for more information on allowed values.
 
     Attributes:
         minlen: Minimum length (inclusive).
         maxlen: Maximum length (inclusive).
         forbidden: Forbidden chars in the string.
-        _completions: completions to be used, or None
+        completions: completions to be used, or None
     """
 
-    def __init__(self, minlen=None, maxlen=None, forbidden=None,
-                 none_ok=False, completions=None, valid_values=None):
+    def __init__(self, *, minlen: int = None, maxlen: int = None,
+                 forbidden: str = None, encoding: str = None,
+                 none_ok: bool = False,
+                 completions: _Completions = None,
+                 valid_values: ValidValues = None) -> None:
         super().__init__(none_ok)
         self.valid_values = valid_values
 
         if minlen is not None and minlen < 1:
             raise ValueError("minlen ({}) needs to be >= 1!".format(minlen))
-        elif maxlen is not None and maxlen < 1:
+        if maxlen is not None and maxlen < 1:
             raise ValueError("maxlen ({}) needs to be >= 1!".format(maxlen))
-        elif maxlen is not None and minlen is not None and maxlen < minlen:
+        if maxlen is not None and minlen is not None and maxlen < minlen:
             raise ValueError("minlen ({}) needs to be <= maxlen ({})!".format(
                 minlen, maxlen))
         self.minlen = minlen
         self.maxlen = maxlen
         self.forbidden = forbidden
         self._completions = completions
+        self.encoding = encoding
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
+    def _validate_encoding(self, value: str) -> None:
+        """Check if the given value fits into the configured encoding.
+
+        Raises ValidationError if not.
+
+        Args:
+            value: The value to check.
+        """
+        if self.encoding is None:
             return
 
-        if self.valid_values is not None:
-            if value not in self.valid_values:
-                raise configexc.ValidationError(
-                    value,
-                    "valid values: {}".format(', '.join(self.valid_values)))
+        try:
+            value.encode(self.encoding)
+        except UnicodeEncodeError as e:
+            msg = "{!r} contains non-{} characters: {}".format(
+                value, self.encoding, e)
+            raise configexc.ValidationError(value, msg)
+
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
+        self._validate_encoding(value)
+        self._validate_valid_values(value)
 
         if self.forbidden is not None and any(c in value
                                               for c in self.forbidden):
@@ -285,7 +414,9 @@ class String(BaseType):
             raise configexc.ValidationError(value, "must be at most {} chars "
                                             "long!".format(self.maxlen))
 
-    def complete(self):
+        return value
+
+    def complete(self) -> _Completions:
         if self._completions is not None:
             return self._completions
         else:
@@ -296,88 +427,212 @@ class UniqueCharString(String):
 
     """A string which may not contain duplicate chars."""
 
-    def validate(self, value):
-        super().validate(value)
-        if not value:
-            return
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        py_value = super().to_py(value)
+        if isinstance(py_value, configutils.Unset):
+            return py_value
+        elif not py_value:
+            return None
 
         # Check for duplicate values
-        if len(set(value)) != len(value):
+        if len(set(py_value)) != len(py_value):
             raise configexc.ValidationError(
-                value, "String contains duplicate values!")
+                py_value, "String contains duplicate values!")
+
+        return py_value
 
 
 class List(BaseType):
 
-    """Base class for a (string-)list setting."""
+    """A list of values.
 
-    _show_inner_type = True
+    When setting from a string, pass a json-like list, e.g. `["one", "two"]`.
+    """
 
-    def __init__(self, inner_type, none_ok=False, length=None):
+    _show_valtype = True
+
+    def __init__(self, valtype: BaseType,
+                 none_ok: bool = False,
+                 length: int = None) -> None:
         super().__init__(none_ok)
-        self.inner_type = inner_type
+        self.valtype = valtype
         self.length = length
 
-    def get_name(self):
+    def get_name(self) -> str:
         name = super().get_name()
-        if self._show_inner_type:
-            name += " of " + self.inner_type.get_name()
+        if self._show_valtype:
+            name += " of " + self.valtype.get_name()
         return name
 
-    def get_valid_values(self):
-        return self.inner_type.get_valid_values()
+    def get_valid_values(self) -> typing.Optional[ValidValues]:
+        return self.valtype.get_valid_values()
 
-    def transform(self, value):
+    def from_str(self, value: str) -> typing.Optional[typing.List]:
+        self._basic_str_validation(value)
         if not value:
             return None
-        else:
-            return [self.inner_type.transform(v.strip())
-                    for v in value.split(',')]
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        vals = value.split(',')
-        if self.length is not None and len(vals) != self.length:
+        try:
+            yaml_val = utils.yaml_load(value)
+        except yaml.YAMLError as e:
+            raise configexc.ValidationError(value, str(e))
+
+        # For the values, we actually want to call to_py, as we did parse them
+        # from YAML, so they are numbers/booleans/... already.
+        self.to_py(yaml_val)
+        return yaml_val
+
+    def from_obj(self, value: typing.Optional[typing.List]) -> typing.List:
+        if value is None:
+            return []
+        return [self.valtype.from_obj(v) for v in value]
+
+    def to_py(
+            self,
+            value: typing.Union[typing.List, configutils.Unset]
+    ) -> typing.Union[typing.List, configutils.Unset]:
+        self._basic_py_validation(value, list)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return []
+
+        for val in value:
+            self._validate_surrogate_escapes(value, val)
+
+        if self.length is not None and len(value) != self.length:
             raise configexc.ValidationError(value, "Exactly {} values need to "
                                             "be set!".format(self.length))
-        for val in vals:
-            self.inner_type.validate(val.strip())
+        return [self.valtype.to_py(v) for v in value]
+
+    def to_str(self, value: typing.List) -> str:
+        if not value:
+            # An empty list is treated just like None -> empty string
+            return ''
+        return json.dumps(value)
+
+    def to_doc(self, value: typing.List, indent: int = 0) -> str:
+        if not value:
+            return 'empty'
+
+        # Might work, but untested
+        assert not isinstance(self.valtype, (Dict, List)), self.valtype
+
+        lines = ['\n']
+        prefix = '-' if not indent else '*' * indent
+        for elem in value:
+            lines.append('{} {}'.format(
+                prefix,
+                self.valtype.to_doc(elem, indent=indent+1)))
+        return '\n'.join(lines)
+
+
+class ListOrValue(BaseType):
+
+    """A list of values, or a single value.
+
+    //
+
+    Internally, the value is stored as either a value (of valtype), or a list.
+    to_py() then ensures that it's always a list.
+    """
+
+    _show_valtype = True
+
+    def __init__(self, valtype: BaseType, *,
+                 none_ok: bool = False,
+                 **kwargs: typing.Any) -> None:
+        super().__init__(none_ok)
+        assert not isinstance(valtype, (List, ListOrValue)), valtype
+        self.listtype = List(valtype, none_ok=none_ok, **kwargs)
+        self.valtype = valtype
+
+    def _val_and_type(self,
+                      value: typing.Any) -> typing.Tuple[typing.Any, BaseType]:
+        """Get the value and type to use for to_str/to_doc/from_str."""
+        if isinstance(value, list):
+            if len(value) == 1:
+                return value[0], self.valtype
+            else:
+                return value, self.listtype
+        else:
+            return value, self.valtype
+
+    def get_name(self) -> str:
+        return self.listtype.get_name() + ', or ' + self.valtype.get_name()
+
+    def get_valid_values(self) -> typing.Optional[ValidValues]:
+        return self.valtype.get_valid_values()
+
+    def from_str(self, value: str) -> typing.Any:
+        try:
+            return self.listtype.from_str(value)
+        except configexc.ValidationError:
+            return self.valtype.from_str(value)
+
+    def from_obj(self, value: typing.Any) -> typing.Any:
+        if value is None:
+            return []
+        return value
+
+    def to_py(self, value: typing.Any) -> typing.Any:
+        if isinstance(value, configutils.Unset):
+            return value
+
+        try:
+            return [self.valtype.to_py(value)]
+        except configexc.ValidationError:
+            return self.listtype.to_py(value)
+
+    def to_str(self, value: typing.Any) -> str:
+        if value is None:
+            return ''
+
+        val, typ = self._val_and_type(value)
+        return typ.to_str(val)
+
+    def to_doc(self, value: typing.Any, indent: int = 0) -> str:
+        if value is None:
+            return 'empty'
+
+        val, typ = self._val_and_type(value)
+        return typ.to_doc(val)
 
 
 class FlagList(List):
 
-    """Base class for a list setting that contains one or more flags.
+    """A list of flags.
 
-    Lists with duplicate flags are invalid and each item is checked against
-    self.valid_values (if not empty).
+    Lists with duplicate flags are invalid. Each item is checked against
+    the valid values of the setting.
     """
 
-    combinable_values = None
+    combinable_values = None  # type: typing.Optional[typing.Sequence]
 
-    _show_inner_type = False
+    _show_valtype = False
 
-    def __init__(self, none_ok=False, valid_values=None):
-        super().__init__(BaseType(), none_ok)
-        self.inner_type.valid_values = valid_values
+    def __init__(self, none_ok: bool = False,
+                 valid_values: ValidValues = None,
+                 length: int = None) -> None:
+        super().__init__(valtype=String(), none_ok=none_ok, length=length)
+        self.valtype.valid_values = valid_values
 
-    def validate(self, value):
-        if self.inner_type.valid_values is not None:
-            super().validate(value)
-        else:
-            self._basic_validation(value)
-        if not value:
-            return
-        vals = super().transform(value)
-
-        # Check for duplicate values
-        if len(set(vals)) != len(vals):
+    def _check_duplicates(self, values: typing.List) -> None:
+        if len(set(values)) != len(values):
             raise configexc.ValidationError(
-                value, "List contains duplicate values!")
+                values, "List contains duplicate values!")
 
-    def complete(self):
-        valid_values = self.inner_type.valid_values
+    def to_py(
+            self,
+            value: typing.Union[configutils.Unset, typing.List],
+    ) -> typing.Union[configutils.Unset, typing.List]:
+        vals = super().to_py(value)
+        if not isinstance(vals, configutils.Unset):
+            self._check_duplicates(vals)
+        return vals
+
+    def complete(self) -> _Completions:
+        valid_values = self.valtype.valid_values
         if valid_values is None:
             return None
 
@@ -385,7 +640,7 @@ class FlagList(List):
         # Single value completions
         for value in valid_values:
             desc = valid_values.descriptions.get(value, "")
-            out.append((value, desc))
+            out.append((json.dumps([value]), desc))
 
         combinables = self.combinable_values
         if combinables is None:
@@ -393,173 +648,211 @@ class FlagList(List):
         # Generate combinations of each possible value combination
         for size in range(2, len(combinables) + 1):
             for combination in itertools.combinations(combinables, size):
-                out.append((','.join(combination), ''))
+                out.append((json.dumps(combination), ''))
         return out
 
 
 class Bool(BaseType):
 
-    """Base class for a boolean setting."""
+    """A boolean setting, either `true` or `false`.
 
-    def __init__(self, none_ok=False):
+    When setting from a string, `1`, `yes`, `on` and `true` count as true,
+    while `0`, `no`, `off` and `false` count as false (case-insensitive).
+    """
+
+    def __init__(self, none_ok: bool = False) -> None:
         super().__init__(none_ok)
-        self.valid_values = ValidValues('true', 'false')
+        self.valid_values = ValidValues('true', 'false', generate_docs=False)
 
-    def transform(self, value):
+    def to_py(self, value: typing.Optional[bool]) -> typing.Optional[bool]:
+        self._basic_py_validation(value, bool)
+        return value
+
+    def from_str(self, value: str) -> typing.Optional[bool]:
+        self._basic_str_validation(value)
         if not value:
             return None
-        else:
-            return BOOLEAN_STATES[value.lower()]
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        elif value.lower() not in BOOLEAN_STATES:
+        try:
+            return BOOLEAN_STATES[value.lower()]
+        except KeyError:
             raise configexc.ValidationError(value, "must be a boolean!")
+
+    def to_str(self, value: typing.Optional[bool]) -> str:
+        mapping = {
+            None: '',
+            True: 'true',
+            False: 'false',
+        }
+        return mapping[value]
 
 
 class BoolAsk(Bool):
 
-    """A yes/no/ask question."""
+    """Like `Bool`, but `ask` is allowed as additional value."""
 
-    def __init__(self, none_ok=False):
+    def __init__(self, none_ok: bool = False) -> None:
         super().__init__(none_ok)
         self.valid_values = ValidValues('true', 'false', 'ask')
 
-    def transform(self, value):
-        if value.lower() == 'ask':
+    def to_py(self,  # type: ignore
+              value: typing.Union[bool, str]) -> typing.Union[bool, str, None]:
+        # basic validation unneeded if it's == 'ask' and done by Bool if we
+        # call super().to_py
+        if isinstance(value, str) and value.lower() == 'ask':
             return 'ask'
-        else:
-            return super().transform(value)
+        return super().to_py(value)  # type: ignore
 
-    def validate(self, value):
-        if value.lower() == 'ask':
-            return
-        else:
-            super().validate(value)
+    def from_str(self,  # type: ignore
+                 value: str) -> typing.Union[bool, str, None]:
+        # basic validation unneeded if it's == 'ask' and done by Bool if we
+        # call super().from_str
+        if isinstance(value, str) and value.lower() == 'ask':
+            return 'ask'
+        return super().from_str(value)
+
+    def to_str(self, value: typing.Union[bool, str, None]) -> str:
+        mapping = {
+            None: '',
+            True: 'true',
+            False: 'false',
+            'ask': 'ask',
+        }
+        return mapping[value]
 
 
-class Int(BaseType):
+class _Numeric(BaseType):  # pylint: disable=abstract-method
 
-    """Base class for an integer setting.
+    """Base class for Float/Int.
 
     Attributes:
         minval: Minimum value (inclusive).
         maxval: Maximum value (inclusive).
     """
 
-    def __init__(self, minval=None, maxval=None, none_ok=False):
+    def __init__(self, minval: int = None,
+                 maxval: int = None,
+                 none_ok: bool = False) -> None:
         super().__init__(none_ok)
-        if maxval is not None and minval is not None and maxval < minval:
-            raise ValueError("minval ({}) needs to be <= maxval ({})!".format(
-                minval, maxval))
-        self.minval = minval
-        self.maxval = maxval
+        self.minval = self._parse_bound(minval)
+        self.maxval = self._parse_bound(maxval)
+        if self.maxval is not None and self.minval is not None:
+            if self.maxval < self.minval:
+                raise ValueError("minval ({}) needs to be <= maxval ({})!"
+                                 .format(self.minval, self.maxval))
 
-    def transform(self, value):
+    def _parse_bound(
+            self, bound: typing.Union[None, str, int, float]
+    ) -> typing.Union[None, int, float]:
+        """Get a numeric bound from a string like 'maxint'."""
+        if bound == 'maxint':
+            return qtutils.MAXVALS['int']
+        elif bound == 'maxint64':
+            return qtutils.MAXVALS['int64']
+        else:
+            if bound is not None:
+                assert isinstance(bound, (int, float)), bound
+            return bound
+
+    def _validate_bounds(self, value: typing.Union[None, int, float],
+                         suffix: str = '') -> None:
+        """Validate self.minval and self.maxval."""
+        if value is None:
+            return
+        elif self.minval is not None and value < self.minval:
+            raise configexc.ValidationError(
+                value, "must be {}{} or bigger!".format(self.minval, suffix))
+        elif self.maxval is not None and value > self.maxval:
+            raise configexc.ValidationError(
+                value, "must be {}{} or smaller!".format(self.maxval, suffix))
+
+    def to_str(self, value: typing.Union[None, int, float]) -> str:
+        if value is None:
+            return ''
+        return str(value)
+
+
+class Int(_Numeric):
+
+    """Base class for an integer setting."""
+
+    def from_str(self, value: str) -> typing.Optional[int]:
+        self._basic_str_validation(value)
         if not value:
             return None
-        else:
-            return int(value)
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
         try:
             intval = int(value)
         except ValueError:
             raise configexc.ValidationError(value, "must be an integer!")
-        if self.minval is not None and intval < self.minval:
-            raise configexc.ValidationError(value, "must be {} or "
-                                            "bigger!".format(self.minval))
-        if self.maxval is not None and intval > self.maxval:
-            raise configexc.ValidationError(value, "must be {} or "
-                                            "smaller!".format(self.maxval))
+        self.to_py(intval)
+        return intval
+
+    def to_py(self, value: typing.Optional[int]) -> typing.Optional[int]:
+        self._basic_py_validation(value, int)
+        self._validate_bounds(value)
+        return value
 
 
-class Float(BaseType):
+class Float(_Numeric):
 
-    """Base class for a float setting.
+    """Base class for a float setting."""
 
-    Attributes:
-        minval: Minimum value (inclusive).
-        maxval: Maximum value (inclusive).
-    """
-
-    def __init__(self, minval=None, maxval=None, none_ok=False):
-        super().__init__(none_ok)
-        if maxval is not None and minval is not None and maxval < minval:
-            raise ValueError("minval ({}) needs to be <= maxval ({})!".format(
-                minval, maxval))
-        self.minval = minval
-        self.maxval = maxval
-
-    def transform(self, value):
+    def from_str(self, value: str) -> typing.Optional[float]:
+        self._basic_str_validation(value)
         if not value:
             return None
-        else:
-            return float(value)
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
         try:
             floatval = float(value)
         except ValueError:
             raise configexc.ValidationError(value, "must be a float!")
-        if self.minval is not None and floatval < self.minval:
-            raise configexc.ValidationError(value, "must be {} or "
-                                            "bigger!".format(self.minval))
-        if self.maxval is not None and floatval > self.maxval:
-            raise configexc.ValidationError(value, "must be {} or "
-                                            "smaller!".format(self.maxval))
+        self.to_py(floatval)
+        return floatval
+
+    def to_py(
+            self,
+            value: typing.Union[None, int, float],
+    ) -> typing.Union[None, int, float]:
+        self._basic_py_validation(value, (int, float))
+        self._validate_bounds(value)
+        return value
 
 
-class Perc(BaseType):
+class Perc(_Numeric):
 
-    """Percentage.
+    """A percentage."""
 
-    Attributes:
-        minval: Minimum value (inclusive).
-        maxval: Maximum value (inclusive).
-    """
+    def to_py(
+            self,
+            value: typing.Union[None, float, int, str, configutils.Unset]
+    ) -> typing.Union[None, float, int, configutils.Unset]:
+        self._basic_py_validation(value, (float, int, str))
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
 
-    def __init__(self, minval=None, maxval=None, none_ok=False):
-        super().__init__(none_ok)
-        if maxval is not None and minval is not None and maxval < minval:
-            raise ValueError("minval ({}) needs to be <= maxval ({})!".format(
-                minval, maxval))
-        self.minval = minval
-        self.maxval = maxval
+        if isinstance(value, str):
+            value = value.rstrip('%')
+            try:
+                value = float(value)
+            except ValueError:
+                raise configexc.ValidationError(
+                    value, "must be a valid number!")
+        self._validate_bounds(value, suffix='%')
+        return value
 
-    def transform(self, value):
-        if not value:
-            return
+    def to_str(self, value: typing.Union[None, float, int, str]) -> str:
+        if value is None:
+            return ''
+        elif isinstance(value, str):
+            return value
         else:
-            return int(value[:-1])
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        elif not value.endswith('%'):
-            raise configexc.ValidationError(value, "does not end with %")
-        try:
-            intval = int(value[:-1])
-        except ValueError:
-            raise configexc.ValidationError(value, "invalid percentage!")
-        if self.minval is not None and intval < self.minval:
-            raise configexc.ValidationError(value, "must be {}% or "
-                                            "more!".format(self.minval))
-        if self.maxval is not None and intval > self.maxval:
-            raise configexc.ValidationError(value, "must be {}% or "
-                                            "less!".format(self.maxval))
+            return '{}%'.format(value)
 
 
-class PercOrInt(BaseType):
+class PercOrInt(_Numeric):
 
     """Percentage or integer.
 
@@ -570,73 +863,93 @@ class PercOrInt(BaseType):
         maxint: Maximum value for integer (inclusive).
     """
 
-    def __init__(self, minperc=None, maxperc=None, minint=None, maxint=None,
-                 none_ok=False):
-        super().__init__(none_ok)
-        if maxint is not None and minint is not None and maxint < minint:
-            raise ValueError("minint ({}) needs to be <= maxint ({})!".format(
-                minint, maxint))
-        if maxperc is not None and minperc is not None and maxperc < minperc:
+    def __init__(self, minperc: int = None, maxperc: int = None,
+                 minint: int = None, maxint: int = None,
+                 none_ok: bool = False) -> None:
+        super().__init__(minval=minint, maxval=maxint, none_ok=none_ok)
+        self.minperc = self._parse_bound(minperc)
+        self.maxperc = self._parse_bound(maxperc)
+        if (self.maxperc is not None and self.minperc is not None and
+                self.maxperc < self.minperc):
             raise ValueError("minperc ({}) needs to be <= maxperc "
-                             "({})!".format(minperc, maxperc))
-        self.minperc = minperc
-        self.maxperc = maxperc
-        self.minint = minint
-        self.maxint = maxint
+                             "({})!".format(self.minperc, self.maxperc))
 
-    def validate(self, value):
-        self._basic_validation(value)
+    def from_str(self, value: str) -> typing.Union[None, str, int]:
+        self._basic_str_validation(value)
         if not value:
-            return
-        elif value.endswith('%'):
+            return None
+
+        if value.endswith('%'):
+            self.to_py(value)
+            return value
+
+        try:
+            intval = int(value)
+        except ValueError:
+            raise configexc.ValidationError(value,
+                                            "must be integer or percentage!")
+        self.to_py(intval)
+        return intval
+
+    def to_py(
+            self,
+            value: typing.Union[None, str, int]
+    ) -> typing.Union[None, str, int]:
+        """Expect a value like '42%' as string, or 23 as int."""
+        self._basic_py_validation(value, (int, str))
+        if value is None:
+            return None
+
+        if isinstance(value, str):
+            if not value.endswith('%'):
+                raise configexc.ValidationError(
+                    value, "needs to end with % or be an integer")
+
             try:
                 intval = int(value[:-1])
             except ValueError:
                 raise configexc.ValidationError(value, "invalid percentage!")
+
             if self.minperc is not None and intval < self.minperc:
                 raise configexc.ValidationError(value, "must be {}% or "
                                                 "more!".format(self.minperc))
             if self.maxperc is not None and intval > self.maxperc:
                 raise configexc.ValidationError(value, "must be {}% or "
                                                 "less!".format(self.maxperc))
+
+            # Note we don't actually return the integer here, as we need to
+            # know whether it was a percentage.
         else:
-            try:
-                intval = int(value)
-            except ValueError:
-                raise configexc.ValidationError(value, "must be integer or "
-                                                "percentage!")
-            if self.minint is not None and intval < self.minint:
-                raise configexc.ValidationError(value, "must be {} or "
-                                                "bigger!".format(self.minint))
-            if self.maxint is not None and intval > self.maxint:
-                raise configexc.ValidationError(value, "must be {} or "
-                                                "smaller!".format(self.maxint))
+            self._validate_bounds(value)
+        return value
 
 
 class Command(BaseType):
 
-    """Base class for a command value with arguments."""
+    """A qutebrowser command with arguments.
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        split = value.split()
-        if not split or split[0] not in cmdutils.cmd_dict:
-            raise configexc.ValidationError(value, "must be a valid command!")
+    //
 
-    def complete(self):
+    Since validation is quite tricky here, we don't do so, and instead let
+    invalid commands (in bindings/aliases) fail when used.
+    """
+
+    def complete(self) -> _Completions:
         out = []
-        for cmdname, obj in cmdutils.cmd_dict.items():
+        for cmdname, obj in objects.commands.items():
             out.append((cmdname, obj.desc))
         return out
+
+    def to_py(self, value: str) -> str:
+        self._basic_py_validation(value, str)
+        return value
 
 
 class ColorSystem(MappingType):
 
-    """Color systems for interpolation."""
+    """The color system to use for color interpolation."""
 
-    def __init__(self, none_ok=False):
+    def __init__(self, none_ok: bool = False) -> None:
         super().__init__(
             none_ok,
             valid_values=ValidValues(
@@ -653,82 +966,137 @@ class ColorSystem(MappingType):
     }
 
 
+class IgnoreCase(MappingType):
+
+    """Whether to search case insensitively."""
+
+    def __init__(self, none_ok: bool = False) -> None:
+        super().__init__(
+            none_ok,
+            valid_values=ValidValues(
+                ('always', "Search case-insensitively."),
+                ('never', "Search case-sensitively."),
+                ('smart', ("Search case-sensitively if there are capital "
+                           "characters."))))
+
+    MAPPING = {
+        'always': usertypes.IgnoreCase.always,
+        'never': usertypes.IgnoreCase.never,
+        'smart': usertypes.IgnoreCase.smart,
+    }
+
+
 class QtColor(BaseType):
 
-    """Base class for QColor."""
+    """A color value.
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        elif QColor.isValidColor(value):
-            pass
-        else:
-            raise configexc.ValidationError(value, "must be a valid color")
+    A value can be in one of the following formats:
 
-    def transform(self, value):
-        if not value:
-            return None
-        else:
-            return QColor(value)
-
-
-class CssColor(BaseType):
-
-    """Base class for a CSS color value."""
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        elif value.startswith('-'):
-            # custom function name, won't validate.
-            pass
-        elif QColor.isValidColor(value):
-            pass
-        else:
-            raise configexc.ValidationError(value, "must be a valid color")
-
-
-class QssColor(CssColor):
-
-    """Base class for a color value.
-
-    Class attributes:
-        color_func_regexes: Valid function regexes.
+    * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
+    * An SVG color name as specified in
+      http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
+    * transparent (no color)
+    * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
+    * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
     """
 
-    num = r'[0-9]{1,3}%?'
-
-    color_func_regexes = [
-        r'rgb\({num},\s*{num},\s*{num}\)'.format(num=num),
-        r'rgba\({num},\s*{num},\s*{num},\s*{num}\)'.format(num=num),
-        r'hsv\({num},\s*{num},\s*{num}\)'.format(num=num),
-        r'hsva\({num},\s*{num},\s*{num},\s*{num}\)'.format(num=num),
-        r'qlineargradient\(.*\)',
-        r'qradialgradient\(.*\)',
-        r'qconicalgradient\(.*\)',
-    ]
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        elif any(re.match(r, value) for r in self.color_func_regexes):
-            # QColor doesn't handle these, so we do the best we can easily
+    def _parse_value(self, val: str) -> int:
+        try:
+            return int(val)
+        except ValueError:
             pass
-        elif QColor.isValidColor(value):
-            pass
+
+        mult = 255.0
+        if val.endswith('%'):
+            val = val[:-1]
+            mult = 255.0 / 100
+
+        try:
+            return int(float(val) * mult)
+        except ValueError:
+            raise configexc.ValidationError(val, "must be a valid color value")
+
+    def to_py(self, value: _StrUnset) -> typing.Union[configutils.Unset,
+                                                      None, QColor]:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
+        if '(' in value and value.endswith(')'):
+            openparen = value.index('(')
+            kind = value[:openparen]
+            vals = value[openparen+1:-1].split(',')
+            int_vals = [self._parse_value(v) for v in vals]
+            if kind == 'rgba' and len(int_vals) == 4:
+                return QColor.fromRgb(*int_vals)
+            elif kind == 'rgb' and len(int_vals) == 3:
+                return QColor.fromRgb(*int_vals)
+            elif kind == 'hsva' and len(int_vals) == 4:
+                return QColor.fromHsv(*int_vals)
+            elif kind == 'hsv' and len(int_vals) == 3:
+                return QColor.fromHsv(*int_vals)
+            else:
+                raise configexc.ValidationError(value, "must be a valid color")
+
+        color = QColor(value)
+        if color.isValid():
+            return color
         else:
             raise configexc.ValidationError(value, "must be a valid color")
+
+
+class QssColor(BaseType):
+
+    """A color value supporting gradients.
+
+    A value can be in one of the following formats:
+
+    * `#RGB`/`#RRGGBB`/`#RRRGGGBBB`/`#RRRRGGGGBBBB`
+    * An SVG color name as specified in
+      http://www.w3.org/TR/SVG/types.html#ColorKeywords[the W3C specification].
+    * transparent (no color)
+    * `rgb(r, g, b)` / `rgba(r, g, b, a)` (values 0-255 or percentages)
+    * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
+    * A gradient as explained in
+      http://doc.qt.io/qt-5/stylesheet-reference.html#list-of-property-types[the Qt documentation]
+      under ``Gradient''
+    """
+
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
+        functions = ['rgb', 'rgba', 'hsv', 'hsva', 'qlineargradient',
+                     'qradialgradient', 'qconicalgradient']
+        if (any(value.startswith(func + '(') for func in functions) and
+                value.endswith(')')):
+            # QColor doesn't handle these
+            return value
+
+        if not QColor.isValidColor(value):
+            raise configexc.ValidationError(value, "must be a valid color")
+
+        return value
 
 
 class Font(BaseType):
 
-    """Base class for a font value."""
+    """A font family, with optional style/weight/size.
 
+    * Style: `normal`/`italic`/`oblique`
+    * Weight: `normal`, `bold`, `100`..`900`
+    * Size: _number_ `px`/`pt`
+    """
+
+    # Gets set when the config is initialized.
+    monospace_fonts = None
     font_regex = re.compile(r"""
-        ^(
+        (
             (
                 # style
                 (?P<style>normal|italic|oblique) |
@@ -739,42 +1107,65 @@ class Font(BaseType):
                 ) |
                 # size (<float>pt | <int>px)
                 (?P<size>[0-9]+((\.[0-9]+)?[pP][tT]|[pP][xX]))
-            )\                         # size/weight/style are space-separated
-        )*                             # 0-inf size/weight/style tags
-        (?P<family>[A-Za-z0-9, "-]*)$  # mandatory font family""", re.VERBOSE)
+            )\           # size/weight/style are space-separated
+        )*               # 0-inf size/weight/style tags
+        (?P<family>.+)  # mandatory font family""", re.VERBOSE)
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        elif not self.font_regex.match(value):
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
+        if not self.font_regex.fullmatch(value):  # pragma: no cover
+            # This should never happen, as the regex always matches everything
+            # as family.
             raise configexc.ValidationError(value, "must be a valid font")
+
+        if value.endswith(' monospace') and self.monospace_fonts is not None:
+            return value.replace('monospace', self.monospace_fonts)
+        return value
 
 
 class FontFamily(Font):
 
     """A Qt font family."""
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        match = self.font_regex.match(value)
-        if not match:
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
+        match = self.font_regex.fullmatch(value)
+        if not match:  # pragma: no cover
+            # This should never happen, as the regex always matches everything
+            # as family.
             raise configexc.ValidationError(value, "must be a valid font")
         for group in 'style', 'weight', 'namedweight', 'size':
             if match.group(group):
                 raise configexc.ValidationError(value, "may not include a "
                                                 "{}!".format(group))
 
+        return value
+
 
 class QtFont(Font):
 
     """A Font which gets converted to a QFont."""
 
-    def transform(self, value):
-        if not value:
+    __doc__ = Font.__doc__  # for src2asciidoc.py
+
+    def to_py(self, value: _StrUnset) -> typing.Union[configutils.Unset,
+                                                      None, QFont]:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
             return None
+
         style_map = {
             'normal': QFont.StyleNormal,
             'italic': QFont.StyleItalic,
@@ -788,7 +1179,12 @@ class QtFont(Font):
         font.setStyle(QFont.StyleNormal)
         font.setWeight(QFont.Normal)
 
-        match = self.font_regex.match(value)
+        match = self.font_regex.fullmatch(value)
+        if not match:  # pragma: no cover
+            # This should never happen, as the regex always matches everything
+            # as family.
+            raise configexc.ValidationError(value, "must be a valid font")
+
         style = match.group('style')
         weight = match.group('weight')
         namedweight = match.group('namedweight')
@@ -800,7 +1196,7 @@ class QtFont(Font):
             font.setWeight(weight_map[namedweight])
         if weight:
             # based on qcssparser.cpp:setFontWeightFromValue
-            font.setWeight(min(int(weight) / 8, 99))
+            font.setWeight(min(int(weight) // 8, 99))
         if size:
             if size.lower().endswith('pt'):
                 font.setPointSizeF(float(size[:-2]))
@@ -811,87 +1207,243 @@ class QtFont(Font):
                 # through.
                 raise ValueError("Unexpected size unit in {!r}!".format(
                     size))  # pragma: no cover
+
+        if family == 'monospace' and self.monospace_fonts is not None:
+            family = self.monospace_fonts
         # The Qt CSS parser handles " and ' before passing the string to
         # QFont.setFamily. We could do proper CSS-like parsing here, but since
         # hopefully nobody will ever have a font with quotes in the family (if
         # that's even possible), we take a much more naive approach.
         family = family.replace('"', '').replace("'", '')
         font.setFamily(family)
+
         return font
 
 
 class Regex(BaseType):
 
-    """A regular expression."""
+    """A regular expression.
 
-    def __init__(self, flags=0, none_ok=False):
+    When setting from `config.py`, both a string or a `re.compile(...)` object
+    are valid.
+
+    Attributes:
+        flags: The flags to be used when a string is passed.
+        _regex_type: The Python type of a regex object.
+    """
+
+    def __init__(self, flags: str = None,
+                 none_ok: bool = False) -> None:
         super().__init__(none_ok)
-        self.flags = flags
+        self._regex_type = type(re.compile(''))
+        # Parse flags from configdata.yml
+        if flags is None:
+            self.flags = 0
+        else:
+            self.flags = functools.reduce(
+                operator.or_,
+                (getattr(re, flag.strip()) for flag in flags.split(' | ')))
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        _validate_regex(value, self.flags)
+    def _compile_regex(self, pattern: str) -> typing.Pattern[str]:
+        """Check if the given regex is valid.
 
-    def transform(self, value):
+        This is more complicated than it could be since there's a warning on
+        invalid escapes with newer Python versions, and we want to catch that
+        case and treat it as invalid.
+        """
+        with warnings.catch_warnings(record=True) as recorded_warnings:
+            warnings.simplefilter('always')
+            try:
+                compiled = re.compile(pattern, self.flags)
+            except re.error as e:
+                raise configexc.ValidationError(
+                    pattern, "must be a valid regex - " + str(e))
+            except RuntimeError:  # pragma: no cover
+                raise configexc.ValidationError(
+                    pattern, "must be a valid regex - recursion depth "
+                    "exceeded")
+
+        assert recorded_warnings is not None
+
+        for w in recorded_warnings:
+            if (issubclass(w.category, DeprecationWarning) and
+                    str(w.message).startswith('bad escape')):
+                raise configexc.ValidationError(
+                    pattern, "must be a valid regex - " + str(w.message))
+            warnings.warn(w.message)
+
+        return compiled
+
+    def to_py(
+            self,
+            value: typing.Union[str, typing.Pattern[str]]
+    ) -> typing.Union[configutils.Unset, None, typing.Pattern[str]]:
+        """Get a compiled regex from either a string or a regex object."""
+        self._basic_py_validation(value, (str, self._regex_type))
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+        elif isinstance(value, str):
+            return self._compile_regex(value)
+        else:
+            return value
+
+    def to_str(self,
+               value: typing.Union[None, str, typing.Pattern[str]]) -> str:
+        if value is None:
+            return ''
+        elif isinstance(value, self._regex_type):
+            return value.pattern
+        else:
+            assert isinstance(value, str)
+            return value
+
+
+class Dict(BaseType):
+
+    """A dictionary of values.
+
+    When setting from a string, pass a json-like dict, e.g. `{"key", "value"}`.
+    """
+
+    def __init__(self, keytype: typing.Union[String, 'Key'],
+                 valtype: BaseType, *,
+                 fixed_keys: typing.Iterable = None,
+                 required_keys: typing.Iterable = None,
+                 none_ok: bool = False) -> None:
+        super().__init__(none_ok)
+        # If the keytype is not a string, we'll get problems with showing it as
+        # json in to_str() as json converts keys to strings.
+        assert isinstance(keytype, (String, Key)), keytype
+        self.keytype = keytype
+        self.valtype = valtype
+        self.fixed_keys = fixed_keys
+        self.required_keys = required_keys
+
+    def _validate_keys(self, value: typing.Dict) -> None:
+        if (self.fixed_keys is not None and not
+                set(value.keys()).issubset(self.fixed_keys)):
+            raise configexc.ValidationError(
+                value, "Expected keys {}".format(self.fixed_keys))
+
+        if (self.required_keys is not None and not
+                set(self.required_keys).issubset(value.keys())):
+            raise configexc.ValidationError(
+                value, "Required keys {}".format(self.required_keys))
+
+    def from_str(self, value: str) -> typing.Optional[typing.Dict]:
+        self._basic_str_validation(value)
         if not value:
             return None
-        else:
-            return re.compile(value, self.flags)
+
+        try:
+            yaml_val = utils.yaml_load(value)
+        except yaml.YAMLError as e:
+            raise configexc.ValidationError(value, str(e))
+
+        # For the values, we actually want to call to_py, as we did parse them
+        # from YAML, so they are numbers/booleans/... already.
+        self.to_py(yaml_val)
+        return yaml_val
+
+    def from_obj(self, value: typing.Optional[typing.Dict]) -> typing.Dict:
+        if value is None:
+            return {}
+
+        return {self.keytype.from_obj(key): self.valtype.from_obj(val)
+                for key, val in value.items()}
+
+    def _fill_fixed_keys(self, value: typing.Dict) -> typing.Dict:
+        """Fill missing fixed keys with a None-value."""
+        if self.fixed_keys is None:
+            return value
+        for key in self.fixed_keys:
+            if key not in value:
+                value[key] = self.valtype.to_py(None)
+        return value
+
+    def to_py(
+            self,
+            value: typing.Union[typing.Dict, configutils.Unset, None]
+    ) -> typing.Union[typing.Dict, configutils.Unset]:
+        self._basic_py_validation(value, dict)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return self._fill_fixed_keys({})
+
+        self._validate_keys(value)
+        for key, val in value.items():
+            self._validate_surrogate_escapes(value, key)
+            self._validate_surrogate_escapes(value, val)
+
+        d = {self.keytype.to_py(key): self.valtype.to_py(val)
+             for key, val in value.items()}
+        return self._fill_fixed_keys(d)
+
+    def to_str(self, value: typing.Dict) -> str:
+        if not value:
+            # An empty Dict is treated just like None -> empty string
+            return ''
+        return json.dumps(value, sort_keys=True)
+
+    def to_doc(self, value: typing.Dict, indent: int = 0) -> str:
+        if not value:
+            return 'empty'
+        lines = ['\n']
+        prefix = '-' if not indent else '*' * indent
+        for key, val in sorted(value.items()):
+            lines += ('{} {}: {}'.format(
+                prefix,
+                self.keytype.to_doc(key),
+                self.valtype.to_doc(val, indent=indent+1),
+            )).splitlines()
+        return '\n'.join(line.rstrip(' ') for line in lines)
 
 
 class File(BaseType):
 
     """A file on the local filesystem."""
 
-    def __init__(self, required=True, **kwargs):
+    def __init__(self, required: bool = True, **kwargs: typing.Any) -> None:
         super().__init__(**kwargs)
         self.required = required
 
-    def transform(self, value):
-        if not value:
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
             return None
-        value = os.path.expanduser(value)
-        value = os.path.expandvars(value)
-        if not os.path.isabs(value):
-            cfgdir = standarddir.config()
-            assert cfgdir is not None
-            value = os.path.join(cfgdir, value)
-        return value
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
         value = os.path.expanduser(value)
         value = os.path.expandvars(value)
         try:
             if not os.path.isabs(value):
-                cfgdir = standarddir.config()
-                if cfgdir is None:
-                    raise configexc.ValidationError(
-                        value, "must be an absolute path when not using a "
-                        "config directory!")
-                value = os.path.join(cfgdir, value)
-                not_isfile_message = ("must be a valid path relative to the "
-                                      "config directory!")
-            else:
-                not_isfile_message = "must be a valid file!"
+                value = os.path.join(standarddir.config(), value)
+
             if self.required and not os.path.isfile(value):
-                raise configexc.ValidationError(value, not_isfile_message)
+                raise configexc.ValidationError(
+                    value,
+                    "Must be an existing file (absolute or relative to the "
+                    "config directory)!")
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
+
+        return value
 
 
 class Directory(BaseType):
 
     """A directory on the local filesystem."""
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
         value = os.path.expandvars(value)
         value = os.path.expanduser(value)
         try:
@@ -904,152 +1456,110 @@ class Directory(BaseType):
         except UnicodeEncodeError as e:
             raise configexc.ValidationError(value, e)
 
-    def transform(self, value):
-        if not value:
-            return None
-        value = os.path.expandvars(value)
-        return os.path.expanduser(value)
+        return value
 
 
 class FormatString(BaseType):
 
-    """A string with '{foo}'-placeholders."""
+    """A string with placeholders."""
 
-    def __init__(self, fields, none_ok=False):
+    def __init__(self, fields: typing.Iterable[str],
+                 none_ok: bool = False) -> None:
         super().__init__(none_ok)
         self.fields = fields
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        s = self.transform(value)
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
         try:
-            return s.format(**{k: '' for k in self.fields})
+            value.format(**{k: '' for k in self.fields})
         except (KeyError, IndexError) as e:
             raise configexc.ValidationError(value, "Invalid placeholder "
                                             "{}".format(e))
         except ValueError as e:
             raise configexc.ValidationError(value, str(e))
 
-
-class WebKitBytes(BaseType):
-
-    """A size with an optional suffix.
-
-    Attributes:
-        maxsize: The maximum size to be used.
-
-    Class attributes:
-        SUFFIXES: A mapping of size suffixes to multiplicators.
-    """
-
-    SUFFIXES = {
-        'k': 1024 ** 1,
-        'm': 1024 ** 2,
-        'g': 1024 ** 3,
-        't': 1024 ** 4,
-        'p': 1024 ** 5,
-        'e': 1024 ** 6,
-        'z': 1024 ** 7,
-        'y': 1024 ** 8,
-    }
-
-    def __init__(self, maxsize=None, none_ok=False):
-        super().__init__(none_ok)
-        self.maxsize = maxsize
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        try:
-            val = self.transform(value)
-        except ValueError:
-            raise configexc.ValidationError(value, "must be a valid integer "
-                                            "with optional suffix!")
-        if self.maxsize is not None and val > self.maxsize:
-            raise configexc.ValidationError(value, "must be {} "
-                                            "maximum!".format(self.maxsize))
-        if val < 0:
-            raise configexc.ValidationError(value, "must be 0 minimum!")
-
-    def transform(self, value):
-        if not value:
-            return None
-        elif any(value.lower().endswith(c) for c in self.SUFFIXES):
-            suffix = value[-1].lower()
-            val = value[:-1]
-            multiplicator = self.SUFFIXES[suffix]
-        else:
-            val = value
-            multiplicator = 1
-        return int(val) * multiplicator
+        return value
 
 
-class ShellCommand(BaseType):
+class ShellCommand(List):
 
-    """A shellcommand which is split via shlex.
+    """A shell command as a list.
+
+    See the documentation for `List`.
 
     Attributes:
         placeholder: If there should be a placeholder.
     """
 
-    def __init__(self, placeholder=False, none_ok=False):
-        super().__init__(none_ok)
+    _show_valtype = False
+
+    def __init__(self, placeholder: bool = False,
+                 none_ok: bool = False) -> None:
+        super().__init__(valtype=String(), none_ok=none_ok)
         self.placeholder = placeholder
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        try:
-            shlex.split(value)
-        except ValueError as e:
-            raise configexc.ValidationError(value, str(e))
-        if self.placeholder and '{}' not in value:
-            raise configexc.ValidationError(value, "needs to contain a "
-                                            "{}-placeholder.")
+    def to_py(
+            self,
+            value: typing.Union[typing.List, configutils.Unset],
+    ) -> typing.Union[typing.List, configutils.Unset]:
+        py_value = super().to_py(value)
+        if isinstance(py_value, configutils.Unset):
+            return py_value
+        elif not py_value:
+            return []
 
-    def transform(self, value):
-        if not value:
-            return None
-        else:
-            return shlex.split(value)
+        if (self.placeholder and
+                '{}' not in ' '.join(py_value) and
+                '{file}' not in ' '.join(py_value)):
+            raise configexc.ValidationError(py_value, "needs to contain a "
+                                            "{}-placeholder or a "
+                                            "{file}-placeholder.")
+        return py_value
 
 
 class Proxy(BaseType):
 
-    """A proxy URL or special value."""
+    """A proxy URL, or `system`/`none`."""
 
-    PROXY_TYPES = {
-        'http': QNetworkProxy.HttpProxy,
-        'socks': QNetworkProxy.Socks5Proxy,
-        'socks5': QNetworkProxy.Socks5Proxy,
-    }
-
-    def __init__(self, none_ok=False):
+    def __init__(self, none_ok: bool = False) -> None:
         super().__init__(none_ok)
         self.valid_values = ValidValues(
             ('system', "Use the system wide proxy."),
             ('none', "Don't use any proxy"))
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        elif value in self.valid_values:
-            return
-        url = QUrl(value)
-        if not url.isValid():
-            raise configexc.ValidationError(
-                value, "invalid url, {}".format(url.errorString()))
-        elif url.scheme() not in self.PROXY_TYPES:
-            raise configexc.ValidationError(value, "must be a proxy URL "
-                                            "(http://... or socks://...) or "
-                                            "system/none!")
+    def to_py(
+            self,
+            value: _StrUnset
+    ) -> typing.Union[configutils.Unset, None, QNetworkProxy, _SystemProxy]:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
 
-    def complete(self):
+        try:
+            if value == 'system':
+                return SYSTEM_PROXY
+
+            if value == 'none':
+                url = QUrl('direct://')
+            else:
+                # If we add a special value to valid_values, we need to handle
+                # it here!
+                assert self.valid_values is not None
+                assert value not in self.valid_values, value
+                url = QUrl(value)
+            return urlutils.proxy_from_url(url)
+        except (urlutils.InvalidUrlError, urlutils.InvalidProxyTypeError) as e:
+            raise configexc.ValidationError(value, e)
+
+    def complete(self) -> _Completions:
+        assert self.valid_values is not None
         out = []
         for val in self.valid_values:
             out.append((val, self.valid_values.descriptions[val]))
@@ -1057,48 +1567,27 @@ class Proxy(BaseType):
         out.append(('socks://', 'SOCKS proxy URL'))
         out.append(('socks://localhost:9050/', 'Tor via SOCKS'))
         out.append(('http://localhost:8080/', 'Local HTTP proxy'))
+        out.append(('pac+https://example.com/proxy.pac', 'Proxy autoconfiguration file URL'))
         return out
-
-    def transform(self, value):
-        if not value:
-            return None
-        elif value == 'system':
-            return SYSTEM_PROXY
-        elif value == 'none':
-            return QNetworkProxy(QNetworkProxy.NoProxy)
-        url = QUrl(value)
-        typ = self.PROXY_TYPES[url.scheme()]
-        proxy = QNetworkProxy(typ, url.host())
-        if url.port() != -1:
-            proxy.setPort(url.port())
-        if url.userName():
-            proxy.setUser(url.userName())
-        if url.password():
-            proxy.setPassword(url.password())
-        return proxy
-
-
-class SearchEngineName(BaseType):
-
-    """A search engine name."""
-
-    def validate(self, value):
-        self._basic_validation(value)
 
 
 class SearchEngineUrl(BaseType):
 
     """A search engine URL."""
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        elif not ('{}' in value or '{0}' in value):
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
+        if not ('{}' in value or '{0}' in value):
             raise configexc.ValidationError(value, "must contain \"{}\"")
+
         try:
             value.format("")
-        except (KeyError, IndexError) as e:
+        except (KeyError, IndexError):
             raise configexc.ValidationError(
                 value, "may not contain {...} (use {{ and }} for literal {/})")
         except ValueError as e:
@@ -1109,138 +1598,75 @@ class SearchEngineUrl(BaseType):
             raise configexc.ValidationError(
                 value, "invalid url, {}".format(url.errorString()))
 
+        return value
+
 
 class FuzzyUrl(BaseType):
 
-    """A single URL."""
+    """A URL which gets interpreted as search if needed."""
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        from qutebrowser.utils import urlutils
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
         try:
-            self.transform(value)
+            return urlutils.fuzzy_url(value, do_search=False)
         except urlutils.InvalidUrlError as e:
             raise configexc.ValidationError(value, str(e))
 
-    def transform(self, value):
-        from qutebrowser.utils import urlutils
-        if not value:
-            return None
-        else:
-            return urlutils.fuzzy_url(value, do_search=False)
+
+@attr.s
+class PaddingValues:
+
+    """Four padding values."""
+
+    top = attr.ib()  # type: int
+    bottom = attr.ib()  # type: int
+    left = attr.ib()  # type: int
+    right = attr.ib()  # type: int
 
 
-PaddingValues = collections.namedtuple('PaddingValues', ['top', 'bottom',
-                                                         'left', 'right'])
-
-
-class Padding(List):
+class Padding(Dict):
 
     """Setting for paddings around elements."""
 
-    _show_inner_type = False
+    _show_valtype = False
 
-    def __init__(self, none_ok=False, valid_values=None):
-        super().__init__(Int(minval=0, none_ok=none_ok),
-                         none_ok=none_ok, length=4)
-        self.inner_type.valid_values = valid_values
+    def __init__(self, none_ok: bool = False) -> None:
+        super().__init__(keytype=String(),
+                         valtype=Int(minval=0, none_ok=none_ok),
+                         fixed_keys=['top', 'bottom', 'left', 'right'],
+                         none_ok=none_ok)
 
-    def transform(self, value):
-        elems = super().transform(value)
-        if elems is None:
-            return elems
-        return PaddingValues(*elems)
+    def to_py(  # type: ignore
+            self,
+            value: typing.Union[configutils.Unset, typing.Dict, None],
+    ) -> typing.Union[configutils.Unset, PaddingValues]:
+        d = super().to_py(value)
+        if isinstance(d, configutils.Unset):
+            return d
+
+        return PaddingValues(**d)
 
 
 class Encoding(BaseType):
 
     """Setting for a python encoding."""
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
         try:
             codecs.lookup(value)
         except LookupError:
             raise configexc.ValidationError(value, "is not a valid encoding!")
-
-
-class UserStyleSheet(File):
-
-    """QWebSettings UserStyleSheet."""
-
-    def transform(self, value):
-        if not value:
-            return None
-
-        if standarddir.config() is None:
-            # We can't call super().transform() here as this counts on the
-            # validation previously ensuring that we don't have a relative path
-            # when starting with -c "".
-            path = None
-        else:
-            path = super().transform(value)
-
-        if path is not None and os.path.exists(path):
-            return QUrl.fromLocalFile(path)
-        else:
-            data = base64.b64encode(value.encode('utf-8')).decode('ascii')
-            return QUrl("data:text/css;charset=utf-8;base64,{}".format(data))
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        value = os.path.expandvars(value)
-        value = os.path.expanduser(value)
-        try:
-            super().validate(value)
-        except configexc.ValidationError:
-            try:
-                if not os.path.isabs(value):
-                    # probably a CSS, so we don't handle it as filename.
-                    # FIXME We just try if it is encodable, maybe we should
-                    # validate CSS?
-                    # https://github.com/The-Compiler/qutebrowser/issues/115
-                    value.encode('utf-8')
-            except UnicodeEncodeError as e:
-                raise configexc.ValidationError(value, str(e))
-
-
-class AutoSearch(BaseType):
-
-    """Whether to start a search when something else than a URL is entered."""
-
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
-        self.booltype = Bool(none_ok=none_ok)
-        self.valid_values = ValidValues(
-            ('naive', "Use simple/naive check."),
-            ('dns', "Use DNS requests (might be slow!)."),
-            ('false', "Never search automatically."))
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        elif value.lower() in ['naive', 'dns']:
-            pass
-        else:
-            self.booltype.validate(value)
-
-    def transform(self, value):
-        if not value:
-            return None
-        elif value.lower() in ['naive', 'dns']:
-            return value.lower()
-        elif self.booltype.transform(value):
-            # boolean true is an alias for naive matching
-            return 'naive'
-        else:
-            return False
+        return value
 
 
 class Position(MappingType):
@@ -1254,7 +1680,7 @@ class Position(MappingType):
         'right': QTabWidget.East,
     }
 
-    def __init__(self, none_ok=False):
+    def __init__(self, none_ok: bool = False) -> None:
         super().__init__(
             none_ok,
             valid_values=ValidValues('top', 'bottom', 'left', 'right'))
@@ -1270,104 +1696,55 @@ class TextAlignment(MappingType):
         'center': Qt.AlignCenter,
     }
 
-    def __init__(self, none_ok=False):
+    def __init__(self, none_ok: bool = False) -> None:
         super().__init__(
             none_ok,
             valid_values=ValidValues('left', 'right', 'center'))
 
 
-class VerticalPosition(BaseType):
+class VerticalPosition(String):
 
     """The position of the download bar."""
 
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
+    def __init__(self, none_ok: bool = False) -> None:
+        super().__init__(none_ok=none_ok)
         self.valid_values = ValidValues('top', 'bottom')
 
 
 class Url(BaseType):
 
-    """A URL."""
+    """A URL as a string."""
 
-    def transform(self, value):
-        if not value:
+    def to_py(
+            self,
+            value: _StrUnset
+    ) -> typing.Union[configutils.Unset, None, QUrl]:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
             return None
-        else:
-            return QUrl.fromUserInput(value)
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        val = self.transform(value)
-        if not val.isValid():
+        qurl = QUrl.fromUserInput(value)
+        if not qurl.isValid():
             raise configexc.ValidationError(value, "invalid URL - "
-                                            "{}".format(val.errorString()))
-
-
-class HeaderDict(BaseType):
-
-    """A JSON-like dictionary for custom HTTP headers."""
-
-    def _validate_str(self, value, what):
-        """Check if the given thing is an ascii-only string.
-
-        Raises ValidationError if not.
-
-        Args:
-            value: The value to check.
-            what: Either 'key' or 'value'.
-        """
-        if not isinstance(value, str):
-            msg = "Expected string for {} {!r} but got {}".format(
-                what, value, type(value))
-            raise configexc.ValidationError(value, msg)
-
-        try:
-            value.encode('ascii')
-        except UnicodeEncodeError as e:
-            msg = "{} {!r} contains non-ascii characters: {}".format(
-                what.capitalize(), value, e)
-            raise configexc.ValidationError(value, msg)
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-
-        try:
-            json_val = json.loads(value)
-        except ValueError as e:
-            raise configexc.ValidationError(value, str(e))
-
-        if not isinstance(json_val, dict):
-            raise configexc.ValidationError(value, "Expected json dict, but "
-                                            "got {}".format(type(json_val)))
-        if not json_val:
-            if self.none_ok:
-                return
-            else:
-                raise configexc.ValidationError(value, "may not be empty!")
-
-        for key, val in json_val.items():
-            self._validate_str(key, 'key')
-            self._validate_str(val, 'value')
-
-    def transform(self, value):
-        if not value:
-            return None
-        val = json.loads(value)
-        return val or None
+                                            "{}".format(qurl.errorString()))
+        return qurl
 
 
 class SessionName(BaseType):
 
     """The name of a session."""
 
-    def validate(self, value):
-        self._basic_validation(value)
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
         if value.startswith('_'):
             raise configexc.ValidationError(value, "may not start with '_'!")
+        return value
 
 
 class SelectOnRemove(MappingType):
@@ -1375,18 +1752,20 @@ class SelectOnRemove(MappingType):
     """Which tab to select when the focused tab is removed."""
 
     MAPPING = {
-        'left': QTabBar.SelectLeftTab,
-        'right': QTabBar.SelectRightTab,
-        'previous': QTabBar.SelectPreviousTab,
+        'prev': QTabBar.SelectLeftTab,
+        'next': QTabBar.SelectRightTab,
+        'last-used': QTabBar.SelectPreviousTab,
     }
 
-    def __init__(self, none_ok=False):
+    def __init__(self, none_ok: bool = False) -> None:
         super().__init__(
             none_ok,
             valid_values=ValidValues(
-                ('left', "Select the tab on the left."),
-                ('right', "Select the tab on the right."),
-                ('previous', "Select the previously selected tab.")))
+                ('prev', "Select the tab which came before the closed one "
+                 "(left in horizontal, above in vertical)."),
+                ('next', "Select the tab which came after the closed one "
+                 "(right in horizontal, below in vertical)."),
+                ('last-used', "Select the previously selected tab.")))
 
 
 class ConfirmQuit(FlagList):
@@ -1396,10 +1775,10 @@ class ConfirmQuit(FlagList):
     # Values that can be combined with commas
     combinable_values = ('multiple-tabs', 'downloads')
 
-    def __init__(self, none_ok=False):
+    def __init__(self, none_ok: bool = False) -> None:
         super().__init__(none_ok)
-        self.inner_type.none_ok = none_ok
-        self.inner_type.valid_values = ValidValues(
+        self.valtype.none_ok = none_ok
+        self.valtype.valid_values = ValidValues(
             ('always', "Always show a confirmation."),
             ('multiple-tabs', "Show a confirmation if "
              "multiple tabs are opened."),
@@ -1407,134 +1786,55 @@ class ConfirmQuit(FlagList):
              "downloads are running"),
             ('never', "Never show a confirmation."))
 
-    def validate(self, value):
-        super().validate(value)
-        if not value:
-            return
-        values = [x for x in self.transform(value) if x]
+    def to_py(
+            self,
+            value: typing.Union[configutils.Unset, typing.List],
+    ) -> typing.Union[typing.List, configutils.Unset]:
+        values = super().to_py(value)
+        if isinstance(values, configutils.Unset):
+            return values
+        elif not values:
+            return []
 
         # Never can't be set with other options
         if 'never' in values and len(values) > 1:
             raise configexc.ValidationError(
-                value, "List cannot contain never!")
+                values, "List cannot contain never!")
         # Always can't be set with other options
-        elif 'always' in values and len(values) > 1:
+        if 'always' in values and len(values) > 1:
             raise configexc.ValidationError(
-                value, "List cannot contain always!")
+                values, "List cannot contain always!")
+
+        return values
 
 
-class NewTabPosition(BaseType):
+class NewTabPosition(String):
 
     """How new tabs are positioned."""
 
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
+    def __init__(self, none_ok: bool = False) -> None:
+        super().__init__(none_ok=none_ok)
         self.valid_values = ValidValues(
-            ('left', "On the left of the current tab."),
-            ('right', "On the right of the current tab."),
-            ('first', "At the left end."),
-            ('last', "At the right end."))
-
-
-class IgnoreCase(Bool):
-
-    """Whether to ignore case when searching."""
-
-    def __init__(self, none_ok=False):
-        super().__init__(none_ok)
-        self.valid_values = ValidValues(
-            ('true', "Search case-insensitively"),
-            ('false', "Search case-sensitively"),
-            ('smart', "Search case-sensitively if there "
-             "are capital chars"))
-
-    def transform(self, value):
-        if value.lower() == 'smart':
-            return 'smart'
-        else:
-            return super().transform(value)
-
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
-        if value.lower() == 'smart':
-            return
-        else:
-            super().validate(value)
-
-
-class UserAgent(BaseType):
-
-    """The user agent to use."""
-
-    def validate(self, value):
-        self._basic_validation(value)
-
-    # To update the following list of user agents, run the script 'ua_fetch.py'
-    # Vim-protip: Place your cursor below this comment and run
-    # :r!python scripts/dev/ua_fetch.py
-    def complete(self):
-        """Complete a list of common user agents."""
-        out = [
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 '
-             'Firefox/47.0',
-             "Firefox Generic Win7"),
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:47.0) '
-             'Gecko/20100101 Firefox/47.0',
-             "Firefox Generic MacOSX"),
-            ('Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 '
-             'Firefox/47.0',
-             "Firefox Generic Linux"),
-
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) '
-             'AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 '
-             'Safari/601.7.7',
-             "Safari Generic MacOSX"),
-            ('Mozilla/5.0 (iPad; CPU OS 9_3_2 like Mac OS X) '
-             'AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 '
-             'Mobile/13F69 Safari/601.1',
-             "Mobile Safari 9.0 iOS"),
-
-            ('Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 '
-             '(KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
-             "Chrome Generic Win10"),
-            ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) '
-             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 '
-             'Safari/537.36',
-             "Chrome Generic MacOSX"),
-            ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 '
-             '(KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36',
-             "Chrome Generic Linux"),
-
-            ('Mozilla/5.0 (compatible; Googlebot/2.1; '
-             '+http://www.google.com/bot.html',
-             "Google Bot"),
-            ('Wget/1.16.1 (linux-gnu)',
-             "wget 1.16.1"),
-            ('curl/7.40.0',
-             "curl 7.40.0"),
-
-            ('Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like '
-             'Gecko',
-             "IE 11.0 for Desktop Win7 64-bit")
-        ]
-        return out
+            ('prev', "Before the current tab."),
+            ('next', "After the current tab."),
+            ('first', "At the beginning."),
+            ('last', "At the end."))
 
 
 class TimestampTemplate(BaseType):
 
     """An strftime-like template for timestamps.
 
-    See
-    https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
-    for reference.
+    See https://sqlite.org/lang_datefunc.html for reference.
     """
 
-    def validate(self, value):
-        self._basic_validation(value)
-        if not value:
-            return
+    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
         try:
             # Dummy check to see if the template is valid
             datetime.datetime.now().strftime(value)
@@ -1542,3 +1842,53 @@ class TimestampTemplate(BaseType):
             # thrown on invalid template string
             raise configexc.ValidationError(
                 value, "Invalid format string: {}".format(error))
+
+        return value
+
+
+class Key(BaseType):
+
+    """A name of a key."""
+
+    def from_obj(self, value: str) -> str:
+        """Make sure key sequences are always normalized."""
+        return str(keyutils.KeySequence.parse(value))
+
+    def to_py(
+            self,
+            value: _StrUnset
+    ) -> typing.Union[configutils.Unset, None, keyutils.KeySequence]:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
+        try:
+            return keyutils.KeySequence.parse(value)
+        except keyutils.KeyParseError as e:
+            raise configexc.ValidationError(value, str(e))
+
+
+class UrlPattern(BaseType):
+
+    """A match pattern for a URL.
+
+    See https://developer.chrome.com/apps/match_patterns for the allowed
+    syntax.
+    """
+
+    def to_py(
+            self,
+            value: _StrUnset
+    ) -> typing.Union[configutils.Unset, None, urlmatch.UrlPattern]:
+        self._basic_py_validation(value, str)
+        if isinstance(value, configutils.Unset):
+            return value
+        elif not value:
+            return None
+
+        try:
+            return urlmatch.UrlPattern(value)
+        except urlmatch.ParseError as e:
+            raise configexc.ValidationError(value, str(e))

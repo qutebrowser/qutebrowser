@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<!-- target: hello.txt -->
+
+<html>
+	<body ng-app="myApp">
+
+		<div ng-controller="myCtrl">
+			<p id="link" ng-click="myFunc()">OK</p>
+		</div>
+
+		<script src="../angular1/angular.min.js"></script>
+		<script>
+			angular.module('myApp', [])
+			.controller('myCtrl', ['$scope', function($scope) {
+				$scope.myFunc = function() {
+					window.location = "/data/hello.txt";
+				};
+			}]);
+		</script>
+	</body>
+</html>

@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Scrolling
     Tests the various scroll commands.
 
@@ -37,6 +39,7 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
+    @qtwebengine_flaky
     Scenario: Scrolling left and right with count
         When I run :scroll-px 10 0 with count 2
         And I wait until the scroll position changed to 20/0
@@ -84,7 +87,6 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    # causes segfault with postEvent instead of sendEvent
     Scenario: Scrolling down with count 10
         When I run :scroll down with count 10
         Then no crash should happen
@@ -143,10 +145,9 @@ Feature: Scrolling
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    @qtwebengine_skip: Causes memory leak...
+    @skip  # Too flaky
     Scenario: Scrolling down with a very big count
         When I run :scroll down with count 99999999999
-        And I wait until the scroll position changed
         # Make sure it doesn't hang
         And I run :message-info "Still alive!"
         Then the message "Still alive!" should be shown
@@ -156,86 +157,90 @@ Feature: Scrolling
         And I run :scroll down
         Then the page should not be scrolled
 
-    ## :scroll-perc
+    ## :scroll-to-perc
 
-    Scenario: Scrolling to bottom with :scroll-perc
-        When I run :scroll-perc 100
+    Scenario: Scrolling to bottom with :scroll-to-perc
+        When I run :scroll-to-perc 100
         Then the page should be scrolled vertically
 
-    Scenario: Scrolling to bottom and to top with :scroll-perc
-        When I run :scroll-perc 100
+    @flaky
+    Scenario: Scrolling to bottom and to top with :scroll-to-perc
+        When I run :scroll-to-perc 100
         And I wait until the scroll position changed
-        And I run :scroll-perc 0
+        And I run :scroll-to-perc 0
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    Scenario: Scrolling to middle with :scroll-perc
-        When I run :scroll-perc 50
+    Scenario: Scrolling to middle with :scroll-to-perc
+        When I run :scroll-to-perc 50
         Then the page should be scrolled vertically
 
-    Scenario: Scrolling to middle with :scroll-perc (float)
-        When I run :scroll-perc 50.5
+    @flaky
+    Scenario: Scrolling to middle with :scroll-to-perc (float)
+        When I run :scroll-to-perc 50.5
         Then the page should be scrolled vertically
 
-    Scenario: Scrolling to middle and to top with :scroll-perc
-        When I run :scroll-perc 50
+    @flaky
+    Scenario: Scrolling to middle and to top with :scroll-to-perc
+        When I run :scroll-to-perc 50
         And I wait until the scroll position changed
-        And I run :scroll-perc 0
+        And I run :scroll-to-perc 0
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    Scenario: Scrolling to right with :scroll-perc
-        When I run :scroll-perc --horizontal 100
+    Scenario: Scrolling to right with :scroll-to-perc
+        When I run :scroll-to-perc --horizontal 100
         Then the page should be scrolled horizontally
 
-    Scenario: Scrolling to right and to left with :scroll-perc
-        When I run :scroll-perc --horizontal 100
+    Scenario: Scrolling to right and to left with :scroll-to-perc
+        When I run :scroll-to-perc --horizontal 100
         And I wait until the scroll position changed
-        And I run :scroll-perc --horizontal 0
+        And I run :scroll-to-perc --horizontal 0
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    Scenario: Scrolling to middle (horizontally) with :scroll-perc
-        When I run :scroll-perc --horizontal 50
+    Scenario: Scrolling to middle (horizontally) with :scroll-to-perc
+        When I run :scroll-to-perc --horizontal 50
         Then the page should be scrolled horizontally
 
-    Scenario: Scrolling to middle and to left with :scroll-perc
-        When I run :scroll-perc --horizontal 50
+    Scenario: Scrolling to middle and to left with :scroll-to-perc
+        When I run :scroll-to-perc --horizontal 50
         And I wait until the scroll position changed
-        And I run :scroll-perc --horizontal 0
+        And I run :scroll-to-perc --horizontal 0
         And I wait until the scroll position changed to 0/0
         Then the page should not be scrolled
 
-    Scenario: :scroll-perc without argument
-        When I run :scroll-perc
+    Scenario: :scroll-to-perc without argument
+        When I run :scroll-to-perc
         Then the page should be scrolled vertically
 
-    Scenario: :scroll-perc without argument and --horizontal
-        When I run :scroll-perc --horizontal
+    Scenario: :scroll-to-perc without argument and --horizontal
+        When I run :scroll-to-perc --horizontal
         Then the page should be scrolled horizontally
 
-    Scenario: :scroll-perc with count
-        When I run :scroll-perc with count 50
+    Scenario: :scroll-to-perc with count
+        When I run :scroll-to-perc with count 50
         Then the page should be scrolled vertically
 
     @qtwebengine_skip: Causes memory leak...
-    Scenario: :scroll-perc with a very big value
-        When I run :scroll-perc 99999999999
+    Scenario: :scroll-to-perc with a very big value
+        When I run :scroll-to-perc 99999999999
         Then no crash should happen
 
-    Scenario: :scroll-perc on a page without scrolling
+    Scenario: :scroll-to-perc on a page without scrolling
         When I open data/hello.txt
-        And I run :scroll-perc 20
+        And I run :scroll-to-perc 20
         Then the page should not be scrolled
 
-    Scenario: :scroll-perc with count and argument
-        When I run :scroll-perc 0 with count 50
+    Scenario: :scroll-to-perc with count and argument
+        When I run :scroll-to-perc 0 with count 50
         Then the page should be scrolled vertically
-        
-    # https://github.com/The-Compiler/qutebrowser/issues/1821
-    Scenario: :scroll-perc without doctype
+
+    # https://github.com/qutebrowser/qutebrowser/issues/1821
+    @issue3572
+    Scenario: :scroll-to-perc without doctype
         When I open data/scroll/no_doctype.html
-        And I run :scroll-perc 100
+        And I run :scroll-to-perc 100
         Then the page should be scrolled vertically
 
     ## :scroll-page
@@ -248,6 +253,7 @@ Feature: Scrolling
         When I run :scroll-page 0 1.5
         Then the page should be scrolled vertically
 
+    @flaky
     Scenario: Scrolling down and up with :scroll-page
         When I run :scroll-page 0 1
         And I wait until the scroll position changed
@@ -280,18 +286,26 @@ Feature: Scrolling
         Then the page should not be scrolled
 
     Scenario: :scroll-page with --bottom-navigate
-        When I run :scroll-perc 100
+        When I run :scroll-to-perc 100
         And I wait until the scroll position changed
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded
 
+    @issue3572
     Scenario: :scroll-page with --bottom-navigate and zoom
         When I run :zoom 200
-        And I wait until the scroll position changed
-        And I run :scroll-perc 100
+        And I wait 0.5s
+        And I run :scroll-to-perc 100
         And I wait until the scroll position changed
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded
+
+    Scenario: :scroll-page with --bottom-navigate when not at the bottom
+        When I run :scroll-px 0 10
+        And I wait until the scroll position changed
+        And I run :scroll-page --bottom-navigate next 0 1
+        Then the following tabs should be open:
+            - data/scroll/simple.html
 
     Scenario: :scroll-page with --top-navigate
         When I run :scroll-page --top-navigate prev 0 -1
@@ -306,3 +320,21 @@ Feature: Scrolling
         When I open data/hello.txt
         And I run :scroll-page 1 1
         Then the page should not be scrolled
+
+    ## issues
+
+    @issue3572
+    Scenario: Relative scroll position with a position:absolute page
+        When I open data/scroll/position_absolute.html
+        And I run :scroll-to-perc 100
+        And I wait until the scroll position changed
+        And I run :scroll-page --bottom-navigate next 0 1
+        Then data/hello2.txt should be loaded
+
+    Scenario: Scrolling to anchor in background tab
+        When I open about:blank
+        And I run :tab-only
+        And I open data/scroll/simple.html#anchor in a new background tab
+        And I run :tab-next
+        And I run :jseval --world main checkAnchor()
+        Then "[*] [PASS] Positions equal: *" should be logged

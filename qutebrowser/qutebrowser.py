@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -17,13 +17,26 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Early initialization and main entry point."""
+"""Early initialization and main entry point.
+
+qutebrowser's initialization process roughly looks like this:
+
+- This file gets imported, either via the setuptools entry point or
+  __main__.py.
+- At import time, we check for the correct Python version and show an error if
+  it's too old.
+- The main() function in this file gets invoked
+- Argument parsing takes place
+- earlyinit.early_init() gets invoked to do various low-level initialization
+  and checks whether all dependencies are met.
+- app.run() gets called, which takes over.
+  See the docstring of app.py for details.
+"""
 
 import sys
 import json
 
 import qutebrowser
-from qutebrowser.utils import log
 try:
     from qutebrowser.misc.checkpyver import check_python_version
 except ImportError:
@@ -38,8 +51,9 @@ except ImportError:
         sys.stderr.flush()
         sys.exit(100)
 check_python_version()
+from qutebrowser.utils import log
 
-import argparse
+import argparse  # pylint: disable=wrong-import-order
 from qutebrowser.misc import earlyinit
 
 
@@ -47,32 +61,34 @@ def get_argparser():
     """Get the argparse parser."""
     parser = argparse.ArgumentParser(prog='qutebrowser',
                                      description=qutebrowser.__description__)
-    parser.add_argument('-c', '--confdir', help="Set config directory (empty "
-                        "for no config storage).")
-    parser.add_argument('--datadir', help="Set data directory (empty for "
-                        "no data storage).")
-    parser.add_argument('--cachedir', help="Set cache directory (empty for "
-                        "no cache storage).")
-    parser.add_argument('--basedir', help="Base directory for all storage. "
-                        "Other --*dir arguments are ignored if this is given.")
+    parser.add_argument('-B', '--basedir', help="Base directory for all "
+                        "storage.")
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "
-                        "this session.", nargs=3, action='append',
+                        "this session.", nargs=2, action='append',
                         dest='temp_settings', default=[],
-                        metavar=('SECTION', 'OPTION', 'VALUE'))
+                        metavar=('OPTION', 'VALUE'))
     parser.add_argument('-r', '--restore', help="Restore a named session.",
                         dest='session')
     parser.add_argument('-R', '--override-restore', help="Don't restore a "
                         "session even if one would be restored.",
                         action='store_true')
     parser.add_argument('--target', choices=['auto', 'tab', 'tab-bg',
-                        'tab-silent', 'tab-bg-silent', 'window'],
+                                             'tab-silent', 'tab-bg-silent',
+                                             'window'],
                         help="How URLs should be opened if there is already a "
                              "qutebrowser instance running.")
     parser.add_argument('--backend', choices=['webkit', 'webengine'],
-                        help="Which backend to use (webengine backend is "
-                             "EXPERIMENTAL!).", default='webkit')
+                        help="Which backend to use.")
+    parser.add_argument('--enable-webengine-inspector', action='store_true',
+                        help="Enable the web inspector for QtWebEngine. Note "
+                        "that this is a SECURITY RISK and you should not "
+                        "visit untrusted websites with the inspector turned "
+                        "on. See https://bugreports.qt.io/browse/QTBUG-50725 "
+                        "for more details. This is not needed anymore since "
+                        "Qt 5.11 where the inspector is always enabled and "
+                        "secure.")
 
     parser.add_argument('--json-args', help=argparse.SUPPRESS)
     parser.add_argument('--temp-basedir-restarted', help=argparse.SUPPRESS)
@@ -89,7 +105,7 @@ def get_argparser():
                        help="How many lines of the debug log to keep in RAM "
                        "(-1: unlimited).",
                        default=2000, type=int)
-    debug.add_argument('--debug', help="Turn on debugging options.",
+    debug.add_argument('-d', '--debug', help="Turn on debugging options.",
                        action='store_true')
     debug.add_argument('--json-logging', action='store_true', help="Output log"
                        " lines in JSON format (one object per line).")
@@ -97,41 +113,22 @@ def get_argparser():
                        action='store_false', dest='color')
     debug.add_argument('--force-color', help="Force colored logging",
                        action='store_true')
-    debug.add_argument('--harfbuzz', choices=['old', 'new', 'system', 'auto'],
-                       default='auto', help="HarfBuzz engine version to use. "
-                       "Default: auto.")
-    debug.add_argument('--relaxed-config', action='store_true',
-                       help="Silently remove unknown config options.")
     debug.add_argument('--nowindow', action='store_true', help="Don't show "
                        "the main window.")
-    debug.add_argument('--debug-exit', help="Turn on debugging of late exit.",
-                       action='store_true')
-    debug.add_argument('--pdb-postmortem', action='store_true',
-                       help="Drop into pdb on exceptions.")
-    debug.add_argument('--temp-basedir', action='store_true', help="Use a "
-                       "temporary basedir.")
+    debug.add_argument('-T', '--temp-basedir', action='store_true', help="Use "
+                       "a temporary basedir.")
     debug.add_argument('--no-err-windows', action='store_true', help="Don't "
                        "show any error windows (used for tests/smoke.py).")
-    # For the Qt args, we use store_const with const=True rather than
-    # store_true because we want the default to be None, to make
-    # utils.qt:get_args easier.
-    debug.add_argument('--qt-name', help="Set the window name.",
-                       metavar='NAME')
-    debug.add_argument('--qt-style', help="Set the Qt GUI style to use.",
-                       metavar='STYLE')
-    debug.add_argument('--qt-stylesheet', help="Override the Qt application "
-                       "stylesheet.", metavar='STYLESHEET')
-    debug.add_argument('--qt-widgetcount', help="Print debug message at the "
-                       "end about number of widgets left undestroyed and "
-                       "maximum number of widgets existed at the same time.",
-                       action='store_const', const=True)
-    debug.add_argument('--qt-reverse', help="Set the application's layout "
-                       "direction to right-to-left.", action='store_const',
-                       const=True)
-    debug.add_argument('--qt-qmljsdebugger', help="Activate the QML/JS "
-                       "debugger with a specified port. 'block' is optional "
-                       "and will make the application wait until a debugger "
-                       "connects to it.", metavar='port:PORT[,block]')
+    debug.add_argument('--qt-arg', help="Pass an argument with a value to Qt. "
+                       "For example, you can do "
+                       "`--qt-arg geometry 650x555+200+300` to set the window "
+                       "geometry.", nargs=2, metavar=('NAME', 'VALUE'),
+                       action='append')
+    debug.add_argument('--qt-flag', help="Pass an argument to Qt as flag.",
+                       nargs=1, action='append')
+    debug.add_argument('-D', '--debug-flag', type=debug_flag_error,
+                       default=[], help="Pass name of debugging feature to be"
+                       " turned on.", action='append', dest='debug_flags')
     parser.add_argument('command', nargs='*', help="Commands to execute on "
                         "startup.", metavar=':command')
     # URLs will actually be in command
@@ -140,13 +137,18 @@ def get_argparser():
     return parser
 
 
-def logfilter_error(logfilter: str):
+def directory(arg):
+    if not arg:
+        raise argparse.ArgumentTypeError("Invalid empty value")
+
+
+def logfilter_error(logfilter):
     """Validate logger names passed to --logfilter.
 
     Args:
         logfilter: A comma separated list of logger names.
     """
-    if set(logfilter.split(',')).issubset(log.LOGGER_NAMES):
+    if set(logfilter.lstrip('!').split(',')).issubset(log.LOGGER_NAMES):
         return logfilter
     else:
         raise argparse.ArgumentTypeError(
@@ -154,15 +156,29 @@ def logfilter_error(logfilter: str):
                 logfilter, ', '.join(log.LOGGER_NAMES)))
 
 
+def debug_flag_error(flag):
+    """Validate flags passed to --debug-flag.
+
+    Available flags:
+        debug-exit: Turn on debugging of late exit.
+        pdb-postmortem: Drop into pdb on exceptions.
+        no-sql-history: Don't store history items.
+        no-scroll-filtering: Process all scrolling updates.
+        log-requests: Log all network requests.
+    """
+    valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
+                   'no-scroll-filtering', 'log-requests', 'lost-focusproxy']
+
+    if flag in valid_flags:
+        return flag
+    else:
+        raise argparse.ArgumentTypeError("Invalid debug flag - valid flags: {}"
+                                         .format(', '.join(valid_flags)))
+
+
 def main():
     parser = get_argparser()
-    if sys.platform == 'darwin' and getattr(sys, 'frozen', False):
-        # Ignore Mac OS X' idiotic -psn_* argument...
-        # http://stackoverflow.com/questions/19661298/
-        # http://sourceforge.net/p/cx-freeze/mailman/message/31041783/
-        argv = [arg for arg in sys.argv[1:] if not arg.startswith('-psn_0_')]
-    else:
-        argv = sys.argv[1:]
+    argv = sys.argv[1:]
     args = parser.parse_args(argv)
     if args.json_args is not None:
         # Restoring after a restart.
@@ -171,8 +187,8 @@ def main():
         # from json.
         data = json.loads(args.json_args)
         args = argparse.Namespace(**data)
-    earlyinit.earlyinit(args)
+    earlyinit.early_init(args)
     # We do this imports late as earlyinit needs to be run first (because of
-    # the harfbuzz fix and version checking).
+    # version checking and other early initialization)
     from qutebrowser import app
     return app.run(args)

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,54 +19,51 @@
 
 """Tests for qutebrowser.misc.guiprocess."""
 
-import json
 import logging
 
 import pytest
 from PyQt5.QtCore import QProcess, QIODevice
 
 from qutebrowser.misc import guiprocess
-
-
-@pytest.fixture(autouse=True)
-def guiprocess_message_mock(message_mock):
-    message_mock.patch('qutebrowser.misc.guiprocess.message')
-    return message_mock
+from qutebrowser.utils import usertypes
+from qutebrowser.browser import qutescheme
 
 
 @pytest.fixture()
-def proc(qtbot):
+def proc(qtbot, caplog):
     """A fixture providing a GUIProcess and cleaning it up after the test."""
-    p = guiprocess.GUIProcess(0, 'testprocess')
+    p = guiprocess.GUIProcess('testprocess')
     yield p
     if p._proc.state() == QProcess.Running:
-        with qtbot.waitSignal(p.finished, timeout=10000,
-                              raising=False) as blocker:
-            p._proc.terminate()
-        if not blocker.signal_triggered:
-            p._proc.kill()
+        with caplog.at_level(logging.ERROR):
+            with qtbot.waitSignal(p.finished, timeout=10000,
+                                  raising=False) as blocker:
+                p._proc.terminate()
+            if not blocker.signal_triggered:
+                p._proc.kill()
+            p._proc.waitForFinished()
 
 
 @pytest.fixture()
 def fake_proc(monkeypatch, stubs):
     """A fixture providing a GUIProcess with a mocked QProcess."""
-    p = guiprocess.GUIProcess(0, 'testprocess')
+    p = guiprocess.GUIProcess('testprocess')
     monkeypatch.setattr(p, '_proc', stubs.fake_qprocess())
     return p
 
 
-def test_start(proc, qtbot, guiprocess_message_mock, py_proc):
+def test_start(proc, qtbot, message_mock, py_proc):
     """Test simply starting a process."""
     with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
                            order='strict'):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
-    assert not guiprocess_message_mock.messages
-    assert bytes(proc._proc.readAll()).rstrip() == b'test'
+    assert not message_mock.messages
+    assert qutescheme.spawn_output == proc._spawn_format(stdout="test")
 
 
-def test_start_verbose(proc, qtbot, guiprocess_message_mock, py_proc):
+def test_start_verbose(proc, qtbot, message_mock, py_proc):
     """Test starting a process verbosely."""
     proc.verbose = True
 
@@ -75,18 +72,18 @@ def test_start_verbose(proc, qtbot, guiprocess_message_mock, py_proc):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
-    msgs = guiprocess_message_mock.messages
-    assert msgs[0].level == guiprocess_message_mock.Level.info
-    assert msgs[1].level == guiprocess_message_mock.Level.info
+    msgs = message_mock.messages
+    assert msgs[0].level == usertypes.MessageLevel.info
+    assert msgs[1].level == usertypes.MessageLevel.info
     assert msgs[0].text.startswith("Executing:")
     assert msgs[1].text == "Testprocess exited successfully."
-    assert bytes(proc._proc.readAll()).rstrip() == b'test'
+    assert qutescheme.spawn_output == proc._spawn_format(stdout="test")
 
 
 def test_start_env(monkeypatch, qtbot, py_proc):
     monkeypatch.setenv('QUTEBROWSER_TEST_1', '1')
     env = {'QUTEBROWSER_TEST_2': '2'}
-    proc = guiprocess.GUIProcess(0, 'testprocess', additional_env=env)
+    proc = guiprocess.GUIProcess('testprocess', additional_env=env)
 
     argv = py_proc("""
         import os
@@ -102,10 +99,9 @@ def test_start_env(monkeypatch, qtbot, py_proc):
                            order='strict'):
         proc.start(*argv)
 
-    data = bytes(proc._proc.readAll()).decode('utf-8')
-    ret_env = json.loads(data)
-    assert 'QUTEBROWSER_TEST_1' in ret_env
-    assert 'QUTEBROWSER_TEST_2' in ret_env
+    data = qutescheme.spawn_output
+    assert 'QUTEBROWSER_TEST_1' in data
+    assert 'QUTEBROWSER_TEST_2' in data
 
 
 @pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device')
@@ -127,15 +123,17 @@ def test_start_detached(fake_proc):
     fake_proc._proc.startDetached.assert_called_with(*list(argv) + [None])
 
 
-def test_start_detached_error(fake_proc, guiprocess_message_mock):
+def test_start_detached_error(fake_proc, message_mock, caplog):
     """Test starting a detached process with ok=False."""
     argv = ['foo', 'bar']
     fake_proc._proc.startDetached.return_value = (False, 0)
-    fake_proc._proc.error.return_value = "Error message"
-    fake_proc.start_detached(*argv)
-    msg = guiprocess_message_mock.getmsg(guiprocess_message_mock.Level.error,
-                                         immediate=True)
-    assert msg.text == "Error while spawning testprocess: Error message."
+    fake_proc._proc.error.return_value = QProcess.FailedToStart
+    with caplog.at_level(logging.ERROR):
+        fake_proc.start_detached(*argv)
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    expected = ("Error while spawning testprocess: The process failed to "
+                "start.")
+    assert msg.text == expected
 
 
 def test_double_start(qtbot, proc, py_proc):
@@ -173,30 +171,32 @@ def test_start_logging(fake_proc, caplog):
     args = ['arg', 'arg with spaces']
     with caplog.at_level(logging.DEBUG):
         fake_proc.start(cmd, args)
-    msgs = [e.msg for e in caplog.records]
-    assert msgs == ["Starting process.",
-                    "Executing: does_not_exist arg 'arg with spaces'"]
+    assert caplog.messages == [
+        "Starting process.",
+        "Executing: does_not_exist arg 'arg with spaces'"
+    ]
 
 
-def test_error(qtbot, proc, caplog, guiprocess_message_mock):
+def test_error(qtbot, proc, caplog, message_mock):
     """Test the process emitting an error."""
     with caplog.at_level(logging.ERROR, 'message'):
         with qtbot.waitSignal(proc.error, timeout=5000):
             proc.start('this_does_not_exist_either', [])
 
-    msg = guiprocess_message_mock.getmsg(guiprocess_message_mock.Level.error,
-                                         immediate=True)
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
     expected_msg = ("Error while spawning testprocess: The process failed to "
                     "start.")
     assert msg.text == expected_msg
 
 
-def test_exit_unsuccessful(qtbot, proc, guiprocess_message_mock, py_proc):
-    with qtbot.waitSignal(proc.finished, timeout=10000):
-        proc.start(*py_proc('import sys; sys.exit(1)'))
+def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):
+    with caplog.at_level(logging.ERROR):
+        with qtbot.waitSignal(proc.finished, timeout=10000):
+            proc.start(*py_proc('import sys; sys.exit(1)'))
 
-    msg = guiprocess_message_mock.getmsg(guiprocess_message_mock.Level.error)
-    assert msg.text == "Testprocess exited with status 1."
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    expected = "Testprocess exited with status 1, see :messages for details."
+    assert msg.text == expected
 
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
@@ -209,8 +209,7 @@ def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
                 print("test", file=sys.{})
                 sys.exit(1)
             """.format(stream)))
-    assert len(caplog.records) == 2
-    assert caplog.records[1].msg == 'Process {}:\ntest'.format(stream)
+    assert caplog.messages[-1] == 'Process {}:\ntest'.format(stream)
 
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])
@@ -226,3 +225,18 @@ def test_exit_successful_output(qtbot, proc, py_proc, stream):
             print("test", file=sys.{})
             sys.exit(0)
         """.format(stream)))
+
+
+def test_stdout_not_decodable(proc, qtbot, message_mock, py_proc):
+    """Test handling malformed utf-8 in stdout."""
+    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
+                           order='strict'):
+        argv = py_proc(r"""
+            import sys
+            # Using \x81 because it's invalid in UTF-8 and CP1252
+            sys.stdout.buffer.write(b"A\x81B")
+            sys.exit(0)
+            """)
+        proc.start(*argv)
+    assert not message_mock.messages
+    assert qutescheme.spawn_output == proc._spawn_format(stdout="A\ufffdB")

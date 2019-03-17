@@ -13,38 +13,40 @@ persistent=n
 
 [MESSAGES CONTROL]
 enable=all
-disable=no-self-use,
-        fixme,
-        global-statement,
-        locally-disabled,
+disable=locally-disabled,
         locally-enabled,
-        too-many-ancestors,
-        too-few-public-methods,
-        too-many-public-methods,
+        suppressed-message,
+        fixme,
+        no-self-use,
         cyclic-import,
-        bad-continuation,
-        too-many-instance-attributes,
         blacklisted-name,
-        too-many-lines,
         logging-format-interpolation,
+        logging-not-lazy,
         broad-except,
         bare-except,
         eval-used,
         exec-used,
-        file-ignored,
-        wrong-import-order,
-        ungrouped-imports,
-        redefined-variable-type,
-        suppressed-message,
-        too-many-return-statements,
+        global-statement,
+        wrong-import-position,
         duplicate-code,
-        wrong-import-position
+        no-else-return,
+        too-many-ancestors,
+        too-many-public-methods,
+        too-many-instance-attributes,
+        too-many-lines,
+        too-many-return-statements,
+        too-many-boolean-expressions,
+        too-many-locals,
+        too-many-branches,
+        too-many-statements,
+        too-few-public-methods
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
 const-rgx=[A-Za-z_][A-Za-z0-9_]{0,30}$
 method-rgx=[a-z_][A-Za-z0-9_]{1,50}$
 attr-rgx=[a-z_][a-z0-9_]{0,30}$
+class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{1,30}|(__.*__))$
 argument-rgx=[a-z_][a-z0-9_]{0,30}$
 variable-rgx=[a-z_][a-z0-9_]{0,30}$
 docstring-min-length=3
@@ -52,11 +54,8 @@ no-docstring-rgx=(^_|^main$)
 
 [FORMAT]
 max-line-length=79
-ignore-long-lines=(<?https?://|^# Copyright 201\d|# (pylint|flake8): disable=)
+ignore-long-lines=(<?https?://|^# Copyright 201\d|link:)
 expected-line-ending-format=LF
-
-[SIMILARITIES]
-min-similarity-lines=8
 
 [VARIABLES]
 dummy-variables-rgx=_.*
@@ -68,11 +67,11 @@ max-args=10
 valid-metaclass-classmethod-first-arg=cls
 
 [TYPECHECK]
-# WORKAROUND for https://github.com/PyCQA/astroid/pull/357
-ignored-modules=pytest
-# MsgType added as WORKAROUND for
-# https://bitbucket.org/logilab/pylint/issues/690/
-# UnsetObject because pylint infers any objreg.get(...) as UnsetObject.
-ignored-classes=qutebrowser.utils.objreg.UnsetObject,
-                qutebrowser.browser.webkit.webelem.WebElementWrapper,
-                scripts.dev.check_coverage.MsgType
+ignored-modules=PyQt5,PyQt5.QtWebKit
+
+[IMPORTS]
+# WORKAROUND
+# For some reason, pylint doesn't know about some Python 3 modules on
+# AppVeyor...
+known-standard-library=faulthandler,http,enum,tokenize,posixpath,importlib,types
+known-third-party=sip

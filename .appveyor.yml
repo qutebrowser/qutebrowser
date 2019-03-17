@@ -5,13 +5,15 @@ cache:
 build: off
 environment:
     PYTHONUNBUFFERED: 1
+    PYTHON: C:\Python37-x64\python.exe
     matrix:
-    - TESTENV: py34
-    - TESTENV: unittests-frozen
+    - TESTENV: py37-pyqt512
     - TESTENV: pylint
 
 install:
-  - C:\Python27\python -u scripts\dev\ci\appveyor_install.py
+  - '%PYTHON% -m pip install -U pip'
+  - '%PYTHON% -m pip install -r misc\requirements\requirements-tox.txt'
+  - 'set PATH=C:\Python37-x64;%PATH'
 
 test_script:
-  - C:\Python34\Scripts\tox -e %TESTENV%
+  - '%PYTHON% -m tox -e %TESTENV%'

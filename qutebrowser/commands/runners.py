@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,21 +19,30 @@
 
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
-import collections
 import traceback
 import re
 
+import attr
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
-from qutebrowser.config import config, configexc
-from qutebrowser.commands import cmdexc, cmdutils
-from qutebrowser.utils import message, objreg, qtutils, utils
-from qutebrowser.misc import split
+from qutebrowser.api import cmdutils
+from qutebrowser.config import config
+from qutebrowser.commands import cmdexc
+from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
+from qutebrowser.misc import split, objects
 
 
-ParseResult = collections.namedtuple('ParseResult', ['cmd', 'args', 'cmdline',
-                                                     'count'])
 last_command = {}
+
+
+@attr.s
+class ParseResult:
+
+    """The result of parsing a commandline."""
+
+    cmd = attr.ib()
+    args = attr.ib()
+    cmdline = attr.ib()
 
 
 def _current_url(tabbed_browser):
@@ -45,7 +54,7 @@ def _current_url(tabbed_browser):
         if e.reason:
             msg += " ({})".format(e.reason)
         msg += "!"
-        raise cmdexc.CommandError(msg)
+        raise cmdutils.CommandError(msg)
 
 
 def replace_variables(win_id, arglist):
@@ -53,18 +62,18 @@ def replace_variables(win_id, arglist):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     url = lambda: _current_url(tabbed_browser)
+
     variables = {
         'url': lambda: url().toString(
             QUrl.FullyEncoded | QUrl.RemovePassword),
         'url:pretty': lambda: url().toString(
-            QUrl.RemovePassword),
+            QUrl.DecodeReserved | QUrl.RemovePassword),
         'url:domain': lambda: "{}://{}{}".format(
             url().scheme(),
             url().host(),
             ":" + url().port() if url().port() != -1 else ""),
         'url:auth': lambda: "{}:{}@".format(url().userName(),
             url().password()) if url().userName() else "",
-
         'url:scheme': lambda: url().scheme(),
         'url:username': lambda: url().userName(),
         'url:password': lambda: url().password(),
@@ -72,12 +81,16 @@ def replace_variables(win_id, arglist):
         'url:port': lambda: str(url().port()) if url().port() != -1 else "",
         'url:path': lambda: url().path(),
         'url:query': lambda: url().query(),
-
-        'title': lambda: tabbed_browser.page_title(
-            tabbed_browser.currentIndex()),
+        'title': lambda: tabbed_browser.widget.page_title(
+            tabbed_browser.widget.currentIndex()),
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
     }
+
+    for key in list(variables):
+        modified_key = '{' + key + '}'
+        variables[modified_key] = lambda x=modified_key: x
+
     values = {}
     args = []
 
@@ -96,23 +109,20 @@ def replace_variables(win_id, arglist):
             # "{url}" from clipboard is not expanded)
             args.append(repl_pattern.sub(repl_cb, arg))
     except utils.ClipboardError as e:
-        raise cmdexc.CommandError(e)
+        raise cmdutils.CommandError(e)
     return args
 
 
-class CommandRunner(QObject):
+class CommandParser:
 
-    """Parse and run qutebrowser commandline commands.
+    """Parse qutebrowser commandline commands.
 
     Attributes:
-        _win_id: The window this CommandRunner is associated with.
         _partial_match: Whether to allow partial command matches.
     """
 
-    def __init__(self, win_id, partial_match=False, parent=None):
-        super().__init__(parent)
+    def __init__(self, partial_match=False):
         self._partial_match = partial_match
-        self._win_id = win_id
 
     def _get_alias(self, text, default=None):
         """Get an alias from the config.
@@ -127,9 +137,10 @@ class CommandRunner(QObject):
         """
         parts = text.strip().split(maxsplit=1)
         try:
-            alias = config.get('aliases', parts[0])
-        except (configexc.NoOptionError, configexc.NoSectionError):
+            alias = config.val.aliases[parts[0]]
+        except KeyError:
             return default
+
         try:
             new_cmd = '{} {}'.format(alias, parts[1])
         except IndexError:
@@ -138,7 +149,7 @@ class CommandRunner(QObject):
             new_cmd += ' '
         return new_cmd
 
-    def parse_all(self, text, aliases=True, *args, **kwargs):
+    def _parse_all_gen(self, text, *args, aliases=True, **kwargs):
         """Split a command on ;; and parse all parts.
 
         If the first command in the commandline is a non-split one, it only
@@ -152,7 +163,8 @@ class CommandRunner(QObject):
         Yields:
             ParseResult tuples.
         """
-        if not text.strip():
+        text = text.strip().lstrip(':').strip()
+        if not text:
             raise cmdexc.NoSuchCommandError("No command given")
 
         if aliases:
@@ -172,34 +184,9 @@ class CommandRunner(QObject):
         for sub in sub_texts:
             yield self.parse(sub, *args, **kwargs)
 
-    def _parse_count(self, cmdstr):
-        """Split a count prefix off from a command for parse().
-
-        Args:
-            cmdstr: The command/args including the count.
-
-        Return:
-            A (count, cmdstr) tuple, with count being None or int.
-        """
-        if ':' not in cmdstr:
-            return (None, cmdstr)
-
-        count, cmdstr = cmdstr.split(':', maxsplit=1)
-        try:
-            count = int(count)
-        except ValueError:
-            # We just ignore invalid prefixes
-            count = None
-        return (count, cmdstr)
-
-    def _parse_fallback(self, text, count, keep):
-        """Parse the given commandline without a valid command."""
-        if keep:
-            cmdstr, sep, argstr = text.partition(' ')
-            cmdline = [cmdstr, sep] + argstr.split()
-        else:
-            cmdline = text.split()
-        return ParseResult(cmd=None, args=None, cmdline=cmdline, count=count)
+    def parse_all(self, *args, **kwargs):
+        """Wrapper over _parse_all_gen."""
+        return list(self._parse_all_gen(*args, **kwargs))
 
     def parse(self, text, *, fallback=False, keep=False):
         """Split the commandline text into command and arguments.
@@ -214,7 +201,6 @@ class CommandRunner(QObject):
             A ParseResult tuple.
         """
         cmdstr, sep, argstr = text.partition(' ')
-        count, cmdstr = self._parse_count(cmdstr)
 
         if not cmdstr and not fallback:
             raise cmdexc.NoSuchCommandError("No command given")
@@ -223,12 +209,13 @@ class CommandRunner(QObject):
             cmdstr = self._completion_match(cmdstr)
 
         try:
-            cmd = cmdutils.cmd_dict[cmdstr]
+            cmd = objects.commands[cmdstr]
         except KeyError:
             if not fallback:
                 raise cmdexc.NoSuchCommandError(
                     '{}: no such command'.format(cmdstr))
-            return self._parse_fallback(text, count, keep)
+            cmdline = split.split(text, keep=keep)
+            return ParseResult(cmd=None, args=None, cmdline=cmdline)
 
         args = self._split_args(cmd, argstr, keep)
         if keep and args:
@@ -238,7 +225,7 @@ class CommandRunner(QObject):
         else:
             cmdline = [cmdstr] + args[:]
 
-        return ParseResult(cmd=cmd, args=args, cmdline=cmdline, count=count)
+        return ParseResult(cmd=cmd, args=args, cmdline=cmdline)
 
     def _completion_match(self, cmdstr):
         """Replace cmdstr with a matching completion if there's only one match.
@@ -249,11 +236,11 @@ class CommandRunner(QObject):
         Return:
             cmdstr modified to the matching completion or unmodified
         """
-        matches = []
-        for valid_command in cmdutils.cmd_dict:
-            if valid_command.find(cmdstr) == 0:
-                matches.append(valid_command)
+        matches = [cmd for cmd in sorted(objects.commands, key=len)
+                   if cmdstr in cmd]
         if len(matches) == 1:
+            cmdstr = matches[0]
+        elif len(matches) > 1 and config.val.completion.use_best_match:
             cmdstr = matches[0]
         return cmdstr
 
@@ -300,6 +287,20 @@ class CommandRunner(QObject):
             # already.
             return split_args
 
+
+class CommandRunner(QObject):
+
+    """Parse and run qutebrowser commandline commands.
+
+    Attributes:
+        _win_id: The window this CommandRunner is associated with.
+    """
+
+    def __init__(self, win_id, partial_match=False, parent=None):
+        super().__init__(parent)
+        self._parser = CommandParser(partial_match=partial_match)
+        self._win_id = win_id
+
     def run(self, text, count=None):
         """Parse a command from a line of text and run it.
 
@@ -307,29 +308,33 @@ class CommandRunner(QObject):
             text: The text to parse.
             count: The count to pass to the command.
         """
-        for result in self.parse_all(text):
-            mode_manager = objreg.get('mode-manager', scope='window',
-                                      window=self._win_id)
-            cur_mode = mode_manager.mode
+        record_last_command = True
+        record_macro = True
 
+        mode_manager = objreg.get('mode-manager', scope='window',
+                                  window=self._win_id)
+        cur_mode = mode_manager.mode
+
+        for result in self._parser.parse_all(text):
             if result.cmd.no_replace_variables:
                 args = result.args
             else:
                 args = replace_variables(self._win_id, result.args)
-            if count is not None:
-                if result.count is not None:
-                    raise cmdexc.CommandMetaError("Got count via command and "
-                                                  "prefix!")
-                result.cmd.run(self._win_id, args, count=count)
-            elif result.count is not None:
-                result.cmd.run(self._win_id, args, count=result.count)
-            else:
-                result.cmd.run(self._win_id, args)
+            result.cmd.run(self._win_id, args, count=count)
 
-            if result.cmdline[0] != 'repeat-command':
-                last_command[cur_mode] = (
-                    self._parse_count(text)[1],
-                    count if count is not None else result.count)
+            if result.cmdline[0] == 'repeat-command':
+                record_last_command = False
+
+            if result.cmdline[0] in ['record-macro', 'run-macro',
+                                     'set-cmd-text']:
+                record_macro = False
+
+        if record_last_command:
+            last_command[cur_mode] = (text, count)
+
+        if record_macro and cur_mode == usertypes.KeyMode.normal:
+            macro_recorder = objreg.get('macro-recorder')
+            macro_recorder.record_command(text, count)
 
     @pyqtSlot(str, int)
     @pyqtSlot(str)
@@ -337,18 +342,5 @@ class CommandRunner(QObject):
         """Run a command and display exceptions in the statusbar."""
         try:
             self.run(text, count)
-        except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(self._win_id, e, immediately=True,
-                          stack=traceback.format_exc())
-
-    @pyqtSlot(str, int)
-    def run_safely_init(self, text, count=None):
-        """Run a command and display exceptions in the statusbar.
-
-        Contrary to run_safely, error messages are queued so this is more
-        suitable to use while initializing.
-        """
-        try:
-            self.run(text, count)
-        except (cmdexc.CommandMetaError, cmdexc.CommandError) as e:
-            message.error(self._win_id, e, stack=traceback.format_exc())
+        except cmdexc.Error as e:
+            message.error(str(e), stack=traceback.format_exc())

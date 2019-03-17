@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,30 +25,15 @@ Module attributes:
 
 import operator
 import collections.abc
-import enum as pyenum
+import enum
 
+import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 
 from qutebrowser.utils import log, qtutils, utils
 
 
 _UNSET = object()
-
-
-def enum(name, items, start=1, is_int=False):
-    """Factory for simple enumerations.
-
-    Args:
-        name: Name of the enum
-        items: Iterable of items to be sequentially enumerated.
-        start: The number to use for the first value.
-               We use 1 as default so enum members are always True.
-        is_init: True if the enum should be a Python IntEnum
-    """
-    enums = [(v, i) for (i, v) in enumerate(items, start)]
-    base = pyenum.IntEnum if is_int else pyenum.Enum
-    base = pyenum.unique(base)
-    return base(name, enums)
 
 
 class NeighborList(collections.abc.Sequence):
@@ -65,7 +50,7 @@ class NeighborList(collections.abc.Sequence):
         _mode: The current mode.
     """
 
-    Modes = enum('Modes', ['edge', 'exception'])
+    Modes = enum.Enum('Modes', ['edge', 'exception'])
 
     def __init__(self, items=None, default=_UNSET, mode=Modes.exception):
         """Constructor.
@@ -118,8 +103,8 @@ class NeighborList(collections.abc.Sequence):
         if items:
             item = min(items, key=lambda tpl: abs(self.fuzzyval - tpl[1]))
         else:
-            sorted_items = sorted([(idx, e) for (idx, e) in
-                                   enumerate(self.items)], key=lambda e: e[1])
+            sorted_items = sorted(((idx, e) for (idx, e) in
+                                   enumerate(self.items)), key=lambda e: e[1])
             idx = 0 if offset < 0 else -1
             item = sorted_items[idx]
         self._idx = item[0]
@@ -215,100 +200,93 @@ class NeighborList(collections.abc.Sequence):
         """Reset the position to the default."""
         if self._default is _UNSET:
             raise ValueError("No default set!")
-        else:
-            self._idx = self._items.index(self._default)
-            return self.curitem()
+        self._idx = self._items.index(self._default)
+        return self.curitem()
 
 
 # The mode of a Question.
-PromptMode = enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert',
-                                 'download'])
+PromptMode = enum.Enum('PromptMode', ['yesno', 'text', 'user_pwd', 'alert',
+                                      'download'])
 
 
-# Where to open a clicked link.
-ClickTarget = enum('ClickTarget', ['normal', 'tab', 'tab_bg', 'window',
-                                   'hover'])
+class ClickTarget(enum.Enum):
+
+    """How to open a clicked link."""
+
+    normal = 0  #: Open the link in the current tab
+    tab = 1  #: Open the link in a new foreground tab
+    tab_bg = 2  #: Open the link in a new background tab
+    window = 3  #: Open the link in a new window
+    hover = 4  #: Only hover over the link
 
 
-# Key input modes
-KeyMode = enum('KeyMode', ['normal', 'hint', 'command', 'yesno', 'prompt',
-                           'insert', 'passthrough', 'caret', 'set_mark',
-                           'jump_mark'])
+class KeyMode(enum.Enum):
+
+    """Key input modes."""
+
+    normal = 1  #: Normal mode (no mode was entered)
+    hint = 2  #: Hint mode (showing labels for links)
+    command = 3  #: Command mode (after pressing the colon key)
+    yesno = 4  #: Yes/No prompts
+    prompt = 5  #: Text prompts
+    insert = 6  #: Insert mode (passing through most keys)
+    passthrough = 7  #: Passthrough mode (passing through all keys)
+    caret = 8  #: Caret mode (moving cursor with keys)
+    set_mark = 9
+    jump_mark = 10
+    record_macro = 11
+    run_macro = 12
 
 
-# Available command completions
-Completion = enum('Completion', ['command', 'section', 'option', 'value',
-                                 'helptopic', 'quickmark_by_name',
-                                 'bookmark_by_url', 'url', 'tab', 'sessions',
-                                 'bind'])
+class Exit(enum.IntEnum):
 
+    """Exit statuses for errors. Needs to be an int for sys.exit."""
 
-# Exit statuses for errors. Needs to be an int for sys.exit.
-Exit = enum('Exit', ['ok', 'reserved', 'exception', 'err_ipc', 'err_init',
-                     'err_config', 'err_key_config'], is_int=True, start=0)
+    ok = 0
+    reserved = 1
+    exception = 2
+    err_ipc = 3
+    err_init = 4
 
 
 # Load status of a tab
-LoadStatus = enum('LoadStatus', ['none', 'success', 'success_https', 'error',
-                                 'warn', 'loading'])
+LoadStatus = enum.Enum('LoadStatus', ['none', 'success', 'success_https',
+                                      'error', 'warn', 'loading'])
 
 
 # Backend of a tab
-Backend = enum('Backend', ['QtWebKit', 'QtWebEngine'])
-arg2backend = {
-    'webkit': Backend.QtWebKit,
-    'webengine': Backend.QtWebEngine,
-}
+Backend = enum.Enum('Backend', ['QtWebKit', 'QtWebEngine'])
 
 
-# Where a download should be saved
-class DownloadTarget:
+class JsWorld(enum.Enum):
 
-    """Abstract base class for different download targets."""
+    """World/context to run JavaScript code in."""
 
-    def __init__(self):
-        raise NotImplementedError
-
-
-class FileDownloadTarget(DownloadTarget):
-
-    """Save the download to the given file.
-
-    Attributes:
-        filename: Filename where the download should be saved.
-    """
-
-    def __init__(self, filename):
-        # pylint: disable=super-init-not-called
-        self.filename = filename
+    main = 1  #: Same world as the web page's JavaScript.
+    application = 2  #: Application world, used by qutebrowser internally.
+    user = 3  #: User world, currently not used.
+    jseval = 4  #: World used for the jseval-command.
 
 
-class FileObjDownloadTarget(DownloadTarget):
-
-    """Save the download to the given file-like object.
-
-    Attributes:
-        fileobj: File-like object where the download should be written to.
-    """
-
-    def __init__(self, fileobj):
-        # pylint: disable=super-init-not-called
-        self.fileobj = fileobj
+# Log level of a JS message. This needs to match up with the keys allowed for
+# the content.javascript.log setting.
+JsLogLevel = enum.Enum('JsLogLevel', ['unknown', 'info', 'warning', 'error'])
 
 
-class OpenFileDownloadTarget(DownloadTarget):
+MessageLevel = enum.Enum('MessageLevel', ['error', 'warning', 'info'])
 
-    """Save the download in a temp dir and directly open it.
 
-    Attributes:
-        cmdline: The command to use as string. A `{}` is expanded to the
-                 filename. None means to use the system's default application.
-                 If no `{}` is found, the filename is appended to the cmdline.
-    """
+IgnoreCase = enum.Enum('IgnoreCase', ['smart', 'never', 'always'])
 
-    def __init__(self, cmdline=None):
-        # pylint: disable=super-init-not-called
-        self.cmdline = cmdline
+
+class CommandValue(enum.Enum):
+
+    """Special values which are injected when running a command handler."""
+
+    count = 1
+    win_id = 2
+    cur_tab = 3
+    count_tab = 4
 
 
 class Question(QObject):
@@ -328,10 +306,12 @@ class Question(QObject):
                  For yesno, None (no default), True or False.
                  For text, a default text as string.
                  For user_pwd, a default username as string.
+        title: The question title to show.
         text: The prompt text to display to the user.
-        user: The value the user entered as username.
+        url: Any URL referenced in prompts.
         answer: The value the user entered (as password for user_pwd).
         is_aborted: Whether the question was aborted.
+        interrupted: Whether the question was interrupted by another one.
 
     Signals:
         answered: Emitted when the question has been answered by the user.
@@ -357,14 +337,16 @@ class Question(QObject):
         super().__init__(parent)
         self._mode = None
         self.default = None
+        self.title = None
         self.text = None
-        self.user = None
+        self.url = None
         self.answer = None
         self.is_aborted = False
+        self.interrupted = False
 
     def __repr__(self):
-        return utils.get_repr(self, text=self.text, mode=self._mode,
-                              default=self.default)
+        return utils.get_repr(self, title=self.title, text=self.text,
+                              mode=self._mode, default=self.default)
 
     @property
     def mode(self):
@@ -398,15 +380,12 @@ class Question(QObject):
     @pyqtSlot()
     def abort(self):
         """Abort the question."""
+        if self.is_aborted:
+            log.misc.debug("Question was already aborted")
+            return
         self.is_aborted = True
-        try:
-            self.aborted.emit()
-            self.completed.emit()
-        except TypeError:
-            # WORKAROUND
-            # We seem to get "pyqtSignal must be bound to a QObject, not
-            # 'Question' here, which makes no sense at all..."
-            log.misc.exception("Error while aborting question")
+        self.aborted.emit()
+        self.completed.emit()
 
 
 class Timer(QTimer):
@@ -440,3 +419,41 @@ class Timer(QTimer):
             super().start(msec)
         else:
             super().start()
+
+
+class AbstractCertificateErrorWrapper:
+
+    """A wrapper over an SSL/certificate error."""
+
+    def __init__(self, error):
+        self._error = error
+
+    def __str__(self):
+        raise NotImplementedError
+
+    def __repr__(self):
+        raise NotImplementedError
+
+    def is_overridable(self):
+        raise NotImplementedError
+
+
+@attr.s
+class NavigationRequest:
+
+    """A request to navigate to the given URL."""
+
+    Type = enum.Enum('Type', [
+        'link_clicked',
+        'typed',  # QtWebEngine only
+        'form_submitted',
+        'form_resubmitted',  # QtWebKit only
+        'back_forward',
+        'reloaded',
+        'other'
+    ])
+
+    url = attr.ib()
+    navigation_type = attr.ib()
+    is_main_frame = attr.ib()
+    accepted = attr.ib(default=True)

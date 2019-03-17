@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
@@ -20,19 +20,31 @@
 "use strict";
 
 window._qutebrowser.scroll = (function() {
-    var funcs = {};
+    const funcs = {};
 
-    funcs.to_perc = function(x, y) {
-        var elem = document.documentElement;
-        var x_px = window.scrollX;
-        var y_px = window.scrollY;
+    funcs.to_perc = (x, y) => {
+        let x_px = window.scrollX;
+        let y_px = window.scrollY;
+
+        const width = Math.max(
+            document.body.scrollWidth,
+            document.body.offsetWidth,
+            document.documentElement.scrollWidth,
+            document.documentElement.offsetWidth
+        );
+        const height = Math.max(
+            document.body.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.scrollHeight,
+            document.documentElement.offsetHeight
+        );
 
         if (x !== undefined) {
-            x_px = (elem.scrollWidth - window.innerWidth) / 100 * x;
+            x_px = (width - window.innerWidth) / 100 * x;
         }
 
         if (y !== undefined) {
-            y_px = (elem.scrollHeight - window.innerHeight) / 100 * y;
+            y_px = (height - window.innerHeight) / 100 * y;
         }
 
         /*
@@ -40,12 +52,12 @@ window._qutebrowser.scroll = (function() {
             "x": x,
             "window.scrollX": window.scrollX,
             "window.innerWidth": window.innerWidth,
-            "elem.scrollWidth": elem.scrollWidth,
+            "elem.scrollWidth": document.documentElement.scrollWidth,
             "x_px": x_px,
             "y": y,
             "window.scrollY": window.scrollY,
             "window.innerHeight": window.innerHeight,
-            "elem.scrollHeight": elem.scrollHeight,
+            "elem.scrollHeight": document.documentElement.scrollHeight,
             "y_px": y_px,
         }));
         */
@@ -53,38 +65,10 @@ window._qutebrowser.scroll = (function() {
         window.scroll(x_px, y_px);
     };
 
-    funcs.delta_page = function(x, y) {
-        var dx = window.innerWidth * x;
-        var dy = window.innerHeight * y;
+    funcs.delta_page = (x, y) => {
+        const dx = window.innerWidth * x;
+        const dy = window.innerHeight * y;
         window.scrollBy(dx, dy);
-    };
-
-    funcs.pos = function() {
-        var elem = document.documentElement;
-        var dx = elem.scrollWidth - window.innerWidth;
-        var dy = elem.scrollHeight - window.innerHeight;
-        var perc_x, perc_y;
-
-        if (dx === 0) {
-            perc_x = 0;
-        } else {
-            perc_x = 100 / dx * window.scrollX;
-        }
-
-        if (dy === 0) {
-            perc_y = 0;
-        } else {
-            perc_y = 100 / dy * window.scrollY;
-        }
-
-        var pos = {
-            "perc": {"x": perc_x, "y": perc_y},
-            "px": {"x": window.scrollX, "y": window.scrollY},
-            "at_bottom": dy === window.scrollY,
-        };
-
-        // console.log(JSON.stringify(pos));
-        return pos;
     };
 
     return funcs;

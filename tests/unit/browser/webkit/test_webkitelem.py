@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,12 +24,15 @@ import collections.abc
 import operator
 import itertools
 
+import attr
 import pytest
 from PyQt5.QtCore import QRect, QPoint, QUrl
 QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
 
-from qutebrowser.browser import webelem
+from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem
+from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes
 
 
 def get_webelem(geometry=None, frame=None, *, null=False, style=None,
@@ -48,9 +51,8 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
         js_rect_return: If None, what evaluateJavaScript returns is based on
                         geometry. If set, the return value of
                         evaluateJavaScript.
-        zoom_text_only: Whether zoom-text-only is set in the config
+        zoom_text_only: Whether zoom.text_only is set in the config
     """
-    # pylint: disable=too-many-locals,too-many-branches
     elem = mock.Mock()
     elem.isNull.return_value = null
     elem.geometry.return_value = geometry
@@ -108,7 +110,12 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
     else:
         elem.classes.return_value = []
 
-    style_dict = {'visibility': '', 'display': '', 'foo': 'bar'}
+    style_dict = {
+        'visibility': '',
+        'display': '',
+        'foo': 'bar',
+        'opacity': '100'
+    }
     if style is not None:
         style_dict.update(style)
 
@@ -120,7 +127,9 @@ def get_webelem(geometry=None, frame=None, *, null=False, style=None,
         return style_dict[name]
 
     elem.styleProperty.side_effect = _style_property
-    wrapped = webkitelem.WebKitElement(elem, tab=None)
+    tab = mock.Mock(autospec=browsertab.AbstractTab)
+    tab.is_deleted.return_value = False
+    wrapped = webkitelem.WebKitElement(elem, tab=tab)
     return wrapped
 
 
@@ -137,60 +146,48 @@ class SelectionAndFilterTests:
     TESTS = [
         ('<foo />', []),
         ('<foo bar="baz"/>', []),
-        ('<foo href="baz"/>', [webelem.Group.url]),
-        ('<foo src="baz"/>', [webelem.Group.url]),
+        ('<foo href="baz"/>', ['url']),
+        ('<foo src="baz"/>', ['url']),
 
-        ('<a />', [webelem.Group.all]),
-        ('<a href="foo" />', [webelem.Group.all, webelem.Group.links,
-                              webelem.Group.prevnext, webelem.Group.url]),
-        ('<a href="javascript://foo" />', [webelem.Group.all,
-                                           webelem.Group.url]),
+        ('<a />', ['all']),
+        ('<a href="foo" />', ['all', 'links', 'url']),
+        ('<a href="javascript://foo" />', ['all', 'links', 'url']),
 
-        ('<area />', [webelem.Group.all]),
-        ('<area href="foo" />', [webelem.Group.all, webelem.Group.links,
-                                 webelem.Group.prevnext, webelem.Group.url]),
-        ('<area href="javascript://foo" />', [webelem.Group.all,
-                                              webelem.Group.url]),
+        ('<area />', ['all']),
+        ('<area href="foo" />', ['all', 'links', 'url']),
 
-        ('<link />', [webelem.Group.all]),
-        ('<link href="foo" />', [webelem.Group.all, webelem.Group.links,
-                                 webelem.Group.prevnext, webelem.Group.url]),
-        ('<link href="javascript://foo" />', [webelem.Group.all,
-                                              webelem.Group.url]),
+        ('<link />', ['all']),
+        ('<link href="foo" />', ['all', 'links', 'url']),
 
-        ('<textarea />', [webelem.Group.all, webelem.Group.inputs]),
-        ('<select />', [webelem.Group.all]),
+        ('<textarea />', ['all', 'inputs']),
+        ('<select />', ['all']),
 
-        ('<input />', [webelem.Group.all, webelem.Group.inputs]),
+        ('<input />', ['all', 'inputs']),
         ('<input type="hidden" />', []),
-        ('<input type="text" />', [webelem.Group.inputs, webelem.Group.all]),
-        ('<input type="email" />', [webelem.Group.inputs, webelem.Group.all]),
-        ('<input type="url" />', [webelem.Group.inputs, webelem.Group.all]),
-        ('<input type="tel" />', [webelem.Group.inputs, webelem.Group.all]),
-        ('<input type="number" />', [webelem.Group.inputs, webelem.Group.all]),
-        ('<input type="password" />', [webelem.Group.inputs,
-                                       webelem.Group.all]),
-        ('<input type="search" />', [webelem.Group.inputs, webelem.Group.all]),
+        ('<input type="text" />', ['inputs', 'all']),
+        ('<input type="email" />', ['inputs', 'all']),
+        ('<input type="url" />', ['inputs', 'all']),
+        ('<input type="tel" />', ['inputs', 'all']),
+        ('<input type="number" />', ['inputs', 'all']),
+        ('<input type="password" />', ['inputs', 'all']),
+        ('<input type="search" />', ['inputs', 'all']),
 
-        ('<button />', [webelem.Group.all]),
-        ('<button href="foo" />', [webelem.Group.all, webelem.Group.prevnext,
-                                   webelem.Group.url]),
-        ('<button href="javascript://foo" />', [webelem.Group.all,
-                                                webelem.Group.url]),
+        ('<button />', ['all']),
+        ('<button href="foo" />', ['all', 'url']),
 
         # We can't easily test <frame>/<iframe> as they vanish when setting
         # them via QWebFrame::setHtml...
 
-        ('<p onclick="foo" foo="bar"/>', [webelem.Group.all]),
-        ('<p onmousedown="foo" foo="bar"/>', [webelem.Group.all]),
-        ('<p role="option" foo="bar"/>', [webelem.Group.all]),
-        ('<p role="button" foo="bar"/>', [webelem.Group.all]),
-        ('<p role="button" href="bar"/>', [webelem.Group.all,
-                                           webelem.Group.prevnext,
-                                           webelem.Group.url]),
+        ('<p onclick="foo" foo="bar"/>', ['all']),
+        ('<p onmousedown="foo" foo="bar"/>', ['all']),
+        ('<p role="option" foo="bar"/>', ['all']),
+        ('<p role="button" foo="bar"/>', ['all']),
+        ('<p role="button" href="bar"/>', ['all', 'url']),
+
+        ('<span tabindex=0 />', ['all']),
     ]
 
-    GROUPS = list(webelem.Group)
+    GROUPS = ['all', 'links', 'images', 'url', 'inputs']
 
     COMBINATIONS = list(itertools.product(TESTS, GROUPS))
 
@@ -213,14 +210,13 @@ class TestSelectorsAndFilters:
         assert self.TESTS
 
     @pytest.mark.parametrize('group, val, matching', TESTS)
-    def test_selectors(self, webframe, group, val, matching):
+    def test_selectors(self, webframe, group, val, matching, config_stub):
         webframe.setHtml('<html><body>{}</body></html>'.format(val))
         # Make sure setting HTML succeeded and there's a new element
         assert len(webframe.findAllElements('*')) == 3
-        elems = webframe.findAllElements(webelem.SELECTORS[group])
+        selector = ','.join(config_stub.val.hints.selectors[group])
+        elems = webframe.findAllElements(selector)
         elems = [webkitelem.WebKitElement(e, tab=None) for e in elems]
-        filterfunc = webelem.FILTERS.get(group, lambda e: True)
-        elems = [e for e in elems if filterfunc(e)]
         assert bool(elems) == matching
 
 
@@ -243,38 +239,34 @@ class TestWebKitElement:
 
     def test_double_wrap(self, elem):
         """Test wrapping a WebKitElement."""
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises(TypeError, match="Trying to wrap a wrapper!"):
             webkitelem.WebKitElement(elem, tab=None)
-        assert str(excinfo.value) == "Trying to wrap a wrapper!"
 
     @pytest.mark.parametrize('code', [
-        str,
-        lambda e: e[None],
-        lambda e: operator.setitem(e, None, None),
-        lambda e: operator.delitem(e, None),
-        lambda e: None in e,
-        list,  # __iter__
-        len,
-        lambda e: e.has_frame(),
-        lambda e: e.geometry(),
-        lambda e: e.style_property('visibility', strategy='computed'),
-        lambda e: e.text(),
-        lambda e: e.set_text('foo'),
-        lambda e: e.insert_text('foo'),
-        lambda e: e.is_writable(),
-        lambda e: e.is_content_editable(),
-        lambda e: e.is_editable(),
-        lambda e: e.is_text_input(),
-        lambda e: e.remove_blank_target(),
-        lambda e: e.outer_xml(),
-        lambda e: e.tag_name(),
-        lambda e: e.rect_on_view(),
-        lambda e: e._is_visible(None),
-    ], ids=['str', 'getitem', 'setitem', 'delitem', 'contains', 'iter', 'len',
-            'frame', 'geometry', 'style_property', 'text', 'set_text',
-            'insert_text', 'is_writable', 'is_content_editable', 'is_editable',
-            'is_text_input', 'remove_blank_target', 'outer_xml', 'tag_name',
-            'rect_on_view', 'is_visible'])
+        pytest.param(str, id='str'),
+        pytest.param(lambda e: e[None], id='getitem'),
+        pytest.param(lambda e: operator.setitem(e, None, None), id='setitem'),
+        pytest.param(lambda e: operator.delitem(e, None), id='delitem'),
+        pytest.param(lambda e: '' in e, id='contains'),
+        pytest.param(list, id='iter'),
+        pytest.param(len, id='len'),
+        pytest.param(lambda e: e.has_frame(), id='has_frame'),
+        pytest.param(lambda e: e.geometry(), id='geometry'),
+        pytest.param(lambda e: e.value(), id='value'),
+        pytest.param(lambda e: e.set_value('foo'), id='set_value'),
+        pytest.param(lambda e: e.insert_text('foo'), id='insert_text'),
+        pytest.param(lambda e: e.is_writable(), id='is_writable'),
+        pytest.param(lambda e: e.is_content_editable(),
+                     id='is_content_editable'),
+        pytest.param(lambda e: e.is_editable(), id='is_editable'),
+        pytest.param(lambda e: e.is_text_input(), id='is_text_input'),
+        pytest.param(lambda e: e.remove_blank_target(),
+                     id='remove_blank_target'),
+        pytest.param(lambda e: e.outer_xml(), id='outer_xml'),
+        pytest.param(lambda e: e.tag_name(), id='tag_name'),
+        pytest.param(lambda e: e.rect_on_view(), id='rect_on_view'),
+        pytest.param(lambda e: e._is_visible(None), id='is_visible'),
+    ])
     def test_vanished(self, elem, code):
         """Make sure methods check if the element is vanished."""
         elem._elem.isNull.return_value = True
@@ -408,31 +400,18 @@ class TestWebKitElement:
         elem._elem.tagName.return_value = 'SPAN'
         assert elem.tag_name() == 'span'
 
-    def test_style_property(self, elem):
-        assert elem.style_property('foo', strategy='computed') == 'bar'
-
-    @pytest.mark.parametrize('use_js, editable, expected', [
-        (True, 'false', 'js'),
-        (True, 'true', 'nojs'),
-        (False, 'false', 'nojs'),
-        (False, 'true', 'nojs'),
-    ])
-    def test_text(self, use_js, editable, expected):
-        elem = get_webelem(attributes={'contenteditable': editable})
-        elem._elem.toPlainText.return_value = 'nojs'
+    def test_value(self, elem):
         elem._elem.evaluateJavaScript.return_value = 'js'
-        assert elem.text(use_js=use_js) == expected
+        assert elem.value() == 'js'
 
-    @pytest.mark.parametrize('use_js, editable, text, uses_js, arg', [
-        (True, 'false', 'foo', True, "this.value='foo'"),
-        (True, 'false', "foo'bar", True, r"this.value='foo\'bar'"),
-        (True, 'true', 'foo', False, 'foo'),
-        (False, 'false', 'foo', False, 'foo'),
-        (False, 'true', 'foo', False, 'foo'),
+    @pytest.mark.parametrize('editable, value, uses_js, arg', [
+        ('false', 'foo', True, 'this.value="foo"'),
+        ('false', "foo'bar", True, r'this.value="foo\'bar"'),
+        ('true', 'foo', False, 'foo'),
     ])
-    def test_set_text(self, use_js, editable, text, uses_js, arg):
+    def test_set_value(self, editable, value, uses_js, arg):
         elem = get_webelem(attributes={'contenteditable': editable})
-        elem.set_text(text, use_js=use_js)
+        elem.set_value(value)
         attr = 'evaluateJavaScript' if uses_js else 'setPlainText'
         called_mock = getattr(elem._elem, attr)
         called_mock.assert_called_with(arg)
@@ -443,25 +422,28 @@ class TestRemoveBlankTarget:
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     @pytest.mark.parametrize('target', ['_self', '_parent', '_top', ''])
     def test_keep_target(self, tagname, target):
-        elem = get_webelem(tagname=tagname, attributes={'target': target})
+        elem = get_webelem(tagname=tagname,
+                           attributes={'target': target, 'href': '#'})
         elem.remove_blank_target()
         assert elem['target'] == target
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     def test_no_target(self, tagname):
-        elem = get_webelem(tagname=tagname)
+        elem = get_webelem(tagname=tagname, attributes={'href': '#'})
         elem.remove_blank_target()
         assert 'target' not in elem
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     def test_blank_target(self, tagname):
-        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+        elem = get_webelem(tagname=tagname,
+                           attributes={'target': '_blank', 'href': '#'})
         elem.remove_blank_target()
         assert elem['target'] == '_top'
 
     @pytest.mark.parametrize('tagname', ['a', 'area'])
     def test_ancestor_blank_target(self, tagname):
-        elem = get_webelem(tagname=tagname, attributes={'target': '_blank'})
+        elem = get_webelem(tagname=tagname,
+                           attributes={'target': '_blank', 'href': '#'})
         elem_child = get_webelem(tagname='img', parent=elem._elem)
         elem_child._elem.encloseWith(elem._elem)
         elem_child.remove_blank_target()
@@ -543,7 +525,12 @@ class TestIsVisibleIframe:
         elem1-elem4: FakeWebElements to test.
     """
 
-    Objects = collections.namedtuple('Objects', ['frame', 'iframe', 'elems'])
+    @attr.s
+    class Objects:
+
+        frame = attr.ib()
+        iframe = attr.ib()
+        elems = attr.ib()
 
     @pytest.fixture
     def objects(self, stubs):
@@ -568,7 +555,7 @@ class TestIsVisibleIframe:
               ##############################
             300, 0                         300, 300
 
-        Returns an Objects namedtuple with frame/iframe/elems attributes.
+        Returns an Objects object with frame/iframe/elems attributes.
         """
         frame = stubs.FakeWebFrame(QRect(0, 0, 300, 300))
         iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)
@@ -639,7 +626,7 @@ class TestIsVisibleIframe:
               ##############################
             300, 0                         300, 300
 
-        Returns an Objects namedtuple with frame/iframe/elems attributes.
+        Returns an Objects object with frame/iframe/elems attributes.
         """
         frame = stubs.FakeWebFrame(QRect(0, 0, 300, 300))
         iframe = stubs.FakeWebFrame(QRect(0, 10, 100, 100), parent=frame)
@@ -670,16 +657,7 @@ class TestIsVisibleIframe:
 
 class TestRectOnView:
 
-    @pytest.fixture(autouse=True)
-    def stubbed_config(self, config_stub, monkeypatch):
-        """Add a zoom-text-only fake config value.
-
-        This is needed for all the tests calling rect_on_view or is_visible.
-        """
-        config_stub.data = {'ui': {'zoom-text-only': 'true'}}
-        monkeypatch.setattr('qutebrowser.browser.webkit.webkitelem.config',
-                            config_stub)
-        return config_stub
+    pytestmark = pytest.mark.usefixtures('config_stub')
 
     @pytest.mark.parametrize('js_rect', [
         None,  # real geometry via getElementRects
@@ -736,9 +714,11 @@ class TestRectOnView:
 
     @pytest.mark.parametrize('js_rect', [None, {}])
     @pytest.mark.parametrize('zoom_text_only', [True, False])
-    def test_zoomed(self, stubs, config_stub, js_rect, zoom_text_only):
+    def test_zoomed(self, stubs, config_stub, js_rect, monkeypatch,
+                    zoom_text_only):
         """Make sure the coordinates are adjusted when zoomed."""
-        config_stub.data = {'ui': {'zoom-text-only': zoom_text_only}}
+        monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebKit)
+        config_stub.val.zoom.text_only = zoom_text_only
         geometry = QRect(10, 10, 4, 4)
         frame = stubs.FakeWebFrame(QRect(0, 0, 100, 100), zoom=0.5)
         elem = get_webelem(geometry, frame, js_rect_return=js_rect,
@@ -801,14 +781,6 @@ class TestIsEditable:
 
     """Tests for is_editable."""
 
-    @pytest.fixture
-    def stubbed_config(self, config_stub, monkeypatch):
-        """Fixture to create a config stub with an input section."""
-        config_stub.data = {'input': {}}
-        monkeypatch.setattr('qutebrowser.browser.webkit.webkitelem.config',
-                            config_stub)
-        return config_stub
-
     @pytest.mark.parametrize('tagname, attributes, editable', [
         ('input', {}, True),
         ('input', {'type': 'text'}, True),
@@ -869,9 +841,9 @@ class TestIsEditable:
         (True, 'object', {}, False),
         (True, 'object', {'type': 'image/gif'}, False),
     ])
-    def test_is_editable_plugin(self, stubbed_config, setting, tagname,
-                                attributes, editable):
-        stubbed_config.data['input']['insert-mode-on-plugins'] = setting
+    def test_is_editable_plugin(self, config_stub,
+                                setting, tagname, attributes, editable):
+        config_stub.val.input.insert_mode.plugins = setting
         elem = get_webelem(tagname=tagname, attributes=attributes)
         assert elem.is_editable() == editable
 

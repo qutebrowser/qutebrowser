@@ -37,25 +37,12 @@ is available in the repositories:
 Archlinux
 ^^^^^^^^^
 
-For Archlinux, no debug informations are provided. You can either compile Qt
+For Archlinux, no debug information is provided. You can either compile Qt
 yourself (which will take a few hours even on a modern machine) or use
 debugging symbols compiled/packaged by me (x86_64 only).
 
-.To compile by yourself
-
-----
-$ git clone https://github.com/qutebrowser/qt-debug-pkgbuild.git
-$ cd qt-debug-pkgbuild
-$ git checkout symbols
-$ export DEBUG_CFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
-$ export DEBUG_CXXFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
-$ cd qt5
-$ makepkg -si --pkg qt5-base-debug,qt5-webkit-debug,qt5-webengine-debug
-$ cd ../pyqt5
-$ makepkg -si --pkg pyqt5-common-debug,python-pyqt5-debug
-----
-
-.To install my pre-built packages
+To install my pre-built packages
+++++++++++++++++++++++++++++++++
 
 First download and sign the key:
 
@@ -70,7 +57,7 @@ Then edit your `/etc/pacman.conf` to add the repository to the bottom:
 
 ----
 [qt-debug]
-Server = http://qutebrowser.org/qt-debug/$arch
+Server = https://qutebrowser.org/qt-debug/$arch
 ----
 
 Then install the packages:
@@ -81,6 +68,24 @@ Then install the packages:
 
 The `-debug` packages conflict with the non-debug variants - it's safe to
 remove them.
+
+To compile by yourself
+++++++++++++++++++++++
+
+Note that building Qt will likely take multiple hours, even on a recent system.
+I'd also expect it to take around 6 GB of RAM and 30 GB of disk space for a
+successful compile run.
+
+----
+$ git clone https://github.com/qutebrowser/qt-debug-pkgbuild.git
+$ cd qt-debug-pkgbuild
+$ export DEBUG_CFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
+$ export DEBUG_CXXFLAGS='-ggdb3 -fvar-tracking-assignments -Og'
+$ cd qt5
+$ makepkg -si --pkg qt5-base-debug,qt5-webkit-debug,qt5-webengine-debug
+$ cd ../pyqt5
+$ makepkg -si --pkg pyqt5-common-debug,python-pyqt5-debug
+----
 
 Getting the stack trace
 ~~~~~~~~~~~~~~~~~~~~~~~

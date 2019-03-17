@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -70,7 +70,11 @@ def log_signals(obj):
                 name = bytes(meta_method.name()).decode('ascii')
                 if name != 'destroyed':
                     signal = getattr(obj, name)
-                    signal.connect(functools.partial(log_slot, obj, signal))
+                    try:
+                        signal.connect(functools.partial(
+                            log_slot, obj, signal))
+                    except TypeError:  # pragma: no cover
+                        pass
 
     if inspect.isclass(obj):
         old_init = obj.__init__
@@ -83,9 +87,10 @@ def log_signals(obj):
             return ret
 
         obj.__init__ = new_init
-        return obj
     else:
         connect_log_slot(obj)
+
+    return obj
 
 
 def qenum_key(base, value, add_base=False, klass=None):
@@ -133,7 +138,7 @@ def qflags_key(base, value, add_base=False, klass=None):
     Note: Passing a combined value (such as Qt.AlignCenter) will get the names
     for the individual bits (e.g. Qt.AlignVCenter | Qt.AlignHCenter). FIXME
 
-    https://github.com/The-Compiler/qutebrowser/issues/42
+    https://github.com/qutebrowser/qutebrowser/issues/42
 
     Args:
         base: The object the flags are in, e.g. QtCore.Qt
@@ -152,6 +157,10 @@ def qflags_key(base, value, add_base=False, klass=None):
         klass = value.__class__
         if klass == int:
             raise TypeError("Can't guess enum class of an int!")
+
+    if not value:
+        return qenum_key(base, value, add_base, klass)
+
     bits = []
     names = []
     mask = 0x01
@@ -176,7 +185,7 @@ def signal_name(sig):
     Return:
         The cleaned up signal name.
     """
-    m = re.match(r'[0-9]+(.*)\(.*\)', sig.signal)
+    m = re.fullmatch(r'[0-9]+(.*)\(.*\)', sig.signal)
     return m.group(1)
 
 
@@ -224,7 +233,7 @@ def format_call(func, args=None, kwargs=None, full=True):
     return '{}({})'.format(name, format_args(args, kwargs))
 
 
-class log_time:  # pylint: disable=invalid-name
+class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Log the time an operation takes.
 
@@ -258,6 +267,7 @@ class log_time:  # pylint: disable=invalid-name
     def __call__(self, func):
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
+            """Call the original function."""
             with self:
                 func(*args, **kwargs)
 

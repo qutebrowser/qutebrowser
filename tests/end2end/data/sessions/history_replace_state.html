@@ -5,8 +5,8 @@
         <title>Test title</title>
         <script type="text/javascript">
             window.onload = function () {
-                console.log("Calling history.replaceState");
                 history.replaceState({}, '', window.location + '?state=2');
+                console.log("Called history.replaceState");
             }
         </script>
     </head>

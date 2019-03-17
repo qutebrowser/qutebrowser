@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -18,8 +18,6 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for usertypes.Question."""
-
-import logging
 
 import pytest
 
@@ -51,10 +49,10 @@ def test_mode_invalid(question):
 
 @pytest.mark.parametrize('mode, answer, signal_names', [
     (usertypes.PromptMode.text, 'foo', ['answered', 'completed']),
-    (usertypes.PromptMode.yesno, True, ['answered', 'completed',
-                                        'answered_yes']),
-    (usertypes.PromptMode.yesno, False, ['answered', 'completed',
-                                         'answered_no']),
+    (usertypes.PromptMode.yesno, True, ['answered', 'answered_yes',
+                                        'completed']),
+    (usertypes.PromptMode.yesno, False, ['answered', 'answered_no',
+                                         'completed']),
 ])
 def test_done(mode, answer, signal_names, question, qtbot):
     """Test the 'done' method and completed/answered signals."""
@@ -82,10 +80,10 @@ def test_abort(question, qtbot):
     assert question.is_aborted
 
 
-def test_abort_typeerror(question, qtbot, mocker, caplog):
-    """Test Question.abort() with .emit() raising a TypeError."""
-    signal_mock = mocker.patch('qutebrowser.utils.usertypes.Question.aborted')
-    signal_mock.emit.side_effect = TypeError
-    with caplog.at_level(logging.ERROR, 'misc'):
+def test_abort_twice(question, qtbot):
+    """Abort a question twice."""
+    with qtbot.wait_signal(question.aborted):
         question.abort()
-    assert caplog.records[0].message == 'Error while aborting question'
+    assert question.is_aborted
+    with qtbot.assert_not_emitted(question.aborted):
+        question.abort()

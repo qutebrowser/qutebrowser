@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -18,8 +18,8 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """Tests for qutebrowser.misc.split."""
-import collections
 
+import attr
 import pytest
 
 from qutebrowser.misc import split
@@ -104,21 +104,26 @@ foo\ bar/foo bar/foo\ bar/
 
 
 def _parse_split_test_data_str():
-    """Parse the test data set into a namedtuple to use in tests.
+    """Parse the test data set into a TestCase object to use in tests.
 
     Returns:
-        A list of namedtuples with str attributes: input, keep, no_keep
+        A list of TestCase objects with str attributes: inp, keep, no_keep
     """
-    tuple_class = collections.namedtuple('TestCase', 'input, keep, no_keep')
+    @attr.s
+    class TestCase:
+
+        inp = attr.ib()
+        keep = attr.ib()
+        no_keep = attr.ib()
 
     for line in test_data_str.splitlines():
         if not line:
             continue
         data = line.split('/')
-        item = tuple_class(input=data[0], keep=data[1].split('|'),
-                           no_keep=data[2].split('|'))
+        item = TestCase(inp=data[0], keep=data[1].split('|'),
+                        no_keep=data[2].split('|'))
         yield item
-    yield tuple_class(input='', keep=[], no_keep=[])
+    yield TestCase(inp='', keep=[], no_keep=[])
 
 
 class TestSplit:
@@ -126,7 +131,7 @@ class TestSplit:
     """Test split."""
 
     @pytest.fixture(params=list(_parse_split_test_data_str()),
-                    ids=lambda e: e.input)
+                    ids=lambda e: e.inp)
     def split_test_case(self, request):
         """Fixture to automatically parametrize all depending tests.
 
@@ -137,17 +142,17 @@ class TestSplit:
 
     def test_split(self, split_test_case):
         """Test splitting."""
-        items = split.split(split_test_case.input)
+        items = split.split(split_test_case.inp)
         assert items == split_test_case.keep
 
     def test_split_keep_original(self, split_test_case):
         """Test if splitting with keep=True yields the original string."""
-        items = split.split(split_test_case.input, keep=True)
-        assert ''.join(items) == split_test_case.input
+        items = split.split(split_test_case.inp, keep=True)
+        assert ''.join(items) == split_test_case.inp
 
     def test_split_keep(self, split_test_case):
         """Test splitting with keep=True."""
-        items = split.split(split_test_case.input, keep=True)
+        items = split.split(split_test_case.inp, keep=True)
         assert items == split_test_case.no_keep
 
 

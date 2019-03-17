@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Setting positional marks
 
     Background:
@@ -19,12 +21,13 @@ Feature: Setting positional marks
     Scenario: Jumping back after jumping to a particular percentage
         When I run :scroll-px 10 20
         And I wait until the scroll position changed to 10/20
-        And I run :scroll-perc 100
+        And I run :scroll-to-perc 100
         And I wait until the scroll position changed
         And I run :jump-mark "'"
         And I wait until the scroll position changed to 10/20
         Then the page should be scrolled to 10 20
 
+    @qtwebengine_flaky
     Scenario: Setting the same local mark on another page
         When I run :scroll-px 5 10
         And I wait until the scroll position changed to 5/10
@@ -70,7 +73,7 @@ Feature: Setting positional marks
         And I run :jump-mark b
         Then the error "Mark b is not set" should be shown
 
-    @qtwebengine_todo: Does not emit loaded signal for fragments?
+    @qtwebengine_skip: Does not emit loaded signal for fragments?
     Scenario: Jumping to a local mark after changing fragments
         When I open data/marks.html#top
         And I run :scroll 'top'
@@ -83,7 +86,7 @@ Feature: Setting positional marks
         And I wait until the scroll position changed to 10/10
         Then the page should be scrolled to 10 10
 
-    @qtwebengine_todo: Does not emit loaded signal for fragments?
+    @qtwebengine_skip: Does not emit loaded signal for fragments?
     Scenario: Jumping back after following a link
         When I hint with args "links normal" and follow s
         And I wait until data/marks.html#bottom is loaded
@@ -91,8 +94,6 @@ Feature: Setting positional marks
         And I wait until the scroll position changed to 0/0
         Then the page should be scrolled to 0 0
 
-    # https://ci.appveyor.com/project/The-Compiler/qutebrowser/build/master-3935/job/fc0b1gow5co08c2x
-    @qtwebengine_flaky
     Scenario: Jumping back after searching
         When I run :scroll-px 20 15
         And I wait until the scroll position changed to 20/15
@@ -115,7 +116,7 @@ Feature: Setting positional marks
     Scenario: Hovering a hint does not set the ' mark
         When I run :scroll-px 30 20
         And I wait until the scroll position changed to 30/20
-        And  I run :scroll-perc 0
+        And  I run :scroll-to-perc 0
         And I wait until the scroll position changed
         And I hint with args "links hover" and follow s
         And I run :jump-mark "'"

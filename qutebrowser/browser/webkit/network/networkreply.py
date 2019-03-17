@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # Based on the Eric5 helpviewer,
 # Copyright (c) 2009 - 2014 Detlev Offenbach <detlev@die-offenbachs.de>
@@ -19,6 +19,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+#
+# For some reason, a segfault will be triggered if the unnecessary lambdas in
+# this file aren't there.
+# pylint: disable=unnecessary-lambda
 
 """Special network replies.."""
 
@@ -30,8 +34,7 @@ class FixedDataNetworkReply(QNetworkReply):
 
     """QNetworkReply subclass for fixed data."""
 
-    def __init__(self, request, fileData, mimeType,  # flake8: disable=N803
-                 parent=None):
+    def __init__(self, request, fileData, mimeType, parent=None):  # noqa: N803
         """Constructor.
 
         Args:
@@ -63,7 +66,6 @@ class FixedDataNetworkReply(QNetworkReply):
     @pyqtSlot()
     def abort(self):
         """Abort the operation."""
-        pass
 
     def bytesAvailable(self):
         """Determine the bytes available for being read.
@@ -114,15 +116,11 @@ class ErrorNetworkReply(QNetworkReply):
         # the device to avoid getting a warning.
         self.setOpenMode(QIODevice.ReadOnly)
         self.setError(error, errorstring)
-        # For some reason, a segfault will be triggered if these lambdas aren't
-        # there.
-        # pylint: disable=unnecessary-lambda
         QTimer.singleShot(0, lambda: self.error.emit(error))
         QTimer.singleShot(0, lambda: self.finished.emit())
 
     def abort(self):
         """Do nothing since it's a fake reply."""
-        pass
 
     def bytesAvailable(self):
         """We always have 0 bytes available."""
@@ -137,3 +135,19 @@ class ErrorNetworkReply(QNetworkReply):
 
     def isRunning(self):
         return False
+
+
+class RedirectNetworkReply(QNetworkReply):
+
+    """A reply which redirects to the given URL."""
+
+    def __init__(self, new_url, parent=None):
+        super().__init__(parent)
+        self.setAttribute(QNetworkRequest.RedirectionTargetAttribute, new_url)
+        QTimer.singleShot(0, lambda: self.finished.emit())
+
+    def abort(self):
+        """Called when there's e.g. a redirection limit."""
+
+    def readData(self, _maxlen):
+        return bytes()

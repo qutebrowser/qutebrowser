@@ -1,6 +1,9 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Going back and forward.
     Testing the :back/:forward commands.
 
+    @skip  # Too flaky
     Scenario: Going back/forward
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt
@@ -19,7 +22,7 @@ Feature: Going back and forward.
                 - active: true
                   url: http://localhost:*/data/backforward/2.txt
 
-    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941720
+    # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941720
     @qtwebengine_flaky
     Scenario: Going back in a new tab
         Given I open data/backforward/1.txt
@@ -72,6 +75,7 @@ Feature: Going back and forward.
                   url: http://localhost:*/data/backforward/1.txt
                 - url: http://localhost:*/data/backforward/2.txt
 
+    @flaky
     Scenario: Going back with count.
         Given I open data/backforward/1.txt
         When I open data/backforward/2.txt

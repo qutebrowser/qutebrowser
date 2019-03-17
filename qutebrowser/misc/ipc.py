@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,7 +20,6 @@
 """Utilities for IPC with existing instances."""
 
 import os
-import sys
 import time
 import json
 import getpass
@@ -31,18 +30,22 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
 from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
 
 import qutebrowser
-from qutebrowser.utils import log, usertypes, error, objreg, standarddir
+from qutebrowser.utils import log, usertypes, error, standarddir, utils
 
 
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
 WRITE_TIMEOUT = 1000
 READ_TIMEOUT = 5000
-ATIME_INTERVAL = 60 * 60 * 6 * 1000  # 6 hours
+ATIME_INTERVAL = 60 * 60 * 3 * 1000  # 3 hours
 PROTOCOL_VERSION = 1
 
 
-def _get_socketname_legacy(basedir):
-    """Legacy implementation of _get_socketname."""
+# The ipc server instance
+server = None
+
+
+def _get_socketname_windows(basedir):
+    """Get a socketname to use for Windows."""
     parts = ['qutebrowser', getpass.getuser()]
     if basedir is not None:
         md5 = hashlib.md5(basedir.encode('utf-8')).hexdigest()
@@ -50,10 +53,10 @@ def _get_socketname_legacy(basedir):
     return '-'.join(parts)
 
 
-def _get_socketname(basedir, legacy=False):
+def _get_socketname(basedir):
     """Get a socketname to use."""
-    if legacy or os.name == 'nt':
-        return _get_socketname_legacy(basedir)
+    if utils.is_windows:  # pragma: no cover
+        return _get_socketname_windows(basedir)
 
     parts_to_hash = [getpass.getuser()]
     if basedir is not None:
@@ -62,11 +65,9 @@ def _get_socketname(basedir, legacy=False):
     data_to_hash = '-'.join(parts_to_hash).encode('utf-8')
     md5 = hashlib.md5(data_to_hash).hexdigest()
 
-    target_dir = standarddir.runtime()
-
-    parts = ['ipc']
-    parts.append(md5)
-    return os.path.join(target_dir, '-'.join(parts))
+    prefix = 'i-' if utils.is_mac else 'ipc-'
+    filename = '{}{}'.format(prefix, md5)
+    return os.path.join(standarddir.runtime(), filename)
 
 
 class Error(Exception):
@@ -110,15 +111,15 @@ class ListenError(Error):
         message: The error message.
     """
 
-    def __init__(self, server):
+    def __init__(self, local_server):
         """Constructor.
 
         Args:
-            server: The QLocalServer which has the error set.
+            local_server: The QLocalServer which has the error set.
         """
         super().__init__()
-        self.code = server.serverError()
-        self.message = server.errorString()
+        self.code = local_server.serverError()
+        self.message = local_server.errorString()
 
     def __str__(self):
         return "Error while listening to IPC server: {} (error {})".format(
@@ -140,8 +141,6 @@ class IPCServer(QObject):
         _server: A QLocalServer to accept new connections.
         _socket: The QLocalSocket we're currently connected to.
         _socketname: The socketname to use.
-        _socketopts_ok: Set if using setSocketOptions is working with this
-                        OS/Qt version.
         _atime_timer: Timer to update the atime of the socket regularly.
 
     Signals:
@@ -170,7 +169,7 @@ class IPCServer(QObject):
         self._timer.setInterval(READ_TIMEOUT)
         self._timer.timeout.connect(self.on_timeout)
 
-        if os.name == 'nt':  # pragma: no cover
+        if utils.is_windows:  # pragma: no cover
             self._atime_timer = None
         else:
             self._atime_timer = usertypes.Timer(self, 'ipc-atime')
@@ -182,8 +181,8 @@ class IPCServer(QObject):
         self._server.newConnection.connect(self.handle_connection)
 
         self._socket = None
-        self._socketopts_ok = os.name == 'nt'
-        if self._socketopts_ok:  # pragma: no cover
+        self._old_socket = None
+        if utils.is_windows:  # pragma: no cover
             # If we use setSocketOptions on Unix with Qt < 5.4, we get a
             # NameError while listening...
             log.ipc.debug("Calling setSocketOptions")
@@ -208,9 +207,8 @@ class IPCServer(QObject):
         if not ok:
             if self._server.serverError() == QAbstractSocket.AddressInUseError:
                 raise AddressInUseError(self._server)
-            else:
-                raise ListenError(self._server)
-        if not self._socketopts_ok:  # pragma: no cover
+            raise ListenError(self._server)
+        if not utils.is_windows:  # pragma: no cover
             # If we use setSocketOptions on Unix with Qt < 5.4, we get a
             # NameError while listening.
             # (see b135569d5c6e68c735ea83f42e4baf51f7972281)
@@ -222,7 +220,7 @@ class IPCServer(QObject):
             try:
                 os.chmod(self._server.fullServerName(), 0o700)
             except FileNotFoundError:
-                # https://github.com/The-Compiler/qutebrowser/issues/1530
+                # https://github.com/qutebrowser/qutebrowser/issues/1530
                 # The server doesn't actually exist even if ok was reported as
                 # True, so report this as an error.
                 raise ListenError(self._server)
@@ -278,11 +276,8 @@ class IPCServer(QObject):
         log.ipc.debug("Client disconnected from socket 0x{:x}.".format(
             id(self._socket)))
         self._timer.stop()
-        if self._socket is None:
-            log.ipc.debug("In on_disconnected with None socket!")
-        else:
-            self._socket.deleteLater()
-            self._socket = None
+        self._old_socket = self._socket
+        self._socket = None
         # Maybe another connection is waiting.
         self.handle_connection()
 
@@ -345,23 +340,32 @@ class IPCServer(QObject):
     @pyqtSlot()
     def on_ready_read(self):
         """Read json data from the client."""
-        if self._socket is None:
+        if self._socket is None:  # pragma: no cover
             # This happens when doing a connection while another one is already
             # active for some reason.
-            log.ipc.warning("In on_ready_read with None socket!")
-            return
+            if self._old_socket is None:
+                log.ipc.warning("In on_ready_read with None socket and "
+                                "old_socket!")
+                return
+            log.ipc.debug("In on_ready_read with None socket!")
+            socket = self._old_socket
+        else:
+            socket = self._socket
         self._timer.stop()
-        while self._socket is not None and self._socket.canReadLine():
-            data = bytes(self._socket.readLine())
+        while socket is not None and socket.canReadLine():
+            data = bytes(socket.readLine())
             self.got_raw.emit(data)
             log.ipc.debug("Read from socket 0x{:x}: {!r}".format(
-                id(self._socket), data))
+                id(socket), data))
             self._handle_data(data)
         self._timer.start()
 
     @pyqtSlot()
     def on_timeout(self):
         """Cancel the current connection if it was idle for too long."""
+        if self._socket is None:  # pragma: no cover
+            log.ipc.debug("on_timeout got called with None socket!")
+            return
         log.ipc.error("IPC connection timed out "
                       "(socket 0x{:x}).".format(id(self._socket)))
         self._socket.disconnectFromServer()
@@ -408,41 +412,7 @@ class IPCServer(QObject):
         self._remove_server()
 
 
-def _has_legacy_server(name):
-    """Check if there is a legacy server.
-
-    Args:
-        name: The name to try to connect to.
-
-    Return:
-        True if there is a server with the given name, False otherwise.
-    """
-    socket = QLocalSocket()
-    log.ipc.debug("Trying to connect to {}".format(name))
-    socket.connectToServer(name)
-
-    err = socket.error()
-
-    if err != QLocalSocket.UnknownSocketError:
-        log.ipc.debug("Socket error: {} ({})".format(
-            socket.errorString(), err))
-
-    os_x_fail = (sys.platform == 'darwin' and
-                 socket.errorString() == 'QLocalSocket::connectToServer: '
-                                         'Unknown error 38')
-
-    if err not in [QLocalSocket.ServerNotFoundError,
-                   QLocalSocket.ConnectionRefusedError] and not os_x_fail:
-        return True
-
-    socket.disconnectFromServer()
-    if socket.state() != QLocalSocket.UnconnectedState:
-        socket.waitForDisconnected(CONNECT_TIMEOUT)
-    return False
-
-
-def send_to_running_instance(socketname, command, target_arg, *,
-                             legacy_name=None, socket=None):
+def send_to_running_instance(socketname, command, target_arg, *, socket=None):
     """Try to send a commandline to a running instance.
 
     Blocks for CONNECT_TIMEOUT ms.
@@ -452,7 +422,6 @@ def send_to_running_instance(socketname, command, target_arg, *,
         command: The command to send to the running instance.
         target_arg: --target command line argument
         socket: The socket to read data from, or None.
-        legacy_name: The legacy name to first try to connect to.
 
     Return:
         True if connecting was successful, False if no connection was made.
@@ -460,13 +429,8 @@ def send_to_running_instance(socketname, command, target_arg, *,
     if socket is None:
         socket = QLocalSocket()
 
-    if legacy_name is not None and _has_legacy_server(legacy_name):
-        name_to_use = legacy_name
-    else:
-        name_to_use = socketname
-
-    log.ipc.debug("Connecting to {}".format(name_to_use))
-    socket.connectToServer(name_to_use)
+    log.ipc.debug("Connecting to {}".format(socketname))
+    socket.connectToServer(socketname)
 
     connected = socket.waitForConnected(CONNECT_TIMEOUT)
     if connected:
@@ -487,19 +451,17 @@ def send_to_running_instance(socketname, command, target_arg, *,
         socket.waitForBytesWritten(WRITE_TIMEOUT)
         if socket.error() != QLocalSocket.UnknownSocketError:
             raise SocketError("writing to running instance", socket)
-        else:
-            socket.disconnectFromServer()
-            if socket.state() != QLocalSocket.UnconnectedState:
-                socket.waitForDisconnected(CONNECT_TIMEOUT)
-            return True
+        socket.disconnectFromServer()
+        if socket.state() != QLocalSocket.UnconnectedState:
+            socket.waitForDisconnected(CONNECT_TIMEOUT)
+        return True
     else:
         if socket.error() not in [QLocalSocket.ConnectionRefusedError,
                                   QLocalSocket.ServerNotFoundError]:
             raise SocketError("connecting to running instance", socket)
-        else:
-            log.ipc.debug("No existing instance present (error {})".format(
-                socket.error()))
-            return False
+        log.ipc.debug("No existing instance present (error {})".format(
+            socket.error()))
+        return False
 
 
 def display_error(exc, args):
@@ -519,27 +481,24 @@ def send_or_listen(args):
         The IPCServer instance if no running instance was detected.
         None if an instance was running and received our request.
     """
+    global server
     socketname = _get_socketname(args.basedir)
-    legacy_socketname = _get_socketname(args.basedir, legacy=True)
     try:
         try:
             sent = send_to_running_instance(socketname, args.command,
-                                            args.target,
-                                            legacy_name=legacy_socketname)
+                                            args.target)
             if sent:
                 return None
             log.init.debug("Starting IPC server...")
             server = IPCServer(socketname)
             server.listen()
-            objreg.register('ipc-server', server)
             return server
-        except AddressInUseError as e:
+        except AddressInUseError:
             # This could be a race condition...
             log.init.debug("Got AddressInUseError, trying again.")
             time.sleep(0.5)
             sent = send_to_running_instance(socketname, args.command,
-                                            args.target,
-                                            legacy_name=legacy_socketname)
+                                            args.target)
             if sent:
                 return None
             else:

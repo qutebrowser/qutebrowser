@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,7 +23,6 @@
 import logging
 
 import pytest
-import pytest_catchlog
 
 
 def test_log_debug():
@@ -64,24 +63,3 @@ def test_log_expected_wrong_logger(caplog):
     with pytest.raises(pytest.fail.Exception):
         with caplog.at_level(logging.ERROR, logger):
             logging.error('foo')
-
-
-@pytest.fixture
-def skipping_fixture():
-    pytest.skip("Skipping to test caplog workaround.")
-
-
-def test_caplog_bug_workaround_1(caplog, skipping_fixture):
-    pass
-
-
-def test_caplog_bug_workaround_2():
-    """Make sure caplog_bug_workaround works correctly after a skipped test.
-
-    There should be only one capturelog handler.
-    """
-    caplog_handler = None
-    for h in logging.getLogger().handlers:
-        if isinstance(h, pytest_catchlog.LogCaptureHandler):
-            assert caplog_handler is None
-            caplog_handler = h

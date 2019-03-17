@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -34,13 +34,13 @@ def create_session_file(quteproc, name, contents):
 
 @bdd.when(bdd.parsers.parse('I replace "{pattern}" by "{replacement}" in the '
                             '"{name}" session file'))
-def session_replace(quteproc, httpbin, pattern, replacement, name):
+def session_replace(quteproc, server, pattern, replacement, name):
     # First wait until the session was actually saved
     quteproc.wait_for(category='message', loglevel=logging.INFO,
                       message='Saved session {}.'.format(name))
     filename = os.path.join(quteproc.basedir, 'data', 'sessions',
                             name + '.yml')
-    replacement = replacement.replace('(port)', str(httpbin.port))  # yo dawg
+    replacement = replacement.replace('(port)', str(server.port))  # yo dawg
     with open(filename, 'r', encoding='utf-8') as f:
         data = f.read()
     with open(filename, 'w', encoding='utf-8') as f:

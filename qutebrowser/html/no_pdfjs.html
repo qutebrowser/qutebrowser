@@ -71,10 +71,10 @@ li {
       </td>
       <td style="padding-left: 40px;">
         <h1>No pdf.js installation found</h1>
-        <p>Error while opening {{ url }}: <br>
+        <p>Error while opening {{ url }}<br>
         <p id="error-message-text" style="color: #a31a1a;">qutebrowser can't find a suitable pdf.js installation</p></p>
 
-        <p>It looks like you set <code>content -> enable-pdfjs</code>
+        <p>It looks like you set <code>content.pdfjs</code>
           to <em>true</em> but qutebrowser can't find the required files.</p>
 
         <br>
@@ -82,7 +82,7 @@ li {
         <h2>Possible fixes</h2>
         <ul>
           <li>
-            Disable <code>content -> enable-pdfjs</code> and reload the page.
+            Disable <code>content.pdfjs</code> and reload the page.
             You will need to download the pdf-file and open it with an external
             tool instead.
           </li>
@@ -90,6 +90,9 @@ li {
           <li>
             If you have installed a packaged version of qutebrowser, make sure
             the required packages for pdf.js are also installed.
+            <br/>
+            The package is named <b>pdfjs</b> on Archlinux (AUR) and
+            <b>libjs-pdf</b> on Debian.
           </li>
 
           <li>
@@ -108,7 +111,7 @@ li {
           <li>
             You can manually download the pdf.js archive
             <a href="https://mozilla.github.io/pdf.js/getting_started/#download">here</a>
-            and extract it to <code>~/.local/share/qutebrowser/pdfjs</code>
+            and extract it to <code>{{ pdfjs_dir }}</code>
             <br>
             <span class="warning">Warning:</span> Using this method you are
             responsible for yourself to keep the installation updated! If a

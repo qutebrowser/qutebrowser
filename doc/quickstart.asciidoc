@@ -9,7 +9,8 @@ Basic keybindings to get you started
 ------------------------------------
 
 * Use the arrow keys or `hjkl` to move around a webpage (vim-like syntax is used in quite a few places)
-* To go to a new webpage, press `o`, then type a url, then press Enter (Use `O` to open the url in a new tab). If what you've typed isn't a url, then a search engine will be used instead (DuckDuckGo, by default)
+* To go to a new webpage, press `o`, then type a url, then press Enter (Use `O` to open the url in a new tab, `go` to edit the current URL)
+* If what you've typed isn't a url, then a search engine will be used instead (DuckDuckGo, by default)
 * To switch between tabs, use `J` (next tab) and `K` (previous tab), or press `<Alt-num>`, where `num` is the position of the tab to switch to
 * To close the current tab, press `d` (and press `u` to undo closing a tab)
 * Use `H` and `L` to go back and forth in the history
@@ -21,16 +22,19 @@ Basic keybindings to get you started
 What to do now
 --------------
 
-* View the link:http://qutebrowser.org/img/cheatsheet-big.png[key binding cheatsheet]
+* View the link:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png[key binding cheatsheet]
 to make yourself familiar with the key bindings: +
-image:http://qutebrowser.org/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="http://qutebrowser.org/img/cheatsheet-big.png"]
+image:https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-small.png["qutebrowser key binding cheatsheet",link="https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/cheatsheet-big.png"]
+* There's also a https://www.shortcutfoo.com/app/dojos/qutebrowser[free training
+  course] on shortcutfoo for the keybindings - note that you need to be in
+  insert mode (i) for it to work.
 * Run `:adblock-update` to download adblock lists and activate adblocking.
 * If you just cloned the repository, you'll need to run
 `scripts/asciidoc2html.py` to generate the documentation.
 * Go to the link:qute://settings[settings page] to set up qutebrowser the way you want it.
 * Subscribe to
-https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[the mailinglist]
-where there are weekly "what's new in qutebrowser" posts.
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[the mailinglist] or
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[the announce-only mailinglist].
 * Let me know what features you are missing or things that need (even small!)
 improvements.
 

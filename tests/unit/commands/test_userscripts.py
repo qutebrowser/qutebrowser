@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,12 +27,7 @@ import pytest
 from PyQt5.QtCore import QFileSystemWatcher
 
 from qutebrowser.commands import userscripts
-
-
-@pytest.fixture(autouse=True)
-def guiprocess_message_mock(message_mock):
-    message_mock.patch('qutebrowser.misc.guiprocess.message')
-    return message_mock
+from qutebrowser.utils import utils
 
 
 @pytest.mark.posix
@@ -65,12 +60,12 @@ class TestQtFIFOReader:
     userscripts._POSIXUserscriptRunner,
     userscripts._WindowsUserscriptRunner,
 ])
-def runner(request):
-    if (os.name != 'posix' and
+def runner(request, runtime_tmpdir):
+    if (not utils.is_posix and
             request.param is userscripts._POSIXUserscriptRunner):
         pytest.skip("Requires a POSIX os")
-    else:
-        return request.param(0)
+        raise utils.Unreachable
+    return request.param()
 
 
 def test_command(qtbot, py_proc, runner):
@@ -101,10 +96,11 @@ def test_custom_env(qtbot, monkeypatch, py_proc, runner):
             f.write('\n')
     """)
 
-    with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
-        runner.prepare_run(cmd, *args, env=env)
-        runner.store_html('')
-        runner.store_text('')
+    with qtbot.waitSignal(runner.finished, timeout=10000):
+        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+            runner.prepare_run(cmd, *args, env=env)
+            runner.store_html('')
+            runner.store_text('')
 
     data = blocker.args[0]
     ret_env = json.loads(data)
@@ -149,7 +145,7 @@ def test_source(qtbot, py_proc, runner):
     assert not os.path.exists(parsed['html_file'])
 
 
-def test_command_with_error(qtbot, py_proc, runner):
+def test_command_with_error(qtbot, py_proc, runner, caplog):
     cmd, args = py_proc(r"""
         import sys, os, json
 
@@ -160,17 +156,18 @@ def test_command_with_error(qtbot, py_proc, runner):
         sys.exit(1)
     """)
 
-    with qtbot.waitSignal(runner.finished, timeout=10000):
-        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
-            runner.prepare_run(cmd, *args)
-            runner.store_text('Hello World')
-            runner.store_html('')
+    with caplog.at_level(logging.ERROR):
+        with qtbot.waitSignal(runner.finished, timeout=10000):
+            with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+                runner.prepare_run(cmd, *args)
+                runner.store_text('Hello World')
+                runner.store_html('')
 
     data = json.loads(blocker.args[0])
     assert not os.path.exists(data)
 
 
-def test_killed_command(qtbot, tmpdir, py_proc, runner):
+def test_killed_command(qtbot, tmpdir, py_proc, runner, caplog):
     data_file = tmpdir / 'data'
     watcher = QFileSystemWatcher()
     watcher.addPath(str(tmpdir))
@@ -207,8 +204,9 @@ def test_killed_command(qtbot, tmpdir, py_proc, runner):
 
     data = json.load(data_file)
 
-    with qtbot.waitSignal(runner.finished):
-        os.kill(int(data['pid']), signal.SIGTERM)
+    with caplog.at_level(logging.ERROR):
+        with qtbot.waitSignal(runner.finished):
+            os.kill(int(data['pid']), signal.SIGTERM)
 
     assert not os.path.exists(data['text_file'])
 
@@ -228,12 +226,28 @@ def test_temporary_files_failed_cleanup(caplog, qtbot, py_proc, runner):
 
     assert len(caplog.records) == 1
     expected = "Failed to delete tempfile"
-    assert caplog.records[0].message.startswith(expected)
+    assert caplog.messages[0].startswith(expected)
 
 
-def test_unsupported(monkeypatch, tabbed_browser_stubs):
-    monkeypatch.setattr(userscripts.os, 'name', 'toaster')
-    with pytest.raises(userscripts.UnsupportedError) as excinfo:
+def test_unicode_error(caplog, qtbot, py_proc, runner):
+    cmd, args = py_proc(r"""
+        import os
+        with open(os.environ['QUTE_FIFO'], 'wb') as f:
+            f.write(b'\x80')
+    """)
+    with caplog.at_level(logging.ERROR):
+        with qtbot.waitSignal(runner.finished, timeout=10000):
+            runner.prepare_run(cmd, *args)
+            runner.store_text('')
+            runner.store_html('')
+
+    assert len(caplog.records) == 1
+    expected = "Invalid unicode in userscript output: "
+    assert caplog.messages[0].startswith(expected)
+
+
+@pytest.mark.fake_os('unknown')
+def test_unsupported(tabbed_browser_stubs):
+    with pytest.raises(userscripts.UnsupportedError, match="Userscripts are "
+                       "not supported on this platform!"):
         userscripts.run_async(tab=None, cmd=None, win_id=0, env=None)
-    expected = "Userscripts are not supported on this platform!"
-    assert str(excinfo.value) == expected

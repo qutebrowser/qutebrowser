@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,11 +25,11 @@ import tempfile
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
 
-from qutebrowser.utils import message, log, objreg, standarddir
+from qutebrowser.utils import message, log, objreg, standarddir, utils
 from qutebrowser.commands import runners
 from qutebrowser.config import config
 from qutebrowser.misc import guiprocess
-from qutebrowser.browser.webkit import downloads
+from qutebrowser.browser import downloads
 
 
 class _QtFIFOReader(QObject):
@@ -56,6 +56,7 @@ class _QtFIFOReader(QObject):
         # can add O_NONBLOCK.
         # pylint: disable=no-member,useless-suppression
         fd = os.open(filepath, os.O_RDWR | os.O_NONBLOCK)
+        # pylint: enable=no-member,useless-suppression
         self._fifo = os.fdopen(fd, 'r')
         self._notifier = QSocketNotifier(fd, QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.read_line)
@@ -64,10 +65,19 @@ class _QtFIFOReader(QObject):
     def read_line(self):
         """(Try to) read a line from the FIFO."""
         log.procs.debug("QSocketNotifier triggered!")
-        self._notifier.setEnabled(False)
-        for line in self._fifo:
-            self.got_line.emit(line.rstrip('\r\n'))
-        self._notifier.setEnabled(True)
+        try:
+            self._notifier.setEnabled(False)
+            try:
+                for line in self._fifo:
+                    self.got_line.emit(line.rstrip('\r\n'))
+                    self._notifier.setEnabled(True)
+            except UnicodeDecodeError as e:
+                log.misc.error("Invalid unicode in userscript output: {}"
+                               .format(e))
+        except RuntimeError as e:
+            # For unknown reasons, read_line can still get called after the
+            # QSocketNotifier was already deleted...
+            log.procs.debug("While reading userscript output: {}".format(e))
 
     def cleanup(self):
         """Clean up so the FIFO can be closed."""
@@ -84,7 +94,6 @@ class _BaseUserscriptRunner(QObject):
     Attributes:
         _filepath: The path of the file/FIFO which is being read.
         _proc: The GUIProcess which is being executed.
-        _win_id: The window ID this runner is associated with.
         _cleaned_up: Whether temporary files were cleaned up.
         _text_stored: Set when the page text was stored async.
         _html_stored: Set when the page html was stored async.
@@ -99,10 +108,9 @@ class _BaseUserscriptRunner(QObject):
     got_cmd = pyqtSignal(str)
     finished = pyqtSignal()
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self._cleaned_up = False
-        self._win_id = win_id
         self._filepath = None
         self._proc = None
         self._env = {}
@@ -151,7 +159,7 @@ class _BaseUserscriptRunner(QObject):
         self._env['QUTE_FIFO'] = self._filepath
         if env is not None:
             self._env.update(env)
-        self._proc = guiprocess.GUIProcess(self._win_id, 'userscript',
+        self._proc = guiprocess.GUIProcess('userscript',
                                            additional_env=self._env,
                                            verbose=verbose, parent=self)
         self._proc.finished.connect(self.on_proc_finished)
@@ -175,9 +183,8 @@ class _BaseUserscriptRunner(QObject):
             except OSError as e:
                 # NOTE: Do not replace this with "raise CommandError" as it's
                 # executed async.
-                message.error(
-                    self._win_id, "Failed to delete tempfile {} ({})!".format(
-                        fn, e))
+                message.error("Failed to delete tempfile {} ({})!".format(
+                    fn, e))
         self._filepath = None
         self._proc = None
         self._env = {}
@@ -223,8 +230,8 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         _reader: The _QtFIFOReader instance.
     """
 
-    def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent)
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self._reader = None
 
     def prepare_run(self, *args, **kwargs):
@@ -241,9 +248,9 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
                                              dir=standarddir.runtime())
             # pylint: disable=no-member,useless-suppression
             os.mkfifo(self._filepath)
+            # pylint: enable=no-member,useless-suppression
         except OSError as e:
-            message.error(self._win_id,
-                          "Error while creating FIFO: {}".format(e))
+            message.error("Error while creating FIFO: {}".format(e))
             return
 
         self._reader = _QtFIFOReader(self._filepath)
@@ -280,14 +287,7 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     This also means the userscript *has* to use >> (append) rather than >
     (overwrite) to write to the file!
-
-    Attributes:
-        _oshandle: The oshandle of the temp file.
     """
-
-    def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent)
-        self._oshandle = None
 
     def _cleanup(self):
         """Clean up temporary files after the userscript finished."""
@@ -300,13 +300,11 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
                     self.got_cmd.emit(line.rstrip())
         except OSError:
             log.procs.exception("Failed to read command file!")
+        except UnicodeDecodeError as e:
+            log.misc.error("Invalid unicode in userscript output: {}"
+                           .format(e))
 
-        try:
-            os.close(self._oshandle)
-        except OSError:
-            log.procs.exception("Failed to close file handle!")
         super()._cleanup()
-        self._oshandle = None
         self.finished.emit()
 
     @pyqtSlot()
@@ -323,19 +321,71 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         self._kwargs = kwargs
 
         try:
-            self._oshandle, self._filepath = tempfile.mkstemp(text=True)
+            handle = tempfile.NamedTemporaryFile(delete=False)
+            handle.close()
+            self._filepath = handle.name
         except OSError as e:
-            message.error(self._win_id, "Error while creating tempfile: "
-                                        "{}".format(e))
+            message.error("Error while creating tempfile: {}".format(e))
             return
 
 
-class UnsupportedError(Exception):
+class Error(Exception):
+
+    """Base class for userscript exceptions."""
+
+
+class NotFoundError(Error):
+
+    """Raised when spawning a userscript that doesn't exist.
+
+    Attributes:
+        script_name: name of the userscript as called
+        paths: path names that were searched for the userscript
+    """
+
+    def __init__(self, script_name, paths=None):
+        super().__init__()
+        self.script_name = script_name
+        self.paths = paths
+
+    def __str__(self):
+        msg = "Userscript '{}' not found".format(self.script_name)
+        if self.paths:
+            msg += " in userscript directories {}".format(
+                ', '.join(repr(path) for path in self.paths))
+        return msg
+
+
+class UnsupportedError(Error):
 
     """Raised when userscripts aren't supported on this platform."""
 
     def __str__(self):
         return "Userscripts are not supported on this platform!"
+
+
+def _lookup_path(cmd):
+    """Search userscript directories for given command.
+
+    Raises:
+        NotFoundError if the command could not be found.
+
+    Args:
+        cmd: The command to look for.
+
+    Returns:
+        A path to the userscript.
+    """
+    directories = [
+        os.path.join(standarddir.data(), "userscripts"),
+        os.path.join(standarddir.data(system=True), "userscripts"),
+    ]
+    for directory in directories:
+        cmd_path = os.path.join(directory, cmd)
+        if os.path.exists(cmd_path):
+            return cmd_path
+
+    raise NotFoundError(cmd, directories)
 
 
 def run_async(tab, cmd, *args, win_id, env, verbose=False):
@@ -344,6 +394,7 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     Raises:
         UnsupportedError if userscripts are not supported on the current
         platform.
+        NotFoundError if the command could not be found.
 
     Args:
         tab: The WebKitTab/WebEngineTab to get the source from.
@@ -357,10 +408,10 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
                                 window=win_id)
     commandrunner = runners.CommandRunner(win_id, parent=tabbed_browser)
 
-    if os.name == 'posix':
-        runner = _POSIXUserscriptRunner(win_id, tabbed_browser)
-    elif os.name == 'nt':  # pragma: no cover
-        runner = _WindowsUserscriptRunner(win_id, tabbed_browser)
+    if utils.is_posix:
+        runner = _POSIXUserscriptRunner(tabbed_browser)
+    elif utils.is_windows:  # pragma: no cover
+        runner = _WindowsUserscriptRunner(tabbed_browser)
     else:  # pragma: no cover
         raise UnsupportedError
 
@@ -368,28 +419,25 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
         lambda cmd:
         log.commands.debug("Got userscript command: {}".format(cmd)))
     runner.got_cmd.connect(commandrunner.run_safely)
-    user_agent = config.get('network', 'user-agent')
+    user_agent = config.val.content.headers.user_agent
     if user_agent is not None:
         env['QUTE_USER_AGENT'] = user_agent
-    config_dir = standarddir.config()
-    if config_dir is not None:
-        env['QUTE_CONFIG_DIR'] = config_dir
-    data_dir = standarddir.data()
-    if data_dir is not None:
-        env['QUTE_DATA_DIR'] = data_dir
-    download_dir = downloads.download_dir()
-    if download_dir is not None:
-        env['QUTE_DOWNLOAD_DIR'] = download_dir
+
+    env['QUTE_CONFIG_DIR'] = standarddir.config()
+    env['QUTE_DATA_DIR'] = standarddir.data()
+    env['QUTE_DOWNLOAD_DIR'] = downloads.download_dir()
+    env['QUTE_COMMANDLINE_TEXT'] = objreg.get('status-command', scope='window',
+                                              window=win_id).text()
+
     cmd_path = os.path.expanduser(cmd)
 
     # if cmd is not given as an absolute path, look it up
-    # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_DIR)
+    # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_HOME)
     if not os.path.isabs(cmd_path):
         log.misc.debug("{} is no absolute path".format(cmd_path))
-        cmd_path = os.path.join(standarddir.data(), "userscripts", cmd)
-        if not os.path.exists(cmd_path):
-            cmd_path = os.path.join(standarddir.system_data(),
-                                    "userscripts", cmd)
+        cmd_path = _lookup_path(cmd)
+    elif not os.path.exists(cmd_path):
+        raise NotFoundError(cmd_path)
     log.misc.debug("Userscript to run: {}".format(cmd_path))
 
     runner.finished.connect(commandrunner.deleteLater)
@@ -398,3 +446,4 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     runner.prepare_run(cmd_path, *args, env=env, verbose=verbose)
     tab.dump_async(runner.store_html)
     tab.dump_async(runner.store_text, plain=True)
+    return runner

@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Opening pages
 
     Scenario: :open with URL
@@ -14,30 +16,32 @@ Feature: Opening pages
                 - active: true
                   url: http://localhost:*/data/numbers/1.txt
 
-    Scenario: :open without URL and no -t/-b/-w
-        When I run :open
-        Then the error "No URL given, but -t/-b/-w is not set!" should be shown
+    Scenario: :open without URL
+        When I set url.default_page to http://localhost:(port)/data/numbers/11.txt
+        And I run :open
+        Then data/numbers/11.txt should be loaded
 
     Scenario: :open without URL and -t
-        When I set general -> default-page to http://localhost:(port)/data/numbers/2.txt
+        When I set url.default_page to http://localhost:(port)/data/numbers/2.txt
         And I run :open -t
         Then data/numbers/2.txt should be loaded
 
     Scenario: :open with invalid URL
-        When I set general -> auto-search to false
+        When I set url.auto_search to never
         And I run :open foo!
         Then the error "Invalid URL" should be shown
 
     Scenario: :open with -t and -b
         When I run :open -t -b foo.bar
-        Then the error "Only one of -t/-b/-w can be given!" should be shown
+        Then the error "Only one of -t/-b/-w/-p can be given!" should be shown
 
     Scenario: Searching with :open
-        When I set general -> auto-search to naive
-        And I set searchengines -> DEFAULT to http://localhost:(port)/data/numbers/{}.txt
+        When I set url.auto_search to naive
+        And I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/numbers/{}.txt"}
         And I run :open 3
         Then data/numbers/3.txt should be loaded
 
+    @flaky
     Scenario: Opening in a new tab
         Given I open about:blank
         When I run :tab-only
@@ -73,10 +77,10 @@ Feature: Opening pages
                 - active: true
                   url: http://localhost:*/data/numbers/6.txt
 
-    Scenario: Opening in a new tab (explicit)
+    Scenario: Opening in a new tab (unrelated)
         Given I open about:blank
-        When I set tabs -> new-tab-position-explicit to right
-        And I set tabs -> new-tab-position to left
+        When I set tabs.new_position.unrelated to next
+        And I set tabs.new_position.related to prev
         And I run :tab-only
         And I run :open -t http://localhost:(port)/data/numbers/7.txt
         And I wait until data/numbers/7.txt is loaded
@@ -84,12 +88,12 @@ Feature: Opening pages
             - about:blank
             - data/numbers/7.txt (active)
 
-    Scenario: Opening in a new tab (implicit)
+    Scenario: Opening in a new tab (related)
         Given I open about:blank
-        When I set tabs -> new-tab-position-explicit to right
-        And I set tabs -> new-tab-position to left
+        When I set tabs.new_position.unrelated to next
+        And I set tabs.new_position.related to prev
         And I run :tab-only
-        And I run :open -t -i http://localhost:(port)/data/numbers/8.txt
+        And I run :open -t --related http://localhost:(port)/data/numbers/8.txt
         And I wait until data/numbers/8.txt is loaded
         Then the following tabs should be open:
             - data/numbers/8.txt (active)

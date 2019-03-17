@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,35 +19,13 @@
 
 """Tests for browser.signalfilter."""
 
-import collections
 import logging
 
+import attr
 import pytest
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from qutebrowser.browser import signalfilter
-from qutebrowser.utils import objreg
-
-
-class FakeTabbedBrowser:
-
-    def __init__(self):
-        self.index_of = None
-        self.current_index = None
-
-    def indexOf(self, _tab):
-        if self.index_of is None:
-            raise ValueError("indexOf got called with index_of None!")
-        elif self.index_of is RuntimeError:
-            raise RuntimeError
-        else:
-            return self.index_of
-
-    def currentIndex(self):
-        if self.current_index is None:
-            raise ValueError("currentIndex got called with current_index "
-                             "None!")
-        return self.current_index
 
 
 class Signaller(QObject):
@@ -68,7 +46,11 @@ class Signaller(QObject):
         self.filtered_signal_arg = s
 
 
-Objects = collections.namedtuple('Objects', 'signal_filter, signaller')
+@attr.s
+class Objects:
+
+    signal_filter = attr.ib()
+    signaller = attr.ib()
 
 
 @pytest.fixture
@@ -83,18 +65,11 @@ def objects():
     return Objects(signal_filter=signal_filter, signaller=signaller)
 
 
-@pytest.fixture
-def tabbed_browser(win_registry):
-    tb = FakeTabbedBrowser()
-    objreg.register('tabbed-browser', tb, scope='window', window=0)
-    yield tb
-    objreg.delete('tabbed-browser', scope='window', window=0)
-
-
 @pytest.mark.parametrize('index_of, emitted', [(0, True), (1, False)])
-def test_filtering(objects, tabbed_browser, index_of, emitted):
-    tabbed_browser.current_index = 0
-    tabbed_browser.index_of = index_of
+def test_filtering(objects, tabbed_browser_stubs, index_of, emitted):
+    browser = tabbed_browser_stubs[0]
+    browser.widget.current_index = 0
+    browser.widget.index_of = index_of
     objects.signaller.signal.emit('foo')
     if emitted:
         assert objects.signaller.filtered_signal_arg == 'foo'
@@ -103,22 +78,23 @@ def test_filtering(objects, tabbed_browser, index_of, emitted):
 
 
 @pytest.mark.parametrize('index_of, verb', [(0, 'emitting'), (1, 'ignoring')])
-def test_logging(caplog, objects, tabbed_browser, index_of, verb):
-    tabbed_browser.current_index = 0
-    tabbed_browser.index_of = index_of
+def test_logging(caplog, objects, tabbed_browser_stubs, index_of, verb):
+    browser = tabbed_browser_stubs[0]
+    browser.widget.current_index = 0
+    browser.widget.index_of = index_of
 
     with caplog.at_level(logging.DEBUG, logger='signals'):
         objects.signaller.signal.emit('foo')
 
-    assert len(caplog.records) == 1
     expected_msg = "{}: filtered_signal('foo') (tab {})".format(verb, index_of)
-    assert caplog.records[0].msg == expected_msg
+    assert caplog.messages == [expected_msg]
 
 
 @pytest.mark.parametrize('index_of', [0, 1])
-def test_no_logging(caplog, objects, tabbed_browser, index_of):
-    tabbed_browser.current_index = 0
-    tabbed_browser.index_of = index_of
+def test_no_logging(caplog, objects, tabbed_browser_stubs, index_of):
+    browser = tabbed_browser_stubs[0]
+    browser.widget.current_index = 0
+    browser.widget.index_of = index_of
 
     with caplog.at_level(logging.DEBUG, logger='signals'):
         objects.signaller.link_hovered.emit('foo')
@@ -126,9 +102,10 @@ def test_no_logging(caplog, objects, tabbed_browser, index_of):
     assert not caplog.records
 
 
-def test_runtime_error(objects, tabbed_browser):
+def test_runtime_error(objects, tabbed_browser_stubs):
     """Test that there's no crash if indexOf() raises RuntimeError."""
-    tabbed_browser.current_index = 0
-    tabbed_browser.index_of = RuntimeError
+    browser = tabbed_browser_stubs[0]
+    browser.widget.current_index = 0
+    browser.widget.index_of = RuntimeError
     objects.signaller.signal.emit('foo')
     assert objects.signaller.filtered_signal_arg is None

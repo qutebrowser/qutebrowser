@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,164 +21,34 @@
 
 import os.path
 
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
+from PyQt5.QtNetwork import QNetworkDiskCache
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, objreg
+from qutebrowser.utils import utils, qtutils
 
 
 class DiskCache(QNetworkDiskCache):
 
-    """Disk cache which sets correct cache dir and size.
-
-    If the cache is deactivated via the command line argument --cachedir="",
-    both attributes _cache_dir and _http_cache_dir are set to None.
-
-    Attributes:
-        _activated: Whether the cache should be used.
-        _cache_dir: The base directory for cache files (standarddir.cache()) or
-                    None.
-        _http_cache_dir: the HTTP subfolder in _cache_dir or None.
-    """
+    """Disk cache which sets correct cache dir and size."""
 
     def __init__(self, cache_dir, parent=None):
         super().__init__(parent)
-        self._cache_dir = cache_dir
-        if cache_dir is None:
-            self._http_cache_dir = None
-        else:
-            self._http_cache_dir = os.path.join(cache_dir, 'http')
-        self._maybe_activate()
-        objreg.get('config').changed.connect(self.on_config_changed)
+        self.setCacheDirectory(os.path.join(cache_dir, 'http'))
+        self._set_cache_size()
+        config.instance.changed.connect(self._set_cache_size)
 
     def __repr__(self):
         return utils.get_repr(self, size=self.cacheSize(),
                               maxsize=self.maximumCacheSize(),
                               path=self.cacheDirectory())
 
-    def _maybe_activate(self):
-        """Activate/deactivate the cache based on the config."""
-        if (config.get('general', 'private-browsing') or
-                self._cache_dir is None):
-            self._activated = False
-        else:
-            self._activated = True
-            self.setCacheDirectory(self._http_cache_dir)
-            self.setMaximumCacheSize(config.get('storage', 'cache-size'))
-
-    @pyqtSlot(str, str)
-    def on_config_changed(self, section, option):
-        """Update cache size/activated if the config was changed."""
-        if (section, option) == ('storage', 'cache-size'):
-            self.setMaximumCacheSize(config.get('storage', 'cache-size'))
-        elif (section, option) == ('general',  # pragma: no branch
-                                   'private-browsing'):
-            self._maybe_activate()
-
-    def cacheSize(self):
-        """Return the current size taken up by the cache.
-
-        Return:
-            An int.
-        """
-        if self._activated:
-            return super().cacheSize()
-        else:
-            return 0
-
-    def fileMetaData(self, filename):
-        """Return the QNetworkCacheMetaData for the cache file filename.
-
-        Args:
-            filename: The file name as a string.
-
-        Return:
-            A QNetworkCacheMetaData object.
-        """
-        if self._activated:
-            return super().fileMetaData(filename)
-        else:
-            return QNetworkCacheMetaData()
-
-    def data(self, url):
-        """Return the data associated with url.
-
-        Args:
-            url: A QUrl.
-
-        return:
-            A QIODevice or None.
-        """
-        if self._activated:
-            return super().data(url)
-        else:
-            return None
-
-    def insert(self, device):
-        """Insert the data in device and the prepared meta data into the cache.
-
-        Args:
-            device: A QIODevice.
-        """
-        if self._activated:
-            super().insert(device)
-        else:
-            return None
-
-    def metaData(self, url):
-        """Return the meta data for the url url.
-
-        Args:
-            url: A QUrl.
-
-        Return:
-            A QNetworkCacheMetaData object.
-        """
-        if self._activated:
-            return super().metaData(url)
-        else:
-            return QNetworkCacheMetaData()
-
-    def prepare(self, meta_data):
-        """Return the device that should be populated with the data.
-
-        Args:
-            meta_data: A QNetworkCacheMetaData object.
-
-        Return:
-            A QIODevice or None.
-        """
-        if self._activated:
-            return super().prepare(meta_data)
-        else:
-            return None
-
-    def remove(self, url):
-        """Remove the cache entry for url.
-
-        Return:
-            True on success, False otherwise.
-        """
-        if self._activated:
-            return super().remove(url)
-        else:
-            return False
-
-    def updateMetaData(self, meta_data):
-        """Update the cache meta date for the meta_data's url to meta_data.
-
-        Args:
-            meta_data: A QNetworkCacheMetaData object.
-        """
-        if self._activated:
-            super().updateMetaData(meta_data)
-        else:
-            return
-
-    def clear(self):
-        """Remove all items from the cache."""
-        if self._activated:
-            super().clear()
-        else:
-            return
+    @config.change_filter('content.cache.size')
+    def _set_cache_size(self):
+        """Set the cache size based on the config."""
+        size = config.val.content.cache.size
+        if size is None:
+            size = 1024 * 1024 * 50  # default from QNetworkDiskCachePrivate
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-59909
+        if not qtutils.version_check('5.9', compiled=False):
+            size = 0  # pragma: no cover
+        self.setMaximumCacheSize(size)

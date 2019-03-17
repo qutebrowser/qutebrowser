@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <script type="text/javascript">
+          function check_enabled() {
+              const elem = document.getElementById("status");
+              elem.innerHTML = "enabled";
+              console.log("JavaScript is enabled");
+          }
+      </script>
+  </head>
+  <body onload="check_enabled()">
+    <p>JavaScript is <span id="status">disabled</span></p>
+    <noscript>noscript tag</noscript>
+  </body>
+</html>

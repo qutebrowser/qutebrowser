@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,13 +19,11 @@
 
 """Mouse handling for a browser tab."""
 
+from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes
+from qutebrowser.utils import message, log, usertypes, qtutils, objreg
 from qutebrowser.keyinput import modeman
-
-
-from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 
 class ChildEventFilter(QObject):
@@ -42,11 +40,12 @@ class ChildEventFilter(QObject):
         _widget: The widget expected to send out childEvents.
     """
 
-    def __init__(self, eventfilter, widget, parent=None):
+    def __init__(self, eventfilter, widget, win_id, parent=None):
         super().__init__(parent)
         self._filter = eventfilter
         assert widget is not None
         self._widget = widget
+        self._win_id = win_id
 
     def eventFilter(self, obj, event):
         """Act on ChildAdded events."""
@@ -56,6 +55,29 @@ class ChildEventFilter(QObject):
                 obj, child))
             assert obj is self._widget
             child.installEventFilter(self._filter)
+
+            if qtutils.version_check('5.11', compiled=False, exact=True):
+                # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
+                pass_modes = [usertypes.KeyMode.command,
+                              usertypes.KeyMode.prompt,
+                              usertypes.KeyMode.yesno]
+                if modeman.instance(self._win_id).mode not in pass_modes:
+                    tabbed_browser = objreg.get('tabbed-browser',
+                                                scope='window',
+                                                window=self._win_id)
+                    current_index = tabbed_browser.widget.currentIndex()
+                    try:
+                        widget_index = tabbed_browser.widget.indexOf(
+                            self._widget.parent())
+                    except RuntimeError:
+                        widget_index = -1
+                    if current_index == widget_index:
+                        QTimer.singleShot(0, self._widget.setFocus)
+
+        elif event.type() == QEvent.ChildRemoved:
+            child = event.child()
+            log.mouse.debug("{}: removed child {}".format(obj, child))
+
         return False
 
 
@@ -64,8 +86,6 @@ class MouseEventFilter(QObject):
     """Handle mouse events on a tab.
 
     Attributes:
-        _widget_class: The class of the main widget getting the events.
-                       All other events are ignored.
         _tab: The browsertab object this filter is installed on.
         _handlers: A dict of handler functions for the handled events.
         _ignore_wheel_event: Whether to ignore the next wheelEvent.
@@ -73,9 +93,8 @@ class MouseEventFilter(QObject):
                                       done when the mouse is released.
     """
 
-    def __init__(self, tab, *, widget_class, parent=None):
+    def __init__(self, tab, *, parent=None):
         super().__init__(parent)
-        self._widget_class = widget_class
         self._tab = tab
         self._handlers = {
             QEvent.MouseButtonPress: self._handle_mouse_press,
@@ -88,7 +107,7 @@ class MouseEventFilter(QObject):
 
     def _handle_mouse_press(self, e):
         """Handle pressing of a mouse button."""
-        is_rocker_gesture = (config.get('input', 'rocker-gestures') and
+        is_rocker_gesture = (config.val.input.rocker_gestures and
                              e.buttons() == Qt.LeftButton | Qt.RightButton)
 
         if e.button() in [Qt.XButton1, Qt.XButton2] or is_rocker_gesture:
@@ -96,8 +115,14 @@ class MouseEventFilter(QObject):
             return True
 
         self._ignore_wheel_event = True
-        self._mousepress_opentarget(e)
-        self._tab.elements.find_at_pos(e.pos(), self._mousepress_insertmode_cb)
+
+        pos = e.pos()
+        if pos.x() < 0 or pos.y() < 0:
+            log.mouse.warning("Ignoring invalid click at {}".format(pos))
+            return False
+
+        if e.button() != Qt.NoButton:
+            self._tab.elements.find_at_pos(pos, self._mousepress_insertmode_cb)
 
         return False
 
@@ -115,24 +140,36 @@ class MouseEventFilter(QObject):
             e: The QWheelEvent.
         """
         if self._ignore_wheel_event:
-            # See https://github.com/The-Compiler/qutebrowser/issues/395
+            # See https://github.com/qutebrowser/qutebrowser/issues/395
             self._ignore_wheel_event = False
             return True
 
         if e.modifiers() & Qt.ControlModifier:
-            divider = config.get('input', 'mouse-zoom-divider')
+            mode = modeman.instance(self._tab.win_id).mode
+            if mode == usertypes.KeyMode.passthrough:
+                return False
+
+            divider = config.val.zoom.mouse_divider
+            if divider == 0:
+                return False
             factor = self._tab.zoom.factor() + (e.angleDelta().y() / divider)
             if factor < 0:
                 return False
             perc = int(100 * factor)
-            message.info(self._tab.win_id, "Zoom level: {}%".format(perc))
+            message.info("Zoom level: {}%".format(perc), replace=True)
             self._tab.zoom.set_factor(factor)
+        elif e.modifiers() & Qt.ShiftModifier:
+            if e.angleDelta().y() > 0:
+                self._tab.scroller.left()
+            else:
+                self._tab.scroller.right()
+            return True
 
         return False
 
     def _handle_context_menu(self, _e):
         """Suppress context menus if rocker gestures are turned on."""
-        return config.get('input', 'rocker-gestures')
+        return config.val.input.rocker_gestures
 
     def _mousepress_insertmode_cb(self, elem):
         """Check if the clicked element is editable."""
@@ -146,14 +183,14 @@ class MouseEventFilter(QObject):
 
         if elem.is_editable():
             log.mouse.debug("Clicked editable element!")
-            modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
-                          'click', only_if_normal=True)
+            if config.val.input.insert_mode.auto_enter:
+                modeman.enter(self._tab.win_id, usertypes.KeyMode.insert,
+                              'click', only_if_normal=True)
         else:
             log.mouse.debug("Clicked non-editable element!")
-            if config.get('input', 'auto-leave-insert-mode'):
-                modeman.maybe_leave(self._tab.win_id,
-                                    usertypes.KeyMode.insert,
-                                    'click')
+            if config.val.input.insert_mode.auto_leave:
+                modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
+                              'click', maybe=True)
 
     def _mouserelease_insertmode(self):
         """If we have an insertmode check scheduled, handle it."""
@@ -173,10 +210,9 @@ class MouseEventFilter(QObject):
                               'click-delayed', only_if_normal=True)
             else:
                 log.mouse.debug("Clicked non-editable element (delayed)!")
-                if config.get('input', 'auto-leave-insert-mode'):
-                    modeman.maybe_leave(self._tab.win_id,
-                                        usertypes.KeyMode.insert,
-                                        'click-delayed')
+                if config.val.input.insert_mode.auto_leave:
+                    modeman.leave(self._tab.win_id, usertypes.KeyMode.insert,
+                                  'click-delayed', maybe=True)
 
         self._tab.elements.find_focused(mouserelease_insertmode_cb)
 
@@ -191,45 +227,21 @@ class MouseEventFilter(QObject):
             if self._tab.history.can_go_back():
                 self._tab.history.back()
             else:
-                message.error(self._tab.win_id, "At beginning of history.",
-                              immediately=True)
+                message.error("At beginning of history.")
         elif e.button() in [Qt.XButton2, Qt.RightButton]:
             # Forward button on mice which have it, or rocker gesture
             if self._tab.history.can_go_forward():
                 self._tab.history.forward()
             else:
-                message.error(self._tab.win_id, "At end of history.",
-                              immediately=True)
-
-    def _mousepress_opentarget(self, e):
-        """Set the open target when something was clicked.
-
-        Args:
-            e: The QMouseEvent.
-        """
-        if e.button() == Qt.MidButton or e.modifiers() & Qt.ControlModifier:
-            background_tabs = config.get('tabs', 'background-tabs')
-            if e.modifiers() & Qt.ShiftModifier:
-                background_tabs = not background_tabs
-            if background_tabs:
-                target = usertypes.ClickTarget.tab_bg
-            else:
-                target = usertypes.ClickTarget.tab
-            self._tab.data.open_target = target
-            log.mouse.debug("Ctrl/Middle click, setting target: {}".format(
-                target))
-        else:
-            self._tab.data.open_target = usertypes.ClickTarget.normal
-            log.mouse.debug("Normal click, setting normal target")
+                message.error("At end of history.")
 
     def eventFilter(self, obj, event):
         """Filter events going to a QWeb(Engine)View."""
         evtype = event.type()
         if evtype not in self._handlers:
             return False
-        if not isinstance(obj, self._widget_class):
-            log.mouse.debug("Ignoring {} to {} which is not an instance of "
-                            "{}".format(event.__class__.__name__, obj,
-                                        self._widget_class))
+        if obj is not self._tab.private_api.event_target():
+            log.mouse.debug("Ignoring {} to {}".format(
+                event.__class__.__name__, obj))
             return False
         return self._handlers[evtype](event)

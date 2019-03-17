@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,16 +17,27 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=unused-variable
-
 """Partial comparison of dicts/lists."""
 
 
 import re
 import pprint
 import os.path
+import contextlib
 
 import pytest
+
+from qutebrowser.utils import qtutils
+
+
+qt58 = pytest.mark.skipif(
+    qtutils.version_check('5.9'), reason="Needs Qt 5.8 or earlier")
+qt59 = pytest.mark.skipif(
+    not qtutils.version_check('5.9'), reason="Needs Qt 5.9 or newer")
+qt510 = pytest.mark.skipif(
+    not qtutils.version_check('5.10'), reason="Needs Qt 5.10 or newer")
+skip_qt511 = pytest.mark.skipif(
+    qtutils.version_check('5.11'), reason="Needs Qt 5.10 or earlier")
 
 
 class PartialCompareOutcome:
@@ -157,10 +168,15 @@ def pattern_match(*, pattern, value):
         True on a match, False otherwise.
     """
     re_pattern = '.*'.join(re.escape(part) for part in pattern.split('*'))
-    return re.fullmatch(re_pattern, value) is not None
+    return re.fullmatch(re_pattern, value, flags=re.DOTALL) is not None
 
 
 def abs_datapath():
     """Get the absolute path to the end2end data directory."""
     file_abs = os.path.abspath(os.path.dirname(__file__))
     return os.path.join(file_abs, '..', 'end2end', 'data')
+
+
+@contextlib.contextmanager
+def nop_contextmanager():
+    yield

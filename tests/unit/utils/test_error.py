@@ -1,4 +1,4 @@
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # This file is part of qutebrowser.
@@ -18,16 +18,14 @@
 
 """Tests for qutebrowser.utils.error."""
 
-import sys
 import logging
 
 import pytest
-
-from qutebrowser.utils import error
-from qutebrowser.misc import ipc
-
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QMessageBox
+
+from qutebrowser.utils import error, utils
+from qutebrowser.misc import ipc
 
 
 class Error(Exception):
@@ -53,8 +51,6 @@ def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
             error.handle_fatal_exc(e, fake_args, 'title', pre_text='pre',
                                    post_text='post')
 
-    assert len(caplog.records) == 1
-
     expected = [
         'Handling fatal {} with --no-err-windows!'.format(name),
         '',
@@ -63,11 +59,11 @@ def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
         'post_text: post',
         'exception text: {}'.format(exc_text),
     ]
-    assert caplog.records[0].msg == '\n'.join(expected)
+    assert caplog.messages == ['\n'.join(expected)]
 
 
 # This happens on Xvfb for some reason
-# See https://github.com/The-Compiler/qutebrowser/issues/984
+# See https://github.com/qutebrowser/qutebrowser/issues/984
 @pytest.mark.qt_log_ignore(r'^QXcbConnection: XCB error: 8 \(BadMatch\), '
                            r'sequence: \d+, resource id: \d+, major code: 42 '
                            r'\(SetInputFocus\), minor code: 0$',
@@ -84,7 +80,7 @@ def test_err_windows(qtbot, qapp, fake_args, pre_text, post_text, expected):
         w = qapp.activeModalWidget()
         try:
             qtbot.add_widget(w)
-            if sys.platform != 'darwin':
+            if not utils.is_mac:
                 assert w.windowTitle() == 'title'
             assert w.icon() == QMessageBox.Critical
             assert w.standardButtons() == QMessageBox.Ok

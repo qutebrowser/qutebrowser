@@ -1,0 +1,12 @@
+qutebrowser/browser/history.py  @rcorre
+qutebrowser/completion/**  @rcorre
+qutebrowser/misc/sql.py  @rcorre
+tests/end2end/features/completion.feature  @rcorre
+tests/end2end/features/test_completion_bdd.py  @rcorre
+tests/unit/browser/test_history.py  @rcorre
+tests/unit/completion/*  @rcorre
+tests/unit/misc/test_sql.py  @rcorre
+
+qutebrowser/config/configdata.yml  @mschilli87
+
+qutebrowser/javascript/caret.js @artur-shaik

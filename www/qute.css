@@ -7,6 +7,15 @@ body {
 	font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	-webkit-text-size-adjust: none;
 	color: #333333;
+    overflow-y: scroll;
+}
+
+p {
+    margin: 6px 0;
+}
+
+#preamble > .sectionbody > .paragraph > p {
+    margin: 0;
 }
 
 #header {
@@ -35,13 +44,23 @@ body {
 	text-align: right;
 }
 
-#headline .text h1 {
+#headline .text .heading-text {
 	color: #1e89c6;
+	font-weight: bold;
+	font-size: 2em;
 	border: none;
+	display: block;
+	white-space: pre-line;
 }
 
 #headline .text {
 	color: #666666;
+}
+
+#announcement {
+    padding: 10px 10px;
+    background-color: #a6dfff;
+    margin-bottom: 10px;
 }
 
 #menu {
@@ -67,8 +86,17 @@ body {
 	background-color: #1e89c6;
 }
 
-.sect1 {
+.sect1,
+div.footnote {
 	padding: 10px 40px;
+	margin: 0 auto;
+	max-width: 1200px;
+}
+
+#footnotes > hr {
+    max-width: 1200px;
+    margin: 20px auto 10px;
+    width: calc(100% - 80px);
 }
 
 .sect2 {
@@ -76,7 +104,7 @@ body {
 }
 
 div.footnote {
-	padding: 10px 40px;
+	padding: 10px 40px 30px;
 }
 
 hr {
@@ -136,6 +164,29 @@ code {
 	padding: 10px 10px;
 	background-color: #DDDDDD;
 	border-radius: 4px;
+	overflow-x: auto;
+}
+
+/*Display table as something that is not a table*/
+.admonitionblock table,
+.admonitionblock tbody,
+.admonitionblock tr,
+.admonitionblock td {
+	display: block;
+}
+
+.admonitionblock td {
+	padding: 0;
+}
+
+.admonitionblock .title {
+	color: #0A396E;
+	font-weight: bold;
+}
+
+.admonitionblock td.content {
+	padding-left: 10px;
+	border-left: 1px solid #ccc;
 }
 
 table td {
@@ -173,8 +224,36 @@ table td {
 	}
 }
 
+#toc {
+  margin-bottom: 2.5em;
+}
+
+#toctitle {
+  color: #0A396E;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel0, div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
 </style>
-<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0;" />
-<link href="media/font.css" rel="stylesheet" type="text/css" />
-<link rel="icon" href="media/favicon.png" type="image/png" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<link href="/media/font.css" rel="stylesheet" type="text/css" />
+<link rel="icon" href="/media/favicon.png" type="image/png" />
 <style type="text/css">

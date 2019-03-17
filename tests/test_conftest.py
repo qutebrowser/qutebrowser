@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -44,7 +44,7 @@ def test_fail_on_warnings():
         warnings.warn('test', PendingDeprecationWarning)
 
 
-@pytest.mark.xfail(reason="https://github.com/The-Compiler/qutebrowser/issues/1070",
+@pytest.mark.xfail(reason="https://github.com/qutebrowser/qutebrowser/issues/1070",
                    strict=False)
 def test_installed_package():
     """Make sure the tests are running against the installed package."""

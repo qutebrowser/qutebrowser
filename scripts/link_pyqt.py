@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -21,9 +21,9 @@
 """Symlink PyQt into a given virtualenv."""
 
 import os
+import os.path
 import argparse
 import shutil
-import os.path
 import sys
 import subprocess
 import tempfile
@@ -33,8 +33,6 @@ import filecmp
 class Error(Exception):
 
     """Exception raised when linking fails."""
-
-    pass
 
 
 def run_py(executable, *code):
@@ -46,12 +44,14 @@ def run_py(executable, *code):
             f.write('\n'.join(code))
         cmd = [executable, filename]
         try:
-            ret = subprocess.check_output(cmd, universal_newlines=True)
+            ret = subprocess.run(cmd, universal_newlines=True, check=True,
+                                 stdout=subprocess.PIPE).stdout
         finally:
             os.remove(filename)
     else:
         cmd = [executable, '-c', '\n'.join(code)]
-        ret = subprocess.check_output(cmd, universal_newlines=True)
+        ret = subprocess.run(cmd, universal_newlines=True, check=True,
+                             stdout=subprocess.PIPE).stdout
     return ret.rstrip()
 
 
@@ -121,8 +121,7 @@ def get_lib_path(executable, name, required=True):
         if required:
             raise Error("Could not import {} with {}: {}!".format(
                 name, executable, data))
-        else:
-            return None
+        return None
     else:
         raise ValueError("Unexpected output: {!r}".format(output))
 
@@ -134,7 +133,15 @@ def link_pyqt(executable, venv_path):
         executable: The python executable where the source files are present.
         venv_path: The path to the virtualenv site-packages.
     """
-    sip_file = get_lib_path(executable, 'sip')
+    try:
+        get_lib_path(executable, 'PyQt5.sip')
+    except Error:
+        # There is no PyQt5.sip, so we need to copy the toplevel sip.
+        sip_file = get_lib_path(executable, 'sip')
+    else:
+        # There is a PyQt5.sip, it'll get copied with the PyQt5 dir.
+        sip_file = None
+
     sipconfig_file = get_lib_path(executable, 'sipconfig', required=False)
     pyqt_dir = os.path.dirname(get_lib_path(executable, 'PyQt5.QtCore'))
 
@@ -203,6 +210,10 @@ def main():
     args = parser.parse_args()
 
     if args.tox:
+        # Workaround for the lack of negative factors in tox.ini
+        if 'LINK_PYQT_SKIP' in os.environ:
+            print('LINK_PYQT_SKIP set, exiting...')
+            sys.exit(0)
         executable = get_tox_syspython(args.path)
     else:
         executable = sys.executable

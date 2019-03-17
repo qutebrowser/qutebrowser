@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,6 +25,7 @@ import html as pyhtml
 import logging
 import contextlib
 import collections
+import copy
 import faulthandler
 import traceback
 import warnings
@@ -39,6 +40,7 @@ except ImportError:
     colorama = None
 
 _log_inited = False
+_args = None
 
 COLORS = ['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white']
 COLOR_ESCAPES = {color: '\033[{}m'.format(i)
@@ -74,28 +76,19 @@ LOG_COLORS = {
 
 # We first monkey-patch logging to support our VDEBUG level before getting the
 # loggers.  Based on http://stackoverflow.com/a/13638084
+# mypy doesn't know about this, so we need to ignore it.
 VDEBUG_LEVEL = 9
 logging.addLevelName(VDEBUG_LEVEL, 'VDEBUG')
-logging.VDEBUG = VDEBUG_LEVEL
+logging.VDEBUG = VDEBUG_LEVEL  # type: ignore
 
 LOG_LEVELS = {
-    'VDEBUG': logging.VDEBUG,
+    'VDEBUG': logging.VDEBUG,  # type: ignore
     'DEBUG': logging.DEBUG,
     'INFO': logging.INFO,
     'WARNING': logging.WARNING,
     'ERROR': logging.ERROR,
     'CRITICAL': logging.CRITICAL,
 }
-
-LOGGER_NAMES = [
-    'statusbar', 'completion', 'init', 'url',
-    'destroy', 'modes', 'webview', 'misc',
-    'mouse', 'procs', 'hints', 'keyboard',
-    'commands', 'signals', 'downloads',
-    'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
-    'save', 'message', 'config', 'sessions',
-    'webelem'
-]
 
 
 def vdebug(self, msg, *args, **kwargs):
@@ -108,9 +101,10 @@ def vdebug(self, msg, *args, **kwargs):
     if self.isEnabledFor(VDEBUG_LEVEL):
         # pylint: disable=protected-access
         self._log(VDEBUG_LEVEL, msg, args, **kwargs)
+        # pylint: enable=protected-access
 
 
-logging.Logger.vdebug = vdebug
+logging.Logger.vdebug = vdebug  # type: ignore
 
 
 # The different loggers used.
@@ -139,6 +133,22 @@ message = logging.getLogger('message')
 config = logging.getLogger('config')
 sessions = logging.getLogger('sessions')
 webelem = logging.getLogger('webelem')
+prompt = logging.getLogger('prompt')
+network = logging.getLogger('network')
+sql = logging.getLogger('sql')
+greasemonkey = logging.getLogger('greasemonkey')
+extensions = logging.getLogger('extensions')
+
+LOGGER_NAMES = [
+    'statusbar', 'completion', 'init', 'url',
+    'destroy', 'modes', 'webview', 'misc',
+    'mouse', 'procs', 'hints', 'keyboard',
+    'commands', 'signals', 'downloads',
+    'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
+    'save', 'message', 'config', 'sessions',
+    'webelem', 'prompt', 'network', 'sql',
+    'greasemonkey', 'extensions',
+]
 
 
 ram_handler = None
@@ -148,16 +158,15 @@ console_filter = None
 
 def stub(suffix=''):
     """Show a STUB: message for the calling function."""
-    function = inspect.stack()[1][3]
+    try:
+        function = inspect.stack()[1][3]
+    except IndexError:  # pragma: no cover
+        misc.exception("Failed to get stack")
+        function = '<unknown>'
     text = "STUB: {}".format(function)
     if suffix:
         text = '{} ({})'.format(text, suffix)
     misc.warning(text)
-
-
-class CriticalQtWarning(Exception):
-
-    """Exception raised when there's a critical Qt warning."""
 
 
 def init_log(args):
@@ -176,9 +185,17 @@ def init_log(args):
     root = logging.getLogger()
     global console_filter
     if console is not None:
-        if args.logfilter is not None:
-            console_filter = LogFilter(args.logfilter.split(','))
-            console.addFilter(console_filter)
+        if not args.logfilter:
+            negate = False
+            names = None
+        elif args.logfilter.startswith('!'):
+            negate = True
+            names = args.logfilter[1:].split(',')
+        else:
+            negate = False
+            names = args.logfilter.split(',')
+        console_filter = LogFilter(names, negate)
+        console.addFilter(console_filter)
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
@@ -186,14 +203,20 @@ def init_log(args):
     logging.captureWarnings(True)
     _init_py_warnings()
     QtCore.qInstallMessageHandler(qt_message_handler)
-    global _log_inited
+    global _log_inited, _args
     _log_inited = True
+    _args = args
 
 
 def _init_py_warnings():
     """Initialize Python warning handling."""
     warnings.simplefilter('default')
     warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
+    # This happens in many qutebrowser dependencies...
+    warnings.filterwarnings('ignore', category=DeprecationWarning,
+                            message="Using or importing the ABCs from "
+                            "'collections' instead of from 'collections.abc' "
+                            "is deprecated, and in 3.8 it will stop working")
 
 
 @contextlib.contextmanager
@@ -340,10 +363,9 @@ def qt_message_handler(msg_type, context, msg):
         QtCore.QtFatalMsg: logging.CRITICAL,
     }
     try:
-        # pylint: disable=no-member,useless-suppression
         qt_to_logging[QtCore.QtInfoMsg] = logging.INFO
     except AttributeError:
-        # Qt < 5.5
+        # While we don't support Qt < 5.5 anymore, logging still needs to work
         pass
 
     # Change levels of some well-known messages to debug so they don't get
@@ -354,29 +376,29 @@ def qt_message_handler(msg_type, context, msg):
     suppressed_msgs = [
         # PNGs in Qt with broken color profile
         # https://bugreports.qt.io/browse/QTBUG-39788
-        'libpng warning: iCCP: Not recognizing known sRGB profile that has '
-            'been edited',  # flake8: disable=E131
+        ('libpng warning: iCCP: Not recognizing known sRGB profile that has '
+         'been edited'),
         'libpng warning: iCCP: known incorrect sRGB profile',
         # Hopefully harmless warning
         'OpenType support missing for script ',
         # Error if a QNetworkReply gets two different errors set. Harmless Qt
         # bug on some pages.
         # https://bugreports.qt.io/browse/QTBUG-30298
-        'QNetworkReplyImplPrivate::error: Internal problem, this method must '
-            'only be called once.',
+        ('QNetworkReplyImplPrivate::error: Internal problem, this method must '
+         'only be called once.'),
         # Sometimes indicates missing text, but most of the time harmless
         'load glyph failed ',
         # Harmless, see https://bugreports.qt.io/browse/QTBUG-42479
-        'content-type missing in HTTP POST, defaulting to '
-            'application/x-www-form-urlencoded. '
-            'Use QNetworkRequest::setHeader() to fix this problem.',
+        ('content-type missing in HTTP POST, defaulting to '
+         'application/x-www-form-urlencoded. '
+         'Use QNetworkRequest::setHeader() to fix this problem.'),
         # https://bugreports.qt.io/browse/QTBUG-43118
         'Using blocking call!',
         # Hopefully harmless
-        '"Method "GetAll" with signature "s" on interface '
-            '"org.freedesktop.DBus.Properties" doesn\'t exist',
-        '"Method \\"GetAll\\" with signature \\"s\\" on interface '
-            '\\"org.freedesktop.DBus.Properties\\" doesn\'t exist\\n"',
+        ('"Method "GetAll" with signature "s" on interface '
+         '"org.freedesktop.DBus.Properties" doesn\'t exist'),
+        ('"Method \\"GetAll\\" with signature \\"s\\" on interface '
+         '\\"org.freedesktop.DBus.Properties\\" doesn\'t exist\\n"'),
         'WOFF support requires QtWebKit to be built with zlib support.',
         # Weird Enlightment/GTK X extensions
         'QXcbWindow: Unhandled client message: "_E_',
@@ -385,43 +407,41 @@ def qt_message_handler(msg_type, context, msg):
         # Happens on AppVeyor CI
         'SetProcessDpiAwareness failed:',
         # https://bugreports.qt.io/browse/QTBUG-49174
-        'QObject::connect: Cannot connect (null)::stateChanged('
-            'QNetworkSession::State) to '
-            'QNetworkReplyHttpImpl::_q_networkSessionStateChanged('
-            'QNetworkSession::State)',
+        ('QObject::connect: Cannot connect (null)::stateChanged('
+         'QNetworkSession::State) to '
+         'QNetworkReplyHttpImpl::_q_networkSessionStateChanged('
+         'QNetworkSession::State)'),
         # https://bugreports.qt.io/browse/QTBUG-53989
-        "Image of format '' blocked because it is not considered safe. If you "
-            "are sure it is safe to do so, you can white-list the format by "
-            "setting the environment variable QTWEBKIT_IMAGEFORMAT_WHITELIST=",
-        # Installing Qt from the installer may cause it looking for SSL3 which
-        # may not be available on the system
-        "QSslSocket: cannot resolve SSLv3_client_method",
-        "QSslSocket: cannot resolve SSLv3_server_method",
+        ("Image of format '' blocked because it is not considered safe. If "
+         "you are sure it is safe to do so, you can white-list the format by "
+         "setting the environment variable QTWEBKIT_IMAGEFORMAT_WHITELIST="),
+        # Installing Qt from the installer may cause it looking for SSL3 or
+        # OpenSSL 1.0 which may not be available on the system
+        "QSslSocket: cannot resolve ",
+        "QSslSocket: cannot call unresolved function ",
         # When enabling debugging with QtWebEngine
-        "Remote debugging server started successfully. Try pointing a "
-            "Chromium-based browser to ",
-        # https://github.com/The-Compiler/qutebrowser/issues/1287
+        ("Remote debugging server started successfully. Try pointing a "
+         "Chromium-based browser to "),
+        # https://github.com/qutebrowser/qutebrowser/issues/1287
         "QXcbClipboard: SelectionRequest too old",
+        # https://github.com/qutebrowser/qutebrowser/issues/2071
+        'QXcbWindow: Unhandled client message: ""',
+        # https://codereview.qt-project.org/176831
+        "QObject::disconnect: Unexpected null parameter",
     ]
+    # not using utils.is_mac here, because we can't be sure we can successfully
+    # import the utils module here.
     if sys.platform == 'darwin':
         suppressed_msgs += [
-            'libpng warning: iCCP: known incorrect sRGB profile',
             # https://bugreports.qt.io/browse/QTBUG-47154
-            'virtual void QSslSocketBackendPrivate::transmit() SSLRead failed '
-                'with: -9805',  # flake8: disable=E131
+            ('virtual void QSslSocketBackendPrivate::transmit() SSLRead '
+             'failed with: -9805'),
         ]
 
-    # Messages which will trigger an exception immediately
-    critical_msgs = [
-        'Could not parse stylesheet of object',
-    ]
+    if not msg:
+        msg = "Logged empty message!"
 
-    if any(msg.strip().startswith(pattern) for pattern in critical_msgs):
-        # For some reason, the stack gets lost when raising here...
-        logger = logging.getLogger('misc')
-        logger.error("Got critical Qt warning!", stack_info=True)
-        raise CriticalQtWarning(msg)
-    elif any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
+    if any(msg.strip().startswith(pattern) for pattern in suppressed_msgs):
         level = logging.DEBUG
     else:
         level = qt_to_logging[msg_type]
@@ -444,8 +464,12 @@ def qt_message_handler(msg_type, context, msg):
         msg += ("\n\nOn Archlinux, this should fix the problem:\n"
                 "    pacman -S libxkbcommon-x11")
         faulthandler.disable()
-    stack = ''.join(traceback.format_stack())
-    record = qt.makeRecord(name, level, context.file, context.line, msg, None,
+
+    if _args.debug:
+        stack = ''.join(traceback.format_stack())
+    else:
+        stack = None
+    record = qt.makeRecord(name, level, context.file, context.line, msg, (),
                            None, func, sinfo=stack)
     qt.handle(record)
 
@@ -488,12 +512,14 @@ class LogFilter(logging.Filter):
     comma-separated list instead.
 
     Attributes:
-        _names: A list of names that should be logged.
+        names: A list of record names to filter.
+        negated: Whether names is a list of records to log or to suppress.
     """
 
-    def __init__(self, names):
+    def __init__(self, names, negate=False):
         super().__init__()
         self.names = names
+        self.negated = negate
 
     def filter(self, record):
         """Determine if the specified record is to be logged."""
@@ -504,12 +530,12 @@ class LogFilter(logging.Filter):
             return True
         for name in self.names:
             if record.name == name:
-                return True
+                return not self.negated
             elif not record.name.startswith(name):
                 continue
             elif record.name[len(name)] == '.':
-                return True
-        return False
+                return not self.negated
+        return self.negated
 
 
 class RAMHandler(logging.Handler):
@@ -541,19 +567,17 @@ class RAMHandler(logging.Handler):
 
         FIXME: We should do all the HTML formatter via jinja2.
         (probably obsolete when moving to a widget for logging,
-        https://github.com/The-Compiler/qutebrowser/issues/34
+        https://github.com/qutebrowser/qutebrowser/issues/34
         """
         minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
-        lines = []
         fmt = self.html_formatter.format if html else self.format
         self.acquire()
         try:
-            records = list(self._data)
+            lines = [fmt(record)
+                     for record in self._data
+                     if record.levelno >= minlevel]
         finally:
             self.release()
-        for record in records:
-            if record.levelno >= minlevel:
-                lines.append(fmt(record))
         return '\n'.join(lines)
 
     def change_log_capacity(self, capacity):
@@ -613,17 +637,18 @@ class HTMLFormatter(logging.Formatter):
         self._colordict['reset'] = '</font>'
 
     def format(self, record):
-        record.__dict__.update(self._colordict)
-        if record.levelname in self._log_colors:
-            color = self._log_colors[record.levelname]
-            record.log_color = self._colordict[color]
+        record_clone = copy.copy(record)
+        record_clone.__dict__.update(self._colordict)
+        if record_clone.levelname in self._log_colors:
+            color = self._log_colors[record_clone.levelname]
+            record_clone.log_color = self._colordict[color]
         else:
-            record.log_color = ''
+            record_clone.log_color = ''
         for field in ['msg', 'filename', 'funcName', 'levelname', 'module',
                       'name', 'pathname', 'processName', 'threadName']:
-            data = str(getattr(record, field))
-            setattr(record, field, pyhtml.escape(data))
-        msg = super().format(record)
+            data = str(getattr(record_clone, field))
+            setattr(record_clone, field, pyhtml.escape(data))
+        msg = super().format(record_clone)
         if not msg.endswith(self._colordict['reset']):
             msg += self._colordict['reset']
         return msg

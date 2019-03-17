@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,7 +19,7 @@
 
 """Customized QWebInspector for QtWebKit."""
 
-
+from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebInspector
 
 from qutebrowser.browser import inspector
@@ -35,6 +35,6 @@ class WebKitInspector(inspector.AbstractWebInspector):
         self._set_widget(qwebinspector)
 
     def inspect(self, page):
-        self._check_developer_extras()
+        settings = QWebSettings.globalSettings()
+        settings.setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
         self._widget.setPage(page)
-        self.show()

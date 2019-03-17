@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,8 +25,8 @@ import collections
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdutils
-from qutebrowser.utils import utils, log, message, objreg, usertypes
+from qutebrowser.api import cmdutils
+from qutebrowser.utils import utils, log, message, usertypes
 
 
 class Saveable:
@@ -38,9 +38,8 @@ class Saveable:
         _dirty: Whether the saveable was changed since the last save.
         _save_handler: The function to call to save this Saveable.
         _save_on_exit: Whether to always save this saveable on exit.
-        _config_opt: A (section, option) tuple of a config option which decides
-                     whether to auto-save or not. None if no such option
-                     exists.
+        _config_opt: A config option which decides whether to auto-save or not.
+                     None if no such option exists.
         _filename: The filename of the underlying file.
     """
 
@@ -78,11 +77,11 @@ class Saveable:
         Args:
             is_exit: Whether we're currently exiting qutebrowser.
             explicit: Whether the user explicitly requested this save.
-            silent: Don't write informations to log.
+            silent: Don't write information to log.
             force: Force saving, no matter what.
         """
         if (self._config_opt is not None and
-                (not config.get(*self._config_opt)) and
+                (not config.instance.get(self._config_opt)) and
                 (not explicit) and (not force)):
             if not silent:
                 log.save.debug("Not saving {name} because autosaving has been "
@@ -114,23 +113,16 @@ class SaveManager(QObject):
         self.saveables = collections.OrderedDict()
         self._save_timer = usertypes.Timer(self, name='save-timer')
         self._save_timer.timeout.connect(self.autosave)
+        self._set_autosave_interval()
+        config.instance.changed.connect(self._set_autosave_interval)
 
     def __repr__(self):
         return utils.get_repr(self, saveables=self.saveables)
 
-    def init_autosave(self):
-        """Initialize auto-saving.
-
-        We don't do this in __init__ because the config needs to be initialized
-        first, but the config needs the save manager.
-        """
-        self.set_autosave_interval()
-        objreg.get('config').changed.connect(self.set_autosave_interval)
-
-    @config.change_filter('general', 'auto-save-interval')
-    def set_autosave_interval(self):
+    @config.change_filter('auto_save.interval')
+    def _set_autosave_interval(self):
         """Set the auto-save interval."""
-        interval = config.get('general', 'auto-save-interval')
+        interval = config.val.auto_save.interval
         if interval == 0:
             self._save_timer.stop()
         else:
@@ -145,8 +137,7 @@ class SaveManager(QObject):
             name: The name to use.
             save: The function to call to save this saveable.
             changed: The signal emitted when this saveable changed.
-            config_opt: A (section, option) tuple deciding whether to auto-save
-                        or not.
+            config_opt: An option deciding whether to auto-save or not.
             filename: The filename of the underlying file, so we can force
                       saving if it doesn't exist.
             dirty: Whether the saveable is already dirty.
@@ -166,12 +157,17 @@ class SaveManager(QObject):
         Args:
             is_exit: Whether we're currently exiting qutebrowser.
             explicit: Whether this save operation was triggered explicitly.
-            silent: Don't write informations to log. Used to reduce log spam
+            silent: Don't write information to log. Used to reduce log spam
                     when autosaving.
             force: Force saving, no matter what.
         """
         self.saveables[name].save(is_exit=is_exit, explicit=explicit,
                                   silent=silent, force=force)
+
+    def save_all(self, *args, **kwargs):
+        """Save all saveables."""
+        for saveable in self.saveables:
+            self.save(saveable, *args, **kwargs)
 
     @pyqtSlot()
     def autosave(self):
@@ -180,17 +176,14 @@ class SaveManager(QObject):
             try:
                 saveable.save(silent=True)
             except OSError as e:
-                message.error('current', "Failed to auto-save {}: "
-                              "{}".format(key, e))
+                message.error("Failed to auto-save {}: {}".format(key, e))
 
     @cmdutils.register(instance='save-manager', name='save',
                        star_args_optional=True)
-    @cmdutils.argument('win_id', win_id=True)
-    def save_command(self, win_id, *what):
+    def save_command(self, *what):
         """Save configs and state.
 
         Args:
-            win_id: The window this command is executed in.
             *what: What to save (`config`/`key-config`/`cookies`/...).
                    If not given, everything is saved.
         """
@@ -201,12 +194,10 @@ class SaveManager(QObject):
             explicit = False
         for key in what:
             if key not in self.saveables:
-                message.error(win_id, "{} is nothing which can be "
-                              "saved".format(key))
+                message.error("{} is nothing which can be saved".format(key))
             else:
                 try:
                     self.save(key, explicit=explicit, force=True)
                 except OSError as e:
-                    message.error(win_id, "Could not save {}: "
-                                  "{}".format(key, e))
+                    message.error("Could not save {}: {}".format(key, e))
         log.save.debug(":save saved {}".format(', '.join(what)))

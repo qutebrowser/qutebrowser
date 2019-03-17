@@ -54,13 +54,13 @@ ul.files > li {
 
         <ul class="folders">
             {% for item in directories %}
-                <li><a href="{{ file_url(item.absname) }}">{{item.name}}</a></li>
+                <li><a href="{{ file_url(item['absname']) }}">{{item['name']}}</a></li>
             {% endfor %}
         </ul>
 
         <ul class="files">
             {% for item in files %}
-                <li><a href="{{ file_url(item.absname) }}">{{item.name}}</a></li>
+                <li><a href="{{ file_url(item['absname']) }}">{{item['name']}}</a></li>
             {% endfor %}
         </ul>
     </div>

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,16 +23,6 @@ import logging
 
 import pytest
 
-try:
-    import pytest_catchlog as catchlog_mod
-except ImportError:
-    # When using pytest for pyflakes/pep8/..., the plugin won't be available
-    # but conftest.py will still be loaded.
-    #
-    # However, LogFailHandler.emit will never be used in that case, so we just
-    # ignore the ImportError.
-    pass
-
 
 class LogFailHandler(logging.Handler):
 
@@ -49,17 +39,8 @@ class LogFailHandler(logging.Handler):
         if logger.name == 'messagemock':
             return
 
-        for h in root_logger.handlers:
-            if isinstance(h, catchlog_mod.LogCaptureHandler):
-                catchlog_handler = h
-                break
-        else:
-            # The LogCaptureHandler is not available anymore during fixture
-            # teardown, so we ignore logging messages emitted there..
-            return
-
         if (logger.level == record.levelno or
-                catchlog_handler.level == record.levelno):
+                root_logger.level == record.levelno):
             # caplog.at_level(...) was used with the level of this message,
             # i.e.  it was expected.
             return

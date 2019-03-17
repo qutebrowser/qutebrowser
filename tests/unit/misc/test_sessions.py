@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -40,9 +40,9 @@ webengine_refactoring_xfail = pytest.mark.xfail(
 
 
 @pytest.fixture
-def sess_man():
-    """Fixture providing a SessionManager with no session dir."""
-    return sessions.SessionManager(base_path=None)
+def sess_man(tmpdir):
+    """Fixture providing a SessionManager."""
+    return sessions.SessionManager(base_path=str(tmpdir))
 
 
 class TestInit:
@@ -52,17 +52,9 @@ class TestInit:
         yield
         objreg.delete('session-manager')
 
-    def test_no_standarddir(self, monkeypatch):
-        monkeypatch.setattr('qutebrowser.misc.sessions.standarddir.data',
-                            lambda: None)
-        sessions.init()
-        manager = objreg.get('session-manager')
-        assert manager._base_path is None
-
     @pytest.mark.parametrize('create_dir', [True, False])
     def test_with_standarddir(self, tmpdir, monkeypatch, create_dir):
-        monkeypatch.setattr('qutebrowser.misc.sessions.standarddir.data',
-                            lambda: str(tmpdir))
+        monkeypatch.setattr(sessions.standarddir, 'data', lambda: str(tmpdir))
         session_dir = tmpdir / 'sessions'
         if create_dir:
             session_dir.ensure(dir=True)
@@ -110,16 +102,6 @@ class TestExists:
 
         assert not man.exists(name)
 
-    @pytest.mark.parametrize('absolute', [True, False])
-    def test_no_datadir(self, sess_man, tmpdir, absolute):
-        abs_session = tmpdir / 'foo.yml'
-        abs_session.ensure()
-
-        if absolute:
-            assert sess_man.exists(str(abs_session))
-        else:
-            assert not sess_man.exists('foo')
-
 
 @webengine_refactoring_xfail
 class TestSaveTab:
@@ -155,35 +137,13 @@ class FakeMainWindow(QObject):
         return self._geometry
 
 
-class FakeTabbedBrowser:
-
-    """A fake tabbed-browser which contains some widgets."""
-
-    def __init__(self, widgets):
-        self._widgets = widgets
-
-    def widgets(self):
-        return self._widgets
-
-    def currentIndex(self):
-        return 1
-
-
 @pytest.fixture
-def fake_window(win_registry, stubs, monkeypatch, qtbot):
+def fake_window(tabbed_browser_stubs):
     """Fixture which provides a fake main windows with a tabbedbrowser."""
     win0 = FakeMainWindow(b'fake-geometry-0', win_id=0)
     objreg.register('main-window', win0, scope='window', window=0)
-
-    webview = QWebView()
-    qtbot.add_widget(webview)
-    browser = FakeTabbedBrowser([webview])
-    objreg.register('tabbed-browser', browser, scope='window', window=0)
-
     yield
-
     objreg.delete('main-window', scope='window', window=0)
-    objreg.delete('tabbed-browser', scope='window', window=0)
 
 
 class TestSaveAll:
@@ -198,7 +158,7 @@ class TestSaveAll:
     def test_no_active_window(self, sess_man, fake_window, stubs,
                               monkeypatch):
         qapp = stubs.FakeQApplication(active_window=None)
-        monkeypatch.setattr('qutebrowser.misc.sessions.QApplication', qapp)
+        monkeypatch.setattr(sessions, 'QApplication', qapp)
         sess_man._save_all()
 
 
@@ -210,7 +170,7 @@ class TestSaveAll:
 ])
 def test_get_session_name(config_stub, sess_man, arg, config, current,
                           expected):
-    config_stub.data = {'general': {'session-default-name': config}}
+    config_stub.val.session.default_name = config
     sess_man._current = current
     assert sess_man._get_session_name(arg) == expected
 
@@ -218,22 +178,20 @@ def test_get_session_name(config_stub, sess_man, arg, config, current,
 class TestSave:
 
     @pytest.fixture
-    def state_config(self):
+    def state_config(self, monkeypatch):
         state = {'general': {}}
-        objreg.register('state-config', state)
-        yield state
-        objreg.delete('state-config')
+        monkeypatch.setattr(sessions.configfiles, 'state', state)
+        return state
 
     @pytest.fixture
-    def fake_history(self, win_registry, stubs, monkeypatch, webview):
+    def fake_history(self, stubs, tabbed_browser_stubs, monkeypatch, webview):
         """Fixture which provides a window with a fake history."""
         win = FakeMainWindow(b'fake-geometry-0', win_id=0)
         objreg.register('main-window', win, scope='window', window=0)
-        browser = FakeTabbedBrowser([webview])
 
-        objreg.register('tabbed-browser', browser, scope='window', window=0)
+        browser = tabbed_browser_stubs[0]
         qapp = stubs.FakeQApplication(active_window=win)
-        monkeypatch.setattr('qutebrowser.misc.sessions.QApplication', qapp)
+        monkeypatch.setattr(sessions, 'QApplication', qapp)
 
         def set_data(items):
             history = browser.widgets()[0].page().history()
@@ -247,16 +205,6 @@ class TestSave:
         objreg.delete('main-window', scope='window', window=0)
         objreg.delete('tabbed-browser', scope='window', window=0)
 
-    def test_no_config_storage(self, sess_man):
-        with pytest.raises(sessions.SessionError) as excinfo:
-            sess_man.save('foo')
-        assert str(excinfo.value) == "No data storage configured."
-
-    def test_update_completion_signal(self, sess_man, tmpdir, qtbot):
-        session_path = tmpdir / 'foo.yml'
-        with qtbot.waitSignal(sess_man.update_completion):
-            sess_man.save(str(session_path))
-
     def test_no_state_config(self, sess_man, tmpdir, state_config):
         session_path = tmpdir / 'foo.yml'
         sess_man.save(str(session_path))
@@ -267,9 +215,8 @@ class TestSave:
         with caplog.at_level(logging.ERROR):
             sess_man.save(str(session_path), last_window=True)
 
-        assert len(caplog.records) == 1
         msg = "last_window_session is None while saving!"
-        assert caplog.records[0].msg == msg
+        assert caplog.messages == [msg]
         assert not session_path.exists()
 
     def test_last_window_session(self, sess_man, tmpdir):
@@ -286,10 +233,9 @@ class TestSave:
         mocker.patch('qutebrowser.misc.sessions.yaml.dump',
                      side_effect=exception)
 
-        with pytest.raises(sessions.SessionError) as excinfo:
+        with pytest.raises(sessions.SessionError, match=str(exception)):
             sess_man.save(str(tmpdir / 'foo.yml'))
 
-        assert str(excinfo.value) == str(exception)
         assert not tmpdir.listdir()
 
     def test_load_next_time(self, tmpdir, state_config, sess_man):
@@ -375,7 +321,7 @@ class TestLoadTab:
         if in_main_data:
             # This information got saved in the main data instead of saving it
             # per item - make sure the old format can still be read
-            # https://github.com/The-Compiler/qutebrowser/issues/728
+            # https://github.com/qutebrowser/qutebrowser/issues/728
             d = {'history': [item], key: val}
         else:
             item[key] = val
@@ -405,18 +351,7 @@ class TestLoadTab:
         assert loaded_item.original_url == expected
 
 
-def test_delete_update_completion_signal(sess_man, qtbot, tmpdir):
-    sess = tmpdir / 'foo.yml'
-    sess.ensure()
-
-    with qtbot.waitSignal(sess_man.update_completion):
-        sess_man.delete(str(sess))
-
-
 class TestListSessions:
-
-    def test_no_base_path(self, sess_man):
-        assert not sess_man.list_sessions()
 
     def test_no_sessions(self, tmpdir):
         sess_man = sessions.SessionManager(str(tmpdir))
@@ -426,7 +361,7 @@ class TestListSessions:
         (tmpdir / 'foo.yml').ensure()
         (tmpdir / 'bar.yml').ensure()
         sess_man = sessions.SessionManager(str(tmpdir))
-        assert sorted(sess_man.list_sessions()) == ['bar', 'foo']
+        assert sess_man.list_sessions() == ['bar', 'foo']
 
     def test_with_other_files(self, tmpdir):
         (tmpdir / 'foo.yml').ensure()

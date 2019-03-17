@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,6 +21,7 @@
 
 import io
 import sys
+import collections
 import os.path
 import subprocess
 import contextlib
@@ -29,12 +30,160 @@ import types
 import importlib
 import logging
 import textwrap
+import datetime
 
+import attr
+import pkg_resources
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version
+from qutebrowser.utils import version, usertypes, utils
+from qutebrowser.misc import pastebin
 from qutebrowser.browser import pdfjs
+
+
+@pytest.mark.parametrize('os_release, expected', [
+    # No file
+    (None, None),
+    # Invalid file
+    ("\n# foo\n foo=bar=baz",
+     version.DistributionInfo(id=None, parsed=version.Distribution.unknown,
+                              version=None, pretty='Unknown')),
+    # Archlinux
+    ("""
+        NAME="Arch Linux"
+        PRETTY_NAME="Arch Linux"
+        ID=arch
+        ID_LIKE=archlinux
+        ANSI_COLOR="0;36"
+        HOME_URL="https://www.archlinux.org/"
+        SUPPORT_URL="https://bbs.archlinux.org/"
+        BUG_REPORT_URL="https://bugs.archlinux.org/"
+     """,
+     version.DistributionInfo(
+         id='arch', parsed=version.Distribution.arch, version=None,
+         pretty='Arch Linux')),
+    # Ubuntu 14.04
+    ("""
+        NAME="Ubuntu"
+        VERSION="14.04.5 LTS, Trusty Tahr"
+        ID=ubuntu
+        ID_LIKE=debian
+        PRETTY_NAME="Ubuntu 14.04.5 LTS"
+        VERSION_ID="14.04"
+     """,
+     version.DistributionInfo(
+         id='ubuntu', parsed=version.Distribution.ubuntu,
+         version=pkg_resources.parse_version('14.4'),
+         pretty='Ubuntu 14.04.5 LTS')),
+    # Ubuntu 17.04
+    ("""
+        NAME="Ubuntu"
+        VERSION="17.04 (Zesty Zapus)"
+        ID=ubuntu
+        ID_LIKE=debian
+        PRETTY_NAME="Ubuntu 17.04"
+        VERSION_ID="17.04"
+     """,
+     version.DistributionInfo(
+         id='ubuntu', parsed=version.Distribution.ubuntu,
+         version=pkg_resources.parse_version('17.4'),
+         pretty='Ubuntu 17.04')),
+    # Debian Jessie
+    ("""
+        PRETTY_NAME="Debian GNU/Linux 8 (jessie)"
+        NAME="Debian GNU/Linux"
+        VERSION_ID="8"
+        VERSION="8 (jessie)"
+        ID=debian
+     """,
+     version.DistributionInfo(
+         id='debian', parsed=version.Distribution.debian,
+         version=pkg_resources.parse_version('8'),
+         pretty='Debian GNU/Linux 8 (jessie)')),
+    # Void Linux
+    ("""
+        NAME="void"
+        ID="void"
+        DISTRIB_ID="void"
+        PRETTY_NAME="void"
+     """,
+     version.DistributionInfo(
+         id='void', parsed=version.Distribution.void,
+         version=None, pretty='void')),
+    # Gentoo
+    ("""
+        NAME=Gentoo
+        ID=gentoo
+        PRETTY_NAME="Gentoo/Linux"
+     """,
+     version.DistributionInfo(
+         id='gentoo', parsed=version.Distribution.gentoo,
+         version=None, pretty='Gentoo/Linux')),
+    # Fedora
+    ("""
+        NAME=Fedora
+        VERSION="25 (Twenty Five)"
+        ID=fedora
+        VERSION_ID=25
+        PRETTY_NAME="Fedora 25 (Twenty Five)"
+     """,
+     version.DistributionInfo(
+         id='fedora', parsed=version.Distribution.fedora,
+         version=pkg_resources.parse_version('25'),
+         pretty='Fedora 25 (Twenty Five)')),
+    # OpenSUSE
+    ("""
+        NAME="openSUSE Leap"
+        VERSION="42.2"
+        ID=opensuse
+        ID_LIKE="suse"
+        VERSION_ID="42.2"
+        PRETTY_NAME="openSUSE Leap 42.2"
+     """,
+     version.DistributionInfo(
+         id='opensuse', parsed=version.Distribution.opensuse,
+         version=pkg_resources.parse_version('42.2'),
+         pretty='openSUSE Leap 42.2')),
+    # Linux Mint
+    ("""
+        NAME="Linux Mint"
+        VERSION="18.1 (Serena)"
+        ID=linuxmint
+        ID_LIKE=ubuntu
+        PRETTY_NAME="Linux Mint 18.1"
+        VERSION_ID="18.1"
+     """,
+     version.DistributionInfo(
+         id='linuxmint', parsed=version.Distribution.linuxmint,
+         version=pkg_resources.parse_version('18.1'),
+         pretty='Linux Mint 18.1')),
+    # Manjaro
+    ("""
+        NAME="Manjaro Linux"
+        ID=manjaro
+        PRETTY_NAME="Manjaro Linux"
+     """,
+     version.DistributionInfo(
+         id='manjaro', parsed=version.Distribution.manjaro,
+         version=None, pretty='Manjaro Linux')),
+    # Funtoo
+    ("""
+        ID="funtoo"
+        NAME="Funtoo GNU/Linux"
+        PRETTY_NAME="Linux"
+     """,
+     version.DistributionInfo(
+         id='funtoo', parsed=version.Distribution.gentoo,
+         version=None, pretty='Funtoo GNU/Linux')),
+])
+def test_distribution(tmpdir, monkeypatch, os_release, expected):
+    os_release_file = tmpdir / 'os-release'
+    if os_release is not None:
+        os_release_file.write(textwrap.dedent(os_release))
+    monkeypatch.setenv('QUTE_FAKE_OS_RELEASE', str(os_release_file))
+
+    assert version.distribution() == expected
 
 
 class GitStrSubprocessFake:
@@ -93,21 +242,18 @@ class TestGitStr:
         mocker.patch('qutebrowser.utils.version.subprocess',
                      side_effect=AssertionError)
         fake = GitStrSubprocessFake()
-        monkeypatch.setattr('qutebrowser.utils.version._git_str_subprocess',
-                            fake.func)
+        monkeypatch.setattr(version, '_git_str_subprocess', fake.func)
         return fake
 
     def test_frozen_ok(self, commit_file_mock, monkeypatch):
         """Test with sys.frozen=True and a successful git-commit-id read."""
-        monkeypatch.setattr(qutebrowser.utils.version.sys, 'frozen', True,
-                            raising=False)
+        monkeypatch.setattr(version.sys, 'frozen', True, raising=False)
         commit_file_mock.return_value = 'deadbeef'
         assert version._git_str() == 'deadbeef'
 
     def test_frozen_oserror(self, caplog, commit_file_mock, monkeypatch):
         """Test with sys.frozen=True and OSError when reading git-commit-id."""
-        monkeypatch.setattr(qutebrowser.utils.version.sys, 'frozen', True,
-                            raising=False)
+        monkeypatch.setattr(version.sys, 'frozen', True, raising=False)
         commit_file_mock.side_effect = OSError
         with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() is None
@@ -144,19 +290,18 @@ class TestGitStr:
     def test_normal_path_nofile(self, monkeypatch, caplog,
                                 git_str_subprocess_fake, commit_file_mock):
         """Test with undefined __file__ but available git-commit-id."""
-        monkeypatch.delattr('qutebrowser.utils.version.__file__')
+        monkeypatch.delattr(version, '__file__')
         commit_file_mock.return_value = '0deadcode'
         with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() == '0deadcode'
-        assert len(caplog.records) == 1
-        assert caplog.records[0].message == "Error while getting git path"
+        assert caplog.messages == ["Error while getting git path"]
 
 
 def _has_git():
     """Check if git is installed."""
     try:
-        subprocess.check_call(['git', '--version'], stdout=subprocess.DEVNULL,
-                              stderr=subprocess.DEVNULL)
+        subprocess.run(['git', '--version'], stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL, check=True)
     except (OSError, subprocess.CalledProcessError):
         return False
     else:
@@ -189,16 +334,17 @@ class TestGitStrSubprocess:
                 'GIT_COMMITTER_EMAIL': 'mail@qutebrowser.org',
                 'GIT_COMMITTER_DATE': 'Thu  1 Jan 01:00:00 CET 1970',
             })
-            if os.name == 'nt':
+            if utils.is_windows:
                 # If we don't call this with shell=True it might fail under
                 # some environments on Windows...
                 # http://bugs.python.org/issue24493
-                subprocess.check_call(
+                subprocess.run(
                     'git -C "{}" {}'.format(tmpdir, ' '.join(args)),
-                    env=env, shell=True)
+                    env=env, check=True, shell=True)
             else:
-                subprocess.check_call(
-                    ['git', '-C', str(tmpdir)] + list(args), env=env)
+                subprocess.run(
+                    ['git', '-C', str(tmpdir)] + list(args),
+                    check=True, env=env)
 
         (tmpdir / 'file').write_text("Hello World!", encoding='utf-8')
         _git('init')
@@ -212,7 +358,7 @@ class TestGitStrSubprocess:
     def test_real_git(self, git_repo):
         """Test with a real git repository."""
         ret = version._git_str_subprocess(str(git_repo))
-        assert ret == 'foobar (1970-01-01 01:00:00 +0100)'
+        assert ret == '6e4b65a (1970-01-01 01:00:00 +0100)'
 
     def test_missing_dir(self, tmpdir):
         """Test with a directory which doesn't exist."""
@@ -224,14 +370,14 @@ class TestGitStrSubprocess:
         subprocess.CalledProcessError(1, 'foobar')
     ])
     def test_exception(self, exc, mocker, tmpdir):
-        """Test with subprocess.check_output raising an exception.
+        """Test with subprocess.run raising an exception.
 
         Args:
             exc: The exception to raise.
         """
         m = mocker.patch('qutebrowser.utils.version.os')
         m.path.isdir.return_value = True
-        mocker.patch('qutebrowser.utils.version.subprocess.check_output',
+        mocker.patch('qutebrowser.utils.version.subprocess.run',
                      side_effect=exc)
         ret = version._git_str_subprocess(str(tmpdir))
         assert ret is None
@@ -304,13 +450,48 @@ def test_release_info(files, expected, caplog, monkeypatch):
         expected: The expected _release_info output.
     """
     fake = ReleaseInfoFake(files)
-    monkeypatch.setattr('qutebrowser.utils.version.glob.glob', fake.glob_fake)
+    monkeypatch.setattr(version.glob, 'glob', fake.glob_fake)
     monkeypatch.setattr(version, 'open', fake.open_fake, raising=False)
     with caplog.at_level(logging.ERROR, 'misc'):
         assert version._release_info() == expected
     if files is None:
-        assert len(caplog.records) == 1
-        assert caplog.records[0].message == "Error while reading fake-file."
+        assert caplog.messages == ["Error while reading fake-file."]
+
+
+@pytest.mark.parametrize('equal', [True, False])
+def test_path_info(monkeypatch, equal):
+    """Test _path_info().
+
+    Args:
+        equal: Whether system data / data and system config / config are equal.
+    """
+    patches = {
+        'config': lambda auto=False: (
+            'AUTO CONFIG PATH' if auto and not equal
+            else 'CONFIG PATH'),
+        'data': lambda system=False: (
+            'SYSTEM DATA PATH' if system and not equal
+            else 'DATA PATH'),
+        'cache': lambda: 'CACHE PATH',
+        'runtime': lambda: 'RUNTIME PATH',
+    }
+
+    for name, val in patches.items():
+        monkeypatch.setattr(version.standarddir, name, val)
+
+    pathinfo = version._path_info()
+
+    assert pathinfo['config'] == 'CONFIG PATH'
+    assert pathinfo['data'] == 'DATA PATH'
+    assert pathinfo['cache'] == 'CACHE PATH'
+    assert pathinfo['runtime'] == 'RUNTIME PATH'
+
+    if equal:
+        assert 'auto config' not in pathinfo
+        assert 'system data' not in pathinfo
+    else:
+        assert pathinfo['auto config'] == 'AUTO CONFIG PATH'
+        assert pathinfo['system data'] == 'SYSTEM DATA PATH'
 
 
 class ImportFake:
@@ -318,30 +499,34 @@ class ImportFake:
     """A fake for __import__ which is used by the import_fake fixture.
 
     Attributes:
-        exists: A dict mapping module names to bools. If True, the import will
-                success. Otherwise, it'll fail with ImportError.
+        modules: A dict mapping module names to bools. If True, the import will
+                 success. Otherwise, it'll fail with ImportError.
         version_attribute: The name to use in the fake modules for the version
                            attribute.
         version: The version to use for the modules.
         _real_import: Saving the real __import__ builtin so the imports can be
-                      done normally for modules not in self.exists.
+                      done normally for modules not in self. modules.
     """
 
     def __init__(self):
-        self.exists = {
-            'sip': True,
-            'colorama': True,
-            'pypeg2': True,
-            'jinja2': True,
-            'pygments': True,
-            'yaml': True,
-            'cssutils': True,
-            'typing': True,
-            'PyQt5.QtWebEngineWidgets': True,
-        }
+        self.modules = collections.OrderedDict([
+            ('sip', True),
+            ('colorama', True),
+            ('pypeg2', True),
+            ('jinja2', True),
+            ('pygments', True),
+            ('yaml', True),
+            ('cssutils', True),
+            ('attr', True),
+            ('PyQt5.QtWebEngineWidgets', True),
+            ('PyQt5.QtWebKitWidgets', True),
+        ])
+        self.no_version_attribute = ['sip', 'PyQt5.QtWebEngineWidgets',
+                                     'PyQt5.QtWebKitWidgets']
         self.version_attribute = '__version__'
         self.version = '1.2.3'
         self._real_import = builtins.__import__
+        self._real_importlib_import = importlib.import_module
 
     def _do_import(self, name):
         """Helper for fake_import and fake_importlib_import to do the work.
@@ -350,10 +535,10 @@ class ImportFake:
             The imported fake module, or None if normal importing should be
             used.
         """
-        if name not in self.exists:
+        if name not in self.modules:
             # Not one of the modules to test -> use real import
             return None
-        elif self.exists[name]:
+        elif self.modules[name]:
             ns = types.SimpleNamespace()
             if self.version_attribute is not None:
                 setattr(ns, self.version_attribute, self.version)
@@ -375,7 +560,7 @@ class ImportFake:
         if module is not None:
             return module
         else:
-            return importlib.import_module(name)
+            return self._real_importlib_import(name)
 
 
 @pytest.fixture
@@ -383,7 +568,7 @@ def import_fake(monkeypatch):
     """Fixture to patch imports using ImportFake."""
     fake = ImportFake()
     monkeypatch.setattr('builtins.__import__', fake.fake_import)
-    monkeypatch.setattr('qutebrowser.utils.version.importlib.import_module',
+    monkeypatch.setattr(version.importlib, 'import_module',
                         fake.fake_importlib_import)
     return fake
 
@@ -392,19 +577,19 @@ class TestModuleVersions:
 
     """Tests for _module_versions()."""
 
-    @pytest.mark.usefixtures('import_fake')
-    def test_all_present(self):
+    def test_all_present(self, import_fake):
         """Test with all modules present in version 1.2.3."""
-        expected = ['sip: yes', 'colorama: 1.2.3', 'pypeg2: 1.2.3',
-                    'jinja2: 1.2.3', 'pygments: 1.2.3', 'yaml: 1.2.3',
-                    'cssutils: 1.2.3', 'typing: yes',
-                    'PyQt5.QtWebEngineWidgets: yes']
+        expected = []
+        for name in import_fake.modules:
+            if name in import_fake.no_version_attribute:
+                expected.append('{}: yes'.format(name))
+            else:
+                expected.append('{}: 1.2.3'.format(name))
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('module, idx, expected', [
         ('colorama', 1, 'colorama: no'),
         ('cssutils', 6, 'cssutils: no'),
-        ('typing', 7, 'typing: no'),
     ])
     def test_missing_module(self, module, idx, expected, import_fake):
         """Test with a module missing.
@@ -414,33 +599,31 @@ class TestModuleVersions:
             idx: The index where the given text is expected.
             expected: The expected text.
         """
-        import_fake.exists[module] = False
+        import_fake.modules[module] = False
         assert version._module_versions()[idx] == expected
 
-    @pytest.mark.parametrize('value, expected', [
-        ('VERSION', ['sip: yes', 'colorama: 1.2.3', 'pypeg2: yes',
-                     'jinja2: yes', 'pygments: yes', 'yaml: yes',
-                     'cssutils: yes', 'typing: yes',
-                     'PyQt5.QtWebEngineWidgets: yes']),
-        ('SIP_VERSION_STR', ['sip: 1.2.3', 'colorama: yes', 'pypeg2: yes',
-                             'jinja2: yes', 'pygments: yes', 'yaml: yes',
-                             'cssutils: yes', 'typing: yes',
-                             'PyQt5.QtWebEngineWidgets: yes']),
-        (None, ['sip: yes', 'colorama: yes', 'pypeg2: yes', 'jinja2: yes',
-                'pygments: yes', 'yaml: yes', 'cssutils: yes', 'typing: yes',
-                'PyQt5.QtWebEngineWidgets: yes']),
+    @pytest.mark.parametrize('attribute, expected_modules', [
+        ('VERSION', ['colorama']),
+        ('SIP_VERSION_STR', ['sip']),
+        (None, []),
     ])
-    def test_version_attribute(self, value, expected, import_fake):
+    def test_version_attribute(self, attribute, expected_modules, import_fake):
         """Test with a different version attribute.
 
         VERSION is tested for old colorama versions, and None to make sure
         things still work if some package suddenly doesn't have __version__.
 
         Args:
-            value: The name of the version attribute.
+            attribute: The name of the version attribute.
             expected: The expected return value.
         """
-        import_fake.version_attribute = value
+        import_fake.version_attribute = attribute
+        expected = []
+        for name in import_fake.modules:
+            if name in expected_modules:
+                expected.append('{}: 1.2.3'.format(name))
+            else:
+                expected.append('{}: yes'.format(name))
         assert version._module_versions() == expected
 
     @pytest.mark.parametrize('name, has_version', [
@@ -451,6 +634,7 @@ class TestModuleVersions:
         ('pygments', True),
         ('yaml', True),
         ('cssutils', True),
+        ('attr', True),
     ])
     def test_existing_attributes(self, name, has_version):
         """Check if all dependencies have an expected __version__ attribute.
@@ -462,6 +646,8 @@ class TestModuleVersions:
             name: The name of the module to check.
             has_version: Whether a __version__ attribute is expected.
         """
+        if name == 'cssutils':
+            pytest.importorskip(name)
         module = importlib.import_module(name)
         assert hasattr(module, '__version__') == has_version
 
@@ -471,7 +657,7 @@ class TestModuleVersions:
         The aim of this test is to fail if that gets missing in some future
         version of sip.
         """
-        import sip
+        from qutebrowser.qt import sip
         assert isinstance(sip.SIP_VERSION_STR, str)
 
 
@@ -479,51 +665,58 @@ class TestOsInfo:
 
     """Tests for _os_info."""
 
+    @pytest.mark.fake_os('linux')
     def test_linux_fake(self, monkeypatch):
         """Test with a fake Linux.
 
         No args because osver is set to '' if the OS is linux.
         """
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'linux')
-        monkeypatch.setattr('qutebrowser.utils.version._release_info',
+        monkeypatch.setattr(version, '_release_info',
                             lambda: [('releaseinfo', 'Hello World')])
         ret = version._os_info()
         expected = ['OS Version: ', '',
                     '--- releaseinfo ---', 'Hello World']
         assert ret == expected
 
+    @pytest.mark.fake_os('windows')
     def test_windows_fake(self, monkeypatch):
         """Test with a fake Windows."""
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'win32')
-        monkeypatch.setattr('qutebrowser.utils.version.platform.win32_ver',
+        monkeypatch.setattr(version.platform, 'win32_ver',
                             lambda: ('eggs', 'bacon', 'ham', 'spam'))
         ret = version._os_info()
         expected = ['OS Version: eggs, bacon, ham, spam']
         assert ret == expected
 
+    @pytest.mark.fake_os('mac')
     @pytest.mark.parametrize('mac_ver, mac_ver_str', [
         (('x', ('', '', ''), 'y'), 'x, y'),
         (('', ('', '', ''), ''), ''),
         (('x', ('1', '2', '3'), 'y'), 'x, 1.2.3, y'),
     ])
-    def test_os_x_fake(self, monkeypatch, mac_ver, mac_ver_str):
-        """Test with a fake OS X.
+    def test_mac_fake(self, monkeypatch, mac_ver, mac_ver_str):
+        """Test with a fake macOS.
 
         Args:
             mac_ver: The tuple to set platform.mac_ver() to.
             mac_ver_str: The expected Mac version string in version._os_info().
         """
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform', 'darwin')
-        monkeypatch.setattr('qutebrowser.utils.version.platform.mac_ver',
-                            lambda: mac_ver)
+        monkeypatch.setattr(version.platform, 'mac_ver', lambda: mac_ver)
         ret = version._os_info()
         expected = ['OS Version: {}'.format(mac_ver_str)]
         assert ret == expected
 
-    def test_unknown_fake(self, monkeypatch):
-        """Test with a fake unknown sys.platform."""
-        monkeypatch.setattr('qutebrowser.utils.version.sys.platform',
-                            'toaster')
+    @pytest.mark.fake_os('posix')
+    def test_posix_fake(self, monkeypatch):
+        """Test with a fake posix platform."""
+        uname_tuple = ('PosixOS', 'localhost', '1.0', '1.0', 'i386', 'i386')
+        monkeypatch.setattr(version.platform, 'uname', lambda: uname_tuple)
+        ret = version._os_info()
+        expected = ['OS Version: PosixOS localhost 1.0 1.0 i386 i386']
+        assert ret == expected
+
+    @pytest.mark.fake_os('unknown')
+    def test_unknown_fake(self):
+        """Test with a fake unknown platform."""
         ret = version._os_info()
         expected = ['OS Version: ?']
         assert ret == expected
@@ -538,9 +731,14 @@ class TestOsInfo:
         """Make sure there are no exceptions with a real Windows."""
         version._os_info()
 
-    @pytest.mark.osx
-    def test_os_x_real(self):
-        """Make sure there are no exceptions with a real OS X."""
+    @pytest.mark.mac
+    def test_mac_real(self):
+        """Make sure there are no exceptions with a real macOS."""
+        version._os_info()
+
+    @pytest.mark.posix
+    def test_posix_real(self):
+        """Make sure there are no exceptions with a real posix."""
         version._os_info()
 
 
@@ -598,75 +796,148 @@ class FakeQSslSocket:
 
     Attributes:
         _version: What QSslSocket::sslLibraryVersionString() should return.
+        _support: Whether SSL is supported.
     """
 
-    def __init__(self, version=None):
+    def __init__(self, version=None, support=True):
         self._version = version
+        self._support = support
 
     def supportsSsl(self):
         """Fake for QSslSocket::supportsSsl()."""
-        return True
+        return self._support
 
     def sslLibraryVersionString(self):
         """Fake for QSslSocket::sslLibraryVersionString()."""
         if self._version is None:
-            raise AssertionError("Got called with version None!")
+            raise utils.Unreachable("Got called with version None!")
         return self._version
 
 
-@pytest.mark.parametrize(['git_commit', 'harfbuzz', 'frozen', 'style',
-                          'equal_qt', 'with_webkit'], [
-    (True, True, False, True, True, True),  # normal
-    (False, True, False, True, True, True),  # no git commit
-    (True, False, False, True, True, True),  # HARFBUZZ unset
-    (True, True, True, True, True, True),  # frozen
-    (True, True, True, False, True, True),  # no style
-    (True, True, False, True, False, True),  # different Qt
-    (True, True, False, True, True, False),  # no webkit
+@pytest.mark.parametrize('ua, expected', [
+    (None, 'unavailable'),  # No QWebEngineProfile
+    ('Mozilla/5.0', 'unknown'),
+    ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) '
+     'QtWebEngine/5.8.0 Chrome/53.0.2785.148 Safari/537.36', '53.0.2785.148'),
 ])
-def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
-                        with_webkit, stubs, monkeypatch):
+def test_chromium_version(monkeypatch, caplog, ua, expected):
+    if ua is None:
+        monkeypatch.setattr(version, 'QWebEngineProfile', None)
+    else:
+        class FakeWebEngineProfile:
+            def httpUserAgent(self):
+                return ua
+        monkeypatch.setattr(version, 'QWebEngineProfile', FakeWebEngineProfile)
+
+    with caplog.at_level(logging.ERROR):
+        assert version._chromium_version() == expected
+
+
+def test_chromium_version_unpatched(qapp):
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    assert version._chromium_version() not in ['', 'unknown', 'unavailable']
+
+
+@attr.s
+class VersionParams:
+
+    name = attr.ib()
+    git_commit = attr.ib(True)
+    frozen = attr.ib(False)
+    style = attr.ib(True)
+    with_webkit = attr.ib(True)
+    known_distribution = attr.ib(True)
+    ssl_support = attr.ib(True)
+
+
+@pytest.mark.parametrize('params', [
+    VersionParams('normal'),
+    VersionParams('no-git-commit', git_commit=False),
+    VersionParams('frozen', frozen=True),
+    VersionParams('no-style', style=False),
+    VersionParams('no-webkit', with_webkit=False),
+    VersionParams('unknown-dist', known_distribution=False),
+    VersionParams('no-ssl', ssl_support=False),
+], ids=lambda param: param.name)
+def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
+    class FakeWebEngineProfile:
+        def httpUserAgent(self):
+            return 'Toaster/4.0.4 Chrome/CHROMIUMVERSION Teapot/4.1.8'
+
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
         'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
         'qutebrowser.__version__': 'VERSION',
-        '_git_str': lambda: ('GIT COMMIT' if git_commit else None),
+        '_git_str': lambda: ('GIT COMMIT' if params.git_commit else None),
         'platform.python_implementation': lambda: 'PYTHON IMPLEMENTATION',
         'platform.python_version': lambda: 'PYTHON VERSION',
+        'sys.executable': 'EXECUTABLE PATH',
         'PYQT_VERSION_STR': 'PYQT VERSION',
-        'QT_VERSION_STR': 'QT VERSION',
-        'qVersion': (lambda:
-                     'QT VERSION' if equal_qt else 'QT RUNTIME VERSION'),
+        'earlyinit.qt_version': lambda: 'QT VERSION',
         '_module_versions': lambda: ['MODULE VERSION 1', 'MODULE VERSION 2'],
         '_pdfjs_version': lambda: 'PDFJS VERSION',
-        'qWebKitVersion': (lambda: 'WEBKIT VERSION') if with_webkit else None,
-        'QSslSocket': FakeQSslSocket('SSL VERSION'),
+        'QSslSocket': FakeQSslSocket('SSL VERSION', params.ssl_support),
         'platform.platform': lambda: 'PLATFORM',
         'platform.architecture': lambda: ('ARCHITECTURE', ''),
         '_os_info': lambda: ['OS INFO 1', 'OS INFO 2'],
-        'QApplication': (stubs.FakeQApplication(style='STYLE') if style else
+        '_path_info': lambda: {'PATH DESC': 'PATH NAME'},
+        'QApplication': (stubs.FakeQApplication(style='STYLE')
+                         if params.style else
                          stubs.FakeQApplication(instance=None)),
+        'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
+        'sql.version': lambda: 'SQLITE VERSION',
+        '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
     }
 
-    for attr, val in patches.items():
-        monkeypatch.setattr('qutebrowser.utils.version.' + attr, val)
+    substitutions = {
+        'git_commit': '\nGit commit: GIT COMMIT' if params.git_commit else '',
+        'style': '\nStyle: STYLE' if params.style else '',
+        'qt': 'QT VERSION',
+        'frozen': str(params.frozen),
+        'import_path': import_path,
+        'python_path': 'EXECUTABLE PATH',
+    }
 
-    monkeypatch.setenv('DESKTOP_SESSION', 'DESKTOP')
-
-    if harfbuzz:
-        monkeypatch.setenv('QT_HARFBUZZ', 'HARFBUZZ')
+    if params.with_webkit:
+        patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
+        patches['objects.backend'] = usertypes.Backend.QtWebKit
+        patches['QWebEngineProfile'] = None
+        substitutions['backend'] = 'new QtWebKit (WebKit WEBKIT VERSION)'
     else:
-        monkeypatch.delenv('QT_HARFBUZZ', raising=False)
+        monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
+        patches['objects.backend'] = usertypes.Backend.QtWebEngine
+        patches['QWebEngineProfile'] = FakeWebEngineProfile
+        substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
 
-    if frozen:
+    if params.known_distribution:
+        patches['distribution'] = lambda: version.DistributionInfo(
+            parsed=version.Distribution.arch, version=None,
+            pretty='LINUX DISTRIBUTION', id='arch')
+        substitutions['linuxdist'] = ('\nLinux distribution: '
+                                      'LINUX DISTRIBUTION (arch)')
+        substitutions['osinfo'] = ''
+    else:
+        patches['distribution'] = lambda: None
+        substitutions['linuxdist'] = ''
+        substitutions['osinfo'] = 'OS INFO 1\nOS INFO 2\n'
+
+    substitutions['ssl'] = 'SSL VERSION' if params.ssl_support else 'no'
+
+    for name, val in patches.items():
+        monkeypatch.setattr('qutebrowser.utils.version.' + name, val)
+
+    if params.frozen:
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
 
+    substitutions['uptime'] = "1:23:45"
+
     template = textwrap.dedent("""
-        qutebrowser vVERSION
-        {git_commit}
+        qutebrowser vVERSION{git_commit}
+        Backend: {backend}
+
         PYTHON IMPLEMENTATION: PYTHON VERSION
         Qt: {qt}
         PyQt: PYQT VERSION
@@ -674,28 +945,96 @@ def test_version_output(git_commit, harfbuzz, frozen, style, equal_qt,
         MODULE VERSION 1
         MODULE VERSION 2
         pdf.js: PDFJS VERSION
-        Webkit: {webkit}
-        Harfbuzz: {harfbuzz}
-        SSL: SSL VERSION
+        sqlite: SQLITE VERSION
+        QtNetwork SSL: {ssl}
         {style}
-        Platform: PLATFORM, ARCHITECTURE
-        Desktop: DESKTOP
+        Platform: PLATFORM, ARCHITECTURE{linuxdist}
         Frozen: {frozen}
         Imported from {import_path}
-        OS INFO 1
-        OS INFO 2
-    """.lstrip('\n'))
+        Using Python from {python_path}
+        Qt library executable path: QT PATH, data path: QT PATH
+        {osinfo}
+        Paths:
+        PATH DESC: PATH NAME
 
-    substitutions = {
-        'git_commit': 'Git commit: GIT COMMIT\n' if git_commit else '',
-        'style': '\nStyle: STYLE' if style else '',
-        'qt': ('QT VERSION' if equal_qt else
-               'QT RUNTIME VERSION (compiled QT VERSION)'),
-        'harfbuzz': 'HARFBUZZ' if harfbuzz else 'system',
-        'frozen': str(frozen),
-        'import_path': import_path,
-        'webkit': 'WEBKIT VERSION' if with_webkit else 'no'
-    }
+        Uptime: {uptime}
+    """.lstrip('\n'))
 
     expected = template.rstrip('\n').format(**substitutions)
     assert version.version() == expected
+
+
+def test_opengl_vendor(qapp):
+    """Simply call version.opengl_vendor() and see if it doesn't crash."""
+    pytest.importorskip("PyQt5.QtOpenGL")
+    return version.opengl_vendor()
+
+
+@pytest.fixture
+def pbclient(stubs):
+    http_stub = stubs.HTTPPostStub()
+    client = pastebin.PastebinClient(http_stub)
+    yield client
+    version.pastebin_url = None
+
+
+def test_pastebin_version(pbclient, message_mock, monkeypatch, qtbot):
+    """Test version.pastebin_version() sets the url."""
+    monkeypatch.setattr('qutebrowser.utils.version.version',
+                        lambda: "dummy")
+    monkeypatch.setattr('qutebrowser.utils.utils.log_clipboard', True)
+
+    version.pastebin_version(pbclient)
+    pbclient.success.emit("https://www.example.com/\n")
+
+    msg = message_mock.getmsg(usertypes.MessageLevel.info)
+    expected_text = "Version url https://www.example.com/ yanked to clipboard."
+    assert msg.text == expected_text
+    assert version.pastebin_url == "https://www.example.com/"
+
+
+def test_pastebin_version_twice(pbclient, monkeypatch):
+    """Test whether calling pastebin_version twice sends no data."""
+    monkeypatch.setattr('qutebrowser.utils.version.version',
+                        lambda: "dummy")
+
+    version.pastebin_version(pbclient)
+    pbclient.success.emit("https://www.example.com/\n")
+
+    pbclient.url = None
+    pbclient.data = None
+    version.pastebin_url = "https://www.example.org/"
+
+    version.pastebin_version(pbclient)
+    assert pbclient.url is None
+    assert pbclient.data is None
+    assert version.pastebin_url == "https://www.example.org/"
+
+
+def test_pastebin_version_error(pbclient, caplog, message_mock, monkeypatch):
+    """Test version.pastebin_version() with errors."""
+    monkeypatch.setattr('qutebrowser.utils.version.version',
+                        lambda: "dummy")
+
+    version.pastebin_url = None
+    with caplog.at_level(logging.ERROR):
+        version.pastebin_version(pbclient)
+        pbclient._client.error.emit("test")
+
+    assert version.pastebin_url is None
+
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    assert msg.text == "Failed to pastebin version info: test"
+
+
+def test_uptime(monkeypatch, qapp):
+    """Test _uptime runs and check if microseconds are dropped."""
+    launch_time = datetime.datetime(1, 1, 1, 1, 1, 1, 1)
+    monkeypatch.setattr(qapp, "launch_time", launch_time, raising=False)
+
+    class FakeDateTime(datetime.datetime):
+        now = lambda x=datetime.datetime(1, 1, 1, 1, 1, 1, 2): x
+    monkeypatch.setattr('datetime.datetime', FakeDateTime)
+
+    uptime_delta = version._uptime()
+    assert uptime_delta == datetime.timedelta(0)

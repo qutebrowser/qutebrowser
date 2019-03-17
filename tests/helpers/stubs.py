@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,17 +21,19 @@
 
 """Fake objects/stubs."""
 
-import collections
 from unittest import mock
+import contextlib
+import shutil
 
-from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject
+import attr
+from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl
+from PyQt5.QtGui import QIcon
 from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
                              QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget
+from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
-from qutebrowser.browser import browsertab, history
-from qutebrowser.config import configexc
-from qutebrowser.utils import usertypes, utils
+from qutebrowser.browser import browsertab, downloads
+from qutebrowser.utils import usertypes
 from qutebrowser.mainwindow import mainwindow
 
 
@@ -128,16 +130,6 @@ class FakeQApplication:
         self.activeWindow = lambda: active_window
 
 
-class FakeUrl:
-
-    """QUrl stub which provides .path(), isValid() and host()."""
-
-    def __init__(self, path=None, valid=True, host=None):
-        self.path = mock.Mock(return_value=path)
-        self.isValid = mock.Mock(returl_value=valid)
-        self.host = mock.Mock(returl_value=host)
-
-
 class FakeNetworkReply:
 
     """QNetworkReply stub which provides a Content-Disposition header."""
@@ -148,7 +140,7 @@ class FakeNetworkReply:
 
     def __init__(self, headers=None, url=None):
         if url is None:
-            url = FakeUrl()
+            url = QUrl()
         if headers is None:
             self.headers = {}
         else:
@@ -204,9 +196,9 @@ class FakeNetworkReply:
 def fake_qprocess():
     """Factory for a QProcess mock which has the QProcess enum values."""
     m = mock.Mock(spec=QProcess)
-    for attr in ['NormalExit', 'CrashExit', 'FailedToStart', 'Crashed',
+    for name in ['NormalExit', 'CrashExit', 'FailedToStart', 'Crashed',
                  'Timedout', 'WriteError', 'ReadError', 'UnknownError']:
-        setattr(m, attr, getattr(QProcess, attr))
+        setattr(m, name, getattr(QProcess, name))
     return m
 
 
@@ -222,24 +214,61 @@ class FakeWebTabScroller(browsertab.AbstractScroller):
         return self._pos_perc
 
 
+class FakeWebTabHistory(browsertab.AbstractHistory):
+
+    """Fake for Web{Kit,Engine}History."""
+
+    def __init__(self, tab, *, can_go_back, can_go_forward):
+        super().__init__(tab)
+        self._can_go_back = can_go_back
+        self._can_go_forward = can_go_forward
+
+    def can_go_back(self):
+        assert self._can_go_back is not None
+        return self._can_go_back
+
+    def can_go_forward(self):
+        assert self._can_go_forward is not None
+        return self._can_go_forward
+
+
+class FakeWebTabAudio(browsertab.AbstractAudio):
+
+    def is_muted(self):
+        return False
+
+    def is_recently_audible(self):
+        return False
+
+
+class FakeWebTabPrivate(browsertab.AbstractTabPrivate):
+
+    def shutdown(self):
+        pass
+
+
 class FakeWebTab(browsertab.AbstractTab):
 
     """Fake AbstractTab to use in tests."""
 
-    def __init__(self, url=FakeUrl(), title='', tab_id=0, *,
+    def __init__(self, url=QUrl(), title='', tab_id=0, *,
                  scroll_pos_perc=(0, 0),
                  load_status=usertypes.LoadStatus.success,
-                 progress=0):
-        super().__init__(win_id=0, mode_manager=None)
+                 progress=0, can_go_back=None, can_go_forward=None):
+        super().__init__(win_id=0, private=False)
         self._load_status = load_status
         self._title = title
         self._url = url
         self._progress = progress
+        self.history = FakeWebTabHistory(self, can_go_back=can_go_back,
+                                         can_go_forward=can_go_forward)
         self.scroller = FakeWebTabScroller(self, scroll_pos_perc)
+        self.audio = FakeWebTabAudio(self)
+        self.private_api = FakeWebTabPrivate(tab=self, mode_manager=None)
         wrapped = QWidget()
         self._layout.wrap(self, wrapped)
 
-    def url(self, requested=False):
+    def url(self, *, requested=False):
         assert not requested
         return self._url
 
@@ -251,6 +280,9 @@ class FakeWebTab(browsertab.AbstractTab):
 
     def load_status(self):
         return self._load_status
+
+    def icon(self):
+        return QIcon()
 
 
 class FakeSignal:
@@ -269,8 +301,7 @@ class FakeSignal:
     def __call__(self):
         if self._func is None:
             raise TypeError("'FakeSignal' object is not callable")
-        else:
-            return self._func()
+        return self._func()
 
     def connect(self, slot):
         """Connect the signal to a slot.
@@ -278,7 +309,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do some sanity
         checking on the slot.
         """
-        pass
 
     def disconnect(self, slot=None):
         """Disconnect the signal from a slot.
@@ -286,7 +316,6 @@ class FakeSignal:
         Currently does nothing, but could be improved to do some sanity
         checking on the slot and see if it actually got connected.
         """
-        pass
 
     def emit(self, *args):
         """Emit the signal.
@@ -294,29 +323,22 @@ class FakeSignal:
         Currently does nothing, but could be improved to do type checking based
         on a signature given to __init__.
         """
-        pass
 
 
-class FakeCmdUtils:
-
-    """Stub for cmdutils which provides a cmd_dict."""
-
-    def __init__(self, commands):
-        self.cmd_dict = commands
-
-
+@attr.s(frozen=True)
 class FakeCommand:
 
     """A simple command stub which has a description."""
 
-    def __init__(self, name='', desc='', hide=False, debug=False,
-                 deprecated=False, completion=None):
-        self.desc = desc
-        self.name = name
-        self.hide = hide
-        self.debug = debug
-        self.deprecated = deprecated
-        self.completion = completion
+    name = attr.ib('')
+    desc = attr.ib('')
+    hide = attr.ib(False)
+    debug = attr.ib(False)
+    deprecated = attr.ib(False)
+    completion = attr.ib(None)
+    maxsplit = attr.ib(None)
+    takes_count = attr.ib(lambda: False)
+    modes = attr.ib((usertypes.KeyMode.normal, ))
 
 
 class FakeTimer(QObject):
@@ -357,7 +379,9 @@ class FakeTimer(QObject):
     def isSingleShot(self):
         return self._singleshot
 
-    def start(self):
+    def start(self, interval=None):
+        if interval:
+            self._interval = interval
         self._started = True
 
     def stop(self):
@@ -376,10 +400,7 @@ class InstaTimer(QObject):
 
     timeout = pyqtSignal()
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-    def start(self):
+    def start(self, interval=None):
         self.timeout.emit()
 
     def setSingleShot(self, yes):
@@ -388,15 +409,9 @@ class InstaTimer(QObject):
     def setInterval(self, interval):
         pass
 
-
-class FakeConfigType:
-
-    """A stub to provide valid_values for typ attribute of a SettingValue."""
-
-    def __init__(self, *valid_values):
-        # normally valid_values would be a ValidValues, but for simplicity of
-        # testing this can be a simple list: [(val, desc), (val, desc), ...]
-        self.complete = lambda: [(val, '') for val in valid_values]
+    @staticmethod
+    def singleShot(_interval, fun):
+        fun()
 
 
 class StatusBarCommandStub(QLineEdit):
@@ -410,87 +425,8 @@ class StatusBarCommandStub(QLineEdit):
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
     def prefix(self):
         return self.text()[0]
-
-
-class ConfigStub(QObject):
-
-    """Stub for the config module.
-
-    Attributes:
-        data: The config data to return.
-    """
-
-    changed = pyqtSignal(str, str)
-
-    def __init__(self, parent=None):
-        """Constructor.
-
-        Args:
-            signal: The signal to use for self.changed.
-        """
-        super().__init__(parent)
-        self.data = {}
-
-    def __getitem__(self, name):
-        return self.section(name)
-
-    def section(self, name):
-        """Get a section from the config.
-
-        Args:
-            name: The section name to get.
-
-        Return:
-            The section as dict.
-        """
-        return self.data[name]
-
-    def get(self, sect, opt, raw=True):
-        """Get a value from the config."""
-        data = self.data[sect]
-        try:
-            return data[opt]
-        except KeyError:
-            raise configexc.NoOptionError(opt, sect)
-
-    def set(self, sect, opt, value):
-        """Set a value in the config."""
-        data = self.data[sect]
-        try:
-            data[opt] = value
-            self.changed.emit(sect, opt)
-        except KeyError:
-            raise configexc.NoOptionError(opt, sect)
-
-
-class KeyConfigStub:
-
-    """Stub for the key-config object."""
-
-    def __init__(self):
-        self.bindings = {}
-
-    def get_bindings_for(self, section):
-        return self.bindings.get(section)
-
-    def set_bindings_for(self, section, bindings):
-        self.bindings[section] = bindings
-
-    def get_reverse_bindings_for(self, section):
-        """Get a dict of commands to a list of bindings for the section."""
-        cmd_to_keys = collections.defaultdict(list)
-        for key, cmd in self.bindings[section].items():
-            # put special bindings last
-            if utils.is_special_key(key):
-                cmd_to_keys[cmd].append(key)
-            else:
-                cmd_to_keys[cmd].insert(0, key)
-        return cmd_to_keys
 
 
 class UrlMarkManagerStub(QObject):
@@ -513,8 +449,6 @@ class BookmarkManagerStub(UrlMarkManagerStub):
 
     """Stub for the bookmark-manager object."""
 
-    pass
-
 
 class QuickmarkManagerStub(UrlMarkManagerStub):
 
@@ -522,32 +456,6 @@ class QuickmarkManagerStub(UrlMarkManagerStub):
 
     def quickmark_del(self, key):
         self.delete(key)
-
-
-class WebHistoryStub(QObject):
-
-    """Stub for the web-history object."""
-
-    add_completion_item = pyqtSignal(history.Entry)
-    cleared = pyqtSignal()
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.history_dict = collections.OrderedDict()
-
-    def __iter__(self):
-        return iter(self.history_dict.values())
-
-    def __len__(self):
-        return len(self.history_dict)
-
-
-class HostBlockerStub:
-
-    """Stub for the host-blocker object."""
-
-    def __init__(self):
-        self.blocked_hosts = set()
 
 
 class SessionManagerStub:
@@ -560,17 +468,51 @@ class SessionManagerStub:
     def list_sessions(self):
         return self.sessions
 
+    def save_autosave(self):
+        pass
+
 
 class TabbedBrowserStub(QObject):
 
     """Stub for the tabbed-browser object."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.widget = TabWidgetStub()
+        self.shutting_down = False
+        self.loaded_url = None
+        self.cur_url = None
+
+    def on_tab_close_requested(self, idx):
+        del self.widget.tabs[idx]
+
+    def widgets(self):
+        return self.widget.tabs
+
+    def tabopen(self, url):
+        self.loaded_url = url
+
+    def load_url(self, url, *, newtab):
+        self.loaded_url = url
+
+    def current_url(self):
+        if self.current_url is None:
+            raise ValueError("current_url got called with cur_url None!")
+        return self.cur_url
+
+
+class TabWidgetStub(QObject):
+
+    """Stub for the tab-widget object."""
 
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.tabs = []
-        self.shutting_down = False
+        self._qtabbar = QTabBar()
+        self.index_of = None
+        self.current_index = None
 
     def count(self):
         return len(self.tabs)
@@ -581,8 +523,27 @@ class TabbedBrowserStub(QObject):
     def page_title(self, i):
         return self.tabs[i].title()
 
-    def on_tab_close_requested(self, idx):
-        del self.tabs[idx]
+    def tabBar(self):
+        return self._qtabbar
+
+    def indexOf(self, _tab):
+        if self.index_of is None:
+            raise ValueError("indexOf got called with index_of None!")
+        if self.index_of is RuntimeError:
+            raise RuntimeError
+        return self.index_of
+
+    def currentIndex(self):
+        if self.current_index is None:
+            raise ValueError("currentIndex got called with current_index "
+                             "None!")
+        return self.current_index
+
+    def currentWidget(self):
+        idx = self.currentIndex()
+        if idx == -1:
+            return None
+        return self.tabs[idx - 1]
 
 
 class ApplicationStub(QObject):
@@ -591,5 +552,89 @@ class ApplicationStub(QObject):
 
     new_window = pyqtSignal(mainwindow.MainWindow)
 
+
+class HTTPPostStub(QObject):
+
+    """A stub class for HTTPClient.
+
+    Attributes:
+        url: the last url send by post()
+        data: the last data send by post()
+    """
+
+    success = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.url = None
+        self.data = None
+
+    def post(self, url, data=None):
+        self.url = url
+        self.data = data
+
+
+class FakeDownloadItem(QObject):
+
+    """Mock browser.downloads.DownloadItem."""
+
+    finished = pyqtSignal()
+
+    def __init__(self, fileobj, name, parent=None):
+        super().__init__(parent)
+        self.fileobj = fileobj
+        self.name = name
+        self.successful = False
+
+
+class FakeDownloadManager:
+
+    """Mock browser.downloads.DownloadManager."""
+
+    def __init__(self, tmpdir):
+        self._tmpdir = tmpdir
+        self.downloads = []
+
+    @contextlib.contextmanager
+    def _open_fileobj(self, target):
+        """Ensure a DownloadTarget's fileobj attribute is available."""
+        if isinstance(target, downloads.FileDownloadTarget):
+            target.fileobj = open(target.filename, 'wb')
+            try:
+                yield target.fileobj
+            finally:
+                target.fileobj.close()
+        else:
+            yield target.fileobj
+
+    def get(self, url, target, **kwargs):
+        """Return a FakeDownloadItem instance with a fileobj.
+
+        The content is copied from the file the given url links to.
+        """
+        with self._open_fileobj(target):
+            download_item = FakeDownloadItem(target.fileobj, name=url.path())
+            with (self._tmpdir / url.path()).open('rb') as fake_url_file:
+                shutil.copyfileobj(fake_url_file, download_item.fileobj)
+        self.downloads.append(download_item)
+        return download_item
+
+
+class FakeHistoryProgress:
+
+    """Fake for a WebHistoryProgress object."""
+
     def __init__(self):
-        super().__init__()
+        self._started = False
+        self._finished = False
+        self._value = 0
+
+    def start(self, _text, _maximum):
+        self._started = True
+
+    def tick(self):
+        self._value += 1
+
+    def finish(self):
+        self._finished = True

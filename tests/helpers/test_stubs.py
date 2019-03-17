@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -36,8 +36,8 @@ def test_timeout(timer):
     func2 = mock.Mock()
     timer.timeout.connect(func)
     timer.timeout.connect(func2)
-    assert not func.called
-    assert not func2.called
+    func.assert_not_called()
+    func2.assert_not_called()
     timer.timeout.emit()
     func.assert_called_once_with()
     func2.assert_called_once_with()
@@ -49,7 +49,7 @@ def test_disconnect_all(timer):
     timer.timeout.connect(func)
     timer.timeout.disconnect()
     timer.timeout.emit()
-    assert not func.called
+    func.assert_not_called()
 
 
 def test_disconnect_one(timer):
@@ -58,7 +58,7 @@ def test_disconnect_one(timer):
     timer.timeout.connect(func)
     timer.timeout.disconnect(func)
     timer.timeout.emit()
-    assert not func.called
+    func.assert_not_called()
 
 
 def test_disconnect_all_invalid(timer):
@@ -74,8 +74,8 @@ def test_disconnect_one_invalid(timer):
     timer.timeout.connect(func1)
     with pytest.raises(TypeError):
         timer.timeout.disconnect(func2)
-    assert not func1.called
-    assert not func2.called
+    func1.assert_not_called()
+    func2.assert_not_called()
     timer.timeout.emit()
     func1.assert_called_once_with()
 

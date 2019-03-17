@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,9 +22,7 @@
 import os
 
 from PyQt5.QtCore import QUrl
-# pylint: disable=no-name-in-module,import-error,useless-suppression
-from PyQt5.QtWebEngineWidgets import QWebEngineView
-# pylint: enable=no-name-in-module,import-error,useless-suppression
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 
 from qutebrowser.browser import inspector
 
@@ -37,17 +35,31 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         super().__init__(parent)
         self.port = None
         view = QWebEngineView()
+        settings = view.settings()
+        settings.setAttribute(QWebEngineSettings.JavascriptEnabled, True)
         self._set_widget(view)
 
-    def inspect(self, _page):
-        """Set up the inspector."""
-        self._check_developer_extras()
+    def _inspect_old(self, page):
+        """Set up the inspector for Qt < 5.11."""
         try:
             port = int(os.environ['QTWEBENGINE_REMOTE_DEBUGGING'])
         except KeyError:
             raise inspector.WebInspectorError(
-                "Debugging is not set up correctly. Did you restart after "
-                "setting developer-extras?")
+                "QtWebEngine inspector is not enabled. See "
+                "'qutebrowser --help' for details.")
         url = QUrl('http://localhost:{}/'.format(port))
-        self._widget.load(url)
-        self.show()
+
+        if page is None:
+            self._widget.load(QUrl('about:blank'))
+        else:
+            self._widget.load(url)
+
+    def _inspect_new(self, page):
+        """Set up the inspector for Qt >= 5.11."""
+        self._widget.page().setInspectedPage(page)
+
+    def inspect(self, page):
+        try:
+            self._inspect_new(page)
+        except AttributeError:
+            self._inspect_old(page)

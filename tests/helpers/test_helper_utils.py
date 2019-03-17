@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -73,3 +73,8 @@ def test_partial_compare_not_equal(val1, val2, error):
 ])
 def test_pattern_match(pattern, value, expected):
     assert utils.pattern_match(pattern=pattern, value=value) == expected
+
+
+def test_nop_contextmanager():
+    with utils.nop_contextmanager():
+        pass

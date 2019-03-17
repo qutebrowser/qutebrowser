@@ -7,13 +7,9 @@ vim: ft=html fileencoding=utf-8 sts=4 sw=4 et:
     <head>
         <meta charset="utf-8">
         <title>{{ title }}</title>
-        {% if icon %}
-            <link rel='icon' type='image/png' href="{{ icon }}">
-        {% endif %}
         <style type="text/css">
             {% block style %}
             body {
-                background-color: #fff;
                 margin: 0;
                 padding: 0;
             }

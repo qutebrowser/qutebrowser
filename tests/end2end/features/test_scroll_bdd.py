@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,5 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
+
 import pytest_bdd as bdd
 bdd.scenarios('scroll.feature')
+
+
+@pytest.fixture(autouse=True)
+def turn_on_scroll_logging(quteproc):
+    """Make sure all scrolling changes are logged."""
+    quteproc.send_cmd(":debug-pyeval -q objreg.get('args')."
+                      "debug_flags.append('no-scroll-filtering')")

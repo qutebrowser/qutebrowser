@@ -19,8 +19,10 @@ Also note userscripts need to have the executable bit set (`chmod +x`) for
 qutebrowser to run them.
 
 To call a userscript, it needs to be stored in your data directory under
-`userscripts` (for example: `~/.local/share/qutebrowser/userscripts/myscript`), 
+`userscripts` (for example: `~/.local/share/qutebrowser/userscripts/myscript`),
 or just use an absolute path.
+
+NOTE: On Windows, only userscripts with `com`, `bat`, or `exe` extensions will be launched.
 
 Getting information
 -------------------
@@ -29,27 +31,27 @@ The following environment variables will be set when a userscript is launched:
 
 - `QUTE_MODE`: Either `hints` (started via hints) or `command` (started via
   command or key binding).
-- `QUTE_USER_AGENT`: The currently set user agent.
+- `QUTE_USER_AGENT`: The currently set user agent, if customized.
 - `QUTE_FIFO`: The FIFO or file to write commands to.
 - `QUTE_HTML`: Path of a file containing the HTML source of the current page.
 - `QUTE_TEXT`: Path of a file containing the plaintext of the current page.
 - `QUTE_CONFIG_DIR`: Path of the directory containing qutebrowser's configuration.
 - `QUTE_DATA_DIR`: Path of the directory containing qutebrowser's data.
 - `QUTE_DOWNLOAD_DIR`: Path of the downloads directory.
+- `QUTE_COMMANDLINE_TEXT`: Text currently in qutebrowser's command line.
 
 In `command` mode:
 
 - `QUTE_URL`: The current URL.
 - `QUTE_TITLE`: The title of the current page.
 - `QUTE_SELECTED_TEXT`: The text currently selected on the page.
-- `QUTE_SELECTED_HTML` The HTML currently selected on the page (not supported
-  with QtWebEngine).
+- `QUTE_COUNT`: The `count` from the spawn command running the userscript.
 
 In `hints` mode:
 
 - `QUTE_URL`: The URL selected via hints.
 - `QUTE_SELECTED_TEXT`: The plain text of the element selected via hints.
-- `QUTE_SELECTED_HTML` The HTML of the element selected via hints.
+- `QUTE_SELECTED_HTML`: The HTML of the element selected via hints.
 
 Sending commands
 ----------------
@@ -57,7 +59,7 @@ Sending commands
 Normal qutebrowser commands can be written to `$QUTE_FIFO` and will be
 executed.
 
-On Unix/OS X, this is a named pipe and commands written to it will get executed
+On Unix/macOS, this is a named pipe and commands written to it will get executed
 immediately.
 
 On Windows, this is a regular file, and the commands in it will be executed as
@@ -75,3 +77,11 @@ Opening the currently selected word on http://www.dict.cc/[dict.cc]:
 
 echo "open -t http://www.dict.cc/?s=$QUTE_SELECTED_TEXT" >> "$QUTE_FIFO"
 ----
+
+Libraries
+---------
+
+Some third-party libraries are available to make writing userscripts easier:
+
+- Python: https://github.com/hiway/python-qutescript[python-qutescript]
+- Node.js: https://www.npmjs.com/package/qutejs[qutejs]

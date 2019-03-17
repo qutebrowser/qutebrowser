@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,48 +17,82 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# pylint: disable=unused-import
+# pylint: disable=unused-import,wildcard-import,unused-wildcard-import
 
 """The qutebrowser test suite conftest file."""
 
 import os
 import sys
 import warnings
+import ctypes
+import ctypes.util
 
 import pytest
 import hypothesis
+from PyQt5.QtCore import qVersion, PYQT_VERSION
 
 pytest.register_assert_rewrite('helpers')
 
 from helpers import logfail
 from helpers.logfail import fail_on_logging
-from helpers.messagemock import message_mock
-from helpers.fixtures import *  # pylint: disable=wildcard-import
+from helpers.messagemock import message_mock, message_bridge
+from helpers.fixtures import *  # noqa: F403
+from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
+from qutebrowser.misc import objects
+from qutebrowser.qt import sip
+
+import qutebrowser.app  # To register commands
+
+
+ON_CI = 'CI' in os.environ
+_qute_scheme_handler = None
 
 
 # Set hypothesis settings
 hypothesis.settings.register_profile('default',
-                                     hypothesis.settings(strict=True))
-hypothesis.settings.load_profile('default')
+                                     hypothesis.settings(deadline=600))
+hypothesis.settings.register_profile('ci',
+                                     hypothesis.settings(deadline=None))
+hypothesis.settings.load_profile('ci' if ON_CI else 'default')
 
 
-def _apply_platform_markers(item):
+def _apply_platform_markers(config, item):
     """Apply a skip marker to a given item."""
     markers = [
-        ('posix', os.name != 'posix', "Requires a POSIX os"),
-        ('windows', os.name != 'nt', "Requires Windows"),
-        ('linux', not sys.platform.startswith('linux'), "Requires Linux"),
-        ('osx', sys.platform != 'darwin', "Requires OS X"),
-        ('not_osx', sys.platform == 'darwin', "Skipped on OS X"),
+        ('posix', not utils.is_posix, "Requires a POSIX os"),
+        ('windows', not utils.is_windows, "Requires Windows"),
+        ('linux', not utils.is_linux, "Requires Linux"),
+        ('mac', not utils.is_mac, "Requires macOS"),
+        ('not_mac', utils.is_mac, "Skipped on macOS"),
         ('not_frozen', getattr(sys, 'frozen', False),
-            "Can't be run when frozen"),
+         "Can't be run when frozen"),
         ('frozen', not getattr(sys, 'frozen', False),
-            "Can only run when frozen"),
-        ('ci', 'CI' not in os.environ, "Only runs on CI."),
+         "Can only run when frozen"),
+        ('ci', not ON_CI, "Only runs on CI."),
+        ('no_ci', ON_CI, "Skipped on CI."),
+        ('issue2478', utils.is_windows and config.webengine,
+         "Broken with QtWebEngine on Windows"),
+        ('issue3572',
+         (qtutils.version_check('5.10', compiled=False, exact=True) or
+          qtutils.version_check('5.10.1', compiled=False, exact=True)) and
+         config.webengine and 'TRAVIS' in os.environ,
+         "Broken with QtWebEngine with Qt 5.10 on Travis"),
+        ('qtbug60673',
+         qtutils.version_check('5.8') and
+         not qtutils.version_check('5.10') and
+         config.webengine,
+         "Broken on webengine due to "
+         "https://bugreports.qt.io/browse/QTBUG-60673"),
+        ('unicode_locale', sys.getfilesystemencoding() == 'ascii',
+         "Skipped because of ASCII locale"),
+        ('qtwebkit6021_skip',
+         version.qWebKitVersion and
+         version.qWebKitVersion() == '602.1',
+         "Broken on WebKit 602.1")
     ]
 
     for searched_marker, condition, default_reason in markers:
-        marker = item.get_marker(searched_marker)
+        marker = item.get_closest_marker(searched_marker)
         if not marker or not condition:
             continue
 
@@ -114,14 +148,15 @@ def pytest_collection_modifyitems(config, items):
                                        'test_conftest.py']
             if module_root_dir == 'end2end':
                 item.add_marker(pytest.mark.end2end)
-            elif os.environ.get('QUTE_BDD_WEBENGINE', ''):
-                deselected = True
 
-        _apply_platform_markers(item)
-        if item.get_marker('xfail_norun'):
+        _apply_platform_markers(config, item)
+        if list(item.iter_markers('xfail_norun')):
             item.add_marker(pytest.mark.xfail(run=False))
-        if item.get_marker('flaky_once'):
-            item.add_marker(pytest.mark.flaky(reruns=1))
+        if list(item.iter_markers('js_prompt')):
+            if config.webengine:
+                item.add_marker(pytest.mark.skipif(
+                    PYQT_VERSION <= 0x050700,
+                    reason='JS prompts are not supported with PyQt 5.7'))
 
         if deselected:
             deselected_items.append(item)
@@ -137,6 +172,17 @@ def pytest_ignore_collect(path):
     skip_bdd = hasattr(sys, 'frozen')
     rel_path = path.relto(os.path.dirname(__file__))
     return rel_path == os.path.join('end2end', 'features') and skip_bdd
+
+
+@pytest.fixture(scope='session')
+def qapp_args():
+    """Make QtWebEngine unit tests run on Qt 5.7.1.
+
+    See https://github.com/qutebrowser/qutebrowser/issues/3163
+    """
+    if qVersion() == '5.7.1':
+        return [sys.argv[0], '--disable-seccomp-filter-sandbox']
+    return []
 
 
 @pytest.fixture(scope='session')
@@ -160,10 +206,14 @@ def pytest_configure(config):
     webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', '')
     config.webengine = bool(webengine_arg or webengine_env)
     # Fail early if QtWebEngine is not available
-    # pylint: disable=no-name-in-module,unused-variable,useless-suppression
     if config.webengine:
         import PyQt5.QtWebEngineWidgets
-    # pylint: enable=no-name-in-module,unused-variable,useless-suppression
+
+    try:
+        # Added in sip 4.19.4
+        sip.enableoverflowchecking(True)
+    except AttributeError:
+        pass
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -173,8 +223,66 @@ def check_display(request):
             request.config.xvfb is not None):
         raise Exception("Xvfb is running on buildbot!")
 
-    if sys.platform == 'linux' and not os.environ.get('DISPLAY', ''):
+    if utils.is_linux and not os.environ.get('DISPLAY', ''):
         raise Exception("No display and no Xvfb available!")
+
+
+@pytest.fixture(autouse=True)
+def set_backend(monkeypatch, request):
+    """Make sure the backend global is set."""
+    if not request.config.webengine and version.qWebKitVersion:
+        backend = usertypes.Backend.QtWebKit
+    else:
+        backend = usertypes.Backend.QtWebEngine
+    monkeypatch.setattr(objects, 'backend', backend)
+
+
+@pytest.fixture(autouse=True)
+def apply_libgl_workaround():
+    """Make sure we load libGL early so QtWebEngine tests run properly."""
+    libgl = ctypes.util.find_library("GL")
+    if libgl is not None:
+        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
+
+
+@pytest.fixture(autouse=True)
+def apply_fake_os(monkeypatch, request):
+    fake_os = request.node.get_closest_marker('fake_os')
+    if not fake_os:
+        return
+
+    name = fake_os.args[0]
+    mac = False
+    windows = False
+    linux = False
+    posix = False
+
+    if name == 'unknown':
+        pass
+    elif name == 'mac':
+        mac = True
+        posix = True
+    elif name == 'windows':
+        windows = True
+    elif name == 'linux':
+        linux = True
+        posix = True
+    elif name == 'posix':
+        posix = True
+    else:
+        raise ValueError("Invalid fake_os {}".format(name))
+
+    monkeypatch.setattr('qutebrowser.utils.utils.is_mac', mac)
+    monkeypatch.setattr('qutebrowser.utils.utils.is_linux', linux)
+    monkeypatch.setattr('qutebrowser.utils.utils.is_windows', windows)
+    monkeypatch.setattr('qutebrowser.utils.utils.is_posix', posix)
+
+
+@pytest.fixture(scope='session', autouse=True)
+def check_yaml_c_exts():
+    """Make sure PyYAML C extensions are available on Travis."""
+    if 'TRAVIS' in os.environ:
+        from yaml import CLoader
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -186,21 +294,3 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
-
-
-@pytest.hookimpl(hookwrapper=True)
-def pytest_sessionfinish(exitstatus):
-    """Create a file to tell run_pytest.py how pytest exited."""
-    outcome = yield
-    outcome.get_result()
-
-    cache_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                             '..', '.cache')
-    try:
-        os.mkdir(cache_dir)
-    except FileExistsError:
-        pass
-
-    status_file = os.path.join(cache_dir, 'pytest_status')
-    with open(status_file, 'w', encoding='ascii') as f:
-        f.write(str(exitstatus))

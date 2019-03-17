@@ -61,10 +61,7 @@ li {
 {{ super() }}
 function tryagain()
 {
-    location.reload();
-}
-function searchFor(uri) {
-    location.href = uri;
+    location.href = {{ url|tojson }};
 }
 {% endblock %}
 
@@ -73,13 +70,13 @@ function searchFor(uri) {
 	<table>
 		<tr>
 			<td style="width: 10%; vertical-align: top;">
-				<img style="width: 100%; display: block; max-width: 256px;" src="{{ resource_url('img/broken_qutebrowser_logo.png') }}" />
+				<img style="width: 100%; display: block; max-width: 256px;" src="{{ data_url('img/broken_qutebrowser_logo.png') }}" />
 			</td>
 			<td style="padding-left: 40px;">
 				<h1>Unable to load page</h1>
-				Error while opening {{ url }}: <br>
+				Error while opening {{ url | default('page', true) }}<br>
 				<p id="error-message-text" style="color: #a31a1a;">{{ error }}</p><br><br>
-				
+
 				<form name="bl">
 					<input type="button" value="Try again" onclick="javascript:tryagain()" />
 				</form>

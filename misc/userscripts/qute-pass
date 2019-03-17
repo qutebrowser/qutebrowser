@@ -1,0 +1,213 @@
+#!/usr/bin/env python3
+
+# Copyright 2017 Chris Braun (cryzed) <cryzed@googlemail.com>
+#
+# This file is part of qutebrowser.
+#
+# qutebrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# qutebrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
+Insert login information using pass and a dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...). A short
+demonstration can be seen here: https://i.imgur.com/KN3XuZP.gif.
+"""
+
+USAGE = """The domain of the site has to appear as a segment in the pass path, for example: "github.com/cryzed" or
+"websites/github.com". How the username and password are determined is freely configurable using the CLI arguments. The
+login information is inserted by emulating key events using qutebrowser's fake-key command in this manner:
+[USERNAME]<Tab>[PASSWORD], which is compatible with almost all login forms.
+
+Suggested bindings similar to Uzbl's `formfiller` script:
+
+    config.bind('<z><l>', 'spawn --userscript qute-pass')
+    config.bind('<z><u><l>', 'spawn --userscript qute-pass --username-only')
+    config.bind('<z><p><l>', 'spawn --userscript qute-pass --password-only')
+    config.bind('<z><o><l>', 'spawn --userscript qute-pass --otp-only')
+"""
+
+EPILOG = """Dependencies: tldextract (Python 3 module), pass, pass-otp (optional).
+For issues and feedback please use: https://github.com/cryzed/qutebrowser-userscripts.
+
+WARNING: The login details are viewable as plaintext in qutebrowser's debug log (qute://log) and might be shared if
+you decide to submit a crash report!"""
+
+import argparse
+import enum
+import fnmatch
+import functools
+import os
+import re
+import shlex
+import subprocess
+import sys
+
+import tldextract
+
+argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epilog=EPILOG)
+argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
+argument_parser.add_argument('--password-store', '-p', default=os.path.expanduser('~/.password-store'),
+                             help='Path to your pass password-store')
+argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
+                             help='Regular expression that matches the username')
+argument_parser.add_argument('--username-target', '-U', choices=['path', 'secret'], default='path',
+                             help='The target for the username regular expression')
+argument_parser.add_argument('--password-pattern', '-P', default=r'(.*)',
+                             help='Regular expression that matches the password')
+argument_parser.add_argument('--dmenu-invocation', '-d', default='rofi -dmenu',
+                             help='Invocation used to execute a dmenu-provider')
+argument_parser.add_argument('--no-insert-mode', '-n', dest='insert_mode', action='store_false',
+                             help="Don't automatically enter insert mode")
+argument_parser.add_argument('--io-encoding', '-i', default='UTF-8',
+                             help='Encoding used to communicate with subprocesses')
+argument_parser.add_argument('--merge-candidates', '-m', action='store_true',
+                             help='Merge pass candidates for fully-qualified and registered domain name')
+group = argument_parser.add_mutually_exclusive_group()
+group.add_argument('--username-only', '-e', action='store_true', help='Only insert username')
+group.add_argument('--password-only', '-w', action='store_true', help='Only insert password')
+group.add_argument('--otp-only', '-o', action='store_true', help='Only insert OTP code')
+
+stderr = functools.partial(print, file=sys.stderr)
+
+
+class ExitCodes(enum.IntEnum):
+    SUCCESS = 0
+    FAILURE = 1
+    # 1 is automatically used if Python throws an exception
+    NO_PASS_CANDIDATES = 2
+    COULD_NOT_MATCH_USERNAME = 3
+    COULD_NOT_MATCH_PASSWORD = 4
+
+
+def qute_command(command):
+    with open(os.environ['QUTE_FIFO'], 'w') as fifo:
+        fifo.write(command + '\n')
+        fifo.flush()
+
+
+def find_pass_candidates(domain, password_store_path):
+    candidates = []
+    for path, directories, file_names in os.walk(password_store_path, followlinks=True):
+        secrets = fnmatch.filter(file_names, '*.gpg')
+        if not secrets:
+            continue
+
+        # Strip password store path prefix to get the relative pass path
+        pass_path = path[len(password_store_path) + 1:]
+        split_path = pass_path.split(os.path.sep)
+        for secret in secrets:
+            secret_base = os.path.splitext(secret)[0]
+            if domain not in (split_path + [secret_base]):
+                continue
+
+            candidates.append(os.path.join(pass_path, secret_base))
+    return candidates
+
+
+def _run_pass(command, encoding):
+    process = subprocess.run(command, stdout=subprocess.PIPE)
+    return process.stdout.decode(encoding).strip()
+
+
+def pass_(path, encoding):
+    return _run_pass(['pass', path], encoding)
+
+
+def pass_otp(path, encoding):
+    return _run_pass(['pass', 'otp', path], encoding)
+
+
+def dmenu(items, invocation, encoding):
+    command = shlex.split(invocation)
+    process = subprocess.run(command, input='\n'.join(items).encode(encoding), stdout=subprocess.PIPE)
+    return process.stdout.decode(encoding).strip()
+
+
+def fake_key_raw(text):
+    for character in text:
+        # Escape all characters by default, space requires special handling
+        sequence = '" "' if character == ' ' else '\{}'.format(character)
+        qute_command('fake-key {}'.format(sequence))
+
+
+def main(arguments):
+    if not arguments.url:
+        argument_parser.print_help()
+        return ExitCodes.FAILURE
+
+    extract_result = tldextract.extract(arguments.url)
+
+    # Expand potential ~ in paths, since this script won't be called from a shell that does it for us
+    password_store_path = os.path.expanduser(arguments.password_store)
+
+    # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
+    # the registered domain name and finally: the IPv4 address if that's what the URL represents
+    candidates = set()
+    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4]):
+        target_candidates = find_pass_candidates(target, password_store_path)
+        if not target_candidates:
+            continue
+
+        candidates.update(target_candidates)
+        if not arguments.merge_candidates:
+            break
+    else:
+        if not candidates:
+            stderr('No pass candidates for URL {!r} found!'.format(arguments.url))
+            return ExitCodes.NO_PASS_CANDIDATES
+
+    selection = candidates.pop() if len(candidates) == 1 else dmenu(sorted(candidates), arguments.dmenu_invocation,
+                                                                    arguments.io_encoding)
+    # Nothing was selected, simply return
+    if not selection:
+        return ExitCodes.SUCCESS
+
+    secret = pass_(selection, arguments.io_encoding)
+
+    # Match username
+    target = selection if arguments.username_target == 'path' else secret
+    match = re.search(arguments.username_pattern, target, re.MULTILINE)
+    if not match:
+        stderr('Failed to match username pattern on {}!'.format(arguments.username_target))
+        return ExitCodes.COULD_NOT_MATCH_USERNAME
+    username = match.group(1)
+
+    # Match password
+    match = re.match(arguments.password_pattern, secret)
+    if not match:
+        stderr('Failed to match password pattern on secret!')
+        return ExitCodes.COULD_NOT_MATCH_PASSWORD
+    password = match.group(1)
+
+    if arguments.username_only:
+        fake_key_raw(username)
+    elif arguments.password_only:
+        fake_key_raw(password)
+    elif arguments.otp_only:
+        otp = pass_otp(selection, arguments.io_encoding)
+        fake_key_raw(otp)
+    else:
+        # Enter username and password using fake-key and <Tab> (which seems to work almost universally), then switch
+        # back into insert-mode, so the form can be directly submitted by hitting enter afterwards
+        fake_key_raw(username)
+        qute_command('fake-key <Tab>')
+        fake_key_raw(password)
+
+    if arguments.insert_mode:
+        qute_command('enter-mode insert')
+
+    return ExitCodes.SUCCESS
+
+
+if __name__ == '__main__':
+    arguments = argument_parser.parse_args()
+    sys.exit(main(arguments))

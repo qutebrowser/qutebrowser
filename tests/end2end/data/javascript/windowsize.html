@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>window sizes</title>
+
+        <script>
+            function updateText(elem) {
+                var size = window.innerWidth + "/" + window.innerHeight;
+                document.getElementById(elem).textContent = size;
+                console.log(elem + " window size: " + size);
+            }
+
+             document.addEventListener("DOMContentLoaded",  function() {
+                 updateText("hidden");
+                 console.log("loaded");
+             });
+        </script>
+    </head>
+    <body>
+        <p>visible: <span id="visible">unknown</span></p>
+        <p>hidden: <span id="hidden">unknown</span></p>
+    </body>
+</html>

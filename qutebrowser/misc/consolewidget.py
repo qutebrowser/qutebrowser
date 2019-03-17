@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -50,9 +50,9 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
         Args:
             _namespace: The local namespace of the interpreter.
         """
-        super().__init__(parent)
-        self.update_font()
-        objreg.get('config').changed.connect(self.update_font)
+        super().__init__(parent=parent)
+        self._update_font()
+        config.instance.changed.connect(self._update_font)
         self._history = cmdhistory.History(parent=self)
         self.returnPressed.connect(self.on_return_pressed)
 
@@ -102,10 +102,10 @@ class ConsoleLineEdit(miscwidgets.CommandLineEdit):
         else:
             super().keyPressEvent(e)
 
-    @config.change_filter('fonts', 'debug-console')
-    def update_font(self):
+    @config.change_filter('fonts.debug_console')
+    def _update_font(self):
         """Set the correct font."""
-        self.setFont(config.get('fonts', 'debug-console'))
+        self.setFont(config.val.fonts.debug_console)
 
 
 class ConsoleTextEdit(QTextEdit):
@@ -116,17 +116,17 @@ class ConsoleTextEdit(QTextEdit):
         super().__init__(parent)
         self.setAcceptRichText(False)
         self.setReadOnly(True)
-        objreg.get('config').changed.connect(self.update_font)
-        self.update_font()
+        config.instance.changed.connect(self._update_font)
+        self._update_font()
         self.setFocusPolicy(Qt.ClickFocus)
 
     def __repr__(self):
         return utils.get_repr(self)
 
-    @config.change_filter('fonts', 'debug-console')
-    def update_font(self):
+    @config.change_filter('fonts.debug_console')
+    def _update_font(self):
         """Update font when config changed."""
-        self.setFont(config.get('fonts', 'debug-console'))
+        self.setFont(config.val.fonts.debug_console)
 
     def append_text(self, text):
         """Append new text and scroll output to bottom.
@@ -162,7 +162,7 @@ class ConsoleWidget(QWidget):
         namespace = {
             '__name__': '__console__',
             '__doc__': None,
-            'qApp': QApplication.instance(),
+            'q_app': QApplication.instance(),
             # We use parent as self here because the user "feels" the whole
             # console, not just the line edit.
             'self': parent,

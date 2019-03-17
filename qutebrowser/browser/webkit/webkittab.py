@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,62 +19,75 @@
 
 """Wrapper over our (QtWebKit) WebView."""
 
-import sys
+import re
 import functools
 import xml.etree.ElementTree
 
-from PyQt5.QtCore import (pyqtSlot, Qt, QEvent, QUrl, QPoint, QTimer, QSizeF,
-                          QSize)
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
 
-from qutebrowser.browser import browsertab
-from qutebrowser.browser.webkit import webview, tabhistory, webkitelem
-from qutebrowser.utils import qtutils, objreg, usertypes, utils, log
+from qutebrowser.browser import browsertab, shared
+from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
+                                        webkitsettings)
+from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+from qutebrowser.qt import sip
 
 
-def init():
-    """Initialize QtWebKit-specific modules."""
-    # FIXME:qtwebengine Move things we don't need with QtWebEngine here.
-    pass
+class WebKitAction(browsertab.AbstractAction):
+
+    """QtWebKit implementations related to web actions."""
+
+    action_class = QWebPage
+    action_base = QWebPage.WebAction
+
+    def exit_fullscreen(self):
+        raise browsertab.UnsupportedOperationError
+
+    def save_page(self):
+        """Save the current page."""
+        raise browsertab.UnsupportedOperationError
+
+    def show_source(self, pygments=False):
+        self._show_source_pygments()
 
 
 class WebKitPrinting(browsertab.AbstractPrinting):
 
     """QtWebKit implementations related to printing."""
 
-    def _do_check(self):
-        if not qtutils.check_print_compat():
-            # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-            raise browsertab.WebTabError(
-                "Printing on Qt < 5.3.0 on Windows is broken, please upgrade!")
-
     def check_pdf_support(self):
-        self._do_check()
+        pass
 
     def check_printer_support(self):
-        self._do_check()
+        pass
+
+    def check_preview_support(self):
+        pass
 
     def to_pdf(self, filename):
         printer = QPrinter()
         printer.setOutputFileName(filename)
         self.to_printer(printer)
 
-    def to_printer(self, printer):
+    def to_printer(self, printer, callback=None):
         self._widget.print(printer)
+        # Can't find out whether there was an error...
+        if callback is not None:
+            callback(True)
 
 
 class WebKitSearch(browsertab.AbstractSearch):
 
     """QtWebKit implementations related to searching on the page."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, tab, parent=None):
+        super().__init__(tab, parent)
         self._flags = QWebPage.FindFlags(0)
 
-    def _call_cb(self, callback, found):
+    def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
 
         Delays the call via a QTimer so the website is re-rendered in between.
@@ -82,38 +95,67 @@ class WebKitSearch(browsertab.AbstractSearch):
         Args:
             callback: What to call
             found: If the text was found
+            text: The text searched for
+            flags: The flags searched with
+            caller: Name of the caller.
         """
+        found_text = 'found' if found else "didn't find"
+        # Removing FindWrapsAroundDocument to get the same logging as with
+        # QtWebEngine
+        debug_flags = debug.qflags_key(
+            QWebPage, flags & ~QWebPage.FindWrapsAroundDocument,
+            klass=QWebPage.FindFlag)
+        if debug_flags != '0x0000':
+            flag_text = 'with flags {}'.format(debug_flags)
+        else:
+            flag_text = ''
+        log.webview.debug(' '.join([caller, found_text, text, flag_text])
+                          .strip())
         if callback is not None:
             QTimer.singleShot(0, functools.partial(callback, found))
 
+        self.finished.emit(found)
+
     def clear(self):
+        if self.search_displayed:
+            self.cleared.emit()
+        self.search_displayed = False
         # We first clear the marked text, then the highlights
         self._widget.findText('')
         self._widget.findText('', QWebPage.HighlightAllOccurrences)
 
-    def search(self, text, *, ignore_case=False, reverse=False,
-               result_cb=None):
-        flags = QWebPage.FindWrapsAroundDocument
-        if ignore_case == 'smart':
-            if not text.islower():
-                flags |= QWebPage.FindCaseSensitively
-        elif not ignore_case:
-            flags |= QWebPage.FindCaseSensitively
+    def search(self, text, *, ignore_case=usertypes.IgnoreCase.never,
+               reverse=False, result_cb=None):
+        # Don't go to next entry on duplicate search
+        if self.text == text and self.search_displayed:
+            log.webview.debug("Ignoring duplicate search request"
+                              " for {}".format(text))
+            return
+
+        # Clear old search results, this is done automatically on QtWebEngine.
+        self.clear()
+
+        self.text = text
+        self.search_displayed = True
+        self._flags = QWebPage.FindWrapsAroundDocument
+        if self._is_case_sensitive(ignore_case):
+            self._flags |= QWebPage.FindCaseSensitively
         if reverse:
-            flags |= QWebPage.FindBackward
+            self._flags |= QWebPage.FindBackward
         # We actually search *twice* - once to highlight everything, then again
         # to get a mark so we can navigate.
-        found = self._widget.findText(text, flags)
-        self._widget.findText(text, flags | QWebPage.HighlightAllOccurrences)
-        self.text = text
-        self._flags = flags
-        self._call_cb(result_cb, found)
+        found = self._widget.findText(text, self._flags)
+        self._widget.findText(text,
+                              self._flags | QWebPage.HighlightAllOccurrences)
+        self._call_cb(result_cb, found, text, self._flags, 'search')
 
     def next_result(self, *, result_cb=None):
+        self.search_displayed = True
         found = self._widget.findText(self.text, self._flags)
-        self._call_cb(result_cb, found)
+        self._call_cb(result_cb, found, self.text, self._flags, 'next_result')
 
     def prev_result(self, *, result_cb=None):
+        self.search_displayed = True
         # The int() here makes sure we get a copy of the flags.
         flags = QWebPage.FindFlags(int(self._flags))
         if flags & QWebPage.FindBackward:
@@ -121,7 +163,7 @@ class WebKitSearch(browsertab.AbstractSearch):
         else:
             flags |= QWebPage.FindBackward
         found = self._widget.findText(self.text, flags)
-        self._call_cb(result_cb, found)
+        self._call_cb(result_cb, found, self.text, flags, 'prev_result')
 
 
 class WebKitCaret(browsertab.AbstractCaret):
@@ -133,9 +175,10 @@ class WebKitCaret(browsertab.AbstractCaret):
         if mode != usertypes.KeyMode.caret:
             return
 
+        self.selection_enabled = self._widget.hasSelection()
+        self.selection_toggled.emit(self.selection_enabled)
         settings = self._widget.settings()
         settings.setAttribute(QWebSettings.CaretBrowsingEnabled, True)
-        self.selection_enabled = bool(self.selection())
 
         if self._widget.isVisible():
             # Sometimes the caret isn't immediately visible, but unfocusing
@@ -148,12 +191,12 @@ class WebKitCaret(browsertab.AbstractCaret):
             #
             # Note: We can't use hasSelection() here, as that's always
             # true in caret mode.
-            if not self.selection():
+            if not self.selection_enabled:
                 self._widget.page().currentFrame().evaluateJavaScript(
                     utils.read_file('javascript/position_caret.js'))
 
-    @pyqtSlot()
-    def _on_mode_left(self):
+    @pyqtSlot(usertypes.KeyMode)
+    def _on_mode_left(self, _mode):
         settings = self._widget.settings()
         if settings.testAttribute(QWebSettings.CaretBrowsingEnabled):
             if self.selection_enabled and self._widget.hasSelection():
@@ -197,11 +240,11 @@ class WebKitCaret(browsertab.AbstractCaret):
     def move_to_end_of_word(self, count=1):
         if not self.selection_enabled:
             act = [QWebPage.MoveToNextWord]
-            if sys.platform == 'win32':  # pragma: no cover
+            if utils.is_windows:  # pragma: no cover
                 act.append(QWebPage.MoveToPreviousChar)
         else:
             act = [QWebPage.SelectNextWord]
-            if sys.platform == 'win32':  # pragma: no cover
+            if utils.is_windows:  # pragma: no cover
                 act.append(QWebPage.SelectPreviousChar)
         for _ in range(count):
             for a in act:
@@ -210,11 +253,11 @@ class WebKitCaret(browsertab.AbstractCaret):
     def move_to_next_word(self, count=1):
         if not self.selection_enabled:
             act = [QWebPage.MoveToNextWord]
-            if sys.platform != 'win32':  # pragma: no branch
+            if not utils.is_windows:  # pragma: no branch
                 act.append(QWebPage.MoveToNextChar)
         else:
             act = [QWebPage.SelectNextWord]
-            if sys.platform != 'win32':  # pragma: no branch
+            if not utils.is_windows:  # pragma: no branch
                 act.append(QWebPage.SelectNextChar)
         for _ in range(count):
             for a in act:
@@ -300,32 +343,36 @@ class WebKitCaret(browsertab.AbstractCaret):
 
     def toggle_selection(self):
         self.selection_enabled = not self.selection_enabled
-        mainwindow = objreg.get('main-window', scope='window',
-                                window=self._win_id)
-        mainwindow.status.set_mode_active(usertypes.KeyMode.caret, True)
+        self.selection_toggled.emit(self.selection_enabled)
 
     def drop_selection(self):
         self._widget.triggerPageAction(QWebPage.MoveToNextChar)
 
-    def has_selection(self):
-        return self._widget.hasSelection()
+    def selection(self, callback):
+        callback(self._widget.selectedText())
 
-    def selection(self, html=False):
-        if html:
-            return self._widget.selectedHtml()
-        return self._widget.selectedText()
-
-    def follow_selected(self, *, tab=False):
-        if not self.has_selection():
-            return
+    def _follow_selected(self, *, tab=False):
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
             if tab:
-                self._tab.data.open_target = usertypes.ClickTarget.tab
-            self._tab.run_js_async(
-                'window.getSelection().anchorNode.parentNode.click()')
+                self._tab.data.override_target = usertypes.ClickTarget.tab
+            self._tab.run_js_async("""
+                const aElm = document.activeElement;
+                if (window.getSelection().anchorNode) {
+                    window.getSelection().anchorNode.parentNode.click();
+                } else if (aElm && aElm !== document.body) {
+                    aElm.click();
+                }
+            """)
         else:
-            selection = self.selection(html=True)
+            selection = self._widget.selectedHtml()
+            if not selection:
+                # Getting here may mean we crashed, but we can't do anything
+                # about that until this commit is released:
+                # https://github.com/annulen/webkit/commit/0e75f3272d149bc64899c161f150eb341a2417af
+                # TODO find a way to check if something is focused
+                self._follow_enter(tab)
+                return
             try:
                 selected_element = xml.etree.ElementTree.fromstring(
                     '<html>{}</html>'.format(selection)).find('a')
@@ -343,7 +390,13 @@ class WebKitCaret(browsertab.AbstractCaret):
                 if tab:
                     self._tab.new_tab_requested.emit(url)
                 else:
-                    self._tab.openurl(url)
+                    self._tab.load_url(url)
+
+    def follow_selected(self, *, tab=False):
+        try:
+            self._follow_selected(tab=tab)
+        finally:
+            self.follow_selected_done.emit()
 
 
 class WebKitZoom(browsertab.AbstractZoom):
@@ -352,9 +405,6 @@ class WebKitZoom(browsertab.AbstractZoom):
 
     def _set_factor_internal(self, factor):
         self._widget.setZoomFactor(factor)
-
-    def factor(self):
-        return self._widget.zoomFactor()
 
 
 class WebKitScroller(browsertab.AbstractScroller):
@@ -371,6 +421,9 @@ class WebKitScroller(browsertab.AbstractScroller):
 
     def to_point(self, point):
         self._widget.page().mainFrame().setScrollPosition(point)
+
+    def to_anchor(self, name):
+        self._widget.page().mainFrame().scrollToAnchor(name)
 
     def delta(self, x=0, y=0):
         qtutils.check_overflow(x, 'int')
@@ -400,29 +453,27 @@ class WebKitScroller(browsertab.AbstractScroller):
         else:
             for val, orientation in [(x, Qt.Horizontal), (y, Qt.Vertical)]:
                 if val is not None:
-                    val = qtutils.check_overflow(val, 'int', fatal=False)
                     frame = self._widget.page().mainFrame()
-                    m = frame.scrollBarMaximum(orientation)
-                    if m == 0:
+                    maximum = frame.scrollBarMaximum(orientation)
+                    if maximum == 0:
                         continue
-                    frame.setScrollBarValue(orientation, int(m * val / 100))
+                    pos = int(maximum * val / 100)
+                    pos = qtutils.check_overflow(pos, 'int', fatal=False)
+                    frame.setScrollBarValue(orientation, pos)
 
     def _key_press(self, key, count=1, getter_name=None, direction=None):
         frame = self._widget.page().mainFrame()
-        press_evt = QKeyEvent(QEvent.KeyPress, key, Qt.NoModifier, 0, 0, 0)
-        release_evt = QKeyEvent(QEvent.KeyRelease, key, Qt.NoModifier, 0, 0, 0)
         getter = None if getter_name is None else getattr(frame, getter_name)
 
         # FIXME:qtwebengine needed?
         # self._widget.setFocus()
 
-        for _ in range(count):
+        for _ in range(min(count, 5000)):
             # Abort scrolling if the minimum/maximum was reached.
             if (getter is not None and
                     frame.scrollBarValue(direction) == getter(direction)):
                 return
-            self._widget.keyPressEvent(press_evt)
-            self._widget.keyReleaseEvent(release_evt)
+            self._tab.fake_key_press(key)
 
     def up(self, count=1):
         self._key_press(Qt.Key_Up, count, 'scrollBarMinimum', Qt.Vertical)
@@ -457,32 +508,20 @@ class WebKitScroller(browsertab.AbstractScroller):
         return self.pos_px().y() >= frame.scrollBarMaximum(Qt.Vertical)
 
 
-class WebKitHistory(browsertab.AbstractHistory):
+class WebKitHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
-    """QtWebKit implementations related to page history."""
-
-    def current_idx(self):
-        return self._history.currentItemIndex()
-
-    def back(self):
-        self._history.back()
-
-    def forward(self):
-        self._history.forward()
-
-    def can_go_back(self):
-        return self._history.canGoBack()
-
-    def can_go_forward(self):
-        return self._history.canGoForward()
+    """History-related methods which are not part of the extension API."""
 
     def serialize(self):
         return qtutils.serialize(self._history)
 
     def deserialize(self, data):
-        return qtutils.deserialize(data, self._history)
+        qtutils.deserialize(data, self._history)
 
     def load_items(self, items):
+        if items:
+            self._tab.before_load_started.emit(items[-1].url)
+
         stream, _data, user_data = tabhistory.serialize(items)
         qtutils.deserialize_stream(stream, self._history)
         for i, data in enumerate(user_data):
@@ -497,11 +536,43 @@ class WebKitHistory(browsertab.AbstractHistory):
                     self._tab.scroller.to_point, cur_data['scroll-pos']))
 
 
+class WebKitHistory(browsertab.AbstractHistory):
+
+    """QtWebKit implementations related to page history."""
+
+    def __init__(self, tab):
+        super().__init__(tab)
+        self.private_api = WebKitHistoryPrivate(tab)
+
+    def __len__(self):
+        return len(self._history)
+
+    def __iter__(self):
+        return iter(self._history.items())
+
+    def current_idx(self):
+        return self._history.currentItemIndex()
+
+    def can_go_back(self):
+        return self._history.canGoBack()
+
+    def can_go_forward(self):
+        return self._history.canGoForward()
+
+    def _item_at(self, i):
+        return self._history.itemAt(i)
+
+    def _go_to_item(self, item):
+        self._tab.before_load_started.emit(item.url())
+        self._history.goToItem(item)
+
+
 class WebKitElements(browsertab.AbstractElements):
 
     """QtWebKit implemementations related to elements on the page."""
 
-    def find_css(self, selector, callback, *, only_visible=False):
+    def find_css(self, selector, callback, error_cb, *, only_visible=False):
+        utils.unused(error_cb)
         mainframe = self._widget.page().mainFrame()
         if mainframe is None:
             raise browsertab.WebTabError("No frame focused!")
@@ -521,11 +592,16 @@ class WebKitElements(browsertab.AbstractElements):
 
     def find_id(self, elem_id, callback):
         def find_id_cb(elems):
+            """Call the real callback with the found elements."""
             if not elems:
                 callback(None)
             else:
                 callback(elems[0])
-        self.find_css('#' + elem_id, find_id_cb)
+
+        # Escape non-alphanumeric characters in the selector
+        # https://www.w3.org/TR/CSS2/syndata.html#value-def-identifier
+        elem_id = re.sub(r'[^a-zA-Z0-9_-]', r'\\\g<0>', elem_id)
+        self.find_css('#' + elem_id, find_id_cb, error_cb=lambda exc: None)
 
     def find_focused(self, callback):
         frame = self._widget.page().currentFrame()
@@ -576,37 +652,82 @@ class WebKitElements(browsertab.AbstractElements):
         callback(elem)
 
 
+class WebKitAudio(browsertab.AbstractAudio):
+
+    """Dummy handling of audio status for QtWebKit."""
+
+    def set_muted(self, muted: bool, override: bool = False) -> None:
+        raise browsertab.WebTabError('Muting is not supported on QtWebKit!')
+
+    def is_muted(self):
+        return False
+
+    def is_recently_audible(self):
+        return False
+
+
+class WebKitTabPrivate(browsertab.AbstractTabPrivate):
+
+    """QtWebKit-related methods which aren't part of the public API."""
+
+    def networkaccessmanager(self):
+        return self._widget.page().networkAccessManager()
+
+    def user_agent(self):
+        page = self._widget.page()
+        return page.userAgentForUrl(self._tab.url())
+
+    def clear_ssl_errors(self):
+        self.networkaccessmanager().clear_all_ssl_errors()
+
+    def event_target(self):
+        return self._widget
+
+    def shutdown(self):
+        self._widget.shutdown()
+
+
 class WebKitTab(browsertab.AbstractTab):
 
     """A QtWebKit tab in the browser."""
 
-    WIDGET_CLASS = webview.WebView
-
-    def __init__(self, win_id, mode_manager, parent=None):
-        super().__init__(win_id=win_id, mode_manager=mode_manager,
-                         parent=parent)
-        widget = webview.WebView(win_id, self.tab_id, tab=self)
-        self.history = WebKitHistory(self)
-        self.scroller = WebKitScroller(self, parent=self)
-        self.caret = WebKitCaret(win_id=win_id, mode_manager=mode_manager,
+    def __init__(self, *, win_id, mode_manager, private, parent=None):
+        super().__init__(win_id=win_id, private=private, parent=parent)
+        widget = webview.WebView(win_id=win_id, tab_id=self.tab_id,
+                                 private=private, tab=self)
+        if private:
+            self._make_private(widget)
+        self.history = WebKitHistory(tab=self)
+        self.scroller = WebKitScroller(tab=self, parent=self)
+        self.caret = WebKitCaret(mode_manager=mode_manager,
                                  tab=self, parent=self)
-        self.zoom = WebKitZoom(win_id=win_id, parent=self)
-        self.search = WebKitSearch(parent=self)
-        self.printing = WebKitPrinting()
-        self.elements = WebKitElements(self)
+        self.zoom = WebKitZoom(tab=self, parent=self)
+        self.search = WebKitSearch(tab=self, parent=self)
+        self.printing = WebKitPrinting(tab=self)
+        self.elements = WebKitElements(tab=self)
+        self.action = WebKitAction(tab=self)
+        self.audio = WebKitAudio(tab=self, parent=self)
+        self.private_api = WebKitTabPrivate(mode_manager=mode_manager,
+                                            tab=self)
+        # We're assigning settings in _set_widget
+        self.settings = webkitsettings.WebKitSettings(settings=None)
         self._set_widget(widget)
         self._connect_signals()
-        self.zoom.set_default()
         self.backend = usertypes.Backend.QtWebKit
 
     def _install_event_filter(self):
         self._widget.installEventFilter(self._mouse_event_filter)
 
-    def openurl(self, url):
-        self._openurl_prepare(url)
-        self._widget.openurl(url)
+    def _make_private(self, widget):
+        settings = widget.settings()
+        settings.setAttribute(QWebSettings.PrivateBrowsingEnabled, True)
 
-    def url(self, requested=False):
+    def load_url(self, url, *, emit_before_load_started=True):
+        self._load_url_prepare(
+            url, emit_before_load_started=emit_before_load_started)
+        self._widget.load(url)
+
+    def url(self, *, requested=False):
         frame = self._widget.page().mainFrame()
         if requested:
             return frame.requestedUrl()
@@ -620,20 +741,16 @@ class WebKitTab(browsertab.AbstractTab):
         else:
             callback(frame.toHtml())
 
-    def run_js_async(self, code, callback=None):
-        result = self._widget.page().mainFrame().evaluateJavaScript(code)
+    def run_js_async(self, code, callback=None, *, world=None):
+        if world is not None and world != usertypes.JsWorld.jseval:
+            log.webview.warning("Ignoring world ID {}".format(world))
+        document_element = self._widget.page().mainFrame().documentElement()
+        result = document_element.evaluateJavaScript(code)
         if callback is not None:
             callback(result)
 
-    def has_js(self):
-        settings = QWebSettings.globalSettings()
-        return settings.testAttribute(QWebSettings.JavascriptEnabled)
-
     def icon(self):
         return self._widget.icon()
-
-    def shutdown(self):
-        self._widget.shutdown()
 
     def reload(self, *, force=False):
         if force:
@@ -648,18 +765,22 @@ class WebKitTab(browsertab.AbstractTab):
     def title(self):
         return self._widget.title()
 
-    def clear_ssl_errors(self):
-        nam = self._widget.page().networkAccessManager()
-        nam.clear_all_ssl_errors()
-
     @pyqtSlot()
     def _on_history_trigger(self):
         url = self.url()
         requested_url = self.url(requested=True)
-        self.add_history_item.emit(url, requested_url, self.title())
+        self.history_item_triggered.emit(url, requested_url, self.title())
 
-    def set_html(self, html, base_url):
+    def set_html(self, html, base_url=QUrl()):
         self._widget.setHtml(html, base_url)
+
+    @pyqtSlot()
+    def _on_load_started(self):
+        super()._on_load_started()
+        nam = self._widget.page().networkAccessManager()
+        nam.netrc_used = False
+        # Make sure the icon is cleared when navigating to a page without one.
+        self.icon_changed.emit(QIcon())
 
     @pyqtSlot()
     def _on_frame_load_finished(self):
@@ -667,26 +788,58 @@ class WebKitTab(browsertab.AbstractTab):
 
         While Qt has a bool "ok" attribute for loadFinished, it always is True
         when using error pages... See
-        https://github.com/The-Compiler/qutebrowser/issues/84
+        https://github.com/qutebrowser/qutebrowser/issues/84
         """
         self._on_load_finished(not self._widget.page().error_occurred)
 
     @pyqtSlot()
     def _on_webkit_icon_changed(self):
         """Emit iconChanged with a QIcon like QWebEngineView does."""
+        if sip.isdeleted(self._widget):
+            log.webview.debug("Got _on_webkit_icon_changed for deleted view!")
+            return
         self.icon_changed.emit(self._widget.icon())
 
     @pyqtSlot(QWebFrame)
     def _on_frame_created(self, frame):
         """Connect the contentsSizeChanged signal of each frame."""
         # FIXME:qtwebengine those could theoretically regress:
-        # https://github.com/The-Compiler/qutebrowser/issues/152
-        # https://github.com/The-Compiler/qutebrowser/issues/263
+        # https://github.com/qutebrowser/qutebrowser/issues/152
+        # https://github.com/qutebrowser/qutebrowser/issues/263
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
 
     @pyqtSlot(QSize)
     def _on_contents_size_changed(self, size):
         self.contents_size_changed.emit(QSizeF(size))
+
+    @pyqtSlot(usertypes.NavigationRequest)
+    def _on_navigation_request(self, navigation):
+        super()._on_navigation_request(navigation)
+        if not navigation.accepted:
+            return
+
+        log.webview.debug("target {} override {}".format(
+            self.data.open_target, self.data.override_target))
+
+        if self.data.override_target is not None:
+            target = self.data.override_target
+            self.data.override_target = None
+        else:
+            target = self.data.open_target
+
+        if (navigation.navigation_type == navigation.Type.link_clicked and
+                target != usertypes.ClickTarget.normal):
+            tab = shared.get_tab(self.win_id, target)
+            tab.load_url(navigation.url)
+            self.data.open_target = usertypes.ClickTarget.normal
+            navigation.accepted = False
+
+        if navigation.is_main_frame:
+            self.settings.update_for_url(navigation.url)
+
+    @pyqtSlot()
+    def _on_ssl_errors(self):
+        self._has_ssl_errors = True
 
     def _connect_signals(self):
         view = self._widget
@@ -706,7 +859,4 @@ class WebKitTab(browsertab.AbstractTab):
         page.frameCreated.connect(self._on_frame_created)
         frame.contentsSizeChanged.connect(self._on_contents_size_changed)
         frame.initialLayoutCompleted.connect(self._on_history_trigger)
-        page.link_clicked.connect(self._on_link_clicked)
-
-    def _event_target(self):
-        return self._widget
+        page.navigation_request.connect(self._on_navigation_request)

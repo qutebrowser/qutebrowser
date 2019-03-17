@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,24 +20,15 @@
 """Tests for qutebrowser.commands.argparser."""
 
 import inspect
+import enum
 
 import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import argparser, cmdexc
-from qutebrowser.utils import usertypes, objreg
 
 
-Enum = usertypes.enum('Enum', ['foo', 'foo_bar'])
-
-
-class FakeTabbedBrowser:
-
-    def __init__(self):
-        self.opened_url = None
-
-    def tabopen(self, url):
-        self.opened_url = url
+Enum = enum.Enum('Enum', ['foo', 'foo_bar'])
 
 
 class TestArgumentParser:
@@ -45,13 +36,6 @@ class TestArgumentParser:
     @pytest.fixture
     def parser(self):
         return argparser.ArgumentParser('foo')
-
-    @pytest.fixture
-    def tabbed_browser(self, win_registry):
-        tb = FakeTabbedBrowser()
-        objreg.register('tabbed-browser', tb, scope='window', window=0)
-        yield tb
-        objreg.delete('tabbed-browser', scope='window', window=0)
 
     def test_name(self, parser):
         assert parser.name == 'foo'
@@ -65,18 +49,18 @@ class TestArgumentParser:
         assert excinfo.value.status == 0
 
     def test_error(self, parser):
-        with pytest.raises(argparser.ArgumentParserError) as excinfo:
+        with pytest.raises(argparser.ArgumentParserError,
+                           match="Unrecognized arguments: --foo"):
             parser.parse_args(['--foo'])
-        assert str(excinfo.value) == "Unrecognized arguments: --foo"
 
-    def test_help(self, parser, tabbed_browser):
+    def test_help(self, parser, tabbed_browser_stubs):
         parser.add_argument('--help', action=argparser.HelpAction, nargs=0)
 
         with pytest.raises(argparser.ArgumentParserExit):
             parser.parse_args(['--help'])
 
         expected_url = QUrl('qute://help/commands.html#foo')
-        assert tabbed_browser.opened_url == expected_url
+        assert tabbed_browser_stubs[1].loaded_url == expected_url
 
 
 @pytest.mark.parametrize('types, value, expected', [
@@ -106,12 +90,6 @@ def test_type_conv_valid(types, value, expected, multi):
 def test_type_conv_invalid(typ, value, multi):
     param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
 
-    with pytest.raises(cmdexc.ArgumentTypeError) as excinfo:
-        if multi:
-            argparser.multitype_conv(param, [typ], value)
-        else:
-            argparser.type_conv(param, typ, value)
-
     if multi:
         msg = 'foo: Invalid value {}'.format(value)
     elif typ is Enum:
@@ -119,15 +97,19 @@ def test_type_conv_invalid(typ, value, multi):
                'foo-bar'.format(value))
     else:
         msg = 'foo: Invalid {} value {}'.format(typ.__name__, value)
-    assert str(excinfo.value) == msg
+
+    with pytest.raises(cmdexc.ArgumentTypeError, match=msg):
+        if multi:
+            argparser.multitype_conv(param, [typ], value)
+        else:
+            argparser.type_conv(param, typ, value)
 
 
 def test_multitype_conv_invalid_type():
     """Test using an invalid type with a multitype converter."""
     param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match="foo: Unknown type None!"):
         argparser.multitype_conv(param, [None], '')
-    assert str(excinfo.value) == "foo: Unknown type None!"
 
 
 @pytest.mark.parametrize('value, typ', [(None, None), (42, int)])
@@ -146,9 +128,8 @@ def test_conv_str_type():
     no string annotations are there anymore.
     """
     param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(TypeError, match='foo: Legacy string type!'):
         argparser.type_conv(param, 'val', None)
-    assert str(excinfo.value) == 'foo: Legacy string type!'
 
 
 def test_conv_str_choices_valid():
@@ -162,7 +143,6 @@ def test_conv_str_choices_valid():
 def test_conv_str_choices_invalid():
     """Calling str type with str_choices and invalid value."""
     param = inspect.Parameter('foo', inspect.Parameter.POSITIONAL_ONLY)
-    with pytest.raises(cmdexc.ArgumentTypeError) as excinfo:
+    with pytest.raises(cmdexc.ArgumentTypeError, match='foo: Invalid value '
+                       'val3 - expected one of: val1, val2'):
         argparser.type_conv(param, str, 'val3', str_choices=['val1', 'val2'])
-    msg = 'foo: Invalid value val3 - expected one of: val1, val2'
-    assert str(excinfo.value) == msg

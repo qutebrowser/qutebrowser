@@ -1,7 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Alexander Cogneau (acogneau) <alexander.cogneau@gmail.com>
-# Copyright 2015-2016 Florian Bruhin (The-Compiler) <me@the-compiler.org>
+# Copyright 2015-2019 Florian Bruhin (The-Compiler) <me@the-compiler.org>
+# Copyright 2015-2018 Alexander Cogneau (acogneau) <alexander.cogneau@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -20,15 +20,15 @@
 
 """Tests for misc.cmdhistory.History."""
 
+import unittest.mock
+
 import pytest
 
 from qutebrowser.misc import cmdhistory
+from qutebrowser.utils import objreg
 
 
 HISTORY = ['first', 'second', 'third', 'fourth', 'fifth']
-
-CONFIG_NOT_PRIVATE = {'general': {'private-browsing': False}}
-CONFIG_PRIVATE = {'general': {'private-browsing': True}}
 
 
 @pytest.fixture
@@ -84,27 +84,25 @@ def test_start_no_items(hist):
 
 def test_getitem(hist):
     """Test __getitem__."""
-    for i in range(0, len(HISTORY)):
-        assert hist[i] == HISTORY[i]
+    assert hist[0] == HISTORY[0]
 
 
 def test_setitem(hist):
     """Test __setitem__."""
-    with pytest.raises(TypeError) as excinfo:
+    with pytest.raises(TypeError, match="'History' object does not support "
+                                        "item assignment"):
         hist[0] = 'foo'
-    expected = "'History' object does not support item assignment"
-    assert str(excinfo.value) == expected
 
 
 def test_not_browsing_error(hist):
     """Test that next/previtem throws a ValueError."""
-    with pytest.raises(ValueError) as error1:
+    with pytest.raises(ValueError, match="Currently not browsing "
+                                         "history"):
         hist.nextitem()
-    assert str(error1.value) == "Currently not browsing history"
 
-    with pytest.raises(ValueError) as error2:
+    with pytest.raises(ValueError, match="Currently not browsing "
+                                         "history"):
         hist.previtem()
-    assert str(error2.value) == "Currently not browsing history"
 
 
 def test_nextitem_single(hist, monkeypatch):
@@ -130,14 +128,14 @@ def test_nextitem_previtem_chain(hist):
 
 
 def test_nextitem_index_error(hist):
-    """"Test nextitem() when _tmphist raises an IndexError."""
+    """Test nextitem() when _tmphist raises an IndexError."""
     hist.start('f')
     with pytest.raises(cmdhistory.HistoryEndReachedError):
         hist.nextitem()
 
 
 def test_previtem_index_error(hist):
-    """"Test previtem() when _tmphist raises an IndexError."""
+    """Test previtem() when _tmphist raises an IndexError."""
     hist.start('f')
     with pytest.raises(cmdhistory.HistoryEndReachedError):
         for _ in range(10):
@@ -146,35 +144,40 @@ def test_previtem_index_error(hist):
 
 def test_append_private_mode(hist, config_stub):
     """Test append in private mode."""
-    hist.handle_private_mode = True
-    # We want general.private-browsing set to True
-    config_stub.data = CONFIG_PRIVATE
+    hist._private = True
+    config_stub.val.content.private_browsing = True
     hist.append('new item')
     assert hist.history == HISTORY
 
 
-def test_append(hist, config_stub):
+def test_append(hist):
     """Test append outside private mode."""
-    # Private mode is disabled (general.private-browsing is set to False)
-    config_stub.data = CONFIG_NOT_PRIVATE
     hist.append('new item')
     assert 'new item' in hist.history
     hist.history.remove('new item')
     assert hist.history == HISTORY
 
 
-def test_append_empty_history(hist, config_stub):
+def test_append_empty_history(hist):
     """Test append when .history is empty."""
-    # Disable private mode
-    config_stub.data = CONFIG_NOT_PRIVATE
     hist.history = []
     hist.append('item')
     assert hist[0] == 'item'
 
 
-def test_append_double(hist, config_stub):
-    # Disable private mode
-    config_stub.data = CONFIG_NOT_PRIVATE
+def test_append_double(hist):
     hist.append('fifth')
     # assert that the new 'fifth' is not added
     assert hist.history[-2:] == ['fourth', 'fifth']
+
+
+@pytest.fixture
+def init_patch():
+    yield
+    objreg.delete('command-history')
+
+
+def test_init(init_patch, fake_save_manager, data_tmpdir, config_stub):
+    cmdhistory.init()
+    fake_save_manager.add_saveable.assert_any_call(
+        'command-history', unittest.mock.ANY, unittest.mock.ANY)

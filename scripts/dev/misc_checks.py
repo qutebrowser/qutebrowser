@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,9 +21,9 @@
 """Various small code checkers."""
 
 import os
+import os.path
 import re
 import sys
-import os.path
 import argparse
 import subprocess
 import tokenize
@@ -62,7 +62,8 @@ def check_git():
         print()
         return False
     untracked = []
-    gitst = subprocess.check_output(['git', 'status', '--porcelain'])
+    gitst = subprocess.run(['git', 'status', '--porcelain'], check=True,
+                           stdout=subprocess.PIPE).stdout
     gitst = gitst.decode('UTF-8').strip()
     for line in gitst.splitlines():
         s, name = line.split(maxsplit=1)
@@ -88,7 +89,8 @@ def check_spelling():
              '[Ww]ether', '[Pp]rogramatically', '[Ss]plitted', '[Ee]xitted',
              '[Mm]ininum', '[Rr]esett?ed', '[Rr]ecieved', '[Rr]egularily',
              '[Uu]nderlaying', '[Ii]nexistant', '[Ee]lipsis', 'commiting',
-             'existant', '[Rr]esetted'}
+             'existant', '[Rr]esetted', '[Ss]imilarily', '[Ii]nformations',
+             '[Aa]n [Uu][Rr][Ll]'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',

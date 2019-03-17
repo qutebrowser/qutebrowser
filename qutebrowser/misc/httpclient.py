@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,6 +26,21 @@ import urllib.parse
 from PyQt5.QtCore import pyqtSignal, QObject, QTimer
 from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
                              QNetworkReply)
+
+
+class HTTPRequest(QNetworkRequest):
+    """A QNetworkRquest that follows (secure) redirects by default."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            self.setAttribute(QNetworkRequest.RedirectPolicyAttribute,
+                              QNetworkRequest.NoLessSafeRedirectPolicy)
+        except AttributeError:
+            # RedirectPolicyAttribute was introduced in 5.9 to replace
+            # FollowRedirectsAttribute.
+            self.setAttribute(QNetworkRequest.FollowRedirectsAttribute,
+                              True)
 
 
 class HTTPClient(QObject):
@@ -63,7 +78,7 @@ class HTTPClient(QObject):
         if data is None:
             data = {}
         encoded_data = urllib.parse.urlencode(data).encode('utf-8')
-        request = QNetworkRequest(url)
+        request = HTTPRequest(url)
         request.setHeader(QNetworkRequest.ContentTypeHeader,
                           'application/x-www-form-urlencoded;charset=utf-8')
         reply = self._nam.post(request, encoded_data)
@@ -77,7 +92,7 @@ class HTTPClient(QObject):
         Args:
             url: The URL to access, as QUrl.
         """
-        request = QNetworkRequest(url)
+        request = HTTPRequest(url)
         reply = self._nam.get(request)
         self._handle_reply(reply)
 

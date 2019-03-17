@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -50,7 +50,7 @@ class RAMCookieJar(QNetworkCookieJar):
         Return:
             True if one or more cookies are set for 'url', otherwise False.
         """
-        if config.get('content', 'cookies-accept') == 'never':
+        if config.val.content.cookies.accept == 'never':
             return False
         else:
             self.changed.emit()
@@ -74,10 +74,10 @@ class CookieJar(RAMCookieJar):
             self._lineparser = lineparser.LineParser(
                 standarddir.data(), 'cookies', binary=True, parent=self)
         self.parse_cookies()
-        objreg.get('config').changed.connect(self.cookies_store_changed)
+        config.instance.changed.connect(self._on_cookies_store_changed)
         objreg.get('save-manager').add_saveable(
             'cookies', self.save, self.changed,
-            config_opt=('content', 'cookies-store'))
+            config_opt='content.cookies.store')
 
     def parse_cookies(self):
         """Parse cookies from lineparser and store them."""
@@ -105,10 +105,10 @@ class CookieJar(RAMCookieJar):
         self._lineparser.data = lines
         self._lineparser.save()
 
-    @config.change_filter('content', 'cookies-store')
-    def cookies_store_changed(self):
-        """Delete stored cookies if cookies-store changed."""
-        if not config.get('content', 'cookies-store'):
+    @config.change_filter('content.cookies.store')
+    def _on_cookies_store_changed(self):
+        """Delete stored cookies if cookies.store changed."""
+        if not config.val.content.cookies.store:
             self._lineparser.data = []
             self._lineparser.save()
             self.changed.emit()

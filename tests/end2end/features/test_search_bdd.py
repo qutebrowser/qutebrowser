@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,13 +17,27 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import pytest
+import json
+
 import pytest_bdd as bdd
 
 # pylint: disable=unused-import
 from end2end.features.test_yankpaste_bdd import init_fake_clipboard
+# pylint: enable=unused-import
+
+
+@bdd.then(bdd.parsers.parse('"{text}" should be found'))
+def check_found_text(request, quteproc, text):
+    if request.config.webengine:
+        # WORKAROUND
+        # This probably should work with Qt 5.9:
+        # https://codereview.qt-project.org/#/c/192920/
+        # https://codereview.qt-project.org/#/c/192921/
+        # https://bugreports.qt.io/browse/QTBUG-53134
+        return
+    quteproc.send_cmd(':yank selection')
+    quteproc.wait_for(message='Setting fake clipboard: {}'.format(
+        json.dumps(text)))
 
 
 bdd.scenarios('search.feature')
-
-pytestmark = pytest.mark.qtwebengine_skip("Searched text is not selected...")

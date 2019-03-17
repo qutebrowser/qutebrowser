@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,12 +21,13 @@
 
 import os
 import os.path
+import textwrap
 
-import yaml
+import attr
 import pytest
 import bs4
-import textwrap
-import collections
+
+from qutebrowser.utils import utils
 
 
 def collect_tests():
@@ -36,8 +37,11 @@ def collect_tests():
     return files
 
 
-ParsedFile = collections.namedtuple('ParsedFile', ['target',
-                                                   'qtwebengine_todo'])
+@attr.s
+class ParsedFile:
+
+    target = attr.ib()
+    qtwebengine_todo = attr.ib()
 
 
 class InvalidFile(Exception):
@@ -55,12 +59,13 @@ def _parse_file(test_name):
     with open(file_path, 'r', encoding='utf-8') as html:
         soup = bs4.BeautifulSoup(html, 'html.parser')
 
-    comment = soup.find(text=lambda text: isinstance(text, bs4.Comment))
+    comment = str(soup.find(text=lambda text: isinstance(text, bs4.Comment)))
 
     if comment is None:
         raise InvalidFile(test_name, "no comment found")
 
-    data = yaml.load(comment)
+    data = utils.yaml_load(comment)
+
     if not isinstance(data, dict):
         raise InvalidFile(test_name, "expected yaml dict but got {}".format(
             type(data).__name__))
@@ -68,8 +73,8 @@ def _parse_file(test_name):
     allowed_keys = {'target', 'qtwebengine_todo'}
     if not set(data.keys()).issubset(allowed_keys):
         raise InvalidFile(test_name, "expected keys {} but found {}".format(
-                          ', '.join(allowed_keys),
-                          ', '.join(set(data.keys()))))
+            ', '.join(allowed_keys),
+            ', '.join(set(data.keys()))))
 
     if 'target' not in data:
         raise InvalidFile(test_name, "'target' key not found")
@@ -86,7 +91,7 @@ def _parse_file(test_name):
 def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
                quteproc, request):
     if zoom_text_only and request.config.webengine:
-        pytest.skip("QtWebEngine doesn't have zoom-text-only")
+        pytest.skip("QtWebEngine doesn't have zoom.text_only")
     if find_implementation == 'python' and request.config.webengine:
         pytest.skip("QtWebEngine doesn't have a python find implementation")
 
@@ -99,22 +104,22 @@ def test_hints(test_name, zoom_text_only, zoom_level, find_implementation,
 
     # setup
     if not request.config.webengine:
-        quteproc.set_setting('ui', 'zoom-text-only', str(zoom_text_only))
-        quteproc.set_setting('hints', 'find-implementation',
-                             find_implementation)
+        quteproc.set_setting('zoom.text_only', str(zoom_text_only))
+        quteproc.set_setting('hints.find_implementation', find_implementation)
     quteproc.send_cmd(':zoom {}'.format(zoom_level))
     # follow hint
-    quteproc.send_cmd(':hint links normal')
+    quteproc.send_cmd(':hint all normal')
     quteproc.wait_for(message='hints: a', category='hints')
     quteproc.send_cmd(':follow-hint a')
     quteproc.wait_for_load_finished('data/' + parsed.target)
     # reset
     quteproc.send_cmd(':zoom 100')
     if not request.config.webengine:
-        quteproc.set_setting('ui', 'zoom-text-only', 'false')
-        quteproc.set_setting('hints', 'find-implementation', 'javascript')
+        quteproc.set_setting('zoom.text_only', 'false')
+        quteproc.set_setting('hints.find_implementation', 'javascript')
 
 
+@pytest.mark.skip  # Too flaky
 def test_word_hints_issue1393(quteproc, tmpdir):
     dict_file = tmpdir / 'dict'
     dict_file.write(textwrap.dedent("""
@@ -135,8 +140,8 @@ def test_word_hints_issue1393(quteproc, tmpdir):
         ('epsi', 'l33t.txt'),
     ]
 
-    quteproc.set_setting('hints', 'mode', 'word')
-    quteproc.set_setting('hints', 'dictionary', str(dict_file))
+    quteproc.set_setting('hints.mode', 'word')
+    quteproc.set_setting('hints.dictionary', str(dict_file))
 
     for hint, target in targets:
         quteproc.open_path('data/hints/issue1393.html')

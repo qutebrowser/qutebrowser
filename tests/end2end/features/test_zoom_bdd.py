@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,5 +24,6 @@ bdd.scenarios('zoom.feature')
 @bdd.then(bdd.parsers.parse("the zoom should be {zoom}%"))
 def check_zoom(quteproc, zoom):
     data = quteproc.get_session()
-    value = data['windows'][0]['tabs'][0]['history'][0]['zoom'] * 100
+    histories = data['windows'][0]['tabs'][0]['history']
+    value = next(h for h in histories if 'zoom' in h)['zoom'] * 100
     assert abs(value - float(zoom)) < 0.0001

@@ -1,15 +1,20 @@
 [flake8]
 exclude = .*,__pycache__,resources.py
+# B001: bare except
+# B008: Do not perform calls in argument defaults. (fine with some Qt stuff)
+# B305: .next() (false-positives)
 # E128: continuation line under-indented for visual indent
 # E226: missing whitespace around arithmetic operator
 # E265: Block comment should start with '#'
 # E501: Line too long
 # E402: module level import not at top of file
 # E266: too many leading '#' for block comment
+# E722: do not use bare except
 # E731: do not assign a lambda expression, use a def
 #       (for pytest's __tracebackhide__)
 # F401: Unused import
 # N802: function name should be lowercase
+# N806: variable in function should be lowercase
 # P101: format string does contain unindexed parameters
 # P102: docstring does contain unindexed parameters
 # P103: other string does contain unindexed parameters
@@ -17,36 +22,35 @@ exclude = .*,__pycache__,resources.py
 # D103: Missing docstring in public function (will be handled by others)
 # D104: Missing docstring in public package (will be handled by others)
 # D105: Missing docstring in magic method (will be handled by others)
+# D106: Missing docstring in public nested class (will be handled by others)
+# D107: Missing docstring in __init__ (will be handled by others)
 # D209: Blank line before closing """ (removed from PEP257)
 # D211: No blank lines allowed before class docstring
 #       (PEP257 got changed, but let's stick to the old standard)
+# D401: First line should be in imperative mood (okay sometimes)
 # D402: First line should not be function's signature (false-positives)
 # D403: First word of the first line should be properly capitalized
 #       (false-positives)
-# H101: Use TODO(NAME)
-# H201: bare except
-# H238: Use new-stule classes
-# H301: one import per line
-# H306: imports not in alphabetical order
+# D413: Missing blank line after last section (not in pep257?)
+# A003: Builtin name for class attribute (needed for overridden methods)
+# W504: line break after binary operator
 ignore =
-    E128,E226,E265,E501,E402,E266,E731,
+    B001,B008,B305,
+    E128,E226,E265,E501,E402,E266,E722,E731,
     F401,
     N802,
     P101,P102,P103,
-    D102,D103,D104,D105,D209,D211,D402,D403,
-    H101,H201,H238,H301,H306
+    D102,D103,D106,D107,D104,D105,D209,D211,D401,D402,D403,D413,
+    A003,
+    W504
 min-version = 3.4.0
 max-complexity = 12
-putty-auto-ignore = True
-putty-ignore =
-    /# pylint: disable=invalid-name/ : +N801,N806
-    /# pylint: disable=wildcard-import/ : +F403
-    /# pragma: no mccabe/ : +C901
-    tests/*/test_*.py : +D100,D101,D401
-    tests/unit/browser/webkit/test_history.py : +N806
-    tests/helpers/fixtures.py : +N806
-    tests/unit/browser/webkit/http/test_content_disposition.py : +D400
-    scripts/dev/ci/appveyor_install.py : +FI53
+per-file-ignores =
+    qutebrowser/api/hook.py : N801
+    tests/* : D100,D101
+    tests/unit/browser/test_history.py : D100,D101,N806
+    tests/helpers/fixtures.py : D100,D101,N806
+    tests/unit/browser/webkit/http/test_content_disposition.py : D100,D101,D400
 copyright-check = True
 copyright-regexp = # Copyright [\d-]+ .*
 copyright-min-file-size = 110

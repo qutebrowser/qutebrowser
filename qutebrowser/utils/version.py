@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Utilities to show various version informations."""
+"""Utilities to show various version information."""
 
 import re
 import sys
@@ -27,19 +27,93 @@ import platform
 import subprocess
 import importlib
 import collections
+import enum
+import datetime
+import getpass
 
-from PyQt5.QtCore import QT_VERSION_STR, PYQT_VERSION_STR, qVersion
+import attr
+import pkg_resources
+from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
 from PyQt5.QtNetwork import QSslSocket
+from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
+                         QOffscreenSurface)
 from PyQt5.QtWidgets import QApplication
 
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None
+    qWebKitVersion = None  # type: ignore  # noqa: N816
+
+try:
+    from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+except ImportError:  # pragma: no cover
+    QWebEngineProfile = None  # type: ignore
 
 import qutebrowser
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import log, utils, standarddir, usertypes, message
+from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin
 from qutebrowser.browser import pdfjs
+
+
+@attr.s
+class DistributionInfo:
+
+    """Information about the running distribution."""
+
+    id = attr.ib()
+    parsed = attr.ib()
+    version = attr.ib()
+    pretty = attr.ib()
+
+
+pastebin_url = None
+Distribution = enum.Enum(
+    'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
+                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
+
+
+def distribution():
+    """Get some information about the running Linux distribution.
+
+    Returns:
+        A DistributionInfo object, or None if no info could be determined.
+            parsed: A Distribution enum member
+            version: A Version object, or None
+            pretty: Always a string (might be "Unknown")
+    """
+    filename = os.environ.get('QUTE_FAKE_OS_RELEASE', '/etc/os-release')
+    info = {}
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if (not line) or line.startswith('#'):
+                    continue
+                k, v = line.split("=", maxsplit=1)
+                info[k] = v.strip('"')
+    except (OSError, UnicodeDecodeError):
+        return None
+
+    pretty = info.get('PRETTY_NAME', 'Unknown')
+    if pretty == 'Linux':  # Thanks, Funtoo
+        pretty = info.get('NAME', pretty)
+
+    if 'VERSION_ID' in info:
+        dist_version = pkg_resources.parse_version(info['VERSION_ID'])
+    else:
+        dist_version = None
+
+    dist_id = info.get('ID', None)
+    id_mappings = {
+        'funtoo': 'gentoo',  # does not have ID_LIKE=gentoo
+    }
+    try:
+        parsed = Distribution[id_mappings.get(dist_id, dist_id)]
+    except KeyError:
+        parsed = Distribution.unknown
+
+    return DistributionInfo(parsed=parsed, version=dist_version, pretty=pretty,
+                            id=dist_id)
 
 
 def _git_str():
@@ -80,19 +154,22 @@ def _git_str_subprocess(gitpath):
     if not os.path.isdir(os.path.join(gitpath, ".git")):
         return None
     try:
-        cid = subprocess.check_output(
-            ['git', 'describe', '--tags', '--dirty', '--always'],
-            cwd=gitpath).decode('UTF-8').strip()
-        date = subprocess.check_output(
+        # https://stackoverflow.com/questions/21017300/21017394#21017394
+        commit_hash = subprocess.run(
+            ['git', 'describe', '--match=NeVeRmAtCh', '--always', '--dirty'],
+            cwd=gitpath, check=True,
+            stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
+        date = subprocess.run(
             ['git', 'show', '-s', '--format=%ci', 'HEAD'],
-            cwd=gitpath).decode('UTF-8').strip()
-        return '{} ({})'.format(cid, date)
+            cwd=gitpath, check=True,
+            stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
+        return '{} ({})'.format(commit_hash, date)
     except (subprocess.CalledProcessError, OSError):
         return None
 
 
 def _release_info():
-    """Try to gather distribution release informations.
+    """Try to gather distribution release information.
 
     Return:
         list of (filename, content) tuples.
@@ -130,26 +207,46 @@ def _module_versions():
         ('pygments', ['__version__']),
         ('yaml', ['__version__']),
         ('cssutils', ['__version__']),
-        ('typing', []),
+        ('attr', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
+        ('PyQt5.QtWebKitWidgets', []),
     ])
-    for name, attributes in modules.items():
+    for modname, attributes in modules.items():
         try:
-            module = importlib.import_module(name)
+            module = importlib.import_module(modname)
         except ImportError:
-            text = '{}: no'.format(name)
+            text = '{}: no'.format(modname)
         else:
-            for attr in attributes:
+            for name in attributes:
                 try:
-                    text = '{}: {}'.format(name, getattr(module, attr))
+                    text = '{}: {}'.format(modname, getattr(module, name))
                 except AttributeError:
                     pass
                 else:
                     break
             else:
-                text = '{}: yes'.format(name)
+                text = '{}: yes'.format(modname)
         lines.append(text)
     return lines
+
+
+def _path_info():
+    """Get info about important path names.
+
+    Return:
+        A dictionary of descriptive to actual path names.
+    """
+    info = {
+        'config': standarddir.config(),
+        'data': standarddir.data(),
+        'cache': standarddir.cache(),
+        'runtime': standarddir.runtime(),
+    }
+    if standarddir.config() != standarddir.config(auto=True):
+        info['auto config'] = standarddir.config(auto=True)
+    if standarddir.data() != standarddir.data(system=True):
+        info['system data'] = standarddir.data(system=True)
+    return info
 
 
 def _os_info():
@@ -160,18 +257,20 @@ def _os_info():
     """
     lines = []
     releaseinfo = None
-    if sys.platform == 'linux':
+    if utils.is_linux:
         osver = ''
         releaseinfo = _release_info()
-    elif sys.platform == 'win32':
+    elif utils.is_windows:
         osver = ', '.join(platform.win32_ver())
-    elif sys.platform == 'darwin':
+    elif utils.is_mac:
         release, versioninfo, machine = platform.mac_ver()
         if all(not e for e in versioninfo):
             versioninfo = ''
         else:
             versioninfo = '.'.join(versioninfo)
         osver = ', '.join([e for e in [release, versioninfo, machine] if e])
+    elif utils.is_posix:
+        osver = ' '.join(platform.uname())
     else:
         osver = '?'
     lines.append('OS Version: {}'.format(osver))
@@ -194,7 +293,8 @@ def _pdfjs_version():
     else:
         pdfjs_file = pdfjs_file.decode('utf-8')
         version_re = re.compile(
-            r"^(PDFJS\.version|var pdfjsVersion) = '([^']+)';$", re.MULTILINE)
+            r"^ *(PDFJS\.version|var pdfjsVersion) = '([^']+)';$",
+            re.MULTILINE)
 
         match = version_re.search(pdfjs_file)
         if not match:
@@ -206,40 +306,99 @@ def _pdfjs_version():
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
+def _chromium_version():
+    """Get the Chromium version for QtWebEngine.
+
+    This can also be checked by looking at this file with the right Qt tag:
+    http://code.qt.io/cgit/qt/qtwebengine.git/tree/tools/scripts/version_resolver.py#n41
+
+    Quick reference:
+
+    Qt 5.7:  Chromium 49
+             49.0.2623.111 (2016-03-31)
+             5.7.1: Security fixes up to 54.0.2840.87 (2016-11-01)
+
+    Qt 5.8:  Chromium 53
+             53.0.2785.148 (2016-08-31)
+             5.8.0: Security fixes up to 55.0.2883.75 (2016-12-01)
+
+    Qt 5.9:  Chromium 56
+    (LTS)    56.0.2924.122 (2017-01-25)
+             5.9.7: Security fixes up to 69.0.3497.113 (2018-09-27)
+
+    Qt 5.10: Chromium 61
+             61.0.3163.140 (2017-09-05)
+             5.10.1: Security fixes up to 64.0.3282.140 (2018-02-01)
+
+    Qt 5.11: Chromium 65
+             65.0.3325.151 (.1: .230) (2018-03-06)
+             5.11.3: Security fixes up to 70.0.3538.102 (2018-11-09)
+
+    Qt 5.12: Chromium 69
+    (LTS)    69.0.3497.113 (2018-09-27)
+             5.12.1: Security fixes up to 71.0.3578.94 (2018-12-14)
+             5.12.2: Security fixes up to 72.0.3626.96 (2019-02-06)
+
+    Qt 5.13: (in development) Chromium 71 merged, 73 in review.
+
+    Also see https://www.chromium.org/developers/calendar
+    and https://chromereleases.googleblog.com/
+    """
+    if QWebEngineProfile is None:
+        # This should never happen
+        return 'unavailable'
+    profile = QWebEngineProfile()
+    ua = profile.httpUserAgent()
+    match = re.search(r' Chrome/([^ ]*) ', ua)
+    if not match:
+        log.misc.error("Could not get Chromium version from: {}".format(ua))
+        return 'unknown'
+    return match.group(1)
+
+
+def _backend():
+    """Get the backend line with relevant information."""
+    if objects.backend == usertypes.Backend.QtWebKit:
+        return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
+    else:
+        webengine = usertypes.Backend.QtWebEngine
+        assert objects.backend == webengine, objects.backend
+        return 'QtWebEngine (Chromium {})'.format(_chromium_version())
+
+
+def _uptime() -> datetime.timedelta:
+    launch_time = QApplication.instance().launch_time
+    time_delta = datetime.datetime.now() - launch_time
+    # Round off microseconds
+    time_delta -= datetime.timedelta(microseconds=time_delta.microseconds)
+    return time_delta
+
+
 def version():
-    """Return a string with various version informations."""
+    """Return a string with various version information."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
     gitver = _git_str()
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
 
-    if qVersion() != QT_VERSION_STR:
-        qt_version = 'Qt: {} (compiled {})'.format(qVersion(), QT_VERSION_STR)
-    else:
-        qt_version = 'Qt: {}'.format(qVersion())
+    lines.append("Backend: {}".format(_backend()))
 
     lines += [
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
-        qt_version,
+        'Qt: {}'.format(earlyinit.qt_version()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
         '',
     ]
 
     lines += _module_versions()
 
-    lines += ['pdf.js: {}'.format(_pdfjs_version())]
-
-    if qWebKitVersion is None:
-        lines.append('Webkit: no')
-    else:
-        lines.append('Webkit: {}'.format(qWebKitVersion()))
-
     lines += [
-        'Harfbuzz: {}'.format(os.environ.get('QT_HARFBUZZ', 'system')),
-        'SSL: {}'.format(QSslSocket.sslLibraryVersionString()),
-        '',
+        'pdf.js: {}'.format(_pdfjs_version()),
+        'sqlite: {}'.format(sql.version()),
+        'QtNetwork SSL: {}\n'.format(QSslSocket.sslLibraryVersionString()
+                                     if QSslSocket.supportsSsl() else 'no'),
     ]
 
     qapp = QApplication.instance()
@@ -252,9 +411,130 @@ def version():
     lines += [
         'Platform: {}, {}'.format(platform.platform(),
                                   platform.architecture()[0]),
-        'Desktop: {}'.format(os.environ.get('DESKTOP_SESSION')),
+    ]
+    dist = distribution()
+    if dist is not None:
+        lines += [
+            'Linux distribution: {} ({})'.format(dist.pretty, dist.parsed.name)
+        ]
+
+    lines += [
         'Frozen: {}'.format(hasattr(sys, 'frozen')),
         "Imported from {}".format(importpath),
+        "Using Python from {}".format(sys.executable),
+        "Qt library executable path: {}, data path: {}".format(
+            QLibraryInfo.location(QLibraryInfo.LibraryExecutablesPath),
+            QLibraryInfo.location(QLibraryInfo.DataPath)
+        )
     ]
-    lines += _os_info()
+
+    if not dist or dist.parsed == Distribution.unknown:
+        lines += _os_info()
+
+    lines += [
+        '',
+        'Paths:',
+    ]
+    for name, path in sorted(_path_info().items()):
+        lines += ['{}: {}'.format(name, path)]
+
+    lines += [
+        '',
+        'Uptime: {}'.format(_uptime()),
+    ]
+
     return '\n'.join(lines)
+
+
+def opengl_vendor():  # pragma: no cover
+    """Get the OpenGL vendor used.
+
+    This returns a string such as 'nouveau' or
+    'Intel Open Source Technology Center'; or None if the vendor can't be
+    determined.
+    """
+    assert QApplication.instance()
+
+    override = os.environ.get('QUTE_FAKE_OPENGL_VENDOR')
+    if override is not None:
+        log.init.debug("Using override {}".format(override))
+        return override
+
+    old_context = QOpenGLContext.currentContext()
+    old_surface = None if old_context is None else old_context.surface()
+
+    surface = QOffscreenSurface()
+    surface.create()
+
+    ctx = QOpenGLContext()
+    ok = ctx.create()
+    if not ok:
+        log.init.debug("Creating context failed!")
+        return None
+
+    ok = ctx.makeCurrent(surface)
+    if not ok:
+        log.init.debug("Making context current failed!")
+        return None
+
+    try:
+        if ctx.isOpenGLES():
+            # Can't use versionFunctions there
+            return None
+
+        vp = QOpenGLVersionProfile()
+        vp.setVersion(2, 0)
+
+        try:
+            vf = ctx.versionFunctions(vp)
+        except ImportError as e:
+            log.init.debug("Importing version functions failed: {}".format(e))
+            return None
+
+        if vf is None:
+            log.init.debug("Getting version functions failed!")
+            return None
+
+        return vf.glGetString(vf.GL_VENDOR)
+    finally:
+        ctx.doneCurrent()
+        if old_context and old_surface:
+            old_context.makeCurrent(old_surface)
+
+
+def pastebin_version(pbclient=None):
+    """Pastebin the version and log the url to messages."""
+    def _yank_url(url):
+        utils.set_clipboard(url)
+        message.info("Version url {} yanked to clipboard.".format(url))
+
+    def _on_paste_version_success(url):
+        global pastebin_url
+        url = url.strip()
+        _yank_url(url)
+        pbclient.deleteLater()
+        pastebin_url = url
+
+    def _on_paste_version_err(text):
+        message.error("Failed to pastebin version"
+                      " info: {}".format(text))
+        pbclient.deleteLater()
+
+    if pastebin_url:
+        _yank_url(pastebin_url)
+        return
+
+    app = QApplication.instance()
+    http_client = httpclient.HTTPClient()
+
+    misc_api = pastebin.PastebinClient.MISC_API_URL
+    pbclient = pbclient or pastebin.PastebinClient(http_client, parent=app,
+                                                   api_url=misc_api)
+
+    pbclient.success.connect(_on_paste_version_success)
+    pbclient.error.connect(_on_paste_version_err)
+
+    pbclient.paste(getpass.getuser(),
+                   "qute version info {}".format(qutebrowser.__version__),
+                   version(),
+                   private=True)

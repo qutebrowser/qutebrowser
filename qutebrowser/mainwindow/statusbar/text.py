@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,10 +19,12 @@
 
 """Text displayed in the statusbar."""
 
+import enum
+
 from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import log
 
 
 class Text(textbase.TextBase):
@@ -37,7 +39,7 @@ class Text(textbase.TextBase):
         available. If not, the permanent text is shown.
     """
 
-    Text = usertypes.enum('Text', ['normal', 'temp'])
+    Text = enum.Enum('Text', ['normal', 'temp'])
 
     def __init__(self, parent=None):
         super().__init__(parent)

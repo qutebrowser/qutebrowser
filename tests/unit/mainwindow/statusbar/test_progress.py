@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,15 +27,10 @@ from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
-def progress_widget(qtbot, monkeypatch, config_stub):
+def progress_widget(qtbot, config_stub):
     """Create a Progress widget and checks its initial state."""
-    config_stub.data = {
-        'colors': {'statusbar.progress.bg': 'black'},
-        'fonts': {},
-    }
-    monkeypatch.setattr(
-        'qutebrowser.mainwindow.statusbar.progress.style.config', config_stub)
     widget = Progress()
+    widget.enabled = True
     qtbot.add_widget(widget)
     assert not widget.isVisible()
     assert not widget.isTextVisible()
@@ -74,12 +69,18 @@ def test_tab_changed(fake_web_tab, progress_widget, progress, load_status,
     assert actual == expected
 
 
-def test_progress_affecting_statusbar_height(fake_statusbar, progress_widget):
+def test_progress_affecting_statusbar_height(config_stub, fake_statusbar,
+                                             progress_widget):
     """Make sure the statusbar stays the same height when progress is shown.
 
-    https://github.com/The-Compiler/qutebrowser/issues/886
-    https://github.com/The-Compiler/qutebrowser/pull/890
+    https://github.com/qutebrowser/qutebrowser/issues/886
+    https://github.com/qutebrowser/qutebrowser/pull/890
     """
+    # For some reason on Windows, with Courier, there's a 1px difference.
+    config_stub.val.fonts.statusbar = '8pt Monospace'
+
+    fake_statusbar.container.expose()
+
     expected_height = fake_statusbar.fontMetrics().height()
     assert fake_statusbar.height() == expected_height
 
@@ -92,7 +93,7 @@ def test_progress_affecting_statusbar_height(fake_statusbar, progress_widget):
 def test_progress_big_statusbar(qtbot, fake_statusbar, progress_widget):
     """Make sure the progress bar is small with a big statusbar.
 
-    https://github.com/The-Compiler/qutebrowser/commit/46d1760798b730852e2207e2cdc05a9308e44f80
+    https://github.com/qutebrowser/qutebrowser/commit/46d1760798b730852e2207e2cdc05a9308e44f80
     """
     fake_statusbar.hbox.addWidget(progress_widget)
     progress_widget.show()

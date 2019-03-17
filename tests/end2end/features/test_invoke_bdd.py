@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,4 +27,5 @@ def invoke_with(quteproc):
     quteproc.log_summary("Create a new window")
     quteproc.send_ipc([], target_arg='window')
     quteproc.wait_for(category='init', module='app',
-                      function='_open_startpage', message='Opening startpage')
+                      function='_open_startpage',
+                      message='Opening start pages')

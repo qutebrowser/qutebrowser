@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -26,12 +26,15 @@ It is intended to help discoverability of keybindings.
 
 import html
 import fnmatch
+import re
 
 from PyQt5.QtWidgets import QLabel, QSizePolicy
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
 
-from qutebrowser.config import config, style
-from qutebrowser.utils import objreg, utils, usertypes
+from qutebrowser.config import config
+from qutebrowser.utils import utils, usertypes
+from qutebrowser.misc import objects
+from qutebrowser.keyinput import keyutils
 
 
 class KeyHintView(QLabel):
@@ -42,38 +45,40 @@ class KeyHintView(QLabel):
         _win_id: Window ID of parent.
 
     Signals:
-        reposition_keyhint: Emitted when this widget should be resized.
+        update_geometry: Emitted when this widget should be resized/positioned.
     """
 
     STYLESHEET = """
         QLabel {
-            font: {{ font['keyhint'] }};
-            color: {{ color['keyhint.fg'] }};
-            background-color: {{ color['keyhint.bg'] }};
+            font: {{ conf.fonts.keyhint }};
+            color: {{ conf.colors.keyhint.fg }};
+            background-color: {{ conf.colors.keyhint.bg }};
             padding: 6px;
-            border-top-right-radius: 6px;
+            {% if conf.statusbar.position == 'top' %}
+                border-bottom-right-radius: {{ conf.keyhint.radius }}px;
+            {% else %}
+                border-top-right-radius: {{ conf.keyhint.radius }}px;
+            {% endif %}
         }
     """
-
-    reposition_keyhint = pyqtSignal()
+    update_geometry = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         self.setTextFormat(Qt.RichText)
         self._win_id = win_id
-        style.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
-        self._show_timer.setInterval(500)
         self._show_timer.timeout.connect(self.show)
+        config.set_register_stylesheet(self)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self._win_id)
 
     def showEvent(self, e):
         """Adjust the keyhint size when it's freshly shown."""
-        self.reposition_keyhint.emit()
+        self.update_geometry.emit()
         super().showEvent(e)
 
     @pyqtSlot(str)
@@ -83,33 +88,39 @@ class KeyHintView(QLabel):
         Args:
             prefix: The current partial keystring.
         """
+        countstr, prefix = re.fullmatch(r'(\d*)(.*)', prefix).groups()
         if not prefix:
             self._show_timer.stop()
             self.hide()
             return
 
-        blacklist = config.get('ui', 'keyhint-blacklist') or []
-        keyconf = objreg.get('key-config')
-
         def blacklisted(keychain):
             return any(fnmatch.fnmatchcase(keychain, glob)
-                       for glob in blacklist)
+                       for glob in config.val.keyhint.blacklist)
 
-        bindings = [(k, v) for (k, v)
-                    in keyconf.get_bindings_for(modename).items()
-                    if k.startswith(prefix) and not utils.is_special_key(k) and
-                    not blacklisted(k)]
+        def takes_count(cmdstr):
+            """Return true iff this command can take a count argument."""
+            cmdname = cmdstr.split(' ')[0]
+            cmd = objects.commands.get(cmdname)
+            return cmd and cmd.takes_count()
+
+        bindings_dict = config.key_instance.get_bindings_for(modename)
+        bindings = [(k, v) for (k, v) in sorted(bindings_dict.items())
+                    if keyutils.KeySequence.parse(prefix).matches(k) and
+                    not blacklisted(str(k)) and
+                    (takes_count(v) or not countstr)]
 
         if not bindings:
             self._show_timer.stop()
             return
 
         # delay so a quickly typed keychain doesn't display hints
+        self._show_timer.setInterval(config.val.keyhint.delay)
         self._show_timer.start()
-        suffix_color = html.escape(config.get('colors', 'keyhint.fg.suffix'))
+        suffix_color = html.escape(config.val.colors.keyhint.suffix.fg)
 
         text = ''
-        for key, cmd in bindings:
+        for seq, cmd in bindings:
             text += (
                 "<tr>"
                 "<td>{}</td>"
@@ -119,11 +130,11 @@ class KeyHintView(QLabel):
             ).format(
                 html.escape(prefix),
                 suffix_color,
-                html.escape(key[len(prefix):]),
+                html.escape(str(seq)[len(prefix):]),
                 html.escape(cmd)
             )
         text = '<table>{}</table>'.format(text)
 
         self.setText(text)
         self.adjustSize()
-        self.reposition_keyhint.emit()
+        self.update_geometry.emit()

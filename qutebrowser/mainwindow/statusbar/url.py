@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,17 +19,18 @@
 
 """URL displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot, pyqtProperty, Qt, QUrl
+import enum
 
-from qutebrowser.browser import browsertab
+from PyQt5.QtCore import pyqtSlot, pyqtProperty, QUrl
+
 from qutebrowser.mainwindow.statusbar import textbase
-from qutebrowser.config import style
-from qutebrowser.utils import usertypes
+from qutebrowser.config import config
+from qutebrowser.utils import usertypes, urlutils
 
 
 # Note this has entries for success/error/warn from widgets.webview:LoadStatus
-UrlType = usertypes.enum('UrlType', ['success', 'success_https', 'error',
-                                     'warn', 'hover', 'normal'])
+UrlType = enum.Enum('UrlType', ['success', 'success_https', 'error', 'warn',
+                                'hover', 'normal'])
 
 
 class UrlText(textbase.TextBase):
@@ -54,35 +55,34 @@ class UrlText(textbase.TextBase):
 
     STYLESHEET = """
         QLabel#UrlText[urltype="normal"] {
-            color: {{ color['statusbar.url.fg'] }};
+            color: {{ conf.colors.statusbar.url.fg }};
         }
 
         QLabel#UrlText[urltype="success"] {
-            color: {{ color['statusbar.url.fg.success'] }};
+            color: {{ conf.colors.statusbar.url.success.http.fg }};
         }
 
         QLabel#UrlText[urltype="success_https"] {
-            color: {{ color['statusbar.url.fg.success.https'] }};
+            color: {{ conf.colors.statusbar.url.success.https.fg }};
         }
 
         QLabel#UrlText[urltype="error"] {
-            color: {{ color['statusbar.url.fg.error'] }};
+            color: {{ conf.colors.statusbar.url.error.fg }};
         }
 
         QLabel#UrlText[urltype="warn"] {
-            color: {{ color['statusbar.url.fg.warn'] }};
+            color: {{ conf.colors.statusbar.url.warn.fg }};
         }
 
         QLabel#UrlText[urltype="hover"] {
-            color: {{ color['statusbar.url.fg.hover'] }};
+            color: {{ conf.colors.statusbar.url.hover.fg }};
         }
     """
 
     def __init__(self, parent=None):
-        """Override TextBase.__init__ to elide in the middle by default."""
-        super().__init__(parent, Qt.ElideMiddle)
+        super().__init__(parent)
         self.setObjectName(self.__class__.__name__)
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
         self._hover_url = None
         self._normal_url = None
         self._normal_url_type = UrlType.normal
@@ -110,21 +110,21 @@ class UrlText(textbase.TextBase):
         else:
             self.setText('')
             self._urltype = UrlType.normal
-        self.setStyleSheet(style.get_stylesheet(self.STYLESHEET))
+        config.set_register_stylesheet(self, update=False)
 
-    @pyqtSlot(str)
-    def on_load_status_changed(self, status_str):
+    @pyqtSlot(usertypes.LoadStatus)
+    def on_load_status_changed(self, status):
         """Slot for load_status_changed. Sets URL color accordingly.
 
         Args:
-            status_str: The LoadStatus as string.
+            status: The usertypes.LoadStatus.
         """
-        status = usertypes.LoadStatus[status_str]
+        assert isinstance(status, usertypes.LoadStatus), status
         if status in [usertypes.LoadStatus.success,
                       usertypes.LoadStatus.success_https,
                       usertypes.LoadStatus.error,
                       usertypes.LoadStatus.warn]:
-            self._normal_url_type = UrlType[status_str]
+            self._normal_url_type = UrlType[status.name]
         else:
             self._normal_url_type = UrlType.normal
         self._update_url()
@@ -138,8 +138,10 @@ class UrlText(textbase.TextBase):
         """
         if url is None:
             self._normal_url = None
+        elif not url.isValid():
+            self._normal_url = "Invalid URL!"
         else:
-            self._normal_url = url.toDisplayString()
+            self._normal_url = urlutils.safe_display_string(url)
         self._normal_url_type = UrlType.normal
         self._update_url()
 
@@ -156,17 +158,19 @@ class UrlText(textbase.TextBase):
         if link:
             qurl = QUrl(link)
             if qurl.isValid():
-                self._hover_url = qurl.toDisplayString()
+                self._hover_url = urlutils.safe_display_string(qurl)
             else:
-                self._hover_url = link
+                self._hover_url = '(invalid URL!) {}'.format(link)
         else:
             self._hover_url = None
         self._update_url()
 
-    @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Update URL if the tab changed."""
         self._hover_url = None
-        self._normal_url = tab.url().toDisplayString()
-        self.on_load_status_changed(tab.load_status().name)
+        if tab.url().isValid():
+            self._normal_url = urlutils.safe_display_string(tab.url())
+        else:
+            self._normal_url = ''
+        self.on_load_status_changed(tab.load_status())
         self._update_url()

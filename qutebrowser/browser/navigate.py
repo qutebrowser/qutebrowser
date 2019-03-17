@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,6 +24,7 @@ import posixpath
 from qutebrowser.browser import webelem
 from qutebrowser.config import config
 from qutebrowser.utils import objreg, urlutils, log, message, qtutils
+from qutebrowser.mainwindow import mainwindow
 
 
 class Error(Exception):
@@ -42,7 +43,7 @@ def incdec(url, count, inc_or_dec):
         background: Open the link in a new background tab.
         window: Open the link in a new window.
     """
-    segments = set(config.get('general', 'url-incdec-segments'))
+    segments = set(config.val.url.incdec_segments)
     try:
         new_url = urlutils.incdec_number(url, inc_or_dec, count,
                                          segments=segments)
@@ -63,6 +64,7 @@ def path_up(url, count):
         raise Error("Can't go up!")
     for _i in range(0, min(count, path.count('/'))):
         path = posixpath.join(path, posixpath.pardir)
+    path = posixpath.normpath(path)
     url.setPath(path)
     return url
 
@@ -70,21 +72,23 @@ def path_up(url, count):
 def _find_prevnext(prev, elems):
     """Find a prev/next element in the given list of elements."""
     # First check for <link rel="prev(ious)|next">
-    rel_values = ('prev', 'previous') if prev else ('next')
+    rel_values = {'prev', 'previous'} if prev else {'next'}
     for e in elems:
-        if e.tag_name() != 'link' or 'rel' not in e:
+        if e.tag_name() not in ['link', 'a'] or 'rel' not in e:
             continue
-        if e['rel'] in rel_values:
+        if set(e['rel'].split(' ')) & rel_values:
             log.hints.debug("Found {!r} with rel={}".format(e, e['rel']))
             return e
 
     # Then check for regular links/buttons.
-    filterfunc = webelem.FILTERS[webelem.Group.prevnext]
-    elems = [e for e in elems if e.tag_name() != 'link' and filterfunc(e)]
-    option = 'prev-regexes' if prev else 'next-regexes'
+    elems = [e for e in elems if e.tag_name() != 'link']
+    option = 'prev_regexes' if prev else 'next_regexes'
     if not elems:
         return None
-    for regex in config.get('hints', option):
+
+    # pylint: disable=bad-config-option
+    for regex in getattr(config.val.hints, option):
+        # pylint: enable=bad-config-option
         log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
         for e in elems:
             text = str(e)
@@ -116,28 +120,33 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         word = 'prev' if prev else 'forward'
 
         if elem is None:
-            message.error(win_id, "No {} links found!".format(word))
+            message.error("No {} links found!".format(word))
             return
         url = elem.resolve_url(baseurl)
         if url is None:
-            message.error(win_id, "No {} links found!".format(word))
+            message.error("No {} links found!".format(word))
             return
         qtutils.ensure_valid(url)
 
+        cur_tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window=win_id)
+
         if window:
-            from qutebrowser.mainwindow import mainwindow
-            new_window = mainwindow.MainWindow()
+            new_window = mainwindow.MainWindow(
+                private=cur_tabbed_browser.is_private)
             new_window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=new_window.win_id)
             tabbed_browser.tabopen(url, background=False)
         elif tab:
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=win_id)
-            tabbed_browser.tabopen(url, background=background)
+            cur_tabbed_browser.tabopen(url, background=background)
         else:
-            browsertab.openurl(url)
+            browsertab.load_url(url)
 
-    selector = ', '.join([webelem.SELECTORS[webelem.Group.links],
-                          webelem.SELECTORS[webelem.Group.prevnext]])
-    browsertab.elements.find_css(selector, _prevnext_cb)
+    try:
+        link_selector = webelem.css_selector('links', baseurl)
+    except webelem.Error as e:
+        raise Error(str(e))
+
+    browsertab.elements.find_css(link_selector, callback=_prevnext_cb,
+                                 error_cb=lambda err: message.error(str(err)))

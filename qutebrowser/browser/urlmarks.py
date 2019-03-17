@@ -1,7 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2015-2016 Antoni Boucher <bouanto@zoho.com>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Antoni Boucher <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
 #
@@ -27,14 +27,15 @@ to a file on shutdown, so it makes sense to keep them as strings here.
 
 import os
 import os.path
+import html
 import functools
 import collections
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
-                               standarddir, objreg)
-from qutebrowser.commands import cmdutils
+                               standarddir, objreg, log)
+from qutebrowser.api import cmdutils
 from qutebrowser.misc import lineparser
 
 
@@ -42,28 +43,20 @@ class Error(Exception):
 
     """Base class for all errors in this module."""
 
-    pass
-
 
 class InvalidUrlError(Error):
 
     """Exception emitted when a URL is invalid."""
-
-    pass
 
 
 class DoesNotExistError(Error):
 
     """Exception emitted when a given URL does not exist."""
 
-    pass
-
 
 class AlreadyExistsError(Error):
 
     """Exception emitted when a given URL does already exist."""
-
-    pass
 
 
 class UrlMarkManager(QObject):
@@ -72,28 +65,19 @@ class UrlMarkManager(QObject):
 
     Attributes:
         marks: An OrderedDict of all quickmarks/bookmarks.
-        _lineparser: The LineParser used for the marks, or None
-                     (when qutebrowser is started with -c '').
+        _lineparser: The LineParser used for the marks
 
     Signals:
         changed: Emitted when anything changed.
-        added: Emitted when a new quickmark/bookmark was added.
-        removed: Emitted when an existing quickmark/bookmark was removed.
     """
 
     changed = pyqtSignal()
-    added = pyqtSignal(str, str)
-    removed = pyqtSignal(str)
 
     def __init__(self, parent=None):
         """Initialize and read quickmarks."""
         super().__init__(parent)
 
         self.marks = collections.OrderedDict()
-        self._lineparser = None
-
-        if standarddir.config() is None:
-            return
 
         self._init_lineparser()
         for line in self._lineparser:
@@ -114,10 +98,8 @@ class UrlMarkManager(QObject):
 
     def save(self):
         """Save the marks to disk."""
-        if self._lineparser is not None:
-            self._lineparser.data = [' '.join(tpl)
-                                     for tpl in self.marks.items()]
-            self._lineparser.save()
+        self._lineparser.data = [' '.join(tpl) for tpl in self.marks.items()]
+        self._lineparser.save()
 
     def delete(self, key):
         """Delete a quickmark/bookmark.
@@ -127,7 +109,6 @@ class UrlMarkManager(QObject):
         """
         del self.marks[key]
         self.changed.emit()
-        self.removed.emit(key)
 
 
 class QuickmarkManager(UrlMarkManager):
@@ -139,7 +120,6 @@ class QuickmarkManager(UrlMarkManager):
         - self.marks maps names to URLs.
         - changed gets emitted with the name as first argument and the URL as
           second argument.
-        - removed gets emitted with the name as argument.
     """
 
     def _init_lineparser(self):
@@ -155,56 +135,56 @@ class QuickmarkManager(UrlMarkManager):
         try:
             key, url = line.rsplit(maxsplit=1)
         except ValueError:
-            message.error('current', "Invalid quickmark '{}'".format(line))
+            message.error("Invalid quickmark '{}'".format(line))
         else:
             self.marks[key] = url
 
-    def prompt_save(self, win_id, url):
+    def prompt_save(self, url):
         """Prompt for a new quickmark name to be added and add it.
 
         Args:
-            win_id: The current window ID.
             url: The quickmark url as a QUrl.
         """
         if not url.isValid():
-            urlutils.invalid_url_error(win_id, url, "save quickmark")
+            urlutils.invalid_url_error(url, "save quickmark")
             return
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         message.ask_async(
-            win_id, "Add quickmark:", usertypes.PromptMode.text,
-            functools.partial(self.quickmark_add, win_id, urlstr))
+            "Add quickmark:", usertypes.PromptMode.text,
+            functools.partial(self.quickmark_add, urlstr),
+            text="Please enter a quickmark name for<br/><b>{}</b>".format(
+                html.escape(url.toDisplayString())), url=urlstr)
 
     @cmdutils.register(instance='quickmark-manager')
-    @cmdutils.argument('win_id', win_id=True)
-    def quickmark_add(self, win_id, url, name):
+    def quickmark_add(self, url, name):
         """Add a new quickmark.
 
         You can view all saved quickmarks on the
         link:qute://bookmarks[bookmarks page].
 
         Args:
-            win_id: The window ID to display the errors in.
             url: The url to add as quickmark.
             name: The name for the new quickmark.
         """
-        # We don't raise cmdexc.CommandError here as this can be called async
+        # We don't raise cmdutils.CommandError here as this can be called async
         # via prompt_save.
         if not name:
-            message.error(win_id, "Can't set mark with empty name!")
+            message.error("Can't set mark with empty name!")
             return
         if not url:
-            message.error(win_id, "Can't set mark with empty URL!")
+            message.error("Can't set mark with empty URL!")
             return
 
         def set_mark():
             """Really set the quickmark."""
             self.marks[name] = url
             self.changed.emit()
-            self.added.emit(name, url)
+            log.misc.debug("Added quickmark {} for {}".format(name, url))
 
         if name in self.marks:
             message.confirm_async(
-                win_id, "Override existing quickmark?", set_mark, default=True)
+                title="Override existing quickmark?",
+                yes_action=set_mark, default=True, url=url)
         else:
             set_mark()
 
@@ -248,13 +228,11 @@ class BookmarkManager(UrlMarkManager):
         - self.marks maps URLs to titles.
         - changed gets emitted with the URL as first argument and the title as
           second argument.
-        - removed gets emitted with the URL as argument.
     """
 
     def _init_lineparser(self):
         bookmarks_directory = os.path.join(standarddir.config(), 'bookmarks')
-        if not os.path.isdir(bookmarks_directory):
-            os.makedirs(bookmarks_directory)
+        os.makedirs(bookmarks_directory, exist_ok=True)
 
         bookmarks_subdir = os.path.join('bookmarks', 'urls')
         self._lineparser = lineparser.LineParser(
@@ -293,12 +271,11 @@ class BookmarkManager(UrlMarkManager):
 
         if urlstr in self.marks:
             if toggle:
-                del self.marks[urlstr]
+                self.delete(urlstr)
                 return False
             else:
                 raise AlreadyExistsError("Bookmark already exists!")
         else:
             self.marks[urlstr] = title
             self.changed.emit()
-            self.added.emit(title, urlstr)
             return True

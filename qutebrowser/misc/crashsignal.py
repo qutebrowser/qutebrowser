@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,26 +20,36 @@
 """Handlers for crashes and OS signals."""
 
 import os
+import os.path
 import sys
 import bdb
-import pdb  # flake8: disable=T002
+import pdb  # noqa: T002
 import signal
 import functools
 import faulthandler
-import os.path
-import collections
+try:
+    # WORKAROUND for segfaults when using pdb in pytest for some reason...
+    import readline  # pylint: disable=unused-import
+except ImportError:
+    pass
 
+import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtWidgets import QApplication, QDialog
 
-from qutebrowser.commands import cmdutils
-from qutebrowser.misc import earlyinit, crashdialog
-from qutebrowser.utils import usertypes, standarddir, log, objreg, debug
+from qutebrowser.api import cmdutils
+from qutebrowser.misc import earlyinit, crashdialog, ipc
+from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 
 
-ExceptionInfo = collections.namedtuple('ExceptionInfo',
-                                       'pages, cmd_history, objects')
+@attr.s
+class ExceptionInfo:
+
+    """Information stored when there was an exception."""
+
+    pages = attr.ib()
+    cmd_history = attr.ib()
+    objects = attr.ib()
 
 
 # Used by mainwindow.py to skip confirm questions on crashes
@@ -72,10 +82,7 @@ class CrashHandler(QObject):
 
     def handle_segfault(self):
         """Handle a segfault from a previous run."""
-        data_dir = standarddir.data()
-        if data_dir is None:
-            return
-        logname = os.path.join(data_dir, 'crash.log')
+        logname = os.path.join(standarddir.data(), 'crash.log')
         try:
             # First check if an old logfile exists.
             if os.path.exists(logname):
@@ -86,7 +93,7 @@ class CrashHandler(QObject):
                 if data:
                     # Crashlog exists and has data in it, so something crashed
                     # previously.
-                    self._crash_dialog = crashdialog.get_fatal_crash_dialog(
+                    self._crash_dialog = crashdialog.FatalCrashDialog(
                         self._args.debug, data)
                     self._crash_dialog.show()
             else:
@@ -131,10 +138,7 @@ class CrashHandler(QObject):
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
         assert not self._args.no_err_windows
-        data_dir = standarddir.data()
-        if data_dir is None:
-            return
-        logname = os.path.join(data_dir, 'crash.log')
+        logname = os.path.join(standarddir.data(), 'crash.log')
         try:
             self._crash_log_file = open(logname, 'w', encoding='ascii')
         except OSError:
@@ -173,18 +177,18 @@ class CrashHandler(QObject):
         """Get info needed for the exception hook/dialog.
 
         Return:
-            An ExceptionInfo namedtuple.
+            An ExceptionInfo object.
         """
         try:
             pages = self._recover_pages(forgiving=True)
-        except Exception:
-            log.destroy.exception("Error while recovering pages")
+        except Exception as e:
+            log.destroy.exception("Error while recovering pages: {}".format(e))
             pages = []
 
         try:
             cmd_history = objreg.get('command-history')[-5:]
-        except Exception:
-            log.destroy.exception("Error while getting history: {}")
+        except Exception as e:
+            log.destroy.exception("Error while getting history: {}".format(e))
             cmd_history = []
 
         try:
@@ -201,7 +205,6 @@ class CrashHandler(QObject):
         gracefully.
         """
         exc = (exctype, excvalue, tb)
-        qapp = QApplication.instance()
 
         if not self._quitter.quit_status['crash']:
             log.misc.error("ARGH, there was an exception while the crash "
@@ -213,25 +216,18 @@ class CrashHandler(QObject):
         is_ignored_exception = (exctype is bdb.BdbQuit or
                                 not issubclass(exctype, Exception))
 
-        if self._args.pdb_postmortem:
+        if 'pdb-postmortem' in self._args.debug_flags:
             pdb.post_mortem(tb)
 
-        if is_ignored_exception or self._args.pdb_postmortem:
+        if is_ignored_exception or 'pdb-postmortem' in self._args.debug_flags:
             # pdb exit, KeyboardInterrupt, ...
-            status = 0 if is_ignored_exception else 2
-            try:
-                self._quitter.shutdown(status)
-                return
-            except Exception:
-                log.init.exception("Error while shutting down")
-                qapp.quit()
-                return
+            sys.exit(usertypes.Exit.exception)
 
         self._quitter.quit_status['crash'] = False
         info = self._get_exception_info()
 
         try:
-            objreg.get('ipc-server').ignored = True
+            ipc.server.ignored = True
         except Exception:
             log.destroy.exception("Error while ignoring ipc")
 
@@ -253,7 +249,7 @@ class CrashHandler(QObject):
                 self._args.debug, info.pages, info.cmd_history, exc,
                 info.objects)
             ret = self._crash_dialog.exec_()
-            if ret == QDialog.Accepted:  # restore
+            if ret == crashdialog.Result.restore:
                 self._quitter.restart(info.pages)
 
         # We might risk a segfault here, but that's better than continuing to
@@ -307,7 +303,7 @@ class SignalHandler(QObject):
         self._orig_handlers[signal.SIGTERM] = signal.signal(
             signal.SIGTERM, self.interrupt)
 
-        if os.name == 'posix' and hasattr(signal, 'set_wakeup_fd'):
+        if utils.is_posix and hasattr(signal, 'set_wakeup_fd'):
             # pylint: disable=import-error,no-member,useless-suppression
             import fcntl
             read_fd, write_fd = os.pipe()
@@ -318,6 +314,7 @@ class SignalHandler(QObject):
                                              self)
             self._notifier.activated.connect(self.handle_signal_wakeup)
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
+            # pylint: enable=import-error,no-member,useless-suppression
         else:
             self._timer.start(1000)
             self._timer.timeout.connect(lambda: None)

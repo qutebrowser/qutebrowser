@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,36 +17,52 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
+import json
+import logging
+import re
 
+import pytest
 import pytest_bdd as bdd
+
 bdd.scenarios('history.feature')
 
 
-@bdd.then(bdd.parsers.parse("the history file should contain:\n{expected}"))
-def check_history(quteproc, httpbin, expected):
-    history_file = os.path.join(quteproc.basedir, 'data', 'history')
-    quteproc.send_cmd(':save history')
-    quteproc.wait_for(message=':save saved history')
-
-    expected = expected.replace('(port)', str(httpbin.port)).splitlines()
-
-    with open(history_file, 'r', encoding='utf-8') as f:
-        lines = []
-        for line in f:
-            if not line.strip():
-                continue
-            print('history line: ' + line)
-            atime, line = line.split(' ', maxsplit=1)
-            line = line.rstrip()
-            if '-' in atime:
-                flags = atime.split('-')[1]
-                line = '{} {}'.format(flags, line)
-            lines.append(line)
-
-    assert lines == expected
+@pytest.fixture(autouse=True)
+def turn_on_sql_history(quteproc):
+    """Make sure SQL writing is enabled for tests in this module."""
+    quteproc.send_cmd(":debug-pyeval objreg.get('args')."
+                      "debug_flags.remove('no-sql-history')")
+    quteproc.wait_for_load_finished_url('qute://pyeval')
 
 
-@bdd.then("the history file should be empty")
-def check_history_empty(quteproc, httpbin):
-    check_history(quteproc, httpbin, '')
+@bdd.then(bdd.parsers.parse("the query parameter {name} should be set to "
+                            "{value}"))
+def check_query(quteproc, name, value):
+    """Check if a given query is set correctly.
+
+    This assumes we're on the server query page.
+    """
+    content = quteproc.get_content()
+    data = json.loads(content)
+    print(data)
+    assert data[name] == value
+
+
+@bdd.then(bdd.parsers.parse("the history should contain:\n{expected}"))
+def check_history(quteproc, server, tmpdir, expected):
+    path = tmpdir / 'history'
+    quteproc.send_cmd(':debug-dump-history "{}"'.format(path))
+    quteproc.wait_for(category='message', loglevel=logging.INFO,
+                      message='Dumped history to {}'.format(path))
+
+    with path.open('r', encoding='utf-8') as f:
+        # ignore access times, they will differ in each run
+        actual = '\n'.join(re.sub('^\\d+-?', '', line).strip() for line in f)
+
+    expected = expected.replace('(port)', str(server.port))
+    assert actual == expected
+
+
+@bdd.then("the history should be empty")
+def check_history_empty(quteproc, server, tmpdir):
+    check_history(quteproc, server, tmpdir, '')

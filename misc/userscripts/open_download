@@ -12,7 +12,7 @@
 #  - rofi (in a recent version)
 #  - xdg-open and xdg-mime
 #  - You should configure qutebrowser to download files to a single directory
-#  - It comes in handy if you enable remove-finished-downloads. If you want to
+#  - It comes in handy if you enable downloads.remove_finished. If you want to
 #    see the recent downloads, just press "sd".
 #
 # Thorsten Wißmann, 2015 (thorsten` on freenode)
@@ -52,7 +52,7 @@ die() {
 if ! [ -d "$DOWNLOAD_DIR" ] ; then
     die "Download directory »$DOWNLOAD_DIR« not found!"
 fi
-if ! which "${ROFI_CMD}" > /dev/null ; then
+if ! command -v "${ROFI_CMD}" > /dev/null ; then
     die "Rofi command »${ROFI_CMD}« not found in PATH!"
 fi
 
@@ -76,6 +76,7 @@ crop-first-column() {
 ls-files() {
     # add the slash at the end of the download dir enforces to follow the
     # symlink, if the DOWNLOAD_DIR itself is a symlink
+    # shellcheck disable=SC2010
     ls -Q --quoting-style escape    -h  -o -1 -A -t "${DOWNLOAD_DIR}/" \
         | grep '^[-]' \
         | cut -d' ' -f3- \
@@ -91,10 +92,10 @@ if [ "${#entries[@]}" -eq 0 ] ; then
     die "Download directory »${DOWNLOAD_DIR}« empty"
 fi
 
-line=$(printf "%s\n" "${entries[@]}"  \
+line=$(printf '%s\n' "${entries[@]}"  \
        | crop-first-column 55 \
        | column -s $'\t' -t \
-       | $ROFI_CMD "${rofi_default_args[@]}" $ROFI_ARGS) || true
+       | $ROFI_CMD "${rofi_default_args[@]}" "$ROFI_ARGS") || true
 if [ -z "$line" ];  then
     exit 0
 fi

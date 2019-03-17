@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,17 +21,21 @@
 
 import sys
 import enum
-import datetime
 import os.path
 import io
 import logging
 import functools
-import collections
 import socket
+import re
+import shlex
+import math
 
-from PyQt5.QtCore import Qt
+import attr
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard
 import pytest
+import hypothesis
+from hypothesis import strategies
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
@@ -116,7 +120,7 @@ class TestElidingFilenames:
 def freezer(request, monkeypatch):
     if request.param and not getattr(sys, 'frozen', False):
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
-        monkeypatch.setattr('sys.executable', qutebrowser.__file__)
+        monkeypatch.setattr(sys, 'executable', qutebrowser.__file__)
     elif not request.param and getattr(sys, 'frozen', False):
         # Want to test unfrozen tests, but we are frozen
         pytest.skip("Can't run with sys.frozen = True!")
@@ -131,6 +135,14 @@ class TestReadFile:
         """Read a test file."""
         content = utils.read_file(os.path.join('utils', 'testfile'))
         assert content.splitlines()[0] == "Hello World!"
+
+    @pytest.mark.parametrize('filename', ['javascript/scroll.js',
+                                          'html/error.html'])
+    def test_read_cached_file(self, mocker, filename):
+        utils.preload_resources()
+        m = mocker.patch('pkg_resources.resource_string')
+        utils.read_file(filename)
+        m.assert_not_called()
 
     def test_readfile_binary(self):
         """Read a test file in binary mode."""
@@ -147,129 +159,6 @@ def test_resource_filename():
         assert f.read().splitlines()[0] == "Hello World!"
 
 
-class Patcher:
-
-    """Helper for TestActuteWarning.
-
-    Attributes:
-        monkeypatch: The pytest monkeypatch fixture.
-    """
-
-    def __init__(self, monkeypatch):
-        self.monkeypatch = monkeypatch
-
-    def patch_platform(self, platform='linux'):
-        """Patch sys.platform."""
-        self.monkeypatch.setattr('sys.platform', platform)
-
-    def patch_exists(self, exists=True):
-        """Patch os.path.exists."""
-        self.monkeypatch.setattr('qutebrowser.utils.utils.os.path.exists',
-                                 lambda path: exists)
-
-    def patch_version(self, version='5.2.0'):
-        """Patch Qt version."""
-        self.monkeypatch.setattr('qutebrowser.utils.utils.qtutils.qVersion',
-                                 lambda: version)
-
-    def patch_file(self, data):
-        """Patch open() to return the given data."""
-        fake_file = io.StringIO(data)
-        self.monkeypatch.setattr(utils, 'open',
-                                 lambda filename, mode, encoding: fake_file,
-                                 raising=False)
-
-    def patch_all(self, data):
-        """Patch everything so the issue would exist."""
-        self.patch_platform()
-        self.patch_exists()
-        self.patch_version()
-        self.patch_file(data)
-
-
-class TestActuteWarning:
-
-    """Test actute_warning."""
-
-    @pytest.fixture
-    def patcher(self, monkeypatch):
-        """Fixture providing a Patcher helper."""
-        return Patcher(monkeypatch)
-
-    def test_non_linux(self, patcher, capsys):
-        """Test with a non-Linux OS."""
-        patcher.patch_platform('toaster')
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert not out
-        assert not err
-
-    def test_no_compose(self, patcher, capsys):
-        """Test with no compose file."""
-        patcher.patch_platform()
-        patcher.patch_exists(False)
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert not out
-        assert not err
-
-    def test_newer_qt(self, patcher, capsys):
-        """Test with compose file but newer Qt version."""
-        patcher.patch_platform()
-        patcher.patch_exists()
-        patcher.patch_version('5.4')
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert not out
-        assert not err
-
-    def test_no_match(self, patcher, capsys):
-        """Test with compose file and affected Qt but no match."""
-        patcher.patch_all('foobar')
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert not out
-        assert not err
-
-    def test_empty(self, patcher, capsys):
-        """Test with empty compose file."""
-        patcher.patch_all(None)
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert not out
-        assert not err
-
-    def test_match(self, patcher, capsys):
-        """Test with compose file and affected Qt and a match."""
-        patcher.patch_all('foobar\n<dead_actute>\nbaz')
-        utils.actute_warning()
-        out, err = capsys.readouterr()
-        assert out.startswith('Note: If you got a')
-        assert not err
-
-    def test_match_stdout_none(self, monkeypatch, patcher, capsys):
-        """Test with a match and stdout being None."""
-        patcher.patch_all('foobar\n<dead_actute>\nbaz')
-        monkeypatch.setattr('sys.stdout', None)
-        utils.actute_warning()
-
-    def test_unreadable(self, mocker, patcher, capsys, caplog):
-        """Test with an unreadable compose file."""
-        patcher.patch_platform()
-        patcher.patch_exists()
-        patcher.patch_version()
-        mocker.patch('qutebrowser.utils.utils.open', side_effect=OSError,
-                     create=True)
-
-        with caplog.at_level(logging.ERROR, 'init'):
-            utils.actute_warning()
-
-        assert len(caplog.records) == 1
-        assert caplog.records[0].message == 'Failed to read Compose file'
-        out, _err = capsys.readouterr()
-        assert not out
-
-
 class TestInterpolateColor:
 
     """Tests for interpolate_color.
@@ -279,7 +168,11 @@ class TestInterpolateColor:
         white: The Color black as a valid Color for tests.
     """
 
-    Colors = collections.namedtuple('Colors', ['white', 'black'])
+    @attr.s
+    class Colors:
+
+        white = attr.ib()
+        black = attr.ib()
 
     @pytest.fixture
     def colors(self):
@@ -377,25 +270,6 @@ def test_format_seconds(seconds, out):
     assert utils.format_seconds(seconds) == out
 
 
-@pytest.mark.parametrize('td, out', [
-    (datetime.timedelta(seconds=-1), '-1s'),
-    (datetime.timedelta(seconds=0), '0s'),
-    (datetime.timedelta(seconds=59), '59s'),
-    (datetime.timedelta(seconds=120), '2m'),
-    (datetime.timedelta(seconds=60.4), '1m'),
-    (datetime.timedelta(seconds=63), '1m 3s'),
-    (datetime.timedelta(seconds=-64), '-1m 4s'),
-    (datetime.timedelta(seconds=3599), '59m 59s'),
-    (datetime.timedelta(seconds=3600), '1h'),
-    (datetime.timedelta(seconds=3605), '1h 5s'),
-    (datetime.timedelta(seconds=3723), '1h 2m 3s'),
-    (datetime.timedelta(seconds=3780), '1h 3m'),
-    (datetime.timedelta(seconds=36000), '10h'),
-])
-def test_format_timedelta(td, out):
-    assert utils.format_timedelta(td) == out
-
-
 class TestFormatSize:
 
     """Tests for format_size.
@@ -432,134 +306,6 @@ class TestFormatSize:
     def test_base(self, size, out):
         """Test with an alternative base."""
         assert utils.format_size(size, base=1000) == out
-
-
-class TestKeyToString:
-
-    """Test key_to_string."""
-
-    @pytest.mark.parametrize('key, expected', [
-        (Qt.Key_Blue, 'Blue'),
-        (Qt.Key_Backtab, 'Tab'),
-        (Qt.Key_Escape, 'Escape'),
-        (Qt.Key_A, 'A'),
-        (Qt.Key_degree, '°'),
-        (Qt.Key_Meta, 'Meta'),
-    ])
-    def test_normal(self, key, expected):
-        """Test a special key where QKeyEvent::toString works incorrectly."""
-        assert utils.key_to_string(key) == expected
-
-    def test_missing(self, monkeypatch):
-        """Test with a missing key."""
-        monkeypatch.delattr('qutebrowser.utils.utils.Qt.Key_Blue')
-        # We don't want to test the key which is actually missing - we only
-        # want to know if the mapping still behaves properly.
-        assert utils.key_to_string(Qt.Key_A) == 'A'
-
-    def test_all(self):
-        """Make sure there's some sensible output for all keys."""
-        for name, value in sorted(vars(Qt).items()):
-            if not isinstance(value, Qt.Key):
-                continue
-            print(name)
-            string = utils.key_to_string(value)
-            assert string
-            string.encode('utf-8')  # make sure it's encodable
-
-
-class TestKeyEventToString:
-
-    """Test keyevent_to_string."""
-
-    def test_only_control(self, fake_keyevent_factory):
-        """Test keyeevent when only control is pressed."""
-        evt = fake_keyevent_factory(key=Qt.Key_Control,
-                                    modifiers=Qt.ControlModifier)
-        assert utils.keyevent_to_string(evt) is None
-
-    def test_only_hyper_l(self, fake_keyevent_factory):
-        """Test keyeevent when only Hyper_L is pressed."""
-        evt = fake_keyevent_factory(key=Qt.Key_Hyper_L,
-                                    modifiers=Qt.MetaModifier)
-        assert utils.keyevent_to_string(evt) is None
-
-    def test_only_key(self, fake_keyevent_factory):
-        """Test with a simple key pressed."""
-        evt = fake_keyevent_factory(key=Qt.Key_A)
-        assert utils.keyevent_to_string(evt) == 'A'
-
-    def test_key_and_modifier(self, fake_keyevent_factory):
-        """Test with key and modifier pressed."""
-        evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        expected = 'Meta+A' if sys.platform == 'darwin' else 'Ctrl+A'
-        assert utils.keyevent_to_string(evt) == expected
-
-    def test_key_and_modifiers(self, fake_keyevent_factory):
-        """Test with key and multiple modifiers pressed."""
-        evt = fake_keyevent_factory(
-            key=Qt.Key_A, modifiers=(Qt.ControlModifier | Qt.AltModifier |
-                                     Qt.MetaModifier | Qt.ShiftModifier))
-        assert utils.keyevent_to_string(evt) == 'Ctrl+Alt+Meta+Shift+A'
-
-    def test_mac(self, monkeypatch, fake_keyevent_factory):
-        """Test with a simulated mac."""
-        monkeypatch.setattr('sys.platform', 'darwin')
-        evt = fake_keyevent_factory(key=Qt.Key_A, modifiers=Qt.ControlModifier)
-        assert utils.keyevent_to_string(evt) == 'Meta+A'
-
-
-@pytest.mark.parametrize('keystr, expected', [
-    ('<Control-x>', utils.KeyInfo(Qt.Key_X, Qt.ControlModifier, '')),
-    ('<Meta-x>', utils.KeyInfo(Qt.Key_X, Qt.MetaModifier, '')),
-    ('<Ctrl-Alt-y>',
-        utils.KeyInfo(Qt.Key_Y, Qt.ControlModifier | Qt.AltModifier, '')),
-    ('x', utils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x')),
-    ('X', utils.KeyInfo(Qt.Key_X, Qt.ShiftModifier, 'X')),
-    ('<Escape>', utils.KeyInfo(Qt.Key_Escape, Qt.NoModifier, '')),
-
-    ('foobar', utils.KeyParseError),
-    ('x, y', utils.KeyParseError),
-    ('xyz', utils.KeyParseError),
-    ('Escape', utils.KeyParseError),
-    ('<Ctrl-x>, <Ctrl-y>', utils.KeyParseError),
-])
-def test_parse_single_key(keystr, expected):
-    if expected is utils.KeyParseError:
-        with pytest.raises(utils.KeyParseError):
-            utils._parse_single_key(keystr)
-    else:
-        assert utils._parse_single_key(keystr) == expected
-
-
-@pytest.mark.parametrize('keystr, expected', [
-    ('<Control-x>', [utils.KeyInfo(Qt.Key_X, Qt.ControlModifier, '')]),
-    ('x', [utils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x')]),
-    ('xy', [utils.KeyInfo(Qt.Key_X, Qt.NoModifier, 'x'),
-            utils.KeyInfo(Qt.Key_Y, Qt.NoModifier, 'y')]),
-
-    ('<Control-x><Meta-x>', utils.KeyParseError),
-])
-def test_parse_keystring(keystr, expected):
-    if expected is utils.KeyParseError:
-        with pytest.raises(utils.KeyParseError):
-            utils.parse_keystring(keystr)
-    else:
-        assert utils.parse_keystring(keystr) == expected
-
-
-@pytest.mark.parametrize('orig, repl', [
-    ('Control+x', 'ctrl+x'),
-    ('Windows+x', 'meta+x'),
-    ('Mod1+x', 'alt+x'),
-    ('Mod4+x', 'meta+x'),
-    ('Control--', 'ctrl+-'),
-    ('Windows++', 'meta++'),
-    ('ctrl-x', 'ctrl+x'),
-    ('control+x', 'ctrl+x')
-])
-def test_normalize_keystr(orig, repl):
-    assert utils.normalize_keystr(orig) == repl
 
 
 class TestFakeIOStream:
@@ -663,15 +409,13 @@ class GotException(Exception):
 
     """Exception used for TestDisabledExcepthook."""
 
+
+def excepthook(_exc, _val, _tb):
     pass
 
 
-def excepthook(_exc, _val, _tb):
-    return
-
-
 def excepthook_2(_exc, _val, _tb):
-    return
+    pass
 
 
 class TestDisabledExcepthook:
@@ -721,10 +465,8 @@ class TestPreventExceptions:
         with caplog.at_level(logging.ERROR, 'misc'):
             ret = self.func_raising()
         assert ret == 42
-        assert len(caplog.records) == 1
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
-        actual = caplog.records[0].message
-        assert actual == expected
+        assert caplog.messages == [expected]
 
     @utils.prevent_exceptions(42)
     def func_not_raising(self):
@@ -764,8 +506,6 @@ class Obj:
 
     """Test object for test_get_repr()."""
 
-    pass
-
 
 @pytest.mark.parametrize('constructor, attrs, expected', [
     (False, {}, '<test_utils.Obj>'),
@@ -786,29 +526,29 @@ class QualnameObj():
 
     def func(self):
         """Test method for test_qualname."""
-        pass
 
 
 def qualname_func(_blah):
     """Test function for test_qualname."""
-    pass
 
 
 QUALNAME_OBJ = QualnameObj()
 
 
 @pytest.mark.parametrize('obj, expected', [
-    (QUALNAME_OBJ, repr(QUALNAME_OBJ)),  # instance - unknown
-    (QualnameObj, 'test_utils.QualnameObj'),  # class
-    (QualnameObj.func, 'test_utils.QualnameObj.func'),  # unbound method
-    (QualnameObj().func, 'test_utils.QualnameObj.func'),  # bound method
-    (qualname_func, 'test_utils.qualname_func'),  # function
-    (functools.partial(qualname_func, True), 'test_utils.qualname_func'),
-    (qutebrowser, 'qutebrowser'),  # module
-    (qutebrowser.utils, 'qutebrowser.utils'),  # submodule
-    (utils, 'qutebrowser.utils.utils'),  # submodule (from-import)
-], ids=['instance', 'class', 'unbound-method', 'bound-method', 'function',
-        'partial', 'module', 'submodule', 'from-import'])
+    pytest.param(QUALNAME_OBJ, repr(QUALNAME_OBJ), id='instance'),
+    pytest.param(QualnameObj, 'test_utils.QualnameObj', id='class'),
+    pytest.param(QualnameObj.func, 'test_utils.QualnameObj.func',
+                 id='unbound-method'),
+    pytest.param(QualnameObj().func, 'test_utils.QualnameObj.func',
+                 id='bound-method'),
+    pytest.param(qualname_func, 'test_utils.qualname_func', id='function'),
+    pytest.param(functools.partial(qualname_func, True),
+                 'test_utils.qualname_func', id='partial'),
+    pytest.param(qutebrowser, 'qutebrowser', id='module'),
+    pytest.param(qutebrowser.utils, 'qutebrowser.utils', id='submodule'),
+    pytest.param(utils, 'qutebrowser.utils.utils', id='from-import'),
+])
 def test_qualname(obj, expected):
     assert utils.qualname(obj) == expected
 
@@ -828,8 +568,6 @@ class TestIsEnum:
 
             """Test class for is_enum."""
 
-            pass
-
         assert not utils.is_enum(Test)
 
     def test_object(self):
@@ -847,7 +585,6 @@ class TestRaises:
 
     def do_nothing(self):
         """Helper function which does nothing."""
-        pass
 
     @pytest.mark.parametrize('exception, value, expected', [
         (ValueError, 'a', True),
@@ -885,48 +622,25 @@ def test_force_encoding(inp, enc, expected):
 
 
 @pytest.mark.parametrize('inp, expected', [
-    ('normal.txt', 'normal.txt'),
-    ('user/repo issues.mht', 'user_repo issues.mht'),
-    ('<Test\\File> - "*?:|', '_Test_File_ - _____'),
+    pytest.param('normal.txt', 'normal.txt',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('user/repo issues.mht', 'user_repo issues.mht',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('<Test\\File> - "*?:|', '_Test_File_ - _____',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?_|',
+                 marks=pytest.mark.fake_os('mac')),
+    pytest.param('<Test\\File> - "*?:|', '<Test\\File> - "*?:|',
+                 marks=pytest.mark.fake_os('posix')),
 ])
-def test_sanitize_filename(inp, expected):
+def test_sanitize_filename(inp, expected, monkeypatch):
     assert utils.sanitize_filename(inp) == expected
 
 
+@pytest.mark.fake_os('windows')
 def test_sanitize_filename_empty_replacement():
     name = '/<Bad File>/'
     assert utils.sanitize_filename(name, replacement=None) == 'Bad File'
-
-
-class TestNewestSlice:
-
-    """Test newest_slice."""
-
-    def test_count_minus_two(self):
-        """Test with a count of -2."""
-        with pytest.raises(ValueError):
-            utils.newest_slice([], -2)
-
-    @pytest.mark.parametrize('items, count, expected', [
-        # Count of -1 (all elements).
-        (range(20), -1, range(20)),
-        # Count of 0 (no elements).
-        (range(20), 0, []),
-        # Count which is much smaller than the iterable.
-        (range(20), 5, [15, 16, 17, 18, 19]),
-        # Count which is exactly one smaller."""
-        (range(5), 4, [1, 2, 3, 4]),
-        # Count which is just as large as the iterable."""
-        (range(5), 5, range(5)),
-        # Count which is one bigger than the iterable.
-        (range(5), 6, range(5)),
-        # Count which is much bigger than the iterable.
-        (range(5), 50, range(5)),
-    ])
-    def test_good(self, items, count, expected):
-        """Test slices which shouldn't raise an exception."""
-        sliced = utils.newest_slice(items, count)
-        assert list(sliced) == list(expected)
 
 
 class TestGetSetClipboard:
@@ -937,6 +651,7 @@ class TestGetSetClipboard:
                          autospec=True)
         clipboard = m()
         clipboard.text.return_value = 'mocked clipboard text'
+        mocker.patch('qutebrowser.utils.utils.fake_clipboard', None)
         return clipboard
 
     def test_set(self, clipboard_mock, caplog):
@@ -961,15 +676,26 @@ class TestGetSetClipboard:
         utils.set_clipboard(text, selection=selection)
         assert not clipboard_mock.setText.called
         expected = 'Setting fake {}: "{}"'.format(what, expected)
-        assert caplog.records[0].message == expected
+        assert caplog.messages[0] == expected
 
     def test_get(self):
         assert utils.get_clipboard() == 'mocked clipboard text'
+
+    @pytest.mark.parametrize('selection', [True, False])
+    def test_get_empty(self, clipboard_mock, selection):
+        clipboard_mock.text.return_value = ''
+        with pytest.raises(utils.ClipboardEmptyError):
+            utils.get_clipboard(selection=selection)
 
     def test_get_unsupported_selection(self, clipboard_mock):
         clipboard_mock.supportsSelection.return_value = False
         with pytest.raises(utils.SelectionUnsupportedError):
             utils.get_clipboard(selection=True)
+
+    def test_get_unsupported_selection_fallback(self, clipboard_mock):
+        clipboard_mock.supportsSelection.return_value = False
+        clipboard_mock.text.return_value = 'text'
+        assert utils.get_clipboard(selection=True, fallback=True) == 'text'
 
     @pytest.mark.parametrize('selection', [True, False])
     def test_get_fake_clipboard(self, selection):
@@ -982,21 +708,9 @@ class TestGetSetClipboard:
         clipboard_mock.supportsSelection.return_value = selection
         assert utils.supports_selection() == selection
 
-
-@pytest.mark.parametrize('keystr, expected', [
-    ('<Control-x>', True),
-    ('<Meta-x>', True),
-    ('<Ctrl-Alt-y>', True),
-    ('x', False),
-    ('X', False),
-    ('<Escape>', True),
-    ('foobar', False),
-    ('foo>', False),
-    ('<foo', False),
-    ('<<', False),
-])
-def test_is_special_key(keystr, expected):
-    assert utils.is_special_key(keystr) == expected
+    def test_fallback_without_selection(self):
+        with pytest.raises(ValueError):
+            utils.get_clipboard(fallback=True)
 
 
 def test_random_port():
@@ -1004,3 +718,131 @@ def test_random_port():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(('localhost', port))
     sock.close()
+
+
+class TestOpenFile:
+
+    @pytest.mark.not_frozen
+    def test_cmdline_without_argument(self, caplog, config_stub):
+        executable = shlex.quote(sys.executable)
+        cmdline = '{} -c pass'.format(executable)
+        utils.open_file('/foo/bar', cmdline)
+        result = caplog.messages[0]
+        assert re.fullmatch(
+            r'Opening /foo/bar with \[.*python.*/foo/bar.*\]', result)
+
+    @pytest.mark.not_frozen
+    def test_cmdline_with_argument(self, caplog, config_stub):
+        executable = shlex.quote(sys.executable)
+        cmdline = '{} -c pass {{}} raboof'.format(executable)
+        utils.open_file('/foo/bar', cmdline)
+        result = caplog.messages[0]
+        assert re.fullmatch(
+            r"Opening /foo/bar with \[.*python.*/foo/bar.*'raboof'\]", result)
+
+    @pytest.mark.not_frozen
+    def test_setting_override(self, caplog, config_stub):
+        executable = shlex.quote(sys.executable)
+        cmdline = '{} -c pass'.format(executable)
+        config_stub.val.downloads.open_dispatcher = cmdline
+        utils.open_file('/foo/bar')
+        result = caplog.messages[1]
+        assert re.fullmatch(
+            r"Opening /foo/bar with \[.*python.*/foo/bar.*\]", result)
+
+    def test_system_default_application(self, caplog, config_stub, mocker):
+        m = mocker.patch('PyQt5.QtGui.QDesktopServices.openUrl', spec={},
+                         new_callable=mocker.Mock)
+        utils.open_file('/foo/bar')
+        result = caplog.messages[0]
+        assert re.fullmatch(
+            r"Opening /foo/bar with the system application", result)
+        m.assert_called_with(QUrl('file:///foo/bar'))
+
+
+def test_unused():
+    utils.unused(None)
+
+
+@pytest.mark.parametrize('path, expected', [
+    ('E:', 'E:\\'),
+    ('e:', 'e:\\'),
+    ('E:foo', 'E:foo'),
+    ('E:\\', 'E:\\'),
+    ('E:\\foo', 'E:\\foo'),
+    ('foo:', 'foo:'),
+    ('foo:bar', 'foo:bar'),
+])
+def test_expand_windows_drive(path, expected):
+    assert utils.expand_windows_drive(path) == expected
+
+
+class TestYaml:
+
+    def test_load(self):
+        assert utils.yaml_load("[1, 2]") == [1, 2]
+
+    def test_load_file(self, tmpdir):
+        tmpfile = tmpdir / 'foo.yml'
+        tmpfile.write('[1, 2]')
+        with tmpfile.open(encoding='utf-8') as f:
+            assert utils.yaml_load(f) == [1, 2]
+
+    def test_dump(self):
+        assert utils.yaml_dump([1, 2]) == '- 1\n- 2\n'
+
+    def test_dump_file(self, tmpdir):
+        tmpfile = tmpdir / 'foo.yml'
+        with tmpfile.open('w', encoding='utf-8') as f:
+            utils.yaml_dump([1, 2], f)
+        assert tmpfile.read() == '- 1\n- 2\n'
+
+
+@pytest.mark.parametrize('elems, n, expected', [
+    ([], 1, []),
+    ([1], 1, [[1]]),
+    ([1, 2], 2, [[1, 2]]),
+    ([1, 2, 3, 4], 2, [[1, 2], [3, 4]]),
+])
+def test_chunk(elems, n, expected):
+    assert list(utils.chunk(elems, n)) == expected
+
+
+@pytest.mark.parametrize('n', [-1, 0])
+def test_chunk_invalid(n):
+    with pytest.raises(ValueError):
+        list(utils.chunk([], n))
+
+
+@pytest.mark.parametrize('filename, expected', [
+    ('test.jpg', 'image/jpeg'),
+    ('test.blabla', 'application/octet-stream'),
+])
+def test_guess_mimetype(filename, expected):
+    assert utils.guess_mimetype(filename, fallback=True) == expected
+
+
+def test_guess_mimetype_no_fallback():
+    with pytest.raises(ValueError):
+        utils.guess_mimetype('test.blabla')
+
+
+@hypothesis.given(number=strategies.integers(min_value=1),
+                  base=strategies.integers(min_value=2))
+@hypothesis.example(number=125, base=5)
+def test_ceil_log_hypothesis(number, base):
+    exponent = utils.ceil_log(number, base)
+    assert base ** exponent >= number
+    # With base=2, number=1 we get exponent=1
+    # 2**1 > 1, but 2**0 == 1.
+    if exponent > 1:
+        assert base ** (exponent - 1) < number
+
+
+@pytest.mark.parametrize('number, base', [(64, 0), (0, 64), (64, -1),
+                                          (-1, 64), (1, 1)])
+def test_ceil_log_invalid(number, base):
+    with pytest.raises(Exception):  # ValueError/ZeroDivisionError
+        math.log(number, base)
+    with pytest.raises(ValueError):
+        utils.ceil_log(number, base)

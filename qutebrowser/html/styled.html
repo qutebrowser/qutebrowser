@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block style %}
+a {
+    text-decoration: none;
+    color: #2562dc
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+body {
+    background: #fefefe;
+    font-family: sans-serif;
+    margin: 0 auto;
+    max-width: 1280px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+h1 {
+    color: #444;
+    font-weight: normal;
+}
+
+h2 {
+    font-weight: normal;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #f8f8f8;
+}
+
+td {
+    max-width: 50%;
+    padding: 2px 5px;
+    text-align: left;
+}
+
+.hostname {
+    color: #858585;
+    font-size: 0.9em;
+    margin-left: 10px;
+    text-decoration: none;
+}
+
+.note {
+    font-size: smaller;
+    color: grey;
+}
+
+.mono {
+    font-family: monospace;
+}
+{% endblock %}

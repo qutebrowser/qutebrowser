@@ -1,6 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Daniel Schadt
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Daniel Schadt
 #
 # This file is part of qutebrowser.
 #
@@ -19,35 +20,36 @@
 
 """Utils for writing an MHTML file."""
 
+import html
 import functools
 import io
 import os
 import re
 import sys
-import collections
 import uuid
 import email.policy
 import email.generator
 import email.encoders
 import email.mime.multipart
 import email.message
+import quopri
 
+import attr
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.browser.webkit import webkitelem, downloads
+from qutebrowser.browser import downloads
+from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
+from qutebrowser.extensions import interceptors
 
-try:
-    import cssutils
-except (ImportError, re.error):
-    # Catching re.error because cssutils in earlier releases (<= 1.0) is broken
-    # on Python 3.5
-    # See https://bitbucket.org/cthedot/cssutils/issues/52
-    cssutils = None
 
-_File = collections.namedtuple('_File',
-                               ['content', 'content_type', 'content_location',
-                                'transfer_encoding'])
+@attr.s
+class _File:
+
+    content = attr.ib()
+    content_type = attr.ib()
+    content_location = attr.ib()
+    transfer_encoding = attr.ib()
 
 
 _CSS_URL_PATTERNS = [re.compile(x) for x in [
@@ -85,6 +87,14 @@ def _get_css_imports_cssutils(data, inline=False):
         data: The content of the stylesheet to scan as string.
         inline: True if the argument is an inline HTML style attribute.
     """
+    try:
+        import cssutils
+    except (ImportError, re.error):
+        # Catching re.error because cssutils in earlier releases (<= 1.0) is
+        # broken on Python 3.5
+        # See https://bitbucket.org/cthedot/cssutils/issues/52
+        return None
+
     # We don't care about invalid CSS data, this will only litter the log
     # output with CSS errors
     parser = cssutils.CSSParser(loglevel=100,
@@ -114,10 +124,10 @@ def _get_css_imports(data, inline=False):
         data: The content of the stylesheet to scan as string.
         inline: True if the argument is an inline HTML style attribute.
     """
-    if cssutils is None:
-        return _get_css_imports_regex(data)
-    else:
-        return _get_css_imports_cssutils(data, inline)
+    imports = _get_css_imports_cssutils(data, inline)
+    if imports is None:
+        imports = _get_css_imports_regex(data)
+    return imports
 
 
 def _check_rel(element):
@@ -136,6 +146,22 @@ def _check_rel(element):
     return any(rel in rels for rel in must_have)
 
 
+def _encode_quopri_mhtml(msg):
+    """Encode the message's payload in quoted-printable.
+
+    Substitute for quopri's default 'encode_quopri' method, which needlessly
+    encodes all spaces and tabs, instead of only those at the end on the
+    line.
+
+    Args:
+        msg: Email message to quote.
+    """
+    orig = msg.get_payload(decode=True)
+    encdata = quopri.encodestring(orig, quotetabs=False)
+    msg.set_payload(encdata)
+    msg['Content-Transfer-Encoding'] = 'quoted-printable'
+
+
 MHTMLPolicy = email.policy.default.clone(linesep='\r\n', max_line_length=0)
 
 
@@ -144,7 +170,7 @@ E_BASE64 = email.encoders.encode_base64
 
 
 # Encode the file using MIME quoted-printable encoding.
-E_QUOPRI = email.encoders.encode_quopri
+E_QUOPRI = _encode_quopri_mhtml
 
 
 class MHTMLWriter:
@@ -155,7 +181,7 @@ class MHTMLWriter:
         root_content: The root content as bytes.
         content_location: The url of the page as str.
         content_type: The MIME-type of the root content as str.
-        _files: Mapping of location->_File namedtuple.
+        _files: Mapping of location->_File object.
     """
 
     def __init__(self, root_content, content_location, content_type):
@@ -223,25 +249,23 @@ class _Downloader:
 
     Attributes:
         tab: The AbstractTab which contains the website that will be saved.
-        dest: Destination filename.
+        target: DownloadTarget where the file should be downloaded to.
         writer: The MHTMLWriter object which is used to save the page.
         loaded_urls: A set of QUrls of finished asset downloads.
         pending_downloads: A set of unfinished (url, DownloadItem) tuples.
         _finished_file: A flag indicating if the file has already been
                         written.
         _used: A flag indicating if the downloader has already been used.
-        _win_id: The window this downloader belongs to.
     """
 
-    def __init__(self, tab, dest):
+    def __init__(self, tab, target):
         self.tab = tab
-        self.dest = dest
+        self.target = target
         self.writer = None
         self.loaded_urls = {tab.url()}
         self.pending_downloads = set()
         self._finished_file = False
         self._used = False
-        self._win_id = tab.win_id
 
     def run(self):
         """Download and save the page.
@@ -290,9 +314,9 @@ class _Downloader:
         for style in styles:
             style = webkitelem.WebKitElement(style, tab=self.tab)
             # The Mozilla Developer Network says:
-            # type: This attribute defines the styling language as a MIME type
-            # (charset should not be specified). This attribute is optional and
-            # default to text/css if it's missing.
+            # > type: This attribute defines the styling language as a MIME
+            # > type (charset should not be specified). This attribute is
+            # > optional and default to text/css if it's missing.
             # https://developer.mozilla.org/en/docs/Web/HTML/Element/style
             if 'type' in style and style['type'] != 'text/css':
                 continue
@@ -330,10 +354,11 @@ class _Downloader:
 
         # Using the download manager to download host-blocked urls might crash
         # qute, see the comments/discussion on
-        # https://github.com/The-Compiler/qutebrowser/pull/962#discussion_r40256987
-        # and https://github.com/The-Compiler/qutebrowser/issues/1053
-        host_blocker = objreg.get('host-blocker')
-        if host_blocker.is_blocked(url):
+        # https://github.com/qutebrowser/qutebrowser/pull/962#discussion_r40256987
+        # and https://github.com/qutebrowser/qutebrowser/issues/1053
+        request = interceptors.Request(first_party_url=None, request_url=url)
+        interceptors.run(request)
+        if request.is_blocked:
             log.downloads.debug("Skipping {}, host-blocked".format(url))
             # We still need an empty file in the output, QWebView can be pretty
             # picky about displaying a file correctly when not all assets are
@@ -341,9 +366,8 @@ class _Downloader:
             self.writer.add_file(urlutils.encoded_url(url), b'')
             return
 
-        download_manager = objreg.get('download-manager', scope='window',
-                                      window=self._win_id)
-        target = usertypes.FileObjDownloadTarget(_NoCloseBytesIO())
+        download_manager = objreg.get('qtnetwork-download-manager')
+        target = downloads.FileObjDownloadTarget(_NoCloseBytesIO())
         item = download_manager.get(url, target=target,
                                     auto_remove=True)
         self.pending_downloads.add((url, item))
@@ -443,15 +467,34 @@ class _Downloader:
             return
         self._finished_file = True
         log.downloads.debug("All assets downloaded, ready to finish off!")
+
+        if isinstance(self.target, downloads.FileDownloadTarget):
+            fobj = open(self.target.filename, 'wb')
+        elif isinstance(self.target, downloads.FileObjDownloadTarget):
+            fobj = self.target.fileobj
+        elif isinstance(self.target, downloads.OpenFileDownloadTarget):
+            try:
+                fobj = downloads.temp_download_manager.get_tmpfile(
+                    self.tab.title() + '.mhtml')
+            except OSError as exc:
+                msg = "Download error: {}".format(exc)
+                message.error(msg)
+                return
+        else:
+            raise ValueError("Invalid DownloadTarget given: {!r}"
+                             .format(self.target))
+
         try:
-            with open(self.dest, 'wb') as file_output:
-                self.writer.write_to(file_output)
+            with fobj:
+                self.writer.write_to(fobj)
         except OSError as error:
-            message.error(self._win_id,
-                          "Could not save file: {}".format(error))
+            message.error("Could not save file: {}".format(error))
             return
         log.downloads.debug("File successfully written.")
-        message.info(self._win_id, "Page saved as {}".format(self.dest))
+        message.info("Page saved as {}".format(self.target))
+
+        if isinstance(self.target, downloads.OpenFileDownloadTarget):
+            utils.open_file(fobj.name, self.target.cmdline)
 
     def _collect_zombies(self):
         """Collect done downloads and add their data to the MHTML file.
@@ -459,8 +502,8 @@ class _Downloader:
         This is needed if a download finishes before attaching its
         finished signal.
         """
-        items = set((url, item) for url, item in self.pending_downloads
-                    if item.done)
+        items = {(url, item) for url, item in self.pending_downloads
+                 if item.done}
         log.downloads.debug("Zombie downloads: {}".format(items))
         for url, item in items:
             self._finished(url, item)
@@ -476,41 +519,43 @@ class _NoCloseBytesIO(io.BytesIO):
 
     def close(self):
         """Do nothing."""
-        pass
 
     def actual_close(self):
         """Close the stream."""
         super().close()
 
 
-def _start_download(dest, tab):
+def _start_download(target, tab):
     """Start downloading the current page and all assets to an MHTML file.
 
     This will overwrite dest if it already exists.
 
     Args:
-        dest: The filename where the resulting file should be saved.
+        target: The DownloadTarget where the resulting file should be saved.
         tab: Specify the tab whose page should be loaded.
     """
-    loader = _Downloader(tab, dest)
+    loader = _Downloader(tab, target)
     loader.run()
 
 
-def start_download_checked(dest, tab):
+def start_download_checked(target, tab):
     """First check if dest is already a file, then start the download.
 
     Args:
-        dest: The filename where the resulting file should be saved.
+        target: The DownloadTarget where the resulting file should be saved.
         tab: Specify the tab whose page should be loaded.
     """
-    # The default name is 'page title.mht'
+    if not isinstance(target, downloads.FileDownloadTarget):
+        _start_download(target, tab)
+        return
+    # The default name is 'page title.mhtml'
     title = tab.title()
-    default_name = utils.sanitize_filename(title + '.mht')
+    default_name = utils.sanitize_filename(title + '.mhtml')
 
     # Remove characters which cannot be expressed in the file system encoding
     encoding = sys.getfilesystemencoding()
     default_name = utils.force_encoding(default_name, encoding)
-    dest = utils.force_encoding(dest, encoding)
+    dest = utils.force_encoding(target.filename, encoding)
 
     dest = os.path.expanduser(dest)
 
@@ -528,20 +573,20 @@ def start_download_checked(dest, tab):
     # saving the file anyway.
     if not os.path.isdir(os.path.dirname(path)):
         folder = os.path.dirname(path)
-        message.error(tab.win_id,
-                      "Directory {} does not exist.".format(folder))
+        message.error("Directory {} does not exist.".format(folder))
         return
 
+    target = downloads.FileDownloadTarget(path)
     if not os.path.isfile(path):
-        _start_download(path, tab=tab)
+        _start_download(target, tab=tab)
         return
 
     q = usertypes.Question()
     q.mode = usertypes.PromptMode.yesno
-    q.text = "{} exists. Overwrite?".format(path)
+    q.title = "Overwrite existing file?"
+    q.text = "<b>{}</b> already exists. Overwrite?".format(
+        html.escape(path))
     q.completed.connect(q.deleteLater)
     q.answered_yes.connect(functools.partial(
-        _start_download, path, tab=tab))
-    message_bridge = objreg.get('message-bridge', scope='window',
-                                window=tab.win_id)
-    message_bridge.ask(q, blocking=False)
+        _start_download, target, tab=tab))
+    message.global_bridge.ask(q, blocking=False)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,10 +21,10 @@
 """Tester for Qt segfaults with different harfbuzz engines."""
 
 import os
+import os.path
 import signal
 import sys
 import subprocess
-import os.path
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -92,22 +92,22 @@ def main():
         utils.print_bold("==== {} ====".format(page))
         if test_harfbuzz:
             print("With system harfbuzz:")
-        ret = subprocess.call([sys.executable, '-c', SCRIPT, page])
+        ret = subprocess.run([sys.executable, '-c', SCRIPT, page]).returncode
         print_ret(ret)
         retvals.append(ret)
         if test_harfbuzz:
             print("With QT_HARFBUZZ=old:")
             env = dict(os.environ)
             env['QT_HARFBUZZ'] = 'old'
-            ret = subprocess.call([sys.executable, '-c', SCRIPT, page],
-                                  env=env)
+            ret = subprocess.run([sys.executable, '-c', SCRIPT, page],
+                                 env=env).returncode
             print_ret(ret)
             retvals.append(ret)
             print("With QT_HARFBUZZ=new:")
             env = dict(os.environ)
             env['QT_HARFBUZZ'] = 'new'
-            ret = subprocess.call([sys.executable, '-c', SCRIPT, page],
-                                  env=env)
+            ret = subprocess.run([sys.executable, '-c', SCRIPT, page],
+                                 env=env).returncode
             print_ret(ret)
             retvals.append(ret)
     if all(r == 0 for r in retvals):

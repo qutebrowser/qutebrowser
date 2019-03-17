@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block script %}
+const STATE_BACK = "back";
+const STATE_FORWARD = "forward";
+
+function switch_state(new_state) {
+	history.replaceState(
+		new_state,
+		document.title,
+		location.pathname + location.hash);
+}
+
+function go_back() {
+	switch_state(STATE_FORWARD);
+	history.back();
+}
+
+function go_forward() {
+	switch_state(STATE_BACK);
+	history.forward();
+}
+
+function prepare_restore() {
+	if (!document.hidden) {
+		go_back();
+		return;
+	}
+
+	document.addEventListener("visibilitychange", go_back, {once: true});
+}
+
+// there are three states
+// default: register focus listener,
+//	    on focus: go back and switch to the state forward
+// back: user came from a later history entry
+//	 -> switch to the state forward,
+//	    forward him to the previous history entry
+// forward: user came from a previous history entry
+//	 -> switch to the state back,
+//	    forward him to the next history entry
+switch (history.state) {
+	case STATE_BACK:
+		go_back();
+		break;
+	case STATE_FORWARD:
+		go_forward();
+		break;
+	default:
+		setTimeout(prepare_restore, 1000);
+		break;
+}
+{% endblock %}
+
+{% block content %}
+<noscript><p>Javascript isn't enabled. So you need to manually go back in history to restore this tab.</p></noscript>
+<p>Loading suspended page...<br>
+<br>
+If nothing happens, something went wrong or you disabled JavaScript.</p>
+{% endblock %}

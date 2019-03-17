@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,14 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Fixtures for the httpbin webserver."""
+"""Fixtures for the server webserver."""
 
 import re
 import sys
 import json
 import os.path
-import http.client
+from http import HTTPStatus
 
+import attr
 import pytest
 from PyQt5.QtCore import pyqtSignal, QUrl
 
@@ -35,7 +36,7 @@ from qutebrowser.utils import utils
 
 class Request(testprocess.Line):
 
-    """A parsed line from the httpbin/flask log output.
+    """A parsed line from the flask log output.
 
     Attributes:
         verb/path/status: Parsed from the log output.
@@ -61,19 +62,31 @@ class Request(testprocess.Line):
 
     def _check_status(self):
         """Check if the http status is what we expected."""
-        # WORKAROUND for https://github.com/PyCQA/pylint/issues/399 (?)
-        # pylint: disable=no-member, useless-suppression
         path_to_statuses = {
-            '/favicon.ico': [http.client.NOT_FOUND],
-            '/does-not-exist': [http.client.NOT_FOUND],
-            '/custom/redirect-later': [http.client.FOUND],
-            '/basic-auth/user/password':
-                [http.client.UNAUTHORIZED, http.client.OK],
-            '/redirect-to': [http.client.FOUND],
-            '/status/404': [http.client.NOT_FOUND],
-            '/cookies/set': [http.client.FOUND],
+            '/favicon.ico': [HTTPStatus.NOT_FOUND],
+            '/does-not-exist': [HTTPStatus.NOT_FOUND],
+            '/does-not-exist-2': [HTTPStatus.NOT_FOUND],
+            '/404': [HTTPStatus.NOT_FOUND],
+
+            '/redirect-later': [HTTPStatus.FOUND],
+            '/redirect-self': [HTTPStatus.FOUND],
+            '/redirect-to': [HTTPStatus.FOUND],
+            '/relative-redirect': [HTTPStatus.FOUND],
+            '/absolute-redirect': [HTTPStatus.FOUND],
+
+            '/cookies/set': [HTTPStatus.FOUND],
+
+            '/500-inline': [HTTPStatus.INTERNAL_SERVER_ERROR],
+            '/500': [HTTPStatus.INTERNAL_SERVER_ERROR],
         }
-        default_statuses = [http.client.OK, http.client.NOT_MODIFIED]
+        for i in range(15):
+            path_to_statuses['/redirect/{}'.format(i)] = [HTTPStatus.FOUND]
+        for suffix in ['', '1', '2', '3', '4', '5', '6']:
+            key = ('/basic-auth/user{suffix}/password{suffix}'
+                   .format(suffix=suffix))
+            path_to_statuses[key] = [HTTPStatus.UNAUTHORIZED, HTTPStatus.OK]
+
+        default_statuses = [HTTPStatus.OK, HTTPStatus.NOT_MODIFIED]
 
         sanitized = QUrl('http://localhost' + self.path).path()  # Remove ?foo
         expected_statuses = path_to_statuses.get(sanitized, default_statuses)
@@ -87,13 +100,13 @@ class Request(testprocess.Line):
         return NotImplemented
 
 
+@attr.s(frozen=True, cmp=False, hash=True)
 class ExpectedRequest:
 
     """Class to compare expected requests easily."""
 
-    def __init__(self, verb, path):
-        self.verb = verb
-        self.path = path
+    verb = attr.ib()
+    path = attr.ib()
 
     @classmethod
     def from_request(cls, request):
@@ -106,17 +119,10 @@ class ExpectedRequest:
         else:
             return NotImplemented
 
-    def __hash__(self):
-        return hash(('ExpectedRequest', self.verb, self.path))
-
-    def __repr__(self):
-        return ('ExpectedRequest(verb={!r}, path={!r})'
-                .format(self.verb, self.path))
-
 
 class WebserverProcess(testprocess.Process):
 
-    """Abstraction over a running HTTPbin server process.
+    """Abstraction over a running Flask server process.
 
     Reads the log from its stdout and parses it.
 
@@ -130,8 +136,8 @@ class WebserverProcess(testprocess.Process):
 
     KEYS = ['verb', 'path']
 
-    def __init__(self, script, parent=None):
-        super().__init__(parent)
+    def __init__(self, request, script, parent=None):
+        super().__init__(request, parent)
         self._script = script
         self.port = utils.random_port()
         self.new_data.connect(self.new_request)
@@ -165,39 +171,35 @@ class WebserverProcess(testprocess.Process):
     def _default_args(self):
         return [str(self.port)]
 
-    def cleanup(self):
-        """Clean up and shut down the process."""
-        self.proc.terminate()
-        self.proc.waitForFinished()
-
 
 @pytest.fixture(scope='session', autouse=True)
-def httpbin(qapp):
-    """Fixture for an httpbin object which ensures clean setup/teardown."""
-    httpbin = WebserverProcess('webserver_sub')
-    httpbin.start()
-    yield httpbin
-    httpbin.cleanup()
+def server(qapp, request):
+    """Fixture for an server object which ensures clean setup/teardown."""
+    server = WebserverProcess(request, 'webserver_sub')
+    server.start()
+    yield server
+    server.terminate()
 
 
 @pytest.fixture(autouse=True)
-def httpbin_after_test(httpbin, request):
-    """Fixture to clean httpbin request list after each test."""
-    request.node._httpbin_log = httpbin.captured_log
+def server_per_test(server, request):
+    """Fixture to clean server request list after each test."""
+    request.node._server_log = server.captured_log
+    server.before_test()
     yield
-    httpbin.after_test()
+    server.after_test()
 
 
 @pytest.fixture
 def ssl_server(request, qapp):
     """Fixture for a webserver with a self-signed SSL certificate.
 
-    This needs to be explicitly used in a test, and overwrites the httpbin log
+    This needs to be explicitly used in a test, and overwrites the server log
     used in that test.
     """
-    server = WebserverProcess('webserver_sub_ssl')
-    request.node._httpbin_log = server.captured_log
+    server = WebserverProcess(request, 'webserver_sub_ssl')
+    request.node._server_log = server.captured_log
     server.start()
     yield server
     server.after_test()
-    server.cleanup()
+    server.terminate()

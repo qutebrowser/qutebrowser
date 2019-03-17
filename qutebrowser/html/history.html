@@ -1,0 +1,76 @@
+{% extends "styled.html" %}
+
+{% block style %}
+{{super()}}
+body {
+    max-width: 1440px;
+}
+
+td.title {
+    word-break: break-all;
+}
+
+td.time {
+    color: #555;
+    text-align: right;
+    white-space: nowrap;
+}
+
+table {
+    margin-bottom: 30px;
+}
+
+.date {
+    color: #555;
+    font-size: 12pt;
+    padding-bottom: 15px;
+    font-weight: bold;
+    text-align: left;
+}
+
+#load {
+    color: #555;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+#eof {
+    color: #aaa;
+    margin-bottom: 30px;
+    text-align: center;
+    width: 100%;
+}
+
+.session-separator {
+    color: #aaa;
+    height: 40px;
+    text-align: center;
+}
+{% endblock %}
+{% block content %}
+<h1>Browsing history</h1>
+<div id="hist-container"></div>
+<span id="eof" style="display: none">end</span>
+<a href="#" id="load" style="display: none">Show more</a>
+<script type="text/javascript" src="qute://javascript/history.js"></script>
+<script type="text/javascript">
+    window.GAP_INTERVAL = {{gap_interval}} * 60 * 1000;
+
+    window.onload = function() {
+        var loadLink = document.getElementById('load');
+        loadLink.style.display = null;
+        loadLink.addEventListener('click', function(ev) {
+            ev.preventDefault();
+            window.loadHistory();
+        });
+
+        window.onscroll = function(ev) {
+            if ((window.innerHeight + window.scrollY) >= document.body.scrollHeight) {
+                window.loadHistory();
+            }
+        };
+
+        window.loadHistory();
+    };
+</script>
+{% endblock %}

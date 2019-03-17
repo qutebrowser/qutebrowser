@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Saving and loading sessions
 
   Background:
@@ -194,11 +196,11 @@ Feature: Saving and loading sessions
             url: http://localhost:*/data/numbers/3.txt
             zoom: 1.0
 
-  # https://github.com/The-Compiler/qutebrowser/issues/879
+  # https://github.com/qutebrowser/qutebrowser/issues/879
 
   Scenario: Saving a session with a page using history.replaceState()
     When I open data/sessions/history_replace_state.html without waiting
-    Then the javascript message "Calling history.replaceState" should be logged
+    Then the javascript message "Called history.replaceState" should be logged
     And the session should look like:
       windows:
       - tabs:
@@ -212,7 +214,7 @@ Feature: Saving and loading sessions
   Scenario: Saving a session with a page using history.replaceState() and navigating away (qtwebkit)
     When I open data/sessions/history_replace_state.html
     And I open data/hello.txt
-    Then the javascript message "Calling history.replaceState" should be logged
+    Then the javascript message "Called history.replaceState" should be logged
     And the session should look like:
       windows:
       - tabs:
@@ -226,10 +228,10 @@ Feature: Saving and loading sessions
             url: http://localhost:*/data/hello.txt
 
   # Seems like that bug is fixed upstream in QtWebEngine
-  @qtwebkit_skip
+  @skip  # Too flaky
   Scenario: Saving a session with a page using history.replaceState() and navigating away
     When I open data/sessions/history_replace_state.html without waiting
-    And I wait for "* Calling history.replaceState" in the log
+    And I wait for "* Called history.replaceState" in the log
     And I open data/hello.txt
     Then the session should look like:
       windows:
@@ -263,8 +265,10 @@ Feature: Saving and loading sessions
     Then the error "No session loaded currently!" should be shown
 
   Scenario: Saving current session after one is loaded
+    When I open data/numbers/1.txt
     When I run :session-save current_session
     And I run :session-load current_session
+    And I wait until data/numbers/1.txt is loaded
     And I run :session-save --current
     Then the message "Saved session current_session." should be shown
 
@@ -275,8 +279,34 @@ Feature: Saving and loading sessions
 
   Scenario: Saving session with --quiet
     When I run :session-save --quiet quiet_session
-    Then "Saved session quiet_session." should not be logged
+    Then "Saved session quiet_session." should be logged with level debug
     And the session quiet_session should exist
+
+  Scenario: Saving session with --only-active-window
+    When I open data/numbers/1.txt
+    And I open data/numbers/2.txt in a new tab
+    And I open data/numbers/3.txt in a new window
+    And I open data/numbers/4.txt in a new tab
+    And I open data/numbers/5.txt in a new tab
+    And I run :session-save --only-active-window window_session_name
+    And I run :window-only
+    And I run :tab-only
+    And I run :session-load window_session_name
+    And I wait until data/numbers/5.txt is loaded
+    Then the session should look like:
+      windows:
+        - tabs:
+            - history:
+              - active: true
+                url: http://localhost:*/data/numbers/5.txt
+        - tabs:
+            - history:
+                - url: http://localhost:*/data/numbers/3.txt
+            - history:
+                - url: http://localhost:*/data/numbers/4.txt
+            - history:
+                - active: true
+                  url: http://localhost:*/data/numbers/5.txt
 
   # :session-delete
 
@@ -294,11 +324,13 @@ Feature: Saving and loading sessions
   Scenario: Deleting internal session with --force
     When I run :session-save --force _internal
     And I run :session-delete --force _internal
+    And I wait for "Deleted session _internal." in the log
     Then the session _internal should not exist
 
   Scenario: Normally deleting a session
     When I run :session-save deleted_session
     And I run :session-delete deleted_session
+    And I wait for "Deleted session deleted_session." in the log
     Then the session deleted_session should not exist
 
   Scenario: Deleting a session which doesn't exist
@@ -310,7 +342,7 @@ Feature: Saving and loading sessions
   Scenario: Loading a directory
     When I run :session-load (tmpdir)
     Then the error "Error while loading session: *" should be shown
-    
+
   Scenario: Loading internal session without --force
     When I run :session-save --force _internal
     And I run :session-load _internal
@@ -332,6 +364,37 @@ Feature: Saving and loading sessions
     And I run :session-load loaded_session
     Then data/numbers/2.txt should be loaded
 
+  @qtwebengine_flaky
+  Scenario: Loading and deleting a session
+    When I open about:blank
+    And I run :session-save loaded_session
+    And I replace "about:blank" by "http://localhost:(port)/data/numbers/2.txt" in the "loaded_session" session file
+    And I run :session-load --delete loaded_session
+    And I wait for "Loaded & deleted session loaded_session." in the log
+    Then data/numbers/2.txt should be loaded
+    And the session loaded_session should not exist
+
   Scenario: Loading a session which doesn't exist
     When I run :session-load inexistent_session
     Then the error "Session inexistent_session not found!" should be shown
+
+
+  # Test load/save of pinned tabs
+
+  Scenario: Saving/Loading a session with pinned tabs
+      When I open data/numbers/1.txt
+      And I open data/numbers/2.txt in a new tab
+      And I open data/numbers/3.txt in a new tab
+      And I run :tab-pin with count 2
+      And I run :session-save pin_session
+      And I run :tab-only --force
+      And I run :tab-close --force
+      And I run :session-load -c pin_session
+      And I wait until data/numbers/3.txt is loaded
+      And I run :tab-focus 2
+      And I run :open hello world
+      Then the message "Tab is pinned!" should be shown
+      And the following tabs should be open:
+        - data/numbers/1.txt
+        - data/numbers/2.txt (active) (pinned)
+        - data/numbers/3.txt

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,21 +19,36 @@
 
 """Other utilities which don't fit anywhere else."""
 
+import os
+import os.path
 import io
+import re
 import sys
 import enum
 import json
-import os.path
-import collections
+import datetime
+import traceback
 import functools
 import contextlib
-import itertools
+import posixpath
 import socket
+import shlex
+import glob
+import mimetypes
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QKeySequence, QColor, QClipboard
+from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
 from PyQt5.QtWidgets import QApplication
 import pkg_resources
+import yaml
+try:
+    from yaml import (CSafeLoader as YamlLoader,  # type: ignore
+                      CSafeDumper as YamlDumper)
+    YAML_C_EXT = True
+except ImportError:  # pragma: no cover
+    from yaml import (SafeLoader as YamlLoader,  # type: ignore
+                      SafeDumper as YamlDumper)
+    YAML_C_EXT = False
 
 import qutebrowser
 from qutebrowser.utils import qtutils, log
@@ -41,6 +56,17 @@ from qutebrowser.utils import qtutils, log
 
 fake_clipboard = None
 log_clipboard = False
+_resource_cache = {}
+
+is_mac = sys.platform.startswith('darwin')
+is_linux = sys.platform.startswith('linux')
+is_windows = sys.platform.startswith('win')
+is_posix = os.name == 'posix'
+
+
+class Unreachable(Exception):
+
+    """Raised when there was unreachable code."""
 
 
 class ClipboardError(Exception):
@@ -51,6 +77,10 @@ class ClipboardError(Exception):
 class SelectionUnsupportedError(ClipboardError):
 
     """Raised if [gs]et_clipboard is used and selection=True is unsupported."""
+
+    def __init__(self):
+        super().__init__("Primary selection is not supported on this "
+                         "platform!")
 
 
 class ClipboardEmptyError(ClipboardError):
@@ -116,6 +146,15 @@ def compact_text(text, elidelength=None):
     return out
 
 
+def preload_resources():
+    """Load resource files into the cache."""
+    for subdir, pattern in [('html', '*.html'), ('javascript', '*.js')]:
+        path = resource_filename(subdir)
+        for full_path in glob.glob(os.path.join(path, pattern)):
+            sub_path = '/'.join([subdir, os.path.basename(full_path)])
+            _resource_cache[sub_path] = read_file(sub_path)
+
+
 def read_file(filename, binary=False):
     """Get the contents of a file contained with qutebrowser.
 
@@ -127,8 +166,15 @@ def read_file(filename, binary=False):
     Return:
         The file contents as string.
     """
+    assert not posixpath.isabs(filename), filename
+    assert os.path.pardir not in filename.split(posixpath.sep), filename
+
+    if not binary and filename in _resource_cache:
+        return _resource_cache[filename]
+
     if hasattr(sys, 'frozen'):
-        # cx_Freeze doesn't support pkg_resources :(
+        # PyInstaller doesn't support pkg_resources :(
+        # https://github.com/pyinstaller/pyinstaller/wiki/FAQ#misc
         fn = os.path.join(os.path.dirname(sys.executable), filename)
         if binary:
             with open(fn, 'rb') as f:
@@ -155,37 +201,6 @@ def resource_filename(filename):
     if hasattr(sys, 'frozen'):
         return os.path.join(os.path.dirname(sys.executable), filename)
     return pkg_resources.resource_filename(qutebrowser.__name__, filename)
-
-
-def actute_warning():
-    """Display a warning about the dead_actute issue if needed."""
-    # WORKAROUND (remove this when we bump the requirements to 5.3.0)
-    # Non Linux OS' aren't affected
-    if not sys.platform.startswith('linux'):
-        return
-    # If no compose file exists for some reason, we're not affected
-    if not os.path.exists('/usr/share/X11/locale/en_US.UTF-8/Compose'):
-        return
-    # Qt >= 5.3 doesn't seem to be affected
-    try:
-        if qtutils.version_check('5.3.0'):
-            return
-    except ValueError:  # pragma: no cover
-        pass
-    try:
-        with open('/usr/share/X11/locale/en_US.UTF-8/Compose', 'r',
-                  encoding='utf-8') as f:
-            for line in f:
-                if '<dead_actute>' in line:
-                    if sys.stdout is not None:
-                        sys.stdout.flush()
-                    print("Note: If you got a 'dead_actute' warning above, "
-                          "that is not a bug in qutebrowser! See "
-                          "https://bugs.freedesktop.org/show_bug.cgi?id=69476 "
-                          "for details.")
-                    break
-    except OSError:
-        log.init.exception("Failed to read Compose file")
 
 
 def _get_color_percentage(a_c1, a_c2, a_c3, b_c1, b_c2, b_c3, percent):
@@ -274,21 +289,6 @@ def format_seconds(total_seconds):
     return prefix + ':'.join(chunks)
 
 
-def format_timedelta(td):
-    """Format a timedelta to get a "1h 5m 1s" string."""
-    prefix = '-' if td.total_seconds() < 0 else ''
-    hours, rem = divmod(abs(round(td.total_seconds())), 3600)
-    minutes, seconds = divmod(rem, 60)
-    chunks = []
-    if hours:
-        chunks.append('{}h'.format(hours))
-    if minutes:
-        chunks.append('{}m'.format(minutes))
-    if seconds or not chunks:
-        chunks.append('{}s'.format(seconds))
-    return prefix + ' '.join(chunks)
-
-
 def format_size(size, base=1024, suffix=''):
     """Format a byte size so it's human readable.
 
@@ -302,268 +302,6 @@ def format_size(size, base=1024, suffix=''):
             return '{:.02f}{}{}'.format(size, p, suffix)
         size /= base
     return '{:.02f}{}{}'.format(size, prefixes[-1], suffix)
-
-
-def key_to_string(key):
-    """Convert a Qt::Key member to a meaningful name.
-
-    Args:
-        key: A Qt::Key member.
-
-    Return:
-        A name of the key as a string.
-    """
-    special_names_str = {
-        # Some keys handled in a weird way by QKeySequence::toString.
-        # See https://bugreports.qt.io/browse/QTBUG-40030
-        # Most are unlikely to be ever needed, but you never know ;)
-        # For dead/combining keys, we return the corresponding non-combining
-        # key, as that's easier to add to the config.
-        'Key_Blue': 'Blue',
-        'Key_Calendar': 'Calendar',
-        'Key_ChannelDown': 'Channel Down',
-        'Key_ChannelUp': 'Channel Up',
-        'Key_ContrastAdjust': 'Contrast Adjust',
-        'Key_Dead_Abovedot': '˙',
-        'Key_Dead_Abovering': '˚',
-        'Key_Dead_Acute': '´',
-        'Key_Dead_Belowdot': 'Belowdot',
-        'Key_Dead_Breve': '˘',
-        'Key_Dead_Caron': 'ˇ',
-        'Key_Dead_Cedilla': '¸',
-        'Key_Dead_Circumflex': '^',
-        'Key_Dead_Diaeresis': '¨',
-        'Key_Dead_Doubleacute': '˝',
-        'Key_Dead_Grave': '`',
-        'Key_Dead_Hook': 'Hook',
-        'Key_Dead_Horn': 'Horn',
-        'Key_Dead_Iota': 'Iota',
-        'Key_Dead_Macron': '¯',
-        'Key_Dead_Ogonek': '˛',
-        'Key_Dead_Semivoiced_Sound': 'Semivoiced Sound',
-        'Key_Dead_Tilde': '~',
-        'Key_Dead_Voiced_Sound': 'Voiced Sound',
-        'Key_Exit': 'Exit',
-        'Key_Green': 'Green',
-        'Key_Guide': 'Guide',
-        'Key_Info': 'Info',
-        'Key_LaunchG': 'LaunchG',
-        'Key_LaunchH': 'LaunchH',
-        'Key_MediaLast': 'MediaLast',
-        'Key_Memo': 'Memo',
-        'Key_MicMute': 'Mic Mute',
-        'Key_Mode_switch': 'Mode switch',
-        'Key_Multi_key': 'Multi key',
-        'Key_PowerDown': 'Power Down',
-        'Key_Red': 'Red',
-        'Key_Settings': 'Settings',
-        'Key_SingleCandidate': 'Single Candidate',
-        'Key_ToDoList': 'Todo List',
-        'Key_TouchpadOff': 'Touchpad Off',
-        'Key_TouchpadOn': 'Touchpad On',
-        'Key_TouchpadToggle': 'Touchpad toggle',
-        'Key_Yellow': 'Yellow',
-        'Key_Alt': 'Alt',
-        'Key_AltGr': 'AltGr',
-        'Key_Control': 'Control',
-        'Key_Direction_L': 'Direction L',
-        'Key_Direction_R': 'Direction R',
-        'Key_Hyper_L': 'Hyper L',
-        'Key_Hyper_R': 'Hyper R',
-        'Key_Meta': 'Meta',
-        'Key_Shift': 'Shift',
-        'Key_Super_L': 'Super L',
-        'Key_Super_R': 'Super R',
-        'Key_unknown': 'Unknown',
-    }
-    # We now build our real special_names dict from the string mapping above.
-    # The reason we don't do this directly is that certain Qt versions don't
-    # have all the keys, so we want to ignore AttributeErrors.
-    special_names = {}
-    for k, v in special_names_str.items():
-        try:
-            special_names[getattr(Qt, k)] = v
-        except AttributeError:
-            pass
-    # Now we check if the key is any special one - if not, we use
-    # QKeySequence::toString.
-    try:
-        return special_names[key]
-    except KeyError:
-        name = QKeySequence(key).toString()
-        morphings = {
-            'Backtab': 'Tab',
-            'Esc': 'Escape',
-        }
-        if name in morphings:
-            return morphings[name]
-        else:
-            return name
-
-
-def keyevent_to_string(e):
-    """Convert a QKeyEvent to a meaningful name.
-
-    Args:
-        e: A QKeyEvent.
-
-    Return:
-        A name of the key (combination) as a string or
-        None if only modifiers are pressed..
-    """
-    if sys.platform == 'darwin':
-        # Qt swaps Ctrl/Meta on OS X, so we switch it back here so the user can
-        # use it in the config as expected. See:
-        # https://github.com/The-Compiler/qutebrowser/issues/110
-        # http://doc.qt.io/qt-5.4/osx-issues.html#special-keys
-        modmask2str = collections.OrderedDict([
-            (Qt.MetaModifier, 'Ctrl'),
-            (Qt.AltModifier, 'Alt'),
-            (Qt.ControlModifier, 'Meta'),
-            (Qt.ShiftModifier, 'Shift'),
-        ])
-    else:
-        modmask2str = collections.OrderedDict([
-            (Qt.ControlModifier, 'Ctrl'),
-            (Qt.AltModifier, 'Alt'),
-            (Qt.MetaModifier, 'Meta'),
-            (Qt.ShiftModifier, 'Shift'),
-        ])
-    modifiers = (Qt.Key_Control, Qt.Key_Alt, Qt.Key_Shift, Qt.Key_Meta,
-                 Qt.Key_AltGr, Qt.Key_Super_L, Qt.Key_Super_R, Qt.Key_Hyper_L,
-                 Qt.Key_Hyper_R, Qt.Key_Direction_L, Qt.Key_Direction_R)
-    if e.key() in modifiers:
-        # Only modifier pressed
-        return None
-    mod = e.modifiers()
-    parts = []
-    for (mask, s) in modmask2str.items():
-        if mod & mask and s not in parts:
-            parts.append(s)
-    parts.append(key_to_string(e.key()))
-    return '+'.join(parts)
-
-
-class KeyInfo:
-
-    """Stores information about a key, like used in a QKeyEvent.
-
-    Attributes:
-        key: Qt::Key
-        modifiers: Qt::KeyboardModifiers
-        text: str
-    """
-
-    def __init__(self, key, modifiers, text):
-        self.key = key
-        self.modifiers = modifiers
-        self.text = text
-
-    def __repr__(self):
-        # Meh, dependency cycle...
-        from qutebrowser.utils.debug import qenum_key
-        if self.modifiers is None:
-            modifiers = None
-        else:
-            #modifiers = qflags_key(Qt, self.modifiers)
-            modifiers = hex(int(self.modifiers))
-        return get_repr(self, constructor=True, key=qenum_key(Qt, self.key),
-                        modifiers=modifiers, text=self.text)
-
-    def __eq__(self, other):
-        return (self.key == other.key and self.modifiers == other.modifiers and
-                self.text == other.text)
-
-
-class KeyParseError(Exception):
-
-    """Raised by _parse_single_key/parse_keystring on parse errors."""
-
-    def __init__(self, keystr, error):
-        super().__init__("Could not parse {!r}: {}".format(keystr, error))
-
-
-def is_special_key(keystr):
-    """True if keystr is a 'special' keystring (e.g. <ctrl-x> or <space>)."""
-    return keystr.startswith('<') and keystr.endswith('>')
-
-
-def _parse_single_key(keystr):
-    """Convert a single key string to a (Qt.Key, Qt.Modifiers, text) tuple."""
-    if is_special_key(keystr):
-        # Special key
-        keystr = keystr[1:-1]
-    elif len(keystr) == 1:
-        # vim-like key
-        pass
-    else:
-        raise KeyParseError(keystr, "Expecting either a single key or a "
-                            "<Ctrl-x> like keybinding.")
-
-    seq = QKeySequence(normalize_keystr(keystr), QKeySequence.PortableText)
-    if len(seq) != 1:
-        raise KeyParseError(keystr, "Got {} keys instead of 1.".format(
-            len(seq)))
-    result = seq[0]
-
-    if result == Qt.Key_unknown:
-        raise KeyParseError(keystr, "Got unknown key.")
-
-    modifier_mask = int(Qt.ShiftModifier | Qt.ControlModifier |
-                        Qt.AltModifier | Qt.MetaModifier | Qt.KeypadModifier |
-                        Qt.GroupSwitchModifier)
-    assert Qt.Key_unknown & ~modifier_mask == Qt.Key_unknown
-
-    modifiers = result & modifier_mask
-    key = result & ~modifier_mask
-
-    if len(keystr) == 1 and keystr.isupper():
-        modifiers |= Qt.ShiftModifier
-
-    assert key != 0, key
-    key = Qt.Key(key)
-    modifiers = Qt.KeyboardModifiers(modifiers)
-
-    # Let's hope this is accurate...
-    if len(keystr) == 1 and not modifiers:
-        text = keystr
-    elif len(keystr) == 1 and modifiers == Qt.ShiftModifier:
-        text = keystr.upper()
-    else:
-        text = ''
-
-    return KeyInfo(key, modifiers, text)
-
-
-def parse_keystring(keystr):
-    """Parse a keystring like <Ctrl-x> or xyz and return a KeyInfo list."""
-    if is_special_key(keystr):
-        return [_parse_single_key(keystr)]
-    else:
-        return [_parse_single_key(char) for char in keystr]
-
-
-def normalize_keystr(keystr):
-    """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
-
-    Args:
-        keystr: The key combination as a string.
-
-    Return:
-        The normalized keystring.
-    """
-    keystr = keystr.lower()
-    replacements = (
-        ('control', 'ctrl'),
-        ('windows', 'meta'),
-        ('mod1', 'alt'),
-        ('mod4', 'meta'),
-    )
-    for (orig, repl) in replacements:
-        keystr = keystr.replace(orig, repl)
-    for mod in ['ctrl', 'meta', 'alt', 'shift']:
-        keystr = keystr.replace(mod + '-', mod + '+')
-    return keystr
 
 
 class FakeIOStream(io.TextIOBase):
@@ -613,7 +351,7 @@ def disabled_excepthook():
             sys.excepthook = old_excepthook
 
 
-class prevent_exceptions:  # pylint: disable=invalid-name
+class prevent_exceptions:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """Decorator to ignore and log exceptions.
 
@@ -660,6 +398,7 @@ class prevent_exceptions:  # pylint: disable=invalid-name
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            """Call the original function."""
             try:
                 return func(*args, **kwargs)
             except BaseException:
@@ -767,51 +506,58 @@ def sanitize_filename(name, replacement='_'):
     """
     if replacement is None:
         replacement = ''
-    # Bad characters taken from Windows, there are even fewer on Linux
+
+    # Remove chars which can't be encoded in the filename encoding.
+    # See https://github.com/qutebrowser/qutebrowser/issues/427
+    encoding = sys.getfilesystemencoding()
+    name = force_encoding(name, encoding)
+
     # See also
     # https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words
-    bad_chars = '\\/:*?"<>|'
+    if is_windows:
+        bad_chars = '\\/:*?"<>|'
+    elif is_mac:
+        # Colons can be confusing in finder https://superuser.com/a/326627
+        bad_chars = '/:'
+    else:
+        bad_chars = '/'
+
     for bad_char in bad_chars:
         name = name.replace(bad_char, replacement)
     return name
 
 
-def newest_slice(iterable, count):
-    """Get an iterable for the n newest items of the given iterable.
-
-    Args:
-        count: How many elements to get.
-               0: get no items:
-               n: get the n newest items
-              -1: get all items
-    """
-    if count < -1:
-        raise ValueError("count can't be smaller than -1!")
-    elif count == 0:
-        return []
-    elif count == -1 or len(iterable) < count:
-        return iterable
-    else:
-        return itertools.islice(iterable, len(iterable) - count, len(iterable))
-
-
 def set_clipboard(data, selection=False):
     """Set the clipboard to some given data."""
+    global fake_clipboard
     if selection and not supports_selection():
         raise SelectionUnsupportedError
     if log_clipboard:
         what = 'primary selection' if selection else 'clipboard'
         log.misc.debug("Setting fake {}: {}".format(what, json.dumps(data)))
+        fake_clipboard = data
     else:
         mode = QClipboard.Selection if selection else QClipboard.Clipboard
         QApplication.clipboard().setText(data, mode=mode)
 
 
-def get_clipboard(selection=False):
-    """Get data from the clipboard."""
+def get_clipboard(selection=False, fallback=False):
+    """Get data from the clipboard.
+
+    Args:
+        selection: Use the primary selection.
+        fallback: Fall back to the clipboard if primary selection is
+                  unavailable.
+    """
     global fake_clipboard
+    if fallback and not selection:
+        raise ValueError("fallback given without selection!")
+
     if selection and not supports_selection():
-        raise SelectionUnsupportedError
+        if fallback:
+            selection = False
+        else:
+            raise SelectionUnsupportedError
 
     if fake_clipboard is not None:
         data = fake_clipboard
@@ -840,3 +586,157 @@ def random_port():
     port = sock.getsockname()[1]
     sock.close()
     return port
+
+
+def open_file(filename, cmdline=None):
+    """Open the given file.
+
+    If cmdline is not given, downloads.open_dispatcher is used.
+    If open_dispatcher is unset, the system's default application is used.
+
+    Args:
+        filename: The filename to open.
+        cmdline: The command to use as string. A `{}` is expanded to the
+                 filename. None means to use the system's default application
+                 or `downloads.open_dispatcher` if set. If no `{}` is found,
+                 the filename is appended to the cmdline.
+    """
+    # Import late to avoid circular imports:
+    # - usertypes -> utils -> guiprocess -> message -> usertypes
+    # - usertypes -> utils -> config -> configdata -> configtypes ->
+    #   cmdutils -> command -> message -> usertypes
+    from qutebrowser.config import config
+    from qutebrowser.misc import guiprocess
+
+    # the default program to open downloads with - will be empty string
+    # if we want to use the default
+    override = config.val.downloads.open_dispatcher
+
+    # precedence order: cmdline > downloads.open_dispatcher > openUrl
+
+    if cmdline is None and not override:
+        log.misc.debug("Opening {} with the system application"
+                       .format(filename))
+        url = QUrl.fromLocalFile(filename)
+        QDesktopServices.openUrl(url)
+        return
+
+    if cmdline is None and override:
+        cmdline = override
+
+    cmd, *args = shlex.split(cmdline)
+    args = [arg.replace('{}', filename) for arg in args]
+    if '{}' not in cmdline:
+        args.append(filename)
+    log.misc.debug("Opening {} with {}"
+                   .format(filename, [cmd] + args))
+    proc = guiprocess.GUIProcess(what='open-file')
+    proc.start_detached(cmd, args)
+
+
+def unused(_arg):
+    """Function which does nothing to avoid pylint complaining."""
+
+
+def expand_windows_drive(path):
+    r"""Expand a drive-path like E: into E:\.
+
+    Does nothing for other paths.
+
+    Args:
+        path: The path to expand.
+    """
+    # Usually, "E:" on Windows refers to the current working directory on drive
+    # E:\. The correct way to specifify drive E: is "E:\", but most users
+    # probably don't use the "multiple working directories" feature and expect
+    # "E:" and "E:\" to be equal.
+    if re.fullmatch(r'[A-Z]:', path, re.IGNORECASE):
+        return path + "\\"
+    else:
+        return path
+
+
+def yaml_load(f):
+    """Wrapper over yaml.load using the C loader if possible."""
+    start = datetime.datetime.now()
+
+    # WORKAROUND for https://github.com/yaml/pyyaml/pull/181
+    with log.ignore_py_warnings(
+            category=DeprecationWarning,
+            message=r"Using or importing the ABCs from 'collections' instead "
+            r"of from 'collections\.abc' is deprecated, and in 3\.8 it will "
+            r"stop working"):
+        data = yaml.load(f, Loader=YamlLoader)
+
+    end = datetime.datetime.now()
+
+    delta = (end - start).total_seconds()
+    deadline = 10 if 'CI' in os.environ else 2
+    if delta > deadline:  # pragma: no cover
+        log.misc.warning(
+            "YAML load took unusually long, please report this at "
+            "https://github.com/qutebrowser/qutebrowser/issues/2777\n"
+            "duration: {}s\n"
+            "PyYAML version: {}\n"
+            "C extension: {}\n"
+            "Stack:\n\n"
+            "{}".format(
+                delta, yaml.__version__, YAML_C_EXT,
+                ''.join(traceback.format_stack())))
+
+    return data
+
+
+def yaml_dump(data, f=None):
+    """Wrapper over yaml.dump using the C dumper if possible.
+
+    Also returns a str instead of bytes.
+    """
+    yaml_data = yaml.dump(data, f, Dumper=YamlDumper, default_flow_style=False,
+                          encoding='utf-8', allow_unicode=True)
+    if yaml_data is None:
+        return None
+    else:
+        return yaml_data.decode('utf-8')
+
+
+def chunk(elems, n):
+    """Yield successive n-sized chunks from elems.
+
+    If elems % n != 0, the last chunk will be smaller.
+    """
+    if n < 1:
+        raise ValueError("n needs to be at least 1!")
+    for i in range(0, len(elems), n):
+        yield elems[i:i + n]
+
+
+def guess_mimetype(filename, fallback=False):
+    """Guess a mimetype based on a filename.
+
+    Args:
+        filename: The filename to check.
+        fallback: Fall back to application/octet-stream if unknown.
+    """
+    mimetype, _encoding = mimetypes.guess_type(filename)
+    if mimetype is None:
+        if fallback:
+            return 'application/octet-stream'
+        else:
+            raise ValueError("Got None mimetype for {}".format(filename))
+    return mimetype
+
+
+def ceil_log(number, base):
+    """Compute max(1, ceil(log(number, base))).
+
+    Use only integer arithmetic in order to avoid numerical error.
+    """
+    if number < 1 or base < 2:
+        raise ValueError("math domain error")
+    result = 1
+    accum = base
+    while accum < number:
+        result += 1
+        accum *= base
+    return result

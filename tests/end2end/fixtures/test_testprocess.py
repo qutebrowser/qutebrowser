@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -51,8 +51,8 @@ class PythonProcess(testprocess.Process):
 
     """A testprocess which runs the given Python code."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, request):
+        super().__init__(request)
         self.proc.setReadChannel(QProcess.StandardOutput)
         self.code = None
 
@@ -103,22 +103,22 @@ class NoReadyPythonProcess(PythonProcess):
 
 
 @pytest.fixture
-def pyproc():
-    proc = PythonProcess()
+def pyproc(request):
+    proc = PythonProcess(request)
     yield proc
     proc.terminate()
 
 
 @pytest.fixture
-def quit_pyproc():
-    proc = QuitPythonProcess()
+def quit_pyproc(request):
+    proc = QuitPythonProcess(request)
     yield proc
     proc.terminate()
 
 
 @pytest.fixture
-def noready_pyproc():
-    proc = NoReadyPythonProcess()
+def noready_pyproc(request):
+    proc = NoReadyPythonProcess(request)
     yield proc
     proc.terminate()
 
@@ -138,9 +138,9 @@ def test_quitting_process(qtbot, quit_pyproc):
 
 
 def test_quitting_process_expected(qtbot, quit_pyproc):
+    quit_pyproc.exit_expected = True
     with qtbot.waitSignal(quit_pyproc.proc.finished):
         quit_pyproc.start()
-    quit_pyproc.exit_expected = True
     quit_pyproc.after_test()
 
 
@@ -149,10 +149,10 @@ def test_process_never_started(qtbot, quit_pyproc):
     quit_pyproc.after_test()
 
 
-def test_wait_signal_raising(qtbot):
+def test_wait_signal_raising(request, qtbot):
     """testprocess._wait_signal should raise by default."""
-    proc = testprocess.Process()
-    with pytest.raises(qtbot.SignalTimeoutError):
+    proc = testprocess.Process(request)
+    with pytest.raises(qtbot.TimeoutError):
         with proc._wait_signal(proc.proc.started, timeout=0):
             pass
 

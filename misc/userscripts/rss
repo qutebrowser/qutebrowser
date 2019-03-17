@@ -32,7 +32,7 @@ add_feed () {
     if grep -Fq "$1" "feeds"; then
         notice "$1 is saved already."
     else
-        printf "%s\n" "$1" >> "feeds"
+        printf '%s\n' "$1" >> "feeds"
     fi
 }
 
@@ -57,7 +57,7 @@ notice () {
 
 # Update a database of a feed and open new URLs
 read_items () {
-    cd read_urls
+    cd read_urls || return 1
     feed_file="$(echo "$1" | tr -d /)"
     feed_temp_file="$(mktemp "$feed_file.tmp.XXXXXXXXXX")"
     feed_new_items="$(mktemp "$feed_file.new.XXXXXXXXXX")"
@@ -75,7 +75,7 @@ read_items () {
         cat "$feed_new_items" >> "$feed_file"
         sort -o "$feed_file" "$feed_file"
         rm "$feed_temp_file" "$feed_new_items"
-    fi | while read item; do
+    fi | while read -r item; do
         echo "open -t $item" > "$QUTE_FIFO"
     done
 }
@@ -85,7 +85,7 @@ if [ ! -d "$config_dir/read_urls" ]; then
     mkdir -p "$config_dir/read_urls"
 fi
 
-cd "$config_dir"
+cd "$config_dir" || exit 1
 
 if [ $# != 0 ]; then
     for arg in "$@"; do
@@ -115,7 +115,7 @@ if < /dev/null grep --help 2>&1 | grep -q -- -a; then
     text_only="-a"
 fi
 
-while read feed_url; do
+while read -r feed_url; do
     read_items "$feed_url" &
 done < "$config_dir/feeds"
 

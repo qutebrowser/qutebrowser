@@ -1,53 +1,96 @@
-sudo: required
-dist: trusty
-language: generic
+dist: xenial
+language: python
+group: edge
+python: 3.7
+os: linux
 
 matrix:
+  fast_finish: true
   include:
-    - os: linux
-      env: TESTENV=py34-cov
-    - os: linux
-      env: DOCKER=debian-jessie
+    ### Archlinux QtWebKit
+    - env: DOCKER=archlinux
       services: docker
-    - os: linux
-      env: DOCKER=archlinux
+
+    ### Archlinux QtWebEngine
+    - env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
       services: docker
-    - os: linux
-      env: DOCKER=archlinux QUTE_BDD_WEBENGINE=true
-      services: docker
-    - os: linux
-      env: DOCKER=ubuntu-xenial
-      services: docker
+
+    ### PyQt 5.7.1 (Python 3.5)
+    - python: 3.5
+      env: TESTENV=py35-pyqt571
+    ### PyQt 5.7.1 (Python 3.6)
+    - python: 3.6
+      env: TESTENV=py36-pyqt571
+
+    ### PyQt 5.9
+    - env: TESTENV=py37-pyqt59
+
+    ### PyQt 5.10
+    - env: TESTENV=py37-pyqt510
+      addons:
+        apt:
+          packages:
+          - xfonts-base
+
+    ### PyQt 5.11
+    - env: TESTENV=py37-pyqt511
+
+    ### PyQt 5.12 (Python 3.7, with coverage)
+    - env: TESTENV=py37-pyqt512-cov
+      # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
+      addons:
+        apt:
+          packages:
+          - libxkbcommon-x11-0
+
+    ### macOS sierra
     - os: osx
-      env: TESTENV=py35
-    - os: linux
-      env: TESTENV=pylint
-    - os: linux
-      env: TESTENV=flake8
-    - os: linux
-      env: TESTENV=docs
-    - os: linux
-      env: TESTENV=vulture
-    - os: linux
-      env: TESTENV=misc
-    - os: linux
-      env: TESTENV=pyroma
-    - os: linux
-      env: TESTENV=check-manifest
-    - os: linux
-      env: TESTENV=eslint
+      env: TESTENV=py37-pyqt512 OSX=sierra
+      osx_image: xcode9.2
+      language: generic
+    ### macOS yosemite
+    # https://github.com/qutebrowser/qutebrowser/issues/2013
+    # - os: osx
+    #   env: TESTENV=py35 OSX=yosemite
+    #   osx_image: xcode6.4
+
+    ### pylint/flake8/mypy
+    - env: TESTENV=pylint
+    - env: TESTENV=flake8
+    - env: TESTENV=mypy
+
+    ### docs
+    - env: TESTENV=docs
+      addons:
+         apt:
+           packages:
+           - asciidoc
+
+    ### vulture/misc/pyroma/check-manifest
+    - env: TESTENV=vulture
+    - env: TESTENV=misc
+    - env: TESTENV=pyroma
+    - env: TESTENV=check-manifest
+
+    ### eslint
+    - env: TESTENV=eslint
+      language: node_js
+      python: null
+      node_js: "lts/*"
+
+    ### shellcheck
+    - language: generic
+      env: TESTENV=shellcheck
+      services: docker
 
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/build/The-Compiler/qutebrowser/.cache
-
-before_install:
-  # We need to do this so we pick up the system-wide python properly
-  - 'export PATH="/usr/bin:$PATH"'
+    - $HOME/build/qutebrowser/qutebrowser/.cache
 
 install:
   - bash scripts/dev/ci/travis_install.sh
+  - ulimit -c unlimited
 
 script:
   - bash scripts/dev/ci/travis_run.sh
@@ -55,15 +98,5 @@ script:
 after_success:
   - '[[ $TESTENV == *-cov ]] && codecov -e TESTENV -X gcov'
 
-notifications:
-  webhooks:
-    - https://buildtimetrend.herokuapp.com/travis
-  irc:
-    channels:
-      - "chat.freenode.net#qutebrowser-dev"
-    on_success: always
-    on_failure: always
-    skip_join: true
-    template:
-      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
-      - "%{compare_url} - %{build_url}"
+after_failure:
+  - bash scripts/dev/ci/travis_backtrace.sh

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,9 +24,10 @@ import sys
 import inspect
 import os.path
 import collections
+import enum
 
 import qutebrowser
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import log, utils
 
 
 def is_git_repo():
@@ -63,7 +64,7 @@ class DocstringParser:
 
     """Generate documentation based on a docstring of a command handler.
 
-    The docstring needs to follow the format described in CONTRIBUTING.
+    The docstring needs to follow the format described in doc/contributing.
 
     Attributes:
         _state: The current state of the parser state machine.
@@ -75,8 +76,8 @@ class DocstringParser:
         arg_descs: A dict of argument names to their descriptions
     """
 
-    State = usertypes.enum('State', ['short', 'desc', 'desc_hidden',
-                                     'arg_start', 'arg_inside', 'misc'])
+    State = enum.Enum('State', ['short', 'desc', 'desc_hidden',
+                                'arg_start', 'arg_inside', 'misc'])
 
     def __init__(self, func):
         """Constructor.
@@ -142,7 +143,7 @@ class DocstringParser:
         """Parse the long description in the docstring."""
         if line.startswith('Args:'):
             self._state = self.State.arg_start
-        elif line.strip() == '//':
+        elif line.strip() == '//' or line.startswith('Attributes:'):
             self._state = self.State.desc_hidden
         elif line.strip():
             self._long_desc_parts.append(line.strip())
@@ -155,7 +156,7 @@ class DocstringParser:
     def _parse_arg_inside(self, line):
         """Parse subsequent argument lines."""
         argname = self._cur_arg_name
-        if re.match(r'^[A-Z][a-z]+:$', line):
+        if re.fullmatch(r'[A-Z][a-z]+:', line):
             if not self.arg_descs[argname][-1].strip():
                 self.arg_descs[argname] = self.arg_descs[argname][:-1]
                 return True

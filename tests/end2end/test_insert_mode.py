@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,67 +19,63 @@
 
 """Test insert mode settings on html files."""
 
-import logging
-import json
-
 import pytest
 
 
-@pytest.mark.parametrize(['file_name', 'elem_id', 'source', 'input_text',
-                          'auto_insert'], [
-    ('textarea.html', 'qute-textarea', 'clipboard', 'qutebrowser', 'false'),
-    ('textarea.html', 'qute-textarea', 'keypress', 'superqutebrowser',
-     'false'),
-    ('input.html', 'qute-input', 'clipboard', 'amazingqutebrowser', 'false'),
-    ('input.html', 'qute-input', 'keypress', 'awesomequtebrowser', 'false'),
-    ('autofocus.html', 'qute-input-autofocus', 'keypress', 'cutebrowser',
-     'true'),
+@pytest.mark.parametrize(['file_name', 'elem_id', 'source', 'input_text'], [
+    ('textarea.html', 'qute-textarea', 'clipboard', 'qutebrowser'),
+    ('textarea.html', 'qute-textarea', 'keypress', 'superqutebrowser'),
+    ('input.html', 'qute-input', 'clipboard', 'amazingqutebrowser'),
+    ('input.html', 'qute-input', 'keypress', 'awesomequtebrowser'),
+    ('autofocus.html', 'qute-input-autofocus', 'keypress', 'cutebrowser'),
 ])
-def test_insert_mode(file_name, elem_id, source, input_text, auto_insert,
+@pytest.mark.parametrize('zoom', [100, 125, 250])
+def test_insert_mode(file_name, elem_id, source, input_text, zoom,
                      quteproc, request):
     url_path = 'data/insert_mode_settings/html/{}'.format(file_name)
     quteproc.open_path(url_path)
+    quteproc.send_cmd(':zoom {}'.format(zoom))
 
-    quteproc.set_setting('input', 'auto-insert-mode', auto_insert)
-    quteproc.send_cmd(':click-element id {}'.format(elem_id))
-    quteproc.wait_for(message='Clicked editable element!')
+    quteproc.send_cmd(':click-element --force-event id {}'.format(elem_id))
+    quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
     quteproc.send_cmd(':debug-set-fake-clipboard')
 
     if source == 'keypress':
         quteproc.press_keys(input_text)
     elif source == 'clipboard':
-        if request.config.webengine:
-            pytest.xfail(reason="QtWebEngine TODO: caret mode is not "
-                         "implemented")
-            # Note we actually run the keypress tests with QtWebEngine, as for
-            # some reason it selects all the text when clicking the field the
-            # second time.
         quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format(input_text))
         quteproc.send_cmd(':insert-text {clipboard}')
+    else:
+        raise ValueError("Invalid source {!r}".format(source))
 
+    quteproc.wait_for_js('contents: {}'.format(input_text))
     quteproc.send_cmd(':leave-mode')
-    quteproc.send_cmd(':hint all')
-    quteproc.wait_for(message='hints: *')
-    quteproc.send_cmd(':follow-hint a')
-    quteproc.wait_for(message='Clicked editable element!')
-    quteproc.send_cmd(':enter-mode caret')
-    quteproc.send_cmd(':toggle-selection')
-    quteproc.send_cmd(':move-to-prev-word')
-    quteproc.send_cmd(':yank selection')
 
-    expected_message = '{} chars yanked to clipboard'.format(len(input_text))
-    quteproc.mark_expected(category='message',
-                           loglevel=logging.INFO,
-                           message=expected_message)
-    quteproc.wait_for(
-        message='Setting fake clipboard: {}'.format(json.dumps(input_text)))
+
+@pytest.mark.parametrize('auto_load, background, insert_mode', [
+    (False, False, False),  # auto_load disabled
+    (True, False, True),  # enabled and foreground tab
+    (True, True, False),  # background tab
+])
+def test_auto_load(quteproc, auto_load, background, insert_mode):
+    quteproc.set_setting('input.insert_mode.auto_load', str(auto_load))
+    url_path = 'data/insert_mode_settings/html/autofocus.html'
+    quteproc.open_path(url_path, new_bg_tab=background)
+
+    log_message = 'Entering mode KeyMode.insert (reason: *)'
+    if insert_mode:
+        quteproc.wait_for(message=log_message)
+        quteproc.send_cmd(':leave-mode')
+    else:
+        quteproc.ensure_not_logged(message=log_message)
 
 
 def test_auto_leave_insert_mode(quteproc):
     url_path = 'data/insert_mode_settings/html/autofocus.html'
     quteproc.open_path(url_path)
 
-    quteproc.set_setting('input', 'auto-leave-insert-mode', 'true')
+    quteproc.set_setting('input.insert_mode.auto_leave', 'true')
+    quteproc.send_cmd(':zoom 100')
 
     quteproc.press_keys('abcd')
 
@@ -89,11 +85,20 @@ def test_auto_leave_insert_mode(quteproc):
     # Select the disabled input box to leave insert mode
     quteproc.send_cmd(':follow-hint s')
     quteproc.wait_for(message='Clicked non-editable element!')
-    quteproc.send_cmd(':enter-mode caret')
-    quteproc.send_cmd(':paste-primary')
 
-    expected_message = ('paste-primary: This command is only allowed in '
-                        'insert mode.')
-    quteproc.mark_expected(category='message',
-                           loglevel=logging.ERROR,
-                           message=expected_message)
+
+@pytest.mark.parametrize('leave_on_load', [True, False])
+def test_auto_leave_insert_mode_reload(quteproc, leave_on_load):
+    url_path = 'data/hello.txt'
+    quteproc.open_path(url_path)
+
+    quteproc.set_setting('input.insert_mode.leave_on_load',
+                         str(leave_on_load).lower())
+    quteproc.send_cmd(':enter-mode insert')
+    quteproc.wait_for(message='Entering mode KeyMode.insert (reason: *)')
+    quteproc.send_cmd(':reload')
+    if leave_on_load:
+        quteproc.wait_for(message='Leaving mode KeyMode.insert (reason: *)')
+    else:
+        quteproc.wait_for(
+            message='Ignoring leave_on_load request due to setting.')

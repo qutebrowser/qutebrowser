@@ -1,7 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
-# Copyright 2015-2016 Antoni Boucher (antoyo) <bouanto@zoho.com>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Antoni Boucher (antoyo) <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
 #
@@ -25,7 +25,7 @@
 
 import os
 
-from qutebrowser.browser.webkit.network import schemehandler, networkreply
+from qutebrowser.browser.webkit.network import networkreply
 from qutebrowser.utils import jinja
 
 
@@ -101,34 +101,33 @@ def dirbrowser_html(path):
     except OSError as e:
         html = jinja.render('error.html',
                             title="Error while reading directory",
-                            url='file:///{}'.format(path), error=str(e),
-                            icon='')
+                            url='file:///{}'.format(path), error=str(e))
         return html.encode('UTF-8', errors='xmlcharrefreplace')
 
     files = get_file_list(path, all_files, os.path.isfile)
     directories = get_file_list(path, all_files, os.path.isdir)
-    html = jinja.render('dirbrowser.html', title=title, url=path, icon='',
+    html = jinja.render('dirbrowser.html', title=title, url=path,
                         parent=parent, files=files, directories=directories)
     return html.encode('UTF-8', errors='xmlcharrefreplace')
 
 
-class FileSchemeHandler(schemehandler.SchemeHandler):
+def handler(request, _operation, _current_url):
+    """Handler for a file:// URL.
 
-    """Scheme handler for file: URLs."""
+    Args:
+        request: QNetworkRequest to answer to.
+        _operation: The HTTP operation being done.
+        _current_url: The page we're on currently.
 
-    def createRequest(self, _op, request, _outgoing_data):
-        """Create a new request.
-
-        Args:
-             request: const QNetworkRequest & req
-             _op: Operation op
-             _outgoing_data: QIODevice * outgoingData
-
-        Return:
-            A QNetworkReply for directories, None for files.
-        """
-        path = request.url().toLocalFile()
+    Return:
+        A QNetworkReply for directories, None for files.
+    """
+    path = request.url().toLocalFile()
+    try:
         if os.path.isdir(path):
             data = dirbrowser_html(path)
             return networkreply.FixedDataNetworkReply(
-                request, data, 'text/html', self.parent())
+                request, data, 'text/html')
+        return None
+    except UnicodeEncodeError:
+        return None

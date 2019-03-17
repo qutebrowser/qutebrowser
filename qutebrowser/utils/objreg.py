@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -41,8 +41,6 @@ class UnsetObject:
 class RegistryUnavailableError(Exception):
 
     """Exception raised when a certain registry does not exist yet."""
-
-    pass
 
 
 class NoWindow(Exception):
@@ -105,13 +103,9 @@ class ObjectRegistry(collections.UserDict):
             func = partial_objs[name]
             try:
                 self[name].destroyed.disconnect(func)
-            except (RuntimeError, TypeError):
+            except RuntimeError:
                 # If C++ has deleted the object, the slot is already
                 # disconnected.
-                #
-                # With older PyQt-versions (5.2.1) we'll get a "TypeError:
-                # pyqtSignal must be bound to a QObject" instead:
-                # https://github.com/The-Compiler/qutebrowser/issues/257
                 pass
             del partial_objs[name]
 
@@ -143,7 +137,12 @@ class ObjectRegistry(collections.UserDict):
         """Dump all objects as a list of strings."""
         lines = []
         for name, obj in self.data.items():
-            lines.append("{}: {}".format(name, repr(obj)))
+            try:
+                obj_repr = repr(obj)
+            except RuntimeError:
+                # Underlying object deleted probably
+                obj_repr = '<deleted>'
+            lines.append("{}: {}".format(name, obj_repr))
         return lines
 
 
@@ -170,7 +169,7 @@ def _get_tab_registry(win_id, tab_id):
 
     if tab_id == 'current':
         tabbed_browser = get('tabbed-browser', scope='window', window=win_id)
-        tab = tabbed_browser.currentWidget()
+        tab = tabbed_browser.widget.currentWidget()
         if tab is None:
             raise RegistryUnavailableError('window')
         tab_id = tab.tab_id
@@ -253,7 +252,7 @@ def register(name, obj, update=False, scope=None, registry=None, window=None,
         reg = _get_registry(scope, window, tab)
     if not update and name in reg:
         raise KeyError("Object '{}' is already registered ({})!".format(
-                       name, repr(reg[name])))
+            name, repr(reg[name])))
     reg[name] = obj
 
 
@@ -305,6 +304,5 @@ def window_by_index(idx):
     """Get the Nth opened window object."""
     if not window_registry:
         raise NoWindow()
-    else:
-        key = sorted(window_registry)[idx]
-        return window_registry[key]
+    key = sorted(window_registry)[idx]
+    return window_registry[key]

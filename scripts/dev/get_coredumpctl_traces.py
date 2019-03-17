@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -21,12 +21,13 @@
 """Get qutebrowser crash information and stacktraces from coredumpctl."""
 
 import os
+import os.path
 import sys
 import argparse
 import subprocess
-import collections
-import os.path
 import tempfile
+
+import attr
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
@@ -34,7 +35,18 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 from scripts import utils
 
 
-Line = collections.namedtuple('Line', 'time, pid, uid, gid, sig, present, exe')
+@attr.s
+class Line:
+
+    """A line in "coredumpctl list"."""
+
+    time = attr.ib()
+    pid = attr.ib()
+    uid = attr.ib()
+    gid = attr.ib()
+    sig = attr.ib()
+    present = attr.ib()
+    exe = attr.ib()
 
 
 def _convert_present(data):
@@ -72,12 +84,17 @@ def parse_coredumpctl_line(line):
 def get_info(pid):
     """Get and parse "coredumpctl info" output for the given PID."""
     data = {}
-    output = subprocess.check_output(['coredumpctl', 'info', str(pid)])
+    output = subprocess.run(['coredumpctl', 'info', str(pid)], check=True,
+                            stdout=subprocess.PIPE).stdout
     output = output.decode('utf-8')
     for line in output.split('\n'):
         if not line.strip():
             continue
-        key, value = line.split(':', maxsplit=1)
+        try:
+            key, value = line.split(':', maxsplit=1)
+        except ValueError:
+            # systemd stack output
+            continue
         data[key.strip()] = value.strip()
     return data
 
@@ -85,7 +102,7 @@ def get_info(pid):
 def is_qutebrowser_dump(parsed):
     """Check if the given Line is a qutebrowser dump."""
     basename = os.path.basename(parsed.exe)
-    if basename in ['python', 'python3', 'python3.4', 'python3.5']:
+    if basename == 'python' or basename.startswith('python3'):
         info = get_info(parsed.pid)
         try:
             cmdline = info['Command Line']
@@ -101,12 +118,12 @@ def dump_infos_gdb(parsed):
     """Dump all needed infos for the given crash using gdb."""
     with tempfile.TemporaryDirectory() as tempdir:
         coredump = os.path.join(tempdir, 'dump')
-        subprocess.check_call(['coredumpctl', 'dump', '-o', coredump,
-                               str(parsed.pid)])
-        subprocess.check_call(['gdb', parsed.exe, coredump,
-                               '-ex', 'info threads',
-                               '-ex', 'thread apply all bt full',
-                               '-ex', 'quit'])
+        subprocess.run(['coredumpctl', 'dump', '-o', coredump,
+                        str(parsed.pid)], check=True)
+        subprocess.run(['gdb', parsed.exe, coredump,
+                        '-ex', 'info threads',
+                        '-ex', 'thread apply all bt full',
+                        '-ex', 'quit'], check=True)
 
 
 def dump_infos(parsed):
@@ -127,7 +144,7 @@ def check_prerequisites():
     """Check if coredumpctl/gdb are installed."""
     for binary in ['coredumpctl', 'gdb']:
         try:
-            subprocess.check_call([binary, '--version'])
+            subprocess.run([binary, '--version'], check=True)
         except FileNotFoundError:
             print("{} is needed to run this script!".format(binary),
                   file=sys.stderr)
@@ -142,7 +159,8 @@ def main():
                         action='store_true')
     args = parser.parse_args()
 
-    coredumps = subprocess.check_output(['coredumpctl', 'list'])
+    coredumps = subprocess.run(['coredumpctl', 'list'], check=True,
+                               stdout=subprocess.PIPE).stdout
     lines = coredumps.decode('utf-8').split('\n')
     for line in lines[1:]:
         if not line.strip():

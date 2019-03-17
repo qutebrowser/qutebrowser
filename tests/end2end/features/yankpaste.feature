@@ -1,3 +1,5 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Yanking and pasting.
     :yank, {clipboard} and {primary} can be used to copy/paste the URL or title
     from/to the clipboard and primary selection.
@@ -39,6 +41,13 @@ Feature: Yanking and pasting.
         Then the message "Yanked title to clipboard: Test title" should be shown
         And the clipboard should contain "Test title"
 
+    Scenario: Yanking markdown URL to clipboard
+        When I open data/title.html
+        And I wait for regex "Changing title for idx \d to 'Test title'" in the log
+        And I run :yank markdown
+        Then the message "Yanked markdown URL to clipboard: *" should be shown
+        And the clipboard should contain "[Test title](http://localhost:(port)/data/title.html)"
+
     Scenario: Yanking domain to clipboard
         When I open data/title.html
         And I run :yank domain
@@ -56,6 +65,29 @@ Feature: Yanking and pasting.
         And I run :yank pretty-url
         Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title with spaces.html" should be shown
         And the clipboard should contain "http://localhost:(port)/data/title with spaces.html"
+
+	Scenario: Yanking URL that has = and & in its query string
+		When I open data/title.html?a=b&c=d
+		And I run :yank
+		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a=b&c=d" should be shown
+		And the clipboard should contain "http://localhost:(port)/data/title.html?a=b&c=d"
+
+	Scenario: Yanking URL that has = and ; in its query string
+		When I open data/title.html?a=b;c=d
+		And I run :yank
+		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a=b;c=d" should be shown
+		And the clipboard should contain "http://localhost:(port)/data/title.html?a=b;c=d"
+
+	Scenario: Yanking URL with both & and ; in its query string
+		When I open data/title.html?a;b&c=d
+		And I run :yank
+		Then the message "Yanked URL to clipboard: http://localhost:(port)/data/title.html?a;b&c=d" should be shown
+		And the clipboard should contain "http://localhost:(port)/data/title.html?a;b&c=d"
+
+    Scenario: Yanking with --quiet
+        When I open data/title.html
+        And I run :yank --quiet
+        Then "Yanked URL to clipboard: *" should not be logged
 
     #### {clipboard} and {primary}
 
@@ -80,6 +112,11 @@ Feature: Yanking and pasting.
         And I put "" into the primary selection
         And I run :open {primary} (invalid command)
         Then the error "Primary selection is empty." should be shown
+
+    Scenario: Pasting without primary selection being supported
+        When selection is not supported
+        And I run :open {primary} (invalid command)
+        Then the error "Primary selection is not supported on this platform!" should be shown
 
     Scenario: Pasting with a space in clipboard
         When I put " " into the clipboard
@@ -120,12 +157,12 @@ Feature: Yanking and pasting.
                   url: http://localhost:*/data/hello.txt
 
     Scenario: Pasting an invalid URL
-        When I set general -> auto-search to false
+        When I set url.auto_search to never
         And I put "foo bar" into the clipboard
         And I run :open {clipboard}
         Then the error "Invalid URL" should be shown
 
-    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941726
+    # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941726
     @qtwebengine_flaky
     Scenario: Pasting multiple urls in a new tab
         When I put the following lines into the clipboard:
@@ -143,21 +180,21 @@ Feature: Yanking and pasting.
             - data/hello3.txt
 
     Scenario: Pasting multiline text
-        When I set general -> auto-search to true
-        And I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        When I set url.auto_search to naive
+        And I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/hello.txt?q={}"}
         And I put the following lines into the clipboard:
             this url:
             http://qutebrowser.org
             should not open
         And I run :open -t {clipboard}
-        And I wait until data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open is loaded
+        And I wait until data/hello.txt?q=this%20url%3A%0Ahttp%3A%2F%2Fqutebrowser.org%0Ashould%20not%20open is loaded
         Then the following tabs should be open:
             - about:blank
-            - data/hello.txt?q=this%20url%3A%0Ahttp%3A//qutebrowser.org%0Ashould%20not%20open (active)
+            - data/hello.txt?q=this%20url%3A%0Ahttp%3A%2F%2Fqutebrowser.org%0Ashould%20not%20open (active)
 
     Scenario: Pasting multiline whose first line looks like a URI
-        When I set general -> auto-search to true
-        And I set searchengines -> DEFAULT to http://localhost:(port)/data/hello.txt?q={}
+        When I set url.auto_search to naive
+        And I set url.searchengines to {"DEFAULT": "http://localhost:(port)/data/hello.txt?q={}"}
         And I put the following lines into the clipboard:
             text:
             should open
@@ -168,7 +205,7 @@ Feature: Yanking and pasting.
             - about:blank
             - data/hello.txt?q=text%3A%0Ashould%20open%0Aas%20search (active)
 
-    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941726
+    # https://travis-ci.org/qutebrowser/qutebrowser/jobs/157941726
     @qtwebengine_flaky
     Scenario: Pasting multiple urls in a background tab
         When I put the following lines into the clipboard:
@@ -232,36 +269,49 @@ Feature: Yanking and pasting.
     Scenario: Inserting text into an empty text field
         When I open data/paste_primary.html
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :insert-text Hello world
         # Compare
-        Then the text field should contain "Hello world"
+        Then the javascript message "textarea contents: Hello world" should be logged
+
+    Scenario: Inserting text into an empty text field with javascript disabled
+        When I set content.javascript.enabled to false
+        And I open data/paste_primary.html
+        And I run :click-element id qute-textarea
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :insert-text Hello world
+        And I wait for "Inserting text into element *" in the log
+        And I run :jseval console.log("textarea contents: " + document.getElementById('qute-textarea').value);
+        # Enable javascript again for the other tests
+        And I set content.javascript.enabled to true
+        # Compare
+        Then the javascript message "textarea contents: Hello world" should be logged
 
     Scenario: Inserting text into a text field at specific position
         When I open data/paste_primary.html
-        And I set the text field to "one two three four"
+        And I insert "one two three four" into the text field
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         # Move to the beginning and two characters to the right
         And I press the keys "<Home>"
         And I press the key "<Right>"
         And I press the key "<Right>"
         And I run :insert-text Hello world
         # Compare
-        Then the text field should contain "onHello worlde two three four"
+        Then the javascript message "textarea contents: onHello worlde two three four" should be logged
 
-    @qtwebengine_osx_xfail
     Scenario: Inserting text into a text field with undo
         When I open data/paste_primary.html
         And I run :click-element id qute-textarea
-        And I wait for "Clicked editable element!" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         # Paste and undo
         And I run :insert-text This text should be undone
+        And I wait for the javascript message "textarea contents: This text should be undone"
         And I press the key "<Ctrl+z>"
         # Paste final text
         And I run :insert-text This text should stay
         # Compare
-        Then the text field should contain "This text should stay"
+        Then the javascript message "textarea contents: This text should stay" should be logged
 
     Scenario: Inserting text without a focused field
         When I open data/paste_primary.html

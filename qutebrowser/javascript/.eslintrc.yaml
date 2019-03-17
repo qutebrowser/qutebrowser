@@ -1,8 +1,20 @@
+# qutebrowser's way of using eslint is perhaps a bit untypical: We turn on *all*
+# the checks eslint has to offer, and then selectively disable/reconfigure the
+# ones which got in the way below.
+#
+# This makes eslint much stricter (which is good). However, it means you might
+# run into a case where you totally disagree with what it says, because some
+# check is not useful or desired for qutebrowser, but nobody did run into it
+# yet.
+#
+# In those cases, it's absolutely okay to modify this config as part of your PR.
+# See it as a way to fine-tune eslint rather than a rigid style guide.
+
 env:
     browser: true
 
 parserOptions:
-    ecmaVersion: 3
+    ecmaVersion: 6
 
 extends:
     "eslint:all"
@@ -13,19 +25,15 @@ rules:
      padded-blocks: ["error", "never"]
      space-before-function-paren: ["error", "never"]
      no-underscore-dangle: "off"
-     no-var: "off"
-     vars-on-top: "off"
-     newline-after-var: "off"
      camelcase: "off"
      require-jsdoc: "off"
      func-style: ["error", "declaration"]
-     newline-before-return: "off"
      init-declarations: "off"
      no-plusplus: "off"
      no-extra-parens: off
      id-length: ["error", {"exceptions": ["i", "k", "x", "y"]}]
      object-shorthand: "off"
-     max-statements: ["error", {"max": 30}]
+     max-statements: ["error", {"max": 40}]
      quotes: ["error", "double", {"avoidEscape": true}]
      object-property-newline: ["error", {"allowMultiplePropertiesPerLine": true}]
      comma-dangle: ["error", "always-multiline"]
@@ -36,3 +44,20 @@ rules:
      sort-keys: "off"
      no-warning-comments: "off"
      max-len: ["error", {"ignoreUrls": true}]
+     capitalized-comments: "off"
+     prefer-destructuring: "off"
+     line-comment-position: "off"
+     no-inline-comments: "off"
+     array-bracket-newline: "off"
+     array-element-newline: "off"
+     no-multi-spaces: ["error", {"ignoreEOLComments": true}]
+     function-paren-newline: "off"
+     multiline-comment-style: "off"
+     no-bitwise: "off"
+     no-ternary: "off"
+     max-lines: "off"
+     multiline-ternary: ["error", "always-multiline"]
+     max-lines-per-function: "off"
+     require-unicode-regexp: "off"
+     max-params: "off"
+     prefer-named-capture-group: "off"

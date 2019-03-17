@@ -1,6 +1,5 @@
 recursive-include qutebrowser *.py
 recursive-include qutebrowser/img *.svg *.png
-recursive-include qutebrowser/test *.py
 recursive-include qutebrowser/javascript *.js
 graft qutebrowser/html
 graft qutebrowser/3rdparty
@@ -8,42 +7,39 @@ graft icons
 graft doc/img
 graft misc/apparmor
 graft misc/userscripts
-recursive-include scripts *.py
+graft misc/requirements
+recursive-include scripts *.py *.sh *.js
 include qutebrowser/utils/testfile
 include qutebrowser/git-commit-id
-include COPYING doc/* README.asciidoc CONTRIBUTING.asciidoc FAQ.asciidoc INSTALL.asciidoc CHANGELOG.asciidoc
-include qutebrowser.desktop
+include LICENSE doc/* README.asciidoc
+include misc/org.qutebrowser.qutebrowser.desktop
+include misc/org.qutebrowser.qutebrowser.appdata.xml
+include misc/Makefile
 include requirements.txt
 include tox.ini
 include qutebrowser.py
 include misc/cheatsheet.svg
+include qutebrowser/config/configdata.yml
 
 prune www
 prune scripts/dev
-prune scripts/testbrowser_cpp
+prune scripts/testbrowser/cpp
 prune .github
 exclude scripts/asciidoc2html.py
-exclude doc/notes
 recursive-exclude doc *.asciidoc
 include doc/qutebrowser.1.asciidoc
+include doc/changelog.asciidoc
 prune tests
 prune qutebrowser/3rdparty
-prune misc/requirements
-prune misc/docker
-exclude .editorconfig
 exclude pytest.ini
-exclude qutebrowser.rcc
-exclude .coveragerc
-exclude .pylintrc
+exclude mypy.ini
 exclude qutebrowser/javascript/.eslintrc.yaml
 exclude qutebrowser/javascript/.eslintignore
 exclude doc/help
-exclude .appveyor.yml
-exclude .travis.yml
-exclude codecov.yml
-exclude .pydocstylerc
-exclude misc/appveyor_install.py
+exclude .*
 exclude misc/qutebrowser.spec
-exclude .flake8
+exclude misc/qutebrowser.nsi
+exclude misc/qutebrowser.rcc
+prune doc/extapi
 
 global-exclude __pycache__ *.pyc *.pyo

@@ -8,143 +8,125 @@ Content-Type: text/html; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 <html><head>
-=20=20=20=20=20=20=20=20<meta=20http-equiv=3D"Content-Type"=20content=3D"te=
-xt/html;charset=3DUTF-8">
-=20=20=20=20=20=20=20=20<title>qutebrowser=20mhtml=20test</title>
-=20=20=20=20
-=20=20=20=20=20=20=20=20<!--=20make=20sure=20<style>=20tags=20are=20parsed=
-=20=20-->
-=20=20=20=20=20=20=20=20<style>
-=20=20=20=20=20=20=20=20body=20{
-=20=20=20=20=20=20=20=20=20=20=20=20background-image:=20url('Background.png=
-');
-=20=20=20=20=20=20=20=20=20=20=20=20background-repeat:=20repeat-x;
-=20=20=20=20=20=20=20=20=20=20=20=20font-family:=20"Open=20Sans","Helvetica=
-=20Neue",Helvetica,Arial,sans-serif;
-=20=20=20=20=20=20=20=20=20=20=20=20font-size:=20120%;
-=20=20=20=20=20=20=20=20}
-=20=20=20=20=20=20=20=20img#banner=20{
-=20=20=20=20=20=20=20=20=20=20=20=20display:=20block;
-=20=20=20=20=20=20=20=20=20=20=20=20margin:=2020px=20auto;
-=20=20=20=20=20=20=20=20}
-=20=20=20=20=20=20=20=20</style>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<!--=20make=20sure=20external=20css=20is=20included=
-=20-->
-=20=20=20=20=20=20=20=20<link=20rel=3D"stylesheet"=20href=3D"base.css">
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<!--=20don't=20parse=20non-CSS=20styles=20-->
-=20=20=20=20=20=20=20=20<style=20rel=3D"stylesheet"=20type=3D"text/qss">
-=20=20=20=20=20=20=20=20@import=20"actually-it's-css";
-=20=20=20=20=20=20=20=20</style>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<!--=20make=20sure=20icons=20are=20included=20-->
-=20=20=20=20=20=20=20=20<link=20rel=3D"icon"=20href=3D"favicon.png">
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<!--=20make=20sure=20authors=20are=20NOT=20included=
-=20-->
-=20=20=20=20=20=20=20=20<link=20rel=3D"author"=20href=3D"author.html">
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<!--=20make=20sure=20scripts=20are=20included=20-->
-=20=20=20=20=20=20=20=20<script=20type=3D"text/javascript"=20src=3D"script.=
-js"></script>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20=20<!--=20...but=20don't=20crash=20on=20scripts=20w=
-ithout=20src=20-->
-=20=20=20=20=20=20=20=20<script>
-=20=20=20=20=20=20=20=20=20=20=20=20var=20l=20=3D=201+1;
-=20=20=20=20=20=20=20=20</script>
-=20=20=20=20</head>
-=20=20=20=20<body>
-=20=20=20=20=20=20=20=20<!--=20make=20sure=20images=20are=20included=20-->
-=20=20=20=20=20=20=20=20<img=20src=3D"Banner.png"=20id=3D"banner">
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<h1>Welcome=20to=20the=20qutebrowser=20mhtml=20test=
-=20page</h1>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<div=20class=3D"dyk">
-=20=20=20=20=20=20=20=20...that=20the=20word=20<em>qutebrowser</em>=20is=20=
-a=20word=20play=20on=20Qt,=20the
-=20=20=20=20=20=20=20=20framework=20the=20browser=20is=20built=20with?
-=20=20=20=20=20=20=20=20</div>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<h2>What=20is=20this=20page?</h2>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<p>This=20page=20is=20a=20test-case=20for=20the=20m=
-html=20download=20feature=20of
-=20=20=20=20=20=20=20=20qutebrowser.=20Under=20normal=20circumstances,=20yo=
-u=20won't=20see=20this=20page,=20except
-=20=20=20=20=20=20=20=20if=20you're=20a=20qutebrowser=20developer=20<em>or<=
-/em>=20you're=20attending=20one=20of
-=20=20=20=20=20=20=20=20The-Compiler's=20pytest=20demos.</p>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<div=20class=3D"dyk">
-=20=20=20=20=20=20=20=20...that=20this=20page=20was=20once=20a=20monstrosit=
-y=20with=20<em>"this=20weird=20pixelated
-=20=20=20=20=20=20=20=20globe=20with=20the=20geocities-like=20background"</=
-em>?=20You=20can=20find=20the=20old
-=20=20=20=20=20=20=20=20page=20in=20the=20old=20commits=20and=20indeed,=20i=
-t=20was=20quite=20atrocious.=20But=20hey,
-=20=20=20=20=20=20=20=20every=20browser=20needs=20a=20globe...
-=20=20=20=20=20=20=20=20</div>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<p>This=20page=20references=20other=20assets=20and=
-=20when=20the=20page=20is=20downloaded,
-=20=20=20=20=20=20=20=20qutebrowser=20checks=20if=20each=20asset=20was=20do=
-wnloaded.=20If=20some=20assets=20are
-=20=20=20=20=20=20=20=20missing,=20the=20test=20fails=20and=20the=20poor=20=
-developers=20have=20to=20search=20for=20the
-=20=20=20=20=20=20=20=20error.</p>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<h2>Can=20I=20contribute=20to=20qutebrowser?</h2>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<p>Yes!</p>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<div=20class=3D"dyk">
-=20=20=20=20=20=20=20=20...that=20qutebrowser=20is=20free=20software?=20Fre=
-e=20as=20in=20<em>free=20beer</em>=20and
-=20=20=20=20=20=20=20=20<em>free=20speech</em>!=20Isn't=20that=20great?
-=20=20=20=20=20=20=20=20</div>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<h2>...and=20how?</h2>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<p>See=20<a=20href=3D"https://github.com/The-Compil=
-er/qutebrowser/blob/master/CONTRIBUTING.asciidoc">
-=20=20=20=20=20=20=20=20here</a>=20for=20more=20information.</p>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<h2>More=20useless=20trivia!</h2>
-=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<div=20class=3D"dyk">
-=20=20=20=20=20=20=20=20...that=20the=20font=20in=20the=20header=20is=20Com=
-ic=20Sans?
-=20=20=20=20=20=20=20=20</div>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<div=20class=3D"dyk">
-=20=20=20=20=20=20=20=20...the=20IRC=20channel=20for=20qutebrowser=20is=20<=
-code>#qutebrowser</code>=20on
-=20=20=20=20=20=20=20=20irc.freenode.net
-=20=20=20=20=20=20=20=20</div>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<div=20class=3D"dyk">
-=20=20=20=20=20=20=20=20...the=20area=20of=20a=20circle=20is=20=CF=80*r<sup=
->2</sup>?
-=20=20=20=20=20=20=20=20</div>
-=20=20=20=20=20=20=20=20
-=20=20=20=20=20=20=20=20<p>To=20make=20this=20page=20a=20bit=20useful,=20I'=
-ve=20included=20a=20chessboard,=20so=20you
-=20=20=20=20=20=20=20=20can=20play=20chess.=20Just=20turn=20your=20screen=
-=2090=20degrees,=20such=20that=20it=20forms=20a
-=20=20=20=20=20=20=20=20flat,=20horizontal=20surface=20(you=20can=20skip=20=
-this=20step=20if=20you're=20using=20a
-=20=20=20=20=20=20=20=20tablet).=20Next,=20zoom=20the=20page=20until=20it=
-=20fits=20your=20needs.=20Enjoy=20your=20round
-=20=20=20=20=20=20=20=20of=20chess!</p>
-=20=20=20=20=20=20=20=20<!--=20make=20sure=20inline=20styles=20are=20parsed=
-=20-->
-=20=20=20=20=20=20=20=20<div=20style=3D"background-image:=20url('Inline.png=
-');=20background-repeat:=20no-repeat;=20width:=20160px;=20height:=20160px;"=
-></div>
-=20=20=20=20
+        <meta http-equiv=3D"Content-Type" content=3D"text/html;charset=3DUT=
+F-8">
+        <title>qutebrowser mhtml test</title>
+   =20
+        <!-- make sure <style> tags are parsed  -->
+        <style>
+        body {
+            background-image: url('Background.png');
+            background-repeat: repeat-x;
+            font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-=
+serif;
+            font-size: 120%;
+        }
+        img#banner {
+            display: block;
+            margin: 20px auto;
+        }
+        </style>
+       =20
+        <!-- make sure external css is included -->
+        <link rel=3D"stylesheet" href=3D"base.css">
+       =20
+        <!-- don't parse non-CSS styles -->
+        <style rel=3D"stylesheet" type=3D"text/qss">
+        @import "not-css.qss";
+        </style>
+       =20
+        <!-- make sure icons are included -->
+        <link rel=3D"icon" href=3D"favicon.png">
+       =20
+        <!-- make sure authors are NOT included -->
+        <link rel=3D"author" href=3D"author.html">
+       =20
+        <!-- make sure scripts are included -->
+        <script type=3D"text/javascript" src=3D"script.js"></script>
+       =20
+         <!-- ...but don't crash on scripts without src -->
+        <script>
+            var l =3D 1+1;
+        </script>
+    </head>
+    <body>
+        <!-- make sure images are included -->
+        <img src=3D"Banner.png" id=3D"banner">
+       =20
+        <h1>Welcome to the qutebrowser mhtml test page</h1>
+       =20
+        <div class=3D"dyk">
+        ...that the word <em>qutebrowser</em> is a word play on Qt, the
+        framework the browser is built with?
+        </div>
+       =20
+        <h2>What is this page?</h2>
+       =20
+        <p>This page is a test-case for the mhtml download feature of
+        qutebrowser. Under normal circumstances, you won't see this page, e=
+xcept
+        if you're a qutebrowser developer <em>or</em> you're attending one =
+of
+        The-Compiler's pytest demos.</p>
+       =20
+        <div class=3D"dyk">
+        ...that this page was once a monstrosity with <em>"this weird pixel=
+ated
+        globe with the geocities-like background"</em>? You can find the old
+        page in the old commits and indeed, it was quite atrocious. But hey,
+        every browser needs a globe...
+        </div>
+       =20
+        <p>This page references other assets and when the page is downloade=
+d,
+        qutebrowser checks if each asset was downloaded. If some assets are
+        missing, the test fails and the poor developers have to search for =
+the
+        error.</p>
+       =20
+        <h2>Can I contribute to qutebrowser?</h2>
+       =20
+        <p>Yes!</p>
+       =20
+        <div class=3D"dyk">
+        ...that qutebrowser is free software? Free as in <em>free beer</em>=
+ and
+        <em>free speech</em>! Isn't that great?
+        </div>
+       =20
+        <h2>...and how?</h2>
+       =20
+        <p>See <a href=3D"https://github.com/qutebrowser/qutebrowser/blob/m=
+aster/doc/contributing.asciidoc">
+        here</a> for more information.</p>
+       =20
+        <h2>More useless trivia!</h2>
+               =20
+        <div class=3D"dyk">
+        ...that the font in the header is Comic Sans?
+        </div>
+       =20
+        <div class=3D"dyk">
+        ...the IRC channel for qutebrowser is <code>#qutebrowser</code> on
+        irc.freenode.net
+        </div>
+       =20
+        <div class=3D"dyk">
+        ...the area of a circle is =CF=80*r<sup>2</sup>?
+        </div>
+       =20
+        <p>To make this page a bit useful, I've included a chessboard, so y=
+ou
+        can play chess. Just turn your screen 90 degrees, such that it form=
+s a
+        flat, horizontal surface (you can skip this step if you're using a
+        tablet). Next, zoom the page until it fits your needs. Enjoy your r=
+ound
+        of chess!</p>
+        <!-- make sure inline styles are parsed -->
+        <div style=3D"background-image: url('Inline.png'); background-repea=
+t: no-repeat; width: 160px; height: 160px;"></div>
+   =20
 
 </body></html>
 -----=_qute-5314618b-e51d-46e1-9598-103536e86b59
@@ -709,35 +691,33 @@ MIME-Version: 1.0
 Content-Type: text/css; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-@import=20'external-in-extern.css';
-/*=20We=20want=20to=20make=20sure=20that=20assets=20referenced=20in=20exter=
-nal=20css=20files=20are
-=20*=20properly=20included
-=20*/
-div.dyk=20{
-=20=20=20=20/*=20Did=20you=20know?=20*/
-=20=20=20=20background-image:=20url('DYK.png');
-=20=20=20=20background-repeat:=20no-repeat;
-=20=20=20=20/*=20Image=20is=20128px=20wide=20*/
-=20=20=20=20min-height:=20128px;
-=20=20=20=20padding-left:=20148px;
-=20=20=20=20margin-top:=2010px;
-=20=20=20=20margin-bottom:=2010px;
-=20=20=20=20border:=202px=20solid=20#474747;
-=20=20=20=20border-radius:=2064px;
+@import 'external-in-extern.css';
+/* We want to make sure that assets referenced in external css files are
+ * properly included
+ */
+div.dyk {
+    /* Did you know? */
+    background-image: url('DYK.png');
+    background-repeat: no-repeat;
+    /* Image is 128px wide */
+    min-height: 128px;
+    padding-left: 148px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border: 2px solid #474747;
+    border-radius: 64px;
 }
-=20=20=20=20
+   =20
 -----=_qute-5314618b-e51d-46e1-9598-103536e86b59
 Content-Location: http://localhost:1337/data/downloads/mhtml/complex/external-in-extern.css
 MIME-Version: 1.0
 Content-Type: text/css; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-/*=20Just=20making=20sure=20that=20more=20than=20one=20level=20of=20externa=
-l=20css=20is=20included=20*/
-h1,=20h2,=20h3,=20h4,=20h5,=20h6=20{
-=20=20=20=20color:=20#0A396E;
-=20=20=20=20border-bottom:=201px=20dotted=20#474747;
+/* Just making sure that more than one level of external css is included */
+h1, h2, h3, h4, h5, h6 {
+    color: #0A396E;
+    border-bottom: 1px dotted #474747;
 }
 -----=_qute-5314618b-e51d-46e1-9598-103536e86b59
 Content-Location: http://localhost:1337/data/downloads/mhtml/complex/favicon.png

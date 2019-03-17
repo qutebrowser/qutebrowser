@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,13 +21,13 @@
 
 import functools
 
-import sip
 from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
-from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu
+from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
 
-from qutebrowser.browser.webkit import downloads
-from qutebrowser.config import style
+from qutebrowser.browser import downloads
+from qutebrowser.config import config
 from qutebrowser.utils import qtutils, utils, objreg
+from qutebrowser.qt import sip
 
 
 def update_geometry(obj):
@@ -39,8 +39,8 @@ def update_geometry(obj):
 
     Here we check if obj ("self") was deleted and just ignore the event if so.
 
-    Original bug:   https://github.com/The-Compiler/qutebrowser/issues/167
-    Workaround bug: https://github.com/The-Compiler/qutebrowser/issues/171
+    Original bug:   https://github.com/qutebrowser/qutebrowser/issues/167
+    Workaround bug: https://github.com/qutebrowser/qutebrowser/issues/171
     """
     def _update_geometry():
         """Actually update the geometry if the object still exists."""
@@ -64,8 +64,8 @@ class DownloadView(QListView):
 
     STYLESHEET = """
         QListView {
-            background-color: {{ color['downloads.bg.bar'] }};
-            font: {{ font['downloads'] }};
+            background-color: {{ conf.colors.downloads.bar.bg }};
+            font: {{ conf.fonts.downloads }};
         }
 
         QListView::item {
@@ -75,7 +75,9 @@ class DownloadView(QListView):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        style.set_register_stylesheet(self)
+        if not utils.is_mac:
+            self.setStyle(QStyleFactory.create('Fusion'))
+        config.set_register_stylesheet(self)
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
@@ -83,7 +85,7 @@ class DownloadView(QListView):
         self.setFlow(QListView.LeftToRight)
         self.setSpacing(1)
         self._menu = None
-        model = objreg.get('download-manager', scope='window', window=win_id)
+        model = objreg.get('download-model', scope='window', window=win_id)
         model.rowsInserted.connect(functools.partial(update_geometry, self))
         model.rowsRemoved.connect(functools.partial(update_geometry, self))
         model.dataChanged.connect(functools.partial(update_geometry, self))
@@ -113,7 +115,7 @@ class DownloadView(QListView):
         item = self.model().data(index, downloads.ModelRole.item)
         if item.done and item.successful:
             item.open_file()
-            self.model().remove_item(item)
+            item.remove()
 
     def _get_menu_actions(self, item):
         """Get the available context menu actions for a given DownloadItem.
@@ -134,9 +136,8 @@ class DownloadView(QListView):
             if item.successful:
                 actions.append(("Open", item.open_file))
             else:
-                actions.append(("Retry", item.retry))
-            actions.append(("Remove",
-                            functools.partial(model.remove_item, item)))
+                actions.append(("Retry", item.try_retry))
+            actions.append(("Remove", item.remove))
         else:
             actions.append(("Cancel", item.cancel))
         if model.can_clear():

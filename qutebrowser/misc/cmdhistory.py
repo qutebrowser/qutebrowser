@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,22 +21,18 @@
 
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
-from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log
+from qutebrowser.utils import usertypes, log, standarddir, objreg
+from qutebrowser.misc import lineparser
 
 
 class HistoryEmptyError(Exception):
 
     """Raised when the history is empty."""
 
-    pass
-
 
 class HistoryEndReachedError(Exception):
 
     """Raised when the end of the history is reached."""
-
-    pass
 
 
 class History(QObject):
@@ -44,7 +40,6 @@ class History(QObject):
     """Command history.
 
     Attributes:
-        handle_private_mode: Whether to ignore history in private mode.
         history: A list of executed commands, with newer commands at the end.
         _tmphist: Temporary history for history browsing (as NeighborList)
 
@@ -54,14 +49,13 @@ class History(QObject):
 
     changed = pyqtSignal()
 
-    def __init__(self, history=None, parent=None):
+    def __init__(self, *, history=None, parent=None):
         """Constructor.
 
         Args:
             history: The initial history to set.
         """
         super().__init__(parent)
-        self.handle_private_mode = False
         self._tmphist = None
         if history is None:
             self.history = []
@@ -129,9 +123,17 @@ class History(QObject):
         Args:
             text: The text to append.
         """
-        if (self.handle_private_mode and
-                config.get('general', 'private-browsing')):
-            return
         if not self.history or text != self.history[-1]:
             self.history.append(text)
             self.changed.emit()
+
+
+def init():
+    """Initialize the LimitLineParser storing the history."""
+    save_manager = objreg.get('save-manager')
+    command_history = lineparser.LimitLineParser(
+        standarddir.data(), 'cmd-history',
+        limit='completion.cmd_history_max_items')
+    objreg.register('command-history', command_history)
+    save_manager.add_saveable('command-history', command_history.save,
+                              command_history.changed)

@@ -1,34 +1,66 @@
-{% extends "base.html" %}
+{% extends "styled.html" %}
 
 {% block style %}
-table { border: 1px solid grey; border-collapse: collapse; width: 100%;}
-th, td { border: 1px solid grey; padding: 0px 5px; }
-th { background: lightgrey; }
+{{super()}}
+h1 {
+    margin-bottom: 10px;
+}
+
+.url a {
+    color: #444;
+}
+
+th {
+    text-align: left;
+}
+
+.qmarks .name {
+    padding-left: 5px;
+}
+
+.empty-msg {
+    background-color: #f8f8f8;
+    color: #444;
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+}
 {% endblock %}
 
 {% block content %}
 
-<table>
-    <tr>
-        <th><h3>Bookmark</h3></th>
-        <th><h3>URL</h3></th>
-    </tr>
-    {% for url, title in bookmarks %}
-    <tr>
-        <td><a href="{{url}}">{{title}}</a></td>
-        <td>{{url}}</td>
-    </tr>
-    {% endfor %}
-    <tr>
-        <th><h3>Quickmark</h3></th>
-        <th><h3>URL</h3></th>
-    </tr>
+<h1>Quickmarks</h1>
+
+{% if quickmarks|length %}
+<table class="qmarks">
+    <tbody>
     {% for name, url in quickmarks %}
     <tr>
-        <td><a href="{{url}}">{{name}}</a></td>
-        <td>{{url}}</td>
+        <td class="name"><a href="{{url}}">{{name}}</a></td>
+        <td class="url"><a href="{{url}}">{{url}}</a></td>
     </tr>
     {% endfor %}
+    </tbody>
 </table>
+{% else %}
+<span class="empty-msg">You have no quickmarks</span>
+{% endif %}
+
+<h1 id="bookmarks">Bookmarks</h1>
+
+{% if bookmarks|length %}
+<table class="bmarks">
+    <tbody>
+    {% for url, title in bookmarks %}
+    <tr>
+        <td class="name"><a href="{{url}}">{{title | default(url, true)}}</a></td>
+        <td class="url"><a href="{{url}}">{{url}}</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<span class="empty-msg">You have no bookmarks</span>
+{% endif %}
 
 {% endblock %}

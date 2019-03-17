@@ -1,6 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Daniel Schadt
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Daniel Schadt
 #
 # This file is part of qutebrowser.
 #
@@ -20,10 +21,10 @@
 """Test the built-in directory browser."""
 
 import os
-import bs4
-import collections
 
+import attr
 import pytest
+import bs4
 
 from PyQt5.QtCore import QUrl
 from qutebrowser.utils import urlutils
@@ -101,8 +102,21 @@ class DirLayout:
         return os.path.normpath(str(self.base))
 
 
-Parsed = collections.namedtuple('Parsed', 'path, parent, folders, files')
-Item = collections.namedtuple('Item', 'path, link, text')
+@attr.s
+class Parsed:
+
+    path = attr.ib()
+    parent = attr.ib()
+    folders = attr.ib()
+    files = attr.ib()
+
+
+@attr.s
+class Item:
+
+    path = attr.ib()
+    link = attr.ib()
+    text = attr.ib()
 
 
 def parse(quteproc):

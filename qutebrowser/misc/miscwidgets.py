@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,11 +19,12 @@
 
 """Misc. widgets used at different places."""
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
 from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle, QLayout)
+                             QStyleOption, QStyle, QLayout, QApplication)
 from PyQt5.QtGui import QValidator, QPainter
 
+from qutebrowser.config import config
 from qutebrowser.utils import utils
 from qutebrowser.misc import cmdhistory
 
@@ -46,13 +47,13 @@ class MinimalLineEditMixin:
         """Override keyPressEvent to paste primary selection on Shift + Ins."""
         if e.key() == Qt.Key_Insert and e.modifiers() == Qt.ShiftModifier:
             try:
-                text = utils.get_clipboard(selection=True)
+                text = utils.get_clipboard(selection=True, fallback=True)
             except utils.ClipboardError:
-                pass
+                e.ignore()
             else:
                 e.accept()
                 self.insert(text)
-                return
+            return
         super().keyPressEvent(e)
 
     def __repr__(self):
@@ -69,7 +70,7 @@ class CommandLineEdit(QLineEdit):
         _promptlen: The length of the current prompt.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, *, parent=None):
         super().__init__(parent)
         self.history = cmdhistory.History(parent=self)
         self._validator = _CommandValidator(self)
@@ -93,7 +94,7 @@ class CommandLineEdit(QLineEdit):
         We use __ here to avoid accidentally overriding it in subclasses.
         """
         if new < self._promptlen:
-            self.setCursorPosition(self._promptlen)
+            self.cursorForward(self.hasSelectedText(), self._promptlen - new)
 
     def set_prompt(self, text):
         """Set the current prompt to text.
@@ -103,13 +104,6 @@ class CommandLineEdit(QLineEdit):
         """
         self._validator.prompt = text
         self._promptlen = len(text)
-
-    def home(self, mark):
-        """Override home so it works properly with our cursor restriction."""
-        oldpos = self.cursorPosition()
-        self.setCursorPosition(self._promptlen)
-        if mark:
-            self.setSelection(self._promptlen, oldpos - self._promptlen)
 
 
 class _CommandValidator(QValidator):
@@ -240,17 +234,16 @@ class WrapperLayout(QLayout):
         self._widget = None
 
     def addItem(self, _widget):
-        raise AssertionError("Should never be called!")
+        raise utils.Unreachable
 
     def sizeHint(self):
         return self._widget.sizeHint()
 
-    def itemAt(self, _index):  # pragma: no cover
-        # For some reason this sometimes gets called by Qt.
+    def itemAt(self, _index):
         return None
 
     def takeAt(self, _index):
-        raise AssertionError("Should never be called!")
+        raise utils.Unreachable
 
     def setGeometry(self, rect):
         self._widget.setGeometry(rect)
@@ -260,3 +253,87 @@ class WrapperLayout(QLayout):
         self._widget = widget
         container.setFocusProxy(widget)
         widget.setParent(container)
+
+    def unwrap(self):
+        self._widget.setParent(None)
+        self._widget.deleteLater()
+
+
+class PseudoLayout(QLayout):
+
+    """A layout which isn't actually a real layout.
+
+    This is used to replace QWebEngineView's internal layout, as a WORKAROUND
+    for https://bugreports.qt.io/browse/QTBUG-68224 and other related issues.
+
+    This is partly inspired by https://codereview.qt-project.org/#/c/230894/
+    which does something similar as part of Qt.
+    """
+
+    def addItem(self, item):
+        assert self.parent() is not None
+        item.widget().setParent(self.parent())
+
+    def removeItem(self, item):
+        item.widget().setParent(None)
+
+    def count(self):
+        return 0
+
+    def itemAt(self, _pos):
+        return None
+
+    def widget(self):
+        return self.parent().render_widget()
+
+    def setGeometry(self, rect):
+        """Resize the render widget when the view is resized."""
+        widget = self.widget()
+        if widget is not None:
+            widget.setGeometry(rect)
+
+    def sizeHint(self):
+        """Make sure the view has the sizeHint of the render widget."""
+        widget = self.widget()
+        if widget is not None:
+            return widget.sizeHint()
+        return QSize()
+
+
+class FullscreenNotification(QLabel):
+
+    """A label telling the user this page is now fullscreen."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setStyleSheet("""
+            background-color: rgba(50, 50, 50, 80%);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+        """)
+
+        all_bindings = config.key_instance.get_reverse_bindings_for('normal')
+        bindings = all_bindings.get('fullscreen --leave')
+        if bindings:
+            key = bindings[0]
+            self.setText("Press {} to exit fullscreen.".format(key))
+        else:
+            self.setText("Page is now fullscreen.")
+
+        self.resize(self.sizeHint())
+        if config.val.content.windowed_fullscreen:
+            geom = self.parentWidget().geometry()
+        else:
+            geom = QApplication.desktop().screenGeometry(self)
+        self.move((geom.width() - self.sizeHint().width()) / 2, 30)
+
+    def set_timeout(self, timeout):
+        """Hide the widget after the given timeout."""
+        QTimer.singleShot(timeout, self._on_timeout)
+
+    @pyqtSlot()
+    def _on_timeout(self):
+        """Hide and delete the widget."""
+        self.hide()
+        self.deleteLater()

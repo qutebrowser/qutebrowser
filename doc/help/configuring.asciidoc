@@ -1,0 +1,473 @@
+Configuring qutebrowser
+=======================
+
+IMPORTANT: qutebrowser's configuration system was completely rewritten in
+September 2017. This information is not applicable to older releases, and older
+information elsewhere might be outdated.
+
+qutebrowser's config files
+--------------------------
+
+qutebrowser releases before v1.0.0 had a `qutebrowser.conf` and `keys.conf`
+file. Those are not used anymore since that release - see
+<<migrating,"Migrating older configurations">> for information on how to
+migrate to the new config.
+
+When using `:set` and `:bind`, changes are saved to an `autoconfig.yml` file
+automatically. If you don't want to have a config file which is curated by
+hand, you can simply use those - see
+<<autoconfig,"Configuring qutebrowser via the user interface">> for details.
+
+For more advanced configuration, you can write a `config.py` file - see
+<<configpy,"Configuring qutebrowser via config.py">>. When a `config.py`
+exists, the `autoconfig.yml` file **is not read anymore** by default. You need
+to <<configpy-autoconfig,load it from `config.py`>> if you want settings changed via
+`:set`/`:bind` to persist between restarts.
+
+[[autoconfig]]
+Configuring qutebrowser via the user interface
+----------------------------------------------
+
+The easy (but less flexible) way to configure qutebrowser is using its user
+interface or command line. Changes you make this way are immediately active
+(with the exception of a few settings, where this is pointed out in the
+documentation) and are persisted in an `autoconfig.yml` file.
+
+The `autoconfig.yml` file is located in the "config" folder listed on the
+link:qute://version[] page. On macOS, the "auto config" folder is used, which is
+different from where hand-written config files are kept.
+
+However, **do not** edit `autoconfig.yml` by hand. Instead, see the next
+section.
+
+If you want to customize many settings, you can open the link:qute://settings[]
+page by running `:set` without any arguments, where all settings are listed and
+customizable.
+
+Using the link:commands{outfilesuffix}#set[`:set`] command and command completion, you
+can quickly set settings interactively, for example `:set tabs.position left`.
+
+Some settings are also customizable for a given
+https://developer.chrome.com/apps/match_patterns[URL pattern] by doing e.g.
+`:set --pattern=*://example.com/ content.images false`.
+
+To get more help about a setting, use e.g. `:help tabs.position`.
+
+To bind and unbind keys, you can use the link:commands{outfilesuffix}#bind[`:bind`] and
+link:commands{outfilesuffix}#unbind[`:unbind`] commands:
+
+- Binding the key chain `,v` to the `:spawn mpv {url}` command:
+  `:bind ,v spawn mpv {url}`
+- Unbinding the same key chain: `:unbind ,v`
+
+Key chains starting with a comma are ideal for custom bindings, as the comma key
+will never be used in a default keybinding.
+
+See the help pages linked above (or `:help :bind`, `:help :unbind`) for more
+information.
+
+Other useful commands for config manipulation are
+link:commands{outfilesuffix}#config-unset[`:config-unset`] to reset a value to its default,
+link:commands{outfilesuffix}#config-clear[`:config-clear`] to reset the entire configuration,
+and link:commands{outfilesuffix}#config-cycle[`:config-cycle`] to cycle a setting between
+different values.
+
+[[configpy]]
+Configuring qutebrowser via config.py
+-------------------------------------
+
+For more powerful configuration possibilities, you can create a `config.py`
+file. Since it's a Python file, you have much more flexibility for
+configuration. Note that qutebrowser will never touch this file - this means
+you'll be responsible for updating it when upgrading to a newer qutebrowser
+version.
+
+You can run `:config-edit` inside qutebrowser to open the file in your editor,
+`:config-source` to reload the file (`:config-edit` does this automatically), or
+`:config-write-py --defaults` to write a template file to work with.
+
+The file should be located in the "config" location listed on
+link:qute://version[], which is typically `~/.config/qutebrowser/config.py` on
+Linux, `~/.qutebrowser/config.py` on macOS, and
+`%APPDATA%/qutebrowser/config/config.py` on Windows.
+
+Two global objects are pre-defined when running `config.py`: `c` and `config`.
+
+Changing settings
+~~~~~~~~~~~~~~~~~
+
+While you can set settings using the `config.set()` method (which is explained
+in the next section), it's easier to use the `c` shorthand object to easily set
+settings like this:
+
+.config.py:
+[source,python]
+----
+c.tabs.position = "left"
+c.completion.shrink = True
+----
+
+Note that qutebrowser does some Python magic so it's able to warn you about
+mistyped config settings. As an example, if you do `c.tabs.possition = "left"`,
+you'll get an error when starting.
+
+See the link:settings{outfilesuffix}[settings help page] for all available settings. The
+accepted values depend on the type of the option. Commonly used are:
+
+- Strings: `c.tabs.position = "left"`
+- Booleans: `c.completion.shrink = True`
+- Integers: `c.messages.timeout = 5000`
+- Dictionaries:
+  * `c.headers.custom = {'X-Hello': 'World', 'X-Awesome': 'yes'}` to override
+    any other values in the dictionary.
+  * `c.aliases['foo'] = 'message-info foo'` to add a single value.
+- Lists:
+  * `c.url.start_pages = ["https://www.qutebrowser.org/"]` to override any
+    previous elements.
+  * `c.url.start_pages.append("https://www.python.org/")` to add a new value.
+
+Any other config types (e.g. a color) are specified as a string. The only
+exception is the `Regex` type, which can take either a string (with an `r`
+prefix to preserve backslashes) or a Python regex object:
+
+- `c.hints.next_regexes.append(r'\bvor\b')`
+- `c.hints.prev_regexes.append(re.compile(r'\bzurück\b'))`
+
+If you want to read a setting, you can use the `c` object to do so as well:
+`c.colors.tabs.even.bg = c.colors.tabs.odd.bg`.
+
+Using strings for setting names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to set settings based on their name as a string, use the
+`config.set` method:
+
+.config.py:
+[source,python]
+----
+# Equivalent to:
+# c.content.javascript.enabled = False
+config.set('content.javascript.enabled', False)
+----
+
+To read a setting, use the `config.get` method:
+
+[source,python]
+----
+# Equivalent to:
+# color = c.colors.completion.fg
+color = config.get('colors.completion.fg')
+----
+
+Per-domain settings
+~~~~~~~~~~~~~~~~~~~
+
+Using `config.set`, some settings are also customizable for a given
+https://developer.chrome.com/apps/match_patterns[URL pattern]:
+
+[source,python]
+----
+config.set('content.images', False, '*://example.com/')
+----
+
+Alternatively, you can use `with config.pattern(...) as p:` to get a shortcut
+similar to `c.` which is scoped to the given domain:
+
+[source,python]
+----
+with config.pattern('*://example.com/') as p:
+    p.content.images = False
+----
+
+Binding keys
+~~~~~~~~~~~~
+
+While it's possible to change the `bindings.commands` setting to bind keys, it's
+preferred to use the `config.bind` command. Doing so ensures the commands are
+valid and normalizes different expressions which map to the same key.
+
+For details on how to specify keys and the available modes, see the
+link:settings{outfilesuffix}#bindings.commands[documentation] for the `bindings.commands`
+setting.
+
+To bind a key:
+
+.config.py:
+[source,python]
+----
+config.bind('<Ctrl-v>', 'spawn mpv {url}')
+----
+
+To bind a key in a mode other than `'normal'`, add a `mode` argument:
+
+[source,python]
+----
+config.bind('<Ctrl-y>', 'prompt-yes', mode='prompt')
+----
+
+To unbind a key (either a key which has been bound before, or a default binding):
+
+[source,python]
+----
+config.unbind('<Ctrl-v>', mode='normal')
+----
+
+To bind keys without modifiers, specify a key chain to bind as a string. Key
+chains starting with a comma are ideal for custom bindings, as the comma key
+will never be used in a default keybinding.
+
+[source,python]
+----
+config.bind(',v', 'spawn mpv {url}')
+----
+
+To suppress loading of any default keybindings, you can set
+`c.bindings.default = {}`.
+
+[[configpy-autoconfig]]
+Loading `autoconfig.yml`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+All customization done via the UI (`:set`, `:bind` and `:unbind`) is
+stored in the `autoconfig.yml` file. When a `config.py` file exists, `autoconfig.yml`
+is not loaded automatically. To load `autoconfig.yml` automatically, add the
+following snippet to `config.py`:
+
+[source,python]
+----
+config.load_autoconfig()
+----
+
+You can configure which file overrides the other by the location of the above code snippet.
+Place the snippet at the top to allow `config.py` to override `autoconfig.yml`.
+Place the snippet at the bottom for the opposite effect.
+
+Importing other modules
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can import any module from the
+https://docs.python.org/3/library/index.html[Python standard library] (e.g.
+`import os.path`), as well as any module installed in the environment
+qutebrowser is run with.
+
+If you have an `utils.py` file in your qutebrowser config folder, you can import
+that via `import utils` as well.
+
+While it's in some cases possible to import code from the qutebrowser
+installation, doing so is unsupported and discouraged.
+
+To read config data from a different file with `c` and `config` available, you
+can use `config.source('otherfile.py')` in your `config.py`.
+
+Getting the config directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you need to get the qutebrowser config directory, you can do so by reading
+`config.configdir`. Similarly, you can get the qutebrowser data directory via
+`config.datadir`.
+
+This gives you a https://docs.python.org/3/library/pathlib.html[`pathlib.Path`
+object], on which you can use `/` to add more directory parts, or `str(...)` to
+get a string:
+
+.config.py:
+[source,python]
+----
+print(str(config.configdir / 'config.py'))
+----
+
+Handling errors
+~~~~~~~~~~~~~~~
+
+If there are errors in your `config.py`, qutebrowser will try to apply as much
+of it as possible, and show an error dialog before starting.
+
+qutebrowser tries to display errors which are easy to understand even for people
+who are not used to writing Python. If you see a config error which you find
+confusing or you think qutebrowser could handle better, please
+https://github.com/qutebrowser/qutebrowser/issues[open an issue]!
+
+Recipes
+~~~~~~~
+
+Reading a YAML file
+^^^^^^^^^^^^^^^^^^^
+
+To read a YAML config like this:
+
+.config.yml:
+----
+tabs.position: left
+tabs.show: switching
+----
+
+You can use:
+
+.config.py:
+[source,python]
+----
+import yaml
+
+with (config.configdir / 'config.yml').open() as f:
+    yaml_data = yaml.load(f)
+
+for k, v in yaml_data.items():
+    config.set(k, v)
+----
+
+Reading a nested YAML file
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To read a YAML file with nested values like this:
+
+.colors.yml:
+----
+colors:
+  statusbar:
+    normal:
+      bg: lime
+      fg: black
+    url:
+      fg: red
+----
+
+You can use:
+
+.config.py:
+[source,python]
+----
+import yaml
+
+with (config.configdir / 'colors.yml').open() as f:
+    yaml_data = yaml.load(f)
+
+def dict_attrs(obj, path=''):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            yield from dict_attrs(v, '{}.{}'.format(path, k) if path else k)
+    else:
+        yield path, obj
+
+for k, v in dict_attrs(yaml_data):
+    config.set(k, v)
+----
+
+Note that this won't work for values which are dictionaries.
+
+Binding chained commands
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have a lot of chained commands you want to bind, you can write a helper
+to do so:
+
+[source,python]
+----
+def bind_chained(key, *commands):
+    config.bind(key, ' ;; '.join(commands))
+
+bind_chained('<Escape>', 'clear-keychain', 'search')
+----
+
+Reading colors from Xresources
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can use something like this to read colors from an `~/.Xresources` file:
+
+[source,python]
+----
+import subprocess
+
+def read_xresources(prefix):
+    props = {}
+    x = subprocess.run(['xrdb', '-query'], stdout=subprocess.PIPE)
+    lines = x.stdout.decode().split('\n')
+    for line in filter(lambda l : l.startswith(prefix), lines):
+        prop, _, value = line.partition(':\t')
+        props[prop] = value
+    return props
+
+xresources = read_xresources('*')
+c.colors.statusbar.normal.bg = xresources['*.background']
+----
+
+Pre-built colorschemes
+^^^^^^^^^^^^^^^^^^^^^^
+
+- A collection of https://github.com/chriskempson/base16[base16] color-schemes can be found in https://github.com/theova/base16-qutebrowser[base16-qutebrowser] and used with https://github.com/AuditeMarlow/base16-manager[base16-manager].
+- Two implementations of the https://github.com/arcticicestudio/nord[Nord] colorscheme for qutebrowser exist: https://github.com/Linuus/nord-qutebrowser[Linuus], https://github.com/KnownAsDon/QuteBrowser-Nord-Theme[KnownAsDon]
+- https://github.com/evannagle/qutebrowser-dracula-theme[Dracula]
+- https://github.com/jjzmajic/qutewal[Pywal theme]
+
+Avoiding flake8 errors
+^^^^^^^^^^^^^^^^^^^^^^
+
+If you use an editor with flake8 and pylint integration, it may have some
+complaints about invalid names, undefined variables, or missing docstrings.
+You can silence those with:
+
+[source,python]
+----
+# pylint: disable=C0111
+c = c  # noqa: F821 pylint: disable=E0602,C0103
+config = config  # noqa: F821 pylint: disable=E0602,C0103
+----
+
+For type annotation support (note that those imports aren't guaranteed to be
+stable across qutebrowser versions):
+
+[source,python]
+----
+# pylint: disable=C0111
+from qutebrowser.config.configfiles import ConfigAPI  # noqa: F401
+from qutebrowser.config.config import ConfigContainer  # noqa: F401
+config = config  # type: ConfigAPI # noqa: F821 pylint: disable=E0602,C0103
+c = c  # type: ConfigContainer # noqa: F821 pylint: disable=E0602,C0103
+----
+
+emacs-like config
+^^^^^^^^^^^^^^^^^
+
+Various emacs/conkeror-like keybinding configs exist:
+
+- https://gitlab.com/jgkamat/qutemacs/blob/master/qutemacs.py[jgkamat]
+- https://gitlab.com/Kaligule/qutebrowser-emacs-config/blob/master/config.py[Kaligule]
+- http://me0w.net/pit/1540882719[nm0i]
+
+It's also mostly possible to get rid of modal keybindings by setting
+`input.insert_mode.auto_enter` to `false`, and `input.forward_unbound_keys` to
+`all`.
+
+[[migrating]]
+Migrating older configurations
+------------------------------
+
+qutebrowser does no automatic migration for the new configuration. However,
+there's a special link:qute://configdiff/old[configdiff] page
+(`qute://configdiff/old`) in qutebrowser, which will show you the changes you
+did in your old configuration, compared to the old defaults.
+
+Other changes in default settings:
+
+- In v1.1.x and newer, `<Up>` and `<Down>` navigate through command history
+  if no text was entered yet.
+  With v1.0.x, they always navigate through command history instead of selecting
+  completion items. Use `<Tab>`/`<Shift-Tab>` to cycle through the completion
+  instead.
+  You can get back the old behavior by doing:
++
+----
+:bind -m command <Up> completion-item-focus prev
+:bind -m command <Down> completion-item-focus next
+----
++
+or always navigate through command history with
++
+----
+:bind -m command <Up> command-history-prev
+:bind -m command <Down> command-history-next
+----
+
+- The default for `completion.web_history.max_items` is now set to `-1`, showing
+  an unlimited number of items in the completion for `:open` as the new
+  sqlite-based completion is much faster. If the `:open` completion is too slow
+  on your machine, set an appropriate limit again.

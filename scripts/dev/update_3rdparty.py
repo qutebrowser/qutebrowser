@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Daniel Schadt
 #
 # This file is part of qutebrowser.
@@ -26,6 +27,12 @@ import urllib.error
 import shutil
 import json
 import os
+import sys
+
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
+from scripts import dictcli
+from qutebrowser.config import configdata
 
 
 def get_latest_pdfjs_url():
@@ -79,8 +86,7 @@ def update_pdfjs(target_version=None):
         shutil.rmtree(target_path)
     os.makedirs(target_path)
     print("Extracting new version")
-    with open(archive_path, 'rb') as archive:
-        shutil.unpack_archive(archive, target_path, 'zip')
+    shutil.unpack_archive(archive_path, target_path, 'zip')
     urllib.request.urlcleanup()
 
 
@@ -109,6 +115,33 @@ def update_ace():
     urllib.request.urlcleanup()
 
 
+def test_dicts():
+    """Test available dictionaries."""
+    configdata.init()
+    for lang in dictcli.available_languages():
+        print('Testing dictionary {}... '.format(lang.code), end='')
+        lang_url = urllib.parse.urljoin(dictcli.API_URL, lang.remote_path)
+        request = urllib.request.Request(lang_url, method='HEAD')
+        response = urllib.request.urlopen(request)
+        if response.status == 200:
+            print('OK')
+        else:
+            print('ERROR: {}'.format(response.status))
+
+
+def run(ace=False, pdfjs=True, fancy_dmg=False, pdfjs_version=None,
+        dicts=False):
+    """Update components based on the given arguments."""
+    if pdfjs:
+        update_pdfjs(pdfjs_version)
+    if ace:
+        update_ace()
+    if fancy_dmg:
+        update_dmg_makefile()
+    if dicts:
+        test_dicts()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -118,12 +151,14 @@ def main():
         required=False, metavar='VERSION')
     parser.add_argument('--fancy-dmg', help="Update fancy-dmg Makefile",
                         action='store_true')
+    parser.add_argument(
+        '--dicts', '-d',
+        help='Test whether all available dictionaries '
+        'can be reached at the remote repository.',
+        required=False, action='store_true')
     args = parser.parse_args()
-
-    update_pdfjs(args.pdfjs)
-    update_ace()
-    if args.fancy_dmg:
-        update_dmg_makefile()
+    run(ace=True, pdfjs=True, fancy_dmg=args.fancy_dmg,
+        pdfjs_version=args.pdfjs, dicts=args.dicts)
 
 
 if __name__ == '__main__':

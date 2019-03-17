@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# copyright 2014 florian bruhin (the compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The-Compiler) <me@the-compiler.org>
 
 # this file is part of qutebrowser.
 #
@@ -23,4 +23,4 @@
 import subprocess
 
 with open('qutebrowser/resources.py', 'w', encoding='utf-8') as f:
-    subprocess.check_call(['pyrcc5', 'qutebrowser.rcc'], stdout=f)
+    subprocess.run(['pyrcc5', 'qutebrowser.rcc'], stdout=f, check=True)

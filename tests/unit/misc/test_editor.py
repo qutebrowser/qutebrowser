@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,34 +19,31 @@
 
 """Tests for qutebrowser.misc.editor."""
 
+import time
 import os
 import os.path
-from unittest import mock
+import logging
 
 from PyQt5.QtCore import QProcess
 import pytest
 
 from qutebrowser.misc import editor as editormod
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture(autouse=True)
-def patch_things(config_stub, message_mock, monkeypatch, stubs):
-    message_mock.patch('qutebrowser.misc.editor.message')
-    monkeypatch.setattr('qutebrowser.misc.editor.guiprocess.QProcess',
+def patch_things(config_stub, monkeypatch, stubs):
+    monkeypatch.setattr(editormod.guiprocess, 'QProcess',
                         stubs.fake_qprocess())
-    config_stub.data = {
-        'general': {'editor': [''], 'editor-encoding': 'utf-8'},
-        'input': {},
-    }
-    monkeypatch.setattr('qutebrowser.misc.editor.config', config_stub)
 
 
 @pytest.fixture
-def editor():
-    ed = editormod.ExternalEditor(0)
-    ed.editing_finished = mock.Mock()
+def editor(caplog, qtbot):
+    ed = editormod.ExternalEditor()
     yield ed
-    ed._cleanup()
+    with caplog.at_level(logging.ERROR):
+        ed._remove_file = True
+        ed._cleanup()
 
 
 class TestArg:
@@ -57,26 +54,19 @@ class TestArg:
         editor: The ExternalEditor instance to test.
     """
 
-    @pytest.mark.parametrize('args', [[], ['foo'], ['foo', 'bar']])
-    def test_start_no_placeholder(self, config_stub, editor, args):
-        """Test starting editor without arguments."""
-        config_stub.data['general']['editor'] = ['bin'] + args
-        editor.edit("")
-        editor._proc._proc.start.assert_called_with("bin", args)
-
     def test_placeholder(self, config_stub, editor):
         """Test starting editor with placeholder argument."""
-        config_stub.data['general']['editor'] = ['bin', 'foo', '{}', 'bar']
+        config_stub.val.editor.command = ['bin', 'foo', '{}', 'bar']
         editor.edit("")
         editor._proc._proc.start.assert_called_with(
-            "bin", ["foo", editor._file.name, "bar"])
+            "bin", ["foo", editor._filename, "bar"])
 
     def test_placeholder_inline(self, config_stub, editor):
         """Test starting editor with placeholder arg inside of another arg."""
-        config_stub.data['general']['editor'] = ['bin', 'foo{}', 'bar']
+        config_stub.val.editor.command = ['bin', 'foo{}', 'bar']
         editor.edit("")
         editor._proc._proc.start.assert_called_with(
-            "bin", ["foo" + editor._file.name, "bar"])
+            "bin", ["foo" + editor._filename, "bar"])
 
 
 class TestFileHandling:
@@ -86,20 +76,29 @@ class TestFileHandling:
     def test_ok(self, editor):
         """Test file handling when closing with an exit status == 0."""
         editor.edit("")
-        filename = editor._file.name
+        filename = editor._filename
         assert os.path.exists(filename)
         assert os.path.basename(filename).startswith('qutebrowser-editor-')
         editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
 
+    def test_existing_file(self, editor, tmpdir):
+        """Test editing an existing file."""
+        path = tmpdir / 'foo.txt'
+        path.ensure()
+
+        editor.edit_file(str(path))
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+
+        assert path.exists()
+
     def test_error(self, editor):
         """Test file handling when closing with an exit status != 0."""
         editor.edit("")
-        filename = editor._file.name
+        filename = editor._filename
         assert os.path.exists(filename)
 
-        editor._proc._proc.exitStatus = mock.Mock(
-            return_value=QProcess.CrashExit)
+        editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
         editor._proc.finished.emit(1, QProcess.NormalExit)
 
         assert os.path.exists(filename)
@@ -109,11 +108,10 @@ class TestFileHandling:
     def test_crash(self, editor):
         """Test file handling when closing with a crash."""
         editor.edit("")
-        filename = editor._file.name
+        filename = editor._filename
         assert os.path.exists(filename)
 
-        editor._proc._proc.exitStatus = mock.Mock(
-            return_value=QProcess.CrashExit)
+        editor._proc._proc.exitStatus = lambda: QProcess.CrashExit
         editor._proc.error.emit(QProcess.Crashed)
 
         editor._proc.finished.emit(0, QProcess.CrashExit)
@@ -121,26 +119,36 @@ class TestFileHandling:
 
         os.remove(filename)
 
-    @pytest.mark.posix
-    def test_unreadable(self, message_mock, editor):
+    def test_unreadable(self, message_mock, editor, caplog, qtbot):
         """Test file handling when closing with an unreadable file."""
         editor.edit("")
-        filename = editor._file.name
+        filename = editor._filename
         assert os.path.exists(filename)
-        os.chmod(filename, 0o077)
-        editor._proc.finished.emit(0, QProcess.NormalExit)
+        os.chmod(filename, 0o277)
+        if os.access(filename, os.R_OK):
+            # Docker container or similar
+            pytest.skip("File was still readable")
+
+        with caplog.at_level(logging.ERROR):
+            editor._proc.finished.emit(0, QProcess.NormalExit)
         assert not os.path.exists(filename)
-        msg = message_mock.getmsg(message_mock.Level.error)
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to read back edited file: ")
 
-    @pytest.mark.posix
-    def test_unwritable(self, monkeypatch, message_mock, editor, tmpdir):
+    def test_unwritable(self, monkeypatch, message_mock, editor, tmpdir,
+                        caplog):
         """Test file handling when the initial file is not writable."""
         tmpdir.chmod(0)
-        monkeypatch.setattr('qutebrowser.misc.editor.tempfile.tempdir',
-                            str(tmpdir))
-        editor.edit("")
-        msg = message_mock.getmsg(message_mock.Level.error)
+        if os.access(str(tmpdir), os.W_OK):
+            # Docker container or similar
+            pytest.skip("File was still writable")
+
+        monkeypatch.setattr(editormod.tempfile, 'tempdir', str(tmpdir))
+
+        with caplog.at_level(logging.ERROR):
+            editor.edit("")
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
         assert msg.text.startswith("Failed to create initial file: ")
         assert editor._proc is None
 
@@ -149,6 +157,45 @@ class TestFileHandling:
         with pytest.raises(ValueError):
             editor.edit("")
 
+    def test_backup(self, qtbot, message_mock):
+        editor = editormod.ExternalEditor(watch=True)
+        editor.edit('foo')
+        with qtbot.wait_signal(editor.file_updated):
+            _update_file(editor._filename, 'bar')
+
+        editor.backup()
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.info)
+        prefix = 'Editor backup at '
+        assert msg.text.startswith(prefix)
+        fname = msg.text[len(prefix):]
+
+        with qtbot.wait_signal(editor.editing_finished):
+            editor._proc.finished.emit(0, QProcess.NormalExit)
+
+        with open(fname, 'r', encoding='utf-8') as f:
+            assert f.read() == 'bar'
+
+    def test_backup_no_content(self, qtbot, message_mock):
+        editor = editormod.ExternalEditor(watch=True)
+        editor.edit('foo')
+        editor.backup()
+        # content has not changed, so no backup should be created
+        assert not message_mock.messages
+
+    def test_backup_error(self, qtbot, message_mock, mocker, caplog):
+        editor = editormod.ExternalEditor(watch=True)
+        editor.edit('foo')
+        with qtbot.wait_signal(editor.file_updated):
+            _update_file(editor._filename, 'bar')
+
+        mocker.patch('tempfile.NamedTemporaryFile', side_effect=OSError)
+        with caplog.at_level(logging.ERROR):
+            editor.backup()
+
+        msg = message_mock.getmsg(usertypes.MessageLevel.error)
+        assert msg.text.startswith('Failed to create editor backup:')
+
 
 @pytest.mark.parametrize('initial_text, edited_text', [
     ('', 'Hello'),
@@ -156,15 +203,102 @@ class TestFileHandling:
     ('Hällö Wörld', 'Überprüfung'),
     ('\u2603', '\u2601')  # Unicode snowman -> cloud
 ])
-def test_modify(editor, initial_text, edited_text):
+def test_modify(qtbot, editor, initial_text, edited_text):
     """Test if inputs get modified correctly."""
     editor.edit(initial_text)
 
-    with open(editor._file.name, 'r', encoding='utf-8') as f:
+    with open(editor._filename, 'r', encoding='utf-8') as f:
         assert f.read() == initial_text
 
-    with open(editor._file.name, 'w', encoding='utf-8') as f:
+    with open(editor._filename, 'w', encoding='utf-8') as f:
         f.write(edited_text)
 
-    editor._proc.finished.emit(0, QProcess.NormalExit)
-    editor.editing_finished.emit.assert_called_with(edited_text)
+    with qtbot.wait_signal(editor.file_updated) as blocker:
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+
+    assert blocker.args == [edited_text]
+
+
+def _update_file(filename, contents):
+    """Update the given file and make sure its mtime changed.
+
+    This might write the file multiple times, but different systems have
+    different mtime's, so we can't be sure how long to wait otherwise.
+    """
+    old_mtime = new_mtime = os.stat(filename).st_mtime
+    while old_mtime == new_mtime:
+        time.sleep(0.1)
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(contents)
+        new_mtime = os.stat(filename).st_mtime
+
+
+def test_modify_watch(qtbot):
+    """Test that saving triggers file_updated when watch=True."""
+    editor = editormod.ExternalEditor(watch=True)
+    editor.edit('foo')
+
+    with qtbot.wait_signal(editor.file_updated, timeout=3000) as blocker:
+        _update_file(editor._filename, 'bar')
+    assert blocker.args == ['bar']
+
+    with qtbot.wait_signal(editor.file_updated) as blocker:
+        _update_file(editor._filename, 'baz')
+    assert blocker.args == ['baz']
+
+    with qtbot.assert_not_emitted(editor.file_updated):
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+
+
+def test_failing_watch(qtbot, caplog, monkeypatch):
+    """When watching failed, an error should be logged.
+
+    Also, updating should still work when closing the process.
+    """
+    editor = editormod.ExternalEditor(watch=True)
+    monkeypatch.setattr(editor._watcher, 'addPath', lambda _path: False)
+
+    with caplog.at_level(logging.ERROR):
+        editor.edit('foo')
+
+    with qtbot.assert_not_emitted(editor.file_updated):
+        _update_file(editor._filename, 'bar')
+
+    with qtbot.wait_signal(editor.file_updated) as blocker:
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+    assert blocker.args == ['bar']
+
+    message = 'Failed to watch path: {}'.format(editor._filename)
+    assert caplog.messages[0] == message
+
+
+def test_failing_unwatch(qtbot, caplog, monkeypatch):
+    """When unwatching failed, an error should be logged."""
+    editor = editormod.ExternalEditor(watch=True)
+    monkeypatch.setattr(editor._watcher, 'addPath', lambda _path: True)
+    monkeypatch.setattr(editor._watcher, 'files', lambda: [editor._filename])
+    monkeypatch.setattr(editor._watcher, 'removePaths', lambda paths: paths)
+
+    editor.edit('foo')
+
+    with caplog.at_level(logging.ERROR):
+        editor._proc.finished.emit(0, QProcess.NormalExit)
+
+    message = 'Failed to unwatch paths: [{!r}]'.format(editor._filename)
+    assert caplog.messages[-1] == message
+
+
+@pytest.mark.parametrize('text, caret_position, result', [
+    ('', 0, (1, 1)),
+    ('a', 0, (1, 1)),
+    ('a\nb', 1, (1, 2)),
+    ('a\nb', 2, (2, 1)),
+    ('a\nb', 3, (2, 2)),
+    ('a\nbb\nccc', 4, (2, 3)),
+    ('a\nbb\nccc', 5, (3, 1)),
+    ('a\nbb\nccc', 8, (3, 4)),
+    ('', None, (1, 1)),
+])
+def test_calculation(editor, text, caret_position, result):
+    """Test calculation for line and column given text and caret_position."""
+    assert editor._calc_line_and_column(text, caret_position) == result

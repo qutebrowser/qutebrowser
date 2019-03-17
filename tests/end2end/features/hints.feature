@@ -1,27 +1,26 @@
+# vim: ft=cucumber fileencoding=utf-8 sts=4 sw=4 et:
+
 Feature: Using hints
+
+    # https://bugreports.qt.io/browse/QTBUG-58381
+    Background:
+        Given I clean up open tabs
 
     Scenario: Using :follow-hint outside of hint mode (issue 1105)
         When I run :follow-hint
-        Then the error "follow-hint: This command is only allowed in hint mode." should be shown
+        Then the error "follow-hint: This command is only allowed in hint mode, not normal." should be shown
 
     Scenario: Using :follow-hint with an invalid index.
         When I open data/hints/html/simple.html
         And I hint with args "links normal" and follow xyz
         Then the error "No hint xyz!" should be shown
 
-    @qtwebengine_flaky
-    Scenario: Following a link after scrolling down
-        When I open data/scroll/simple.html
-        And I run :hint links normal
-        And I wait for "hints: *" in the log
-        And I run :scroll-page 0 1
-        And I wait until the scroll position changed
-        And I run :follow-hint a
-        Then the error "Element position is out of view!" should be shown
+    Scenario: Using :hint with invalid mode.
+        When I run :hint --mode=foobar
+        Then the error "Invalid mode: Invalid value 'foobar' - valid values: number, letter, word" should be shown
 
     ### Opening in current or new tab
 
-    @qtwebengine_createWindow
     Scenario: Following a hint and force to open in current tab.
         When I open data/hints/link_blank.html
         And I hint with args "links current" and follow a
@@ -29,19 +28,16 @@ Feature: Using hints
         Then the following tabs should be open:
             - data/hello.txt (active)
 
-    @qtwebengine_createWindow
     Scenario: Following a hint and allow to open in new tab.
         When I open data/hints/link_blank.html
         And I hint with args "links normal" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
             - data/hints/link_blank.html
-            - data/hello.txt (active)
+            - data/hello.txt
 
-    @qtwebengine_createWindow
     Scenario: Following a hint to link with sub-element and force to open in current tab.
         When I open data/hints/link_span.html
-        And I run :tab-close
         And I hint with args "links current" and follow a
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
@@ -55,17 +51,17 @@ Feature: Using hints
 
     Scenario: Using :hint spawn with flags and -- (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "-- all spawn -v echo" and follow a
+        And I hint with args "-- all spawn -v python -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     Scenario: Using :hint spawn with flags (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "all spawn -v echo" and follow a
+        And I hint with args "all spawn -v python -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     Scenario: Using :hint spawn with flags and --rapid (issue 797)
         When I open data/hints/html/simple.html
-        And I hint with args "--rapid all spawn -v echo" and follow a
+        And I hint with args "--rapid all spawn -v python -c ''" and follow a
         Then the message "Command exited successfully." should be shown
 
     @posix
@@ -91,6 +87,11 @@ Feature: Using hints
         And I hint with args "all userscript (testdata)/userscripts/echo_hint_text" and follow a
         Then the message "Follow me!" should be shown
 
+    Scenario: Using :hint userscript with a script which doesn't exist
+        When I open data/hints/html/simple.html
+        And I hint with args "all userscript (testdata)/does_not_exist" and follow a
+        Then the error "Userscript '*' not found" should be shown
+
     Scenario: Yanking to clipboard
         When I run :debug-set-fake-clipboard
         And I open data/hints/html/simple.html
@@ -111,6 +112,48 @@ Feature: Using hints
         And I hint with args "links yank-primary" and follow a
         Then the clipboard should contain "http://localhost:(port)/data/hello.txt"
 
+    Scenario: Yanking email address to clipboard
+        When I run :debug-set-fake-clipboard
+        And I open data/email_address.html
+        And I hint with args "links yank" and follow a
+        Then the clipboard should contain "nobody"
+
+    Scenario: Yanking javascript link to clipboard
+        When I run :debug-set-fake-clipboard
+        And I open data/hints/html/javascript.html
+        And I hint with args "links yank" and follow a
+        Then the clipboard should contain "javascript:window.location.href='/data/hello.txt'"
+
+    Scenario: Rapid yanking
+        When I run :debug-set-fake-clipboard
+        And I open data/hints/rapid.html
+        And I hint with args "links yank --rapid"
+        And I run :follow-hint a
+        And I run :follow-hint s
+        And I run :leave-mode
+        Then the clipboard should contain "http://localhost:(port)/data/hello.txt(linesep)http://localhost:(port)/data/hello2.txt"
+
+    Scenario: Rapid hinting
+        When I open data/hints/rapid.html in a new tab
+        And I run :tab-only
+        And I hint with args "all tab-bg --rapid"
+        And I run :follow-hint a
+        And I run :follow-hint s
+        And I run :leave-mode
+        And I wait until data/hello.txt is loaded
+        And I wait until data/hello2.txt is loaded
+        # We should check what the active tab is, but for some reason that makes
+        # the test flaky
+        Then the session should look like:
+          windows:
+          - tabs:
+            - history:
+              - url: http://localhost:*/data/hints/rapid.html
+            - history:
+              - url: http://localhost:*/data/hello.txt
+            - history:
+              - url: http://localhost:*/data/hello2.txt
+
     Scenario: Using hint --rapid to hit multiple buttons
         When I open data/hints/buttons.html
         And I hint with args "--rapid"
@@ -126,15 +169,62 @@ Feature: Using hints
         And I hint with args "all run message-info {hint-url}" and follow a
         Then the message "http://localhost:(port)/data/hello.txt" should be shown
 
+    @qt<5.11
     Scenario: Clicking an invalid link
         When I open data/invalid_link.html
         And I hint with args "all" and follow a
         Then the error "Invalid link clicked - *" should be shown
 
+    @qt<5.11
+    Scenario: Clicking an invalid link opening in a new tab
+        When I open data/invalid_link.html
+        And I hint with args "all tab" and follow a
+        Then the error "Invalid link clicked - *" should be shown
+
     Scenario: Hinting inputs without type
         When I open data/hints/input.html
         And I hint with args "inputs" and follow a
-        And I wait for "Entering mode KeyMode.insert (reason: click)" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :leave-mode
+        # The actual check is already done above
+        Then no crash should happen
+
+    Scenario: Error with invalid hint group
+        When I open data/hints/buttons.html
+        And I run :hint INVALID_GROUP
+        Then the error "Undefined hinting group 'INVALID_GROUP'" should be shown
+
+    Scenario: Custom hint group
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom":[".clickable"]}
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
+
+    Scenario: Custom hint group with URL pattern
+        When I open data/hints/custom_group.html
+        And I run :set -tu *://*/data/hints/custom_group.html hints.selectors '{"custom": [".clickable"]}'
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
+
+    Scenario: Fallback to global value with URL pattern set
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom":[".clickable"]}
+        And I run :set -tu *://*/data/hints/custom_group.html hints.selectors '{"other": [".other"]}'
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
+
+    @qtwebkit_skip
+    Scenario: Invalid custom selector
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom":["@"]}
+        And I run :hint custom
+        Then the error "SyntaxError: Failed to execute 'querySelectorAll' on 'Document': '@' is not a valid selector." should be shown
+
+    # https://github.com/qutebrowser/qutebrowser/issues/1613
+    Scenario: Hinting inputs with padding
+        When I open data/hints/input.html
+        And I hint with args "inputs" and follow s
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
         # The actual check is already done above
         Then no crash should happen
@@ -142,49 +232,81 @@ Feature: Using hints
     Scenario: Hinting with ACE editor
         When I open data/hints/ace/ace.html
         And I hint with args "inputs" and follow a
-        And I wait for "Entering mode KeyMode.insert (reason: click)" in the log
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
         And I run :leave-mode
         # The actual check is already done above
         Then no crash should happen
 
-    ### iframes
+    Scenario: Hinting invisible elements
+        When I open data/hints/invisible.html
+        And I run :hint
+        Then the error "No elements found." should be shown
 
-    @qtwebengine_todo: Hinting in iframes is not implemented yet
+    Scenario: Clicking input with existing text
+        When I open data/hints/input.html
+        And I run :click-element id qute-input-existing
+        And I wait for "Entering mode KeyMode.insert *" in the log
+        And I run :fake-key new
+        Then the javascript message "contents: existingnew" should be logged
+
+    ### iframes
     Scenario: Using :follow-hint inside an iframe
         When I open data/hints/iframe.html
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
 
-    ### FIXME currenly skipped, see https://github.com/The-Compiler/qutebrowser/issues/1525
-    @xfail_norun
+    Scenario: Using :follow-hint inside an iframe button
+        When I open data/hints/iframe_button.html
+        And I hint with args "all normal" and follow s
+        Then "navigation request: url http://localhost:*/data/hello.txt, *" should be logged
+
+    Scenario: Hinting inputs in an iframe without type
+        When I open data/hints/iframe_input.html
+        And I hint with args "inputs" and follow a
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :leave-mode
+        # The actual check is already done above
+        Then no crash should happen
+
+    @flaky  # FIXME https://github.com/qutebrowser/qutebrowser/issues/1525
     Scenario: Using :follow-hint inside a scrolled iframe
         When I open data/hints/iframe_scroll.html
         And I hint with args "all normal" and follow a
         And I run :scroll bottom
-        And I hint wht args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello2.txt, type NavigationTypeLinkClicked, *" should be logged
+        And I hint with args "links normal" and follow a
+        Then "navigation request: url http://localhost:*/data/hello2.txt, type Type.link_clicked, *" should be logged
 
-    @qtwebengine_createWindow
     Scenario: Opening a link inside a specific iframe
         When I open data/hints/iframe_target.html
         And I hint with args "links normal" and follow a
-        Then "navigation request: url http://localhost:*/data/hello.txt, type NavigationTypeLinkClicked, *" should be logged
+        Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, *" should be logged
 
-    @qtwebengine_createWindow
     Scenario: Opening a link with specific target frame in a new tab
         When I open data/hints/iframe_target.html
-        And I hint with args "links tab" and follow a
-        And I wait until data/hello.txt is loaded
+        And I run :tab-only
+        And I hint with args "links tab" and follow s
+        And I wait until data/hello2.txt is loaded
         Then the following tabs should be open:
             - data/hints/iframe_target.html
-            - data/hello.txt (active)
+            - data/hello2.txt (active)
 
-    ### hints -> auto-follow-timeout
+    Scenario: Clicking on iframe with :hint all current
+        When I open data/hints/iframe.html
+        And I hint with args "all current" and follow a
+        Then no crash should happen
 
+    Scenario: No error when hinting ranged input in frames
+        When I open data/hints/issue3711_frame.html
+        And I hint with args "all current" and follow a
+        Then no crash should happen
+
+    ### hints.auto_follow.timeout
+
+    @not_mac @flaky
     Scenario: Ignoring key presses after auto-following hints
-        When I set hints -> auto-follow-timeout to 500
-        And I set hints -> mode to number
-        And I run :bind --force , message-error "This should not happen"
+        When I set hints.auto_follow_timeout to 1000
+        And I set hints.mode to number
+        And I run :bind , message-error "This error message was triggered via a keybinding which should have been inhibited"
         And I open data/hints/html/simple.html
         And I hint with args "all"
         And I press the key "f"
@@ -194,10 +316,10 @@ Feature: Using hints
         And I wait for "Releasing inhibition state of normal mode." in the log
         Then "Ignoring key ',', because the normal mode is currently inhibited." should be logged
 
-    Scenario: Turning off auto-follow-timeout
-        When I set hints -> auto-follow-timeout to 0
-        And I set hints -> mode to number
-        And I run :bind --force , message-info "Keypress worked!"
+    Scenario: Turning off auto_follow_timeout
+        When I set hints.auto_follow_timeout to 0
+        And I set hints.mode to number
+        And I run :bind , message-info "Keypress worked!"
         And I open data/hints/html/simple.html
         And I hint with args "all"
         And I press the key "f"
@@ -209,39 +331,39 @@ Feature: Using hints
 
     Scenario: Hinting with a too short dictionary
         When I open data/hints/short_dict.html
-        And I set hints -> mode to word
+        And I set hints.mode to word
         # Test letter fallback
         And I hint with args "all" and follow d
         Then the error "Not enough words in the dictionary." should be shown
         And data/numbers/5.txt should be loaded
 
-    # https://travis-ci.org/The-Compiler/qutebrowser/jobs/157941720
-    @qtwebengine_flaky
     Scenario: Dictionary file does not exist
         When I open data/hints/html/simple.html
-        And I set hints -> dictionary to no_words
-        And I set hints -> mode to word
+        And I set hints.dictionary to no_words
+        And I set hints.mode to word
         And I run :hint
+        And I wait for "hints: *" in the log
         And I press the key "a"
         Then the error "Word hints requires reading the file at *" should be shown
         And data/hello.txt should be loaded
 
     ### Number hint mode
 
-    # https://github.com/The-Compiler/qutebrowser/issues/308
+    # https://github.com/qutebrowser/qutebrowser/issues/308
     Scenario: Renumbering hints when filtering
         When I open data/hints/number.html
-        And I set hints -> mode to number
+        And I set hints.mode to number
         And I hint with args "all"
         And I press the key "s"
+        And I wait for "Filtering hints on 's'" in the log
         And I run :follow-hint 1
         Then data/numbers/7.txt should be loaded
 
-    # https://github.com/The-Compiler/qutebrowser/issues/576
+    # https://github.com/qutebrowser/qutebrowser/issues/576
     @qtwebengine_flaky
     Scenario: Keeping hint filter in rapid mode
         When I open data/hints/number.html
-        And I set hints -> mode to number
+        And I set hints.mode to number
         And I hint with args "all tab-bg --rapid"
         And I press the key "t"
         And I run :follow-hint 0
@@ -249,10 +371,10 @@ Feature: Using hints
         Then data/numbers/2.txt should be loaded
         And data/numbers/3.txt should be loaded
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1186
+    # https://github.com/qutebrowser/qutebrowser/issues/1186
     Scenario: Keeping hints filter when using backspace
         When I open data/hints/issue1186.html
-        And I set hints -> mode to number
+        And I set hints.mode to number
         And I hint with args "all"
         And I press the key "x"
         And I press the key "0"
@@ -260,36 +382,36 @@ Feature: Using hints
         And I run :follow-hint 11
         Then the error "No hint 11!" should be shown
 
-    # https://github.com/The-Compiler/qutebrowser/issues/674#issuecomment-165096744
+    # https://github.com/qutebrowser/qutebrowser/issues/674#issuecomment-165096744
     Scenario: Multi-word matching
         When I open data/hints/number.html
-        And I set hints -> mode to number
-        And I set hints -> auto-follow to unique-match
-        And I set hints -> auto-follow-timeout to 0
+        And I set hints.mode to number
+        And I set hints.auto_follow to unique-match
+        And I set hints.auto_follow_timeout to 0
         And I hint with args "all"
-        And I press the keys "ten pos"
+        And I press the keys "ten p"
         Then data/numbers/11.txt should be loaded
 
     Scenario: Scattering is ignored with number hints
         When I open data/hints/number.html
-        And I set hints -> mode to number
-        And I set hints -> scatter to true
+        And I set hints.mode to number
+        And I set hints.scatter to true
         And I hint with args "all" and follow 00
         Then data/numbers/1.txt should be loaded
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1559
+    # https://github.com/qutebrowser/qutebrowser/issues/1559
     Scenario: Filtering all hints in number mode
         When I open data/hints/number.html
-        And I set hints -> mode to number
+        And I set hints.mode to number
         And I hint with args "all"
         And I press the key "2"
         And I wait for "Leaving mode KeyMode.hint (reason: all filtered)" in the log
         Then no crash should happen
 
-    # https://github.com/The-Compiler/qutebrowser/issues/1657
+    # https://github.com/qutebrowser/qutebrowser/issues/1657
     Scenario: Using rapid number hinting twice
         When I open data/hints/number.html
-        And I set hints -> mode to number
+        And I set hints.mode to number
         And I hint with args "--rapid"
         And I run :leave-mode
         And I hint with args "--rapid" and follow 00
@@ -297,138 +419,153 @@ Feature: Using hints
 
     Scenario: Using a specific hints mode
         When I open data/hints/number.html
-        And I set hints -> mode to letter
+        And I set hints.mode to letter
         And I hint with args "--mode number all"
         And I press the key "s"
+        And I wait for "Filtering hints on 's'" in the log
         And I run :follow-hint 1
         Then data/numbers/7.txt should be loaded
 
-    ### auto-follow option
+    ### hints.auto_follow option
 
-    Scenario: Using hints -> auto-follow == 'always' in letter mode
+    Scenario: Using hints.auto_follow = 'always' in letter mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to letter
-        And I set hints -> auto-follow to always
+        And I set hints.mode to letter
+        And I set hints.auto_follow to always
         And I hint with args "all"
         Then data/hello.txt should be loaded
 
     # unique-match is actually the same as full-match in letter mode
-    Scenario: Using hints -> auto-follow == 'unique-match' in letter mode
+    Scenario: Using hints.auto_follow = 'unique-match' in letter mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to letter
-        And I set hints -> auto-follow to unique-match
+        And I set hints.mode to letter
+        And I set hints.auto_follow to unique-match
         And I hint with args "all"
         And I press the key "a"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints -> auto-follow == 'full-match' in letter mode
+    Scenario: Using hints.auto_follow = 'full-match' in letter mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to letter
-        And I set hints -> auto-follow to full-match
+        And I set hints.mode to letter
+        And I set hints.auto_follow to full-match
         And I hint with args "all"
         And I press the key "a"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints -> auto-follow == 'never' without Enter in letter mode
+    Scenario: Using hints.auto_follow = 'never' without Enter in letter mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to letter
-        And I set hints -> auto-follow to never
+        And I set hints.mode to letter
+        And I set hints.auto_follow to never
         And I hint with args "all"
         And I press the key "a"
         Then "Leaving mode KeyMode.hint (reason: followed)" should not be logged
 
-    Scenario: Using hints -> auto-follow == 'never' in letter mode
+    Scenario: Using hints.auto_follow = 'never' in letter mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to letter
-        And I set hints -> auto-follow to never
+        And I set hints.mode to letter
+        And I set hints.auto_follow to never
         And I hint with args "all"
         And I press the key "a"
         And I press the key "<Enter>"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints -> auto-follow == 'always' in number mode
+    Scenario: Using hints.auto_follow = 'always' in number mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to number
-        And I set hints -> auto-follow to always
+        And I set hints.mode to number
+        And I set hints.auto_follow to always
         And I hint with args "all"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints -> auto-follow == 'unique-match' in number mode
+    Scenario: Using hints.auto_follow = 'unique-match' in number mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to number
-        And I set hints -> auto-follow to unique-match
+        And I set hints.mode to number
+        And I set hints.auto_follow to unique-match
         And I hint with args "all"
         And I press the key "f"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints -> auto-follow == 'full-match' in number mode
+    Scenario: Using hints.auto_follow = 'full-match' in number mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to number
-        And I set hints -> auto-follow to full-match
+        And I set hints.mode to number
+        And I set hints.auto_follow to full-match
         And I hint with args "all"
         # this actually presses the keys one by one
         And I press the key "follow me!"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints -> auto-follow == 'never' without Enter in number mode
+    Scenario: Using hints.auto_follow = 'never' without Enter in number mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to number
-        And I set hints -> auto-follow to never
+        And I set hints.mode to number
+        And I set hints.auto_follow to never
         And I hint with args "all"
         # this actually presses the keys one by one
         And I press the key "follow me!"
         Then "Leaving mode KeyMode.hint (reason: followed)" should not be logged
 
-    Scenario: Using hints -> auto-follow == 'never' in number mode
+    Scenario: Using hints.auto_follow = 'never' in number mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to number
-        And I set hints -> auto-follow to never
+        And I set hints.mode to number
+        And I set hints.auto_follow to never
         And I hint with args "all"
         # this actually presses the keys one by one
         And I press the key "follow me!"
         And I press the key "<Enter>"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints -> auto-follow == 'always' in word mode
+    Scenario: Using hints.auto_follow = 'always' in word mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to word
-        And I set hints -> auto-follow to always
+        And I set hints.mode to word
+        And I set hints.auto_follow to always
         And I hint with args "all"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints -> auto-follow == 'unique-match' in word mode
+    Scenario: Using hints.auto_follow = 'unique-match' in word mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to word
-        And I set hints -> auto-follow to unique-match
+        And I set hints.mode to word
+        And I set hints.auto_follow to unique-match
         And I hint with args "all"
         # the link gets "hello" as the hint
         And I press the key "h"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints -> auto-follow == 'full-match' in word mode
+    Scenario: Using hints.auto_follow = 'full-match' in word mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to word
-        And I set hints -> auto-follow to full-match
+        And I set hints.mode to word
+        And I set hints.auto_follow to full-match
         And I hint with args "all"
         # this actually presses the keys one by one
         And I press the key "hello"
         Then data/hello.txt should be loaded
 
-    Scenario: Using hints -> auto-follow == 'never' without Enter in word mode
+    Scenario: Using hints.auto_follow = 'never' without Enter in word mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to word
-        And I set hints -> auto-follow to never
+        And I set hints.mode to word
+        And I set hints.auto_follow to never
         And I hint with args "all"
         # this actually presses the keys one by one
         And I press the key "hello"
         Then "Leaving mode KeyMode.hint (reason: followed)" should not be logged
 
-    Scenario: Using hints -> auto-follow == 'never' in word mode
+    Scenario: Using hints.auto_follow = 'never' in word mode
         When I open data/hints/html/simple.html
-        And I set hints -> mode to word
-        And I set hints -> auto-follow to never
+        And I set hints.mode to word
+        And I set hints.auto_follow to never
         And I hint with args "all"
         # this actually presses the keys one by one
         And I press the key "hello"
         And I press the key "<Enter>"
         Then data/hello.txt should be loaded
+
+    Scenario: Using --first with normal links
+        When I open data/hints/html/simple.html
+        And I hint with args "all --first"
+        Then data/hello.txt should be loaded
+
+    Scenario: Using --first with inputs
+        When I open data/hints/input.html
+        And I hint with args "inputs --first"
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        # ensure we clicked the first element
+        And I run :jseval console.log(document.activeElement.id == "qute-input");
+        And I run :leave-mode
+        Then the javascript message "true" should be logged

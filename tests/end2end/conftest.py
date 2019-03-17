@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,10 +23,10 @@
 
 import re
 import os
+import os.path
 import sys
 import shutil
 import pstats
-import os.path
 import operator
 
 import pytest
@@ -34,11 +34,12 @@ from PyQt5.QtCore import PYQT_VERSION
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
-from end2end.fixtures.webserver import httpbin, httpbin_after_test, ssl_server
+from end2end.fixtures.webserver import server, server_per_test, ssl_server
 from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
                                           quteproc_new)
 from end2end.fixtures.testprocess import pytest_runtest_makereport
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, utils
+from qutebrowser.browser.webengine import spell
 
 
 def pytest_configure(config):
@@ -68,31 +69,34 @@ def _get_version_tag(tag):
     """
     version_re = re.compile(r"""
         (?P<package>qt|pyqt)
-        (?P<operator>==|>|>=|<|<=|!=)
-        (?P<version>\d+\.\d+\.\d+)
+        (?P<operator>==|>=|!=|<)
+        (?P<version>\d+\.\d+(\.\d+)?)
     """, re.VERBOSE)
 
-    match = version_re.match(tag)
+    match = version_re.fullmatch(tag)
     if not match:
         return None
 
-    operators = {
-        '==': operator.eq,
-        '>': operator.gt,
-        '<': operator.lt,
-        '>=': operator.ge,
-        '<=': operator.le,
-        '!=': operator.ne,
-    }
-
     package = match.group('package')
-    op = operators[match.group('operator')]
     version = match.group('version')
 
     if package == 'qt':
-        return pytest.mark.skipif(qtutils.version_check(version, op),
-                                  reason='Needs ' + tag)
+        op = match.group('operator')
+        do_skip = {
+            '==': not qtutils.version_check(version, exact=True,
+                                            compiled=False),
+            '>=': not qtutils.version_check(version, compiled=False),
+            '<': qtutils.version_check(version, compiled=False),
+            '!=': qtutils.version_check(version, exact=True, compiled=False),
+        }
+        return pytest.mark.skipif(do_skip[op], reason='Needs ' + tag)
     elif package == 'pyqt':
+        operators = {
+            '==': operator.eq,
+            '>=': operator.ge,
+            '!=': operator.ne,
+        }
+        op = operators[match.group('operator')]
         major, minor, patch = [int(e) for e in version.split('.')]
         hex_version = (major << 16) | (minor << 8) | patch
         return pytest.mark.skipif(not op(PYQT_VERSION, hex_version),
@@ -106,7 +110,7 @@ def _get_backend_tag(tag):
     pytest_marks = {
         'qtwebengine_todo': pytest.mark.qtwebengine_todo,
         'qtwebengine_skip': pytest.mark.qtwebengine_skip,
-        'qtwebkit_skip': pytest.mark.qtwebkit_skip
+        'qtwebkit_skip': pytest.mark.qtwebkit_skip,
     }
     if not any(tag.startswith(t + ':') for t in pytest_marks):
         return None
@@ -132,14 +136,7 @@ if not getattr(sys, 'frozen', False):
 
 def pytest_collection_modifyitems(config, items):
     """Apply @qtwebengine_* markers; skip unittests with QUTE_BDD_WEBENGINE."""
-    vercheck = qtutils.version_check
-    qtbug_54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
-                         qtutils.version_check('5.7.1') or
-                         os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
-
     markers = [
-        ('qtwebengine_createWindow', 'Skipped because of QTBUG-54419',
-         pytest.mark.skipif, not qtbug_54419_fixed and config.webengine),
         ('qtwebengine_todo', 'QtWebEngine TODO', pytest.mark.xfail,
          config.webengine),
         ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,
@@ -148,13 +145,13 @@ def pytest_collection_modifyitems(config, items):
          not config.webengine),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,
          config.webengine),
-        ('qtwebengine_osx_xfail', 'Fails on OS X with QtWebEngine',
-         pytest.mark.xfail, config.webengine and sys.platform == 'darwin'),
+        ('qtwebengine_mac_xfail', 'Fails on macOS with QtWebEngine',
+         pytest.mark.xfail, config.webengine and utils.is_mac),
     ]
 
     for item in items:
         for name, prefix, pytest_mark, condition in markers:
-            marker = item.get_marker(name)
+            marker = item.get_closest_marker(name)
             if marker and condition:
                 if marker.args:
                     text = '{}: {}'.format(prefix, marker.args[0])

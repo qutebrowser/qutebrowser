@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,21 +20,38 @@
 """Utils regarding URL handling."""
 
 import re
+import base64
 import os.path
 import ipaddress
 import posixpath
 import urllib.parse
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import QHostInfo, QHostAddress
+from PyQt5.QtCore import QUrl, QUrlQuery
+from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
 
-from qutebrowser.config import config, configexc
+from qutebrowser.api import cmdutils
+from qutebrowser.config import config
 from qutebrowser.utils import log, qtutils, message, utils
-from qutebrowser.commands import cmdexc
+from qutebrowser.browser.network import pac
 
 
 # FIXME: we probably could raise some exceptions on invalid URLs
-# https://github.com/The-Compiler/qutebrowser/issues/108
+# https://github.com/qutebrowser/qutebrowser/issues/108
+
+
+# URL schemes supported by QtWebEngine
+WEBENGINE_SCHEMES = [
+    'about',
+    'data',
+    'file',
+    'filesystem',
+    'ftp',
+    'http',
+    'https',
+    'javascript',
+    'ws',
+    'wss',
+]
 
 
 class InvalidUrlError(ValueError):
@@ -68,8 +85,8 @@ def _parse_search_term(s):
     if len(split) == 2:
         engine = split[0]
         try:
-            config.get('searchengines', engine)
-        except configexc.NoOptionError:
+            config.val.url.searchengines[engine]
+        except KeyError:
             engine = None
             term = s
         else:
@@ -97,10 +114,16 @@ def _get_search_url(txt):
     engine, term = _parse_search_term(txt)
     assert term
     if engine is None:
-        template = config.get('searchengines', 'DEFAULT')
-    else:
-        template = config.get('searchengines', engine)
-    url = qurl_from_user_input(template.format(urllib.parse.quote(term)))
+        engine = 'DEFAULT'
+    template = config.val.url.searchengines[engine]
+    quoted_term = urllib.parse.quote(term, safe='')
+    url = qurl_from_user_input(template.format(quoted_term))
+
+    if config.val.url.open_base_url and term in config.val.url.searchengines:
+        url = qurl_from_user_input(config.val.url.searchengines[term])
+        url.setPath(None)
+        url.setFragment(None)
+        url.setQuery(None)
     qtutils.ensure_valid(url)
     return url
 
@@ -191,8 +214,8 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
         log.url.debug("URL is a fuzzy address")
         url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
-                  urlstr, url.toDisplayString()))
-    if do_search and config.get('general', 'auto-search') and urlstr:
+        urlstr, url.toDisplayString()))
+    if do_search and config.val.url.auto_search != 'never' and urlstr:
         qtutils.ensure_valid(url)
     else:
         if not url.isValid():
@@ -212,7 +235,7 @@ def _has_explicit_scheme(url):
     # symbols, we treat this as not a URI anyways.
     return (url.isValid() and url.scheme() and
             (url.host() or url.path()) and
-            not url.path().startswith(' ') and
+            ' ' not in url.path() and
             not url.path().startswith(':'))
 
 
@@ -237,16 +260,16 @@ def is_url(urlstr):
     Return:
         True if it is a valid URL, False otherwise.
     """
-    autosearch = config.get('general', 'auto-search')
+    autosearch = config.val.url.auto_search
 
     log.url.debug("Checking if {!r} is a URL (autosearch={}).".format(
-                  urlstr, autosearch))
+        urlstr, autosearch))
 
     urlstr = urlstr.strip()
     qurl = QUrl(urlstr)
     qurl_userinput = qurl_from_user_input(urlstr)
 
-    if not autosearch:
+    if autosearch == 'never':
         # no autosearch, so everything is a URL unless it has an explicit
         # search engine.
         try:
@@ -268,7 +291,7 @@ def is_url(urlstr):
         log.url.debug("Is localhost.")
         url = True
     elif is_special_url(qurl):
-        # Special URLs are always URLs, even with autosearch=False
+        # Special URLs are always URLs, even with autosearch=never
         log.url.debug("Is a special URL.")
         url = True
     elif autosearch == 'dns':
@@ -295,7 +318,7 @@ def qurl_from_user_input(urlstr):
     WORKAROUND - https://bugreports.qt.io/browse/QTBUG-41089
     FIXME - Maybe https://codereview.qt-project.org/#/c/93851/ has a better way
             to solve this?
-    https://github.com/The-Compiler/qutebrowser/issues/109
+    https://github.com/qutebrowser/qutebrowser/issues/109
 
     Args:
         urlstr: The URL as string.
@@ -305,7 +328,7 @@ def qurl_from_user_input(urlstr):
     """
     # First we try very liberally to separate something like an IPv6 from the
     # rest (e.g. path info or parameters)
-    match = re.match(r'\[?([0-9a-fA-F:.]+)\]?(.*)', urlstr.strip())
+    match = re.fullmatch(r'\[?([0-9a-fA-F:.]+)\]?(.*)', urlstr.strip())
     if match:
         ipstr, rest = match.groups()
     else:
@@ -321,11 +344,10 @@ def qurl_from_user_input(urlstr):
         return QUrl('http://[{}]{}'.format(ipstr, rest))
 
 
-def invalid_url_error(win_id, url, action):
+def invalid_url_error(url, action):
     """Display an error message for a URL.
 
     Args:
-        win_id: The window ID to show the error message in.
         action: The action which was interrupted by the error.
     """
     if url.isValid():
@@ -333,13 +355,13 @@ def invalid_url_error(win_id, url, action):
             url.toDisplayString()))
     errstring = get_errstring(
         url, "Trying to {} with invalid URL".format(action))
-    message.error(win_id, errstring)
+    message.error(errstring)
 
 
 def raise_cmdexc_if_invalid(url):
     """Check if the given QUrl is invalid, and if so, raise a CommandError."""
     if not url.isValid():
-        raise cmdexc.CommandError(get_errstring(url))
+        raise cmdutils.CommandError(get_errstring(url))
 
 
 def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
@@ -372,10 +394,17 @@ def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
         path = None
 
     if check_exists:
-        if path is not None and os.path.exists(path):
-            log.url.debug("URL is a local file")
-        else:
-            path = None
+        if path is not None:
+            try:
+                if os.path.exists(path):
+                    log.url.debug("URL is a local file")
+                else:
+                    path = None
+            except UnicodeEncodeError:
+                log.url.debug(
+                    "URL contains characters which are not present in the "
+                    "current locale")
+                path = None
 
     return path
 
@@ -530,7 +559,7 @@ def incdec_number(url, incdec, count=1, segments=None):
         incdec: Either 'increment' or 'decrement'
         count: The number to increment or decrement by
         segments: A set of URL segments to search. Valid segments are:
-                  'host', 'path', 'query', 'anchor'.
+                  'host', 'port', 'path', 'query', 'anchor'.
                   Default: {'path', 'query'}
 
     Return:
@@ -543,7 +572,7 @@ def incdec_number(url, incdec, count=1, segments=None):
 
     if segments is None:
         segments = {'path', 'query'}
-    valid_segments = {'host', 'path', 'query', 'anchor'}
+    valid_segments = {'host', 'port', 'path', 'query', 'anchor'}
     if segments - valid_segments:
         extra_elements = segments - valid_segments
         raise IncDecError("Invalid segments: {}".format(
@@ -554,6 +583,8 @@ def incdec_number(url, incdec, count=1, segments=None):
     # Order as they appear in a URL
     segment_modifiers = [
         ('host', url.host, url.setHost),
+        ('port', lambda: str(url.port()) if url.port() > 0 else '',
+         lambda x: url.setPort(int(x))),
         ('path', url.path, url.setPath),
         ('query', url.query, url.setQuery),
         ('anchor', url.fragment, url.setFragment),
@@ -564,7 +595,7 @@ def incdec_number(url, incdec, count=1, segments=None):
             continue
 
         # Get the last number in a string
-        match = re.match(r'(.*\D|^)(0*)(\d+)(.*)', getter())
+        match = re.fullmatch(r'(.*\D|^)(0*)(\d+)(.*)', getter())
         if not match:
             continue
 
@@ -581,3 +612,93 @@ def file_url(path):
         path: The absolute path to the local file
     """
     return QUrl.fromLocalFile(path).toString(QUrl.FullyEncoded)
+
+
+def data_url(mimetype, data):
+    """Get a data: QUrl for the given data."""
+    b64 = base64.b64encode(data).decode('ascii')
+    url = QUrl('data:{};base64,{}'.format(mimetype, b64))
+    qtutils.ensure_valid(url)
+    return url
+
+
+def safe_display_string(qurl):
+    """Get a IDN-homograph phishing safe form of the given QUrl.
+
+    If we're dealing with a Punycode-encoded URL, this prepends the hostname in
+    its encoded form, to make sure those URLs are distinguishable.
+
+    See https://github.com/qutebrowser/qutebrowser/issues/2547
+    and https://bugreports.qt.io/browse/QTBUG-60365
+    """
+    if not qurl.isValid():
+        raise InvalidUrlError(qurl)
+
+    host = qurl.host(QUrl.FullyEncoded)
+    if '..' in host:  # pragma: no cover
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-60364
+        return '(unparseable URL!) {}'.format(qurl.toDisplayString())
+
+    for part in host.split('.'):
+        if part.startswith('xn--') and host != qurl.host(QUrl.FullyDecoded):
+            return '({}) {}'.format(host, qurl.toDisplayString())
+
+    return qurl.toDisplayString()
+
+
+def query_string(qurl):
+    """Get a query string for the given URL.
+
+    This is a WORKAROUND for:
+    https://www.riverbankcomputing.com/pipermail/pyqt/2017-November/039702.html
+    """
+    try:
+        return qurl.query()
+    except AttributeError:  # pragma: no cover
+        return QUrlQuery(qurl).query()
+
+
+class InvalidProxyTypeError(Exception):
+
+    """Error raised when proxy_from_url gets an unknown proxy type."""
+
+    def __init__(self, typ):
+        super().__init__("Invalid proxy type {}!".format(typ))
+
+
+def proxy_from_url(url):
+    """Create a QNetworkProxy from QUrl and a proxy type.
+
+    Args:
+        url: URL of a proxy (possibly with credentials).
+
+    Return:
+        New QNetworkProxy.
+    """
+    if not url.isValid():
+        raise InvalidUrlError(url)
+
+    scheme = url.scheme()
+    if scheme in ['pac+http', 'pac+https', 'pac+file']:
+        fetcher = pac.PACFetcher(url)
+        fetcher.fetch()
+        return fetcher
+
+    types = {
+        'http': QNetworkProxy.HttpProxy,
+        'socks': QNetworkProxy.Socks5Proxy,
+        'socks5': QNetworkProxy.Socks5Proxy,
+        'direct': QNetworkProxy.NoProxy,
+    }
+    if scheme not in types:
+        raise InvalidProxyTypeError(scheme)
+
+    proxy = QNetworkProxy(types[scheme], url.host())
+
+    if url.port() != -1:
+        proxy.setPort(url.port())
+    if url.userName():
+        proxy.setUser(url.userName())
+    if url.password():
+        proxy.setPassword(url.password())
+    return proxy

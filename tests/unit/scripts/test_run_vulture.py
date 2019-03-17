@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -81,50 +81,8 @@ def test_unused_func(vultdir):
         def foo():
             pass
     """)
-    assert vultdir.run() == ["foo.py:2: Unused function 'foo'"]
-
-
-def test_unused_var(vultdir):
-    vultdir.makepyfile(foo="""
-        foo = 42
-    """)
-    assert vultdir.run() == ["foo.py:2: Unused variable 'foo'"]
-
-
-def test_unused_attr(vultdir):
-    vultdir.makepyfile(foo="""
-        class Foo():
-            def __init__(self):
-                self.foo = 42
-
-        Foo()
-    """)
-    assert vultdir.run() == ["foo.py:4: Unused attribute 'foo'"]
-
-
-def test_unused_prop(vultdir):
-    vultdir.makepyfile(foo="""
-        class Foo():
-
-            @property
-            def foo(self):
-                return 42
-
-        Foo()
-    """)
-    assert vultdir.run() == ["foo.py:4: Unused property 'foo'"]
-
-
-def test_unused_method(vultdir):
-    vultdir.makepyfile(foo="""
-        class Foo():
-
-            def foo(self):
-                pass
-
-        Foo()
-    """)
-    assert vultdir.run() == ["foo.py:4: Unused function 'foo'"]
+    msg = "foo.py:2: unused function 'foo' (60% confidence)"
+    assert vultdir.run() == [msg]
 
 
 def test_unused_method_camelcase(vultdir):

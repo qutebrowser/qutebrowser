@@ -21,7 +21,7 @@
 NAME ?= qutebrowser
 
 SOURCE_DIR ?= .
-SOURCE_FILES ?= dist/qutebrowser.app COPYING
+SOURCE_FILES ?= dist/qutebrowser.app LICENSE
 
 TEMPLATE_DMG ?= template.dmg
 TEMPLATE_SIZE ?= 300m

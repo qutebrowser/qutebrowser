@@ -1,6 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Anna Kobak (avk) <awerk@onet.eu>:
+# Copyright 2016-2019 Florian Bruhin (The-Compiler) <me@the-compiler.org>
+# Copyright 2016-2018 Anna Kobak (avk) <awerk@onet.eu>:
 #
 # This file is part of qutebrowser.
 #
@@ -18,36 +19,14 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl, QObject
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.misc import httpclient, pastebin
 
 
-class HTTPPostStub(QObject):
-
-    """A stub class for HTTPClient.
-
-    Attributes:
-        url: the last url send by post()
-        data: the last data send by post()
-    """
-
-    success = pyqtSignal(str)
-    error = pyqtSignal(str)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.url = None
-        self.data = None
-
-    def post(self, url, data=None):
-        self.url = url
-        self.data = data
-
-
 @pytest.fixture
-def pbclient():
-    http_stub = HTTPPostStub()
+def pbclient(stubs):
+    http_stub = stubs.HTTPPostStub()
     client = pastebin.PastebinClient(http_stub)
     return client
 
@@ -77,7 +56,7 @@ def test_paste_with_parent(data, pbclient):
     http_stub = pbclient._client
     pbclient.paste(data["name"], data["title"], data["text"], data["reply"])
     assert http_stub.data == data
-    assert http_stub.url == QUrl('http://paste.the-compiler.org/api/create')
+    assert http_stub.url == QUrl('https://crashes.qutebrowser.org/api/create')
 
 
 @pytest.mark.parametrize('data', [
@@ -98,7 +77,21 @@ def test_paste_without_parent(data, pbclient):
     http_stub = pbclient._client
     pbclient.paste(data["name"], data["title"], data["text"])
     assert pbclient._client.data == data
-    assert http_stub.url == QUrl('http://paste.the-compiler.org/api/create')
+    assert http_stub.url == QUrl('https://crashes.qutebrowser.org/api/create')
+
+
+def test_paste_private(pbclient):
+    data = {
+        "name": "the name",
+        "title": "the title",
+        "text": "some Text",
+        "apikey": "ihatespam",
+        "private": "1",
+    }
+    http_stub = pbclient._client
+    pbclient.paste(data["name"], data["title"], data["text"], private=True)
+    assert pbclient._client.data == data
+    assert http_stub.url == QUrl('https://crashes.qutebrowser.org/api/create')
 
 
 @pytest.mark.parametrize('http', [

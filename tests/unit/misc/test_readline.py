@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,7 +29,7 @@ from qutebrowser.misc import readline
 
 
 # Some functions aren't 100% readline compatible:
-# https://github.com/The-Compiler/qutebrowser/issues/678
+# https://github.com/qutebrowser/qutebrowser/issues/678
 # Those are marked with fixme and have another value marked with '# wrong'
 # which marks the current behavior.
 
@@ -168,9 +168,9 @@ def test_rl_backward_word(text, expected, lineedit, bridge):
 
 
 @pytest.mark.parametrize('text, expected', [
-    fixme(('<o>ne two', 'one| two')),
+    pytest.param('<o>ne two', 'one| two', marks=fixme),
     ('<o>ne two', 'one |two'),  # wrong
-    fixme(('<one> two', 'one two|')),
+    pytest.param('<one> two', 'one two|', marks=fixme),
     ('<one> two', 'one |two'),  # wrong
     ('one t<wo>', 'one two|')
 ])
@@ -219,9 +219,9 @@ def test_rl_backward_delete_char(text, expected, lineedit, bridge):
 
 @pytest.mark.parametrize('text, deleted, rest', [
     ('delete this| test', 'delete this', '| test'),
-    fixme(('delete <this> test', 'delete this', '| test')),
+    pytest.param('delete <this> test', 'delete this', '| test', marks=fixme),
     ('delete <this> test', 'delete ', '|this test'),  # wrong
-    fixme(('f<oo>bar', 'foo', '|bar')),
+    pytest.param('f<oo>bar', 'foo', '|bar', marks=fixme),
     ('f<oo>bar', 'f', '|oobar'),  # wrong
 ])
 def test_rl_unix_line_discard(lineedit, bridge, text, deleted, rest):
@@ -232,7 +232,8 @@ def test_rl_unix_line_discard(lineedit, bridge, text, deleted, rest):
 
 @pytest.mark.parametrize('text, deleted, rest', [
     ('test |delete this', 'delete this', 'test |'),
-    fixme(('<test >delete this', 'test delete this', 'test |')),
+    pytest.param('<test >delete this', 'test delete this', 'test |',
+                 marks=fixme),
     ('<test >delete this', 'test delete this', '|'),  # wrong
 ])
 def test_rl_kill_line(lineedit, bridge, text, deleted, rest):
@@ -246,7 +247,8 @@ def test_rl_kill_line(lineedit, bridge, text, deleted, rest):
     ('test delete |foobar', 'delete ', 'test |foobar'),
     ('open -t github.com/foo/bar  |', 'github.com/foo/bar  ', 'open -t |'),
     ('open -t |github.com/foo/bar', '-t ', 'open |github.com/foo/bar'),
-    fixme(('test del<ete>foobar', 'delete', 'test |foobar')),
+    pytest.param('test del<ete>foobar', 'delete', 'test |foobar',
+                 marks=fixme),
     ('test del<ete >foobar', 'del', 'test |ete foobar'),  # wrong
 ])
 def test_rl_unix_word_rubout(lineedit, bridge, text, deleted, rest):
@@ -269,11 +271,14 @@ def test_rl_unix_filename_rubout(lineedit, bridge, text, deleted, rest):
 
 
 @pytest.mark.parametrize('text, deleted, rest', [
-    fixme(('test foobar| delete', ' delete', 'test foobar|')),
+    pytest.param('test foobar| delete', ' delete', 'test foobar|',
+                 marks=fixme),
     ('test foobar| delete', ' ', 'test foobar|delete'),  # wrong
-    fixme(('test foo|delete bar', 'delete', 'test foo| bar')),
+    pytest.param('test foo|delete bar', 'delete', 'test foo| bar',
+                 marks=fixme),
     ('test foo|delete bar', 'delete ', 'test foo|bar'),  # wrong
-    fixme(('test foo<bar> delete', ' delete', 'test foobar|')),
+    pytest.param('test foo<bar> delete', ' delete', 'test foobar|',
+                 marks=fixme),
     ('test foo<bar>delete', 'bardelete', 'test foo|'),  # wrong
 ])
 def test_rl_kill_word(lineedit, bridge, text, deleted, rest):
@@ -287,7 +292,7 @@ def test_rl_kill_word(lineedit, bridge, text, deleted, rest):
     ('test delete |foobar', 'delete ', 'test |foobar'),
     ('open -t github.com/foo/bar  |', 'bar  ', 'open -t github.com/foo/|'),
     ('open -t |github.com/foo/bar', 't ', 'open -|github.com/foo/bar'),
-    fixme(('test del<ete>foobar', 'delete', 'test |foobar')),
+    pytest.param('test del<ete>foobar', 'delete', 'test |foobar', marks=fixme),
     ('test del<ete >foobar', 'del', 'test |ete foobar'),  # wrong
     ('open foo/bar.baz|', 'baz', 'open foo/bar.|'),
 ])

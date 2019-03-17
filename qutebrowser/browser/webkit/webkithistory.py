@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,8 +19,11 @@
 
 """QtWebKit specific part of history."""
 
+import functools
 
 from PyQt5.QtWebKit import QWebHistoryInterface
+
+from qutebrowser.utils import debug
 
 
 class WebHistoryInterface(QWebHistoryInterface):
@@ -34,11 +37,12 @@ class WebHistoryInterface(QWebHistoryInterface):
     def __init__(self, webhistory, parent=None):
         super().__init__(parent)
         self._history = webhistory
+        self._history.changed.connect(self.historyContains.cache_clear)
 
     def addHistoryEntry(self, url_string):
         """Required for a QWebHistoryInterface impl, obsoleted by add_url."""
-        pass
 
+    @functools.lru_cache(maxsize=32768)
     def historyContains(self, url_string):
         """Called by WebKit to determine if a URL is contained in the history.
 
@@ -48,7 +52,8 @@ class WebHistoryInterface(QWebHistoryInterface):
         Return:
             True if the url is in the history, False otherwise.
         """
-        return url_string in self._history.history_dict
+        with debug.log_time('sql', 'historyContains'):
+            return url_string in self._history
 
 
 def init(history):

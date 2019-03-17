@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -19,50 +19,24 @@
 
 """Tests for the CompletionView Object."""
 
-import unittest.mock
+from unittest import mock
 
 import pytest
-from PyQt5.QtGui import QStandardItem, QColor
 
 from qutebrowser.completion import completionwidget
-from qutebrowser.completion.models import base, sortfilter
+from qutebrowser.completion.models import completionmodel, listcategory
+from qutebrowser.api import cmdutils
 
 
 @pytest.fixture
 def completionview(qtbot, status_command_stub, config_stub, win_registry,
                    mocker):
     """Create the CompletionView used for testing."""
-    config_stub.data = {
-        'completion': {
-            'show': 'always',
-            'scrollbar-width': 12,
-            'scrollbar-padding': 2,
-            'shrink': False,
-            'quick-complete': False,
-        },
-        'colors': {
-            'completion.fg': QColor(),
-            'completion.bg': QColor(),
-            'completion.alternate-bg': QColor(),
-            'completion.category.fg': QColor(),
-            'completion.category.bg': QColor(),
-            'completion.category.border.top': QColor(),
-            'completion.category.border.bottom': QColor(),
-            'completion.item.selected.fg': QColor(),
-            'completion.item.selected.bg': QColor(),
-            'completion.item.selected.border.top': QColor(),
-            'completion.item.selected.border.bottom': QColor(),
-            'completion.match.fg': QColor(),
-            'completion.scrollbar.fg': QColor(),
-            'completion.scrollbar.bg': QColor(),
-        },
-        'fonts': {
-            'completion': 'Comic Sans Monospace',
-            'completion.category': 'Comic Sans Monospace bold',
-        }
-    }
     # mock the Completer that the widget creates in its constructor
     mocker.patch('qutebrowser.completion.completer.Completer', autospec=True)
+    mocker.patch(
+        'qutebrowser.completion.completiondelegate.CompletionItemDelegate',
+        new=lambda *_: None)
     view = completionwidget.CompletionView(win_id=0)
     qtbot.addWidget(view)
     return view
@@ -70,109 +44,102 @@ def completionview(qtbot, status_command_stub, config_stub, win_registry,
 
 def test_set_model(completionview):
     """Ensure set_model actually sets the model and expands all categories."""
-    model = base.BaseCompletionModel()
-    filtermodel = sortfilter.CompletionFilterModel(model)
+    model = completionmodel.CompletionModel()
+    for _i in range(3):
+        model.add_category(listcategory.ListCategory('', [('foo',)]))
+    completionview.set_model(model)
+    assert completionview.model() is model
     for i in range(3):
-        model.appendRow(QStandardItem(str(i)))
-    completionview.set_model(filtermodel)
-    assert completionview.model() is filtermodel
-    for i in range(model.rowCount()):
-        assert completionview.isExpanded(filtermodel.index(i, 0))
+        assert completionview.isExpanded(model.index(i, 0))
 
 
 def test_set_pattern(completionview):
-    model = sortfilter.CompletionFilterModel(base.BaseCompletionModel())
-    model.set_pattern = unittest.mock.Mock()
-    completionview.set_model(model, 'foo')
+    model = completionmodel.CompletionModel()
+    model.set_pattern = mock.Mock(spec=[])
+    completionview.set_model(model)
+    completionview.set_pattern('foo')
     model.set_pattern.assert_called_with('foo')
+    assert not completionview.selectionModel().currentIndex().isValid()
 
 
-def test_maybe_resize_completion(completionview, config_stub, qtbot):
+def test_set_pattern_no_model(completionview):
+    """Ensure that setting a pattern with no model does not fail."""
+    completionview.set_pattern('foo')
+
+
+def test_maybe_update_geometry(completionview, config_stub, qtbot):
     """Ensure completion is resized only if shrink is True."""
-    with qtbot.assertNotEmitted(completionview.resize_completion):
-        completionview.maybe_resize_completion()
-    config_stub.data = {'completion': {'shrink': True}}
-    with qtbot.waitSignal(completionview.resize_completion):
-        completionview.maybe_resize_completion()
+    with qtbot.assertNotEmitted(completionview.update_geometry):
+        completionview._maybe_update_geometry()
+    config_stub.val.completion.shrink = True
+    with qtbot.waitSignal(completionview.update_geometry):
+        completionview._maybe_update_geometry()
 
 
-@pytest.mark.parametrize('which, tree, count, expected', [
-    ('next', [['Aa']], 1, 'Aa'),
-    ('prev', [['Aa']], 1, 'Aa'),
-    ('next', [['Aa'], ['Ba']], 1, 'Aa'),
-    ('prev', [['Aa'], ['Ba']], 1, 'Ba'),
-    ('next', [['Aa'], ['Ba']], 2, 'Ba'),
-    ('prev', [['Aa'], ['Ba']], 2, 'Aa'),
-    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 3, 'Ac'),
-    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 4, 'Ba'),
-    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 6, 'Ca'),
-    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 7, 'Aa'),
-    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 1, 'Ca'),
-    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 2, 'Bb'),
-    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 4, 'Ac'),
-    ('next', [[], ['Ba', 'Bb']], 1, 'Ba'),
-    ('prev', [[], ['Ba', 'Bb']], 1, 'Bb'),
-    ('next', [[], [], ['Ca', 'Cb']], 1, 'Ca'),
-    ('prev', [[], [], ['Ca', 'Cb']], 1, 'Cb'),
-    ('next', [['Aa'], []], 1, 'Aa'),
-    ('prev', [['Aa'], []], 1, 'Aa'),
-    ('next', [['Aa'], [], []], 1, 'Aa'),
-    ('prev', [['Aa'], [], []], 1, 'Aa'),
-    ('next', [['Aa'], [], ['Ca', 'Cb']], 2, 'Ca'),
-    ('prev', [['Aa'], [], ['Ca', 'Cb']], 1, 'Cb'),
-    ('next', [[]], 1, None),
-    ('prev', [[]], 1, None),
-    ('next-category', [['Aa']], 1, 'Aa'),
-    ('prev-category', [['Aa']], 1, 'Aa'),
-    ('next-category', [['Aa'], ['Ba']], 1, 'Aa'),
-    ('prev-category', [['Aa'], ['Ba']], 1, 'Ba'),
-    ('next-category', [['Aa'], ['Ba']], 2, 'Ba'),
-    ('prev-category', [['Aa'], ['Ba']], 2, 'Aa'),
-    ('next-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 2, 'Ba'),
-    ('prev-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 2, 'Ba'),
-    ('next-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 3, 'Ca'),
-    ('prev-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']], 3, 'Aa'),
-    ('next-category', [[], ['Ba', 'Bb']], 1, 'Ba'),
-    ('prev-category', [[], ['Ba', 'Bb']], 1, 'Ba'),
-    ('next-category', [[], [], ['Ca', 'Cb']], 1, 'Ca'),
-    ('prev-category', [[], [], ['Ca', 'Cb']], 1, 'Ca'),
-    ('next-category', [[], [], ['Ca', 'Cb']], 2, 'Ca'),
-    ('prev-category', [[], [], ['Ca', 'Cb']], 2, 'Ca'),
-    ('next-category', [['Aa'], [], []], 1, 'Aa'),
-    ('prev-category', [['Aa'], [], []], 1, 'Aa'),
-    ('next-category', [['Aa'], [], ['Ca', 'Cb']], 2, 'Ca'),
-    ('prev-category', [['Aa'], [], ['Ca', 'Cb']], 1, 'Ca'),
-    ('next-category', [[]], 1, None),
-    ('prev-category', [[]], 1, None),
+@pytest.mark.parametrize('which, tree, expected', [
+    ('next', [['Aa']], ['Aa', None, None]),
+    ('prev', [['Aa']], ['Aa', None, None]),
+    ('next', [['Aa'], ['Ba']], ['Aa', 'Ba', 'Aa']),
+    ('prev', [['Aa'], ['Ba']], ['Ba', 'Aa', 'Ba']),
+    ('next', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
+     ['Aa', 'Ab', 'Ac', 'Ba', 'Bb', 'Ca', 'Aa']),
+    ('prev', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
+     ['Ca', 'Bb', 'Ba', 'Ac', 'Ab', 'Aa', 'Ca']),
+    ('next', [[], ['Ba', 'Bb']], ['Ba', 'Bb', 'Ba']),
+    ('prev', [[], ['Ba', 'Bb']], ['Bb', 'Ba', 'Bb']),
+    ('next', [[], [], ['Ca', 'Cb']], ['Ca', 'Cb', 'Ca']),
+    ('prev', [[], [], ['Ca', 'Cb']], ['Cb', 'Ca', 'Cb']),
+    ('next', [['Aa'], []], ['Aa', None]),
+    ('prev', [['Aa'], []], ['Aa', None]),
+    ('next', [['Aa'], [], []], ['Aa', None]),
+    ('prev', [['Aa'], [], []], ['Aa', None]),
+    ('next', [['Aa'], [], ['Ca', 'Cb']], ['Aa', 'Ca', 'Cb', 'Aa']),
+    ('prev', [['Aa'], [], ['Ca', 'Cb']], ['Cb', 'Ca', 'Aa', 'Cb']),
+    ('next', [[]], [None, None]),
+    ('prev', [[]], [None, None]),
+    ('next-category', [['Aa']], ['Aa', None, None]),
+    ('prev-category', [['Aa']], ['Aa', None, None]),
+    ('next-category', [['Aa'], ['Ba']], ['Aa', 'Ba', 'Aa']),
+    ('prev-category', [['Aa'], ['Ba']], ['Ba', 'Aa', 'Ba']),
+    ('next-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
+     ['Aa', 'Ba', 'Ca', 'Aa']),
+    ('prev-category', [['Aa', 'Ab', 'Ac'], ['Ba', 'Bb'], ['Ca']],
+     ['Ca', 'Ba', 'Aa', 'Ca']),
+    ('next-category', [[], ['Ba', 'Bb']], ['Ba', None, None]),
+    ('prev-category', [[], ['Ba', 'Bb']], ['Ba', None, None]),
+    ('next-category', [[], [], ['Ca', 'Cb']], ['Ca', None, None]),
+    ('prev-category', [[], [], ['Ca', 'Cb']], ['Ca', None, None]),
+    ('next-category', [['Aa'], [], []], ['Aa', None, None]),
+    ('prev-category', [['Aa'], [], []], ['Aa', None, None]),
+    ('next-category', [['Aa'], [], ['Ca', 'Cb']], ['Aa', 'Ca', 'Aa']),
+    ('prev-category', [['Aa'], [], ['Ca', 'Cb']], ['Ca', 'Aa', 'Ca']),
+    ('next-category', [[]], [None, None]),
+    ('prev-category', [[]], [None, None]),
 ])
-def test_completion_item_focus(which, tree, count, expected, completionview,
-                               qtbot):
+def test_completion_item_focus(which, tree, expected, completionview, qtbot):
     """Test that on_next_prev_item moves the selection properly.
 
     Args:
+        which: the direction in which to move the selection.
         tree: Each list represents a completion category, with each string
               being an item under that category.
-        count: Number of times to go forward (or back if negative).
-        expected: item data that should be selected after going back/forward.
+        expected: expected argument from on_selection_changed for each
+                  successive movement. None implies no signal should be
+                  emitted.
     """
-    model = base.BaseCompletionModel()
+    model = completionmodel.CompletionModel()
     for catdata in tree:
-        cat = QStandardItem()
-        model.appendRow(cat)
-        for name in catdata:
-            cat.appendRow(QStandardItem(name))
-    filtermodel = sortfilter.CompletionFilterModel(model,
-                                                   parent=completionview)
-    completionview.set_model(filtermodel)
-    if expected is None:
-        for _ in range(count):
-            completionview.completion_item_focus(which)
-    else:
-        with qtbot.waitSignal(completionview.selection_changed):
-            for _ in range(count):
+        cat = listcategory.ListCategory('', ((x,) for x in catdata))
+        model.add_category(cat)
+    completionview.set_model(model)
+    for entry in expected:
+        if entry is None:
+            with qtbot.assertNotEmitted(completionview.selection_changed):
                 completionview.completion_item_focus(which)
-    idx = completionview.selectionModel().currentIndex()
-    assert filtermodel.data(idx) == expected
+        else:
+            with qtbot.waitSignal(completionview.selection_changed) as sig:
+                completionview.completion_item_focus(which)
+                assert sig.args == [entry]
 
 
 @pytest.mark.parametrize('which', ['next', 'prev', 'next-category',
@@ -184,13 +151,43 @@ def test_completion_item_focus_no_model(which, completionview, qtbot):
     """
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
-    model = base.BaseCompletionModel()
-    filtermodel = sortfilter.CompletionFilterModel(model,
-                                                   parent=completionview)
-    completionview.set_model(filtermodel)
+    model = completionmodel.CompletionModel()
+    completionview.set_model(model)
     completionview.set_model(None)
     with qtbot.assertNotEmitted(completionview.selection_changed):
         completionview.completion_item_focus(which)
+
+
+def test_completion_item_focus_fetch(completionview, qtbot):
+    """Test that on_next_prev_item moves the selection properly.
+
+    Args:
+        which: the direction in which to move the selection.
+        tree: Each list represents a completion category, with each string
+              being an item under that category.
+        expected: expected argument from on_selection_changed for each
+                  successive movement. None implies no signal should be
+                  emitted.
+    """
+    model = completionmodel.CompletionModel()
+    cat = mock.Mock(spec=[
+        'layoutChanged', 'layoutAboutToBeChanged', 'canFetchMore',
+        'fetchMore', 'rowCount', 'index', 'data'])
+    cat.canFetchMore = lambda *_: True
+    cat.rowCount = lambda *_: 2
+    cat.fetchMore = mock.Mock()
+    model.add_category(cat)
+    completionview.set_model(model)
+    # clear the fetchMore call that happens on set_model
+    cat.reset_mock()
+
+    # not at end, fetchMore shouldn't be called
+    completionview.completion_item_focus('next')
+    assert not cat.fetchMore.called
+
+    # at end, fetchMore should be called
+    completionview.completion_item_focus('next')
+    assert cat.fetchMore.called
 
 
 @pytest.mark.parametrize('show', ['always', 'auto', 'never'])
@@ -203,21 +200,18 @@ def test_completion_show(show, rows, quick_complete, completionview,
     Args:
         show: The completion show config setting.
         rows: Each entry represents a completion category with only one item.
-        quick_complete: The completion quick-complete config setting.
+        quick_complete: The `completion.quick` config setting.
     """
-    config_stub.data['completion']['show'] = show
-    config_stub.data['completion']['quick-complete'] = quick_complete
+    config_stub.val.completion.show = show
+    config_stub.val.completion.quick = quick_complete
 
-    model = base.BaseCompletionModel()
+    model = completionmodel.CompletionModel()
     for name in rows:
-        cat = QStandardItem()
-        model.appendRow(cat)
-        cat.appendRow(QStandardItem(name))
-    filtermodel = sortfilter.CompletionFilterModel(model,
-                                                   parent=completionview)
+        cat = listcategory.ListCategory('', [(name,)])
+        model.add_category(cat)
 
     assert not completionview.isVisible()
-    completionview.set_model(filtermodel)
+    completionview.set_model(model)
     assert completionview.isVisible() == (show == 'always' and len(rows) > 0)
     completionview.completion_item_focus('next')
     expected = (show != 'never' and len(rows) > 0 and
@@ -226,3 +220,69 @@ def test_completion_show(show, rows, quick_complete, completionview,
     completionview.set_model(None)
     completionview.completion_item_focus('next')
     assert not completionview.isVisible()
+
+
+def test_completion_item_del(completionview):
+    """Test that completion_item_del invokes delete_cur_item in the model."""
+    func = mock.Mock(spec=[])
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo', 'bar')], delete_func=func)
+    model.add_category(cat)
+    completionview.set_model(model)
+    completionview.completion_item_focus('next')
+    completionview.completion_item_del()
+    func.assert_called_once_with(['foo', 'bar'])
+
+
+def test_completion_item_del_no_selection(completionview):
+    """Test that completion_item_del with an invalid index."""
+    func = mock.Mock(spec=[])
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo',)], delete_func=func)
+    model.add_category(cat)
+    completionview.set_model(model)
+    with pytest.raises(cmdutils.CommandError, match='No item selected!'):
+        completionview.completion_item_del()
+    func.assert_not_called()
+
+
+@pytest.mark.parametrize('sel', [True, False])
+def test_completion_item_yank(completionview, mocker, sel):
+    """Test that completion_item_yank invokes delete_cur_item in the model."""
+    m = mocker.patch(
+        'qutebrowser.completion.completionwidget.utils',
+        autospec=True)
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo', 'bar')])
+    model.add_category(cat)
+
+    completionview.set_model(model)
+    completionview.completion_item_focus('next')
+    completionview.completion_item_yank(sel)
+
+    m.set_clipboard.assert_called_once_with('foo', sel)
+
+
+@pytest.mark.parametrize('sel', [True, False])
+def test_completion_item_yank_selected(completionview, status_command_stub,
+                                       mocker, sel):
+    """Test that completion_item_yank yanks selected text."""
+    m = mocker.patch(
+        'qutebrowser.completion.completionwidget.utils',
+        autospec=True)
+    model = completionmodel.CompletionModel()
+    cat = listcategory.ListCategory('', [('foo', 'bar')])
+    model.add_category(cat)
+
+    completionview.set_model(model)
+    completionview.completion_item_focus('next')
+
+    status_command_stub.selectedText = mock.Mock(return_value='something')
+    completionview.completion_item_yank(sel)
+
+    m.set_clipboard.assert_called_once_with('something', sel)
+
+
+def test_resize_no_model(completionview, qtbot):
+    """Ensure no crash if resizeEvent is triggered with no model (#2854)."""
+    completionview.resizeEvent(None)

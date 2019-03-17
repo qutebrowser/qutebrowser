@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -50,6 +50,7 @@ class CovtestHelper:
     def run(self):
         """Run pytest with coverage for the given module.py."""
         coveragerc = str(self._testdir.tmpdir / 'coveragerc')
+        self._monkeypatch.delenv('PYTEST_ADDOPTS', raising=False)
         return self._testdir.runpytest('--cov=module',
                                        '--cov-config={}'.format(coveragerc),
                                        '--cov-report=xml',
@@ -63,7 +64,7 @@ class CovtestHelper:
             perfect_files = [(None, 'module.py')]
 
         argv = [sys.argv[0]]
-        self._monkeypatch.setattr('scripts.dev.check_coverage.sys.argv', argv)
+        self._monkeypatch.setattr(check_coverage.sys, 'argv', argv)
 
         with self._testdir.tmpdir.as_cwd():
             with coverage_file.open(encoding='utf-8') as f:
@@ -72,7 +73,7 @@ class CovtestHelper:
     def check_skipped(self, args, reason):
         """Run check_coverage.py and make sure it's skipped."""
         argv = [sys.argv[0]] + list(args)
-        self._monkeypatch.setattr('scripts.dev.check_coverage.sys.argv', argv)
+        self._monkeypatch.setattr(check_coverage.sys, 'argv', argv)
         with pytest.raises(check_coverage.Skipped) as excinfo:
             return check_coverage.check(None, perfect_files=[])
         assert excinfo.value.reason == reason
@@ -130,7 +131,37 @@ def test_untested(covtest):
     covtest.run()
     expected = check_coverage.Message(
         check_coverage.MsgType.insufficent_coverage,
-        'module.py has 75.0% line and 100.0% branch coverage!')
+        'module.py',
+        'module.py has 75.00% line and 100.00% branch coverage!')
+    assert covtest.check() == [expected]
+
+
+def test_untested_floats(covtest):
+    """Make sure we don't report 58.330000000000005% coverage."""
+    covtest.makefile("""
+        def func():
+            pass
+
+        def untested():
+            pass
+
+        def untested2():
+            pass
+
+        def untested3():
+            pass
+
+        def untested4():
+            pass
+
+        def untested5():
+            pass
+    """)
+    covtest.run()
+    expected = check_coverage.Message(
+        check_coverage.MsgType.insufficent_coverage,
+        'module.py',
+        'module.py has 58.33% line and 100.00% branch coverage!')
     assert covtest.check() == [expected]
 
 
@@ -148,7 +179,8 @@ def test_untested_branches(covtest):
     covtest.run()
     expected = check_coverage.Message(
         check_coverage.MsgType.insufficent_coverage,
-        'module.py has 100.0% line and 50.0% branch coverage!')
+        'module.py',
+        'module.py has 100.00% line and 50.00% branch coverage!')
     assert covtest.check() == [expected]
 
 
@@ -160,6 +192,7 @@ def test_tested_unlisted(covtest):
     covtest.run()
     expected = check_coverage.Message(
         check_coverage.MsgType.perfect_file,
+        'module.py',
         'module.py has 100% coverage but is not in perfect_files!')
     assert covtest.check(perfect_files=[]) == [expected]
 
@@ -175,18 +208,19 @@ def test_skipped_args(covtest, args, reason):
     covtest.check_skipped(args, reason)
 
 
-def test_skipped_windows(covtest, monkeypatch):
-    monkeypatch.setattr('scripts.dev.check_coverage.sys.platform', 'toaster')
+@pytest.mark.fake_os('windows')
+def test_skipped_non_linux(covtest):
     covtest.check_skipped([], "on non-Linux system.")
 
 
 def _generate_files():
     """Get filenames from WHITELISTED_/PERFECT_FILES."""
-    yield from iter(check_coverage.WHITELISTED_FILES)
+    for src_file in check_coverage.WHITELISTED_FILES:
+        yield os.path.join('qutebrowser', src_file)
     for test_file, src_file in check_coverage.PERFECT_FILES:
         if test_file is not None:
             yield test_file
-        yield src_file
+        yield os.path.join('qutebrowser', src_file)
 
 
 @pytest.mark.parametrize('filename', list(_generate_files()))

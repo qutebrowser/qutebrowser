@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,8 +25,10 @@ import itertools
 import sys
 import warnings
 
+import attr
 import pytest
-import pytest_catchlog
+import _pytest.logging
+from PyQt5 import QtCore
 
 from qutebrowser.utils import log
 from qutebrowser.misc import utilcmds
@@ -63,12 +65,12 @@ def restore_loggers():
     while root_logger.handlers:
         h = root_logger.handlers[0]
         root_logger.removeHandler(h)
-        if not isinstance(h, pytest_catchlog.LogCaptureHandler):
+        if not isinstance(h, _pytest.logging.LogCaptureHandler):
             h.close()
     root_logger.setLevel(original_logging_level)
     for h in root_handlers:
-        if not isinstance(h, pytest_catchlog.LogCaptureHandler):
-            # https://github.com/The-Compiler/qutebrowser/issues/856
+        if not isinstance(h, _pytest.logging.LogCaptureHandler):
+            # https://github.com/qutebrowser/qutebrowser/issues/856
             root_logger.addHandler(h)
     logging._acquireLock()
     try:
@@ -114,24 +116,37 @@ class TestLogFilter:
         return logger.makeRecord(name, level=level, fn=None, lno=0, msg="",
                                  args=None, exc_info=None)
 
-    @pytest.mark.parametrize('filters, category, logged', [
+    @pytest.mark.parametrize('filters, negated, category, logged', [
         # Filter letting all messages through
-        (None, 'eggs.bacon.spam', True),
-        (None, 'eggs', True),
+        (None, False, 'eggs.bacon.spam', True),
+        (None, False, 'eggs', True),
+        (None, True, 'ham', True),
         # Matching records
-        (['eggs', 'bacon'], 'eggs', True),
-        (['eggs', 'bacon'], 'bacon', True),
-        (['eggs.bacon'], 'eggs.bacon', True),
+        (['eggs', 'bacon'], False, 'eggs', True),
+        (['eggs', 'bacon'], False, 'bacon', True),
+        (['eggs.bacon'], False, 'eggs.bacon', True),
         # Non-matching records
-        (['eggs', 'bacon'], 'spam', False),
-        (['eggs'], 'eggsauce', False),
-        (['eggs.bacon'], 'eggs.baconstrips', False),
+        (['eggs', 'bacon'], False, 'spam', False),
+        (['eggs'], False, 'eggsauce', False),
+        (['eggs.bacon'], False, 'eggs.baconstrips', False),
         # Child loggers
-        (['eggs.bacon', 'spam.ham'], 'eggs.bacon.spam', True),
-        (['eggs.bacon', 'spam.ham'], 'spam.ham.salami', True),
+        (['eggs.bacon', 'spam.ham'], False, 'eggs.bacon.spam', True),
+        (['eggs.bacon', 'spam.ham'], False, 'spam.ham.salami', True),
+        # Suppressed records
+        (['eggs', 'bacon'], True, 'eggs', False),
+        (['eggs', 'bacon'], True, 'bacon', False),
+        (['eggs.bacon'], True, 'eggs.bacon', False),
+        # Non-suppressed records
+        (['eggs', 'bacon'], True, 'spam', True),
+        (['eggs'], True, 'eggsauce', True),
+        (['eggs.bacon'], True, 'eggs.baconstrips', True),
     ])
-    def test_logfilter(self, logger, filters, category, logged):
-        logfilter = log.LogFilter(filters)
+    def test_logfilter(self, logger, filters, negated, category, logged):
+        """Ensure the multi-record filtering filterer filters multiple records.
+
+        (Blame @toofar for this comment)
+        """
+        logfilter = log.LogFilter(filters, negated)
         record = self._make_record(logger, category)
         assert logfilter.filter(record) == logged
 
@@ -202,6 +217,22 @@ class TestInitLog:
         log.init_log(args)
         sys.stderr = old_stderr
 
+    @pytest.mark.parametrize('logfilter, expected_names, negated', [
+        ('!one,two', ['one', 'two'], True),
+        ('one,two', ['one', 'two'], False),
+        ('one,!two', ['one', '!two'], False),
+        (None, None, False),
+    ])
+    def test_negation_parser(self, args, mocker,
+                             logfilter, expected_names, negated):
+        """Test parsing the --logfilter argument."""
+        filter_mock = mocker.patch('qutebrowser.utils.log.LogFilter',
+                                   autospec=True)
+        args.logfilter = logfilter
+        log.init_log(args)
+        assert filter_mock.called
+        assert filter_mock.call_args[0] == (expected_names, negated)
+
 
 class TestHideQtWarning:
 
@@ -239,8 +270,7 @@ class TestHideQtWarning:
 def test_stub(caplog, suffix, expected):
     with caplog.at_level(logging.WARNING, 'misc'):
         log.stub(suffix)
-    assert len(caplog.records) == 1
-    assert caplog.records[0].message == expected
+    assert caplog.messages == [expected]
 
 
 def test_ignore_py_warnings(caplog):
@@ -250,5 +280,23 @@ def test_ignore_py_warnings(caplog):
     with caplog.at_level(logging.WARNING):
         warnings.warn("not hidden", UserWarning)
     assert len(caplog.records) == 1
-    msg = caplog.records[0].message.splitlines()[0]
+    msg = caplog.messages[0].splitlines()[0]
     assert msg.endswith("UserWarning: not hidden")
+
+
+class TestQtMessageHandler:
+
+    @attr.s
+    class Context:
+
+        """Fake QMessageLogContext."""
+
+        function = attr.ib(default=None)
+        category = attr.ib(default=None)
+        file = attr.ib(default=None)
+        line = attr.ib(default=None)
+
+    def test_empty_message(self, caplog):
+        """Make sure there's no crash with an empty message."""
+        log.qt_message_handler(QtCore.QtDebugMsg, self.Context(), "")
+        assert caplog.messages == ["Logged empty message!"]

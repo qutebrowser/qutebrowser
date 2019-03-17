@@ -1,5 +1,5 @@
 This directory contains various `requirements` files which are used by `tox` to
-have reproducable tests with pinned versions.
+have reproducible tests with pinned versions.
 
 The files are generated based on unpinned requirements in `*.txt-raw` files.
 

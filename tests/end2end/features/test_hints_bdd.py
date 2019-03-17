@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -43,4 +43,4 @@ def set_up_word_hints(tmpdir, quteproc):
         twelve
         thirteen
     """))
-    quteproc.set_setting('hints', 'dictionary', str(dict_file))
+    quteproc.set_setting('hints.dictionary', str(dict_file))

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,12 +19,11 @@
 
 """Tests for webelement.tabhistory."""
 
-import collections
-
+import attr
 from PyQt5.QtCore import QUrl, QPoint
 import pytest
 
-from qutebrowser.browser.webkit import tabhistory
+tabhistory = pytest.importorskip('qutebrowser.browser.webkit.tabhistory')
 from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
 
@@ -50,7 +49,11 @@ ITEMS = [
 ]
 
 
-Objects = collections.namedtuple('Objects', 'history, user_data')
+@attr.s
+class Objects:
+
+    history = attr.ib()
+    user_data = attr.ib()
 
 
 @pytest.fixture

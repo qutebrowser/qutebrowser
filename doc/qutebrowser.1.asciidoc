@@ -7,17 +7,17 @@
 :man source: qutebrowser
 :man manual: qutebrowser manpage
 :toc:
-:homepage: http://www.qutebrowser.org/
+:homepage: https://www.qutebrowser.org/
 
 == NAME
-qutebrowser - a keyboard-driven, vim-like browser based on PyQt5 and QtWebKit.
+qutebrowser - a keyboard-driven, vim-like browser based on PyQt5.
 
 == SYNOPSIS
 *qutebrowser* ['-OPTION' ['...']] [':COMMAND' ['...']] ['URL' ['...']]
 
 == DESCRIPTION
 qutebrowser is a keyboard-focused browser with a minimal GUI. It's based
-on Python, PyQt5 and QtWebKit and free software, licensed under the GPL.
+on Python and Qt5 and is free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
@@ -38,22 +38,13 @@ show it.
 *-h*, *--help*::
     show this help message and exit
 
-*-c* 'CONFDIR', *--confdir* 'CONFDIR'::
-    Set config directory (empty for no config storage).
-
-*--datadir* 'DATADIR'::
-    Set data directory (empty for no data storage).
-
-*--cachedir* 'CACHEDIR'::
-    Set cache directory (empty for no cache storage).
-
-*--basedir* 'BASEDIR'::
-    Base directory for all storage. Other --*dir arguments are ignored if this is given.
+*-B* 'BASEDIR', *--basedir* 'BASEDIR'::
+    Base directory for all storage.
 
 *-V*, *--version*::
     Show version and quit.
 
-*-s* 'SECTION' 'OPTION' 'VALUE', *--set* 'SECTION' 'OPTION' 'VALUE'::
+*-s* 'OPTION' 'VALUE', *--set* 'OPTION' 'VALUE'::
     Set a temporary setting for this session.
 
 *-r* 'SESSION', *--restore* 'SESSION'::
@@ -66,7 +57,10 @@ show it.
     How URLs should be opened if there is already a qutebrowser instance running.
 
 *--backend* '{webkit,webengine}'::
-    Which backend to use (webengine backend is EXPERIMENTAL!).
+    Which backend to use.
+
+*--enable-webengine-inspector*::
+    Enable the web inspector for QtWebEngine. Note that this is a SECURITY RISK and you should not visit untrusted websites with the inspector turned on. See https://bugreports.qt.io/browse/QTBUG-50725 for more details. This is not needed anymore since Qt 5.11 where the inspector is always enabled and secure.
 
 === debug arguments
 *-l* '{critical,error,warning,info,debug,vdebug}', *--loglevel* '{critical,error,warning,info,debug,vdebug}'::
@@ -78,7 +72,7 @@ show it.
 *--loglines* 'LOGLINES'::
     How many lines of the debug log to keep in RAM (-1: unlimited).
 
-*--debug*::
+*-d*, *--debug*::
     Turn on debugging options.
 
 *--json-logging*::
@@ -90,51 +84,30 @@ show it.
 *--force-color*::
     Force colored logging
 
-*--harfbuzz* '{old,new,system,auto}'::
-    HarfBuzz engine version to use. Default: auto.
-
-*--relaxed-config*::
-    Silently remove unknown config options.
-
 *--nowindow*::
     Don't show the main window.
 
-*--debug-exit*::
-    Turn on debugging of late exit.
-
-*--pdb-postmortem*::
-    Drop into pdb on exceptions.
-
-*--temp-basedir*::
+*-T*, *--temp-basedir*::
     Use a temporary basedir.
 
 *--no-err-windows*::
     Don't show any error windows (used for tests/smoke.py).
 
-*--qt-name* 'NAME'::
-    Set the window name.
+*--qt-arg* 'NAME' 'VALUE'::
+    Pass an argument with a value to Qt. For example, you can do `--qt-arg geometry 650x555+200+300` to set the window geometry.
 
-*--qt-style* 'STYLE'::
-    Set the Qt GUI style to use.
+*--qt-flag* 'QT_FLAG'::
+    Pass an argument to Qt as flag.
 
-*--qt-stylesheet* 'STYLESHEET'::
-    Override the Qt application stylesheet.
-
-*--qt-widgetcount*::
-    Print debug message at the end about number of widgets left undestroyed and maximum number of widgets existed at the same time.
-
-*--qt-reverse*::
-    Set the application's layout direction to right-to-left.
-
-*--qt-qmljsdebugger* 'port:PORT[,block]'::
-    Activate the QML/JS debugger with a specified port. 'block' is optional and will make the application wait until a debugger connects to it.
+*-D* 'DEBUG_FLAGS', *--debug-flag* 'DEBUG_FLAGS'::
+    Pass name of debugging feature to be turned on.
 // QUTE_OPTIONS_END
 
 == FILES
 
-- '~/.config/qutebrowser/qutebrowser.conf': Main config file.
+- '~/.config/qutebrowser/config.py': Configuration file.
+- '~/.config/qutebrowser/autoconfig.yml': Configuration done via the GUI.
 - '~/.config/qutebrowser/quickmarks': Saved quickmarks.
-- '~/.config/qutebrowser/keys.conf': Defined key bindings.
 - '~/.local/share/qutebrowser/': Various state information.
 - '~/.cache/qutebrowser/': Temporary data.
 
@@ -145,7 +118,7 @@ defaults.
 
 == BUGS
 Bugs are tracked in the Github issue tracker at 
-https://github.com/The-Compiler/qutebrowser/issues.
+https://github.com/qutebrowser/qutebrowser/issues.
 
 If you found a bug, use the built-in ':report' command to create a bug report
 with all information needed.
@@ -155,7 +128,7 @@ https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser[mailinglist] at
 mailto:qutebrowser@lists.qutebrowser.org[] instead.
 
 For security bugs, please contact me directly at me@the-compiler.org, GPG ID
-http://www.the-compiler.org/pubkey.asc[0xFD55A072].
+https://www.the-compiler.org/pubkey.asc[0xFD55A072].
 
 == COPYRIGHT
 This program is free software: you can redistribute it and/or modify it under
@@ -171,12 +144,14 @@ You should have received a copy of the GNU General Public License along with
 this program.  If not, see <http://www.gnu.org/licenses/>.
 
 == RESOURCES
-* Website: http://www.qutebrowser.org/
+* Website: https://www.qutebrowser.org/
 * Mailinglist: mailto:qutebrowser@lists.qutebrowser.org[] /
 https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser
+* Announce-only mailinglist: mailto:qutebrowser-announce@lists.qutebrowser.org[] /
+https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce
 * IRC: irc://irc.freenode.org/#qutebrowser[`#qutebrowser`] on
 http://freenode.net/[Freenode]
-* Github: https://github.com/The-Compiler/qutebrowser
+* Github: https://github.com/qutebrowser/qutebrowser
 
 == AUTHOR
 *qutebrowser* was written by Florian Bruhin. All contributors can be found in

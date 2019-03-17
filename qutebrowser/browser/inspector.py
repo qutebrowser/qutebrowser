@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,9 +24,9 @@ import binascii
 
 from PyQt5.QtWidgets import QWidget
 
-from qutebrowser.utils import log, objreg
-from qutebrowser.misc import miscwidgets
-from qutebrowser.config import config
+from qutebrowser.config import configfiles
+from qutebrowser.utils import log, usertypes
+from qutebrowser.misc import miscwidgets, objects
 
 
 def create(parent=None):
@@ -37,7 +37,7 @@ def create(parent=None):
     """
     # Importing modules here so we don't depend on QtWebEngine without the
     # argument and to avoid circular imports.
-    if objreg.get('args').backend == 'webengine':
+    if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webengineinspector
         return webengineinspector.WebEngineInspector(parent)
     else:
@@ -48,8 +48,6 @@ def create(parent=None):
 class WebInspectorError(Exception):
 
     """Raised when the inspector could not be initialized."""
-
-    pass
 
 
 class AbstractWebInspector(QWidget):
@@ -68,9 +66,8 @@ class AbstractWebInspector(QWidget):
 
     def _load_state_geometry(self):
         """Load the geometry from the state file."""
-        state_config = objreg.get('state-config')
         try:
-            data = state_config['geometry']['inspector']
+            data = configfiles.state['geometry']['inspector']
             geom = base64.b64decode(data, validate=True)
         except KeyError:
             # First start
@@ -85,25 +82,21 @@ class AbstractWebInspector(QWidget):
 
     def closeEvent(self, e):
         """Save the geometry when closed."""
-        state_config = objreg.get('state-config')
         data = bytes(self.saveGeometry())
         geom = base64.b64encode(data).decode('ASCII')
-        state_config['geometry']['inspector'] = geom
-        super().closeEvent(e)
+        configfiles.state['geometry']['inspector'] = geom
 
-    def _check_developer_extras(self):
-        """Check if developer-extras are enabled."""
-        if not config.get('general', 'developer-extras'):
-            raise WebInspectorError(
-                "Please enable developer-extras before using the "
-                "webinspector!")
+        self.inspect(None)
+        super().closeEvent(e)
 
     def inspect(self, page):
         """Inspect the given QWeb(Engine)Page."""
         raise NotImplementedError
 
     def toggle(self, page):
+        """Show/hide the inspector."""
         if self._widget.isVisible():
             self.hide()
         else:
             self.inspect(page)
+            self.show()

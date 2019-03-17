@@ -6,13 +6,14 @@ Documentation
 
 The following help pages are currently available:
 
-* link:quickstart.html[Quick start guide]
-* link:FAQ.html[Frequently asked questions]
-* link:CHANGELOG.html[Change Log]
-* link:commands.html[Documentation of commands]
-* link:settings.html[Documentation of settings]
-* link:userscripts.html[How to write userscripts]
-* link:CONTRIBUTING.html[Contributing to qutebrowser]
+* link:../quickstart{outfilesuffix}[Quick start guide]
+* link:../faq{outfilesuffix}[Frequently asked questions]
+* link:../changelog{outfilesuffix}[Change Log]
+* link:commands{outfilesuffix}[Documentation of commands]
+* link:configuring{outfilesuffix}[Configuring qutebrowser]
+* link:settings{outfilesuffix}[Documentation of settings]
+* link:../userscripts{outfilesuffix}[How to write userscripts]
+* link:../contributing{outfilesuffix}[Contributing to qutebrowser]
 
 Getting help
 ------------

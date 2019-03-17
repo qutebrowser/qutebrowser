@@ -1,6 +1,7 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Daniel Schadt
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2018 Daniel Schadt
 #
 # This file is part of qutebrowser.
 #
@@ -24,6 +25,15 @@ import re
 import pytest
 
 mhtml = pytest.importorskip('qutebrowser.browser.webkit.mhtml')
+
+
+try:
+    import cssutils
+except (ImportError, re.error):
+    # Catching re.error because cssutils in earlier releases (<= 1.0) is
+    # broken on Python 3.5
+    # See https://bitbucket.org/cthedot/cssutils/issues/52
+    cssutils = None
 
 
 @pytest.fixture(autouse=True)
@@ -78,7 +88,7 @@ def test_quoted_printable_umlauts(checker):
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        Die=20s=FC=DFe=20H=FCndin=20l=E4uft=20in=20die=20H=F6hle=20des=20B=E4ren
+        Die s=FC=DFe H=FCndin l=E4uft in die H=F6hle des B=E4ren
         -----=_qute-UUID--
         """)
 
@@ -95,9 +105,8 @@ def test_refuses_non_ascii_header_value(checker, header, value):
     }
     defaults[header] = value
     writer = mhtml.MHTMLWriter(**defaults)
-    with pytest.raises(UnicodeEncodeError) as excinfo:
+    with pytest.raises(UnicodeEncodeError, match="'ascii' codec can't encode"):
         writer.write_to(checker.fp)
-    assert "'ascii' codec can't encode" in str(excinfo.value)
 
 
 def test_file_encoded_as_base64(checker):
@@ -119,7 +128,7 @@ def test_file_encoded_as_base64(checker):
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        Image=20file=20attached
+        Image file attached
         -----=_qute-UUID
         Content-Location: http://a.example.com/image.png
         MIME-Version: 1.0
@@ -132,8 +141,9 @@ def test_file_encoded_as_base64(checker):
         """)
 
 
-@pytest.mark.parametrize('transfer_encoding', [mhtml.E_BASE64, mhtml.E_QUOPRI],
-                         ids=['base64', 'quoted-printable'])
+@pytest.mark.parametrize('transfer_encoding', [
+    pytest.param(mhtml.E_BASE64, id='base64'),
+    pytest.param(mhtml.E_QUOPRI, id='quoted-printable')])
 def test_payload_lines_wrap(checker, transfer_encoding):
     payload = b'1234567890' * 10
     writer = mhtml.MHTMLWriter(root_content=b'', content_type='text/plain',
@@ -166,56 +176,56 @@ def test_files_appear_sorted(checker):
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        root=20file
+        root file
         -----=_qute-UUID
         Content-Location: http://a.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20a
+        file a
         -----=_qute-UUID
         Content-Location: http://b.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20b
+        file b
         -----=_qute-UUID
         Content-Location: http://g.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20g
+        file g
         -----=_qute-UUID
         Content-Location: http://h.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20h
+        file h
         -----=_qute-UUID
         Content-Location: http://i.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20i
+        file i
         -----=_qute-UUID
         Content-Location: http://t.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20t
+        file t
         -----=_qute-UUID
         Content-Location: http://z.example.com/
         MIME-Version: 1.0
         Content-Type: text/plain
         Content-Transfer-Encoding: quoted-printable
 
-        file=20z
+        file z
         -----=_qute-UUID--
         """)
 
@@ -242,36 +252,63 @@ def test_empty_content_type(checker):
         Content-Location: http://example.com/file
         Content-Transfer-Encoding: quoted-printable
 
-        file=20content
+        file content
         -----=_qute-UUID--
         """)
 
 
 @pytest.mark.parametrize('has_cssutils', [
-    pytest.mark.skipif(mhtml.cssutils is None,
-                       reason="requires cssutils")(True),
-    False,
-], ids=['with_cssutils', 'no_cssutils'])
+    pytest.param(True, marks=pytest.mark.skipif(
+        cssutils is None, reason="requires cssutils"), id='with_cssutils'),
+    pytest.param(False, id='no_cssutils'),
+])
 @pytest.mark.parametrize('inline, style, expected_urls', [
-    (False, "@import 'default.css'", ['default.css']),
-    (False, '@import "default.css"', ['default.css']),
-    (False, "@import \t 'tabbed.css'", ['tabbed.css']),
-    (False, "@import url('default.css')", ['default.css']),
-    (False, """body {
+    pytest.param(False, "@import 'default.css'", ['default.css'],
+                 id='import with apostrophe'),
+    pytest.param(False, '@import "default.css"', ['default.css'],
+                 id='import with quote'),
+    pytest.param(False, "@import \t 'tabbed.css'", ['tabbed.css'],
+                 id='import with tab'),
+    pytest.param(False, "@import url('default.css')", ['default.css'],
+                 id='import with url()'),
+    pytest.param(False, """body {
     background: url("/bg-img.png")
-    }""", ['/bg-img.png']),
-    (True, 'background: url(folder/file.png) no-repeat', ['folder/file.png']),
-    (True, 'content: url()', []),
-], ids=['import with apostrophe', 'import with quote', 'import with tab',
-        'import with url()', 'background with body', 'background', 'content'])
+    }""", ['/bg-img.png'], id='background with body'),
+    pytest.param(True, 'background: url(folder/file.png) no-repeat',
+                 ['folder/file.png'], id='background'),
+    pytest.param(True, 'content: url()', [], id='content'),
+])
 def test_css_url_scanner(monkeypatch, has_cssutils, inline, style,
                          expected_urls):
     if not has_cssutils:
-        monkeypatch.setattr('qutebrowser.browser.webkit.mhtml.cssutils', None)
+        monkeypatch.setattr(mhtml, '_get_css_imports_cssutils',
+                            lambda data, inline=False: None)
     expected_urls.sort()
     urls = mhtml._get_css_imports(style, inline=inline)
     urls.sort()
     assert urls == expected_urls
+
+
+def test_quoted_printable_spaces(checker):
+    content = b' ' * 100
+    writer = mhtml.MHTMLWriter(root_content=content,
+                               content_location='localhost',
+                               content_type='text/plain')
+    writer.write_to(checker.fp)
+    checker.expect("""
+        Content-Type: multipart/related; boundary="---=_qute-UUID"
+        MIME-Version: 1.0
+
+        -----=_qute-UUID
+        Content-Location: localhost
+        MIME-Version: 1.0
+        Content-Type: text/plain
+        Content-Transfer-Encoding: quoted-printable
+
+        {}=
+        {}=20
+        -----=_qute-UUID--
+        """.format(' ' * 75, ' ' * 24))
 
 
 class TestNoCloseBytesIO:
@@ -288,9 +325,8 @@ class TestNoCloseBytesIO:
         fp = mhtml._NoCloseBytesIO()
         fp.write(b'Value')
         fp.actual_close()
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="I/O operation on closed file."):
             fp.getvalue()
-        assert str(excinfo.value) == 'I/O operation on closed file.'
-        with pytest.raises(ValueError) as excinfo:
+        with pytest.raises(ValueError, match="I/O operation on closed file."):
+            fp.getvalue()
             fp.write(b'Closed')
-        assert str(excinfo.value) == 'I/O operation on closed file.'

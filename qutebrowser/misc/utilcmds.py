@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,28 +20,26 @@
 """Misc. utility commands exposed to the user."""
 
 import functools
-import types
+import os
 import traceback
-
-try:
-    import hunter
-except ImportError:
-    hunter = None
-
-from qutebrowser.browser.webkit.network import qutescheme
-from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
-from qutebrowser.commands import cmdutils, runners, cmdexc
-from qutebrowser.config import style
-from qutebrowser.misc import consolewidget
 
 from PyQt5.QtCore import QUrl
 # so it's available for :debug-pyeval
 from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
+from qutebrowser.browser import qutescheme
+from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
+from qutebrowser.commands import runners
+from qutebrowser.api import cmdutils
+from qutebrowser.config import config, configdata
+from qutebrowser.misc import consolewidget
+from qutebrowser.utils.version import pastebin_version
+from qutebrowser.qt import sip
+
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
-@cmdutils.argument('win_id', win_id=True)
-def later(ms: int, command, win_id):
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+def later(ms: int, command: str, win_id: int) -> None:
     """Execute a command after some time.
 
     Args:
@@ -49,7 +47,7 @@ def later(ms: int, command, win_id):
         command: The command to run, with optional args.
     """
     if ms < 0:
-        raise cmdexc.CommandError("I can't run something in the past!")
+        raise cmdutils.CommandError("I can't run something in the past!")
     commandrunner = runners.CommandRunner(win_id)
     app = objreg.get('app')
     timer = usertypes.Timer(name='later', parent=app)
@@ -58,8 +56,8 @@ def later(ms: int, command, win_id):
         try:
             timer.setInterval(ms)
         except OverflowError:
-            raise cmdexc.CommandError("Numeric argument is too large for "
-                                      "internal int representation.")
+            raise cmdutils.CommandError("Numeric argument is too large for "
+                                        "internal int representation.")
         timer.timeout.connect(
             functools.partial(commandrunner.run_safely, command))
         timer.timeout.connect(timer.deleteLater)
@@ -70,70 +68,47 @@ def later(ms: int, command, win_id):
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
-@cmdutils.argument('win_id', win_id=True)
-def repeat(times: int, command, win_id):
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+@cmdutils.argument('count', value=cmdutils.Value.count)
+def repeat(times: int, command: str, win_id: int, count: int = None) -> None:
     """Repeat a given command.
 
     Args:
         times: How many times to repeat.
         command: The command to run, with optional args.
+        count: Multiplies with 'times' when given.
     """
+    if count is not None:
+        times *= count
+
     if times < 0:
-        raise cmdexc.CommandError("A negative count doesn't make sense.")
+        raise cmdutils.CommandError("A negative count doesn't make sense.")
     commandrunner = runners.CommandRunner(win_id)
     for _ in range(times):
         commandrunner.run_safely(command)
 
 
-@cmdutils.register(hide=True)
-@cmdutils.argument('win_id', win_id=True)
-def message_error(win_id, text):
-    """Show an error message in the statusbar.
+@cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+@cmdutils.argument('count', value=cmdutils.Value.count)
+def run_with_count(count_arg: int, command: str, win_id: int,
+                   count: int = 1) -> None:
+    """Run a command with the given count.
+
+    If run_with_count itself is run with a count, it multiplies count_arg.
 
     Args:
-        text: The text to show.
+        count_arg: The count to pass to the command.
+        command: The command to run, with optional args.
+        count: The count that run_with_count itself received.
     """
-    message.error(win_id, text)
+    runners.CommandRunner(win_id).run(command, count_arg * count)
 
 
-@cmdutils.register(hide=True)
-@cmdutils.argument('win_id', win_id=True)
-def message_info(win_id, text):
-    """Show an info message in the statusbar.
-
-    Args:
-        text: The text to show.
-    """
-    message.info(win_id, text)
-
-
-@cmdutils.register(hide=True)
-@cmdutils.argument('win_id', win_id=True)
-def message_warning(win_id, text):
-    """Show a warning message in the statusbar.
-
-    Args:
-        text: The text to show.
-    """
-    message.warning(win_id, text)
-
-
-@cmdutils.register(debug=True)
-@cmdutils.argument('typ', choices=['exception', 'segfault'])
-def debug_crash(typ='exception'):
-    """Crash for debugging purposes.
-
-    Args:
-        typ: either 'exception' or 'segfault'.
-    """
-    if typ == 'segfault':
-        # From python's Lib/test/crashers/bogus_code_obj.py
-        co = types.CodeType(0, 0, 0, 0, 0, b'\x04\x71\x00\x00', (), (), (),
-                            '', '', 1, b'')
-        exec(co)
-        raise Exception("Segfault failed (wat.)")
-    else:
-        raise Exception("Forced crash")
+@cmdutils.register()
+def clear_messages():
+    """Clear all message notifications."""
+    message.global_bridge.clear_messages.emit()
 
 
 @cmdutils.register(debug=True)
@@ -146,10 +121,31 @@ def debug_all_objects():
 @cmdutils.register(debug=True)
 def debug_cache_stats():
     """Print LRU cache stats."""
-    config_info = objreg.get('config').get.cache_info()
-    style_info = style.get_stylesheet.cache_info()
-    log.misc.debug('config: {}'.format(config_info))
-    log.misc.debug('style: {}'.format(style_info))
+    prefix_info = configdata.is_valid_prefix.cache_info()
+    # pylint: disable=protected-access
+    render_stylesheet_info = config._render_stylesheet.cache_info()
+    # pylint: enable=protected-access
+
+    history_info = None
+    try:
+        from PyQt5.QtWebKit import QWebHistoryInterface
+        interface = QWebHistoryInterface.defaultInterface()
+        if interface is not None:
+            history_info = interface.historyContains.cache_info()
+    except ImportError:
+        pass
+
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window='last-focused')
+    # pylint: disable=protected-access
+    tab_bar = tabbed_browser.widget.tabBar()
+    tabbed_browser_info = tab_bar._minimum_tab_size_hint_helper.cache_info()
+    # pylint: enable=protected-access
+
+    log.misc.info('is_valid_prefix: {}'.format(prefix_info))
+    log.misc.info('_render_stylesheet: {}'.format(render_stylesheet_info))
+    log.misc.info('history: {}'.format(history_info))
+    log.misc.info('tab width cache: {}'.format(tabbed_browser_info))
 
 
 @cmdutils.register(debug=True)
@@ -158,44 +154,46 @@ def debug_console():
     try:
         con_widget = objreg.get('debug-console')
     except KeyError:
+        log.misc.debug('initializing debug console')
         con_widget = consolewidget.ConsoleWidget()
         objreg.register('debug-console', con_widget)
 
     if con_widget.isVisible():
+        log.misc.debug('hiding debug console')
         con_widget.hide()
     else:
+        log.misc.debug('showing debug console')
         con_widget.show()
 
 
-@cmdutils.register(debug=True, maxsplit=0, no_cmd_split=True)
-def debug_trace(expr=""):
-    """Trace executed code via hunter.
-
-    Args:
-        expr: What to trace, passed to hunter.
-    """
-    if hunter is None:
-        raise cmdexc.CommandError("You need to install 'hunter' to use this "
-                                  "command!")
-    try:
-        eval('hunter.trace({})'.format(expr))
-    except Exception as e:
-        raise cmdexc.CommandError("{}: {}".format(e.__class__.__name__, e))
-
-
 @cmdutils.register(maxsplit=0, debug=True, no_cmd_split=True)
-def debug_pyeval(s, quiet=False):
+def debug_pyeval(s, file=False, quiet=False):
     """Evaluate a python string and display the results as a web page.
 
     Args:
         s: The string to evaluate.
+        file: Interpret s as a path to file, also implies --quiet.
         quiet: Don't show the output in a new tab.
     """
-    try:
-        r = eval(s)
-        out = repr(r)
-    except Exception:
-        out = traceback.format_exc()
+    if file:
+        quiet = True
+        path = os.path.expanduser(s)
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                s = f.read()
+        except OSError as e:
+            raise cmdutils.CommandError(str(e))
+        try:
+            exec(s)
+            out = "No error"
+        except Exception:
+            out = traceback.format_exc()
+    else:
+        try:
+            r = eval(s)
+            out = repr(r)
+        except Exception:
+            out = traceback.format_exc()
 
     qutescheme.pyeval_output = out
     if quiet:
@@ -203,7 +201,7 @@ def debug_pyeval(s, quiet=False):
     else:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-        tabbed_browser.openurl(QUrl('qute:pyeval'), newtab=True)
+        tabbed_browser.load_url(QUrl('qute://pyeval'), newtab=True)
 
 
 @cmdutils.register(debug=True)
@@ -219,9 +217,9 @@ def debug_set_fake_clipboard(s=None):
         utils.fake_clipboard = s
 
 
-@cmdutils.register(hide=True)
-@cmdutils.argument('win_id', win_id=True)
-@cmdutils.argument('count', count=True)
+@cmdutils.register()
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+@cmdutils.argument('count', value=cmdutils.Value.count)
 def repeat_command(win_id, count=None):
     """Repeat the last executed command.
 
@@ -230,58 +228,89 @@ def repeat_command(win_id, count=None):
     """
     mode_manager = objreg.get('mode-manager', scope='window', window=win_id)
     if mode_manager.mode not in runners.last_command:
-        raise cmdexc.CommandError("You didn't do anything yet.")
+        raise cmdutils.CommandError("You didn't do anything yet.")
     cmd = runners.last_command[mode_manager.mode]
     commandrunner = runners.CommandRunner(win_id)
     commandrunner.run(cmd[0], count if count is not None else cmd[1])
 
 
 @cmdutils.register(debug=True, name='debug-log-capacity')
-def log_capacity(capacity: int):
+def log_capacity(capacity: int) -> None:
     """Change the number of log lines to be stored in RAM.
 
     Args:
        capacity: Number of lines for the log.
     """
     if capacity < 0:
-        raise cmdexc.CommandError("Can't set a negative log capacity!")
-    else:
-        log.ram_handler.change_log_capacity(capacity)
+        raise cmdutils.CommandError("Can't set a negative log capacity!")
+    assert log.ram_handler is not None
+    log.ram_handler.change_log_capacity(capacity)
 
 
 @cmdutils.register(debug=True)
 @cmdutils.argument('level', choices=sorted(
     (level.lower() for level in log.LOG_LEVELS),
     key=lambda e: log.LOG_LEVELS[e.upper()]))
-def debug_log_level(level: str):
+def debug_log_level(level: str) -> None:
     """Change the log level for console logging.
 
     Args:
         level: The log level to set.
     """
     log.change_console_formatter(log.LOG_LEVELS[level.upper()])
+    assert log.console_handler is not None
     log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
 
 
 @cmdutils.register(debug=True)
-def debug_log_filter(filters: str):
+def debug_log_filter(filters: str) -> None:
     """Change the log filter for console logging.
 
     Args:
-        filters: A comma separated list of logger names.
+        filters: A comma separated list of logger names. Can also be "none" to
+                 clear any existing filters.
     """
-    if set(filters.split(',')).issubset(log.LOGGER_NAMES):
-        log.console_filter.names = filters.split(',')
-    else:
-        raise cmdexc.CommandError("filters: Invalid value {} - expected one "
-                                  "of: {}".format(filters,
-                                                  ', '.join(log.LOGGER_NAMES)))
+    if log.console_filter is None:
+        raise cmdutils.CommandError("No log.console_filter. Not attached "
+                                    "to a console?")
+
+    if filters.strip().lower() == 'none':
+        log.console_filter.names = None
+        return
+
+    if not set(filters.split(',')).issubset(log.LOGGER_NAMES):
+        raise cmdutils.CommandError("filters: Invalid value {} - expected one "
+                                    "of: {}".format(
+                                        filters, ', '.join(log.LOGGER_NAMES)))
+
+    log.console_filter.names = filters.split(',')
 
 
 @cmdutils.register()
-@cmdutils.argument('current_win_id', win_id=True)
+@cmdutils.argument('current_win_id', value=cmdutils.Value.win_id)
 def window_only(current_win_id):
     """Close all windows except for the current one."""
     for win_id, window in objreg.window_registry.items():
+
+        # We could be in the middle of destroying a window here
+        if sip.isdeleted(window):
+            continue
+
         if win_id != current_win_id:
             window.close()
+
+
+@cmdutils.register()
+@cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+def version(win_id, paste=False):
+    """Show version information.
+
+    Args:
+        paste: Paste to pastebin.
+    """
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+    tabbed_browser.load_url(QUrl('qute://version/'), newtab=True)
+
+    if paste:
+        pastebin_version()

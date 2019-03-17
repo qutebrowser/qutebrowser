@@ -3,14 +3,10 @@
 
 <head>
 <script type="text/javascript">
-    var my_window;
+    let my_window;
 
     function open_modal() {
-        if (window.showModalDialog) {
-            window.showModalDialog();
-        } else {
-            window.open('about:blank', 'window', 'modal');
-        }
+        my_window = window.open('about:blank', 'window', 'modal');
     }
 
     function open_normal() {
@@ -21,13 +17,15 @@
         window.open('', 'my_window');
     }
 
-    function close() {
+    function close_normal() {
         my_window.close();
+        console.log("window closed");
     }
 
     function close_twice() {
         my_window.close();
         my_window.close();
+        console.log("window closed");
     }
 </script>
 </head>
@@ -37,7 +35,7 @@
 <button onclick="open_normal()" id="open-normal">normal</button>
 <button onclick="open_modal()" id="open-modal">modal</button>
 <button onclick="open_invalid()" id="open-invalid">invalid/no URL</button>
-<button onclick="close()" id="close-normal">close</button>
+<button onclick="close_normal()" id="close-normal">close</button>
 <button onclick="close_twice()" id="close-twice">close twice (issue 906)</button>
 
 </body>

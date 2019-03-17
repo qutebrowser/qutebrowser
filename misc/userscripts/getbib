@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+"""Qutebrowser userscript scraping the current web page for DOIs and downloading
+corresponding bibtex information.
+
+Set the environment variable 'QUTE_BIB_FILEPATH' to indicate the path to
+download to. Otherwise, bibtex information is downloaded to '/tmp' and hence
+deleted at reboot.
+
+Installation: see qute://help/userscripts.html
+
+Inspired by
+https://ocefpaf.github.io/python4oceanographers/blog/2014/05/19/doi2bibtex/
+"""
+
+import os
+import sys
+import shutil
+import re
+from collections import Counter
+from urllib import parse as url_parse
+from urllib import request as url_request
+
+
+FIFO_PATH = os.getenv("QUTE_FIFO")
+
+def message_fifo(message, level="warning"):
+    """Send message to qutebrowser FIFO. The level must be one of 'info',
+    'warning' (default) or 'error'."""
+    with open(FIFO_PATH, "w") as fifo:
+        fifo.write("message-{} '{}'".format(level, message))
+
+
+source = os.getenv("QUTE_TEXT")
+with open(source) as f:
+    text = f.read()
+
+# find DOIs on page using regex
+dval = re.compile(r'(10\.(\d)+/([^(\s\>\"\<)])+)')
+# https://stackoverflow.com/a/10324802/3865876, too strict
+# dval = re.compile(r'\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?!["&\'<>])\S)+)\b')
+dois = dval.findall(text)
+dois = Counter(e[0] for e in dois)
+try:
+    doi = dois.most_common(1)[0][0]
+except IndexError:
+    message_fifo("No DOIs found on page")
+    sys.exit()
+message_fifo("Found {} DOIs on page, selecting {}".format(len(dois), doi),
+             level="info")
+
+# get bibtex data corresponding to DOI
+url = "http://dx.doi.org/" + url_parse.quote(doi)
+headers = dict(Accept='text/bibliography; style=bibtex')
+request = url_request.Request(url, headers=headers)
+response = url_request.urlopen(request)
+status_code = response.getcode()
+if status_code >= 400:
+    message_fifo("Request returned {}".format(status_code))
+    sys.exit()
+
+# obtain content and format it
+bibtex = response.read().decode("utf-8").strip()
+bibtex = bibtex.replace(" ", "\n    ", 1).\
+    replace("}, ", "},\n    ").replace("}}", "}\n}")
+
+# append to file
+bib_filepath = os.getenv("QUTE_BIB_FILEPATH", "/tmp/qute.bib")
+with open(bib_filepath, "a") as f:
+    f.write(bibtex + "\n\n")

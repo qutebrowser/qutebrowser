@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,85 +17,44 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""pylint conftest file for javascript test."""
+"""pytest conftest file for javascript tests."""
 
 import os
 import os.path
-import logging
 
 import pytest
 import jinja2
 
-try:
-    from PyQt5.QtWebKit import QWebSettings
-    from PyQt5.QtWebKitWidgets import QWebPage
-except ImportError:
-    # FIXME:qtwebengine Make these tests use the tab API
-    QWebSettings = None
-    QWebPage = None
+from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils
-
-
-if QWebPage is None:
-    TestWebPage = None
-else:
-    class TestWebPage(QWebPage):
-
-        """QWebPage subclass which overrides some test methods.
-
-        Attributes:
-            _logger: The logger used for alerts.
-        """
-
-        def __init__(self, parent=None):
-            super().__init__(parent)
-            self._logger = logging.getLogger('js-tests')
-
-        def javaScriptAlert(self, _frame, msg):
-            """Log javascript alerts."""
-            self._logger.info("js alert: {}".format(msg))
-
-        def javaScriptConfirm(self, _frame, msg):
-            """Fail tests on js confirm() as that should never happen."""
-            pytest.fail("js confirm: {}".format(msg))
-
-        def javaScriptPrompt(self, _frame, msg, _default):
-            """Fail tests on js prompt() as that should never happen."""
-            pytest.fail("js prompt: {}".format(msg))
-
-        def javaScriptConsoleMessage(self, msg, line, source):
-            """Fail tests on js console messages as they're used for errors."""
-            pytest.fail("js console ({}:{}): {}".format(source, line, msg))
+import qutebrowser
 
 
 class JSTester:
 
-    """Object returned by js_tester which provides test data and a webview.
+    """Common subclass providing basic functionality for all JS testers.
 
     Attributes:
-        webview: The webview which is used.
-        _qtbot: The QtBot fixture from pytest-qt.
+        tab: The tab object which is used.
+        qtbot: The QtBot fixture from pytest-qt.
         _jinja_env: The jinja2 environment used to get templates.
     """
 
-    def __init__(self, webview, qtbot):
-        self.webview = webview
-        self.webview.setPage(TestWebPage(self.webview))
-        self._qtbot = qtbot
+    def __init__(self, tab, qtbot, config_stub):
+        self.tab = tab
+        self.qtbot = qtbot
         loader = jinja2.FileSystemLoader(os.path.dirname(__file__))
         self._jinja_env = jinja2.Environment(loader=loader, autoescape=True)
-
-    def scroll_anchor(self, name):
-        """Scroll the main frame to the given anchor."""
-        page = self.webview.page()
-        old_pos = page.mainFrame().scrollPosition()
-        page.mainFrame().scrollToAnchor(name)
-        new_pos = page.mainFrame().scrollPosition()
-        assert old_pos != new_pos
+        # Make sure error logging via JS fails tests
+        config_stub.val.content.javascript.log = {
+            'info': 'info',
+            'error': 'error',
+            'unknown': 'error',
+            'warning': 'error'
+        }
 
     def load(self, path, **kwargs):
-        """Load and display the given test data.
+        """Load and display the given jinja test data.
 
         Args:
             path: The path to the test file, relative to the javascript/
@@ -103,38 +62,72 @@ class JSTester:
             **kwargs: Passed to jinja's template.render().
         """
         template = self._jinja_env.get_template(path)
-        with self._qtbot.waitSignal(self.webview.loadFinished) as blocker:
-            self.webview.setHtml(template.render(**kwargs))
+        with self.qtbot.waitSignal(self.tab.load_finished,
+                                   timeout=2000) as blocker:
+            self.tab.set_html(template.render(**kwargs))
         assert blocker.args == [True]
 
-    def run_file(self, filename):
+    def load_file(self, path: str, force: bool = False):
+        """Load a file from disk.
+
+        Args:
+            path: The string path from disk to load (relative to this file)
+            force: Whether to force loading even if the file is invalid.
+        """
+        self.load_url(QUrl.fromLocalFile(
+            os.path.join(os.path.dirname(__file__), path)), force)
+
+    def load_url(self, url: QUrl, force: bool = False):
+        """Load a given QUrl.
+
+        Args:
+            url: The QUrl to load.
+            force: Whether to force loading even if the file is invalid.
+        """
+        with self.qtbot.waitSignal(self.tab.load_finished,
+                                   timeout=2000) as blocker:
+            self.tab.load_url(url)
+        if not force:
+            assert blocker.args == [True]
+
+    def run_file(self, path: str, expected=None) -> None:
         """Run a javascript file.
 
         Args:
-            filename: The javascript filename, relative to
-                      qutebrowser/javascript.
-
-        Return:
-            The javascript return value.
+            path: The path to the JS file, relative to the qutebrowser package.
+            expected: The value expected return from the javascript execution
         """
-        source = utils.read_file(os.path.join('javascript', filename))
-        return self.run(source)
+        base_path = os.path.dirname(os.path.abspath(qutebrowser.__file__))
+        with open(os.path.join(base_path, path), 'r', encoding='utf-8') as f:
+            source = f.read()
+        self.run(source, expected)
 
-    def run(self, source):
+    def run(self, source: str, expected, world=None) -> None:
         """Run the given javascript source.
 
         Args:
             source: The source to run as a string.
-
-        Return:
-            The javascript return value.
+            expected: The value expected return from the javascript execution
+            world: The scope the javascript will run in
         """
-        assert self.webview.settings().testAttribute(
-            QWebSettings.JavascriptEnabled)
-        return self.webview.page().mainFrame().evaluateJavaScript(source)
+        with self.qtbot.wait_callback() as callback:
+            self.tab.run_js_async(source, callback, world=world)
+        callback.assert_called_with(expected)
 
 
 @pytest.fixture
-def js_tester(webview, qtbot):
-    """Fixture to test javascript snippets."""
-    return JSTester(webview, qtbot)
+def js_tester_webkit(webkit_tab, qtbot, config_stub):
+    """Fixture to test javascript snippets in webkit."""
+    return JSTester(webkit_tab, qtbot, config_stub)
+
+
+@pytest.fixture
+def js_tester_webengine(webengine_tab, qtbot, config_stub):
+    """Fixture to test javascript snippets in webengine."""
+    return JSTester(webengine_tab, qtbot, config_stub)
+
+
+@pytest.fixture
+def js_tester(web_tab, qtbot, config_stub):
+    """Fixture to test javascript snippets with both backends."""
+    return JSTester(web_tab, qtbot, config_stub)

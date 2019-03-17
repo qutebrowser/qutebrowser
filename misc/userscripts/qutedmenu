@@ -35,23 +35,18 @@ get_selection() {
 
 # Main
 # https://github.com/halfwit/dotfiles/blob/master/.config/dmenu/font
-if [[ -s $confdir/dmenu/font ]]; then
-    read -r font < "$confdir"/dmenu/font
-fi
+[[ -s $confdir/dmenu/font ]] && read -r font < "$confdir"/dmenu/font
 
-if [[ $font ]]; then
-    opts+=(-fn "$font")
-fi
+[[ -n $font ]] && opts+=(-fn "$font")
 
-if [[ -s $optsfile ]]; then
-    source "$optsfile"
-fi
+# shellcheck source=/dev/null
+[[ -s $optsfile ]] && source "$optsfile"
 
 url=$(get_selection)
 url=${url/*http/http}
 
 # If no selection is made, exit (escape pressed, e.g.)
-[[ ! $url ]] && exit 0
+[[ -z $url ]] && exit 0
 
 case $1 in
     open) printf '%s' "open $url" >> "$QUTE_FIFO" || qutebrowser "$url" ;;

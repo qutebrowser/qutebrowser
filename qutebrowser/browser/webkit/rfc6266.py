@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,11 +19,11 @@
 
 """pyPEG parsing for the RFC 6266 (Content-Disposition) header."""
 
-import collections
 import urllib.parse
 import string
 import re
 
+import attr
 import pypeg2 as peg
 
 from qutebrowser.utils import utils
@@ -117,7 +117,7 @@ class Language(str):
     """A language-tag (RFC 5646, Section 2.1).
 
     FIXME: This grammar is not 100% correct yet.
-    https://github.com/The-Compiler/qutebrowser/issues/105
+    https://github.com/qutebrowser/qutebrowser/issues/105
     """
 
     grammar = re.compile('[A-Za-z0-9-]+')
@@ -132,7 +132,7 @@ class ValueChars(str):
     """A value of an attribute.
 
     FIXME: Can we merge this with Value?
-    https://github.com/The-Compiler/qutebrowser/issues/105
+    https://github.com/qutebrowser/qutebrowser/issues/105
     """
 
     grammar = re.compile('({}|{})*'.format(attr_char_re, hex_digit_re))
@@ -210,7 +210,13 @@ class ContentDispositionValue:
                peg.optional(';'))
 
 
-LangTagged = collections.namedtuple('LangTagged', ['string', 'langtag'])
+@attr.s
+class LangTagged:
+
+    """A string with an associated language."""
+
+    string = attr.ib()
+    langtag = attr.ib()
 
 
 class Error(Exception):
@@ -264,6 +270,7 @@ class _ContentDisposition:
         elif 'filename' in self.assocs:
             # XXX Reject non-ascii (parsed via qdtext) here?
             return self.assocs['filename']
+        return None
 
     def is_inline(self):
         """Return if the file should be handled inline.
@@ -286,9 +293,6 @@ def normalize_ws(text):
 
 def parse_headers(content_disposition):
     """Build a _ContentDisposition from header values."""
-    # WORKAROUND for https://bitbucket.org/logilab/pylint/issue/492/
-    # pylint: disable=no-member
-
     # We allow non-ascii here (it will only be parsed inside of qdtext, and
     # rejected by the grammar if it appears in other places), although parsing
     # it can be ambiguous.  Parsing it ensures that a non-ambiguous filename*

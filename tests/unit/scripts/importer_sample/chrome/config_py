@@ -1,0 +1,5 @@
+# Unsupported parameter in url for google.com; skipping....
+c.url.searchengines['bing.com'] = 'https://www.bing.com/search?q={}&PC=U316&FORM=CHROMN'
+c.url.searchengines['yahoo.com'] = 'https://search.yahoo.com/search?ei=UTF-8&fr=crmas&p={}'
+c.url.searchengines['aol.com'] = 'https://search.aol.com/aol/search?q={}'
+c.url.searchengines['ask.com'] = 'http://www.ask.com/web?q={}'

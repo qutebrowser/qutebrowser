@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,25 +19,71 @@
 
 """The main browser widget for QtWebEngine."""
 
-import os
-
-from PyQt5.QtCore import pyqtSignal, QUrl
-# pylint: disable=no-name-in-module,import-error,useless-suppression
+from PyQt5.QtCore import pyqtSignal, QUrl, PYQT_VERSION
+from PyQt5.QtGui import QPalette
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
-# pylint: enable=no-name-in-module,import-error,useless-suppression
 
+from qutebrowser.browser import shared
+from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
 from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
+from qutebrowser.misc import miscwidgets
+from qutebrowser.qt import sip
 
 
 class WebEngineView(QWebEngineView):
 
     """Custom QWebEngineView subclass with qutebrowser-specific features."""
 
-    def __init__(self, tabdata, win_id, parent=None):
+    def __init__(self, *, tabdata, win_id, private, parent=None):
         super().__init__(parent)
         self._win_id = win_id
-        self.setPage(WebEnginePage(tabdata, parent=self))
+        self._tabdata = tabdata
+
+        theme_color = self.style().standardPalette().color(QPalette.Base)
+        if private:
+            profile = webenginesettings.private_profile
+            assert profile.isOffTheRecord()
+        else:
+            profile = webenginesettings.default_profile
+        page = WebEnginePage(theme_color=theme_color, profile=profile,
+                             parent=self)
+        self.setPage(page)
+
+        if qtutils.version_check('5.11', compiled=False):
+            # Set a PseudoLayout as a WORKAROUND for
+            # https://bugreports.qt.io/browse/QTBUG-68224
+            # and other related issues.
+            sip.delete(self.layout())
+            self._layout = miscwidgets.PseudoLayout(self)
+
+    def render_widget(self):
+        """Get the RenderWidgetHostViewQt for this view.
+
+        Normally, this would always be the focusProxy().
+        However, it sometimes isn't, so we use this as a WORKAROUND for
+        https://bugreports.qt.io/browse/QTBUG-68727
+
+        This got introduced in Qt 5.11.0 and fixed in 5.12.0.
+        """
+        if 'lost-focusproxy' not in objreg.get('args').debug_flags:
+            proxy = self.focusProxy()
+            if proxy is not None:
+                return proxy
+
+        # We don't want e.g. a QMenu.
+        rwhv_class = 'QtWebEngineCore::RenderWidgetHostViewQtDelegateWidget'
+        children = [c for c in self.findChildren(QWidget)
+                    if c.isVisible() and c.inherits(rwhv_class)]
+
+        log.webview.debug("Found possibly lost focusProxy: {}"
+                          .format(children))
+
+        return children[-1] if children else None
+
+    def shutdown(self):
+        self.page().shutdown()
 
     def createWindow(self, wintype):
         """Called by Qt when a page wants to create a new window.
@@ -59,102 +105,161 @@ class WebEngineView(QWebEngineView):
                          A window without decoration.
                      QWebEnginePage::WebBrowserBackgroundTab:
                          A web browser tab without hiding the current visible
-                         WebEngineView. (Added in Qt 5.7)
+                         WebEngineView.
 
         Return:
             The new QWebEngineView object.
         """
         debug_type = debug.qenum_key(QWebEnginePage, wintype)
-        log.webview.debug("createWindow with type {}".format(debug_type))
+        background = config.val.tabs.background
 
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-54419
-        vercheck = qtutils.version_check
-        qtbug_54419_fixed = ((vercheck('5.6.2') and not vercheck('5.7.0')) or
-                             qtutils.version_check('5.7.1') or
-                             os.environ.get('QUTE_QTBUG54419_PATCHED', ''))
-        if not qtbug_54419_fixed:
-            log.webview.debug("Ignoring createWindow because of QTBUG-54419")
-            return None
+        log.webview.debug("createWindow with type {}, background {}".format(
+            debug_type, background))
 
-        background = False
-        if wintype in [QWebEnginePage.WebBrowserWindow,
-                       QWebEnginePage.WebDialog]:
+        if wintype == QWebEnginePage.WebBrowserWindow:
+            # Shift-Alt-Click
+            target = usertypes.ClickTarget.window
+        elif wintype == QWebEnginePage.WebDialog:
             log.webview.warning("{} requested, but we don't support "
                                 "that!".format(debug_type))
+            target = usertypes.ClickTarget.tab
         elif wintype == QWebEnginePage.WebBrowserTab:
-            pass
-        elif (hasattr(QWebEnginePage, 'WebBrowserBackgroundTab') and
-              wintype == QWebEnginePage.WebBrowserBackgroundTab):
-            background = True
+            # Middle-click / Ctrl-Click with Shift
+            # FIXME:qtwebengine this also affects target=_blank links...
+            if background:
+                target = usertypes.ClickTarget.tab
+            else:
+                target = usertypes.ClickTarget.tab_bg
+        elif wintype == QWebEnginePage.WebBrowserBackgroundTab:
+            # Middle-click / Ctrl-Click
+            if background:
+                target = usertypes.ClickTarget.tab_bg
+            else:
+                target = usertypes.ClickTarget.tab
         else:
             raise ValueError("Invalid wintype {}".format(debug_type))
 
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=self._win_id)
-        # pylint: disable=protected-access
-        return tabbed_browser.tabopen(background=background)._widget
+        tab = shared.get_tab(self._win_id, target)
+        return tab._widget  # pylint: disable=protected-access
 
 
 class WebEnginePage(QWebEnginePage):
 
     """Custom QWebEnginePage subclass with qutebrowser-specific features.
 
+    Attributes:
+        _is_shutting_down: Whether the page is currently shutting down.
+        _theme_color: The theme background color.
+
     Signals:
-        certificate_error: FIXME:qtwebengine
-        link_clicked: Emitted when a link was clicked on a page.
+        certificate_error: Emitted on certificate errors.
+                           Needs to be directly connected to a slot setting the
+                           'ignore' attribute.
+        shutting_down: Emitted when the page is shutting down.
+        navigation_request: Emitted on acceptNavigationRequest.
     """
 
-    certificate_error = pyqtSignal()
-    link_clicked = pyqtSignal(QUrl)
+    certificate_error = pyqtSignal(certificateerror.CertificateErrorWrapper)
+    shutting_down = pyqtSignal()
+    navigation_request = pyqtSignal(usertypes.NavigationRequest)
 
-    def __init__(self, tabdata, parent=None):
-        super().__init__(parent)
-        self._tabdata = tabdata
+    def __init__(self, *, theme_color, profile, parent=None):
+        super().__init__(profile, parent)
+        self._is_shutting_down = False
+        self._theme_color = theme_color
+        self._set_bg_color()
+        config.instance.changed.connect(self._set_bg_color)
+
+    @config.change_filter('colors.webpage.bg')
+    def _set_bg_color(self):
+        col = config.val.colors.webpage.bg
+        if col is None:
+            col = self._theme_color
+        self.setBackgroundColor(col)
+
+    def shutdown(self):
+        self._is_shutting_down = True
+        self.shutting_down.emit()
 
     def certificateError(self, error):
-        self.certificate_error.emit()
-        return super().certificateError(error)
+        """Handle certificate errors coming from Qt."""
+        error = certificateerror.CertificateErrorWrapper(error)
+        self.certificate_error.emit(error)
+        return error.ignore
+
+    def javaScriptConfirm(self, url, js_msg):
+        """Override javaScriptConfirm to use qutebrowser prompts."""
+        if self._is_shutting_down:
+            return False
+        escape_msg = qtutils.version_check('5.11', compiled=False)
+        try:
+            return shared.javascript_confirm(url, js_msg,
+                                             abort_on=[self.loadStarted,
+                                                       self.shutting_down],
+                                             escape_msg=escape_msg)
+        except shared.CallSuper:
+            return super().javaScriptConfirm(url, js_msg)
+
+    if PYQT_VERSION > 0x050700:
+        # WORKAROUND
+        # Can't override javaScriptPrompt with older PyQt versions
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2016-November/038293.html
+        def javaScriptPrompt(self, url, js_msg, default):
+            """Override javaScriptPrompt to use qutebrowser prompts."""
+            escape_msg = qtutils.version_check('5.11', compiled=False)
+            if self._is_shutting_down:
+                return (False, "")
+            try:
+                return shared.javascript_prompt(url, js_msg, default,
+                                                abort_on=[self.loadStarted,
+                                                          self.shutting_down],
+                                                escape_msg=escape_msg)
+            except shared.CallSuper:
+                return super().javaScriptPrompt(url, js_msg, default)
+
+    def javaScriptAlert(self, url, js_msg):
+        """Override javaScriptAlert to use qutebrowser prompts."""
+        if self._is_shutting_down:
+            return
+        escape_msg = qtutils.version_check('5.11', compiled=False)
+        try:
+            shared.javascript_alert(url, js_msg,
+                                    abort_on=[self.loadStarted,
+                                              self.shutting_down],
+                                    escape_msg=escape_msg)
+        except shared.CallSuper:
+            super().javaScriptAlert(url, js_msg)
 
     def javaScriptConsoleMessage(self, level, msg, line, source):
         """Log javascript messages to qutebrowser's log."""
-        # FIXME:qtwebengine maybe unify this in the tab api somehow?
-        setting = config.get('general', 'log-javascript-console')
-        if setting == 'none':
-            return
-
-        level_to_logger = {
-            QWebEnginePage.InfoMessageLevel: log.js.info,
-            QWebEnginePage.WarningMessageLevel: log.js.warning,
-            QWebEnginePage.ErrorMessageLevel: log.js.error,
+        level_map = {
+            QWebEnginePage.InfoMessageLevel: usertypes.JsLogLevel.info,
+            QWebEnginePage.WarningMessageLevel: usertypes.JsLogLevel.warning,
+            QWebEnginePage.ErrorMessageLevel: usertypes.JsLogLevel.error,
         }
-        logstring = "[{}:{}] {}".format(source, line, msg)
-        logger = level_to_logger[level]
-        logger(logstring)
+        shared.javascript_log_message(level_map[level], source, line, msg)
 
     def acceptNavigationRequest(self,
                                 url: QUrl,
                                 typ: QWebEnginePage.NavigationType,
-                                is_main_frame: bool):
-        """Override acceptNavigationRequest to handle clicked links.
-
-        Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound
-        to linkClicked won't work correctly, because when in a frameset, we
-        have no idea in which frame the link should be opened.
-
-        Checks if it should open it in a tab (middle-click or control) or not,
-        and then conditionally opens the URL. Opening it in a new tab/window
-        is handled in the slot connected to link_clicked.
-        """
-        target = self._tabdata.combined_target()
-        log.webview.debug("navigation request: url {}, type {}, "
-                          "target {}, is_main_frame {}".format(
-                              url.toDisplayString(),
-                              debug.qenum_key(QWebEnginePage, typ),
-                              target, is_main_frame))
-
-        if typ != QWebEnginePage.NavigationTypeLinkClicked:
-            return True
-
-        self.link_clicked.emit(url)
-
-        return url.isValid() and target == usertypes.ClickTarget.normal
+                                is_main_frame: bool) -> bool:
+        """Override acceptNavigationRequest to forward it to the tab API."""
+        type_map = {
+            QWebEnginePage.NavigationTypeLinkClicked:
+                usertypes.NavigationRequest.Type.link_clicked,
+            QWebEnginePage.NavigationTypeTyped:
+                usertypes.NavigationRequest.Type.typed,
+            QWebEnginePage.NavigationTypeFormSubmitted:
+                usertypes.NavigationRequest.Type.form_submitted,
+            QWebEnginePage.NavigationTypeBackForward:
+                usertypes.NavigationRequest.Type.back_forward,
+            QWebEnginePage.NavigationTypeReload:
+                usertypes.NavigationRequest.Type.reloaded,
+            QWebEnginePage.NavigationTypeOther:
+                usertypes.NavigationRequest.Type.other,
+        }
+        navigation = usertypes.NavigationRequest(url=url,
+                                                 navigation_type=type_map[typ],
+                                                 is_main_frame=is_main_frame)
+        self.navigation_request.emit(navigation)
+        return navigation.accepted

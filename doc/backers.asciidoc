@@ -1,13 +1,186 @@
 Crowdfunding backers
 ====================
 
+2017
+----
+
+Mid-2017, qutebrowser had its
+https://www.kickstarter.com/projects/the-compiler/qutebrowser-v10-with-per-domain-settings[second crowdfunding]
+with the goal of implementing the new config system and releasing v1.0.
+
+Thanks a lot to the following people who contributed to it:
+
+Gold sponsors
+~~~~~~~~~~~~~
+
+- Iggy
+- zwitschi
+- 2x Anonymous
+
+Silver sponsors
+~~~~~~~~~~~~~~~
+
+- https://benary.org[benaryorg]
+- https://scratchbook.ch[Claude]
+- Martin Tournoij
+- http://supported.elsensohn.ch[Thomas Elsensohn]
+- Christian Helbling
+- Gavin Troy
+- Chris King-Parra
+- Tim Das Mool Wegener
+
+Other sponsors
+~~~~~~~~~~~~~~
+
+- 7scan
+- AMD1212
+- Alex
+- Alex Suykov
+- Alexey Zhikhartsev
+- Allan Nordhøy
+- Anirudh Sanjeev
+- Anssi Puustinen
+- Anton Grensjö
+- Aristaeus
+- Armin Fisslthaler
+- Ashley Hauck
+- Benedikt Steindorf
+- Bernardo Kuri
+- Blaise Duszynski
+- Bostan
+- Bruno Oliveira
+- BunnyApocalypse
+- Christian Kellermann
+- Colin Jacobs
+- Daniel Andersson
+- Daniel Nelson
+- Daniel P. Schmidt
+- Daniel Salby
+- Danilo
+- David Beley
+- David Hollings
+- David Keijser
+- David Parrish
+- Derin Yarsuvat
+- Dmytro Kostiuchenko
+- Eero Kari
+- Epictek
+- Eric
+- Faure Hu
+- Ferus
+- Frederik Thorøe
+- G4v4g4i
+- Granitosaurus
+- Gyula Teleki
+- H
+- Heinz Bruhin
+- Hosaka
+- Ihor Radchenko
+- Iordanis Grigoriou
+- Isaac Sandaljian
+- Jakub Podeszwik
+- Jamie Anderson
+- Jasper Woudenberg
+- Jay Kamat
+- Jens Højgaard
+- Johannes
+- John Baber-Lucero
+- Jonas Schürmann
+- Kenichiro Ito
+- Kenny Low
+- Lars Ivar Igesund
+- Leulas
+- Lucas Aride Moulin
+- Ludovic Chabant
+- Lukas Gierth
+- Magnus Lindström
+- Marulkan
+- Matthew Chun-Lum
+- Matthew Cronen
+- Matthew Quigley
+- Michael Schönwälder
+- Mika Kutila
+- Mitchell Stokes
+- Nathan Howell
+- Nathan Schlehlein
+- Noël Zindel
+- Obri
+- Patrik Peng
+- Peter DiMarco
+- Peter Rice
+- Philipp Middendorf
+- Pkill9
+- PluMGMK
+- Prescott
+- ProXicT
+- Ram-Z
+- Robotichead
+- Roshless
+- Ryan Ellis
+- Ryan P Deslandes
+- Sam Doshi
+- Sam Stone
+- Sean Herman
+- Sebastian Frysztak
+- Shelby Cruver
+- Simon Désaulniers
+- SirCmpwn
+- Soham Pal
+- Stephan Jauernick
+- Stewart Webb
+- Sven Reinecke
+- Timothée Floure
+- Tom Bass
+- Tom Kirchner
+- Tomas Slusny
+- Tomasz Kramkowski
+- Tommy Thomas
+- Tuscan
+- Ulrich Pötter
+- Vasilij Schneidermann
+- Vlaaaaaaad
+- XTaran
+- Z2h-A6n
+- ayekat
+- beanieuptop
+- cee
+- craftyguy
+- demure
+- dlangevi
+- epon
+- evenorbert
+- fishss
+- gsnewmark
+- guillermohs9
+- hernani
+- hubcaps
+- jnphilipp
+- lobachevsky
+- neodarz
+- nihlaeth
+- notbenh
+- nyctea
+- ongy
+- patrick suwanvithaya
+- pyratebeard
+- p≡p foundation
+- randm_dave
+- sabreman
+- toml
+- vimja
+- wiz
+- 48 Anonymous
+
+2016
+----
+
 Mid-2016, qutebrowser did run a http://igg.me/at/qutebrowser[crowdfunding] for
 QtWebEngine support in qutebrowser.
 
 Thanks a lot to the following people who contributed to it:
 
 Gold sponsors
--------------
+~~~~~~~~~~~~~
 
 - Chris Salzberg
 - Clayton Craft
@@ -16,7 +189,7 @@ Gold sponsors
 - 1 Anonymous
 
 Day sponsors
-------------
+~~~~~~~~~~~~
 
 - Agent 42
 - Iggy Jackson
@@ -28,7 +201,7 @@ Day sponsors
 - 4 Anonymous
 
 Other sponsors
---------------
+~~~~~~~~~~~~~~
 
 - AP M
 - Alessandro Balzano
@@ -90,6 +263,7 @@ Other sponsors
 - Julie Engel
 - Jörg Behrmann
 - Jørgen Skancke
+- Kevin Kainan Li
 - Kevin Velghe
 - Konstantin Shmelkov
 - Kyle Frazer

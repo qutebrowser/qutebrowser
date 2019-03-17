@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,8 +22,7 @@
 from PyQt5.QtCore import pyqtSlot, QSize
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
-from qutebrowser.browser import browsertab
-from qutebrowser.config import style
+from qutebrowser.config import config
 from qutebrowser.utils import utils, usertypes
 
 
@@ -36,16 +35,18 @@ class Progress(QProgressBar):
             border-radius: 0px;
             border: 2px solid transparent;
             background-color: transparent;
+            font: {{ conf.fonts.statusbar }};
         }
 
         QProgressBar::chunk {
-            background-color: {{ color['statusbar.progress.bg'] }};
+            background-color: {{ conf.colors.statusbar.progress.bg }};
         }
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        style.set_register_stylesheet(self)
+        config.set_register_stylesheet(self)
+        self.enabled = False
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setTextVisible(False)
         self.hide()
@@ -57,17 +58,12 @@ class Progress(QProgressBar):
     def on_load_started(self):
         """Clear old error and show progress, used as slot to loadStarted."""
         self.setValue(0)
-        self.show()
+        self.setVisible(self.enabled)
 
-    @pyqtSlot(browsertab.AbstractTab)
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
-        if self is None:  # pragma: no branch
-            # This should never happen, but for some weird reason it does
-            # sometimes.
-            return  # pragma: no cover
         self.setValue(tab.progress())
-        if tab.load_status() == usertypes.LoadStatus.loading:
+        if self.enabled and tab.load_status() == usertypes.LoadStatus.loading:
             self.show()
         else:
             self.hide()

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -91,3 +91,11 @@ def test_error_network_reply(qtbot, req):
     assert reply.readData(1) == b''
     assert reply.error() == QNetworkReply.UnknownNetworkError
     assert reply.errorString() == "This is an error"
+
+
+def test_redirect_network_reply():
+    url = QUrl('https://www.example.com/')
+    reply = networkreply.RedirectNetworkReply(url)
+    assert reply.readData(1) == b''
+    assert reply.attribute(QNetworkRequest.RedirectionTargetAttribute) == url
+    reply.abort()  # shouldn't do anything

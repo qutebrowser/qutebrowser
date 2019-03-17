@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2016 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,7 +31,7 @@ from qutebrowser.browser.webkit import http, rfc6266
     'attachment; filename="{}"',
     'inline; {}',
     'attachment; {}="foo"',
-    'attachment; filename*=iso-8859-1''{}',
+    "attachment; filename*=iso-8859-1''{}",
     'attachment; filename*={}',
 ])
 @hypothesis.given(strategies.text(alphabet=[chr(x) for x in range(255)]))
