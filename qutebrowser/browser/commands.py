@@ -646,8 +646,10 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
-                                        'title', 'domain', 'markdown'])
-    def yank(self, what='url', sel=False, keep=False, quiet=False):
+                                        'title', 'domain', 'markdown',
+                                        'inline'])
+    def yank(self, what='url', inline=None,
+             sel=False, keep=False, quiet=False):
         """Yank something to the clipboard or primary selection.
 
         Args:
@@ -659,12 +661,18 @@ class CommandDispatcher:
                 - `domain`: The current scheme, domain, and port number.
                 - `selection`: The selection under the cursor.
                 - `markdown`: Yank title and URL in markdown format.
+                - `inline`: Yank the text contained in the 'inline' argument.
 
             sel: Use the primary selection instead of the clipboard.
             keep: Stay in visual mode after yanking the selection.
             quiet: Don't show an information message.
+            inline: A block of text, to be yanked if 'what'
+                is inline and ignored otherwise.
         """
-        if what == 'title':
+        if what == 'inline':
+            s = inline
+            what = 'inline block'
+        elif what == 'title':
             s = self._tabbed_browser.widget.page_title(self._current_index())
         elif what == 'domain':
             port = self._current_url().port()
