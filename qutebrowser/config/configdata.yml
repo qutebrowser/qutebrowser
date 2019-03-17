@@ -767,6 +767,7 @@ content.webrtc_ip_handling_policy:
       - disable-non-proxied-udp: WebRTC should only use TCP to contact peers or
             servers unless the proxy server supports UDP. This doesn't expose
             any local addresses either.
+  default: all-interfaces
   backend:
     QtWebKit: false
     QtWebEngine: Qt 5.9.2
