@@ -136,7 +136,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         return False
 
     def attr(self, name: str) -> str:
-        """Get 'name' attribute if exists."""
+        """Get 'name' attribute if exists, or ''."""
         raise NotImplementedError
 
     def outer_xml(self) -> str:
