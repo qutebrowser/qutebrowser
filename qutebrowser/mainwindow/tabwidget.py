@@ -692,6 +692,8 @@ class TabBar(QTabBar):
             self.initStyleOption(tab, idx)
 
             setting = 'colors.tabs'
+            if self._tab_pinned(idx):
+                setting += '.pinned'
             if idx == selected:
                 setting += '.selected'
             setting += '.odd' if (idx + 1) % 2 else '.even'
