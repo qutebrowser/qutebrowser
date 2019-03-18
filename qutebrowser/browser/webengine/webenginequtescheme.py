@@ -163,6 +163,7 @@ def init():
     classes.
     """
     if QWebEngineUrlScheme is not None:
+        assert QWebEngineUrlScheme.schemeByName(b'qute') is None
         scheme = QWebEngineUrlScheme(b'qute')
         scheme.setFlags(QWebEngineUrlScheme.LocalScheme |
                         QWebEngineUrlScheme.LocalAccessAllowed)
