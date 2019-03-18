@@ -41,6 +41,7 @@ Fixed
 - Crash when using `:config-{dict,list}-{add,remove}` with an invalid setting.
 - Functionality like hinting on pages with an element with ID `_qutebrowser` (such as qutebrowser.org) on Qt 5.12.
 - The .desktop file in v1.6.0 was missing the "Actions" key, which is now fixed.
+- The SVG icon now has a size of 256x256px set to comply with freedesktop standards.
 
 v1.6.0
 ------
