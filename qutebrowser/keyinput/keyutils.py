@@ -20,6 +20,7 @@
 """Our own QKeySequence-like class and related utilities."""
 
 import itertools
+import typing
 
 import attr
 from PyQt5.QtCore import Qt, QEvent
@@ -575,7 +576,7 @@ class KeySequence:
         keys = [key & ~modifiers for key in self._iter_keys()]
         return self.__class__(*keys)
 
-    def with_mappings(self, mappings):
+    def with_mappings(self, mappings: typing.Mapping):
         """Get a new KeySequence with the given mappings applied."""
         keys = []
         for key in self._iter_keys():

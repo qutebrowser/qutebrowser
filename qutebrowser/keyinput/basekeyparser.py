@@ -20,6 +20,7 @@
 """Base class for vim-like key sequence parser."""
 
 import string
+import types
 
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtGui import QKeySequence
@@ -126,7 +127,8 @@ class BaseKeyParser(QObject):
     def _match_key_mapping(self, sequence):
         """Try to match a key in bindings.key_mappings."""
         self._debug_log("Trying match with key_mappings")
-        mapped = sequence.with_mappings(config.val.bindings.key_mappings)
+        mapped = sequence.with_mappings(
+            types.MappingProxyType(config.cache['bindings.key_mappings']))
         if sequence != mapped:
             self._debug_log("Mapped {} -> {}".format(
                 sequence, mapped))
