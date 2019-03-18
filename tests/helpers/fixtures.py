@@ -165,7 +165,7 @@ def greasemonkey_manager(data_tmpdir):
     objreg.delete('greasemonkey')
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='session', autouse=True)
 def testdata_scheme(qapp):
     try:
         global _qute_scheme_handler
@@ -192,8 +192,7 @@ def testdata_scheme(qapp):
 
 @pytest.fixture
 def web_tab_setup(qtbot, tab_registry, session_manager_stub,
-                  greasemonkey_manager, fake_args, config_stub,
-                  testdata_scheme):
+                  greasemonkey_manager, fake_args, config_stub):
     """Shared setup for webkit_tab/webengine_tab."""
     # Make sure error logging via JS fails tests
     config_stub.val.content.javascript.log = {
