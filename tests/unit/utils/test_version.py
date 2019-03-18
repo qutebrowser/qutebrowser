@@ -40,6 +40,10 @@ import qutebrowser
 from qutebrowser.utils import version, usertypes, utils
 from qutebrowser.misc import pastebin
 from qutebrowser.browser import pdfjs
+try:
+    from qutebrowser.browser.webengine import webenginesettings
+except ImportError:
+    webenginesettings = None
 
 
 @pytest.mark.parametrize('os_release, expected', [
@@ -821,20 +825,21 @@ class FakeQSslSocket:
      'QtWebEngine/5.8.0 Chrome/53.0.2785.148 Safari/537.36', '53.0.2785.148'),
 ])
 def test_chromium_version(monkeypatch, caplog, ua, expected):
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
     if ua is None:
-        monkeypatch.setattr(version, 'QWebEngineProfile', None)
+        monkeypatch.setattr(version, 'webenginesettings', None)
     else:
-        class FakeWebEngineProfile:
-            def httpUserAgent(self):
-                return ua
-        monkeypatch.setattr(version, 'QWebEngineProfile', FakeWebEngineProfile)
+        monkeypatch.setattr(version.webenginesettings,
+                            'default_user_agent', ua)
 
     with caplog.at_level(logging.ERROR):
         assert version._chromium_version() == expected
 
 
-def test_chromium_version_unpatched(qapp):
+def test_chromium_version_unpatched(qapp, cache_tmpdir, data_tmpdir,
+                                    config_stub):
     pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    webenginesettings._init_profiles()
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
 
@@ -861,9 +866,6 @@ class VersionParams:
 ], ids=lambda param: param.name)
 def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
-    class FakeWebEngineProfile:
-        def httpUserAgent(self):
-            return 'Toaster/4.0.4 Chrome/CHROMIUMVERSION Teapot/4.1.8'
 
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
@@ -902,13 +904,14 @@ def test_version_output(params, stubs, monkeypatch):
     if params.with_webkit:
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
         patches['objects.backend'] = usertypes.Backend.QtWebKit
-        patches['QWebEngineProfile'] = None
+        patches['webenginesettings'] = None
         substitutions['backend'] = 'new QtWebKit (WebKit WEBKIT VERSION)'
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
-        patches['QWebEngineProfile'] = FakeWebEngineProfile
         substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
+        patches['webenginesettings.default_user_agent'] = \
+            'Toaster/4.0.4 Chrome/CHROMIUMVERSION Teapot/4.1.8'
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(

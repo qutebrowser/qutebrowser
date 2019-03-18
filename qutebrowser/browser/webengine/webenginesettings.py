@@ -43,6 +43,8 @@ private_profile = None
 # The global WebEngineSettings object
 global_settings = None
 
+default_user_agent = None
+
 
 class _SettingsWrapper:
 
@@ -281,9 +283,10 @@ def _update_settings(option):
 
 def _init_profiles():
     """Init the two used QWebEngineProfiles."""
-    global default_profile, private_profile
+    global default_profile, private_profile, default_user_agent
 
     default_profile = QWebEngineProfile.defaultProfile()
+    default_user_agent = default_profile.httpUserAgent()
     default_profile.setter = ProfileSetter(default_profile)
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
