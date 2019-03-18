@@ -129,6 +129,9 @@ class AbstractWebElement(collections.abc.MutableMapping):
             else:
                 matchstr = self.attr(_attr).casefold()
 
+            if not matchstr:
+                continue
+
             if all(word in matchstr for word in _words):
                 log.webelem.debug(
                     "Matched hint {!r} on elem {!r}.".format(filterstr, _attr))
