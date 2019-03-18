@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -479,7 +479,7 @@ class CommandDispatcher:
         # Catch common cases before e.g. cloning tab
         if not forward and not history.can_go_back():
             raise cmdutils.CommandError("At beginning of history.")
-        elif forward and not history.can_go_forward():
+        if forward and not history.can_go_forward():
             raise cmdutils.CommandError("At end of history.")
 
         if tab or bg or window:

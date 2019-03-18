@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -1105,8 +1105,7 @@ class DownloadModel(QAbstractListModel):
             to_retry = [d for d in self if d.done and not d.successful]
             if not to_retry:
                 raise cmdutils.CommandError("No failed downloads!")
-            else:
-                download = to_retry[0]
+            download = to_retry[0]
         download.try_retry()
 
     def can_clear(self):

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -112,8 +112,7 @@ def raise_sqlite_error(msg, error):
 
     if error_code in environmental_errors or qtbug_70506:
         raise SqlEnvironmentError(msg, error)
-    else:
-        raise SqlBugError(msg, error)
+    raise SqlBugError(msg, error)
 
 
 def init(db_path):

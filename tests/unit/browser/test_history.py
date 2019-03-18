@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -190,8 +190,7 @@ class TestAdd:
         def raise_error(url, replace=False):
             if environmental:
                 raise sql.SqlEnvironmentError("Error message")
-            else:
-                raise sql.SqlBugError("Error message")
+            raise sql.SqlBugError("Error message")
 
         if completion:
             monkeypatch.setattr(web_history.completion, 'insert', raise_error)

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -292,8 +292,7 @@ def debug_crash(typ: str = 'exception') -> None:
     if typ == 'segfault':
         os.kill(os.getpid(), signal.SIGSEGV)
         raise Exception("Segfault failed (wat.)")
-    else:
-        raise Exception("Forced crash")
+    raise Exception("Forced crash")
 
 
 @cmdutils.register(debug=True, maxsplit=0, no_cmd_split=True)

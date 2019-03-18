@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,30 +17,23 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import textwrap
+"""Test interceptor.py for webengine."""
+
 
 import pytest
 
-import pytest_bdd as bdd
-bdd.scenarios('hints.feature')
+pytest.importorskip('PyQt5.QtWebEngineWidgets')
+
+from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInfo
+
+from qutebrowser.browser.webengine import interceptor
 
 
-@pytest.fixture(autouse=True)
-def set_up_word_hints(tmpdir, quteproc):
-    dict_file = tmpdir / 'dict'
-    dict_file.write(textwrap.dedent("""
-        one
-        two
-        three
-        four
-        five
-        six
-        seven
-        eight
-        nine
-        ten
-        eleven
-        twelve
-        thirteen
-    """))
-    quteproc.set_setting('hints.dictionary', str(dict_file))
+class TestWebengineInterceptor:
+
+    def test_requestinfo_dict_valid(self):
+        """Test that the RESOURCE_TYPES dict is not missing any values."""
+        qb_keys = interceptor.RequestInterceptor.RESOURCE_TYPES.keys()
+        qt_keys = {i for i in vars(QWebEngineUrlRequestInfo).values()
+                   if isinstance(i, QWebEngineUrlRequestInfo.ResourceType)}
+        assert qt_keys == qb_keys

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -956,10 +956,9 @@ class HintManager(QObject):
         if keystring is None:
             if self._context.to_follow is None:
                 raise cmdutils.CommandError("No hint to follow")
-            elif select:
+            if select:
                 raise cmdutils.CommandError("Can't use --select without hint.")
-            else:
-                keystring = self._context.to_follow
+            keystring = self._context.to_follow
         elif keystring not in self._context.labels:
             raise cmdutils.CommandError("No hint {}!".format(keystring))
 

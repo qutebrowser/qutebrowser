@@ -608,7 +608,7 @@ Style conventions
 -----------------
 
 qutebrowser's coding conventions are based on
-http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google-styleguide.googlecode.com/svn/trunk/pyguide.html[Google Python style guidelines] with some additions:
+http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google.github.io/styleguide/pyguide.html[Google Python style guidelines] with some additions:
 
 * The _Raise:_ section is not added to the docstring.
 * Methods overriding Qt methods (obviously!) don't follow the naming schemes.
@@ -710,6 +710,7 @@ qutebrowser release
 
 * Update changelog (remove *(unreleased)*).
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
+* Consider updating the completions for `content.headers.user_agent` in `configdata.yml`.
 * Commit.
 
 * Create annotated git tag (`git tag -s "v1.$x.$y" -m "Release v1.$x.$y"`).
@@ -723,7 +724,7 @@ as closed.
 * Windows: Run `git checkout v1.X.Y; py -3 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
 * macOS: Run `git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
 * On server:
-  - Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
+  - Run `bash download_release.sh 1.X.Y` (replace X/Y by hand).
   - Run `git pull github master && sudo python3 scripts/asciidoc2html.py --website /srv/http/qutebrowser`
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed.
 * Announce to qutebrowser and qutebrowser-announce mailinglist.

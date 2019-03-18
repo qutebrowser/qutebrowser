@@ -331,19 +331,16 @@ Feature: Various utility commands.
         When I set content.headers.do_not_track to true
         And I open headers
         Then the header Dnt should be set to 1
-        And the header X-Do-Not-Track should be set to 1
 
     Scenario: DNT header (off)
         When I set content.headers.do_not_track to false
         And I open headers
         Then the header Dnt should be set to 0
-        And the header X-Do-Not-Track should be set to 0
 
     Scenario: DNT header (unset)
         When I set content.headers.do_not_track to <empty>
         And I open headers
         Then the header Dnt should be set to <unset>
-        And the header X-Do-Not-Track should be set to <unset>
 
     Scenario: Accept-Language header
         When I set content.headers.accept_language to en,de

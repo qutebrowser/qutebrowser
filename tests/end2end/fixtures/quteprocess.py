@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -230,6 +230,11 @@ def is_ignored_chromium_message(line):
         # content.mojom.RendererAudioOutputStreamFactory
         'InterfaceRequest was dropped, the document is no longer active: '
         'content.mojom.RendererAudioOutputStreamFactory',
+        # [1920:2168:0225/112442.664:ERROR:in_progress_cache_impl.cc(124)]
+        # Could not write download entries to file: C:\Users\appveyor\AppData\
+        # Local\Temp\1\qutebrowser-basedir-1l3jmxq4\data\webengine\
+        # in_progress_download_metadata_store
+        'Could not write download entries to file: *',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -819,9 +824,9 @@ class QuteProc(testprocess.Process):
         message = self.wait_for_js('qute:*').message
         if message.endswith('qute:no elems'):
             raise ValueError('No element with {!r} found'.format(text))
-        elif message.endswith('qute:ambiguous elems'):
+        if message.endswith('qute:ambiguous elems'):
             raise ValueError('Element with {!r} is not unique'.format(text))
-        elif not message.endswith('qute:okay'):
+        if not message.endswith('qute:okay'):
             raise ValueError('Invalid response from qutebrowser: {}'
                              .format(message))
 
