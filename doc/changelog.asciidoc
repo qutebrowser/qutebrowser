@@ -39,6 +39,7 @@ Fixed
 ~~~~~
 
 - Crash when using `:config-{dict,list}-{add,remove}` with an invalid setting.
+- Functionality like hinting on pages with an element with ID `_qutebrowser` (such as qutebrowser.org) on Qt 5.12.
 
 v1.6.0
 ------
