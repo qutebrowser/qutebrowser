@@ -57,28 +57,34 @@ def init():
     log.init.debug("Initializing qute://* handler...")
     _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
     _qute_scheme_handler.install(webenginesettings.default_profile)
-    _qute_scheme_handler.install(webenginesettings.private_profile)
+    if webenginesettings.private_profile:
+        _qute_scheme_handler.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing request interceptor...")
     args = objreg.get('args')
     req_interceptor = interceptor.RequestInterceptor(args=args, parent=app)
     req_interceptor.install(webenginesettings.default_profile)
-    req_interceptor.install(webenginesettings.private_profile)
+    if webenginesettings.private_profile:
+        req_interceptor.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing QtWebEngine downloads...")
     download_manager = webenginedownloads.DownloadManager(parent=app)
     download_manager.install(webenginesettings.default_profile)
-    download_manager.install(webenginesettings.private_profile)
+    if webenginesettings.private_profile:
+        download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
 
     log.init.debug("Initializing cookie filter...")
     cookies.install_filter(webenginesettings.default_profile)
-    cookies.install_filter(webenginesettings.private_profile)
+    if webenginesettings.private_profile:
+        cookies.install_filter(webenginesettings.private_profile)
 
     # Clear visited links on web history clear
     hist = objreg.get('web-history')
     for p in [webenginesettings.default_profile,
               webenginesettings.private_profile]:
+        if not p:
+            continue
         hist.history_cleared.connect(p.clearAllVisitedLinks)
         hist.url_cleared.connect(lambda url, profile=p:
                                  profile.clearVisitedLinks([url]))

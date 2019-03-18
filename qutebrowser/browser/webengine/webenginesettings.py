@@ -30,6 +30,7 @@ import operator
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEnginePage)
+from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
@@ -54,8 +55,9 @@ class _SettingsWrapper:
     """
 
     def __init__(self):
-        self._settings = [default_profile.settings(),
-                          private_profile.settings()]
+        self._settings = [default_profile.settings()]
+        if private_profile:
+            self._settings.append(private_profile.settings())
 
     def setAttribute(self, *args, **kwargs):
         for settings in self._settings:
@@ -267,10 +269,12 @@ def _update_settings(option):
     if option in ['content.headers.user_agent',
                   'content.headers.accept_language']:
         default_profile.setter.set_http_headers()
-        private_profile.setter.set_http_headers()
+        if private_profile:
+            private_profile.setter.set_http_headers()
     elif option == 'content.cache.size':
         default_profile.setter.set_http_cache_size()
-        private_profile.setter.set_http_cache_size()
+        if private_profile:
+            private_profile.setter.set_http_cache_size()
     elif (option == 'content.cookies.store' and
           # https://bugreports.qt.io/browse/QTBUG-58650
           qtutils.version_check('5.9', compiled=False)):
@@ -278,7 +282,8 @@ def _update_settings(option):
         # We're not touching the private profile's cookie policy.
     elif option == 'spellcheck.languages':
         default_profile.setter.set_dictionary_language()
-        private_profile.setter.set_dictionary_language(warn=False)
+        if private_profile:
+            private_profile.setter.set_dictionary_language(warn=False)
 
 
 def _init_profiles():
@@ -295,10 +300,12 @@ def _init_profiles():
     default_profile.setter.init_profile()
     default_profile.setter.set_persistent_cookie_policy()
 
-    private_profile = QWebEngineProfile()
-    private_profile.setter = ProfileSetter(private_profile)
-    assert private_profile.isOffTheRecord()
-    private_profile.setter.init_profile()
+    args = QApplication.instance().arguments()
+    if '--single-process' not in args:
+        private_profile = QWebEngineProfile()
+        private_profile.setter = ProfileSetter(private_profile)
+        assert private_profile.isOffTheRecord()
+        private_profile.setter.init_profile()
 
 
 def init(args):
