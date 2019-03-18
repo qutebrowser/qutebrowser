@@ -299,6 +299,12 @@ class TestAdd:
         else:
             assert yaml_value(name)[-1] == value
 
+    def test_list_add_invalid_option(self, commands):
+        with pytest.raises(
+                cmdutils.CommandError,
+                match="No option 'nonexistent'"):
+            commands.config_list_add('nonexistent', 'value')
+
     def test_list_add_non_list(self, commands):
         with pytest.raises(
                 cmdutils.CommandError,
@@ -342,6 +348,12 @@ class TestAdd:
                           "overwrite!"):
                 commands.config_dict_add(name, key, value, replace=False)
 
+    def test_dict_add_invalid_option(self, commands):
+        with pytest.raises(
+                cmdutils.CommandError,
+                match="No option 'nonexistent'"):
+            commands.config_dict_add('nonexistent', 'key', 'value')
+
     def test_dict_add_non_dict(self, commands):
         with pytest.raises(
                 cmdutils.CommandError,
@@ -371,6 +383,12 @@ class TestRemove:
         else:
             assert value not in yaml_value(name)
 
+    def test_list_remove_invalid_option(self, commands):
+        with pytest.raises(
+                cmdutils.CommandError,
+                match="No option 'nonexistent'"):
+            commands.config_list_remove('nonexistent', 'value')
+
     def test_list_remove_non_list(self, commands):
         with pytest.raises(
                 cmdutils.CommandError,
@@ -395,6 +413,12 @@ class TestRemove:
             assert yaml_value(name) == configutils.UNSET
         else:
             assert key not in yaml_value(name)
+
+    def test_dict_remove_invalid_option(self, commands):
+        with pytest.raises(
+                cmdutils.CommandError,
+                match="No option 'nonexistent'"):
+            commands.config_dict_remove('nonexistent', 'key')
 
     def test_dict_remove_non_dict(self, commands):
         with pytest.raises(
