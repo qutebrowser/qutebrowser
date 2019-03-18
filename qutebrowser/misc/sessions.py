@@ -422,6 +422,12 @@ class SessionManager(QObject):
         if data is None:
             raise SessionError("Got empty session file")
 
+        args = QApplication.instance().arguments()
+        if '--single-process' in args:
+            if any(win.get('private') for win in data['windows']):
+                raise SessionError("Can't load a session with private windows "
+                                   "in single process mode.")
+
         for win in data['windows']:
             window = mainwindow.MainWindow(geometry=win['geometry'],
                                            private=win.get('private', None))
