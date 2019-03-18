@@ -398,6 +398,16 @@ Feature: Tab management
             - data/numbers/3.txt
             - data/numbers/2.txt (active)
 
+    Scenario: :tab-focus last after closing a lower number tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close with count 1
+        And I run :tab-focus last
+        Then the following tabs should be open:
+            - data/numbers/2.txt (active)
+            - data/numbers/3.txt
+
     # tab-prev/tab-next
 
     Scenario: :tab-prev
