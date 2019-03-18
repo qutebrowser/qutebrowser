@@ -165,7 +165,7 @@ def greasemonkey_manager(data_tmpdir):
     objreg.delete('greasemonkey')
 
 
-@pytest.fixture(scope='session', autouse=True)
+@pytest.fixture(scope='session')
 def testdata_scheme(qapp):
     try:
         global _qute_scheme_handler
@@ -192,7 +192,8 @@ def testdata_scheme(qapp):
 
 @pytest.fixture
 def web_tab_setup(qtbot, tab_registry, session_manager_stub,
-                  greasemonkey_manager, fake_args, config_stub):
+                  greasemonkey_manager, fake_args, config_stub,
+                  testdata_scheme):
     """Shared setup for webkit_tab/webengine_tab."""
     # Make sure error logging via JS fails tests
     config_stub.val.content.javascript.log = {
@@ -414,7 +415,7 @@ def qnam(qapp):
 
 
 @pytest.fixture
-def webengineview(qtbot, monkeypatch):
+def webengineview(qtbot, monkeypatch, web_tab_setup):
     """Get a QWebEngineView if QtWebEngine is available."""
     QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
