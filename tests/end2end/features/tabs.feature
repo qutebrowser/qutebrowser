@@ -865,7 +865,6 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new tab
         And I open data/numbers/3.txt in a new tab
         And I run :tab-close with count 1
-        And I run :tab-focus 2
         And I run :tab-move with count 1
         And I run :undo
         Then the following tabs should be open:
