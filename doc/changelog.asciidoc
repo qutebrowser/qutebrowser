@@ -31,6 +31,13 @@ Changed
 
 Fixed
 ~~~~~
+
+v1.6.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
 - Crash when using `:config-{dict,list}-{add,remove}` with an invalid setting.
 
 v1.6.0
