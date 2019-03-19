@@ -29,6 +29,7 @@ from qutebrowser.config import config, configdata, configexc, configutils
 from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
+from qutebrowser.api import cmdutils
 
 
 @pytest.fixture(autouse=True)
@@ -184,6 +185,14 @@ class TestKeyConfig:
                                               default=True)
         assert command == 'message-info default'
 
+    def test_get_command_default_pattern_err(
+            self, key_config_stub, config_stub):
+        pattern = urlmatch.UrlPattern("*.qutebrowser.org")
+        with pytest.raises(cmdutils.CommandError,
+                           match="Cannot get defaults with a url pattern!"):
+            key_config_stub.get_command(keyseq('x'), 'normal',
+                                        default=True, pattern=pattern)
+
     @pytest.mark.parametrize('bindings, expected', [
         # Simple
         ({'a': 'message-info foo', 'b': 'message-info bar'},
@@ -220,18 +229,27 @@ class TestKeyConfig:
         'message-info foo',
         'nop ;; wq',  # https://github.com/qutebrowser/qutebrowser/issues/3002
     ])
+    @pytest.mark.parametrize('pattern', [None, '*.qutebrowser.org'])
     def test_bind(self, key_config_stub, config_stub, qtbot, no_bindings,
-                  mode, command):
+                  mode, command, pattern):
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
         seq = keyseq('a')
+        if pattern is not None:
+            pattern = urlmatch.UrlPattern(pattern)
 
         with qtbot.wait_signal(config_stub.changed):
-            key_config_stub.bind(seq, command, mode=mode)
+            key_config_stub.bind(seq, command, mode=mode, pattern=pattern)
 
-        assert config_stub.val.bindings.commands[mode][seq] == command
-        assert key_config_stub.get_bindings_for(mode)[seq] == command
-        assert key_config_stub.get_command(seq, mode) == command
+        if pattern is None:
+            assert config_stub.val.bindings.commands[mode][seq] == command
+            assert key_config_stub.get_bindings_for(mode)[seq] == command
+        else:
+            assert config_stub.get_obj_for_pattern(
+                'bindings.commands', pattern=pattern).get(
+                    mode, {}).get(str(seq)) == command
+        assert key_config_stub.get_command(
+            seq, mode, pattern=pattern) == command
 
     def test_bind_mode_changing(self, key_config_stub, config_stub,
                                 no_bindings):
@@ -314,13 +332,30 @@ class TestKeyConfig:
             assert default_bindings[mode] == expected_default_bindings[mode]
             assert mode_bindings[seq] is None
 
-    def test_unbind_unbound(self, key_config_stub, config_stub, no_bindings):
+    def test_unbind_pattern(self, key_config_stub, config_stub, qtbot):
+        url_pattern = urlmatch.UrlPattern('*.qutebrowser.org')
+        config.instance.set_obj('bindings.commands',
+                                {
+                                    'normal': {'b': 'nop'},
+                                },
+                                pattern=url_pattern)
+        seq = keyseq('b')
+        assert key_config_stub.get_command(
+            seq, 'normal', pattern=url_pattern) is not None
+        with qtbot.wait_signal(config_stub.changed):
+            key_config_stub.unbind(seq, mode='normal', pattern=url_pattern)
+        assert key_config_stub.get_command(
+            seq, 'normal', pattern=url_pattern) is None
+
+    @pytest.mark.parametrize('pattern', [None, '*.qutebrowser.org'])
+    def test_unbind_unbound(self, key_config_stub, config_stub, no_bindings, pattern):
         """Try unbinding a key which is not bound."""
         config_stub.val.bindings.default = no_bindings
         config_stub.val.bindings.commands = no_bindings
         with pytest.raises(configexc.KeybindingError,
                            match="Can't find binding 'foobar' in normal mode"):
-            key_config_stub.unbind(keyseq('foobar'), mode='normal')
+            key_config_stub.unbind(
+                keyseq('foobar'), mode='normal', pattern=pattern)
 
     def test_unbound_twice(self, key_config_stub, config_stub, no_bindings):
         """Try unbinding an already-unbound default key.

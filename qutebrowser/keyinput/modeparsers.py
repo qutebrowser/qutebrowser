@@ -79,7 +79,7 @@ class NormalKeyParser(CommandKeyParser):
     def __repr__(self):
         return utils.get_repr(self)
 
-    def handle(self, e, *, dry_run=False):
+    def handle(self, e, *, dry_run=False, url=None):
         """Override to abort if the key is a startchar.
 
         Args:
@@ -96,7 +96,7 @@ class NormalKeyParser(CommandKeyParser):
                             "currently inhibited.".format(txt))
             return QKeySequence.NoMatch
 
-        match = super().handle(e, dry_run=dry_run)
+        match = super().handle(e, dry_run=dry_run, url=url)
 
         if match == QKeySequence.PartialMatch and not dry_run:
             timeout = config.val.input.partial_timeout
@@ -232,7 +232,7 @@ class HintKeyParser(CommandKeyParser):
             self._last_press = LastPress.filtertext
             return QKeySequence.ExactMatch
 
-    def handle(self, e, *, dry_run=False):
+    def handle(self, e, *, dry_run=False, url=None):
         """Handle a new keypress and call the respective handlers.
 
         Args:
@@ -244,14 +244,14 @@ class HintKeyParser(CommandKeyParser):
             True if the match has been handled, False otherwise.
         """
         if dry_run:
-            return super().handle(e, dry_run=True)
+            return super().handle(e, dry_run=True, url=url)
 
         if keyutils.is_special(e.key(), e.modifiers()):
             log.keyboard.debug("Got special key, clearing keychain")
             self.clear_keystring()
 
         assert not dry_run
-        match = super().handle(e)
+        match = super().handle(e, url=url)
 
         if match == QKeySequence.PartialMatch:
             self._last_press = LastPress.keystring
@@ -312,7 +312,7 @@ class RegisterKeyParser(CommandKeyParser):
         self._mode = mode
         self._read_config('register')
 
-    def handle(self, e, *, dry_run=False):
+    def handle(self, e, *, dry_run=False, url=None):
         """Override handle to always match the next key and use the register.
 
         Args:
@@ -323,7 +323,7 @@ class RegisterKeyParser(CommandKeyParser):
         Return:
             True if event has been handled, False otherwise.
         """
-        match = super().handle(e, dry_run=dry_run)
+        match = super().handle(e, dry_run=dry_run, url=url)
         if match or dry_run:
             return match
 
