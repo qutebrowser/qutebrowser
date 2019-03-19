@@ -21,6 +21,9 @@ v1.7.0 (unreleased)
 Added
 ~~~~~
 
+- New settings:
+  * `colors.tabs.pinned.*` to control colors of pinned tabs.
+
 Changed
 ~~~~~~~
 
