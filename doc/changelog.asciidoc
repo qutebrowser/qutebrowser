@@ -38,6 +38,13 @@ Fixed
 v1.6.1 (unreleased)
 -------------------
 
+Changed
+~~~~~~~
+
+- Windows/macOS releases now ship with Qt 5.12.2, which includes
+  security fixes up to Chromium 72.0.3626.121 (including CVE-2019-5786
+  which is known to be exploited in the wild).
+
 Fixed
 ~~~~~
 
