@@ -1441,8 +1441,8 @@ class TestFont:
             expected = '10pt Terminus'
         elif klass is configtypes.QtFont:
             desc = FontDesc(QFont.StyleNormal, QFont.Normal, 10, None,
-                            'Terminus'),
-            expected = Font.fromdesc(*desc)
+                            'Terminus')
+            expected = Font.fromdesc(desc)
         assert klass().to_py('10pt monospace') == expected
 
 

@@ -81,4 +81,4 @@ def register(linter):
         FAILED_LOAD = True
         return
     with yaml_file.open(mode='r', encoding='utf-8') as f:
-        OPTIONS = list(yaml.load(f))
+        OPTIONS = list(yaml.safe_load(f))
