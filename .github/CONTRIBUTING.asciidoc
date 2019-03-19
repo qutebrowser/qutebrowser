@@ -1,10 +1,6 @@
-IMPORTANT: *Currently, bigger changes are going on in qutebrowser, as
-part of a
-https://lists.schokokeks.org/pipermail/qutebrowser-announce/2018-September/000051.html[student research project]
-about adding a plugin API to qutebrowser and moving a lot of code from the code
-into plugins.* Due to that, bandwidth for pull request review is currently
-very limited, and contributions might lead to merge conflicts due to
-ongoing refactorings.
+IMPORTANT: Bandwidth for pull request review is currently quite limited. If you
+want to contribute where it's most needed, please consider reviewing or testing
+open pull requests.
 
 - Before you start to work on something, please leave a comment on the relevant
   issue (or open one). This makes sure there is no duplicate work done.
