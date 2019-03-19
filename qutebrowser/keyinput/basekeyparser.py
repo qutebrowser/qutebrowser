@@ -20,12 +20,13 @@
 """Base class for vim-like key sequence parser."""
 
 import string
+import itertools
 
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtGui import QKeySequence
 
-from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.config import config, configutils
+from qutebrowser.utils import usertypes, log, utils, objreg
 from qutebrowser.keyinput import keyutils
 
 
@@ -90,11 +91,12 @@ class BaseKeyParser(QObject):
         if self.do_log:
             log.keyboard.debug(message)
 
-    def _match_key(self, sequence):
+    def _match_key(self, sequence, url):
         """Try to match a given keystring with any bound keychain.
 
         Args:
             sequence: The command string to find.
+            url: The current url.
 
         Return:
             A tuple (matchtype, binding).
@@ -105,8 +107,14 @@ class BaseKeyParser(QObject):
         assert sequence
         assert not isinstance(sequence, str)
         result = QKeySequence.NoMatch
+        overrides = config.instance.get(
+            'bindings.commands', url=url, fallback=False)
+        if overrides == configutils.UNSET:
+            overrides = ()
+        else:
+            overrides = overrides.get(self._modename, {}).items()
 
-        for seq, cmd in self.bindings.items():
+        for seq, cmd in itertools.chain(overrides, self.bindings.items()):
             assert not isinstance(seq, str), seq
             match = sequence.matches(seq)
             if match == QKeySequence.ExactMatch:
@@ -116,21 +124,21 @@ class BaseKeyParser(QObject):
 
         return result, None
 
-    def _match_without_modifiers(self, sequence):
+    def _match_without_modifiers(self, sequence, url):
         """Try to match a key with optional modifiers stripped."""
         self._debug_log("Trying match without modifiers")
         sequence = sequence.strip_modifiers()
-        match, binding = self._match_key(sequence)
+        match, binding = self._match_key(sequence, url)
         return match, binding, sequence
 
-    def _match_key_mapping(self, sequence):
+    def _match_key_mapping(self, sequence, url):
         """Try to match a key in bindings.key_mappings."""
         self._debug_log("Trying match with key_mappings")
         mapped = sequence.with_mappings(config.val.bindings.key_mappings)
         if sequence != mapped:
             self._debug_log("Mapped {} -> {}".format(
                 sequence, mapped))
-            match, binding = self._match_key(mapped)
+            match, binding = self._match_key(mapped, url)
             sequence = mapped
             return match, binding, sequence
         return QKeySequence.NoMatch, None, sequence
@@ -168,6 +176,9 @@ class BaseKeyParser(QObject):
         self._debug_log("Got key: 0x{:x} / modifiers: 0x{:x} / text: '{}' / "
                         "dry_run {}".format(key, int(e.modifiers()), txt,
                                             dry_run))
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window='current')
+        url = tabbed_browser.current_url()
 
         if keyutils.is_modifier_key(key):
             self._debug_log("Ignoring, only modifier")
@@ -180,11 +191,12 @@ class BaseKeyParser(QObject):
             self.clear_keystring()
             return QKeySequence.NoMatch
 
-        match, binding = self._match_key(sequence)
+        match, binding = self._match_key(sequence, url)
         if match == QKeySequence.NoMatch:
-            match, binding, sequence = self._match_without_modifiers(sequence)
+            match, binding, sequence = self._match_without_modifiers(
+                sequence, url)
         if match == QKeySequence.NoMatch:
-            match, binding, sequence = self._match_key_mapping(sequence)
+            match, binding, sequence = self._match_key_mapping(sequence, url)
         if match == QKeySequence.NoMatch:
             was_count = self._match_count(sequence, dry_run)
             if was_count:
