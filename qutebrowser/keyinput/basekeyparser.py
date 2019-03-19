@@ -22,8 +22,9 @@
 import string
 import itertools
 import functools
+import typing
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, QUrl, QEvent
 from PyQt5.QtGui import QKeySequence
 
 from qutebrowser.config import config, configutils
@@ -171,7 +172,16 @@ class BaseKeyParser(QObject):
             return True
         return False
 
-    def handle(self, e, *, dry_run=False):
+    def _get_url(self) -> typing.Optional[QUrl]:
+        try:
+            tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                        window='current')
+            return tabbed_browser.current_url()
+        except objreg.RegistryUnavailableError:
+            return None
+
+    def handle(self, e: QEvent, *, dry_run: bool = False,
+               url: typing.Optional[QUrl] = None):
         """Handle a new keypress.
 
         Separate the keypress into count/command, then check if it matches
@@ -191,9 +201,7 @@ class BaseKeyParser(QObject):
         self._debug_log("Got key: 0x{:x} / modifiers: 0x{:x} / text: '{}' / "
                         "dry_run {}".format(key, int(e.modifiers()), txt,
                                             dry_run))
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window='current')
-        url = tabbed_browser.current_url()
+        url = url if url is not None else self._get_url()
 
         if keyutils.is_modifier_key(key):
             self._debug_log("Ignoring, only modifier")
