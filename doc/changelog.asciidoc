@@ -35,8 +35,8 @@ Changed
 Fixed
 ~~~~~
 
-v1.6.1 (unreleased)
--------------------
+v1.6.1
+------
 
 Changed
 ~~~~~~~
