@@ -105,7 +105,7 @@ def run(args):
     q_app = Application(args)
     q_app.setOrganizationName("qutebrowser")
     q_app.setApplicationName("qutebrowser")
-    q_app.setDesktopFileName("qutebrowser")
+    q_app.setDesktopFileName("org.qutebrowser.qutebrowser")
     q_app.setApplicationVersion(qutebrowser.__version__)
     q_app.lastWindowClosed.connect(quitter.on_last_window_closed)
 
