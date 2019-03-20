@@ -832,10 +832,25 @@ def test_chromium_version(monkeypatch, caplog, ua, expected):
         assert version._chromium_version() == expected
 
 
+def test_chromium_version_prefers_saved_user_agent(monkeypatch):
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    monkeypatch.setattr(
+        version.webenginesettings, 'default_user_agent',
+        'QtWebEngine/5.8.0 Chrome/53.0.2785.148 Safari/537.36'
+    )
+
+    class FakeProfile:
+        def defaultProfile(self):
+            raise AssertionError("Should not be called")
+
+    monkeypatch.setattr(version, 'QWebEngineProfile', FakeProfile())
+
+    version._chromium_version()
+
+
 def test_chromium_version_unpatched(qapp, cache_tmpdir, data_tmpdir,
                                     config_stub):
     pytest.importorskip('PyQt5.QtWebEngineWidgets')
-    webenginesettings._init_profiles()
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
 
@@ -910,6 +925,7 @@ def test_version_output(params, stubs, monkeypatch):
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
         substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
         patches['webenginesettings'] = FakeWebEngineSettings
+        patches['QWebEngineProfile'] = True
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(
