@@ -71,7 +71,7 @@ def replace_variables(win_id, arglist):
         'url:domain': lambda: "{}://{}{}".format(
             url().scheme(),
             url().host(),
-            ":" + url().port() if url().port() != -1 else ""),
+            ":" + str(url().port()) if url().port() != -1 else ""),
         'url:auth': lambda: "{}:{}@".format(
             url().userName(),
             url().password()) if url().userName() else "",
