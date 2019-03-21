@@ -158,6 +158,7 @@ class ConfigCommands:
                   (default: `normal`). See `:help bindings.commands` for the
                   available modes.
             default: If given, restore a default binding.
+            pattern: The URL pattern to use.
         """
         if key is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
@@ -202,6 +203,7 @@ class ConfigCommands:
                 pattern=parsed_pattern)
 
     @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('pattern', flag='u')
     def unbind(self, key: str, *,
                mode: str = 'normal', pattern: str = None) -> None:
         """Unbind a keychain.
@@ -211,6 +213,7 @@ class ConfigCommands:
                   correct syntax for keychains.
             mode: A mode to unbind the key in (default: `normal`).
                   See `:help bindings.commands` for the available modes.
+            pattern: The URL pattern to use.
         """
         parsed_pattern = self._parse_pattern(pattern)
         with self._handle_config_error():
