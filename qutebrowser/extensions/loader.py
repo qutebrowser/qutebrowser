@@ -4,6 +4,7 @@
 
 """Loader for qutebrowser extensions."""
 
+import os
 import pkgutil
 import types
 import sys
@@ -76,6 +77,8 @@ def load_components(*, skip_hooks: bool = False) -> None:
     """Load everything from qutebrowser.components."""
     for info in walk_components():
         _load_component(info, skip_hooks=skip_hooks)
+    for info in walk_extensions():
+        _load_component(info, skip_hooks=skip_hooks)
 
 
 def walk_components() -> Iterator[ExtensionInfo]:
@@ -99,6 +102,26 @@ def _walk_normal() -> Iterator[ExtensionInfo]:
             # lingering around.
             log.extensions.debug("Ignoring stale 'adblock' component")
             continue
+        yield ExtensionInfo(name=name)
+
+
+def walk_extensions() -> Iterator[ExtensionInfo]:
+    """Walk external extensions."""
+    ext_dir = os.path.join(standarddir.data(), 'extensions')
+    if not os.path.exists(ext_dir):
+        os.mkdir(ext_dir)
+        return
+
+    for finder, name, ispkg in pkgutil.walk_packages(
+            path=[ext_dir],
+            prefix='extensions.',
+            onerror=_on_walk_error):
+        if ispkg:
+            continue
+        if name not in sys.modules:
+            # Import the module with the finder so that it is in
+            # sys.modules readif for _load_component.
+            finder.find_module(name).load_module(name)
         yield ExtensionInfo(name=name)
 
 
