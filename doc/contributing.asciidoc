@@ -218,7 +218,7 @@ Some resources which might be handy:
 * http://doc.qt.io/qt-5/classes.html[The Qt5 reference]
 * https://docs.python.org/3/library/index.html[The Python reference]
 * http://httpbin.org/[httpbin, a test service for HTTP requests/responses]
-* http://requestb.in/[RequestBin, a service to inspect HTTP requests]
+* https://requestbin.com/[RequestBin, a service to inspect HTTP requests]
 
 Documentation of used Python libraries:
 
