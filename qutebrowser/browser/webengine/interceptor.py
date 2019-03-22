@@ -19,7 +19,9 @@
 
 """A request interceptor taking care of adblocking and custom headers."""
 
-from PyQt5.QtCore import QUrl
+import functools
+
+from PyQt5.QtCore import QUrl, QByteArray
 from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
                                    QWebEngineUrlRequestInfo)
 
@@ -85,6 +87,20 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         """Install the interceptor on the given QWebEngineProfile."""
         profile.setRequestInterceptor(self)
 
+    # pylint: disable=bad-builtin
+    WHITELIST_REQUEST_METHODS = frozenset(map(QByteArray, [b'GET', b'HEAD']))
+    # pylint: enable=bad-builtin
+    @staticmethod
+    def _handle_redirect(info: QWebEngineUrlRequestInfo, url: QUrl) -> bool:
+        """Handle redirection on qtwebengine."""
+        # Redirecting a request that contains payload data is not allowed.
+        # To be safe, abort on any request not in a whitelist.
+        if (info.requestMethod()
+                not in RequestInterceptor.WHITELIST_REQUEST_METHODS):
+            return False
+        info.redirect(url)
+        return True
+
     # Gets called in the IO thread -> showing crash window will fail
     @utils.prevent_exceptions(None)
     def interceptRequest(self, info):
@@ -139,9 +155,13 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
                 return
 
         # FIXME:qtwebengine only block ads for NavigationTypeOther?
-        request = interceptors.Request(first_party_url=first_party,
-                                       request_url=url,
-                                       resource_type=resource_type)
+        request = interceptors.Request(
+            first_party_url=first_party,
+            request_url=url,
+            resource_type=resource_type,
+            redirect_method=functools.partial(
+                RequestInterceptor._handle_redirect, info))
+
         interceptors.run(request)
         if request.is_blocked:
             info.block(True)

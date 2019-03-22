@@ -24,10 +24,7 @@ import enum
 
 import attr
 
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
-    from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl
 
 
 class ResourceType(enum.Enum):
@@ -74,9 +71,30 @@ class Request:
     #: The resource type of the request. None if not supported on this backend.
     resource_type = attr.ib(None)  # type: typing.Optional[ResourceType]
 
+    #: Private attribute to a method which implements redirection
+    _redirect_method = attr.ib(
+        default=None, type=typing.Optional[typing.Callable[[QUrl], bool]])
+
     def block(self) -> None:
         """Block this request."""
         self.is_blocked = True
+
+    def redirect(self, url: QUrl) -> bool:
+        """Redirect this request.
+
+        Only some types of requests can be successfully redirected.
+        Improper use of this method can result in redirect loops.
+
+        Args:
+            url: The QUrl to try to redirect to.
+
+        Return:
+            False if the redirection was known to be unsupported, else True.
+            A True return value does not guarantee success.
+        """
+        if self._redirect_method is None:
+            return False
+        return self._redirect_method(url)
 
 
 #: Type annotation for an interceptor function.
