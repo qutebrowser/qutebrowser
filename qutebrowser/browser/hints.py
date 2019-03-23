@@ -71,6 +71,8 @@ class HintLabel(QLabel):
         self.elem = elem
 
         self.setAttribute(Qt.WA_StyledBackground, True)
+        # Zero out extra indent provided.
+        self.setIndent(0)
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
         self._move_to_elem()
