@@ -94,7 +94,10 @@ class Request:
         """
         if self._redirect_method is None:
             return False
-        return self._redirect_method(url)
+        retval = self._redirect_method(url)
+        # Once firing a redirect, refuse any other attempt
+        self._redirect_method = None
+        return retval
 
 
 #: Type annotation for an interceptor function.
