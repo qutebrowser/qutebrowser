@@ -46,11 +46,6 @@ class ModelRole(enum.IntEnum):
 
     item = Qt.UserRole
 
-
-# Remember the last used directory
-last_used_directory = None
-
-
 # All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
 # redrawn.
 _REFRESH_INTERVAL = 500
@@ -69,6 +64,16 @@ class UnsupportedOperationError(Exception):
 
     """Raised when an operation is not supported with the given backend."""
 
+def init():
+    global last_used_directory
+    last_used_directory = None
+
+    config.instance.changed.connect(_clear_last_used)
+
+@config.change_filter('downloads.location.directory', function=True)
+def _clear_last_used():
+    global last_used_directory
+    last_used_directory = None
 
 def download_dir():
     """Get the download directory to use."""
