@@ -239,6 +239,14 @@ def is_ignored_chromium_message(line):
         # Local\Temp\1\qutebrowser-basedir-1l3jmxq4\data\webengine\
         # in_progress_download_metadata_store
         'Could not write download entries to file: *',
+
+        # Qt 5.13
+        # [32651:32651:0325/130146.300817:WARNING:
+        # render_frame_host_impl.cc(486)]
+        # InterfaceRequest was dropped, the document is no longer active:
+        # resource_coordinator.mojom.FrameCoordinationUnit
+        'InterfaceRequest was dropped, the document is no longer active: '
+        'resource_coordinator.mojom.FrameCoordinationUnit',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
