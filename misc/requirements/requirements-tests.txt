@@ -39,4 +39,4 @@ PyVirtualDisplay==0.2.1
 six==1.12.0
 soupsieve==1.8
 vulture==1.0
-Werkzeug==0.14.1
+Werkzeug==0.15.1
