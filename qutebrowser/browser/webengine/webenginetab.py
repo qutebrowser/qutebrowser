@@ -1081,13 +1081,10 @@ class WebEngineTab(browsertab.AbstractTab):
     Signals:
         _load_finished_fake:
             Used in place of unreliable loadFinished
-        abort_questions: Emitted when a new load started or we're shutting
-            down.
     """
 
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
     _load_finished_fake = pyqtSignal(bool)
-    abort_questions = pyqtSignal()
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
         super().__init__(win_id=win_id, private=private, parent=parent)
@@ -1537,8 +1534,6 @@ class WebEngineTab(browsertab.AbstractTab):
             page.loadFinished.connect(self._on_load_finished)
 
         self.before_load_started.connect(self._on_before_load_started)
-        self.shutting_down.connect(self.abort_questions)
-        self.load_started.connect(self.abort_questions)
 
         # pylint: disable=protected-access
         self.audio._connect_signals()

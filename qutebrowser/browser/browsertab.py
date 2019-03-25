@@ -847,6 +847,8 @@ class AbstractTab(QWidget):
     fullscreen_requested = pyqtSignal(bool)
     #: Signal emitted before load starts (URL as QUrl)
     before_load_started = pyqtSignal(QUrl)
+    #: Signal emitted when a new load started or we're shutting down.
+    abort_questions = pyqtSignal()
 
     # Signal emitted when a page's load status changed
     # (argument: usertypes.LoadStatus)
@@ -890,6 +892,8 @@ class AbstractTab(QWidget):
                         window=self.win_id, tab=self.tab_id)
 
         self.before_load_started.connect(self._on_before_load_started)
+        self.shutting_down.connect(self.abort_questions)
+        self.load_started.connect(self.abort_questions)
 
     def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
