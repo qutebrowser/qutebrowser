@@ -584,8 +584,7 @@ class MainWindow(QWidget):
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in config.val.confirm_quit and tab_count > 1:
-            quit_texts.append("{} {} open.".format(
-                tab_count, "tab is" if tab_count == 1 else "tabs are"))
+            quit_texts.append("{} tabs are open.".format(tab_count))
         # Ask if multiple downloads running
         if 'downloads' in config.val.confirm_quit and download_count > 0:
             quit_texts.append("{} {} running.".format(

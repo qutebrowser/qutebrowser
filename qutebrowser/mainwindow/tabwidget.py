@@ -276,7 +276,6 @@ class TabWidget(QTabWidget):
             The index of the newly added tab.
         """
         if text_or_empty is None:
-            icon = None
             text = icon_or_text
             new_idx = super().addTab(page, '')
         else:
@@ -306,7 +305,6 @@ class TabWidget(QTabWidget):
             The index of the newly added tab.
         """
         if text_or_empty is None:
-            icon = None
             text = icon_or_text
             new_idx = super().insertTab(idx, page, '')
         else:
