@@ -87,9 +87,8 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         """Install the interceptor on the given QWebEngineProfile."""
         profile.setRequestInterceptor(self)
 
-    # pylint: disable=bad-builtin
-    WHITELIST_REQUEST_METHODS = frozenset(map(QByteArray, [b'GET', b'HEAD']))
-    # pylint: enable=bad-builtin
+    WHITELIST_REQUEST_METHODS = {QByteArray(b'GET'), QByteArray(b'HEAD')}
+
     @staticmethod
     def _handle_redirect(info: QWebEngineUrlRequestInfo, url: QUrl) -> bool:
         """Handle redirection on qtwebengine."""

@@ -94,7 +94,9 @@ class Request:
         """
         if self._redirect_method is None:
             return False
+        # pylint: disable=not-callable
         retval = self._redirect_method(url)
+        # pylint: enable=not-callable
         # Once firing a redirect, refuse any other attempt
         self._redirect_method = None
         return retval
