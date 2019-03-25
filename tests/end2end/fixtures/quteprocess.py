@@ -157,6 +157,10 @@ def is_ignored_chromium_message(line):
         # cert_verify_proc_openssl.cc(212)]
         # X509 Verification error self signed certificate : 18 : 0 : 4
         'X509 Verification error self signed certificate : 18 : 0 : 4',
+        # Qt 5.13
+        # [27789:27805:0325/111821.127349:ERROR:ssl_client_socket_impl.cc(962)]
+        # handshake failed; returned -1, SSL error code 1, net_error -202
+        'handshake failed; returned -1, SSL error code 1, net_error -202',
 
         # Not reproducible anymore?
 
