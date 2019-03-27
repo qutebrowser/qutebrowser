@@ -25,7 +25,7 @@ import operator
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes, qtutils
+from qutebrowser.utils import usertypes
 import qutebrowser.browser.hints
 
 
