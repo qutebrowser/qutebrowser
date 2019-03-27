@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Jay Kamat <jaygkamat@gmail.com>
+# Copyright 2018-2019 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -36,18 +36,19 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
 
     """
 
-    def __init__(self, throttle_ms: int) -> None:
+    def __init__(self, delay_ms: int) -> None:
         """Save arguments for throttle decorator.
 
         Args:
-            throttle_ms: The time to wait before allowing another call of the
+            delay_ms: The time to wait before allowing another call of the
                          function. -1 disables the wrapper.
         """
-        self.throttle_ms = throttle_ms
-        # False if no call is pending, a tuple of (args, kwargs) (to call with)
+        self._delay_ms = delay_ms
+        # None if no call is pending, a tuple of (args, kwargs) (to call with)
         # if a call is pending.
-        self._pending_call = False
-        self._last_call_ms = None
+        self._pending_call = (None) \
+            #type:typing.Optional[typing.Tuple[typing.Sequence,typing.Mapping]]
+        self._last_call_ms = None  # type: typing.Optional[int]
         self._timer = usertypes.Timer(None, 'throttle-timer')
         self._timer.setSingleShot(True)
 
@@ -55,9 +56,9 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
         @functools.wraps(func)
         def wrapped_fn(*args, **kwargs):
             cur_time_ms = int(time.monotonic() * 1000)
-            if self._pending_call is False:
+            if self._pending_call is None:
                 if (self._last_call_ms is None or
-                        cur_time_ms - self._last_call_ms > self.throttle_ms):
+                        cur_time_ms - self._last_call_ms > self._delay_ms):
                     # Call right now
                     self._last_call_ms = cur_time_ms
                     func(*args, **kwargs)
@@ -66,10 +67,10 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
                 # Start a pending call
                 def call_pending():
                     func(*self._pending_call[0], **self._pending_call[1])
-                    self._pending_call = False
+                    self._pending_call = None
                     self._last_call_ms = int(time.monotonic() * 1000)
 
-                self._timer.setInterval(self.throttle_ms -
+                self._timer.setInterval(self._delay_ms -
                                         (cur_time_ms - self._last_call_ms))
                 # Disconnect any existing calls, continue if no connections.
                 try:
@@ -84,8 +85,9 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
         wrapped_fn.throttle_cancel = self.throttle_cancel  # type: ignore
         return wrapped_fn
 
-    def throttle_set(self, throttle_val: int) -> None:
-        self.throttle_ms = throttle_val
+    def throttle_set(self, delay_ms: int) -> None:
+        """Set the delay to wait between invocation of this function."""
+        self._delay_ms = delay_ms
 
     def throttle_cancel(self) -> None:
         """Cancel any pending instance of this timer."""

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -525,7 +525,9 @@ class AbstractScroller(QObject):
         super().__init__(parent)
         self._tab = tab
         self._widget = None  # type: typing.Optional[QWidget]
-        self.perc_changed.connect(self._log_scroll_pos_change)
+        args = objreg.get('args', None)
+        if args is not None and 'log-scroll-pos' in args.debug_flags:
+            self.perc_changed.connect(self._log_scroll_pos_change)
 
     @pyqtSlot()
     def _log_scroll_pos_change(self) -> None:
@@ -942,6 +944,10 @@ class AbstractTab(QWidget):
 
         evt.posted = True
         QApplication.postEvent(recipient, evt)
+
+    def navigation_blocked(self) -> bool:
+        """Test if navigation is allowed on the current tab."""
+        return self.data.pinned and config.val.tabs.pinned.frozen
 
     @pyqtSlot(QUrl)
     def _on_before_load_started(self, url: QUrl) -> None:

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,8 +25,10 @@ import pytest
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
 QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
 QWebEngineScriptCollection = QtWebEngineWidgets.QWebEngineScriptCollection
+QWebEngineScript = QtWebEngineWidgets.QWebEngineScript
 
 from qutebrowser.browser import greasemonkey
+from qutebrowser.utils import usertypes
 
 pytestmark = pytest.mark.usefixtures('greasemonkey_manager')
 
@@ -91,3 +93,26 @@ class TestWebengineScripts:
 
         collection = webengine_scripts._widget.page().scripts()
         assert collection.toList()[-1].worldId() == worldid
+
+    def test_greasemonkey_document_end_workaround(self, monkeypatch,
+                                                  webengine_scripts):
+        """Make sure document-end is forced when needed."""
+        monkeypatch.setattr(greasemonkey.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(greasemonkey.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            True)
+
+        scripts = [
+            greasemonkey.GreasemonkeyScript([
+                ('name', 'Iridium'),
+                ('namespace', 'https://github.com/ParticleCore'),
+                ('run-at', 'document-start'),
+            ], None)
+        ]
+
+        webengine_scripts._inject_greasemonkey_scripts(scripts)
+
+        collection = webengine_scripts._widget.page().scripts()
+        script = collection.toList()[-1]
+        assert script.injectionPoint() == QWebEngineScript.DocumentReady

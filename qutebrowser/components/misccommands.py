@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -118,7 +118,7 @@ def printpage(tab: apitypes.Tab,
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def home(tab: apitypes.Tab) -> None:
     """Open main startpage in current tab."""
-    if tab.data.pinned:
+    if tab.navigation_blocked():
         message.info("Tab is pinned!")
     else:
         tab.load_url(config.val.url.start_pages[0])
@@ -238,7 +238,7 @@ def tab_mute(tab: apitypes.Tab) -> None:
     if tab is None:
         return
     try:
-        tab.audio.set_muted(tab.audio.is_muted(), override=True)
+        tab.audio.set_muted(not tab.audio.is_muted(), override=True)
     except apitypes.WebTabError as e:
         raise cmdutils.CommandError(e)
 

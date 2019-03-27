@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -178,6 +178,10 @@ def _nvidia_shader_workaround():
     See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
     """
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
+
+    if os.environ.get('QUTE_SKIP_LIBGL_WORKAROUND'):
+        return
+
     libgl = ctypes.util.find_library("GL")
     if libgl is not None:
         ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
@@ -236,6 +240,9 @@ def _handle_wayland():
 
     has_qt511 = qtutils.version_check('5.11', compiled=False)
     if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
+        return
+
+    if qtutils.version_check('5.11.2', compiled=False):
         return
 
     buttons = []

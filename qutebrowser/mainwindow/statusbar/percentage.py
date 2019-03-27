@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,7 +19,7 @@
 
 """Scroll percentage displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.misc import throttle
@@ -31,9 +31,13 @@ class Percentage(textbase.TextBase):
 
     def __init__(self, parent=None):
         """Constructor. Set percentage to 0%."""
-        super().__init__(parent)
+        super().__init__(parent, elidemode=Qt.ElideNone)
         self.set_perc(0, 0)
         self.raw = False
+        # If the object is destroyed for any reason, cancel in-flight scrolls
+        # pylint: disable=no-member
+        self.destroyed.connect(self.set_perc.throttle_cancel)
+        # pylint: enable=no-member
 
     @pyqtSlot(int, int)
     @throttle.throttle(100)
@@ -51,8 +55,8 @@ class Percentage(textbase.TextBase):
         elif y is None:
             self.setText('[???]')
         else:
-            text = '[' + str(y).zfill(2) + (']' if self.raw else '%]')
-            self.setText(text)
+            text = '[%02d]' if self.raw else '[%02d%%]'
+            self.setText(text % y)
 
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""

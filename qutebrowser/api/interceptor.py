@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +24,11 @@ from qutebrowser.extensions import interceptors
 from qutebrowser.extensions.interceptors import Request
 
 
-def register(interceptor: interceptors.InterceptorType) -> None:
+#: Type annotation for an interceptor function.
+InterceptorType = interceptors.InterceptorType
+
+
+def register(interceptor: InterceptorType) -> None:
     """Register a request interceptor.
 
     Whenever a request happens, the interceptor gets called with a

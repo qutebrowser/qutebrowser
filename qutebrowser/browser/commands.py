@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -34,7 +34,7 @@ from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
 from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils, standarddir)
+                               objreg, utils, standarddir, debug)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess, objects
 from qutebrowser.completion.models import urlmodel, miscmodels
@@ -316,7 +316,7 @@ class CommandDispatcher:
                     else:
                         # Explicit count with a tab that doesn't exist.
                         return
-                elif curtab.data.pinned:
+                elif curtab.navigation_blocked():
                     message.info("Tab is pinned!")
                 else:
                     curtab.load_url(cur_url)
@@ -1721,4 +1721,10 @@ class CommandDispatcher:
             return
 
         window = self._tabbed_browser.widget.window()
+
+        if not window.isFullScreen():
+            window.state_before_fullscreen = window.windowState()
         window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
+
+        log.misc.debug('state before fullscreen: {}'.format(
+            debug.qflags_key(Qt, window.state_before_fullscreen)))

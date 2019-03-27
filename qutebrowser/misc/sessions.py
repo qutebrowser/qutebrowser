@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -36,7 +36,6 @@ from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
-from qutebrowser.misc import throttle
 
 
 class Sentinel:

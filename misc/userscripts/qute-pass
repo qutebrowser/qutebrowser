@@ -97,13 +97,19 @@ def qute_command(command):
 def find_pass_candidates(domain, password_store_path):
     candidates = []
     for path, directories, file_names in os.walk(password_store_path, followlinks=True):
-        if directories or domain not in path.split(os.path.sep):
+        secrets = fnmatch.filter(file_names, '*.gpg')
+        if not secrets:
             continue
 
         # Strip password store path prefix to get the relative pass path
         pass_path = path[len(password_store_path) + 1:]
-        secrets = fnmatch.filter(file_names, '*.gpg')
-        candidates.extend(os.path.join(pass_path, os.path.splitext(secret)[0]) for secret in secrets)
+        split_path = pass_path.split(os.path.sep)
+        for secret in secrets:
+            secret_base = os.path.splitext(secret)[0]
+            if domain not in (split_path + [secret_base]):
+                continue
+
+            candidates.append(os.path.join(pass_path, secret_base))
     return candidates
 
 

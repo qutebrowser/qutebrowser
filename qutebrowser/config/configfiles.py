@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -308,7 +308,7 @@ class YamlConfig(QObject):
 
         self._migrate_bool(settings, 'tabs.favicons.show', 'always', 'never')
         self._migrate_bool(settings, 'scrolling.bar',
-                           'when-searching', 'never')
+                           'always', 'when-searching')
         self._migrate_bool(settings, 'qt.force_software_rendering',
                            'software-opengl', 'none')
 

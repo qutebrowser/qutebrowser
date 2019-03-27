@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -165,9 +165,11 @@ def debug_flag_error(flag):
         no-sql-history: Don't store history items.
         no-scroll-filtering: Process all scrolling updates.
         log-requests: Log all network requests.
+        log-scroll-pos: Log all scrolling changes.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
-                   'no-scroll-filtering', 'log-requests', 'lost-focusproxy']
+                   'no-scroll-filtering', 'log-requests', 'log-scroll-pos',
+                   'lost-focusproxy']
 
     if flag in valid_flags:
         return flag

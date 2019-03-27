@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,6 +22,11 @@
 from PyQt5.QtCore import QBuffer, QIODevice, QUrl
 from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
                                    QWebEngineUrlRequestJob)
+try:
+    from PyQt5.QtWebEngineCore import QWebEngineUrlScheme  # type: ignore
+except ImportError:
+    # Added in Qt 5.12
+    QWebEngineUrlScheme = None
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
@@ -33,8 +38,12 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
     def install(self, profile):
         """Install the handler for qute:// URLs on the given profile."""
+        if QWebEngineUrlScheme is not None:
+            assert QWebEngineUrlScheme.schemeByName(b'qute') is not None
+
         profile.installUrlSchemeHandler(b'qute', self)
-        if qtutils.version_check('5.11', compiled=False):
+        if (qtutils.version_check('5.11', compiled=False) and
+                not qtutils.version_check('5.12', compiled=False)):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
             profile.installUrlSchemeHandler(b'chrome-error', self)
             profile.installUrlSchemeHandler(b'chrome-extension', self)
@@ -53,18 +62,33 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         """
         try:
             initiator = job.initiator()
+            request_url = job.requestUrl()
         except AttributeError:
             # Added in Qt 5.11
             return True
 
-        if initiator == QUrl('null') and not qtutils.version_check('5.12'):
+        # https://codereview.qt-project.org/#/c/234849/
+        is_opaque = initiator == QUrl('null')
+        target = request_url.scheme(), request_url.host()
+
+        if is_opaque and not qtutils.version_check('5.12'):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70421
+            # When we don't register the qute:// scheme, all requests are
+            # flagged as opaque.
+            return True
+
+        if (target == ('qute', 'testdata') and
+                is_opaque and
+                qtutils.version_check('5.12')):
+            # Allow requests to qute://testdata, as this is needed in Qt 5.12
+            # for all tests to work properly. No qute://testdata handler is
+            # installed outside of tests.
             return True
 
         if initiator.isValid() and initiator.scheme() != 'qute':
             log.misc.warning("Blocking malicious request from {} to {}".format(
                 initiator.toDisplayString(),
-                job.requestUrl().toDisplayString()))
+                request_url.toDisplayString()))
             job.fail(QWebEngineUrlRequestJob.RequestDenied)
             return False
 
@@ -130,3 +154,16 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             buf.seek(0)
             buf.close()
             job.reply(mimetype.encode('ascii'), buf)
+
+
+def init():
+    """Register the qute:// scheme.
+
+    Note this needs to be called early, before constructing any QtWebEngine
+    classes.
+    """
+    if QWebEngineUrlScheme is not None:
+        scheme = QWebEngineUrlScheme(b'qute')
+        scheme.setFlags(QWebEngineUrlScheme.LocalScheme |
+                        QWebEngineUrlScheme.LocalAccessAllowed)
+        QWebEngineUrlScheme.registerScheme(scheme)
