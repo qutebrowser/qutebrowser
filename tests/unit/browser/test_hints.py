@@ -67,13 +67,14 @@ def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
 
 
 def test_match_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
-                         mode_manager, qapp):
+                         mode_manager, qapp, config_stub):
     """Benchmark matching of hint labels."""
     tab = tabbed_browser.widget.tabs[0]
 
     with qtbot.wait_signal(tab.load_finished):
         tab.load_url(QUrl('qute://testdata/data/hints/benchmark.html'))
 
+    config_stub.val.hints.scatter = False
     manager = qutebrowser.browser.hints.HintManager(0, 0)
 
     with qtbot.wait_signal(mode_manager.entered):
