@@ -36,6 +36,7 @@ class SqliteErrorCode:
     """
 
     UNKNOWN = '-1'
+    ERROR = '1'  # generic error code
     BUSY = '5'  # database is locked
     READONLY = '8'  # attempt to write a readonly database
     IOERR = '10'  # disk I/O error
@@ -71,6 +72,11 @@ class SqlEnvironmentError(SqlError):
     This is raised in conditions resulting from the environment (like a full
     disk or I/O errors), where qutebrowser isn't to blame.
     """
+
+
+class SqlLongQueryError(SqlError):
+
+    """Raised when a query is too long."""
 
 
 class SqlBugError(SqlError):
@@ -112,6 +118,10 @@ def raise_sqlite_error(msg, error):
 
     if error_code in environmental_errors or qtbug_70506:
         raise SqlEnvironmentError(msg, error)
+    if (error_code == SqliteErrorCode.ERROR and
+            driver_text == "Unable to execute statement" and
+            database_text.startswith("Expression tree is too large")):
+        raise SqlLongQueryError(msg, error)
     raise SqlBugError(msg, error)
 
 
