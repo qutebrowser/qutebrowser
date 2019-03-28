@@ -209,3 +209,11 @@ def follow_selected(tab_obj: apitypes.Tab, *, tab: bool = False) -> None:
         tab_obj.caret.follow_selected(tab=tab)
     except apitypes.WebTabError as e:
         raise cmdutils.CommandError(str(e))
+
+
+@cmdutils.register()
+@cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
+def reverse_selection(tab: apitypes.Tab) -> None:
+    """Switch the stationary end of the current selection with the
+    moving end."""
+    tab.caret.reverse_selection()

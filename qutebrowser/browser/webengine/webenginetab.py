@@ -342,6 +342,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
         self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
                                callback)
 
+    def reverse_selection(self):
+        self._js_call('reverseSelection')
+
     def _follow_selected_cb_wrapped(self, js_elem, tab):
         try:
             self._follow_selected_cb(js_elem, tab)
