@@ -35,6 +35,7 @@ Changed
 - Pinned tabs now always show a favicon (even if the site doesn't provide one)
   when shrinking.
 - Slight performance improvements for the `:open` completion.
+- Performance improvements for showing hints.
 
 Fixed
 ~~~~~
