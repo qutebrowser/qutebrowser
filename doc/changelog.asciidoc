@@ -39,6 +39,9 @@ Changed
 Fixed
 ~~~~~
 
+- Race condition causing a colored statusbar in normal mode when
+  entering/exiting caret mode quickly.
+
 v1.6.1
 ------
 
