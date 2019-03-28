@@ -270,6 +270,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     def _selection_cb(self, enabled):
         """Emit selection_toggled based on setInitialCursor."""
+        if self._mode_manager.mode != usertypes.KeyMode.caret:
+            log.webview.debug("Ignoring selection cb due to mode change.")
+            return
         if enabled is None:
             log.webview.debug("Ignoring selection status None")
             return

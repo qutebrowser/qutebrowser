@@ -437,6 +437,7 @@ class AbstractCaret(QObject):
         self._tab = tab
         self._widget = None
         self.selection_enabled = False
+        self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
 
