@@ -12,24 +12,24 @@ EasyProcess==0.2.5
 Flask==1.0.2
 glob2==0.6
 hunter==2.2.1
-hypothesis==4.12.0
+hypothesis==4.14.0
 itsdangerous==1.1.0
 # Jinja2==2.10
-Mako==1.0.7
+Mako==1.0.8
 # MarkupSafe==1.1.0
 more-itertools==6.0.0
 parse==1.11.1
 parse-type==0.4.2
 pluggy==0.9.0
 py==1.8.0
-py-cpuinfo==4.0.0
+py-cpuinfo==5.0.0
 pytest==4.3.1
 pytest-bdd==3.1.0
 pytest-benchmark==3.2.2
 pytest-cov==2.6.1
 pytest-faulthandler==1.5.0
 pytest-instafail==0.4.1
-pytest-mock==1.10.1
+pytest-mock==1.10.2
 pytest-qt==3.2.2
 pytest-repeat==0.8.0
 pytest-rerunfailures==6.0
@@ -39,4 +39,4 @@ PyVirtualDisplay==0.2.1
 six==1.12.0
 soupsieve==1.8
 vulture==1.0
-Werkzeug==0.14.1
+Werkzeug==0.15.1
