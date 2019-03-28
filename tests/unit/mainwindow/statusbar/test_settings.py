@@ -131,6 +131,7 @@ def test_text_matches_config(qtbot, data, no_winreg, monkeypatch,
     bool_mock = mock.Mock()
     text_mock = mock.Mock()
     uut = settings.BooleanSettings(None, 0)
+    monkeypatch.setattr(uut, 'isVisible', lambda: True)
     monkeypatch.setattr(uut, '_to_bool', bool_mock)
     monkeypatch.setattr(uut, 'setText', text_mock)
     bool_mock.side_effect = [
@@ -194,5 +195,7 @@ def test_integration(fake_statusbar, with_tab, monkeypatch, data):
 
     Basically an integration test, requires graphics."""
     uut = settings.BooleanSettings(fake_statusbar, 0)
+    monkeypatch.setattr(uut, 'isVisible', lambda: True)
+    uut.on_url_changed(QUrl(''))
     expected = "[{}]".format(''.join(t[1] for t in data.config.items()))
     assert uut.text() == expected

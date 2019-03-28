@@ -71,6 +71,8 @@ class BooleanSettings(textbase.TextBase):
     @pyqtSlot(QUrl)
     def on_url_changed(self, url):
         """Update the widget to reflect settings for url."""
+        if not self.isVisible():
+            return
         if not url.isValid():
             url = None
         parts = [
