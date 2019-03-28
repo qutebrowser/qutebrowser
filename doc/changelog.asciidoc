@@ -23,6 +23,9 @@ Added
 
 - New settings:
   * `colors.tabs.pinned.*` to control colors of pinned tabs.
+- New commands:
+  * `:reverse-selection` (`o` in caret mode) to swap the stationary/moving ends
+    of a selection.
 
 Changed
 ~~~~~~~
@@ -31,6 +34,7 @@ Changed
   `org.qutebrowser.qutebrowser.desktop`.
 - Pinned tabs now always show a favicon (even if the site doesn't provide one)
   when shrinking.
+- Slight performance improvements for the `:open` completion.
 
 Fixed
 ~~~~~

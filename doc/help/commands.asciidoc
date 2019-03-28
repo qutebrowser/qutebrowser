@@ -1556,6 +1556,7 @@ How many steps to zoom out.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
 |<<prompt-yank,prompt-yank>>|Yank URL to clipboard or primary selection.
+|<<reverse-selection,reverse-selection>>|Swap the stationary and moving end of the current selection.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
 |<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
 |<<rl-backward-kill-word,rl-backward-kill-word>>|Remove chars from the cursor to the beginning of the word.
@@ -1775,6 +1776,10 @@ Yank URL to clipboard or primary selection.
 
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
+
+[[reverse-selection]]
+=== reverse-selection
+Swap the stationary and moving end of the current selection.
 
 [[rl-backward-char]]
 === rl-backward-char
