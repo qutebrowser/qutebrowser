@@ -19,6 +19,8 @@
 
 """Generic settings status displayed in the statusbar."""
 
+import functools
+
 from PyQt5.QtCore import pyqtSlot, QUrl
 
 from qutebrowser.config import config, configtypes
@@ -68,6 +70,14 @@ class BooleanSettings(textbase.TextBase):
         if tab:
             self.on_url_changed(tab.url())
 
+    @functools.lru_cache(maxsize=256)
+    def _text_for(self, url):
+        parts = [
+            indicator for setting, indicator in self._config.items()
+            if self._to_bool(setting, url)
+        ]
+        return "[{}]".format(''.join(parts))
+
     @pyqtSlot(QUrl)
     def on_url_changed(self, url):
         """Update the widget to reflect settings for url."""
@@ -75,11 +85,7 @@ class BooleanSettings(textbase.TextBase):
             return
         if not url.isValid():
             url = None
-        parts = [
-            indicator for setting, indicator in self._config.items()
-            if self._to_bool(setting, url)
-        ]
-        self.setText("[{}]".format(''.join(parts)))
+        self.setText(self._text_for(url))
 
     def on_tab_changed(self, tab):
         """Update tab settings text when tab changed."""
@@ -101,6 +107,7 @@ class BooleanSettings(textbase.TextBase):
 
     def on_config_changed(self, option):
         """Update the widget when the config changes."""
+        self._text_for.cache_clear()
         if option == self.config_option:
             self._parse_config()
         elif option in self._config:
@@ -110,4 +117,5 @@ class BooleanSettings(textbase.TextBase):
     def on_feature_permission_changed(self, option, _state):
         """Update the widget when a pages feature permissions change."""
         if option in self._config:
+            self._text_for.cache_clear()
             self.on_tab_changed(self._current_tab())
