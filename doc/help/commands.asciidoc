@@ -165,8 +165,7 @@ If no command is given, show the current binding for the given key. Using :bind 
 * +'command'+: The command to execute, with optional args.
 
 ==== optional arguments
-* +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`). See `:help bindings.commands` for the
- available modes.
+* +*-m*+, +*--mode*+: The mode to bind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
 
 * +*-d*+, +*--default*+: If given, restore a default binding.
 
@@ -1426,7 +1425,7 @@ Unbind a keychain.
 
 
 ==== optional arguments
-* +*-m*+, +*--mode*+: A mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
+* +*-m*+, +*--mode*+: The mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
 
 
 [[undo]]
@@ -1485,14 +1484,14 @@ Yank something to the clipboard or primary selection.
 
 [[zoom]]
 === zoom
-Syntax: +:zoom [*--quiet*] ['zoom']+
+Syntax: +:zoom [*--quiet*] ['level']+
 
 Set the zoom level for the current tab.
 
 The zoom can be given as argument or as [count]. If neither is given, the zoom is set to the default zoom. If both are given, use [count].
 
 ==== positional arguments
-* +'zoom'+: The zoom percentage to set.
+* +'level'+: The zoom percentage to set.
 
 ==== optional arguments
 * +*-q*+, +*--quiet*+: Don't show a zoom level message.

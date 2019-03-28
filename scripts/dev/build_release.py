@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -218,7 +218,17 @@ def build_windows():
     except FileNotFoundError:
         python_x64 = r'C:\Python{}\python.exe'.format(ver)
 
+    try:
+        reg32_key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
+                                     r'SOFTWARE\WOW6432Node\Python\PythonCore'
+                                     r'\{}-32\InstallPath'.format(dot_ver))
+        python_x86 = winreg.QueryValueEx(reg32_key, 'ExecutablePath')[0]
+    except FileNotFoundError:
+        python_x86 = r'C:\Python{}-32\python.exe'.format(ver)
+
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
+    out_32 = os.path.join('dist',
+                          'qutebrowser-{}-x86'.format(qutebrowser.__version__))
     out_64 = os.path.join('dist',
                           'qutebrowser-{}-x64'.format(qutebrowser.__version__))
 
@@ -228,27 +238,49 @@ def build_windows():
     utils.print_title("Updating VersionInfo file")
     gen_versioninfo.main()
 
+    utils.print_title("Running pyinstaller 32bit")
+    _maybe_remove(out_32)
+    call_tox('pyinstaller', '-r', python=python_x86)
+    shutil.move(out_pyinstaller, out_32)
+
     utils.print_title("Running pyinstaller 64bit")
     _maybe_remove(out_64)
     call_tox('pyinstaller', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
 
+    utils.print_title("Running 32bit smoke test")
+    smoke_test(os.path.join(out_32, 'qutebrowser.exe'))
     utils.print_title("Running 64bit smoke test")
     smoke_test(os.path.join(out_64, 'qutebrowser.exe'))
 
     utils.print_title("Building installers")
     subprocess.run(['makensis.exe',
+                    '/DVERSION={}'.format(qutebrowser.__version__),
+                    'misc/qutebrowser.nsi'], check=True)
+    subprocess.run(['makensis.exe',
                     '/DX64',
                     '/DVERSION={}'.format(qutebrowser.__version__),
                     'misc/qutebrowser.nsi'], check=True)
 
+    name_32 = 'qutebrowser-{}-win32.exe'.format(qutebrowser.__version__)
     name_64 = 'qutebrowser-{}-amd64.exe'.format(qutebrowser.__version__)
 
     artifacts += [
+        (os.path.join('dist', name_32),
+         'application/vnd.microsoft.portable-executable',
+         'Windows 32bit installer'),
         (os.path.join('dist', name_64),
          'application/vnd.microsoft.portable-executable',
          'Windows 64bit installer'),
     ]
+
+    utils.print_title("Zipping 32bit standalone...")
+    name = 'qutebrowser-{}-windows-standalone-win32'.format(
+        qutebrowser.__version__)
+    shutil.make_archive(name, 'zip', 'dist', os.path.basename(out_32))
+    artifacts.append(('{}.zip'.format(name),
+                      'application/zip',
+                      'Windows 32bit standalone'))
 
     utils.print_title("Zipping 64bit standalone...")
     name = 'qutebrowser-{}-windows-standalone-amd64'.format(
@@ -370,7 +402,7 @@ def main():
     if args.upload is not None:
         # Fail early when trying to upload without github3 installed
         # or without API token
-        import github3  # pylint: disable=unused-variable
+        import github3  # pylint: disable=unused-import
         read_github_token()
 
     if args.no_asciidoc:

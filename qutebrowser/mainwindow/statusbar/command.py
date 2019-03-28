@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,7 +25,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
 from PyQt5.QtWidgets import QSizePolicy
 
 from qutebrowser.keyinput import modeman, modeparsers
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.misc import cmdhistory, editor
 from qutebrowser.misc import miscwidgets as misc
 from qutebrowser.utils import usertypes, log, objreg, message, utils
@@ -115,7 +115,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @cmdutils.register(instance='status-command', name='set-cmd-text',
                        scope='window', maxsplit=0)
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def set_cmd_text_command(self, text, count=None, space=False, append=False,
                              run_on_count=False):
         """Preset the statusbar to some text.
@@ -137,11 +137,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             text += ' '
         if append:
             if not self.text():
-                raise cmdexc.CommandError("No current text!")
+                raise cmdutils.CommandError("No current text!")
             text = self.text() + text
 
         if not text or text[0] not in modeparsers.STARTCHARS:
-            raise cmdexc.CommandError(
+            raise cmdutils.CommandError(
                 "Invalid command text '{}'.".format(text))
         if run_on_count and count is not None:
             self.got_cmd[str, int].emit(text, count)

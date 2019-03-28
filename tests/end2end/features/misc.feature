@@ -197,7 +197,7 @@ Feature: Various utility commands.
         # We can't use "When I open" because we don't want to wait for load
         # finished
         When I run :open http://localhost:(port)/redirect-later?delay=-1
-        And I wait for "emitting: cur_load_status_changed('loading') (tab *)" in the log
+        And I wait for "emitting: cur_load_status_changed(<LoadStatus.loading: *>) (tab *)" in the log
         And I wait 1s
         And I run :stop
         And I open redirect-later-continue in a new tab
@@ -331,19 +331,16 @@ Feature: Various utility commands.
         When I set content.headers.do_not_track to true
         And I open headers
         Then the header Dnt should be set to 1
-        And the header X-Do-Not-Track should be set to 1
 
     Scenario: DNT header (off)
         When I set content.headers.do_not_track to false
         And I open headers
         Then the header Dnt should be set to 0
-        And the header X-Do-Not-Track should be set to 0
 
     Scenario: DNT header (unset)
         When I set content.headers.do_not_track to <empty>
         And I open headers
         Then the header Dnt should be set to <unset>
-        And the header X-Do-Not-Track should be set to <unset>
 
     Scenario: Accept-Language header
         When I set content.headers.accept_language to en,de

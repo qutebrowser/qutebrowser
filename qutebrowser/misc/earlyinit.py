@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -38,7 +38,7 @@ import datetime
 try:
     import tkinter
 except ImportError:
-    tkinter = None
+    tkinter = None  # type: ignore
 
 # NOTE: No qutebrowser or PyQt import should be done here, as some early
 # initialization needs to take place before that!
@@ -133,7 +133,7 @@ def init_faulthandler(fileobj=sys.__stderr__):
 def check_pyqt_core():
     """Check if PyQt core is installed."""
     try:
-        import PyQt5.QtCore  # pylint: disable=unused-variable
+        import PyQt5.QtCore  # pylint: disable=unused-import
     except ImportError as e:
         text = _missing_str('PyQt5')
         text = text.replace('<b>', '')
@@ -173,8 +173,10 @@ def check_qt_version():
                               PYQT_VERSION_STR)
     from pkg_resources import parse_version
     from qutebrowser.utils import log
+    parsed_qversion = parse_version(qVersion())
+
     if (QT_VERSION < 0x050701 or PYQT_VERSION < 0x050700 or
-            parse_version(qVersion()) < parse_version('5.7.1')):
+            parsed_qversion < parse_version('5.7.1')):
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))
@@ -184,12 +186,17 @@ def check_qt_version():
         log.init.warning("Running qutebrowser with Qt 5.8 is untested and "
                          "unsupported!")
 
+    if (parsed_qversion >= parse_version('5.12') and
+            (PYQT_VERSION < 0x050c00 or QT_VERSION < 0x050c00)):
+        log.init.warning("Combining PyQt {} with Qt {} is unsupported! Ensure "
+                         "all versions are newer than 5.12 to avoid potential "
+                         "issues.".format(PYQT_VERSION_STR, qt_version()))
+
 
 def check_ssl_support():
     """Check if SSL support is available."""
-    # pylint: disable=unused-variable
     try:
-        from PyQt5.QtNetwork import QSslSocket
+        from PyQt5.QtNetwork import QSslSocket  # pylint: disable=unused-import
     except ImportError:
         _die("Fatal error: Your Qt is built without SSL support.")
 
@@ -200,19 +207,11 @@ def _check_modules(modules):
 
     for name, text in modules.items():
         try:
-            # https://github.com/pallets/jinja/pull/628
-            # https://bitbucket.org/birkenfeld/pygments-main/issues/1314/
-            # https://github.com/pallets/jinja/issues/646
             # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
-            messages = ['invalid escape sequence',
-                        'Flags not at the start of the expression']
             # pylint: disable=bad-continuation
             with log.ignore_py_warnings(
                 category=DeprecationWarning,
-                message=r'({})'.format('|'.join(messages))
-            ), log.ignore_py_warnings(
-                category=PendingDeprecationWarning,
-                module='imp'
+                message=r'invalid escape sequence'
             ), log.ignore_py_warnings(
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'

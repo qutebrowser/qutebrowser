@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,10 +28,11 @@ from PyQt5.QtCore import (pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
-from qutebrowser.commands import runners, cmdutils
+from qutebrowser.commands import runners
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
-                               jinja)
+                               jinja, debug)
 from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
@@ -136,6 +137,7 @@ class MainWindow(QWidget):
     Attributes:
         status: The StatusBar widget.
         tabbed_browser: The TabbedBrowser widget.
+        state_before_fullscreen: window state before activation of fullscreen.
         _downloadview: The DownloadView widget.
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
@@ -236,6 +238,8 @@ class MainWindow(QWidget):
 
         objreg.get("app").new_window.emit(self)
         self._set_decoration(config.val.window.hide_decoration)
+
+        self.state_before_fullscreen = self.windowState()
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -516,9 +520,13 @@ class MainWindow(QWidget):
     def _on_fullscreen_requested(self, on):
         if not config.val.content.windowed_fullscreen:
             if on:
-                self.setWindowState(self.windowState() | Qt.WindowFullScreen)
+                self.state_before_fullscreen = self.windowState()
+                self.setWindowState(
+                    Qt.WindowFullScreen | self.state_before_fullscreen)
             elif self.isFullScreen():
-                self.setWindowState(self.windowState() & ~Qt.WindowFullScreen)
+                self.setWindowState(self.state_before_fullscreen)
+        log.misc.debug('on: {}, state before fullscreen: {}'.format(
+            on, debug.qflags_key(Qt, self.state_before_fullscreen)))
 
     @cmdutils.register(instance='main-window', scope='window')
     @pyqtSlot()
@@ -576,8 +584,7 @@ class MainWindow(QWidget):
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in config.val.confirm_quit and tab_count > 1:
-            quit_texts.append("{} {} open.".format(
-                tab_count, "tab is" if tab_count == 1 else "tabs are"))
+            quit_texts.append("{} tabs are open.".format(tab_count))
         # Ask if multiple downloads running
         if 'downloads' in config.val.confirm_quit and download_count > 0:
             quit_texts.append("{} {} running.".format(

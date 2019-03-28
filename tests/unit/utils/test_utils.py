@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -409,8 +409,6 @@ class GotException(Exception):
 
     """Exception used for TestDisabledExcepthook."""
 
-    pass
-
 
 def excepthook(_exc, _val, _tb):
     pass
@@ -465,9 +463,7 @@ class TestPreventExceptions:
     def test_raising(self, caplog):
         """Test with a raising function."""
         with caplog.at_level(logging.ERROR, 'misc'):
-            # pylint: disable=assignment-from-no-return
             ret = self.func_raising()
-            # pylint: enable=assignment-from-no-return
         assert ret == 42
         expected = 'Error in test_utils.TestPreventExceptions.func_raising'
         assert caplog.messages == [expected]
@@ -490,9 +486,7 @@ class TestPreventExceptions:
     def test_predicate_true(self, caplog):
         """Test with a True predicate."""
         with caplog.at_level(logging.ERROR, 'misc'):
-            # pylint: disable=assignment-from-no-return
             ret = self.func_predicate_true()
-            # enable: disable=assignment-from-no-return
         assert ret == 42
         assert len(caplog.records) == 1
 
@@ -511,8 +505,6 @@ class TestPreventExceptions:
 class Obj:
 
     """Test object for test_get_repr()."""
-
-    pass
 
 
 @pytest.mark.parametrize('constructor, attrs, expected', [
@@ -534,12 +526,10 @@ class QualnameObj():
 
     def func(self):
         """Test method for test_qualname."""
-        pass
 
 
 def qualname_func(_blah):
     """Test function for test_qualname."""
-    pass
 
 
 QUALNAME_OBJ = QualnameObj()
@@ -578,8 +568,6 @@ class TestIsEnum:
 
             """Test class for is_enum."""
 
-            pass
-
         assert not utils.is_enum(Test)
 
     def test_object(self):
@@ -597,7 +585,6 @@ class TestRaises:
 
     def do_nothing(self):
         """Helper function which does nothing."""
-        pass
 
     @pytest.mark.parametrize('exception, value, expected', [
         (ValueError, 'a', True),

@@ -39,12 +39,7 @@ ignore_case:
   renamed: search.ignore_case
 
 search.ignore_case:
-  type:
-    name: String
-    valid_values:
-      - always: Search case-insensitively.
-      - never: Search case-sensitively.
-      - smart: Search case-sensitively if there are capital characters.
+  type: IgnoreCase
   default: smart
   desc: When to find text on a page case-insensitively.
 
@@ -384,7 +379,9 @@ content.developer_extras:
 content.dns_prefetch:
   default: true
   type: Bool
-  backend: QtWebKit
+  backend:
+    QtWebKit: true
+    QtWebEngine: Qt 5.12
   supports_pattern: true
   desc: Try to pre-fetch DNS entries to speed up browsing.
 
@@ -481,46 +478,14 @@ content.headers.user_agent:
       # 'ua_fetch.py'
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
-      - - "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:53.0) Gecko/20100101
-          Firefox/53.0"
-        - Firefox 53.0 Win8.1
-      - - "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101
-          Firefox/53.0"
-        - Firefox 53.0 Linux
-      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:53.0)
-          Gecko/20100101 Firefox/53.0"
-        - Firefox 53.0 MacOSX
-
-      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4
-          (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4"
-        - Safari Generic MacOSX
-      - - "Mozilla/5.0 (iPad; CPU OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30
-          (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1"
-        - Mobile Safari 10.0 iOS
-
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-        - Chrome Generic Win10
-      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-        - Chrome Generic MacOSX
+          like Gecko) Chrome/71.0.3578.98 Safari/537.36"
+        - Chrome 71.0 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/58.0.3029.110 Safari/537.36"
-        - Chrome Generic Linux
-
-      - - "Mozilla/5.0 (compatible; Googlebot/2.1;
-          +http://www.google.com/bot.html"
-        - Google Bot
-      - - "Wget/1.16.1 (linux-gnu)"
-        - wget 1.16.1
-      - - "curl/7.40.0"
-        - curl 7.40.0
-      - - "Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 (KHTML,
-          like Gecko) Version/4.0 Mobile Safari/534.30"
-        - Mobile Generic Android
-      - - "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like
-          Gecko"
-        - IE 11.0 for Desktop Win7 64-bit
+          Gecko) Chrome/71.0.3578.98 Safari/537.36"
+        - Chrome 71.0 Linux
+      - - ""
+        - Use default QtWebKit/QtWebEngine User-Agent
 
   supports_pattern: true
   desc: >-
@@ -1271,6 +1236,16 @@ input.insert_mode.plugins:
   type: Bool
   desc: Switch to insert mode when clicking flash and other plugins.
 
+input.insert_mode.leave_on_load:
+  default: true
+  type: Bool
+  supports_pattern: true
+  desc: >-
+    Leave insert mode when starting a new page load.
+
+    Patterns may be unreliable on this setting, and they may match the url you
+    are navigating to, or the URL you are navigating from.
+
 input.links_included_in_focus_chain:
   default: true
   type: Bool
@@ -1772,6 +1747,11 @@ tabs.pinned.shrink:
   default: true
   type: Bool
   desc: Shrink pinned tabs down to their contents.
+
+tabs.pinned.frozen:
+    type: Bool
+    default: True
+    desc: Force pinned tabs to stay at fixed URL.
 
 tabs.wrap:
   default: true
@@ -2337,6 +2317,46 @@ colors.tabs.selected.even.bg:
   default: black
   type: QtColor
   desc: Background color of selected even tabs.
+
+colors.tabs.pinned.odd.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned unselected odd tabs.
+
+colors.tabs.pinned.odd.bg:
+  default: seagreen
+  type: QtColor
+  desc: Background color of pinned unselected odd tabs.
+
+colors.tabs.pinned.even.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned unselected even tabs.
+
+colors.tabs.pinned.even.bg:
+  default: darkseagreen
+  type: QtColor
+  desc: Background color of pinned unselected even tabs.
+
+colors.tabs.pinned.selected.odd.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned selected odd tabs.
+
+colors.tabs.pinned.selected.odd.bg:
+  default: black
+  type: QtColor
+  desc: Background color of pinned selected odd tabs.
+
+colors.tabs.pinned.selected.even.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned selected even tabs.
+
+colors.tabs.pinned.selected.even.bg:
+  default: black
+  type: QtColor
+  desc: Background color of pinned selected even tabs.
 
 colors.webpage.bg:
   default: white

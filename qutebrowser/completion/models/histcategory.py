@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -74,11 +74,11 @@ class HistoryCategory(QSqlQueryModel):
 
         # build a where clause to match all of the words in any order
         # given the search term "a b", the WHERE clause would be:
-        # ((url || ' ' || title) LIKE '%a%') AND
-        # ((url || ' ' || title) LIKE '%b%')
+        # (url LIKE '%a%' OR title LIKE '%a%') AND
+        # (url LIKE '%b%' OR title LIKE '%b%')
         where_clause = ' AND '.join(
-            "(url || ' ' || title) LIKE :{} escape '\\'".format(i)
-            for i in range(len(words)))
+            "(url LIKE :{val} escape '\\' OR title LIKE :{val} escape '\\')"
+            .format(val=i) for i in range(len(words)))
 
         # replace ' in timestamp-format to avoid breaking the query
         timestamp_format = config.val.completion.timestamp_format or ''

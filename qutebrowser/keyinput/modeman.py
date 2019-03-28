@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.keyinput import modeparsers
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
 
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
@@ -64,7 +64,7 @@ class NotInModeError(Exception):
 
 def init(win_id, parent):
     """Initialize the mode manager and the keyparsers for the given win_id."""
-    KM = usertypes.KeyMode  # noqa: N801,N806 pylint: disable=invalid-name
+    KM = usertypes.KeyMode  # noqa: N806
     modeman = ModeManager(win_id, parent)
     objreg.register('mode-manager', modeman, scope='window', window=win_id)
     keyparsers = {
@@ -282,11 +282,11 @@ class ModeManager(QObject):
         try:
             m = usertypes.KeyMode[mode]
         except KeyError:
-            raise cmdexc.CommandError("Mode {} does not exist!".format(mode))
+            raise cmdutils.CommandError("Mode {} does not exist!".format(mode))
 
         if m in [usertypes.KeyMode.hint, usertypes.KeyMode.command,
                  usertypes.KeyMode.yesno, usertypes.KeyMode.prompt]:
-            raise cmdexc.CommandError(
+            raise cmdutils.CommandError(
                 "Mode {} can't be entered manually!".format(mode))
 
         self.enter(m, 'command')

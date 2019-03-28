@@ -82,14 +82,14 @@ def test_generate_pdfjs_script_disable_object_url(monkeypatch,
     if qt == 'new':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True:
-                            False if version == '5.7.1' else True)
+                            version != '5.7.1')
     elif qt == 'old':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True: False)
     elif qt == '5.7':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True:
-                            True if version == '5.7.1' else False)
+                            version == '5.7.1')
     else:
         raise utils.Unreachable
 
