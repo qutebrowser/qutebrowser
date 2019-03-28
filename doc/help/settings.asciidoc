@@ -91,6 +91,14 @@
 |<<colors.tabs.indicator.system,colors.tabs.indicator.system>>|Color gradient interpolation system for the tab indicator.
 |<<colors.tabs.odd.bg,colors.tabs.odd.bg>>|Background color of unselected odd tabs.
 |<<colors.tabs.odd.fg,colors.tabs.odd.fg>>|Foreground color of unselected odd tabs.
+|<<colors.tabs.pinned.even.bg,colors.tabs.pinned.even.bg>>|Background color of pinned unselected even tabs.
+|<<colors.tabs.pinned.even.fg,colors.tabs.pinned.even.fg>>|Foreground color of pinned unselected even tabs.
+|<<colors.tabs.pinned.odd.bg,colors.tabs.pinned.odd.bg>>|Background color of pinned unselected odd tabs.
+|<<colors.tabs.pinned.odd.fg,colors.tabs.pinned.odd.fg>>|Foreground color of pinned unselected odd tabs.
+|<<colors.tabs.pinned.selected.even.bg,colors.tabs.pinned.selected.even.bg>>|Background color of pinned selected even tabs.
+|<<colors.tabs.pinned.selected.even.fg,colors.tabs.pinned.selected.even.fg>>|Foreground color of pinned selected even tabs.
+|<<colors.tabs.pinned.selected.odd.bg,colors.tabs.pinned.selected.odd.bg>>|Background color of pinned selected odd tabs.
+|<<colors.tabs.pinned.selected.odd.fg,colors.tabs.pinned.selected.odd.fg>>|Foreground color of pinned selected odd tabs.
 |<<colors.tabs.selected.even.bg,colors.tabs.selected.even.bg>>|Background color of selected even tabs.
 |<<colors.tabs.selected.even.fg,colors.tabs.selected.even.fg>>|Foreground color of selected even tabs.
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
@@ -428,6 +436,7 @@ Default:
 * +pass:[j]+: +pass:[move-to-next-line]+
 * +pass:[k]+: +pass:[move-to-prev-line]+
 * +pass:[l]+: +pass:[move-to-next-char]+
+* +pass:[o]+: +pass:[reverse-selection]+
 * +pass:[v]+: +pass:[toggle-selection]+
 * +pass:[w]+: +pass:[move-to-next-word]+
 * +pass:[y]+: +pass:[yank selection]+
@@ -1328,6 +1337,70 @@ Default: +pass:[grey]+
 [[colors.tabs.odd.fg]]
 === colors.tabs.odd.fg
 Foreground color of unselected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.even.bg]]
+=== colors.tabs.pinned.even.bg
+Background color of pinned unselected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[darkseagreen]+
+
+[[colors.tabs.pinned.even.fg]]
+=== colors.tabs.pinned.even.fg
+Foreground color of pinned unselected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.odd.bg]]
+=== colors.tabs.pinned.odd.bg
+Background color of pinned unselected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[seagreen]+
+
+[[colors.tabs.pinned.odd.fg]]
+=== colors.tabs.pinned.odd.fg
+Foreground color of pinned unselected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.selected.even.bg]]
+=== colors.tabs.pinned.selected.even.bg
+Background color of pinned selected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[black]+
+
+[[colors.tabs.pinned.selected.even.fg]]
+=== colors.tabs.pinned.selected.even.fg
+Foreground color of pinned selected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.selected.odd.bg]]
+=== colors.tabs.pinned.selected.odd.bg
+Background color of pinned selected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[black]+
+
+[[colors.tabs.pinned.selected.odd.fg]]
+=== colors.tabs.pinned.selected.odd.fg
+Foreground color of pinned selected odd tabs.
 
 Type: <<types,QtColor>>
 

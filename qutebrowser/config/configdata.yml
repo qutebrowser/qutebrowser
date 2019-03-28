@@ -2318,6 +2318,46 @@ colors.tabs.selected.even.bg:
   type: QtColor
   desc: Background color of selected even tabs.
 
+colors.tabs.pinned.odd.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned unselected odd tabs.
+
+colors.tabs.pinned.odd.bg:
+  default: seagreen
+  type: QtColor
+  desc: Background color of pinned unselected odd tabs.
+
+colors.tabs.pinned.even.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned unselected even tabs.
+
+colors.tabs.pinned.even.bg:
+  default: darkseagreen
+  type: QtColor
+  desc: Background color of pinned unselected even tabs.
+
+colors.tabs.pinned.selected.odd.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned selected odd tabs.
+
+colors.tabs.pinned.selected.odd.bg:
+  default: black
+  type: QtColor
+  desc: Background color of pinned selected odd tabs.
+
+colors.tabs.pinned.selected.even.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned selected even tabs.
+
+colors.tabs.pinned.selected.even.bg:
+  default: black
+  type: QtColor
+  desc: Background color of pinned selected even tabs.
+
 colors.webpage.bg:
   default: white
   type:
@@ -2776,6 +2816,7 @@ bindings.default:
       e: move-to-end-of-word
       w: move-to-next-word
       b: move-to-prev-word
+      o: reverse-selection
       "]": move-to-start-of-next-block
       "[": move-to-start-of-prev-block
       "}": move-to-end-of-next-block

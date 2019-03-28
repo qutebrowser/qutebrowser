@@ -522,6 +522,17 @@ Feature: Downloading things from a website.
         And I open data/downloads/download2.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/downloads/subdir/download2.bin"
 
+    Scenario: Clearing the last download directory when changing download location
+        When I set downloads.location.prompt to true
+        And I set downloads.location.suggestion to both
+        And I set downloads.location.remember to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for the download prompt for "*/download.bin"
+        And I run :prompt-accept (tmpdir)(dirsep)downloads(dirsep)subdir
+        And I run :set downloads.location.directory (tmpdir)(dirsep)downloads
+        And I open data/downloads/download2.bin without waiting
+        Then the download prompt should be shown with "(tmpdir)/downloads/download2.bin"
+
     Scenario: Not remembering the last download directory
         When I set downloads.location.prompt to true
         And I set downloads.location.suggestion to both

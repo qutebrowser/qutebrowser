@@ -112,8 +112,7 @@ def raise_sqlite_error(msg, error):
 
     if error_code in environmental_errors or qtbug_70506:
         raise SqlEnvironmentError(msg, error)
-    else:
-        raise SqlBugError(msg, error)
+    raise SqlBugError(msg, error)
 
 
 def init(db_path):

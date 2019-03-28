@@ -142,7 +142,8 @@ class PACResolver:
         config = [c.strip() for c in proxy_str.split(' ') if c]
         if not config:
             raise ParseProxyError("Empty proxy entry")
-        elif config[0] == "DIRECT":
+
+        if config[0] == "DIRECT":
             if len(config) != 1:
                 raise ParseProxyError("Invalid number of parameters for " +
                                       "DIRECT")

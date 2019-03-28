@@ -153,8 +153,7 @@ class QtObject:
         """Get the fake error, or raise AttributeError if set to None."""
         if self._error is None:
             raise AttributeError
-        else:
-            return self._error
+        return self._error
 
     def isValid(self):
         return self._valid

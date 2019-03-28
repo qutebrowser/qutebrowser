@@ -53,6 +53,10 @@ def normalize_line(line):
     line = line.replace('Content-Type: application/x-javascript',
                         'Content-Type: application/javascript')
 
+    # With QtWebKit and newer Werkzeug versions, we also get an encoding
+    # specified.
+    line = line.replace('javascript; charset=utf-8', 'javascript')
+
     # Added with Qt 5.11
     if (line.startswith('Snapshot-Content-Location: ') and
             not qtutils.version_check('5.11', compiled=False)):

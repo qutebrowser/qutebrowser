@@ -121,8 +121,7 @@ def get_lib_path(executable, name, required=True):
         if required:
             raise Error("Could not import {} with {}: {}!".format(
                 name, executable, data))
-        else:
-            return None
+        return None
     else:
         raise ValueError("Unexpected output: {!r}".format(output))
 

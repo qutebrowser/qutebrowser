@@ -270,6 +270,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     def _selection_cb(self, enabled):
         """Emit selection_toggled based on setInitialCursor."""
+        if self._mode_manager.mode != usertypes.KeyMode.caret:
+            log.webview.debug("Ignoring selection cb due to mode change.")
+            return
         if enabled is None:
             log.webview.debug("Ignoring selection status None")
             return
@@ -341,6 +344,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
         # https://github.com/qutebrowser/qutebrowser/issues/3523
         self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
                                callback)
+
+    def reverse_selection(self):
+        self._js_call('reverseSelection')
 
     def _follow_selected_cb_wrapped(self, js_elem, tab):
         try:

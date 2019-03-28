@@ -27,6 +27,9 @@ from qutebrowser.extensions.interceptors import Request
 #: Type annotation for an interceptor function.
 InterceptorType = interceptors.InterceptorType
 
+#: Possible resource types for requests sent to interceptor.
+ResourceType = interceptors.ResourceType
+
 
 def register(interceptor: InterceptorType) -> None:
     """Register a request interceptor.
