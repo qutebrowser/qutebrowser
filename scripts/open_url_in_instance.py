@@ -19,9 +19,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-# This script greatly speeds up execution of qutebrowser commands when a
-# qutebrowser instance already exists.  Call it in place of your system's
-# qutebrowser executable.
+"""Script for faster execution.
+
+This script greatly speeds up execution of qutebrowser commands when a
+qutebrowser instance already exists.  Call it in place of your system's
+qutebrowser executable.
+"""
 
 import hashlib
 import json
