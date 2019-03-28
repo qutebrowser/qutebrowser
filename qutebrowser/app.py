@@ -441,6 +441,9 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing proxy...")
     proxy.init()
 
+    log.init.debug("Initializing downloads...")
+    downloads.init()
+
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
     objreg.register('readline-bridge', readline_bridge)
