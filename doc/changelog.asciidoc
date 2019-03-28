@@ -23,6 +23,8 @@ Added
 
 - New settings:
   * `colors.tabs.pinned.*` to control colors of pinned tabs.
+- New command `:navigate strip` which removes queries and parameters from the
+  current URL (bound to `gs`/`gS` by default).
 
 Changed
 ~~~~~~~
@@ -78,8 +80,6 @@ Added
     dict/list setting.
 - New `:yank markdown` feature which yanks the current URL and title in
   markdown format.
-- New command `:navigate strip` which removes queries and parameters from the
-  current URL (bound to `gs`/`gS` by default).
 - Support for new QtWebEngine features in Qt 5.12:
   * Basic support for client certificates. Selecting the certificate to use
     when there are multiple matching certificates isn't implemented yet.
