@@ -70,8 +70,10 @@ class HintLabel(QLabel):
         self._context = context
         self.elem = elem
 
+        # Make sure we can style the background via a style sheet, and we don't
+        # get any extra text indent from Qt.
+        # The real stylesheet lives in mainwindow.py for performance reasons..
         self.setAttribute(Qt.WA_StyledBackground, True)
-        # Zero out extra indent provided.
         self.setIndent(0)
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
