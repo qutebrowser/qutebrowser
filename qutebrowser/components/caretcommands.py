@@ -211,7 +211,7 @@ def follow_selected(tab_obj: apitypes.Tab, *, tab: bool = False) -> None:
         raise cmdutils.CommandError(str(e))
 
 
-@cmdutils.register()
+@cmdutils.register(modes=[cmdutils.KeyMode.caret])
 @cmdutils.argument('tab', value=cmdutils.Value.cur_tab)
 def reverse_selection(tab: apitypes.Tab) -> None:
     """Switch the stationary end of the current selection with the
