@@ -1047,7 +1047,8 @@ class QtColor(BaseType):
                     value,
                     'expected {} values for {}'.format(len(kind), kind))
 
-            int_vals = [self._parse_value(p[0], p[1]) for p in zip(kind, vals)]
+            int_vals = [self._parse_value(kind, val)
+                        for kind, val in zip(kind, vals)]
             return conv(*int_vals)
 
         color = QColor(value)
