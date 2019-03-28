@@ -46,6 +46,9 @@ class ModelRole(enum.IntEnum):
 
     item = Qt.UserRole
 
+# Remember the last used directory
+last_used_directory = None
+
 # All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
 # redrawn.
 _REFRESH_INTERVAL = 500

@@ -529,9 +529,9 @@ Feature: Downloading things from a website.
         And I open data/downloads/download.bin without waiting
         And I wait for the download prompt for "*/download.bin"
         And I run :prompt-accept (tmpdir)(dirsep)downloads(dirsep)subdir
-        And I set downloads.location.directory to (tmpdir)
+        And I run :set downloads.location.directory (tmpdir)(dirsep)downloads
         And I open data/downloads/download2.bin without waiting
-        Then the download prompt should be shown with "(tmpdir)/download2.bin"
+        Then the download prompt should be shown with "(tmpdir)/downloads/download2.bin"
 
     Scenario: Not remembering the last download directory
         When I set downloads.location.prompt to true
