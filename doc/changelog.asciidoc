@@ -42,6 +42,8 @@ Fixed
 
 - Race condition causing a colored statusbar in normal mode when
   entering/exiting caret mode quickly.
+- Using `100%` for a hue in a `hsv(...)` config value now corresponds to 359
+  (rather than 255), matching the fixed behavior in Qt 5.13.
 
 v1.6.1
 ------
