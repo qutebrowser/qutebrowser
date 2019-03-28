@@ -46,6 +46,7 @@ class ModelRole(enum.IntEnum):
 
     item = Qt.UserRole
 
+
 # Remember the last used directory
 last_used_directory = None
 
@@ -67,16 +68,20 @@ class UnsupportedOperationError(Exception):
 
     """Raised when an operation is not supported with the given backend."""
 
+
 def init():
+    """Set the application wide downloads variables."""
     global last_used_directory
     last_used_directory = None
 
     config.instance.changed.connect(_clear_last_used)
 
+
 @config.change_filter('downloads.location.directory', function=True)
 def _clear_last_used():
     global last_used_directory
     last_used_directory = None
+
 
 def download_dir():
     """Get the download directory to use."""
