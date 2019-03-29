@@ -57,11 +57,5 @@ try:
     s.sendall((json.dumps(command) + '\n').encode('utf8'))
     s.close()
 except OSError:
-    for exec_path in reversed(os.get_exec_path()):
-        try:
-            subprocess.run([os.path.join(exec_path, 'qutebrowser'), *sys.argv[1:]])
-            sys.exit()
-        except OSError:
-            continue
-
-raise FileNotFoundError
+    os.environ['PATH'] = os.pathsep.join(reversed(os.get_exec_path()))
+    subprocess.run([os.path.join(exec_path, 'qutebrowser'), *sys.argv[1:]])
