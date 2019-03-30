@@ -222,13 +222,11 @@ Why does it take longer to open a URL in qutebrowser than in chromium?::
     loaded until it is detected that there is an instance running
     to which the URL is then passed. This takes some time.
     One workaround is to use this
-    https://github.com/qutebrowser/qutebrowser/blob/master/scripts/open_url_in_instance.sh[script]
+    https://github.com/qutebrowser/qutebrowser/blob/master/scripts/open_url_in_instance.py[script]
     and place it in your $PATH with the name "qutebrowser". This
-    script passes the URL via an unix socket to qutebrowser (if its
-    running already) using socat which is much faster and starts a new
-    qutebrowser if it is not running already. Also check if you want
-    to use webengine as backend in line 17 and change it to your
-    needs.
+    script passes the URL via a unix socket to qutebrowser (if it's
+    running already) which is much faster. If qutebrowser is not running
+    already, it starts a new instance.
 
 How do I make qutebrowser use greasemonkey scripts?::
     There is currently no UI elements to handle managing greasemonkey scripts.
