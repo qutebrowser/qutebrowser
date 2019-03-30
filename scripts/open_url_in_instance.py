@@ -58,4 +58,4 @@ try:
     s.close()
 except OSError:
     os.environ['PATH'] = os.pathsep.join(reversed(os.get_exec_path()))
-    subprocess.run([os.path.join(exec_path, 'qutebrowser'), *sys.argv[1:]])
+    subprocess.run('qutebrowser', *sys.argv[1:])
