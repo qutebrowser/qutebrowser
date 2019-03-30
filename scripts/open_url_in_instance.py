@@ -58,6 +58,6 @@ try:
     s.connect(socket_path)
     s.sendall((json.dumps(command) + '\n').encode('utf8'))
     s.close()
-except OSError:
+except FileNotFoundError:
     os.environ['PATH'] = os.pathsep.join(reversed(os.get_exec_path()))
     subprocess.run('qutebrowser', *sys.argv[1:])
