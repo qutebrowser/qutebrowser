@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -30,7 +30,8 @@ import argparse
 import vulture
 
 import qutebrowser.app  # pylint: disable=unused-import
-from qutebrowser.commands import cmdutils
+from qutebrowser.extensions import loader
+from qutebrowser.misc import objects
 from qutebrowser.utils import utils
 from qutebrowser.browser.webkit import rfc6266
 # To run the decorators from there
@@ -43,8 +44,10 @@ from qutebrowser.config import configtypes
 
 def whitelist_generator():  # noqa
     """Generator which yields lines to add to a vulture whitelist."""
+    loader.load_components(skip_hooks=True)
+
     # qutebrowser commands
-    for cmd in cmdutils.cmd_dict.values():
+    for cmd in objects.commands.values():
         yield utils.qualname(cmd.handler)
 
     # pyPEG2 classes
@@ -64,6 +67,7 @@ def whitelist_generator():  # noqa
     yield 'qutebrowser.utils.debug.qflags_key'
     yield 'qutebrowser.utils.qtutils.QtOSError.qt_errno'
     yield 'scripts.utils.bg_colors'
+    yield 'qutebrowser.misc.sql.SqliteErrorCode.CONSTRAINT'
 
     # Qt attributes
     yield 'PyQt5.QtWebKit.QWebPage.ErrorPageExtensionReturn().baseUrl'
@@ -83,6 +87,7 @@ def whitelist_generator():  # noqa
     yield 'qutebrowser.utils.log.QtWarningFilter.filter'
     yield 'qutebrowser.browser.pdfjs.is_available'
     yield 'qutebrowser.misc.guiprocess.spawn_output'
+    yield 'qutebrowser.utils.usertypes.ExitStatus.reserved'
     yield 'QEvent.posted'
     yield 'log_stack'  # from message.py
     yield 'propagate'  # logging.getLogger('...).propagate = False
@@ -124,6 +129,9 @@ def whitelist_generator():  # noqa
     yield 'scripts.get_coredumpctl_traces.Line.uid'
     yield 'scripts.get_coredumpctl_traces.Line.gid'
     yield 'scripts.importer.import_moz_places.places.row_factory'
+
+    # component hooks
+    yield 'qutebrowser.components.adblock.on_config_changed'
 
 
 def filter_func(item):

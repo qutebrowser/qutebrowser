@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,12 +30,12 @@ try:
 except ImportError:  # pragma: no cover
     try:
         # Python2
-        from Tkinter import Tk
-        import tkMessageBox as messagebox
+        from Tkinter import Tk  # type: ignore
+        import tkMessageBox as messagebox  # type: ignore  # noqa: N813
     except ImportError:
         # Some Python without Tk
-        Tk = None
-        messagebox = None
+        Tk = None  # type: ignore
+        messagebox = None  # type: ignore
 
 
 # First we check the version of Python. This code should run fine with python2

@@ -38,7 +38,11 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<close,close>>|Close the current window.
 |<<config-clear,config-clear>>|Set all settings back to their default.
 |<<config-cycle,config-cycle>>|Cycle an option between multiple values.
+|<<config-dict-add,config-dict-add>>|Add a key/value pair to a dictionary option.
+|<<config-dict-remove,config-dict-remove>>|Remove a key from a dict.
 |<<config-edit,config-edit>>|Open the config.py file in the editor.
+|<<config-list-add,config-list-add>>|Append a value to a config option that is a list.
+|<<config-list-remove,config-list-remove>>|Remove a value from a list.
 |<<config-source,config-source>>|Read a config.py file.
 |<<config-unset,config-unset>>|Unset an option.
 |<<config-write-py,config-write-py>>|Write the current configuration to a config.py file.
@@ -161,8 +165,7 @@ If no command is given, show the current binding for the given key. Using :bind 
 * +'command'+: The command to execute, with optional args.
 
 ==== optional arguments
-* +*-m*+, +*--mode*+: A comma-separated list of modes to bind the key in (default: `normal`). See `:help bindings.commands` for the
- available modes.
+* +*-m*+, +*--mode*+: The mode to bind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
 
 * +*-d*+, +*--default*+: If given, restore a default binding.
 
@@ -292,6 +295,35 @@ Cycle an option between multiple values.
 * +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 * +*-p*+, +*--print*+: Print the value after setting.
 
+[[config-dict-add]]
+=== config-dict-add
+Syntax: +:config-dict-add [*--temp*] [*--replace*] 'option' 'key' 'value'+
+
+Add a key/value pair to a dictionary option.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'key'+: The key to use.
+* +'value'+: The value to place in the dictionary.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Add value temporarily until qutebrowser is closed.
+* +*-r*+, +*--replace*+: Replace existing values. By default, existing values are not overwritten.
+
+
+[[config-dict-remove]]
+=== config-dict-remove
+Syntax: +:config-dict-remove [*--temp*] 'option' 'key'+
+
+Remove a key from a dict.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'key'+: The key to remove from the dict.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Remove value temporarily until qutebrowser is closed.
+
 [[config-edit]]
 === config-edit
 Syntax: +:config-edit [*--no-source*]+
@@ -300,6 +332,32 @@ Open the config.py file in the editor.
 
 ==== optional arguments
 * +*-n*+, +*--no-source*+: Don't re-source the config file after editing.
+
+[[config-list-add]]
+=== config-list-add
+Syntax: +:config-list-add [*--temp*] 'option' 'value'+
+
+Append a value to a config option that is a list.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'value'+: The value to append to the end of the list.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Add value temporarily until qutebrowser is closed.
+
+[[config-list-remove]]
+=== config-list-remove
+Syntax: +:config-list-remove [*--temp*] 'option' 'value'+
+
+Remove a value from a list.
+
+==== positional arguments
+* +'option'+: The name of the option.
+* +'value'+: The value to remove from the list.
+
+==== optional arguments
+* +*-t*+, +*--temp*+: Remove value temporarily until qutebrowser is closed.
 
 [[config-source]]
 === config-source
@@ -326,7 +384,7 @@ This sets an option back to its default and removes it from autoconfig.yml.
 * +'option'+: The name of the option.
 
 ==== optional arguments
-* +*-t*+, +*--temp*+: Don't touch autoconfig.yml.
+* +*-t*+, +*--temp*+: Set value temporarily until qutebrowser is closed.
 
 [[config-write-py]]
 === config-write-py
@@ -545,6 +603,10 @@ Start hinting.
  - `inputs`: Only input fields.
  
 
+ Custom groups can be added via the `hints.selectors` setting
+ and also used here.
+ 
+
 
 * +'target'+: What to do with the selected element. 
 
@@ -576,7 +638,7 @@ Start hinting.
  - With `userscript`: The userscript to execute. Either store
  the userscript in
  `~/.local/share/qutebrowser/userscripts`
- (or `$XDG_DATA_DIR`), or use an absolute
+ (or `$XDG_DATA_HOME`), or use an absolute
  path.
  - With `fill`: The command to fill the statusbar with.
  `{hint-url}` will get replaced by the selected
@@ -758,11 +820,11 @@ This tries to automatically click on typical _Previous Page_ or _Next Page_ link
  - `up`: Go up a level in the current URL.
  - `increment`: Increment the last number in the URL.
  Uses the
- link:settings.html#url.incdec_segments[url.incdec_segments]
+ link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
  config option.
  - `decrement`: Decrement the last number in the URL.
  Uses the
- link:settings.html#url.incdec_segments[url.incdec_segments]
+ link:settings{outsuffix}#url.incdec_segments[url.incdec_segments]
  config option.
  
 
@@ -1139,7 +1201,7 @@ Syntax: +:set [*--temp*] [*--print*] [*--pattern* 'pattern'] ['option'] ['value'
 
 Set an option.
 
-If the option name ends with '?', the value of the option is shown instead. Using :set without any arguments opens a page where settings can be changed interactively.
+If the option name ends with '?' or no value is provided, the value of the option is shown instead. Using :set without any arguments opens a page where settings can be changed interactively.
 
 ==== positional arguments
 * +'option'+: The name of the option.
@@ -1193,7 +1255,7 @@ Spawn a command in a shell.
 * +*-u*+, +*--userscript*+: Run the command as a userscript. You can use an absolute path, or store the userscript in one of those
  locations:
  - `~/.local/share/qutebrowser/userscripts`
- (or `$XDG_DATA_DIR`)
+ (or `$XDG_DATA_HOME`)
  - `/usr/share/qutebrowser/userscripts`
 
 * +*-v*+, +*--verbose*+: Show notifications when the command started/exited.
@@ -1261,7 +1323,7 @@ The tab index to focus, starting with 1.
 
 [[tab-give]]
 === tab-give
-Syntax: +:tab-give ['win-id']+
+Syntax: +:tab-give [*--keep*] ['win-id']+
 
 Give the current tab to a new or existing window if win_id given.
 
@@ -1269,6 +1331,9 @@ If no win_id is given, the tab will get detached into a new window.
 
 ==== positional arguments
 * +'win-id'+: The window ID of the window to give the current tab to.
+
+==== optional arguments
+* +*-k*+, +*--keep*+: If given, keep the old tab around.
 
 ==== count
 Overrides win_id (index starts at 1 for win_id=0).
@@ -1334,13 +1399,19 @@ How many tabs to switch back.
 
 [[tab-take]]
 === tab-take
-Syntax: +:tab-take 'index'+
+Syntax: +:tab-take [*--keep*] 'index'+
 
 Take a tab from another window.
 
 ==== positional arguments
 * +'index'+: The [win_id/]index of the tab to take. Or a substring in which case the closest match will be taken.
 
+
+==== optional arguments
+* +*-k*+, +*--keep*+: If given, keep the old tab around.
+
+==== note
+* This command does not split arguments after the last argument and handles quotes literally.
 
 [[unbind]]
 === unbind
@@ -1353,7 +1424,7 @@ Unbind a keychain.
 
 
 ==== optional arguments
-* +*-m*+, +*--mode*+: A mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
+* +*-m*+, +*--mode*+: The mode to unbind the key in (default: `normal`). See `:help bindings.commands` for the available modes.
 
 
 [[undo]]
@@ -1388,7 +1459,7 @@ Close all windows except for the current one.
 
 [[yank]]
 === yank
-Syntax: +:yank [*--sel*] [*--keep*] ['what']+
+Syntax: +:yank [*--sel*] [*--keep*] [*--quiet*] ['what']+
 
 Yank something to the clipboard or primary selection.
 
@@ -1400,6 +1471,7 @@ Yank something to the clipboard or primary selection.
  - `title`: The current page's title.
  - `domain`: The current scheme, domain, and port number.
  - `selection`: The selection under the cursor.
+ - `markdown`: Yank title and URL in markdown format.
  
 
 
@@ -1407,31 +1479,45 @@ Yank something to the clipboard or primary selection.
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
 * +*-k*+, +*--keep*+: Stay in visual mode after yanking the selection.
+* +*-q*+, +*--quiet*+: Don't show an information message.
 
 [[zoom]]
 === zoom
-Syntax: +:zoom ['zoom']+
+Syntax: +:zoom [*--quiet*] ['level']+
 
 Set the zoom level for the current tab.
 
 The zoom can be given as argument or as [count]. If neither is given, the zoom is set to the default zoom. If both are given, use [count].
 
 ==== positional arguments
-* +'zoom'+: The zoom percentage to set.
+* +'level'+: The zoom percentage to set.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show a zoom level message.
 
 ==== count
 The zoom percentage to set.
 
 [[zoom-in]]
 === zoom-in
+Syntax: +:zoom-in [*--quiet*]+
+
 Increase the zoom level for the current tab.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show a zoom level message.
 
 ==== count
 How many steps to zoom in.
 
 [[zoom-out]]
 === zoom-out
+Syntax: +:zoom-out [*--quiet*]+
+
 Decrease the zoom level for the current tab.
+
+==== optional arguments
+* +*-q*+, +*--quiet*+: Don't show a zoom level message.
 
 ==== count
 How many steps to zoom out.
@@ -1470,6 +1556,7 @@ How many steps to zoom out.
 |<<prompt-item-focus,prompt-item-focus>>|Shift the focus of the prompt file completion menu to another item.
 |<<prompt-open-download,prompt-open-download>>|Immediately open a download.
 |<<prompt-yank,prompt-yank>>|Yank URL to clipboard or primary selection.
+|<<reverse-selection,reverse-selection>>|Swap the stationary and moving end of the current selection.
 |<<rl-backward-char,rl-backward-char>>|Move back a character.
 |<<rl-backward-delete-char,rl-backward-delete-char>>|Delete the character before the cursor.
 |<<rl-backward-kill-word,rl-backward-kill-word>>|Remove chars from the cursor to the beginning of the word.
@@ -1663,7 +1750,7 @@ Shift the focus of the prompt file completion menu to another item.
 
 [[prompt-open-download]]
 === prompt-open-download
-Syntax: +:prompt-open-download ['cmdline']+
+Syntax: +:prompt-open-download [*--pdfjs*] ['cmdline']+
 
 Immediately open a download.
 
@@ -1674,6 +1761,9 @@ If no specific command is given, this will use the system's default application 
  present, the filename is automatically appended to the
  cmdline.
 
+
+==== optional arguments
+* +*-p*+, +*--pdfjs*+: Open the download via PDF.js.
 
 ==== note
 * This command does not split arguments after the last argument and handles quotes literally.
@@ -1686,6 +1776,10 @@ Yank URL to clipboard or primary selection.
 
 ==== optional arguments
 * +*-s*+, +*--sel*+: Use the primary selection instead of the clipboard.
+
+[[reverse-selection]]
+=== reverse-selection
+Swap the stationary and moving end of the current selection.
 
 [[rl-backward-char]]
 === rl-backward-char

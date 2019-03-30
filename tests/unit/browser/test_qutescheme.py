@@ -1,5 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Imran Sobir
 #
 # This file is part of qutebrowser.
@@ -20,12 +21,13 @@
 import json
 import os
 import time
+import logging
 
-from PyQt5.QtCore import QUrl
+import py.path  # pylint: disable=no-name-in-module
+from PyQt5.QtCore import QUrl, QUrlQuery
 import pytest
 
-from qutebrowser.browser import history, qutescheme
-from qutebrowser.utils import objreg
+from qutebrowser.browser import qutescheme, pdfjs, downloads
 
 
 class TestJavascriptHandler:
@@ -61,13 +63,13 @@ class TestJavascriptHandler:
     def test_qutejavascript_404(self):
         url = QUrl("qute://javascript/404.js")
 
-        with pytest.raises(qutescheme.QuteSchemeOSError):
+        with pytest.raises(qutescheme.SchemeOSError):
             qutescheme.data_for_url(url)
 
     def test_qutejavascript_empty_query(self):
         url = QUrl("qute://javascript")
 
-        with pytest.raises(qutescheme.QuteSchemeError):
+        with pytest.raises(qutescheme.UrlInvalidError):
             qutescheme.qute_javascript(url)
 
 
@@ -90,26 +92,18 @@ class TestHistoryHandler:
         for i in range(entry_count):
             entry_atime = now - i * interval
             entry = {"atime": str(entry_atime),
-                     "url": QUrl("www.x.com/" + str(i)),
+                     "url": QUrl("http://www.x.com/" + str(i)),
                      "title": "Page " + str(i)}
             items.insert(0, entry)
 
         return items
 
-    @pytest.fixture
-    def fake_web_history(self, fake_save_manager, tmpdir, init_sql):
-        """Create a fake web-history and register it into objreg."""
-        web_history = history.WebHistory()
-        objreg.register('web-history', web_history)
-        yield web_history
-        objreg.delete('web-history')
-
     @pytest.fixture(autouse=True)
-    def fake_history(self, fake_web_history, fake_args, entries):
+    def fake_history(self, web_history, fake_args, entries):
         """Create fake history."""
         fake_args.debug_flags = []
         for item in entries:
-            fake_web_history.add_url(**item)
+            web_history.add_url(**item)
 
     @pytest.mark.parametrize("start_time_offset, expected_item_count", [
         (0, 4),
@@ -133,7 +127,16 @@ class TestHistoryHandler:
             assert item['time'] <= start_time
             assert item['time'] > end_time
 
-    def test_qute_history_benchmark(self, fake_web_history, benchmark, now):
+    def test_exclude(self, web_history, now, config_stub):
+        """Make sure the completion.web_history.exclude setting is not used."""
+        config_stub.val.completion.web_history.exclude = ['www.x.com']
+
+        url = QUrl("qute://history/data?start_time={}".format(now))
+        _mimetype, data = qutescheme.qute_history(url)
+        items = json.loads(data)
+        assert items
+
+    def test_qute_history_benchmark(self, web_history, benchmark, now):
         r = range(100000)
         entries = {
             'atime': [int(now - t) for t in r],
@@ -142,7 +145,7 @@ class TestHistoryHandler:
             'redirect': [False for _ in r],
         }
 
-        fake_web_history.insert_batch(entries)
+        web_history.insert_batch(entries)
         url = QUrl("qute://history/data?start_time={}".format(now))
         _mimetype, data = benchmark(qutescheme.qute_history, url)
         assert len(json.loads(data)) > 1
@@ -169,3 +172,68 @@ class TestHelpHandler:
         mimetype, data = qutescheme.qute_help(QUrl('qute://help/foo.bin'))
         assert mimetype == 'application/octet-stream'
         assert data == b'\xff'
+
+
+class TestPDFJSHandler:
+
+    """Test the qute://pdfjs endpoint."""
+
+    @pytest.fixture(autouse=True)
+    def fake_pdfjs(self, monkeypatch):
+        def get_pdfjs_res(path):
+            if path == '/existing/file.html':
+                return b'foobar'
+            raise pdfjs.PDFJSNotFound(path)
+
+        monkeypatch.setattr(pdfjs, 'get_pdfjs_res', get_pdfjs_res)
+
+    @pytest.fixture
+    def download_tmpdir(self):
+        tdir = downloads.temp_download_manager.get_tmpdir()
+        yield py.path.local(tdir.name)  # pylint: disable=no-member
+        tdir.cleanup()
+
+    def test_existing_resource(self):
+        """Test with a resource that exists."""
+        _mimetype, data = qutescheme.data_for_url(
+            QUrl('qute://pdfjs/existing/file.html'))
+        assert data == b'foobar'
+
+    def test_nonexisting_resource(self, caplog):
+        """Test with a resource that does not exist."""
+        with caplog.at_level(logging.WARNING, 'misc'):
+            with pytest.raises(qutescheme.NotFoundError):
+                qutescheme.data_for_url(QUrl('qute://pdfjs/no/file.html'))
+
+        expected = 'pdfjs resource requested but not found: /no/file.html'
+        assert caplog.messages == [expected]
+
+    def test_viewer_page(self, data_tmpdir):
+        """Load the /web/viewer.html page."""
+        _mimetype, data = qutescheme.data_for_url(
+            QUrl('qute://pdfjs/web/viewer.html?filename=foobar'))
+        assert b'PDF.js' in data
+
+    def test_viewer_no_filename(self):
+        with pytest.raises(qutescheme.UrlInvalidError):
+            qutescheme.data_for_url(QUrl('qute://pdfjs/web/viewer.html'))
+
+    def test_file(self, download_tmpdir):
+        """Load a file via qute://pdfjs/file."""
+        (download_tmpdir / 'testfile').write_binary(b'foo')
+        _mimetype, data = qutescheme.data_for_url(
+            QUrl('qute://pdfjs/file?filename=testfile'))
+        assert data == b'foo'
+
+    def test_file_no_filename(self):
+        with pytest.raises(qutescheme.UrlInvalidError):
+            qutescheme.data_for_url(QUrl('qute://pdfjs/file'))
+
+    @pytest.mark.parametrize('sep', ['/', os.sep])
+    def test_file_pathsep(self, sep):
+        url = QUrl('qute://pdfjs/file')
+        query = QUrlQuery()
+        query.addQueryItem('filename', 'foo{}bar'.format(sep))
+        url.setQuery(query)
+        with pytest.raises(qutescheme.RequestDeniedError):
+            qutescheme.data_for_url(url)

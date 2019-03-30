@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,13 +28,27 @@ import html
 from PyQt5.QtWidgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
 from PyQt5.QtCore import QRectF, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
-                         QAbstractTextDocumentLayout)
+                         QAbstractTextDocumentLayout, QSyntaxHighlighter,
+                         QTextCharFormat)
 
 from qutebrowser.config import config
-from qutebrowser.utils import qtutils, jinja
+from qutebrowser.utils import qtutils
 
 
-_cached_stylesheet = None
+class _Highlighter(QSyntaxHighlighter):
+
+    def __init__(self, doc, pattern, color):
+        super().__init__(doc)
+        self._format = QTextCharFormat()
+        self._format.setForeground(color)
+        self._pattern = pattern
+
+    def highlightBlock(self, text):
+        """Override highlightBlock for custom highlighting."""
+        for match in re.finditer(self._pattern, text, re.IGNORECASE):
+            start, end = match.span()
+            length = end - start
+            self.setFormat(start, length, self._format)
 
 
 class CompletionItemDelegate(QStyledItemDelegate):
@@ -152,11 +166,11 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._painter.save()
 
         if self._opt.state & QStyle.State_Selected:
-            color = config.val.colors.completion.item.selected.fg
+            color = config.cache['colors.completion.item.selected.fg']
         elif not self._opt.state & QStyle.State_Enabled:
-            color = config.val.colors.completion.category.fg
+            color = config.cache['colors.completion.category.fg']
         else:
-            colors = config.val.colors.completion.fg
+            colors = config.cache['colors.completion.fg']
             # if multiple colors are set, use different colors per column
             color = colors[col % len(colors)]
         self._painter.setPen(color)
@@ -194,21 +208,15 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._doc.setDefaultTextOption(text_option)
         self._doc.setDocumentMargin(2)
 
-        assert _cached_stylesheet is not None
-        self._doc.setDefaultStyleSheet(_cached_stylesheet)
-
         if index.parent().isValid():
             view = self.parent()
             pattern = view.pattern
             columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
-                repl = r'<span class="highlight">\g<0></span>'
-                pat = html.escape(re.escape(pattern)).replace(r'\ ', r'|')
-                txt = html.escape(self._opt.text)
-                text = re.sub(pat, repl, txt, flags=re.IGNORECASE)
-                self._doc.setHtml(text)
-            else:
-                self._doc.setPlainText(self._opt.text)
+                pat = re.escape(pattern).replace(r'\ ', r'|')
+                _Highlighter(self._doc, pat,
+                             config.val.colors.completion.match.fg)
+            self._doc.setPlainText(self._opt.text)
         else:
             self._doc.setHtml(
                 '<span style="font: {};">{}</span>'.format(
@@ -283,24 +291,3 @@ class CompletionItemDelegate(QStyledItemDelegate):
         self._draw_focus_rect()
 
         self._painter.restore()
-
-
-@config.change_filter('colors.completion.match.fg', function=True)
-def _update_stylesheet():
-    """Update the cached stylesheet."""
-    stylesheet = """
-        .highlight {
-            color: {{ conf.colors.completion.match.fg }};
-        }
-    """
-    with jinja.environment.no_autoescape():
-        template = jinja.environment.from_string(stylesheet)
-
-    global _cached_stylesheet
-    _cached_stylesheet = template.render(conf=config.val)
-
-
-def init():
-    """Initialize the cached stylesheet."""
-    _update_stylesheet()
-    config.instance.changed.connect(_update_stylesheet)

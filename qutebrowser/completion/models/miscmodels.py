@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -122,8 +122,8 @@ def _buffer(skip_win_id=None):
             tabs.append(("{}/{}".format(win_id, idx + 1),
                          tab.url().toDisplayString(),
                          tabbed_browser.widget.page_title(idx)))
-        cat = listcategory.ListCategory("{}".format(win_id), tabs,
-                                        delete_func=delete_buffer)
+        cat = listcategory.ListCategory(
+            str(win_id), tabs, delete_func=delete_buffer, sort=False)
         model.add_category(cat)
 
     return model

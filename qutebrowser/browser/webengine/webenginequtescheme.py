@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,9 +19,14 @@
 
 """QtWebEngine specific qute://* handlers and glue code."""
 
-from PyQt5.QtCore import QBuffer, QIODevice
+from PyQt5.QtCore import QBuffer, QIODevice, QUrl
 from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
                                    QWebEngineUrlRequestJob)
+try:
+    from PyQt5.QtWebEngineCore import QWebEngineUrlScheme  # type: ignore
+except ImportError:
+    # Added in Qt 5.12
+    QWebEngineUrlScheme = None
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, qtutils
@@ -33,11 +38,61 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
 
     def install(self, profile):
         """Install the handler for qute:// URLs on the given profile."""
+        if QWebEngineUrlScheme is not None:
+            assert QWebEngineUrlScheme.schemeByName(b'qute') is not None
+
         profile.installUrlSchemeHandler(b'qute', self)
-        if qtutils.version_check('5.11', compiled=False):
+        if (qtutils.version_check('5.11', compiled=False) and
+                not qtutils.version_check('5.12', compiled=False)):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-63378
             profile.installUrlSchemeHandler(b'chrome-error', self)
             profile.installUrlSchemeHandler(b'chrome-extension', self)
+
+    def _check_initiator(self, job):
+        """Check whether the initiator of the job should be allowed.
+
+        Only the browser itself or qute:// pages should access any of those
+        URLs. The request interceptor further locks down qute://settings/set.
+
+        Args:
+            job: QWebEngineUrlRequestJob
+
+        Return:
+            True if the initiator is allowed, False if it was blocked.
+        """
+        try:
+            initiator = job.initiator()
+            request_url = job.requestUrl()
+        except AttributeError:
+            # Added in Qt 5.11
+            return True
+
+        # https://codereview.qt-project.org/#/c/234849/
+        is_opaque = initiator == QUrl('null')
+        target = request_url.scheme(), request_url.host()
+
+        if is_opaque and not qtutils.version_check('5.12'):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70421
+            # When we don't register the qute:// scheme, all requests are
+            # flagged as opaque.
+            return True
+
+        if (target == ('qute', 'testdata') and
+                is_opaque and
+                qtutils.version_check('5.12')):
+            # Allow requests to qute://testdata, as this is needed in Qt 5.12
+            # for all tests to work properly. No qute://testdata handler is
+            # installed outside of tests.
+            return True
+
+        if initiator.isValid() and initiator.scheme() != 'qute':
+            log.misc.warning("Blocking malicious request from {} to {}".format(
+                initiator.toDisplayString(),
+                request_url.toDisplayString()))
+            job.fail(QWebEngineUrlRequestJob.RequestDenied)
+            return False
+
+        return True
 
     def requestStarted(self, job):
         """Handle a request for a qute: scheme.
@@ -55,21 +110,8 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             job.fail(QWebEngineUrlRequestJob.UrlInvalid)
             return
 
-        # Only the browser itself or qute:// pages should access any of those
-        # URLs.
-        # The request interceptor further locks down qute://settings/set.
-        try:
-            initiator = job.initiator()
-        except AttributeError:
-            # Added in Qt 5.11
-            pass
-        else:
-            if initiator.isValid() and initiator.scheme() != 'qute':
-                log.misc.warning("Blocking malicious request from {} to {}"
-                                 .format(initiator.toDisplayString(),
-                                         url.toDisplayString()))
-                job.fail(QWebEngineUrlRequestJob.RequestDenied)
-                return
+        if not self._check_initiator(job):
+            return
 
         if job.requestMethod() != b'GET':
             job.fail(QWebEngineUrlRequestJob.RequestDenied)
@@ -80,18 +122,23 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
         log.misc.debug("Got request for {}".format(url.toDisplayString()))
         try:
             mimetype, data = qutescheme.data_for_url(url)
-        except qutescheme.NoHandlerFound:
-            log.misc.debug("No handler found for {}".format(
-                url.toDisplayString()))
-            job.fail(QWebEngineUrlRequestJob.UrlNotFound)
-        except qutescheme.QuteSchemeOSError:
-            # FIXME:qtwebengine how do we show a better error here?
-            log.misc.exception("OSError while handling qute://* URL")
-            job.fail(QWebEngineUrlRequestJob.UrlNotFound)
-        except qutescheme.QuteSchemeError:
-            # FIXME:qtwebengine how do we show a better error here?
-            log.misc.exception("Error while handling qute://* URL")
-            job.fail(QWebEngineUrlRequestJob.RequestFailed)
+        except qutescheme.Error as e:
+            errors = {
+                qutescheme.NotFoundError:
+                    QWebEngineUrlRequestJob.UrlNotFound,
+                qutescheme.UrlInvalidError:
+                    QWebEngineUrlRequestJob.UrlInvalid,
+                qutescheme.RequestDeniedError:
+                    QWebEngineUrlRequestJob.RequestDenied,
+                qutescheme.SchemeOSError:
+                    QWebEngineUrlRequestJob.UrlNotFound,
+                qutescheme.Error:
+                    QWebEngineUrlRequestJob.RequestFailed,
+            }
+            exctype = type(e)
+            log.misc.error("{} while handling qute://* URL".format(
+                exctype.__name__))
+            job.fail(errors[exctype])
         except qutescheme.Redirect as e:
             qtutils.ensure_valid(e.url)
             job.redirect(e.url)
@@ -107,3 +154,17 @@ class QuteSchemeHandler(QWebEngineUrlSchemeHandler):
             buf.seek(0)
             buf.close()
             job.reply(mimetype.encode('ascii'), buf)
+
+
+def init():
+    """Register the qute:// scheme.
+
+    Note this needs to be called early, before constructing any QtWebEngine
+    classes.
+    """
+    if QWebEngineUrlScheme is not None:
+        assert not QWebEngineUrlScheme.schemeByName(b'qute').name()
+        scheme = QWebEngineUrlScheme(b'qute')
+        scheme.setFlags(QWebEngineUrlScheme.LocalScheme |
+                        QWebEngineUrlScheme.LocalAccessAllowed)
+        QWebEngineUrlScheme.registerScheme(scheme)

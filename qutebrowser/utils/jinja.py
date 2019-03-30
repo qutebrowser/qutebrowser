@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,7 +22,6 @@
 import os
 import os.path
 import contextlib
-import mimetypes
 import html
 
 import jinja2
@@ -108,9 +107,8 @@ class Environment(jinja2.Environment):
         """Get a data: url for the broken qutebrowser logo."""
         data = utils.read_file(path, binary=True)
         filename = utils.resource_filename(path)
-        mimetype = mimetypes.guess_type(filename)
-        assert mimetype is not None, path
-        return urlutils.data_url(mimetype[0], data).toString()
+        mimetype = utils.guess_mimetype(filename)
+        return urlutils.data_url(mimetype, data).toString()
 
     def getattr(self, obj, attribute):
         """Override jinja's getattr() to be less clever.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,7 +29,6 @@ import json
 import os
 import time
 import textwrap
-import mimetypes
 import urllib
 import collections
 import base64
@@ -38,17 +37,15 @@ try:
     import secrets
 except ImportError:
     # New in Python 3.6
-    secrets = None
+    secrets = None  # type: ignore
 
-import pkg_resources
-from PyQt5.QtCore import QUrlQuery, QUrl
-from PyQt5.QtNetwork import QNetworkReply
+from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
 import qutebrowser
+from qutebrowser.browser import pdfjs, downloads
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, urlutils)
-from qutebrowser.misc import objects
 from qutebrowser.qt import sip
 
 
@@ -60,36 +57,29 @@ csrf_token = None
 _HANDLERS = {}
 
 
-class NoHandlerFound(Exception):
+class Error(Exception):
 
-    """Raised when no handler was found for the given URL."""
-
-    pass
+    """Exception for generic errors on a qute:// page."""
 
 
-class QuteSchemeOSError(Exception):
+class NotFoundError(Error):
 
-    """Called when there was an OSError inside a handler."""
-
-    pass
+    """Raised when the given URL was not found."""
 
 
-class QuteSchemeError(Exception):
+class SchemeOSError(Error):
 
-    """Exception to signal that a handler should return an ErrorReply.
+    """Raised when there was an OSError inside a handler."""
 
-    Attributes correspond to the arguments in
-    networkreply.ErrorNetworkReply.
 
-    Attributes:
-        errorstring: Error string to print.
-        error: Numerical error value.
-    """
+class UrlInvalidError(Error):
 
-    def __init__(self, errorstring, error):
-        self.errorstring = errorstring
-        self.error = error
-        super().__init__(errorstring)
+    """Raised when an invalid URL was opened."""
+
+
+class RequestDeniedError(Error):
+
+    """Raised when the request is forbidden."""
 
 
 class Redirect(Exception):
@@ -111,12 +101,10 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     Attributes:
         _name: The 'foo' part of qute://foo
-        backend: Limit which backends the handler can run with.
     """
 
-    def __init__(self, name, backend=None):
+    def __init__(self, name):
         self._name = name
-        self._backend = backend
         self._function = None
 
     def __call__(self, function):
@@ -126,19 +114,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def wrapper(self, *args, **kwargs):
         """Call the underlying function."""
-        if self._backend is not None and objects.backend != self._backend:
-            return self.wrong_backend_handler(*args, **kwargs)
-        else:
-            return self._function(*args, **kwargs)
-
-    def wrong_backend_handler(self, url):
-        """Show an error page about using the invalid backend."""
-        src = jinja.render('error.html',
-                           title="Error while opening qute://url",
-                           url=url.toDisplayString(),
-                           error='{} is not available with this '
-                                 'backend'.format(url.toDisplayString()))
-        return 'text/html', src
+        return self._function(*args, **kwargs)
 
 
 def data_for_url(url):
@@ -180,13 +156,13 @@ def data_for_url(url):
     try:
         handler = _HANDLERS[host]
     except KeyError:
-        raise NoHandlerFound(url)
+        raise NotFoundError("No handler found for {}".format(
+            url.toDisplayString()))
 
     try:
         mimetype, data = handler(url)
     except OSError as e:
-        # FIXME:qtwebengine how to handle this?
-        raise QuteSchemeOSError(e)
+        raise SchemeOSError(e)
 
     assert mimetype is not None, url
     if mimetype == 'text/html' and isinstance(data, str):
@@ -261,14 +237,14 @@ def qute_history(url):
         try:
             offset = QUrlQuery(url).queryItemValue("offset")
             offset = int(offset) if offset else None
-        except ValueError as e:
-            raise QuteSchemeError("Query parameter offset is invalid", e)
+        except ValueError:
+            raise UrlInvalidError("Query parameter offset is invalid")
         # Use start_time in query or current time.
         try:
             start_time = QUrlQuery(url).queryItemValue("start_time")
             start_time = float(start_time) if start_time else time.time()
-        except ValueError as e:
-            raise QuteSchemeError("Query parameter start_time is invalid", e)
+        except ValueError:
+            raise UrlInvalidError("Query parameter start_time is invalid")
 
         return 'text/html', json.dumps(history_data(start_time, offset))
     else:
@@ -290,7 +266,7 @@ def qute_javascript(url):
         path = "javascript" + os.sep.join(path.split('/'))
         return 'text/html', utils.read_file(path, binary=False)
     else:
-        raise QuteSchemeError("No file specified", ValueError())
+        raise UrlInvalidError("No file specified")
 
 
 @add_handler('pyeval')
@@ -362,6 +338,15 @@ def qute_gpl(_url):
     return 'text/html', utils.read_file('html/license.html')
 
 
+def _asciidoc_fallback_path(html_path):
+    """Fall back to plaintext asciidoc if the HTML is unavailable."""
+    path = html_path.replace('.html', '.asciidoc')
+    try:
+        return utils.read_file(path)
+    except OSError:
+        return None
+
+
 @add_handler('help')
 def qute_help(url):
     """Handler for qute://help."""
@@ -379,23 +364,14 @@ def qute_help(url):
         try:
             bdata = utils.read_file(path, binary=True)
         except OSError as e:
-            raise QuteSchemeOSError(e)
-        mimetype, _encoding = mimetypes.guess_type(urlpath)
-        assert mimetype is not None, url
+            raise SchemeOSError(e)
+        mimetype = utils.guess_mimetype(urlpath)
         return mimetype, bdata
 
     try:
         data = utils.read_file(path)
     except OSError:
-        # No .html around, let's see if we find the asciidoc
-        asciidoc_path = path.replace('.html', '.asciidoc')
-        if asciidoc_path.startswith('html/doc/'):
-            asciidoc_path = asciidoc_path.replace('html/doc/', '../doc/help/')
-
-        try:
-            asciidoc = utils.read_file(asciidoc_path)
-        except OSError:
-            asciidoc = None
+        asciidoc = _asciidoc_fallback_path(path)
 
         if asciidoc is None:
             raise
@@ -419,17 +395,6 @@ def qute_help(url):
         return 'text/plain', (preamble + asciidoc).encode('utf-8')
     else:
         return 'text/html', data
-
-
-@add_handler('backend-warning')
-def qute_backend_warning(_url):
-    """Handler for qute://backend-warning."""
-    src = jinja.render('backend-warning.html',
-                       distribution=version.distribution(),
-                       Distribution=version.Distribution,
-                       version=pkg_resources.parse_version,
-                       title="Legacy backend warning")
-    return 'text/html', src
 
 
 def _qute_settings_set(url):
@@ -461,8 +426,7 @@ def qute_settings(url):
     if url.path() == '/set':
         if url.password() != csrf_token:
             message.error("Invalid CSRF token for qute://settings!")
-            raise QuteSchemeError("Invalid CSRF token!",
-                                  QNetworkReply.ContentAccessDenied)
+            raise RequestDeniedError("Invalid CSRF token!")
         return _qute_settings_set(url)
 
     # Requests to qute://settings/set should only be allowed from
@@ -530,3 +494,59 @@ def qute_pastebin_version(_url):
     """Handler that pastebins the version string."""
     version.pastebin_version()
     return 'text/plain', b'Paste called.'
+
+
+@add_handler('pdfjs')
+def qute_pdfjs(url):
+    """Handler for qute://pdfjs. Return the pdf.js viewer."""
+    if url.path() == '/file':
+        filename = QUrlQuery(url).queryItemValue('filename')
+        if not filename:
+            raise UrlInvalidError("Missing filename")
+        if '/' in filename or os.sep in filename:
+            raise RequestDeniedError("Path separator in filename.")
+
+        path = os.path.join(downloads.temp_download_manager.get_tmpdir().name,
+                            filename)
+
+        with open(path, 'rb') as f:
+            data = f.read()
+
+        mimetype = utils.guess_mimetype(filename, fallback=True)
+        return mimetype, data
+
+    if url.path() == '/web/viewer.html':
+        filename = QUrlQuery(url).queryItemValue("filename")
+        if not filename:
+            raise UrlInvalidError("Missing filename")
+        data = pdfjs.generate_pdfjs_page(filename, url)
+        return 'text/html', data
+
+    try:
+        data = pdfjs.get_pdfjs_res(url.path())
+    except pdfjs.PDFJSNotFound as e:
+        # Logging as the error might get lost otherwise since we're not showing
+        # the error page if a single asset is missing. This way we don't lose
+        # information, as the failed pdfjs requests are still in the log.
+        log.misc.warning(
+            "pdfjs resource requested but not found: {}".format(e.path))
+        raise NotFoundError("Can't find pdfjs resource '{}'".format(e.path))
+    else:
+        mimetype = utils.guess_mimetype(url.fileName(), fallback=True)
+        return mimetype, data
+
+
+@add_handler('warning')
+def qute_warning(url):
+    """Handler for qute://warning."""
+    path = url.path()
+    if path == '/old-qt':
+        src = jinja.render('warning-old-qt.html',
+                           title='Old Qt warning',
+                           qt_version=qVersion())
+    elif path == '/webkit':
+        src = jinja.render('warning-webkit.html',
+                           title='QtWebKit backend warning')
+    else:
+        raise NotFoundError("Invalid warning page {}".format(path))
+    return 'text/html', src

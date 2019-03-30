@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -53,10 +53,17 @@ MsgType = enum.Enum('MsgType', 'insufficent_coverage, perfect_file')
 PERFECT_FILES = [
     (None,
      'commands/cmdexc.py'),
-    ('tests/unit/commands/test_cmdutils.py',
-     'commands/cmdutils.py'),
     ('tests/unit/commands/test_argparser.py',
      'commands/argparser.py'),
+
+    ('tests/unit/api/test_cmdutils.py',
+     'api/cmdutils.py'),
+    (None,
+     'api/apitypes.py'),
+    (None,
+     'api/config.py'),
+    (None,
+     'api/message.py'),
 
     ('tests/unit/browser/webkit/test_cache.py',
      'browser/webkit/cache.py'),
@@ -64,6 +71,8 @@ PERFECT_FILES = [
      'browser/webkit/cookies.py'),
     ('tests/unit/browser/test_history.py',
      'browser/history.py'),
+    ('tests/unit/browser/test_pdfjs.py',
+     'browser/pdfjs.py'),
     ('tests/unit/browser/webkit/http/test_http.py',
      'browser/webkit/http.py'),
     ('tests/unit/browser/webkit/http/test_content_disposition.py',
@@ -111,7 +120,7 @@ PERFECT_FILES = [
      'misc/keyhintwidget.py'),
     ('tests/unit/misc/test_pastebin.py',
      'misc/pastebin.py'),
-    (None,
+    ('tests/unit/misc/test_objects.py',
      'misc/objects.py'),
 
     (None,
@@ -147,6 +156,8 @@ PERFECT_FILES = [
      'config/configcommands.py'),
     ('tests/unit/config/test_configutils.py',
      'config/configutils.py'),
+    ('tests/unit/config/test_configcache.py',
+     'config/configcache.py'),
 
     ('tests/unit/utils/test_qtutils.py',
      'utils/qtutils.py'),
@@ -193,6 +204,7 @@ WHITELISTED_FILES = [
     'browser/webkit/webkitinspector.py',
     'keyinput/macros.py',
     'browser/webkit/webkitelem.py',
+    'api/interceptor.py',
 ]
 
 
@@ -223,11 +235,11 @@ def check(fileobj, perfect_files):
     """Main entry point which parses/checks coverage.xml if applicable."""
     if not utils.is_linux:
         raise Skipped("on non-Linux system.")
-    elif '-k' in sys.argv[1:]:
+    if '-k' in sys.argv[1:]:
         raise Skipped("because -k is given.")
-    elif '-m' in sys.argv[1:]:
+    if '-m' in sys.argv[1:]:
         raise Skipped("because -m is given.")
-    elif '--lf' in sys.argv[1:]:
+    if '--lf' in sys.argv[1:]:
         raise Skipped("because --lf is given.")
 
     perfect_src_files = [e[1] for e in perfect_files]

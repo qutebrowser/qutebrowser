@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>:
 #
 # This file is part of qutebrowser.
 #
@@ -60,9 +60,7 @@ class TestDebugLog:
 
     def test_log(self, keyparser, caplog):
         keyparser._debug_log('foo')
-        assert len(caplog.records) == 1
-        record = caplog.records[0]
-        assert record.message == 'foo'
+        assert caplog.messages == ['foo']
 
     def test_no_log(self, keyparser, caplog):
         keyparser.do_log = False

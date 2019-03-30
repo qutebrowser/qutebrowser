@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -30,7 +30,7 @@ from qutebrowser.completion.models import histcategory
 @pytest.fixture
 def hist(init_sql, config_stub):
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
-    config_stub.val.completion.web_history_max_items = -1
+    config_stub.val.completion.web_history.max_items = -1
     return sql.SqlTable('CompletionHistory', ['url', 'title', 'last_atime'])
 
 
@@ -82,6 +82,14 @@ def hist(init_sql, config_stub):
     ("ample itle",
      [('example.com', 'title'), ('example.com', 'nope')],
      [('example.com', 'title')]),
+
+    # https://github.com/qutebrowser/qutebrowser/issues/4411
+    ("mlfreq",
+     [('https://qutebrowser.org/FAQ.html', 'Frequently Asked Questions')],
+     []),
+    ("ml freq",
+     [('https://qutebrowser.org/FAQ.html', 'Frequently Asked Questions')],
+     [('https://qutebrowser.org/FAQ.html', 'Frequently Asked Questions')]),
 ])
 def test_set_pattern(pattern, before, after, model_validator, hist):
     """Validate the filtering and sorting results of set_pattern."""
@@ -165,7 +173,7 @@ def test_set_pattern_repeated(model_validator, hist):
 ])
 def test_sorting(max_items, before, after, model_validator, hist, config_stub):
     """Validate the filtering and sorting results of set_pattern."""
-    config_stub.val.completion.web_history_max_items = max_items
+    config_stub.val.completion.web_history.max_items = max_items
     for url, title, atime in before:
         timestamp = datetime.datetime.strptime(atime, '%Y-%m-%d').timestamp()
         hist.insert({'url': url, 'title': title, 'last_atime': timestamp})

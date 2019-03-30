@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,7 +20,7 @@
 """Filter for QtWebEngine cookies."""
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils
+from qutebrowser.utils import utils, qtutils
 
 
 def _accept_cookie(request):
@@ -29,7 +29,13 @@ def _accept_cookie(request):
     if accept == 'all':
         return True
     elif accept in ['no-3rdparty', 'no-unknown-3rdparty']:
-        return not request.thirdParty
+        if qtutils.version_check('5.11.3', compiled=False):
+            third_party = request.thirdParty
+        else:
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-71393
+            third_party = (request.thirdParty and
+                           not request.firstPartyUrl.isEmpty())
+        return not third_party
     elif accept == 'never':
         return False
     else:

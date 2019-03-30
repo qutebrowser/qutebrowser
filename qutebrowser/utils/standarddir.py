@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -35,9 +35,17 @@ from qutebrowser.utils import log, debug, message, utils
 _locations = {}
 
 
-Location = enum.Enum('Location', ['config', 'auto_config',
-                                  'data', 'system_data',
-                                  'cache', 'download', 'runtime'])
+class _Location(enum.Enum):
+
+    """A key for _locations."""
+
+    config = 1
+    auto_config = 2
+    data = 3
+    system_data = 4
+    cache = 5
+    download = 6
+    runtime = 7
 
 
 APPNAME = 'qutebrowser'
@@ -77,8 +85,8 @@ def _init_config(args):
         else:
             path = _writable_location(typ)
     _create(path)
-    _locations[Location.config] = path
-    _locations[Location.auto_config] = path
+    _locations[_Location.config] = path
+    _locations[_Location.auto_config] = path
 
     # Override the normal (non-auto) config on macOS
     if utils.is_mac:
@@ -86,7 +94,7 @@ def _init_config(args):
         if not overridden:  # pragma: no branch
             path = os.path.expanduser('~/.' + APPNAME)
             _create(path)
-            _locations[Location.config] = path
+            _locations[_Location.config] = path
 
 
 def config(auto=False):
@@ -96,8 +104,8 @@ def config(auto=False):
     which is different on macOS.
     """
     if auto:
-        return _locations[Location.auto_config]
-    return _locations[Location.config]
+        return _locations[_Location.auto_config]
+    return _locations[_Location.config]
 
 
 def _init_data(args):
@@ -115,14 +123,14 @@ def _init_data(args):
         else:
             path = _writable_location(typ)
     _create(path)
-    _locations[Location.data] = path
+    _locations[_Location.data] = path
 
     # system_data
-    _locations.pop(Location.system_data, None)  # Remove old state
+    _locations.pop(_Location.system_data, None)  # Remove old state
     if utils.is_linux:
         path = '/usr/share/' + APPNAME
         if os.path.exists(path):
-            _locations[Location.system_data] = path
+            _locations[_Location.system_data] = path
 
 
 def data(system=False):
@@ -133,10 +141,10 @@ def data(system=False):
     """
     if system:
         try:
-            return _locations[Location.system_data]
+            return _locations[_Location.system_data]
         except KeyError:
             pass
-    return _locations[Location.data]
+    return _locations[_Location.data]
 
 
 def _init_cache(args):
@@ -151,11 +159,11 @@ def _init_cache(args):
         else:
             path = _writable_location(typ)
     _create(path)
-    _locations[Location.cache] = path
+    _locations[_Location.cache] = path
 
 
 def cache():
-    return _locations[Location.cache]
+    return _locations[_Location.cache]
 
 
 def _init_download(args):
@@ -168,11 +176,11 @@ def _init_download(args):
     overridden, path = _from_args(typ, args)
     if not overridden:
         path = _writable_location(typ)
-    _locations[Location.download] = path
+    _locations[_Location.download] = path
 
 
 def download():
-    return _locations[Location.download]
+    return _locations[_Location.download]
 
 
 def _init_runtime(args):
@@ -205,11 +213,11 @@ def _init_runtime(args):
         # maximum length of 104 chars), so we don't add the username here...
 
     _create(path)
-    _locations[Location.runtime] = path
+    _locations[_Location.runtime] = path
 
 
 def runtime():
-    return _locations[Location.runtime]
+    return _locations[_Location.runtime]
 
 
 def _writable_location(typ):
@@ -240,8 +248,7 @@ def _writable_location(typ):
 
     # Add the application name to the given path if needed.
     # This is in order for this to work without a QApplication (and thus
-    # QStandardsPaths not knowing the application name), as well as a
-    # workaround for https://bugreports.qt.io/browse/QTBUG-38872
+    # QStandardsPaths not knowing the application name).
     if (typ != QStandardPaths.DownloadLocation and
             path.split(os.sep)[-1] != APPNAME):
         path = os.path.join(path, APPNAME)

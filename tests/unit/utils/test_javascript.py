@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -84,13 +84,14 @@ class TestStringEscape:
     (None, 'undefined'),
     (object(), TypeError),
     (True, 'true'),
+    ([23, True, 'x'], '[23, true, "x"]'),
 ])
-def test_convert_js_arg(arg, expected):
+def test_to_js(arg, expected):
     if expected is TypeError:
         with pytest.raises(TypeError):
-            javascript._convert_js_arg(arg)
+            javascript.to_js(arg)
     else:
-        assert javascript._convert_js_arg(arg) == expected
+        assert javascript.to_js(arg) == expected
 
 
 @pytest.mark.parametrize('base, expected_base', [

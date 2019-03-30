@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -52,6 +52,7 @@ def main():
         # pytest fixtures
         'redefined-outer-name',
         'unused-argument',
+        'too-many-arguments',
         # things which are okay in tests
         'missing-docstring',
         'protected-access',
@@ -65,9 +66,12 @@ def main():
         toxinidir,
     ]
 
-    args = (['--disable={}'.format(','.join(disabled)),
-             '--ignored-modules=helpers,pytest,PyQt5'] +
-            sys.argv[2:] + files)
+    args = [
+        '--disable={}'.format(','.join(disabled)),
+        '--ignored-modules=helpers,pytest,PyQt5',
+        r'--ignore-long-lines=(<?https?://|^# Copyright 201\d)|^ *def [a-z]',
+        r'--method-rgx=[a-z_][A-Za-z0-9_]{1,100}$',
+    ] + sys.argv[2:] + files
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join(pythonpath)
 

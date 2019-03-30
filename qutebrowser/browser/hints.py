@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,7 +21,6 @@
 
 import collections
 import functools
-import math
 import os
 import re
 import html
@@ -32,10 +31,11 @@ import attr
 from PyQt5.QtCore import pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
-from qutebrowser.config import config
+from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.browser import webelem
-from qutebrowser.commands import userscripts, cmdexc, cmdutils, runners
+from qutebrowser.commands import userscripts, runners
+from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 
 
@@ -65,24 +65,16 @@ class HintLabel(QLabel):
         _context: The current hinting context.
     """
 
-    STYLESHEET = """
-        QLabel {
-            background-color: {{ conf.colors.hints.bg }};
-            color: {{ conf.colors.hints.fg }};
-            font: {{ conf.fonts.hints }};
-            border: {{ conf.hints.border }};
-            padding-left: -3px;
-            padding-right: -3px;
-        }
-    """
-
     def __init__(self, elem, context):
         super().__init__(parent=context.tab)
         self._context = context
         self.elem = elem
 
+        # Make sure we can style the background via a style sheet, and we don't
+        # get any extra text indent from Qt.
+        # The real stylesheet lives in mainwindow.py for performance reasons..
         self.setAttribute(Qt.WA_StyledBackground, True)
-        config.set_register_stylesheet(self)
+        self.setIndent(0)
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
         self._move_to_elem()
@@ -102,7 +94,7 @@ class HintLabel(QLabel):
             matched: The part of the text which was typed.
             unmatched: The part of the text which was not typed yet.
         """
-        if (config.val.hints.uppercase and
+        if (config.cache['hints.uppercase'] and
                 self._context.hint_mode in ['letter', 'word']):
             matched = html.escape(matched.upper())
             unmatched = html.escape(unmatched.upper())
@@ -110,9 +102,12 @@ class HintLabel(QLabel):
             matched = html.escape(matched)
             unmatched = html.escape(unmatched)
 
-        match_color = html.escape(config.val.colors.hints.match.fg)
-        self.setText('<font color="{}">{}</font>{}'.format(
-            match_color, matched, unmatched))
+        match_color = html.escape(config.cache['colors.hints.match.fg'])
+        if matched:
+            self.setText('<font color="{}">{}</font>{}'.format(
+                match_color, matched, unmatched))
+        else:
+            self.setText(unmatched)
         self.adjustSize()
 
     @pyqtSlot()
@@ -123,7 +118,7 @@ class HintLabel(QLabel):
             log.hints.debug("Frame for {!r} vanished!".format(self))
             self.hide()
             return
-        no_js = config.val.hints.find_implementation != 'javascript'
+        no_js = config.cache['hints.find_implementation'] != 'javascript'
         rect = self.elem.rect_on_view(no_js=no_js)
         self.move(rect.x(), rect.y())
 
@@ -215,9 +210,7 @@ class HintActions:
 
         if context.target in [Target.normal, Target.current]:
             # Set the pre-jump mark ', so we can jump back here after following
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=self._win_id)
-            tabbed_browser.set_mark("'")
+            context.tab.scroller.before_jump_requested.emit()
 
         try:
             if context.target == Target.hover:
@@ -302,8 +295,8 @@ class HintActions:
             raise HintingError("No suitable link found for this element.")
 
         prompt = False if context.rapid else None
-        qnam = context.tab.networkaccessmanager()
-        user_agent = context.tab.user_agent()
+        qnam = context.tab.private_api.networkaccessmanager()
+        user_agent = context.tab.private_api.user_agent()
 
         # FIXME:qtwebengine do this with QtWebEngine downloads?
         download_manager = objreg.get('qtnetwork-download-manager')
@@ -454,21 +447,15 @@ class HintManager(QObject):
         # Determine how many digits the link hints will require in the worst
         # case. Usually we do not need all of these digits for every link
         # single hint, so we can show shorter hints for a few of the links.
-        needed = max(min_chars, math.ceil(math.log(len(elems), len(chars))))
+        needed = max(min_chars, utils.ceil_log(len(elems), len(chars)))
+
         # Short hints are the number of hints we can possibly show which are
         # (needed - 1) digits in length.
-        if needed > min_chars:
+        if needed > min_chars and needed > 1:
             total_space = len(chars) ** needed
-            # Calculate short_count naively, by finding the avaiable space and
-            # dividing by the number of spots we would loose by adding a
-            # short element
-            short_count = math.floor((total_space - len(elems)) /
-                                     len(chars))
-            # Check if we double counted above to warrant another short_count
-            # https://github.com/qutebrowser/qutebrowser/issues/3242
-            if total_space - (short_count * len(chars) +
-                              (len(elems) - short_count)) >= len(chars) - 1:
-                short_count += 1
+            # For each 1 short link being added, len(chars) long links are
+            # removed, therefore the space removed is len(chars) - 1.
+            short_count = (total_space - len(elems)) // (len(chars) - 1)
         else:
             short_count = 0
 
@@ -495,7 +482,7 @@ class HintManager(QObject):
             elems: The elements to generate labels for.
         """
         strings = []
-        needed = max(min_chars, math.ceil(math.log(len(elems), len(chars))))
+        needed = max(min_chars, utils.ceil_log(len(elems), len(chars)))
         for i in range(len(elems)):
             strings.append(self._number_to_hint_str(i, chars, needed))
         return strings
@@ -567,12 +554,12 @@ class HintManager(QObject):
         if target in [Target.userscript, Target.spawn, Target.run,
                       Target.fill]:
             if not args:
-                raise cmdexc.CommandError(
+                raise cmdutils.CommandError(
                     "'args' is required with target userscript/spawn/run/"
                     "fill.")
         else:
             if args:
-                raise cmdexc.CommandError(
+                raise cmdutils.CommandError(
                     "'args' is only allowed with target userscript/spawn.")
 
     def _filter_matches(self, filterstr, elemstr):
@@ -600,9 +587,6 @@ class HintManager(QObject):
             log.hints.debug("In _start_cb without context!")
             return
 
-        if elems is None:
-            message.error("There was an error while getting hint elements")
-            return
         if not elems:
             message.error("No elements found.")
             return
@@ -635,11 +619,9 @@ class HintManager(QObject):
 
     @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
                        star_args_optional=True, maxsplit=2)
-    @cmdutils.argument('win_id', win_id=True)
     def start(self,  # pylint: disable=keyword-arg-before-vararg
-              group=webelem.Group.all, target=Target.normal,
-              *args, win_id, mode=None, add_history=False, rapid=False,
-              first=False):
+              group='all', target=Target.normal, *args, mode=None,
+              add_history=False, rapid=False, first=False):
         """Start hinting.
 
         Args:
@@ -657,6 +639,9 @@ class HintManager(QObject):
                 - `links`: Only links.
                 - `images`: Only images.
                 - `inputs`: Only input fields.
+
+                Custom groups can be added via the `hints.selectors` setting
+                and also used here.
 
             target: What to do with the selected element.
 
@@ -693,7 +678,7 @@ class HintManager(QObject):
                 - With `userscript`: The userscript to execute. Either store
                                      the userscript in
                                      `~/.local/share/qutebrowser/userscripts`
-                                     (or `$XDG_DATA_DIR`), or use an absolute
+                                     (or `$XDG_DATA_HOME`), or use an absolute
                                      path.
                 - With `fill`: The command to fill the statusbar with.
                                 `{hint-url}` will get replaced by the selected
@@ -704,12 +689,12 @@ class HintManager(QObject):
                                     window=self._win_id)
         tab = tabbed_browser.widget.currentWidget()
         if tab is None:
-            raise cmdexc.CommandError("No WebView available yet!")
+            raise cmdutils.CommandError("No WebView available yet!")
 
         mode_manager = objreg.get('mode-manager', scope='window',
                                   window=self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
-            modeman.leave(win_id, usertypes.KeyMode.hint, 're-hinting')
+            modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
 
         if rapid:
             if target in [Target.tab_bg, Target.window, Target.run,
@@ -721,29 +706,47 @@ class HintManager(QObject):
                 pass
             else:
                 name = target.name.replace('_', '-')
-                raise cmdexc.CommandError("Rapid hinting makes no sense with "
-                                          "target {}!".format(name))
-
-        if mode is None:
-            mode = config.val.hints.mode
+                raise cmdutils.CommandError("Rapid hinting makes no sense "
+                                            "with target {}!".format(name))
 
         self._check_args(target, *args)
         self._context = HintContext()
         self._context.tab = tab
         self._context.target = target
         self._context.rapid = rapid
-        self._context.hint_mode = mode
+        self._context.hint_mode = self._get_hint_mode(mode)
         self._context.add_history = add_history
         self._context.first = first
         try:
             self._context.baseurl = tabbed_browser.current_url()
         except qtutils.QtValueError:
-            raise cmdexc.CommandError("No URL set for this page yet!")
-        self._context.args = args
+            raise cmdutils.CommandError("No URL set for this page yet!")
+        self._context.args = list(args)
         self._context.group = group
-        selector = webelem.SELECTORS[self._context.group]
-        self._context.tab.elements.find_css(selector, self._start_cb,
-                                            only_visible=True)
+
+        try:
+            selector = webelem.css_selector(self._context.group,
+                                            self._context.baseurl)
+        except webelem.Error as e:
+            raise cmdutils.CommandError(str(e))
+
+        self._context.tab.elements.find_css(
+            selector,
+            callback=self._start_cb,
+            error_cb=lambda err: message.error(str(err)),
+            only_visible=True)
+
+    def _get_hint_mode(self, mode):
+        """Get the hinting mode to use based on a mode argument."""
+        if mode is None:
+            return config.val.hints.mode
+
+        opt = config.instance.get_opt('hints.mode')
+        try:
+            opt.typ.to_py(mode)
+        except configexc.ValidationError as e:
+            raise cmdutils.CommandError("Invalid mode: {}".format(e))
+        return mode
 
     def current_mode(self):
         """Return the currently active hinting mode (or None otherwise)."""
@@ -817,9 +820,10 @@ class HintManager(QObject):
 
         Args:
             filterstr: The string to filter with, or None to use the filter
-                       from previous call (saved in `self._filterstr`). If
-                       `filterstr` is an empty string or if both `filterstr`
-                       and `self._filterstr` are None, all hints are shown.
+                       from previous call (saved in `self._context.filterstr`).
+                       If `filterstr` is an empty string or if both `filterstr`
+                       and `self._context.filterstr` are None, all hints are
+                       shown.
         """
         if filterstr is None:
             filterstr = self._context.filterstr
@@ -943,13 +947,12 @@ class HintManager(QObject):
         """
         if keystring is None:
             if self._context.to_follow is None:
-                raise cmdexc.CommandError("No hint to follow")
-            elif select:
-                raise cmdexc.CommandError("Can't use --select without hint.")
-            else:
-                keystring = self._context.to_follow
+                raise cmdutils.CommandError("No hint to follow")
+            if select:
+                raise cmdutils.CommandError("Can't use --select without hint.")
+            keystring = self._context.to_follow
         elif keystring not in self._context.labels:
-            raise cmdexc.CommandError("No hint {}!".format(keystring))
+            raise cmdutils.CommandError("No hint {}!".format(keystring))
 
         if select:
             self.handle_partial_key(keystring)

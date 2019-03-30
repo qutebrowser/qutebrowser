@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -96,7 +96,7 @@ from qutebrowser.utils import urlmatch
     ("http://[fc2e:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:bb88:edac"; host = ""'),
     ("http://[fc2e:bb88:edac::z]", 'Invalid IPv6 address; source was "fc2e:bb88:edac::z"; host = ""'),
     ("http://[fc2e:bb88:edac::2]:2a2", "Invalid port: invalid literal for int() with base 10: '2a2'"),
-
+    ("://", "Missing scheme"),
 ])
 def test_invalid_patterns(pattern, error):
     with pytest.raises(urlmatch.ParseError, match=re.escape(error)):
@@ -142,7 +142,7 @@ def test_parse_path(pattern, path):
     ("data:monkey", 'data', None, 'monkey'),  # existing scheme
 ])
 def test_lightweight_patterns(pattern, scheme, host, path):
-    """Make sure we can leave off parts of an URL.
+    """Make sure we can leave off parts of a URL.
 
     This is a deviation from Chromium to make patterns more user-friendly.
     """

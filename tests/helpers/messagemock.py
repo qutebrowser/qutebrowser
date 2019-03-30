@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +24,7 @@ import logging
 import attr
 import pytest
 
-from qutebrowser.utils import usertypes, message
+from qutebrowser.utils import usertypes, message, objreg
 
 
 @attr.s
@@ -90,3 +90,12 @@ def message_mock():
     mmock.patch()
     yield mmock
     mmock.unpatch()
+
+
+@pytest.fixture
+def message_bridge(win_registry):
+    """Fixture to get a MessageBridge."""
+    bridge = message.MessageBridge()
+    objreg.register('message-bridge', bridge, scope='window', window=0)
+    yield bridge
+    objreg.delete('message-bridge', scope='window', window=0)

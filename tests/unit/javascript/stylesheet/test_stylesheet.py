@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Jay Kamat
+# Copyright 2017-2019 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -62,9 +62,9 @@ class StylesheetTester:
         """Check whether the css in ELEMENT is set to VALUE."""
         self.js.run("console.log({document});"
                     "window.getComputedStyle({document}, null)"
-                    ".getPropertyValue('{prop}');".format(
+                    ".getPropertyValue({prop});".format(
                         document=document_element,
-                        prop=javascript.string_escape(css_style)),
+                        prop=javascript.to_js(css_style)),
                     value)
 
     def check_eq(self, one, two, true=True):
@@ -131,6 +131,6 @@ def test_set_error(stylesheet_tester, config_stub):
 def test_appendchild(stylesheet_tester):
     stylesheet_tester.js.load('stylesheet/simple.html')
     stylesheet_tester.init_stylesheet()
-    js_test_file_path = ('../../tests/unit/javascript/stylesheet/'
+    js_test_file_path = ('../tests/unit/javascript/stylesheet/'
                          'test_appendchild.js')
     stylesheet_tester.js.run_file(js_test_file_path, {})

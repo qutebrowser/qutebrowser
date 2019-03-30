@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -294,8 +294,7 @@ class TestGitStr:
         commit_file_mock.return_value = '0deadcode'
         with caplog.at_level(logging.ERROR, 'misc'):
             assert version._git_str() == '0deadcode'
-        assert len(caplog.records) == 1
-        assert caplog.records[0].message == "Error while getting git path"
+        assert caplog.messages == ["Error while getting git path"]
 
 
 def _has_git():
@@ -456,8 +455,7 @@ def test_release_info(files, expected, caplog, monkeypatch):
     with caplog.at_level(logging.ERROR, 'misc'):
         assert version._release_info() == expected
     if files is None:
-        assert len(caplog.records) == 1
-        assert caplog.records[0].message == "Error while reading fake-file."
+        assert caplog.messages == ["Error while reading fake-file."]
 
 
 @pytest.mark.parametrize('equal', [True, False])

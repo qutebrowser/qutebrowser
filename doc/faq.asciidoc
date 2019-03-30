@@ -5,8 +5,8 @@ The Compiler <mail@qutebrowser.org>
 
 [qanda]
 What is qutebrowser based on?::
-    qutebrowser uses http://www.python.org/[Python], http://qt.io/[Qt] and
-    http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
+    qutebrowser uses https://www.python.org/[Python], https://www.qt.io/[Qt] and
+    https://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
 +
 The concept of it is largely inspired by https://bitbucket.org/portix/dwb/[dwb]
 and http://www.vimperator.org/vimperator[Vimperator]. Many actions and
@@ -16,34 +16,34 @@ Why another browser?::
     It might be hard to believe, but I didn't find any browser which I was
     happy with, so I started to write my own. Also, I needed a project to get
     into writing GUI applications with Python and
-    link:http://qt.io/[Qt]/link:http://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
+    link:https://www.qt.io/[Qt]/link:https://www.riverbankcomputing.com/software/pyqt/intro[PyQt].
 +
 Read the next few questions to find out why I was unhappy with existing
 software.
 
-What's wrong with link:https://bitbucket.org/portix/dwb/[dwb]/link:http://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://mason-larobina.github.io/luakit/[luakit]/link:http://pwmt.org/projects/jumanji/[jumanji]/... (projects based on WebKitGTK)?::
-    Most of them are based on the http://webkitgtk.org/[WebKitGTK+]
-    http://webkitgtk.org/reference/webkitgtk/stable/index.html[WebKit1] API,
+What's wrong with link:https://bitbucket.org/portix/dwb/[dwb]/link:https://sourceforge.net/projects/vimprobable/[vimprobable]/link:https://mason-larobina.github.io/luakit/[luakit]/jumanji/... (projects based on WebKitGTK)?::
+    Most of them are based on the https://webkitgtk.org/[WebKitGTK+]
+    https://webkitgtk.org/reference/webkitgtk/stable/index.html[WebKit1] API,
     which causes a lot of crashes. As the GTK API using WebKit1 is
     https://lists.webkit.org/pipermail/webkit-gtk/2014-March/001821.html[deprecated],
     these bugs are never going to be fixed.
 +
 When qutebrowser was created, the newer
-http://webkitgtk.org/reference/webkit2gtk/stable/index.html[WebKit2 API] lacked
+https://webkitgtk.org/reference/webkit2gtk/stable/index.html[WebKit2 API] lacked
 basic features like proxy support, and almost no projects have started porting
 to WebKit2. In the meantime, this situation has improved a bit, but there are
 still only a few projects which have some kind of WebKit2 support (see the
 https://github.com/qutebrowser/qutebrowser#similar-projects[list of
 alternatives]).
 +
-qutebrowser uses http://qt.io/[Qt] and
-http://wiki.qt.io/QtWebEngine[QtWebEngine] by default (and supports
-http://wiki.qt.io/QtWebKit[QtWebKit] optionally). QtWebEngine is based on
+qutebrowser uses https://www.qt.io/[Qt] and
+https://wiki.qt.io/QtWebEngine[QtWebEngine] by default (and supports
+https://wiki.qt.io/QtWebKit[QtWebKit] optionally). QtWebEngine is based on
 Google's https://www.chromium.org/Home[Chromium]. With an up-to-date Qt, it has
 much more man-power behind it than WebKitGTK+ has, and thus supports more modern
 web features - it's also arguably more secure.
 
-What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:http://5digits.org/pentadactyl/[Pentadactyl]/link:http://www.vimperator.org/vimperator[Vimperator]?::
+What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:http://bug.5digits.org/pentadactyl/[Pentadactyl]/link:http://www.vimperator.org/vimperator[Vimperator]?::
     Firefox likes to break compatibility with addons on each upgrade, gets
     slower and more bloated with every upgrade, and has some
     https://blog.mozilla.org/advancingcontent/2014/02/11/publisher-transformation-with-users-at-the-center/[horrible
@@ -51,20 +51,20 @@ What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:h
 +
 Also, developing addons for it is a nightmare.
 
-What's wrong with http://www.chromium.org/Home[Chromium] and https://vimium.github.io/[Vimium]?::
+What's wrong with https://www.chromium.org/Home[Chromium] and https://vimium.github.io/[Vimium]?::
     The Chrome plugin API doesn't seem to allow much freedom for plugin
     writers, which results in Vimium not really having all the features you'd
     expect from a proper minimal, vim-like browser.
 
 Why Python?::
     I enjoy writing Python since 2011, which made it one of the possible
-    choices. I wanted to use http://qt.io/[Qt] because of
-    http://wiki.qt.io/QtWebKit[QtWebKit] so I didn't have
-    http://wiki.qt.io/Category:LanguageBindings[many other choices]. I don't
+    choices. I wanted to use https://www.qt.io/[Qt] because of
+    https://wiki.qt.io/QtWebKit[QtWebKit] so I didn't have
+    https://wiki.qt.io/Category:LanguageBindings[many other choices]. I don't
     like C++ and can't write it very well, so that wasn't an alternative.
 
 But isn't Python too slow for a browser?::
-    http://www.infoworld.com/d/application-development/van-rossum-python-not-too-slow-188715[No.]
+    https://www.infoworld.com/d/application-development/van-rossum-python-not-too-slow-188715[No.]
     I believe efficiency while coding is a lot more important than efficiency
     while running. Also, most of the heavy lifting of qutebrowser is done by Qt
     and WebKit in C++, with the
@@ -74,7 +74,7 @@ Is qutebrowser secure?::
     Most security issues are in the backend (which handles networking,
     rendering, JavaScript, etc.) and not qutebrowser itself.
 +
-qutebrowser uses http://wiki.qt.io/QtWebEngine[QtWebEngine] by default.
+qutebrowser uses https://wiki.qt.io/QtWebEngine[QtWebEngine] by default.
 QtWebEngine is based on Google's https://www.chromium.org/Home[Chromium]. While
 Qt only updates to a new Chromium release on every minor Qt release (all ~6
 months), every patch release backports security fixes from newer Chromium
@@ -84,7 +84,7 @@ do anything. Chromium's process isolation and
 https://chromium.googlesource.com/chromium/src/+/master/docs/design/sandbox.md[sandboxing]
 features are also enabled as a second line of defense.
 +
-http://wiki.qt.io/QtWebKit[QtWebKit] is also supported as an alternative
+https://wiki.qt.io/QtWebKit[QtWebKit] is also supported as an alternative
 backend, but hasn't seen new releases
 https://github.com/annulen/webkit/releases[in a while]. It also doesn't have any
 process isolation or sandboxing. See
@@ -100,12 +100,12 @@ https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 Is there an adblocker?::
     There is a host-based adblocker which takes /etc/hosts-like lists. A "real"
     adblocker has a
-    http://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/chhpomw[big
+    https://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/chhpomw[big
     impact] on browsing speed and
     https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
     usage], so implementing support for AdBlockPlus-like lists is currently not
     a priority.
-    
+
 How can I get No-Script-like behavior?::
     To disable JavaScript by default:
 +
@@ -147,24 +147,25 @@ It also works nicely with rapid hints:
 ----
 
 How do I use qutebrowser with mutt?::
-    Due to a Qt limitation, local files without `.html` extensions are
-    "downloaded" instead of displayed, see
-    https://github.com/qutebrowser/qutebrowser/issues/566[#566]. You can work
-    around this by using this in your `mailcap`:
+    For security reasons, local files without `.html` extensions aren't
+    rendered as HTML, see
+    https://bugs.chromium.org/p/chromium/issues/detail?id=777737[this Chromium issue]
+    for details. You can do this in your `mailcap` file to get a proper
+    extension:
 +
 ----
-    text/html; mv %s %s.html && qutebrowser %s.html >/dev/null 2>/dev/null; needsterminal;
+    text/html; qutebrowser %s; nametemplate=%s.html
 ----
 
 What is the difference between bookmarks and quickmarks?::
     Bookmarks will always use the title of the website as their name, but with quickmarks
     you can set your own title.
 +
-For example, if you bookmark multiple food recipe websites and use `:open`, 
+For example, if you bookmark multiple food recipe websites and use `:open`,
 you have to type the title or address of the website.
 +
 When using quickmark, you can give them all names, like
-`foodrecipes1`, `foodrecipes2` and so on. When you type 
+`foodrecipes1`, `foodrecipes2` and so on. When you type
 `:open foodrecipes`, you will see a list of all the food recipe sites,
 without having to remember the exact website title or address.
 
@@ -210,15 +211,16 @@ Why does J move to the next (right) tab, and K to the previous (left) one?::
 
 What's the difference between insert and passthrough mode?::
     They are quite similar, but insert mode has some bindings (like `Ctrl-e` to
-    open an editor) while passthrough mode only has escape bound. It might also
-    be useful to rebind escape to something else in passthrough mode only, to be
-    able to send an escape keypress to the website.
+    open an editor) while passthrough mode only has shift+escape bound. This is
+    because shift+escape is unlikely to be a useful binding to be passed to a
+    webpage. However, any other keys may be assigned to leaving passthrough mode
+    instead of shift+escape should this be desired.
 
-Why takes it longer to open an URL in qutebrowser than in chromium?::
-    When opening an URL in an existing instance the normal qutebrowser
+Why does it take longer to open a URL in qutebrowser than in chromium?::
+    When opening a URL in an existing instance, the normal qutebrowser
     Python script is started and a few PyQt libraries need to be
     loaded until it is detected that there is an instance running
-    where the URL is then passed to. This takes some time.
+    to which the URL is then passed. This takes some time.
     One workaround is to use this
     https://github.com/qutebrowser/qutebrowser/blob/master/scripts/open_url_in_instance.sh[script]
     and place it in your $PATH with the name "qutebrowser". This
@@ -258,7 +260,13 @@ Note that there are some missing features which you may run into:
   See https://wiki.greasespot.net/Metadata_Block[the wiki] for more info.
 . Any greasemonkey API function to do with adding UI elements is not currently
   supported. That means context menu extentensions and background pages.
-    
+
+How do I change the `WM_CLASS` used by qutebrowser windows?::
+    Qt only supports setting `WM_CLASS` globally, which you can do by starting
+    with `--qt-arg name foo`. Note that all windows are part of the same
+    qutebrowser instance (unless you use `--temp-basedir` or `--basedir`), so
+    they all will share the same `WM_CLASS`.
+
 == Troubleshooting
 
 Unable to view flash content.::
@@ -266,7 +274,7 @@ Unable to view flash content.::
     to use the flash plugin. Using the command `:set content.plugins true`
     in qutebrowser will enable plugins. Packages for flash should
     be provided for your platform or it can be obtained from
-    http://get.adobe.com/flashplayer/[Adobe].
+    https://get.adobe.com/flashplayer/[Adobe].
 
 Experiencing freezing on sites like duckduckgo and youtube.::
     This issue could be caused by stale plugin files installed by `mozplugger`
@@ -279,12 +287,12 @@ When using QtWebEngine, qutebrowser reports "Render Process Crashed" and the con
     As stated in https://gcc.gnu.org/gcc-6/changes.html[GCC's Website] GCC 6 has introduced some optimizations that could break non-conforming codebases, like QtWebEngine. +
     As a workaround, you can disable the nullpointer check optimization by adding the -fno-delete-null-pointer-checks flag while compiling. +
     On gentoo, you just need to add it into your make.conf, like this: +
-    
+
     CFLAGS="... -fno-delete-null-pointer-checks"
     CXXFLAGS="... -fno-delete-null-pointer-checks"
 +
 And then re-emerging qtwebengine with: +
-    
+
     emerge -1 qtwebengine
 
 Unable to view DRM content (Netflix, Spotify, etc.).::
@@ -310,10 +318,19 @@ Lastly, set your `qt.args` to point to that directory and restart qutebrowser:
 :restart
 ----
 
+Unable to use `spawn` on MacOS.::
+When running qutebrowser from the prebuilt binary (`qutebrowser.app`) it *will
+not* read any files that would alter your `$PATH` (e.g. `.profile`, `.bashrc`,
+etc). This is not a bug, just that `.profile` is not propogated to GUI
+applications in MacOS.
++
+See https://github.com/qutebrowser/qutebrowser/issues/4273[Issue #4273] for
+details and potential workarounds.
+
 My issue is not listed.::
     If you experience any segfaults or crashes, you can report the issue in
     https://github.com/qutebrowser/qutebrowser/issues[the issue tracker] or
     using the `:report` command.
     If you are reporting a segfault, make sure you read the
-    link:stacktrace.asciidoc[guide] on how to report them with all needed
+    link:stacktrace{outfilesuffix}[guide] on how to report them with all needed
     information.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,6 +31,8 @@ import itertools
 import textwrap
 import unittest.mock
 import types
+import mimetypes
+import os.path
 
 import attr
 import pytest
@@ -40,14 +42,41 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
-import helpers.utils
 from qutebrowser.config import (config, configdata, configtypes, configexc,
-                                configfiles)
+                                configfiles, configcache)
+from qutebrowser.api import config as configapi
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
-from qutebrowser.browser import greasemonkey
+from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies
 from qutebrowser.misc import savemanager, sql, objects
 from qutebrowser.keyinput import modeman
+
+
+_qute_scheme_handler = None
+
+
+class WidgetContainer(QWidget):
+
+    """Container for another widget."""
+
+    def __init__(self, qtbot, parent=None):
+        super().__init__(parent)
+        self._qtbot = qtbot
+        self.vbox = QVBoxLayout(self)
+        qtbot.add_widget(self)
+
+    def set_widget(self, widget):
+        self.vbox.addWidget(widget)
+        widget.container = self
+
+    def expose(self):
+        with self._qtbot.waitExposed(self):
+            self.show()
+
+
+@pytest.fixture
+def widget_container(qtbot):
+    return WidgetContainer(qtbot)
 
 
 class WinRegistryHelper:
@@ -79,11 +108,6 @@ class WinRegistryHelper:
             del objreg.window_registry[win_id]
 
 
-@pytest.fixture
-def callback_checker(qtbot):
-    return helpers.utils.CallbackChecker(qtbot)
-
-
 class FakeStatusBar(QWidget):
 
     """Fake statusbar to test progressbar sizing."""
@@ -101,22 +125,11 @@ class FakeStatusBar(QWidget):
 
 
 @pytest.fixture
-def fake_statusbar(qtbot):
+def fake_statusbar(widget_container):
     """Fixture providing a statusbar in a container window."""
-    container = QWidget()
-    qtbot.add_widget(container)
-    vbox = QVBoxLayout(container)
-    vbox.addStretch()
-
-    statusbar = FakeStatusBar(container)
-    # to make sure container isn't GCed
-    # pylint: disable=attribute-defined-outside-init
-    statusbar.container = container
-    vbox.addWidget(statusbar)
-    # pylint: enable=attribute-defined-outside-init
-
-    with qtbot.waitExposed(container):
-        container.show()
+    widget_container.vbox.addStretch()
+    statusbar = FakeStatusBar(widget_container)
+    widget_container.set_widget(statusbar)
     return statusbar
 
 
@@ -152,30 +165,73 @@ def greasemonkey_manager(data_tmpdir):
     objreg.delete('greasemonkey')
 
 
+@pytest.fixture(scope='session')
+def testdata_scheme(qapp):
+    try:
+        global _qute_scheme_handler
+        from qutebrowser.browser.webengine import webenginequtescheme
+        from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        webenginequtescheme.init()
+        _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
+            parent=qapp)
+        _qute_scheme_handler.install(QWebEngineProfile.defaultProfile())
+    except ImportError:
+        pass
+
+    @qutescheme.add_handler('testdata')
+    def handler(url):  # pylint: disable=unused-variable
+        file_abs = os.path.abspath(os.path.dirname(__file__))
+        filename = os.path.join(file_abs, os.pardir, 'end2end',
+                                url.path().lstrip('/'))
+        with open(filename, 'rb') as f:
+            data = f.read()
+
+        mimetype, _encoding = mimetypes.guess_type(filename)
+        return mimetype, data
+
+
 @pytest.fixture
-def webkit_tab(qtbot, tab_registry, cookiejar_and_cache, mode_manager,
-               session_manager_stub, greasemonkey_manager, fake_args):
+def web_tab_setup(qtbot, tab_registry, session_manager_stub,
+                  greasemonkey_manager, fake_args, config_stub,
+                  testdata_scheme):
+    """Shared setup for webkit_tab/webengine_tab."""
+    # Make sure error logging via JS fails tests
+    config_stub.val.content.javascript.log = {
+        'info': 'info',
+        'error': 'error',
+        'unknown': 'error',
+        'warning': 'error',
+    }
+
+
+@pytest.fixture
+def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
+               widget_container):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
+
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
-    qtbot.add_widget(tab)
+    widget_container.set_widget(tab)
     return tab
 
 
 @pytest.fixture
-def webengine_tab(qtbot, tab_registry, fake_args, mode_manager,
-                  session_manager_stub, greasemonkey_manager,
-                  redirect_webengine_data, tabbed_browser_stubs):
+def webengine_tab(web_tab_setup, qtbot, redirect_webengine_data,
+                  tabbed_browser_stubs, mode_manager, widget_container):
     tabwidget = tabbed_browser_stubs[0].widget
     tabwidget.current_index = 0
     tabwidget.index_of = 0
 
     webenginetab = pytest.importorskip(
         'qutebrowser.browser.webengine.webenginetab')
+
     tab = webenginetab.WebEngineTab(win_id=0, mode_manager=mode_manager,
                                     private=False)
-    qtbot.add_widget(tab)
-    return tab
+    widget_container.set_widget(tab)
+    yield tab
+    # If a page is still loading here, _on_load_finished could get called
+    # during teardown when session_manager_stub is already deleted.
+    tab.stop()
 
 
 @pytest.fixture(params=['webkit', 'webengine'])
@@ -252,6 +308,10 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
 
     container = config.ConfigContainer(conf)
     monkeypatch.setattr(config, 'val', container)
+    monkeypatch.setattr(configapi, 'val', container)
+
+    cache = configcache.ConfigCache()
+    monkeypatch.setattr(config, 'cache', cache)
 
     try:
         configtypes.Font.monospace_fonts = container.fonts.monospace
@@ -269,15 +329,6 @@ def key_config_stub(config_stub, monkeypatch):
     keyconf = config.KeyConfig(config_stub)
     monkeypatch.setattr(config, 'key_instance', keyconf)
     return keyconf
-
-
-@pytest.fixture
-def host_blocker_stub(stubs):
-    """Fixture which provides a fake host blocker object."""
-    stub = stubs.HostBlockerStub()
-    objreg.register('host-blocker', stub)
-    yield stub
-    objreg.delete('host-blocker')
 
 
 @pytest.fixture
@@ -364,7 +415,7 @@ def qnam(qapp):
 
 
 @pytest.fixture
-def webengineview(qtbot, monkeypatch):
+def webengineview(qtbot, monkeypatch, web_tab_setup):
     """Get a QWebEngineView if QtWebEngine is available."""
     QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
@@ -452,11 +503,32 @@ def fake_args(request):
 
 
 @pytest.fixture
-def mode_manager(win_registry, config_stub, qapp):
-    mm = modeman.ModeManager(0)
-    objreg.register('mode-manager', mm, scope='window', window=0)
+def mode_manager(win_registry, config_stub, key_config_stub, qapp):
+    mm = modeman.init(0, parent=qapp)
     yield mm
     objreg.delete('mode-manager', scope='window', window=0)
+
+
+def standarddir_tmpdir(folder, monkeypatch, tmpdir):
+    """Set tmpdir/config as the configdir.
+
+    Use this to avoid creating a 'real' config dir (~/.config/qute_test).
+    """
+    confdir = tmpdir / folder
+    confdir.ensure(dir=True)
+    if hasattr(standarddir, folder):
+        monkeypatch.setattr(standarddir, folder,
+                            lambda **_kwargs: str(confdir))
+    return confdir
+
+
+@pytest.fixture
+def download_tmpdir(monkeypatch, tmpdir):
+    """Set tmpdir/download as the downloaddir.
+
+    Use this to avoid creating a 'real' download dir (~/.config/qute_test).
+    """
+    return standarddir_tmpdir('download', monkeypatch, tmpdir)
 
 
 @pytest.fixture
@@ -465,10 +537,7 @@ def config_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' config dir (~/.config/qute_test).
     """
-    confdir = tmpdir / 'config'
-    confdir.ensure(dir=True)
-    monkeypatch.setattr(standarddir, 'config', lambda auto=False: str(confdir))
-    return confdir
+    return standarddir_tmpdir('config', monkeypatch, tmpdir)
 
 
 @pytest.fixture
@@ -477,10 +546,7 @@ def data_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' data dir (~/.local/share/qute_test).
     """
-    datadir = tmpdir / 'data'
-    datadir.ensure(dir=True)
-    monkeypatch.setattr(standarddir, 'data', lambda system=False: str(datadir))
-    return datadir
+    return standarddir_tmpdir('data', monkeypatch, tmpdir)
 
 
 @pytest.fixture
@@ -489,10 +555,7 @@ def runtime_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' runtime dir.
     """
-    runtimedir = tmpdir / 'runtime'
-    runtimedir.ensure(dir=True)
-    monkeypatch.setattr(standarddir, 'runtime', lambda: str(runtimedir))
-    return runtimedir
+    return standarddir_tmpdir('runtime', monkeypatch, tmpdir)
 
 
 @pytest.fixture
@@ -501,10 +564,7 @@ def cache_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' cache dir (~/.cache/qute_test).
     """
-    cachedir = tmpdir / 'cache'
-    cachedir.ensure(dir=True)
-    monkeypatch.setattr(standarddir, 'cache', lambda: str(cachedir))
-    return cachedir
+    return standarddir_tmpdir('cache', monkeypatch, tmpdir)
 
 
 @pytest.fixture
@@ -542,7 +602,6 @@ class ModelValidator:
     """Validates completion models."""
 
     def __init__(self, modeltester):
-        modeltester.data_display_may_return_none = True
         self._model = None
         self._modeltester = modeltester
 
@@ -569,3 +628,14 @@ def download_stub(win_registry, tmpdir, stubs):
     objreg.register('qtnetwork-download-manager', stub)
     yield stub
     objreg.delete('qtnetwork-download-manager')
+
+
+@pytest.fixture
+def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs):
+    """Create a web history and register it into objreg."""
+    config_stub.val.completion.timestamp_format = '%Y-%m-%d'
+    config_stub.val.completion.web_history.max_items = -1
+    web_history = history.WebHistory(stubs.FakeHistoryProgress())
+    objreg.register('web-history', web_history)
+    yield web_history
+    objreg.delete('web-history')

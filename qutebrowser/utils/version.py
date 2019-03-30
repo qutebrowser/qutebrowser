@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -42,12 +42,12 @@ from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None
+    qWebKitVersion = None  # type: ignore  # noqa: N816
 
 try:
     from PyQt5.QtWebEngineWidgets import QWebEngineProfile
 except ImportError:  # pragma: no cover
-    QWebEngineProfile = None
+    QWebEngineProfile = None  # type: ignore
 
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message
@@ -315,8 +315,8 @@ def _chromium_version():
     Quick reference:
 
     Qt 5.7:  Chromium 49
-             49.0.2623.111 (2016-03-02)
-             5.7.1: Security fixes up to 54.0.2840.87 (2016-10-19)
+             49.0.2623.111 (2016-03-31)
+             5.7.1: Security fixes up to 54.0.2840.87 (2016-11-01)
 
     Qt 5.8:  Chromium 53
              53.0.2785.148 (2016-08-31)
@@ -324,20 +324,25 @@ def _chromium_version():
 
     Qt 5.9:  Chromium 56
     (LTS)    56.0.2924.122 (2017-01-25)
-             5.9.6: Security fixes up to 66.0.3359.170 (2018-04-17)
+             5.9.7: Security fixes up to 69.0.3497.113 (2018-09-27)
 
     Qt 5.10: Chromium 61
              61.0.3163.140 (2017-09-05)
-             5.10.1: Security fixes up to 64.0.3282.140 (2018-01-24)
+             5.10.1: Security fixes up to 64.0.3282.140 (2018-02-01)
 
     Qt 5.11: Chromium 65
              65.0.3325.151 (.1: .230) (2018-03-06)
-             5.11.1: Security fixes up to 67.0.3396.87 (2018-05-29)
+             5.11.3: Security fixes up to 70.0.3538.102 (2018-11-09)
 
-    Qt 5.12: Chromium 69 (?)
-             current dev branch: 67.0.3396.76 (2018-05-29)
+    Qt 5.12: Chromium 69
+    (LTS)    69.0.3497.113 (2018-09-27)
+             5.12.1: Security fixes up to 71.0.3578.94 (2018-12-14)
+             5.12.2: Security fixes up to 72.0.3626.96 (2019-02-06)
+
+    Qt 5.13: (in development) Chromium 71 merged, 73 in review.
 
     Also see https://www.chromium.org/developers/calendar
+    and https://chromereleases.googleblog.com/
     """
     if QWebEngineProfile is None:
         # This should never happen

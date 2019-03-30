@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,10 +25,11 @@ import re
 import attr
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
-from qutebrowser.misc import split
+from qutebrowser.misc import split, objects
 
 
 last_command = {}
@@ -53,11 +54,14 @@ def _current_url(tabbed_browser):
         if e.reason:
             msg += " ({})".format(e.reason)
         msg += "!"
-        raise cmdexc.CommandError(msg)
+        raise cmdutils.CommandError(msg)
 
 
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+
     variables = {
         'url': lambda: _current_url(tabbed_browser).toString(
             QUrl.FullyEncoded | QUrl.RemovePassword),
@@ -67,13 +71,13 @@ def replace_variables(win_id, arglist):
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
     }
+
     for key in list(variables):
         modified_key = '{' + key + '}'
         variables[modified_key] = lambda x=modified_key: x
+
     values = {}
     args = []
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window=win_id)
 
     def repl_cb(matchobj):
         """Return replacement for given match."""
@@ -90,7 +94,7 @@ def replace_variables(win_id, arglist):
             # "{url}" from clipboard is not expanded)
             args.append(repl_pattern.sub(repl_cb, arg))
     except utils.ClipboardError as e:
-        raise cmdexc.CommandError(e)
+        raise cmdutils.CommandError(e)
     return args
 
 
@@ -190,7 +194,7 @@ class CommandParser:
             cmdstr = self._completion_match(cmdstr)
 
         try:
-            cmd = cmdutils.cmd_dict[cmdstr]
+            cmd = objects.commands[cmdstr]
         except KeyError:
             if not fallback:
                 raise cmdexc.NoSuchCommandError(
@@ -217,7 +221,7 @@ class CommandParser:
         Return:
             cmdstr modified to the matching completion or unmodified
         """
-        matches = [cmd for cmd in sorted(cmdutils.cmd_dict, key=len)
+        matches = [cmd for cmd in sorted(objects.commands, key=len)
                    if cmdstr in cmd]
         if len(matches) == 1:
             cmdstr = matches[0]

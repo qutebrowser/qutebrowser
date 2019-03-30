@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -45,11 +45,13 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--profile-tool', metavar='TOOL',
                         action='store', choices=['kcachegrind', 'snakeviz',
-                                                 'gprof2dot', 'none'],
+                                                 'gprof2dot', 'tuna', 'none'],
                         default='snakeviz',
                         help="The tool to use to view the profiling data")
     parser.add_argument('--profile-file', metavar='FILE', action='store',
                         help="The filename to use with --profile-tool=none")
+    parser.add_argument('--profile-test', action='store_true',
+                        help="Run pytest instead of qutebrowser")
     return parser.parse_known_args()
 
 
@@ -65,7 +67,12 @@ def main():
     sys.argv = [sys.argv[0]] + remaining
 
     profiler = cProfile.Profile()
-    profiler.runcall(qutebrowser.qutebrowser.main)
+
+    if args.profile_test:
+        import pytest
+        profiler.runcall(pytest.main)
+    else:
+        profiler.runcall(qutebrowser.qutebrowser.main)
 
     # If we have an exception after here, we don't want the qutebrowser
     # exception hook to take over.
@@ -85,6 +92,8 @@ def main():
                         '-o', callgraphfile])
     elif args.profile_tool == 'snakeviz':
         subprocess.run(['snakeviz', profilefile])
+    elif args.profile_tool == 'tuna':
+        subprocess.run(['tuna', profilefile])
 
     shutil.rmtree(tempdir)
 

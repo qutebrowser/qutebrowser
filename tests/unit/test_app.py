@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,12 +30,10 @@ def test_on_focus_changed_issue1484(monkeypatch, qapp, caplog):
     For some reason, Qt sometimes calls on_focus_changed() with a QBuffer as
     argument. Let's make sure we handle that gracefully.
     """
-    monkeypatch.setattr(app, 'qApp', qapp)
+    monkeypatch.setattr(app, 'q_app', qapp)
 
     buf = QBuffer()
     app.on_focus_changed(buf, buf)
 
-    assert len(caplog.records) == 1
-    record = caplog.records[0]
     expected = "on_focus_changed called with non-QWidget {!r}".format(buf)
-    assert record.message == expected
+    assert caplog.messages == [expected]

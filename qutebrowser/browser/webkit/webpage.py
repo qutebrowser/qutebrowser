@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,7 +30,7 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import config
-from qutebrowser.browser import pdfjs, shared
+from qutebrowser.browser import pdfjs, shared, downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import message, usertypes, log, jinja, objreg
@@ -206,18 +206,6 @@ class BrowserPage(QWebPage):
                                                           suggested_file)
         return True
 
-    def _show_pdfjs(self, reply):
-        """Show the reply with pdfjs."""
-        try:
-            page = pdfjs.generate_pdfjs_page(reply.url())
-        except pdfjs.PDFJSNotFound:
-            page = jinja.render('no_pdfjs.html',
-                                url=reply.url().toDisplayString(),
-                                title="PDF.js not found")
-        self.mainFrame().setContent(page.encode('utf-8'), 'text/html',
-                                    reply.url())
-        reply.deleteLater()
-
     def shutdown(self):
         """Prepare the web page for being deleted."""
         self._is_shutting_down = True
@@ -280,10 +268,10 @@ class BrowserPage(QWebPage):
             else:
                 reply.finished.connect(functools.partial(
                     self.display_content, reply, 'image/jpeg'))
-        elif (mimetype in ['application/pdf', 'application/x-pdf'] and
-              config.val.content.pdfjs):
-            # Use pdf.js to display the page
-            self._show_pdfjs(reply)
+        elif pdfjs.should_use_pdfjs(mimetype, reply.url()):
+            download_manager.fetch(reply,
+                                   target=downloads.PDFJSDownloadTarget(),
+                                   auto_remove=True)
         else:
             # Unknown mimetype, so download anyways.
             download_manager.fetch(reply,
@@ -481,7 +469,7 @@ class BrowserPage(QWebPage):
     def acceptNavigationRequest(self,
                                 frame: QWebFrame,
                                 request: QNetworkRequest,
-                                typ: QWebPage.NavigationType):
+                                typ: QWebPage.NavigationType) -> bool:
         """Override acceptNavigationRequest to handle clicked links.
 
         Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound

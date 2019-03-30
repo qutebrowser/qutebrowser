@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -270,8 +270,10 @@ def _parse_special_key(keystr):
     replacements = (
         ('control', 'ctrl'),
         ('windows', 'meta'),
-        ('mod1', 'alt'),
         ('mod4', 'meta'),
+        ('command', 'meta'),
+        ('cmd', 'meta'),
+        ('mod1', 'alt'),
         ('less', '<'),
         ('greater', '>'),
     )

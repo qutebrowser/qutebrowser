@@ -61,7 +61,7 @@ li {
 {{ super() }}
 function tryagain()
 {
-    location.href = "{{ url }}";
+    location.href = {{ url|tojson }};
 }
 {% endblock %}
 

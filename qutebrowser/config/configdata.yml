@@ -3,8 +3,10 @@
 aliases:
   default:
     w: session-save
-    q: quit
+    q: close
+    qa: quit
     wq: quit --save
+    wqa: quit --save
   type:
     name: Dict
     keytype:
@@ -37,12 +39,7 @@ ignore_case:
   renamed: search.ignore_case
 
 search.ignore_case:
-  type:
-    name: String
-    valid_values:
-      - always: Search case-insensitively.
-      - never: Search case-sensitively.
-      - smart: Search case-sensitively if there are capital characters.
+  type: IgnoreCase
   default: smart
   desc: When to find text on a page case-insensitively.
 
@@ -181,6 +178,51 @@ qt.force_platform:
     This sets the `QT_QPA_PLATFORM` environment variable and is useful to force
     using the XCB plugin when running QtWebEngine on Wayland.
 
+qt.process_model:
+  type:
+    name: String
+    valid_values:
+      - process-per-site-instance: Pages from separate sites are put into
+            separate processes and separate visits to the same site are also
+            isolated.
+      - process-per-site: Pages from separate sites are put into separate
+            processes. Unlike Process per Site Instance, all visits to the same
+            site will share an OS process. The benefit of this model is reduced
+            memory consumption, because more web pages will share processes.
+            The drawbacks include reduced security, robustness, and
+            responsiveness.
+      - single-process: Run all tabs in a single process. This should be used
+            for debugging purposes only, and it disables `:open --private`.
+  default: process-per-site-instance
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    Which Chromium process model to use.
+
+    Alternative process models use less resources, but decrease security and
+    robustness.
+
+    See the following pages for more details:
+
+      - https://www.chromium.org/developers/design-documents/process-models
+      - https://doc.qt.io/qt-5/qtwebengine-features.html#process-models
+
+qt.low_end_device_mode:
+  type:
+    name: String
+    valid_values:
+      - always: Always use low-end device mode.
+      - auto: Decide automatically (uses low-end mode with < 1 GB available
+            RAM).
+      - never: Never use low-end device mode.
+  default: auto
+  backend: QtWebEngine
+  restart: true
+  desc: >-
+    When to use Chromium's low-end device mode.
+
+    This improves the RAM usage of renderer processes, at the expense of
+    performance.
 
 qt.highdpi:
   type: Bool
@@ -220,10 +262,12 @@ content.autoplay:
   backend:
     QtWebEngine: Qt 5.10
     QtWebKit: false
+  supports_pattern: true
   desc: >-
     Automatically start playing `<video>` elements.
 
-    Note this option needs a restart with QtWebEngine on Qt < 5.11.
+    Note: On Qt < 5.11, this option needs a restart and does not support URL
+    patterns.
 
 content.cache.size:
   default: null
@@ -280,7 +324,7 @@ content.cache.appcache:
     ask the application cache for the contents, before hitting the network.
 
 content.cookies.accept:
-  default: no-3rdparty
+  default: all
   backend:
     QtWebKit: true
     QtWebEngine: Qt 5.11
@@ -288,7 +332,8 @@ content.cookies.accept:
     name: String
     valid_values:
       - all: "Accept all cookies."
-      - no-3rdparty: "Accept cookies from the same origin only."
+      - no-3rdparty: "Accept cookies from the same origin only. This is known
+          to break some sites, such as GMail."
       - no-unknown-3rdparty: "Accept cookies from the same origin only, unless
           a cookie is already set for the domain. On QtWebEngine, this is the
           same as no-3rdparty."
@@ -334,7 +379,9 @@ content.developer_extras:
 content.dns_prefetch:
   default: true
   type: Bool
-  backend: QtWebKit
+  backend:
+    QtWebKit: true
+    QtWebEngine: Qt 5.12
   supports_pattern: true
   desc: Try to pre-fetch DNS entries to speed up browsing.
 
@@ -353,6 +400,15 @@ content.geolocation:
   type: BoolAsk
   supports_pattern: true
   desc: Allow websites to request geolocations.
+
+content.mouse_lock:
+  default: ask
+  type: BoolAsk
+  supports_pattern: true
+  backend:
+    QtWebKit: false
+    QtWebEngine: Qt 5.8
+  desc: Allow websites to lock your mouse pointer.
 
 content.headers.accept_language:
   type:
@@ -400,13 +456,17 @@ content.headers.referer:
       - never: "Never send the Referer. This is not recommended, as some sites
           may break."
       - same-domain: "Only send the Referer for the same domain. This will
-          still protect your privacy, but shouldn't break any sites."
-  backend: QtWebKit
+          still protect your privacy, but shouldn't break any sites. With
+          QtWebEngine, the referer will still be sent for other domains, but
+          with stripped path information."
+  restart: true
   desc: >-
     When to send the Referer header.
 
     The Referer header tells websites from which website you were coming from
     when visiting them.
+
+    No restart is needed with QtWebKit.
 
 content.headers.user_agent:
   default: null
@@ -418,46 +478,14 @@ content.headers.user_agent:
       # 'ua_fetch.py'
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
-      - - "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:53.0) Gecko/20100101
-          Firefox/53.0"
-        - Firefox 53.0 Win8.1
-      - - "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:53.0) Gecko/20100101
-          Firefox/53.0"
-        - Firefox 53.0 Linux
-      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:53.0)
-          Gecko/20100101 Firefox/53.0"
-        - Firefox 53.0 MacOSX
-
-      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4
-          (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4"
-        - Safari Generic MacOSX
-      - - "Mozilla/5.0 (iPad; CPU OS 10_3_1 like Mac OS X) AppleWebKit/603.1.30
-          (KHTML, like Gecko) Version/10.0 Mobile/14E304 Safari/602.1"
-        - Mobile Safari 10.0 iOS
-
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-        - Chrome Generic Win10
-      - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36
-          (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-        - Chrome Generic MacOSX
+          like Gecko) Chrome/71.0.3578.98 Safari/537.36"
+        - Chrome 71.0 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/58.0.3029.110 Safari/537.36"
-        - Chrome Generic Linux
-
-      - - "Mozilla/5.0 (compatible; Googlebot/2.1;
-          +http://www.google.com/bot.html"
-        - Google Bot
-      - - "Wget/1.16.1 (linux-gnu)"
-        - wget 1.16.1
-      - - "curl/7.40.0"
-        - curl 7.40.0
-      - - "Mozilla/5.0 (Linux; U; Android 7.1.2) AppleWebKit/534.30 (KHTML,
-          like Gecko) Version/4.0 Mobile Safari/534.30"
-        - Mobile Generic Android
-      - - "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like
-          Gecko"
-        - IE 11.0 for Desktop Win7 64-bit
+          Gecko) Chrome/71.0.3578.98 Safari/537.36"
+        - Chrome 71.0 Linux
+      - - ""
+        - Use default QtWebKit/QtWebEngine User-Agent
 
   supports_pattern: true
   desc: >-
@@ -467,6 +495,7 @@ content.headers.user_agent:
 
 content.host_blocking.enabled:
   default: true
+  supports_pattern: true
   type: Bool
   desc: Enable host blocking.
 
@@ -487,18 +516,26 @@ content.host_blocking.lists:
     - A zip-file of any of the above, with either only one file, or a file
       named `hosts` (with any extension).
 
+    It's also possible to add a local file or directory via a `file://` URL. In
+    case of a directory, all files in the directory are read as adblock lists.
+
+    The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
+
 content.host_blocking.whitelist:
   default:
   - piwik.org
   type:
     name: List
-    valtype: String
+    valtype: UrlPattern
     none_ok: true
   desc: >-
-    List of domains that should always be loaded, despite being ad-blocked.
+    A list of patterns that should always be loaded, despite being ad-blocked.
 
-    Domains may contain * and ? wildcards and are otherwise required to exactly
-    match the requested domain.
+    Note this whitelists blocked hosts, not first-party URLs. As an example, if
+    `example.org` loads an ad from `ads.example.org`, the whitelisted host
+    should be `ads.example.org`. If you want to disable the adblocker on a
+    given page, use the `content.host_blocking.enabled` setting with a URL
+    pattern instead.
 
     Local domains are always exempt from hostblocking.
 
@@ -630,7 +667,6 @@ content.notifications:
 content.pdfjs:
   default: false
   type: Bool
-  backend: QtWebKit
   desc: >-
     Allow pdf.js to view PDF files in the browser.
 
@@ -714,18 +750,31 @@ content.webgl:
   supports_pattern: true
   desc: Enable WebGL.
 
-content.webrtc_public_interfaces_only:
-  default: false
-  type: Bool
+content.webrtc_ip_handling_policy:
+  default: all-interfaces
+  type:
+    name: String
+    valid_values:
+      - all-interfaces: WebRTC has the right to enumerate all interfaces and
+            bind them to discover public interfaces.
+      - default-public-and-private-interfaces: WebRTC should only use the
+            default route used by http. This also exposes the associated
+            default private address. Default route is the route chosen by the
+            OS on a multi-homed endpoint.
+      - default-public-interface-only: WebRTC should only use the default route
+            used by http. This doesn't expose any local addresses.
+      - disable-non-proxied-udp: WebRTC should only use TCP to contact peers or
+            servers unless the proxy server supports UDP. This doesn't expose
+            any local addresses either.
+  default: all-interfaces
   backend:
     QtWebKit: false
     QtWebEngine: Qt 5.9.2
+  restart: true
   desc: >-
-    Only expose public interfaces via WebRTC.
+    Which interfaces to expose via WebRTC.
 
-    On Qt 5.9, this option requires a restart.
-    On Qt 5.10, this option doesn't work at all because of a Qt bug.
-    On Qt >= 5.11, no restart is required.
+    On Qt 5.10, this option doesn't work because of a Qt bug.
 
 content.xss_auditing:
   type: Bool
@@ -736,6 +785,17 @@ content.xss_auditing:
 
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console.
+
+content.mute:
+  default: false
+  type: Bool
+  supports_pattern: true
+  desc: >-
+    Automatically mute tabs.
+
+    Note that if the `:tab-mute` command is used, the mute status for the
+    affected tab is now controlled manually, and this setting doesn't have any
+    effect.
 
 # emacs: '
 
@@ -803,7 +863,27 @@ completion.timestamp_format:
   default: '%Y-%m-%d'
   desc: Format of timestamps (e.g. for the history completion).
 
+completion.web_history.exclude:
+  type:
+    name: List
+    valtype: UrlPattern
+    none_ok: true
+  default: []
+  restart: true
+  desc: >-
+    A list of patterns which should not be shown in the history.
+
+    This only affects the completion. Matching URLs are still saved in the
+    history (and visible on the qute://history page), but hidden in the
+    completion.
+
+    Changing this setting will cause the completion history to be regenerated
+    on the next start, which will take a short while.
+
 completion.web_history_max_items:
+  renamed: completion.web_history.max_items
+
+completion.web_history.max_items:
   default: -1
   type:
     name: Int
@@ -868,6 +948,18 @@ downloads.location.suggestion:
       - filename: Show only download filename.
       - both: Show download path and filename.
   desc: What to display in the download filename input.
+
+completion.open_categories:
+  type:
+    name: FlagList
+    valid_values: [searchengines, quickmarks, bookmarks, history]
+    none_ok: true
+  default:
+    - searchengines
+    - quickmarks
+    - bookmarks
+    - history
+  desc: Which categories to show (in which order) in the :open completion.
 
 downloads.open_dispatcher:
   type:
@@ -1036,6 +1128,71 @@ hints.scatter:
 
     Ignored for number hints.
 
+hints.selectors:
+  no_autoconfig: true
+  default:
+    all:
+      - 'a'
+      - 'area'
+      - 'textarea'
+      - 'select'
+      - 'input:not([type="hidden"])'
+      - 'button'
+      - 'frame'
+      - 'iframe'
+      - 'img'
+      - 'link'
+      - 'summary'
+      - '[onclick]'
+      - '[onmousedown]'
+      - '[role="link"]'
+      - '[role="option"]'
+      - '[role="button"]'
+      - '[ng-click]'
+      - '[ngClick]'
+      - '[data-ng-click]'
+      - '[x-ng-click]'
+      - '[tabindex]'
+    links:
+      - 'a[href]'
+      - 'area[href]'
+      - 'link[href]'
+      - '[role="link"][href]'
+    images:
+      - 'img'
+    media:
+      - 'audio'
+      - 'img'
+      - 'video'
+    url:
+      - '[src]'
+      - '[href]'
+    inputs:
+      - 'input[type="text"]'
+      - 'input[type="date"]'
+      - 'input[type="datetime-local"]'
+      - 'input[type="email"]'
+      - 'input[type="month"]'
+      - 'input[type="number"]'
+      - 'input[type="password"]'
+      - 'input[type="search"]'
+      - 'input[type="tel"]'
+      - 'input[type="time"]'
+      - 'input[type="url"]'
+      - 'input[type="week"]'
+      - 'input:not([type])'
+      - 'textarea'
+  type:
+    name: Dict
+    keytype: String
+    valtype:
+      name: List
+      none_ok: true
+      valtype: String
+  supports_pattern: true
+  desc: CSS selectors used to determine which elements on a page should have
+    hints.
+
 hints.uppercase:
   default: false
   type: Bool
@@ -1078,6 +1235,16 @@ input.insert_mode.plugins:
   default: false
   type: Bool
   desc: Switch to insert mode when clicking flash and other plugins.
+
+input.insert_mode.leave_on_load:
+  default: true
+  type: Bool
+  supports_pattern: true
+  desc: >-
+    Leave insert mode when starting a new page load.
+
+    Patterns may be unreliable on this setting, and they may match the url you
+    are navigating to, or the URL you are navigating from.
 
 input.links_included_in_focus_chain:
   default: true
@@ -1182,9 +1349,15 @@ prompt.radius:
 ## scrolling
 
 scrolling.bar:
-  type: Bool
-  default: false
-  desc: Show a scrollbar.
+  type:
+    name: String
+    valid_values:
+      - always: Always show the scrollbar.
+      - never: Never show the scrollbar.
+      - when-searching: Show the scrollbar when searching for text in the
+            webpage. With the QtWebKit backend, this is equal to `never`.
+  default: when-searching
+  desc: When to show the scrollbar.
 
 scrolling.smooth:
   type: Bool
@@ -1364,12 +1537,27 @@ tabs.mousewheel_switching:
 tabs.new_position.related:
   default: next
   type: NewTabPosition
-  desc: Position of new tabs opened from another tab.
+  desc: >-
+    Position of new tabs opened from another tab.
+
+    See `tabs.new_position.stacking` for controlling stacking behavior.
 
 tabs.new_position.unrelated:
   default: last
   type: NewTabPosition
-  desc: "Position of new tabs which aren't opened from another tab."
+  desc: >-
+    Position of new tabs which are not opened from another tab.
+
+    See `tabs.new_position.stacking` for controlling stacking behavior.
+
+tabs.new_position.stacking:
+  default: true
+  type: Bool
+  desc: >-
+    Stack related tabs on top of each other when opened consecutively.
+
+    Only applies for `next` and `prev` values of `tabs.new_position.related`
+    and `tabs.new_position.unrelated`.
 
 tabs.padding:
   default:
@@ -1513,6 +1701,23 @@ tabs.min_width:
 
     This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is False.
 
+tabs.max_width:
+  default: -1
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+  desc: >-
+    Maximum width (in pixels) of tabs (-1 for no maximum).
+
+    This setting only applies when tabs are horizontal.
+
+    This setting does not apply to pinned tabs, unless `tabs.pinned.shrink` is
+    False.
+
+    This setting may not apply properly if max_width is smaller than the
+    minimum size of tab contents, or smaller than tabs.min_width.
+
 tabs.width.indicator:
   renamed: tabs.indicator.width
 
@@ -1542,6 +1747,11 @@ tabs.pinned.shrink:
   default: true
   type: Bool
   desc: Shrink pinned tabs down to their contents.
+
+tabs.pinned.frozen:
+    type: Bool
+    default: True
+    desc: Force pinned tabs to stay at fixed URL.
 
 tabs.wrap:
   default: true
@@ -1587,7 +1797,9 @@ url.searchengines:
   type:
     name: Dict
     required_keys: ['DEFAULT']
-    keytype: String
+    keytype:
+      name: String
+      forbidden: ' '
     valtype: SearchEngineUrl
   desc: >-
     Search engines which can be used via the address bar.
@@ -1768,7 +1980,7 @@ colors.completion.item.selected.border.bottom:
 
 colors.completion.match.fg:
   default: '#ff4444'
-  type: QssColor
+  type: QtColor
   desc: Foreground color of the matched text in the completion.
 
 colors.completion.scrollbar.fg:
@@ -2106,6 +2318,46 @@ colors.tabs.selected.even.bg:
   type: QtColor
   desc: Background color of selected even tabs.
 
+colors.tabs.pinned.odd.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned unselected odd tabs.
+
+colors.tabs.pinned.odd.bg:
+  default: seagreen
+  type: QtColor
+  desc: Background color of pinned unselected odd tabs.
+
+colors.tabs.pinned.even.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned unselected even tabs.
+
+colors.tabs.pinned.even.bg:
+  default: darkseagreen
+  type: QtColor
+  desc: Background color of pinned unselected even tabs.
+
+colors.tabs.pinned.selected.odd.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned selected odd tabs.
+
+colors.tabs.pinned.selected.odd.bg:
+  default: black
+  type: QtColor
+  desc: Background color of pinned selected odd tabs.
+
+colors.tabs.pinned.selected.even.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned selected even tabs.
+
+colors.tabs.pinned.selected.even.bg:
+  default: black
+  type: QtColor
+  desc: Background color of pinned selected even tabs.
+
 colors.webpage.bg:
   default: white
   type:
@@ -2385,6 +2637,8 @@ bindings.default:
       yD: yank domain -s
       yp: yank pretty-url
       yP: yank pretty-url -s
+      ym: yank markdown
+      yM: yank markdown -s
       pp: open -- {clipboard}
       pP: open -- {primary}
       Pp: open -t -- {clipboard}
@@ -2470,6 +2724,12 @@ bindings.default:
       tPH: config-cycle -p -u *://*.{url:host}/* content.plugins ;; reload
       tpu: config-cycle -p -t -u {url} content.plugins ;; reload
       tPu: config-cycle -p -u {url} content.plugins ;; reload
+      tih: config-cycle -p -t -u *://{url:host}/* content.images ;; reload
+      tIh: config-cycle -p -u *://{url:host}/* content.images ;; reload
+      tiH: config-cycle -p -t -u *://*.{url:host}/* content.images ;; reload
+      tIH: config-cycle -p -u *://*.{url:host}/* content.images ;; reload
+      tiu: config-cycle -p -t -u {url} content.images ;; reload
+      tIu: config-cycle -p -u {url} content.images ;; reload
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text {primary}
@@ -2515,6 +2775,7 @@ bindings.default:
     prompt:
       <Return>: prompt-accept
       <Ctrl-X>: prompt-open-download
+      <Ctrl-P>: prompt-open-download --pdfjs
       <Shift-Tab>: prompt-item-focus prev
       <Up>: prompt-item-focus prev
       <Tab>: prompt-item-focus next
@@ -2555,6 +2816,7 @@ bindings.default:
       e: move-to-end-of-word
       w: move-to-next-word
       b: move-to-prev-word
+      o: reverse-selection
       "]": move-to-start-of-next-block
       "[": move-to-start-of-prev-block
       "}": move-to-end-of-next-block

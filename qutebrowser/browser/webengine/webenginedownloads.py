@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,7 +27,7 @@ import functools
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
-from qutebrowser.browser import downloads
+from qutebrowser.browser import downloads, pdfjs
 from qutebrowser.utils import debug, usertypes, message, log, qtutils
 
 
@@ -117,8 +117,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _get_open_filename(self):
         return self._filename
 
-    def _set_fileobj(self, fileobj, *,
-                     autoclose=True):  # pylint: disable=unused-argument
+    def _set_fileobj(self, fileobj, *, autoclose=True):
         raise downloads.UnsupportedOperationError
 
     def _set_tempfile(self, fileobj):
@@ -181,7 +180,21 @@ def _get_suggested_filename(path):
     See https://bugreports.qt.io/browse/QTBUG-56978
     """
     filename = os.path.basename(path)
-    filename = re.sub(r'\([0-9]+\)(?=\.|$)', '', filename)
+
+    suffix_re = re.compile(r"""
+      \ ?  # Optional space between filename and suffix
+      (
+        # Numerical suffix
+        \([0-9]+\)
+      |
+        # ISO-8601 suffix
+        # https://cs.chromium.org/chromium/src/base/time/time_to_iso8601.cc
+        \ -\ \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z
+      )
+      (?=\.|$)  # Begin of extension, or filename without extension
+    """, re.VERBOSE)
+
+    filename = suffix_re.sub('', filename)
     if not qtutils.version_check('5.9', compiled=False):
         # https://bugreports.qt.io/browse/QTBUG-58155
         filename = urllib.parse.unquote(filename)
@@ -212,14 +225,18 @@ class DownloadManager(downloads.AbstractDownloadManager):
     def handle_download(self, qt_item):
         """Start a download coming from a QWebEngineProfile."""
         suggested_filename = _get_suggested_filename(qt_item.path())
+        use_pdfjs = pdfjs.should_use_pdfjs(qt_item.mimeType(), qt_item.url())
 
         download = DownloadItem(qt_item)
-        self._init_item(download, auto_remove=False,
+        self._init_item(download, auto_remove=use_pdfjs,
                         suggested_filename=suggested_filename)
 
         if self._mhtml_target is not None:
             download.set_target(self._mhtml_target)
             self._mhtml_target = None
+            return
+        if use_pdfjs:
+            download.set_target(downloads.PDFJSDownloadTarget())
             return
 
         filename = downloads.immediate_download_path()

@@ -19,7 +19,7 @@ Also note userscripts need to have the executable bit set (`chmod +x`) for
 qutebrowser to run them.
 
 To call a userscript, it needs to be stored in your data directory under
-`userscripts` (for example: `~/.local/share/qutebrowser/userscripts/myscript`), 
+`userscripts` (for example: `~/.local/share/qutebrowser/userscripts/myscript`),
 or just use an absolute path.
 
 NOTE: On Windows, only userscripts with `com`, `bat`, or `exe` extensions will be launched.
@@ -51,7 +51,7 @@ In `hints` mode:
 
 - `QUTE_URL`: The URL selected via hints.
 - `QUTE_SELECTED_TEXT`: The plain text of the element selected via hints.
-- `QUTE_SELECTED_HTML` The HTML of the element selected via hints.
+- `QUTE_SELECTED_HTML`: The HTML of the element selected via hints.
 
 Sending commands
 ----------------

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
@@ -214,7 +214,14 @@ window._qutebrowser.webelem = (function() {
     }
 
     funcs.find_css = (selector, only_visible) => {
-        const elems = document.querySelectorAll(selector);
+        let elems;
+
+        try {
+            elems = document.querySelectorAll(selector);
+        } catch (ex) {
+            return {"success": false, "error": ex.toString()};
+        }
+
         const subelem_frames = window.frames;
         const out = [];
 
@@ -239,7 +246,7 @@ window._qutebrowser.webelem = (function() {
             }
         }
 
-        return out;
+        return {"success": true, "result": out};
     };
 
     // Runs a function in a frame until the result is not null, then return
@@ -333,13 +340,13 @@ window._qutebrowser.webelem = (function() {
     // it). If nothing is selected but there is something focused, returns
     // "focused"
     funcs.find_selected_focused_link = () => {
-        const elem = window.getSelection().baseNode;
+        const elem = window.getSelection().anchorNode;
         if (elem) {
             return serialize_elem(elem.parentNode);
         }
 
         const serialized_frame_elem = run_frames((frame) => {
-            const node = frame.window.getSelection().baseNode;
+            const node = frame.window.getSelection().anchorNode;
             if (node) {
                 return serialize_elem(node.parentNode, frame);
             }
@@ -360,6 +367,15 @@ window._qutebrowser.webelem = (function() {
         const elem = elements[id];
         elem.focus();
         document.execCommand("insertText", false, text);
+    };
+
+    funcs.dispatch_event = (id, event, bubbles = false,
+        cancelable = false, composed = false) => {
+        const elem = elements[id];
+        elem.dispatchEvent(
+            new Event(event, {"bubbles": bubbles,
+                "cancelable": cancelable,
+                "composed": composed}));
     };
 
     funcs.set_attribute = (id, name, value) => {

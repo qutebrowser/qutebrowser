@@ -80,7 +80,8 @@ Feature: Downloading things from a website.
         And I open data/downloads/issue1243.html
         And I hint with args "links download" and follow a
         And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
-        Then the error "Download error: No handler found for qute://!" should be shown
+        Then the error "Download error: No handler found for qute://" should be shown
+        And "NotFoundError while handling qute://* URL" should be logged
 
     Scenario: Downloading a data: link (issue 1214)
         When I set downloads.location.suggestion to filename
@@ -91,6 +92,8 @@ Feature: Downloading things from a website.
         And I run :leave-mode
         Then no crash should happen
 
+    # https://github.com/qutebrowser/qutebrowser/issues/4240
+    @qt<5.11.2
     Scenario: Downloading with SSL errors (issue 1413)
         When SSL is supported
         And I clear SSL errors
@@ -519,6 +522,17 @@ Feature: Downloading things from a website.
         And I open data/downloads/download2.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/downloads/subdir/download2.bin"
 
+    Scenario: Clearing the last download directory when changing download location
+        When I set downloads.location.prompt to true
+        And I set downloads.location.suggestion to both
+        And I set downloads.location.remember to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for the download prompt for "*/download.bin"
+        And I run :prompt-accept (tmpdir)(dirsep)downloads(dirsep)subdir
+        And I run :set downloads.location.directory (tmpdir)(dirsep)downloads
+        And I open data/downloads/download2.bin without waiting
+        Then the download prompt should be shown with "(tmpdir)/downloads/download2.bin"
+
     Scenario: Not remembering the last download directory
         When I set downloads.location.prompt to true
         And I set downloads.location.suggestion to both
@@ -634,16 +648,16 @@ Feature: Downloading things from a website.
         And I run :download foo!
         Then the error "Invalid URL" should be shown
 
-    @qtwebengine_todo: pdfjs is not implemented yet
     Scenario: Downloading via pdfjs
         Given pdfjs is available
         When I set downloads.location.prompt to false
         And I set content.pdfjs to true
-        And I open data/misc/test.pdf
+        And I open data/misc/test.pdf without waiting
         And I wait for the javascript message "PDF * [*] (PDF.js: *)"
         And I run :click-element id download
         And I wait until the download is finished
-        Then the downloaded file test.pdf should exist
+        # We get viewer.html as name on QtWebKit...
+        # Then the downloaded file test.pdf should exist
 
     Scenario: Answering a question for a cancelled download (#415)
         When I set downloads.location.prompt to true

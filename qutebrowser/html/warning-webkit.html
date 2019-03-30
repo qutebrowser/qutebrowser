@@ -1,0 +1,82 @@
+{% extends "styled.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<span class="note">Note this warning will only appear once. Use <span class="mono">:open
+qute://warning/webkit</span> to show it again at a later time.</span>
+
+<p>You're using qutebrowser with the QtWebKit backend.</p>
+
+<p>Unfortunately, QtWebKit hasn't seen a release (including security updates)
+since June 2017, and it also lacks various security features (process
+isolation/sandboxing) present in QtWebEngine.</p>
+
+<p>Because of those security issues and the maintaince burden coming with
+supporting QtWebKit, support for it will be dropped in a future qutebrowser
+release. It's recommended that you use QtWebEngine instead.</p>
+
+<h2>(Outdated) reasons to use QtWebKit</h2>
+<p>Most reasons why people preferred the QtWebKit backend aren't relevant anymore:</p>
+
+<p><b>PDF.js support</b>: This qutebrowser release comes with PDF.js support
+for QtWebEngine.</p>
+
+<p><b>Missing control over Referer header</b>: This qutebrowser release
+supports <span class="mono">content.headers.referer</span> for QtWebEngine.</p>
+
+<p><b>Missing control over cookies</b>: With Qt 5.11 or newer, the <span
+class="mono">content.cookies.accept</span> setting works on QtWebEngine.</p>
+
+<p><b>Graphical glitches</b>: The new values for the <span
+class="mono">qt.force_software_rendering</span> setting added in v1.4.0 should
+hopefully help.</p>
+
+<p><b>Missing support for notifications</b>: Those <a
+href="https://bugreports.qt.io/browse/QTBUG-29611">aren't supported yet</a> in
+Qt, but support is planned to be added in Qt 5.13, released around May 2019.</p>
+
+<p><b>Resource usage</b>: This release adds the <span
+class="mono">qt.process_model</span> and <span
+class="mono">qt.low_end_device_mode</span> settings which can be used to
+decrease the resource usage of QtWebEngine (but come with other drawbacks).</p>
+
+<p><b>Not trusting Google</b>: Various people have checked the connections made
+by QtWebEngine/qutebrowser, and it doesn't make any connections to Google (or
+any other unsolicited connections at all). Arguably, having to trust Google
+also is a smaller issue than having to trust every website you visit because of
+heaps of security issues...</p>
+
+<p><b>Nouveau graphic driver</b>: You can use QtWebEngine with software
+rendering. With Qt 5.13 (~May 2019) it might be possible to run with Nouveau
+without software rendering.</p>
+
+<p><b>Wayland</b>: It's possible to use QtWebEngine with XWayland. Some users
+also seem to be able to run it natively with Qt 5.11, but currently, <span
+class="mono">QUTE_SKIP_WAYLAND_CHECK=1</span> needs to be set in the
+environment to do so.</p>
+
+<p><b>Instability on FreeBSD</b>: Those seem to be FreeBSD-specific crashes,
+and unfortunately nobody has looked into them yet so far...</p>
+
+<p><b>QtWebEngine being unavailable in ArchlinuxARM's PyQt package</b>:
+QtWebEngine itself is available on the armv7h/aarch64 architectures, but their
+PyQt package is broken and doesn't come with QtWebEngine support. This
+<a href="https://archlinuxarm.org/forum/viewtopic.php?f=15&t=11269&p=54587">has
+been reported</a> in their forums, but without any change so far. It should
+however be possible to rebuild the PyQt package from source with QtWebEngine
+installed.</p>
+
+<p><b>QtWebEngine being unavailable on Parabola</b>: Claims of Parabola
+developers about QtWebEngine being "non-free" have repeatedly been disputed,
+and so far nobody came up with solid evidence about that being the case. Also,
+note that their qutebrowser package is orphaned and was often outdated in the
+past (even qutebrowser security fixes took months to arrive there). You
+might be better off chosing an <a
+href="https://qutebrowser.org/doc/install.html">alternative install
+method</a>.</p>
+
+<p><b>White flashing between loads with a custom stylesheet</b>: This doesn't
+seem to happen with <span class="mono">qt.process_model = single-process</span>
+set. However, note that that setting comes with decreased security and
+stability, but QtWebKit doesn't have any process isolation at all.</p>
+{% endblock %}

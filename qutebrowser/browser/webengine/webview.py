@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -64,6 +64,8 @@ class WebEngineView(QWebEngineView):
         Normally, this would always be the focusProxy().
         However, it sometimes isn't, so we use this as a WORKAROUND for
         https://bugreports.qt.io/browse/QTBUG-68727
+
+        This got introduced in Qt 5.11.0 and fixed in 5.12.0.
         """
         if 'lost-focusproxy' not in objreg.get('args').debug_flags:
             proxy = self.focusProxy()
@@ -240,7 +242,7 @@ class WebEnginePage(QWebEnginePage):
     def acceptNavigationRequest(self,
                                 url: QUrl,
                                 typ: QWebEnginePage.NavigationType,
-                                is_main_frame: bool):
+                                is_main_frame: bool) -> bool:
         """Override acceptNavigationRequest to forward it to the tab API."""
         type_map = {
             QWebEnginePage.NavigationTypeLinkClicked:

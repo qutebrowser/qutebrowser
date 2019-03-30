@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,6 +24,8 @@
 import os
 import sys
 import warnings
+import ctypes
+import ctypes.util
 
 import pytest
 import hypothesis
@@ -33,7 +35,7 @@ pytest.register_assert_rewrite('helpers')
 
 from helpers import logfail
 from helpers.logfail import fail_on_logging
-from helpers.messagemock import message_mock
+from helpers.messagemock import message_mock, message_bridge
 from helpers.fixtures import *  # noqa: F403
 from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
 from qutebrowser.misc import objects
@@ -43,6 +45,7 @@ import qutebrowser.app  # To register commands
 
 
 ON_CI = 'CI' in os.environ
+_qute_scheme_handler = None
 
 
 # Set hypothesis settings
@@ -203,7 +206,6 @@ def pytest_configure(config):
     webengine_env = os.environ.get('QUTE_BDD_WEBENGINE', '')
     config.webengine = bool(webengine_arg or webengine_env)
     # Fail early if QtWebEngine is not available
-    # pylint: disable=unused-variable
     if config.webengine:
         import PyQt5.QtWebEngineWidgets
 
@@ -233,6 +235,14 @@ def set_backend(monkeypatch, request):
     else:
         backend = usertypes.Backend.QtWebEngine
     monkeypatch.setattr(objects, 'backend', backend)
+
+
+@pytest.fixture(autouse=True)
+def apply_libgl_workaround():
+    """Make sure we load libGL early so QtWebEngine tests run properly."""
+    libgl = ctypes.util.find_library("GL")
+    if libgl is not None:
+        ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
 
 
 @pytest.fixture(autouse=True)
@@ -272,7 +282,7 @@ def apply_fake_os(monkeypatch, request):
 def check_yaml_c_exts():
     """Make sure PyYAML C extensions are available on Travis."""
     if 'TRAVIS' in os.environ:
-        from yaml import CLoader  # pylint: disable=unused-variable
+        from yaml import CLoader
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)

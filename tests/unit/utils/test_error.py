@@ -1,4 +1,4 @@
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 # This file is part of qutebrowser.
@@ -51,8 +51,6 @@ def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
             error.handle_fatal_exc(e, fake_args, 'title', pre_text='pre',
                                    post_text='post')
 
-    assert len(caplog.records) == 1
-
     expected = [
         'Handling fatal {} with --no-err-windows!'.format(name),
         '',
@@ -61,7 +59,7 @@ def test_no_err_windows(caplog, exc, name, exc_text, fake_args):
         'post_text: post',
         'exception text: {}'.format(exc_text),
     ]
-    assert caplog.records[0].msg == '\n'.join(expected)
+    assert caplog.messages == ['\n'.join(expected)]
 
 
 # This happens on Xvfb for some reason

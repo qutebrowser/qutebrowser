@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,9 +29,9 @@ import urllib.parse
 from PyQt5.QtCore import QUrl, QUrlQuery
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
 
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import log, qtutils, message, utils
-from qutebrowser.commands import cmdexc
 from qutebrowser.browser.network import pac
 
 
@@ -116,7 +116,8 @@ def _get_search_url(txt):
     if engine is None:
         engine = 'DEFAULT'
     template = config.val.url.searchengines[engine]
-    url = qurl_from_user_input(template.format(urllib.parse.quote(term)))
+    quoted_term = urllib.parse.quote(term, safe='')
+    url = qurl_from_user_input(template.format(quoted_term))
 
     if config.val.url.open_base_url and term in config.val.url.searchengines:
         url = qurl_from_user_input(config.val.url.searchengines[term])
@@ -360,7 +361,7 @@ def invalid_url_error(url, action):
 def raise_cmdexc_if_invalid(url):
     """Check if the given QUrl is invalid, and if so, raise a CommandError."""
     if not url.isValid():
-        raise cmdexc.CommandError(get_errstring(url))
+        raise cmdutils.CommandError(get_errstring(url))
 
 
 def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):

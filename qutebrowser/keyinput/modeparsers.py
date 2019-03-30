@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -71,6 +71,7 @@ class NormalKeyParser(CommandKeyParser):
         self._read_config('normal')
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
+        self._partial_timer.timeout.connect(self._clear_partial_match)
         self._inhibited = False
         self._inhibited_timer = usertypes.Timer(self, 'normal-inhibited')
         self._inhibited_timer.setSingleShot(True)
@@ -101,7 +102,6 @@ class NormalKeyParser(CommandKeyParser):
             timeout = config.val.input.partial_timeout
             if timeout != 0:
                 self._partial_timer.setInterval(timeout)
-                self._partial_timer.timeout.connect(self._clear_partial_match)
                 self._partial_timer.start()
         return match
 
@@ -128,22 +128,6 @@ class NormalKeyParser(CommandKeyParser):
         """Reset inhibition state after a timeout."""
         self._debug_log("Releasing inhibition state of normal mode.")
         self._inhibited = False
-
-    @pyqtSlot()
-    def _stop_timers(self):
-        super()._stop_timers()
-        self._partial_timer.stop()
-        try:
-            self._partial_timer.timeout.disconnect(self._clear_partial_match)
-        except TypeError:
-            # no connections
-            pass
-        self._inhibited_timer.stop()
-        try:
-            self._inhibited_timer.timeout.disconnect(self._clear_inhibited)
-        except TypeError:
-            # no connections
-            pass
 
 
 class PassthroughKeyParser(CommandKeyParser):
@@ -259,9 +243,8 @@ class HintKeyParser(CommandKeyParser):
         Returns:
             True if the match has been handled, False otherwise.
         """
-        dry_run_match = super().handle(e, dry_run=True)
         if dry_run:
-            return dry_run_match
+            return super().handle(e, dry_run=True)
 
         if keyutils.is_special(e.key(), e.modifiers()):
             log.keyboard.debug("Got special key, clearing keychain")

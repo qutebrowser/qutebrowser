@@ -20,7 +20,7 @@
 	<provides>
 		<binary>qutebrowser</binary>
 	</provides>
-	<launchable type="desktop-id">qutebrowser.desktop</launchable>
+	<launchable type="desktop-id">org.qutebrowser.qutebrowser.desktop</launchable>
 	<screenshots>
 		<screenshot type="default">
 			<image>https://raw.githubusercontent.com/qutebrowser/qutebrowser/master/doc/img/main.png</image>

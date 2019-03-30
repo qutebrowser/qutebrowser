@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -37,7 +37,7 @@ import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 
-from qutebrowser.commands import cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 

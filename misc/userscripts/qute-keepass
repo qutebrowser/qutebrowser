@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2018 Jay Kamat <jaygkamat@gmail.com>
+# Copyright 2018-2019 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -148,7 +148,7 @@ def dmenu(items, invocation, encoding):
 
 def get_password():
     """Get a keepass db password from user."""
-    _app = QApplication(sys.argv)
+    _app = QApplication(sys.argv)  # don't remove this local variable
     text, ok = QInputDialog.getText(
         None, "KeePass DB Password",
         "Please enter your KeePass Master Password",

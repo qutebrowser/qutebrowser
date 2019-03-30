@@ -1,6 +1,6 @@
 flake8
 flake8-bugbear
-flake8-builtins!=1.4.0
+flake8-builtins
 flake8-comprehensions
 flake8-copyright
 flake8-debugger
@@ -8,16 +8,9 @@ flake8-deprecated
 flake8-docstrings
 flake8-future-import
 flake8-mock
-flake8-per-file-ignores
 flake8-string-format
 flake8-tidy-imports
 flake8-tuple
 pep8-naming
 pydocstyle
 pyflakes
-
-# https://github.com/PyCQA/pycodestyle/issues/741
-#@ filter: pycodestyle < 2.4.0
-
-# https://github.com/gforcada/flake8-builtins/issues/36
-#@ filter: flake8-builtins != 1.4.0

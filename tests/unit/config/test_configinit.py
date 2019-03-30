@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -359,10 +359,11 @@ class TestQtArgs:
         return parser
 
     @pytest.fixture(autouse=True)
-    def patch_version_check(self, monkeypatch):
-        """Make sure no --disable-shared-workers argument gets added."""
+    def reduce_args(self, monkeypatch, config_stub):
+        """Make sure no --disable-shared-workers/referer argument get added."""
         monkeypatch.setattr(configinit.qtutils, 'version_check',
                             lambda version, compiled=False: True)
+        config_stub.val.content.headers.referer = 'always'
 
     @pytest.mark.parametrize('args, expected', [
         # No Qt arguments
@@ -438,23 +439,35 @@ class TestQtArgs:
         assert ('--autoplay-policy=user-gesture-required' in args) == added
 
     @utils.qt59
-    @pytest.mark.parametrize('new_version, public_only, added', [
-        (True, True, False),  # new enough to not need it
-        (False, False, False),  # option disabled
-        (False, True, True),
+    @pytest.mark.parametrize('policy, arg', [
+        ('all-interfaces', None),
+
+        ('default-public-and-private-interfaces',
+         '--force-webrtc-ip-handling-policy='
+         'default_public_and_private_interfaces'),
+
+        ('default-public-interface-only',
+         '--force-webrtc-ip-handling-policy='
+         'default_public_interface_only'),
+
+        ('disable-non-proxied-udp',
+         '--force-webrtc-ip-handling-policy='
+         'disable_non_proxied_udp'),
     ])
     def test_webrtc(self, config_stub, monkeypatch, parser,
-                    new_version, public_only, added):
+                    policy, arg):
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)
-        config_stub.val.content.webrtc_public_interfaces_only = public_only
-        monkeypatch.setattr(configinit.qtutils, 'version_check',
-                            lambda version, compiled=False: new_version)
+        config_stub.val.content.webrtc_ip_handling_policy = policy
 
         parsed = parser.parse_args([])
         args = configinit.qt_args(parsed)
-        arg = '--force-webrtc-ip-handling-policy=default_public_interface_only'
-        assert (arg in args) == added
+
+        if arg is None:
+            assert not any(a.startswith('--force-webrtc-ip-handling-policy=')
+                           for a in args)
+        else:
+            assert arg in args
 
     @pytest.mark.parametrize('canvas_reading, added', [
         (True, False),  # canvas reading enabled
@@ -469,6 +482,67 @@ class TestQtArgs:
         parsed = parser.parse_args([])
         args = configinit.qt_args(parsed)
         assert ('--disable-reading-from-canvas' in args) == added
+
+    @pytest.mark.parametrize('process_model, added', [
+        ('process-per-site-instance', False),
+        ('process-per-site', True),
+        ('single-process', True),
+    ])
+    def test_process_model(self, config_stub, monkeypatch, parser,
+                           process_model, added):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+
+        config_stub.val.qt.process_model = process_model
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+
+        if added:
+            assert '--' + process_model in args
+        else:
+            assert '--process-per-site' not in args
+            assert '--single-process' not in args
+            assert '--process-per-site-instance' not in args
+            assert '--process-per-tab' not in args
+
+    @pytest.mark.parametrize('low_end_device_mode, arg', [
+        ('auto', None),
+        ('always', '--enable-low-end-device-mode'),
+        ('never', '--disable-low-end-device-mode'),
+    ])
+    def test_low_end_device_mode(self, config_stub, monkeypatch, parser,
+                                 low_end_device_mode, arg):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+
+        config_stub.val.qt.low_end_device_mode = low_end_device_mode
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+
+        if arg is None:
+            assert '--enable-low-end-device-mode' not in args
+            assert '--disable-low-end-device-mode' not in args
+        else:
+            assert arg in args
+
+    @pytest.mark.parametrize('referer, arg', [
+        ('always', None),
+        ('never', '--no-referrers'),
+        ('same-domain', '--reduced-referrer-granularity'),
+    ])
+    def test_referer(self, config_stub, monkeypatch, parser, referer, arg):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+
+        config_stub.val.content.headers.referer = referer
+        parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+
+        if arg is None:
+            assert '--no-referrers' not in args
+            assert '--reduced-referrer-granularity' not in args
+        else:
+            assert arg in args
 
 
 @pytest.mark.parametrize('arg, confval, used', [

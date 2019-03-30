@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -78,6 +78,8 @@ def test_progress_affecting_statusbar_height(config_stub, fake_statusbar,
     """
     # For some reason on Windows, with Courier, there's a 1px difference.
     config_stub.val.fonts.statusbar = '8pt Monospace'
+
+    fake_statusbar.container.expose()
 
     expected_height = fake_statusbar.fontMetrics().height()
     assert fake_statusbar.height() == expected_height

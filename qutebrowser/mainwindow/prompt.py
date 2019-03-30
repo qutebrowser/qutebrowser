@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -34,7 +34,7 @@ from qutebrowser.browser import downloads
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
-from qutebrowser.commands import cmdutils, cmdexc
+from qutebrowser.api import cmdutils
 from qutebrowser.qt import sip
 
 
@@ -384,14 +384,15 @@ class PromptContainer(QWidget):
         try:
             done = self._prompt.accept(value)
         except Error as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdutils.CommandError(str(e))
         if done:
             message.global_bridge.prompt_done.emit(self._prompt.KEY_MODE)
             question.done()
 
     @cmdutils.register(instance='prompt-container', scope='window',
                        modes=[usertypes.KeyMode.prompt], maxsplit=0)
-    def prompt_open_download(self, cmdline: str = None):
+    def prompt_open_download(self, cmdline: str = None,
+                             pdfjs: bool = False) -> None:
         """Immediately open a download.
 
         If no specific command is given, this will use the system's default
@@ -402,9 +403,10 @@ class PromptContainer(QWidget):
                      is expanded to the temporary file name. If no `{}` is
                      present, the filename is automatically appended to the
                      cmdline.
+            pdfjs: Open the download via PDF.js.
         """
         try:
-            self._prompt.download_open(cmdline)
+            self._prompt.download_open(cmdline, pdfjs=pdfjs)
         except UnsupportedOperationError:
             pass
 
@@ -537,8 +539,10 @@ class _BasePrompt(QWidget):
     def accept(self, value=None):
         raise NotImplementedError
 
-    def download_open(self, _cmdline):
+    def download_open(self, cmdline, pdfjs):
         """Open the download directly if this is a download prompt."""
+        utils.unused(cmdline)
+        utils.unused(pdfjs)
         raise UnsupportedOperationError
 
     def item_focus(self, _which):
@@ -757,8 +761,13 @@ class DownloadFilenamePrompt(FilenamePrompt):
             self.question.answer = downloads.FileDownloadTarget(answer)
         return done
 
-    def download_open(self, cmdline):
-        self.question.answer = downloads.OpenFileDownloadTarget(cmdline)
+    def download_open(self, cmdline, pdfjs):
+        if pdfjs:
+            target = downloads.PDFJSDownloadTarget()
+        else:
+            target = downloads.OpenFileDownloadTarget(cmdline)
+
+        self.question.answer = target
         self.question.done()
         message.global_bridge.prompt_done.emit(self.KEY_MODE)
 
@@ -767,6 +776,7 @@ class DownloadFilenamePrompt(FilenamePrompt):
             ('prompt-accept', 'Accept'),
             ('leave-mode', 'Abort'),
             ('prompt-open-download', "Open download"),
+            ('prompt-open-download --pdfjs', "Open download via PDF.js"),
             ('prompt-yank', "Yank URL"),
         ]
         return cmds

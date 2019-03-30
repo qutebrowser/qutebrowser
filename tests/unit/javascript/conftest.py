@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,8 +27,7 @@ import jinja2
 
 from PyQt5.QtCore import QUrl
 
-import helpers.utils
-from qutebrowser.utils import utils
+import qutebrowser
 
 
 class JSTester:
@@ -87,19 +86,20 @@ class JSTester:
         """
         with self.qtbot.waitSignal(self.tab.load_finished,
                                    timeout=2000) as blocker:
-            self.tab.openurl(url)
+            self.tab.load_url(url)
         if not force:
             assert blocker.args == [True]
 
-    def run_file(self, filename: str, expected=None) -> None:
+    def run_file(self, path: str, expected=None) -> None:
         """Run a javascript file.
 
         Args:
-            filename: The javascript filename, relative to
-                      qutebrowser/javascript.
+            path: The path to the JS file, relative to the qutebrowser package.
             expected: The value expected return from the javascript execution
         """
-        source = utils.read_file(os.path.join('javascript', filename))
+        base_path = os.path.dirname(os.path.abspath(qutebrowser.__file__))
+        with open(os.path.join(base_path, path), 'r', encoding='utf-8') as f:
+            source = f.read()
         self.run(source, expected)
 
     def run(self, source: str, expected, world=None) -> None:
@@ -110,9 +110,9 @@ class JSTester:
             expected: The value expected return from the javascript execution
             world: The scope the javascript will run in
         """
-        callback_checker = helpers.utils.CallbackChecker(self.qtbot)
-        self.tab.run_js_async(source, callback_checker.callback, world=world)
-        callback_checker.check(expected)
+        with self.qtbot.wait_callback() as callback:
+            self.tab.run_js_async(source, callback, world=world)
+        callback.assert_called_with(expected)
 
 
 @pytest.fixture

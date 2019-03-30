@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -432,7 +432,7 @@ def run_async(tab, cmd, *args, win_id, env, verbose=False):
     cmd_path = os.path.expanduser(cmd)
 
     # if cmd is not given as an absolute path, look it up
-    # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_DIR)
+    # ~/.local/share/qutebrowser/userscripts (or $XDG_DATA_HOME)
     if not os.path.isabs(cmd_path):
         log.misc.debug("{} is no absolute path".format(cmd_path))
         cmd_path = _lookup_path(cmd)
