@@ -60,4 +60,4 @@ try:
     s.close()
 except FileNotFoundError:
     os.environ['PATH'] = os.pathsep.join(reversed(os.get_exec_path()))
-    subprocess.run('qutebrowser', *sys.argv[1:])
+    subprocess.run(['qutebrowser', *sys.argv[1:]])
