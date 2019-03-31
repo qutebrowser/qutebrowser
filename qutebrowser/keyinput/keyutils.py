@@ -53,6 +53,19 @@ def _is_printable(key):
     return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
 
+def is_special_hint_mode(key, modifiers):
+    """Check whether this key should clear the keychain in hint mode.
+
+    When we press "s<Escape>", we don't want <Escape> to be handled as part of
+    a key chain in hint mode.
+    """
+    _assert_plain_key(key)
+    _assert_plain_modifier(modifiers)
+    return not (_is_printable(key) and
+                modifiers in [Qt.ShiftModifier, Qt.NoModifier,
+                              Qt.KeypadModifier])
+
+
 def is_special(key, modifiers):
     """Check whether this key requires special key syntax."""
     _assert_plain_key(key)

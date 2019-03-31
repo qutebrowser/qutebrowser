@@ -246,7 +246,7 @@ class HintKeyParser(CommandKeyParser):
         if dry_run:
             return super().handle(e, dry_run=True)
 
-        if keyutils.is_special(e.key(), e.modifiers()):
+        if keyutils.is_special_hint_mode(e.key(), e.modifiers()):
             log.keyboard.debug("Got special key, clearing keychain")
             self.clear_keystring()
 
