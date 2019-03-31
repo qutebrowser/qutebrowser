@@ -61,6 +61,8 @@ def is_special_hint_mode(key, modifiers):
     """
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
+    if is_modifier_key(key):
+        return False
     return not (_is_printable(key) and
                 modifiers in [Qt.ShiftModifier, Qt.NoModifier,
                               Qt.KeypadModifier])
