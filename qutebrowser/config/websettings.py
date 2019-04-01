@@ -198,11 +198,11 @@ def init(args: argparse.Namespace) -> None:
                                 pattern=urlmatch.UrlPattern(pattern))
 
 
-def clear_private_data():
+def clear_private_data() -> None:
     """Clear cookies, cache and related data for private browsing sessions."""
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
-        webenginesettings.init_private_profile()
+        webenginesettings.reset_private_profile()
     else:
         objreg.get('ram-cookie-jar').setAllCookies([])
 

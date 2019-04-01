@@ -34,7 +34,6 @@ from qutebrowser.config import config, configfiles, websettings
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja, debug)
 from qutebrowser.mainwindow import messageview, prompt
-from qutebrowser.misc import objects
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import commands, downloadview, hints, downloads
