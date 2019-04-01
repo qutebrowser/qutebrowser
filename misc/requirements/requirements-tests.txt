@@ -17,7 +17,7 @@ itsdangerous==1.1.0
 # Jinja2==2.10
 Mako==1.0.8
 # MarkupSafe==1.1.0
-more-itertools==6.0.0
+more-itertools==7.0.0
 parse==1.11.1
 parse-type==0.4.2
 pluggy==0.9.0
