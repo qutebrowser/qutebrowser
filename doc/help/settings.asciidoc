@@ -1475,8 +1475,9 @@ Default: +pass:[false]+
 [[completion.timestamp_format]]
 === completion.timestamp_format
 Format of timestamps (e.g. for the history completion).
+See https://sqlite.org/lang_datefunc.html for allowed substitutions.
 
-Type: <<types,TimestampTemplate>>
+Type: <<types,String>>
 
 Default: +pass:[%Y-%m-%d]+
 
@@ -3680,9 +3681,6 @@ See the documentation for `List`.
 
 See the setting's valid values for more information on allowed values.
 |TextAlignment|Alignment of text.
-|TimestampTemplate|An strftime-like template for timestamps.
-
-See https://sqlite.org/lang_datefunc.html for reference.
 |UniqueCharString|A string which may not contain duplicate chars.
 |Url|A URL as a string.
 |UrlPattern|A match pattern for a URL.

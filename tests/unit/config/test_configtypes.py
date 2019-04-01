@@ -2086,21 +2086,6 @@ class TestConfirmQuit:
             klass().to_py(val)
 
 
-class TestTimestampTemplate:
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.TimestampTemplate
-
-    @pytest.mark.parametrize('val', ['foobar', '%H:%M', 'foo %H bar %M'])
-    def test_to_py_valid(self, klass, val):
-        assert klass().to_py(val) == val
-
-    def test_to_py_invalid(self, klass):
-        with pytest.raises(configexc.ValidationError):
-            klass().to_py('%')
-
-
 class TestKey:
 
     @pytest.fixture
