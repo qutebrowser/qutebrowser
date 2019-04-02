@@ -54,7 +54,7 @@ class _SettingsWrapper:
     def __init__(self):
         self.reset_profiles()
 
-    def reset_profiles(self) -> None:
+    def reset_profiles(self):
         """Update the references to the global profiles."""
         self._settings = [default_profile.settings(),
                           private_profile.settings()]
