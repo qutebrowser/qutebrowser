@@ -377,9 +377,9 @@ class TestReverse:
 
     def test_repetition_of_movement_results_in_empty_selection(self, caret, selection):
         selection.toggle()
-        caret.move_to_end_of_line()
+        caret.move_to_end_of_word()
         caret.reverse_selection()
-        caret.move_to_end_of_line()
+        caret.move_to_end_of_word()
         selection.check("")
 
     def test_reverse(self, caret, selection):
