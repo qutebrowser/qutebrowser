@@ -202,7 +202,7 @@ def clear_private_data() -> None:
     """Clear cookies, cache and related data for private browsing sessions."""
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
-        webenginesettings.reset_private_profile()
+        webenginesettings.init_private_profile()
     else:
         objreg.get('ram-cookie-jar').setAllCookies([])
 

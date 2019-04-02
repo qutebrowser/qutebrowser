@@ -51,41 +51,36 @@ class _SettingsWrapper:
     For read operations, the default profile value is always used.
     """
 
-    def __init__(self):
-        self.reset_profiles()
-
-    def reset_profiles(self):
-        """Update the references to the global profiles."""
-        self._settings = [default_profile.settings(),
-                          private_profile.settings()]
+    def _settings(self):
+        return default_profile.settings(), private_profile.settings()
 
     def setAttribute(self, *args, **kwargs):
-        for settings in self._settings:
+        for settings in self._settings():
             settings.setAttribute(*args, **kwargs)
 
     def setFontFamily(self, *args, **kwargs):
-        for settings in self._settings:
+        for settings in self._settings():
             settings.setFontFamily(*args, **kwargs)
 
     def setFontSize(self, *args, **kwargs):
-        for settings in self._settings:
+        for settings in self._settings():
             settings.setFontSize(*args, **kwargs)
 
     def setDefaultTextEncoding(self, *args, **kwargs):
-        for settings in self._settings:
+        for settings in self._settings():
             settings.setDefaultTextEncoding(*args, **kwargs)
 
     def testAttribute(self, *args, **kwargs):
-        return self._settings[0].testAttribute(*args, **kwargs)
+        return self._settings()[0].testAttribute(*args, **kwargs)
 
     def fontSize(self, *args, **kwargs):
-        return self._settings[0].fontSize(*args, **kwargs)
+        return self._settings()[0].fontSize(*args, **kwargs)
 
     def fontFamily(self, *args, **kwargs):
-        return self._settings[0].fontFamily(*args, **kwargs)
+        return self._settings()[0].fontFamily(*args, **kwargs)
 
     def defaultTextEncoding(self, *args, **kwargs):
-        return self._settings[0].defaultTextEncoding(*args, **kwargs)
+        return self._settings()[0].defaultTextEncoding(*args, **kwargs)
 
 
 class WebEngineSettings(websettings.AbstractSettings):
@@ -184,10 +179,6 @@ class WebEngineSettings(websettings.AbstractSettings):
                 continue
 
             self._ATTRIBUTES[name] = Attr(value, converter=converter)
-
-    def reset_profiles(self) -> None:
-        """Make _settings update its references to global profiles."""
-        self._settings.reset_profiles()
 
 
 class ProfileSetter:
@@ -301,7 +292,7 @@ def _init_default_profile():
     default_profile.setter.set_persistent_cookie_policy()
 
 
-def _init_private_profile():
+def init_private_profile():
     """Init the private QWebEngineProfile."""
     global private_profile
 
@@ -309,12 +300,6 @@ def _init_private_profile():
     private_profile.setter = ProfileSetter(private_profile)
     assert private_profile.isOffTheRecord()
     private_profile.setter.init_profile()
-
-
-def reset_private_profile():
-    """Replaces the private QWebEngineProfile with a new instance."""
-    _init_private_profile()
-    global_settings.reset_profiles()
 
 
 def init(args):
@@ -327,7 +312,7 @@ def init(args):
     spell.init()
 
     _init_default_profile()
-    _init_private_profile()
+    init_private_profile()
     config.instance.changed.connect(_update_settings)
 
     global global_settings
