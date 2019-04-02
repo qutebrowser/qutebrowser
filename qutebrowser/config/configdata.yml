@@ -858,10 +858,13 @@ completion.scrollbar.padding:
 
 completion.timestamp_format:
   type:
-    name: TimestampTemplate
+    name: String
     none_ok: true
   default: '%Y-%m-%d'
-  desc: Format of timestamps (e.g. for the history completion).
+  desc: >-
+    Format of timestamps (e.g. for the history completion).
+
+    See https://sqlite.org/lang_datefunc.html for allowed substitutions.
 
 completion.web_history.exclude:
   type:

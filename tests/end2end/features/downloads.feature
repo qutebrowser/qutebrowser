@@ -141,18 +141,26 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download with spaces.bin should exist
 
-    @qtwebkit_skip @qt<5.9
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.8 or older)
+    @qtwebkit_skip @qt<5.9 @qt>=5.13
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.8 or older and 5.13 and newer)
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
         And I wait until the download is finished
         Then the downloaded file ../foo should not exist
         And the downloaded file foo should exist
 
-    @qtwebkit_skip @qt>=5.9
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.9 or newer)
+    @qtwebkit_skip @qt<5.13 @qt>=5.9
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.9 to 5.12)
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
+        And I wait until the download is finished
+        Then the downloaded file ../foo should not exist
+        And the downloaded file ..%2Ffoo should exist
+
+    @qtwebkit_skip @qt>=5.13
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.13 or newer)
+        # Content-Disposition: download; filename=..%252Ffoo
+        When I open response-headers?Content-Disposition=download;%20filename%3D..%25252Ffoo without waiting
         And I wait until the download is finished
         Then the downloaded file ../foo should not exist
         And the downloaded file ..%2Ffoo should exist
