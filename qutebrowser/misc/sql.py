@@ -119,7 +119,7 @@ def raise_sqlite_error(msg, error):
         (database_text.startswith("Expression tree is too large") or
          database_text == "too many SQL variables"))
 
-    if (error_code in environmental_errors or qtbug_70506 or too_long_err):
+    if error_code in environmental_errors or qtbug_70506 or too_long_err:
         raise SqlKnownError(msg, error)
 
     raise SqlBugError(msg, error)

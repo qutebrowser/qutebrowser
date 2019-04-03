@@ -139,9 +139,7 @@ def test_set_pattern_long(hist, message_mock, caplog):
     hist.insert({'url': 'example.com/foo', 'title': 'title1', 'last_atime': 1})
     cat = histcategory.HistoryCategory()
     with caplog.at_level(logging.ERROR):
-        # pylint: disable=bad-builtin
         cat.set_pattern(" ".join(map(str, range(10000))))
-        # pylint: enable=bad-builtin
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     assert msg.text.startswith("Error with SQL Query:")
 
