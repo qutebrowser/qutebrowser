@@ -111,10 +111,15 @@ def raise_sqlite_error(msg, error):
                    driver_text == "Error opening database" and
                    database_text == "out of memory")
 
-    if ((error_code in environmental_errors or qtbug_70506) or
-            (error_code == SqliteErrorCode.ERROR and
-             driver_text == "Unable to execute statement" and
-             database_text.startswith("Expression tree is too large"))):
+    # https://github.com/qutebrowser/qutebrowser/issues/4681
+    # If the query we built was too long
+    too_long_err = (
+        error_code == SqliteErrorCode.ERROR and
+        driver_text == "Unable to execute statement" and
+        (database_text.startswith("Expression tree is too large") or
+         database_text == "too many SQL variables"))
+
+    if (error_code in environmental_errors or qtbug_70506 or too_long_err):
         raise SqlKnownError(msg, error)
 
     raise SqlBugError(msg, error)
