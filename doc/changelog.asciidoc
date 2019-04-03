@@ -47,6 +47,14 @@ Fixed
 - Using `100%` for a hue in a `hsv(...)` config value now corresponds to 359
   (rather than 255), matching the fixed behavior in Qt 5.13.
 
+v1.6.2 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Crash when SQL errors occur while using the completion.
+
 v1.6.1
 ------
 
