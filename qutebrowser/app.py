@@ -449,7 +449,7 @@ def _init_modules(args, crash_handler):
     objreg.register('readline-bridge', readline_bridge)
 
     try:
-        log.init.debug("Initializing sql...")
+        log.init.debug("Initializing SQL...")
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
 
         log.init.debug("Initializing web history...")

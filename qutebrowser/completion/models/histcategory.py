@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""A completion category that queries the SQL History store."""
+"""A completion category that queries the SQL history store."""
 
 from PyQt5.QtSql import QSqlQueryModel
 
@@ -28,7 +28,7 @@ from qutebrowser.config import config
 
 class HistoryCategory(QSqlQueryModel):
 
-    """A completion category that queries the SQL History store."""
+    """A completion category that queries the SQL history store."""
 
     def __init__(self, *, delete_func=None, parent=None):
         """Create a new History completion category."""
@@ -95,7 +95,7 @@ class HistoryCategory(QSqlQueryModel):
                     "SELECT url, title, {}".format(timefmt),
                     "FROM CompletionHistory",
                     # the incoming pattern will have literal % and _ escaped we
-                    # need to tell sql to treat '\' as an escape character
+                    # need to tell SQL to treat '\' as an escape character
                     'WHERE ({})'.format(where_clause),
                     self._atime_expr(),
                     "ORDER BY last_atime DESC",
@@ -108,12 +108,12 @@ class HistoryCategory(QSqlQueryModel):
             # Sometimes, the query we built up was invalid, for example,
             # due to a large amount of words.
             # Also catches failures in the DB we can't solve.
-            message.error("Error with SQL Query: {}".format(e.text()))
+            message.error("Error with SQL query: {}".format(e.text()))
             return
         self.setQuery(self._query.query)
 
     def removeRows(self, row, _count, _parent=None):
-        """Override QAbstractItemModel::removeRows to re-run sql query."""
+        """Override QAbstractItemModel::removeRows to re-run SQL query."""
         # re-run query to reload updated table
         with debug.log_time('sql', 'Re-running completion query post-delete'):
             self._query.run()

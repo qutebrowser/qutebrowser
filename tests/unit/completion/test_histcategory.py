@@ -141,7 +141,7 @@ def test_set_pattern_long(hist, message_mock, caplog):
     with caplog.at_level(logging.ERROR):
         cat.set_pattern(" ".join(map(str, range(10000))))
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    assert msg.text.startswith("Error with SQL Query:")
+    assert msg.text.startswith("Error with SQL query:")
 
 
 @pytest.mark.parametrize('max_items, before, after', [

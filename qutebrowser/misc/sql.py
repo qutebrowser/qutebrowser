@@ -164,10 +164,10 @@ def version():
 
 class Query:
 
-    """A prepared SQL Query."""
+    """A prepared SQL query."""
 
     def __init__(self, querystr, forward_only=True):
-        """Prepare a new sql query.
+        """Prepare a new SQL query.
 
         Args:
             querystr: String to prepare query from.
@@ -256,7 +256,7 @@ class Query:
 
 class SqlTable(QObject):
 
-    """Interface to a sql table.
+    """Interface to a SQL table.
 
     Attributes:
         _name: Name of the SQL table this wraps.
@@ -268,7 +268,7 @@ class SqlTable(QObject):
     changed = pyqtSignal()
 
     def __init__(self, name, fields, constraints=None, parent=None):
-        """Create a new table in the sql database.
+        """Create a new table in the SQL database.
 
         Does nothing if the table already exists.
 
