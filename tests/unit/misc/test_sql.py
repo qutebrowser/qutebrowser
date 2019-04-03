@@ -43,7 +43,7 @@ class TestSqlError:
         (sql.SqliteErrorCode.BUSY, sql.SqlKnownError),
         (sql.SqliteErrorCode.CONSTRAINT, sql.SqlBugError),
     ])
-    def test_environmental(self, error_code, exception):
+    def test_known(self, error_code, exception):
         sql_err = QSqlError("driver text", "db text", QSqlError.UnknownError,
                             error_code)
         with pytest.raises(exception):

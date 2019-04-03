@@ -183,12 +183,12 @@ class TestAdd:
         assert not list(web_history)
         assert not list(web_history.completion)
 
-    @pytest.mark.parametrize('environmental', [True, False])
+    @pytest.mark.parametrize('known_error', [True, False])
     @pytest.mark.parametrize('completion', [True, False])
     def test_error(self, monkeypatch, web_history, message_mock, caplog,
-                   environmental, completion):
+                   known_error, completion):
         def raise_error(url, replace=False):
-            if environmental:
+            if known_error:
                 raise sql.SqlKnownError("Error message")
             raise sql.SqlBugError("Error message")
 
@@ -197,7 +197,7 @@ class TestAdd:
         else:
             monkeypatch.setattr(web_history, 'insert', raise_error)
 
-        if environmental:
+        if known_error:
             with caplog.at_level(logging.ERROR):
                 web_history.add_url(QUrl('https://www.example.org/'))
             msg = message_mock.getmsg(usertypes.MessageLevel.error)
