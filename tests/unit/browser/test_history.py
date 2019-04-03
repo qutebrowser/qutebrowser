@@ -189,8 +189,8 @@ class TestAdd:
                    known_error, completion):
         def raise_error(url, replace=False):
             if known_error:
-                raise sql.SqlKnownError("Error message")
-            raise sql.SqlBugError("Error message")
+                raise sql.KnownError("Error message")
+            raise sql.BugError("Error message")
 
         if completion:
             monkeypatch.setattr(web_history.completion, 'insert', raise_error)
@@ -203,7 +203,7 @@ class TestAdd:
             msg = message_mock.getmsg(usertypes.MessageLevel.error)
             assert msg.text == "Failed to write history: Error message"
         else:
-            with pytest.raises(sql.SqlBugError):
+            with pytest.raises(sql.BugError):
                 web_history.add_url(QUrl('https://www.example.org/'))
 
     @pytest.mark.parametrize('level, url, req_url, expected', [

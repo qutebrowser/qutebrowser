@@ -46,7 +46,7 @@ class SqliteErrorCode:
     CONSTRAINT = '19'  # UNIQUE constraint failed
 
 
-class SqlError(Exception):
+class Error(Exception):
 
     """Base class for all SQL related errors."""
 
@@ -65,7 +65,7 @@ class SqlError(Exception):
             return self.error.databaseText()
 
 
-class SqlKnownError(SqlError):
+class KnownError(Error):
 
     """Raised on an error interacting with the SQL database.
 
@@ -74,7 +74,7 @@ class SqlKnownError(SqlError):
     """
 
 
-class SqlBugError(SqlError):
+class BugError(Error):
 
     """Raised on an error interacting with the SQL database.
 
@@ -83,7 +83,7 @@ class SqlBugError(SqlError):
 
 
 def raise_sqlite_error(msg, error):
-    """Raise either a SqlBugError or SqlKnownError."""
+    """Raise either a BugError or KnownError."""
     error_code = error.nativeErrorCode()
     database_text = error.databaseText()
     driver_text = error.driverText()
@@ -120,17 +120,17 @@ def raise_sqlite_error(msg, error):
          database_text == "too many SQL variables"))
 
     if error_code in known_errors or qtbug_70506 or too_long_err:
-        raise SqlKnownError(msg, error)
+        raise KnownError(msg, error)
 
-    raise SqlBugError(msg, error)
+    raise BugError(msg, error)
 
 
 def init(db_path):
     """Initialize the SQL database connection."""
     database = QSqlDatabase.addDatabase('QSQLITE')
     if not database.isValid():
-        raise SqlKnownError('Failed to add database. Are sqlite and Qt '
-                            'sqlite support installed?')
+        raise KnownError('Failed to add database. Are sqlite and Qt sqlite '
+                         'support installed?')
     database.setDatabaseName(db_path)
     if not database.open():
         error = database.lastError()
@@ -158,7 +158,7 @@ def version():
             close()
             return ver
         return Query("select sqlite_version()").run().value()
-    except SqlKnownError as e:
+    except KnownError as e:
         return 'UNAVAILABLE ({})'.format(e)
 
 
@@ -183,7 +183,7 @@ class Query:
 
     def __iter__(self):
         if not self.query.isActive():
-            raise SqlBugError("Cannot iterate inactive query")
+            raise BugError("Cannot iterate inactive query")
         rec = self.query.record()
         fields = [rec.fieldName(i) for i in range(rec.count())]
         rowtype = collections.namedtuple('ResultRow', fields)
@@ -204,7 +204,7 @@ class Query:
         for key, val in values.items():
             self.query.bindValue(':{}'.format(key), val)
         if any(val is None for val in self.bound_values().values()):
-            raise SqlBugError("Missing bound values!")
+            raise BugError("Missing bound values!")
 
     def run(self, **values):
         """Execute the prepared query."""
@@ -244,7 +244,7 @@ class Query:
     def value(self):
         """Return the result of a single-value query (e.g. an EXISTS)."""
         if not self.query.next():
-            raise SqlBugError("No result for single-result query")
+            raise BugError("No result for single-result query")
         return self.query.record().value(0)
 
     def rows_affected(self):

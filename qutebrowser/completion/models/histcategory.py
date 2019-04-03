@@ -104,7 +104,7 @@ class HistoryCategory(QSqlQueryModel):
             with debug.log_time('sql', 'Running completion query'):
                 self._query.run(**{
                     str(i): w for i, w in enumerate(words)})
-        except sql.SqlKnownError as e:
+        except sql.KnownError as e:
             # Sometimes, the query we built up was invalid, for example,
             # due to a large amount of words.
             # Also catches failures in the DB we can't solve.
