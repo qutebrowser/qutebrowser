@@ -144,7 +144,7 @@ def test_set_pattern_long(hist, message_mock, caplog):
         # pylint: enable=bad-builtin
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
     assert msg.text.startswith(
-        "Error building SQL Query: Expression tree is too large")
+        "Error with SQL Query: Expression tree is too large")
 
 
 @pytest.mark.parametrize('max_items, before, after', [

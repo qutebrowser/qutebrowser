@@ -85,28 +85,30 @@ class HistoryCategory(QSqlQueryModel):
         timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
                    .format(timestamp_format.replace("'", "`")))
 
-        if not self._query or len(words) != len(self._query.bound_values()):
-            # if the number of words changed, we need to generate a new query
-            # otherwise, we can reuse the prepared query for performance
-            try:
+        try:
+            if (not self._query or
+                    len(words) != len(self._query.bound_values())):
+                # if the number of words changed, we need to generate a new
+                # query otherwise, we can reuse the prepared query for
+                # performance
                 self._query = sql.Query(' '.join([
                     "SELECT url, title, {}".format(timefmt),
                     "FROM CompletionHistory",
-                    # the incoming pattern will have literal % and _ escaped
-                    # we need to tell sql to treat '\' as an escape character
+                    # the incoming pattern will have literal % and _ escaped we
+                    # need to tell sql to treat '\' as an escape character
                     'WHERE ({})'.format(where_clause),
                     self._atime_expr(),
                     "ORDER BY last_atime DESC",
                 ]), forward_only=False)
-            except sql.SqlLongQueryError as e:
-                # Sometimes, the query we built up was invalid, for example,
-                # due to a large amount of words.
-                message.error("Error building SQL Query: {}".format(e.text()))
-                return
 
-        with debug.log_time('sql', 'Running completion query'):
-            self._query.run(**{
-                str(i): w for i, w in enumerate(words)})
+            with debug.log_time('sql', 'Running completion query'):
+                self._query.run(**{
+                    str(i): w for i, w in enumerate(words)})
+        except sql.SqlKnownError as e:
+            # Sometimes, the query we built up was invalid, for example,
+            # due to a large amount of words.
+            message.error("Error with SQL Query: {}".format(e.text()))
+            return
         self.setQuery(self._query.query)
 
     def removeRows(self, row, _count, _parent=None):

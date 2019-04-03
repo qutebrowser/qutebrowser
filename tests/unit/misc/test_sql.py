@@ -29,7 +29,7 @@ from qutebrowser.misc import sql
 pytestmark = pytest.mark.usefixtures('init_sql')
 
 
-@pytest.mark.parametrize('klass', [sql.SqlEnvironmentError, sql.SqlBugError])
+@pytest.mark.parametrize('klass', [sql.SqlKnownError, sql.SqlBugError])
 def test_sqlerror(klass):
     text = "Hello World"
     err = klass(text)
@@ -40,7 +40,7 @@ def test_sqlerror(klass):
 class TestSqlError:
 
     @pytest.mark.parametrize('error_code, exception', [
-        (sql.SqliteErrorCode.BUSY, sql.SqlEnvironmentError),
+        (sql.SqliteErrorCode.BUSY, sql.SqlKnownError),
         (sql.SqliteErrorCode.CONSTRAINT, sql.SqlBugError),
     ])
     def test_environmental(self, error_code, exception):
@@ -59,7 +59,7 @@ class TestSqlError:
                             "out of memory",
                             QSqlError.UnknownError,
                             sql.SqliteErrorCode.UNKNOWN)
-        with pytest.raises(sql.SqlEnvironmentError):
+        with pytest.raises(sql.SqlKnownError):
             sql.raise_sqlite_error("Message", sql_err)
 
     def test_logging(self, caplog):
@@ -77,7 +77,7 @@ class TestSqlError:
         assert caplog.messages == expected
 
     @pytest.mark.parametrize('klass',
-                             [sql.SqlEnvironmentError, sql.SqlBugError])
+                             [sql.SqlKnownError, sql.SqlBugError])
     def test_text(self, klass):
         sql_err = QSqlError("driver text", "db text")
         err = klass("Message", sql_err)
