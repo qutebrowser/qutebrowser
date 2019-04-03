@@ -107,6 +107,7 @@ class HistoryCategory(QSqlQueryModel):
         except sql.SqlKnownError as e:
             # Sometimes, the query we built up was invalid, for example,
             # due to a large amount of words.
+            # Also catches failures in the DB we can't solve.
             message.error("Error with SQL Query: {}".format(e.text()))
             return
         self.setQuery(self._query.query)
