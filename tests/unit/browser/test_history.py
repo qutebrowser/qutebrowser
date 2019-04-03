@@ -189,7 +189,7 @@ class TestAdd:
                    environmental, completion):
         def raise_error(url, replace=False):
             if environmental:
-                raise sql.SqlEnvironmentError("Error message")
+                raise sql.SqlKnownError("Error message")
             raise sql.SqlBugError("Error message")
 
         if completion:

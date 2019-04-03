@@ -451,7 +451,7 @@ def _init_modules(args, crash_handler):
 
         log.init.debug("Initializing web history...")
         history.init(q_app)
-    except sql.SqlEnvironmentError as e:
+    except sql.SqlKnownError as e:
         error.handle_fatal_exc(e, args, 'Error initializing SQL',
                                pre_text='Error initializing SQL')
         sys.exit(usertypes.Exit.err_init)
