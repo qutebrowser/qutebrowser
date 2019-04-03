@@ -195,7 +195,7 @@ class WebHistory(sql.SqlTable):
     def _handle_sql_errors(self):
         try:
             yield
-        except sql.SqlEnvironmentError as e:
+        except sql.SqlKnownError as e:
             message.error("Failed to write history: {}".format(e.text()))
 
     def _is_excluded(self, url):

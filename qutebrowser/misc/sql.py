@@ -36,6 +36,7 @@ class SqliteErrorCode:
     """
 
     UNKNOWN = '-1'
+    ERROR = '1'  # generic error code
     BUSY = '5'  # database is locked
     READONLY = '8'  # attempt to write a readonly database
     IOERR = '10'  # disk I/O error
@@ -64,7 +65,7 @@ class SqlError(Exception):
             return self.error.databaseText()
 
 
-class SqlEnvironmentError(SqlError):
+class SqlKnownError(SqlError):
 
     """Raised on an error interacting with the SQL database.
 
@@ -82,7 +83,7 @@ class SqlBugError(SqlError):
 
 
 def raise_sqlite_error(msg, error):
-    """Raise either a SqlBugError or SqlEnvironmentError."""
+    """Raise either a SqlBugError or SqlKnownError."""
     error_code = error.nativeErrorCode()
     database_text = error.databaseText()
     driver_text = error.driverText()
@@ -110,8 +111,17 @@ def raise_sqlite_error(msg, error):
                    driver_text == "Error opening database" and
                    database_text == "out of memory")
 
-    if error_code in environmental_errors or qtbug_70506:
-        raise SqlEnvironmentError(msg, error)
+    # https://github.com/qutebrowser/qutebrowser/issues/4681
+    # If the query we built was too long
+    too_long_err = (
+        error_code == SqliteErrorCode.ERROR and
+        driver_text == "Unable to execute statement" and
+        (database_text.startswith("Expression tree is too large") or
+         database_text == "too many SQL variables"))
+
+    if (error_code in environmental_errors or qtbug_70506 or too_long_err):
+        raise SqlKnownError(msg, error)
+
     raise SqlBugError(msg, error)
 
 
@@ -119,8 +129,8 @@ def init(db_path):
     """Initialize the SQL database connection."""
     database = QSqlDatabase.addDatabase('QSQLITE')
     if not database.isValid():
-        raise SqlEnvironmentError('Failed to add database. Are sqlite and Qt '
-                                  'sqlite support installed?')
+        raise SqlKnownError('Failed to add database. Are sqlite and Qt '
+                            'sqlite support installed?')
     database.setDatabaseName(db_path)
     if not database.open():
         error = database.lastError()
@@ -148,7 +158,7 @@ def version():
             close()
             return ver
         return Query("select sqlite_version()").run().value()
-    except SqlEnvironmentError as e:
+    except SqlKnownError as e:
         return 'UNAVAILABLE ({})'.format(e)
 
 
