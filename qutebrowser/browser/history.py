@@ -148,6 +148,8 @@ class WebHistory(sql.SqlTable):
                                       'redirect': 'NOT NULL'},
                          parent=parent)
         self._progress = progress
+        # Store the last saved url to avoid duplicate immedate saves.
+        self.last_url = None
 
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
@@ -276,6 +278,7 @@ class WebHistory(sql.SqlTable):
             self.delete_all()
             self.completion.delete_all()
         self.history_cleared.emit()
+        self.last_url = None
 
     def delete_url(self, url):
         """Remove all history entries with the given url.
@@ -287,6 +290,8 @@ class WebHistory(sql.SqlTable):
         qtutils.ensure_valid(qurl)
         self.delete('url', self._format_url(qurl))
         self.completion.delete('url', self._format_completion_url(qurl))
+        if self.last_url == url:
+            self.last_url = None
         self.url_cleared.emit(qurl)
 
     @pyqtSlot(QUrl, QUrl, str)
@@ -306,7 +311,9 @@ class WebHistory(sql.SqlTable):
             # If the url of the page is different than the url of the link
             # originally clicked, save them both.
             self.add_url(requested_url, title, redirect=True)
-        self.add_url(url, title)
+        if url != self.last_url:
+            self.add_url(url, title)
+            self.last_url = url
 
     def add_url(self, url, title="", *, redirect=False, atime=None):
         """Called via add_from_tab when a URL should be added to the history.

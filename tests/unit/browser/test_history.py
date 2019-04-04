@@ -117,6 +117,9 @@ class TestDelete:
         web_history.clear(force=True)
         assert not len(web_history)
         assert not len(web_history.completion)
+        web_history.add_url(QUrl('http://www.qutebrowser.org/'))
+        assert len(web_history)
+        assert len(web_history.completion)
 
     @pytest.mark.parametrize('raw, escaped', [
         ('http://example.com/1', 'http://example.com/1'),
@@ -138,6 +141,11 @@ class TestDelete:
         completion_diff = completion_before.difference(
             set(web_history.completion))
         assert completion_diff == {(raw, '', 0)}
+
+        # ensure we can add the url back
+        web_history.add_url(QUrl(raw), atime=0)
+        assert before == set(web_history)
+        assert completion_before == set(web_history.completion)
 
 
 class TestAdd:
@@ -228,6 +236,18 @@ class TestAdd:
         web_history.add_from_tab(url, url, 'title')
         assert list(web_history)
         assert not list(web_history.completion)
+
+    def test_no_immedate_duplicates(self, web_history, caplog, mock_time, mocker):
+        m = mocker.patch('qutebrowser.browser.history.WebHistory.add_url')
+        url = QUrl("http://example.com")
+        url2 = QUrl("http://example2.com")
+        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        m.assert_called_once()
+        m.reset_mock()
+        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        m.assert_not_called()
+        web_history.add_from_tab(QUrl(url2), QUrl(url2), 'title')
+        m.assert_called_once()
 
 
 class TestHistoryInterface:
