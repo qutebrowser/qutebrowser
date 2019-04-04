@@ -55,6 +55,18 @@ class ResourceType(enum.Enum):
     unknown = 255
 
 
+class RedirectException(Exception):
+    """Raised when there was an error with redirection."""
+
+
+class RedirectFailedException(RedirectException):
+    """Raised when the request was invalid, or a request was already made."""
+
+
+class RedirectUnsupportedException(RedirectException):
+    """Raised when redirection is currently unsupported."""
+
+
 @attr.s
 class Request:
 
@@ -71,35 +83,25 @@ class Request:
     #: The resource type of the request. None if not supported on this backend.
     resource_type = attr.ib(None)  # type: typing.Optional[ResourceType]
 
-    #: Private attribute to a method which implements redirection
-    _redirect_method = attr.ib(
-        default=None, type=typing.Optional[typing.Callable[[QUrl], bool]])
-
     def block(self) -> None:
         """Block this request."""
         self.is_blocked = True
 
-    def redirect(self, url: QUrl) -> bool:
+    def redirect(self, url: QUrl) -> None:
         """Redirect this request.
 
         Only some types of requests can be successfully redirected.
         Improper use of this method can result in redirect loops.
 
+        This method will throw a RedirectFailedException if the request was not
+        possible.
+
         Args:
             url: The QUrl to try to redirect to.
 
-        Return:
-            False if the redirection was known to be unsupported, else True.
-            A True return value does not guarantee success.
         """
-        if self._redirect_method is None:
-            return False
-        # pylint: disable=not-callable
-        retval = self._redirect_method(url)
-        # pylint: enable=not-callable
-        # Once firing a redirect, refuse any other attempt
-        self._redirect_method = None
-        return retval
+        # Will be overridden if the backend supports redirection
+        raise RedirectUnsupportedException("Unsupported backend.")
 
 
 #: Type annotation for an interceptor function.
