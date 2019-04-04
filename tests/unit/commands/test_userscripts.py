@@ -65,8 +65,7 @@ def runner(request, runtime_tmpdir):
             request.param is userscripts._POSIXUserscriptRunner):
         pytest.skip("Requires a POSIX os")
         raise utils.Unreachable
-    else:
-        return request.param()
+    return request.param()
 
 
 def test_command(qtbot, py_proc, runner):

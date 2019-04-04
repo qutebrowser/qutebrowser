@@ -89,8 +89,7 @@ def serialize(items):
             if current_idx is not None:
                 raise ValueError("Multiple active items ({} and {}) "
                                  "found!".format(current_idx, i))
-            else:
-                current_idx = i
+            current_idx = i
 
     if items:
         if current_idx is None:

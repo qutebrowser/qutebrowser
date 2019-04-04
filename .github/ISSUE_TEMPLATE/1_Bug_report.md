@@ -6,7 +6,7 @@ about: Report errors and problems
 
 **Version info (see `:version`)**:
 
-**Does the bug happen if you start with `--temp-basedir`?** (if applicable):
+**Does the bug happen if you start with `--temp-basedir`?**:
 
 **Description**
 

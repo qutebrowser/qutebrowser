@@ -276,7 +276,6 @@ class TabWidget(QTabWidget):
             The index of the newly added tab.
         """
         if text_or_empty is None:
-            icon = None
             text = icon_or_text
             new_idx = super().addTab(page, '')
         else:
@@ -306,7 +305,6 @@ class TabWidget(QTabWidget):
             The index of the newly added tab.
         """
         if text_or_empty is None:
-            icon = None
             text = icon_or_text
             new_idx = super().insertTab(idx, page, '')
         else:
@@ -354,6 +352,17 @@ class TabWidget(QTabWidget):
             self.setTabIcon(idx, QIcon())
             if config.val.tabs.tabs_are_windows:
                 self.window().setWindowIcon(self.window().windowIcon())
+
+    def setTabIcon(self, idx: int, icon: QIcon):
+        """Always show tab icons for pinned tabs in some circumstances."""
+        tab = self.widget(idx)
+        if (icon.isNull() and
+                config.cache['tabs.favicons.show'] != 'never' and
+                config.cache['tabs.pinned.shrink'] and
+                not self.tabBar().vertical and
+                tab is not None and tab.data.pinned):
+            icon = self.style().standardIcon(QStyle.SP_FileIcon)
+        super().setTabIcon(idx, icon)
 
 
 class TabBar(QTabBar):
@@ -681,6 +690,8 @@ class TabBar(QTabBar):
             self.initStyleOption(tab, idx)
 
             setting = 'colors.tabs'
+            if self._tab_pinned(idx):
+                setting += '.pinned'
             if idx == selected:
                 setting += '.selected'
             setting += '.odd' if (idx + 1) % 2 else '.even'

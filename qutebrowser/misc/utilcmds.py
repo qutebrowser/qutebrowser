@@ -243,9 +243,8 @@ def log_capacity(capacity: int) -> None:
     """
     if capacity < 0:
         raise cmdutils.CommandError("Can't set a negative log capacity!")
-    else:
-        assert log.ram_handler is not None
-        log.ram_handler.change_log_capacity(capacity)
+    assert log.ram_handler is not None
+    log.ram_handler.change_log_capacity(capacity)
 
 
 @cmdutils.register(debug=True)
@@ -311,7 +310,7 @@ def version(win_id, paste=False):
     """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    tabbed_browser.load_url(QUrl('qute://version'), newtab=True)
+    tabbed_browser.load_url(QUrl('qute://version/'), newtab=True)
 
     if paste:
         pastebin_version()

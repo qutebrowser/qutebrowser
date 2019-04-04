@@ -30,7 +30,9 @@ from qutebrowser.misc import objects
 
 
 @pytest.fixture(autouse=True)
-def init(qapp, config_stub, cache_tmpdir, data_tmpdir):
+def init(qapp, config_stub, cache_tmpdir, data_tmpdir, monkeypatch):
+    monkeypatch.setattr(webenginesettings.webenginequtescheme, 'init',
+                        lambda: None)
     init_args = types.SimpleNamespace(enable_webengine_inspector=False)
     webenginesettings.init(init_args)
     config_stub.changed.disconnect(webenginesettings._update_settings)

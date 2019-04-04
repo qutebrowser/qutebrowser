@@ -301,8 +301,7 @@ class FakeSignal:
     def __call__(self):
         if self._func is None:
             raise TypeError("'FakeSignal' object is not callable")
-        else:
-            return self._func()
+        return self._func()
 
     def connect(self, slot):
         """Connect the signal to a slot.
@@ -530,10 +529,9 @@ class TabWidgetStub(QObject):
     def indexOf(self, _tab):
         if self.index_of is None:
             raise ValueError("indexOf got called with index_of None!")
-        elif self.index_of is RuntimeError:
+        if self.index_of is RuntimeError:
             raise RuntimeError
-        else:
-            return self.index_of
+        return self.index_of
 
     def currentIndex(self):
         if self.current_index is None:
