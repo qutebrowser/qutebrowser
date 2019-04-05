@@ -35,6 +35,8 @@ import socket
 import shlex
 import glob
 import mimetypes
+from collections import abc
+import attr
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
@@ -740,3 +742,45 @@ def ceil_log(number, base):
         result += 1
         accum *= base
     return result
+
+
+def immutable_view(x):
+    """Create an immutable view of the object x."""
+    if isinstance(x, list):
+        return ListView(x)
+    elif isinstance(x, dict):
+        return DictView(x)
+    else:
+        assert x.__hash__ is not None, x
+        return x
+
+
+@attr.s
+class ListView(abc.Sequence):
+
+    """Immutable view for a list."""
+
+    data = attr.ib(type=list)
+
+    def __getitem__(self, index):
+        return immutable_view(self.data[index])
+
+    def __len__(self):
+        return len(self.data)
+
+
+@attr.s
+class DictView(abc.Mapping):
+
+    """Immutable view for a dict."""
+
+    data = attr.ib(type=dict)
+
+    def __getitem__(self, key):
+        return immutable_view(self.data[key])
+
+    def __iter__(self):
+        return iter(self.data)
+
+    def __len__(self):
+        return len(self.data)

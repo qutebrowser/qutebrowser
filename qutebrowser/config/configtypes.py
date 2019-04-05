@@ -177,8 +177,10 @@ class BaseType:
                 raise configexc.ValidationError(value, "may not be null!")
             return
 
-        if (not isinstance(value, pytype) or
-                pytype is int and isinstance(value, bool)):
+        if ((isinstance(value, bool) and pytype is int) or
+                not (isinstance(value, pytype) or
+                     (isinstance(value, utils.ListView) and pytype is list) or
+                     (isinstance(value, utils.DictView) and pytype is dict))):
             if isinstance(pytype, tuple):
                 expected = ' or '.join(typ.__name__ for typ in pytype)
             else:

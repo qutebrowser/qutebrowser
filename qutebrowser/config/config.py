@@ -381,7 +381,7 @@ class Config(QObject):
         """
         self.get_opt(name)  # To make sure it exists
         value = self._values[name].get_for_url(url, fallback=fallback)
-        return self._maybe_copy(value)
+        return utils.immutable_view(value)
 
     def get_obj_for_pattern(
             self, name: str, *,
@@ -394,7 +394,7 @@ class Config(QObject):
         """
         self.get_opt(name)  # To make sure it exists
         value = self._values[name].get_for_pattern(pattern, fallback=False)
-        return self._maybe_copy(value)
+        return utils.immutable_view(value)
 
     def get_mutable_obj(self, name: str, *,
                         pattern: urlmatch.UrlPattern = None) -> Any:
