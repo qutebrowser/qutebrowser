@@ -233,7 +233,7 @@ class Query:
         ok = self.query.execBatch()
         try:
             self._check_ok('execBatch', ok)
-        except SqlError:
+        except Error:
             # Not checking the return value here, as we're failing anyways...
             db.rollback()
             raise
