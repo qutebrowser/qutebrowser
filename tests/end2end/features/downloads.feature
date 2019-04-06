@@ -92,6 +92,15 @@ Feature: Downloading things from a website.
         And I run :leave-mode
         Then no crash should happen
 
+    Scenario: Aborting a download in a different window (issue 3378)
+        When I set downloads.location.suggestion to filename
+        And I set downloads.location.prompt to true
+        And I open data/downloads/download.bin in a new window without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> *" in the log
+        And I run :window-only
+        And I run :leave-mode
+        Then no crash should happen
+
     # https://github.com/qutebrowser/qutebrowser/issues/4240
     @qt<5.11.2
     Scenario: Downloading with SSL errors (issue 1413)
