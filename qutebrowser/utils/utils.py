@@ -36,7 +36,6 @@ import shlex
 import glob
 import mimetypes
 from collections import abc
-import attr
 
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
@@ -755,12 +754,14 @@ def immutable_view(x):
         return x
 
 
-@attr.s
 class ListView(abc.Sequence):
 
     """Immutable view for a list."""
 
-    data = attr.ib(type=list)
+    __slots__ = ['data']
+
+    def __init__(self, data: list):
+        self.data = data
 
     def __getitem__(self, index):
         return immutable_view(self.data[index])
@@ -768,13 +769,18 @@ class ListView(abc.Sequence):
     def __len__(self):
         return len(self.data)
 
+    def __eq__(self, other):
+        return self.data == other
 
-@attr.s
+
 class DictView(abc.Mapping):
 
     """Immutable view for a dict."""
 
-    data = attr.ib(type=dict)
+    __slots__ = ['data']
+
+    def __init__(self, data: dict):
+        self.data = data
 
     def __getitem__(self, key):
         return immutable_view(self.data[key])
