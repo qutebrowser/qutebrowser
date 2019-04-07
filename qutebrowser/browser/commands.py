@@ -24,6 +24,7 @@ import shlex
 import functools
 import typing
 import urllib.parse
+from collections import defaultdict
 
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
@@ -1916,12 +1917,12 @@ class CommandDispatcher:
 
         def rel_depth(n):
             return n.depth - node.depth
-        levels = {}
+
+        levels = defaultdict(list)
         for d in node.traverse(render_collapsed=False):
             r_depth = rel_depth(d)
-            if r_depth not in levels:
-                levels[r_depth] = []
             levels[r_depth].append(d)
+
         target = 0
         for level in list(reversed(sorted(levels)))[1:]:
             nodes = levels[level]
