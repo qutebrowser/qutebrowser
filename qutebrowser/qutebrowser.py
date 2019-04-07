@@ -51,7 +51,6 @@ except ImportError:
         sys.stderr.flush()
         sys.exit(100)
 check_python_version()
-from qutebrowser.utils import log
 
 import argparse  # pylint: disable=wrong-import-order
 from qutebrowser.misc import earlyinit
@@ -148,6 +147,7 @@ def logfilter_error(logfilter):
     Args:
         logfilter: A comma separated list of logger names.
     """
+    from qutebrowser.utils import log
     if set(logfilter.lstrip('!').split(',')).issubset(log.LOGGER_NAMES):
         return logfilter
     else:
