@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# copyright 2014-2018 florian bruhin (the compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -1923,8 +1923,11 @@ class CommandDispatcher:
             r_depth = rel_depth(d)
             levels[r_depth].append(d)
 
+        # Remove highest level because it's leaves (or already collapsed)
+        del levels[max(levels.keys())]
+
         target = 0
-        for level in list(reversed(sorted(levels)))[1:]:
+        for level in sorted(levels, reverse=True):
             nodes = levels[level]
             if not all(n.collapsed or not n.children for n in nodes):
                 target = level
