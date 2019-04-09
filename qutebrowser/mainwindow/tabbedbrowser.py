@@ -43,11 +43,6 @@ class UndoEntry:
     history = attr.ib()
     index = attr.ib()
     pinned = attr.ib()
-    uid = attr.ib(None)
-    parent_node_uid = attr.ib(None)
-    children_node_uids = attr.ib(attr.Factory(list))
-    local_index = attr.ib(None)  # index of the tab relative to its siblings
-
 
 class TabDeletedError(Exception):
 
@@ -328,8 +323,7 @@ class TabbedBrowser(QWidget):
         except browsertab.WebTabError:
             pass  # special URL
         else:
-            entry = UndoEntry(tab.url(), history_data, idx,
-                                tab.data.pinned)
+            entry = UndoEntry(tab.url(), history_data, idx, tab.data.pinned)
 
             if new_undo or not self._undo_stack:
                 self._undo_stack.append([entry])

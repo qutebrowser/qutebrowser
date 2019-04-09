@@ -19,6 +19,8 @@
 
 """Subclass of TabbedBrowser to provide tree-tab functionality."""
 
+import attr
+
 from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
 
@@ -34,6 +36,20 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget, mainwindow
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja)
+
+
+@attr.s
+class TreeUndoEntry:
+    """Information needed for :undo."""
+
+    url = attr.ib()
+    history = attr.ib()
+    index = attr.ib()
+    pinned = attr.ib()
+    uid = attr.ib(None)
+    parent_node_uid = attr.ib(None)
+    children_node_uids = attr.ib(attr.Factory(list))
+    local_index = attr.ib(None)  # index of the tab relative to its siblings
 
 
 class TreeTabbedBrowser(TabbedBrowser):
@@ -90,9 +106,9 @@ class TreeTabbedBrowser(TabbedBrowser):
             parent_uid = node.parent.uid
             children = [n.uid for n in node.children]
             local_idx = node.index
-            entry = UndoEntry(tab.url(), history_data, idx,
-                              tab.data.pinned,
-                              uid, parent_uid, children, local_idx)
+            entry = TreeUndoEntry(tab.url(), history_data, idx,
+                                  tab.data.pinned,
+                                  uid, parent_uid, children, local_idx)
 
             if new_undo or not self._undo_stack:
                 self._undo_stack.append([entry])
@@ -110,29 +126,28 @@ class TreeTabbedBrowser(TabbedBrowser):
         new_tabs = super().undo()
 
         for entry, tab in zip(reversed(entries), new_tabs):
-            if entry.uid is not None and entry.parent_node_uid is not None:
-                import pdb; pdb.set_trace()  # XXX BREAKPOINT
-                root = self.widget.tree_root
-                uid = entry.uid
-                parent_uid = entry.parent_node_uid
-                parent_node = root.get_descendent_by_uid(parent_uid)
+            if not isinstance(entry, TreeUndoEntry):
+                continue
+            root = self.widget.tree_root
+            uid = entry.uid
+            parent_uid = entry.parent_node_uid
+            parent_node = root.get_descendent_by_uid(parent_uid)
 
-                children = []
-                for child_uid in entry.children_node_uids:
-                    child_node = root.get_descendent_by_uid(child_uid)
-                    children.append(child_node)
-                tab.node.parent = None  # Remove the node from the tree
-                tab.node = notree.Node(tab, parent_node,
-                                        children, uid)
+            children = []
+            for child_uid in entry.children_node_uids:
+                child_node = root.get_descendent_by_uid(child_uid)
+                children.append(child_node)
+            tab.node.parent = None  # Remove the node from the tree
+            tab.node = notree.Node(tab, parent_node,
+                                    children, uid)
 
-                # correctly reposition the tab
-                local_idx = entry.local_index
-                new_siblings = list(tab.node.parent.children)
-                new_siblings.remove(tab.node)
-                new_siblings.insert(local_idx, tab.node)
-                tab.node.parent.children = new_siblings
+            # correctly reposition the tab
+            local_idx = entry.local_index
+            new_siblings = list(tab.node.parent.children)
+            new_siblings.remove(tab.node)
+            new_siblings.insert(local_idx, tab.node)
+            tab.node.parent.children = new_siblings
 
-                self.widget.tree_tab_update()
         self.widget.tree_tab_update()
 
     @pyqtSlot('QUrl')
