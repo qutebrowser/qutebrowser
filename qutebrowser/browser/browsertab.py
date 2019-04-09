@@ -49,6 +49,7 @@ if MYPY:
     from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector
 
+from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
 from qutebrowser.misc.notree import Node
 
 tab_id_gen = itertools.count(0)
@@ -884,7 +885,7 @@ class AbstractTab(QWidget):
             self, parent=self)
         self.backend = None
 
-        if parent:
+        if parent and isinstance(parent, TreeTabWidget):
             self.node = Node(self, parent=parent.tree_root)
         else:
             self.node = Node(self, parent=None)

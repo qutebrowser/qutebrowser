@@ -35,6 +35,7 @@ from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
 from qutebrowser.qt import sip
 
 
@@ -471,7 +472,8 @@ class SessionManager(QObject):
 
             tree = win.get('tree', None)
             tabs = tabbed_browser.widgets()
-            self._load_tree(tabs, tree, tabbed_browser.widget.tree_root)
+            if isinstance(tabbed_browser.widget, TreeTabWidget):
+                self._load_tree(tabs, tree, tabbed_browser.widget.tree_root)
 
         if data['windows']:
             self.did_load = True

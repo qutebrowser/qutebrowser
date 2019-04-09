@@ -35,7 +35,6 @@ from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.browser import browsertab
-from qutebrowser.misc.notree import Node
 
 
 class PixelMetrics(enum.IntEnum):
@@ -78,9 +77,6 @@ class TabWidget(QTabWidget):
         self.setUsesScrollButtons(True)
         bar.setDrawBase(False)
 
-        # root of the tab tree, common for all tabs in the window
-        self.tree_root = Node(None)
-
         self._init_config()
         config.instance.changed.connect(self._init_config)
 
@@ -97,11 +93,6 @@ class TabWidget(QTabWidget):
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
 
-        # For tree-tabs
-        self.update_tab_titles()  # Must also be called when deactivating
-        if config.cache['tabs.tree_tabs']:
-            # Positions matter only if enabling
-            self.tree_tab_update()
 
     def set_tab_indicator_color(self, idx, color):
         """Set the tab indicator color.
@@ -159,22 +150,11 @@ class TabWidget(QTabWidget):
             return
 
         fields = self.get_tab_fields(idx)
+        fields.get('tree', '')
+        fields.get('collapsed', '')
         fields['title'] = fields['title'].replace('&', '&&')
 
         fields['index'] = str(idx + 1)
-        if config.cache['tabs.tree_tabs']:
-            # we remove the first two chars because every tab is child of tree
-            # root and that gets rendered as well
-            rendered_tree = self.tree_root.render()
-            try:
-                pre, _ = rendered_tree[idx+1]
-                tree_prefix = pre[2:]
-            except IndexError:  # window or first tab are not initialized yet
-                tree_prefix = ""
-
-            fields['tree'] = tree_prefix
-        else:
-            fields['tree'] = ''
 
         title = '' if fmt is None else fmt.format(**fields)
         tabbar = self.tabBar()
@@ -203,7 +183,6 @@ class TabWidget(QTabWidget):
         fields['backend'] = objects.backend.name
         fields['private'] = ' [Private Mode] ' if tab.is_private else ''
 
-        fields['collapsed'] = ' [...] ' if tab.node.collapsed else ''
 
         try:
             if tab.audio.is_muted():
@@ -275,18 +254,6 @@ class TabWidget(QTabWidget):
             for idx in range(self.count()):
                 self.update_tab_title(idx)
 
-    def update_tree_tab_positions(self):
-        """Update tab positions acording tree structure."""
-        nodes = self.tree_root.traverse(render_collapsed=False)
-        for idx, node in enumerate(nodes):
-            if idx > 0:
-                cur_idx = self.indexOf(node.value)
-                self.tabBar().moveTab(cur_idx, idx-1)
-
-    def tree_tab_update(self):
-        self.update_tab_titles()
-        self.update_tree_tab_positions()
-
     def tabInserted(self, idx):
         """Update titles when a tab was inserted."""
         super().tabInserted(idx)
@@ -295,8 +262,6 @@ class TabWidget(QTabWidget):
     def tabRemoved(self, idx):
         """Update titles when a tab was removed."""
         super().tabRemoved(idx)
-        if config.val.tabs.tree_tabs:
-            self.tree_tab_update()
 
     def addTab(self, page, icon_or_text, text_or_empty=None):
         """Override addTab to use our own text setting logic.
