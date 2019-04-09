@@ -1881,6 +1881,7 @@ class CommandDispatcher:
         tabwidget = self._tabbed_browser.widget
         cur_idx = self._tabbed_browser._tab_index(tab)
         order = notree.TraverseOrder.PRE
+        tab.node.collapsed = False  # must set it before traverse
         descendents = list(tab.node.traverse(order, False))[1:]
         for descendent in descendents:
             cur_tab = descendent.value
@@ -1890,7 +1891,6 @@ class CommandDispatcher:
             tabwidget.insertTab(cur_idx + 1, cur_tab, icon, name)
             cur_tab.node.parent = cur_parent  # insertTab resets node
             cur_idx += 1
-        tab.node.collapsed = False
 
     def _tree_tab_hide(self, tab):
         """Collapses a tab, hiding all its children and setting tab.node.collapsed.
@@ -1902,7 +1902,7 @@ class CommandDispatcher:
         descendents = list(tab.node.traverse(order, False))[:-1]
         for descendent in descendents:
             cur_tab = descendent.value
-            idx = self._tabbed_browser._tab_index(cur_tab)
+            idx = self._tabbed_browser.widget.indexOf(cur_tab)
             tabwidget.removeTab(idx)
         tab.node.collapsed = True
 
