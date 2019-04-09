@@ -156,41 +156,6 @@ class TreeTabbedBrowser(TabbedBrowser):
             newtab.history.private_api.deserialize(entry.history)
             self.widget.set_tab_pinned(newtab, entry.pinned)
 
-    def _tree_tab_pre_open(self, tab, related):
-        """Set tab's parent and position relatively to its siblings/root.
-
-        If related is True, the tab is placed as the last children of current
-        tab.
-        Else, the tab is placed as a children of tree_root, and its placement
-        relatively to its siblings follows tabs.new_position.unrelated config
-        setting.
-
-        Args:
-            tab: The AbstractTab that is about to be opened
-            related: Whether the tab is related to the current one or not
-
-        """
-        cur_tab = self.widget.currentWidget()
-        tab.node.parent = self.widget.tree_root
-        if related:
-            if tab is not cur_tab:  # check we're not opening first tab
-                tab.node.parent = cur_tab.node
-        else:
-            pos = config.val.tabs.new_position.unrelated
-            if pos == 'first':
-                children = list(tab.node.parent.children)
-                children.insert(0, children.pop())
-                tab.node.parent.children = children
-            elif pos in ['next', 'prev']:
-                diff = 1 if pos == 'next' else 0
-                root_children = list(self.widget.tree_root.children)
-                root_children.remove(tab.node)
-
-                cur_topmost = cur_tab.node.path[1]
-                cur_top_idx = root_children.index(cur_topmost)
-                root_children.insert(cur_top_idx + diff, tab.node)
-                self.widget.tree_root.children = root_children
-
         self.widget.tree_tab_update()
 
     @pyqtSlot('QUrl')
@@ -198,91 +163,30 @@ class TreeTabbedBrowser(TabbedBrowser):
     @pyqtSlot('QUrl', bool, bool)
     def tabopen(self, url=None, background=None, related=True, idx=None, *,
                 ignore_tabs_are_windows=False):
-        """Open a new tab with a given URL.
 
-        Inner logic for open-tab and open-tab-bg.
-        Also connect all the signals we need to _filter_signals.
+        # we save this now because super.tabopen also resets the focus
+        cur_tab = self.widget.currentWidget()
+        tab = super().tabopen(url, background, related, idx,
+                              ignore_tabs_are_windows=ignore_tabs_are_windows)
+        if cur_tab is not None:
+            tab.node.parent = self.widget.tree_root
+            if related:
+                if tab is not cur_tab:  # check we're not opening first tab
+                    tab.node.parent = cur_tab.node
+            else:
+                pos = config.val.tabs.new_position.unrelated
+                if pos == 'first':
+                    children = list(tab.node.parent.children)
+                    children.insert(0, children.pop())
+                    tab.node.parent.children = children
+                elif pos in ['next', 'prev']:
+                    diff = 1 if pos == 'next' else 0
+                    root_children = list(self.widget.tree_root.children)
+                    root_children.remove(tab.node)
 
-        Args:
-            url: The URL to open as QUrl or None for an empty tab.
-            background: Whether to open the tab in the background.
-                        if None, the `tabs.background_tabs`` setting decides.
-            related: Whether the tab was opened from another existing tab.
-                     If this is set, the new position might be different. With
-                     the default settings we handle it like Chromium does:
-                         - Tabs from clicked links etc. are to the right of
-                           the current (related=True).
-                         - Explicitly opened tabs are at the very right
-                           (related=False)
-            idx: The index where the new tab should be opened.
-            ignore_tabs_are_windows: If given, never open a new window, even
-                                     with tabs.tabs_are_windows set.
-
-        Return:
-            The opened WebView instance.
-        """
-        # TODO Find a way to remove dupe code
-        # probably by calling _pre_open in insertTab event listener or
-        # something
-        if url is not None:
-            qtutils.ensure_valid(url)
-        log.webview.debug("Creating new tab with URL {}, background {}, "
-                          "related {}, idx {}".format(
-                              url, background, related, idx))
-
-        prev_focus = QApplication.focusWidget()
-
-        if (config.val.tabs.tabs_are_windows and self.widget.count() > 0 and
-                not ignore_tabs_are_windows):
-            window = mainwindow.MainWindow(private=self.is_private)
-            window.show()
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=window.win_id)
-            return tabbed_browser.tabopen(url=url, background=background,
-                                          related=related)
-
-        tab = browsertab.create(win_id=self._win_id,
-                                private=self.is_private,
-                                parent=self.widget)
-        self._connect_tab_signals(tab)
-
-        if idx is None:
-            idx = self._get_new_tab_idx(related)  # ignored by tree-tabs
-        idx = self.widget.insertTab(idx, tab, "")
-
-        log.misc.debug('\n'.join(''.join((char, repr(node))) for char, node in self.widget.tree_root.render()))
-
-        if config.val.tabs.tree_tabs:
-            self._tree_tab_pre_open(tab, related)
-
-        if url is not None:
-            tab.load_url(url)
-
-        if background is None:
-            background = config.val.tabs.background
-        if background:
-            # Make sure the background tab has the correct initial size.
-            # With a foreground tab, it's going to be resized correctly by the
-            # layout anyways.
-            tab.resize(self.widget.currentWidget().size())
-            self.widget.tab_index_changed.emit(self.widget.currentIndex(),
-                                               self.widget.count())
-            # Refocus webview in case we lost it by spawning a bg tab
-            self.widget.currentWidget().setFocus()
-        else:
-            self.widget.setCurrentWidget(tab)
-            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-68076
-            # Still seems to be needed with Qt 5.11.1
-            tab.setFocus()
-
-        mode = modeman.instance(self._win_id).mode
-        if mode in [usertypes.KeyMode.command, usertypes.KeyMode.prompt,
-                    usertypes.KeyMode.yesno]:
-            # If we were in a command prompt, restore old focus
-            # The above commands need to be run to switch tabs
-            if prev_focus is not None:
-                prev_focus.setFocus()
-
-        tab.show()
-        self.new_tab.emit(tab, idx)
+                    cur_topmost = cur_tab.node.path[1]
+                    cur_top_idx = root_children.index(cur_topmost)
+                    root_children.insert(cur_top_idx + diff, tab.node)
+                    self.widget.tree_root.children = root_children
         return tab
+
