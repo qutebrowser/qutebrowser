@@ -85,9 +85,6 @@ def version_check(version: str,
         exact: if given, check with == instead of >=
         compiled: Set to False to not check the compiled version.
     """
-    # Catch code using the old API for this
-    assert exact not in [operator.gt, operator.lt, operator.ge, operator.le,
-                         operator.eq], exact
     if compiled and exact:
         raise ValueError("Can't use compiled=True with exact=True!")
 
