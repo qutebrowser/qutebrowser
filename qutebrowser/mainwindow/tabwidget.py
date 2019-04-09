@@ -182,6 +182,8 @@ class TabWidget(QTabWidget):
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
         fields['private'] = ' [Private Mode] ' if tab.is_private else ''
+        fields['tree'] = ''
+        fields['collapsed'] = ''
 
 
         try:
