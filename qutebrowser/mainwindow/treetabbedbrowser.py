@@ -104,58 +104,35 @@ class TreeTabbedBrowser(TabbedBrowser):
         # TODO find a way to remove dupe code
         # probably by getting entries from undo stack, THEN calling super
         # then post-processing the entries
-        # Remove unused tab which may be created after the last tab is closed
-        last_close = config.val.tabs.last_close
-        use_current_tab = False
-        if last_close in ['blank', 'startpage', 'default-page']:
-            only_one_tab_open = self.widget.count() == 1
-            no_history = len(self.widget.widget(0).history) == 1
-            urls = {
-                'blank': QUrl('about:blank'),
-                'startpage': config.val.url.start_pages[0],
-                'default-page': config.val.url.default_page,
-            }
-            first_tab_url = self.widget.widget(0).url()
-            last_close_urlstr = urls[last_close].toString().rstrip('/')
-            first_tab_urlstr = first_tab_url.toString().rstrip('/')
-            last_close_url_used = first_tab_urlstr == last_close_urlstr
-            use_current_tab = (only_one_tab_open and no_history and
-                               last_close_url_used)
 
-        for entry in reversed(self._undo_stack.pop()):
-            if use_current_tab:
-                newtab = self.widget.widget(0)
-                use_current_tab = False
-            else:
-                newtab = self.tabopen(background=False, idx=entry.index)
-                if (config.val.tabs.tree_tabs and
-                        entry.uid is not None and
-                        entry.parent_node_uid is not None):
-                    root = self.widget.tree_root
-                    uid = entry.uid
-                    parent_uid = entry.parent_node_uid
-                    parent_node = root.get_descendent_by_uid(parent_uid)
+        # save entries before super().undo() pops them
+        entries = list(self._undo_stack[-1])
+        new_tabs = super().undo()
 
-                    children = []
-                    for child_uid in entry.children_node_uids:
-                        child_node = root.get_descendent_by_uid(child_uid)
-                        children.append(child_node)
-                    newtab.node.parent = None  # Remove the node from the tree
-                    newtab.node = notree.Node(newtab, parent_node,
-                                              children, uid)
+        for entry, tab in zip(reversed(entries), new_tabs):
+            if entry.uid is not None and entry.parent_node_uid is not None:
+                import pdb; pdb.set_trace()  # XXX BREAKPOINT
+                root = self.widget.tree_root
+                uid = entry.uid
+                parent_uid = entry.parent_node_uid
+                parent_node = root.get_descendent_by_uid(parent_uid)
 
-                    # correctly reposition the tab
-                    local_idx = entry.local_index
-                    new_siblings = list(newtab.node.parent.children)
-                    new_siblings.remove(newtab.node)
-                    new_siblings.insert(local_idx, newtab.node)
-                    newtab.node.parent.children = new_siblings
+                children = []
+                for child_uid in entry.children_node_uids:
+                    child_node = root.get_descendent_by_uid(child_uid)
+                    children.append(child_node)
+                tab.node.parent = None  # Remove the node from the tree
+                tab.node = notree.Node(tab, parent_node,
+                                        children, uid)
 
-                    self.widget.tree_tab_update()
+                # correctly reposition the tab
+                local_idx = entry.local_index
+                new_siblings = list(tab.node.parent.children)
+                new_siblings.remove(tab.node)
+                new_siblings.insert(local_idx, tab.node)
+                tab.node.parent.children = new_siblings
 
-            newtab.history.private_api.deserialize(entry.history)
-            self.widget.set_tab_pinned(newtab, entry.pinned)
-
+                self.widget.tree_tab_update()
         self.widget.tree_tab_update()
 
     @pyqtSlot('QUrl')

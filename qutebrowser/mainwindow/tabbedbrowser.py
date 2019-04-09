@@ -382,7 +382,10 @@ class TabbedBrowser(QWidget):
             tab.deleteLater()
 
     def undo(self):
-        """Undo removing of a tab or tabs."""
+        """Undo removing of a tab or tabs.
+
+        Return: list of open tabs, in the order in which they were opened
+        """
         # Remove unused tab which may be created after the last tab is closed
         last_close = config.val.tabs.last_close
         use_current_tab = False
@@ -401,6 +404,8 @@ class TabbedBrowser(QWidget):
             use_current_tab = (only_one_tab_open and no_history and
                                last_close_url_used)
 
+        # we return the tab list because tree_tabs needs it in post_processing
+        new_tabs = []
         for entry in reversed(self._undo_stack.pop()):
             if use_current_tab:
                 newtab = self.widget.widget(0)
@@ -409,6 +414,8 @@ class TabbedBrowser(QWidget):
                 newtab = self.tabopen(background=False, idx=entry.index)
             newtab.history.private_api.deserialize(entry.history)
             self.widget.set_tab_pinned(newtab, entry.pinned)
+            new_tabs.append(newtab)
+        return new_tabs
 
     @pyqtSlot('QUrl', bool)
     def load_url(self, url, newtab):
