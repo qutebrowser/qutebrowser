@@ -121,10 +121,10 @@ class CommandParser:
             otherwise.
         """
         parts = text.strip().split(maxsplit=1)
-        try:
-            alias = config.val.aliases[parts[0]]
-        except KeyError:
+        alias = config.cache['aliases']
+        if parts[0] not in alias:
             return default
+        alias = alias[parts[0]]
 
         try:
             new_cmd = '{} {}'.format(alias, parts[1])
