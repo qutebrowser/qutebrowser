@@ -21,6 +21,12 @@ v1.7.0 (unreleased)
 Added
 ~~~~~
 
+- New settings:
+  * `colors.tabs.pinned.*` to control colors of pinned tabs.
+- New commands:
+  * `:reverse-selection` (`o` in caret mode) to swap the stationary/moving ends
+    of a selection.
+
 Changed
 ~~~~~~~
 
@@ -28,9 +34,46 @@ Changed
   `org.qutebrowser.qutebrowser.desktop`.
 - Pinned tabs now always show a favicon (even if the site doesn't provide one)
   when shrinking.
+- Slight performance improvements for the `:open` completion.
+- Performance improvements for showing hints.
+- Setting `downloads.location.directory` now changes the directory displayed in
+  the download prompt even if `downloads.location.remember` is set.
 
 Fixed
 ~~~~~
+
+- Race condition causing a colored statusbar in normal mode when
+  entering/exiting caret mode quickly.
+- Using `100%` for a hue in a `hsv(...)` config value now corresponds to 359
+  (rather than 255), matching the fixed behavior in Qt 5.13.
+
+v1.6.2 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Crash when SQL errors occur while using the completion.
+
+v1.6.1
+------
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now ship with Qt 5.12.2, which includes
+  security fixes up to Chromium 72.0.3626.121 (including CVE-2019-5786
+  which is known to be exploited in the wild).
+
+Fixed
+~~~~~
+
+- Crash when using `:config-{dict,list}-{add,remove}` with an invalid setting.
+- Functionality like hinting on pages with an element with ID `_qutebrowser` (such as qutebrowser.org) on Qt 5.12.
+- The .desktop file in v1.6.0 was missing the "Actions" key, which is now fixed.
+- The SVG icon now has a size of 256x256px set to comply with freedesktop standards.
+- Setting `colors.statusbar.*.bg` to a gradient now has the expected effect of
+  the gradient spanning the entire statusbar.
 
 v1.6.0
 ------

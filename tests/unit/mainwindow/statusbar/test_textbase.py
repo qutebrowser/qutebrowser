@@ -83,7 +83,7 @@ def test_text_elide_none(mocker, qtbot):
                  'fontMetrics')
     label._update_elided_text(20)
 
-    assert not label.fontMetrics.called  # pylint: disable=no-member
+    assert not label.fontMetrics.called
 
 
 def test_unset_text(qtbot):

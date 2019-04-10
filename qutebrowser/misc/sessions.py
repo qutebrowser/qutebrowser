@@ -136,8 +136,7 @@ class SessionManager(QObject):
             path = os.path.join(self._base_path, name + '.yml')
             if check_exists and not os.path.exists(path):
                 raise SessionNotFoundError(path)
-            else:
-                return path
+            return path
 
     def exists(self, name):
         """Check if a named session exists."""

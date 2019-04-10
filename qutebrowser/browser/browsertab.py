@@ -437,6 +437,7 @@ class AbstractCaret(QObject):
         self._tab = tab
         self._widget = None
         self.selection_enabled = False
+        self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
 
@@ -498,6 +499,9 @@ class AbstractCaret(QObject):
         raise NotImplementedError
 
     def selection(self, callback: typing.Callable[[str], None]) -> None:
+        raise NotImplementedError
+
+    def reverse_selection(self) -> None:
         raise NotImplementedError
 
     def _follow_enter(self, tab: bool) -> None:

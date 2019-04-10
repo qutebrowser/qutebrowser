@@ -387,7 +387,7 @@ class TestWebKitElement:
     def test_simple_getters(self, elem, attribute, code):
         sentinel = object()
         mock = getattr(elem._elem, attribute)
-        setattr(mock, 'return_value', sentinel)
+        mock.return_value = sentinel
         assert code(elem) is sentinel
 
     @pytest.mark.parametrize('frame, expected', [

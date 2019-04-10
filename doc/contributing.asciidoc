@@ -5,13 +5,9 @@ The Compiler <mail@qutebrowser.org>
 :data-uri:
 :toc:
 
-IMPORTANT: *Currently, bigger changes are going on in qutebrowser, as
-part of a
-https://lists.schokokeks.org/pipermail/qutebrowser-announce/2018-September/000051.html[student research project]
-about adding a plugin API to qutebrowser and moving a lot of code from the code
-into plugins.* Due to that, bandwidth for pull request review is currently
-very limited, and contributions might lead to merge conflicts due to
-ongoing refactorings.
+IMPORTANT: Bandwidth for pull request review is currently quite limited. If you
+want to contribute where it's most needed, please consider reviewing or testing
+open pull requests.
 
 I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
 
@@ -222,7 +218,7 @@ Some resources which might be handy:
 * http://doc.qt.io/qt-5/classes.html[The Qt5 reference]
 * https://docs.python.org/3/library/index.html[The Python reference]
 * http://httpbin.org/[httpbin, a test service for HTTP requests/responses]
-* http://requestb.in/[RequestBin, a service to inspect HTTP requests]
+* https://requestbin.com/[RequestBin, a service to inspect HTTP requests]
 
 Documentation of used Python libraries:
 
@@ -608,7 +604,7 @@ Style conventions
 -----------------
 
 qutebrowser's coding conventions are based on
-http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google-styleguide.googlecode.com/svn/trunk/pyguide.html[Google Python style guidelines] with some additions:
+http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google.github.io/styleguide/pyguide.html[Google Python style guidelines] with some additions:
 
 * The _Raise:_ section is not added to the docstring.
 * Methods overriding Qt methods (obviously!) don't follow the naming schemes.

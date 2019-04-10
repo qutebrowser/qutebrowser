@@ -105,7 +105,7 @@ def run(args):
     q_app = Application(args)
     q_app.setOrganizationName("qutebrowser")
     q_app.setApplicationName("qutebrowser")
-    q_app.setDesktopFileName("qutebrowser")
+    q_app.setDesktopFileName("org.qutebrowser.qutebrowser")
     q_app.setApplicationVersion(qutebrowser.__version__)
     q_app.lastWindowClosed.connect(quitter.on_last_window_closed)
 
@@ -445,17 +445,20 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing proxy...")
     proxy.init()
 
+    log.init.debug("Initializing downloads...")
+    downloads.init()
+
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
     objreg.register('readline-bridge', readline_bridge)
 
     try:
-        log.init.debug("Initializing sql...")
+        log.init.debug("Initializing SQL...")
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
 
         log.init.debug("Initializing web history...")
         history.init(q_app)
-    except sql.SqlEnvironmentError as e:
+    except sql.KnownError as e:
         error.handle_fatal_exc(e, args, 'Error initializing SQL',
                                pre_text='Error initializing SQL')
         sys.exit(usertypes.Exit.err_init)

@@ -205,7 +205,7 @@ class UrlPattern:
         if self._host.endswith('.*'):
             # Special case to have a nicer error
             raise ParseError("TLD wildcards are not implemented yet")
-        elif '*' in self._host:
+        if '*' in self._host:
             # Only * or *.foo is allowed as host.
             raise ParseError("Invalid host wildcard")
 

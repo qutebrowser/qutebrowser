@@ -134,7 +134,6 @@ def get_target_window():
 
 
 class MainWindow(QWidget):
-
     """The main window of qutebrowser.
 
     Adds all needed components to a vbox, initializes sub-widgets and connects
@@ -149,6 +148,18 @@ class MainWindow(QWidget):
         _commandrunner: The main CommandRunner instance.
         _overlays: Widgets shown as overlay for the current webpage.
         _private: Whether the window is in private browsing mode.
+    """
+
+    # Application wide stylesheets
+    STYLESHEET = """
+        HintLabel {
+            background-color: {{ conf.colors.hints.bg }};
+            color: {{ conf.colors.hints.fg }};
+            font: {{ conf.fonts.hints }};
+            border: {{ conf.hints.border }};
+            padding-left: 3px;
+            padding-right: 3px;
+        }
     """
 
     def __init__(self, *,
@@ -249,6 +260,7 @@ class MainWindow(QWidget):
         self._set_decoration(config.val.window.hide_decoration)
 
         self.state_before_fullscreen = self.windowState()
+        config.set_register_stylesheet(self)
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""
@@ -593,8 +605,7 @@ class MainWindow(QWidget):
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in config.val.confirm_quit and tab_count > 1:
-            quit_texts.append("{} {} open.".format(
-                tab_count, "tab is" if tab_count == 1 else "tabs are"))
+            quit_texts.append("{} tabs are open.".format(tab_count))
         # Ask if multiple downloads running
         if 'downloads' in config.val.confirm_quit and download_count > 0:
             quit_texts.append("{} {} running.".format(

@@ -351,6 +351,15 @@ class WebKitCaret(browsertab.AbstractCaret):
     def selection(self, callback):
         callback(self._widget.selectedText())
 
+    def reverse_selection(self):
+        self._tab.run_js_async("""{
+            const sel = window.getSelection();
+            sel.setBaseAndExtent(
+                sel.extentNode, sel.extentOffset, sel.baseNode,
+                sel.baseOffset
+            );
+        }""")
+
     def _follow_selected(self, *, tab=False):
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
