@@ -202,7 +202,11 @@ class KeyConfig:
             opt = self._config.get_opt('bindings.commands')
             bindings = self._config.get_obj_for_pattern(
                 'bindings.commands', pattern=pattern)
-            bindings = opt.typ.to_py(bindings).get(mode)
+            bindings = opt.typ.to_py(bindings)
+            if bindings == configutils.UNSET:
+                bindings = {}
+            else:
+                bindings = bindings.get(mode, {})
         else:
             bindings = self.get_bindings_for(mode)
         return bindings.get(key, None)
