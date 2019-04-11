@@ -21,7 +21,6 @@
 
 import os.path
 import logging
-import functools
 
 import attr
 from PyQt5.QtCore import QUrl
@@ -849,6 +848,7 @@ class TestProxyFromUrl:
     def test_invalid(self, url, exception):
         with pytest.raises(exception):
             urlutils.proxy_from_url(QUrl(url))
+
 
 class TestWiden:
 

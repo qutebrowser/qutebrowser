@@ -171,6 +171,16 @@ def test_get_multiple_matches(values):
     assert values.get_for_url(url) == 'new value'
 
 
+def test_get_non_domain_patterns(empty_values):
+    """With multiple matching pattern, the last added should win."""
+    pat1 = urlmatch.UrlPattern('*://*/*')
+    empty_values.add('fallback')
+    empty_values.add('value', pat1)
+
+    assert empty_values.get_for_url(QUrl("http://qutebrowser.org")) == 'value'
+    assert empty_values.get_for_url() == 'fallback'
+
+
 def test_get_matching_pattern(values, pattern):
     assert values.get_for_pattern(pattern, fallback=False) == 'example value'
 
