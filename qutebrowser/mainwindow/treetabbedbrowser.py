@@ -51,6 +51,24 @@ class TreeUndoEntry:
     children_node_uids = attr.ib(attr.Factory(list))
     local_index = attr.ib(None)  # index of the tab relative to its siblings
 
+    @classmethod
+    def from_node(cls, node, idx):
+        """Make a TreeUndoEntry from a Node."""
+        url = node.value.url()
+        try:
+            history_data = node.value.history.private_api.serialize()
+        except browsertab.WebTabError:
+            history_data = []
+        pinned = node.value.data.pinned
+        uid = node.uid
+        parent_uid = node.parent.uid
+        children = [n.uid for n in node.children]
+        local_idx = node.index
+        return cls(url, history_data, idx, pinned,
+                   uid, parent_uid, children, local_idx)
+
+
+
 
 class TreeTabbedBrowser(TabbedBrowser):
     """Subclass of TabbedBrowser to provide tree-tab functionality."""
@@ -67,6 +85,7 @@ class TreeTabbedBrowser(TabbedBrowser):
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         super()._remove_tab(tab, add_undo=add_undo, new_undo=new_undo,
                             crashed=crashed)
+
         node = tab.node
         parent = node.parent
 
@@ -104,16 +123,27 @@ class TreeTabbedBrowser(TabbedBrowser):
             node = tab.node
             uid = node.uid
             parent_uid = node.parent.uid
-            children = [n.uid for n in node.children]
-            local_idx = node.index
-            entry = TreeUndoEntry(tab.url(), history_data, idx,
-                                  tab.data.pinned,
-                                  uid, parent_uid, children, local_idx)
-
-            if new_undo or not self._undo_stack:
-                self._undo_stack.append([entry])
+            if not node.collapsed:
+                children = [n.uid for n in node.children]
+                local_idx = node.index
+                entry = TreeUndoEntry(tab.url(), history_data, idx,
+                                    tab.data.pinned,
+                                    uid, parent_uid, children, local_idx)
+                if new_undo or not self._undo_stack:
+                    self._undo_stack.append([entry])
+                else:
+                    self._undo_stack[-1].append(entry)
             else:
-                self._undo_stack[-1].append(entry)
+                entries = []
+                for descendent in node.traverse(notree.TraverseOrder.POST_R):
+                    entries.append(TreeUndoEntry.from_node(descendent, 0))
+                    # ensure descendent is not later saved as child as well
+                    descendent.parent = None
+                self._undo_stack.append(entries)
+
+
+
+
 
     def undo(self):
         """Undo removing of a tab or tabs."""
@@ -124,6 +154,8 @@ class TreeTabbedBrowser(TabbedBrowser):
         # save entries before super().undo() pops them
         entries = list(self._undo_stack[-1])
         new_tabs = super().undo()
+        log.misc.debug("===========================")
+        log.misc.debug([(e.uid, e.parent_node_uid, e.children_node_uids) for e in entries])
 
         for entry, tab in zip(reversed(entries), new_tabs):
             if not isinstance(entry, TreeUndoEntry):

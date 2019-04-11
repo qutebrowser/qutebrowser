@@ -249,7 +249,8 @@ class CommandDispatcher:
         tabbed_browser = self._tabbed_browser
         if tab is None:
             return
-        if config.val.tabs.tree_tabs and recursive:
+        if config.val.tabs.tree_tabs and recursive and not tab.node.collapsed:
+            # if collapsed, recursive is the same as normal close
             new_undo = True  # only for first one
             for descendent in tab.node.traverse(notree.TraverseOrder.POST_R,
                                                 True):
