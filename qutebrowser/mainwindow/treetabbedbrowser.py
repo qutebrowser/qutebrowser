@@ -77,7 +77,6 @@ class TreeTabbedBrowser(TabbedBrowser):
             if node_children:
                 next_node = node_children[0]
 
-                # prvni node se stane parentem pro ostatní děti
                 for n in node_children[1:]:
                     n.parent = next_node
 
