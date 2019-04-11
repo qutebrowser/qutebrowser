@@ -192,8 +192,9 @@ class TreeTabbedBrowser(TabbedBrowser):
         cur_tab = self.widget.currentWidget()
         tab = super().tabopen(url, background, related, idx,
                               ignore_tabs_are_windows=ignore_tabs_are_windows)
+
+        tab.node.parent = self.widget.tree_root
         if cur_tab is not None:
-            tab.node.parent = self.widget.tree_root
             if related:
                 if tab is not cur_tab:  # check we're not opening first tab
                     tab.node.parent = cur_tab.node
