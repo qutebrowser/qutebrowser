@@ -70,7 +70,10 @@ class TreeTabbedBrowser(TabbedBrowser):
         cur_node = tab.node
         node_parent = cur_node.parent
 
-        if node_parent:
+        if cur_node.collapsed:
+            # when node is collapsed, behave as with recursive close
+            cur_node.parent = None
+        elif node_parent:
             node_siblings = list(node_parent.children)
             node_children = cur_node.children
 

@@ -249,19 +249,21 @@ class CommandDispatcher:
         tabbed_browser = self._tabbed_browser
         if tab is None:
             return
-        if recursive and config.val.tabs.tree_tabs:
-            # we traverse by post-order so that parents never get closed
-            # before their children
+        if config.val.tabs.tree_tabs and recursive:
             new_undo = True  # only for first one
-            for descendent in tab.node.traverse(notree.TraverseOrder.POST_R):
-                close = functools.partial(self._tab_close, descendent.value,
-                                          prev, next_, opposite, new_undo)
-                tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
+            for descendent in tab.node.traverse(notree.TraverseOrder.POST_R,
+                                                True):
+                if self._tabbed_browser.widget.indexOf(descendent.value) > -1:
+                    close = functools.partial(self._tab_close,
+                                              descendent.value, prev, next_,
+                                              opposite, new_undo)
+                    tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
                 new_undo = False
         else:
+            # this also applied to closing collapsed tabs
+            # logic for that is in TreeTabbedBrowser
             close = functools.partial(self._tab_close, tab, prev,
                                       next_, opposite)
-
             tabbed_browser.tab_close_prompt_if_pinned(tab, force, close)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
@@ -1958,4 +1960,3 @@ class CommandDispatcher:
         """
         path = urllib.parse.quote(name)
         self.openurl('qute://treegroup/' + path, tab=True, related=related)
-
