@@ -23,11 +23,13 @@
 
 import typing
 import collections
+import itertools
+import operator
 
 import attr
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlmatch
+from qutebrowser.utils import utils, urlmatch, urlutils
 from qutebrowser.config import configexc
 
 MYPY = False
@@ -49,7 +51,7 @@ class Unset:
 UNSET = Unset()
 
 
-@attr.s(frozen=True)
+@attr.s(frozen=True, cmp=False)
 class ScopedValue:
 
     """A configuration value which is valid for a UrlPattern.
@@ -61,6 +63,8 @@ class ScopedValue:
 
     value = attr.ib()  # type: typing.Any
     pattern = attr.ib()  # type: typing.Optional[urlmatch.UrlPattern]
+    # An increasing counter of order this value was inserted in.
+    insert_id = attr.ib(cmp=False)  # type: int
 
 
 class Values:
@@ -91,9 +95,13 @@ class Values:
         self.opt = opt
         self._vmap = collections.OrderedDict()  \
             # type: collections.OrderedDict[Values.VMAP_KEY, ScopedValue]
+        # A map from domain parts to rules that fall under them.
+        self._domain_map = collections.defaultdict(set)  \
+            # type: typing.Dict[typing.Optional[str], typing.Set[ScopedValue]]
+        self._scoped_id = 0
 
         for v in values:
-            self.add(*attr.astuple(v))
+            self.add(*attr.astuple(v, filter=lambda x, _: x.cmp))
 
     def __repr__(self) -> str:
         return utils.get_repr(self, opt=self.opt, vmap=self._vmap.values(),
@@ -132,13 +140,26 @@ class Values:
         if arg is not None and not self.opt.supports_pattern:
             raise configexc.NoPatternError(self.opt.name)
 
+    @staticmethod
+    def _pattern_to_host(pattern: typing.Optional[urlmatch.UrlPattern]) \
+            -> typing.Optional[str]:
+        if pattern is None:
+            return None
+        else:
+            host, _ = pattern.get_host_information()
+            return host
+
     def add(self, value: typing.Any,
             pattern: urlmatch.UrlPattern = None) -> None:
         """Add a value with the given pattern to the list of values."""
         self._check_pattern_support(pattern)
         self.remove(pattern)
-        scoped = ScopedValue(value, pattern)
+        scoped = ScopedValue(value, pattern, self._scoped_id)
+        self._scoped_id += 1
         self._vmap[pattern] = scoped
+
+        host = Values._pattern_to_host(pattern)
+        self._domain_map[host].add(scoped)
 
     def remove(self, pattern: urlmatch.UrlPattern = None) -> bool:
         """Remove the value with the given pattern.
@@ -149,16 +170,26 @@ class Values:
         self._check_pattern_support(pattern)
         if pattern not in self._vmap:
             return False
+        host = Values._pattern_to_host(pattern)
+        scoped_value = self._vmap[pattern]
+        # If we error here, that means domain_map and vmap are out of sync,
+        # report a bug!
+        assert host in self._domain_map
+        self._domain_map[host].remove(scoped_value)
         del self._vmap[pattern]
         return True
 
     def clear(self) -> None:
         """Clear all customization for this value."""
-        self._vmap = collections.OrderedDict()
+        self._vmap.clear()
+        self._domain_map.clear()
+        self._scoped_id = 0
 
     def _get_fallback(self, fallback: typing.Any) -> typing.Any:
         """Get the fallback global/default value."""
-        for scoped in self._vmap.values():
+        for scoped in self._domain_map[None]:
+            # We must loop over all patterns here, as a rule with no domain at
+            # all will fall in the 'None' bucket.
             if scoped.pattern is None:
                 return scoped.value
 
@@ -177,10 +208,20 @@ class Values:
           With fallback=False, UNSET is returned.
         """
         self._check_pattern_support(url)
+        candidates = []  # type: typing.List[ScopedValue]
         if url is not None:
-            for scoped in reversed(self._vmap.values()):
-                if scoped.pattern is not None and scoped.pattern.matches(url):
-                    return scoped.value
+            widened_hosts = itertools.chain(
+                urlutils.widened_hostnames(url.host()),
+                (None,))
+            for host in widened_hosts:
+                host_set = self._domain_map.get(host, ())
+                for scoped in host_set:
+                    if (scoped.pattern is not None and
+                            scoped.pattern.matches(url)):
+                        candidates.append(scoped)
+            if candidates:
+                return max(
+                    candidates, key=operator.attrgetter('insert_id')).value
 
             if not fallback:
                 return UNSET

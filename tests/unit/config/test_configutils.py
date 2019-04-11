@@ -56,8 +56,8 @@ def other_pattern():
 
 @pytest.fixture
 def values(opt, pattern):
-    scoped_values = [configutils.ScopedValue('global value', None),
-                     configutils.ScopedValue('example value', pattern)]
+    scoped_values = [configutils.ScopedValue('global value', None, 1),
+                     configutils.ScopedValue('example value', pattern, 2)]
     return configutils.Values(opt, scoped_values)
 
 
@@ -69,9 +69,10 @@ def empty_values(opt):
 def test_repr(opt, values):
     expected = ("qutebrowser.config.configutils.Values(opt={!r}, "
                 "vmap=odict_values([ScopedValue(value='global value',"
-                " pattern=None), "
+                " pattern=None, insert_id=0), "
                 "ScopedValue(value='example value', pattern=qutebrowser.utils."
-                "urlmatch.UrlPattern(pattern='*://www.example.com/'))]))"
+                "urlmatch.UrlPattern(pattern='*://www.example.com/'), "
+                "insert_id=1)]))"
                 .format(opt))
     assert repr(values) == expected
 
@@ -143,7 +144,7 @@ def test_get_unset(empty_values):
     assert empty_values.get_for_url(fallback=False) is configutils.UNSET
 
 
-def test_get_no_global(empty_values, other_pattern):
+def test_get_no_global(empty_values, other_pattern, pattern):
     empty_values.add('example.org value', pattern)
     assert empty_values.get_for_url(fallback=False) is configutils.UNSET
 

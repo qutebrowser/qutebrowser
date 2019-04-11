@@ -21,6 +21,7 @@
 
 import os.path
 import logging
+import functools
 
 import attr
 from PyQt5.QtCore import QUrl
@@ -848,3 +849,25 @@ class TestProxyFromUrl:
     def test_invalid(self, url, exception):
         with pytest.raises(exception):
             urlutils.proxy_from_url(QUrl(url))
+
+class TestWiden:
+
+    @pytest.mark.parametrize('hostname, expected', [
+        ('a.b.c', ['a.b.c', 'b.c', 'c']),
+        ('foobarbaz', ['foobarbaz']),
+        ('', []),
+        ('.c', ['.c', 'c']),
+        ('c.', ['c.']),
+        ('.c.', ['.c.', 'c.']),
+        (None, []),
+    ])
+    def test_widen_hostnames(self, hostname, expected):
+        assert list(urlutils.widened_hostnames(hostname)) == expected
+
+    @pytest.mark.parametrize('hostname', [
+        'test.qutebrowser.org',
+        'a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.z.y.z',
+        'qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq.c',
+    ])
+    def test_bench_widen_hostnames(self, hostname, benchmark):
+        benchmark(lambda: list(urlutils.widened_hostnames(hostname)))

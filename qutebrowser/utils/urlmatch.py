@@ -28,6 +28,7 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 import ipaddress
 import fnmatch
 import urllib.parse
+import typing
 
 from PyQt5.QtCore import QUrl
 
@@ -68,9 +69,9 @@ class UrlPattern:
         # Make sure all attributes are initialized if we exit early.
         self._pattern = pattern
         self._match_all = False
-        self._match_subdomains = False
+        self._match_subdomains = False  # type: bool
         self._scheme = None
-        self._host = None
+        self._host = None  # type: typing.Optional[str]
         self._path = None
         self._port = None
 
@@ -304,3 +305,10 @@ class UrlPattern:
             return False
 
         return True
+
+    def get_host_information(self) -> typing.Tuple[
+            typing.Optional[str], bool]:
+        """Get host information for this pattern.
+
+        Returns a tuple with (host, matches_subdomains)."""
+        return self._host, self._match_subdomains

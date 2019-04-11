@@ -25,6 +25,7 @@ import os.path
 import ipaddress
 import posixpath
 import urllib.parse
+import typing
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 from PyQt5.QtNetwork import QHostInfo, QHostAddress, QNetworkProxy
@@ -702,3 +703,12 @@ def proxy_from_url(url):
     if url.password():
         proxy.setPassword(url.password())
     return proxy
+
+
+def widened_hostnames(hostname: str) -> typing.Iterable[str]:
+    """A generator for widening string hostnames.
+
+    Ex: a.c.foo -> [a.c.foo, c.foo, foo]"""
+    while hostname:
+        yield hostname
+        hostname = hostname.partition(".")[-1]
