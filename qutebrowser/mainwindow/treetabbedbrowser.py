@@ -141,10 +141,6 @@ class TreeTabbedBrowser(TabbedBrowser):
                     descendent.parent = None
                 self._undo_stack.append(entries)
 
-
-
-
-
     def undo(self):
         """Undo removing of a tab or tabs."""
         # TODO find a way to remove dupe code
@@ -171,7 +167,7 @@ class TreeTabbedBrowser(TabbedBrowser):
                 children.append(child_node)
             tab.node.parent = None  # Remove the node from the tree
             tab.node = notree.Node(tab, parent_node,
-                                    children, uid)
+                                   children, uid)
 
             # correctly reposition the tab
             local_idx = entry.local_index
@@ -213,4 +209,5 @@ class TreeTabbedBrowser(TabbedBrowser):
                     cur_top_idx = root_children.index(cur_topmost)
                     root_children.insert(cur_top_idx + diff, tab.node)
                     self.widget.tree_root.children = root_children
+        self.widget.tree_tab_update()
         return tab
