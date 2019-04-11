@@ -64,7 +64,10 @@ class TreeTabbedBrowser(TabbedBrowser):
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-    def _hierarchy_post_remove(self, cur_node):
+    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
+        super()._remove_tab(tab, add_undo=add_undo, new_undo=new_undo,
+                            crashed=crashed)
+        cur_node = tab.node
         node_parent = cur_node.parent
 
         if node_parent:
@@ -86,11 +89,6 @@ class TreeTabbedBrowser(TabbedBrowser):
                 cur_node.children = ()
 
             cur_node.parent = None
-
-    def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
-        super()._remove_tab(tab, add_undo=add_undo, new_undo=new_undo,
-                            crashed=crashed)
-        self._hierarchy_post_remove(tab.node)
 
     def _add_undo_entry(self, tab, idx, new_undo):
 
@@ -181,4 +179,3 @@ class TreeTabbedBrowser(TabbedBrowser):
                     root_children.insert(cur_top_idx + diff, tab.node)
                     self.widget.tree_root.children = root_children
         return tab
-
