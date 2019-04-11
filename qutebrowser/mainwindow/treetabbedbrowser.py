@@ -67,30 +67,30 @@ class TreeTabbedBrowser(TabbedBrowser):
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         super()._remove_tab(tab, add_undo=add_undo, new_undo=new_undo,
                             crashed=crashed)
-        cur_node = tab.node
-        node_parent = cur_node.parent
+        node = tab.node
+        parent = node.parent
 
-        if cur_node.collapsed:
+        if node.collapsed:
             # when node is collapsed, behave as with recursive close
-            cur_node.parent = None
-        elif node_parent:
-            node_siblings = list(node_parent.children)
-            node_children = cur_node.children
+            node.parent = None
+        elif parent:
+            siblings = list(parent.children)
+            children = node.children
 
-            if node_children:
-                next_node = node_children[0]
+            if children:
+                next_node = children[0]
 
-                for n in node_children[1:]:
+                for n in children[1:]:
                     n.parent = next_node
 
                 # swap nodes
-                node_idx = node_siblings.index(cur_node)
-                node_siblings[node_idx] = next_node
+                node_idx = siblings.index(node)
+                siblings[node_idx] = next_node
 
-                node_parent.children = tuple(node_siblings)
-                cur_node.children = ()
+                parent.children = tuple(siblings)
+                node.children = ()
 
-            cur_node.parent = None
+            node.parent = None
 
     def _add_undo_entry(self, tab, idx, new_undo):
 
