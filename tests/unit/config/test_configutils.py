@@ -222,3 +222,19 @@ def test_add_url_benchmark(values, benchmark):
                 values.add(False, urlmatch.UrlPattern(line))
 
     benchmark(_add_blocked)
+
+
+@pytest.mark.parametrize('url', [
+    'http://www.qutebrowser.com/',
+    'http://foo.bar.baz/',
+    'http://bop.foo.bar.baz/',
+])
+def test_domain_lookup_sparse_benchmark(url, values, benchmark):
+    blocked_hosts = os.path.join(utils.abs_datapath(), 'blocked-hosts')
+    url = QUrl(url)
+    values.add(False, urlmatch.UrlPattern("*.foo.bar.baz"))
+    with open(blocked_hosts, 'r', encoding='utf-8') as f:
+        for line in f:
+            values.add(False, urlmatch.UrlPattern(line))
+
+    benchmark(lambda: values.get_for_url(url))
