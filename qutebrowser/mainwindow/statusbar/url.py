@@ -101,6 +101,7 @@ class UrlText(textbase.TextBase):
 
     def _update_url(self):
         """Update the displayed URL if the url or the hover url changed."""
+        old_urltype = self._urltype
         if self._hover_url is not None:
             self.setText(self._hover_url)
             self._urltype = UrlType.hover
@@ -110,7 +111,10 @@ class UrlText(textbase.TextBase):
         else:
             self.setText('')
             self._urltype = UrlType.normal
-        config.set_register_stylesheet(self, update=False)
+        if old_urltype != self._urltype:
+            # We can avoid doing an unpolish here because the new style will
+            # always override the old one.
+            self.style().polish(self)
 
     @pyqtSlot(usertypes.LoadStatus)
     def on_load_status_changed(self, status):
