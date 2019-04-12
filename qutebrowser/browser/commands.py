@@ -648,7 +648,7 @@ class CommandDispatcher:
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
                                         'title', 'domain', 'markdown'])
     def yank(self, what='url', sel=False, keep=False, quiet=False):
-        """Yank something to the clipboard or primary selection.
+        """Yank (copy) something to the clipboard or primary selection.
 
         Args:
             what: What to yank.

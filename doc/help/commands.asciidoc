@@ -126,7 +126,7 @@ It is possible to run or bind multiple commands by separating them with `;;`.
 |<<version,version>>|Show version information.
 |<<view-source,view-source>>|Show the source of the current page in a new tab.
 |<<window-only,window-only>>|Close all windows except for the current one.
-|<<yank,yank>>|Yank something to the clipboard or primary selection.
+|<<yank,yank>>|Yank (copy) something to the clipboard or primary selection.
 |<<zoom,zoom>>|Set the zoom level for the current tab.
 |<<zoom-in,zoom-in>>|Increase the zoom level for the current tab.
 |<<zoom-out,zoom-out>>|Decrease the zoom level for the current tab.
@@ -1461,7 +1461,7 @@ Close all windows except for the current one.
 === yank
 Syntax: +:yank [*--sel*] [*--keep*] [*--quiet*] ['what']+
 
-Yank something to the clipboard or primary selection.
+Yank (copy) something to the clipboard or primary selection.
 
 ==== positional arguments
 * +'what'+: What to yank. 
