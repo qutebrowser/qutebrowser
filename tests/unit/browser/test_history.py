@@ -234,17 +234,17 @@ class TestAdd:
         url2 = QUrl("http://example2.com")
         web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
         hist = list(web_history)
-        assert list(web_history)
+        assert hist
         web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
         assert list(web_history) == hist
         web_history.add_from_tab(QUrl(url2), QUrl(url2), 'title')
-        assert len(list(web_history)) != hist
+        assert list(web_history) != hist
 
     def test_delete_add_tab(self, web_history, mock_time):
         url = QUrl("http://example.com")
         web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
         hist = list(web_history)
-        assert list(web_history)
+        assert hist
         web_history.delete_url(QUrl(url))
         assert len(web_history) == 0
         web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
@@ -254,7 +254,7 @@ class TestAdd:
         url = QUrl("http://example.com")
         web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
         hist = list(web_history)
-        assert list(web_history)
+        assert hist
         web_history.clear(force=True)
         assert len(web_history) == 0
         web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
