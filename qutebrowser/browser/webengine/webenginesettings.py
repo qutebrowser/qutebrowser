@@ -30,12 +30,12 @@ import operator
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
                                       QWebEnginePage)
-from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
-from qutebrowser.utils import utils, standarddir, qtutils, message, log
+from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
+                               qtutils)
 
 # The default QWebEngineProfile
 default_profile = None
@@ -300,8 +300,7 @@ def _init_profiles():
     default_profile.setter.init_profile()
     default_profile.setter.set_persistent_cookie_policy()
 
-    args = QApplication.instance().arguments()
-    if '--single-process' not in args:
+    if not qtutils.is_single_process():
         private_profile = QWebEngineProfile()
         private_profile.setter = ProfileSetter(private_profile)
         assert private_profile.isOffTheRecord()
