@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -24,7 +24,7 @@ import re
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
-from qutebrowser.utils import qtutils
+from qutebrowser.utils import qtutils, log
 
 
 class ListCategory(QSortFilterProxyModel):
@@ -79,6 +79,13 @@ class ListCategory(QSortFilterProxyModel):
 
         left = self.srcmodel.data(lindex)
         right = self.srcmodel.data(rindex)
+
+        if left is None or right is None:  # pragma: no cover
+            log.completion.warning("Got unexpected None value, "
+                                   "left={!r} right={!r} "
+                                   "lindex={!r} rindex={!r}"
+                                   .format(left, right, lindex, rindex))
+            return False
 
         leftstart = left.startswith(self._pattern)
         rightstart = right.startswith(self._pattern)

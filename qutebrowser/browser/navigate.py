@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -116,10 +116,6 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         window: True to open in a new window, False for the current one.
     """
     def _prevnext_cb(elems):
-        if elems is None:
-            message.error("There was an error while getting hint elements")
-            return
-
         elem = _find_prevnext(prev, elems)
         word = 'prev' if prev else 'forward'
 
@@ -137,7 +133,7 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
 
         if window:
             new_window = mainwindow.MainWindow(
-                private=cur_tabbed_browser.private)
+                private=cur_tabbed_browser.is_private)
             new_window.show()
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=new_window.win_id)
@@ -145,7 +141,12 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
         elif tab:
             cur_tabbed_browser.tabopen(url, background=background)
         else:
-            browsertab.openurl(url)
+            browsertab.load_url(url)
 
-    browsertab.elements.find_css(webelem.SELECTORS[webelem.Group.links],
-                                 _prevnext_cb)
+    try:
+        link_selector = webelem.css_selector('links', baseurl)
+    except webelem.Error as e:
+        raise Error(str(e))
+
+    browsertab.elements.find_css(link_selector, callback=_prevnext_cb,
+                                 error_cb=lambda err: message.error(str(err)))

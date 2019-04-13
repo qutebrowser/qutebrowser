@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -65,9 +65,16 @@ def temp_basedir_env(tmpdir, short_tmpdir):
     runtime_dir.ensure(dir=True)
     runtime_dir.chmod(0o700)
 
-    (data_dir / 'qutebrowser' / 'state').write_text(
-        '[general]\nquickstart-done = 1\nbackend-warning-shown=1',
-        encoding='utf-8', ensure=True)
+    lines = [
+        '[general]',
+        'quickstart-done = 1',
+        'backend-warning-shown = 1',
+        'old-qt-warning-shown = 1',
+        'webkit-warning-shown = 1',
+    ]
+
+    state_file = data_dir / 'qutebrowser' / 'state'
+    state_file.write_text('\n'.join(lines), encoding='utf-8', ensure=True)
 
     env = {
         'XDG_DATA_HOME': str(data_dir),

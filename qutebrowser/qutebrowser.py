@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -51,7 +51,6 @@ except ImportError:
         sys.stderr.flush()
         sys.exit(100)
 check_python_version()
-from qutebrowser.utils import log
 
 import argparse  # pylint: disable=wrong-import-order
 from qutebrowser.misc import earlyinit
@@ -148,6 +147,7 @@ def logfilter_error(logfilter):
     Args:
         logfilter: A comma separated list of logger names.
     """
+    from qutebrowser.utils import log
     if set(logfilter.lstrip('!').split(',')).issubset(log.LOGGER_NAMES):
         return logfilter
     else:

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,24 +19,27 @@
 
 """Initialization of the configuration."""
 
+import argparse
 import os.path
 import sys
+import typing
 
 from PyQt5.QtWidgets import QMessageBox
 
+from qutebrowser.api import config as configapi
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
                                 configexc, configcommands)
 from qutebrowser.utils import (objreg, usertypes, log, standarddir, message,
                                qtutils)
 from qutebrowser.config import configcache
-from qutebrowser.misc import msgbox, objects
+from qutebrowser.misc import msgbox, objects, savemanager
 
 
 # Error which happened during init, so we can show a message box.
 _init_errors = None
 
 
-def early_init(args):
+def early_init(args: argparse.Namespace) -> None:
     """Initialize the part of the config which works without a QApplication."""
     configdata.init()
 
@@ -44,6 +47,7 @@ def early_init(args):
 
     config.instance = config.Config(yaml_config=yaml_config)
     config.val = config.ConfigContainer(config.instance)
+    configapi.val = config.ConfigContainer(config.instance)
     config.key_instance = config.KeyConfig(config.instance)
     config.cache = configcache.ConfigCache()
     yaml_config.setParent(config.instance)
@@ -83,7 +87,7 @@ def early_init(args):
     _init_envvars()
 
 
-def _init_envvars():
+def _init_envvars() -> None:
     """Initialize environment variables which need to be set early."""
     if objects.backend == usertypes.Backend.QtWebEngine:
         software_rendering = config.val.qt.force_software_rendering
@@ -105,7 +109,7 @@ def _init_envvars():
 
 
 @config.change_filter('fonts.monospace', function=True)
-def _update_monospace_fonts():
+def _update_monospace_fonts() -> None:
     """Update all fonts if fonts.monospace was set."""
     configtypes.Font.monospace_fonts = config.val.fonts.monospace
     for name, opt in configdata.DATA.items():
@@ -121,7 +125,7 @@ def _update_monospace_fonts():
         config.instance.changed.emit(name)
 
 
-def get_backend(args):
+def get_backend(args: argparse.Namespace) -> usertypes.Backend:
     """Find out what backend to use based on available libraries."""
     str_to_backend = {
         'webkit': usertypes.Backend.QtWebKit,
@@ -134,7 +138,7 @@ def get_backend(args):
         return str_to_backend[config.val.backend]
 
 
-def late_init(save_manager):
+def late_init(save_manager: savemanager.SaveManager) -> None:
     """Initialize the rest of the config after the QApplication is created."""
     global _init_errors
     if _init_errors is not None:
@@ -150,7 +154,7 @@ def late_init(save_manager):
     configfiles.state.init_save_manager(save_manager)
 
 
-def qt_args(namespace):
+def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
     """Get the Qt QApplication arguments based on an argparse namespace.
 
     Args:
@@ -171,24 +175,67 @@ def qt_args(namespace):
     argv += ['--' + arg for arg in config.val.qt.args]
 
     if objects.backend == usertypes.Backend.QtWebEngine:
-        if not qtutils.version_check('5.11', compiled=False):
-            # WORKAROUND equivalent to
-            # https://codereview.qt-project.org/#/c/217932/
-            # Needed for Qt < 5.9.5 and < 5.10.1
-            argv.append('--disable-shared-workers')
-
-        if config.val.qt.force_software_rendering == 'chromium':
-            argv.append('--disable-gpu')
-
-        if not config.val.content.canvas_reading:
-            argv.append('--disable-reading-from-canvas')
-
-        if not qtutils.version_check('5.11'):
-            # On Qt 5.11, we can control this via QWebEngineSettings
-            if not config.val.content.autoplay:
-                argv.append('--autoplay-policy=user-gesture-required')
-            if config.val.content.webrtc_public_interfaces_only:
-                argv.append('--force-webrtc-ip-handling-policy='
-                            'default_public_interface_only')
+        argv += list(_qtwebengine_args())
 
     return argv
+
+
+def _qtwebengine_args() -> typing.Iterator[str]:
+    """Get the QtWebEngine arguments to use based on the config."""
+    if not qtutils.version_check('5.11', compiled=False):
+        # WORKAROUND equivalent to
+        # https://codereview.qt-project.org/#/c/217932/
+        # Needed for Qt < 5.9.5 and < 5.10.1
+        yield '--disable-shared-workers'
+
+    settings = {
+        'qt.force_software_rendering': {
+            'software-opengl': None,
+            'qt-quick': None,
+            'chromium': '--disable-gpu',
+            'none': None,
+        },
+        'content.canvas_reading': {
+            True: None,
+            False: '--disable-reading-from-canvas',
+        },
+        'content.webrtc_ip_handling_policy': {
+            'all-interfaces': None,
+            'default-public-and-private-interfaces':
+                '--force-webrtc-ip-handling-policy='
+                'default_public_and_private_interfaces',
+            'default-public-interface-only':
+                '--force-webrtc-ip-handling-policy='
+                'default_public_interface_only',
+            'disable-non-proxied-udp':
+                '--force-webrtc-ip-handling-policy='
+                'disable_non_proxied_udp',
+        },
+        'qt.process_model': {
+            'process-per-site-instance': None,
+            'process-per-site': '--process-per-site',
+            'single-process': '--single-process',
+        },
+        'qt.low_end_device_mode': {
+            'auto': None,
+            'always': '--enable-low-end-device-mode',
+            'never': '--disable-low-end-device-mode',
+        },
+        'content.headers.referer': {
+            'always': None,
+            'never': '--no-referrers',
+            'same-domain': '--reduced-referrer-granularity',
+        }
+    }  # type: typing.Dict[str, typing.Dict[typing.Any, typing.Optional[str]]]
+
+    if not qtutils.version_check('5.11'):
+        # On Qt 5.11, we can control this via QWebEngineSettings
+        settings['content.autoplay'] = {
+            True: None,
+            False: '--autoplay-policy=user-gesture-required',
+        }
+
+    for setting, args in sorted(settings.items()):
+        arg = args[config.instance.get(setting)]
+        if arg is not None:
+            yield arg

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -33,19 +33,22 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel, QUrl)
 
 from qutebrowser.browser import pdfjs
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config
 from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
                                qtutils, objreg)
 from qutebrowser.qt import sip
 
 
-ModelRole = enum.IntEnum('ModelRole', ['item'], start=Qt.UserRole)
+class ModelRole(enum.IntEnum):
+
+    """Custom download model roles."""
+
+    item = Qt.UserRole
 
 
 # Remember the last used directory
 last_used_directory = None
-
 
 # All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
 # redrawn.
@@ -60,12 +63,24 @@ class UnsupportedAttribute:
     supported with QtWebengine.
     """
 
-    pass
-
 
 class UnsupportedOperationError(Exception):
 
     """Raised when an operation is not supported with the given backend."""
+
+
+def init():
+    """Set the application wide downloads variables."""
+    global last_used_directory
+    last_used_directory = None
+
+    config.instance.changed.connect(_clear_last_used)
+
+
+@config.change_filter('downloads.location.directory', function=True)
+def _clear_last_used():
+    global last_used_directory
+    last_used_directory = None
 
 
 def download_dir():
@@ -135,11 +150,12 @@ def create_full_filename(basename, filename):
     Return:
         The full absolute path, or None if filename creation was not possible.
     """
+    basename = utils.sanitize_filename(basename)
+    # Filename can be a full path so don't use sanitize_filename on it.
     # Remove chars which can't be encoded in the filename encoding.
     # See https://github.com/qutebrowser/qutebrowser/issues/427
     encoding = sys.getfilesystemencoding()
     filename = utils.force_encoding(filename, encoding)
-    basename = utils.force_encoding(basename, encoding)
     if os.path.isabs(filename) and (os.path.isdir(filename) or
                                     filename.endswith(os.sep)):
         # We got an absolute directory from the user, so we save it under
@@ -160,8 +176,7 @@ def get_filename_question(*, suggested_filename, url, parent=None):
         url: The URL the download originated from.
         parent: The parent of the question (a QObject).
     """
-    encoding = sys.getfilesystemencoding()
-    suggested_filename = utils.force_encoding(suggested_filename, encoding)
+    suggested_filename = utils.sanitize_filename(suggested_filename)
 
     q = usertypes.Question(parent)
     q.title = "Save file to:"
@@ -831,7 +846,7 @@ class AbstractDownloadManager(QObject):
         """Open PDF.js when a download requests it."""
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')
-        tabbed_browser.tabopen(pdfjs.get_main_url(filename))
+        tabbed_browser.tabopen(pdfjs.get_main_url(filename), background=False)
 
     def _init_item(self, download, auto_remove, suggested_filename):
         """Initialize a newly created DownloadItem."""
@@ -1007,11 +1022,11 @@ class DownloadModel(QAbstractListModel):
             count: The index of the download
         """
         if not count:
-            raise cmdexc.CommandError("There's no download!")
-        raise cmdexc.CommandError("There's no download {}!".format(count))
+            raise cmdutils.CommandError("There's no download!")
+        raise cmdutils.CommandError("There's no download {}!".format(count))
 
     @cmdutils.register(instance='download-model', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def download_cancel(self, all_=False, count=0):
         """Cancel the last/[count]th download.
 
@@ -1032,12 +1047,12 @@ class DownloadModel(QAbstractListModel):
             if download.done:
                 if not count:
                     count = len(self)
-                raise cmdexc.CommandError("Download {} is already done!"
-                                          .format(count))
+                raise cmdutils.CommandError("Download {} is already done!"
+                                            .format(count))
             download.cancel()
 
     @cmdutils.register(instance='download-model', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def download_delete(self, count=0):
         """Delete the last/[count]th download from disk.
 
@@ -1051,14 +1066,15 @@ class DownloadModel(QAbstractListModel):
         if not download.successful:
             if not count:
                 count = len(self)
-            raise cmdexc.CommandError("Download {} is not done!".format(count))
+            raise cmdutils.CommandError("Download {} is not done!"
+                                        .format(count))
         download.delete()
         download.remove()
         log.downloads.debug("deleted download {}".format(download))
 
     @cmdutils.register(instance='download-model', scope='window', maxsplit=0)
-    @cmdutils.argument('count', count=True)
-    def download_open(self, cmdline: str = None, count=0):
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def download_open(self, cmdline: str = None, count: int = 0) -> None:
         """Open the last/[count]th download.
 
         If no specific command is given, this will use the system's default
@@ -1078,11 +1094,12 @@ class DownloadModel(QAbstractListModel):
         if not download.successful:
             if not count:
                 count = len(self)
-            raise cmdexc.CommandError("Download {} is not done!".format(count))
+            raise cmdutils.CommandError("Download {} is not done!"
+                                        .format(count))
         download.open_file(cmdline)
 
     @cmdutils.register(instance='download-model', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def download_retry(self, count=0):
         """Retry the first failed/[count]th download.
 
@@ -1095,14 +1112,13 @@ class DownloadModel(QAbstractListModel):
             except IndexError:
                 self._raise_no_download(count)
             if download.successful or not download.done:
-                raise cmdexc.CommandError("Download {} did not fail!".format(
-                    count))
+                raise cmdutils.CommandError("Download {} did not fail!"
+                                            .format(count))
         else:
             to_retry = [d for d in self if d.done and not d.successful]
             if not to_retry:
-                raise cmdexc.CommandError("No failed downloads!")
-            else:
-                download = to_retry[0]
+                raise cmdutils.CommandError("No failed downloads!")
+            download = to_retry[0]
         download.try_retry()
 
     def can_clear(self):
@@ -1117,7 +1133,7 @@ class DownloadModel(QAbstractListModel):
                 download.remove()
 
     @cmdutils.register(instance='download-model', scope='window')
-    @cmdutils.argument('count', count=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
     def download_remove(self, all_=False, count=0):
         """Remove the last/[count]th download from the list.
 
@@ -1135,8 +1151,8 @@ class DownloadModel(QAbstractListModel):
             if not download.done:
                 if not count:
                     count = len(self)
-                raise cmdexc.CommandError("Download {} is not done!"
-                                          .format(count))
+                raise cmdutils.CommandError("Download {} is not done!"
+                                            .format(count))
             download.remove()
 
     def running_downloads(self):
@@ -1260,8 +1276,7 @@ class TempDownloadManager:
             A tempfile.NamedTemporaryFile that should be used to save the file.
         """
         tmpdir = self.get_tmpdir()
-        encoding = sys.getfilesystemencoding()
-        suggested_name = utils.force_encoding(suggested_name, encoding)
+        suggested_name = utils.sanitize_filename(suggested_name)
         # Make sure that the filename is not too long
         suggested_name = utils.elide_filename(suggested_name, 50)
         fobj = tempfile.NamedTemporaryFile(dir=tmpdir.name, delete=False,

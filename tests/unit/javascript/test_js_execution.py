@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -58,7 +58,7 @@ def test_element_js_webkit(webview, js_enabled, expected):
     (True, 2, 2.0),
     (False, 2, 2.0),
 ])
-def test_simple_js_webengine(callback_checker, webengineview, qapp,
+def test_simple_js_webengine(qtbot, webengineview, qapp,
                              js_enabled, world, expected):
     """With QtWebEngine, runJavaScript works even when JS is off."""
     # If we get there (because of the webengineview fixture) we can be certain
@@ -74,5 +74,8 @@ def test_simple_js_webengine(callback_checker, webengineview, qapp,
     qapp.processEvents()
 
     page = webengineview.page()
-    page.runJavaScript('1 + 1', world, callback_checker.callback)
-    callback_checker.check(expected)
+
+    with qtbot.wait_callback() as callback:
+        page.runJavaScript('1 + 1', world, callback)
+
+    callback.assert_called_with(expected)

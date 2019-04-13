@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,6 +21,7 @@
 
 import collections
 import html
+import typing  # pylint: disable=unused-import
 
 import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
@@ -28,16 +29,23 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket
 
 from qutebrowser.config import config
+
+MYPY = False
+if MYPY:
+    # pylint can't interpret type comments with Python 3.7
+    # pylint: disable=unused-import,useless-suppression
+    from qutebrowser.mainwindow import prompt
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)
 from qutebrowser.browser import shared
+from qutebrowser.extensions import interceptors
 from qutebrowser.browser.webkit import certificateerror
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
-_proxy_auth_cache = {}
+_proxy_auth_cache = {}  # type: typing.Dict[ProxyId, prompt.AuthInfo]
 
 
 @attr.s(frozen=True)
@@ -275,14 +283,19 @@ class NetworkManager(QNetworkAccessManager):
     @pyqtSlot('QNetworkReply*', 'QAuthenticator*')
     def on_authentication_required(self, reply, authenticator):
         """Called when a website needs authentication."""
+        url = reply.url()
+        log.network.debug("Authentication requested for {}, netrc_used {}"
+                          .format(url.toDisplayString(), self.netrc_used))
+
         netrc_success = False
         if not self.netrc_used:
             self.netrc_used = True
-            netrc_success = shared.netrc_authentication(reply.url(),
-                                                        authenticator)
+            netrc_success = shared.netrc_authentication(url, authenticator)
+
         if not netrc_success:
+            log.network.debug("Asking for credentials")
             abort_on = self._get_abort_signals(reply)
-            shared.authentication_required(reply.url(), authenticator,
+            shared.authentication_required(url, authenticator,
                                            abort_on=abort_on)
 
     @pyqtSlot('QNetworkProxy', 'QAuthenticator*')
@@ -290,9 +303,9 @@ class NetworkManager(QNetworkAccessManager):
         """Called when a proxy needs authentication."""
         proxy_id = ProxyId(proxy.type(), proxy.hostName(), proxy.port())
         if proxy_id in _proxy_auth_cache:
-            user, password = _proxy_auth_cache[proxy_id]
-            authenticator.setUser(user)
-            authenticator.setPassword(password)
+            authinfo = _proxy_auth_cache[proxy_id]
+            authenticator.setUser(authinfo.user)
+            authenticator.setPassword(authinfo.password)
         else:
             msg = '<b>{}</b> says:<br/>{}'.format(
                 html.escape(proxy.hostName()),
@@ -376,14 +389,6 @@ class NetworkManager(QNetworkAccessManager):
         for header, value in shared.custom_headers(url=req.url()):
             req.setRawHeader(header, value)
 
-        host_blocker = objreg.get('host-blocker')
-        if host_blocker.is_blocked(req.url()):
-            log.webview.info("Request to {} blocked by host blocker.".format(
-                req.url().host()))
-            return networkreply.ErrorNetworkReply(
-                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
-                self)
-
         # There are some scenarios where we can't figure out current_url:
         # - There's a generic NetworkManager, e.g. for downloads
         # - The download was in a tab which is now closed.
@@ -400,6 +405,14 @@ class NetworkManager(QNetworkAccessManager):
                 # Catching RuntimeError because we could be in the middle of
                 # the webpage shutdown here.
                 current_url = QUrl()
+
+        request = interceptors.Request(first_party_url=current_url,
+                                       request_url=req.url())
+        interceptors.run(request)
+        if request.is_blocked:
+            return networkreply.ErrorNetworkReply(
+                req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
+                self)
 
         if 'log-requests' in self._args.debug_flags:
             operation = debug.qenum_key(QNetworkAccessManager, op)

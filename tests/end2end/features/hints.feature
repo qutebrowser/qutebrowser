@@ -15,6 +15,10 @@ Feature: Using hints
         And I hint with args "links normal" and follow xyz
         Then the error "No hint xyz!" should be shown
 
+    Scenario: Using :hint with invalid mode.
+        When I run :hint --mode=foobar
+        Then the error "Invalid mode: Invalid value 'foobar' - valid values: number, letter, word" should be shown
+
     ### Opening in current or new tab
 
     Scenario: Following a hint and force to open in current tab.
@@ -184,6 +188,37 @@ Feature: Using hints
         And I run :leave-mode
         # The actual check is already done above
         Then no crash should happen
+
+    Scenario: Error with invalid hint group
+        When I open data/hints/buttons.html
+        And I run :hint INVALID_GROUP
+        Then the error "Undefined hinting group 'INVALID_GROUP'" should be shown
+
+    Scenario: Custom hint group
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom":[".clickable"]}
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
+
+    Scenario: Custom hint group with URL pattern
+        When I open data/hints/custom_group.html
+        And I run :set -tu *://*/data/hints/custom_group.html hints.selectors '{"custom": [".clickable"]}'
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
+
+    Scenario: Fallback to global value with URL pattern set
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom":[".clickable"]}
+        And I run :set -tu *://*/data/hints/custom_group.html hints.selectors '{"other": [".other"]}'
+        And I hint with args "custom" and follow a
+        Then the javascript message "beep!" should be logged
+
+    @qtwebkit_skip
+    Scenario: Invalid custom selector
+        When I open data/hints/custom_group.html
+        And I set hints.selectors to {"custom":["@"]}
+        And I run :hint custom
+        Then the error "SyntaxError: Failed to execute 'querySelectorAll' on 'Document': '@' is not a valid selector." should be shown
 
     # https://github.com/qutebrowser/qutebrowser/issues/1613
     Scenario: Hinting inputs with padding

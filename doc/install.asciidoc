@@ -102,17 +102,11 @@ $ python3 scripts/asciidoc2html.py
 On Fedora
 ---------
 
-NOTE: Fedora's packages used to be outdated for a long time, but are
-now (November 2017) maintained and up-to-date again.
-
 qutebrowser is available in the official repositories:
 
 -----
 # dnf install qutebrowser
 -----
-
-However, note that Fedora 25/26 won't be updated to qutebrowser v1.0, so you
-might want to <<tox,install qutebrowser via tox>> instead there.
 
 Additional hints
 ~~~~~~~~~~~~~~~~
@@ -423,10 +417,6 @@ https://docs.python.org/3/library/venv.html[virtual environment]:
 ----
 $ tox -e mkvenv-pypi
 ----
-
-If your system comes with Python 3.5.3 or older (such as Ubuntu 16.04 LTS), use
-`tox -e mkvenv-pypi-old` instead. This installs an older Qt version (5.10) due
-to bugs in newer versions.
 
 This installs all needed Python dependencies in a `.venv` subfolder.
 

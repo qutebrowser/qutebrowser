@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -39,14 +39,10 @@ class InvalidLine(Exception):
 
     """Raised when the process prints a line which is not parsable."""
 
-    pass
-
 
 class ProcessExited(Exception):
 
     """Raised when the child process did exit."""
-
-    pass
 
 
 class WaitForTimeout(Exception):
@@ -271,7 +267,6 @@ class Process(QObject):
 
     def _after_start(self):
         """Do things which should be done immediately after starting."""
-        pass
 
     def before_test(self):
         """Restart process before a test if it exited before."""
@@ -443,7 +438,6 @@ class Process(QObject):
         QuteProc._maybe_skip, and call _maybe_skip after every parsed message
         in wait_for (where it's most likely that new messages arrive).
         """
-        pass
 
     def wait_for(self, timeout=None, *, override_waited_for=False,
                  do_skip=False, divisor=1, after=None, **kwargs):

@@ -5,6 +5,10 @@ The Compiler <mail@qutebrowser.org>
 :data-uri:
 :toc:
 
+IMPORTANT: Bandwidth for pull request review is currently quite limited. If you
+want to contribute where it's most needed, please consider reviewing or testing
+open pull requests.
+
 I `&lt;3` footnote:[Of course, that says `<3` in HTML.] contributors!
 
 This document contains guidelines for contributing to qutebrowser, as well as
@@ -88,7 +92,7 @@ git format-patch origin/master <1>
 Running qutebrowser
 -------------------
 
-After link:install.html#tox[installing qutebrowser via tox], you can run
+After link:install{outfilesuffix}#tox[installing qutebrowser via tox], you can run
 `.venv/bin/qutebrowser --debug --temp-basedir` to test your changes with debug
 logging enabled and without affecting existing running instances.
 
@@ -214,7 +218,7 @@ Some resources which might be handy:
 * http://doc.qt.io/qt-5/classes.html[The Qt5 reference]
 * https://docs.python.org/3/library/index.html[The Python reference]
 * http://httpbin.org/[httpbin, a test service for HTTP requests/responses]
-* http://requestb.in/[RequestBin, a service to inspect HTTP requests]
+* https://requestbin.com/[RequestBin, a service to inspect HTTP requests]
 
 Documentation of used Python libraries:
 
@@ -399,7 +403,7 @@ Creating a new command is straightforward:
 
 [source,python]
 ----
-import qutebrowser.commands.cmdutils
+from qutebrowser.api import cmdutils
 
 ...
 
@@ -421,7 +425,7 @@ selects which object registry (global, per-tab, etc.) to use.  See the
 
 There are also other arguments to customize the way the command is
 registered; see the class documentation for `register` in
-`qutebrowser.commands.cmdutils` for details.
+`qutebrowser.api.cmdutils` for details.
 
 The types of the function arguments are inferred based on their default values,
 e.g., an argument `foo=True` will be converted to a flag `-f`/`--foo` in
@@ -472,8 +476,10 @@ For `typing.Union` types, the given `choices` are only checked if other types
 The following arguments are supported for `@cmdutils.argument`:
 
 - `flag`: Customize the short flag (`-x`) the argument will get.
-- `win_id=True`: Mark the argument as special window ID argument.
-- `count=True`: Mark the argument as special count argument.
+- `value`: Tell qutebrowser to fill the argument with special values:
+   - `value=cmdutils.Value.count`: The `count` given by the user to the command.
+   - `value=cmdutils.Value.win_id`: The window ID of the current window.
+   - `value=cmdutils.Value.cur_tab`: The tab object which is currently focused.
 - `completion`: A completion function (see `qutebrowser.completions.models.*`)
   to use when completing arguments for the given command.
 - `choices`: The allowed string choices for the argument.
@@ -598,7 +604,7 @@ Style conventions
 -----------------
 
 qutebrowser's coding conventions are based on
-http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google-styleguide.googlecode.com/svn/trunk/pyguide.html[Google Python style guidelines] with some additions:
+http://legacy.python.org/dev/peps/pep-0008/[PEP8] and the https://google.github.io/styleguide/pyguide.html[Google Python style guidelines] with some additions:
 
 * The _Raise:_ section is not added to the docstring.
 * Methods overriding Qt methods (obviously!) don't follow the naming schemes.
@@ -700,6 +706,7 @@ qutebrowser release
 
 * Update changelog (remove *(unreleased)*).
 * Adjust `__version_info__` in `qutebrowser/__init__.py`.
+* Consider updating the completions for `content.headers.user_agent` in `configdata.yml`.
 * Commit.
 
 * Create annotated git tag (`git tag -s "v1.$x.$y" -m "Release v1.$x.$y"`).
@@ -710,10 +717,10 @@ qutebrowser release
 as closed.
 
 * Linux: Run `git checkout v1.$x.$y && ./.venv/bin/python3 scripts/dev/build_release.py --upload v1.$x.$y`.
-* Windows: Run `git checkout v1.X.Y; py -3.6 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
-* macOS: Run `pyenv shell 3.6.6 && git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
+* Windows: Run `git checkout v1.X.Y; py -3 scripts\dev\build_release.py --asciidoc C:\Python27\python %userprofile%\bin\asciidoc-8.6.10\asciidoc.py --upload v1.X.Y` (replace X/Y by hand).
+* macOS: Run `git checkout v1.X.Y && python3 scripts/dev/build_release.py --upload v1.X.Y` (replace X/Y by hand).
 * On server:
-  - Run `python3 scripts/dev/download_release.py v1.X.Y` (replace X/Y by hand).
+  - Run `bash download_release.sh 1.X.Y` (replace X/Y by hand).
   - Run `git pull github master && sudo python3 scripts/asciidoc2html.py --website /srv/http/qutebrowser`
 * Update `qutebrowser-git` PKGBUILD if dependencies/install changed.
 * Announce to qutebrowser and qutebrowser-announce mailinglist.

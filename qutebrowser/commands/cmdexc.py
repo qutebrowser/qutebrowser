@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,25 +28,14 @@ class Error(Exception):
     """Base class for all cmdexc errors."""
 
 
-class CommandError(Error):
-
-    """Raised when a command encounters an error while running."""
-
-    pass
-
-
 class NoSuchCommandError(Error):
 
     """Raised when a command wasn't found."""
-
-    pass
 
 
 class ArgumentTypeError(Error):
 
     """Raised when an argument had an invalid type."""
-
-    pass
 
 
 class PrerequisitesError(Error):
@@ -56,5 +45,3 @@ class PrerequisitesError(Error):
     This is raised for example when we're in the wrong mode while executing the
     command, or we need javascript enabled but don't have done so.
     """
-
-    pass

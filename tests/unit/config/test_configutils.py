@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,7 +26,7 @@ from qutebrowser.utils import urlmatch
 
 
 def test_unset_object_identity():
-    assert configutils._UnsetObject() is not configutils._UnsetObject()
+    assert configutils.Unset() is not configutils.Unset()
     assert configutils.UNSET is configutils.UNSET
 
 

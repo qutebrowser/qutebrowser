@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -42,8 +42,12 @@ from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
 from qutebrowser.config import config, configfiles
 
 
-Result = enum.IntEnum('Result', ['restore', 'no_restore'],
-                      start=QDialog.Accepted + 1)
+class Result(enum.IntEnum):
+
+    """The result code returned by the crash dialog."""
+
+    restore = QDialog.Accepted + 1
+    no_restore = QDialog.Accepted + 2
 
 
 def parse_fatal_stacktrace(text):
@@ -197,7 +201,6 @@ class _CrashDialog(QDialog):
 
     def _init_checkboxes(self):
         """Initialize the checkboxes."""
-        pass
 
     def _init_buttons(self):
         """Initialize the buttons."""
@@ -569,7 +572,6 @@ class ReportDialog(_CrashDialog):
 
     def _init_info_text(self):
         """We don't want an info text as the user wanted to report."""
-        pass
 
     def _get_error_type(self):
         return 'report'

@@ -1,5 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Daniel Schadt
 #
 # This file is part of qutebrowser.
@@ -19,11 +20,12 @@
 
 """Tests for the custom TabWidget/TabBar."""
 
-import pytest
+import functools
 
+import pytest
 from PyQt5.QtGui import QIcon, QPixmap
 
-from qutebrowser.mainwindow import tabwidget, tabbedbrowser
+from qutebrowser.mainwindow import tabwidget
 from qutebrowser.utils import usertypes
 
 
@@ -37,14 +39,7 @@ class TestTabWidget:
         qtbot.addWidget(w)
         monkeypatch.setattr(tabwidget.objects, 'backend',
                             usertypes.Backend.QtWebKit)
-        return w
-
-    @pytest.fixture
-    def browser(self, qtbot, monkeypatch, config_stub):
-        w = tabbedbrowser.TabbedBrowser(win_id=0, private=False)
-        qtbot.addWidget(w)
-        monkeypatch.setattr(tabwidget.objects, 'backend',
-                            usertypes.Backend.QtWebKit)
+        w.show()
         return w
 
     def test_small_icon_doesnt_crash(self, widget, qtbot, fake_web_tab):
@@ -90,7 +85,7 @@ class TestTabWidget:
             widget.addTab(fake_web_tab(), 'foobar' + str(i))
 
         # Set pinned title format longer than unpinned
-        config_stub.val.tabs.title.format_pinned = "_" * 20
+        config_stub.val.tabs.title.format_pinned = "_" * 10
         config_stub.val.tabs.title.format = "_" * 2
         config_stub.val.tabs.pinned.shrink = shrink_pinned
         if vertical:
@@ -107,7 +102,7 @@ class TestTabWidget:
 
         for i in range(num_tabs):
             if i in pinned_num and shrink_pinned and not vertical:
-                assert (first_size.width() <
+                assert (first_size.width() >
                         widget.tabBar().tabSizeHint(i).width())
                 assert (first_size_min.width() <
                         widget.tabBar().minimumTabSizeHint(i).width())
@@ -115,7 +110,7 @@ class TestTabWidget:
                 assert first_size == widget.tabBar().tabSizeHint(i)
                 assert first_size_min == widget.tabBar().minimumTabSizeHint(i)
 
-    @pytest.mark.parametrize("num_tabs", [4, 10])
+    @pytest.mark.parametrize("num_tabs", [4, 10, 50, 100])
     def test_update_tab_titles_benchmark(self, benchmark, widget,
                                          qtbot, fake_web_tab, num_tabs):
         """Benchmark for update_tab_titles."""
@@ -127,17 +122,49 @@ class TestTabWidget:
 
         benchmark(widget.update_tab_titles)
 
-    @pytest.mark.parametrize("num_tabs", [4, 10])
-    def test_add_remove_tab_benchmark(self, benchmark, browser,
-                                      qtbot, fake_web_tab, num_tabs):
+    def test_tab_min_width(self, widget, fake_web_tab, config_stub, qtbot):
+        widget.addTab(fake_web_tab(), 'foobar')
+        widget.addTab(fake_web_tab(), 'foobar1')
+        min_size = widget.tabBar().tabRect(0).width() + 10
+        config_stub.val.tabs.min_width = min_size
+        assert widget.tabBar().tabRect(0).width() == min_size
+
+    def test_tab_max_width(self, widget, fake_web_tab, config_stub, qtbot):
+        widget.addTab(fake_web_tab(), 'foobar')
+        max_size = widget.tabBar().tabRect(0).width() - 10
+        config_stub.val.tabs.max_width = max_size
+        assert widget.tabBar().tabRect(0).width() == max_size
+
+    def test_tab_stays_hidden(self, widget, fake_web_tab, config_stub):
+        assert widget.tabBar().isVisible()
+        config_stub.val.tabs.show = "never"
+        assert not widget.tabBar().isVisible()
+        for i in range(12):
+            widget.addTab(fake_web_tab(), 'foobar' + str(i))
+        assert not widget.tabBar().isVisible()
+
+    @pytest.mark.parametrize("num_tabs", [4, 70])
+    @pytest.mark.parametrize("rev", [True, False])
+    def test_add_remove_tab_benchmark(self, benchmark, widget,
+                                      qtbot, fake_web_tab, num_tabs, rev):
         """Benchmark for addTab and removeTab."""
         def _run_bench():
+            with qtbot.wait_exposed(widget):
+                widget.show()
             for i in range(num_tabs):
-                browser.widget.addTab(fake_web_tab(), 'foobar' + str(i))
+                idx = i if rev else 0
+                widget.insertTab(idx, fake_web_tab(), 'foobar' + str(i))
 
-            with qtbot.waitExposed(browser):
-                browser.show()
-
-            browser.shutdown()
+            to_del = range(num_tabs)
+            if rev:
+                to_del = reversed(to_del)
+            for i in to_del:
+                widget.removeTab(i)
 
         benchmark(_run_bench)
+
+    def test_tab_pinned_benchmark(self, benchmark, widget, fake_web_tab):
+        """Benchmark for _tab_pinned."""
+        widget.addTab(fake_web_tab(), 'foobar')
+        tab_bar = widget.tabBar()
+        benchmark(functools.partial(tab_bar._tab_pinned, 0))

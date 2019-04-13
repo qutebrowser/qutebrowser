@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -388,9 +388,8 @@ class TestConfig:
             conf._set_value(opt, 'never')
 
         assert blocker.args == ['tabs.show']
-        assert len(caplog.records) == 1
         expected_message = 'Config option changed: tabs.show = never'
-        assert caplog.records[0].message == expected_message
+        assert caplog.messages == [expected_message]
 
     def test_set_value_no_backend(self, monkeypatch, conf):
         """Make sure setting values when the backend is still unknown works."""
@@ -474,11 +473,22 @@ class TestConfig:
         assert conf.get('colors.completion.category.fg') == QColor('white')
 
     def test_get_for_url(self, conf):
-        """Test conf.get() with an URL/pattern."""
+        """Test conf.get() with a URL/pattern."""
         pattern = urlmatch.UrlPattern('*://example.com/')
         name = 'content.javascript.enabled'
         conf.set_obj(name, False, pattern=pattern)
         assert conf.get(name, url=QUrl('https://example.com/')) is False
+
+    @pytest.mark.parametrize('fallback, expected', [
+        (True, True),
+        (False, configutils.UNSET)
+    ])
+    def test_get_for_url_fallback(self, conf, fallback, expected):
+        """Test conf.get() with a URL and fallback."""
+        value = conf.get('content.javascript.enabled',
+                         url=QUrl('https://example.com/'),
+                         fallback=fallback)
+        assert value is expected
 
     @pytest.mark.parametrize('value', [{}, {'normal': {'a': 'nop'}}])
     def test_get_bindings(self, config_stub, conf, value):
@@ -558,7 +568,7 @@ class TestConfig:
                 conf.update_mutables()
 
             expected_log = '{} was mutated, updating'.format(option)
-            assert caplog.records[-2].message == expected_log
+            assert caplog.messages[-2] == expected_log
         else:
             with qtbot.assert_not_emitted(conf.changed):
                 conf.update_mutables()
@@ -780,7 +790,7 @@ def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
             obj = StyleObj(stylesheet)
             config.set_register_stylesheet(obj, update=update)
 
-    assert caplog.records[-1].message == 'stylesheet for StyleObj: magenta'
+    assert caplog.messages[-1] == 'stylesheet for StyleObj: magenta'
 
     assert obj.rendered_stylesheet == 'magenta'
 

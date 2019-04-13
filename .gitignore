@@ -16,7 +16,6 @@ __pycache__
 /doc/*.html
 /README.html
 /qutebrowser/html/doc/
-/qutebrowser/html/*.html
 /.venv*
 /.coverage
 /htmlcov
@@ -42,3 +41,4 @@ TODO
 /scripts/testbrowser/cpp/webengine/.qmake.stash
 /scripts/dev/pylint_checkers/qute_pylint.egg-info
 /misc/file_version_info.txt
+/doc/extapi/_build

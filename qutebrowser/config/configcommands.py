@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,36 +19,47 @@
 
 """Commands related to the configuration."""
 
+import typing
 import os.path
 import contextlib
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.completion.models import configmodel
 from qutebrowser.utils import objreg, message, standarddir, urlmatch
 from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
 from qutebrowser.keyinput import keyutils
 
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import,useless-suppression
+    from qutebrowser.config.config import Config, KeyConfig
+
 
 class ConfigCommands:
 
     """qutebrowser commands related to the configuration."""
 
-    def __init__(self, config, keyconfig):
+    def __init__(self,
+                 config: 'Config',
+                 keyconfig: 'KeyConfig') -> None:
         self._config = config
         self._keyconfig = keyconfig
 
     @contextlib.contextmanager
-    def _handle_config_error(self):
+    def _handle_config_error(self) -> typing.Iterator[None]:
         """Catch errors in set_command and raise CommandError."""
         try:
             yield
         except configexc.Error as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdutils.CommandError(str(e))
 
-    def _parse_pattern(self, pattern):
+    def _parse_pattern(
+            self,
+            pattern: typing.Optional[str]
+    ) -> typing.Optional[urlmatch.UrlPattern]:
         """Parse a pattern string argument to a pattern."""
         if pattern is None:
             return None
@@ -56,17 +67,18 @@ class ConfigCommands:
         try:
             return urlmatch.UrlPattern(pattern)
         except urlmatch.ParseError as e:
-            raise cmdexc.CommandError("Error while parsing {}: {}"
-                                      .format(pattern, str(e)))
+            raise cmdutils.CommandError("Error while parsing {}: {}"
+                                        .format(pattern, str(e)))
 
-    def _parse_key(self, key):
+    def _parse_key(self, key: str) -> keyutils.KeySequence:
         """Parse a key argument."""
         try:
             return keyutils.KeySequence.parse(key)
         except keyutils.KeyParseError as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdutils.CommandError(str(e))
 
-    def _print_value(self, option, pattern):
+    def _print_value(self, option: str,
+                     pattern: typing.Optional[urlmatch.UrlPattern]) -> None:
         """Print the value of the given option."""
         with self._handle_config_error():
             value = self._config.get_str(option, pattern=pattern)
@@ -79,10 +91,11 @@ class ConfigCommands:
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.option)
     @cmdutils.argument('value', completion=configmodel.value)
-    @cmdutils.argument('win_id', win_id=True)
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('pattern', flag='u')
-    def set(self, win_id, option=None, value=None, temp=False, print_=False,
-            *, pattern=None):
+    def set(self, win_id: int, option: str = None, value: str = None,
+            temp: bool = False, print_: bool = False,
+            *, pattern: str = None) -> None:
         """Set an option.
 
         If the option name ends with '?' or no value is provided, the
@@ -101,35 +114,35 @@ class ConfigCommands:
         if option is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.openurl(QUrl('qute://settings'), newtab=False)
+            tabbed_browser.load_url(QUrl('qute://settings'), newtab=False)
             return
 
         if option.endswith('!'):
-            raise cmdexc.CommandError("Toggling values was moved to the "
-                                      ":config-cycle command")
+            raise cmdutils.CommandError("Toggling values was moved to the "
+                                        ":config-cycle command")
 
-        pattern = self._parse_pattern(pattern)
+        parsed_pattern = self._parse_pattern(pattern)
 
         if option.endswith('?') and option != '?':
-            self._print_value(option[:-1], pattern=pattern)
+            self._print_value(option[:-1], pattern=parsed_pattern)
             return
 
         with self._handle_config_error():
             if value is None:
-                self._print_value(option, pattern=pattern)
+                self._print_value(option, pattern=parsed_pattern)
             else:
-                self._config.set_str(option, value, pattern=pattern,
+                self._config.set_str(option, value, pattern=parsed_pattern,
                                      save_yaml=not temp)
 
         if print_:
-            self._print_value(option, pattern=pattern)
+            self._print_value(option, pattern=parsed_pattern)
 
     @cmdutils.register(instance='config-commands', maxsplit=1,
                        no_cmd_split=True, no_replace_variables=True)
     @cmdutils.argument('command', completion=configmodel.bind)
-    @cmdutils.argument('win_id', win_id=True)
-    def bind(self, win_id, key=None, command=None, *, mode='normal',
-             default=False):
+    @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
+    def bind(self, win_id: str, key: str = None, command: str = None, *,
+             mode: str = 'normal', default: bool = False) -> None:
         """Bind a key to a command.
 
         If no command is given, show the current binding for the given key.
@@ -139,15 +152,14 @@ class ConfigCommands:
             key: The keychain to bind. Examples of valid keychains are `gC`,
                  `<Ctrl-X>` or `<Ctrl-C>a`.
             command: The command to execute, with optional args.
-            mode: A comma-separated list of modes to bind the key in
-                  (default: `normal`). See `:help bindings.commands` for the
-                  available modes.
+            mode: The mode to bind the key in (default: `normal`). See `:help
+                  bindings.commands` for the available modes.
             default: If given, restore a default binding.
         """
         if key is None:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
-            tabbed_browser.openurl(QUrl('qute://bindings'), newtab=True)
+            tabbed_browser.load_url(QUrl('qute://bindings'), newtab=True)
             return
 
         seq = self._parse_key(key)
@@ -174,13 +186,13 @@ class ConfigCommands:
             self._keyconfig.bind(seq, command, mode=mode, save_yaml=True)
 
     @cmdutils.register(instance='config-commands')
-    def unbind(self, key, *, mode='normal'):
+    def unbind(self, key: str, *, mode: str = 'normal') -> None:
         """Unbind a keychain.
 
         Args:
             key: The keychain to unbind. See the help for `:bind` for the
                   correct syntax for keychains.
-            mode: A mode to unbind the key in (default: `normal`).
+            mode: The mode to unbind the key in (default: `normal`).
                   See `:help bindings.commands` for the available modes.
         """
         with self._handle_config_error():
@@ -191,8 +203,9 @@ class ConfigCommands:
     @cmdutils.argument('option', completion=configmodel.option)
     @cmdutils.argument('values', completion=configmodel.value)
     @cmdutils.argument('pattern', flag='u')
-    def config_cycle(self, option, *values, pattern=None, temp=False,
-                     print_=False):
+    def config_cycle(self, option: str, *values: str,
+                     pattern: str = None,
+                     temp: bool = False, print_: bool = False) -> None:
         """Cycle an option between multiple values.
 
         Args:
@@ -202,42 +215,42 @@ class ConfigCommands:
             temp: Set value temporarily until qutebrowser is closed.
             print_: Print the value after setting.
         """
-        pattern = self._parse_pattern(pattern)
+        parsed_pattern = self._parse_pattern(pattern)
 
         with self._handle_config_error():
             opt = self._config.get_opt(option)
-            old_value = self._config.get_obj_for_pattern(option,
-                                                         pattern=pattern)
+            old_value = self._config.get_obj_for_pattern(
+                option, pattern=parsed_pattern)
 
         if not values and isinstance(opt.typ, configtypes.Bool):
-            values = ['true', 'false']
+            values = ('true', 'false')
 
         if len(values) < 2:
-            raise cmdexc.CommandError("Need at least two values for "
-                                      "non-boolean settings.")
+            raise cmdutils.CommandError("Need at least two values for "
+                                        "non-boolean settings.")
 
         # Use the next valid value from values, or the first if the current
         # value does not appear in the list
         with self._handle_config_error():
-            values = [opt.typ.from_str(val) for val in values]
+            cycle_values = [opt.typ.from_str(val) for val in values]
 
         try:
-            idx = values.index(old_value)
-            idx = (idx + 1) % len(values)
-            value = values[idx]
+            idx = cycle_values.index(old_value)
+            idx = (idx + 1) % len(cycle_values)
+            value = cycle_values[idx]
         except ValueError:
-            value = values[0]
+            value = cycle_values[0]
 
         with self._handle_config_error():
-            self._config.set_obj(option, value, pattern=pattern,
+            self._config.set_obj(option, value, pattern=parsed_pattern,
                                  save_yaml=not temp)
 
         if print_:
-            self._print_value(option, pattern=pattern)
+            self._print_value(option, pattern=parsed_pattern)
 
     @cmdutils.register(instance='config-commands')
     @cmdutils.argument('option', completion=configmodel.customized_option)
-    def config_unset(self, option, temp=False):
+    def config_unset(self, option: str, temp: bool = False) -> None:
         """Unset an option.
 
         This sets an option back to its default and removes it from
@@ -245,13 +258,124 @@ class ConfigCommands:
 
         Args:
             option: The name of the option.
-            temp: Don't touch autoconfig.yml.
+            temp: Set value temporarily until qutebrowser is closed.
         """
         with self._handle_config_error():
             self._config.unset(option, save_yaml=not temp)
 
     @cmdutils.register(instance='config-commands')
-    def config_clear(self, save=False):
+    @cmdutils.argument('option', completion=configmodel.list_option)
+    def config_list_add(self, option: str, value: str,
+                        temp: bool = False) -> None:
+        """Append a value to a config option that is a list.
+
+        Args:
+            option: The name of the option.
+            value: The value to append to the end of the list.
+            temp: Add value temporarily until qutebrowser is closed.
+        """
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
+        valid_list_types = (configtypes.List, configtypes.ListOrValue)
+        if not isinstance(opt.typ, valid_list_types):
+            raise cmdutils.CommandError(":config-list-add can only be used "
+                                        "for lists")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+            option_value.append(value)
+            self._config.update_mutables(save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.dict_option)
+    def config_dict_add(self, option: str, key: str, value: str,
+                        temp: bool = False, replace: bool = False) -> None:
+        """Add a key/value pair to a dictionary option.
+
+        Args:
+            option: The name of the option.
+            key: The key to use.
+            value: The value to place in the dictionary.
+            temp: Add value temporarily until qutebrowser is closed.
+            replace: Replace existing values. By default, existing values are
+                     not overwritten.
+        """
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
+        if not isinstance(opt.typ, configtypes.Dict):
+            raise cmdutils.CommandError(":config-dict-add can only be used "
+                                        "for dicts")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+
+            if key in option_value and not replace:
+                raise cmdutils.CommandError("{} already exists in {} - use "
+                                            "--replace to overwrite!"
+                                            .format(key, option))
+
+            option_value[key] = value
+            self._config.update_mutables(save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.list_option)
+    def config_list_remove(self, option: str, value: str,
+                           temp: bool = False) -> None:
+        """Remove a value from a list.
+
+        Args:
+            option: The name of the option.
+            value: The value to remove from the list.
+            temp: Remove value temporarily until qutebrowser is closed.
+        """
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
+        valid_list_types = (configtypes.List, configtypes.ListOrValue)
+        if not isinstance(opt.typ, valid_list_types):
+            raise cmdutils.CommandError(":config-list-remove can only be used "
+                                        "for lists")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+
+            if value not in option_value:
+                raise cmdutils.CommandError("{} is not in {}!".format(
+                    value, option))
+
+            option_value.remove(value)
+
+            self._config.update_mutables(save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    @cmdutils.argument('option', completion=configmodel.dict_option)
+    def config_dict_remove(self, option: str, key: str,
+                           temp: bool = False) -> None:
+        """Remove a key from a dict.
+
+        Args:
+            option: The name of the option.
+            key: The key to remove from the dict.
+            temp: Remove value temporarily until qutebrowser is closed.
+        """
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
+        if not isinstance(opt.typ, configtypes.Dict):
+            raise cmdutils.CommandError(":config-dict-remove can only be used "
+                                        "for dicts")
+
+        with self._handle_config_error():
+            option_value = self._config.get_mutable_obj(option)
+
+            if key not in option_value:
+                raise cmdutils.CommandError("{} is not in {}!".format(
+                    key, option))
+
+            del option_value[key]
+
+            self._config.update_mutables(save_yaml=not temp)
+
+    @cmdutils.register(instance='config-commands')
+    def config_clear(self, save: bool = False) -> None:
         """Set all settings back to their default.
 
         Args:
@@ -261,7 +385,7 @@ class ConfigCommands:
         self._config.clear(save_yaml=save)
 
     @cmdutils.register(instance='config-commands')
-    def config_source(self, filename=None, clear=False):
+    def config_source(self, filename: str = None, clear: bool = False) -> None:
         """Read a config.py file.
 
         Args:
@@ -280,19 +404,19 @@ class ConfigCommands:
         try:
             configfiles.read_config_py(filename)
         except configexc.ConfigFileErrors as e:
-            raise cmdexc.CommandError(e)
+            raise cmdutils.CommandError(e)
 
     @cmdutils.register(instance='config-commands')
-    def config_edit(self, no_source=False):
+    def config_edit(self, no_source: bool = False) -> None:
         """Open the config.py file in the editor.
 
         Args:
             no_source: Don't re-source the config file after editing.
         """
-        def on_file_updated():
+        def on_file_updated() -> None:
             """Source the new config when editing finished.
 
-            This can't use cmdexc.CommandError as it's run async.
+            This can't use cmdutils.CommandError as it's run async.
             """
             try:
                 configfiles.read_config_py(filename)
@@ -307,7 +431,8 @@ class ConfigCommands:
         ed.edit_file(filename)
 
     @cmdutils.register(instance='config-commands')
-    def config_write_py(self, filename=None, force=False, defaults=False):
+    def config_write_py(self, filename: str = None,
+                        force: bool = False, defaults: bool = False) -> None:
         """Write the current configuration to a config.py file.
 
         Args:
@@ -323,16 +448,16 @@ class ConfigCommands:
             filename = os.path.expanduser(filename)
 
         if os.path.exists(filename) and not force:
-            raise cmdexc.CommandError("{} already exists - use --force to "
-                                      "overwrite!".format(filename))
+            raise cmdutils.CommandError("{} already exists - use --force to "
+                                        "overwrite!".format(filename))
 
+        options = []  # type: typing.List
         if defaults:
             options = [(None, opt, opt.default)
                        for _name, opt in sorted(configdata.DATA.items())]
             bindings = dict(configdata.DATA['bindings.default'].default)
             commented = True
         else:
-            options = []
             for values in self._config:
                 for scoped in values:
                     options.append((scoped.pattern, values.opt, scoped.value))
@@ -344,4 +469,4 @@ class ConfigCommands:
         try:
             writer.write(filename)
         except OSError as e:
-            raise cmdexc.CommandError(str(e))
+            raise cmdutils.CommandError(str(e))

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -171,9 +171,10 @@ def test_start_logging(fake_proc, caplog):
     args = ['arg', 'arg with spaces']
     with caplog.at_level(logging.DEBUG):
         fake_proc.start(cmd, args)
-    msgs = [e.msg for e in caplog.records]
-    assert msgs == ["Starting process.",
-                    "Executing: does_not_exist arg 'arg with spaces'"]
+    assert caplog.messages == [
+        "Starting process.",
+        "Executing: does_not_exist arg 'arg with spaces'"
+    ]
 
 
 def test_error(qtbot, proc, caplog, message_mock):
@@ -208,7 +209,7 @@ def test_exit_unsuccessful_output(qtbot, proc, caplog, py_proc, stream):
                 print("test", file=sys.{})
                 sys.exit(1)
             """.format(stream)))
-    assert caplog.records[-1].msg == 'Process {}:\ntest'.format(stream)
+    assert caplog.messages[-1] == 'Process {}:\ntest'.format(stream)
 
 
 @pytest.mark.parametrize('stream', ['stdout', 'stderr'])

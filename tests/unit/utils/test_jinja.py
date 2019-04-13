@@ -1,4 +1,4 @@
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
 #
@@ -109,8 +109,8 @@ def test_not_found(caplog):
         data = jinja.render('does_not_exist.html')
     assert "The does_not_exist.html template could not be found!" in data
 
-    assert caplog.records[0].msg.startswith("The does_not_exist.html template"
-                                            " could not be loaded from")
+    assert caplog.messages[0].startswith("The does_not_exist.html template"
+                                         " could not be loaded from")
 
 
 def test_utf8():

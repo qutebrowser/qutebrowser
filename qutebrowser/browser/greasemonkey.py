@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,8 +31,9 @@ import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
-                               javascript, urlmatch, version, usertypes)
-from qutebrowser.commands import cmdutils
+                               javascript, urlmatch, version, usertypes,
+                               qtutils)
+from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
 
@@ -46,7 +47,8 @@ class GreasemonkeyScript:
 
     """Container class for userscripts, parses metadata blocks."""
 
-    def __init__(self, properties, code):
+    def __init__(self, properties, code,  # noqa: C901 pragma: no mccabe
+                 filename=None):
         self._code = code
         self.includes = []
         self.matches = []
@@ -81,11 +83,19 @@ class GreasemonkeyScript:
             elif name == 'qute-js-world':
                 self.jsworld = value
 
+        if not self.name:
+            if filename:
+                self.name = filename
+            else:
+                raise ValueError(
+                    "@name key required or pass filename to init."
+                )
+
     HEADER_REGEX = r'// ==UserScript==|\n+// ==/UserScript==\n'
     PROPS_REGEX = r'// @(?P<prop>[^\s]+)\s*(?P<val>.*)'
 
     @classmethod
-    def parse(cls, source):
+    def parse(cls, source, filename=None):
         """GreasemonkeyScript factory.
 
         Takes a userscript source and returns a GreasemonkeyScript.
@@ -97,11 +107,49 @@ class GreasemonkeyScript:
             _head, props, _code = matches
         except ValueError:
             props = ""
-        script = cls(re.findall(cls.PROPS_REGEX, props), source)
+        script = cls(
+            re.findall(cls.PROPS_REGEX, props),
+            source,
+            filename=filename
+        )
         script.script_meta = props
         if not script.includes and not script.matches:
             script.includes = ['*']
         return script
+
+    def needs_document_end_workaround(self):
+        """Check whether to force @run-at document-end.
+
+        This needs to be done on QtWebEngine with Qt 5.12 for known-broken
+        scripts.
+
+        On Qt 5.12, accessing the DOM isn't possible with "@run-at
+        document-start". It was documented to be impossible before, but seems
+        to work fine.
+
+        However, some scripts do DOM access with "@run-at document-start". Fix
+        those by forcing them to use document-end instead.
+        """
+        if objects.backend != usertypes.Backend.QtWebEngine:
+            return False
+        elif not qtutils.version_check('5.12', compiled=False):
+            return False
+
+        broken_scripts = [
+            ('http://userstyles.org', None),
+            ('https://github.com/ParticleCore', 'Iridium'),
+        ]
+        return any(self._matches_id(namespace=namespace, name=name)
+                   for namespace, name in broken_scripts)
+
+    def _matches_id(self, *, namespace, name):
+        """Check if this script matches the given namespace/name.
+
+        Both namespace and name can be None in order to match any script.
+        """
+        matches_namespace = namespace is None or self.namespace == namespace
+        matches_name = name is None or self.name == name
+        return matches_namespace and matches_name
 
     def code(self):
         """Return the processed JavaScript code of this script.
@@ -121,7 +169,7 @@ class GreasemonkeyScript:
             scriptName=javascript.string_escape(
                 "/".join([self.namespace or '', self.name])),
             scriptInfo=self._meta_json(),
-            scriptMeta=javascript.string_escape(self.script_meta),
+            scriptMeta=javascript.string_escape(self.script_meta or ''),
             scriptSource=self._code,
             use_proxy=use_proxy)
 
@@ -235,7 +283,8 @@ class GreasemonkeyManager(QObject):
                 continue
             script_path = os.path.join(scripts_dir, script_filename)
             with open(script_path, encoding='utf-8-sig') as script_file:
-                script = GreasemonkeyScript.parse(script_file.read())
+                script = GreasemonkeyScript.parse(script_file.read(),
+                                                  script_filename)
                 if not script.name:
                     script.name = script_filename
                 self.add_script(script, force)

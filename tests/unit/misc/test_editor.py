@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -269,7 +269,7 @@ def test_failing_watch(qtbot, caplog, monkeypatch):
     assert blocker.args == ['bar']
 
     message = 'Failed to watch path: {}'.format(editor._filename)
-    assert caplog.records[0].msg == message
+    assert caplog.messages[0] == message
 
 
 def test_failing_unwatch(qtbot, caplog, monkeypatch):
@@ -285,7 +285,7 @@ def test_failing_unwatch(qtbot, caplog, monkeypatch):
         editor._proc.finished.emit(0, QProcess.NormalExit)
 
     message = 'Failed to unwatch paths: [{!r}]'.format(editor._filename)
-    assert caplog.records[-1].msg == message
+    assert caplog.messages[-1] == message
 
 
 @pytest.mark.parametrize('text, caret_position, result', [

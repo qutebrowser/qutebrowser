@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -270,8 +270,7 @@ class TestHideQtWarning:
 def test_stub(caplog, suffix, expected):
     with caplog.at_level(logging.WARNING, 'misc'):
         log.stub(suffix)
-    assert len(caplog.records) == 1
-    assert caplog.records[0].message == expected
+    assert caplog.messages == [expected]
 
 
 def test_ignore_py_warnings(caplog):
@@ -281,7 +280,7 @@ def test_ignore_py_warnings(caplog):
     with caplog.at_level(logging.WARNING):
         warnings.warn("not hidden", UserWarning)
     assert len(caplog.records) == 1
-    msg = caplog.records[0].message.splitlines()[0]
+    msg = caplog.messages[0].splitlines()[0]
     assert msg.endswith("UserWarning: not hidden")
 
 
@@ -300,5 +299,4 @@ class TestQtMessageHandler:
     def test_empty_message(self, caplog):
         """Make sure there's no crash with an empty message."""
         log.qt_message_handler(QtCore.QtDebugMsg, self.Context(), "")
-        assert len(caplog.records) == 1
-        assert caplog.records[0].msg == "Logged empty message!"
+        assert caplog.messages == ["Logged empty message!"]

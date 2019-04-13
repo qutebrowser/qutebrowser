@@ -111,3 +111,15 @@ Feature: Zooming in and out
         And I open data/hello.txt in a new tab
         And I run :tab-only
         Then the zoom should be 200%
+
+    Scenario: Zooming in with --quiet
+        When I run :zoom-in --quiet
+        Then "Zoom level: *" should not be logged
+
+    Scenario: Zooming out with --quiet
+        When I run :zoom-out --quiet
+        Then "Zoom level: *" should not be logged
+
+    Scenario: Zooming with --quiet
+        When I run :zoom --quiet
+        Then "Zoom level: *" should not be logged

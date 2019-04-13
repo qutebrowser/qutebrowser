@@ -218,6 +218,7 @@ Feature: Searching on a page
     Scenario: Follow a searched link
         When I run :search follow
         And I wait for "search found follow" in the log
+        And I wait 0.5s
         And I run :follow-selected
         Then data/hello.txt should be loaded
 
@@ -226,6 +227,7 @@ Feature: Searching on a page
         When I run :window-only
         And I run :search follow
         And I wait for "search found follow" in the log
+        And I wait 0.5s
         And I run :follow-selected -t
         And I wait until data/hello.txt is loaded
         Then the following tabs should be open:
@@ -283,3 +285,9 @@ Feature: Searching on a page
         Then the following tabs should be open:
             - data/iframe_search.html
             - data/hello.txt (active)
+
+    Scenario: Closing a tab during a search
+        When I run :open -b about:blank
+        And I run :search a
+        And I run :tab-close
+        Then no crash should happen

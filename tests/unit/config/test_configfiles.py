@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -235,36 +235,43 @@ class TestYaml:
         data = autoconfig.read()
         assert 'bindings.default' not in data
 
-    @pytest.mark.parametrize('show, expected', [
-        (True, 'always'),
-        (False, 'never'),
-        ('always', 'always'),
-        ('never', 'never'),
-        ('pinned', 'pinned'),
+    @pytest.mark.parametrize('public_only, expected', [
+        (True, 'default-public-interface-only'),
+        (False, 'all-interfaces'),
     ])
-    def test_tabs_favicons_show(self, yaml, autoconfig, show, expected):
-        """Tests for migration of tabs.favicons.show."""
-        autoconfig.write({'tabs.favicons.show': {'global': show}})
+    def test_webrtc(self, yaml, autoconfig, public_only, expected):
+        """Tests for migration of content.webrtc_public_interfaces_only."""
+        autoconfig.write({'content.webrtc_public_interfaces_only':
+                          {'global': public_only}})
 
         yaml.load()
         yaml._save()
 
         data = autoconfig.read()
-        assert data['tabs.favicons.show']['global'] == expected
+        assert data['content.webrtc_ip_handling_policy']['global'] == expected
 
-    @pytest.mark.parametrize('force, expected', [
-        (True, 'software-opengl'),
-        (False, 'none'),
-        ('chromium', 'chromium'),
+    @pytest.mark.parametrize('setting, old, new', [
+        ('tabs.favicons.show', True, 'always'),
+        ('tabs.favicons.show', False, 'never'),
+        ('tabs.favicons.show', 'always', 'always'),
+
+        ('scrolling.bar', True, 'always'),
+        ('scrolling.bar', False, 'when-searching'),
+        ('scrolling.bar', 'always', 'always'),
+
+        ('qt.force_software_rendering', True, 'software-opengl'),
+        ('qt.force_software_rendering', False, 'none'),
+        ('qt.force_software_rendering', 'chromium', 'chromium'),
     ])
-    def test_force_software_rendering(self, yaml, autoconfig, force, expected):
-        autoconfig.write({'qt.force_software_rendering': {'global': force}})
+    def test_bool_migrations(self, yaml, autoconfig, setting, old, new):
+        """Tests for migration of former boolean settings."""
+        autoconfig.write({setting: {'global': old}})
 
         yaml.load()
         yaml._save()
 
         data = autoconfig.read()
-        assert data['qt.force_software_rendering']['global'] == expected
+        assert data[setting]['global'] == new
 
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):

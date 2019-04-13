@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -25,6 +25,7 @@ import pytest
 import py.path  # pylint: disable=no-name-in-module
 from PyQt5.QtCore import QUrl
 
+from qutebrowser.utils import usertypes
 from qutebrowser.browser import greasemonkey
 
 test_gm_script = r"""
@@ -113,6 +114,21 @@ def test_no_metadata(caplog):
     assert len(scripts.end) == 1
 
 
+def test_no_name():
+    """Ensure that GreaseMonkeyScripts must have a name."""
+    msg = "@name key required or pass filename to init."
+    with pytest.raises(ValueError, match=msg):
+        greasemonkey.GreasemonkeyScript([("something", "else")], "")
+
+
+def test_no_name_with_fallback():
+    """Ensure that script's name can fallback to the provided filename."""
+    script = greasemonkey.GreasemonkeyScript(
+        [("something", "else")], "", filename=r"C:\COM1")
+    assert script
+    assert script.name == r"C:\COM1"
+
+
 def test_bad_scheme(caplog):
     """qute:// isn't in the list of allowed schemes."""
     _save_script("var nothing = true;\n", 'nothing.user.js')
@@ -148,6 +164,56 @@ def test_utf8_bom():
     assert len(scripts) == 1
     script = scripts[0]
     assert '// ==UserScript==' in script.code().splitlines()
+
+
+class TestForceDocumentEnd:
+
+    @pytest.fixture
+    def patch(self, monkeypatch):
+        def _patch(*, backend, qt_512):
+            monkeypatch.setattr(greasemonkey.objects, 'backend', backend)
+            monkeypatch.setattr(greasemonkey.qtutils, 'version_check',
+                                lambda version, exact=False, compiled=True:
+                                qt_512)
+        return _patch
+
+    def _get_script(self, *, namespace, name):
+        source = textwrap.dedent("""
+            // ==UserScript==
+            // @namespace {}
+            // @name {}
+            // ==/UserScript==
+        """.format(namespace, name))
+        _save_script(source, 'force.user.js')
+
+        gm_manager = greasemonkey.GreasemonkeyManager()
+
+        scripts = gm_manager.all_scripts()
+        assert len(scripts) == 1
+        return scripts[0]
+
+    @pytest.mark.parametrize('backend, qt_512', [
+        (usertypes.Backend.QtWebKit, True),
+        (usertypes.Backend.QtWebEngine, False),
+    ])
+    def test_not_applicable(self, patch, backend, qt_512):
+        """Test backend/Qt version combinations which don't need a fix."""
+        patch(backend=backend, qt_512=qt_512)
+        script = self._get_script(namespace='https://github.com/ParticleCore',
+                                  name='Iridium')
+        assert not script.needs_document_end_workaround()
+
+    @pytest.mark.parametrize('namespace, name, force', [
+        ('http://userstyles.org', 'foobar', True),
+        ('https://github.com/ParticleCore', 'Iridium', True),
+        ('https://github.com/ParticleCore', 'Foo', False),
+        ('https://example.org', 'Iridium', False),
+    ])
+    def test_matching(self, patch, namespace, name, force):
+        """Test matching based on namespace/name."""
+        patch(backend=usertypes.Backend.QtWebEngine, qt_512=True)
+        script = self._get_script(namespace=namespace, name=name)
+        assert script.needs_document_end_workaround() == force
 
 
 def test_required_scripts_are_included(download_stub, tmpdir):
@@ -234,11 +300,13 @@ class TestWindowIsolation:
                         "global", "global"]
         return ret
 
-    def test_webengine(self, callback_checker, webengineview, setup):
+    def test_webengine(self, qtbot, webengineview, setup):
         page = webengineview.page()
         page.runJavaScript(setup.setup_script)
-        page.runJavaScript(setup.test_script, callback_checker.callback)
-        callback_checker.check(setup.expected)
+
+        with qtbot.wait_callback() as callback:
+            page.runJavaScript(setup.test_script, callback)
+        callback.assert_called_with(setup.expected)
 
     # The JSCore in 602.1 doesn't fully support Proxy.
     @pytest.mark.qtwebkit6021_skip

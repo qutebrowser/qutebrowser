@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -42,7 +42,6 @@ def custom_headers(url):
     if dnt_config is not None:
         dnt = b'1' if dnt_config else b'0'
         headers[b'DNT'] = dnt
-        headers[b'X-Do-Not-Track'] = dnt
 
     conf_headers = config.instance.get('content.headers.custom', url=url)
     for header, value in conf_headers.items():
@@ -262,7 +261,7 @@ def get_tab(win_id, target):
     elif target == usertypes.ClickTarget.window:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
-        window = mainwindow.MainWindow(private=tabbed_browser.private)
+        window = mainwindow.MainWindow(private=tabbed_browser.is_private)
         window.show()
         win_id = window.win_id
         bg_tab = False
@@ -274,7 +273,7 @@ def get_tab(win_id, target):
     return tabbed_browser.tabopen(url=None, background=bg_tab)
 
 
-def get_user_stylesheet():
+def get_user_stylesheet(searching=False):
     """Get the combined user-stylesheet."""
     css = ''
     stylesheets = config.val.content.user_stylesheets
@@ -283,7 +282,8 @@ def get_user_stylesheet():
         with open(filename, 'r', encoding='utf-8') as f:
             css += f.read()
 
-    if not config.val.scrolling.bar:
+    if (config.val.scrolling.bar == 'never' or
+            config.val.scrolling.bar == 'when-searching' and not searching):
         css += '\nhtml > ::-webkit-scrollbar { width: 0px; height: 0px; }'
 
     return css

@@ -894,6 +894,71 @@ Feature: Tab management
             - about:blank
             - data/hello.txt (active)
 
+    # stacking tabs
+    Scenario: stacking tabs opening tab with tabs.new_position.related next
+        When I set tabs.new_position.related to next
+        And I set tabs.new_position.stacking to true
+        And I set tabs.background to true
+        And I open about:blank
+        And I open data/navigate/index.html in a new tab
+        And I hint with args "all tab-bg" and follow a
+        And I hint with args "all tab-bg" and follow s
+        And I wait until data/navigate/prev.html is loaded
+        And I wait until data/navigate/next.html is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/navigate/index.html (active)
+            - data/navigate/prev.html
+            - data/navigate/next.html
+
+    Scenario: stacking tabs opening tab with tabs.new_position.related prev
+        When I set tabs.new_position.related to prev
+        And I set tabs.new_position.stacking to true
+        And I set tabs.background to true
+        And I open about:blank
+        And I open data/navigate/index.html in a new tab
+        And I hint with args "all tab-bg" and follow a
+        And I hint with args "all tab-bg" and follow s
+        And I wait until data/navigate/prev.html is loaded
+        And I wait until data/navigate/next.html is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/navigate/next.html
+            - data/navigate/prev.html
+            - data/navigate/index.html (active)
+
+    Scenario: no stacking tabs opening tab with tabs.new_position.related next
+        When I set tabs.new_position.related to next
+        And I set tabs.new_position.stacking to false
+        And I set tabs.background to true
+        And I open about:blank
+        And I open data/navigate/index.html in a new tab
+        And I hint with args "all tab-bg" and follow a
+        And I hint with args "all tab-bg" and follow s
+        And I wait until data/navigate/prev.html is loaded
+        And I wait until data/navigate/next.html is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/navigate/index.html (active)
+            - data/navigate/next.html
+            - data/navigate/prev.html
+
+    Scenario: no stacking tabs opening tab with tabs.new_position.related prev
+        When I set tabs.new_position.related to prev
+        And I set tabs.new_position.stacking to false
+        And I set tabs.background to true
+        And I open about:blank
+        And I open data/navigate/index.html in a new tab
+        And I hint with args "all tab-bg" and follow a
+        And I hint with args "all tab-bg" and follow s
+        And I wait until data/navigate/prev.html is loaded
+        And I wait until data/navigate/next.html is loaded
+        Then the following tabs should be open:
+            - about:blank
+            - data/navigate/prev.html
+            - data/navigate/next.html
+            - data/navigate/index.html (active)
+
     # :buffer
 
     Scenario: :buffer without args or count
@@ -1224,6 +1289,14 @@ Feature: Tab management
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
 
+    Scenario: :tab-pin open url with tabs.pinned.frozen = false
+        When I set tabs.pinned.frozen to false
+        And I open data/numbers/1.txt
+        And I run :tab-pin
+        And I open data/numbers/2.txt
+        Then the following tabs should be open:
+            - data/numbers/2.txt (active) (pinned)
+
     Scenario: :home on a pinned tab
         When I open data/numbers/1.txt
         And I run :tab-pin
@@ -1231,6 +1304,16 @@ Feature: Tab management
         Then the message "Tab is pinned!" should be shown
         And the following tabs should be open:
             - data/numbers/1.txt (active) (pinned)
+
+    Scenario: :home on a pinned tab with tabs.pinned.frozen = false
+        When I set url.start_pages to ["http://localhost:(port)/data/numbers/2.txt"]
+        And I set tabs.pinned.frozen to false
+        And I open data/numbers/1.txt
+        And I run :tab-pin
+        And I run :home
+        Then data/numbers/2.txt should be loaded
+        And the following tabs should be open:
+            - data/numbers/2.txt (active) (pinned)
 
     Scenario: Cloning a pinned tab
         When I open data/numbers/1.txt
@@ -1274,6 +1357,7 @@ Feature: Tab management
         And I run :fake-key -g new
         Then the javascript message "contents: existingnew" should be logged
 
+    @flaky
     Scenario: Focused prompt after opening link in bg
         When I open data/hints/link_input.html
         When I run :set-cmd-text -s :message-info
@@ -1282,6 +1366,7 @@ Feature: Tab management
         And I run :command-accept
         Then the message "hello-world" should be shown
 
+    @flaky
     Scenario: Focused prompt after opening link in fg
         When I open data/hints/link_input.html
         When I run :set-cmd-text -s :message-info

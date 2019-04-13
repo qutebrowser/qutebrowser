@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -116,9 +116,13 @@ class MouseEventFilter(QObject):
 
         self._ignore_wheel_event = True
 
+        pos = e.pos()
+        if pos.x() < 0 or pos.y() < 0:
+            log.mouse.warning("Ignoring invalid click at {}".format(pos))
+            return False
+
         if e.button() != Qt.NoButton:
-            self._tab.elements.find_at_pos(e.pos(),
-                                           self._mousepress_insertmode_cb)
+            self._tab.elements.find_at_pos(pos, self._mousepress_insertmode_cb)
 
         return False
 
@@ -141,6 +145,10 @@ class MouseEventFilter(QObject):
             return True
 
         if e.modifiers() & Qt.ControlModifier:
+            mode = modeman.instance(self._tab.win_id).mode
+            if mode == usertypes.KeyMode.passthrough:
+                return False
+
             divider = config.val.zoom.mouse_divider
             if divider == 0:
                 return False
@@ -232,7 +240,7 @@ class MouseEventFilter(QObject):
         evtype = event.type()
         if evtype not in self._handlers:
             return False
-        if obj is not self._tab.event_target():
+        if obj is not self._tab.private_api.event_target():
             log.mouse.debug("Ignoring {} to {}".format(
                 event.__class__.__name__, obj))
             return False

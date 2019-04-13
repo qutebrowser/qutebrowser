@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -270,7 +270,8 @@ class BrowserPage(QWebPage):
                     self.display_content, reply, 'image/jpeg'))
         elif pdfjs.should_use_pdfjs(mimetype, reply.url()):
             download_manager.fetch(reply,
-                                   target=downloads.PDFJSDownloadTarget())
+                                   target=downloads.PDFJSDownloadTarget(),
+                                   auto_remove=True)
         else:
             # Unknown mimetype, so download anyways.
             download_manager.fetch(reply,
@@ -468,7 +469,7 @@ class BrowserPage(QWebPage):
     def acceptNavigationRequest(self,
                                 frame: QWebFrame,
                                 request: QNetworkRequest,
-                                typ: QWebPage.NavigationType):
+                                typ: QWebPage.NavigationType) -> bool:
         """Override acceptNavigationRequest to handle clicked links.
 
         Setting linkDelegationPolicy to DelegateAllLinks and using a slot bound

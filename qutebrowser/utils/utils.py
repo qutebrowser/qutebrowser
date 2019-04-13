@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,6 +30,7 @@ import datetime
 import traceback
 import functools
 import contextlib
+import posixpath
 import socket
 import shlex
 import glob
@@ -41,10 +42,12 @@ from PyQt5.QtWidgets import QApplication
 import pkg_resources
 import yaml
 try:
-    from yaml import CSafeLoader as YamlLoader, CSafeDumper as YamlDumper
+    from yaml import (CSafeLoader as YamlLoader,
+                      CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
-    from yaml import SafeLoader as YamlLoader, SafeDumper as YamlDumper
+    from yaml import (SafeLoader as YamlLoader,  # type: ignore
+                      SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
 import qutebrowser
@@ -163,6 +166,9 @@ def read_file(filename, binary=False):
     Return:
         The file contents as string.
     """
+    assert not posixpath.isabs(filename), filename
+    assert os.path.pardir not in filename.split(posixpath.sep), filename
+
     if not binary and filename in _resource_cache:
         return _resource_cache[filename]
 
@@ -500,10 +506,22 @@ def sanitize_filename(name, replacement='_'):
     """
     if replacement is None:
         replacement = ''
-    # Bad characters taken from Windows, there are even fewer on Linux
+
+    # Remove chars which can't be encoded in the filename encoding.
+    # See https://github.com/qutebrowser/qutebrowser/issues/427
+    encoding = sys.getfilesystemencoding()
+    name = force_encoding(name, encoding)
+
     # See also
     # https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words
-    bad_chars = '\\/:*?"<>|'
+    if is_windows:
+        bad_chars = '\\/:*?"<>|'
+    elif is_mac:
+        # Colons can be confusing in finder https://superuser.com/a/326627
+        bad_chars = '/:'
+    else:
+        bad_chars = '/'
+
     for bad_char in bad_chars:
         name = name.replace(bad_char, replacement)
     return name
@@ -618,7 +636,6 @@ def open_file(filename, cmdline=None):
 
 def unused(_arg):
     """Function which does nothing to avoid pylint complaining."""
-    pass
 
 
 def expand_windows_drive(path):
@@ -642,7 +659,15 @@ def expand_windows_drive(path):
 def yaml_load(f):
     """Wrapper over yaml.load using the C loader if possible."""
     start = datetime.datetime.now()
-    data = yaml.load(f, Loader=YamlLoader)
+
+    # WORKAROUND for https://github.com/yaml/pyyaml/pull/181
+    with log.ignore_py_warnings(
+            category=DeprecationWarning,
+            message=r"Using or importing the ABCs from 'collections' instead "
+            r"of from 'collections\.abc' is deprecated, and in 3\.8 it will "
+            r"stop working"):
+        data = yaml.load(f, Loader=YamlLoader)
+
     end = datetime.datetime.now()
 
     delta = (end - start).total_seconds()
@@ -700,3 +725,18 @@ def guess_mimetype(filename, fallback=False):
         else:
             raise ValueError("Got None mimetype for {}".format(filename))
     return mimetype
+
+
+def ceil_log(number, base):
+    """Compute max(1, ceil(log(number, base))).
+
+    Use only integer arithmetic in order to avoid numerical error.
+    """
+    if number < 1 or base < 2:
+        raise ValueError("math domain error")
+    result = 1
+    accum = base
+    while accum < number:
+        result += 1
+        accum *= base
+    return result

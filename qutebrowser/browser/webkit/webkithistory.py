@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -41,7 +41,6 @@ class WebHistoryInterface(QWebHistoryInterface):
 
     def addHistoryEntry(self, url_string):
         """Required for a QWebHistoryInterface impl, obsoleted by add_url."""
-        pass
 
     @functools.lru_cache(maxsize=32768)
     def historyContains(self, url_string):

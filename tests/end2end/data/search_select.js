@@ -7,6 +7,8 @@ if(s.rangeCount > 0) s.removeAllRanges();
 
 for(var i = 0; i < toSelect.length; i++) {
     var range = document.createRange();
-    range.selectNode(toSelect[i]);
-    s.addRange(range);
+    if (toSelect[i].childNodes.length > 0) {
+        range.selectNodeContents(toSelect[i].childNodes[0]);
+        s.addRange(range);
+    }
 }

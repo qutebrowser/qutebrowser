@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015 Daniel Schadt
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -86,8 +86,7 @@ def update_pdfjs(target_version=None):
         shutil.rmtree(target_path)
     os.makedirs(target_path)
     print("Extracting new version")
-    with open(archive_path, 'rb') as archive:
-        shutil.unpack_archive(archive, target_path, 'zip')
+    shutil.unpack_archive(archive_path, target_path, 'zip')
     urllib.request.urlcleanup()
 
 

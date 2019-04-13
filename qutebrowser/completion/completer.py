@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -23,7 +23,8 @@ import attr
 from PyQt5.QtCore import pyqtSlot, QObject, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.commands import cmdutils, runners
+from qutebrowser.commands import runners
+from qutebrowser.misc import objects
 from qutebrowser.utils import log, utils, debug
 from qutebrowser.completion.models import miscmodels
 
@@ -92,7 +93,7 @@ class Completer(QObject):
             log.completion.debug('Starting command completion')
             return miscmodels.command
         try:
-            cmd = cmdutils.cmd_dict[before_cursor[0]]
+            cmd = objects.commands[before_cursor[0]]
         except KeyError:
             log.completion.debug("No completion for unknown command: {}"
                                  .format(before_cursor[0]))
@@ -170,7 +171,7 @@ class Completer(QObject):
         before, center, after = self._partition()
         log.completion.debug("Changing {} to '{}'".format(center, text))
         try:
-            maxsplit = cmdutils.cmd_dict[before[0]].maxsplit
+            maxsplit = objects.commands[before[0]].maxsplit
         except (KeyError, IndexError):
             maxsplit = None
         if maxsplit is None:

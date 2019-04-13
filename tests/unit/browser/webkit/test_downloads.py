@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -62,6 +62,7 @@ def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache,
      '',
      None),
 ])
+@pytest.mark.fake_os('windows')
 def test_page_titles(url, title, out):
     assert downloads.suggested_fn_from_title(url, title) == out
 
@@ -92,3 +93,29 @@ class TestDownloadTarget:
     ])
     def test_class_hierarchy(self, obj):
         assert isinstance(obj, downloads._DownloadTarget)
+
+
+@pytest.mark.parametrize('raw, expected', [
+    pytest.param('http://foo/bar', 'bar',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('A *|<>\\: bear!', 'A ______ bear!',
+                 marks=pytest.mark.fake_os('windows')),
+    pytest.param('A *|<>\\: bear!', 'A *|<>\\: bear!',
+                 marks=[pytest.mark.fake_os('posix'), pytest.mark.posix]),
+])
+def test_sanitized_filenames(raw, expected,
+                             config_stub, download_tmpdir, monkeypatch):
+    manager = downloads.AbstractDownloadManager()
+    target = downloads.FileDownloadTarget(str(download_tmpdir))
+    item = downloads.AbstractDownloadItem()
+
+    # Don't try to start a timer outside of a QThread
+    manager._update_timer.isActive = lambda: True
+
+    # Abstract methods
+    item._ensure_can_set_filename = lambda *args: True
+    item._after_set_filename = lambda *args: True
+
+    manager._init_item(item, True, raw)
+    item.set_target(target)
+    assert item._filename.endswith(expected)

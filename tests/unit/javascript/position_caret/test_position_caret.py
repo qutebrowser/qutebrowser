@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,8 +20,6 @@
 """Tests for position_caret.js."""
 
 import pytest
-
-import helpers.utils
 
 QWebSettings = pytest.importorskip("PyQt5.QtWebKit").QWebSettings
 QWebPage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
@@ -43,21 +41,22 @@ class CaretTester:
 
     Attributes:
         js: The js_tester fixture.
+        _qtbot: The qtbot fixture.
     """
 
-    def __init__(self, js_tester):
+    def __init__(self, js_tester, qtbot):
         self.js = js_tester
+        self._qtbot = qtbot
 
     def check(self):
         """Check whether the caret is before the MARKER text."""
-        self.js.run_file('position_caret.js')
+        self.js.run_file('javascript/position_caret.js')
         self.js.tab.caret.toggle_selection()
         self.js.tab.caret.move_to_next_word()
 
-        callback_checker = helpers.utils.CallbackChecker(self.js.qtbot)
-        self.js.tab.caret.selection(lambda text:
-                                    callback_checker.callback(text.rstrip()))
-        callback_checker.check('MARKER')
+        with self._qtbot.wait_callback() as callback:
+            self.js.tab.caret.selection(lambda text: callback(text.rstrip()))
+        callback.assert_called_with('MARKER')
 
     def check_scrolled(self):
         """Check if the page is scrolled down."""
@@ -65,9 +64,9 @@ class CaretTester:
 
 
 @pytest.fixture
-def caret_tester(js_tester_webkit):
+def caret_tester(js_tester_webkit, qtbot):
     """Helper fixture to test caret browsing positions."""
-    caret_tester = CaretTester(js_tester_webkit)
+    caret_tester = CaretTester(js_tester_webkit, qtbot)
     # Showing webview here is necessary for test_scrolled_down_img to
     # succeed in some cases, see #1988
     caret_tester.js.tab.show()

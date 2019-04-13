@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -142,7 +142,7 @@ def test_parse_path(pattern, path):
     ("data:monkey", 'data', None, 'monkey'),  # existing scheme
 ])
 def test_lightweight_patterns(pattern, scheme, host, path):
-    """Make sure we can leave off parts of an URL.
+    """Make sure we can leave off parts of a URL.
 
     This is a deviation from Chromium to make patterns more user-friendly.
     """

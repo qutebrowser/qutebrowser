@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -53,6 +53,10 @@ def normalize_line(line):
     line = line.replace('Content-Type: application/x-javascript',
                         'Content-Type: application/javascript')
 
+    # With QtWebKit and newer Werkzeug versions, we also get an encoding
+    # specified.
+    line = line.replace('javascript; charset=utf-8', 'javascript')
+
     # Added with Qt 5.11
     if (line.startswith('Snapshot-Content-Location: ') and
             not qtutils.version_check('5.11', compiled=False)):
@@ -61,12 +65,19 @@ def normalize_line(line):
     return line
 
 
+def normalize_whole(s, webengine):
+    if qtutils.version_check('5.12', compiled=False) and webengine:
+        s = s.replace('\n\n-----=_qute-UUID', '\n-----=_qute-UUID')
+    return s
+
+
 class DownloadDir:
 
     """Abstraction over a download directory."""
 
-    def __init__(self, tmpdir):
+    def __init__(self, tmpdir, config):
         self._tmpdir = tmpdir
+        self._config = config
         self.location = str(tmpdir)
 
     def read_file(self):
@@ -81,16 +92,20 @@ class DownloadDir:
 
     def compare_mhtml(self, filename):
         with open(filename, 'r', encoding='utf-8') as f:
-            expected_data = [normalize_line(line) for line in f
-                             if normalize_line(line) is not None]
-        actual_data = self.read_file()
-        actual_data = [normalize_line(line) for line in actual_data]
+            expected_data = '\n'.join(normalize_line(line)
+                                      for line in f
+                                      if normalize_line(line) is not None)
+        actual_data = '\n'.join(normalize_line(line)
+                                for line in self.read_file())
+        actual_data = normalize_whole(actual_data,
+                                      webengine=self._config.webengine)
+
         assert actual_data == expected_data
 
 
 @pytest.fixture
-def download_dir(tmpdir):
-    return DownloadDir(tmpdir)
+def download_dir(tmpdir, pytestconfig):
+    return DownloadDir(tmpdir, pytestconfig)
 
 
 def _test_mhtml_requests(test_dir, test_path, server):

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,12 +27,7 @@ from qutebrowser.keyinput import keyutils
 
 def option(*, info):
     """A CompletionModel filled with settings and their descriptions."""
-    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
-    options = ((opt.name, opt.description, info.config.get_str(opt.name))
-               for opt in configdata.DATA.values()
-               if not opt.no_autoconfig)
-    model.add_category(listcategory.ListCategory("Options", options))
-    return model
+    return _option(info, "Options", lambda opt: not opt.no_autoconfig)
 
 
 def customized_option(*, info):
@@ -44,6 +39,37 @@ def customized_option(*, info):
                if values)
     model.add_category(listcategory.ListCategory("Customized options",
                                                  options))
+    return model
+
+
+def list_option(*, info):
+    """A CompletionModel filled with settings whose values are lists."""
+    predicate = lambda opt: (isinstance(info.config.get_obj(opt.name),
+                                        list) and not opt.no_autoconfig)
+    return _option(info, "List options", predicate)
+
+
+def dict_option(*, info):
+    """A CompletionModel filled with settings whose values are dicts."""
+    predicate = lambda opt: (isinstance(info.config.get_obj(opt.name),
+                                        dict) and not opt.no_autoconfig)
+    return _option(info, "Dict options", predicate)
+
+
+def _option(info, title, predicate):
+    """A CompletionModel that is generated for several option sets.
+
+    Args:
+        info: The config info that can be passed through.
+        title: The title of the options.
+        predicate: The function for filtering out the options. Takes a single
+                   argument.
+    """
+    model = completionmodel.CompletionModel(column_widths=(20, 70, 10))
+    options = ((opt.name, opt.description, info.config.get_str(opt.name))
+               for opt in configdata.DATA.values()
+               if predicate(opt))
+    model.add_category(listcategory.ListCategory(title, options))
     return model
 
 

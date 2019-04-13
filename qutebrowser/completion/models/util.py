@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -20,7 +20,7 @@
 """Utility functions for completion models."""
 
 from qutebrowser.utils import objreg, usertypes
-from qutebrowser.commands import cmdutils
+from qutebrowser.misc import objects
 
 
 def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
@@ -34,10 +34,10 @@ def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
 
     Return: A list of tuples of form (name, description, bindings).
     """
-    assert cmdutils.cmd_dict
+    assert objects.commands
     cmdlist = []
     cmd_to_keys = info.keyconf.get_reverse_bindings_for('normal')
-    for obj in set(cmdutils.cmd_dict.values()):
+    for obj in set(objects.commands.values()):
         hide_debug = obj.debug and not objreg.get('args').debug
         hide_mode = (usertypes.KeyMode.normal not in obj.modes and
                      not include_hidden)

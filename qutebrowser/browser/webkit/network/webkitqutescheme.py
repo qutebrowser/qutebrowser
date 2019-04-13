@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -71,7 +71,7 @@ def handler(request, operation, current_url):
                 QNetworkReply.InternalServerError,
         }
         exctype = type(e)
-        log.misc.exception("{} while handling qute://* URL".format(
+        log.misc.error("{} while handling qute://* URL".format(
             exctype.__name__))
         return networkreply.ErrorNetworkReply(request, str(e), errors[exctype])
     except qutescheme.Redirect as e:

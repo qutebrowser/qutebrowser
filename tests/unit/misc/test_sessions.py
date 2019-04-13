@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -215,9 +215,8 @@ class TestSave:
         with caplog.at_level(logging.ERROR):
             sess_man.save(str(session_path), last_window=True)
 
-        assert len(caplog.records) == 1
         msg = "last_window_session is None while saving!"
-        assert caplog.records[0].msg == msg
+        assert caplog.messages == [msg]
         assert not session_path.exists()
 
     def test_last_window_session(self, sess_man, tmpdir):

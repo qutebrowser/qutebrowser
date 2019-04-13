@@ -60,3 +60,5 @@ rules:
      multiline-ternary: ["error", "always-multiline"]
      max-lines-per-function: "off"
      require-unicode-regexp: "off"
+     max-params: "off"
+     prefer-named-capture-group: "off"
