@@ -24,7 +24,7 @@ import textwrap
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes, qtutils
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
@@ -335,12 +335,10 @@ class TestFollowSelected:
     def expose(self, web_tab):
         """Expose the web view if needed.
 
-        On QtWebKit, or Qt < 5.11 on QtWebEngine, we need to show the tab for
-        selections to work properly.
+        On QtWebKit, or Qt < 5.11 and > 5.12 on QtWebEngine, we need to
+        show the tab for selections to work properly.
         """
-        if (web_tab.backend == usertypes.Backend.QtWebKit or
-                not qtutils.version_check('5.11', compiled=False)):
-            web_tab.container.expose()
+        web_tab.container.expose()
 
     def test_follow_selected_without_a_selection(self, qtbot, caret, selection, web_tab,
                                                  mode_manager):
@@ -368,3 +366,33 @@ class TestFollowSelected:
             with qtbot.wait_signal(caret.follow_selected_done):
                 caret.follow_selected()
         assert web_tab.url().path() == '/data/hello.txt'
+
+
+class TestReverse:
+
+    def test_does_not_change_selection(self, caret, selection):
+        selection.toggle()
+        caret.reverse_selection()
+        selection.check("")
+
+    def test_repetition_of_movement_results_in_empty_selection(self, caret, selection):
+        selection.toggle()
+        caret.move_to_end_of_word()
+        caret.reverse_selection()
+        caret.move_to_end_of_word()
+        selection.check("")
+
+    def test_reverse(self, caret, selection):
+        selection.toggle()
+        caret.move_to_end_of_word()
+        caret.reverse_selection()
+        caret.move_to_next_char()
+        selection.check("ne")
+        caret.reverse_selection()
+        caret.move_to_next_char()
+        selection.check("ne ")
+        caret.move_to_end_of_line()
+        selection.check("ne two three")
+        caret.reverse_selection()
+        caret.move_to_start_of_line()
+        selection.check("one two three")

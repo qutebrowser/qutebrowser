@@ -309,7 +309,7 @@ You can use:
 import yaml
 
 with (config.configdir / 'config.yml').open() as f:
-    yaml_data = yaml.load(f)
+    yaml_data = yaml.safe_load(f)
 
 for k, v in yaml_data.items():
     config.set(k, v)
@@ -339,7 +339,7 @@ You can use:
 import yaml
 
 with (config.configdir / 'colors.yml').open() as f:
-    yaml_data = yaml.load(f)
+    yaml_data = yaml.safe_load(f)
 
 def dict_attrs(obj, path=''):
     if isinstance(obj, dict):

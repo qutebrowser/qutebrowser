@@ -276,7 +276,6 @@ class TabWidget(QTabWidget):
             The index of the newly added tab.
         """
         if text_or_empty is None:
-            icon = None
             text = icon_or_text
             new_idx = super().addTab(page, '')
         else:
@@ -306,7 +305,6 @@ class TabWidget(QTabWidget):
             The index of the newly added tab.
         """
         if text_or_empty is None:
-            icon = None
             text = icon_or_text
             new_idx = super().insertTab(idx, page, '')
         else:
@@ -692,6 +690,8 @@ class TabBar(QTabBar):
             self.initStyleOption(tab, idx)
 
             setting = 'colors.tabs'
+            if self._tab_pinned(idx):
+                setting += '.pinned'
             if idx == selected:
                 setting += '.selected'
             setting += '.odd' if (idx + 1) % 2 else '.even'

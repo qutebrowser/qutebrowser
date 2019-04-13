@@ -183,27 +183,27 @@ class TestAdd:
         assert not list(web_history)
         assert not list(web_history.completion)
 
-    @pytest.mark.parametrize('environmental', [True, False])
+    @pytest.mark.parametrize('known_error', [True, False])
     @pytest.mark.parametrize('completion', [True, False])
     def test_error(self, monkeypatch, web_history, message_mock, caplog,
-                   environmental, completion):
+                   known_error, completion):
         def raise_error(url, replace=False):
-            if environmental:
-                raise sql.SqlEnvironmentError("Error message")
-            raise sql.SqlBugError("Error message")
+            if known_error:
+                raise sql.KnownError("Error message")
+            raise sql.BugError("Error message")
 
         if completion:
             monkeypatch.setattr(web_history.completion, 'insert', raise_error)
         else:
             monkeypatch.setattr(web_history, 'insert', raise_error)
 
-        if environmental:
+        if known_error:
             with caplog.at_level(logging.ERROR):
                 web_history.add_url(QUrl('https://www.example.org/'))
             msg = message_mock.getmsg(usertypes.MessageLevel.error)
             assert msg.text == "Failed to write history: Error message"
         else:
-            with pytest.raises(sql.SqlBugError):
+            with pytest.raises(sql.BugError):
                 web_history.add_url(QUrl('https://www.example.org/'))
 
     @pytest.mark.parametrize('level, url, req_url, expected', [
