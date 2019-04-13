@@ -22,7 +22,6 @@ import os
 import sys
 import logging
 import unittest.mock
-import tempfile
 
 import pytest
 
@@ -67,20 +66,13 @@ def configdata_init(monkeypatch):
 
 class TestEarlyInit:
 
-    def test_config_py_path(self, args):
-        with tempfile.NamedTemporaryFile(encoding = 'utf-8' ,
-                                         mode = 'w') as conf_file:
-            conf_file.write('c.colors.hints.bg = "red"\n')
-            conf_file.flush()
-            args.config_py = conf_file.name
-            configinit.early_init(args)
-
-            # Make sure things have been init'ed
-            objreg.get('config-commands')
-            assert isinstance(config.instance, config.Config)
-
-            expected = 'colors.hints.bg = red'
-            assert config.instance.dump_userconfig() == expected
+    def test_config_py_path(self, args, tmpdir, init_patch):
+        f = tmpdir.join('temp_config.py')
+        f.write('c.colors.hints.bg = "red"\n')
+        args.config_py = str(f)
+        configinit.early_init(args)
+        expected = 'colors.hints.bg = red'
+        assert config.instance.dump_userconfig() == expected
 
 
     @pytest.mark.parametrize('config_py', [True, 'error', False])
