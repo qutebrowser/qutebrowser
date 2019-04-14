@@ -48,8 +48,13 @@ class OrphanedError(Error):
     """Raised when a webelement's parent has vanished."""
 
 
-def css_selector(group: str, url: QUrl) -> str:
-    """Get a CSS selector for the given group/URL."""
+SPECIAL_SELECTOR_MAP = {
+    "__qute_scrollable": "scrollable"
+}
+
+
+def css_selector(group: str, url: QUrl) -> typing.Tuple[str, typing.List[str]]:
+    """Get CSS and special selectors for the given group/URL."""
     selectors = config.instance.get('hints.selectors', url)
     if group not in selectors:
         selectors = config.val.hints.selectors
@@ -57,7 +62,16 @@ def css_selector(group: str, url: QUrl) -> str:
         if group not in selectors:
             raise Error("Undefined hinting group {!r}".format(group))
 
-    return ','.join(selectors[group])
+    selectors = selectors[group]
+    css_selectors = []  # type: typing.List[str]
+    special_selectors = []  # type: typing.List[str]
+    for s in selectors:
+        special_selector = SPECIAL_SELECTOR_MAP.get(s)
+        if special_selector is not None:
+            special_selectors.append(special_selector)
+        else:
+            css_selectors.append(s)
+    return ','.join(css_selectors), special_selectors
 
 
 class AbstractWebElement(collections.abc.MutableMapping):

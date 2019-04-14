@@ -725,16 +725,17 @@ class HintManager(QObject):
         self._context.group = group
 
         try:
-            selector = webelem.css_selector(self._context.group,
-                                            self._context.baseurl)
+            css_selector, special_selectors = webelem.css_selector(
+                self._context.group, self._context.baseurl)
         except webelem.Error as e:
             raise cmdutils.CommandError(str(e))
 
         self._context.tab.elements.find_css(
-            selector,
+            css_selector,
             callback=self._start_cb,
             error_cb=lambda err: message.error(str(err)),
-            only_visible=True)
+            only_visible=True,
+            special_classes=special_selectors)
 
     def _get_hint_mode(self, mode):
         """Get the hinting mode to use based on a mode argument."""
