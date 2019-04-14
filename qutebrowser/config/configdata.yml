@@ -2611,6 +2611,7 @@ bindings.default:
       ;h: hint all hover
       ;i: hint images
       ;I: hint images tab
+      ;s: hint scrollable
       ;o: hint links fill :open {hint-url}
       ;O: hint links fill :open -t -r {hint-url}
       ;y: hint links yank
