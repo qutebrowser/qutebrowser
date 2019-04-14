@@ -23,8 +23,6 @@ window._qutebrowser.scroll = (function() {
     let activatedElement = null;
     const funcs = {};
 
-    const utils = window._qutebrowser.utils;
-
     function build_scroll_options(x, y, smooth) {
         return {
             "behavior": smooth
@@ -97,7 +95,8 @@ window._qutebrowser.scroll = (function() {
     }
 
     // Scroll a provided window's element by x,y as a percent
-    function scroll_window_elt(x, y, smooth, win, elt) {
+    function scroll_window_elt(x, y, smooth, elt) {
+        const win = elt.ownerDocument.defaultView;
         const dx = win.innerWidth * x;
         const dy = win.innerHeight * y;
         scroll_element(elt, dx, dy, smooth);
@@ -186,34 +185,19 @@ window._qutebrowser.scroll = (function() {
     }
 
     funcs.to_perc = (x, y) => {
-        const frame_win = utils.get_frame_window(document.activeElement);
-        if (frame_win === window) {
-            const scroll_elt = getActivatedElement(x, y);
-            scroll_to_perc(scroll_elt, x, y);
-        } else {
-            scroll_to_perc(frame_win.document.scrollingElement, x, y);
-        }
+        const scroll_elt = getActivatedElement(x, y);
+        scroll_to_perc(scroll_elt, x, y);
     };
 
     funcs.delta_page = (x, y, smooth) => {
-        const frame_win = utils.get_frame_window(document.activeElement);
-        if (frame_win === window) {
-            const scroll_elt = getActivatedElement(x, y);
-            scroll_window_elt(x, y, smooth, frame_win, scroll_elt);
-        } else {
-            scroll_window_elt(x, y, smooth, frame_win, frame_win);
-        }
+        const scroll_elt = getActivatedElement(x, y);
+        scroll_window_elt(x, y, smooth, scroll_elt);
     };
 
     funcs.delta_px = (x, y, smooth) => {
-        const frame_win = utils.get_frame_window(document.activeElement);
         // Scroll by raw pixels, rather than by page
-        if (frame_win === window) {
-            const scroll_elt = getActivatedElement(x, y);
-            scroll_element(scroll_elt, x, y, smooth);
-        } else {
-            scroll_element(frame_win, x, y, smooth);
-        }
+        const scroll_elt = getActivatedElement(x, y);
+        scroll_element(scroll_elt, x, y, smooth);
     };
 
     funcs.set_activated_element = (elt) => {
