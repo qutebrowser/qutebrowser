@@ -20,6 +20,7 @@
 "use strict";
 
 window._qutebrowser.scroll = (function() {
+    let activatedElement = null;
     const funcs = {};
 
     const utils = window._qutebrowser.utils;
@@ -133,10 +134,61 @@ window._qutebrowser.scroll = (function() {
         return elt;
     }
 
+    // Attempt to set activatedElement to the largest element.
+    // Inspired from firstScrollableElement in vimium:
+    // http://github.com/philc/vimium/blob/026c90cc/content_scripts/scroller.coffee#L98-L114
+    function firstScrollableElement(ele = null) {
+        let element = ele;
+        if (element === null) {
+            const scrollingElement = document.scrollingElement || document.body;
+            if (is_scrollable(scrollingElement, 0, 1)) {
+                return scrollingElement;
+            }
+            element = document.body || scrollingElement;
+        }
+
+        if (is_scrollable(element, 0, 1)) {
+            return element;
+        }
+        const childElements = Array.from(element.children).
+            map((child) => ({"element": child,
+                "rect": child.getBoundingClientRect()})).
+            filter((child) => child.rect).
+            map((child) => {
+                child.area = child.rect.width * child.rect.height;
+                return child;
+            }).
+            sort((first, second) => second.area - first.area);
+        for (let i = 0; i < childElements.length; i++) {
+            const result = firstScrollableElement(childElements[i].element);
+            if (result !== null) {
+                return result;
+            }
+        }
+        return null;
+    }
+
+    // Get the element that should be scrolled currently in the root frame. If
+    // activatedElement is set, use that. Otherwise recurse using
+    // activeElement.
+    function getActivatedElement(x, y) {
+        let elt = document.activeElement;
+        if (activatedElement === null) {
+            const firstScrolling = firstScrollableElement();
+            if (firstScrolling) {
+                activatedElement = firstScrolling;
+                elt = activatedElement;
+            }
+        } else {
+            elt = activatedElement;
+        }
+        return scrollable_parent(elt, x, y);
+    }
+
     funcs.to_perc = (x, y) => {
         const frame_win = utils.get_frame_window(document.activeElement);
         if (frame_win === window) {
-            const scroll_elt = scrollable_parent(document.activeElement, x, y);
+            const scroll_elt = getActivatedElement(x, y);
             scroll_to_perc(scroll_elt, x, y);
         } else {
             scroll_to_perc(frame_win.document.scrollingElement, x, y);
@@ -146,7 +198,7 @@ window._qutebrowser.scroll = (function() {
     funcs.delta_page = (x, y, smooth) => {
         const frame_win = utils.get_frame_window(document.activeElement);
         if (frame_win === window) {
-            const scroll_elt = scrollable_parent(document.activeElement, x, y);
+            const scroll_elt = getActivatedElement(x, y);
             scroll_window_elt(x, y, smooth, frame_win, scroll_elt);
         } else {
             scroll_window_elt(x, y, smooth, frame_win, frame_win);
@@ -157,12 +209,17 @@ window._qutebrowser.scroll = (function() {
         const frame_win = utils.get_frame_window(document.activeElement);
         // Scroll by raw pixels, rather than by page
         if (frame_win === window) {
-            const scroll_elt = scrollable_parent(document.activeElement, x, y);
+            const scroll_elt = getActivatedElement(x, y);
             scroll_element(scroll_elt, x, y, smooth);
         } else {
             scroll_element(frame_win, x, y, smooth);
         }
     };
+
+    funcs.set_activated_element = (elt) => {
+        activatedElement = elt;
+    };
+    funcs.is_scrollable = is_scrollable;
 
     return funcs;
 })();

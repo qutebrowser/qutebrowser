@@ -41,6 +41,7 @@ window._qutebrowser.webelem = (function() {
     const elements = [];
 
     const utils = window._qutebrowser.utils;
+    const scroll = window._qutebrowser.scroll;
 
     function get_frame_offset(frame) {
         if (frame === null || !frame.frameElement) {
@@ -377,6 +378,11 @@ window._qutebrowser.webelem = (function() {
         const elem = elements[id];
         elem.selectionStart = elem.value.length;
         elem.selectionEnd = elem.value.length;
+    };
+
+    funcs.set_activated_element = (id) => {
+        const elem = elements[id];
+        scroll.set_activated_element(elem);
     };
 
     return funcs;
