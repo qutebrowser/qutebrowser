@@ -17,15 +17,19 @@
             }
 
             window.onload = function () {
-                let div = document.getElementById("scroll-div");
-                div.addEventListener('scroll', () =>  {
-                    console.log("scroll y px: " + div.scrollTop);
+                const divLarge = document.getElementById("scroll-div-large");
+                divLarge.addEventListener('scroll', () =>  {
+                    console.log("large: scroll y px: " + divLarge.scrollTop);
+                });
+                const divSmall = document.getElementById("scroll-div-small");
+                divSmall.addEventListener('scroll', () =>  {
+                    console.log("small: scroll y px: " + divSmall.scrollTop);
                 });
             }
         </script>
     </head>
     <body>
-    <div id="scroll-div" style="overflow-y: scroll; height:400px;">
+    <div id="scroll-div-large" style="overflow-y: scroll; height:400px;">
       <a href="/data/hello.txt" id="link">Just a link</a>
       <button>blub</button>
         <p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus</p>
@@ -235,5 +239,10 @@ This is a very long line so this page can be scrolled horizontally. Did you thin
         <a href="/data/hello2.txt">next</a> link to test the --top-navigate argument for :scroll-page.
         <a href="/data/hello3.txt">prev</a> link to test the --bottom-navigate argument for :scroll-page.
     </div>
+
+    <div id="scroll-div-small" style="overflow-y: scroll; height:20px;">
+        <p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, commodo vitae, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. Donec non enim in turpis pulvinar facilisis. Ut felis. Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus</p>
+    </div>
+
     </body>
 </html>
