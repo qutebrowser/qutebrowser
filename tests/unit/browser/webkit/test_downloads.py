@@ -20,6 +20,7 @@
 import pytest
 
 from qutebrowser.browser import downloads, qtnetworkdownloads
+from qutebrowser.utils import objreg
 
 
 def test_download_model(qapp, qtmodeltester, config_stub, cookiejar_and_cache,
@@ -116,6 +117,63 @@ def test_sanitized_filenames(raw, expected,
     item._ensure_can_set_filename = lambda *args: True
     item._after_set_filename = lambda *args: True
 
+    # Don't try to get current window
+    monkeypatch.setattr(item, '_get_conflicting_downloads', lambda: list())
+
     manager._init_item(item, True, raw)
     item.set_target(target)
     assert item._filename.endswith(expected)
+
+
+class TestConflictingDownloads:
+
+    def test_no_downloads(self, qapp, qtmodeltester, config_stub,
+                          cookiejar_and_cache, fake_args, monkeypatch):
+        my_item = downloads.AbstractDownloadItem()
+        my_item._filename = 'download.txt'
+        manager = qtnetworkdownloads.DownloadManager()
+        model = downloads.DownloadModel(manager)
+        monkeypatch.setattr(objreg, 'get', lambda *args, **kwargs: model)
+        assert my_item._get_conflicting_downloads() == []
+
+    def test_different_name(self, qapp, qtmodeltester, config_stub,
+                            cookiejar_and_cache, fake_args, monkeypatch):
+        my_item = downloads.AbstractDownloadItem()
+        my_item._filename = 'download.txt'
+        item2 = downloads.AbstractDownloadItem()
+        item2._filename = 'download2.txt'
+        item2.done = False
+        manager = qtnetworkdownloads.DownloadManager()
+        model = downloads.DownloadModel(manager)
+        monkeypatch.setattr(objreg, 'get', lambda *args, **kwargs: model)
+        monkeypatch.setattr(model, '_all_downloads',
+                            lambda *args, **kwargs: [item2])
+        assert my_item._get_conflicting_downloads() == []
+
+    def test_finished_download(self, qapp, qtmodeltester, config_stub,
+                               cookiejar_and_cache, fake_args, monkeypatch):
+        my_item = downloads.AbstractDownloadItem()
+        my_item._filename = 'download.txt'
+        item2 = downloads.AbstractDownloadItem()
+        item2._filename = 'download.txt'
+        item2.done = True
+        manager = qtnetworkdownloads.DownloadManager()
+        model = downloads.DownloadModel(manager)
+        monkeypatch.setattr(objreg, 'get', lambda *args, **kwargs: model)
+        monkeypatch.setattr(model, '_all_downloads',
+                            lambda *args, **kwargs: [item2])
+        assert my_item._get_conflicting_downloads() == []
+
+    def test_conflicting_downloads(self, qapp, qtmodeltester, config_stub,
+                                   cookiejar_and_cache, fake_args, monkeypatch):
+        my_item = downloads.AbstractDownloadItem()
+        my_item._filename = 'download.txt'
+        item2 = downloads.AbstractDownloadItem()
+        item2._filename = 'download.txt'
+        item2.done = False
+        manager = qtnetworkdownloads.DownloadManager()
+        model = downloads.DownloadModel(manager)
+        monkeypatch.setattr(objreg, 'get', lambda *args, **kwargs: model)
+        monkeypatch.setattr(model, '_all_downloads',
+                            lambda *args, **kwargs: [item2])
+        assert my_item._get_conflicting_downloads() == [item2]
