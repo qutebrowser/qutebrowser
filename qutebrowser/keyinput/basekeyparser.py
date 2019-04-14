@@ -94,18 +94,6 @@ class BaseKeyParser(QObject):
         if self.do_log:
             log.keyboard.debug(message)
 
-    # This cache should, ideally, not exist. Unfortunately, it is needed
-    # because of two reasons:
-    #
-    # 1. We loop over all bindings to calculate a match (?!?)
-    # 2. We do a deep dictionary traversal, with validation on every element on
-    # dictionary get (which is needed for per-domain bindings). Unfortunately,
-    # this cache will only migitate this issue, and people using per-domain
-    # bindings will still see slowdown.
-    #
-    # Once those two issues are fixed, this cache will become a waste of memory
-    # and can be removed
-    @functools.lru_cache(maxsize=2**7)
     def _match_key(self, sequence, url):
         """Try to match a given keystring with any bound keychain.
 
@@ -254,7 +242,6 @@ class BaseKeyParser(QObject):
     @config.change_filter('bindings')
     def _on_config_changed(self):
         self._read_config()
-        self._match_key.cache_clear()
 
     def _read_config(self, modename=None):
         """Read the configuration.
