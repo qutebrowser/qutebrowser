@@ -147,10 +147,12 @@ class WebEngineElement(webelem.AbstractWebElement):
     def hint_reason(self) -> typing.Optional[str]:
         return self._js_dict.get('hint_reason', None)
 
-    def special_click_handler(self) -> None:
+    def special_click_handler(self) -> bool:
         """Handle setting activatedElement on scrollable elements."""
         if self.hint_reason() == "scrollable":
             self._js_call('set_activated_element')
+            return True
+        return False
 
     def dispatch_event(self, event: str,
                        bubbles: bool = False,

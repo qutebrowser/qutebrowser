@@ -145,10 +145,14 @@ class AbstractWebElement(collections.abc.MutableMapping):
         # Needs to be overridden in subclasses.
         return None
 
-    def special_click_handler(self) -> None:
+    def special_click_handler(self) -> bool:
         """Called when a click is triggered.
 
-        Handles special actions during a click."""
+        Handles special actions during a click.
+
+        If returns true, the rest of the handling will be cancelled.
+        """
+        return False
 
     def dispatch_event(self, event: str,
                        bubbles: bool = False,
@@ -423,9 +427,10 @@ class AbstractWebElement(collections.abc.MutableMapping):
         log.webelem.debug("Clicking {!r} with click_target {}, force_event {}"
                           .format(self, click_target, force_event))
 
-        self.special_click_handler()
         if force_event:
             self._click_fake_event(click_target)
+            return
+        if self.special_click_handler():
             return
 
         if click_target == usertypes.ClickTarget.normal:
