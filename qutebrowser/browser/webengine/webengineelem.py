@@ -55,6 +55,7 @@ class WebEngineElement(webelem.AbstractWebElement):
             'rects': list,
             'attributes': dict,
             'caret_position': (int, type(None)),
+            'hint_reason': (str, type(None)),
         }  # type: typing.Dict[str, typing.Union[type, typing.Tuple[type,...]]]
         assert set(js_dict.keys()).issubset(js_dict_types.keys())
         for name, typ in js_dict_types.items():

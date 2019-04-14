@@ -648,9 +648,9 @@ class WebEngineElements(browsertab.AbstractElements):
             callback(elem)
 
     def find_css(self, selector, callback, error_cb, *,
-                 only_visible=False):
+                 only_visible=False, special_classes=()):
         js_code = javascript.assemble('webelem', 'find_css', selector,
-                                      only_visible)
+                                      only_visible, special_classes)
         js_cb = functools.partial(self._js_cb_multiple, callback, error_cb)
         self._tab.run_js_async(js_code, js_cb)
 

@@ -89,7 +89,7 @@ window._qutebrowser.webelem = (function() {
         return null;
     }
 
-    function serialize_elem(elem, frame = null) {
+    function serialize_elem(elem, frame = null, hintReason = null) {
         if (!elem) {
             return null;
         }
@@ -159,6 +159,12 @@ window._qutebrowser.webelem = (function() {
             );
         }
 
+        if (hintReason === null) {
+            out.hint_reason = null;
+        } else {
+            out.hint_reason = hintReason;
+        }
+
         // console.log(JSON.stringify(out));
 
         return out;
@@ -205,42 +211,6 @@ window._qutebrowser.webelem = (function() {
         return true;
     }
 
-    funcs.find_css = (selector, only_visible) => {
-        let elems;
-
-        try {
-            elems = document.querySelectorAll(selector);
-        } catch (ex) {
-            return {"success": false, "error": ex.toString()};
-        }
-
-        const subelem_frames = window.frames;
-        const out = [];
-
-        for (let i = 0; i < elems.length; ++i) {
-            if (!only_visible || is_visible(elems[i])) {
-                out.push(serialize_elem(elems[i]));
-            }
-        }
-
-        // Recurse into frames and add them
-        for (let i = 0; i < subelem_frames.length; i++) {
-            if (utils.iframe_same_domain(subelem_frames[i])) {
-                const frame = subelem_frames[i];
-                const subelems = frame.document.
-                    querySelectorAll(selector);
-                for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
-                    if (!only_visible ||
-                        is_visible(subelems[elem_num], frame)) {
-                        out.push(serialize_elem(subelems[elem_num], frame));
-                    }
-                }
-            }
-        }
-
-        return {"success": true, "result": out};
-    };
-
     // Runs a function in a frame until the result is not null, then return
     // If no frame succeds, return null
     function run_frames(func) {
@@ -255,6 +225,84 @@ window._qutebrowser.webelem = (function() {
         }
         return null;
     }
+
+
+    // Return elements that are scrollable
+    function find_scrollable(only_visible) {
+        const scrollable_elts =
+              Array.from(document.querySelectorAll("div,ol,ul")).
+                  filter((elt) => elt.clientHeight < elt.scrollHeight &&
+                          scroll.is_scrollable(elt, 0, 1)).
+                  filter((elt) => !only_visible || is_visible(elt)).
+                  map((elt) => serialize_elem(elt, null, "scrollable"));
+        run_frames((frame) => {
+            const scroller = frame.window.document.scrollingElement;
+            if (scroller !== null && is_visible(scroller, frame)) {
+                scrollable_elts.push(
+                    serialize_elem(
+                        scroller,
+                        frame,
+                        "scrollable"));
+            }
+        });
+        return scrollable_elts;
+    }
+
+    // Find and serialize elements matching a css selector (and/or special hint
+    // categories as well)
+    funcs.find_css = (selector, only_visible, special_classes = []) => {
+        let elems;
+
+        const subelem_frames = window.frames;
+        const selector_out = [];
+        let special_out = [];
+
+        special_classes.forEach((classStr) => {
+            switch (classStr) {
+            case "scrollable":
+                special_out = find_scrollable(only_visible);
+                break;
+            default:
+                // Unknown special class, ignore for now.
+            }
+        });
+
+        // If we don't have a real selector, don't continue.
+        if (selector === null || selector === "") {
+            return {"success": true, "result": special_out};
+        }
+
+        try {
+            elems = document.querySelectorAll(selector);
+        } catch (ex) {
+            return {"success": false, "error": ex.toString()};
+        }
+
+        for (let i = 0; i < elems.length; ++i) {
+            if (!only_visible || is_visible(elems[i])) {
+                selector_out.push(serialize_elem(elems[i]));
+            }
+        }
+
+        // Recurse into frames and add them
+        for (let i = 0; i < subelem_frames.length; i++) {
+            if (utils.iframe_same_domain(subelem_frames[i])) {
+                const frame = subelem_frames[i];
+                const subelems = frame.document.
+                    querySelectorAll(selector);
+                for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
+                    if (!only_visible ||
+                        is_visible(subelems[elem_num], frame)) {
+                        selector_out.push(
+                            serialize_elem(subelems[elem_num], frame));
+                    }
+                }
+            }
+        }
+        // special elements should always show up after normally hinted
+        // elements.
+        return {"success": true, "result": selector_out.concat(special_out)};
+    };
 
     funcs.find_id = (id) => {
         const elem = document.getElementById(id);

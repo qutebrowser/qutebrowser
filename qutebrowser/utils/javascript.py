@@ -59,7 +59,7 @@ def to_js(arg):
         return str(arg).lower()
     elif isinstance(arg, (int, float)):
         return str(arg)
-    elif isinstance(arg, list):
+    elif isinstance(arg, (list, tuple)):
         return '[{}]'.format(', '.join(to_js(e) for e in arg))
     else:
         raise TypeError("Don't know how to handle {!r} of type {}!".format(
