@@ -144,6 +144,14 @@ class WebEngineElement(webelem.AbstractWebElement):
     def set_value(self, value: webelem.JsValueType) -> None:
         self._js_call('set_value', value)
 
+    def hint_reason(self) -> typing.Optional[str]:
+        return self._js_dict.get('hint_reason', None)
+
+    def special_click_handler(self) -> None:
+        """Handle setting activatedElement on scrollable elements."""
+        if self.hint_reason() == "scrollable":
+            self._js_call('set_activated_element')
+
     def dispatch_event(self, event: str,
                        bubbles: bool = False,
                        cancelable: bool = False,

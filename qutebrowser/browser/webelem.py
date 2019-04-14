@@ -140,6 +140,16 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Set the element value."""
         raise NotImplementedError
 
+    def hint_reason(self) -> typing.Optional[str]:
+        """Get the hint reason for this element. None if unknown."""
+        # Needs to be overridden in subclasses.
+        return None
+
+    def special_click_handler(self) -> None:
+        """Called when a click is triggered.
+
+        Handles special actions during a click."""
+
     def dispatch_event(self, event: str,
                        bubbles: bool = False,
                        cancelable: bool = False,
@@ -413,6 +423,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         log.webelem.debug("Clicking {!r} with click_target {}, force_event {}"
                           .format(self, click_target, force_event))
 
+        self.special_click_handler()
         if force_event:
             self._click_fake_event(click_target)
             return
