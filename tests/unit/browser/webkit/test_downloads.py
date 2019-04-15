@@ -118,7 +118,7 @@ def test_sanitized_filenames(raw, expected,
     item._after_set_filename = lambda *args: True
 
     # Don't try to get current window
-    monkeypatch.setattr(item, '_get_conflicting_downloads', lambda: list())
+    monkeypatch.setattr(item, '_get_conflicting_downloads', list)
 
     manager._init_item(item, True, raw)
     item.set_target(target)
@@ -165,7 +165,8 @@ class TestConflictingDownloads:
         assert my_item._get_conflicting_downloads() == []
 
     def test_conflicting_downloads(self, qapp, qtmodeltester, config_stub,
-                                   cookiejar_and_cache, fake_args, monkeypatch):
+                                   cookiejar_and_cache, fake_args,
+                                   monkeypatch):
         my_item = downloads.AbstractDownloadItem()
         my_item._filename = 'download.txt'
         item2 = downloads.AbstractDownloadItem()
@@ -197,8 +198,6 @@ class TestConflictingDownloads:
         monkeypatch.setattr(model, '_all_downloads',
                             lambda *args, **kwargs: [item2])
         monkeypatch.setattr(item2, 'cancel', patched_cancel)
-        try:
-            my_item._cancel_conflicting_downloads()
-        except NotImplementedError:
-            pass
+        monkeypatch.setattr(my_item, '_after_set_filename', lambda: None)
+        my_item._cancel_conflicting_downloads()
         assert item2.done
