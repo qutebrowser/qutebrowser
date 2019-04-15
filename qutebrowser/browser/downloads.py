@@ -437,6 +437,9 @@ class AbstractDownloadItem(QObject):
         self._filename = None
         self._dead = False
 
+    def get_filename(self):
+        return self._filename
+
     def __repr__(self):
         return utils.get_repr(self, basename=self.basename)
 
@@ -712,8 +715,6 @@ class AbstractDownloadItem(QObject):
         log.downloads.debug("Setting filename to {}".format(self._filename))
         conflicting_downloads = self._get_conflicting_downloads()
         if conflicting_downloads:
-            # There is a download in progress with the same name, ask the user
-            # if it/they should be cancelled.
             txt = "<b>{}</b> is already downloading. " \
                   "Cancel and re-download?".format(html.escape(self._filename))
             self._ask_confirm_question(
@@ -740,10 +741,9 @@ class AbstractDownloadItem(QObject):
         """Returns a list of other active downloads with the same name."""
         return [
             download for download in
-            objreg.get('download-model', scope='window',
-                       window='current')._all_downloads()
+            objreg.get('download-model', scope='window', window='current')
             if download is not self and
-            download._filename == self._filename and
+            download.get_filename() == self._filename and
             not download.done
         ]
 
