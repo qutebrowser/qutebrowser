@@ -177,3 +177,28 @@ class TestConflictingDownloads:
         monkeypatch.setattr(model, '_all_downloads',
                             lambda *args, **kwargs: [item2])
         assert my_item._get_conflicting_downloads() == [item2]
+
+    def test_cancel_conflicting_downloads(self, qapp, qtmodeltester,
+                                          config_stub, cookiejar_and_cache,
+                                          fake_args, monkeypatch):
+        my_item = downloads.AbstractDownloadItem()
+        my_item._filename = 'download.txt'
+        item2 = downloads.AbstractDownloadItem()
+        item2._filename = 'download.txt'
+        item2.done = False
+        manager = qtnetworkdownloads.DownloadManager()
+        model = downloads.DownloadModel(manager)
+        monkeypatch.setattr(objreg, 'get', lambda *args, **kwargs: model)
+
+        def patched_cancel(remove_data=True):
+            assert not remove_data
+            item2.done = True
+
+        monkeypatch.setattr(model, '_all_downloads',
+                            lambda *args, **kwargs: [item2])
+        monkeypatch.setattr(item2, 'cancel', patched_cancel)
+        try:
+            my_item._cancel_conflicting_downloads()
+        except NotImplementedError:
+            pass
+        assert item2.done
