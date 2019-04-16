@@ -164,7 +164,7 @@ def main(arguments):
             break
     else:
         if not candidates:
-            stderr('No pass candidates for URL {0!r} found! (I tried {1!r})'.format(arguments.url, attempted_targets))
+            stderr('No pass candidates for URL {!r} found! (I tried {!r})'.format(arguments.url, attempted_targets))
             return ExitCodes.NO_PASS_CANDIDATES
 
     selection = candidates.pop() if len(candidates) == 1 else dmenu(sorted(candidates), arguments.dmenu_invocation,
