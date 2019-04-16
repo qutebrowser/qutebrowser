@@ -391,6 +391,12 @@ Feature: Various utility commands.
         And I run :command-accept
         Then the message "Hello World" should be shown
 
+    ## https://github.com/qutebrowser/qutebrowser/issues/4720
+    Scenario: Chaining failing commands
+        When I run :scroll x ;; message-info foo
+        Then the error "Invalid value 'x' for direction - *" should be shown
+        And the message "foo" should be shown
+
     # We can't run :message-i as startup command, so we use
     # :set-cmd-text
 

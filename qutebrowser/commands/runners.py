@@ -286,12 +286,13 @@ class CommandRunner(QObject):
         self._parser = CommandParser(partial_match=partial_match)
         self._win_id = win_id
 
-    def run(self, text, count=None):
+    def run(self, text, count=None, *, safely=False):
         """Parse a command from a line of text and run it.
 
         Args:
             text: The text to parse.
             count: The count to pass to the command.
+            safely: Show CmdError exceptions as messages.
         """
         record_last_command = True
         record_macro = True
@@ -305,7 +306,14 @@ class CommandRunner(QObject):
                 args = result.args
             else:
                 args = replace_variables(self._win_id, result.args)
-            result.cmd.run(self._win_id, args, count=count)
+
+            try:
+                result.cmd.run(self._win_id, args, count=count)
+            except cmdexc.Error as e:
+                if safely:
+                    message.error(str(e), stack=traceback.format_exc())
+                else:
+                    raise
 
             if result.cmdline[0] == 'repeat-command':
                 record_last_command = False
@@ -325,7 +333,4 @@ class CommandRunner(QObject):
     @pyqtSlot(str)
     def run_safely(self, text, count=None):
         """Run a command and display exceptions in the statusbar."""
-        try:
-            self.run(text, count)
-        except cmdexc.Error as e:
-            message.error(str(e), stack=traceback.format_exc())
+        self.run(text, count, safely=True)
