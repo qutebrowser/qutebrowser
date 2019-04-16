@@ -120,6 +120,10 @@ window._qutebrowser.scroll = (function() {
         return should_scroll(elt) && can_scroll(elt, x, y);
     }
 
+    function is_scrollable_y(elt) {
+        return is_scrollable(elt, 0, 1);
+    }
+
     // Recurse up the DOM and get the first element which is scrollable.
     // We cannot use scrollHeight and clientHeight due to a chrome bug (110149)
     // Heavily inspired from Vimium's implementation:
@@ -146,7 +150,7 @@ window._qutebrowser.scroll = (function() {
             element = document.body || scrollingElement;
         }
 
-        if (is_scrollable(element, 0, 1)) {
+        if (is_scrollable_y(element)) {
             return element;
         }
         const childElements = Array.from(element.children).
@@ -172,6 +176,16 @@ window._qutebrowser.scroll = (function() {
     // activeElement.
     function getActivatedElement(x, y) {
         let elt = document.activeElement;
+        // If activated element is no longer present, remove it from
+        // consideration
+        if (activatedElement !== null &&
+            !document.contains(activatedElement) &&
+            // If document is not the root one, we may have a frame scrollable
+            // TODO handle deletion of frames
+            document === activatedElement.ownerDocument) {
+            activatedElement = null;
+        }
+
         if (activatedElement === null) {
             const firstScrolling = firstScrollableElement();
             if (firstScrolling) {
@@ -204,6 +218,7 @@ window._qutebrowser.scroll = (function() {
         activatedElement = elt;
     };
     funcs.is_scrollable = is_scrollable;
+    funcs.is_scrollable_y = is_scrollable_y;
 
     return funcs;
 })();
