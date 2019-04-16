@@ -214,7 +214,7 @@ Feature: Searching on a page
     # TODO: wrapping message without scrolling
 
     ## follow searched links
-    @flaky
+    @skip  # Too flaky
     Scenario: Follow a searched link
         When I run :search follow
         And I wait for "search found follow" in the log
@@ -222,7 +222,7 @@ Feature: Searching on a page
         And I run :follow-selected
         Then data/hello.txt should be loaded
 
-    @flaky
+    @skip  # Too flaky
     Scenario: Follow a searched link in a new tab
         When I run :window-only
         And I run :search follow
@@ -274,7 +274,8 @@ Feature: Searching on a page
         And I run :follow-selected
         Then "navigation request: url http://localhost:*/data/hello.txt, type Type.link_clicked, is_main_frame False" should be logged
 
-    @qtwebkit_skip: Not supported in qtwebkit @flaky
+    # Too flaky
+    @qtwebkit_skip: Not supported in qtwebkit @skip
     Scenario: Follow a tabbed searched link in an iframe
         When I open data/iframe_search.html
         And I run :tab-only
