@@ -199,6 +199,9 @@ def init_log(args):
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
+    else:
+        # If we add no handler, we shouldn't process any logs at all.
+        logging.disable(logging.CRITICAL)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
