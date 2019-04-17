@@ -56,6 +56,8 @@ Fixed
 ~~~~~
 
 - Crash when SQL errors occur while using the completion.
+- Crash when cancelling a download prompt started in an already closed window.
+- Running without Qt installed now displays a proper error again.
 
 v1.6.1
 ------
