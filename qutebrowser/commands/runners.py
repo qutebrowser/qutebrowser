@@ -322,12 +322,12 @@ class CommandRunner(QObject):
             return
 
         for result in parsed:
-            if result.cmd.no_replace_variables:
-                args = result.args
-            else:
-                args = replace_variables(self._win_id, result.args)
-
             with self._handle_error(safely):
+                if result.cmd.no_replace_variables:
+                    args = result.args
+                else:
+                    args = replace_variables(self._win_id, result.args)
+
                 result.cmd.run(self._win_id, args, count=count)
 
             if result.cmdline[0] == 'repeat-command':
