@@ -38,6 +38,14 @@ Changed
 - Performance improvements for showing hints.
 - Setting `downloads.location.directory` now changes the directory displayed in
   the download prompt even if `downloads.location.remember` is set.
+- The `yank` command gained a new `inline` argument, which allows to e.g. use
+  `:yank inline [{title}]({url})`.
+
+Deprecated
+~~~~~~~~~~
+
+- `:yank markdown` got deprecated, as `:yank inline [{title}]({url})` can now
+  be used instead.
 
 Fixed
 ~~~~~

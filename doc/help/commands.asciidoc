@@ -1459,7 +1459,7 @@ Close all windows except for the current one.
 
 [[yank]]
 === yank
-Syntax: +:yank [*--sel*] [*--keep*] [*--quiet*] ['what']+
+Syntax: +:yank [*--sel*] [*--keep*] [*--quiet*] ['what'] ['inline']+
 
 Yank (copy) something to the clipboard or primary selection.
 
@@ -1471,9 +1471,13 @@ Yank (copy) something to the clipboard or primary selection.
  - `title`: The current page's title.
  - `domain`: The current scheme, domain, and port number.
  - `selection`: The selection under the cursor.
- - `markdown`: Yank title and URL in markdown format.
+ - `markdown`: Yank title and URL in markdown format
+ (deprecated, use `:yank inline [title]({url})` instead).
+ - `inline`: Yank the text contained in the 'inline' argument.
  
 
+
+* +'inline'+: A block of text, to be yanked if 'what' is inline and ignored otherwise.
 
 
 ==== optional arguments
