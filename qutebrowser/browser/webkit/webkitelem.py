@@ -116,6 +116,11 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.toOuterXml()
 
+    def is_content_editable_prop(self) -> bool:
+        val = self._elem.evaluateJavaScript('this.isContentEditable || false')
+        assert isinstance(val, bool)
+        return val
+
     def value(self) -> webelem.JsValueType:
         self._check_vanished()
         val = self._elem.evaluateJavaScript('this.value')
