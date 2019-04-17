@@ -21,6 +21,8 @@
 
 import traceback
 import re
+import typing
+import contextlib
 
 import attr
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
@@ -286,6 +288,17 @@ class CommandRunner(QObject):
         self._parser = CommandParser(partial_match=partial_match)
         self._win_id = win_id
 
+    @contextlib.contextmanager
+    def _handle_error(self, safely) -> typing.Iterator[None]:
+        """Show exceptions as errors if safely=True is given."""
+        try:
+            yield
+        except cmdexc.Error as e:
+            if safely:
+                message.error(str(e), stack=traceback.format_exc())
+            else:
+                raise
+
     def run(self, text, count=None, *, safely=False):
         """Parse a command from a line of text and run it.
 
@@ -301,19 +314,21 @@ class CommandRunner(QObject):
                                   window=self._win_id)
         cur_mode = mode_manager.mode
 
-        for result in self._parser.parse_all(text):
+        parsed = None
+        with self._handle_error(safely):
+            parsed = self._parser.parse_all(text)
+
+        if parsed is None:
+            return
+
+        for result in parsed:
             if result.cmd.no_replace_variables:
                 args = result.args
             else:
                 args = replace_variables(self._win_id, result.args)
 
-            try:
+            with self._handle_error(safely):
                 result.cmd.run(self._win_id, args, count=count)
-            except cmdexc.Error as e:
-                if safely:
-                    message.error(str(e), stack=traceback.format_exc())
-                else:
-                    raise
 
             if result.cmdline[0] == 'repeat-command':
                 record_last_command = False
