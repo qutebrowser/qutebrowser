@@ -64,8 +64,8 @@ def test_command_expansion_complex(
 
 
 def test_command_expansion_basic_auth(quteproc, server):
-    url = 'http://user1:password1@localhost:{port}/basic-auth/user1/password1' \
-        .format(port=server.port)
+    url = ('http://user1:password1@localhost:{port}/basic-auth/user1/password1'
+           .format(port=server.port))
     quteproc.open_url(url)
     quteproc.send_cmd(':message-info foo{url:auth}')
 
@@ -75,11 +75,11 @@ def test_command_expansion_basic_auth(quteproc, server):
 
 
 def test_command_expansion_clipboard(quteproc):
-    quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format('foo'))
+    quteproc.send_cmd(':debug-set-fake-clipboard "foo"')
     command_expansion_base(
         quteproc, '{clipboard}bar{url}',
         "foobarhttp://localhost:*/hello.txt")
-    quteproc.send_cmd(':debug-set-fake-clipboard "{}"'.format('{{url}}'))
+    quteproc.send_cmd(':debug-set-fake-clipboard "{{url}}"')
     command_expansion_base(
         quteproc, '{clipboard}bar{url}',
         "{url}barhttp://localhost:*/hello.txt")
