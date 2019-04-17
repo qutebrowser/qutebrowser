@@ -26,6 +26,11 @@ Added
 - New commands:
   * `:reverse-selection` (`o` in caret mode) to swap the stationary/moving ends
     of a selection.
+- New commandline replacements:
+  * `{url:domain}`, `{url:auth}`, `{url:scheme}`, `{url:username}`,
+    `{url:password}`, `{url:host}`, `{url:port}`, `{url:path}`, `{url:query}`
+    for the respective parts of the current URL.
+  * `{title}` for the current page title.
 
 Changed
 ~~~~~~~
