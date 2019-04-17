@@ -45,6 +45,7 @@ Changed
   the download prompt even if `downloads.location.remember` is set.
 - The `yank` command gained a new `inline` argument, which allows to e.g. use
   `:yank inline [{title}]({url})`.
+- Duplicate consecutive history entries with the same URL are now ignored.
 
 Deprecated
 ~~~~~~~~~~
