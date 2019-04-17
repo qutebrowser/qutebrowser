@@ -199,6 +199,12 @@ def init_log(args):
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
+    else:
+        # If we add no handler, we shouldn't process non visible logs at all
+        #
+        # disable blocks the current level (while setHandler shows the current
+        # level), so -1 to avoid blocking handled messages.
+        logging.disable(numeric_level - 1)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
