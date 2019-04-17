@@ -63,13 +63,29 @@ def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
+    url = lambda: _current_url(tabbed_browser)
 
     variables = {
-        'url': lambda: _current_url(tabbed_browser).toString(
+        'url': lambda: url().toString(
             QUrl.FullyEncoded | QUrl.RemovePassword),
-        'url:pretty': lambda: _current_url(tabbed_browser).toString(
+        'url:pretty': lambda: url().toString(
             QUrl.DecodeReserved | QUrl.RemovePassword),
-        'url:host': lambda: _current_url(tabbed_browser).host(),
+        'url:domain': lambda: "{}://{}{}".format(
+            url().scheme(),
+            url().host(),
+            ":" + str(url().port()) if url().port() != -1 else ""),
+        'url:auth': lambda: "{}:{}@".format(
+            url().userName(),
+            url().password()) if url().userName() else "",
+        'url:scheme': lambda: url().scheme(),
+        'url:username': lambda: url().userName(),
+        'url:password': lambda: url().password(),
+        'url:host': lambda: url().host(),
+        'url:port': lambda: str(url().port()) if url().port() != -1 else "",
+        'url:path': lambda: url().path(),
+        'url:query': lambda: url().query(),
+        'title': lambda: tabbed_browser.widget.page_title(
+            tabbed_browser.widget.currentIndex()),
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
     }
