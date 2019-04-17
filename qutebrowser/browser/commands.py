@@ -660,7 +660,8 @@ class CommandDispatcher:
                 - `title`: The current page's title.
                 - `domain`: The current scheme, domain, and port number.
                 - `selection`: The selection under the cursor.
-                - `markdown`: Yank title and URL in markdown format.
+                - `markdown`: Yank title and URL in markdown format
+                  (deprecated, use `:yank inline [title]({url})` instead).
                 - `inline`: Yank the text contained in the 'inline' argument.
 
             sel: Use the primary selection instead of the clipboard.
@@ -693,6 +694,8 @@ class CommandDispatcher:
             caret.selection(callback=_selection_callback)
             return
         elif what == 'markdown':
+            message.warning(":yank markdown is deprecated, use `:yank inline "
+                            "[title]({url})` instead.")
             idx = self._current_index()
             title = self._tabbed_browser.widget.page_title(idx)
             url = self._yank_url(what)

@@ -2640,8 +2640,8 @@ bindings.default:
       yD: yank domain -s
       yp: yank pretty-url
       yP: yank pretty-url -s
-      ym: yank markdown
-      yM: yank markdown -s
+      ym: yank inline [{title}]({url})
+      yM: yank inline [{title}]({url}) -s
       pp: open -- {clipboard}
       pP: open -- {primary}
       Pp: open -t -- {clipboard}
