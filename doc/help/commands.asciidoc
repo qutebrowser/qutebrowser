@@ -1476,7 +1476,7 @@ Yank (copy) something to the clipboard or primary selection.
  - `domain`: The current scheme, domain, and port number.
  - `selection`: The selection under the cursor.
  - `markdown`: Yank title and URL in markdown format
- (deprecated, use `:yank inline [title]({url})` instead).
+ (deprecated, use `:yank inline [{title}]({url})` instead).
  - `inline`: Yank the text contained in the 'inline' argument.
  
 
