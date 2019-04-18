@@ -442,7 +442,7 @@ class TabbedBrowser(QWidget):
         Args:
             url: The URL to open as QUrl or None for an empty tab.
             background: Whether to open the tab in the background.
-                        if None, the `tabs.background_tabs`` setting decides.
+                        if None, the `tabs.background` setting decides.
             related: Whether the tab was opened from another existing tab.
                      If this is set, the new position might be different. With
                      the default settings we handle it like Chromium does:

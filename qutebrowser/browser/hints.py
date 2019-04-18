@@ -628,7 +628,7 @@ class HintManager(QObject):
             rapid: Whether to do rapid hinting. With rapid hinting, the hint
                    mode isn't left after a hint is followed, so you can easily
                    open multiple links. This is only possible with targets
-                   `tab` (with `tabs.background_tabs=true`), `tab-bg`,
+                   `tab` (with `tabs.background=true`), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
@@ -648,7 +648,7 @@ class HintManager(QObject):
                 - `normal`: Open the link.
                 - `current`: Open the link in the current tab.
                 - `tab`: Open the link in a new tab (honoring the
-                         `tabs.background_tabs` setting).
+                         `tabs.background` setting).
                 - `tab-fg`: Open the link in a new foreground tab.
                 - `tab-bg`: Open the link in a new background tab.
                 - `window`: Open the link in a new window.
