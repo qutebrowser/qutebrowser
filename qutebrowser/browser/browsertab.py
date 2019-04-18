@@ -1016,7 +1016,22 @@ class AbstractTab(QWidget):
             return
 
         sess_manager.save_autosave()
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        if qtutils.version_check('5.10', compiled=False):
+            if not ok:
+                self._update_load_status(ok)
+        else:
+            self._update_load_status(ok)
 
+        self.load_finished.emit(ok)
+
+        if not self.title():
+            self.title_changed.emit(self.url().toDisplayString())
+
+        self.zoom.reapply()
+
+    def _update_load_status(self, ok: bool) -> None:
+        """Update the load status after a page finished loading."""
         if ok and not self._has_ssl_errors:
             if self.url().scheme() == 'https':
                 self._set_load_status(usertypes.LoadStatus.success_https)
@@ -1027,13 +1042,6 @@ class AbstractTab(QWidget):
         else:
             self._set_load_status(usertypes.LoadStatus.error)
 
-        self.load_finished.emit(ok)
-
-        if not self.title():
-            self.title_changed.emit(self.url().toDisplayString())
-
-        self.zoom.reapply()
-
     @pyqtSlot()
     def _on_history_trigger(self) -> None:
         """Emit history_item_triggered based on backend-specific signal."""
@@ -1043,6 +1051,8 @@ class AbstractTab(QWidget):
     def _on_load_progress(self, perc: int) -> None:
         self._progress = perc
         self.load_progress.emit(perc)
+        if perc == 100 and qtutils.version_check('5.10', compiled=False):
+            self._update_load_status(ok=True)
 
     def url(self, *, requested: bool = False) -> QUrl:
         raise NotImplementedError
