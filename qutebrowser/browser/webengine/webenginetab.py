@@ -1349,7 +1349,9 @@ class WebEngineTab(browsertab.AbstractTab):
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
         """
         super()._on_load_progress(perc)
-        if perc == 100 and qtutils.version_check('5.10', compiled=False):
+        if (perc == 100 and
+                qtutils.version_check('5.10', compiled=False) and
+                self.load_status() != usertypes.LoadStatus.error):
             self._update_load_status(ok=True)
 
     @pyqtSlot(bool)
