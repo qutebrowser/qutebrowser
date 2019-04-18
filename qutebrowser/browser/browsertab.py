@@ -1016,13 +1016,6 @@ class AbstractTab(QWidget):
             return
 
         sess_manager.save_autosave()
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        if qtutils.version_check('5.10', compiled=False):
-            if not ok:
-                self._update_load_status(ok)
-        else:
-            self._update_load_status(ok)
-
         self.load_finished.emit(ok)
 
         if not self.title():
@@ -1051,8 +1044,6 @@ class AbstractTab(QWidget):
     def _on_load_progress(self, perc: int) -> None:
         self._progress = perc
         self.load_progress.emit(perc)
-        if perc == 100 and qtutils.version_check('5.10', compiled=False):
-            self._update_load_status(ok=True)
 
     def url(self, *, requested: bool = False) -> QUrl:
         raise NotImplementedError

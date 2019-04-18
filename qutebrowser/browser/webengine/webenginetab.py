@@ -1342,10 +1342,25 @@ class WebEngineTab(browsertab.AbstractTab):
             return
         self._show_error_page(self.url(), error=match.group(1))
 
+    @pyqtSlot(int)
+    def _on_load_progress(self, perc: int) -> None:
+        """QtWebEngine-specific loadProgress workarounds."""
+        super()._on_load_progress(perc)
+        if perc == 100 and qtutils.version_check('5.10', compiled=False):
+            self._update_load_status(ok=True)
+
     @pyqtSlot(bool)
-    def _on_load_finished(self, ok):
-        """Display a static error page if JavaScript is disabled."""
+    def _on_load_finished(self, ok: bool) -> None:
+        """QtWebEngine-specific loadFinished workarounds."""
         super()._on_load_finished(ok)
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        if qtutils.version_check('5.10', compiled=False):
+            if not ok:
+                self._update_load_status(ok)
+        else:
+            self._update_load_status(ok)
+
         js_enabled = self.settings.test_attribute('content.javascript.enabled')
         if not ok and not js_enabled:
             self.dump_async(self._error_page_workaround)
@@ -1360,12 +1375,9 @@ class WebEngineTab(browsertab.AbstractTab):
                 emit_before_load_started=False))
             self._reload_url = None
 
-        if not qtutils.version_check('5.10', compiled=False):
-            # We can't do this when we have the loadFinished workaround as that
-            # sometimes clears icons without loading a new page.
-            # In general, this is handled by Qt, but when loading takes long,
-            # the old icon is still displayed.
-            self.icon_changed.emit(QIcon())
+        # In general, this is handled by Qt, but when loading takes long,
+        # the old icon is still displayed.
+        self.icon_changed.emit(QIcon())
 
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
