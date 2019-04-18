@@ -60,6 +60,12 @@ class Progress(QProgressBar):
         self.setValue(0)
         self.setVisible(self.enabled)
 
+    @pyqtSlot(int)
+    def on_load_progress(self, value):
+        self.setValue(value)
+        if value == 100:
+            self.hide()
+
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""
         self.setValue(tab.progress())
