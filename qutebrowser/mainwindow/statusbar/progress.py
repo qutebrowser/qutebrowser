@@ -62,6 +62,13 @@ class Progress(QProgressBar):
 
     @pyqtSlot(int)
     def on_load_progress(self, value):
+        """Hide the statusbar when loading finished.
+
+        We use this instead of loadFinished because we sometimes get
+        loadStarted and loadProgress(100) without loadFinished from Qt.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        """
         self.setValue(value)
         if value == 100:
             self.hide()

@@ -1344,7 +1344,10 @@ class WebEngineTab(browsertab.AbstractTab):
 
     @pyqtSlot(int)
     def _on_load_progress(self, perc: int) -> None:
-        """QtWebEngine-specific loadProgress workarounds."""
+        """QtWebEngine-specific loadProgress workarounds.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        """
         super()._on_load_progress(perc)
         if perc == 100 and qtutils.version_check('5.10', compiled=False):
             self._update_load_status(ok=True)
