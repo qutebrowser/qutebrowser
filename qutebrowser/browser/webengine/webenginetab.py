@@ -1524,7 +1524,6 @@ class WebEngineTab(browsertab.AbstractTab):
             self._on_render_process_terminated)
         view.iconChanged.connect(self.icon_changed)
 
-        page.loadProgress.connect(self._on_load_progress)
         page.loadFinished.connect(self._on_history_trigger)
         page.loadFinished.connect(self._restore_zoom)
         page.loadFinished.connect(self._on_load_finished)
