@@ -339,7 +339,8 @@ def _chromium_version():
              5.12.1: Security fixes up to 71.0.3578.94 (2018-12-14)
              5.12.2: Security fixes up to 72.0.3626.96 (2019-02-06)
 
-    Qt 5.13: (in development) Chromium 71 merged, 73 in review.
+    Qt 5.13: (in development) Chromium 73
+             73.0.3683.105 (~2019-02-28)
 
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
