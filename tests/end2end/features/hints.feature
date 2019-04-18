@@ -569,3 +569,11 @@ Feature: Using hints
         And I run :jseval console.log(document.activeElement.id == "qute-input");
         And I run :leave-mode
         Then the javascript message "true" should be logged
+
+    Scenario: Hinting contenteditable inputs
+        When I open data/hints/input.html
+        And I hint with args "inputs" and follow f
+        And I wait for "Entering mode KeyMode.insert (reason: clicking input)" in the log
+        And I run :leave-mode
+        # The actual check is already done above
+        Then no crash should happen

@@ -1146,6 +1146,7 @@ hints.selectors:
       - 'img'
       - 'link'
       - 'summary'
+      - '[contenteditable]:not([contenteditable="false"])'
       - '[onclick]'
       - '[onmousedown]'
       - '[role="link"]'
@@ -1184,6 +1185,7 @@ hints.selectors:
       - 'input[type="url"]'
       - 'input[type="week"]'
       - 'input:not([type])'
+      - '[contenteditable]:not([contenteditable="false"])'
       - 'textarea'
   type:
     name: Dict
