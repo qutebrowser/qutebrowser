@@ -52,7 +52,6 @@ def init_patch(qapp, fake_save_manager, monkeypatch, config_tmpdir,
 def args(fake_args):
     """Arguments needed for the config to init."""
     fake_args.temp_settings = []
-    fake_args.config_py = None
     return fake_args
 
 
@@ -66,14 +65,11 @@ def configdata_init(monkeypatch):
 
 class TestEarlyInit:
 
-    def test_config_py_path(self, args, tmpdir, init_patch):
-        f = tmpdir.join('temp_config.py')
-        f.write('c.colors.hints.bg = "red"\n')
-        args.config_py = str(f)
+    def test_config_py_path(self, args, init_patch, config_py_arg):
+        config_py_arg.write('c.colors.hints.bg = "red"\n')
         configinit.early_init(args)
         expected = 'colors.hints.bg = red'
         assert config.instance.dump_userconfig() == expected
-
 
     @pytest.mark.parametrize('config_py', [True, 'error', False])
     def test_config_py(self, init_patch, config_tmpdir, caplog, args,
