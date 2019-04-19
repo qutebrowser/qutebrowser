@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -83,7 +83,7 @@ from qutebrowser.misc import utilcmds
 # pylint: enable=unused-import
 
 
-qApp = None
+q_app = None
 
 
 def run(args):
@@ -101,25 +101,25 @@ def run(args):
     log.init.debug("Initializing config...")
     configinit.early_init(args)
 
-    global qApp
-    qApp = Application(args)
-    qApp.setOrganizationName("qutebrowser")
-    qApp.setApplicationName("qutebrowser")
-    qApp.setDesktopFileName("qutebrowser")
-    qApp.setApplicationVersion(qutebrowser.__version__)
-    qApp.lastWindowClosed.connect(quitter.on_last_window_closed)
+    global q_app
+    q_app = Application(args)
+    q_app.setOrganizationName("qutebrowser")
+    q_app.setApplicationName("qutebrowser")
+    q_app.setDesktopFileName("org.qutebrowser.qutebrowser")
+    q_app.setApplicationVersion(qutebrowser.__version__)
+    q_app.lastWindowClosed.connect(quitter.on_last_window_closed)
 
     if args.version:
         print(version.version())
         sys.exit(usertypes.Exit.ok)
 
     crash_handler = crashsignal.CrashHandler(
-        app=qApp, quitter=quitter, args=args, parent=qApp)
+        app=q_app, quitter=quitter, args=args, parent=q_app)
     crash_handler.activate()
     objreg.register('crash-handler', crash_handler)
 
-    signal_handler = crashsignal.SignalHandler(app=qApp, quitter=quitter,
-                                               parent=qApp)
+    signal_handler = crashsignal.SignalHandler(app=q_app, quitter=quitter,
+                                               parent=q_app)
     signal_handler.activate()
     objreg.register('signal-handler', signal_handler)
 
@@ -151,7 +151,7 @@ def qt_mainloop():
     WARNING: misc/crashdialog.py checks the stacktrace for this function
     name, so if this is changed, it should be changed there as well!
     """
-    return qApp.exec_()
+    return q_app.exec_()
 
 
 def init(args, crash_handler):
@@ -162,7 +162,7 @@ def init(args, crash_handler):
         crash_handler: The CrashHandler instance.
     """
     log.init.debug("Starting init...")
-    qApp.setQuitOnLastWindowClosed(False)
+    q_app.setQuitOnLastWindowClosed(False)
     _init_icon()
 
     loader.init()
@@ -175,12 +175,12 @@ def init(args, crash_handler):
         sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing eventfilter...")
-    event_filter = EventFilter(qApp)
-    qApp.installEventFilter(event_filter)
+    event_filter = EventFilter(q_app)
+    q_app.installEventFilter(event_filter)
     objreg.register('event-filter', event_filter)
 
     log.init.debug("Connecting signals...")
-    qApp.focusChanged.connect(on_focus_changed)
+    q_app.focusChanged.connect(on_focus_changed)
 
     _process_args(args)
 
@@ -207,7 +207,7 @@ def _init_icon():
     if icon.isNull():
         log.init.warning("Failed to load icon")
     else:
-        qApp.setWindowIcon(icon)
+        q_app.setWindowIcon(icon)
 
 
 def _process_args(args):
@@ -220,7 +220,7 @@ def _process_args(args):
         window = mainwindow.MainWindow(private=None)
         if not args.nowindow:
             window.show()
-        qApp.setActiveWindow(window)
+        q_app.setActiveWindow(window)
 
     process_pos_args(args.command)
     _open_startpage()
@@ -425,7 +425,7 @@ def _init_modules(args, crash_handler):
         crash_handler: The CrashHandler instance.
     """
     log.init.debug("Initializing save manager...")
-    save_manager = savemanager.SaveManager(qApp)
+    save_manager = savemanager.SaveManager(q_app)
     objreg.register('save-manager', save_manager)
     configinit.late_init(save_manager)
 
@@ -441,17 +441,20 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing proxy...")
     proxy.init()
 
+    log.init.debug("Initializing downloads...")
+    downloads.init()
+
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
     objreg.register('readline-bridge', readline_bridge)
 
     try:
-        log.init.debug("Initializing sql...")
+        log.init.debug("Initializing SQL...")
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
 
         log.init.debug("Initializing web history...")
-        history.init(qApp)
-    except sql.SqlEnvironmentError as e:
+        history.init(q_app)
+    except sql.KnownError as e:
         error.handle_fatal_exc(e, args, 'Error initializing SQL',
                                pre_text='Error initializing SQL')
         sys.exit(usertypes.Exit.err_init)
@@ -464,31 +467,31 @@ def _init_modules(args, crash_handler):
         crash_handler.handle_segfault()
 
     log.init.debug("Initializing sessions...")
-    sessions.init(qApp)
+    sessions.init(q_app)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
 
     log.init.debug("Initializing quickmarks...")
-    quickmark_manager = urlmarks.QuickmarkManager(qApp)
+    quickmark_manager = urlmarks.QuickmarkManager(q_app)
     objreg.register('quickmark-manager', quickmark_manager)
 
     log.init.debug("Initializing bookmarks...")
-    bookmark_manager = urlmarks.BookmarkManager(qApp)
+    bookmark_manager = urlmarks.BookmarkManager(q_app)
     objreg.register('bookmark-manager', bookmark_manager)
 
     log.init.debug("Initializing cookies...")
-    cookie_jar = cookies.CookieJar(qApp)
-    ram_cookie_jar = cookies.RAMCookieJar(qApp)
+    cookie_jar = cookies.CookieJar(q_app)
+    ram_cookie_jar = cookies.RAMCookieJar(q_app)
     objreg.register('cookie-jar', cookie_jar)
     objreg.register('ram-cookie-jar', ram_cookie_jar)
 
     log.init.debug("Initializing cache...")
-    diskcache = cache.DiskCache(standarddir.cache(), parent=qApp)
+    diskcache = cache.DiskCache(standarddir.cache(), parent=q_app)
     objreg.register('cache', diskcache)
 
     log.init.debug("Initializing downloads...")
-    download_manager = qtnetworkdownloads.DownloadManager(parent=qApp)
+    download_manager = qtnetworkdownloads.DownloadManager(parent=q_app)
     objreg.register('qtnetwork-download-manager', download_manager)
 
     log.init.debug("Initializing Greasemonkey...")
@@ -735,7 +738,7 @@ class Quitter:
     def _shutdown(self, status, restart):  # noqa
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
-        if qApp is None:
+        if q_app is None:
             # No QApplication exists yet, so quit hard.
             sys.exit(status)
         # Remove eventfilter
@@ -743,7 +746,7 @@ class Quitter:
             log.destroy.debug("Removing eventfilter...")
             event_filter = objreg.get('event-filter', None)
             if event_filter is not None:
-                qApp.removeEventFilter(event_filter)
+                q_app.removeEventFilter(event_filter)
         except AttributeError:
             pass
         # Close all windows
@@ -792,7 +795,7 @@ class Quitter:
             session_manager.delete_autosave()
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
-        QTimer.singleShot(0, functools.partial(qApp.exit, status))
+        QTimer.singleShot(0, functools.partial(q_app.exit, status))
 
 
 class Application(QApplication):
@@ -893,7 +896,7 @@ class EventFilter(QObject):
         Return:
             True if the event should be filtered, False if it's passed through.
         """
-        if qApp.activeWindow() not in objreg.window_registry.values():
+        if q_app.activeWindow() not in objreg.window_registry.values():
             # Some other window (print dialog, etc.) is focused so we pass the
             # event through.
             return False

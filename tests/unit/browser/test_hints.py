@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,7 +25,7 @@ import operator
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes, qtutils
+from qutebrowser.utils import usertypes
 import qutebrowser.browser.hints
 
 
@@ -42,11 +42,7 @@ def tabbed_browser(tabbed_browser_stubs, web_tab):
     tb.widget.tabs = [web_tab]
     tb.widget.current_index = 1
     tb.widget.cur_url = QUrl('https://www.example.com/')
-
-    if not qtutils.version_check('5.11', compiled=False):
-        # No elements found if we don't do this.
-        web_tab.container.expose()
-
+    web_tab.container.expose()  # No elements found if we don't do this.
     return tb
 
 
@@ -71,13 +67,14 @@ def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
 
 
 def test_match_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
-                         mode_manager, qapp):
+                         mode_manager, qapp, config_stub):
     """Benchmark matching of hint labels."""
     tab = tabbed_browser.widget.tabs[0]
 
     with qtbot.wait_signal(tab.load_finished):
         tab.load_url(QUrl('qute://testdata/data/hints/benchmark.html'))
 
+    config_stub.val.hints.scatter = False
     manager = qutebrowser.browser.hints.HintManager(0, 0)
 
     with qtbot.wait_signal(mode_manager.entered):

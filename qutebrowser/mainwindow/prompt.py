@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,6 +22,7 @@
 import os.path
 import html
 import collections
+import functools
 
 import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
@@ -329,11 +330,10 @@ class PromptContainer(QWidget):
         log.prompt.debug("Displaying prompt {}".format(prompt))
         self._prompt = prompt
 
+        # If this question was interrupted, we already connected the signal
         if not question.interrupted:
-            # If this question was interrupted, we already connected the signal
             question.aborted.connect(
-                lambda: modeman.leave(self._win_id, prompt.KEY_MODE, 'aborted',
-                                      maybe=True))
+                functools.partial(self._on_aborted, prompt.KEY_MODE))
         modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
 
         self.setSizePolicy(prompt.sizePolicy())
@@ -342,6 +342,15 @@ class PromptContainer(QWidget):
         self.show()
         prompt.setFocus()
         self.update_geometry.emit()
+
+    @pyqtSlot()
+    def _on_aborted(self, key_mode):
+        """Leave KEY_MODE whenever a prompt is aborted."""
+        try:
+            modeman.leave(self._win_id, key_mode, 'aborted', maybe=True)
+        except objreg.RegistryUnavailableError:
+            # window was deleted: ignore
+            pass
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_prompt_done(self, key_mode):

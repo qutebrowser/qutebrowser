@@ -97,13 +97,19 @@ def qute_command(command):
 def find_pass_candidates(domain, password_store_path):
     candidates = []
     for path, directories, file_names in os.walk(password_store_path, followlinks=True):
-        if directories or domain not in path.split(os.path.sep):
+        secrets = fnmatch.filter(file_names, '*.gpg')
+        if not secrets:
             continue
 
         # Strip password store path prefix to get the relative pass path
         pass_path = path[len(password_store_path) + 1:]
-        secrets = fnmatch.filter(file_names, '*.gpg')
-        candidates.extend(os.path.join(pass_path, os.path.splitext(secret)[0]) for secret in secrets)
+        split_path = pass_path.split(os.path.sep)
+        for secret in secrets:
+            secret_base = os.path.splitext(secret)[0]
+            if domain not in (split_path + [secret_base]):
+                continue
+
+            candidates.append(os.path.join(pass_path, secret_base))
     return candidates
 
 
@@ -146,7 +152,9 @@ def main(arguments):
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
     # the registered domain name and finally: the IPv4 address if that's what the URL represents
     candidates = set()
+    attempted_targets = []
     for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4]):
+        attempted_targets.append(target)
         target_candidates = find_pass_candidates(target, password_store_path)
         if not target_candidates:
             continue
@@ -156,7 +164,7 @@ def main(arguments):
             break
     else:
         if not candidates:
-            stderr('No pass candidates for URL {!r} found!'.format(arguments.url))
+            stderr('No pass candidates for URL {!r} found! (I tried {!r})'.format(arguments.url, attempted_targets))
             return ExitCodes.NO_PASS_CANDIDATES
 
     selection = candidates.pop() if len(candidates) == 1 else dmenu(sorted(candidates), arguments.dmenu_invocation,

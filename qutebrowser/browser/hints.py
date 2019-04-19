@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -65,24 +65,16 @@ class HintLabel(QLabel):
         _context: The current hinting context.
     """
 
-    STYLESHEET = """
-        QLabel {
-            background-color: {{ conf.colors.hints.bg }};
-            color: {{ conf.colors.hints.fg }};
-            font: {{ conf.fonts.hints }};
-            border: {{ conf.hints.border }};
-            padding-left: -3px;
-            padding-right: -3px;
-        }
-    """
-
     def __init__(self, elem, context):
         super().__init__(parent=context.tab)
         self._context = context
         self.elem = elem
 
+        # Make sure we can style the background via a style sheet, and we don't
+        # get any extra text indent from Qt.
+        # The real stylesheet lives in mainwindow.py for performance reasons..
         self.setAttribute(Qt.WA_StyledBackground, True)
-        config.set_register_stylesheet(self)
+        self.setIndent(0)
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
         self._move_to_elem()
@@ -636,7 +628,7 @@ class HintManager(QObject):
             rapid: Whether to do rapid hinting. With rapid hinting, the hint
                    mode isn't left after a hint is followed, so you can easily
                    open multiple links. This is only possible with targets
-                   `tab` (with `tabs.background_tabs=true`), `tab-bg`,
+                   `tab` (with `tabs.background=true`), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
@@ -656,7 +648,7 @@ class HintManager(QObject):
                 - `normal`: Open the link.
                 - `current`: Open the link in the current tab.
                 - `tab`: Open the link in a new tab (honoring the
-                         `tabs.background_tabs` setting).
+                         `tabs.background` setting).
                 - `tab-fg`: Open the link in a new foreground tab.
                 - `tab-bg`: Open the link in a new background tab.
                 - `window`: Open the link in a new window.
@@ -956,10 +948,9 @@ class HintManager(QObject):
         if keystring is None:
             if self._context.to_follow is None:
                 raise cmdutils.CommandError("No hint to follow")
-            elif select:
+            if select:
                 raise cmdutils.CommandError("Can't use --select without hint.")
-            else:
-                keystring = self._context.to_follow
+            keystring = self._context.to_follow
         elif keystring not in self._context.labels:
             raise cmdutils.CommandError("No hint {}!".format(keystring))
 

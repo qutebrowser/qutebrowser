@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -157,6 +157,10 @@ def is_ignored_chromium_message(line):
         # cert_verify_proc_openssl.cc(212)]
         # X509 Verification error self signed certificate : 18 : 0 : 4
         'X509 Verification error self signed certificate : 18 : 0 : 4',
+        # Qt 5.13
+        # [27789:27805:0325/111821.127349:ERROR:ssl_client_socket_impl.cc(962)]
+        # handshake failed; returned -1, SSL error code 1, net_error -202
+        'handshake failed; returned -1, SSL error code 1, net_error -202',
 
         # Not reproducible anymore?
 
@@ -230,6 +234,19 @@ def is_ignored_chromium_message(line):
         # content.mojom.RendererAudioOutputStreamFactory
         'InterfaceRequest was dropped, the document is no longer active: '
         'content.mojom.RendererAudioOutputStreamFactory',
+        # [1920:2168:0225/112442.664:ERROR:in_progress_cache_impl.cc(124)]
+        # Could not write download entries to file: C:\Users\appveyor\AppData\
+        # Local\Temp\1\qutebrowser-basedir-1l3jmxq4\data\webengine\
+        # in_progress_download_metadata_store
+        'Could not write download entries to file: *',
+
+        # Qt 5.13
+        # [32651:32651:0325/130146.300817:WARNING:
+        # render_frame_host_impl.cc(486)]
+        # InterfaceRequest was dropped, the document is no longer active:
+        # resource_coordinator.mojom.FrameCoordinationUnit
+        'InterfaceRequest was dropped, the document is no longer active: '
+        'resource_coordinator.mojom.FrameCoordinationUnit',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -819,9 +836,9 @@ class QuteProc(testprocess.Process):
         message = self.wait_for_js('qute:*').message
         if message.endswith('qute:no elems'):
             raise ValueError('No element with {!r} found'.format(text))
-        elif message.endswith('qute:ambiguous elems'):
+        if message.endswith('qute:ambiguous elems'):
             raise ValueError('Element with {!r} is not unique'.format(text))
-        elif not message.endswith('qute:okay'):
+        if not message.endswith('qute:okay'):
             raise ValueError('Invalid response from qutebrowser: {}'
                              .format(message))
 

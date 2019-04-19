@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -153,8 +153,7 @@ class QtObject:
         """Get the fake error, or raise AttributeError if set to None."""
         if self._error is None:
             raise AttributeError
-        else:
-            return self._error
+        return self._error
 
     def isValid(self):
         return self._valid

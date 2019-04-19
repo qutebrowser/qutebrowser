@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -91,15 +91,15 @@ def _parse_yaml_type(
 ) -> configtypes.BaseType:
     if isinstance(node, str):
         # e.g:
-        #  type: Bool
+        #   > type: Bool
         # -> create the type object without any arguments
         type_name = node
         kwargs = {}  # type: typing.MutableMapping[str, typing.Any]
     elif isinstance(node, dict):
         # e.g:
-        #  type:
-        #    name: String
-        #    none_ok: true
+        #   > type:
+        #   >   name: String
+        #   >   none_ok: true
         # -> create the type object and pass arguments
         type_name = node.pop('name')
         kwargs = node
@@ -164,6 +164,7 @@ def _parse_yaml_backends_dict(
         'Qt 5.9.2': qtutils.version_check('5.9.2'),
         'Qt 5.10': qtutils.version_check('5.10'),
         'Qt 5.11': qtutils.version_check('5.11'),
+        'Qt 5.12': qtutils.version_check('5.12'),
     }
     for key in sorted(node.keys()):
         if conditionals[node[key]]:

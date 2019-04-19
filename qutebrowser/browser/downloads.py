@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -50,7 +50,6 @@ class ModelRole(enum.IntEnum):
 # Remember the last used directory
 last_used_directory = None
 
-
 # All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
 # redrawn.
 _REFRESH_INTERVAL = 500
@@ -68,6 +67,20 @@ class UnsupportedAttribute:
 class UnsupportedOperationError(Exception):
 
     """Raised when an operation is not supported with the given backend."""
+
+
+def init():
+    """Set the application wide downloads variables."""
+    global last_used_directory
+    last_used_directory = None
+
+    config.instance.changed.connect(_clear_last_used)
+
+
+@config.change_filter('downloads.location.directory', function=True)
+def _clear_last_used():
+    global last_used_directory
+    last_used_directory = None
 
 
 def download_dir():
@@ -1105,8 +1118,7 @@ class DownloadModel(QAbstractListModel):
             to_retry = [d for d in self if d.done and not d.successful]
             if not to_retry:
                 raise cmdutils.CommandError("No failed downloads!")
-            else:
-                download = to_retry[0]
+            download = to_retry[0]
         download.try_retry()
 
     def can_clear(self):
