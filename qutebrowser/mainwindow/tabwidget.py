@@ -20,7 +20,6 @@
 """The tab widget used for TabbedBrowser from browser.py."""
 
 import functools
-import enum
 import contextlib
 
 import attr
@@ -35,13 +34,6 @@ from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config
 from qutebrowser.misc import objects
 from qutebrowser.browser import browsertab
-
-
-class PixelMetrics(enum.IntEnum):
-
-    """Custom PixelMetrics attributes."""
-
-    icon_padding = QStyle.PM_CustomBase
 
 
 class TabWidget(QTabWidget):
@@ -564,13 +556,12 @@ class TabBar(QTabBar):
             A QSize of the smallest tab size we can make.
         """
         icon = self.tabIcon(index)
-        icon_padding = self.style().pixelMetric(PixelMetrics.icon_padding,
-                                                None, self)
         if icon.isNull():
             icon_width = 0
         else:
-            icon_width = min(icon.actualSize(self.iconSize()).width(),
-                             self.iconSize().width()) + icon_padding
+            icon_width = min(
+                icon.actualSize(self.iconSize()).width(),
+                self.iconSize().width()) + TabBarStyle.ICON_PADDING
 
         pinned = self._tab_pinned(index)
         if not self.vertical and pinned and config.val.tabs.pinned.shrink:
@@ -760,6 +751,8 @@ class TabBarStyle(QCommonStyle):
     https://code.google.com/p/makehuman/source/browse/trunk/makehuman/lib/qtgui.py
     """
 
+    ICON_PADDING = 4
+
     def __init__(self):
         """Initialize all functions we're not overriding.
 
@@ -865,8 +858,6 @@ class TabBarStyle(QCommonStyle):
                       QStyle.PM_TabBarTabVSpace,
                       QStyle.PM_TabBarScrollButtonWidth]:
             return 0
-        elif metric == PixelMetrics.icon_padding:
-            return 4
         else:
             return self._style.pixelMetric(metric, option, widget)
 
@@ -942,8 +933,8 @@ class TabBarStyle(QCommonStyle):
 
         icon_rect = self._get_icon_rect(opt, text_rect)
         if icon_rect.isValid():
-            icon_padding = self.pixelMetric(PixelMetrics.icon_padding, opt)
-            text_rect.adjust(icon_rect.width() + icon_padding, 0, 0, 0)
+            text_rect.adjust(
+                icon_rect.width() + TabBarStyle.ICON_PADDING, 0, 0, 0)
 
         text_rect = self._style.visualRect(opt.direction, opt.rect, text_rect)
         return Layouts(text=text_rect, icon=icon_rect,
