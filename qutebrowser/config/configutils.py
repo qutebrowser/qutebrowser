@@ -210,9 +210,15 @@ class Values:
         self._check_pattern_support(url)
         candidates = []  # type: typing.List[ScopedValue]
         if url is not None:
-            widened_hosts = itertools.chain(
-                urlutils.widened_hostnames(url.host()),
-                (None,))
+            widened_hosts = (
+                None,)  # type: typing.Iterable[typing.Optional[str]]
+            domains_len = len(self._domain_map)
+            if None in self._domain_map:
+                domains_len -= 1
+            if domains_len > 0:
+                widened_hosts = itertools.chain(
+                    urlutils.widened_hostnames(url.host()),
+                    widened_hosts)
             for host in widened_hosts:
                 host_set = self._domain_map.get(host, ())
                 for scoped in host_set:
