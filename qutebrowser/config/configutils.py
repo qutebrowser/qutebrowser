@@ -187,7 +187,7 @@ class Values:
 
     def _get_fallback(self, fallback: typing.Any) -> typing.Any:
         """Get the fallback global/default value."""
-        for scoped in self._domain_map[None]:
+        for scoped in self._domain_map.get(None, ()):
             # We must loop over all patterns here, as a rule with no domain at
             # all will fall in the 'None' bucket.
             if scoped.pattern is None:
