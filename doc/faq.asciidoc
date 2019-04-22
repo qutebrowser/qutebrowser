@@ -154,7 +154,7 @@ How do I use qutebrowser with mutt?::
     extension:
 +
 ----
-    text/html; qutebrowser %s; nametemplate=%s.html
+    text/html; qutebrowser %s; needsterminal; nametemplate=%s.html
 ----
 
 What is the difference between bookmarks and quickmarks?::
