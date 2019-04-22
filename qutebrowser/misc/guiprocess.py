@@ -73,11 +73,11 @@ class GUIProcess(QObject):
         self.args = None
 
         self._proc = QProcess(self)
-        self._proc.error.connect(self.on_error)
-        self._proc.error.connect(self.error)
-        self._proc.finished.connect(self.on_finished)
+        self._proc.errorOccurred.connect(self._on_error)
+        self._proc.errorOccurred.connect(self.error)
+        self._proc.finished.connect(self._on_finished)
         self._proc.finished.connect(self.finished)
-        self._proc.started.connect(self.on_started)
+        self._proc.started.connect(self._on_started)
         self._proc.started.connect(self.started)
 
         if additional_env is not None:
@@ -87,13 +87,13 @@ class GUIProcess(QObject):
             self._proc.setProcessEnvironment(procenv)
 
     @pyqtSlot(QProcess.ProcessError)
-    def on_error(self, error):
+    def _on_error(self, error):
         """Show a message if there was an error while spawning."""
         msg = ERROR_STRINGS[error]
         message.error("Error while spawning {}: {}".format(self._what, msg))
 
     @pyqtSlot(int, QProcess.ExitStatus)
-    def on_finished(self, code, status):
+    def _on_finished(self, code, status):
         """Show a message when the process finished."""
         self._started = False
         log.procs.debug("Process finished with code {}, status {}.".format(
@@ -138,7 +138,7 @@ class GUIProcess(QObject):
         return spawn_string
 
     @pyqtSlot()
-    def on_started(self):
+    def _on_started(self):
         """Called when the process started successfully."""
         log.procs.debug("Process started.")
         assert not self._started
