@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -89,7 +89,8 @@ def check_spelling():
              '[Ww]ether', '[Pp]rogramatically', '[Ss]plitted', '[Ee]xitted',
              '[Mm]ininum', '[Rr]esett?ed', '[Rr]ecieved', '[Rr]egularily',
              '[Uu]nderlaying', '[Ii]nexistant', '[Ee]lipsis', 'commiting',
-             'existant', '[Rr]esetted', '[Ss]imilarily', '[Ii]nformations'}
+             'existant', '[Rr]esetted', '[Ss]imilarily', '[Ii]nformations',
+             '[Aa]n [Uu][Rr][Ll]'}
 
     # Words which look better when splitted, but might need some fine tuning.
     words |= {'[Ww]ebelements', '[Mm]ouseevent', '[Kk]eysequence',

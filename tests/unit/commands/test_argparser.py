@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -60,7 +60,7 @@ class TestArgumentParser:
             parser.parse_args(['--help'])
 
         expected_url = QUrl('qute://help/commands.html#foo')
-        assert tabbed_browser_stubs[1].opened_url == expected_url
+        assert tabbed_browser_stubs[1].loaded_url == expected_url
 
 
 @pytest.mark.parametrize('types, value, expected', [

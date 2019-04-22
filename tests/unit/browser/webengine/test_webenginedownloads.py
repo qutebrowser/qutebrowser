@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,6 +30,8 @@ from helpers import utils
 @pytest.mark.parametrize('path, expected', [
     (os.path.join('subfolder', 'foo'), 'foo'),
     ('foo(1)', 'foo'),
+    ('foo (1)', 'foo'),
+    ('foo - 1970-01-01T00:00:00.000Z', 'foo'),
     ('foo(a)', 'foo(a)'),
     ('foo1', 'foo1'),
     pytest.param('foo%20bar', 'foo bar', marks=utils.qt58),

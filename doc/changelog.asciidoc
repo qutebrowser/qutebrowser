@@ -15,28 +15,128 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.6.0 (unreleased)
+v1.7.0 (unreleased)
 -------------------
 
 Added
 ~~~~~
 
-- New `tabs.new_position.stacking` setting which controls whether new tabs
-  opened from a page should stack on each other or not.
-- New `completion.open_categories` setting which allows to configure which
-  categories are shown in the `:open` completion, and how they are ordered.
+- New settings:
+  * `colors.tabs.pinned.*` to control colors of pinned tabs.
+- New commands:
+  * `:reverse-selection` (`o` in caret mode) to swap the stationary/moving ends
+    of a selection.
+- New commandline replacements:
+  * `{url:domain}`, `{url:auth}`, `{url:scheme}`, `{url:username}`,
+    `{url:password}`, `{url:host}`, `{url:port}`, `{url:path}`, `{url:query}`
+    for the respective parts of the current URL.
+  * `{title}` for the current page title.
+
+Changed
+~~~~~~~
+
+- The desktop file `qutebrowser.desktop` is now renamed to
+  `org.qutebrowser.qutebrowser.desktop`.
+- Pinned tabs now always show a favicon (even if the site doesn't provide one)
+  when shrinking.
+- Slight performance improvements for the `:open` completion.
+- Performance improvements for showing hints.
+- Setting `downloads.location.directory` now changes the directory displayed in
+  the download prompt even if `downloads.location.remember` is set.
+- The `yank` command gained a new `inline` argument, which allows to e.g. use
+  `:yank inline [{title}]({url})`.
+- Duplicate consecutive history entries with the same URL are now ignored.
+- More detailed error messages when spawning a process failed.
+
+Deprecated
+~~~~~~~~~~
+
+- `:yank markdown` got deprecated, as `:yank inline [{title}]({url})` can now
+  be used instead.
+
+Fixed
+~~~~~
+
+- Race condition causing a colored statusbar in normal mode when
+  entering/exiting caret mode quickly.
+- Using `100%` for a hue in a `hsv(...)` config value now corresponds to 359
+  (rather than 255), matching the fixed behavior in Qt 5.13.
+- Chaining commands with ;; used to abort with some failing commands. It now
+  runs the second command no matter whether the first one succeeded or not.
+
+v1.6.2 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Crash when SQL errors occur while using the completion.
+- Crash when cancelling a download prompt started in an already closed window.
+- Running without Qt installed now displays a proper error again.
+
+v1.6.1
+------
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now ship with Qt 5.12.2, which includes
+  security fixes up to Chromium 72.0.3626.121 (including CVE-2019-5786
+  which is known to be exploited in the wild).
+
+Fixed
+~~~~~
+
+- Crash when using `:config-{dict,list}-{add,remove}` with an invalid setting.
+- Functionality like hinting on pages with an element with ID `_qutebrowser` (such as qutebrowser.org) on Qt 5.12.
+- The .desktop file in v1.6.0 was missing the "Actions" key, which is now fixed.
+- The SVG icon now has a size of 256x256px set to comply with freedesktop standards.
+- Setting `colors.statusbar.*.bg` to a gradient now has the expected effect of
+  the gradient spanning the entire statusbar.
+
+v1.6.0
+------
+
+Added
+~~~~~
+
+- New settings:
+  * `tabs.new_position.stacking` which controls whether new tabs opened from a
+    page should stack on each other or not.
+  * `completion.open_categories` which allows to configure which categories are
+    shown in the `:open` completion, and how they are ordered.
+  * `tabs.pinned.frozen` to allow/deny navigating in pinned tabs.
+  * `hints.selectors` which allows to configure what CSS selectors are used for
+    hints, and also allows adding custom hint groups.
+  * `input.insert_mode.leave_on_load` to turn off leaving insert mode when a
+    new page is loaded.
 - New config manipulation commands:
   * `:config-dict-add` and `:config-list-add` to a new element to a dict/list
     setting.
   * `:config-dict-remove` and `:config-list-remove` to remove an element from a
     dict/list setting.
-- New `hints.selectors` setting which allows to configure what CSS selectors
-  are used for hints, and also allows adding custom hint groups.
+- New `:yank markdown` feature which yanks the current URL and title in
+  markdown format.
+- Support for new QtWebEngine features in Qt 5.12:
+  * Basic support for client certificates. Selecting the certificate to use
+    when there are multiple matching certificates isn't implemented yet.
+  * Support for DNS prefetching (plus new `content.dns_prefetch` setting).
 
 Changed
 ~~~~~~~
 
-- `:q` now closes current window instead of quitting qutebrowser completely
+- Various changes to the Windows and macOS builds:
+  * Bundling Qt 5.12.1, based on Chromium 69.0.3497.128 with security fixes up
+    to 71.0.3578.94.
+  * Windows: A 32-bit build is available again.
+  * Windows: The builds now bundle the Universal CRT DLLs, causing them to work
+    on earlier versions of Windows 10.
+  * macOS: Support for OS X 10.11 El Capitan was dropped, requiring macOS 10.12
+    Sierra or newer.
+  * macOS: The IPC socket path used to communicate with existing instances
+    changed due to changes in Qt 5.12. Please make sure to quit qutebrowser
+    before upgrading.
+- `:q` now closes the current window instead of quitting qutebrowser completely
   (`:close`), while `:qa` quits (`:quit`). The behavior of `:wq` remains
   unchanged (`:quit --save`), as closing a window while saving the session
   doesn't make sense.
@@ -49,6 +149,20 @@ Changed
   adblocker can be disabled on a given page.
 - Elements with a `tabindex` attribute now also get hints by default.
 - Various small performance improvements for hints and the completion.
+- The Wayland check for QtWebEngine is now disabled on Qt >= 5.11.2, as those
+  versions should work without any issues.
+- The JavaScript `console` object is now available in PAC files.
+- PAC proxies currently don't work properly on QtWebEngine (and never did), so
+  an error is now shown when trying to configure a PAC proxy.
+- The metainfo file `qutebrowser.appdata.xml` is now renamed to
+  `org.qutebrowser.qutebrowser.appdata.xml`.
+- The `qute-pass` userscript now understands domains in gpg filenames
+  in addition to directory names.
+- The autocompletion for `content.headers.user_agent` got updated to only
+  include the default and Chrome, as setting the UA to Firefox has various
+  bad side-effects.
+- Combining Qt 5.12 with an older PyQt can lead to issues, so a warning is
+  now shown when starting qutebrowser with that combination.
 
 Fixed
 ~~~~~
@@ -58,6 +172,33 @@ Fixed
   now correctly replaced.
 - Invalid hint length calculation in certain rare cases.
 - Dragging tabs in the tab bar (which was broken in v1.5.0)
+- Using Shift-Home in command mode now works properly.
+- Workaround for a Qt bug which prevented
+  `content.cookies.accept = no-3rdparty` from working properly on some pages
+  like GMail. However, the default for `content.cookies.accept` is still `all`
+  to be in line with what other browsers do.
+- `:navigate` not incrementing in anchors or queries.
+- Crash when trying to use a proxy requiring authentication with QtWebKit.
+- Slashes in search terms are now percent-escaped.
+- When `scrolling.bar = True` was set in versions before v1.5.0, this now
+  correctly gets migrated to `always` instead of `when-searching`.
+- Completion highlighting now works again on Qt 5.11.3 and 5.12.1.
+- The non-standard header `X-Do-Not-Track` is no longer sent.
+- PAC proxies were never correctly supported with QtWebEngine, but are now
+  explicitly disallowed.
+- macOS: Context menus for download items now show in the correct macOS style.
+- Issues with fullscreen handling when exiting a video player.
+- Various fixes for Qt 5.12 issues:
+  * A javascript error on page load was fixed.
+  * `window.print()` works with Qt 5.12 now.
+  * Fixed handling of duplicate download filenames.
+  * Fixed broken `qute://history` page.
+  * Fixed PDF.js not working properly.
+  * The download button in PDF.js now works (it's not possible to make
+    it work with earlier Qt versions).
+  * Since Greasemonkey scripts modifying the DOM fail when being run at
+    document-start, some known-broken scripts (Iridium, userstyles.org) are now
+    forced to run at document-end.
 
 v1.5.2
 ------
@@ -357,11 +498,11 @@ v1.3.3
 Security
 ~~~~~~~~
 
-- An XSS vulnerability on the `qute://history` page allowed websites to inject
-  HTML into the page via a crafted title tag. This could allow them to steal
-  your browsing history. If you're currently unable to upgrade, avoid using
-  `:history`. A CVE request for this issue is pending, see
-  https://github.com/qutebrowser/qutebrowser/issues/4011[#4011] for updates.
+- CVE-2018-1000559: An XSS vulnerability on the `qute://history` page allowed
+  websites to inject HTML into the page via a crafted title tag. This could
+  allow them to steal your browsing history. If you're currently unable to
+  upgrade, avoid using `:history`. See the related GitHub issue for details:
+  https://github.com/qutebrowser/qutebrowser/issues/4011.
 
 Fixed
 ~~~~~
@@ -1236,7 +1377,7 @@ Added
 - New `:debug-log-filter` command to change console log filtering on-the-fly.
 - New `:debug-log-level` command to change the console loglevel on-the-fly.
 - New `general -> yank-ignored-url-parameters` option to configure which URL
-  parameters (like `utm_source` etc.) to strip off when yanking an URL.
+  parameters (like `utm_source` etc.) to strip off when yanking a URL.
 - Support for the
   https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API[HTML5 page visibility API]
 - New `readability` userscript which shows a readable version of a page (using
@@ -1347,7 +1488,7 @@ Changed
 - `:hint` has a new `--add-history` argument to add the URL to the history for
   yank/spawn targets.
 - `:set` now cycles through values if more than one argument is given.
-- `:open` now opens `default-page` without an URL even without `-t`/`-b`/`-w` given.
+- `:open` now opens `default-page` without a URL even without `-t`/`-b`/`-w` given.
 
 Deprecated
 ~~~~~~~~~~

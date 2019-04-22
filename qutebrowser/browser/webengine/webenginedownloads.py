@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -117,8 +117,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _get_open_filename(self):
         return self._filename
 
-    def _set_fileobj(self, fileobj, *,
-                     autoclose=True):  # pylint: disable=unused-argument
+    def _set_fileobj(self, fileobj, *, autoclose=True):
         raise downloads.UnsupportedOperationError
 
     def _set_tempfile(self, fileobj):
@@ -181,7 +180,21 @@ def _get_suggested_filename(path):
     See https://bugreports.qt.io/browse/QTBUG-56978
     """
     filename = os.path.basename(path)
-    filename = re.sub(r'\([0-9]+\)(?=\.|$)', '', filename)
+
+    suffix_re = re.compile(r"""
+      \ ?  # Optional space between filename and suffix
+      (
+        # Numerical suffix
+        \([0-9]+\)
+      |
+        # ISO-8601 suffix
+        # https://cs.chromium.org/chromium/src/base/time/time_to_iso8601.cc
+        \ -\ \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z
+      )
+      (?=\.|$)  # Begin of extension, or filename without extension
+    """, re.VERBOSE)
+
+    filename = suffix_re.sub('', filename)
     if not qtutils.version_check('5.9', compiled=False):
         # https://bugreports.qt.io/browse/QTBUG-58155
         filename = urllib.parse.unquote(filename)

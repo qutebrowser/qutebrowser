@@ -1,5 +1,5 @@
 /* eslint-disable max-len, max-statements, complexity,
-default-case, valid-jsdoc */
+default-case */
 
 // Copyright 2014 The Chromium Authors. All rights reserved.
 //
@@ -30,7 +30,7 @@ default-case, valid-jsdoc */
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /**
- * Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
@@ -1402,6 +1402,14 @@ window._qutebrowser.caret = (function() {
     funcs.toggleSelection = () => {
         CaretBrowsing.selectionEnabled = !CaretBrowsing.selectionEnabled;
         return CaretBrowsing.selectionEnabled;
+    };
+
+    funcs.reverseSelection = () => {
+        const sel = window.getSelection();
+        sel.setBaseAndExtent(
+            sel.extentNode, sel.extentOffset, sel.baseNode,
+            sel.baseOffset
+        );
     };
 
     return funcs;

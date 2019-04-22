@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -98,7 +98,7 @@ class FakeSocket(QObject):
         _connect_successful: The value returned for waitForConnected().
     """
 
-    readyRead = pyqtSignal()
+    readyRead = pyqtSignal()  # noqa: N815
     disconnected = pyqtSignal()
 
     def __init__(self, *, error=QLocalSocket.UnknownSocketError, state=None,
@@ -177,11 +177,6 @@ def md5(inp):
 
 class TestSocketName:
 
-    POSIX_TESTS = [
-        (None, 'ipc-{}'.format(md5('testusername'))),
-        ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
-    ]
-
     WINDOWS_TESTS = [
         (None, 'qutebrowser-testusername'),
         ('/x', 'qutebrowser-testusername-{}'.format(md5('/x'))),
@@ -203,7 +198,10 @@ class TestSocketName:
         assert socketname == expected
 
     @pytest.mark.mac
-    @pytest.mark.parametrize('basedir, expected', POSIX_TESTS)
+    @pytest.mark.parametrize('basedir, expected', [
+        (None, 'i-{}'.format(md5('testusername'))),
+        ('/x', 'i-{}'.format(md5('testusername-/x'))),
+    ])
     def test_mac(self, basedir, expected):
         socketname = ipc._get_socketname(basedir)
         parts = socketname.split(os.sep)
@@ -211,7 +209,10 @@ class TestSocketName:
         assert parts[-1] == expected
 
     @pytest.mark.linux
-    @pytest.mark.parametrize('basedir, expected', POSIX_TESTS)
+    @pytest.mark.parametrize('basedir, expected', [
+        (None, 'ipc-{}'.format(md5('testusername'))),
+        ('/x', 'ipc-{}'.format(md5('testusername-/x'))),
+    ])
     def test_linux(self, basedir, fake_runtime_dir, expected):
         socketname = ipc._get_socketname(basedir)
         expected_path = str(fake_runtime_dir / 'qutebrowser' / expected)

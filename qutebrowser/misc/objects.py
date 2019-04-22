@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,14 +22,22 @@
 # NOTE: We need to be careful with imports here, as this is imported from
 # earlyinit.
 
+import typing
+
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import,useless-suppression
+    from qutebrowser.utils import usertypes
+    from qutebrowser.commands import command
+
 
 class NoBackend:
 
     """Special object when there's no backend set so we notice that."""
 
-    def __eq__(self, other):
+    def __eq__(self, other: typing.Any) -> bool:
         raise AssertionError("No backend set!")
 
 
-# A usertypes.Backend member
-backend = NoBackend()
+backend = NoBackend()  # type: typing.Union[usertypes.Backend, NoBackend]
+commands = {}  # type: typing.Dict[str, command.Command]

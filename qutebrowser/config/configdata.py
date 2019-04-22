@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -24,14 +24,18 @@ Module attributes:
 DATA: A dict of Option objects after init() has been called.
 """
 
+import typing
+from typing import Optional  # pylint: disable=unused-import,useless-suppression
 import functools
 
 import attr
 from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes, qtutils, utils
 
-DATA = None
-MIGRATIONS = None
+DATA = typing.cast(typing.Mapping[str, 'Option'], None)
+MIGRATIONS = typing.cast('Migrations', None)
+
+_BackendDict = typing.Mapping[str, typing.Union[str, bool]]
 
 
 @attr.s
@@ -42,15 +46,15 @@ class Option:
     Note that this is just an option which exists, with no value associated.
     """
 
-    name = attr.ib()
-    typ = attr.ib()
-    default = attr.ib()
-    backends = attr.ib()
-    raw_backends = attr.ib()
-    description = attr.ib()
-    supports_pattern = attr.ib(default=False)
-    restart = attr.ib(default=False)
-    no_autoconfig = attr.ib(default=False)
+    name = attr.ib()  # type: str
+    typ = attr.ib()  # type: configtypes.BaseType
+    default = attr.ib()  # type: typing.Any
+    backends = attr.ib()  # type: typing.Iterable[usertypes.Backend]
+    raw_backends = attr.ib()  # type: Optional[typing.Mapping[str, bool]]
+    description = attr.ib()  # type: str
+    supports_pattern = attr.ib(default=False)  # type: bool
+    restart = attr.ib(default=False)  # type: bool
+    no_autoconfig = attr.ib(default=False)  # type: bool
 
 
 @attr.s
@@ -63,11 +67,13 @@ class Migrations:
         deleted: A list of option names which have been removed.
     """
 
-    renamed = attr.ib(default=attr.Factory(dict))
-    deleted = attr.ib(default=attr.Factory(list))
+    renamed = attr.ib(
+        default=attr.Factory(dict))  # type: typing.Dict[str, str]
+    deleted = attr.ib(
+        default=attr.Factory(list))  # type: typing.List[str]
 
 
-def _raise_invalid_node(name, what, node):
+def _raise_invalid_node(name: str, what: str, node: typing.Any) -> None:
     """Raise an exception for an invalid configdata YAML node.
 
     Args:
@@ -79,18 +85,21 @@ def _raise_invalid_node(name, what, node):
         name, what, node))
 
 
-def _parse_yaml_type(name, node):
+def _parse_yaml_type(
+        name: str,
+        node: typing.Union[str, typing.Mapping[str, typing.Any]],
+) -> configtypes.BaseType:
     if isinstance(node, str):
         # e.g:
-        #  type: Bool
+        #   > type: Bool
         # -> create the type object without any arguments
         type_name = node
-        kwargs = {}
+        kwargs = {}  # type: typing.MutableMapping[str, typing.Any]
     elif isinstance(node, dict):
         # e.g:
-        #  type:
-        #    name: String
-        #    none_ok: true
+        #   > type:
+        #   >   name: String
+        #   >   none_ok: true
         # -> create the type object and pass arguments
         type_name = node.pop('name')
         kwargs = node
@@ -123,7 +132,10 @@ def _parse_yaml_type(name, node):
             type_name, node, e))
 
 
-def _parse_yaml_backends_dict(name, node):
+def _parse_yaml_backends_dict(
+        name: str,
+        node: _BackendDict,
+) -> typing.Sequence[usertypes.Backend]:
     """Parse a dict definition for backends.
 
     Example:
@@ -152,6 +164,7 @@ def _parse_yaml_backends_dict(name, node):
         'Qt 5.9.2': qtutils.version_check('5.9.2'),
         'Qt 5.10': qtutils.version_check('5.10'),
         'Qt 5.11': qtutils.version_check('5.11'),
+        'Qt 5.12': qtutils.version_check('5.12'),
     }
     for key in sorted(node.keys()):
         if conditionals[node[key]]:
@@ -160,7 +173,10 @@ def _parse_yaml_backends_dict(name, node):
     return backends
 
 
-def _parse_yaml_backends(name, node):
+def _parse_yaml_backends(
+        name: str,
+        node: typing.Union[None, str, _BackendDict],
+) -> typing.Sequence[usertypes.Backend]:
     """Parse a backend node in the yaml.
 
     It can have one of those four forms:
@@ -187,7 +203,9 @@ def _parse_yaml_backends(name, node):
     raise utils.Unreachable
 
 
-def _read_yaml(yaml_data):
+def _read_yaml(
+        yaml_data: str,
+) -> typing.Tuple[typing.Mapping[str, Option], Migrations]:
     """Read config data from a YAML file.
 
     Args:
@@ -249,12 +267,12 @@ def _read_yaml(yaml_data):
 
 
 @functools.lru_cache(maxsize=256)
-def is_valid_prefix(prefix):
+def is_valid_prefix(prefix: str) -> bool:
     """Check whether the given prefix is a valid prefix for some option."""
     return any(key.startswith(prefix + '.') for key in DATA)
 
 
-def init():
+def init() -> None:
     """Initialize configdata from the YAML file."""
     global DATA, MIGRATIONS
     DATA, MIGRATIONS = _read_yaml(utils.read_file('config/configdata.yml'))

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -21,14 +21,17 @@
 
 import traceback
 import re
+import typing
+import contextlib
 
 import attr
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 
+from qutebrowser.api import cmdutils
 from qutebrowser.config import config
-from qutebrowser.commands import cmdexc, cmdutils
+from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
-from qutebrowser.misc import split
+from qutebrowser.misc import split, objects
 
 
 last_command = {}
@@ -53,27 +56,46 @@ def _current_url(tabbed_browser):
         if e.reason:
             msg += " ({})".format(e.reason)
         msg += "!"
-        raise cmdexc.CommandError(msg)
+        raise cmdutils.CommandError(msg)
 
 
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
+    tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                window=win_id)
+    url = lambda: _current_url(tabbed_browser)
+
     variables = {
-        'url': lambda: _current_url(tabbed_browser).toString(
+        'url': lambda: url().toString(
             QUrl.FullyEncoded | QUrl.RemovePassword),
-        'url:pretty': lambda: _current_url(tabbed_browser).toString(
+        'url:pretty': lambda: url().toString(
             QUrl.DecodeReserved | QUrl.RemovePassword),
-        'url:host': lambda: _current_url(tabbed_browser).host(),
+        'url:domain': lambda: "{}://{}{}".format(
+            url().scheme(),
+            url().host(),
+            ":" + str(url().port()) if url().port() != -1 else ""),
+        'url:auth': lambda: "{}:{}@".format(
+            url().userName(),
+            url().password()) if url().userName() else "",
+        'url:scheme': lambda: url().scheme(),
+        'url:username': lambda: url().userName(),
+        'url:password': lambda: url().password(),
+        'url:host': lambda: url().host(),
+        'url:port': lambda: str(url().port()) if url().port() != -1 else "",
+        'url:path': lambda: url().path(),
+        'url:query': lambda: url().query(),
+        'title': lambda: tabbed_browser.widget.page_title(
+            tabbed_browser.widget.currentIndex()),
         'clipboard': utils.get_clipboard,
         'primary': lambda: utils.get_clipboard(selection=True),
     }
+
     for key in list(variables):
         modified_key = '{' + key + '}'
         variables[modified_key] = lambda x=modified_key: x
+
     values = {}
     args = []
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window=win_id)
 
     def repl_cb(matchobj):
         """Return replacement for given match."""
@@ -90,7 +112,7 @@ def replace_variables(win_id, arglist):
             # "{url}" from clipboard is not expanded)
             args.append(repl_pattern.sub(repl_cb, arg))
     except utils.ClipboardError as e:
-        raise cmdexc.CommandError(e)
+        raise cmdutils.CommandError(e)
     return args
 
 
@@ -190,7 +212,7 @@ class CommandParser:
             cmdstr = self._completion_match(cmdstr)
 
         try:
-            cmd = cmdutils.cmd_dict[cmdstr]
+            cmd = objects.commands[cmdstr]
         except KeyError:
             if not fallback:
                 raise cmdexc.NoSuchCommandError(
@@ -217,7 +239,7 @@ class CommandParser:
         Return:
             cmdstr modified to the matching completion or unmodified
         """
-        matches = [cmd for cmd in sorted(cmdutils.cmd_dict, key=len)
+        matches = [cmd for cmd in sorted(objects.commands, key=len)
                    if cmdstr in cmd]
         if len(matches) == 1:
             cmdstr = matches[0]
@@ -282,12 +304,24 @@ class CommandRunner(QObject):
         self._parser = CommandParser(partial_match=partial_match)
         self._win_id = win_id
 
-    def run(self, text, count=None):
+    @contextlib.contextmanager
+    def _handle_error(self, safely) -> typing.Iterator[None]:
+        """Show exceptions as errors if safely=True is given."""
+        try:
+            yield
+        except cmdexc.Error as e:
+            if safely:
+                message.error(str(e), stack=traceback.format_exc())
+            else:
+                raise
+
+    def run(self, text, count=None, *, safely=False):
         """Parse a command from a line of text and run it.
 
         Args:
             text: The text to parse.
             count: The count to pass to the command.
+            safely: Show CmdError exceptions as messages.
         """
         record_last_command = True
         record_macro = True
@@ -296,12 +330,21 @@ class CommandRunner(QObject):
                                   window=self._win_id)
         cur_mode = mode_manager.mode
 
-        for result in self._parser.parse_all(text):
-            if result.cmd.no_replace_variables:
-                args = result.args
-            else:
-                args = replace_variables(self._win_id, result.args)
-            result.cmd.run(self._win_id, args, count=count)
+        parsed = None
+        with self._handle_error(safely):
+            parsed = self._parser.parse_all(text)
+
+        if parsed is None:
+            return
+
+        for result in parsed:
+            with self._handle_error(safely):
+                if result.cmd.no_replace_variables:
+                    args = result.args
+                else:
+                    args = replace_variables(self._win_id, result.args)
+
+                result.cmd.run(self._win_id, args, count=count)
 
             if result.cmdline[0] == 'repeat-command':
                 record_last_command = False
@@ -321,7 +364,4 @@ class CommandRunner(QObject):
     @pyqtSlot(str)
     def run_safely(self, text, count=None):
         """Run a command and display exceptions in the statusbar."""
-        try:
-            self.run(text, count)
-        except cmdexc.Error as e:
-            message.error(str(e), stack=traceback.format_exc())
+        self.run(text, count, safely=True)

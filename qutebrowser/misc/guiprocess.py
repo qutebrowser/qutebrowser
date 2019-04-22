@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,19 +27,6 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
 
 from qutebrowser.utils import message, log
 from qutebrowser.browser import qutescheme
-
-# A mapping of QProcess::ErrorCode's to human-readable strings.
-
-ERROR_STRINGS = {
-    QProcess.FailedToStart: "The process failed to start.",
-    QProcess.Crashed: "The process crashed.",
-    QProcess.Timedout: "The last waitFor...() function timed out.",
-    QProcess.WriteError: ("An error occurred when attempting to write to the "
-                          "process."),
-    QProcess.ReadError: ("An error occurred when attempting to read from the "
-                         "process."),
-    QProcess.UnknownError: "An unknown error occurred.",
-}
 
 
 class GUIProcess(QObject):
@@ -73,11 +60,11 @@ class GUIProcess(QObject):
         self.args = None
 
         self._proc = QProcess(self)
-        self._proc.error.connect(self.on_error)
-        self._proc.error.connect(self.error)
-        self._proc.finished.connect(self.on_finished)
+        self._proc.errorOccurred.connect(self._on_error)
+        self._proc.errorOccurred.connect(self.error)
+        self._proc.finished.connect(self._on_finished)
         self._proc.finished.connect(self.finished)
-        self._proc.started.connect(self.on_started)
+        self._proc.started.connect(self._on_started)
         self._proc.started.connect(self.started)
 
         if additional_env is not None:
@@ -86,14 +73,14 @@ class GUIProcess(QObject):
                 procenv.insert(k, v)
             self._proc.setProcessEnvironment(procenv)
 
-    @pyqtSlot(QProcess.ProcessError)
-    def on_error(self, error):
+    @pyqtSlot()
+    def _on_error(self):
         """Show a message if there was an error while spawning."""
-        msg = ERROR_STRINGS[error]
+        msg = self._proc.errorString()
         message.error("Error while spawning {}: {}".format(self._what, msg))
 
     @pyqtSlot(int, QProcess.ExitStatus)
-    def on_finished(self, code, status):
+    def _on_finished(self, code, status):
         """Show a message when the process finished."""
         self._started = False
         log.procs.debug("Process finished with code {}, status {}.".format(
@@ -138,7 +125,7 @@ class GUIProcess(QObject):
         return spawn_string
 
     @pyqtSlot()
-    def on_started(self):
+    def _on_started(self):
         """Called when the process started successfully."""
         log.procs.debug("Process started.")
         assert not self._started
@@ -155,28 +142,26 @@ class GUIProcess(QObject):
         if self.verbose:
             message.info('Executing: ' + fake_cmdline)
 
-    def start(self, cmd, args, mode=None):
+    def start(self, cmd, args):
         """Convenience wrapper around QProcess::start."""
         log.procs.debug("Starting process.")
         self._pre_start(cmd, args)
-        if mode is None:
-            self._proc.start(cmd, args)
-        else:
-            self._proc.start(cmd, args, mode)
+        self._proc.start(cmd, args)
         self._proc.closeWriteChannel()
 
-    def start_detached(self, cmd, args, cwd=None):
+    def start_detached(self, cmd, args):
         """Convenience wrapper around QProcess::startDetached."""
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
-        ok, _pid = self._proc.startDetached(cmd, args, cwd)
+        ok, _pid = self._proc.startDetached(cmd, args, None)
 
-        if ok:
-            log.procs.debug("Process started.")
-            self._started = True
-        else:
-            message.error("Error while spawning {}: {}".format(
-                self._what, ERROR_STRINGS[self._proc.error()]))
+        if not ok:
+            message.error("Error while spawning {}".format(self._what))
+            return False
+
+        log.procs.debug("Process started.")
+        self._started = True
+        return True
 
     def exit_status(self):
         return self._proc.exitStatus()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -35,9 +35,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 # We import qutebrowser.app so all @cmdutils-register decorators are run.
 import qutebrowser.app
 from qutebrowser import qutebrowser, commands
-from qutebrowser.commands import cmdutils, argparser
+from qutebrowser.extensions import loader
+from qutebrowser.commands import argparser
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import docutils, usertypes
+from qutebrowser.misc import objects
 from scripts import asciidoc2html, utils
 
 FILE_HEADER = """
@@ -135,7 +137,7 @@ def _get_command_quickref(cmds):
     out.append('|Command|Description')
     for name, cmd in cmds:
         desc = inspect.getdoc(cmd.handler).splitlines()[0]
-        out.append('|<<{},{}>>|{}'.format(name, name, desc))
+        out.append('|<<{name},{name}>>|{desc}'.format(name=name, desc=desc))
     out.append('|==============')
     return '\n'.join(out)
 
@@ -251,14 +253,18 @@ def _get_command_doc_count(cmd, parser):
         Strings which should be added to the docs.
     """
     for param in inspect.signature(cmd.handler).parameters.values():
-        if cmd.get_arg_info(param).count:
+        if cmd.get_arg_info(param).value in cmd.COUNT_COMMAND_VALUES:
             yield ""
             yield "==== count"
             try:
                 yield parser.arg_descs[param.name]
-            except KeyError as e:
-                raise KeyError("No description for count arg {!r} of command "
-                               "{!r}!".format(param.name, cmd.name)) from e
+            except KeyError:
+                try:
+                    yield parser.arg_descs['count']
+                except KeyError as e:
+                    raise KeyError("No description for count arg {!r} of "
+                                   "command {!r}!"
+                                   .format(param.name, cmd.name)) from e
 
 
 def _get_command_doc_notes(cmd):
@@ -350,7 +356,7 @@ def generate_commands(filename):
         normal_cmds = []
         other_cmds = []
         debug_cmds = []
-        for name, cmd in cmdutils.cmd_dict.items():
+        for name, cmd in objects.commands.items():
             if cmd.deprecated:
                 continue
             if usertypes.KeyMode.normal not in cmd.modes:
@@ -493,7 +499,7 @@ def _format_block(filename, what, data):
         if not found_start:
             raise Exception("Marker '// QUTE_{}_START' not found in "
                             "'{}'!".format(what, filename))
-        elif not found_end:
+        if not found_end:
             raise Exception("Marker '// QUTE_{}_END' not found in "
                             "'{}'!".format(what, filename))
     except:
@@ -544,6 +550,7 @@ def regenerate_cheatsheet():
 def main():
     """Regenerate all documentation."""
     utils.change_cwd()
+    loader.load_components(skip_hooks=True)
     print("Generating manpage...")
     regenerate_manpage('doc/qutebrowser.1.asciidoc')
     print("Generating settings help...")

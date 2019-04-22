@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -65,8 +65,7 @@ def runner(request, runtime_tmpdir):
             request.param is userscripts._POSIXUserscriptRunner):
         pytest.skip("Requires a POSIX os")
         raise utils.Unreachable
-    else:
-        return request.param()
+    return request.param()
 
 
 def test_command(qtbot, py_proc, runner):

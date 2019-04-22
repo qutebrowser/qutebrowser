@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,10 +20,12 @@
 """Handling of proxies."""
 
 
+from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
-from qutebrowser.utils import objreg
+from qutebrowser.utils import objreg, message, usertypes, urlutils
+from qutebrowser.misc import objects
 from qutebrowser.browser.network import pac
 
 
@@ -32,6 +34,18 @@ def init():
     proxy_factory = ProxyFactory()
     objreg.register('proxy-factory', proxy_factory)
     QNetworkProxyFactory.setApplicationProxyFactory(proxy_factory)
+
+    config.instance.changed.connect(_warn_for_pac)
+    _warn_for_pac()
+
+
+@config.change_filter('content.proxy', function=True)
+def _warn_for_pac():
+    """Show a warning if PAC is used with QtWebEngine."""
+    proxy = config.val.content.proxy
+    if (isinstance(proxy, pac.PACFetcher) and
+            objects.backend == usertypes.Backend.QtWebEngine):
+        message.error("PAC support isn't implemented for QtWebEngine yet!")
 
 
 def shutdown():
@@ -70,7 +84,11 @@ class ProxyFactory(QNetworkProxyFactory):
             # ref. http://doc.qt.io/qt-5/qnetworkproxyfactory.html#systemProxyForQuery
             proxies = QNetworkProxyFactory.systemProxyForQuery(query)
         elif isinstance(proxy, pac.PACFetcher):
-            proxies = proxy.resolve(query)
+            if objects.backend == usertypes.Backend.QtWebEngine:
+                # Looks like query.url() is always invalid on QtWebEngine...
+                proxies = [urlutils.proxy_from_url(QUrl('direct://'))]
+            else:
+                proxies = proxy.resolve(query)
         else:
             proxies = [proxy]
         for p in proxies:

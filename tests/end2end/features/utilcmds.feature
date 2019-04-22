@@ -131,7 +131,7 @@ Feature: Miscellaneous utility commands exposed to the user.
         And I run :prompt-accept
         And I run :repeat-command
         Then the message "test3" should be shown
-        And the message "test3" should be shown
+        And the error "prompt-accept: This command is only allowed in prompt/yesno mode, not normal." should be shown
         And the error "prompt-accept: This command is only allowed in prompt/yesno mode, not normal." should be shown
 
     Scenario: :repeat-command with mode-switching command
