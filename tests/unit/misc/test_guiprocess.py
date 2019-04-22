@@ -127,12 +127,12 @@ def test_start_detached_error(fake_proc, message_mock, caplog):
     """Test starting a detached process with ok=False."""
     argv = ['foo', 'bar']
     fake_proc._proc.startDetached.return_value = (False, 0)
-    fake_proc._proc.error.return_value = QProcess.FailedToStart
+    fake_proc._proc.errorString.return_value = "Error message"
+
     with caplog.at_level(logging.ERROR):
         fake_proc.start_detached(*argv)
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    expected = ("Error while spawning testprocess: The process failed to "
-                "start.")
+    expected = "Error while spawning testprocess: Error message"
     assert msg.text == expected
 
 
@@ -184,9 +184,7 @@ def test_error(qtbot, proc, caplog, message_mock):
             proc.start('this_does_not_exist_either', [])
 
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    expected_msg = ("Error while spawning testprocess: The process failed to "
-                    "start.")
-    assert msg.text == expected_msg
+    assert msg.text.startswith("Error while spawning testprocess:")
 
 
 def test_exit_unsuccessful(qtbot, proc, message_mock, py_proc, caplog):

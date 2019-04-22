@@ -28,19 +28,6 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
 from qutebrowser.utils import message, log
 from qutebrowser.browser import qutescheme
 
-# A mapping of QProcess::ErrorCode's to human-readable strings.
-
-ERROR_STRINGS = {
-    QProcess.FailedToStart: "The process failed to start.",
-    QProcess.Crashed: "The process crashed.",
-    QProcess.Timedout: "The last waitFor...() function timed out.",
-    QProcess.WriteError: ("An error occurred when attempting to write to the "
-                          "process."),
-    QProcess.ReadError: ("An error occurred when attempting to read from the "
-                         "process."),
-    QProcess.UnknownError: "An unknown error occurred.",
-}
-
 
 class GUIProcess(QObject):
 
@@ -86,10 +73,10 @@ class GUIProcess(QObject):
                 procenv.insert(k, v)
             self._proc.setProcessEnvironment(procenv)
 
-    @pyqtSlot(QProcess.ProcessError)
-    def _on_error(self, error):
+    @pyqtSlot()
+    def _on_error(self):
         """Show a message if there was an error while spawning."""
-        msg = ERROR_STRINGS[error]
+        msg = self._proc.errorString()
         message.error("Error while spawning {}: {}".format(self._what, msg))
 
     @pyqtSlot(int, QProcess.ExitStatus)
@@ -176,7 +163,7 @@ class GUIProcess(QObject):
             self._started = True
         else:
             message.error("Error while spawning {}: {}".format(
-                self._what, ERROR_STRINGS[self._proc.error()]))
+                self._what, self._proc.errorString()))
 
     def exit_status(self):
         return self._proc.exitStatus()
