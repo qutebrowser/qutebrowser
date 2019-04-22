@@ -155,12 +155,13 @@ class GUIProcess(QObject):
         self._pre_start(cmd, args)
         ok, _pid = self._proc.startDetached(cmd, args, None)
 
-        if ok:
-            log.procs.debug("Process started.")
-            self._started = True
-        else:
-            message.error("Error while spawning {}: {}".format(
-                self._what, self._proc.errorString()))
+        if not ok:
+            message.error("Error while spawning {}".format(self._what))
+            return False
+
+        log.procs.debug("Process started.")
+        self._started = True
+        return True
 
     def exit_status(self):
         return self._proc.exitStatus()

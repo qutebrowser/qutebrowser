@@ -1037,7 +1037,10 @@ class CommandDispatcher:
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
                                          parent=self._tabbed_browser)
             if detach:
-                proc.start_detached(cmd, args)
+                ok = proc.start_detached(cmd, args)
+                if not ok:
+                    message.info("Hint: Try without --detach for a more "
+                                 "detailed error")
             else:
                 proc.start(cmd, args)
             proc.finished.connect(_on_proc_finished)

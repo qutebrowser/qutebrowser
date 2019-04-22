@@ -116,12 +116,11 @@ def test_start_detached_error(fake_proc, message_mock, caplog):
     """Test starting a detached process with ok=False."""
     argv = ['foo', 'bar']
     fake_proc._proc.startDetached.return_value = (False, 0)
-    fake_proc._proc.errorString.return_value = "Error message"
 
     with caplog.at_level(logging.ERROR):
         fake_proc.start_detached(*argv)
     msg = message_mock.getmsg(usertypes.MessageLevel.error)
-    expected = "Error while spawning testprocess: Error message"
+    expected = "Error while spawning testprocess"
     assert msg.text == expected
 
 
