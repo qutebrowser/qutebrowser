@@ -104,17 +104,6 @@ def test_start_env(monkeypatch, qtbot, py_proc):
     assert 'QUTEBROWSER_TEST_2' in data
 
 
-@pytest.mark.qt_log_ignore('QIODevice::read.*: WriteOnly device')
-def test_start_mode(proc, qtbot, py_proc):
-    """Test simply starting a process with mode parameter."""
-    with qtbot.waitSignals([proc.started, proc.finished], timeout=10000,
-                           order='strict'):
-        argv = py_proc("import sys; print('test'); sys.exit(0)")
-        proc.start(*argv, mode=QIODevice.NotOpen)
-
-    assert not proc._proc.readAll()
-
-
 def test_start_detached(fake_proc):
     """Test starting a detached process."""
     argv = ['foo', 'bar']
