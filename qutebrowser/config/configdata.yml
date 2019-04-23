@@ -667,6 +667,7 @@ content.notifications:
 content.pdfjs:
   default: false
   type: Bool
+  supports_pattern: true
   desc: >-
     Allow pdf.js to view PDF files in the browser.
 
