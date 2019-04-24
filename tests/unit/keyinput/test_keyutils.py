@@ -520,7 +520,7 @@ def test_is_printable(key, printable):
     (Qt.Key_Escape, Qt.ControlModifier, True),
     (Qt.Key_X, Qt.ControlModifier, True),
     (Qt.Key_X, Qt.NoModifier, False),
-    (Qt.Key_2, Qt.KeypadModifier, False),
+    (Qt.Key_2, Qt.KeypadModifier, True),
     (Qt.Key_2, Qt.NoModifier, False),
 ])
 def test_is_special(key, modifiers, special):
