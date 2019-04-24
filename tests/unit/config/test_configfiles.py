@@ -273,6 +273,25 @@ class TestYaml:
         data = autoconfig.read()
         assert data[setting]['global'] == new
 
+    @pytest.mark.parametrize(
+        'setting', ('tabs.title.format',
+                    'tabs.title.format_pinned', 'window.title_format'))
+    @pytest.mark.parametrize('old, new', [
+        ('{title}', '{current_title}'),
+        ('eve{title}duna', 'eve{current_title}duna'),
+        ('eve{{title}}duna', 'eve{{title}}duna'),
+        ('{{title}}', '{{title}}'),
+    ])
+    def test_string_migrations(self, yaml, autoconfig, setting, old, new):
+        """Tests for migration of former boolean settings."""
+        autoconfig.write({setting: {'global': old}})
+
+        yaml.load()
+        yaml._save()
+
+        data = autoconfig.read()
+        assert data[setting]['global'] == new
+
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):
         """A key marked as renamed with invalid name should raise an error."""
