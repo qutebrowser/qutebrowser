@@ -25,7 +25,7 @@ MAX_SIZE_PRETTIFY=10485760  # 10 MB
 # default style to monokai if none is provided
 STYLE=${1:-monokai}
 
-TEMP_FILE="$(mktemp)"
+TEMP_FILE="$(mktemp --suffix .html)"
 jq . "$QUTE_TEXT" >"$TEMP_FILE"
 
 # try GNU stat first and then OSX stat if the former fails
