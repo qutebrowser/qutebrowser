@@ -323,8 +323,9 @@ class YamlConfig(QObject):
         self._migrate_bool(settings, 'qt.force_software_rendering',
                            'software-opengl', 'none')
 
-        for s in ('tabs.title.format',
-                  'tabs.title.format_pinned', 'window.title_format'):
+        for s in ['tabs.title.format',
+                  'tabs.title.format_pinned',
+                  'window.title_format']:
             self._migrate_string_value(
                 settings, s, r'(?<!{)\{title\}(?!})', r'{current_title}')
 
