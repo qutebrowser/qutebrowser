@@ -31,6 +31,10 @@ Added
     `{url:password}`, `{url:host}`, `{url:port}`, `{url:path}`, `{url:query}`
     for the respective parts of the current URL.
   * `{title}` for the current page title.
+- The `{title}` field in `tabs.title.format`, `tabs.title.format_pinned` and
+  `window.title_format` got renamed to `{current_title}` (mirroring
+  `{current_url}`) in order to not conflict with the new `{title}` commandline
+  replacement.
 
 Changed
 ~~~~~~~
