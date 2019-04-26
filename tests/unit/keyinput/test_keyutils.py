@@ -544,6 +544,11 @@ def test_is_special_hint_mode(key, modifiers, special):
     (Qt.Key_X, Qt.NoModifier, False),
     (Qt.Key_2, Qt.KeypadModifier, True),
     (Qt.Key_2, Qt.NoModifier, False),
+    (Qt.Key_Shift, Qt.ShiftModifier, True),
+    (Qt.Key_Control, Qt.ControlModifier, True),
+    (Qt.Key_Alt, Qt.AltModifier, True),
+    (Qt.Key_Meta, Qt.MetaModifier, True),
+    (Qt.Key_Mode_switch, Qt.GroupSwitchModifier, True),
 ])
 def test_is_special(key, modifiers, special):
     assert keyutils.is_special(key, modifiers) == special
