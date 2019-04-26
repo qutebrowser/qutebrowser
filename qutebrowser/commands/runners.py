@@ -22,7 +22,6 @@
 import traceback
 import re
 import typing
-import types
 import contextlib
 
 import attr
@@ -39,7 +38,7 @@ if MYPY:
     # pylint: disable=unused-import
     from qutebrowser.mainwindow import tabbedbrowser
     # pylint: enable=unused-import
-ReplacementFunction = typing.Callable[['tabbedbrowser.TabbedBrowser'], str]
+_ReplacementFunction = typing.Callable[['tabbedbrowser.TabbedBrowser'], str]
 
 last_command = {}
 
@@ -54,7 +53,7 @@ class ParseResult:
     cmdline = attr.ib()
 
 
-def _current_url(tabbed_browser):
+def _url(tabbed_browser):
     """Convenience method to get the current url."""
     try:
         return tabbed_browser.current_url()
@@ -66,33 +65,32 @@ def _current_url(tabbed_browser):
         raise cmdutils.CommandError(msg)
 
 
-def _init_variable_replacements() -> typing.Dict[str, ReplacementFunction]:
+def _init_variable_replacements() -> typing.Mapping[str, _ReplacementFunction]:
     """Return a dict from variable replacements to fns processing them."""
-    url = _current_url
     replacements = {
-        'url': lambda tb: url(tb).toString(
+        'url': lambda tb: _url(tb).toString(
             QUrl.FullyEncoded | QUrl.RemovePassword),
-        'url:pretty': lambda tb: url(tb).toString(
+        'url:pretty': lambda tb: _url(tb).toString(
             QUrl.DecodeReserved | QUrl.RemovePassword),
         'url:domain': lambda tb: "{}://{}{}".format(
-            url(tb).scheme(), url(tb).host(),
-            ":" + str(url(tb).port()) if url(tb).port() != -1 else ""),
+            _url(tb).scheme(), _url(tb).host(),
+            ":" + str(_url(tb).port()) if _url(tb).port() != -1 else ""),
         'url:auth': lambda tb: "{}:{}@".format(
-            url(tb).userName(),
-            url(tb).password()) if url(tb).userName() else "",
-        'url:scheme': lambda tb: url(tb).scheme(),
-        'url:username': lambda tb: url(tb).userName(),
-        'url:password': lambda tb: url(tb).password(),
-        'url:host': lambda tb: url(tb).host(),
+            _url(tb).userName(),
+            _url(tb).password()) if _url(tb).userName() else "",
+        'url:scheme': lambda tb: _url(tb).scheme(),
+        'url:username': lambda tb: _url(tb).userName(),
+        'url:password': lambda tb: _url(tb).password(),
+        'url:host': lambda tb: _url(tb).host(),
         'url:port': lambda tb: str(
-            url(tb).port()) if url(tb).port() != -1 else "",
-        'url:path': lambda tb: url(tb).path(),
-        'url:query': lambda tb: url(tb).query(),
+            _url(tb).port()) if _url(tb).port() != -1 else "",
+        'url:path': lambda tb: _url(tb).path(),
+        'url:query': lambda tb: _url(tb).query(),
         'title': lambda tb: tb.widget.page_title(
             tb.widget.currentIndex()),
         'clipboard': lambda _: utils.get_clipboard(),
         'primary': lambda _: utils.get_clipboard(selection=True),
-    }  # type:typing.Dict[str, ReplacementFunction]
+    }  # type:typing.Dict[str, _ReplacementFunction]
     for key in list(replacements):
         modified_key = '{' + key + '}'
         # x = modified_key is to avoid binding x as a closure
@@ -101,7 +99,7 @@ def _init_variable_replacements() -> typing.Dict[str, ReplacementFunction]:
     return replacements
 
 
-VARIABLE_REPLACEMENTS = types.MappingProxyType(_init_variable_replacements())
+VARIABLE_REPLACEMENTS = _init_variable_replacements()
 # A regex matching all variable replacements
 VARIABLE_REPLACEMENT_PATTERN = re.compile(
     "{(?P<var>" + "|".join(VARIABLE_REPLACEMENTS.keys()) + ")}")
