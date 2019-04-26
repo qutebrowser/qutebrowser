@@ -226,9 +226,7 @@ Why does it take longer to open a URL in qutebrowser than in chromium?::
     and place it in your $PATH with the name "qutebrowser". This
     script passes the URL via an unix socket to qutebrowser (if its
     running already) using socat which is much faster and starts a new
-    qutebrowser if it is not running already. Also check if you want
-    to use webengine as backend in line 17 and change it to your
-    needs.
+    qutebrowser if it is not running already.
 
 How do I make qutebrowser use greasemonkey scripts?::
     There is currently no UI elements to handle managing greasemonkey scripts.
