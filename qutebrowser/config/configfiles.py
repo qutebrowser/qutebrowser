@@ -261,11 +261,11 @@ class YamlConfig(QObject):
                               source: str, target: str) -> None:
         if name in settings:
             for scope, val in settings[name].items():
-                if isinstance(val, str):
-                    new_val = re.sub(source, target, val)
-                    if new_val != val:
-                        settings[name][scope] = new_val
-                        self._mark_changed()
+                assert isinstance(val, str)
+                new_val = re.sub(source, target, val)
+                if new_val != val:
+                    settings[name][scope] = new_val
+                    self._mark_changed()
 
     def _handle_migrations(self, settings: _SettingsType) -> '_SettingsType':
         """Migrate older configs to the newest format."""
