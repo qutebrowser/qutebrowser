@@ -297,15 +297,10 @@ Unable to view DRM content (Netflix, Spotify, etc.).::
     You will need to install `widevine` and set `qt.args` to point to it.
     Qt 5.9 currently only supports widevine up to Chrome version 61.
 +
-On Arch, simply install `qt5-webengine-widevine` from the AUR and run:
-+
-----
-:set qt.args '["ppapi-widevine-path=/usr/lib/qt/plugins/ppapi/libwidevinecdmadapter.so"]'
-:restart
-----
+On Arch, simply install `chromium-widevine` from the AUR.
 +
 For other distributions, download the chromium tarball and widevine-cdm zip from
-https://aur.archlinux.org/packages/qt5-webengine-widevine/[the AUR page],
+https://aur.archlinux.org/packages/chromium-widevine/[the AUR page],
 extract `libwidevinecdmadapter.so` and `libwidevinecdm.so` files, respectively,
 and move them to the `ppapi` plugin directory in your Qt library directory (create it if it does not exist).
 +
