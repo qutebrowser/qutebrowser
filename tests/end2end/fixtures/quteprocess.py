@@ -157,6 +157,10 @@ def is_ignored_chromium_message(line):
         # cert_verify_proc_openssl.cc(212)]
         # X509 Verification error self signed certificate : 18 : 0 : 4
         'X509 Verification error self signed certificate : 18 : 0 : 4',
+        # Qt 5.13
+        # [27789:27805:0325/111821.127349:ERROR:ssl_client_socket_impl.cc(962)]
+        # handshake failed; returned -1, SSL error code 1, net_error -202
+        'handshake failed; returned -1, SSL error code 1, net_error -202',
 
         # Not reproducible anymore?
 
@@ -235,6 +239,14 @@ def is_ignored_chromium_message(line):
         # Local\Temp\1\qutebrowser-basedir-1l3jmxq4\data\webengine\
         # in_progress_download_metadata_store
         'Could not write download entries to file: *',
+
+        # Qt 5.13
+        # [32651:32651:0325/130146.300817:WARNING:
+        # render_frame_host_impl.cc(486)]
+        # InterfaceRequest was dropped, the document is no longer active:
+        # resource_coordinator.mojom.FrameCoordinationUnit
+        'InterfaceRequest was dropped, the document is no longer active: '
+        'resource_coordinator.mojom.FrameCoordinationUnit',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)

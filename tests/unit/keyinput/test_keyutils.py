@@ -317,7 +317,7 @@ class TestKeySequence:
         assert s1[3:5] == s2
         assert seq[3:5] == expected
 
-    @pytest.mark.parametrize('entered, configured, expected', [
+    MATCH_TESTS = [
         # config: abcd
         ('abc', 'abcd', QKeySequence.PartialMatch),
         ('abcd', 'abcd', QKeySequence.ExactMatch),
@@ -339,8 +339,9 @@ class TestKeySequence:
         # empty strings
         ('', '', QKeySequence.ExactMatch),
         ('', 'a', QKeySequence.PartialMatch),
-        ('a', '', QKeySequence.NoMatch),
-    ])
+        ('a', '', QKeySequence.NoMatch)]
+
+    @pytest.mark.parametrize('entered, configured, expected', MATCH_TESTS)
     def test_matches(self, entered, configured, expected):
         entered = keyutils.KeySequence.parse(entered)
         configured = keyutils.KeySequence.parse(configured)

@@ -21,6 +21,17 @@ v1.7.0 (unreleased)
 Added
 ~~~~~
 
+- New settings:
+  * `colors.tabs.pinned.*` to control colors of pinned tabs.
+- New commands:
+  * `:reverse-selection` (`o` in caret mode) to swap the stationary/moving ends
+    of a selection.
+- New commandline replacements:
+  * `{url:domain}`, `{url:auth}`, `{url:scheme}`, `{url:username}`,
+    `{url:password}`, `{url:host}`, `{url:port}`, `{url:path}`, `{url:query}`
+    for the respective parts of the current URL.
+  * `{title}` for the current page title.
+
 Changed
 ~~~~~~~
 
@@ -28,12 +39,50 @@ Changed
   `org.qutebrowser.qutebrowser.desktop`.
 - Pinned tabs now always show a favicon (even if the site doesn't provide one)
   when shrinking.
+- Slight performance improvements for the `:open` completion.
+- Performance improvements for showing hints.
+- Setting `downloads.location.directory` now changes the directory displayed in
+  the download prompt even if `downloads.location.remember` is set.
+- The `yank` command gained a new `inline` argument, which allows to e.g. use
+  `:yank inline [{title}]({url})`.
+- Duplicate consecutive history entries with the same URL are now ignored.
+- More detailed error messages when spawning a process failed.
+
+Deprecated
+~~~~~~~~~~
+
+- `:yank markdown` got deprecated, as `:yank inline [{title}]({url})` can now
+  be used instead.
 
 Fixed
 ~~~~~
 
-v1.6.1 (unreleased)
+- Race condition causing a colored statusbar in normal mode when
+  entering/exiting caret mode quickly.
+- Using `100%` for a hue in a `hsv(...)` config value now corresponds to 359
+  (rather than 255), matching the fixed behavior in Qt 5.13.
+- Chaining commands with ;; used to abort with some failing commands. It now
+  runs the second command no matter whether the first one succeeded or not.
+
+v1.6.2 (unreleased)
 -------------------
+
+Fixed
+~~~~~
+
+- Crash when SQL errors occur while using the completion.
+- Crash when cancelling a download prompt started in an already closed window.
+- Running without Qt installed now displays a proper error again.
+
+v1.6.1
+------
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now ship with Qt 5.12.2, which includes
+  security fixes up to Chromium 72.0.3626.121 (including CVE-2019-5786
+  which is known to be exploited in the wild).
 
 Fixed
 ~~~~~
