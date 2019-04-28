@@ -51,7 +51,7 @@ class Unset:
 UNSET = Unset()
 
 
-@attr.s(frozen=True, cmp=False)
+@attr.s(frozen=True, cmp=False, hash=False)
 class ScopedValue:
 
     """A configuration value which is valid for a UrlPattern.
