@@ -59,8 +59,10 @@ def test_start(proc, qtbot, message_mock, py_proc):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
+    expected = proc._spawn_format(exitinfo="Testprocess exited successfully.",
+                                  stdout="test")
     assert not message_mock.messages
-    assert qutescheme.spawn_output == proc._spawn_format(stdout="test")
+    assert qutescheme.spawn_output == expected
 
 
 def test_start_verbose(proc, qtbot, message_mock, py_proc):
@@ -72,12 +74,14 @@ def test_start_verbose(proc, qtbot, message_mock, py_proc):
         argv = py_proc("import sys; print('test'); sys.exit(0)")
         proc.start(*argv)
 
+    expected = proc._spawn_format(exitinfo="Testprocess exited successfully.",
+                                  stdout="test")
     msgs = message_mock.messages
     assert msgs[0].level == usertypes.MessageLevel.info
     assert msgs[1].level == usertypes.MessageLevel.info
     assert msgs[0].text.startswith("Executing:")
     assert msgs[1].text == "Testprocess exited successfully."
-    assert qutescheme.spawn_output == proc._spawn_format(stdout="test")
+    assert qutescheme.spawn_output == expected
 
 
 def test_start_env(monkeypatch, qtbot, py_proc):
@@ -224,5 +228,7 @@ def test_stdout_not_decodable(proc, qtbot, message_mock, py_proc):
             sys.exit(0)
             """)
         proc.start(*argv)
+    expected = proc._spawn_format(exitinfo="Testprocess exited successfully.",
+                                  stdout="A\ufffdB")
     assert not message_mock.messages
-    assert qutescheme.spawn_output == proc._spawn_format(stdout="A\ufffdB")
+    assert qutescheme.spawn_output == expected
