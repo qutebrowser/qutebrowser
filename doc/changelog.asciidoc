@@ -52,6 +52,7 @@ Changed
 - Duplicate consecutive history entries with the same URL are now ignored.
 - More detailed error messages when spawning a process failed.
 - The `content.pdfjs` setting now supports domain patterns.
+- Improved process status output with `:spawn -o`.
 
 Deprecated
 ~~~~~~~~~~
