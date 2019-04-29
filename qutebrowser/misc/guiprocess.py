@@ -106,8 +106,8 @@ class GUIProcess(QObject):
             assert status == QProcess.NormalExit
             # We call this 'status' here as it makes more sense to the user -
             # it's actually 'code'.
-            exitinfo =  ("{} exited with status {}, see :messages for "
-                         "details. ").format(self._what.capitalize(), code)
+            exitinfo = ("{} exited with status {}, see :messages for "
+                         "details.").format(self._what.capitalize(), code)
             message.error(exitinfo)
 
             if stdout:
@@ -117,7 +117,7 @@ class GUIProcess(QObject):
 
         qutescheme.spawn_output = self._spawn_format(exitinfo, stdout, stderr)
 
-    def _spawn_format(self, exitinfo, stdout="", stderr=""):
+    def _spawn_format(self, exitinfo="Command exited succesfully.", stdout="", stderr=""):
         """Produce a formatted string for spawn output."""
         stdout = (stdout or "(No output)").strip()
         stderr = (stderr or "(No output)").strip()
