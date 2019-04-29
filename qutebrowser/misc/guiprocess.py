@@ -92,8 +92,6 @@ class GUIProcess(QObject):
         stdout = bytes(self._proc.readAllStandardOutput()).decode(
             encoding, 'replace')
 
-        exitinfo = ""
-
         if status == QProcess.CrashExit:
             exitinfo = "{} crashed!".format(self._what.capitalize())
             message.error(exitinfo)
@@ -117,7 +115,7 @@ class GUIProcess(QObject):
 
         qutescheme.spawn_output = self._spawn_format(exitinfo, stdout, stderr)
 
-    def _spawn_format(self, exitinfo="", stdout="", stderr=""):
+    def _spawn_format(self, exitinfo, stdout, stderr):
         """Produce a formatted string for spawn output."""
         stdout = (stdout or "(No output)").strip()
         stderr = (stderr or "(No output)").strip()

@@ -60,7 +60,7 @@ def test_start(proc, qtbot, message_mock, py_proc):
         proc.start(*argv)
 
     expected = proc._spawn_format(exitinfo="Testprocess exited successfully.",
-                                  stdout="test")
+                                  stdout="test", stderr="")
     assert not message_mock.messages
     assert qutescheme.spawn_output == expected
 
@@ -75,7 +75,7 @@ def test_start_verbose(proc, qtbot, message_mock, py_proc):
         proc.start(*argv)
 
     expected = proc._spawn_format(exitinfo="Testprocess exited successfully.",
-                                  stdout="test")
+                                  stdout="test", stderr="")
     msgs = message_mock.messages
     assert msgs[0].level == usertypes.MessageLevel.info
     assert msgs[1].level == usertypes.MessageLevel.info
@@ -229,6 +229,6 @@ def test_stdout_not_decodable(proc, qtbot, message_mock, py_proc):
             """)
         proc.start(*argv)
     expected = proc._spawn_format(exitinfo="Testprocess exited successfully.",
-                                  stdout="A\ufffdB")
+                                  stdout="A\ufffdB", stderr="")
     assert not message_mock.messages
     assert qutescheme.spawn_output == expected
