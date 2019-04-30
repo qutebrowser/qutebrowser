@@ -9,10 +9,9 @@ set -euo pipefail
 #   syntax highlighting using pygments.
 #
 #   In order to use this script, just start it using `spawn --userscript` from
-#   qutebrowser. I recommend using an alias, e.g. put this under 'aliases:' in
-#   autoconfig.yml:
+#   qutebrowser. I recommend using an alias, e.g.
 #
-#     json: spawn --userscript /path/to/json_format
+#     :config-dict-add aliases json "spawn --userscript /path/to/json_format"
 #
 #   Note that the color style defaults to monokai, but a different pygments style
 #   can be passed as the first parameter to the script. A full list of the pygments
