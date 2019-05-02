@@ -290,6 +290,8 @@ class TestYaml:
         ('eve{title}duna', 'eve{current_title}duna'),
         ('eve{{title}}duna', 'eve{{title}}duna'),
         ('{{title}}', '{{title}}'),
+        ('', ''),
+        (None, None),
     ])
     def test_title_format_migrations(self, migration_test, setting, old, new):
         migration_test(setting, old, new)
