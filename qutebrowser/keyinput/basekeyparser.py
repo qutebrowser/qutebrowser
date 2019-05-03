@@ -31,7 +31,6 @@ from qutebrowser.keyinput import keyutils
 
 MYPY = False
 if MYPY:
-    # pylint: disable=unused-import,useless-suppression
     from typing import MutableMapping, Optional
 
 
