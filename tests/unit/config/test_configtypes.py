@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -33,11 +33,12 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
+from qutebrowser.misc import objects
 from qutebrowser.config import configtypes, configexc, configutils
 from qutebrowser.utils import debug, utils, qtutils, urlmatch
 from qutebrowser.browser.network import pac
 from qutebrowser.keyinput import keyutils
-from tests.helpers import utils as testutils
+from helpers import utils as testutils
 
 
 class Font(QFont):
@@ -1112,8 +1113,13 @@ class TestPerc:
         with pytest.raises(configexc.ValidationError):
             klass(**kwargs).to_py(val)
 
-    def test_to_str(self, klass):
-        assert klass().to_str('42%') == '42%'
+    @pytest.mark.parametrize('value, expected', [
+        ('42%', '42%'),
+        (42, '42%'),
+        (42.5, '42.5%'),
+    ])
+    def test_to_str(self, klass, value, expected):
+        assert klass().to_str(value) == expected
 
 
 class TestPercOrInt:
@@ -1208,11 +1214,11 @@ class TestCommand:
     @pytest.fixture
     def patch_cmdutils(self, monkeypatch, stubs):
         """Patch the cmdutils module to provide fake commands."""
-        cmd_utils = stubs.FakeCmdUtils({
+        commands = {
             'cmd1': stubs.FakeCommand(desc="desc 1"),
-            'cmd2': stubs.FakeCommand(desc="desc 2")})
-        monkeypatch.setattr(configtypes, 'cmdutils', cmd_utils)
-        monkeypatch.setattr('qutebrowser.commands.runners.cmdutils', cmd_utils)
+            'cmd2': stubs.FakeCommand(desc="desc 2"),
+        }
+        monkeypatch.setattr(objects, 'commands', commands)
 
     @pytest.fixture
     def klass(self):
@@ -1244,34 +1250,32 @@ class TestQtColor:
 
         ('rgba(255, 255, 255, 1.0)', QColor.fromRgb(255, 255, 255, 255)),
 
-        # this should be (36, 25, 25) as hue goes to 359
-        # however this is consistent with Qt's CSS parser
-        # https://bugreports.qt.io/browse/QTBUG-70897
-        ('hsv(10%,10%,10%)', QColor.fromHsv(25, 25, 25)),
-        ('hsva(10%,20%,30%,40%)', QColor.fromHsv(25, 51, 76, 102)),
+        ('hsv(10%,10%,10%)', QColor.fromHsv(35, 25, 25)),
+        ('hsva(10%,20%,30%,40%)', QColor.fromHsv(35, 51, 76, 102)),
     ])
     def test_valid(self, klass, val, expected):
         assert klass().to_py(val) == expected
 
-    @pytest.mark.parametrize('val', [
-        '#00000G',
-        '#123456789ABCD',
-        '#12',
-        'foobar',
-        '42',
-        'foo(1, 2, 3)',
-        'rgb(1, 2, 3',
-        'rgb)',
-        'rgb(1, 2, 3))',
-        'rgb((1, 2, 3)',
-        'rgb()',
-        'rgb(1, 2, 3, 4)',
-        'rgba(1, 2, 3)',
-        'rgb(10%%, 0, 0)',
+    @pytest.mark.parametrize('val,msg', [
+        ('#00000G', 'must be a valid color'),
+        ('#123456789ABCD', 'must be a valid color'),
+        ('#12', 'must be a valid color'),
+        ('foobar', 'must be a valid color'),
+        ('42', 'must be a valid color'),
+        ('foo(1, 2, 3)', "foo not in ['hsv', 'hsva', 'rgb', 'rgba']"),
+        ('rgb(1, 2, 3', 'must be a valid color'),
+        ('rgb)', 'must be a valid color'),
+        ('rgb(1, 2, 3))', 'must be a valid color value'),
+        ('rgb((1, 2, 3)', 'must be a valid color value'),
+        ('rgb()', 'expected 3 values for rgb'),
+        ('rgb(1, 2, 3, 4)', 'expected 3 values for rgb'),
+        ('rgba(1, 2, 3)', 'expected 4 values for rgba'),
+        ('rgb(10%%, 0, 0)', 'must be a valid color value'),
     ])
-    def test_invalid(self, klass, val):
-        with pytest.raises(configexc.ValidationError):
+    def test_invalid(self, klass, val, msg):
+        with pytest.raises(configexc.ValidationError) as excinfo:
             klass().to_py(val)
+        assert str(excinfo.value).endswith(msg)
 
 
 class TestQssColor:
@@ -1435,8 +1439,8 @@ class TestFont:
             expected = '10pt Terminus'
         elif klass is configtypes.QtFont:
             desc = FontDesc(QFont.StyleNormal, QFont.Normal, 10, None,
-                            'Terminus'),
-            expected = Font.fromdesc(*desc)
+                            'Terminus')
+            expected = Font.fromdesc(desc)
         assert klass().to_py('10pt monospace') == expected
 
 
@@ -1541,7 +1545,7 @@ class TestRegex:
             regex.to_py('foo')
 
     @pytest.mark.parametrize('flags, expected', [
-        (0, 0),
+        (None, 0),
         ('IGNORECASE', re.IGNORECASE),
         ('IGNORECASE | VERBOSE', re.IGNORECASE | re.VERBOSE),
     ])
@@ -2080,21 +2084,6 @@ class TestConfirmQuit:
             klass().to_py(val)
 
 
-class TestTimestampTemplate:
-
-    @pytest.fixture
-    def klass(self):
-        return configtypes.TimestampTemplate
-
-    @pytest.mark.parametrize('val', ['foobar', '%H:%M', 'foo %H bar %M'])
-    def test_to_py_valid(self, klass, val):
-        assert klass().to_py(val) == val
-
-    def test_to_py_invalid(self, klass):
-        with pytest.raises(configexc.ValidationError):
-            klass().to_py('%')
-
-
 class TestKey:
 
     @pytest.fixture
@@ -2116,6 +2105,9 @@ class TestKey:
     def test_to_py_invalid(self, klass, val):
         with pytest.raises(configexc.ValidationError):
             klass().to_py(val)
+
+    def test_normalized(self, klass):
+        assert klass().from_obj('<ctrl-q>') == '<Ctrl+q>'
 
 
 class TestUrlPattern:

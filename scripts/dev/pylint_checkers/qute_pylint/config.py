@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -81,4 +81,4 @@ def register(linter):
         FAILED_LOAD = True
         return
     with yaml_file.open(mode='r', encoding='utf-8') as f:
-        OPTIONS = list(yaml.load(f))
+        OPTIONS = list(yaml.safe_load(f))

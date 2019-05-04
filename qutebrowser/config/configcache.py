@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Jay Kamat <jaygkamat@gmail.com>
+# Copyright 2018-2019 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -20,6 +20,8 @@
 
 """Implementation of a basic config cache."""
 
+import typing
+
 from qutebrowser.config import config
 
 
@@ -36,15 +38,17 @@ class ConfigCache:
     """
 
     def __init__(self) -> None:
-        self._cache = {}
+        self._cache = {}  # type: typing.Dict[str, typing.Any]
         config.instance.changed.connect(self._on_config_changed)
 
     def _on_config_changed(self, attr: str) -> None:
         if attr in self._cache:
             self._cache[attr] = config.instance.get(attr)
 
-    def __getitem__(self, attr: str):
-        if attr not in self._cache:
+    def __getitem__(self, attr: str) -> typing.Any:
+        try:
+            return self._cache[attr]
+        except KeyError:
             assert not config.instance.get_opt(attr).supports_pattern
             self._cache[attr] = config.instance.get(attr)
-        return self._cache[attr]
+            return self._cache[attr]

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -183,7 +183,7 @@ def test_fail_return():
 ])
 @pytest.mark.parametrize('from_file', [True, False])
 def test_secret_url(url, has_secret, from_file):
-    """Make sure secret parts in an URL are stripped correctly.
+    """Make sure secret parts in a URL are stripped correctly.
 
     The following parts are considered secret:
         - If the PAC info is loaded from a local file, nothing.
@@ -203,6 +203,20 @@ def test_secret_url(url, has_secret, from_file):
     """.format('true' if (has_secret or from_file) else 'false')
     res = pac.PACResolver(test_str)
     res.resolve(QNetworkProxyQuery(QUrl(url)), from_file=from_file)
+
+
+def test_logging(qtlog):
+    """Make sure console.log() works for PAC files."""
+    test_str = """
+        function FindProxyForURL(domain, host) {
+            console.log("logging test");
+            return "DIRECT";
+        }
+    """
+    res = pac.PACResolver(test_str)
+    res.resolve(QNetworkProxyQuery(QUrl("https://example.com/test")))
+    assert len(qtlog.records) == 1
+    assert qtlog.records[0].message == 'logging test'
 
 
 def fetcher_test(test_str):

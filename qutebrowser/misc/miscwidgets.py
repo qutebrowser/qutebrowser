@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -94,7 +94,7 @@ class CommandLineEdit(QLineEdit):
         We use __ here to avoid accidentally overriding it in subclasses.
         """
         if new < self._promptlen:
-            self.setCursorPosition(self._promptlen)
+            self.cursorForward(self.hasSelectedText(), self._promptlen - new)
 
     def set_prompt(self, text):
         """Set the current prompt to text.
@@ -104,13 +104,6 @@ class CommandLineEdit(QLineEdit):
         """
         self._validator.prompt = text
         self._promptlen = len(text)
-
-    def home(self, mark):
-        """Override home so it works properly with our cursor restriction."""
-        oldpos = self.cursorPosition()
-        self.setCursorPosition(self._promptlen)
-        if mark:
-            self.setSelection(self._promptlen, oldpos - self._promptlen)
 
 
 class _CommandValidator(QValidator):

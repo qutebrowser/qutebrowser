@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -162,7 +162,7 @@ class ConsoleWidget(QWidget):
         namespace = {
             '__name__': '__console__',
             '__doc__': None,
-            'qApp': QApplication.instance(),
+            'q_app': QApplication.instance(),
             # We use parent as self here because the user "feels" the whole
             # console, not just the line edit.
             'self': parent,

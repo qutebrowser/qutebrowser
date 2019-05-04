@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -38,10 +38,14 @@ from qutebrowser.utils import usertypes, objreg, version, qtutils, log, utils
 from qutebrowser.misc import objects, msgbox
 
 
-_Result = enum.IntEnum(
-    '_Result',
-    ['quit', 'restart', 'restart_webkit', 'restart_webengine'],
-    start=QDialog.Accepted + 1)
+class _Result(enum.IntEnum):
+
+    """The result code returned by the backend problem dialog."""
+
+    quit = QDialog.Accepted + 1
+    restart = QDialog.Accepted + 2
+    restart_webkit = QDialog.Accepted + 3
+    restart_webengine = QDialog.Accepted + 4
 
 
 @attr.s
@@ -174,6 +178,10 @@ def _nvidia_shader_workaround():
     See https://bugs.launchpad.net/ubuntu/+source/python-qt4/+bug/941826
     """
     assert objects.backend == usertypes.Backend.QtWebEngine, objects.backend
+
+    if os.environ.get('QUTE_SKIP_LIBGL_WORKAROUND'):
+        return
+
     libgl = ctypes.util.find_library("GL")
     if libgl is not None:
         ctypes.CDLL(libgl, mode=ctypes.RTLD_GLOBAL)
@@ -234,6 +242,9 @@ def _handle_wayland():
     if has_qt511 and config.val.qt.force_software_rendering == 'chromium':
         return
 
+    if qtutils.version_check('5.11.2', compiled=False):
+        return
+
     buttons = []
     text = "<p>You can work around this in one of the following ways:</p>"
 
@@ -280,7 +291,7 @@ class BackendImports:
 
 def _try_import_backends():
     """Check whether backends can be imported and return BackendImports."""
-    # pylint: disable=unused-variable
+    # pylint: disable=unused-import
     results = BackendImports()
 
     try:

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # Based on the Eric5 helpviewer,
 # Copyright (c) 2009 - 2014 Detlev Offenbach <detlev@die-offenbachs.de>
@@ -34,8 +34,7 @@ class FixedDataNetworkReply(QNetworkReply):
 
     """QNetworkReply subclass for fixed data."""
 
-    def __init__(self, request, fileData, mimeType,  # noqa: N803
-                 parent=None):
+    def __init__(self, request, fileData, mimeType, parent=None):  # noqa: N803
         """Constructor.
 
         Args:
@@ -67,7 +66,6 @@ class FixedDataNetworkReply(QNetworkReply):
     @pyqtSlot()
     def abort(self):
         """Abort the operation."""
-        pass
 
     def bytesAvailable(self):
         """Determine the bytes available for being read.
@@ -123,7 +121,6 @@ class ErrorNetworkReply(QNetworkReply):
 
     def abort(self):
         """Do nothing since it's a fake reply."""
-        pass
 
     def bytesAvailable(self):
         """We always have 0 bytes available."""
@@ -151,7 +148,6 @@ class RedirectNetworkReply(QNetworkReply):
 
     def abort(self):
         """Called when there's e.g. a redirection limit."""
-        pass
 
     def readData(self, _maxlen):
         return bytes()

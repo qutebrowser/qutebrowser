@@ -1,0 +1,6 @@
+mypy
+-e git+https://github.com/qutebrowser/PyQt5-stubs.git@wip#egg=PyQt5-stubs
+
+# remove @commit-id for scm installs
+#@ replace: @.*# @wip#
+#@ ignore: PyQt5, PyQt5-sip

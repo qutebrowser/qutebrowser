@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -33,7 +33,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
 
 from qutebrowser.config import config
 from qutebrowser.utils import utils, usertypes
-from qutebrowser.commands import cmdutils
+from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
 
 
@@ -71,6 +71,7 @@ class KeyHintView(QLabel):
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)
+        self._show_timer.setSingleShot(True)
         config.set_register_stylesheet(self)
 
     def __repr__(self):
@@ -101,7 +102,7 @@ class KeyHintView(QLabel):
         def takes_count(cmdstr):
             """Return true iff this command can take a count argument."""
             cmdname = cmdstr.split(' ')[0]
-            cmd = cmdutils.cmd_dict.get(cmdname)
+            cmd = objects.commands.get(cmdname)
             return cmd and cmd.takes_count()
 
         bindings_dict = config.key_instance.get_bindings_for(modename)

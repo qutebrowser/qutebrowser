@@ -91,6 +91,14 @@
 |<<colors.tabs.indicator.system,colors.tabs.indicator.system>>|Color gradient interpolation system for the tab indicator.
 |<<colors.tabs.odd.bg,colors.tabs.odd.bg>>|Background color of unselected odd tabs.
 |<<colors.tabs.odd.fg,colors.tabs.odd.fg>>|Foreground color of unselected odd tabs.
+|<<colors.tabs.pinned.even.bg,colors.tabs.pinned.even.bg>>|Background color of pinned unselected even tabs.
+|<<colors.tabs.pinned.even.fg,colors.tabs.pinned.even.fg>>|Foreground color of pinned unselected even tabs.
+|<<colors.tabs.pinned.odd.bg,colors.tabs.pinned.odd.bg>>|Background color of pinned unselected odd tabs.
+|<<colors.tabs.pinned.odd.fg,colors.tabs.pinned.odd.fg>>|Foreground color of pinned unselected odd tabs.
+|<<colors.tabs.pinned.selected.even.bg,colors.tabs.pinned.selected.even.bg>>|Background color of pinned selected even tabs.
+|<<colors.tabs.pinned.selected.even.fg,colors.tabs.pinned.selected.even.fg>>|Foreground color of pinned selected even tabs.
+|<<colors.tabs.pinned.selected.odd.bg,colors.tabs.pinned.selected.odd.bg>>|Background color of pinned selected odd tabs.
+|<<colors.tabs.pinned.selected.odd.fg,colors.tabs.pinned.selected.odd.fg>>|Foreground color of pinned selected odd tabs.
 |<<colors.tabs.selected.even.bg,colors.tabs.selected.even.bg>>|Background color of selected even tabs.
 |<<colors.tabs.selected.even.fg,colors.tabs.selected.even.fg>>|Foreground color of selected even tabs.
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
@@ -215,6 +223,7 @@
 |<<input.insert_mode.auto_enter,input.insert_mode.auto_enter>>|Enter insert mode if an editable element is clicked.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
 |<<input.insert_mode.auto_load,input.insert_mode.auto_load>>|Automatically enter insert mode if an editable element is focused after loading the page.
+|<<input.insert_mode.leave_on_load,input.insert_mode.leave_on_load>>|Leave insert mode when starting a new page load.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
@@ -261,6 +270,7 @@
 |<<tabs.new_position.stacking,tabs.new_position.stacking>>|Stack related tabs on top of each other when opened consecutively.
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which are not opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
+|<<tabs.pinned.frozen,tabs.pinned.frozen>>|Force pinned tabs to stay at fixed URL.
 |<<tabs.pinned.shrink,tabs.pinned.shrink>>|Shrink pinned tabs down to their contents.
 |<<tabs.position,tabs.position>>|Position of the tab bar.
 |<<tabs.select_on_remove,tabs.select_on_remove>>|Which tab to select when the focused tab is removed.
@@ -426,6 +436,7 @@ Default:
 * +pass:[j]+: +pass:[move-to-next-line]+
 * +pass:[k]+: +pass:[move-to-prev-line]+
 * +pass:[l]+: +pass:[move-to-next-char]+
+* +pass:[o]+: +pass:[reverse-selection]+
 * +pass:[v]+: +pass:[toggle-selection]+
 * +pass:[w]+: +pass:[move-to-next-word]+
 * +pass:[y]+: +pass:[yank selection]+
@@ -640,10 +651,12 @@ Default:
 * +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
 * +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
+* +pass:[yM]+: +pass:[yank inline [{title}]({url}) -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
 * +pass:[yT]+: +pass:[yank title -s]+
 * +pass:[yY]+: +pass:[yank -s]+
 * +pass:[yd]+: +pass:[yank domain]+
+* +pass:[ym]+: +pass:[yank inline [{title}]({url})]+
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
@@ -1329,6 +1342,70 @@ Type: <<types,QtColor>>
 
 Default: +pass:[white]+
 
+[[colors.tabs.pinned.even.bg]]
+=== colors.tabs.pinned.even.bg
+Background color of pinned unselected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[darkseagreen]+
+
+[[colors.tabs.pinned.even.fg]]
+=== colors.tabs.pinned.even.fg
+Foreground color of pinned unselected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.odd.bg]]
+=== colors.tabs.pinned.odd.bg
+Background color of pinned unselected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[seagreen]+
+
+[[colors.tabs.pinned.odd.fg]]
+=== colors.tabs.pinned.odd.fg
+Foreground color of pinned unselected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.selected.even.bg]]
+=== colors.tabs.pinned.selected.even.bg
+Background color of pinned selected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[black]+
+
+[[colors.tabs.pinned.selected.even.fg]]
+=== colors.tabs.pinned.selected.even.fg
+Foreground color of pinned selected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.selected.odd.bg]]
+=== colors.tabs.pinned.selected.odd.bg
+Background color of pinned selected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[black]+
+
+[[colors.tabs.pinned.selected.odd.fg]]
+=== colors.tabs.pinned.selected.odd.fg
+Foreground color of pinned selected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
 [[colors.tabs.selected.even.bg]]
 === colors.tabs.selected.even.bg
 Background color of selected even tabs.
@@ -1471,8 +1548,9 @@ Default: +pass:[false]+
 [[completion.timestamp_format]]
 === completion.timestamp_format
 Format of timestamps (e.g. for the history completion).
+See https://sqlite.org/lang_datefunc.html for allowed substitutions.
 
-Type: <<types,TimestampTemplate>>
+Type: <<types,String>>
 
 Default: +pass:[%Y-%m-%d]+
 
@@ -1644,7 +1722,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-This setting is only available with the QtWebKit backend.
+On QtWebEngine, this setting requires Qt 5.12 or newer.
 
 [[content.frame_flattening]]
 === content.frame_flattening
@@ -1992,6 +2070,8 @@ This setting is only available with the QtWebKit backend.
 === content.pdfjs
 Allow pdf.js to view PDF files in the browser.
 Note that the files can still be downloaded by clicking the download button in the pdf.js viewer.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -2708,6 +2788,17 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
+[[input.insert_mode.leave_on_load]]
+=== input.insert_mode.leave_on_load
+Leave insert mode when starting a new page load.
+Patterns may be unreliable on this setting, and they may match the url you are navigating to, or the URL you are navigating from.
+
+This setting supports URL patterns.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[input.insert_mode.plugins]]
 === input.insert_mode.plugins
 Switch to insert mode when clicking flash and other plugins.
@@ -2958,7 +3049,7 @@ Default: +pass:[false]+
 === search.ignore_case
 When to find text on a page case-insensitively.
 
-Type: <<types,String>>
+Type: <<types,IgnoreCase>>
 
 Valid values:
 
@@ -3305,6 +3396,14 @@ Default:
 - +pass:[right]+: +pass:[5]+
 - +pass:[top]+: +pass:[0]+
 
+[[tabs.pinned.frozen]]
+=== tabs.pinned.frozen
+Force pinned tabs to stay at fixed URL.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[tabs.pinned.shrink]]
 === tabs.pinned.shrink
 Shrink pinned tabs down to their contents.
@@ -3394,7 +3493,7 @@ The following placeholders are defined:
 
 * `{perc}`: Percentage as a string like `[10%]`.
 * `{perc_raw}`: Raw percentage, e.g. `10`.
-* `{title}`: Title of the current web page.
+* `{current_title}`: Title of the current web page.
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{index}`: Index of this tab.
 * `{id}`: Internal tab ID of this tab.
@@ -3409,7 +3508,7 @@ The following placeholders are defined:
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{audio}{index}: {title}]+
+Default: +pass:[{audio}{index}: {current_title}]+
 
 [[tabs.title.format_pinned]]
 === tabs.title.format_pinned
@@ -3539,7 +3638,7 @@ Format to use for the window title. The same placeholders like for
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
+Default: +pass:[{perc}{current_title}{title_sep}qutebrowser]+
 
 [[zoom.default]]
 === zoom.default
@@ -3622,6 +3721,7 @@ Lists with duplicate flags are invalid. Each item is checked against the valid v
 |FontFamily|A Qt font family.
 |FormatString|A string with placeholders.
 |FuzzyUrl|A URL which gets interpreted as search if needed.
+|IgnoreCase|Whether to search case insensitively.
 |Int|Base class for an integer setting.
 |Key|A name of a key.
 |List|A list of values.
@@ -3656,9 +3756,6 @@ See the documentation for `List`.
 
 See the setting's valid values for more information on allowed values.
 |TextAlignment|Alignment of text.
-|TimestampTemplate|An strftime-like template for timestamps.
-
-See https://sqlite.org/lang_datefunc.html for reference.
 |UniqueCharString|A string which may not contain duplicate chars.
 |Url|A URL as a string.
 |UrlPattern|A match pattern for a URL.

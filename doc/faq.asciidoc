@@ -154,7 +154,7 @@ How do I use qutebrowser with mutt?::
     extension:
 +
 ----
-    text/html; qutebrowser %s; nametemplate=%s.html
+    text/html; qutebrowser %s; needsterminal; nametemplate=%s.html
 ----
 
 What is the difference between bookmarks and quickmarks?::
@@ -211,23 +211,22 @@ Why does J move to the next (right) tab, and K to the previous (left) one?::
 
 What's the difference between insert and passthrough mode?::
     They are quite similar, but insert mode has some bindings (like `Ctrl-e` to
-    open an editor) while passthrough mode only has escape bound. It might also
-    be useful to rebind escape to something else in passthrough mode only, to be
-    able to send an escape keypress to the website.
+    open an editor) while passthrough mode only has shift+escape bound. This is
+    because shift+escape is unlikely to be a useful binding to be passed to a
+    webpage. However, any other keys may be assigned to leaving passthrough mode
+    instead of shift+escape should this be desired.
 
-Why takes it longer to open an URL in qutebrowser than in chromium?::
-    When opening an URL in an existing instance the normal qutebrowser
+Why does it take longer to open a URL in qutebrowser than in chromium?::
+    When opening a URL in an existing instance, the normal qutebrowser
     Python script is started and a few PyQt libraries need to be
     loaded until it is detected that there is an instance running
-    where the URL is then passed to. This takes some time.
+    to which the URL is then passed. This takes some time.
     One workaround is to use this
     https://github.com/qutebrowser/qutebrowser/blob/master/scripts/open_url_in_instance.sh[script]
     and place it in your $PATH with the name "qutebrowser". This
     script passes the URL via an unix socket to qutebrowser (if its
     running already) using socat which is much faster and starts a new
-    qutebrowser if it is not running already. Also check if you want
-    to use webengine as backend in line 17 and change it to your
-    needs.
+    qutebrowser if it is not running already.
 
 How do I make qutebrowser use greasemonkey scripts?::
     There is currently no UI elements to handle managing greasemonkey scripts.
@@ -259,6 +258,12 @@ Note that there are some missing features which you may run into:
   See https://wiki.greasespot.net/Metadata_Block[the wiki] for more info.
 . Any greasemonkey API function to do with adding UI elements is not currently
   supported. That means context menu extentensions and background pages.
+
+How do I change the `WM_CLASS` used by qutebrowser windows?::
+    Qt only supports setting `WM_CLASS` globally, which you can do by starting
+    with `--qt-arg name foo`. Note that all windows are part of the same
+    qutebrowser instance (unless you use `--temp-basedir` or `--basedir`), so
+    they all will share the same `WM_CLASS`.
 
 == Troubleshooting
 
@@ -292,15 +297,10 @@ Unable to view DRM content (Netflix, Spotify, etc.).::
     You will need to install `widevine` and set `qt.args` to point to it.
     Qt 5.9 currently only supports widevine up to Chrome version 61.
 +
-On Arch, simply install `qt5-webengine-widevine` from the AUR and run:
-+
-----
-:set qt.args '["ppapi-widevine-path=/usr/lib/qt/plugins/ppapi/libwidevinecdmadapter.so"]'
-:restart
-----
+On Arch, simply install `chromium-widevine` from the AUR.
 +
 For other distributions, download the chromium tarball and widevine-cdm zip from
-https://aur.archlinux.org/packages/qt5-webengine-widevine/[the AUR page],
+https://aur.archlinux.org/packages/chromium-widevine/[the AUR page],
 extract `libwidevinecdmadapter.so` and `libwidevinecdm.so` files, respectively,
 and move them to the `ppapi` plugin directory in your Qt library directory (create it if it does not exist).
 +

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,33 +29,28 @@ from PyQt5.QtCore import pyqtSignal, QObject
 from qutebrowser.utils import usertypes, log, utils
 
 
-def _log_stack(typ, stack):
+def _log_stack(typ: str, stack: str) -> None:
     """Log the given message stacktrace.
 
     Args:
-        typ: The type of the message (str)
-        stack: The stack as an iterable of strings or a single string
+        typ: The type of the message.
+        stack: An optional stacktrace.
     """
-    try:
-        # traceback.format_exc() produces a list of strings, while
-        # traceback.format_stack() produces a single string...
-        stack = stack.splitlines()
-    except AttributeError:
-        pass
-    stack_text = '\n'.join(line.rstrip() for line in stack)
+    lines = stack.splitlines()
+    stack_text = '\n'.join(line.rstrip() for line in lines)
     log.message.debug("Stack for {} message:\n{}".format(typ, stack_text))
 
 
-def error(message, *, stack=None, replace=False):
-    """Convenience function to display an error message in the statusbar.
+def error(message: str, *, stack: str = None, replace: bool = False) -> None:
+    """Display an error message.
 
     Args:
-        message: The message to show
-        stack: The stack trace to show.
-        replace: Replace existing messages with replace=True
+        message: The message to show.
+        stack: The stack trace to show (if any).
+        replace: Replace existing messages which are still being shown.
     """
     if stack is None:
-        stack = traceback.format_stack()
+        stack = ''.join(traceback.format_stack())
         typ = 'error'
     else:
         typ = 'error (from exception)'
@@ -64,24 +59,24 @@ def error(message, *, stack=None, replace=False):
     global_bridge.show(usertypes.MessageLevel.error, message, replace)
 
 
-def warning(message, *, replace=False):
-    """Convenience function to display a warning message in the statusbar.
+def warning(message: str, *, replace: bool = False) -> None:
+    """Display a warning message.
 
     Args:
-        message: The message to show
-        replace: Replace existing messages with replace=True
+        message: The message to show.
+        replace: Replace existing messages which are still being shown.
     """
-    _log_stack('warning', traceback.format_stack())
+    _log_stack('warning', ''.join(traceback.format_stack()))
     log.message.warning(message)
     global_bridge.show(usertypes.MessageLevel.warning, message, replace)
 
 
-def info(message, *, replace=False):
-    """Convenience function to display an info message in the statusbar.
+def info(message: str, *, replace: bool = False) -> None:
+    """Display an info message.
 
     Args:
-        message: The message to show
-        replace: Replace existing messages with replace=True
+        message: The message to show.
+        replace: Replace existing messages which are still being shown.
     """
     log.message.info(message)
     global_bridge.show(usertypes.MessageLevel.info, message, replace)

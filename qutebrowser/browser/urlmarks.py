@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2015-2018 Antoni Boucher <bouanto@zoho.com>
 #
 # This file is part of qutebrowser.
@@ -35,7 +35,7 @@ from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
 from qutebrowser.utils import (message, usertypes, qtutils, urlutils,
                                standarddir, objreg, log)
-from qutebrowser.commands import cmdutils
+from qutebrowser.api import cmdutils
 from qutebrowser.misc import lineparser
 
 
@@ -43,28 +43,20 @@ class Error(Exception):
 
     """Base class for all errors in this module."""
 
-    pass
-
 
 class InvalidUrlError(Error):
 
     """Exception emitted when a URL is invalid."""
-
-    pass
 
 
 class DoesNotExistError(Error):
 
     """Exception emitted when a given URL does not exist."""
 
-    pass
-
 
 class AlreadyExistsError(Error):
 
     """Exception emitted when a given URL does already exist."""
-
-    pass
 
 
 class UrlMarkManager(QObject):
@@ -174,7 +166,7 @@ class QuickmarkManager(UrlMarkManager):
             url: The url to add as quickmark.
             name: The name for the new quickmark.
         """
-        # We don't raise cmdexc.CommandError here as this can be called async
+        # We don't raise cmdutils.CommandError here as this can be called async
         # via prompt_save.
         if not name:
             message.error("Can't set mark with empty name!")
