@@ -36,7 +36,6 @@ from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
-from qutebrowser.qt import sip
 
 
 prompt_queue = None
@@ -118,10 +117,11 @@ class PromptQueue(QObject):
         log.prompt.debug("Popping from queue {}".format(self._queue))
         if self._queue:
             question = self._queue.popleft()
-            if not sip.isdeleted(question):
-                # the question could already be deleted, e.g. by a cancelled
+            if not question.is_aborted:
+                # the question could already be aborted, e.g. by a cancelled
                 # download. See
-                # https://github.com/qutebrowser/qutebrowser/issues/415
+                # https://github.com/qutebrowser/qutebrowser/issues/415 and
+                # https://github.com/qutebrowser/qutebrowser/issues/1249
                 self.ask_question(question, blocking=False)
 
     def shutdown(self):
