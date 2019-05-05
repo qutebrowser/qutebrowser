@@ -365,6 +365,10 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Fake a click by using the JS .click() method."""
         raise NotImplementedError
 
+    def delete(self) -> None:
+        """Delete this element from the DOM."""
+        raise NotImplementedError
+
     def _click_href(self, click_target: usertypes.ClickTarget) -> None:
         """Fake a click on an element with a href by opening the link."""
         baseurl = self._tab.url()

@@ -569,3 +569,10 @@ Feature: Using hints
         And I run :jseval console.log(document.activeElement.id == "qute-input");
         And I run :leave-mode
         Then the javascript message "true" should be logged
+
+    # Delete hint target
+    Scenario: Deleting a simple target
+        When I open data/hints/html/simple.html
+        And I hint with args "all delete" and follow a
+        And I run :hint
+        Then the error "No elements found." should be shown
