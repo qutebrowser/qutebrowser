@@ -35,6 +35,8 @@ Added
   `window.title_format` got renamed to `{current_title}` (mirroring
   `{current_url}`) in order to not conflict with the new `{title}` commandline
   replacement.
+- New `delete` target for `:hint` which removes the hinted element from
+  the DOM.
 
 Changed
 ~~~~~~~
