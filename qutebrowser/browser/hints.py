@@ -599,7 +599,8 @@ class HintManager(QObject):
         if tabbed_browser is None:
             return
         tab = tabbed_browser.widget.currentWidget()
-        if tab is None or tab.tab_id != self._tab_id:
+        if tab.tab_id != self._tab_id:
+            log.hints.debug("Current tab changed before _start_cb is run.")
             return
 
         strings = self._hint_strings(elems)

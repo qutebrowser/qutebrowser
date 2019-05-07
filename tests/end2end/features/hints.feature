@@ -23,9 +23,7 @@ Feature: Using hints
         When I open data/hints/html/simple.html
         And I open data/hints/html/simple.html in a new tab
         And I run :hint ;; tab-prev
-        And I wait 0.5s
-        And I run :fake-key -g a
-        Then no crash should happen
+        Then "Current tab changed before _start_cb is run." should be logged
 
     ### Opening in current or new tab
 
