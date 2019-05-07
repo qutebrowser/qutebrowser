@@ -19,6 +19,14 @@ Feature: Using hints
         When I run :hint --mode=foobar
         Then the error "Invalid mode: Invalid value 'foobar' - valid values: number, letter, word" should be shown
 
+    Scenario: Switching tab between :hint and start_cb (issue 3892)
+        When I open data/hints/html/simple.html
+        And I open data/hints/html/simple.html in a new tab
+        And I run :hint ;; tab-prev
+        And I wait 0.5s
+        And I run :fake-key -g a
+        Then no crash should happen
+
     ### Opening in current or new tab
 
     Scenario: Following a hint and force to open in current tab.
