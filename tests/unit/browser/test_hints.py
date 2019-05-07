@@ -25,7 +25,7 @@ import operator
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import objreg, usertypes
 import qutebrowser.browser.hints
 
 
@@ -49,6 +49,8 @@ def tabbed_browser(tabbed_browser_stubs, web_tab):
 def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
                         mode_manager):
     """Benchmark showing/drawing of hint labels."""
+    objreg.register('tabbed-browser', tabbed_browser, scope='window',
+                    window=0)
     tab = tabbed_browser.widget.tabs[0]
 
     with qtbot.wait_signal(tab.load_finished):
@@ -69,6 +71,8 @@ def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
 def test_match_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
                          mode_manager, qapp, config_stub):
     """Benchmark matching of hint labels."""
+    objreg.register('tabbed-browser', tabbed_browser, scope='window',
+                    window=0)
     tab = tabbed_browser.widget.tabs[0]
 
     with qtbot.wait_signal(tab.load_finished):
