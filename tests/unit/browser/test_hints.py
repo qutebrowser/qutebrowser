@@ -43,14 +43,14 @@ def tabbed_browser(tabbed_browser_stubs, web_tab):
     tb.widget.current_index = 1
     tb.widget.cur_url = QUrl('https://www.example.com/')
     web_tab.container.expose()  # No elements found if we don't do this.
-    return tb
+    objreg.register('tabbed-browser', tb, scope='window', window=0)
+    yield tb
+    objreg.delete('tabbed-browser', scope='window', window=0)
 
 
 def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
                         mode_manager):
     """Benchmark showing/drawing of hint labels."""
-    objreg.register('tabbed-browser', tabbed_browser, scope='window',
-                    window=0)
     tab = tabbed_browser.widget.tabs[0]
 
     with qtbot.wait_signal(tab.load_finished):
@@ -71,8 +71,6 @@ def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
 def test_match_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
                          mode_manager, qapp, config_stub):
     """Benchmark matching of hint labels."""
-    objreg.register('tabbed-browser', tabbed_browser, scope='window',
-                    window=0)
     tab = tabbed_browser.widget.tabs[0]
 
     with qtbot.wait_signal(tab.load_finished):
