@@ -22,6 +22,7 @@
 from qutebrowser.config import config
 from qutebrowser.mainwindow.tabwidget import TabWidget
 from qutebrowser.misc.notree import Node
+from qutebrowser.utils import log
 
 
 class TreeTabWidget(TabWidget):
@@ -31,6 +32,18 @@ class TreeTabWidget(TabWidget):
         # root of the tab tree, common for all tabs in the window
         self.tree_root = Node(None)
         super().__init__(win_id, parent)
+
+    @classmethod
+    def from_tabwidget(cls, tabwidget):
+        tabwidget.__class__ = cls
+        tabwidget.tree_root = Node(None)
+        return tabwidget
+
+    @classmethod
+    def to_tabwidget(cls, tabwidget):
+        tabwidget.__class__ = cls.__bases__[0]
+        tabwidget.tree_root = None
+        return tabwidget
 
     def _init_config(self):
         super()._init_config()
@@ -52,8 +65,11 @@ class TreeTabWidget(TabWidget):
         try:
             pre, _ = rendered_tree[idx+1]
             tree_prefix = pre[2:]
+            result = [char + str(n) for char, n in rendered_tree]
+            log.misc.debug('\n'.join(result))
         except IndexError:  # window or first tab are not initialized yet
             tree_prefix = ""
+            log.misc.error("tree_prefix is empty!")
 
         fields['tree'] = tree_prefix
         return fields

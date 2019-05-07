@@ -82,6 +82,26 @@ class TreeTabbedBrowser(TabbedBrowser):
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+    @classmethod
+    def from_tabbed_browser(cls, tabbedbrowser):
+        tabbedbrowser.__class__ = cls
+        tabbedbrowser.widget = \
+            TreeTabWidget.from_tabwidget(tabbedbrowser.widget)
+        for tab in tabbedbrowser.widgets():
+            tab.node = notree.Node(tab, parent=tabbedbrowser.widget.tree_root)
+        return tabbedbrowser
+
+    @classmethod
+    def to_tabbed_browser(cls, tabbedbrowser):
+        tabbedbrowser.__class__ = cls.__bases__[0]
+        tabbedbrowser.widget = \
+            TreeTabWidget.to_tabwidget(tabbedbrowser.widget)
+        for tab in tabbedbrowser.widgets():
+            # remove nodes in case tree structure is changed
+            # and then tree-tabs are re-enabled
+            tab.node = None
+        return tabbedbrowser
+
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         super()._remove_tab(tab, add_undo=add_undo, new_undo=new_undo,
                             crashed=crashed)
