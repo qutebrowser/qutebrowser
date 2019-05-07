@@ -36,7 +36,7 @@ class TreeTabWidget(TabWidget):
     @classmethod
     def from_tabwidget(cls, tabwidget):
         tabwidget.__class__ = cls
-        tabwidget.tree_root = Node(None)
+        tabwidget.tree_root = Node(None, uid=1)
         return tabwidget
 
     @classmethod
