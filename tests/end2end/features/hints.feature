@@ -19,6 +19,16 @@ Feature: Using hints
         When I run :hint --mode=foobar
         Then the error "Invalid mode: Invalid value 'foobar' - valid values: number, letter, word" should be shown
 
+    Scenario: Switching tab between :hint and start_cb (issue 3892)
+        When I open data/hints/html/simple.html
+        And I open data/hints/html/simple.html in a new tab
+        And I run :hint ;; tab-prev
+        And I wait for regex "hints: .*|Current tab changed \(\d* -> \d*\) before _start_cb is run\." in the log
+        # 'hints: .*' is logged when _start_cb is called before tab-prev (on
+        # qtwebkit, _start_cb is called synchronously)
+        And I run :follow-hint a
+        Then the error "follow-hint: This command is only allowed in hint mode, not normal." should be shown
+
     ### Opening in current or new tab
 
     Scenario: Following a hint and force to open in current tab.

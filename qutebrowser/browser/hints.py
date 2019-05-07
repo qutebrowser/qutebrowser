@@ -599,6 +599,18 @@ class HintManager(QObject):
             message.error("No elements found.")
             return
 
+        # Because _start_cb is called asynchronously, it's possible that the
+        # user switched to another tab or closed the tab/window. In that case
+        # we should not start hinting.
+        tabbed_browser = objreg.get('tabbed-browser', default=None,
+                                    scope='window', window=self._win_id)
+        tab = tabbed_browser.widget.currentWidget()
+        if tab.tab_id != self._tab_id:
+            log.hints.debug(
+                "Current tab changed ({} -> {}) before _start_cb is run."
+                .format(self._tab_id, tab.tab_id))
+            return
+
         strings = self._hint_strings(elems)
         log.hints.debug("hints: {}".format(', '.join(strings)))
 
