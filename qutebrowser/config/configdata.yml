@@ -2724,8 +2724,6 @@ bindings.default:
       tIu: config-cycle -p -u {url} content.images ;; reload
       zH: tree-tab-promote
       zL: tree-tab-demote
-      zu: tree-tab-bubble up
-      zd: tree-tab-bubble down
       zJ: tree-tab-navigate-on-same-level down
       zK: tree-tab-navigate-on-same-level up
       zd: tab-close -r
