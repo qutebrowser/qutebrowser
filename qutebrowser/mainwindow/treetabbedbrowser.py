@@ -130,6 +130,7 @@ class TreeTabbedBrowser(TabbedBrowser):
                 node.children = ()
 
             node.parent = None
+        self.widget.update_tab_titles()
 
     def _add_undo_entry(self, tab, idx, new_undo):
 
