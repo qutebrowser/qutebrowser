@@ -19,12 +19,6 @@ Feature: Using hints
         When I run :hint --mode=foobar
         Then the error "Invalid mode: Invalid value 'foobar' - valid values: number, letter, word" should be shown
 
-    Scenario: Switching tab between :hint and start_cb (issue 3892)
-        When I open data/hints/html/simple.html
-        And I open data/hints/html/simple.html in a new tab
-        And I run :hint ;; tab-prev
-        Then "Current tab changed (* -> *) before _start_cb is run." should be logged
-
     ### Opening in current or new tab
 
     Scenario: Following a hint and force to open in current tab.
