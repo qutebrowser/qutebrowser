@@ -24,6 +24,18 @@ from qutebrowser.misc.notree import TreeError, Node, TraverseOrder
 
 @pytest.fixture
 def tree():
+    """ The following tree
+    n1
+    ├─n2
+    │ ├─n4
+    │ └─n5
+    └─n3
+      ├─n6
+      │ ├─n7
+      │ ├─n8
+      │ └─n9
+      │   └─n10
+      └─n11"""
     # these are actually used because they appear in expected strings
     n1 = Node('n1')
     n2 = Node('n2', n1)
@@ -118,6 +130,13 @@ def test_traverse_postorder(tree):
     assert actual == [n4, n5, n2, n7, n8, n10, n9, n6, n11, n3, n1]
 
 
+def test_traverse_postorder_r(tree):
+    n1, n2, n3, n4, n5, n6, n7, n8, n9, n10, n11 = tree
+    actual = list(n1.traverse(TraverseOrder.POST_R))
+    print('\n'.join([str(n) for n in actual]))
+    assert actual == [n11, n10, n9, n8, n7, n6, n3, n5, n4, n2, n1]
+
+
 def test_render_tree(node):
     expected = [
         'n1',
@@ -149,3 +168,85 @@ def test_siblings():
     _ = Node('n9', n6)
     assert list(n2.siblings) == [n3]
     assert list(n52.siblings) == [n4, n5, n53]
+
+
+def test_uid(node):
+    uids = set()
+    for n in node.traverse():
+        assert n not in uids
+        uids.add(n.uid)
+    n1 = Node('n1')
+    n2 = Node('n2', n1)
+    n4 = Node('n4', n2)
+    n5 = Node('n5', n2)
+    n3 = Node('n3', n1)
+    n6 = Node('n6', n3)
+    n7 = Node('n7', n6)
+    n8 = Node('n8', n6)
+    n9 = Node('n9', n6)
+    n10 = Node('n10', n9)
+    n11 = Node('n11', n3)
+    for n in n1.traverse():
+        assert n not in uids
+        uids.add(n.uid)
+
+    n11_uid = n11.uid
+    assert n1.get_descendent_by_uid(n11_uid) is n11
+
+    with pytest.raises(TreeError) as _:
+        assert node.get_descendent_by_uid(n11_uid) is n11
+
+
+def test_collapsed(node):
+    pre_collapsed_traverse = list(node.traverse())
+    to_collapse = node.children[1]
+
+    # collapse
+    to_collapse.collapsed = True
+    assert to_collapse.collapsed is True
+    for n in node.traverse(render_collapsed=False):
+        assert to_collapse not in n.path[:-1]
+
+    assert list(to_collapse.traverse(render_collapsed=False)) == [to_collapse]
+
+    assert list(node.traverse()) == pre_collapsed_traverse
+
+    expected = [
+        'n1',
+        '├─n2',
+        '│ ├─n4',
+        '│ └─n5',
+        '└─n3'
+    ]
+    result = [char + str(n) for char, n in node.render()]
+    print('\n'.join(result))
+    assert expected == result
+
+    # uncollapse
+    to_collapse.collapsed = False
+
+    assert any([n for n in node.traverse(render_collapsed=False) if to_collapse
+                in n.path[:-1]])
+
+
+def test_memoization(node):
+    assert node._Node__modified is True
+    node.render()
+    assert node._Node__modified is False
+
+    node.children[0].parent = None
+    assert node._Node__modified is True
+    node.render()
+    assert node._Node__modified is False
+
+    n2 = Node('ntest', parent=node)
+    assert node._Node__modified is True
+    assert n2._Node__modified is True
+    node.render()
+    assert node._Node__modified is False
+
+    node.children[0].children[1].parent = None
+    assert node._Node__modified is True
+    assert node.children[0]._Node__modified is True
+    node.render()
+    assert node._Node__modified is False
