@@ -501,8 +501,10 @@ class CommandDispatcher:
             oldroot = self._tabbed_browser.widget.tree_root
             for node in traversed:
                 if node.parent is not oldroot:
-                    new_node = newroot.get_descendent_by_uid(uid_map[node.uid])
-                    new_parent = newroot.get_descendent_by_uid(uid_map[node.parent.uid])
+                    uid = uid_map[node.uid]
+                    new_node = newroot.get_descendent_by_uid(uid)
+                    parent_uid = uid_map[node.parent.uid]
+                    new_parent = newroot.get_descendent_by_uid(parent_uid)
                     new_node.parent = new_parent
 
             # third pass: remove tabs from old window
