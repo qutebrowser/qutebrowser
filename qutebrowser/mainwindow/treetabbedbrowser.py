@@ -68,8 +68,6 @@ class TreeUndoEntry:
                    uid, parent_uid, children, local_idx)
 
 
-
-
 class TreeTabbedBrowser(TabbedBrowser):
     """Subclass of TabbedBrowser to provide tree-tab functionality."""
 
@@ -130,7 +128,7 @@ class TreeTabbedBrowser(TabbedBrowser):
                 node.children = ()
 
             node.parent = None
-        self.widget.update_tab_titles()
+        self.widget.tree_tab_update()
 
     def _add_undo_entry(self, tab, idx, new_undo):
 
