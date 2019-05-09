@@ -455,7 +455,7 @@ class CommandDispatcher:
     @cmdutils.argument('win_id', completion=miscmodels.window)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_give(self, win_id: int = None, keep: bool = False,
-                 count: int = None) -> None:
+                 recursive: bool = False, count: int = None) -> None:
         """Give the current tab to a new or existing window if win_id given.
 
         If no win_id is given, the tab will get detached into a new window.
@@ -486,10 +486,36 @@ class CommandDispatcher:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
 
-        tabbed_browser.tabopen(self._current_url())
-        if not keep:
-            self._tabbed_browser.close_tab(self._current_widget(),
-                                           add_undo=False)
+        if recursive and config.cache['tabs.tree_tabs']:
+            n = self._current_widget().node
+            uid_map = {1: 1}
+            traversed = list(self._current_widget().node.traverse())
+            # first pass: open tabs
+            for node in traversed:
+                tab = tabbed_browser.tabopen(node.value.url())
+
+                uid_map[node.uid] = tab.node.uid
+
+            # second pass: copy tree structure over
+            newroot = tabbed_browser.widget.tree_root
+            oldroot = self._tabbed_browser.widget.tree_root
+            for node in traversed:
+                if node.parent is not oldroot:
+                    new_node = newroot.get_descendent_by_uid(uid_map[node.uid])
+                    new_parent = newroot.get_descendent_by_uid(uid_map[node.parent.uid])
+                    new_node.parent = new_parent
+
+            # third pass: remove tabs from old window
+            if not keep:
+                for node in traversed:
+                    self._tabbed_browser.close_tab(self._current_widget(),
+                                                add_undo=False)
+
+        else:
+            tabbed_browser.tabopen(self._current_url())
+            if not keep:
+                self._tabbed_browser.close_tab(self._current_widget(),
+                                            add_undo=False)
 
     def _back_forward(self, tab, bg, window, count, forward):
         """Helper function for :back/:forward."""
