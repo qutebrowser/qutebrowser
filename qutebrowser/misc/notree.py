@@ -260,6 +260,8 @@ class Node():
             yield self
 
         if self.collapsed and not render_collapsed:
+            if order != TraverseOrder.PRE:
+                yield self
             return
 
         f = reversed if order is TraverseOrder.POST_R else tuple
