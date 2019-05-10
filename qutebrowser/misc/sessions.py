@@ -475,8 +475,21 @@ class SessionManager(QObject):
                                         window=window.win_id)
             tab_to_focus = None
 
-            if win.get('tabs'):
-                for i, tab in enumerate(win['tabs']):
+            # plain_tbas is used in case the saved session contains a tree and
+            # tree-tabs is not enabled, or if the saved session contains normal
+            # tabs
+            plain_tabs = win.get('tabs', None)
+            if win.get('tree'):
+                if isinstance(tabbed_browser.widget, TreeTabWidget):
+                    tree_data = win.get('tree')
+                    self._load_tree(tabbed_browser, tree_data)
+                    tabbed_browser.widget.tree_tab_update()
+                else:
+                    tree = win.get('tree')
+                    plain_tabs = [tree[i]['tab'] for i in tree if
+                                  tree[i]['tab']]
+            if plain_tabs:
+                for i, tab in enumerate(plain_tabs):
                     new_tab = tabbed_browser.tabopen(background=False)
                     self._load_tab(new_tab, tab)
                     if tab.get('active', False):
@@ -488,14 +501,6 @@ class SessionManager(QObject):
                     tabbed_browser.widget.setCurrentIndex(tab_to_focus)
                 if win.get('active', False):
                     QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
-            elif win.get('tree'):
-                if isinstance(tabbed_browser.widget, TreeTabWidget):
-                    tree_data = win.get('tree')
-                    self._load_tree(tabbed_browser, tree_data)
-                    tabbed_browser.widget.tree_tab_update()
-                else:
-                    # TODO restore tabs without tree_data
-                    pass
 
         if data['windows']:
             self.did_load = True
