@@ -65,8 +65,6 @@ class TreeTabWidget(TabWidget):
         try:
             pre, _ = rendered_tree[idx+1]
             tree_prefix = pre[2:]
-            result = [char + str(n) for char, n in rendered_tree]
-            log.misc.debug('\n'.join(result))
         except IndexError:  # window or first tab are not initialized yet
             tree_prefix = ""
             log.misc.error("tree_prefix is empty!")
