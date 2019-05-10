@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,6 +28,7 @@ import traceback
 import configparser
 import contextlib
 import typing
+import re
 
 import yaml
 from PyQt5.QtCore import pyqtSignal, QObject, QSettings
@@ -256,6 +257,16 @@ class YamlConfig(QObject):
                     settings[name][scope] = true_value if val else false_value
                     self._mark_changed()
 
+    def _migrate_string_value(self, settings: _SettingsType, name: str,
+                              source: str, target: str) -> None:
+        if name in settings:
+            for scope, val in settings[name].items():
+                if isinstance(val, str):
+                    new_val = re.sub(source, target, val)
+                    if new_val != val:
+                        settings[name][scope] = new_val
+                        self._mark_changed()
+
     def _handle_migrations(self, settings: _SettingsType) -> '_SettingsType':
         """Migrate older configs to the newest format."""
         # Simple renamed/deleted options
@@ -311,6 +322,12 @@ class YamlConfig(QObject):
                            'always', 'when-searching')
         self._migrate_bool(settings, 'qt.force_software_rendering',
                            'software-opengl', 'none')
+
+        for s in ['tabs.title.format',
+                  'tabs.title.format_pinned',
+                  'window.title_format']:
+            self._migrate_string_value(
+                settings, s, r'(?<!{)\{title\}(?!})', r'{current_title}')
 
         return settings
 

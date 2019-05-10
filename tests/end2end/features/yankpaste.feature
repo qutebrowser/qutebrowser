@@ -45,8 +45,15 @@ Feature: Yanking and pasting.
         When I open data/title.html
         And I wait for regex "Changing title for idx \d to 'Test title'" in the log
         And I run :yank markdown
-        Then the message "Yanked markdown URL to clipboard: *" should be shown
+        Then the warning ":yank markdown is deprecated, *" should be shown
+        And the message "Yanked markdown URL to clipboard: *" should be shown
         And the clipboard should contain "[Test title](http://localhost:(port)/data/title.html)"
+
+    Scenario: Yanking inline to clipboard
+        When I open data/title.html
+        And I run :yank inline '[[{url}][qutebrowser</3org]]'
+        Then the message "Yanked inline block to clipboard: [[http://localhost:(port)/data/title.html][qutebrowser</3org]]" should be shown
+        And the clipboard should contain "[[http://localhost:(port)/data/title.html][qutebrowser</3org]]"
 
     Scenario: Yanking domain to clipboard
         When I open data/title.html

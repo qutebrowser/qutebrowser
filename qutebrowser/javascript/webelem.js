@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+ * Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
  *
  * This file is part of qutebrowser.
  *
@@ -410,6 +410,11 @@ window._qutebrowser.webelem = (function() {
         const elem = elements[id];
         elem.selectionStart = elem.value.length;
         elem.selectionEnd = elem.value.length;
+    };
+
+    funcs.delete = (id) => {
+        const elem = elements[id];
+        elem.remove();
     };
 
     return funcs;

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -152,9 +152,8 @@ class TabWidget(QTabWidget):
         fields = self.get_tab_fields(idx)
         fields.get('tree', '')
         fields.get('collapsed', '')
-        fields['title'] = fields['title'].replace('&', '&&')
-
-        fields['index'] = str(idx + 1)
+        fields['current_title'] = fields['current_title'].replace('&', '&&')
+        fields['index'] = idx + 1
 
         title = '' if fmt is None else fmt.format(**fields)
         tabbar = self.tabBar()
@@ -165,7 +164,7 @@ class TabWidget(QTabWidget):
             tabbar.setTabText(idx, title)
 
         # always show only plain title in tooltips
-        tabbar.setTabToolTip(idx, fields['title'])
+        tabbar.setTabToolTip(idx, fields['current_title'])
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
@@ -177,7 +176,7 @@ class TabWidget(QTabWidget):
 
         fields = {}
         fields['id'] = tab.tab_id
-        fields['title'] = page_title
+        fields['current_title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
@@ -283,7 +282,6 @@ class TabWidget(QTabWidget):
             The index of the newly added tab.
         """
         if text_or_empty is None:
-            icon = None
             text = icon_or_text
             new_idx = super().addTab(page, '')
         else:
@@ -313,7 +311,6 @@ class TabWidget(QTabWidget):
             The index of the newly added tab.
         """
         if text_or_empty is None:
-            icon = None
             text = icon_or_text
             new_idx = super().insertTab(idx, page, '')
         else:
@@ -363,6 +360,17 @@ class TabWidget(QTabWidget):
             self.setTabIcon(idx, QIcon())
             if config.val.tabs.tabs_are_windows:
                 self.window().setWindowIcon(self.window().windowIcon())
+
+    def setTabIcon(self, idx: int, icon: QIcon):
+        """Always show tab icons for pinned tabs in some circumstances."""
+        tab = self.widget(idx)
+        if (icon.isNull() and
+                config.cache['tabs.favicons.show'] != 'never' and
+                config.cache['tabs.pinned.shrink'] and
+                not self.tabBar().vertical and
+                tab is not None and tab.data.pinned):
+            icon = self.style().standardIcon(QStyle.SP_FileIcon)
+        super().setTabIcon(idx, icon)
 
 
 class TabBar(QTabBar):
@@ -690,6 +698,8 @@ class TabBar(QTabBar):
             self.initStyleOption(tab, idx)
 
             setting = 'colors.tabs'
+            if self._tab_pinned(idx):
+                setting += '.pinned'
             if idx == selected:
                 setting += '.selected'
             setting += '.odd' if (idx + 1) % 2 else '.even'

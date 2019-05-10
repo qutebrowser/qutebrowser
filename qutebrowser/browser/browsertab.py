@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -439,6 +439,7 @@ class AbstractCaret(QObject):
         self._tab = tab
         self._widget = None
         self.selection_enabled = False
+        self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
         mode_manager.left.connect(self._on_mode_left)
 
@@ -500,6 +501,9 @@ class AbstractCaret(QObject):
         raise NotImplementedError
 
     def selection(self, callback: typing.Callable[[str], None]) -> None:
+        raise NotImplementedError
+
+    def reverse_selection(self) -> None:
         raise NotImplementedError
 
     def _follow_enter(self, tab: bool) -> None:

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -137,8 +137,7 @@ class SessionManager(QObject):
             path = os.path.join(self._base_path, name + '.yml')
             if check_exists and not os.path.exists(path):
                 raise SessionNotFoundError(path)
-            else:
-                return path
+            return path
 
     def exists(self, name):
         """Check if a named session exists."""

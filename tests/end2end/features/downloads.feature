@@ -92,6 +92,15 @@ Feature: Downloading things from a website.
         And I run :leave-mode
         Then no crash should happen
 
+    Scenario: Aborting a download in a different window (issue 3378)
+        When I set downloads.location.suggestion to filename
+        And I set downloads.location.prompt to true
+        And I open data/downloads/download.bin in a new window without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> *" in the log
+        And I run :window-only
+        And I run :leave-mode
+        Then no crash should happen
+
     # https://github.com/qutebrowser/qutebrowser/issues/4240
     @qt<5.11.2
     Scenario: Downloading with SSL errors (issue 1413)
@@ -141,18 +150,26 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download with spaces.bin should exist
 
-    @qtwebkit_skip @qt<5.9
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.8 or older)
+    @qtwebkit_skip @qt<5.9 @qt>=5.13
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.8 or older and 5.13 and newer)
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
         And I wait until the download is finished
         Then the downloaded file ../foo should not exist
         And the downloaded file foo should exist
 
-    @qtwebkit_skip @qt>=5.9
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.9 or newer)
+    @qtwebkit_skip @qt<5.13 @qt>=5.9
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.9 to 5.12)
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
+        And I wait until the download is finished
+        Then the downloaded file ../foo should not exist
+        And the downloaded file ..%2Ffoo should exist
+
+    @qtwebkit_skip @qt>=5.13
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.13 or newer)
+        # Content-Disposition: download; filename=..%252Ffoo
+        When I open response-headers?Content-Disposition=download;%20filename%3D..%25252Ffoo without waiting
         And I wait until the download is finished
         Then the downloaded file ../foo should not exist
         And the downloaded file ..%2Ffoo should exist
@@ -521,6 +538,17 @@ Feature: Downloading things from a website.
         And I run :prompt-accept (tmpdir)(dirsep)downloads(dirsep)subdir
         And I open data/downloads/download2.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/downloads/subdir/download2.bin"
+
+    Scenario: Clearing the last download directory when changing download location
+        When I set downloads.location.prompt to true
+        And I set downloads.location.suggestion to both
+        And I set downloads.location.remember to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for the download prompt for "*/download.bin"
+        And I run :prompt-accept (tmpdir)(dirsep)downloads(dirsep)subdir
+        And I run :set downloads.location.directory (tmpdir)(dirsep)downloads
+        And I open data/downloads/download2.bin without waiting
+        Then the download prompt should be shown with "(tmpdir)/downloads/download2.bin"
 
     Scenario: Not remembering the last download directory
         When I set downloads.location.prompt to true

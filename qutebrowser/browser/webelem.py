@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -363,6 +363,10 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def _click_js(self, click_target: usertypes.ClickTarget) -> None:
         """Fake a click by using the JS .click() method."""
+        raise NotImplementedError
+
+    def delete(self) -> None:
+        """Delete this element from the DOM."""
         raise NotImplementedError
 
     def _click_href(self, click_target: usertypes.ClickTarget) -> None:

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -304,6 +304,5 @@ def window_by_index(idx):
     """Get the Nth opened window object."""
     if not window_registry:
         raise NoWindow()
-    else:
-        key = sorted(window_registry)[idx]
-        return window_registry[key]
+    key = sorted(window_registry)[idx]
+    return window_registry[key]

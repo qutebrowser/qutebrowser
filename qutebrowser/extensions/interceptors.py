@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -20,6 +20,7 @@
 """Infrastructure for intercepting requests."""
 
 import typing
+import enum
 
 import attr
 
@@ -27,6 +28,34 @@ MYPY = False
 if MYPY:
     # pylint: disable=unused-import,useless-suppression
     from PyQt5.QtCore import QUrl
+
+
+class ResourceType(enum.Enum):
+    """Possible request types that can be received.
+
+    Currently corresponds to the QWebEngineUrlRequestInfo Enum:
+    https://doc.qt.io/qt-5/qwebengineurlrequestinfo.html#ResourceType-enum
+    """
+
+    main_frame = 0
+    sub_frame = 1
+    stylesheet = 2
+    script = 3
+    image = 4
+    font_resource = 5
+    sub_resource = 6
+    object = 7
+    media = 8
+    worker = 9
+    shared_worker = 10
+    prefetch = 11
+    favicon = 12
+    xhr = 13
+    ping = 14
+    service_worker = 15
+    csp_report = 16
+    plugin_resource = 17
+    unknown = 255
 
 
 @attr.s
@@ -41,6 +70,9 @@ class Request:
     request_url = attr.ib()  # type: QUrl
 
     is_blocked = attr.ib(False)  # type: bool
+
+    #: The resource type of the request. None if not supported on this backend.
+    resource_type = attr.ib(None)  # type: typing.Optional[ResourceType]
 
     def block(self) -> None:
         """Block this request."""

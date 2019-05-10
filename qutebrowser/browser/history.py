@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -148,6 +148,8 @@ class WebHistory(sql.SqlTable):
                                       'redirect': 'NOT NULL'},
                          parent=parent)
         self._progress = progress
+        # Store the last saved url to avoid duplicate immedate saves.
+        self._last_url = None
 
         self.completion = CompletionHistory(parent=self)
         self.metainfo = CompletionMetaInfo(parent=self)
@@ -195,7 +197,7 @@ class WebHistory(sql.SqlTable):
     def _handle_sql_errors(self):
         try:
             yield
-        except sql.SqlEnvironmentError as e:
+        except sql.KnownError as e:
             message.error("Failed to write history: {}".format(e.text()))
 
     def _is_excluded(self, url):
@@ -276,6 +278,7 @@ class WebHistory(sql.SqlTable):
             self.delete_all()
             self.completion.delete_all()
         self.history_cleared.emit()
+        self._last_url = None
 
     def delete_url(self, url):
         """Remove all history entries with the given url.
@@ -287,6 +290,8 @@ class WebHistory(sql.SqlTable):
         qtutils.ensure_valid(qurl)
         self.delete('url', self._format_url(qurl))
         self.completion.delete('url', self._format_completion_url(qurl))
+        if self._last_url == url:
+            self._last_url = None
         self.url_cleared.emit(qurl)
 
     @pyqtSlot(QUrl, QUrl, str)
@@ -306,7 +311,9 @@ class WebHistory(sql.SqlTable):
             # If the url of the page is different than the url of the link
             # originally clicked, save them both.
             self.add_url(requested_url, title, redirect=True)
-        self.add_url(url, title)
+        if url != self._last_url:
+            self.add_url(url, title)
+            self._last_url = url
 
     def add_url(self, url, title="", *, redirect=False, atime=None):
         """Called via add_from_tab when a URL should be added to the history.

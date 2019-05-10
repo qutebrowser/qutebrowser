@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -85,9 +85,6 @@ def version_check(version: str,
         exact: if given, check with == instead of >=
         compiled: Set to False to not check the compiled version.
     """
-    # Catch code using the old API for this
-    assert exact not in [operator.gt, operator.lt, operator.ge, operator.le,
-                         operator.eq], exact
     if compiled and exact:
         raise ValueError("Can't use compiled=True with exact=True!")
 
@@ -131,13 +128,11 @@ def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
     if arg > maxval:
         if fatal:
             raise OverflowError(arg)
-        else:
-            return maxval
+        return maxval
     elif arg < minval:
         if fatal:
             raise OverflowError(arg)
-        else:
-            return minval
+        return minval
     else:
         return arg
 

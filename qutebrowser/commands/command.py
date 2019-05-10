@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -402,7 +402,8 @@ class Command:
         if isinstance(typ, tuple):
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
-        elif getattr(typ, '__origin__', None) is typing.Union or (
+
+        if getattr(typ, '__origin__', None) is typing.Union or (
                 # Older Python 3.5 patch versions
                 # pylint: disable=no-member,useless-suppression
                 hasattr(typing, 'UnionMeta') and

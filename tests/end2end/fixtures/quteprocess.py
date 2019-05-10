@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -157,6 +157,10 @@ def is_ignored_chromium_message(line):
         # cert_verify_proc_openssl.cc(212)]
         # X509 Verification error self signed certificate : 18 : 0 : 4
         'X509 Verification error self signed certificate : 18 : 0 : 4',
+        # Qt 5.13
+        # [27789:27805:0325/111821.127349:ERROR:ssl_client_socket_impl.cc(962)]
+        # handshake failed; returned -1, SSL error code 1, net_error -202
+        'handshake failed; returned -1, SSL error code 1, net_error -202',
 
         # Not reproducible anymore?
 
@@ -230,6 +234,19 @@ def is_ignored_chromium_message(line):
         # content.mojom.RendererAudioOutputStreamFactory
         'InterfaceRequest was dropped, the document is no longer active: '
         'content.mojom.RendererAudioOutputStreamFactory',
+        # [1920:2168:0225/112442.664:ERROR:in_progress_cache_impl.cc(124)]
+        # Could not write download entries to file: C:\Users\appveyor\AppData\
+        # Local\Temp\1\qutebrowser-basedir-1l3jmxq4\data\webengine\
+        # in_progress_download_metadata_store
+        'Could not write download entries to file: *',
+
+        # Qt 5.13
+        # [32651:32651:0325/130146.300817:WARNING:
+        # render_frame_host_impl.cc(486)]
+        # InterfaceRequest was dropped, the document is no longer active:
+        # resource_coordinator.mojom.FrameCoordinationUnit
+        'InterfaceRequest was dropped, the document is no longer active: '
+        'resource_coordinator.mojom.FrameCoordinationUnit',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -639,8 +656,11 @@ class QuteProc(testprocess.Process):
         Args:
             count: The count to pass to the command.
             invalid: If True, we don't wait for "command called: ..." in the
-                     log
+                     log and return None.
             escape: Escape backslashes in the command
+
+        Return:
+            The parsed log line with "command called: ..." or None.
         """
         summary = command
         if count is not None:
@@ -655,9 +675,11 @@ class QuteProc(testprocess.Process):
                                                      command.lstrip(':'))
 
         self.send_ipc([command])
-        if not invalid:
-            self.wait_for(category='commands', module='command',
-                          function='run', message='command called: *')
+        if invalid:
+            return None
+        else:
+            return self.wait_for(category='commands', module='command',
+                                 function='run', message='command called: *')
 
     def get_setting(self, opt):
         """Get the value of a qutebrowser setting."""
@@ -700,25 +722,26 @@ class QuteProc(testprocess.Process):
 
         if as_url:
             self.send_cmd(url, invalid=True)
+            line = None
         elif new_tab:
             if related_tab:
-                self.send_cmd(':open -t -r ' + url)
+                line = self.send_cmd(':open -t -r ' + url)
             else:
-                self.send_cmd(':open -t ' + url)
+                line = self.send_cmd(':open -t ' + url)
         elif new_bg_tab:
             if related_tab:
-                self.send_cmd(':open -b -r ' + url)
+                line = self.send_cmd(':open -b -r ' + url)
             else:
-                self.send_cmd(':open -b ' + url)
+                line = self.send_cmd(':open -b ' + url)
         elif new_window:
-            self.send_cmd(':open -w ' + url)
+            line = self.send_cmd(':open -w ' + url)
         elif private:
-            self.send_cmd(':open -p ' + url)
+            line = self.send_cmd(':open -p ' + url)
         else:
-            self.send_cmd(':open ' + url)
+            line = self.send_cmd(':open ' + url)
 
         if wait:
-            self.wait_for_load_finished_url(url)
+            self.wait_for_load_finished_url(url, after=line)
 
     def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""
@@ -727,7 +750,7 @@ class QuteProc(testprocess.Process):
         line.expected = True
 
     def wait_for_load_finished_url(self, url, *, timeout=None,
-                                   load_status='success'):
+                                   load_status='success', after=None):
         """Wait until a URL has finished loading."""
         __tracebackhide__ = (lambda e: e.errisinstance(
             testprocess.WaitForTimeout))
@@ -763,7 +786,7 @@ class QuteProc(testprocess.Process):
                     load_status=re.escape(load_status), url=re.escape(url)))
 
         try:
-            self.wait_for(message=pattern, timeout=timeout)
+            self.wait_for(message=pattern, timeout=timeout, after=after)
         except testprocess.WaitForTimeout:
             raise testprocess.WaitForTimeout("Timed out while waiting for {} "
                                              "to be loaded".format(url))
@@ -826,9 +849,9 @@ class QuteProc(testprocess.Process):
         message = self.wait_for_js('qute:*').message
         if message.endswith('qute:no elems'):
             raise ValueError('No element with {!r} found'.format(text))
-        elif message.endswith('qute:ambiguous elems'):
+        if message.endswith('qute:ambiguous elems'):
             raise ValueError('Element with {!r} is not unique'.format(text))
-        elif not message.endswith('qute:okay'):
+        if not message.endswith('qute:okay'):
             raise ValueError('Invalid response from qutebrowser: {}'
                              .format(message))
 

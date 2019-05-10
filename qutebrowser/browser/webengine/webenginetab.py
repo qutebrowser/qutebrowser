@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -270,6 +270,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
 
     def _selection_cb(self, enabled):
         """Emit selection_toggled based on setInitialCursor."""
+        if self._mode_manager.mode != usertypes.KeyMode.caret:
+            log.webview.debug("Ignoring selection cb due to mode change.")
+            return
         if enabled is None:
             log.webview.debug("Ignoring selection status None")
             return
@@ -341,6 +344,9 @@ class WebEngineCaret(browsertab.AbstractCaret):
         # https://github.com/qutebrowser/qutebrowser/issues/3523
         self._tab.run_js_async(javascript.assemble('caret', 'getSelection'),
                                callback)
+
+    def reverse_selection(self):
+        self._js_call('reverseSelection')
 
     def _follow_selected_cb_wrapped(self, js_elem, tab):
         try:
@@ -1038,9 +1044,15 @@ class _WebEngineScripts(QObject):
             new_script.setSourceCode(script.code())
             new_script.setName("GM-{}".format(script.name))
             new_script.setRunsOnSubFrames(script.runs_on_sub_frames)
+
             # Override the @run-at value parsed by QWebEngineScript if desired.
             if injection_point:
                 new_script.setInjectionPoint(injection_point)
+            elif script.needs_document_end_workaround():
+                log.greasemonkey.debug("Forcing @run-at document-end for {}"
+                                       .format(script.name))
+                new_script.setInjectionPoint(QWebEngineScript.DocumentReady)
+
             log.greasemonkey.debug('adding script: {}'
                                    .format(new_script.name()))
             page_scripts.insert(new_script)

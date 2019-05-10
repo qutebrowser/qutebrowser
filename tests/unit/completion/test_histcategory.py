@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -20,11 +20,13 @@
 """Test the web history completion category."""
 
 import datetime
+import logging
 
 import pytest
 
 from qutebrowser.misc import sql
 from qutebrowser.completion.models import histcategory
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
@@ -131,6 +133,15 @@ def test_set_pattern_repeated(model_validator, hist):
     model_validator.validate([
         ('example.com/baz', 'title3'),
     ])
+
+
+def test_set_pattern_long(hist, message_mock, caplog):
+    hist.insert({'url': 'example.com/foo', 'title': 'title1', 'last_atime': 1})
+    cat = histcategory.HistoryCategory()
+    with caplog.at_level(logging.ERROR):
+        cat.set_pattern(" ".join(map(str, range(10000))))
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    assert msg.text.startswith("Error with SQL query:")
 
 
 @pytest.mark.parametrize('max_items, before, after', [

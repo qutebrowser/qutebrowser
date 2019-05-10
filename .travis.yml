@@ -1,10 +1,11 @@
 dist: xenial
 language: python
 group: edge
-python: 3.6
+python: 3.7
 os: linux
 
 matrix:
+  fast_finish: true
   include:
     ### Archlinux QtWebKit
     - env: DOCKER=archlinux
@@ -17,27 +18,26 @@ matrix:
     ### PyQt 5.7.1 (Python 3.5)
     - python: 3.5
       env: TESTENV=py35-pyqt571
-    ### PyQt 5.7.1
-    - env: TESTENV=py36-pyqt571
+    ### PyQt 5.7.1 (Python 3.6)
+    - python: 3.6
+      env: TESTENV=py36-pyqt571
 
     ### PyQt 5.9
-    - env: TESTENV=py36-pyqt59
+    - env: TESTENV=py37-pyqt59
 
     ### PyQt 5.10
-    - env: TESTENV=py36-pyqt510
+    - env: TESTENV=py37-pyqt510
       addons:
         apt:
           packages:
           - xfonts-base
 
-    ### PyQt 5.11 (with coverage)
-    - env: TESTENV=py36-pyqt511-cov
-    ### PyQt 5.11 (Python 3.7)
-    - python: 3.7
-      env: TESTENV=py37-pyqt511
+    ### PyQt 5.11
+    - env: TESTENV=py37-pyqt511
 
-    ### PyQt 5.12
-    - env: TESTENV=py36-pyqt512
+    ### PyQt 5.12 (Python 3.7, with coverage)
+    - env: TESTENV=py37-pyqt512-cov
+      # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
       addons:
         apt:
           packages:
@@ -45,7 +45,7 @@ matrix:
 
     ### macOS sierra
     - os: osx
-      env: TESTENV=py37-pyqt511 OSX=sierra
+      env: TESTENV=py37-pyqt512 OSX=sierra
       osx_image: xcode9.2
       language: generic
     ### macOS yosemite
@@ -82,12 +82,6 @@ matrix:
     - language: generic
       env: TESTENV=shellcheck
       services: docker
-
-  fast_finish: true
-  allow_failures:
-    - env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
-      services: docker
-    - env: TESTENV=py36-pyqt512
 
 cache:
   directories:
