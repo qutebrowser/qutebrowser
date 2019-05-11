@@ -1205,7 +1205,6 @@ hints.uppercase:
 hints.leave_on_load:
   default: true
   type: Bool
-  supports_pattern: false
   desc: Leave hint mode when starting a new page load.
 
 ## input
