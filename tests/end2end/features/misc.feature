@@ -421,32 +421,6 @@ Feature: Various utility commands.
                 history:
                 - url: http://localhost:*/data/hello3.txt
 
-    ## Variables
-
-    Scenario: {url} as part of an argument
-        When I open data/hello.txt
-        And I run :message-info foo{url}
-        Then the message "foohttp://localhost:*/hello.txt" should be shown
-
-    Scenario: Multiple variables in an argument
-        When I open data/hello.txt
-        And I put "foo" into the clipboard
-        And I run :message-info {clipboard}bar{url}
-        Then the message "foobarhttp://localhost:*/hello.txt" should be shown
-
-    Scenario: escaping {{url}} variable
-        When I open data/hello.txt
-        And I run :message-info foo{{url}}bar
-        Then the message "foo{url}bar" should be shown
-
-    @xfail_norun
-    Scenario: {url} in clipboard should not be expanded
-        When I open data/hello.txt
-        # FIXME: {url} should be escaped, otherwise it is replaced before it enters clipboard
-        And I put "{url}" into the clipboard
-        And I run :message-info {clipboard}bar{url}
-        Then the message "{url}barhttp://localhost:*/hello.txt" should be shown
-
     ## :click-element
 
     Scenario: Clicking an element with unknown ID

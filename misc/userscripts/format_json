@@ -9,10 +9,9 @@ set -euo pipefail
 #   syntax highlighting using pygments.
 #
 #   In order to use this script, just start it using `spawn --userscript` from
-#   qutebrowser. I recommend using an alias, e.g. put this in the
-#   [alias]-section of qutebrowser.conf:
+#   qutebrowser. I recommend using an alias, e.g.
 #
-#     json = spawn --userscript /path/to/json_format
+#     :config-dict-add aliases json "spawn --userscript /path/to/json_format"
 #
 #   Note that the color style defaults to monokai, but a different pygments style
 #   can be passed as the first parameter to the script. A full list of the pygments
@@ -25,7 +24,7 @@ MAX_SIZE_PRETTIFY=10485760  # 10 MB
 # default style to monokai if none is provided
 STYLE=${1:-monokai}
 
-TEMP_FILE="$(mktemp)"
+TEMP_FILE="$(mktemp --suffix .html)"
 jq . "$QUTE_TEXT" >"$TEMP_FILE"
 
 # try GNU stat first and then OSX stat if the former fails

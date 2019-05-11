@@ -416,5 +416,10 @@ window._qutebrowser.webelem = (function() {
         elem.selectionEnd = elem.value.length;
     };
 
+    funcs.delete = (id) => {
+        const elem = elements[id];
+        elem.remove();
+    };
+
     return funcs;
 })();

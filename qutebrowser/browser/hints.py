@@ -41,7 +41,8 @@ from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 
 Target = enum.Enum('Target', ['normal', 'current', 'tab', 'tab_fg', 'tab_bg',
                               'window', 'yank', 'yank_primary', 'run', 'fill',
-                              'hover', 'download', 'userscript', 'spawn'])
+                              'hover', 'download', 'userscript', 'spawn',
+                              'delete'])
 
 
 class HintingError(Exception):
@@ -147,6 +148,7 @@ class HintContext:
                 download: Download the link.
                 userscript: Call a custom userscript.
                 spawn: Spawn a simple command.
+                delete: Delete the selected element.
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
@@ -327,6 +329,9 @@ class HintActions:
         except userscripts.Error as e:
             raise HintingError(str(e))
 
+    def delete(self, elem, _context):
+        elem.delete()
+
     def spawn(self, url, context):
         """Spawn a simple command from a hint.
 
@@ -371,6 +376,7 @@ class HintManager(QObject):
         Target.download: "Download hint",
         Target.userscript: "Call userscript via hint",
         Target.spawn: "Spawn command via hint",
+        Target.delete: "Delete an element",
     }
 
     def __init__(self, win_id, tab_id, parent=None):
@@ -628,7 +634,7 @@ class HintManager(QObject):
             rapid: Whether to do rapid hinting. With rapid hinting, the hint
                    mode isn't left after a hint is followed, so you can easily
                    open multiple links. This is only possible with targets
-                   `tab` (with `tabs.background_tabs=true`), `tab-bg`,
+                   `tab` (with `tabs.background=true`), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
@@ -648,7 +654,7 @@ class HintManager(QObject):
                 - `normal`: Open the link.
                 - `current`: Open the link in the current tab.
                 - `tab`: Open the link in a new tab (honoring the
-                         `tabs.background_tabs` setting).
+                         `tabs.background` setting).
                 - `tab-fg`: Open the link in a new foreground tab.
                 - `tab-bg`: Open the link in a new background tab.
                 - `window`: Open the link in a new window.
@@ -888,6 +894,7 @@ class HintManager(QObject):
             # _download needs a QWebElement to get the frame.
             Target.download: self._actions.download,
             Target.userscript: self._actions.call_userscript,
+            Target.delete: self._actions.delete,
         }
         # Handlers which take a QUrl
         url_handlers = {

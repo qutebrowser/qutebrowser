@@ -55,7 +55,8 @@ import tldextract
 
 argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epilog=EPILOG)
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
-argument_parser.add_argument('--password-store', '-p', default=os.path.expanduser('~/.password-store'),
+argument_parser.add_argument('--password-store', '-p',
+                             default=os.getenv('PASSWORD_STORE_DIR', default=os.path.expanduser('~/.password-store')),
                              help='Path to your pass password-store')
 argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
                              help='Regular expression that matches the username')

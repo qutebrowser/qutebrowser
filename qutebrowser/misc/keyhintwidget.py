@@ -71,6 +71,7 @@ class KeyHintView(QLabel):
         self.hide()
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)
+        self._show_timer.setSingleShot(True)
         config.set_register_stylesheet(self)
 
     def __repr__(self):

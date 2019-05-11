@@ -149,7 +149,7 @@ class TabWidget(QTabWidget):
             return
 
         fields = self.get_tab_fields(idx)
-        fields['title'] = fields['title'].replace('&', '&&')
+        fields['current_title'] = fields['current_title'].replace('&', '&&')
         fields['index'] = idx + 1
 
         title = '' if fmt is None else fmt.format(**fields)
@@ -161,7 +161,7 @@ class TabWidget(QTabWidget):
             tabbar.setTabText(idx, title)
 
         # always show only plain title in tooltips
-        tabbar.setTabToolTip(idx, fields['title'])
+        tabbar.setTabToolTip(idx, fields['current_title'])
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
@@ -173,7 +173,7 @@ class TabWidget(QTabWidget):
 
         fields = {}
         fields['id'] = tab.tab_id
-        fields['title'] = page_title
+        fields['current_title'] = page_title
         fields['title_sep'] = ' - ' if page_title else ''
         fields['perc_raw'] = tab.progress()
         fields['backend'] = objects.backend.name
