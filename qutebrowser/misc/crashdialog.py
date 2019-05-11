@@ -585,7 +585,10 @@ class ReportDialog(_CrashDialog):
             ("Objects", self._qobjects),
         ]
         try:
-            self._crash_info.append(("Debug log", log.ram_handler.dump_log()))
+            text = "Log output was disabled."
+            if log.ram_handler is not None:
+                text = log.ram_handler.dump_log()
+            self._crash_info.append(("Debug log", text))
         except Exception:
             self._crash_info.append(("Debug log", traceback.format_exc()))
 

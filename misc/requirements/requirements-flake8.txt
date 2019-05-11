@@ -15,7 +15,7 @@ flake8-mock==0.3
 flake8-polyfill==1.0.2
 flake8-string-format==0.2.3
 flake8-tidy-imports==2.0.0
-flake8-tuple==0.2.14
+flake8-tuple==0.3.1
 mccabe==0.6.1
 pep8-naming==0.8.2
 pycodestyle==2.5.0

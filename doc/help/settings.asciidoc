@@ -651,12 +651,12 @@ Default:
 * +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
 * +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
-* +pass:[yM]+: +pass:[yank markdown -s]+
+* +pass:[yM]+: +pass:[yank inline [{title}]({url}) -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
 * +pass:[yT]+: +pass:[yank title -s]+
 * +pass:[yY]+: +pass:[yank -s]+
 * +pass:[yd]+: +pass:[yank domain]+
-* +pass:[ym]+: +pass:[yank markdown]+
+* +pass:[ym]+: +pass:[yank inline [{title}]({url})]+
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
@@ -2070,6 +2070,8 @@ This setting is only available with the QtWebKit backend.
 === content.pdfjs
 Allow pdf.js to view PDF files in the browser.
 Note that the files can still be downloaded by clicking the download button in the pdf.js viewer.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -3491,7 +3493,7 @@ The following placeholders are defined:
 
 * `{perc}`: Percentage as a string like `[10%]`.
 * `{perc_raw}`: Raw percentage, e.g. `10`.
-* `{title}`: Title of the current web page.
+* `{current_title}`: Title of the current web page.
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{index}`: Index of this tab.
 * `{id}`: Internal tab ID of this tab.
@@ -3506,7 +3508,7 @@ The following placeholders are defined:
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{audio}{index}: {title}]+
+Default: +pass:[{audio}{index}: {current_title}]+
 
 [[tabs.title.format_pinned]]
 === tabs.title.format_pinned
@@ -3636,7 +3638,7 @@ Format to use for the window title. The same placeholders like for
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
+Default: +pass:[{perc}{current_title}{title_sep}qutebrowser]+
 
 [[zoom.default]]
 === zoom.default

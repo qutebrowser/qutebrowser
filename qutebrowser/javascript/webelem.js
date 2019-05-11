@@ -439,5 +439,10 @@ window._qutebrowser.webelem = (function() {
         scroll.set_activated_element(elem);
     };
 
+    funcs.delete = (id) => {
+        const elem = elements[id];
+        elem.remove();
+    };
+
     return funcs;
 })();

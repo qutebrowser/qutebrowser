@@ -43,7 +43,7 @@ The following userscripts can be found on their own repositories.
 - [qutebrowser-zotero](https://github.com/parchd-1/qutebrowser-zotero): connects
   qutebrowser to [Zotero][] standalone.
 - [qute.match](https://github.com/bziur/qute.match): execute script based on
-  visisted url.
+  visited url.
 - [qutepocket](https://github.com/kepi/qutepocket): Add URL to your [Pocket][]
   bookmark manager.
 - [qb-scripts](https://github.com/peterjschroeder/qb-scripts): a small pack of
