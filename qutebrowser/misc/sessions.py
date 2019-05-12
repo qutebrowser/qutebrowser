@@ -448,6 +448,42 @@ class SessionManager(QObject):
             child = recursive_load_node(child_uid)
             child.parent = root_node
 
+    def _load_window(self, win):
+        """Create a window and fill it with tabs from session data."""
+        window = mainwindow.MainWindow(geometry=win['geometry'],
+                                       private=win.get('private', None))
+        window.show()
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=window.win_id)
+        tab_to_focus = None
+
+        # plain_tbas is used in case the saved session contains a tree and
+        # tree-tabs is not enabled, or if the saved session contains normal
+        # tabs
+        plain_tabs = win.get('tabs', None)
+        if win.get('tree'):
+            if isinstance(tabbed_browser.widget, TreeTabWidget):
+                tree_data = win.get('tree')
+                self._load_tree(tabbed_browser, tree_data)
+                tabbed_browser.widget.tree_tab_update()
+            else:
+                tree = win.get('tree')
+                plain_tabs = [tree[i]['tab'] for i in tree if
+                              tree[i]['tab']]
+        if plain_tabs:
+            for i, tab in enumerate(plain_tabs):
+                new_tab = tabbed_browser.tabopen(background=False)
+                self._load_tab(new_tab, tab)
+                if tab.get('active', False):
+                    tab_to_focus = i
+                if new_tab.data.pinned:
+                    tabbed_browser.widget.set_tab_pinned(
+                        new_tab, new_tab.data.pinned)
+            if tab_to_focus is not None:
+                tabbed_browser.widget.setCurrentIndex(tab_to_focus)
+            if win.get('active', False):
+                QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
+
     def load(self, name, temp=False):
         """Load a named session.
 
@@ -467,40 +503,7 @@ class SessionManager(QObject):
             raise SessionError("Got empty session file")
 
         for win in data['windows']:
-            window = mainwindow.MainWindow(geometry=win['geometry'],
-                                           private=win.get('private', None))
-            window.show()
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=window.win_id)
-            tab_to_focus = None
-
-            # plain_tbas is used in case the saved session contains a tree and
-            # tree-tabs is not enabled, or if the saved session contains normal
-            # tabs
-            plain_tabs = win.get('tabs', None)
-            if win.get('tree'):
-                if isinstance(tabbed_browser.widget, TreeTabWidget):
-                    tree_data = win.get('tree')
-                    self._load_tree(tabbed_browser, tree_data)
-                    tabbed_browser.widget.tree_tab_update()
-                else:
-                    tree = win.get('tree')
-                    plain_tabs = [tree[i]['tab'] for i in tree if
-                                  tree[i]['tab']]
-            if plain_tabs:
-                for i, tab in enumerate(plain_tabs):
-                    new_tab = tabbed_browser.tabopen(background=False)
-                    self._load_tab(new_tab, tab)
-                    if tab.get('active', False):
-                        tab_to_focus = i
-                    if new_tab.data.pinned:
-                        tabbed_browser.widget.set_tab_pinned(
-                            new_tab, new_tab.data.pinned)
-                if tab_to_focus is not None:
-                    tabbed_browser.widget.setCurrentIndex(tab_to_focus)
-                if win.get('active', False):
-                    QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
-
+            self._load_window(win)
         if data['windows']:
             self.did_load = True
         if not name.startswith('_') and not temp:
