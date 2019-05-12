@@ -41,9 +41,7 @@ class TreeTabWidget(TabWidget):
         super()._init_config()
         # For tree-tabs
         self.update_tab_titles()  # Must also be called when deactivating
-        if config.cache['tabs.tree_tabs']:
-            # Positions matter only if enabling
-            self.tree_tab_update()
+        self.tree_tab_update()
 
     def get_tab_fields(self, idx):
         """Add tree field data to normal tab field data."""
