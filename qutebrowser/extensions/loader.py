@@ -125,17 +125,27 @@ def walk_extensions() -> typing.Iterator[ExtensionInfo]:
     """Walk external extensions."""
     ext_dir = os.path.join(standarddir.data(), 'extensions')
     if not os.path.exists(ext_dir):
-        os.mkdir(ext_dir)
+        try:
+            os.mkdir(ext_dir)
+        except OSError:
+            pass
         return
 
+    prefix = 'qutebrowser.extensions.third_party.'
     for finder, name, _ispkg in pkgutil.walk_packages(
             path=[ext_dir],
-            prefix='qutebrowser.extensions.third_party.',
+            prefix=prefix,
             onerror=_on_walk_error):
         if name not in sys.modules:
-            # Import the module with the finder so that it is in
-            # sys.modules readif for _load_component.
-            finder.find_module(name).load_module(name)
+            try:
+                # Import the module with the finder so that it is in
+                # sys.modules readif for _load_component.
+                finder.find_module(name).load_module(name)
+            except Exception:
+                log.extensions.exception(
+                    "Failed importing extension: {}".format(name[len(prefix):])
+                )
+                continue
         yield ExtensionInfo(name=name)
 
 
@@ -163,8 +173,10 @@ def _get_init_context() -> InitContext:
                        args=objreg.get('args'))
 
 
-def _load_component(info: ExtensionInfo, *,
-                    skip_hooks: bool = False) -> types.ModuleType:
+def _load_component(
+        info: ExtensionInfo, *,
+        skip_hooks: bool = False,
+) -> typing.Optional[types.ModuleType]:
     """Load the given extension and run its init hook (if any).
 
     Args:
@@ -181,7 +193,13 @@ def _load_component(info: ExtensionInfo, *,
     if mod_info.init_hook is not None and not skip_hooks:
         log.extensions.debug("Running init hook {!r}"
                              .format(mod_info.init_hook.__name__))
-        mod_info.init_hook(_get_init_context())
+        try:
+            mod_info.init_hook(_get_init_context())
+        except Exception:
+            log.extensions.exception(
+                "Failed initializing extension: {}".format(mod.__file__)
+            )
+            return None
 
     _module_infos.append(mod_info)
 
@@ -201,7 +219,15 @@ def _on_config_changed(changed_name: str) -> None:
                 cfilter = config.change_filter(option)
                 cfilter.validate()
                 if cfilter.check_match(changed_name):
-                    hook()
+                    try:
+                        hook()
+                    except Exception:
+                        log.extensions.exception(
+                            "Failed running config change hook for "
+                            "item {} in extension: {}".format(
+                                changed_name, hook.__code__.co_filename,
+                            )
+                        )
 
 
 def init() -> None:
