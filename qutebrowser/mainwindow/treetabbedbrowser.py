@@ -211,8 +211,15 @@ class TreeTabbedBrowser(TabbedBrowser):
         tab.node.parent = self.widget.tree_root
         if cur_tab is not None:
             if related:
+                pos = config.val.tabs.new_position.related
                 if tab is not cur_tab:  # check we're not opening first tab
-                    tab.node.parent = cur_tab.node
+                    parent = cur_tab.node
+                    siblings = list(parent.children)
+                    if pos in ['first', 'prev']:
+                        siblings.insert(0, tab.node)
+                    else:
+                        siblings.append(tab.node)
+                    parent.children = siblings
             else:
                 pos = config.val.tabs.new_position.unrelated
                 if pos == 'first':
