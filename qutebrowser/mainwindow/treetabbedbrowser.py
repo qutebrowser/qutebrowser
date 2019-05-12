@@ -19,24 +19,17 @@
 
 """Subclass of TabbedBrowser to provide tree-tab functionality."""
 
-import attr
 from collections import defaultdict
+import attr
 
-from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
+from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser.config import config
-from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser, UndoEntry
+from qutebrowser.mainwindow.tabbedbrowser import TabbedBrowser
 from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
 from qutebrowser.browser import browsertab
 from qutebrowser.misc import notree
-
-from PyQt5.QtGui import QIcon
-
-from qutebrowser.keyinput import modeman
-from qutebrowser.mainwindow import tabwidget, mainwindow
-from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
-                               urlutils, message, jinja)
 
 
 @attr.s
@@ -89,6 +82,7 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     @classmethod
     def from_tabbed_browser(cls, tabbedbrowser):
+        """'Cast' a tabbed_browser into a TreeTabbedBrowser."""
         tabbedbrowser.__class__ = cls
         tabbedbrowser.widget = \
             TreeTabWidget.from_tabwidget(tabbedbrowser.widget)
@@ -98,6 +92,7 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     @classmethod
     def to_tabbed_browser(cls, tabbedbrowser):
+        """'Cast' self to a TabbedBrowser."""
         tabbedbrowser.__class__ = cls.__bases__[0]
         tabbedbrowser.widget = \
             TreeTabWidget.to_tabwidget(tabbedbrowser.widget)
@@ -140,7 +135,6 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     def _add_undo_entry(self, tab, idx, new_undo):
         """Save undo entry with tree information."""
-
         # TODO see if it's possible to remove duplicate code from
         # super()._add_undo_entry
         try:
@@ -155,8 +149,8 @@ class TreeTabbedBrowser(TabbedBrowser):
                 children = [n.uid for n in node.children]
                 local_idx = node.index
                 entry = TreeUndoEntry(tab.url(), history_data, idx,
-                                    tab.data.pinned,
-                                    uid, parent_uid, children, local_idx)
+                                      tab.data.pinned,
+                                      uid, parent_uid, children, local_idx)
                 if new_undo or not self._undo_stack:
                     self._undo_stack.append([entry])
                 else:
@@ -209,7 +203,6 @@ class TreeTabbedBrowser(TabbedBrowser):
     @pyqtSlot('QUrl', bool, bool)
     def tabopen(self, url=None, background=None, related=True, idx=None, *,
                 ignore_tabs_are_windows=False):
-
         # we save this now because super.tabopen also resets the focus
         cur_tab = self.widget.currentWidget()
         tab = super().tabopen(url, background, related, idx,
@@ -269,8 +262,7 @@ class TreeTabbedBrowser(TabbedBrowser):
             cur_idx += 1
 
     def hide_tab(self, tab):
-        """Collapses a tab, hiding all its children and setting
-        tab.node.collapsed.
+        """Collaps a tab, hide all its children and set tab.node.collapsed.
 
         Note: this does NOT update tab positions or titles. You have to do it
         yourself. This is so cycle_hide_tab doesn't update a bunch of times.

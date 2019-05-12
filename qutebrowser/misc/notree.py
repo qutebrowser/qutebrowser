@@ -82,10 +82,10 @@ class Node():
         parent: Node's parent.
         children: Node's children elements.
         siblings: Children of parent node that are not self.
-        path: List of nodes from root of tree to self
-    value, parent, and children can all be set by user. Everything else will be
-    updated accordingly, so that if `node.parent = root_node`, then `node in
-    root_node.children` will be True.
+        path: List of nodes from root of tree to self value, parent, and
+            children can all be set by user. Everything else will be updated
+            accordingly, so that if `node.parent = root_node`, then `node in
+            root_node.children` will be True.
     """
 
     sep = '/'  # type: str
@@ -173,11 +173,12 @@ class Node():
 
     @property
     def depth(self) -> int:
-        """Get the number of nodes between self and the root node"""
+        """Get the number of nodes between self and the root node."""
         return len(self.path) - 1
 
     @property
     def height(self):
+        """Return node height."""
         max_height = 0
         for d in self.traverse():
             max_height += d.depth
@@ -253,8 +254,8 @@ class Node():
         Args:
             order: a TraverseOrder object. See TraverseOrder documentation.
             render_collapsed: whether to yield children of collapsed nodes
-        Even if render_collapsed is False, collapsed nodes will be rendered.
-        It's their children that won't.
+            Even if render_collapsed is False, collapsed nodes are be rendered.
+            It's their children that won't.
         """
         if order == TraverseOrder.PRE:
             yield self
@@ -267,7 +268,7 @@ class Node():
         f = reversed if order is TraverseOrder.POST_R else tuple
         for child in f(self.children):
             if render_collapsed or not child.collapsed:
-                yield from child.traverse(order,render_collapsed)
+                yield from child.traverse(order, render_collapsed)
             else:
                 yield child
         if order in [TraverseOrder.POST, TraverseOrder.POST_R]:
@@ -297,17 +298,16 @@ class Node():
         for descendent in self.traverse():
             if descendent.uid == uid:
                 return descendent
-        else:
-            raise TreeError("No descendent with uid = %s" % uid)
+        raise TreeError("No descendent with uid = %s" % uid)
 
     def promote(self, times: int = 1, to: str = 'first') -> None:
         """Makes self a child of its grandparent, i.e. sibling of its parent.
 
         Args:
-            times: How many levels to promote the tab to.
-            to: One of 'next', 'prev', 'first', 'last'. Determines the position
-                among siblings after being promoted. 'next' and 'prev' are relative
-                to the current parent.
+            times: How many levels to promote the tab to. to: One of 'next',
+            'prev', 'first', 'last'. Determines the position among siblings
+            after being promoted. 'next' and 'prev' are relative to the current
+            parent.
 
         """
         if not self.parent:
@@ -337,7 +337,7 @@ class Node():
                 raise TreeError("Tab has no parent!")
 
     def demote(self, to: str = 'last') -> None:
-        """Demote a tab making it a children of its previous adjacent sibling."""
+        """Demote a tab making it a child of its previous adjacent sibling."""
         # always assume there is a parent
         siblings = list(self.parent.children)
 
@@ -357,7 +357,6 @@ class Node():
             parent.children = new_siblings
         else:
             raise TreeError("Tab has no previous sibling!")
-
 
     def __repr__(self) -> str:
         try:

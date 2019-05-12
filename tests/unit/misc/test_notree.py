@@ -24,7 +24,8 @@ from qutebrowser.misc.notree import TreeError, Node, TraverseOrder
 
 @pytest.fixture
 def tree():
-    """ The following tree
+    """Return an example tree.
+
     n1
     ├─n2
     │ ├─n4
@@ -35,7 +36,8 @@ def tree():
       │ ├─n8
       │ └─n9
       │   └─n10
-      └─n11"""
+      └─n11
+    """
     # these are actually used because they appear in expected strings
     n1 = Node('n1')
     n2 = Node('n2', n1)
@@ -175,17 +177,19 @@ def test_uid(node):
     for n in node.traverse():
         assert n not in uids
         uids.add(n.uid)
+    # pylint: disable=unused-variable
     n1 = Node('n1')
     n2 = Node('n2', n1)
-    n4 = Node('n4', n2)
-    n5 = Node('n5', n2)
+    n4 = Node('n4', n2)  # noqa: F841
+    n5 = Node('n5', n2)  # noqa: F841
     n3 = Node('n3', n1)
     n6 = Node('n6', n3)
-    n7 = Node('n7', n6)
-    n8 = Node('n8', n6)
+    n7 = Node('n7', n6)  # noqa: F841
+    n8 = Node('n8', n6)  # noqa: F841
     n9 = Node('n9', n6)
-    n10 = Node('n10', n9)
+    n10 = Node('n10', n9)  # noqa: F841
     n11 = Node('n11', n3)
+    # pylint: enable=unused-variable
     for n in n1.traverse():
         assert n not in uids
         uids.add(n.uid)
@@ -225,8 +229,8 @@ def test_collapsed(node):
     # uncollapse
     to_collapse.collapsed = False
 
-    assert any([n for n in node.traverse(render_collapsed=False) if to_collapse
-                in n.path[:-1]])
+    assert any(n for n in node.traverse(render_collapsed=False) if to_collapse
+               in n.path[:-1])
 
 
 def test_memoization(node):

@@ -44,6 +44,7 @@ class UndoEntry:
     index = attr.ib()
     pinned = attr.ib()
 
+
 class TabDeletedError(Exception):
 
     """Exception raised when _tab_index is called for a deleted tab."""
@@ -340,6 +341,7 @@ class TabbedBrowser(QWidget):
             crashed: Whether we're closing a tab with crashed renderer process.
         """
         idx = self.widget.indexOf(tab)
+
         if idx == -1:
             if crashed:
                 return

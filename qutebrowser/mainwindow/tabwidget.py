@@ -93,7 +93,6 @@ class TabWidget(QTabWidget):
         tabbar.setSelectionBehaviorOnRemove(selection_behavior)
         tabbar.refresh()
 
-
     def set_tab_indicator_color(self, idx, color):
         """Set the tab indicator color.
 
@@ -183,7 +182,6 @@ class TabWidget(QTabWidget):
         fields['private'] = ' [Private Mode] ' if tab.is_private else ''
         fields['tree'] = ''
         fields['collapsed'] = ''
-
 
         try:
             if tab.audio.is_muted():

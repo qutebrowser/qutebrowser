@@ -205,9 +205,8 @@ class MainWindow(QWidget):
             self.tabbed_browser = treetabbedbrowser.TreeTabbedBrowser(
                 win_id=self.win_id, private=private, parent=self)
         else:
-            self.tabbed_browser = tabbedbrowser.TabbedBrowser(win_id=self.win_id,
-                                                              private=private,
-                                                              parent=self)
+            self.tabbed_browser = tabbedbrowser.TabbedBrowser(
+                win_id=self.win_id, private=private, parent=self)
         objreg.register('tabbed-browser', self.tabbed_browser, scope='window',
                         window=self.win_id)
         self._init_command_dispatcher()
@@ -374,7 +373,7 @@ class MainWindow(QWidget):
         elif option == 'window.hide_decoration':
             self._set_decoration(config.val.window.hide_decoration)
         elif option == 'tabs.tree_tabs':
-            from qutebrowser.mainwindow import treetabbedbrowser, tabbedbrowser
+            from qutebrowser.mainwindow import treetabbedbrowser
             if config.val.tabs.tree_tabs:
                 self.tabbed_browser = \
                     treetabbedbrowser.TreeTabbedBrowser.from_tabbed_browser(

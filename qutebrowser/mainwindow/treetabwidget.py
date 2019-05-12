@@ -39,12 +39,14 @@ class TreeTabWidget(TabWidget):
 
     @classmethod
     def from_tabwidget(cls, tabwidget):
+        """'Cast' a tabwidget to a TreeTabWidget."""
         tabwidget.__class__ = cls
         tabwidget.tree_root = Node(None, uid=1)
         return tabwidget
 
     @classmethod
     def to_tabwidget(cls, tabwidget):
+        """'Cast' self to a TabWidget."""
         tabwidget.__class__ = cls.__bases__[0]
         tabwidget.tree_root = None
         return tabwidget
@@ -58,7 +60,7 @@ class TreeTabWidget(TabWidget):
             self.tree_tab_update()
 
     def get_tab_fields(self, idx):
-        """Add tree field data to normal tab field data"""
+        """Add tree field data to normal tab field data."""
         fields = super().get_tab_fields(idx)
 
         tab = self.widget(idx)
@@ -86,11 +88,11 @@ class TreeTabWidget(TabWidget):
                 self.tabBar().moveTab(cur_idx, idx-1)
 
     def tree_tab_update(self):
-        """Update titles and positions"""
+        """Update titles and positions."""
         self.update_tab_titles()
         self.update_tree_tab_positions()
 
     def tabRemoved(self, idx):
-        """Call tree_tab_update after super().tabRemoved"""
+        """Call tree_tab_update after super().tabRemoved."""
         super().tabRemoved(idx)
         self.tree_tab_update()

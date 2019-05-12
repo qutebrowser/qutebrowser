@@ -1836,6 +1836,7 @@ class NewTabPosition(String):
             ('first', "At the beginning."),
             ('last', "At the end."))
 
+
 class NewChildPosition(String):
 
     """How new children are positioned."""
