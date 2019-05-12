@@ -1006,24 +1006,16 @@ class CommandDispatcher:
                 parent = node.parent
                 siblings = list(parent.children)
 
-                if len(siblings) > 1:
-                    rel_idx = siblings.index(node)
-                    # siblings.pop(idx)
-                    # siblings.insert(((idx + diff) % (len(siblings)+1)), node)
-                    # parent.children = siblings
-                    if index == '-':
-                        rel_idx -= delta
-                    elif index == '+':  # pragma: no branch
-                        rel_idx += delta
-                    rel_idx %= len(siblings)
-                    new_idx = self._tabbed_browser.widget.indexOf(
-                        siblings[rel_idx].value)
+                if len(siblings) <= 1:
+                    return
+                rel_idx = siblings.index(node)
+                rel_idx += delta if index == '+' else - delta
+                rel_idx %= len(siblings)
+                new_idx = self._tabbed_browser.widget.indexOf(
+                    siblings[rel_idx].value)
 
             else:
-                if index == '-':
-                    new_idx -= delta
-                elif index == '+':  # pragma: no branch
-                    new_idx += delta
+                new_idx += delta if index == '+' else - delta
 
                 if config.val.tabs.wrap:
                     new_idx %= self._count()
@@ -1046,6 +1038,7 @@ class CommandDispatcher:
         cmdutils.check_overflow(new_idx, 'int')
 
         if config.val.tabs.tree_tabs:
+            # self._tree_tab_move(new_idx)
             new_idx += 1  # tree-tabs indexes start at 1 (0 is hidden root tab)
             tab = self._current_widget()
 
@@ -1069,8 +1062,8 @@ class CommandDispatcher:
             new_parent.children = siblings
 
             self._tabbed_browser.widget.tree_tab_update()
-            return
-        self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
+        else:
+            self._tabbed_browser.widget.tabBar().moveTab(cur_idx, new_idx)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
