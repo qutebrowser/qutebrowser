@@ -347,7 +347,14 @@ class Node():
         rel_idx = siblings.index(self) - 1
 
         if rel_idx >= 0:
-            self.parent = siblings[rel_idx]
+            parent = siblings[rel_idx]
+            new_siblings = list(parent.children)
+            position = {'first': 0, 'last': -1}.get(to, -1)
+            if position == 0:
+                new_siblings.insert(0, self)
+            else:
+                new_siblings.append(self)
+            parent.children = new_siblings
         else:
             raise TreeError("Tab has no previous sibling!")
 
