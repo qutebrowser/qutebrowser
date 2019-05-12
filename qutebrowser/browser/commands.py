@@ -1833,7 +1833,7 @@ class CommandDispatcher:
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(tree_tab=True,instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tree_tab_promote(self, count=1):
         """Promote a tab so it becomes next sibling of its parent.
@@ -1852,19 +1852,20 @@ class CommandDispatcher:
         finally:
             self._tabbed_browser.widget.tree_tab_update()
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(tree_tab=True,instance='command-dispatcher', scope='window')
     def tree_tab_demote(self):
         """Demote a tab making it children of its previous adjacent sibling."""
         cur_node = self._current_widget().node
 
+        config_position = config.val.tabs.new_position.tree.demote
         try:
-            cur_node.demote()
+            cur_node.demote(config_position)
         except notree.TreeError:
             raise cmdutils.CommandError('Tab has no previous sibling!')
         finally:
             self._tabbed_browser.widget.tree_tab_update()
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(tree_tab=True,instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
     @cmdutils.argument('direction', choices=['up', 'down'])
     def tree_tab_navigate_on_same_level(self, direction, count=1):
@@ -1895,7 +1896,7 @@ class CommandDispatcher:
             idx = self._tabbed_browser.widget.indexOf(target_node.value)
             self._set_current_index(idx)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(tree_tab=True,instance='command-dispatcher', scope='window')
     def tree_tab_toggle_hide(self):
         """If the current tab's children are shown hide them, and vice-versa.
 
@@ -1981,7 +1982,7 @@ class CommandDispatcher:
             if not n.collapsed and n.children:
                 self._tree_tab_hide(n.value)
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(tree_tab=True,instance='command-dispatcher', scope='window')
     def tree_tab_cycle_hide(self):
         """Hides levels of descendents: all children, all grandchildren, and so on."""
         tabwidget = self._tabbed_browser.widget
@@ -1990,7 +1991,7 @@ class CommandDispatcher:
 
         self._tabbed_browser.widget.tree_tab_update()
 
-    @cmdutils.register(instance='command-dispatcher', scope='window')
+    @cmdutils.register(tree_tab=True,instance='command-dispatcher', scope='window')
     def tree_tab_create_group(self, name: str, related=False):
         """Wrapper around :open qute://treegroup/name. Correctly escapes names.
 
