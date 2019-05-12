@@ -1838,13 +1838,13 @@ class CommandDispatcher:
     def tree_tab_promote(self, count=1):
         """Promote a tab so it becomes next sibling of its parent.
 
-        Honors tabs.new_position.related in positioning the tab among new
+        Observes tabs.new_position.tree.promote in positioning the tab among new
         siblings.
 
         Args:
             count: How many levels the tabs should be promoted to
         """
-        config_position = config.val.tabs.new_position.related
+        config_position = config.val.tabs.new_position.tree.promote
         try:
             self._current_widget().node.promote(count, config_position)
         except notree.TreeError:
@@ -1854,7 +1854,11 @@ class CommandDispatcher:
 
     @cmdutils.register(tree_tab=True,instance='command-dispatcher', scope='window')
     def tree_tab_demote(self):
-        """Demote a tab making it children of its previous adjacent sibling."""
+        """Demote a tab making it children of its previous adjacent sibling.
+
+        Observes tabs.new_position.tree.demote in positioning the tab among new
+        siblings.
+        """
         cur_node = self._current_widget().node
 
         config_position = config.val.tabs.new_position.tree.demote

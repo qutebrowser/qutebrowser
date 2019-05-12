@@ -1836,6 +1836,16 @@ class NewTabPosition(String):
             ('first', "At the beginning."),
             ('last', "At the end."))
 
+class NewChildPosition(String):
+
+    """How new children are positioned."""
+
+    def __init__(self, none_ok: bool = False) -> None:
+        super().__init__(none_ok=none_ok)
+        self.valid_values = ValidValues(
+            ('first', "At the beginning."),
+            ('last', "At the end."))
+
 
 class Key(BaseType):
 

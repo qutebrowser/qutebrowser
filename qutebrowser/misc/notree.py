@@ -336,7 +336,7 @@ class Node():
             else:
                 raise TreeError("Tab has no parent!")
 
-    def demote(self) -> None:
+    def demote(self, to: str = 'last') -> None:
         """Demote a tab making it a children of its previous adjacent sibling."""
         # always assume there is a parent
         siblings = list(self.parent.children)

@@ -1563,6 +1563,31 @@ tabs.new_position.stacking:
     Only applies for `next` and `prev` values of `tabs.new_position.related`
     and `tabs.new_position.unrelated`.
 
+tabs.new_position.tree.new_child:
+  default: first
+  type: NewChildPosition
+  desc: >-
+    Position of new children among siblings.
+
+tabs.new_position.tree.new_toplevel:
+  default: last
+  type: NewTabPosition
+  desc: >-
+    Position of new top-level tabs related to the topmost ancestor of current
+    tab.
+
+tabs.new_position.tree.promote:
+  default: next
+  type: NewTabPosition
+  desc: >-
+    Position at which a promoted tab is placed among its siblings.
+
+tabs.new_position.tree.demote:
+  default: last
+  type: NewChildPosition
+  desc: >-
+    Position of new tabs which are not opened from another tab.
+
 tabs.padding:
   default:
     top: 0
