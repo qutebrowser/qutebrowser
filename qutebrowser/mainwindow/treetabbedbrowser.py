@@ -20,6 +20,7 @@
 """Subclass of TabbedBrowser to provide tree-tab functionality."""
 
 import attr
+from collections import defaultdict
 
 from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
@@ -237,3 +238,70 @@ class TreeTabbedBrowser(TabbedBrowser):
                     self.widget.tree_root.children = root_children
         self.widget.tree_tab_update()
         return tab
+
+
+    def show_tab(self, tab):
+        """Shows a tab that was previously collapsed through _tree_tab_hide.
+
+        This puts all the descendants of the tab back at the right index and
+        under the right parent.
+
+        Note: this does NOT update tab positions or titles. You have to do it yourself.
+
+        """
+        cur_idx = self._tab_index(tab)
+        order = notree.TraverseOrder.PRE
+        tab.node.collapsed = False  # must set it before traverse
+        descendents = list(tab.node.traverse(order, False))[1:]
+        for descendent in descendents:
+            cur_tab = descendent.value
+            cur_parent = descendent.parent
+            name = cur_tab.title()
+            icon = cur_tab.icon()
+            self.widget.insertTab(cur_idx + 1, cur_tab, icon, name)
+            cur_tab.node.parent = cur_parent  # insertTab resets node
+            cur_idx += 1
+
+    def hide_tab(self, tab):
+        """Collapses a tab, hiding all its children and setting tab.node.collapsed.
+
+        Note: this does NOT update tab positions or titles. You have to do it yourself.
+        """
+        order = notree.TraverseOrder.POST
+        descendents = list(tab.node.traverse(order, False))[:-1]
+        for descendent in descendents:
+            cur_tab = descendent.value
+            idx = self.widget.indexOf(cur_tab)
+            self.widget.removeTab(idx)
+        tab.node.collapsed = True
+
+
+    def cycle_hide_tab(self, node):
+        """Utility function for tree_tab_cycle_hide."""
+        # height = node.height  # height is always rel_height
+        if node.collapsed:
+            self.show_tab(node.value)
+            for d in node.traverse(render_collapsed=True):
+                self.show_tab(d.value)
+            return
+
+        def rel_depth(n):
+            return n.depth - node.depth
+
+        levels = defaultdict(list)
+        for d in node.traverse(render_collapsed=False):
+            r_depth = rel_depth(d)
+            levels[r_depth].append(d)
+
+        # Remove highest level because it's leaves (or already collapsed)
+        del levels[max(levels.keys())]
+
+        target = 0
+        for level in sorted(levels, reverse=True):
+            nodes = levels[level]
+            if not all(n.collapsed or not n.children for n in nodes):
+                target = level
+                break
+        for n in levels[target]:
+            if not n.collapsed and n.children:
+                self.hide_tab(n.value)

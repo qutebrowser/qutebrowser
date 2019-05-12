@@ -24,7 +24,6 @@ import shlex
 import functools
 import typing
 import urllib.parse
-from collections import defaultdict
 
 from PyQt5.QtWidgets import QApplication, QTabBar
 from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
@@ -1906,92 +1905,23 @@ class CommandDispatcher:
 
         This toggles the current tab's node's `collapsed` attribute.
         """
-        tabwidget = self._tabbed_browser.widget
         tab = self._current_widget()
         if not tab.node.children:
             return
         collapsed = tab.node.collapsed
 
         if collapsed:
-            self._tree_tab_show(tab)
+            self._tabbed_browser.show_tab(tab)
         else:
-            self._tree_tab_hide(tab)
+            self._tabbed_browser.hide_tab(tab)
 
         self._tabbed_browser.widget.tree_tab_update()
-
-    def _tree_tab_show(self, tab):
-        """Shows a tab that was previously collapsed through _tree_tab_hide.
-
-        This puts all the descendants of the tab back at the right index and
-        under the right parent.
-
-        Note: this does NOT update tab positions or titles. You have to do it yourself.
-
-        """
-        tabwidget = self._tabbed_browser.widget
-        cur_idx = self._tabbed_browser._tab_index(tab)
-        order = notree.TraverseOrder.PRE
-        tab.node.collapsed = False  # must set it before traverse
-        descendents = list(tab.node.traverse(order, False))[1:]
-        for descendent in descendents:
-            cur_tab = descendent.value
-            cur_parent = descendent.parent
-            name = cur_tab.title()
-            icon = cur_tab.icon()
-            tabwidget.insertTab(cur_idx + 1, cur_tab, icon, name)
-            cur_tab.node.parent = cur_parent  # insertTab resets node
-            cur_idx += 1
-
-    def _tree_tab_hide(self, tab):
-        """Collapses a tab, hiding all its children and setting tab.node.collapsed.
-
-        Note: this does NOT update tab positions or titles. You have to do it yourself.
-        """
-        tabwidget = self._tabbed_browser.widget
-        order = notree.TraverseOrder.POST
-        descendents = list(tab.node.traverse(order, False))[:-1]
-        for descendent in descendents:
-            cur_tab = descendent.value
-            idx = self._tabbed_browser.widget.indexOf(cur_tab)
-            tabwidget.removeTab(idx)
-        tab.node.collapsed = True
-
-    def _tree_tab_cycle_hide(self, node):
-        """Utility function for tree_tab_cycle_hide."""
-        # height = node.height  # height is always rel_height
-        if node.collapsed:
-            self._tree_tab_show(node.value)
-            for d in node.traverse(render_collapsed=True):
-                self._tree_tab_show(d.value)
-            return
-
-        def rel_depth(n):
-            return n.depth - node.depth
-
-        levels = defaultdict(list)
-        for d in node.traverse(render_collapsed=False):
-            r_depth = rel_depth(d)
-            levels[r_depth].append(d)
-
-        # Remove highest level because it's leaves (or already collapsed)
-        del levels[max(levels.keys())]
-
-        target = 0
-        for level in sorted(levels, reverse=True):
-            nodes = levels[level]
-            if not all(n.collapsed or not n.children for n in nodes):
-                target = level
-                break
-        for n in levels[target]:
-            if not n.collapsed and n.children:
-                self._tree_tab_hide(n.value)
 
     @cmdutils.register(tree_tab=True,instance='command-dispatcher', scope='window')
     def tree_tab_cycle_hide(self):
         """Hides levels of descendents: all children, all grandchildren, and so on."""
-        tabwidget = self._tabbed_browser.widget
         tab = self._current_widget()
-        self._tree_tab_cycle_hide(tab.node)
+        self._tabbed_browser.cycle_hide_tab(tab.node)
 
         self._tabbed_browser.widget.tree_tab_update()
 
