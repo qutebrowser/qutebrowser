@@ -35,7 +35,6 @@ from qutebrowser.api import cmdutils
 from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.mainwindow import mainwindow
-from qutebrowser.mainwindow.treetabwidget import TreeTabWidget
 from qutebrowser.qt import sip
 
 
@@ -254,7 +253,7 @@ class SessionManager(QObject):
             if tabbed_browser.is_private:
                 win_data['private'] = True
 
-            if config.val.tabs.tree_tabs:
+            if tabbed_browser.is_treetabbedbrowser:
                 # a dict where keys are node UIDs, and values are dicts
                 # with tab data (the resul of _save_tab) and a list of
                 # children UIDs
@@ -462,7 +461,7 @@ class SessionManager(QObject):
         # tabs
         plain_tabs = win.get('tabs', None)
         if win.get('tree'):
-            if isinstance(tabbed_browser.widget, TreeTabWidget):
+            if tabbed_browser.is_treetabbedbrowser:
                 tree_data = win.get('tree')
                 self._load_tree(tabbed_browser, tree_data)
                 tabbed_browser.widget.tree_tab_update()

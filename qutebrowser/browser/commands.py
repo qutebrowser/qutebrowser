@@ -248,7 +248,8 @@ class CommandDispatcher:
         tabbed_browser = self._tabbed_browser
         if tab is None:
             return
-        if config.val.tabs.tree_tabs and recursive and not tab.node.collapsed:
+        if (tabbed_browser.is_treetabbedbrowser and recursive and not
+                tab.node.collapsed):
             # if collapsed, recursive is the same as normal close
             new_undo = True  # only for first one
             for descendent in tab.node.traverse(notree.TraverseOrder.POST_R,
@@ -513,7 +514,7 @@ class CommandDispatcher:
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=win_id)
 
-        if recursive and config.cache['tabs.tree_tabs']:
+        if recursive and tabbed_browser.is_treetabbedbrowser:
             self._tree_tab_give(tabbed_browser, keep)
         else:
             tabbed_browser.tabopen(self._current_url())
@@ -1001,7 +1002,7 @@ class CommandDispatcher:
             new_idx = self._current_index()
             delta = 1 if count is None else count
 
-            if config.val.tabs.tree_tabs:
+            if self._tabbed_browser.is_treetabbedbrowser:
                 node = self._current_widget().node
                 parent = node.parent
                 siblings = list(parent.children)
@@ -1037,7 +1038,7 @@ class CommandDispatcher:
         cmdutils.check_overflow(cur_idx, 'int')
         cmdutils.check_overflow(new_idx, 'int')
 
-        if config.val.tabs.tree_tabs:
+        if self._tabbed_browser.is_treetabbedbrowser:
             # self._tree_tab_move(new_idx)
             new_idx += 1  # tree-tabs indexes start at 1 (0 is hidden root tab)
             tab = self._current_widget()
