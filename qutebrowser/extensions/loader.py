@@ -128,12 +128,10 @@ def walk_extensions() -> typing.Iterator[ExtensionInfo]:
         os.mkdir(ext_dir)
         return
 
-    for finder, name, ispkg in pkgutil.walk_packages(
+    for finder, name, _ispkg in pkgutil.walk_packages(
             path=[ext_dir],
-            prefix='extensions.',
+            prefix='qutebrowser.extensions.third_party.',
             onerror=_on_walk_error):
-        if ispkg:
-            continue
         if name not in sys.modules:
             # Import the module with the finder so that it is in
             # sys.modules readif for _load_component.
