@@ -178,8 +178,6 @@ class TreeTabbedBrowser(TabbedBrowser):
         # save entries before super().undo() pops them
         entries = list(self._undo_stack[-1])
         new_tabs = super().undo()
-        log.misc.debug("===========================")
-        log.misc.debug([(e.uid, e.parent_node_uid, e.children_node_uids) for e in entries])
 
         for entry, tab in zip(reversed(entries), new_tabs):
             if not isinstance(entry, TreeUndoEntry):
