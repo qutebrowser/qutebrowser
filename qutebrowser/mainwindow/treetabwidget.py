@@ -37,20 +37,6 @@ class TreeTabWidget(TabWidget):
         self.tree_root = Node(None)
         super().__init__(win_id, parent)
 
-    @classmethod
-    def from_tabwidget(cls, tabwidget):
-        """'Cast' a tabwidget to a TreeTabWidget."""
-        tabwidget.__class__ = cls
-        tabwidget.tree_root = Node(None, uid=1)
-        return tabwidget
-
-    @classmethod
-    def to_tabwidget(cls, tabwidget):
-        """'Cast' self to a TabWidget."""
-        tabwidget.__class__ = cls.__bases__[0]
-        tabwidget.tree_root = None
-        return tabwidget
-
     def _init_config(self):
         super()._init_config()
         # For tree-tabs

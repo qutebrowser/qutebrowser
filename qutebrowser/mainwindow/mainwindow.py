@@ -372,17 +372,6 @@ class MainWindow(QWidget):
             self._update_overlay_geometries()
         elif option == 'window.hide_decoration':
             self._set_decoration(config.val.window.hide_decoration)
-        elif option == 'tabs.tree_tabs':
-            from qutebrowser.mainwindow import treetabbedbrowser
-            if config.val.tabs.tree_tabs:
-                self.tabbed_browser = \
-                    treetabbedbrowser.TreeTabbedBrowser.from_tabbed_browser(
-                        self.tabbed_browser)
-            else:
-                self.tabbed_browser = \
-                    treetabbedbrowser.TreeTabbedBrowser.to_tabbed_browser(
-                        self.tabbed_browser)
-                self.tabbed_browser.widget.update_tab_titles()
 
     def _add_widgets(self):
         """Add or readd all widgets to the VBox."""
