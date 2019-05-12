@@ -26,7 +26,11 @@ from qutebrowser.utils import log
 
 
 class TreeTabWidget(TabWidget):
-    """Tab widget used in TabbedBrowser, with tree-functionality."""
+    """Tab widget used in TabbedBrowser, with tree-functionality.
+
+    Handles correct rendering of the tree as a tab field, and correct
+    positioning of tabs according to tree structure.
+    """
 
     def __init__(self, win_id, parent=None):
         # root of the tab tree, common for all tabs in the window
@@ -54,6 +58,7 @@ class TreeTabWidget(TabWidget):
             self.tree_tab_update()
 
     def get_tab_fields(self, idx):
+        """Add tree field data to normal tab field data"""
         fields = super().get_tab_fields(idx)
 
         tab = self.widget(idx)
@@ -81,10 +86,11 @@ class TreeTabWidget(TabWidget):
                 self.tabBar().moveTab(cur_idx, idx-1)
 
     def tree_tab_update(self):
+        """Update titles and positions"""
         self.update_tab_titles()
         self.update_tree_tab_positions()
 
     def tabRemoved(self, idx):
+        """Call tree_tab_update after super().tabRemoved"""
         super().tabRemoved(idx)
-        if config.val.tabs.tree_tabs:
-            self.tree_tab_update()
+        self.tree_tab_update()

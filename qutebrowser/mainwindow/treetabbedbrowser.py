@@ -70,7 +70,13 @@ class TreeUndoEntry:
 
 
 class TreeTabbedBrowser(TabbedBrowser):
-    """Subclass of TabbedBrowser to provide tree-tab functionality."""
+    """Subclass of TabbedBrowser to provide tree-tab functionality.
+
+    Extends TabbedBrowser methods (mostly tabopen, undo, and _remove_tab) so
+    that the internal tree is updated after every action.
+
+    Provides methods to hide and show subtrees, and to cycle visibility.
+    """
 
     def __init__(self, *, win_id, private, parent=None):
         super().__init__(win_id=win_id, private=private, parent=parent)
@@ -102,6 +108,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         return tabbedbrowser
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
+        """Handle children positioning after a tab is removed."""
         super()._remove_tab(tab, add_undo=add_undo, new_undo=new_undo,
                             crashed=crashed)
 
@@ -132,6 +139,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         self.widget.tree_tab_update()
 
     def _add_undo_entry(self, tab, idx, new_undo):
+        """Save undo entry with tree information."""
 
         # TODO see if it's possible to remove duplicate code from
         # super()._add_undo_entry
@@ -239,14 +247,14 @@ class TreeTabbedBrowser(TabbedBrowser):
         self.widget.tree_tab_update()
         return tab
 
-
     def show_tab(self, tab):
         """Shows a tab that was previously collapsed through _tree_tab_hide.
 
         This puts all the descendants of the tab back at the right index and
         under the right parent.
 
-        Note: this does NOT update tab positions or titles. You have to do it yourself.
+        Note: this does NOT update tab positions or titles. You have to do it
+        yourself. This is so cycle_hide_tab doesn't update a bunch of times.
 
         """
         cur_idx = self._tab_index(tab)
@@ -263,9 +271,11 @@ class TreeTabbedBrowser(TabbedBrowser):
             cur_idx += 1
 
     def hide_tab(self, tab):
-        """Collapses a tab, hiding all its children and setting tab.node.collapsed.
+        """Collapses a tab, hiding all its children and setting
+        tab.node.collapsed.
 
-        Note: this does NOT update tab positions or titles. You have to do it yourself.
+        Note: this does NOT update tab positions or titles. You have to do it
+        yourself. This is so cycle_hide_tab doesn't update a bunch of times.
         """
         order = notree.TraverseOrder.POST
         descendents = list(tab.node.traverse(order, False))[:-1]
@@ -275,9 +285,8 @@ class TreeTabbedBrowser(TabbedBrowser):
             self.widget.removeTab(idx)
         tab.node.collapsed = True
 
-
     def cycle_hide_tab(self, node):
-        """Utility function for tree_tab_cycle_hide."""
+        """Utility function for tree_tab_cycle_hide command."""
         # height = node.height  # height is always rel_height
         if node.collapsed:
             self.show_tab(node.value)
