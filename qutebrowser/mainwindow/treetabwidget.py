@@ -19,7 +19,6 @@
 
 """Extension of TabWidget for tree-tab functionality."""
 
-from qutebrowser.config import config
 from qutebrowser.mainwindow.tabwidget import TabWidget
 from qutebrowser.misc.notree import Node
 from qutebrowser.utils import log
