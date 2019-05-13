@@ -68,28 +68,25 @@ def _url(tabbed_browser):
 def _init_variable_replacements() -> typing.Mapping[str, _ReplacementFunction]:
     """Return a dict from variable replacements to fns processing them."""
     replacements = {
-        'url': lambda tb:
-            _url(tb).toString(QUrl.FullyEncoded | QUrl.RemovePassword),
-        'url:pretty': lambda tb:
-            _url(tb).toString(QUrl.DecodeReserved | QUrl.RemovePassword),
-        'url:domain': lambda tb:
-            "{}://{}{}".format(
-                _url(tb).scheme(), _url(tb).host(),
-                ":" + str(_url(tb).port()) if _url(tb).port() != -1 else ""),
-        'url:auth': lambda tb:
-            "{}:{}@".format(
-                _url(tb).userName(),
-                _url(tb).password()) if _url(tb).userName() else "",
+        'url': lambda tb: _url(tb).toString(
+            QUrl.FullyEncoded | QUrl.RemovePassword),
+        'url:pretty': lambda tb: _url(tb).toString(
+            QUrl.DecodeReserved | QUrl.RemovePassword),
+        'url:domain': lambda tb: "{}://{}{}".format(
+            _url(tb).scheme(), _url(tb).host(),
+            ":" + str(_url(tb).port()) if _url(tb).port() != -1 else ""),
+        'url:auth': lambda tb: "{}:{}@".format(
+            _url(tb).userName(),
+            _url(tb).password()) if _url(tb).userName() else "",
         'url:scheme': lambda tb: _url(tb).scheme(),
         'url:username': lambda tb: _url(tb).userName(),
         'url:password': lambda tb: _url(tb).password(),
         'url:host': lambda tb: _url(tb).host(),
-        'url:port': lambda tb:
-            str(_url(tb).port()) if _url(tb).port() != -1 else "",
+        'url:port': lambda tb: str(
+            _url(tb).port()) if _url(tb).port() != -1 else "",
         'url:path': lambda tb: _url(tb).path(),
         'url:query': lambda tb: _url(tb).query(),
-        'title': lambda tb:
-            tb.widget.page_title(tb.widget.currentIndex()),
+        'title': lambda tb: tb.widget.page_title(tb.widget.currentIndex()),
         'clipboard': lambda _: utils.get_clipboard(),
         'primary': lambda _: utils.get_clipboard(selection=True),
     }  # type: typing.Dict[str, _ReplacementFunction]
