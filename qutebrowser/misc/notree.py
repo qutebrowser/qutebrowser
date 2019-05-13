@@ -113,7 +113,8 @@ class Node():
         # For render memoization
         self.__modified = False
         self.__set_modified()  # not the same as line above
-        self.__rendered = ()  # type: typing.Tuple[typing.Tuple[str, 'Node']]
+        self.__rendered = ()  \
+            # type: typing.Tuple[typing.Tuple[str, 'Node'], ...]
 
         if parent:
             self.parent = parent  # calls setter
@@ -179,7 +180,10 @@ class Node():
     @property
     def index(self) -> int:
         """Get self's position among its siblings (self.parent.children)."""
-        return self.parent.children.index(self)
+        if self.parent is not None:
+            return self.parent.children.index(self)
+        else:
+            raise TreeError('Node has no parent.')
 
     @property
     def collapsed(self) -> bool:
@@ -250,7 +254,7 @@ class Node():
                 yield self
             return
 
-        f = reversed if order is TraverseOrder.POST_R else tuple
+        f = reversed if order is TraverseOrder.POST_R else lambda x: x
         for child in f(self.children):
             if render_collapsed or not child.collapsed:
                 yield from child.traverse(order, render_collapsed)
@@ -295,39 +299,35 @@ class Node():
             parent.
 
         """
-        if not self.parent:
-            raise TreeError("Tab has no parent!")
         if to not in ['first', 'last', 'next', 'prev']:
             raise Exception("Invalid value supplied for 'to': " + to)
         position = {'first': 0, 'last': -1}.get(to, None)
         diff = {'next': 1, 'prev': 0}.get(to, 1)
         count = times
         while count > 0:
-            grandparent = self.parent.parent
-            if grandparent:
-                if position is not None:
-                    idx = position
-                else:  # diff is necessarily not none
-                    idx = self.parent.index + diff
-                self.parent = None
-
-                siblings = list(grandparent.children)
-                if idx != -1:
-                    siblings.insert(idx, self)
-                else:
-                    siblings.append(self)
-                grandparent.children = siblings
-                count -= 1
-            else:
+            if self.parent is None or self.parent.parent is None:
                 raise TreeError("Tab has no parent!")
+            grandparent = self.parent.parent
+            if position is not None:
+                idx = position
+            else:  # diff is necessarily not none
+                idx = self.parent.index + diff
+            self.parent = None
+
+            siblings = list(grandparent.children)
+            if idx != -1:
+                siblings.insert(idx, self)
+            else:
+                siblings.append(self)
+            grandparent.children = siblings
+            count -= 1
 
     def demote(self, to: str = 'last') -> None:
         """Demote a tab making it a child of its previous adjacent sibling."""
-        # always assume there is a parent
+        if self.parent is None or self.parent.children is None:
+            raise TreeError("Tab has no siblings!")
         siblings = list(self.parent.children)
 
-        if len(siblings) <= 1:
-            raise TreeError("Tab has no siblings!")
         # we want previous node in the same subtree as current node
         rel_idx = siblings.index(self) - 1
 
@@ -345,7 +345,7 @@ class Node():
 
     def __repr__(self) -> str:
         try:
-            value = str(self.value.url().url())
+            value = str(self.value.url().url())  # type: ignore
         except:
             value = str(self.value)
         return "<Node -%d- '%s'>" % (self.__uid, value)
