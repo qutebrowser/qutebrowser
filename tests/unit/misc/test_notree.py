@@ -119,6 +119,74 @@ def test_replace_children(tree):
     assert len(n3.children) == 1
 
 
+def test_promote_to_first(tree):
+    n1 = tree[0]
+    n3 = tree[2]
+    n6 = tree[5]
+    assert n6.parent is n3
+    assert n3.parent is n1
+    n6.promote(to='first')
+    assert n6.parent is n1
+    assert n1.children[0] is n6
+
+
+def test_promote_to_last(tree):
+    n1 = tree[0]
+    n3 = tree[2]
+    n6 = tree[5]
+    assert n6.parent is n3
+    assert n3.parent is n1
+    n6.promote(to='last')
+    assert n6.parent is n1
+    assert n1.children[-1] is n6
+
+
+def test_promote_to_prev(tree):
+    n1 = tree[0]
+    n3 = tree[2]
+    n6 = tree[5]
+    assert n6.parent is n3
+    assert n3.parent is n1
+    assert n1.children[1] is n3
+    n6.promote(to='prev')
+    assert n6.parent is n1
+    assert n1.children[1] is n6
+
+
+def test_promote_to_next(tree):
+    n1 = tree[0]
+    n3 = tree[2]
+    n6 = tree[5]
+    assert n6.parent is n3
+    assert n3.parent is n1
+    assert n1.children[1] is n3
+    n6.promote(to='next')
+    assert n6.parent is n1
+    assert n1.children[2] is n6
+
+
+def test_demote_to_first(tree):
+    n11 = tree[10]
+    n6 = tree[5]
+    assert n11.parent is n6.parent
+    parent = n11.parent
+    assert parent.children.index(n11) == parent.children.index(n6) + 1
+    n11.demote(to='first')
+    assert n11.parent is n6
+    assert n6.children[0] is n11
+
+
+def test_demote_to_last(tree):
+    n11 = tree[10]
+    n6 = tree[5]
+    assert n11.parent is n6.parent
+    parent = n11.parent
+    assert parent.children.index(n11) == parent.children.index(n6) + 1
+    n11.demote(to='last')
+    assert n11.parent is n6
+    assert n6.children[-1] is n11
+
+
 def test_traverse(node):
     len_traverse = len(list(node.traverse()))
     len_render = len(node.render())
