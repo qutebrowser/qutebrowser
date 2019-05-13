@@ -32,9 +32,13 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
-from qutebrowser.mainwindow import tabbedbrowser
 
-_ReplacementFunction = typing.Callable[[tabbedbrowser.TabbedBrowser], str]
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import
+    from qutebrowser.mainwindow import tabbedbrowser
+_ReplacementFunction = typing.Callable[['tabbedbrowser.TabbedBrowser'], str]
+
 
 last_command = {}
 
