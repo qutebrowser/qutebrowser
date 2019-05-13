@@ -1794,7 +1794,7 @@ tabs.wrap:
 tabs.tree_tabs:
   default: false
   type: Bool
-  desc: Enable tree-tabs
+  desc: Enable tree-tabs mode.
   restart: true
 
 ## url

@@ -492,6 +492,7 @@ class CommandDispatcher:
             win_id: The window ID of the window to give the current tab to.
             keep: If given, keep the old tab around.
             count: Overrides win_id (index starts at 1 for win_id=0).
+            recursive: Whether to move the entire subtree starting at the tab.
         """
         if count is not None:
             win_id = count - 1
