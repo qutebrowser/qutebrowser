@@ -177,21 +177,6 @@ class Node():
         return len(self.path) - 1
 
     @property
-    def height(self):
-        """Return node height."""
-        max_height = 0
-        for d in self.traverse():
-            max_height += d.depth
-
-    @property
-    def siblings(self) -> typing.Iterable['Node']:
-        """Get siblings. Can not be set."""
-        if self.parent:
-            return (i for i in self.parent.children if i is not self)
-        else:
-            return ()
-
-    @property
     def index(self) -> int:
         """Get self's position among its siblings (self.parent.children)."""
         return self.parent.children.index(self)

@@ -158,20 +158,6 @@ def test_render_tree(node):
     assert expected == result
 
 
-def test_siblings():
-    n1 = Node('n1')
-    n2 = Node('n2', n1)
-    n4 = Node('n4', n2)
-    n5 = Node('n5', n2)
-    n52 = Node('n52', n2)
-    n53 = Node('n53', n2)
-    n3 = Node('n3', n1)
-    n6 = Node('n6', n3)
-    _ = Node('n9', n6)
-    assert list(n2.siblings) == [n3]
-    assert list(n52.siblings) == [n4, n5, n53]
-
-
 def test_uid(node):
     uids = set()
     for n in node.traverse():
