@@ -70,6 +70,7 @@ class TreeTabbedBrowser(TabbedBrowser):
 
     Provides methods to hide and show subtrees, and to cycle visibility.
     """
+
     is_treetabbedbrowser = True
 
     def __init__(self, *, win_id, private, parent=None):
