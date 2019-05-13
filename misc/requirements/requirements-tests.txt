@@ -15,7 +15,7 @@ hunter==2.2.1
 hypothesis==4.23.4
 itsdangerous==1.1.0
 # Jinja2==2.10
-Mako==1.0.9
+Mako==1.0.10
 # MarkupSafe==1.1.0
 more-itertools==7.0.0
 parse==1.12.0
