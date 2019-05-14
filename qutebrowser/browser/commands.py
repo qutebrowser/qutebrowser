@@ -1933,7 +1933,11 @@ class CommandDispatcher:
                        tree_tab=True)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tree_tab_cycle_hide(self, count=1):
-        """Hides levels of descendents: children, grandchildren, and so on."""
+        """Hides levels of descendents: children, grandchildren, and so on.
+
+        Args:
+            count: How many levels to hide.
+        """
         if not self._tabbed_browser.is_treetabbedbrowser:
             raise cmdutils.CommandError('Tree-tabs are disabled')
         while count > 0:
