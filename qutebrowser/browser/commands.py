@@ -844,7 +844,8 @@ class CommandDispatcher:
                 new_idx = node_idx - count
                 if new_idx >= 0 or config.val.tabs.wrap:
                     target_node = siblings[(node_idx-count) % len(siblings)]
-                    idx = self._tabbed_browser.widget.indexOf(target_node.value)
+                    idx = self._tabbed_browser.widget.indexOf(
+                        target_node.value)
                     self._set_current_index(idx)
                 else:
                     log.webview.debug("First sibling")
@@ -881,7 +882,8 @@ class CommandDispatcher:
                 new_idx = node_idx + count
                 if new_idx < len(siblings) or config.val.tabs.wrap:
                     target_node = siblings[new_idx % len(siblings)]
-                    idx = self._tabbed_browser.widget.indexOf(target_node.value)
+                    idx = self._tabbed_browser.widget.indexOf(
+                        target_node.value)
                     self._set_current_index(idx)
                 else:
                     log.webview.debug("Last sibling")
