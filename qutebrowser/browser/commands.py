@@ -1878,6 +1878,8 @@ class CommandDispatcher:
         Args:
             count: How many levels the tabs should be promoted to
         """
+        if not self._tabbed_browser.is_treetabbedbrowser:
+            raise cmdutils.CommandError('Tree-tabs are disabled')
         config_position = config.val.tabs.new_position.tree.promote
         try:
             self._current_widget().node.promote(count, config_position)
@@ -1894,6 +1896,8 @@ class CommandDispatcher:
         Observes tabs.new_position.tree.demote in positioning the tab among new
         siblings.
         """
+        if not self._tabbed_browser.is_treetabbedbrowser:
+            raise cmdutils.CommandError('Tree-tabs are disabled')
         cur_node = self._current_widget().node
 
         config_position = config.val.tabs.new_position.tree.demote
@@ -1911,6 +1915,8 @@ class CommandDispatcher:
 
         This toggles the current tab's node's `collapsed` attribute.
         """
+        if not self._tabbed_browser.is_treetabbedbrowser:
+            raise cmdutils.CommandError('Tree-tabs are disabled')
         tab = self._current_widget()
         if not tab.node.children:
             return
@@ -1927,6 +1933,8 @@ class CommandDispatcher:
                        tree_tab=True)
     def tree_tab_cycle_hide(self):
         """Hides levels of descendents: children, grandchildren, and so on."""
+        if not self._tabbed_browser.is_treetabbedbrowser:
+            raise cmdutils.CommandError('Tree-tabs are disabled')
         tab = self._current_widget()
         self._tabbed_browser.cycle_hide_tab(tab.node)
 
