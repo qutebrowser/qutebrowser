@@ -824,43 +824,77 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_prev(self, count=1):
+    def tab_prev(self, count=1, sibling=False):
         """Switch to the previous tab, or switch [count] tabs back.
 
         Args:
             count: How many tabs to switch back.
+            sibling: Whether to focus the previus tree sibling.
         """
         if self._count() == 0:
             # Running :tab-prev after last tab was closed
             # See https://github.com/qutebrowser/qutebrowser/issues/1448
             return
-        newidx = self._current_index() - count
-        if newidx >= 0:
-            self._set_current_index(newidx)
-        elif config.val.tabs.wrap:
-            self._set_current_index(newidx % self._count())
+        if sibling and self._tabbed_browser.is_treetabbedbrowser:
+            cur_node = self._current_widget().node
+            siblings = list(cur_node.parent.children)
+
+            if siblings and len(siblings) > 1:
+                node_idx = siblings.index(cur_node)
+                new_idx = node_idx - count
+                if new_idx >= 0 or config.val.tabs.wrap:
+                    target_node = siblings[(node_idx-count) % len(siblings)]
+                    idx = self._tabbed_browser.widget.indexOf(target_node.value)
+                    self._set_current_index(idx)
+                else:
+                    log.webview.debug("First sibling")
+            else:
+                log.webview.debug("No siblings")
         else:
-            log.webview.debug("First tab")
+            newidx = self._current_index() - count
+            if newidx >= 0:
+                self._set_current_index(newidx)
+            elif config.val.tabs.wrap:
+                self._set_current_index(newidx % self._count())
+            else:
+                log.webview.debug("First tab")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def tab_next(self, count=1):
+    def tab_next(self, count=1, sibling=False):
         """Switch to the next tab, or switch [count] tabs forward.
 
         Args:
             count: How many tabs to switch forward.
+            sibling: Whether to focus the next tree sibling.
         """
         if self._count() == 0:
             # Running :tab-next after last tab was closed
             # See https://github.com/qutebrowser/qutebrowser/issues/1448
             return
-        newidx = self._current_index() + count
-        if newidx < self._count():
-            self._set_current_index(newidx)
-        elif config.val.tabs.wrap:
-            self._set_current_index(newidx % self._count())
+        if sibling and self._tabbed_browser.is_treetabbedbrowser:
+            cur_node = self._current_widget().node
+            siblings = list(cur_node.parent.children)
+
+            if siblings and len(siblings) > 1:
+                node_idx = siblings.index(cur_node)
+                new_idx = node_idx + count
+                if new_idx < len(siblings) or config.val.tabs.wrap:
+                    target_node = siblings[new_idx % len(siblings)]
+                    idx = self._tabbed_browser.widget.indexOf(target_node.value)
+                    self._set_current_index(idx)
+                else:
+                    log.webview.debug("Last sibling")
+            else:
+                log.webview.debug("No siblings")
         else:
-            log.webview.debug("Last tab")
+            newidx = self._current_index() + count
+            if newidx < self._count():
+                self._set_current_index(newidx)
+            elif config.val.tabs.wrap:
+                self._set_current_index(newidx % self._count())
+            else:
+                log.webview.debug("Last tab")
 
     def _resolve_buffer_index(self, index):
         """Resolve a buffer index to the tabbedbrowser and tab.
@@ -1869,38 +1903,6 @@ class CommandDispatcher:
             raise cmdutils.CommandError('Tab has no previous sibling!')
         finally:
             self._tabbed_browser.widget.tree_tab_update()
-
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       tree_tab=True)
-    @cmdutils.argument('count', value=cmdutils.Value.count)
-    @cmdutils.argument('direction', choices=['up', 'down'])
-    def tree_tab_navigate_on_same_level(self, direction, count=1):
-        """Jump to next/previous sibling.
-
-        Args:
-            direction: Which sibling to jump to
-                'up': Jump to previous sibling
-                'down': Jump to next sibling
-            count: How many tabs to switch up or down
-        """
-        cur_node = self._current_widget().node
-
-        # always assume there is a parent
-        siblings = list(cur_node.parent.children)
-
-        if siblings and len(siblings) > 1:
-
-            # we want upper tab in the same subtree as current node
-            node_idx = siblings.index(cur_node)
-            if direction == 'up':
-                diff = - count
-            elif direction == 'down':
-                diff = count
-
-            target_node = siblings[(node_idx+diff) % len(siblings)]
-
-            idx = self._tabbed_browser.widget.indexOf(target_node.value)
-            self._set_current_index(idx)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        tree_tab=True)
