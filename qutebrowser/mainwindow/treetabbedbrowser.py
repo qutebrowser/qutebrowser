@@ -82,6 +82,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         self.widget.currentChanged.connect(self.on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self._tree_tab_insert_rel_idx = 0
 
     def _remove_tab(self, tab, *, add_undo=True, new_undo=True, crashed=False):
         """Handle children positioning after a tab is removed."""
@@ -197,7 +198,11 @@ class TreeTabbedBrowser(TabbedBrowser):
                     parent = cur_tab.node
                     siblings = list(parent.children)
                     if pos in ['first', 'prev']:
-                        siblings.insert(0, tab.node)
+                        rel_idx = 0
+                        if config.val.tabs.new_position.stacking:
+                            rel_idx += self._tree_tab_insert_rel_idx
+                            self._tree_tab_insert_rel_idx += 1
+                        siblings.insert(rel_idx, tab.node)
                     else:
                         siblings.append(tab.node)
                     parent.children = siblings
@@ -218,6 +223,11 @@ class TreeTabbedBrowser(TabbedBrowser):
                     self.widget.tree_root.children = root_children
         self.widget.tree_tab_update()
         return tab
+
+    @pyqtSlot(int)
+    def on_current_changed(self, idx):
+        super().on_current_changed(idx)
+        self._tree_tab_insert_rel_idx = 0
 
     def show_tab(self, tab):
         """Shows a tab that was previously collapsed through _tree_tab_hide.
