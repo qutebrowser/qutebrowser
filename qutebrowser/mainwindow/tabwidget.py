@@ -67,8 +67,7 @@ class TabWidget(QTabWidget):
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
         bar.tabCloseRequested.connect(self.tabCloseRequested)
-        bar.tabMoved.connect(functools.partial(
-            QTimer.singleShot, 0, self.update_tab_titles))
+        bar.tabMoved.connect(self.update_tab_titles)
         bar.currentChanged.connect(self._on_current_changed)
         bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -249,6 +248,7 @@ class TabWidget(QTabWidget):
 
     def update_tab_titles(self):
         """Update all texts."""
+        log.misc.debug('update_tab_titles')
         with self._toggle_visibility():
             for idx in range(self.count()):
                 self.update_tab_title(idx)
