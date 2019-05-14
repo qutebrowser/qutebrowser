@@ -31,7 +31,6 @@ from qutebrowser.config import configexc
 
 MYPY = False
 if MYPY:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.config import configdata
 
 

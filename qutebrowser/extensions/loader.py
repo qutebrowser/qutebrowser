@@ -36,7 +36,6 @@ from qutebrowser.utils import log, standarddir, objreg
 
 MYPY = False
 if MYPY:
-    # pylint: disable=unused-import,useless-suppression
     import argparse
 
 

@@ -32,8 +32,6 @@ from qutebrowser.config import config
 
 MYPY = False
 if MYPY:
-    # pylint can't interpret type comments with Python 3.7
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.mainwindow import prompt
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)

@@ -31,7 +31,6 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 MYPY = False
 if MYPY:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser import browsertab
 
 

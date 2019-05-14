@@ -33,7 +33,6 @@ from qutebrowser.utils import log, javascript, urlutils, usertypes
 from qutebrowser.browser import webelem
 MYPY = False
 if MYPY:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser.webengine import webenginetab
 
 

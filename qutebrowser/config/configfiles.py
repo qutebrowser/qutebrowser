@@ -40,7 +40,6 @@ from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
 
 MYPY = False
 if MYPY:
-    # pylint: disable=unused-import, useless-suppression
     from qutebrowser.misc import savemanager
 
 

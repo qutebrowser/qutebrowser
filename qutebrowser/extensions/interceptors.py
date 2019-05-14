@@ -26,7 +26,6 @@ import attr
 
 MYPY = False
 if MYPY:
-    # pylint: disable=unused-import,useless-suppression
     from PyQt5.QtCore import QUrl
 
 
