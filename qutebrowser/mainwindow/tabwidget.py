@@ -261,6 +261,7 @@ class TabWidget(QTabWidget):
     def tabRemoved(self, idx):
         """Update titles when a tab was removed."""
         super().tabRemoved(idx)
+        self.update_tab_titles()
 
     def addTab(self, page, icon_or_text, text_or_empty=None):
         """Override addTab to use our own text setting logic.
