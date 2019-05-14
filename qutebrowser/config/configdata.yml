@@ -1648,7 +1648,7 @@ tabs.title.alignment:
   desc: Alignment of the text inside of tabs.
 
 tabs.title.format:
-  default: '{audio}{tree}{collapsed}{index}: {current_title}'
+  default: '{tree}{collapsed}{audio}{index}: {current_title}'
   type:
     name: FormatString
     fields:
