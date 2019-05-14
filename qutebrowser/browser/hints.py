@@ -680,6 +680,7 @@ class HintManager(QObject):
                 - `userscript`: Call a userscript with `$QUTE_URL` set to the
                                 link.
                 - `spawn`: Spawn a command.
+                - `delete`: Delete the selected element.
 
             mode: The hinting mode to use.
 

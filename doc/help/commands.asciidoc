@@ -631,6 +631,7 @@ Start hinting.
  - `userscript`: Call a userscript with `$QUTE_URL` set to the
  link.
  - `spawn`: Spawn a command.
+ - `delete`: Delete the selected element.
  
 
 
