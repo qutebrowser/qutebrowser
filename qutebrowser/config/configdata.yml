@@ -2771,8 +2771,8 @@ bindings.default:
       tIu: config-cycle -p -u {url} content.images ;; reload
       zH: tree-tab-promote
       zL: tree-tab-demote
-      zJ: tree-tab-navigate-on-same-level down
-      zK: tree-tab-navigate-on-same-level up
+      zJ: tab-next -s
+      zK: tab-prev -s
       zd: tab-close -r
       zg: set-cmd-text -s :tree-tab-create-group -r
       zG: set-cmd-text -s :tree-tab-create-group
