@@ -795,6 +795,18 @@ class _WebEnginePermissions(QObject):
         except AttributeError:
             # Added in Qt 5.10
             pass
+        try:
+            options.update({
+                QWebEnginePage.Notifications:
+                    'content.notifications',
+            })
+            messages.update({
+                QWebEnginePage.Notifications:
+                    'show notifications',
+            })
+        except AttributeError:
+            # Added in Qt 5.13
+            pass
 
         assert options.keys() == messages.keys()
 

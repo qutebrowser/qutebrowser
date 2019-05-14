@@ -661,7 +661,9 @@ content.notifications:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend: QtWebKit
+  backend:
+    QtWebEngine: Qt 5.13
+    QtWebKit: true
   desc: Allow websites to show notifications.
 
 content.pdfjs:

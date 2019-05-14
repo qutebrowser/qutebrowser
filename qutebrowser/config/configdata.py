@@ -165,6 +165,7 @@ def _parse_yaml_backends_dict(
         'Qt 5.10': qtutils.version_check('5.10'),
         'Qt 5.11': qtutils.version_check('5.11'),
         'Qt 5.12': qtutils.version_check('5.12'),
+        'Qt 5.13': qtutils.version_check('5.13'),
     }
     for key in sorted(node.keys()):
         if conditionals[node[key]]:
