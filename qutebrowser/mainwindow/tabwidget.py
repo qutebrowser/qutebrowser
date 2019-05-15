@@ -148,8 +148,6 @@ class TabWidget(QTabWidget):
             return
 
         fields = self.get_tab_fields(idx)
-        fields.get('tree', '')
-        fields.get('collapsed', '')
         fields['current_title'] = fields['current_title'].replace('&', '&&')
         fields['index'] = idx + 1
 
@@ -248,7 +246,6 @@ class TabWidget(QTabWidget):
 
     def update_tab_titles(self):
         """Update all texts."""
-        log.misc.debug('update_tab_titles')
         with self._toggle_visibility():
             for idx in range(self.count()):
                 self.update_tab_title(idx)
@@ -316,9 +313,7 @@ class TabWidget(QTabWidget):
             icon = icon_or_text
             text = text_or_empty
             new_idx = super().insertTab(idx, page, icon, '')
-
         self.set_page_title(new_idx, text)
-
         return new_idx
 
     @pyqtSlot(int)
