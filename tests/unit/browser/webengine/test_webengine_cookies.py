@@ -23,9 +23,7 @@ from qutebrowser.utils.urlmatch import UrlPattern
 
 
 def test_accept_cookie(config_stub):
-    """
-    Test that _accept_cookie respects content.cookies.accept
-    """
+    """Test that _accept_cookie respects content.cookies.accept."""
     request = MagicMock()
 
     config_stub.set_str('content.cookies.accept', 'all')
@@ -46,7 +44,7 @@ def test_accept_cookie(config_stub):
 def test_accept_cookie_with_pattern(config_stub):
     """
     Test that the request's firstPartyUrl is used for comparing against the
-    setting's UrlPattern in
+    setting's UrlPattern in _accept_cookie.
     """
     request = MagicMock()
     request.firstPartyUrl = QUrl('https://domain1.com')
