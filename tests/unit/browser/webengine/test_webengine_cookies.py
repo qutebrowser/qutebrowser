@@ -22,6 +22,27 @@ from qutebrowser.browser.webengine.cookies import _accept_cookie
 from qutebrowser.utils.urlmatch import UrlPattern
 
 
+def test_accept_cookie(config_stub):
+    """
+    Test that _accept_cookie respects content.cookies.accept
+    """
+    request = MagicMock()
+
+    config_stub.set_str('content.cookies.accept', 'all')
+    assert _accept_cookie(request)
+
+    config_stub.set_str('content.cookies.accept', 'never')
+    assert not _accept_cookie(request)
+
+    request.thirdParty = False
+    config_stub.set_str('content.cookies.accept', 'no-3rdparty')
+    assert _accept_cookie(request)
+
+    request.thirdParty = True
+    config_stub.set_str('content.cookies.accept', 'no-3rdparty')
+    assert not _accept_cookie(request)
+
+
 def test_accept_cookie_with_pattern(config_stub):
     """
     Test that the request's firstPartyUrl is used for comparing against the
