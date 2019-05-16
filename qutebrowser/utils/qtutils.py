@@ -37,6 +37,7 @@ import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QFileDevice, QObject)
+from PyQt5.QtGui import QColor
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
@@ -211,6 +212,12 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         commit_ok = f.commit()
         if not commit_ok and not cancelled:
             raise QtOSError(f, msg="Commit failed!")
+
+
+def qcolor_to_qsscolor(c: QColor) -> str:
+    """Convert a QColor to a string that can be used in a QStyleSheet."""
+    return "rgba({}, {}, {}, {})".format(
+        c.red(), c.green(), c.blue(), c.alpha())
 
 
 class PyQIODevice(io.BufferedIOBase):

@@ -375,6 +375,12 @@ class TabBar(QTabBar):
         new_tab_requested: Emitted when a new tab is requested.
     """
 
+    STYLESHEET = """
+        TabBar {
+            background-color: {{ conf.colors.tabs.bar.bg }};
+        }
+    """
+
     new_tab_requested = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
@@ -389,8 +395,8 @@ class TabBar(QTabBar):
         self._auto_hide_timer.timeout.connect(self.maybe_hide)
         self._on_show_switching_delay_changed()
         self.setAutoFillBackground(True)
-        self._set_colors()
         self.drag_in_progress = False
+        config.set_register_stylesheet(self)
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
@@ -406,8 +412,6 @@ class TabBar(QTabBar):
             self._set_font()
         elif option == 'tabs.favicons.scale':
             self._set_icon_size()
-        elif option == 'colors.tabs.bar.bg':
-            self._set_colors()
         elif option == 'tabs.show_switching_delay':
             self._on_show_switching_delay_changed()
         elif option == 'tabs.show':
@@ -507,12 +511,6 @@ class TabBar(QTabBar):
         size = self.fontMetrics().height() - 2
         size *= config.val.tabs.favicons.scale
         self.setIconSize(QSize(size, size))
-
-    def _set_colors(self):
-        """Set the tab bar colors."""
-        p = self.palette()
-        p.setColor(QPalette.Window, config.val.colors.tabs.bar.bg)
-        self.setPalette(p)
 
     def mouseReleaseEvent(self, e):
         """Override mouseReleaseEvent to know when drags stop."""

@@ -2266,7 +2266,7 @@ colors.statusbar.url.warn.fg:
 
 colors.tabs.bar.bg:
   default: '#555555'
-  type: QtColor
+  type: QssColor
   desc: Background color of the tab bar.
 
 colors.tabs.indicator.start:

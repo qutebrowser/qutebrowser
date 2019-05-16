@@ -29,6 +29,7 @@ import unittest.mock
 import pytest
 from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
+from PyQt5.QtGui import QColor
 
 from qutebrowser.utils import qtutils, utils
 import overflow_test_cases
@@ -221,6 +222,15 @@ def test_qdatastream_status_count():
     values = vars(QDataStream).values()
     status_vals = [e for e in values if isinstance(e, QDataStream.Status)]
     assert len(status_vals) == 4
+
+
+@pytest.mark.parametrize('color, expected', [
+    (QColor('red'), 'rgba(255, 0, 0, 255)'),
+    (QColor('blue'), 'rgba(0, 0, 255, 255)'),
+    (QColor(1, 3, 5, 7), 'rgba(1, 3, 5, 7)'),
+])
+def test_qcolor_to_qsscolor(color, expected):
+    assert qtutils.qcolor_to_qsscolor(color) == expected
 
 
 @pytest.mark.parametrize('obj', [
