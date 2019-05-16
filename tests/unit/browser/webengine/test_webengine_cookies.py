@@ -29,7 +29,7 @@ def test_accept_cookie_with_pattern(config_stub):
     """
     request = MagicMock()
     request.firstPartyUrl = QUrl('https://domain1.com')
-    request.thirdParth = False
+    request.thirdParty = False
 
     config_stub.set_str('content.cookies.accept', 'never')
     config_stub.set_str('content.cookies.accept', 'all',
@@ -41,7 +41,7 @@ def test_accept_cookie_with_pattern(config_stub):
                         pattern=UrlPattern('https://*.domain1.com'))
     assert not _accept_cookie(request)
 
-    request.thirdParth = True
+    request.thirdParty = True
 
     config_stub.set_str('content.cookies.accept', 'no-3rdparty')
     config_stub.set_str('content.cookies.accept', 'all',
