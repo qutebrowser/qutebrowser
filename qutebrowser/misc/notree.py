@@ -48,6 +48,7 @@ render_tree(root)
 """
 import enum
 import typing
+import itertools
 
 # For Node.render
 CORNER = '└─'
@@ -74,6 +75,9 @@ class TraverseOrder(enum.Enum):
     POST_R = 'post-order-reverse'
 
 
+uid_gen = itertools.count(0)
+
+
 class Node():
     """Fundamental unit of notree library.
 
@@ -91,7 +95,6 @@ class Node():
     sep = '/'  # type: str
     __parent = None  # type: typing.Optional['Node']
     # this is a global 'static' class attribute
-    __last_uid = 0  # type: int
 
     PARENT_TYPE = typing.TypeVar('PARENT_TYPE')
 
@@ -101,9 +104,9 @@ class Node():
                  childs: typing.Sequence['Node'] = (),
                  uid: typing.Optional[int] = None) -> None:
         if uid is not None:
-            self.__uid = uid  # TODO check if given ID exists already
+            self.__uid = uid
         else:
-            self.__uid = self.__get_new_uid()
+            self.__uid = next(uid_gen)
 
         self.value = value
         # set initial values so there's no need for AttributeError checks
@@ -271,10 +274,6 @@ class Node():
         self.__set_modified()
         if value in self.__children:
             self.__children.remove(value)
-
-    def __get_new_uid(self) -> int:
-        Node.__last_uid += 1
-        return Node.__last_uid
 
     def get_descendent_by_uid(self, uid: int) -> 'Node':
         """Return descendent identified by the provided uid.
