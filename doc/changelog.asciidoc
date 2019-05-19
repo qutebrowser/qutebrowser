@@ -59,6 +59,8 @@ Changed
 - The `content.pdfjs` setting now supports domain patterns.
 - Improved process status output with `:spawn -o`.
 - Various performance improvements.
+- The `colors.tabs.bar.bg` setting is now of type `QssColor` and thus supports
+  gradients.
 
 Deprecated
 ~~~~~~~~~~

@@ -1268,7 +1268,7 @@ Default: +pass:[yellow]+
 === colors.tabs.bar.bg
 Background color of the tab bar.
 
-Type: <<types,QtColor>>
+Type: <<types,QssColor>>
 
 Default: +pass:[#555555]+
 
