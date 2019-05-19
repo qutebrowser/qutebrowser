@@ -29,18 +29,16 @@ def test_accept_cookie(config_stub):
     """Test that _accept_cookie respects content.cookies.accept."""
     request = MagicMock()
 
-    config_stub.set_str('content.cookies.accept', 'all')
+    config_stub.val.content.cookies.accept = 'all'
     assert cookies._accept_cookie(request)
 
-    config_stub.set_str('content.cookies.accept', 'never')
+    config_stub.val.content.cookies.accept = 'never'
     assert not cookies._accept_cookie(request)
 
+    config_stub.val.content.cookies.accept = 'no-3rdparty'
     request.thirdParty = False
-    config_stub.set_str('content.cookies.accept', 'no-3rdparty')
     assert cookies._accept_cookie(request)
-
     request.thirdParty = True
-    config_stub.set_str('content.cookies.accept', 'no-3rdparty')
     assert not cookies._accept_cookie(request)
 
 
