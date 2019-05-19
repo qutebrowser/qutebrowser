@@ -17,10 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt5.QtCore import QUrl
 from unittest.mock import MagicMock
-from qutebrowser.browser.webengine.cookies import _accept_cookie
-from qutebrowser.utils.urlmatch import UrlPattern
+
+from PyQt5.QtCore import QUrl
+
+from qutebrowser.browser.webengine import cookies
+from qutebrowser.utils import urlmatch
 
 
 def test_accept_cookie(config_stub):
@@ -28,18 +30,18 @@ def test_accept_cookie(config_stub):
     request = MagicMock()
 
     config_stub.set_str('content.cookies.accept', 'all')
-    assert _accept_cookie(request)
+    assert cookies._accept_cookie(request)
 
     config_stub.set_str('content.cookies.accept', 'never')
-    assert not _accept_cookie(request)
+    assert not cookies._accept_cookie(request)
 
     request.thirdParty = False
     config_stub.set_str('content.cookies.accept', 'no-3rdparty')
-    assert _accept_cookie(request)
+    assert cookies._accept_cookie(request)
 
     request.thirdParty = True
     config_stub.set_str('content.cookies.accept', 'no-3rdparty')
-    assert not _accept_cookie(request)
+    assert not cookies._accept_cookie(request)
 
 
 def test_accept_cookie_with_pattern(config_stub):
@@ -53,22 +55,22 @@ def test_accept_cookie_with_pattern(config_stub):
 
     config_stub.set_str('content.cookies.accept', 'never')
     config_stub.set_str('content.cookies.accept', 'all',
-                        pattern=UrlPattern('https://*.domain1.com'))
-    assert _accept_cookie(request)
+                        pattern=urlmatch.UrlPattern('https://*.domain1.com'))
+    assert cookies._accept_cookie(request)
 
     config_stub.set_str('content.cookies.accept', 'all')
     config_stub.set_str('content.cookies.accept', 'never',
-                        pattern=UrlPattern('https://*.domain1.com'))
-    assert not _accept_cookie(request)
+                        pattern=urlmatch.UrlPattern('https://*.domain1.com'))
+    assert not cookies._accept_cookie(request)
 
     request.thirdParty = True
 
     config_stub.set_str('content.cookies.accept', 'no-3rdparty')
     config_stub.set_str('content.cookies.accept', 'all',
-                        pattern=UrlPattern('https://*.domain1.com'))
-    assert _accept_cookie(request)
+                        pattern=urlmatch.UrlPattern('https://*.domain1.com'))
+    assert cookies._accept_cookie(request)
 
     config_stub.set_str('content.cookies.accept', 'all')
     config_stub.set_str('content.cookies.accept', 'no-3rdparty',
-                        pattern=UrlPattern('https://*.domain1.com'))
-    assert not _accept_cookie(request)
+                        pattern=urlmatch.UrlPattern('https://*.domain1.com'))
+    assert not cookies._accept_cookie(request)
