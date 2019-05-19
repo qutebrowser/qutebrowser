@@ -16,6 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
+
 from PyQt5.QtCore import QUrl
 from unittest.mock import MagicMock
 from qutebrowser.browser.webengine.cookies import _accept_cookie
