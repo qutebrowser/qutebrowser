@@ -33,47 +33,35 @@ def filter_request():
         pytest.skip("FilterRequest not available")
 
 
-def test_accept_cookie(config_stub, filter_request):
+@pytest.mark.parametrize('setting, third_party, accepted', [
+    ('all', False, True),
+    ('never', False, False),
+    ('no-3rdparty', False, True),
+    ('no-3rdparty', True, False),
+])
+def test_accept_cookie(config_stub, filter_request, setting, third_party,
+                       accepted):
     """Test that _accept_cookie respects content.cookies.accept."""
-    config_stub.val.content.cookies.accept = 'all'
-    assert cookies._accept_cookie(filter_request)
-
-    config_stub.val.content.cookies.accept = 'never'
-    assert not cookies._accept_cookie(filter_request)
-
-    config_stub.val.content.cookies.accept = 'no-3rdparty'
-    filter_request.thirdParty = False
-    assert cookies._accept_cookie(filter_request)
-    filter_request.thirdParty = True
-    assert not cookies._accept_cookie(filter_request)
+    config_stub.val.content.cookies.accept = setting
+    filter_request.thirdParty = third_party
+    assert cookies._accept_cookie(filter_request) == accepted
 
 
-def test_accept_cookie_with_pattern(config_stub, filter_request):
+@pytest.mark.parametrize('setting, pattern_setting, third_party, accepted', [
+    ('never', 'all', False, True),
+    ('all', 'never', False, False),
+    ('no-3rdparty', 'all', True, True),
+    ('all', 'no-3rdparty', True, False),
+])
+def test_accept_cookie_with_pattern(config_stub, filter_request, setting,
+                                    pattern_setting, third_party, accepted):
     """
     Test that the request's firstPartyUrl is used for comparing against the
     setting's UrlPattern in _accept_cookie.
     """
     filter_request.firstPartyUrl = QUrl('https://domain1.com')
-    filter_request.thirdParty = False
-
-    config_stub.set_str('content.cookies.accept', 'never')
-    config_stub.set_str('content.cookies.accept', 'all',
+    filter_request.thirdParty = third_party
+    config_stub.set_str('content.cookies.accept', setting)
+    config_stub.set_str('content.cookies.accept', pattern_setting,
                         pattern=urlmatch.UrlPattern('https://*.domain1.com'))
-    assert cookies._accept_cookie(filter_request)
-
-    config_stub.set_str('content.cookies.accept', 'all')
-    config_stub.set_str('content.cookies.accept', 'never',
-                        pattern=urlmatch.UrlPattern('https://*.domain1.com'))
-    assert not cookies._accept_cookie(filter_request)
-
-    filter_request.thirdParty = True
-
-    config_stub.set_str('content.cookies.accept', 'no-3rdparty')
-    config_stub.set_str('content.cookies.accept', 'all',
-                        pattern=urlmatch.UrlPattern('https://*.domain1.com'))
-    assert cookies._accept_cookie(filter_request)
-
-    config_stub.set_str('content.cookies.accept', 'all')
-    config_stub.set_str('content.cookies.accept', 'no-3rdparty',
-                        pattern=urlmatch.UrlPattern('https://*.domain1.com'))
-    assert not cookies._accept_cookie(filter_request)
+    assert cookies._accept_cookie(filter_request) == accepted
