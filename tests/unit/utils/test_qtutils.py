@@ -233,6 +233,11 @@ def test_qcolor_to_qsscolor(color, expected):
     assert qtutils.qcolor_to_qsscolor(color) == expected
 
 
+def test_qcolor_to_qsscolor_invalid():
+    with pytest.raises(qtutils.QtValueError):
+        qtutils.qcolor_to_qsscolor(QColor())
+
+
 @pytest.mark.parametrize('obj', [
     QPoint(23, 42),
     QUrl('http://www.qutebrowser.org/'),

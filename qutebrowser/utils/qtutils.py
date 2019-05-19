@@ -216,6 +216,7 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
 
 def qcolor_to_qsscolor(c: QColor) -> str:
     """Convert a QColor to a string that can be used in a QStyleSheet."""
+    ensure_valid(c)
     return "rgba({}, {}, {}, {})".format(
         c.red(), c.green(), c.blue(), c.alpha())
 
