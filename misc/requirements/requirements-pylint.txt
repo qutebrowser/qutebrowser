@@ -16,7 +16,7 @@ pycparser==2.19
 pylint==2.3.1
 python-dateutil==2.8.0
 ./scripts/dev/pylint_checkers
-requests==2.21.0
+requests==2.22.0
 six==1.12.0
 uritemplate==3.0.0
 urllib3==1.25.2
