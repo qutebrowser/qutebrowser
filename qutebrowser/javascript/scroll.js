@@ -20,7 +20,12 @@
 "use strict";
 
 window._qutebrowser.scroll = (function() {
+    // Store the element we should center on for scrolling. This may not be
+    // the element that actually scrolls, but it is the starting point.
     let activatedElement = null;
+    // If we guessed an activatedElement, this stores our guess. If null, we
+    // were manually set or have no guess.
+    let activatedElementGuess = null;
     const funcs = {};
 
     function build_scroll_options(x, y, smooth) {
@@ -146,7 +151,7 @@ window._qutebrowser.scroll = (function() {
         let element = ele;
         if (element === null) {
             const scrollingElement = document.scrollingElement || document.body;
-            if (is_scrollable(scrollingElement, 0, 1)) {
+            if (is_scrollable_y(scrollingElement)) {
                 return scrollingElement;
             }
             element = document.body || scrollingElement;
@@ -192,12 +197,22 @@ window._qutebrowser.scroll = (function() {
             const firstScrolling = firstScrollableElement();
             if (firstScrolling) {
                 activatedElement = firstScrolling;
+                activatedElementGuess = firstScrolling;
                 elt = activatedElement;
             }
         } else {
             elt = activatedElement;
         }
-        return scrollable_parent(elt, x, y, fuzz);
+        const scrollingElt = scrollable_parent(elt, x, y, fuzz);
+        if (activatedElementGuess !== null &&
+                scrollingElt !== elt &&
+                elt === activatedElementGuess) {
+            // We made a bad guess!
+            // Keep going right now, but guess again next time.
+            activatedElement = null;
+            activatedElementGuess = null;
+        }
+        return scrollingElt;
     }
 
     funcs.to_perc = (x, y) => {
@@ -220,6 +235,7 @@ window._qutebrowser.scroll = (function() {
 
     funcs.set_activated_element = (elt) => {
         activatedElement = elt;
+        activatedElementGuess = null;
     };
     funcs.is_scrollable = is_scrollable;
     funcs.is_scrollable_y = is_scrollable_y;
