@@ -542,7 +542,7 @@ def _get_incdec_value(match, incdec, url, count):
     elif incdec == 'increment':
         val += count
     else:
-        raise ValueError("Invalid value {} for indec!".format(incdec))
+        raise ValueError("Invalid value {} for incdec!".format(incdec))
     if zeroes:
         if len(number) < len(str(val)):
             zeroes = zeroes[1:]
