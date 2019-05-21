@@ -55,10 +55,7 @@ def test_accept_cookie(config_stub, filter_request, setting, third_party,
 ])
 def test_accept_cookie_with_pattern(config_stub, filter_request, setting,
                                     pattern_setting, third_party, accepted):
-    """
-    Test that the request's firstPartyUrl is used for comparing against the
-    setting's UrlPattern in _accept_cookie.
-    """
+    """Test that _accept_cookie matches firstPartyUrl with the UrlPattern."""
     filter_request.firstPartyUrl = QUrl('https://domain1.com')
     filter_request.thirdParty = third_party
     config_stub.set_str('content.cookies.accept', setting)
