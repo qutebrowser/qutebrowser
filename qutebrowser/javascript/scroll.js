@@ -80,8 +80,8 @@ window._qutebrowser.scroll = (function() {
     }
 
     function scroll_element(element, x, y, smooth = false) {
-        const pre_x = element.scrollTop;
-        const pre_y = element.scrollLeft;
+        const pre_y = element.scrollTop;
+        const pre_x = element.scrollLeft;
         if (smooth_supported()) {
             element.scrollBy(build_scroll_options(x, y, smooth));
         } else if ("scrollBy" in element) {
@@ -116,22 +116,24 @@ window._qutebrowser.scroll = (function() {
                 scroll_element(element, -x_sign, -y_sign));
     }
 
-    function is_scrollable(elt, x, y) {
-        return should_scroll(elt) && can_scroll(elt, x, y);
+    // Fuzz allows checking both positive and negative scrolling in tests.
+    function is_scrollable(elt, x, y, fuzz = false) {
+        return should_scroll(elt) && (can_scroll(elt, x, y) ||
+                                      (fuzz && can_scroll(elt, -x, -y)));
     }
 
     function is_scrollable_y(elt) {
-        return is_scrollable(elt, 0, 1);
+        return is_scrollable(elt, 0, 1) || is_scrollable(elt, 0, -1);
     }
 
     // Recurse up the DOM and get the first element which is scrollable.
     // We cannot use scrollHeight and clientHeight due to a chrome bug (110149)
     // Heavily inspired from Vimium's implementation:
     // https://github.com/philc/vimium/blob/026c90ccff6/content_scripts/scroller.coffee#L253-L270
-    function scrollable_parent(element, x, y) {
+    function scrollable_parent(element, x, y, fuzz = false) {
         let elt = element;
         while (elt !== document.scrollingElement &&
-               !is_scrollable(elt, x, y)) {
+               !is_scrollable(elt, x, y, fuzz)) {
             elt = elt.parentElement;
         }
         return elt;
@@ -174,7 +176,7 @@ window._qutebrowser.scroll = (function() {
     // Get the element that should be scrolled currently in the root frame. If
     // activatedElement is set, use that. Otherwise recurse using
     // activeElement.
-    function getActivatedElement(x, y) {
+    function getActivatedElement(x, y, fuzz = false) {
         let elt = document.activeElement;
         // If activated element is no longer present, remove it from
         // consideration
@@ -195,11 +197,13 @@ window._qutebrowser.scroll = (function() {
         } else {
             elt = activatedElement;
         }
-        return scrollable_parent(elt, x, y);
+        return scrollable_parent(elt, x, y, fuzz);
     }
 
     funcs.to_perc = (x, y) => {
-        const scroll_elt = getActivatedElement(x, y);
+        const detect_x = x === 0 ? 1 : x;
+        const detect_y = y === 0 ? 1 : y;
+        const scroll_elt = getActivatedElement(detect_x, detect_y, true);
         scroll_to_perc(scroll_elt, x, y);
     };
 
