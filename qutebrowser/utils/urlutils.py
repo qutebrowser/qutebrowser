@@ -535,8 +535,9 @@ def _get_incdec_value(match, incdec, url, count):
     # This should always succeed because we match \d+
     val = int(number)
     if incdec == 'decrement':
-        if val <= 0:
-            raise IncDecError("Can't decrement {}!".format(val), url)
+        if val < count:
+            raise IncDecError("Can't decrement {} by {}!".format(val, count),
+                              url)
         val -= count
     elif incdec == 'increment':
         val += count
