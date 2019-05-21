@@ -618,8 +618,9 @@ def incdec_number(url, incdec, count=1, segments=None):
         if segment not in segments:
             continue
 
-        # Get the last number in a string
-        match = re.fullmatch(r'(.*\D|^)(0*)(\d+)(.*)', getter(url))
+        # Get the last number in a string not preceded by regex '%' or '%.'
+        match = re.fullmatch(r'(.*\D|^)(?<!%)(?<!%.)(0*)(\d+)(.*)',
+                             getter(url))
         if not match:
             continue
 
