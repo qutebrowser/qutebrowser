@@ -941,8 +941,16 @@ class HintManager(QObject):
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 'followed',
                           maybe=True)
         else:
+            # Clear keystring (required when there is a unique match before
+            # typing the whole keystring and hints.auto_follow == unique-match
+            # in rapid hint mode)
+            keyparsers = objreg.get('keyparsers', scope='window',
+                                    window=self._win_id)
+            keyparser = keyparsers[usertypes.KeyMode.hint]
+            keyparser.clear_keystring()
             # Reset filtering
-            self.filter_hints(None)
+            self.filter_hints("")
+            keyparser.clear_filtertext()
             # Undo keystring highlighting
             for string, label in self._context.labels.items():
                 label.update_text('', string)
