@@ -878,8 +878,8 @@ class VersionParams:
 def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
     class FakeWebEngineSettings:
-        default_user_agent = \
-            'Toaster/4.0.4 Chrome/CHROMIUMVERSION Teapot/4.1.8'
+        default_user_agent = ('Toaster/4.0.4 Chrome/CHROMIUMVERSION '
+                              'Teapot/4.1.8')
 
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
