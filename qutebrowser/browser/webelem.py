@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,32 +19,36 @@
 
 """Generic web element related code."""
 
+import typing
 import collections.abc
 
-from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer
+from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer, QRect, QPoint
 from PyQt5.QtGui import QMouseEvent
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import,useless-suppression
+    from qutebrowser.browser import browsertab
+
+
+JsValueType = typing.Union[int, float, str, None]
 
 
 class Error(Exception):
 
     """Base class for WebElement errors."""
 
-    pass
-
 
 class OrphanedError(Error):
 
     """Raised when a webelement's parent has vanished."""
 
-    pass
 
-
-def css_selector(group, url):
+def css_selector(group: str, url: QUrl) -> str:
     """Get a CSS selector for the given group/URL."""
     selectors = config.instance.get('hints.selectors', url)
     if group not in selectors:
@@ -58,76 +62,74 @@ def css_selector(group, url):
 
 class AbstractWebElement(collections.abc.MutableMapping):
 
-    """A wrapper around QtWebKit/QtWebEngine web element.
+    """A wrapper around QtWebKit/QtWebEngine web element."""
 
-    Attributes:
-        tab: The tab associated with this element.
-    """
-
-    def __init__(self, tab):
+    def __init__(self, tab: 'browsertab.AbstractTab') -> None:
         self._tab = tab
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         raise NotImplementedError
 
-    def __str__(self):
+    def __str__(self) -> str:
         raise NotImplementedError
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> str:
         raise NotImplementedError
 
-    def __setitem__(self, key, val):
+    def __setitem__(self, key: str, val: str) -> None:
         raise NotImplementedError
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: str) -> None:
         raise NotImplementedError
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[str]:
         raise NotImplementedError
 
-    def __len__(self):
+    def __len__(self) -> int:
         raise NotImplementedError
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         try:
             html = utils.compact_text(self.outer_xml(), 500)
         except Error:
             html = None
         return utils.get_repr(self, html=html)
 
-    def has_frame(self):
+    def has_frame(self) -> bool:
         """Check if this element has a valid frame attached."""
         raise NotImplementedError
 
-    def geometry(self):
+    def geometry(self) -> QRect:
         """Get the geometry for this element."""
         raise NotImplementedError
 
-    def classes(self):
+    def classes(self) -> typing.List[str]:
         """Get a list of classes assigned to this element."""
         raise NotImplementedError
 
-    def tag_name(self):
+    def tag_name(self) -> str:
         """Get the tag name of this element.
 
         The returned name will always be lower-case.
         """
         raise NotImplementedError
 
-    def outer_xml(self):
+    def outer_xml(self) -> str:
         """Get the full HTML representation of this element."""
         raise NotImplementedError
 
-    def value(self):
+    def value(self) -> JsValueType:
         """Get the value attribute for this element, or None."""
         raise NotImplementedError
 
-    def set_value(self, value):
+    def set_value(self, value: JsValueType) -> None:
         """Set the element value."""
         raise NotImplementedError
 
-    def dispatch_event(self, event, bubbles=False,
-                       cancelable=False, composed=False):
+    def dispatch_event(self, event: str,
+                       bubbles: bool = False,
+                       cancelable: bool = False,
+                       composed: bool = False) -> None:
         """Dispatch an event to the element.
 
         Args:
@@ -138,35 +140,25 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """
         raise NotImplementedError
 
-    def insert_text(self, text):
+    def insert_text(self, text: str) -> None:
         """Insert the given text into the element."""
         raise NotImplementedError
 
-    def rect_on_view(self, *, elem_geometry=None, no_js=False):
+    def rect_on_view(self, *, elem_geometry: QRect = None,
+                     no_js: bool = False) -> QRect:
         """Get the geometry of the element relative to the webview.
-
-        Uses the getClientRects() JavaScript method to obtain the collection of
-        rectangles containing the element and returns the first rectangle which
-        is large enough (larger than 1px times 1px). If all rectangles returned
-        by getClientRects() are too small, falls back to elem.rect_on_view().
-
-        Skipping of small rectangles is due to <a> elements containing other
-        elements with "display:block" style, see
-        https://github.com/qutebrowser/qutebrowser/issues/1298
 
         Args:
             elem_geometry: The geometry of the element, or None.
-                           Calling QWebElement::geometry is rather expensive so
-                           we want to avoid doing it twice.
-            no_js: Fall back to the Python implementation
+            no_js: Fall back to the Python implementation.
         """
         raise NotImplementedError
 
-    def is_writable(self):
+    def is_writable(self) -> bool:
         """Check whether an element is writable."""
         return not ('disabled' in self or 'readonly' in self)
 
-    def is_content_editable(self):
+    def is_content_editable(self) -> bool:
         """Check if an element has a contenteditable attribute.
 
         Args:
@@ -181,7 +173,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         except KeyError:
             return False
 
-    def _is_editable_object(self):
+    def _is_editable_object(self) -> bool:
         """Check if an object-element is editable."""
         if 'type' not in self:
             log.webelem.debug("<object> without type clicked...")
@@ -197,7 +189,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             # Image/Audio/...
             return False
 
-    def _is_editable_input(self):
+    def _is_editable_input(self) -> bool:
         """Check if an input-element is editable.
 
         Return:
@@ -214,7 +206,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             else:
                 return False
 
-    def _is_editable_classes(self):
+    def _is_editable_classes(self) -> bool:
         """Check if an element is editable based on its classes.
 
         Return:
@@ -233,7 +225,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
                 return True
         return False
 
-    def is_editable(self, strict=False):
+    def is_editable(self, strict: bool = False) -> bool:
         """Check whether we should switch to insert mode for this element.
 
         Args:
@@ -264,17 +256,17 @@ class AbstractWebElement(collections.abc.MutableMapping):
             return self._is_editable_classes() and not strict
         return False
 
-    def is_text_input(self):
+    def is_text_input(self) -> bool:
         """Check if this element is some kind of text box."""
         roles = ('combobox', 'textbox')
         tag = self.tag_name()
         return self.get('role', None) in roles or tag in ['input', 'textarea']
 
-    def remove_blank_target(self):
+    def remove_blank_target(self) -> None:
         """Remove target from link."""
         raise NotImplementedError
 
-    def resolve_url(self, baseurl):
+    def resolve_url(self, baseurl: QUrl) -> typing.Optional[QUrl]:
         """Resolve the URL in the element's src/href attribute.
 
         Args:
@@ -301,16 +293,16 @@ class AbstractWebElement(collections.abc.MutableMapping):
         qtutils.ensure_valid(url)
         return url
 
-    def is_link(self):
+    def is_link(self) -> bool:
         """Return True if this AbstractWebElement is a link."""
         href_tags = ['a', 'area', 'link']
         return self.tag_name() in href_tags and 'href' in self
 
-    def _requires_user_interaction(self):
+    def _requires_user_interaction(self) -> bool:
         """Return True if clicking this element needs user interaction."""
         raise NotImplementedError
 
-    def _mouse_pos(self):
+    def _mouse_pos(self) -> QPoint:
         """Get the position to click/hover."""
         # Click the center of the largest square fitting into the top/left
         # corner of the rectangle, this will help if part of the <a> element
@@ -326,35 +318,38 @@ class AbstractWebElement(collections.abc.MutableMapping):
             raise Error("Element position is out of view!")
         return pos
 
-    def _move_text_cursor(self):
+    def _move_text_cursor(self) -> None:
         """Move cursor to end after clicking."""
         raise NotImplementedError
 
-    def _click_fake_event(self, click_target):
+    def _click_fake_event(self, click_target: usertypes.ClickTarget) -> None:
         """Send a fake click event to the element."""
         pos = self._mouse_pos()
 
         log.webelem.debug("Sending fake click to {!r} at position {} with "
                           "target {}".format(self, pos, click_target))
 
-        modifiers = {
+        target_modifiers = {
             usertypes.ClickTarget.normal: Qt.NoModifier,
             usertypes.ClickTarget.window: Qt.AltModifier | Qt.ShiftModifier,
             usertypes.ClickTarget.tab: Qt.ControlModifier,
             usertypes.ClickTarget.tab_bg: Qt.ControlModifier,
         }
         if config.val.tabs.background:
-            modifiers[usertypes.ClickTarget.tab] |= Qt.ShiftModifier
+            target_modifiers[usertypes.ClickTarget.tab] |= Qt.ShiftModifier
         else:
-            modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
+            target_modifiers[usertypes.ClickTarget.tab_bg] |= Qt.ShiftModifier
+
+        modifiers = typing.cast(Qt.KeyboardModifiers,
+                                target_modifiers[click_target])
 
         events = [
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
             QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
-                        Qt.LeftButton, modifiers[click_target]),
+                        Qt.LeftButton, modifiers),
             QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
-                        Qt.NoButton, modifiers[click_target]),
+                        Qt.NoButton, modifiers),
         ]
 
         for evt in events:
@@ -362,15 +357,19 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
         QTimer.singleShot(0, self._move_text_cursor)
 
-    def _click_editable(self, click_target):
+    def _click_editable(self, click_target: usertypes.ClickTarget) -> None:
         """Fake a click on an editable input field."""
         raise NotImplementedError
 
-    def _click_js(self, click_target):
+    def _click_js(self, click_target: usertypes.ClickTarget) -> None:
         """Fake a click by using the JS .click() method."""
         raise NotImplementedError
 
-    def _click_href(self, click_target):
+    def delete(self) -> None:
+        """Delete this element from the DOM."""
+        raise NotImplementedError
+
+    def _click_href(self, click_target: usertypes.ClickTarget) -> None:
         """Fake a click on an element with a href by opening the link."""
         baseurl = self._tab.url()
         url = self.resolve_url(baseurl)
@@ -386,13 +385,14 @@ class AbstractWebElement(collections.abc.MutableMapping):
             background = click_target == usertypes.ClickTarget.tab_bg
             tabbed_browser.tabopen(url, background=background)
         elif click_target == usertypes.ClickTarget.window:
-            window = mainwindow.MainWindow(private=tabbed_browser.private)
+            window = mainwindow.MainWindow(private=tabbed_browser.is_private)
             window.show()
             window.tabbed_browser.tabopen(url)
         else:
             raise ValueError("Unknown ClickTarget {}".format(click_target))
 
-    def click(self, click_target, *, force_event=False):
+    def click(self, click_target: usertypes.ClickTarget, *,
+              force_event: bool = False) -> None:
         """Simulate a click on the element.
 
         Args:
@@ -429,7 +429,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
         else:
             raise ValueError("Unknown ClickTarget {}".format(click_target))
 
-    def hover(self):
+    def hover(self) -> None:
         """Simulate a mouse hover over the element."""
         pos = self._mouse_pos()
         event = QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,

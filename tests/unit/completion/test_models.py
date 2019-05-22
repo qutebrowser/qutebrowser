@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2016-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -27,11 +27,11 @@ from datetime import datetime
 import pytest
 from PyQt5.QtCore import QUrl
 
+from qutebrowser.misc import objects
 from qutebrowser.completion import completer
 from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
 from qutebrowser.config import configdata, configtypes
 from qutebrowser.utils import usertypes
-from qutebrowser.commands import cmdutils
 
 
 def _check_completions(model, expected):
@@ -66,7 +66,7 @@ def _check_completions(model, expected):
 @pytest.fixture()
 def cmdutils_stub(monkeypatch, stubs):
     """Patch the cmdutils module to provide fake commands."""
-    return monkeypatch.setattr(cmdutils, 'cmd_dict', {
+    return monkeypatch.setattr(objects, 'commands', {
         'quit': stubs.FakeCommand(name='quit', desc='quit qutebrowser'),
         'open': stubs.FakeCommand(name='open', desc='open a url'),
         'prompt-yes': stubs.FakeCommand(name='prompt-yes', deprecated=True),

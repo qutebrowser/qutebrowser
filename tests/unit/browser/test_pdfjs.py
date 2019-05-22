@@ -24,7 +24,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import pdfjs
-from qutebrowser.utils import usertypes, utils
+from qutebrowser.utils import usertypes, utils, urlmatch
 
 
 pytestmark = [pytest.mark.usefixtures('data_tmpdir')]
@@ -82,14 +82,14 @@ def test_generate_pdfjs_script_disable_object_url(monkeypatch,
     if qt == 'new':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True:
-                            False if version == '5.7.1' else True)
+                            version != '5.7.1')
     elif qt == 'old':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True: False)
     elif qt == '5.7':
         monkeypatch.setattr(pdfjs.qtutils, 'version_check',
                             lambda version, exact=False, compiled=True:
-                            True if version == '5.7.1' else False)
+                            version == '5.7.1')
     else:
         raise utils.Unreachable
 
@@ -232,6 +232,17 @@ def test_is_available(available, mocker):
 def test_should_use_pdfjs(mimetype, url, enabled, expected, config_stub):
     config_stub.val.content.pdfjs = enabled
     assert pdfjs.should_use_pdfjs(mimetype, QUrl(url)) == expected
+
+
+@pytest.mark.parametrize('url, expected', [
+    ('http://example.com', True),
+    ('http://example.org', False),
+])
+def test_should_use_pdfjs_url_pattern(config_stub, url, expected):
+    config_stub.val.content.pdfjs = False
+    pattern = urlmatch.UrlPattern('http://example.com')
+    config_stub.set_obj('content.pdfjs', True, pattern=pattern)
+    assert pdfjs.should_use_pdfjs('application/pdf', QUrl(url)) == expected
 
 
 def test_get_main_url():

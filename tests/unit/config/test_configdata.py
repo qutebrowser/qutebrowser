@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -167,7 +167,7 @@ class TestParseYamlType:
 
     def _yaml(self, s):
         """Get the type from parsed YAML data."""
-        return yaml.load(textwrap.dedent(s))['type']
+        return yaml.safe_load(textwrap.dedent(s))['type']
 
     def test_simple(self):
         """Test type which is only a name."""
@@ -254,7 +254,7 @@ class TestParseYamlBackend:
 
     def _yaml(self, s):
         """Get the type from parsed YAML data."""
-        return yaml.load(textwrap.dedent(s))['backend']
+        return yaml.safe_load(textwrap.dedent(s))['backend']
 
     @pytest.mark.parametrize('backend, expected', [
         ('QtWebKit', [usertypes.Backend.QtWebKit]),

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -75,7 +75,8 @@ class DownloadView(QListView):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
-        self.setStyle(QStyleFactory.create('Fusion'))
+        if not utils.is_mac:
+            self.setStyle(QStyleFactory.create('Fusion'))
         config.set_register_stylesheet(self)
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)

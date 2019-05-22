@@ -97,7 +97,7 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * https://www.python.org/[Python] 3.5 or newer (3.6 recommended)
-* https://www.qt.io/[Qt] 5.7.1 or newer (5.11 recommended, support for < 5.9
+* https://www.qt.io/[Qt] 5.7.1 or newer (5.12 recommended, support for < 5.9
   will be dropped soon) with the following modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
@@ -108,7 +108,7 @@ The following software and libraries are required to run qutebrowser:
     only the link:https://github.com/annulen/webkit/wiki[updated fork] (5.212)
     is supported
 * https://www.riverbankcomputing.com/software/pyqt/intro[PyQt] 5.7.0 or newer
-  (5.11 recommended, support for < 5.9 will be dropped soon) for Python 3
+  (5.12 recommended, support for < 5.9 will be dropped soon) for Python 3
 * https://pypi.python.org/pypi/setuptools/[pkg_resources/setuptools]
 * https://fdik.org/pyPEG/[pyPEG2]
 * http://jinja.pocoo.org/[jinja2]
@@ -141,7 +141,8 @@ If you want to give me a beer or a pizza back, I'm trying to make it as easy as
 possible for you to do so. If some other way would be easier for you, please
 get in touch!
 
-* PayPal: me@the-compiler.org
+* SEPA bank transfer inside Europe (no fee): Contact me for details
+* PayPal: https://www.paypal.me/thecompiler[thecompiler] / me@the-compiler.org
 * Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
 
 Sponsors
@@ -154,7 +155,11 @@ https://www.macstadium.com/opensource[Open Source Project].
 (They don't require including this here - I've just been very happy with their
 offer, and without them, no macOS releases or tests would exist)
 
+Thanks to the https://www.hsr.ch/[HSR Hochschule für Technik Rapperswil], which
+made it possible to work on qutebrowser extensions as a student research project.
+
 image:.github/img/macstadium.png["powered by MacStadium",width=200,link="https://www.macstadium.com/"]
+image:.github/img/hsr.png["HSR Hochschule für Technik Rapperswil",link="https://www.hsr.ch/"]
 
 Authors
 -------

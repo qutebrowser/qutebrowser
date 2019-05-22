@@ -1,6 +1,6 @@
 (function() {
     "use strict";
-    if (!("_qutebrowser" in window)) {
+    if (!window.hasOwnProperty("_qutebrowser")) {
         window._qutebrowser = {"initialized": {}};
     }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,7 +27,7 @@ import os.path
 import urllib.request
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
-from qutebrowser.browser import adblock
+from qutebrowser.components import adblock
 from qutebrowser.config import configdata
 
 

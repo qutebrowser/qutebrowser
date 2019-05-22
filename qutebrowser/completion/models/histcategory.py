@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
+# Copyright 2017-2019 Ryan Roden-Corrent (rcorre) <ryan@rcorre.net>
 #
 # This file is part of qutebrowser.
 #
@@ -17,18 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""A completion category that queries the SQL History store."""
+"""A completion category that queries the SQL history store."""
 
 from PyQt5.QtSql import QSqlQueryModel
 
 from qutebrowser.misc import sql
-from qutebrowser.utils import debug
+from qutebrowser.utils import debug, message
 from qutebrowser.config import config
 
 
 class HistoryCategory(QSqlQueryModel):
 
-    """A completion category that queries the SQL History store."""
+    """A completion category that queries the SQL history store."""
 
     def __init__(self, *, delete_func=None, parent=None):
         """Create a new History completion category."""
@@ -74,36 +74,46 @@ class HistoryCategory(QSqlQueryModel):
 
         # build a where clause to match all of the words in any order
         # given the search term "a b", the WHERE clause would be:
-        # ((url || title) LIKE '%a%') AND ((url || title) LIKE '%b%')
+        # (url LIKE '%a%' OR title LIKE '%a%') AND
+        # (url LIKE '%b%' OR title LIKE '%b%')
         where_clause = ' AND '.join(
-            "(url || title) LIKE :{} escape '\\'".format(i)
-            for i in range(len(words)))
+            "(url LIKE :{val} escape '\\' OR title LIKE :{val} escape '\\')"
+            .format(val=i) for i in range(len(words)))
 
         # replace ' in timestamp-format to avoid breaking the query
         timestamp_format = config.val.completion.timestamp_format or ''
         timefmt = ("strftime('{}', last_atime, 'unixepoch', 'localtime')"
                    .format(timestamp_format.replace("'", "`")))
 
-        if not self._query or len(words) != len(self._query.bound_values()):
-            # if the number of words changed, we need to generate a new query
-            # otherwise, we can reuse the prepared query for performance
-            self._query = sql.Query(' '.join([
-                "SELECT url, title, {}".format(timefmt),
-                "FROM CompletionHistory",
-                # the incoming pattern will have literal % and _ escaped
-                # we need to tell sql to treat '\' as an escape character
-                'WHERE ({})'.format(where_clause),
-                self._atime_expr(),
-                "ORDER BY last_atime DESC",
-            ]), forward_only=False)
+        try:
+            if (not self._query or
+                    len(words) != len(self._query.bound_values())):
+                # if the number of words changed, we need to generate a new
+                # query otherwise, we can reuse the prepared query for
+                # performance
+                self._query = sql.Query(' '.join([
+                    "SELECT url, title, {}".format(timefmt),
+                    "FROM CompletionHistory",
+                    # the incoming pattern will have literal % and _ escaped we
+                    # need to tell SQL to treat '\' as an escape character
+                    'WHERE ({})'.format(where_clause),
+                    self._atime_expr(),
+                    "ORDER BY last_atime DESC",
+                ]), forward_only=False)
 
-        with debug.log_time('sql', 'Running completion query'):
-            self._query.run(**{
-                str(i): w for i, w in enumerate(words)})
+            with debug.log_time('sql', 'Running completion query'):
+                self._query.run(**{
+                    str(i): w for i, w in enumerate(words)})
+        except sql.KnownError as e:
+            # Sometimes, the query we built up was invalid, for example,
+            # due to a large amount of words.
+            # Also catches failures in the DB we can't solve.
+            message.error("Error with SQL query: {}".format(e.text()))
+            return
         self.setQuery(self._query.query)
 
     def removeRows(self, row, _count, _parent=None):
-        """Override QAbstractItemModel::removeRows to re-run sql query."""
+        """Override QAbstractItemModel::removeRows to re-run SQL query."""
         # re-run query to reload updated table
         with debug.log_time('sql', 'Re-running completion query post-delete'):
             self._query.run()

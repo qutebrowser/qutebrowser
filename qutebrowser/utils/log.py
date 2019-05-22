@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -76,29 +76,19 @@ LOG_COLORS = {
 
 # We first monkey-patch logging to support our VDEBUG level before getting the
 # loggers.  Based on http://stackoverflow.com/a/13638084
+# mypy doesn't know about this, so we need to ignore it.
 VDEBUG_LEVEL = 9
 logging.addLevelName(VDEBUG_LEVEL, 'VDEBUG')
-logging.VDEBUG = VDEBUG_LEVEL
+logging.VDEBUG = VDEBUG_LEVEL  # type: ignore
 
 LOG_LEVELS = {
-    'VDEBUG': logging.VDEBUG,
+    'VDEBUG': logging.VDEBUG,  # type: ignore
     'DEBUG': logging.DEBUG,
     'INFO': logging.INFO,
     'WARNING': logging.WARNING,
     'ERROR': logging.ERROR,
     'CRITICAL': logging.CRITICAL,
 }
-
-LOGGER_NAMES = [
-    'statusbar', 'completion', 'init', 'url',
-    'destroy', 'modes', 'webview', 'misc',
-    'mouse', 'procs', 'hints', 'keyboard',
-    'commands', 'signals', 'downloads',
-    'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
-    'save', 'message', 'config', 'sessions',
-    'webelem', 'prompt', 'network', 'sql',
-    'greasemonkey'
-]
 
 
 def vdebug(self, msg, *args, **kwargs):
@@ -114,7 +104,7 @@ def vdebug(self, msg, *args, **kwargs):
         # pylint: enable=protected-access
 
 
-logging.Logger.vdebug = vdebug
+logging.Logger.vdebug = vdebug  # type: ignore
 
 
 # The different loggers used.
@@ -147,6 +137,18 @@ prompt = logging.getLogger('prompt')
 network = logging.getLogger('network')
 sql = logging.getLogger('sql')
 greasemonkey = logging.getLogger('greasemonkey')
+extensions = logging.getLogger('extensions')
+
+LOGGER_NAMES = [
+    'statusbar', 'completion', 'init', 'url',
+    'destroy', 'modes', 'webview', 'misc',
+    'mouse', 'procs', 'hints', 'keyboard',
+    'commands', 'signals', 'downloads',
+    'js', 'qt', 'rfc6266', 'ipc', 'shlexer',
+    'save', 'message', 'config', 'sessions',
+    'webelem', 'prompt', 'network', 'sql',
+    'greasemonkey', 'extensions',
+]
 
 
 ram_handler = None
@@ -197,6 +199,12 @@ def init_log(args):
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
+    else:
+        # If we add no handler, we shouldn't process non visible logs at all
+        #
+        # disable blocks the current level (while setHandler shows the current
+        # level), so -1 to avoid blocking handled messages.
+        logging.disable(numeric_level - 1)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
@@ -467,7 +475,7 @@ def qt_message_handler(msg_type, context, msg):
         stack = ''.join(traceback.format_stack())
     else:
         stack = None
-    record = qt.makeRecord(name, level, context.file, context.line, msg, None,
+    record = qt.makeRecord(name, level, context.file, context.line, msg, (),
                            None, func, sinfo=stack)
     qt.handle(record)
 

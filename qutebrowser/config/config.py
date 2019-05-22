@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -22,19 +22,28 @@
 import copy
 import contextlib
 import functools
+import typing
+from typing import Any
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
 from qutebrowser.config import configdata, configexc, configutils
-from qutebrowser.utils import utils, log, jinja
+from qutebrowser.utils import utils, log, jinja, urlmatch
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
 
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import,useless-suppression
+    from typing import Tuple, MutableMapping
+    from qutebrowser.config import configcache, configfiles
+    from qutebrowser.misc import savemanager
+
 # An easy way to access the config from other code via config.val.foo
-val = None
-instance = None
-key_instance = None
-cache = None
+val = typing.cast('ConfigContainer', None)
+instance = typing.cast('Config', None)
+key_instance = typing.cast('KeyConfig', None)
+cache = typing.cast('configcache.ConfigCache', None)
 
 # Keeping track of all change filters to validate them later.
 change_filters = []
@@ -55,7 +64,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         _function: Whether a function rather than a method is decorated.
     """
 
-    def __init__(self, option, function=False):
+    def __init__(self, option: str, function: bool = False) -> None:
         """Save decorator arguments.
 
         Gets called on parse-time with the decorator arguments.
@@ -68,7 +77,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         self._function = function
         change_filters.append(self)
 
-    def validate(self):
+    def validate(self) -> None:
         """Make sure the configured option or prefix exists.
 
         We can't do this in __init__ as configdata isn't ready yet.
@@ -77,7 +86,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
                 not configdata.is_valid_prefix(self._option)):
             raise configexc.NoOptionError(self._option)
 
-    def _check_match(self, option):
+    def check_match(self, option: typing.Optional[str]) -> bool:
         """Check if the given option matches the filter."""
         if option is None:
             # Called directly, not from a config change event.
@@ -90,7 +99,7 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         else:
             return False
 
-    def __call__(self, func):
+    def __call__(self, func: typing.Callable) -> typing.Callable:
         """Filter calls to the decorated function.
 
         Gets called when a function should be decorated.
@@ -108,20 +117,21 @@ class change_filter:  # noqa: N801,N806 pylint: disable=invalid-name
         """
         if self._function:
             @functools.wraps(func)
-            def wrapper(option=None):
+            def func_wrapper(option: str = None) -> typing.Any:
                 """Call the underlying function."""
-                if self._check_match(option):
+                if self.check_match(option):
                     return func()
                 return None
+            return func_wrapper
         else:
             @functools.wraps(func)
-            def wrapper(wrapper_self, option=None):
+            def meth_wrapper(wrapper_self: typing.Any,
+                             option: str = None) -> typing.Any:
                 """Call the underlying function."""
-                if self._check_match(option):
+                if self.check_match(option):
                     return func(wrapper_self)
                 return None
-
-        return wrapper
+            return meth_wrapper
 
 
 class KeyConfig:
@@ -134,17 +144,22 @@ class KeyConfig:
         _config: The Config object to be used.
     """
 
-    def __init__(self, config):
+    _ReverseBindings = typing.Dict[str, typing.MutableSequence[str]]
+
+    def __init__(self, config: 'Config') -> None:
         self._config = config
 
-    def _validate(self, key, mode):
+    def _validate(self, key: keyutils.KeySequence, mode: str) -> None:
         """Validate the given key and mode."""
         # Catch old usage of this code
         assert isinstance(key, keyutils.KeySequence), key
         if mode not in configdata.DATA['bindings.default'].default:
             raise configexc.KeybindingError("Invalid mode {}!".format(mode))
 
-    def get_bindings_for(self, mode):
+    def get_bindings_for(
+            self,
+            mode: str
+    ) -> typing.Dict[keyutils.KeySequence, str]:
         """Get the combined bindings for the given mode."""
         bindings = dict(val.bindings.default[mode])
         for key, binding in val.bindings.commands[mode].items():
@@ -154,9 +169,9 @@ class KeyConfig:
                 bindings[key] = binding
         return bindings
 
-    def get_reverse_bindings_for(self, mode):
+    def get_reverse_bindings_for(self, mode: str) -> '_ReverseBindings':
         """Get a dict of commands to a list of bindings for the mode."""
-        cmd_to_keys = {}
+        cmd_to_keys = {}  # type: KeyConfig._ReverseBindings
         bindings = self.get_bindings_for(mode)
         for seq, full_cmd in sorted(bindings.items()):
             for cmd in full_cmd.split(';;'):
@@ -169,7 +184,10 @@ class KeyConfig:
                     cmd_to_keys[cmd].insert(0, str(seq))
         return cmd_to_keys
 
-    def get_command(self, key, mode, default=False):
+    def get_command(self,
+                    key: keyutils.KeySequence,
+                    mode: str,
+                    default: bool = False) -> str:
         """Get the command for a given key (or None)."""
         self._validate(key, mode)
         if default:
@@ -178,7 +196,11 @@ class KeyConfig:
             bindings = self.get_bindings_for(mode)
         return bindings.get(key, None)
 
-    def bind(self, key, command, *, mode, save_yaml=False):
+    def bind(self,
+             key: keyutils.KeySequence,
+             command: str, *,
+             mode: str,
+             save_yaml: bool = False) -> None:
         """Add a new binding from key to command."""
         if command is not None and not command.strip():
             raise configexc.KeybindingError(
@@ -186,8 +208,8 @@ class KeyConfig:
                 'mode'.format(key, mode))
 
         self._validate(key, mode)
-        log.keyboard.vdebug("Adding binding {} -> {} in mode {}.".format(
-            key, command, mode))
+        log.keyboard.vdebug(  # type: ignore
+            "Adding binding {} -> {} in mode {}.".format(key, command, mode))
 
         bindings = self._config.get_mutable_obj('bindings.commands')
         if mode not in bindings:
@@ -195,7 +217,10 @@ class KeyConfig:
         bindings[mode][str(key)] = command
         self._config.update_mutables(save_yaml=save_yaml)
 
-    def bind_default(self, key, *, mode='normal', save_yaml=False):
+    def bind_default(self,
+                     key: keyutils.KeySequence, *,
+                     mode: str = 'normal',
+                     save_yaml: bool = False) -> None:
         """Restore a default keybinding."""
         self._validate(key, mode)
 
@@ -207,7 +232,10 @@ class KeyConfig:
                 "Can't find binding '{}' in {} mode".format(key, mode))
         self._config.update_mutables(save_yaml=save_yaml)
 
-    def unbind(self, key, *, mode='normal', save_yaml=False):
+    def unbind(self,
+               key: keyutils.KeySequence, *,
+               mode: str = 'normal',
+               save_yaml: bool = False) -> None:
         """Unbind the given key in the given mode."""
         self._validate(key, mode)
 
@@ -248,24 +276,27 @@ class Config(QObject):
     MUTABLE_TYPES = (dict, list)
     changed = pyqtSignal(str)
 
-    def __init__(self, yaml_config, parent=None):
+    def __init__(self,
+                 yaml_config: 'configfiles.YamlConfig',
+                 parent: QObject = None) -> None:
         super().__init__(parent)
         self.changed.connect(_render_stylesheet.cache_clear)
-        self._mutables = {}
+        self._mutables = {}  # type: MutableMapping[str, Tuple[Any, Any]]
         self._yaml = yaml_config
         self._init_values()
 
-    def _init_values(self):
+    def _init_values(self) -> None:
         """Populate the self._values dict."""
-        self._values = {}
+        self._values = {}  # type: typing.Mapping
         for name, opt in configdata.DATA.items():
             self._values[name] = configutils.Values(opt)
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[configutils.Values]:
         """Iterate over configutils.Values items."""
         yield from self._values.values()
 
-    def init_save_manager(self, save_manager):
+    def init_save_manager(self,
+                          save_manager: 'savemanager.SaveManager') -> None:
         """Make sure the config gets saved properly.
 
         We do this outside of __init__ because the config gets created before
@@ -273,7 +304,10 @@ class Config(QObject):
         """
         self._yaml.init_save_manager(save_manager)
 
-    def _set_value(self, opt, value, pattern=None):
+    def _set_value(self,
+                   opt: 'configdata.Option',
+                   value: Any,
+                   pattern: urlmatch.UrlPattern = None) -> None:
         """Set the given option to the given value."""
         if not isinstance(objects.backend, objects.NoBackend):
             if objects.backend not in opt.backends:
@@ -288,12 +322,12 @@ class Config(QObject):
         log.config.debug("Config option changed: {} = {}".format(
             opt.name, value))
 
-    def _check_yaml(self, opt, save_yaml):
+    def _check_yaml(self, opt: 'configdata.Option', save_yaml: bool) -> None:
         """Make sure the given option may be set in autoconfig.yml."""
         if save_yaml and opt.no_autoconfig:
             raise configexc.NoAutoconfigError(opt.name)
 
-    def read_yaml(self):
+    def read_yaml(self) -> None:
         """Read the YAML settings from self._yaml."""
         self._yaml.load()
         for values in self._yaml:
@@ -301,7 +335,7 @@ class Config(QObject):
                 self._set_value(values.opt, scoped.value,
                                 pattern=scoped.pattern)
 
-    def get_opt(self, name):
+    def get_opt(self, name: str) -> 'configdata.Option':
         """Get a configdata.Option object for the given setting."""
         try:
             return configdata.DATA[name]
@@ -312,7 +346,10 @@ class Config(QObject):
                 name, deleted=deleted, renamed=renamed)
             raise exception from None
 
-    def get(self, name, url=None, *, fallback=True):
+    def get(self,
+            name: str,
+            url: QUrl = None, *,
+            fallback: bool = True) -> Any:
         """Get the given setting converted for Python code.
 
         Args:
@@ -322,7 +359,7 @@ class Config(QObject):
         obj = self.get_obj(name, url=url, fallback=fallback)
         return opt.typ.to_py(obj)
 
-    def _maybe_copy(self, value):
+    def _maybe_copy(self, value: Any) -> Any:
         """Copy the value if it could potentially be mutated."""
         if isinstance(value, self.MUTABLE_TYPES):
             # For mutable objects, create a copy so we don't accidentally
@@ -333,7 +370,10 @@ class Config(QObject):
             assert value.__hash__ is not None, value
             return value
 
-    def get_obj(self, name, *, url=None, fallback=True):
+    def get_obj(self,
+                name: str, *,
+                url: QUrl = None,
+                fallback: bool = True) -> Any:
         """Get the given setting as object (for YAML/config.py).
 
         Note that the returned values are not watched for mutation.
@@ -343,7 +383,10 @@ class Config(QObject):
         value = self._values[name].get_for_url(url, fallback=fallback)
         return self._maybe_copy(value)
 
-    def get_obj_for_pattern(self, name, *, pattern):
+    def get_obj_for_pattern(
+            self, name: str, *,
+            pattern: typing.Optional[urlmatch.UrlPattern]
+    ) -> Any:
         """Get the given setting as object (for YAML/config.py).
 
         This gets the overridden value for a given pattern, or
@@ -353,11 +396,12 @@ class Config(QObject):
         value = self._values[name].get_for_pattern(pattern, fallback=False)
         return self._maybe_copy(value)
 
-    def get_mutable_obj(self, name, *, pattern=None):
+    def get_mutable_obj(self, name: str, *,
+                        pattern: urlmatch.UrlPattern = None) -> Any:
         """Get an object which can be mutated, e.g. in a config.py.
 
         If a pattern is given, return the value for that pattern.
-        Note that it's impossible to get a mutable object for an URL as we
+        Note that it's impossible to get a mutable object for a URL as we
         wouldn't know what pattern to apply.
         """
         self.get_opt(name)  # To make sure it exists
@@ -378,7 +422,8 @@ class Config(QObject):
 
         return copy_value
 
-    def get_str(self, name, *, pattern=None):
+    def get_str(self, name: str, *,
+                pattern: urlmatch.UrlPattern = None) -> str:
         """Get the given setting as string.
 
         If a pattern is given, get the setting for the given pattern or
@@ -389,7 +434,10 @@ class Config(QObject):
         value = values.get_for_pattern(pattern)
         return opt.typ.to_str(value)
 
-    def set_obj(self, name, value, *, pattern=None, save_yaml=False):
+    def set_obj(self, name: str,
+                value: Any, *,
+                pattern: urlmatch.UrlPattern = None,
+                save_yaml: bool = False) -> None:
         """Set the given setting from a YAML/config.py object.
 
         If save_yaml=True is given, store the new value to YAML.
@@ -400,7 +448,10 @@ class Config(QObject):
         if save_yaml:
             self._yaml.set_obj(name, value, pattern=pattern)
 
-    def set_str(self, name, value, *, pattern=None, save_yaml=False):
+    def set_str(self, name: str,
+                value: str, *,
+                pattern: urlmatch.UrlPattern = None,
+                save_yaml: bool = False) -> None:
         """Set the given setting from a string.
 
         If save_yaml=True is given, store the new value to YAML.
@@ -415,7 +466,9 @@ class Config(QObject):
         if save_yaml:
             self._yaml.set_obj(name, converted, pattern=pattern)
 
-    def unset(self, name, *, save_yaml=False, pattern=None):
+    def unset(self, name: str, *,
+              save_yaml: bool = False,
+              pattern: urlmatch.UrlPattern = None) -> None:
         """Set the given setting back to its default."""
         opt = self.get_opt(name)
         self._check_yaml(opt, save_yaml)
@@ -426,7 +479,7 @@ class Config(QObject):
         if save_yaml:
             self._yaml.unset(name, pattern=pattern)
 
-    def clear(self, *, save_yaml=False):
+    def clear(self, *, save_yaml: bool = False) -> None:
         """Clear all settings in the config.
 
         If save_yaml=True is given, also remove all customization from the YAML
@@ -440,7 +493,7 @@ class Config(QObject):
         if save_yaml:
             self._yaml.clear()
 
-    def update_mutables(self, *, save_yaml=False):
+    def update_mutables(self, *, save_yaml: bool = False) -> None:
         """Update mutable settings if they changed.
 
         Every time someone calls get_obj() on a mutable object, we save a
@@ -455,7 +508,7 @@ class Config(QObject):
                 self.set_obj(name, new_value, save_yaml=save_yaml)
         self._mutables = {}
 
-    def dump_userconfig(self):
+    def dump_userconfig(self) -> str:
         """Get the part of the config which was changed by the user.
 
         Return:
@@ -484,7 +537,10 @@ class ConfigContainer:
         _pattern: The URL pattern to be used.
     """
 
-    def __init__(self, config, configapi=None, prefix='', pattern=None):
+    def __init__(self, config: Config,
+                 configapi: 'configfiles.ConfigAPI' = None,
+                 prefix: str = '',
+                 pattern: urlmatch.UrlPattern = None) -> None:
         self._config = config
         self._prefix = prefix
         self._configapi = configapi
@@ -492,13 +548,13 @@ class ConfigContainer:
         if configapi is None and pattern is not None:
             raise TypeError("Can't use pattern without configapi!")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, constructor=True, config=self._config,
                               configapi=self._configapi, prefix=self._prefix,
                               pattern=self._pattern)
 
     @contextlib.contextmanager
-    def _handle_error(self, action, name):
+    def _handle_error(self, action: str, name: str) -> typing.Iterator[None]:
         try:
             yield
         except configexc.Error as e:
@@ -507,7 +563,7 @@ class ConfigContainer:
             text = "While {} '{}'".format(action, name)
             self._configapi.errors.append(configexc.ConfigErrorDesc(text, e))
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> Any:
         """Get an option or a new ConfigContainer with the added prefix.
 
         If we get an option which exists, we return the value for it.
@@ -534,7 +590,7 @@ class ConfigContainer:
                 return self._config.get_mutable_obj(
                     name, pattern=self._pattern)
 
-    def __setattr__(self, attr, value):
+    def __setattr__(self, attr: str, value: Any) -> None:
         """Set the given option in the config."""
         if attr.startswith('_'):
             super().__setattr__(attr, value)
@@ -544,7 +600,7 @@ class ConfigContainer:
         with self._handle_error('setting', name):
             self._config.set_obj(name, value, pattern=self._pattern)
 
-    def _join(self, attr):
+    def _join(self, attr: str) -> str:
         """Get the prefix joined with the given attribute."""
         if self._prefix:
             return '{}.{}'.format(self._prefix, attr)
@@ -552,8 +608,10 @@ class ConfigContainer:
             return attr
 
 
-def set_register_stylesheet(obj, *, stylesheet=None, update=True):
-    """Set the stylesheet for an object based on it's STYLESHEET attribute.
+def set_register_stylesheet(obj: QObject, *,
+                            stylesheet: str = None,
+                            update: bool = True) -> None:
+    """Set the stylesheet for an object.
 
     Also, register an update when the config is changed.
 
@@ -568,7 +626,7 @@ def set_register_stylesheet(obj, *, stylesheet=None, update=True):
 
 
 @functools.lru_cache()
-def _render_stylesheet(stylesheet):
+def _render_stylesheet(stylesheet: str) -> str:
     """Render the given stylesheet jinja template."""
     with jinja.environment.no_autoescape():
         template = jinja.environment.from_string(stylesheet)
@@ -584,7 +642,9 @@ class StyleSheetObserver(QObject):
         _stylesheet: The stylesheet template to use.
     """
 
-    def __init__(self, obj, stylesheet, update):
+    def __init__(self, obj: QObject,
+                 stylesheet: typing.Optional[str],
+                 update: bool) -> None:
         super().__init__()
         self._obj = obj
         self._update = update
@@ -593,11 +653,11 @@ class StyleSheetObserver(QObject):
         if self._update:
             self.setParent(self._obj)
         if stylesheet is None:
-            self._stylesheet = obj.STYLESHEET
+            self._stylesheet = obj.STYLESHEET  # type: str
         else:
             self._stylesheet = stylesheet
 
-    def _get_stylesheet(self):
+    def _get_stylesheet(self) -> str:
         """Format a stylesheet based on a template.
 
         Return:
@@ -606,19 +666,15 @@ class StyleSheetObserver(QObject):
         return _render_stylesheet(self._stylesheet)
 
     @pyqtSlot()
-    def _update_stylesheet(self):
+    def _update_stylesheet(self) -> None:
         """Update the stylesheet for obj."""
         self._obj.setStyleSheet(self._get_stylesheet())
 
-    def register(self):
-        """Do a first update and listen for more.
-
-        Args:
-            update: if False, don't listen for future updates.
-        """
+    def register(self) -> None:
+        """Do a first update and listen for more."""
         qss = self._get_stylesheet()
-        log.config.vdebug("stylesheet for {}: {}".format(
-            self._obj.__class__.__name__, qss))
+        log.config.vdebug(  # type: ignore
+            "stylesheet for {}: {}".format(self._obj.__class__.__name__, qss))
         self._obj.setStyleSheet(qss)
         if self._update:
             instance.changed.connect(self._update_stylesheet)

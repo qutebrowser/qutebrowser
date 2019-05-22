@@ -43,7 +43,7 @@ The following userscripts can be found on their own repositories.
 - [qutebrowser-zotero](https://github.com/parchd-1/qutebrowser-zotero): connects
   qutebrowser to [Zotero][] standalone.
 - [qute.match](https://github.com/bziur/qute.match): execute script based on
-  visisted url.
+  visited url.
 - [qutepocket](https://github.com/kepi/qutepocket): Add URL to your [Pocket][]
   bookmark manager.
 - [qb-scripts](https://github.com/peterjschroeder/qb-scripts): a small pack of
@@ -53,9 +53,10 @@ The following userscripts can be found on their own repositories.
 - [qtb.us](https://github.com/Chinggis6/qtb.us): small pack of userscripts.
 - [pinboard.zsh](https://github.com/dmix/pinboard.zsh): Add URL to your
   [Pinboard][] bookmark manager.
+- [qute-capture](https://github.com/alcah/qute-capture): Capture links with
+  Emacs's org-mode to a read-later file.
 
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/
 [Instapaper]: https://www.instapaper.com/
 [Pinboard]: https://pinboard.in/
-

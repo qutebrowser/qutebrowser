@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Jay Kamat
+# Copyright 2017-2019 Jay Kamat <jaygkamat@gmail.com>
 #
 # This file is part of qutebrowser.
 #
@@ -131,6 +131,6 @@ def test_set_error(stylesheet_tester, config_stub):
 def test_appendchild(stylesheet_tester):
     stylesheet_tester.js.load('stylesheet/simple.html')
     stylesheet_tester.init_stylesheet()
-    js_test_file_path = ('../../tests/unit/javascript/stylesheet/'
+    js_test_file_path = ('../tests/unit/javascript/stylesheet/'
                          'test_appendchild.js')
     stylesheet_tester.js.run_file(js_test_file_path, {})

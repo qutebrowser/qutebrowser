@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,6 +19,7 @@
 
 """Code to show a diff of the legacy config format."""
 
+import typing  # pylint: disable=unused-import,useless-suppression
 import difflib
 import os.path
 
@@ -727,10 +728,10 @@ scroll right
 """
 
 
-def get_diff():
+def get_diff() -> str:
     """Get a HTML diff for the old config files."""
-    old_conf_lines = []
-    old_key_lines = []
+    old_conf_lines = []  # type: typing.MutableSequence[str]
+    old_key_lines = []  # type: typing.MutableSequence[str]
 
     for filename, dest in [('qutebrowser.conf', old_conf_lines),
                            ('keys.conf', old_key_lines)]:

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -59,8 +59,8 @@ class TestCommandLineEdit:
         assert cmd_edit.text() == ':hello'
         assert cmd_edit.cursorPosition() == len(':hello')
 
-        cmd_edit.home(mark=True)
-        assert cmd_edit.cursorPosition() == len(':hello')
+        cmd_edit.home(True)
+        assert cmd_edit.cursorPosition() == len(':')
         qtbot.keyClick(cmd_edit, Qt.Key_Delete)
         assert cmd_edit.text() == ':'
         qtbot.keyClick(cmd_edit, Qt.Key_Backspace)
@@ -73,6 +73,25 @@ class TestCommandLineEdit:
         """Test preventing of an invalid prompt being entered."""
         qtbot.keyClicks(cmd_edit, '$hello')
         assert cmd_edit.text() == ''
+
+    def test_selection_home(self, qtbot, cmd_edit):
+        """Test selection persisting when pressing home."""
+        qtbot.keyClicks(cmd_edit, ':hello')
+        assert cmd_edit.text() == ':hello'
+        assert cmd_edit.cursorPosition() == len(':hello')
+        cmd_edit.home(True)
+        assert cmd_edit.cursorPosition() == len(':')
+        assert cmd_edit.selectionStart() == len(':')
+
+    def test_selection_cursor_left(self, qtbot, cmd_edit):
+        """Test selection persisting when moving to the first char."""
+        qtbot.keyClicks(cmd_edit, ':hello')
+        assert cmd_edit.text() == ':hello'
+        assert cmd_edit.cursorPosition() == len(':hello')
+        for _ in ':hello':
+            qtbot.keyClick(cmd_edit, Qt.Key_Left, modifier=Qt.ShiftModifier)
+        assert cmd_edit.cursorPosition() == len(':')
+        assert cmd_edit.selectionStart() == len(':')
 
 
 class WrappedWidget(QWidget):
