@@ -20,7 +20,6 @@
 """The main browser widgets."""
 
 from PyQt5.QtCore import pyqtSignal, Qt, QUrl
-from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QStyleFactory
 from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtWebKitWidgets import QWebView, QWebPage
@@ -50,6 +49,12 @@ class WebView(QWebView):
         shutting_down: Emitted when the view is shutting down.
     """
 
+    STYLESHEET = """
+        WebView {
+            background-color: {{ qcolor_to_qsscolor(conf.colors.webpage.bg) }};
+        }
+    """
+
     scroll_pos_changed = pyqtSignal(int, int)
     shutting_down = pyqtSignal()
 
@@ -66,7 +71,6 @@ class WebView(QWebView):
         self.win_id = win_id
         self.scroll_pos = (-1, -1)
         self._old_scroll_pos = (-1, -1)
-        self._set_bg_color()
         self._tab_id = tab_id
 
         page = webpage.BrowserPage(win_id=self.win_id, tab_id=self._tab_id,
@@ -78,7 +82,7 @@ class WebView(QWebView):
 
         self.setPage(page)
 
-        config.instance.changed.connect(self._set_bg_color)
+        config.set_register_stylesheet(self)
 
     def __repr__(self):
         url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)
@@ -96,16 +100,6 @@ class WebView(QWebView):
             # get: RuntimeError: wrapped C/C++ object of type WebView has been
             # deleted
             pass
-
-    @config.change_filter('colors.webpage.bg')
-    def _set_bg_color(self):
-        """Set the webpage background color as configured."""
-        col = config.val.colors.webpage.bg
-        palette = self.palette()
-        if col is None:
-            col = self.style().standardPalette().color(QPalette.Base)
-        palette.setColor(QPalette.Base, col)
-        self.setPalette(palette)
 
     def shutdown(self):
         """Shut down the webview."""

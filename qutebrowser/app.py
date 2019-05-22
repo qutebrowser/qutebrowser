@@ -449,12 +449,12 @@ def _init_modules(args, crash_handler):
     objreg.register('readline-bridge', readline_bridge)
 
     try:
-        log.init.debug("Initializing sql...")
+        log.init.debug("Initializing SQL...")
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
 
         log.init.debug("Initializing web history...")
         history.init(q_app)
-    except sql.SqlEnvironmentError as e:
+    except sql.KnownError as e:
         error.handle_fatal_exc(e, args, 'Error initializing SQL',
                                pre_text='Error initializing SQL')
         sys.exit(usertypes.Exit.err_init)

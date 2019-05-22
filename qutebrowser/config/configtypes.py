@@ -48,7 +48,6 @@ import codecs
 import os.path
 import itertools
 import warnings
-import datetime
 import functools
 import operator
 import json
@@ -203,6 +202,12 @@ class BaseType:
         assert isinstance(value, str), value
         if not value and not self.none_ok:
             raise configexc.ValidationError(value, "may not be empty!")
+        BaseType._basic_str_validation_cache(value)
+
+    @staticmethod
+    @functools.lru_cache(maxsize=2**9)
+    def _basic_str_validation_cache(value: str) -> None:
+        """Cache validation result to prevent looping over strings."""
         if any(ord(c) < 32 or ord(c) == 0x7f for c in value):
             raise configexc.ValidationError(
                 value, "may not contain unprintable chars!")
@@ -1830,31 +1835,6 @@ class NewTabPosition(String):
             ('next', "After the current tab."),
             ('first', "At the beginning."),
             ('last', "At the end."))
-
-
-class TimestampTemplate(BaseType):
-
-    """An strftime-like template for timestamps.
-
-    See https://sqlite.org/lang_datefunc.html for reference.
-    """
-
-    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
-        self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
-            return value
-        elif not value:
-            return None
-
-        try:
-            # Dummy check to see if the template is valid
-            datetime.datetime.now().strftime(value)
-        except ValueError as error:
-            # thrown on invalid template string
-            raise configexc.ValidationError(
-                value, "Invalid format string: {}".format(error))
-
-        return value
 
 
 class Key(BaseType):

@@ -22,6 +22,7 @@
 import os.path
 import html
 import collections
+import functools
 
 import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
@@ -35,7 +36,6 @@ from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
-from qutebrowser.qt import sip
 
 
 prompt_queue = None
@@ -117,10 +117,11 @@ class PromptQueue(QObject):
         log.prompt.debug("Popping from queue {}".format(self._queue))
         if self._queue:
             question = self._queue.popleft()
-            if not sip.isdeleted(question):
-                # the question could already be deleted, e.g. by a cancelled
+            if not question.is_aborted:
+                # the question could already be aborted, e.g. by a cancelled
                 # download. See
-                # https://github.com/qutebrowser/qutebrowser/issues/415
+                # https://github.com/qutebrowser/qutebrowser/issues/415 and
+                # https://github.com/qutebrowser/qutebrowser/issues/1249
                 self.ask_question(question, blocking=False)
 
     def shutdown(self):
@@ -329,11 +330,10 @@ class PromptContainer(QWidget):
         log.prompt.debug("Displaying prompt {}".format(prompt))
         self._prompt = prompt
 
+        # If this question was interrupted, we already connected the signal
         if not question.interrupted:
-            # If this question was interrupted, we already connected the signal
             question.aborted.connect(
-                lambda: modeman.leave(self._win_id, prompt.KEY_MODE, 'aborted',
-                                      maybe=True))
+                functools.partial(self._on_aborted, prompt.KEY_MODE))
         modeman.enter(self._win_id, prompt.KEY_MODE, 'question asked')
 
         self.setSizePolicy(prompt.sizePolicy())
@@ -342,6 +342,15 @@ class PromptContainer(QWidget):
         self.show()
         prompt.setFocus()
         self.update_geometry.emit()
+
+    @pyqtSlot()
+    def _on_aborted(self, key_mode):
+        """Leave KEY_MODE whenever a prompt is aborted."""
+        try:
+            modeman.leave(self._win_id, key_mode, 'aborted', maybe=True)
+        except objreg.RegistryUnavailableError:
+            # window was deleted: ignore
+            pass
 
     @pyqtSlot(usertypes.KeyMode)
     def _on_prompt_done(self, key_mode):

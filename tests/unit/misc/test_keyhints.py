@@ -214,4 +214,5 @@ def test_delay(qtbot, stubs, monkeypatch, config_stub, key_config_stub):
 
     keyhint = KeyHintView(0, None)
     keyhint.update_keyhint('normal', 'a')
+    assert timer.isSingleShot()
     assert timer.interval() == interval

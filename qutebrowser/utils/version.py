@@ -324,7 +324,7 @@ def _chromium_version():
 
     Qt 5.9:  Chromium 56
     (LTS)    56.0.2924.122 (2017-01-25)
-             5.9.7: Security fixes up to 69.0.3497.113 (2018-09-27)
+             5.9.8: Security fixes up to 72.0.3626.121 (2019-03-01)
 
     Qt 5.10: Chromium 61
              61.0.3163.140 (2017-09-05)
@@ -336,10 +336,10 @@ def _chromium_version():
 
     Qt 5.12: Chromium 69
     (LTS)    69.0.3497.113 (2018-09-27)
-             5.12.1: Security fixes up to 71.0.3578.94 (2018-12-14)
-             5.12.2: Security fixes up to 72.0.3626.96 (2019-02-06)
+             5.12.3: Security fixes up to 73.0.3683.75 (2019-03-12)
 
-    Qt 5.13: (in development) Chromium 71 merged, 73 in review.
+    Qt 5.13: (in development) Chromium 73
+             73.0.3683.105 (~2019-02-28)
 
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/

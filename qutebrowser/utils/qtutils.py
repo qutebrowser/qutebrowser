@@ -37,6 +37,7 @@ import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QFileDevice, QObject)
+from PyQt5.QtGui import QColor
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
@@ -85,9 +86,6 @@ def version_check(version: str,
         exact: if given, check with == instead of >=
         compiled: Set to False to not check the compiled version.
     """
-    # Catch code using the old API for this
-    assert exact not in [operator.gt, operator.lt, operator.ge, operator.le,
-                         operator.eq], exact
     if compiled and exact:
         raise ValueError("Can't use compiled=True with exact=True!")
 
@@ -214,6 +212,13 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         commit_ok = f.commit()
         if not commit_ok and not cancelled:
             raise QtOSError(f, msg="Commit failed!")
+
+
+def qcolor_to_qsscolor(c: QColor) -> str:
+    """Convert a QColor to a string that can be used in a QStyleSheet."""
+    ensure_valid(c)
+    return "rgba({}, {}, {}, {})".format(
+        c.red(), c.green(), c.blue(), c.alpha())
 
 
 class PyQIODevice(io.BufferedIOBase):

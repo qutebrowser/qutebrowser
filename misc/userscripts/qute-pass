@@ -55,7 +55,8 @@ import tldextract
 
 argument_parser = argparse.ArgumentParser(description=__doc__, usage=USAGE, epilog=EPILOG)
 argument_parser.add_argument('url', nargs='?', default=os.getenv('QUTE_URL'))
-argument_parser.add_argument('--password-store', '-p', default=os.path.expanduser('~/.password-store'),
+argument_parser.add_argument('--password-store', '-p',
+                             default=os.getenv('PASSWORD_STORE_DIR', default=os.path.expanduser('~/.password-store')),
                              help='Path to your pass password-store')
 argument_parser.add_argument('--username-pattern', '-u', default=r'.*/(.+)',
                              help='Regular expression that matches the username')
@@ -152,7 +153,9 @@ def main(arguments):
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
     # the registered domain name and finally: the IPv4 address if that's what the URL represents
     candidates = set()
+    attempted_targets = []
     for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4]):
+        attempted_targets.append(target)
         target_candidates = find_pass_candidates(target, password_store_path)
         if not target_candidates:
             continue
@@ -162,7 +165,7 @@ def main(arguments):
             break
     else:
         if not candidates:
-            stderr('No pass candidates for URL {!r} found!'.format(arguments.url))
+            stderr('No pass candidates for URL {!r} found! (I tried {!r})'.format(arguments.url, attempted_targets))
             return ExitCodes.NO_PASS_CANDIDATES
 
     selection = candidates.pop() if len(candidates) == 1 else dmenu(sorted(candidates), arguments.dmenu_invocation,
