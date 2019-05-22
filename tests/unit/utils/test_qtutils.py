@@ -31,7 +31,7 @@ from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
                           QTimer, QBuffer, QFile, QProcess, QFileDevice)
 from PyQt5.QtGui import QColor
 
-from qutebrowser.utils import qtutils, utils
+from qutebrowser.utils import qtutils, utils, usertypes
 import overflow_test_cases
 
 if utils.is_linux:
@@ -110,6 +110,18 @@ def test_version_check_compiled_and_exact():
 def test_is_new_qtwebkit(monkeypatch, version, is_new):
     monkeypatch.setattr(qtutils, 'qWebKitVersion', lambda: version)
     assert qtutils.is_new_qtwebkit() == is_new
+
+
+@pytest.mark.parametrize('backend, arguments, single_process', [
+    (usertypes.Backend.QtWebKit, ['--single-process'], False),
+    (usertypes.Backend.QtWebEngine, ['--single-process'], True),
+    (usertypes.Backend.QtWebEngine, [], False),
+])
+def test_is_single_process(monkeypatch, stubs, backend, arguments, single_process):
+    qapp = stubs.FakeQApplication(arguments=arguments)
+    monkeypatch.setattr(qtutils, 'QApplication', qapp)
+    monkeypatch.setattr(qtutils.objects, 'backend', backend)
+    assert qtutils.is_single_process() == single_process
 
 
 class TestCheckOverflow:
