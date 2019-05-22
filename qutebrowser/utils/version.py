@@ -54,6 +54,11 @@ from qutebrowser.utils import log, utils, standarddir, usertypes, message
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin
 from qutebrowser.browser import pdfjs
 
+try:
+    from qutebrowser.browser.webengine import webenginesettings
+except ImportError:  # pragma: no cover
+    webenginesettings = None  # type: ignore
+
 
 @attr.s
 class DistributionInfo:
@@ -345,11 +350,13 @@ def _chromium_version():
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
     """
-    if QWebEngineProfile is None:
+    if webenginesettings is None or QWebEngineProfile is None:
         # This should never happen
         return 'unavailable'
-    profile = QWebEngineProfile()
-    ua = profile.httpUserAgent()
+    ua = webenginesettings.default_user_agent
+    if ua is None:
+        profile = QWebEngineProfile.defaultProfile()
+        ua = profile.httpUserAgent()
     match = re.search(r' Chrome/([^ ]*) ', ua)
     if not match:
         log.misc.error("Could not get Chromium version from: {}".format(ua))
