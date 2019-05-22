@@ -143,7 +143,10 @@ class TreeTabbedBrowser(TabbedBrowser):
                     entries.append(TreeUndoEntry.from_node(descendent, 0))
                     # ensure descendent is not later saved as child as well
                     descendent.parent = None
-                self._undo_stack.append(entries)
+                if new_undo:
+                    self._undo_stack.append(entries)
+                else:
+                    self._undo_stack[-1] += entries
 
     def undo(self):
         """Undo removing of a tab or tabs."""
