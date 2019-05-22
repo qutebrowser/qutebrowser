@@ -338,8 +338,9 @@ def _chromium_version():
     (LTS)    69.0.3497.113 (2018-09-27)
              5.12.3: Security fixes up to 73.0.3683.75 (2019-03-12)
 
-    Qt 5.13: (in development) Chromium 73
+    Qt 5.13: Chromium 73
              73.0.3683.105 (~2019-02-28)
+             5.13.0: Security fixes up to 74.0.3729.131 (2019-04-30)
 
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
