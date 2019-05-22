@@ -260,6 +260,11 @@ class CommandDispatcher:
                                               opposite, new_undo)
                     tabbed_browser.tab_close_prompt_if_pinned(tab, force,
                                                               close)
+                else:
+                    tab = descendent.value
+                    tab.private_api.shutdown()
+                    tab.deleteLater()
+                    tab.layout().unwrap()
                 new_undo = False
         else:
             # this also applied to closing collapsed tabs
