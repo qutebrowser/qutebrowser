@@ -290,7 +290,102 @@ Feature: Tab management
 
     Scenario: :tab-focus last with no last focused tab
         When I run :tab-focus last
-        Then the error "No last focused tab!" should be shown
+        Then the error "Could not find requested tab!" should be shown
+
+    Scenario: :tab-focus prev stacking
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new tab
+        And I open data/numbers/5.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-focus 5
+        And I run :tab-focus 2
+        And I run :tab-focus 4
+        And I run :tab-focus 3
+        And I run :tab-focus prev_stack
+        And I run :tab-focus prev_stack
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
+            - data/numbers/3.txt
+            - data/numbers/4.txt
+            - data/numbers/5.txt
+
+    Scenario: :tab-focus next stacking
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new tab
+        And I open data/numbers/5.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-focus 5
+        And I run :tab-focus 2
+        And I run :tab-focus 4
+        And I run :tab-focus 3
+        And I run :tab-focus prev_stack
+        And I run :tab-focus prev_stack
+        And I run :tab-focus prev_stack
+        And I run :tab-focus next_stack
+        And I run :tab-focus next_stack
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+            - data/numbers/4.txt (active)
+            - data/numbers/5.txt
+
+    Scenario: :tab-focus stacking limit
+        When I set tabs.focus_stack_size to 1
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new tab
+        And I open data/numbers/5.txt in a new tab
+        And I run :tab-focus prev_stack
+        And I run :tab-focus prev_stack
+        And I run :tab-focus next_stack
+        And I set tabs.focus_stack_size to 10
+        And I run :tab-focus 1
+        And I run :tab-focus 5
+        And I run :tab-focus 2
+        And I run :tab-focus 4
+        And I run :tab-focus 3
+        And I run :tab-focus prev_stack
+        And I run :tab-focus prev_stack
+        And I run :tab-focus prev_stack
+        And I run :tab-focus prev_stack
+        Then the error "Could not find requested tab!" should be shown
+        And the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+            - data/numbers/4.txt
+            - data/numbers/5.txt
+
+    Scenario: :tab-focus stacking and last
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt in a new tab
+        And I open data/numbers/4.txt in a new tab
+        And I open data/numbers/5.txt in a new tab
+        And I run :tab-focus 1
+        And I run :tab-focus 5
+        And I run :tab-focus 2
+        And I run :tab-focus 4
+        And I run :tab-focus 3
+        And I run :tab-focus prev_stack
+        And I run :tab-focus prev_stack
+        And I run :tab-focus last
+        And I run :tab-focus last
+        And I run :tab-focus last
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt
+            - data/numbers/3.txt
+            - data/numbers/4.txt (active)
+            - data/numbers/5.txt
+
 
     # tab-prev/tab-next
 
