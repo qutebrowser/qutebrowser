@@ -1769,6 +1769,14 @@ tabs.wrap:
   type: Bool
   desc: Wrap when changing tabs.
 
+tabs.focus_stack_size:
+  default: 10
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+  desc: The maximum stack size to remember for tab switches (-1 for no maximum).
+
 ## url
 
 url.auto_search:
