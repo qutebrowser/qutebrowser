@@ -54,7 +54,8 @@ def test_show_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
     with qtbot.wait_signal(tab.load_finished):
         tab.load_url(QUrl('qute://testdata/data/hints/benchmark.html'))
 
-    manager = qutebrowser.browser.hints.HintManager(0, 0)
+    manager = qutebrowser.browser.hints.HintManager(
+        win_id=0, tab_id=tab.tab_id)
 
     def bench():
         with qtbot.wait_signal(mode_manager.entered):
@@ -75,7 +76,8 @@ def test_match_benchmark(benchmark, tabbed_browser, qtbot, message_bridge,
         tab.load_url(QUrl('qute://testdata/data/hints/benchmark.html'))
 
     config_stub.val.hints.scatter = False
-    manager = qutebrowser.browser.hints.HintManager(0, 0)
+    manager = qutebrowser.browser.hints.HintManager(
+        win_id=0, tab_id=tab.tab_id)
 
     with qtbot.wait_signal(mode_manager.entered):
         manager.start()

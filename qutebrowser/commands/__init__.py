@@ -26,9 +26,13 @@ For command arguments, there are also some variables you can use:
 
 - `{url}` expands to the URL of the current page
 - `{url:pretty}` expands to the URL in decoded format
-- `{url:host}` expands to the host part of the URL
+- `{url:host}`, `{url:domain}`, `{url:auth}`, `{url:scheme}`, `{url:username}`,
+  `{url:password}`, `{url:host}`, `{url:port}`, `{url:path}` and `{url:query}`
+  expand to the respective parts of the current URL
+- `{title}` expands to the current page's title
 - `{clipboard}` expands to the clipboard contents
 - `{primary}` expands to the primary selection contents
 
-It is possible to run or bind multiple commands by separating them with `;;`.
+Those variables can be escaped by doubling the braces, e.g. `{{url}}`. It is
+possible to run or bind multiple commands by separating them with `;;`.
 """

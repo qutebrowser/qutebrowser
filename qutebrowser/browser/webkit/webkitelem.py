@@ -324,6 +324,9 @@ class WebKitElement(webelem.AbstractWebElement):
                 break
             elem = elem._parent()  # pylint: disable=protected-access
 
+    def delete(self) -> None:
+        self._elem.evaluateJavaScript('this.remove();')
+
     def _move_text_cursor(self) -> None:
         if self.is_text_input() and self.is_editable():
             self._tab.caret.move_to_end_of_document()

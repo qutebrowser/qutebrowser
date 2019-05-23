@@ -250,6 +250,19 @@ class TestYaml:
         data = autoconfig.read()
         assert data['content.webrtc_ip_handling_policy']['global'] == expected
 
+    @pytest.fixture
+    def migration_test(self, yaml, autoconfig):
+        def run(setting, old, new):
+            autoconfig.write({setting: {'global': old}})
+
+            yaml.load()
+            yaml._save()
+
+            data = autoconfig.read()
+            assert data[setting]['global'] == new
+
+        return run
+
     @pytest.mark.parametrize('setting, old, new', [
         ('tabs.favicons.show', True, 'always'),
         ('tabs.favicons.show', False, 'never'),
@@ -263,15 +276,25 @@ class TestYaml:
         ('qt.force_software_rendering', False, 'none'),
         ('qt.force_software_rendering', 'chromium', 'chromium'),
     ])
-    def test_bool_migrations(self, yaml, autoconfig, setting, old, new):
+    def test_bool_migrations(self, migration_test, setting, old, new):
         """Tests for migration of former boolean settings."""
-        autoconfig.write({setting: {'global': old}})
+        migration_test(setting, old, new)
 
-        yaml.load()
-        yaml._save()
-
-        data = autoconfig.read()
-        assert data[setting]['global'] == new
+    @pytest.mark.parametrize('setting', [
+        'tabs.title.format',
+        'tabs.title.format_pinned',
+        'window.title_format'
+    ])
+    @pytest.mark.parametrize('old, new', [
+        ('{title}', '{current_title}'),
+        ('eve{title}duna', 'eve{current_title}duna'),
+        ('eve{{title}}duna', 'eve{{title}}duna'),
+        ('{{title}}', '{{title}}'),
+        ('', ''),
+        (None, None),
+    ])
+    def test_title_format_migrations(self, migration_test, setting, old, new):
+        migration_test(setting, old, new)
 
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):
