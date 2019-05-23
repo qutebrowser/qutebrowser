@@ -157,18 +157,27 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_focus_last(self, *, show_error=True):
+    def _tab_focus_stack(self, mode: str, *, show_error=True):
         """Select the tab which was last focused."""
         try:
-            tab = objreg.get('last-focused-tab', scope='window',
-                             window=self._win_id)
-        except KeyError:
+            tab_deque = self._tabbed_browser.tab_deque
+            if mode == "last":
+                tab = tab_deque.last()
+            elif mode == "prev_stack":
+                tab = tab_deque.prev()
+            elif mode == "next_stack":
+                tab = tab_deque.next()
+            else:
+                raise NotImplementedError(
+                    "Missing implementation for stack mode!")
+
+        except IndexError:
             if not show_error:
                 return
-            raise cmdutils.CommandError("No last focused tab!")
+            raise cmdutils.CommandError("Could not find requested tab!")
         idx = self._tabbed_browser.widget.indexOf(tab)
         if idx == -1:
-            raise cmdutils.CommandError("Last focused tab vanished!")
+            raise cmdutils.CommandError("Requested tab vanished!")
         self._set_current_index(idx)
 
     def _get_selection_override(self, prev, next_, opposite):
@@ -890,7 +899,7 @@ class CommandDispatcher:
         tabbed_browser.widget.setCurrentWidget(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', choices=['last'])
+    @cmdutils.argument('index', choices=['last', 'next_stack', 'prev_stack'])
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_focus(self, index: typing.Union[str, int] = None,
                   count: int = None, no_last: bool = False) -> None:
@@ -909,8 +918,9 @@ class CommandDispatcher:
         """
         index = count if count is not None else index
 
-        if index == 'last':
-            self._tab_focus_last()
+        if index in {
+                'last', 'next_stack', 'prev_stack'} and isinstance(index, str):
+            self._tab_focus_stack(index)
             return
         elif index is None:
             self.tab_next()
@@ -922,7 +932,7 @@ class CommandDispatcher:
             index = self._count() + index + 1
 
         if not no_last and index == self._current_index() + 1:
-            self._tab_focus_last(show_error=False)
+            self._tab_focus_stack('last', show_error=False)
             return
 
         if 1 <= index <= self._count():
