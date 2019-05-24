@@ -423,7 +423,7 @@ class SessionManager(QObject):
             raise SessionError(e)
 
     def _load_tree(self, tabbed_browser, tree_data):
-        root_data = tree_data.get(1)   # root node always has uid 1
+        root_data = tree_data.get(0)   # root node always has uid 0
         if root_data is None:
             return
         root_node = tabbed_browser.widget.tree_root
