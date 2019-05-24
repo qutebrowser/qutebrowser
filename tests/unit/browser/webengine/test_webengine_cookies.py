@@ -28,7 +28,9 @@ from qutebrowser.utils import urlmatch
 @pytest.fixture
 def filter_request():
     try:
-        return QWebEngineCookieStore.FilterRequest()
+        request = QWebEngineCookieStore.FilterRequest()
+        request.firstPartyUrl = QUrl('https://domain1.com')
+        return request
     except AttributeError:
         pytest.skip("FilterRequest not available")
 
@@ -56,7 +58,6 @@ def test_accept_cookie(config_stub, filter_request, setting, third_party,
 def test_accept_cookie_with_pattern(config_stub, filter_request, setting,
                                     pattern_setting, third_party, accepted):
     """Test that _accept_cookie matches firstPartyUrl with the UrlPattern."""
-    filter_request.firstPartyUrl = QUrl('https://domain1.com')
     filter_request.thirdParty = third_party
     config_stub.set_str('content.cookies.accept', setting)
     config_stub.set_str('content.cookies.accept', pattern_setting,
