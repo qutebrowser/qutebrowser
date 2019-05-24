@@ -116,7 +116,7 @@ class FakeQApplication:
     UNSET = object()
 
     def __init__(self, style=None, all_widgets=None, active_window=None,
-                 instance=UNSET):
+                 instance=UNSET, arguments=None):
 
         if instance is self.UNSET:
             self.instance = mock.Mock(return_value=self)
@@ -128,6 +128,7 @@ class FakeQApplication:
 
         self.allWidgets = lambda: all_widgets
         self.activeWindow = lambda: active_window
+        self.arguments = lambda: arguments
 
 
 class FakeNetworkReply:

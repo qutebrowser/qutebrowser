@@ -33,6 +33,12 @@ from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
 
+MYPY = False
+if MYPY:
+    # pylint: disable=unused-import
+    from qutebrowser.mainwindow import tabbedbrowser
+_ReplacementFunction = typing.Callable[['tabbedbrowser.TabbedBrowser'], str]
+
 
 last_command = {}
 
@@ -47,7 +53,7 @@ class ParseResult:
     cmdline = attr.ib()
 
 
-def _current_url(tabbed_browser):
+def _url(tabbed_browser):
     """Convenience method to get the current url."""
     try:
         return tabbed_browser.current_url()
@@ -59,41 +65,50 @@ def _current_url(tabbed_browser):
         raise cmdutils.CommandError(msg)
 
 
+def _init_variable_replacements() -> typing.Mapping[str, _ReplacementFunction]:
+    """Return a dict from variable replacements to fns processing them."""
+    replacements = {
+        'url': lambda tb: _url(tb).toString(
+            QUrl.FullyEncoded | QUrl.RemovePassword),
+        'url:pretty': lambda tb: _url(tb).toString(
+            QUrl.DecodeReserved | QUrl.RemovePassword),
+        'url:domain': lambda tb: "{}://{}{}".format(
+            _url(tb).scheme(), _url(tb).host(),
+            ":" + str(_url(tb).port()) if _url(tb).port() != -1 else ""),
+        'url:auth': lambda tb: "{}:{}@".format(
+            _url(tb).userName(),
+            _url(tb).password()) if _url(tb).userName() else "",
+        'url:scheme': lambda tb: _url(tb).scheme(),
+        'url:username': lambda tb: _url(tb).userName(),
+        'url:password': lambda tb: _url(tb).password(),
+        'url:host': lambda tb: _url(tb).host(),
+        'url:port': lambda tb: str(
+            _url(tb).port()) if _url(tb).port() != -1 else "",
+        'url:path': lambda tb: _url(tb).path(),
+        'url:query': lambda tb: _url(tb).query(),
+        'title': lambda tb: tb.widget.page_title(tb.widget.currentIndex()),
+        'clipboard': lambda _: utils.get_clipboard(),
+        'primary': lambda _: utils.get_clipboard(selection=True),
+    }  # type: typing.Dict[str, _ReplacementFunction]
+
+    for key in list(replacements):
+        modified_key = '{' + key + '}'
+        # x = modified_key is to avoid binding x as a closure
+        replacements[modified_key] = (
+            lambda _, x=modified_key: x)  # type: ignore
+    return replacements
+
+
+VARIABLE_REPLACEMENTS = _init_variable_replacements()
+# A regex matching all variable replacements
+VARIABLE_REPLACEMENT_PATTERN = re.compile(
+    "{(?P<var>" + "|".join(VARIABLE_REPLACEMENTS.keys()) + ")}")
+
+
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    url = lambda: _current_url(tabbed_browser)
-
-    variables = {
-        'url': lambda: url().toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword),
-        'url:pretty': lambda: url().toString(
-            QUrl.DecodeReserved | QUrl.RemovePassword),
-        'url:domain': lambda: "{}://{}{}".format(
-            url().scheme(),
-            url().host(),
-            ":" + str(url().port()) if url().port() != -1 else ""),
-        'url:auth': lambda: "{}:{}@".format(
-            url().userName(),
-            url().password()) if url().userName() else "",
-        'url:scheme': lambda: url().scheme(),
-        'url:username': lambda: url().userName(),
-        'url:password': lambda: url().password(),
-        'url:host': lambda: url().host(),
-        'url:port': lambda: str(url().port()) if url().port() != -1 else "",
-        'url:path': lambda: url().path(),
-        'url:query': lambda: url().query(),
-        'title': lambda: tabbed_browser.widget.page_title(
-            tabbed_browser.widget.currentIndex()),
-        'clipboard': utils.get_clipboard,
-        'primary': lambda: utils.get_clipboard(selection=True),
-    }
-
-    for key in list(variables):
-        modified_key = '{' + key + '}'
-        variables[modified_key] = lambda x=modified_key: x
-
     values = {}
     args = []
 
@@ -101,16 +116,15 @@ def replace_variables(win_id, arglist):
         """Return replacement for given match."""
         var = matchobj.group("var")
         if var not in values:
-            values[var] = variables[var]()
+            values[var] = VARIABLE_REPLACEMENTS[var](tabbed_browser)
         return values[var]
-    repl_pattern = re.compile("{(?P<var>" + "|".join(variables.keys()) + ")}")
 
     try:
         for arg in arglist:
             # using re.sub with callback function replaces all variables in a
             # single pass and avoids expansion of nested variables (e.g.
             # "{url}" from clipboard is not expanded)
-            args.append(repl_pattern.sub(repl_cb, arg))
+            args.append(VARIABLE_REPLACEMENT_PATTERN.sub(repl_cb, arg))
     except utils.ClipboardError as e:
         raise cmdutils.CommandError(e)
     return args

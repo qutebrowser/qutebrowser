@@ -277,7 +277,9 @@ class ModeManager(QObject):
         """Enter a key mode.
 
         Args:
-            mode: The mode to enter.
+            mode: The mode to enter. See `:help bindings.commands` for the
+                  available modes, but note that hint/command/yesno/prompt mode
+                  can't be entered manually.
         """
         try:
             m = usertypes.KeyMode[mode]

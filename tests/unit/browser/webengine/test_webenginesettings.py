@@ -86,3 +86,7 @@ def test_spell_check_disabled(config_stub, monkeypatch):
     for profile in [webenginesettings.default_profile,
                     webenginesettings.private_profile]:
         assert not profile.isSpellCheckEnabled()
+
+
+def test_default_user_agent_saved():
+    assert webenginesettings.default_user_agent is not None

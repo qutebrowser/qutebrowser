@@ -10,3 +10,7 @@ ways to get help:
 
 https://github.com/qutebrowser/qutebrowser#getting-help
 -->
+
+**Version info (see `:version`)**:
+
+**If applicable: Does the issue happen if you start with `--temp-basedir`?**:

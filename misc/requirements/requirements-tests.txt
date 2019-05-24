@@ -9,21 +9,21 @@ Click==7.0
 # colorama==0.4.1
 coverage==4.5.3
 EasyProcess==0.2.5
-Flask==1.0.2
+Flask==1.0.3
 glob2==0.6
 hunter==2.2.1
-hypothesis==4.21.1
+hypothesis==4.23.6
 itsdangerous==1.1.0
 # Jinja2==2.10
-Mako==1.0.9
+Mako==1.0.10
 # MarkupSafe==1.1.0
 more-itertools==7.0.0
 parse==1.12.0
 parse-type==0.4.2
-pluggy==0.9.0
+pluggy==0.11.0
 py==1.8.0
 py-cpuinfo==5.0.0
-pytest==4.4.1
+pytest==4.5.0
 pytest-bdd==3.1.0
 pytest-benchmark==3.2.2
 pytest-cov==2.7.1
@@ -39,4 +39,4 @@ PyVirtualDisplay==0.2.1
 six==1.12.0
 soupsieve==1.9.1
 vulture==1.0
-Werkzeug==0.15.2
+Werkzeug==0.15.4

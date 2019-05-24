@@ -1340,6 +1340,7 @@ class CommandDispatcher:
             objreg.get('bookmark-manager').delete(url)
         except KeyError:
             raise cmdutils.CommandError("Bookmark '{}' not found!".format(url))
+        message.info("Removed bookmark {}".format(url))
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
