@@ -79,6 +79,7 @@ Fixed
   runs the second command no matter whether the first one succeeded or not.
 - Handling of profiles and private windows (and resulting crashes with Qt
   5.12.2).
+- Fixes for corner-cases when using :navigate increment/decrement.
 
 v1.6.3 (unreleased)
 -------------------
