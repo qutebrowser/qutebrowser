@@ -210,6 +210,7 @@
 |<<hints.dictionary,hints.dictionary>>|Dictionary file to be used by the word hints.
 |<<hints.find_implementation,hints.find_implementation>>|Which implementation to use to find elements to hint.
 |<<hints.hide_unmatched_rapid_hints,hints.hide_unmatched_rapid_hints>>|Hide unmatched hints in rapid mode.
+|<<hints.leave_on_load,hints.leave_on_load>>|Leave hint mode when starting a new page load.
 |<<hints.min_chars,hints.min_chars>>|Minimum number of characters used for hint strings.
 |<<hints.mode,hints.mode>>|Mode to use for hints.
 |<<hints.next_regexes,hints.next_regexes>>|Comma-separated list of regular expressions to use for 'next' links.
@@ -1267,7 +1268,7 @@ Default: +pass:[yellow]+
 === colors.tabs.bar.bg
 Background color of the tab bar.
 
-Type: <<types,QtColor>>
+Type: <<types,QssColor>>
 
 Default: +pass:[#555555]+
 
@@ -2064,7 +2065,7 @@ Valid values:
 
 Default: +pass:[ask]+
 
-This setting is only available with the QtWebKit backend.
+On QtWebEngine, this setting requires Qt 5.13 or newer.
 
 [[content.pdfjs]]
 === content.pdfjs
@@ -2590,6 +2591,14 @@ This setting is only available with the QtWebKit backend.
 [[hints.hide_unmatched_rapid_hints]]
 === hints.hide_unmatched_rapid_hints
 Hide unmatched hints in rapid mode.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
+[[hints.leave_on_load]]
+=== hints.leave_on_load
+Leave hint mode when starting a new page load.
 
 Type: <<types,Bool>>
 

@@ -23,6 +23,8 @@ Added
 
 - New settings:
   * `colors.tabs.pinned.*` to control colors of pinned tabs.
+  * `hints.leave_on_load` which allows disabling leaving of hint mode when a
+    new page is loaded.
 - New commands:
   * `:reverse-selection` (`o` in caret mode) to swap the stationary/moving ends
     of a selection.
@@ -35,6 +37,9 @@ Added
   `window.title_format` got renamed to `{current_title}` (mirroring
   `{current_url}`) in order to not conflict with the new `{title}` commandline
   replacement.
+- New `delete` target for `:hint` which removes the hinted element from
+  the DOM.
+- Support for notifications (shown via system tray) with Qt 5.13.
 
 Changed
 ~~~~~~~
@@ -53,6 +58,9 @@ Changed
 - More detailed error messages when spawning a process failed.
 - The `content.pdfjs` setting now supports domain patterns.
 - Improved process status output with `:spawn -o`.
+- Various performance improvements.
+- The `colors.tabs.bar.bg` setting is now of type `QssColor` and thus supports
+  gradients.
 
 Deprecated
 ~~~~~~~~~~
@@ -69,17 +77,35 @@ Fixed
   (rather than 255), matching the fixed behavior in Qt 5.13.
 - Chaining commands with ;; used to abort with some failing commands. It now
   runs the second command no matter whether the first one succeeded or not.
+- Handling of profiles and private windows (and resulting crashes with Qt
+  5.12.2).
+- Fixes for corner-cases when using :navigate increment/decrement.
 
-v1.6.2 (unreleased)
+v1.6.3 (unreleased)
 -------------------
+
+Fixed
+~~~~~
+
+- Crash when hinting and changing/closing the tab before hints are displayed.
+
+v1.6.2
+------
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now ship with Qt 5.12.3, which includes security fixes
+  up to Chromium 73.0.3683.75.
 
 Fixed
 ~~~~~
 
 - Crash when SQL errors occur while using the completion.
 - Crash when cancelling a download prompt started in an already closed window.
+- Crash when many prompts are opened at the same time.
 - Running without Qt installed now displays a proper error again.
-- High CPU usage when using the keyhint widget with a low delay
+- High CPU usage when using the keyhint widget with a low delay.
 
 v1.6.1
 ------

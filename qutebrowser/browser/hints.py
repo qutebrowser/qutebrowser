@@ -41,7 +41,8 @@ from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 
 Target = enum.Enum('Target', ['normal', 'current', 'tab', 'tab_fg', 'tab_bg',
                               'window', 'yank', 'yank_primary', 'run', 'fill',
-                              'hover', 'download', 'userscript', 'spawn'])
+                              'hover', 'download', 'userscript', 'spawn',
+                              'delete'])
 
 
 class HintingError(Exception):
@@ -147,6 +148,7 @@ class HintContext:
                 download: Download the link.
                 userscript: Call a custom userscript.
                 spawn: Spawn a simple command.
+                delete: Delete the selected element.
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
@@ -327,6 +329,9 @@ class HintActions:
         except userscripts.Error as e:
             raise HintingError(str(e))
 
+    def delete(self, elem, _context):
+        elem.delete()
+
     def spawn(self, url, context):
         """Spawn a simple command from a hint.
 
@@ -371,6 +376,7 @@ class HintManager(QObject):
         Target.download: "Download hint",
         Target.userscript: "Call userscript via hint",
         Target.spawn: "Spawn command via hint",
+        Target.delete: "Delete an element",
     }
 
     def __init__(self, win_id, tab_id, parent=None):
@@ -591,6 +597,18 @@ class HintManager(QObject):
             message.error("No elements found.")
             return
 
+        # Because _start_cb is called asynchronously, it's possible that the
+        # user switched to another tab or closed the tab/window. In that case
+        # we should not start hinting.
+        tabbed_browser = objreg.get('tabbed-browser', default=None,
+                                    scope='window', window=self._win_id)
+        tab = tabbed_browser.widget.currentWidget()
+        if tab.tab_id != self._tab_id:
+            log.hints.debug(
+                "Current tab changed ({} -> {}) before _start_cb is run."
+                .format(self._tab_id, tab.tab_id))
+            return
+
         strings = self._hint_strings(elems)
         log.hints.debug("hints: {}".format(', '.join(strings)))
 
@@ -662,6 +680,7 @@ class HintManager(QObject):
                 - `userscript`: Call a userscript with `$QUTE_URL` set to the
                                 link.
                 - `spawn`: Spawn a command.
+                - `delete`: Delete the selected element.
 
             mode: The hinting mode to use.
 
@@ -888,6 +907,7 @@ class HintManager(QObject):
             # _download needs a QWebElement to get the frame.
             Target.download: self._actions.download,
             Target.userscript: self._actions.call_userscript,
+            Target.delete: self._actions.delete,
         }
         # Handlers which take a QUrl
         url_handlers = {
