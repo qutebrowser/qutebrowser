@@ -620,6 +620,8 @@ def incdec_number(url, incdec, count=1, segments=None):
             continue
 
         setter(url, _get_incdec_value(match, incdec, url, count))
+        qtutils.ensure_valid(url)
+
         return url
 
     raise IncDecError("No number found in URL!", url)
