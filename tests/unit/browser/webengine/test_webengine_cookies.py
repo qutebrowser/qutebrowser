@@ -19,6 +19,7 @@
 
 import pytest
 from PyQt5.QtCore import QUrl
+pytest.importorskip('PyQt5.QtWebEngineCore')
 from PyQt5.QtWebEngineCore import QWebEngineCookieStore
 
 from qutebrowser.browser.webengine import cookies
