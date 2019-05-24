@@ -98,7 +98,6 @@ class Request:
 
         Args:
             url: The QUrl to try to redirect to.
-
         """
         # Will be overridden if the backend supports redirection
         raise RedirectUnsupportedException("Unsupported backend.")

@@ -33,9 +33,10 @@ from qutebrowser.extensions import interceptors
 
 @attr.s
 class WebEngineRequest(interceptors.Request):
-    """Overrides for QtWebEngine."""
 
-    WHITELIST_REQUEST_METHODS = {QByteArray(b'GET'), QByteArray(b'HEAD')}
+    """QtWebEngine-specific request interceptor functionality."""
+
+    _WHITELISTED_REQUEST_METHODS = {QByteArray(b'GET'), QByteArray(b'HEAD')}
 
     _webengine_info = attr.ib(default=None)  # type: QWebEngineUrlRequestInfo
     #: If this request has been redirected already
@@ -51,7 +52,7 @@ class WebEngineRequest(interceptors.Request):
         # Redirecting a request that contains payload data is not allowed.
         # To be safe, abort on any request not in a whitelist.
         if (self._webengine_info.requestMethod()
-                not in WebEngineRequest.WHITELIST_REQUEST_METHODS):
+                not in self._WHITELISTED_REQUEST_METHODS):
             raise interceptors.RedirectFailedException(
                 "Request method does not support redirection.")
         self._webengine_info.redirect(url)
