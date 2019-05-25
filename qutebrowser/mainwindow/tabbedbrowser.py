@@ -387,8 +387,8 @@ class TabbedBrowser(QWidget):
         # Reverse tabs so we don't have to recalculate tab titles over and over
         # Removing first causes [2..-1] to be recomputed
         # Removing the last causes nothing to be recomputed
-        for tab in reversed(self.widgets()):
-            self._remove_tab(tab)
+        for idx, tab in enumerate(reversed(self.widgets())):
+            self._remove_tab(tab, new_undo=idx == 0)
         self.shutting_down.emit()
 
     def tab_close_prompt_if_pinned(
