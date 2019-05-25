@@ -128,7 +128,7 @@ def _buffer(*, win_id_filter=lambda _win_id: True, add_win_id=True):
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
-        if tabbed_browser.shutting_down:
+        if tabbed_browser.is_shutting_down:
             continue
         tabs = []  # type: typing.List[typing.Tuple[str, str, str]]
         for idx in range(tabbed_browser.widget.count()):

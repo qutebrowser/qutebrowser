@@ -160,7 +160,7 @@ class TabbedBrowser(QWidget):
                               tabs.new_tab_position set to 'prev'.
         _tab_insert_idx_right: Same as above, for 'next'.
         _undo_stack: List of lists of UndoEntry objects of closed tabs.
-        shutting_down: Whether we're currently shutting down.
+        is_shutting_down: Whether we're currently shutting down.
         _local_marks: Jump markers local to each page
         _global_marks: Jump markers used across all pages
         default_window_icon: The qutebrowser window icon
@@ -206,7 +206,7 @@ class TabbedBrowser(QWidget):
         self._win_id = win_id
         self._tab_insert_idx_left = 0
         self._tab_insert_idx_right = -1
-        self.shutting_down = False
+        self.is_shutting_down = False
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(
             self.tabopen)  # type: ignore[arg-type]
@@ -381,7 +381,7 @@ class TabbedBrowser(QWidget):
 
     def shutdown(self):
         """Try to shut down all tabs cleanly."""
-        self.shutting_down = True
+        self.is_shutting_down = True
         # Reverse tabs so we don't have to recalculate tab titles over and over
         # Removing first causes [2..-1] to be recomputed
         # Removing the last causes nothing to be recomputed
@@ -822,7 +822,7 @@ class TabbedBrowser(QWidget):
     def _on_current_changed(self, idx):
         """Add prev tab to stack and leave hinting mode when focus changed."""
         mode_on_change = config.val.tabs.mode_on_change
-        if idx == -1 or self.shutting_down:
+        if idx == -1 or self.is_shutting_down:
             # closing the last tab (before quitting) or shutting down
             return
         tab = self.widget.widget(idx)
