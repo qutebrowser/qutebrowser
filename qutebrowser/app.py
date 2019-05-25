@@ -821,6 +821,7 @@ class Application(QApplication):
             Argument namespace from argparse.
         """
         self._last_focus_object = None
+        self._undos = []
 
         qt_args = configinit.qt_args(args)
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
@@ -835,6 +836,24 @@ class Application(QApplication):
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(self.on_focus_object_changed)
         self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+
+        self.new_window.connect(self._on_new_window)
+
+    def _on_new_window(self, window):
+        window.tabbed_browser.shutting_down.connect(
+            functools.partial(self._on_window_closing, window)
+        )
+
+    def _on_window_closing(self, window):
+        self._undos.append(window.tabbed_browser._undo_stack)
+
+    @cmdutils.register(instance='app')
+    def undo_last_window_close(self):
+        # TODO: save geometry too, and private
+        window = mainwindow.MainWindow(private=False)
+        window.show()
+        window.tabbed_browser._undo_stack = self._undos.pop()
+        window.tabbed_browser.undo()
 
     @pyqtSlot(QObject)
     def on_focus_object_changed(self, obj):
