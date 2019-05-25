@@ -480,7 +480,7 @@ class TabbedBrowserStub(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.widget = TabWidgetStub()
-        self.shutting_down = False
+        self.is_shutting_down = False
         self.loaded_url = None
         self.cur_url = None
 
