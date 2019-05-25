@@ -24,6 +24,7 @@ import base64
 import itertools
 import functools
 
+import attr
 from PyQt5.QtCore import (pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
@@ -125,6 +126,16 @@ def get_target_window():
             raise ValueError("Invalid win_mode {}".format(win_mode))
     except objreg.NoWindow:
         return None
+
+
+@attr.s
+class WindowUndoEntry:
+
+    """Information needed for :undo -w."""
+
+    private = attr.ib()
+    geometry = attr.ib()
+    tab_stack = attr.ib()
 
 
 class MainWindow(QWidget):
