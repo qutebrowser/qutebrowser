@@ -182,6 +182,7 @@ class TabbedBrowser(QWidget):
                  arg: The new size.
         current_tab_changed: The current tab changed to the emitted tab.
         new_tab: Emits the new WebView and its index when a new tab is opened.
+        shutting_down: This TabbedBrowser will be deleted soon.
     """
 
     cur_progress = pyqtSignal(int)
@@ -197,6 +198,7 @@ class TabbedBrowser(QWidget):
     resized = pyqtSignal('QRect')
     current_tab_changed = pyqtSignal(browsertab.AbstractTab)
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
+    shutting_down = pyqtSignal()
 
     def __init__(self, *, win_id, private, parent=None):
         if private:
@@ -386,7 +388,8 @@ class TabbedBrowser(QWidget):
         # Removing first causes [2..-1] to be recomputed
         # Removing the last causes nothing to be recomputed
         for tab in reversed(self.widgets()):
-            self._remove_tab(tab, add_undo=False)
+            self._remove_tab(tab)
+        self.shutting_down.emit()
 
     def tab_close_prompt_if_pinned(
             self, tab, force, yes_action,
