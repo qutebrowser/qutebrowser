@@ -53,36 +53,8 @@ class UrlText(textbase.TextBase):
 
     _urltype = None
 
-    STYLESHEET = """
-        QLabel#UrlText[urltype="normal"] {
-            color: {{ conf.colors.statusbar.url.fg }};
-        }
-
-        QLabel#UrlText[urltype="success"] {
-            color: {{ conf.colors.statusbar.url.success.http.fg }};
-        }
-
-        QLabel#UrlText[urltype="success_https"] {
-            color: {{ conf.colors.statusbar.url.success.https.fg }};
-        }
-
-        QLabel#UrlText[urltype="error"] {
-            color: {{ conf.colors.statusbar.url.error.fg }};
-        }
-
-        QLabel#UrlText[urltype="warn"] {
-            color: {{ conf.colors.statusbar.url.warn.fg }};
-        }
-
-        QLabel#UrlText[urltype="hover"] {
-            color: {{ conf.colors.statusbar.url.hover.fg }};
-        }
-    """
-
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setObjectName(self.__class__.__name__)
-        config.set_register_stylesheet(self)
         self._hover_url = None
         self._normal_url = None
         self._normal_url_type = UrlType.normal
@@ -110,7 +82,6 @@ class UrlText(textbase.TextBase):
         else:
             self.setText('')
             self._urltype = UrlType.normal
-        config.set_register_stylesheet(self, update=False)
 
     @pyqtSlot(usertypes.LoadStatus)
     def on_load_status_changed(self, status):

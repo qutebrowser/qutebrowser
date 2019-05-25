@@ -48,19 +48,6 @@ class KeyHintView(QLabel):
         update_geometry: Emitted when this widget should be resized/positioned.
     """
 
-    STYLESHEET = """
-        QLabel {
-            font: {{ conf.fonts.keyhint }};
-            color: {{ conf.colors.keyhint.fg }};
-            background-color: {{ conf.colors.keyhint.bg }};
-            padding: 6px;
-            {% if conf.statusbar.position == 'top' %}
-                border-bottom-right-radius: {{ conf.keyhint.radius }}px;
-            {% else %}
-                border-top-right-radius: {{ conf.keyhint.radius }}px;
-            {% endif %}
-        }
-    """
     update_geometry = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
@@ -72,7 +59,6 @@ class KeyHintView(QLabel):
         self._show_timer = usertypes.Timer(self, 'keyhint_show')
         self._show_timer.timeout.connect(self.show)
         self._show_timer.setSingleShot(True)
-        config.set_register_stylesheet(self)
 
     def __repr__(self):
         return utils.get_repr(self, win_id=self._win_id)

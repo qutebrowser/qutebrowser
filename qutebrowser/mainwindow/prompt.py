@@ -242,41 +242,6 @@ class PromptContainer(QWidget):
         update_geometry: Emitted when the geometry should be updated.
     """
 
-    STYLESHEET = """
-        QWidget#PromptContainer {
-            {% if conf.statusbar.position == 'top' %}
-                border-bottom-left-radius: {{ conf.prompt.radius }}px;
-                border-bottom-right-radius: {{ conf.prompt.radius }}px;
-            {% else %}
-                border-top-left-radius: {{ conf.prompt.radius }}px;
-                border-top-right-radius: {{ conf.prompt.radius }}px;
-            {% endif %}
-        }
-
-        QWidget {
-            font: {{ conf.fonts.prompts }};
-            color: {{ conf.colors.prompts.fg }};
-            background-color: {{ conf.colors.prompts.bg }};
-        }
-
-        QLineEdit {
-            border: {{ conf.colors.prompts.border }};
-        }
-
-        QTreeView {
-            selection-background-color: {{ conf.colors.prompts.selected.bg }};
-            border: {{ conf.colors.prompts.border }};
-        }
-
-        QTreeView::branch {
-            background-color: {{ conf.colors.prompts.bg }};
-        }
-
-        QTreeView::item:selected, QTreeView::item:selected:hover,
-        QTreeView::branch:selected {
-            background-color: {{ conf.colors.prompts.selected.bg }};
-        }
-    """
     update_geometry = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
@@ -286,9 +251,7 @@ class PromptContainer(QWidget):
         self._win_id = win_id
         self._prompt = None
 
-        self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
-        config.set_register_stylesheet(self)
 
         message.global_bridge.prompt_done.connect(self._on_prompt_done)
         prompt_queue.show_prompts.connect(self._on_show_prompts)

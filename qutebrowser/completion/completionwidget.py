@@ -54,53 +54,7 @@ class CompletionView(QTreeView):
     """
 
     # Drawing the item foreground will be done by CompletionItemDelegate, so we
-    # don't define that in this stylesheet.
-    STYLESHEET = """
-        QTreeView {
-            font: {{ conf.fonts.completion.entry }};
-            background-color: {{ conf.colors.completion.even.bg }};
-            alternate-background-color: {{ conf.colors.completion.odd.bg }};
-            outline: 0;
-            border: 0px;
-        }
-
-        QTreeView::item:disabled {
-            background-color: {{ conf.colors.completion.category.bg }};
-            border-top: 1px solid
-                {{ conf.colors.completion.category.border.top }};
-            border-bottom: 1px solid
-                {{ conf.colors.completion.category.border.bottom }};
-        }
-
-        QTreeView::item:selected, QTreeView::item:selected:hover {
-            border-top: 1px solid
-                {{ conf.colors.completion.item.selected.border.top }};
-            border-bottom: 1px solid
-                {{ conf.colors.completion.item.selected.border.bottom }};
-            background-color: {{ conf.colors.completion.item.selected.bg }};
-        }
-
-        QTreeView:item::hover {
-            border: 0px;
-        }
-
-        QTreeView QScrollBar {
-            width: {{ conf.completion.scrollbar.width }}px;
-            background: {{ conf.colors.completion.scrollbar.bg }};
-        }
-
-        QTreeView QScrollBar::handle {
-            background: {{ conf.colors.completion.scrollbar.fg }};
-            border: {{ conf.completion.scrollbar.padding }}px solid
-                    {{ conf.colors.completion.scrollbar.bg }};
-            min-height: 10px;
-        }
-
-        QTreeView QScrollBar::sub-line, QScrollBar::add-line {
-            border: none;
-            background: none;
-        }
-    """
+    # don't define that in the stylesheet for this class.
 
     update_geometry = pyqtSignal()
     selection_changed = pyqtSignal(str)
@@ -116,7 +70,6 @@ class CompletionView(QTreeView):
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
         self.setStyle(QStyleFactory.create('Fusion'))
-        config.set_register_stylesheet(self)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setHeaderHidden(True)
         self.setAlternatingRowColors(True)

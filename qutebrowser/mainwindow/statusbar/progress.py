@@ -30,22 +30,8 @@ class Progress(QProgressBar):
 
     """The progress bar part of the status bar."""
 
-    STYLESHEET = """
-        QProgressBar {
-            border-radius: 0px;
-            border: 2px solid transparent;
-            background-color: transparent;
-            font: {{ conf.fonts.statusbar }};
-        }
-
-        QProgressBar::chunk {
-            background-color: {{ conf.colors.statusbar.progress.bg }};
-        }
-    """
-
     def __init__(self, parent=None):
         super().__init__(parent)
-        config.set_register_stylesheet(self)
         self.enabled = False
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setTextVisible(False)

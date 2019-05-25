@@ -62,22 +62,10 @@ class DownloadView(QListView):
         _model: The currently set model.
     """
 
-    STYLESHEET = """
-        QListView {
-            background-color: {{ conf.colors.downloads.bar.bg }};
-            font: {{ conf.fonts.downloads }};
-        }
-
-        QListView::item {
-            padding-right: 2px;
-        }
-    """
-
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
         if not utils.is_mac:
             self.setStyle(QStyleFactory.create('Fusion'))
-        config.set_register_stylesheet(self)
         self.setResizeMode(QListView.Adjust)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)

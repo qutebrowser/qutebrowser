@@ -127,6 +127,45 @@ def get_target_window():
         return None
 
 
+def _generate_stylesheet_statusbar():
+    flags = [
+        ('private', 'statusbar.private'),
+        ('caret', 'statusbar.caret'),
+        ('caret-selection', 'statusbar.caret.selection'),
+        ('prompt', 'prompts'),
+        ('insert', 'statusbar.insert'),
+        ('command', 'statusbar.command'),
+        ('passthrough', 'statusbar.passthrough'),
+        ('private-command', 'statusbar.command.private'),
+    ]
+    stylesheet = """
+        StatusBar,
+        StatusBar QLabel,
+        StatusBar QLineEdit {
+            font: {{ conf.fonts.statusbar }};
+            color: {{ conf.colors.statusbar.normal.fg }};
+        }
+
+        StatusBar {
+            background-color: {{ conf.colors.statusbar.normal.bg }};
+        }
+    """
+    for flag, option in flags:
+        stylesheet += """
+            StatusBar[color_flags~="%s"],
+            StatusBar[color_flags~="%s"] QLabel,
+            StatusBar[color_flags~="%s"] QLineEdit {
+                color: {{ conf.colors.%s }};
+            }
+
+            StatusBar[color_flags~="%s"] {
+                background-color: {{ conf.colors.%s }};
+            }
+        """ % (flag, flag, flag,  # noqa: S001
+               option + '.fg', flag, option + '.bg')
+    return stylesheet
+
+
 class MainWindow(QWidget):
 
     """The main window of qutebrowser.
@@ -155,7 +194,147 @@ class MainWindow(QWidget):
             padding-left: 3px;
             padding-right: 3px;
         }
-    """
+
+        CompletionView {
+            font: {{ conf.fonts.completion.entry }};
+            background-color: {{ conf.colors.completion.even.bg }};
+            alternate-background-color: {{ conf.colors.completion.odd.bg }};
+            outline: 0;
+            border: 0px;
+        }
+
+        CompletionView::item:disabled {
+            background-color: {{ conf.colors.completion.category.bg }};
+            border-top: 1px solid
+                {{ conf.colors.completion.category.border.top }};
+            border-bottom: 1px solid
+                {{ conf.colors.completion.category.border.bottom }};
+        }
+
+        CompletionView::item:selected, QTreeView::item:selected:hover {
+            border-top: 1px solid
+                {{ conf.colors.completion.item.selected.border.top }};
+            border-bottom: 1px solid
+                {{ conf.colors.completion.item.selected.border.bottom }};
+            background-color: {{ conf.colors.completion.item.selected.bg }};
+        }
+
+        CompletionView:item::hover {
+            border: 0px;
+        }
+
+        CompletionView QScrollBar {
+            width: {{ conf.completion.scrollbar.width }}px;
+            background: {{ conf.colors.completion.scrollbar.bg }};
+        }
+
+        CompletionView QScrollBar::handle {
+            background: {{ conf.colors.completion.scrollbar.fg }};
+            border: {{ conf.completion.scrollbar.padding }}px solid
+                    {{ conf.colors.completion.scrollbar.bg }};
+            min-height: 10px;
+        }
+
+        CompletionView QScrollBar::sub-line, QScrollBar::add-line {
+            border: none;
+            background: none;
+        }
+
+        PromptContainer {
+            {% if conf.statusbar.position == 'top' %}
+                border-bottom-left-radius: {{ conf.prompt.radius }}px;
+                border-bottom-right-radius: {{ conf.prompt.radius }}px;
+            {% else %}
+                border-top-left-radius: {{ conf.prompt.radius }}px;
+                border-top-right-radius: {{ conf.prompt.radius }}px;
+            {% endif %}
+        }
+
+        PromptContainer, PromptContainer QWidget {
+            font: {{ conf.fonts.prompts }};
+            color: {{ conf.colors.prompts.fg }};
+            background-color: {{ conf.colors.prompts.bg }};
+        }
+
+        PromptContainer QLineEdit {
+            border: {{ conf.colors.prompts.border }};
+        }
+
+        PromptContainer QTreeView {
+            selection-background-color: {{ conf.colors.prompts.selected.bg }};
+            border: {{ conf.colors.prompts.border }};
+        }
+
+        PromptContainer QTreeView::branch {
+            background-color: {{ conf.colors.prompts.bg }};
+        }
+
+        PromptContainer QTreeView::item:selected,
+        PromptContainer QTreeView::item:selected:hover,
+        PromptContainer QTreeView::branch:selected {
+            background-color: {{ conf.colors.prompts.selected.bg }};
+        }
+
+        UrlText[urltype="normal"] {
+            color: {{ conf.colors.statusbar.url.fg }};
+        }
+
+        UrlText[urltype="success"] {
+            color: {{ conf.colors.statusbar.url.success.http.fg }};
+        }
+
+        UrlText[urltype="success_https"] {
+            color: {{ conf.colors.statusbar.url.success.https.fg }};
+        }
+
+        UrlText[urltype="error"] {
+            color: {{ conf.colors.statusbar.url.error.fg }};
+        }
+
+        UrlText[urltype="warn"] {
+            color: {{ conf.colors.statusbar.url.warn.fg }};
+        }
+
+        UrlText[urltype="hover"] {
+            color: {{ conf.colors.statusbar.url.hover.fg }};
+        }
+
+        Progress {
+            border-radius: 0px;
+            border: 2px solid transparent;
+            background-color: transparent;
+            font: {{ conf.fonts.statusbar }};
+        }
+
+        Progress::chunk {
+            background-color: {{ conf.colors.statusbar.progress.bg }};
+        }
+
+        TabBar {
+            background-color: {{ conf.colors.tabs.bar.bg }};
+        }
+
+        KeyHintView {
+            font: {{ conf.fonts.keyhint }};
+            color: {{ conf.colors.keyhint.fg }};
+            background-color: {{ conf.colors.keyhint.bg }};
+            padding: 6px;
+            {% if conf.statusbar.position == 'top' %}
+                border-bottom-right-radius: {{ conf.keyhint.radius }}px;
+            {% else %}
+                border-top-right-radius: {{ conf.keyhint.radius }}px;
+            {% endif %}
+        }
+
+        DownloadView {
+            background-color: {{ conf.colors.downloads.bar.bg }};
+            font: {{ conf.fonts.downloads }};
+        }
+
+        DownloadView::item {
+            padding-right: 2px;
+        }
+    """ + _generate_stylesheet_statusbar()
 
     def __init__(self, *, private, geometry=None, parent=None):
         """Create a new main window.

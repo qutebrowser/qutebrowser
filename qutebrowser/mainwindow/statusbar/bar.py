@@ -85,45 +85,6 @@ class ColorFlags:
         return strings
 
 
-def _generate_stylesheet():
-    flags = [
-        ('private', 'statusbar.private'),
-        ('caret', 'statusbar.caret'),
-        ('caret-selection', 'statusbar.caret.selection'),
-        ('prompt', 'prompts'),
-        ('insert', 'statusbar.insert'),
-        ('command', 'statusbar.command'),
-        ('passthrough', 'statusbar.passthrough'),
-        ('private-command', 'statusbar.command.private'),
-    ]
-    stylesheet = """
-        QWidget#StatusBar,
-        QWidget#StatusBar QLabel,
-        QWidget#StatusBar QLineEdit {
-            font: {{ conf.fonts.statusbar }};
-            color: {{ conf.colors.statusbar.normal.fg }};
-        }
-
-        QWidget#StatusBar {
-            background-color: {{ conf.colors.statusbar.normal.bg }};
-        }
-    """
-    for flag, option in flags:
-        stylesheet += """
-            QWidget#StatusBar[color_flags~="%s"],
-            QWidget#StatusBar[color_flags~="%s"] QLabel,
-            QWidget#StatusBar[color_flags~="%s"] QLineEdit {
-                color: {{ conf.colors.%s }};
-            }
-
-            QWidget#StatusBar[color_flags~="%s"] {
-                background-color: {{ conf.colors.%s }};
-            }
-        """ % (flag, flag, flag,  # noqa: S001
-               option + '.fg', flag, option + '.bg')
-    return stylesheet
-
-
 class StatusBar(QWidget):
 
     """The statusbar at the bottom of the mainwindow.
@@ -153,14 +114,10 @@ class StatusBar(QWidget):
     _severity = None
     _color_flags = None
 
-    STYLESHEET = _generate_stylesheet()
-
     def __init__(self, *, win_id, private, parent=None):
         super().__init__(parent)
         objreg.register('statusbar', self, scope='window', window=win_id)
-        self.setObjectName(self.__class__.__name__)
         self.setAttribute(Qt.WA_StyledBackground)
-        config.set_register_stylesheet(self)
 
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Fixed)
 
@@ -299,7 +256,6 @@ class StatusBar(QWidget):
                 # Turning on is handled in on_current_caret_selection_toggled
                 log.statusbar.debug("Setting caret mode off")
                 self._color_flags.caret = ColorFlags.CaretMode.off
-        config.set_register_stylesheet(self, update=False)
 
     def _set_mode_text(self, mode):
         """Set the mode text."""
@@ -385,7 +341,6 @@ class StatusBar(QWidget):
         else:
             self._set_mode_text("caret")
             self._color_flags.caret = ColorFlags.CaretMode.on
-        config.set_register_stylesheet(self, update=False)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.

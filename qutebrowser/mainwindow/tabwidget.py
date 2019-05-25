@@ -375,12 +375,6 @@ class TabBar(QTabBar):
         new_tab_requested: Emitted when a new tab is requested.
     """
 
-    STYLESHEET = """
-        TabBar {
-            background-color: {{ conf.colors.tabs.bar.bg }};
-        }
-    """
-
     new_tab_requested = pyqtSignal()
 
     def __init__(self, win_id, parent=None):
@@ -396,7 +390,6 @@ class TabBar(QTabBar):
         self._on_show_switching_delay_changed()
         self.setAutoFillBackground(True)
         self.drag_in_progress = False
-        config.set_register_stylesheet(self)
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):
