@@ -71,20 +71,20 @@ class Values:
 
     """A collection of values for a single setting.
 
-    Currently, this is a list and iterates through all possible ScopedValues to
-    find matching ones.
+    Currently, we store patterns in two dictionaries for different types of
+    lookups. A ordered, pattern keyed map, and an unordered, domain keyed map.
 
-    In the future, it should be possible to optimize this by doing
-    pre-selection based on hosts, by making this a dict mapping the
-    non-wildcard part of the host to a list of matching ScopedValues.
+    This means that finding a value based on a pattern is fast, and matching
+    url patterns is fast if all domains are unique.
 
-    That way, when searching for a setting for sub.example.com, we only have to
-    check 'sub.example.com', 'example.com', '.com' and '' instead of checking
-    all ScopedValues for the given setting.
+    If there are many patterns under the domain (or subdomain) that is being
+    evaluated, or any patterns that cannot have a concrete domain found, this
+    will become slow again.
 
     Attributes:
         opt: The Option being customized.
         values: A list of ScopedValues to start with.
+
     """
 
     VMAP_KEY = typing.Optional[urlmatch.UrlPattern]
@@ -185,13 +185,10 @@ class Values:
         self._domain_map.clear()
         self._scoped_id = 0
 
-    def _get_fallback(self, fallback: typing.Any) -> typing.Any:
+    def _get_fallback(self, fallback: bool) -> typing.Any:
         """Get the fallback global/default value."""
-        for scoped in self._domain_map.get(None, ()):
-            # We must loop over all patterns here, as a rule with no domain at
-            # all will fall in the 'None' bucket.
-            if scoped.pattern is None:
-                return scoped.value
+        if None in self._vmap:
+            return self._vmap[None].value
 
         if fallback:
             return self.opt.default
@@ -210,11 +207,15 @@ class Values:
         self._check_pattern_support(url)
         candidates = []  # type: typing.List[ScopedValue]
         if url is not None:
+            # We must check the 'None' key as well, in case any patterns that
+            # did not have a domain match.
             widened_hosts = (
                 None,)  # type: typing.Iterable[typing.Optional[str]]
             domains_len = len(self._domain_map)
             if None in self._domain_map:
                 domains_len -= 1
+            # Only compute widened domains if we have any non-domain matches
+            # to possibly hit.
             if domains_len > 0:
                 widened_hosts = itertools.chain(
                     urlutils.widened_hostnames(url.host()),
