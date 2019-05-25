@@ -527,14 +527,21 @@ class Application(QApplication):
         )
 
     def _on_window_closing(self, window):
-        self._undos.append(window.tabbed_browser._undo_stack)
+        self._undos.append(mainwindow.WindowUndoEntry(
+            geometry=window.saveGeometry(),
+            private=window.tabbed_browser.is_private,
+            tab_stack=window.tabbed_browser._undo_stack,
+        ))
 
     @cmdutils.register(instance='app')
     def undo_last_window_close(self):
-        # TODO: save geometry too, and private
-        window = mainwindow.MainWindow(private=False)
+        event = self._undos.pop()
+        window = mainwindow.MainWindow(
+            private=event.private,
+            geometry=event.geometry,
+        )
         window.show()
-        window.tabbed_browser._undo_stack = self._undos.pop()
+        window.tabbed_browser._undo_stack = event.tab_stack
         window.tabbed_browser.undo()
 
     @pyqtSlot(QObject)
