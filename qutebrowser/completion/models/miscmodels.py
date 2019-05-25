@@ -114,7 +114,7 @@ def _buffer(skip_win_id=None):
             continue
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=win_id)
-        if tabbed_browser.shutting_down:
+        if tabbed_browser.is_shutting_down:
             continue
         tabs = []
         for idx in range(tabbed_browser.widget.count()):
