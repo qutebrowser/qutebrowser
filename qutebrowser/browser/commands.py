@@ -834,7 +834,7 @@ class CommandDispatcher:
 
         Args:
             count: How many tabs to switch back.
-            sibling: Whether to focus the previus tree sibling.
+            sibling: Whether to focus the previous tree sibling.
         """
         if self._count() == 0:
             # Running :tab-prev after last tab was closed
