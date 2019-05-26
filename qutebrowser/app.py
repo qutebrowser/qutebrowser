@@ -851,7 +851,6 @@ class Application(QApplication):
             tab_stack=window.tabbed_browser._undo_stack,
         ))
 
-    @cmdutils.register(instance='app')
     def undo_last_window_close(self):
         event = self._undos.pop()
         window = mainwindow.MainWindow(
