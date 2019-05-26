@@ -22,8 +22,9 @@
 import copy
 import contextlib
 import functools
+import re
 import typing
-from typing import Any
+from typing import Any, Optional, FrozenSet
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
@@ -637,14 +638,22 @@ class StyleSheetObserver(QObject):
 
     """Set the stylesheet on the given object and update it on changes.
 
+    Note that if update is turned on and the stylesheet accesses any config
+    option with a syntax different from 'conf.abc.def' (with surrounding
+    spaces) then an explicit option 'options' should be passed to be used as
+    self._options.
+
     Attributes:
         _obj: The object to observe.
         _stylesheet: The stylesheet template to use.
+        _options: The config options that the stylesheet uses. When it's not
+                  necessary to listen for config changes, this attribute may be
+                  missing.
     """
 
     def __init__(self, obj: QObject,
-                 stylesheet: typing.Optional[str],
-                 update: bool) -> None:
+                 stylesheet: Optional[str], update: bool,
+                 options: Optional[FrozenSet[str]] = None) -> None:
         super().__init__()
         self._obj = obj
         self._update = update
@@ -657,6 +666,17 @@ class StyleSheetObserver(QObject):
         else:
             self._stylesheet = stylesheet
 
+        if update:
+            if options is None:
+                # try to guess the used config options by parsing the
+                # stylesheet with a simple regex
+                options = frozenset(re.findall(r' conf.([0-9a-zA-Z_.]*) ',
+                                               self._stylesheet))
+
+            # assert that all of the options exists
+            assert all(instance.get_opt(option) for option in options)
+            self._options = options
+
     def _get_stylesheet(self) -> str:
         """Format a stylesheet based on a template.
 
@@ -665,10 +685,15 @@ class StyleSheetObserver(QObject):
         """
         return _render_stylesheet(self._stylesheet)
 
-    @pyqtSlot()
     def _update_stylesheet(self) -> None:
         """Update the stylesheet for obj."""
         self._obj.setStyleSheet(self._get_stylesheet())
+
+    @pyqtSlot(str)
+    def _update_stylesheet_conditional(self, option: str) -> None:
+        """Update the stylesheet for obj if the option changed affects it."""
+        if option in self._options:
+            self._update_stylesheet()
 
     def register(self) -> None:
         """Do a first update and listen for more."""
@@ -677,4 +702,4 @@ class StyleSheetObserver(QObject):
             "stylesheet for {}: {}".format(self._obj.__class__.__name__, qss))
         self._obj.setStyleSheet(qss)
         if self._update:
-            instance.changed.connect(self._update_stylesheet)
+            instance.changed.connect(self._update_stylesheet_conditional)
