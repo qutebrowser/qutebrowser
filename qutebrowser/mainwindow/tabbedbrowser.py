@@ -497,8 +497,11 @@ class TabbedBrowser(QWidget):
         # Remove unused tab which may be created after the last tab is closed
         last_close = config.val.tabs.last_close
         use_current_tab = False
-        if last_close in ['blank', 'startpage', 'default-page']:
-            only_one_tab_open = self.widget.count() == 1
+        last_close_replaces = last_close in [
+            'blank', 'startpage', 'default-page'
+        ]
+        only_one_tab_open = self.widget.count() == 1
+        if only_one_tab_open and last_close_replaces:
             no_history = len(self.widget.widget(0).history) == 1
             urls = {
                 'blank': QUrl('about:blank'),
