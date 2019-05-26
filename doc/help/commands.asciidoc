@@ -126,7 +126,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<tab-prev,tab-prev>>|Switch to the previous tab, or switch [count] tabs back.
 |<<tab-take,tab-take>>|Take a tab from another window.
 |<<unbind,unbind>>|Unbind a keychain.
-|<<undo,undo>>|Re-open the last closed tab or tabs.
+|<<undo,undo>>|Re-open the last closed tab, window or tabs.
 |<<version,version>>|Show version information.
 |<<view-source,view-source>>|Show the source of the current page in a new tab.
 |<<window-only,window-only>>|Close all windows except for the current one.
@@ -1436,7 +1436,12 @@ Unbind a keychain.
 
 [[undo]]
 === undo
-Re-open the last closed tab or tabs.
+Syntax: +:undo [*--window*]+
+
+Re-open the last closed tab, window or tabs.
+
+==== optional arguments
+* +*-w*+, +*--window*+: Re-open the last closed window (and its tabs).
 
 [[version]]
 === version

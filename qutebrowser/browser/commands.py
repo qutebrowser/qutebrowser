@@ -765,10 +765,18 @@ class CommandDispatcher:
                 text="Are you sure you want to close pinned tabs?")
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def undo(self):
-        """Re-open the last closed tab or tabs."""
+    def undo(self, window: bool = False):
+        """Re-open the last closed tab, window or tabs.
+
+        Args:
+            window: Re-open the last closed window (and its tabs).
+        """
         try:
-            self._tabbed_browser.undo()
+            if window:
+                app = QApplication.instance()
+                app.undo_last_window_close()
+            else:
+                self._tabbed_browser.undo()
         except IndexError:
             raise cmdutils.CommandError("Nothing to undo!")
 
