@@ -896,6 +896,91 @@ Feature: Tab management
             - data/numbers/2.txt
             - data/numbers/3.txt
 
+    # :undo --window
+
+    Scenario: Undo the closing of a window
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I run :close
+        And I run :undo -w
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - active: true
+              tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+
+    Scenario: Undo the closing of a window with multiple tabs
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I open data/numbers/3.txt in a new tab
+        And I run :close
+        And I run :undo -w
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - active: true
+              tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Undo the closing of a window with multiple tabs with undo stack
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I open data/numbers/3.txt in a new tab
+        And I run :tab-close
+        And I run :close
+        And I run :undo -w
+        And I run :undo
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - active: true
+              tabs:
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Undo the closing of a window with tabs are windows
+        When I set tabs.last_close to close
+        And I set tabs.tabs_are_windows to true
+        And I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-close
+        And I run :undo -w
+        Then the session should look like:
+            windows:
+            - tabs:
+              - active: true
+                history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+            - active: true
+              tabs:
+              - active: true
+                history:
+                - url: http://localhost:*/data/numbers/2.txt
+
+
     # tabs.last_close
 
     # FIXME:qtwebengine
