@@ -81,6 +81,7 @@ class UrlText(textbase.TextBase):
         else:
             self.setText('')
             self._urltype = UrlType.normal
+        self.style().polish(self)
 
     @pyqtSlot(usertypes.LoadStatus)
     def on_load_status_changed(self, status):

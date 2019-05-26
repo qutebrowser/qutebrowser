@@ -256,6 +256,7 @@ class StatusBar(QWidget):
                 # Turning on is handled in on_current_caret_selection_toggled
                 log.statusbar.debug("Setting caret mode off")
                 self._color_flags.caret = ColorFlags.CaretMode.off
+        self.style().polish(self)
 
     def _set_mode_text(self, mode):
         """Set the mode text."""
@@ -341,6 +342,7 @@ class StatusBar(QWidget):
         else:
             self._set_mode_text("caret")
             self._color_flags.caret = ColorFlags.CaretMode.on
+        self.style().polish(self)
 
     def resizeEvent(self, e):
         """Extend resizeEvent of QWidget to emit a resized signal afterwards.
