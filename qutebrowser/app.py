@@ -851,8 +851,11 @@ class Application(QApplication):
             tab_stack=window.tabbed_browser._undo_stack,
         ))
 
-    @cmdutils.register(instance='app')
     def undo_last_window_close(self):
+        """Restore the last window to be closed.
+
+        It will have the same tab and undo stack as when it was closed.
+        """
         event = self._undos.pop()
         window = mainwindow.MainWindow(
             private=event.private,
