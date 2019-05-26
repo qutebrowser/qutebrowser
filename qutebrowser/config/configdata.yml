@@ -3099,6 +3099,7 @@ bindings.default:
       k: scroll up
       l: scroll right
       u: undo
+      U: undo -w
       <Ctrl-Shift-T>: undo
       gg: scroll-to-perc 0
       G: scroll-to-perc
