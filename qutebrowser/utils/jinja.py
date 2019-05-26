@@ -21,10 +21,13 @@
 
 import os
 import os.path
+import typing
+import functools
 import contextlib
 import html
 
 import jinja2
+import jinja2.nodes
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import utils, urlutils, log, qtutils
@@ -127,3 +130,33 @@ def render(template, **kwargs):
 
 environment = Environment()
 js_environment = jinja2.Environment(loader=Loader('javascript'))
+
+
+@functools.lru_cache()
+def template_config_variables(template: str) -> typing.FrozenSet[str]:
+    """Return a frozenset of config variables that is used in template."""
+    pending = [environment.parse(template)]  # a list of unvisited nodes
+    result = []  # type: typing.List[str]
+    while pending:
+        node = pending.pop()
+        if isinstance(node, jinja2.nodes.Getattr):
+            # List of attribute names in reverse order.
+            # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
+            attrlist = []  # type: typing.List[str]
+            while True:
+                attrlist.append(node.attr)
+                node = node.node
+                if not isinstance(node, jinja2.nodes.Getattr):
+                    break
+
+            if isinstance(node, jinja2.nodes.Name):
+                if node.name == 'conf':
+                    result.append('.'.join(reversed(attrlist)))
+                # otherwise, the node is a Name node so it doesn't have any
+                # child nodes
+            else:
+                pending.append(node)
+        else:
+            pending.extend(node.iter_child_nodes())
+
+    return frozenset(result)
