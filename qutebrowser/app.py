@@ -162,6 +162,9 @@ def init(args, crash_handler):
         crash_handler: The CrashHandler instance.
     """
     log.init.debug("Starting init...")
+
+    crash_handler.init_faulthandler()
+
     q_app.setQuitOnLastWindowClosed(False)
     _init_icon()
 
@@ -466,16 +469,14 @@ def _init_modules(args, crash_handler):
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
-
-    log.init.debug("Initializing crashlog...")
-    if not args.no_err_windows:
-        crash_handler.handle_segfault()
-
     log.init.debug("Initializing sessions...")
     sessions.init(q_app)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
+
+    if not args.no_err_windows:
+        crash_handler.display_faulthandler()
 
     log.init.debug("Initializing quickmarks...")
     quickmark_manager = urlmarks.QuickmarkManager(q_app)
