@@ -102,6 +102,7 @@ class CrashHandler(QObject):
 
     def display_faulthandler(self):
         """If there was data in the crash log file, display a dialog."""
+        assert not self._args.no_err_windows
         if self._crash_log_data:
             # Crashlog exists and has data in it, so something crashed
             # previously.
@@ -143,7 +144,6 @@ class CrashHandler(QObject):
 
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
-        assert not self._args.no_err_windows
         logname = os.path.join(standarddir.data(), 'crash.log')
         try:
             self._crash_log_file = open(logname, 'w', encoding='ascii')
