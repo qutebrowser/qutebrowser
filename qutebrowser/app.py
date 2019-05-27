@@ -848,7 +848,7 @@ class Application(QApplication):
         self._undos.append(mainwindow.WindowUndoEntry(
             geometry=window.saveGeometry(),
             private=window.tabbed_browser.is_private,
-            tab_stack=window.tabbed_browser._undo_stack,
+            tab_stack=window.tabbed_browser.save_undo_stack(),
         ))
 
     def undo_last_window_close(self):
@@ -862,7 +862,7 @@ class Application(QApplication):
             geometry=event.geometry,
         )
         window.show()
-        window.tabbed_browser._undo_stack = event.tab_stack
+        window.tabbed_browser.restore_undo_stack(event.tab_stack)
         window.tabbed_browser.undo()
 
     @pyqtSlot(QObject)
