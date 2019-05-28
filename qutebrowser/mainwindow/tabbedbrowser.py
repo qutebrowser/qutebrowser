@@ -19,6 +19,7 @@
 
 """The main tabbed browser widget."""
 
+import collections
 import functools
 
 import attr
@@ -131,7 +132,9 @@ class TabbedBrowser(QWidget):
         else:
             self.cur_load_started.connect(self._leave_modes_on_load)
 
-        self._undo_stack = []
+        # This init is never used, it is immediately thrown away in the next line.
+        self._undo_stack = collections.deque()
+        self._update_stack_size()
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
         self.search_text = None
@@ -142,6 +145,13 @@ class TabbedBrowser(QWidget):
         self.is_private = private
         config.instance.changed.connect(self._on_config_changed)
 
+    def _update_stack_size(self):
+        newsize = config.instance.get('tabs.undo_stack_size')
+        if newsize < 0:
+            newsize = None
+        # We can't resize a collections.deque so just recreate it >:(
+        self._undo_stack = collections.deque(self._undo_stack, maxlen=newsize)
+
     def __repr__(self):
         return utils.get_repr(self, count=self.widget.count())
 
@@ -151,6 +161,8 @@ class TabbedBrowser(QWidget):
             self._update_favicons()
         elif option == 'window.title_format':
             self._update_window_title()
+        elif option == 'tabs.undo_stack_size':
+            self._update_stack_size()
         elif option in ['tabs.title.format', 'tabs.title.format_pinned']:
             self.widget.update_tab_titles()
 
