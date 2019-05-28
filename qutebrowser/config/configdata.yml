@@ -1764,6 +1764,14 @@ tabs.pinned.frozen:
     default: True
     desc: Force pinned tabs to stay at fixed URL.
 
+tabs.undo.stack_size:
+  default: 100
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+  desc: Maximum stack size to remember for undos (-1 for no maximum).
+
 tabs.wrap:
   default: true
   type: Bool
