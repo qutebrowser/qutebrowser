@@ -513,7 +513,9 @@ Syntax: +:enter-mode 'mode'+
 Enter a key mode.
 
 ==== positional arguments
-* +'mode'+: The mode to enter.
+* +'mode'+: The mode to enter. See `:help bindings.commands` for the available modes, but note that hint/command/yesno/prompt mode
+ can't be entered manually.
+
 
 [[fake-key]]
 === fake-key

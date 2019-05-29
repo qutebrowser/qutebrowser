@@ -66,6 +66,7 @@ class CrashHandler(QObject):
         _args: The argparse namespace.
         _crash_dialog: The CrashDialog currently being shown.
         _crash_log_file: The file handle for the faulthandler crash log.
+        _crash_log_data: Crash data read from the previous crash log.
     """
 
     def __init__(self, *, app, quitter, args, parent=None):
@@ -74,28 +75,23 @@ class CrashHandler(QObject):
         self._quitter = quitter
         self._args = args
         self._crash_log_file = None
+        self._crash_log_data = None
         self._crash_dialog = None
 
     def activate(self):
         """Activate the exception hook."""
         sys.excepthook = self.exception_hook
 
-    def handle_segfault(self):
-        """Handle a segfault from a previous run."""
+    def init_faulthandler(self):
+        """Handle a segfault from a previous run and set up faulthandler."""
         logname = os.path.join(standarddir.data(), 'crash.log')
         try:
             # First check if an old logfile exists.
             if os.path.exists(logname):
                 with open(logname, 'r', encoding='ascii') as f:
-                    data = f.read()
+                    self._crash_log_data = f.read()
                 os.remove(logname)
                 self._init_crashlogfile()
-                if data:
-                    # Crashlog exists and has data in it, so something crashed
-                    # previously.
-                    self._crash_dialog = crashdialog.FatalCrashDialog(
-                        self._args.debug, data)
-                    self._crash_dialog.show()
             else:
                 # There's no log file, so we can use this to display crashes to
                 # the user on the next start.
@@ -103,6 +99,17 @@ class CrashHandler(QObject):
         except OSError:
             log.init.exception("Error while handling crash log file!")
             self._init_crashlogfile()
+
+    def display_faulthandler(self):
+        """If there was data in the crash log file, display a dialog."""
+        assert not self._args.no_err_windows
+        if self._crash_log_data:
+            # Crashlog exists and has data in it, so something crashed
+            # previously.
+            self._crash_dialog = crashdialog.FatalCrashDialog(
+                self._args.debug, self._crash_log_data)
+            self._crash_dialog.show()
+        self._crash_log_data = None
 
     def _recover_pages(self, forgiving=False):
         """Try to recover all open pages.
@@ -137,7 +144,6 @@ class CrashHandler(QObject):
 
     def _init_crashlogfile(self):
         """Start a new logfile and redirect faulthandler to it."""
-        assert not self._args.no_err_windows
         logname = os.path.join(standarddir.data(), 'crash.log')
         try:
             self._crash_log_file = open(logname, 'w', encoding='ascii')
