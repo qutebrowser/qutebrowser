@@ -23,6 +23,8 @@ Added
 
 - New settings:
   * `colors.tabs.pinned.*` to control colors of pinned tabs.
+  * `hints.leave_on_load` which allows disabling leaving of hint mode when a
+    new page is loaded.
 - New commands:
   * `:reverse-selection` (`o` in caret mode) to swap the stationary/moving ends
     of a selection.
@@ -37,6 +39,7 @@ Added
   replacement.
 - New `delete` target for `:hint` which removes the hinted element from
   the DOM.
+- Support for notifications (shown via system tray) with Qt 5.13.
 
 Changed
 ~~~~~~~
@@ -55,6 +58,9 @@ Changed
 - More detailed error messages when spawning a process failed.
 - The `content.pdfjs` setting now supports domain patterns.
 - Improved process status output with `:spawn -o`.
+- Various performance improvements.
+- The `colors.tabs.bar.bg` setting is now of type `QssColor` and thus supports
+  gradients.
 
 Deprecated
 ~~~~~~~~~~
@@ -71,6 +77,17 @@ Fixed
   (rather than 255), matching the fixed behavior in Qt 5.13.
 - Chaining commands with ;; used to abort with some failing commands. It now
   runs the second command no matter whether the first one succeeded or not.
+- Handling of profiles and private windows (and resulting crashes with Qt
+  5.12.2).
+- Fixes for corner-cases when using :navigate increment/decrement.
+
+v1.6.3 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Crash when hinting and changing/closing the tab before hints are displayed.
 
 v1.6.2
 ------

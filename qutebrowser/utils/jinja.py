@@ -27,7 +27,7 @@ import html
 import jinja2
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlutils, log
+from qutebrowser.utils import utils, urlutils, log, qtutils
 
 
 html_fallback = """
@@ -85,6 +85,7 @@ class Environment(jinja2.Environment):
         self.globals['resource_url'] = self._resource_url
         self.globals['file_url'] = urlutils.file_url
         self.globals['data_url'] = self._data_url
+        self.globals['qcolor_to_qsscolor'] = qtutils.qcolor_to_qsscolor
         self._autoescape = True
 
     @contextlib.contextmanager

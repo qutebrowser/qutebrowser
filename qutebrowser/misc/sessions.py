@@ -423,7 +423,7 @@ class SessionManager(QObject):
             raise SessionError(e)
 
     def _load_tree(self, tabbed_browser, tree_data):
-        root_data = tree_data.get(1)   # root node always has uid 1
+        root_data = tree_data.get(0)   # root node always has uid 0
         if root_data is None:
             return
         root_node = tabbed_browser.widget.tree_root
@@ -448,7 +448,7 @@ class SessionManager(QObject):
             child.parent = root_node
 
     def _load_window(self, win):
-        """Create a window and fill it with tabs from session data."""
+        """Turn yaml data into windows."""
         window = mainwindow.MainWindow(geometry=win['geometry'],
                                        private=win.get('private', None))
         window.show()
@@ -501,8 +501,14 @@ class SessionManager(QObject):
         if data is None:
             raise SessionError("Got empty session file")
 
+        if qtutils.is_single_process():
+            if any(win.get('private') for win in data['windows']):
+                raise SessionError("Can't load a session with private windows "
+                                   "in single process mode.")
+
         for win in data['windows']:
             self._load_window(win)
+
         if data['windows']:
             self.did_load = True
         if not name.startswith('_') and not temp:

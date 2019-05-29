@@ -834,7 +834,7 @@ class CommandDispatcher:
 
         Args:
             count: How many tabs to switch back.
-            sibling: Whether to focus the previus tree sibling.
+            sibling: Whether to focus the previous tree sibling.
         """
         if self._count() == 0:
             # Running :tab-prev after last tab was closed
@@ -1340,6 +1340,7 @@ class CommandDispatcher:
             objreg.get('bookmark-manager').delete(url)
         except KeyError:
             raise cmdutils.CommandError("Bookmark '{}' not found!".format(url))
+        message.info("Removed bookmark {}".format(url))
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')

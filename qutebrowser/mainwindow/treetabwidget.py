@@ -48,7 +48,7 @@ class TreeTabWidget(TabWidget):
         fields = super().get_tab_fields(idx)
 
         tab = self.widget(idx)
-        fields['collapsed'] = ' [...] ' if tab.node.collapsed else ''
+        fields['collapsed'] = '[...] ' if tab.node.collapsed else ''
 
         # we remove the first two chars because every tab is child of tree
         # root and that gets rendered as well

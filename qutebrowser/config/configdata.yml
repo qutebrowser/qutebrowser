@@ -661,7 +661,9 @@ content.notifications:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend: QtWebKit
+  backend:
+    QtWebEngine: Qt 5.13
+    QtWebKit: true
   desc: Allow websites to show notifications.
 
 content.pdfjs:
@@ -1201,6 +1203,11 @@ hints.uppercase:
   default: false
   type: Bool
   desc: Make characters in hint strings uppercase.
+
+hints.leave_on_load:
+  default: true
+  type: Bool
+  desc: Leave hint mode when starting a new page load.
 
 ## input
 
@@ -2294,7 +2301,7 @@ colors.statusbar.url.warn.fg:
 
 colors.tabs.bar.bg:
   default: '#555555'
-  type: QtColor
+  type: QssColor
   desc: Background color of the tab bar.
 
 colors.tabs.indicator.start:
