@@ -1024,7 +1024,11 @@ class AbstractTab(QWidget):
         self.zoom.reapply()
 
     def _update_load_status(self, ok: bool) -> None:
-        """Update the load status after a page finished loading."""
+        """Update the load status after a page finished loading.
+
+        Needs to be called by subclasses to trigger a load status update, e.g.
+        as a response to a loadFinished signal.
+        """
         if ok and not self._has_ssl_errors:
             if self.url().scheme() == 'https':
                 self._set_load_status(usertypes.LoadStatus.success_https)
