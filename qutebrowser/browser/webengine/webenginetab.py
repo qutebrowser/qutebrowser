@@ -1380,10 +1380,6 @@ class WebEngineTab(browsertab.AbstractTab):
                 emit_before_load_started=False))
             self._reload_url = None
 
-        # In general, this is handled by Qt, but when loading takes long,
-        # the old icon is still displayed.
-        self.icon_changed.emit(QIcon())
-
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
         self._has_ssl_errors = True
