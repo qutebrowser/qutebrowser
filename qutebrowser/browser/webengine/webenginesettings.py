@@ -55,9 +55,9 @@ class _SettingsWrapper:
 
     def _settings(self):
         if private_profile:
-            return default_profile.settings(), private_profile.settings()
+            return (default_profile.settings(), private_profile.settings())
         else:
-            return default_profile.settings()
+            return (default_profile.settings(),)
 
     def setAttribute(self, *args, **kwargs):
         for settings in self._settings():
