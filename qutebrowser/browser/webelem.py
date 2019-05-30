@@ -49,7 +49,8 @@ class OrphanedError(Error):
 
 
 SPECIAL_SELECTOR_MAP = {
-    "__qute_scrollable": "scrollable"
+    "__qute_scrollable": "scrollable",
+    "__qute_event_listener": "eventlistener",
 }
 
 

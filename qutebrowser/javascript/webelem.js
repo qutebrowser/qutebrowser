@@ -226,7 +226,6 @@ window._qutebrowser.webelem = (function() {
         return null;
     }
 
-
     // Return elements that are scrollable
     function find_scrollable(only_visible) {
         let scrollable_elts = [];
@@ -256,9 +255,10 @@ window._qutebrowser.webelem = (function() {
 
     // Find and serialize elements matching a css selector (and/or special hint
     // categories as well)
-    funcs.find_css = (selector, only_visible, special_classes = []) => {
+    funcs.find_css = (selector_c, only_visible, special_classes = []) => {
         let elems;
 
+        let selector = selector_c;
         const subelem_frames = window.frames;
         const selector_out = [];
         let special_out = [];
@@ -267,6 +267,13 @@ window._qutebrowser.webelem = (function() {
             switch (classStr) {
             case "scrollable":
                 special_out = find_scrollable(only_visible);
+                break;
+            case "eventlistener":
+                if (selector) {
+                    selector += ",.__qute_has_onclick_listener";
+                } else {
+                    selector = ".__qute_has_onclick_listener";
+                }
                 break;
             default:
                 // Unknown special class, ignore for now.

@@ -622,6 +622,14 @@ content.javascript.prompt:
   type: Bool
   desc: Show javascript prompts.
 
+content.javascript.injection:
+  default: true
+  type: Bool
+  desc: >-
+    Enable qutebrowser injection of js into the main world.
+
+    This may break some sites, but is needed for some features.
+
 content.local_content_can_access_remote_urls:
   default: false
   type: Bool
@@ -1186,6 +1194,8 @@ hints.selectors:
       - 'input[type="week"]'
       - 'input:not([type])'
       - 'textarea'
+    event-listener:
+      - '__qute_event_listener'
     scrollable:
       - '__qute_scrollable'
   type:
