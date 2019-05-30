@@ -642,7 +642,7 @@ class StyleSheetObserver(QObject):
         _stylesheet: The stylesheet template to use.
         _options: The config options that the stylesheet uses. When it's not
                   necessary to listen for config changes, this attribute may be
-                  missing.
+                  None.
     """
 
     def __init__(self, obj: QObject,
@@ -661,10 +661,12 @@ class StyleSheetObserver(QObject):
 
         if update:
             self._options = jinja.template_config_variables(
-                self._stylesheet)  # type: FrozenSet[str]
+                self._stylesheet)  # type: Optional[FrozenSet[str]]
 
-            # assert that all of the options exists
+            # assert that all options exist
             assert all(instance.get_opt(option) for option in self._options)
+        else:
+            self._options = None
 
     def _get_stylesheet(self) -> str:
         """Format a stylesheet based on a template.
@@ -674,15 +676,11 @@ class StyleSheetObserver(QObject):
         """
         return _render_stylesheet(self._stylesheet)
 
-    def _update_stylesheet(self) -> None:
-        """Update the stylesheet for obj."""
-        self._obj.setStyleSheet(self._get_stylesheet())
-
     @pyqtSlot(str)
-    def _update_stylesheet_conditional(self, option: str) -> None:
+    def _maybe_update_stylesheet(self, option: str) -> None:
         """Update the stylesheet for obj if the option changed affects it."""
         if option in self._options:
-            self._update_stylesheet()
+            self._obj.setStyleSheet(self._get_stylesheet())
 
     def register(self) -> None:
         """Do a first update and listen for more."""
@@ -691,4 +689,4 @@ class StyleSheetObserver(QObject):
             "stylesheet for {}: {}".format(self._obj.__class__.__name__, qss))
         self._obj.setStyleSheet(qss)
         if self._update:
-            instance.changed.connect(self._update_stylesheet_conditional)
+            instance.changed.connect(self._maybe_update_stylesheet)

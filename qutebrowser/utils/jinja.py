@@ -134,29 +134,30 @@ js_environment = jinja2.Environment(loader=Loader('javascript'))
 
 @functools.lru_cache()
 def template_config_variables(template: str) -> typing.FrozenSet[str]:
-    """Return a frozenset of config variables that is used in template."""
-    pending = [environment.parse(template)]  # a list of unvisited nodes
+    """Return the config variables used in the template."""
+    unvisted_nodes = [environment.parse(template)]
     result = []  # type: typing.List[str]
-    while pending:
-        node = pending.pop()
-        if isinstance(node, jinja2.nodes.Getattr):
-            # List of attribute names in reverse order.
-            # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
-            attrlist = []  # type: typing.List[str]
-            while True:
-                attrlist.append(node.attr)
-                node = node.node
-                if not isinstance(node, jinja2.nodes.Getattr):
-                    break
+    while unvisted_nodes:
+        node = unvisted_nodes.pop()
+        if not isinstance(node, jinja2.nodes.Getattr):
+            unvisted_nodes.extend(node.iter_child_nodes())
+            continue
 
-            if isinstance(node, jinja2.nodes.Name):
-                if node.name == 'conf':
-                    result.append('.'.join(reversed(attrlist)))
-                # otherwise, the node is a Name node so it doesn't have any
-                # child nodes
-            else:
-                pending.append(node)
+        # List of attribute names in reverse order.
+        # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
+        attrlist = []  # type: typing.List[str]
+        while True:
+            attrlist.append(node.attr)
+            node = node.node
+            if not isinstance(node, jinja2.nodes.Getattr):
+                break
+
+        if isinstance(node, jinja2.nodes.Name):
+            if node.name == 'conf':
+                result.append('.'.join(reversed(attrlist)))
+            # otherwise, the node is a Name node so it doesn't have any
+            # child nodes
         else:
-            pending.extend(node.iter_child_nodes())
+            unvisted_nodes.append(node)
 
     return frozenset(result)
