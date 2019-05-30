@@ -1982,12 +1982,17 @@ colors.completion.item.selected.bg:
 colors.completion.item.selected.border.top:
   default: '#bbbb00'
   type: QssColor
-  desc: Top border color of the completion widget category headers.
+  desc: Top border color of the selected completion item.
 
 colors.completion.item.selected.border.bottom:
   default: '#bbbb00'
   type: QssColor
   desc: Bottom border color of the selected completion item.
+
+colors.completion.item.selected.match.fg:
+  default: '#ff4444'
+  type: QtColor
+  desc: Foreground color of the matched text in the selected completion item.
 
 colors.completion.match.fg:
   default: '#ff4444'
