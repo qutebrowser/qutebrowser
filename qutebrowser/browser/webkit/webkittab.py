@@ -791,6 +791,11 @@ class WebKitTab(browsertab.AbstractTab):
         # Make sure the icon is cleared when navigating to a page without one.
         self.icon_changed.emit(QIcon())
 
+    @pyqtSlot(bool)
+    def _on_load_finished(self, ok: bool) -> None:
+        super()._on_load_finished(ok)
+        self._update_load_status(ok)
+
     @pyqtSlot()
     def _on_frame_load_finished(self):
         """Make sure we emit an appropriate status when loading finished.

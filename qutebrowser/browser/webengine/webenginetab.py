@@ -1103,14 +1103,10 @@ class WebEngineTab(browsertab.AbstractTab):
     """A QtWebEngine tab in the browser.
 
     Signals:
-        _load_finished_fake:
-            Used in place of unreliable loadFinished
         abort_questions: Emitted when a new load started or we're shutting
             down.
     """
 
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-    _load_finished_fake = pyqtSignal(bool)
     abort_questions = pyqtSignal()
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
@@ -1349,24 +1345,6 @@ class WebEngineTab(browsertab.AbstractTab):
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)
 
-    @pyqtSlot(int)
-    def _on_load_progress_workaround(self, perc):
-        """Use loadProgress(100) to emit loadFinished(True).
-
-        See https://bugreports.qt.io/browse/QTBUG-65223
-        """
-        if perc == 100 and self.load_status() != usertypes.LoadStatus.error:
-            self._load_finished_fake.emit(True)
-
-    @pyqtSlot(bool)
-    def _on_load_finished_workaround(self, ok):
-        """Use only loadFinished(False).
-
-        See https://bugreports.qt.io/browse/QTBUG-65223
-        """
-        if not ok:
-            self._load_finished_fake.emit(False)
-
     def _error_page_workaround(self, html):
         """Check if we're displaying a Chromium error page.
 
@@ -1382,10 +1360,30 @@ class WebEngineTab(browsertab.AbstractTab):
             return
         self._show_error_page(self.url(), error=match.group(1))
 
+    @pyqtSlot(int)
+    def _on_load_progress(self, perc: int) -> None:
+        """QtWebEngine-specific loadProgress workarounds.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        """
+        super()._on_load_progress(perc)
+        if (perc == 100 and
+                qtutils.version_check('5.10', compiled=False) and
+                self.load_status() != usertypes.LoadStatus.error):
+            self._update_load_status(ok=True)
+
     @pyqtSlot(bool)
-    def _on_load_finished(self, ok):
-        """Display a static error page if JavaScript is disabled."""
+    def _on_load_finished(self, ok: bool) -> None:
+        """QtWebEngine-specific loadFinished workarounds."""
         super()._on_load_finished(ok)
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        if qtutils.version_check('5.10', compiled=False):
+            if not ok:
+                self._update_load_status(ok)
+        else:
+            self._update_load_status(ok)
+
         js_enabled = self.settings.test_attribute('content.javascript.enabled')
         if not ok and not js_enabled:
             self.dump_async(self._error_page_workaround)
@@ -1399,13 +1397,6 @@ class WebEngineTab(browsertab.AbstractTab):
                 self.load_url, self._reload_url,
                 emit_before_load_started=False))
             self._reload_url = None
-
-        if not qtutils.version_check('5.10', compiled=False):
-            # We can't do this when we have the loadFinished workaround as that
-            # sometimes clears icons without loading a new page.
-            # In general, this is handled by Qt, but when loading takes long,
-            # the old icon is still displayed.
-            self.icon_changed.emit(QIcon())
 
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
@@ -1546,19 +1537,10 @@ class WebEngineTab(browsertab.AbstractTab):
         view.renderProcessTerminated.connect(
             self._on_render_process_terminated)
         view.iconChanged.connect(self.icon_changed)
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        if qtutils.version_check('5.10', compiled=False):
-            page.loadProgress.connect(self._on_load_progress_workaround)
-            self._load_finished_fake.connect(self._on_history_trigger)
-            self._load_finished_fake.connect(self._restore_zoom)
-            self._load_finished_fake.connect(self._on_load_finished)
-            page.loadFinished.connect(self._on_load_finished_workaround)
-        else:
-            # for older Qt versions which break with the above
-            page.loadProgress.connect(self._on_load_progress)
-            page.loadFinished.connect(self._on_history_trigger)
-            page.loadFinished.connect(self._restore_zoom)
-            page.loadFinished.connect(self._on_load_finished)
+
+        page.loadFinished.connect(self._on_history_trigger)
+        page.loadFinished.connect(self._restore_zoom)
+        page.loadFinished.connect(self._on_load_finished)
 
         self.before_load_started.connect(self._on_before_load_started)
         self.shutting_down.connect(self.abort_questions)

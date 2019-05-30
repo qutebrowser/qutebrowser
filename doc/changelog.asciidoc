@@ -71,6 +71,9 @@ Deprecated
 Fixed
 ~~~~~
 
+- Various QtWebEngine load signals are now handled differently, which should
+  fix issues with insert mode being left while typing on sites like Google
+  Translate.
 - Race condition causing a colored statusbar in normal mode when
   entering/exiting caret mode quickly.
 - Using `100%` for a hue in a `hsv(...)` config value now corresponds to 359

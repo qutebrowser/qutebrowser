@@ -122,9 +122,15 @@ class TabbedBrowser(QWidget):
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(self.tabopen)
         self.widget.currentChanged.connect(self.on_current_changed)
-        self.cur_load_started.connect(self.on_cur_load_started)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        if qtutils.version_check('5.10', compiled=False):
+            self.cur_load_finished.connect(self._leave_modes_on_load)
+        else:
+            self.cur_load_started.connect(self._leave_modes_on_load)
+
         self._undo_stack = []
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
@@ -586,7 +592,7 @@ class TabbedBrowser(QWidget):
             self._update_window_title()
 
     @pyqtSlot()
-    def on_cur_load_started(self):
+    def _leave_modes_on_load(self):
         """Leave insert/hint mode when loading started."""
         try:
             url = self.current_url()
