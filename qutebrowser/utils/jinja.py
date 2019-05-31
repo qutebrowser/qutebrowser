@@ -160,4 +160,7 @@ def template_config_variables(template: str) -> typing.FrozenSet[str]:
         else:
             unvisted_nodes.append(node)
 
+    from qutebrowser.config import config
+    assert all(config.instance.has_opt(option) for option in result)
+
     return frozenset(result)

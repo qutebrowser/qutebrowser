@@ -669,9 +669,6 @@ class StyleSheetObserver(QObject):
         if update:
             self._options = jinja.template_config_variables(
                 self._stylesheet)  # type: Optional[FrozenSet[str]]
-
-            # assert that all options exist
-            assert all(instance.get_opt(option) for option in self._options)
         else:
             self._options = None
 
