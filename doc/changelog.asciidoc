@@ -25,6 +25,8 @@ Added
   * `colors.tabs.pinned.*` to control colors of pinned tabs.
   * `hints.leave_on_load` which allows disabling leaving of hint mode when a
     new page is loaded.
+  * `colors.completion.item.selected.match.fg` which allows configuring the
+    text color for the matching text in the currently selected completion item.
 - New commands:
   * `:reverse-selection` (`o` in caret mode) to swap the stationary/moving ends
     of a selection.
