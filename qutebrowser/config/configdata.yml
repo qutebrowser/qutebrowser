@@ -1576,6 +1576,12 @@ tabs.new_position.tree.new_child:
   desc: >-
     Position of new children among siblings.
 
+tabs.new_position.tree.new_sibling:
+  default: first
+  type: NewTabPosition
+  desc: >-
+    Position of new siblings.
+
 tabs.new_position.tree.new_toplevel:
   default: last
   type: NewTabPosition

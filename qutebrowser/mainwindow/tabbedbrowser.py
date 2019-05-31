@@ -453,7 +453,7 @@ class TabbedBrowser(QWidget):
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
     @pyqtSlot('QUrl', bool, bool)
-    def tabopen(self, url=None, background=None, related=True, idx=None, *,
+    def tabopen(self, url=None, background=None, related=True, sibling=False, idx=None, *,
                 ignore_tabs_are_windows=False):
         """Open a new tab with a given URL.
 
@@ -474,6 +474,7 @@ class TabbedBrowser(QWidget):
             idx: The index where the new tab should be opened.
             ignore_tabs_are_windows: If given, never open a new window, even
                                      with tabs.tabs_are_windows set.
+            sibling: Ignored here, used in TreeTabbedBrowser.
 
         Return:
             The opened WebView instance.

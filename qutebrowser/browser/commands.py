@@ -111,7 +111,7 @@ class CommandDispatcher:
         return widget
 
     def _open(self, url, tab=False, background=False, window=False,
-              related=False, private=None):
+              related=False, sibling=False, private=None):
         """Helper function to open a page.
 
         Args:
@@ -121,6 +121,7 @@ class CommandDispatcher:
             window: Whether to open in a new window
             private: If opening a new window, open it in private browsing mode.
                      If not given, inherit the current window's mode.
+            sibling: Open tab in a sibling node of the currently focused tab.
         """
         urlutils.raise_cmdexc_if_invalid(url)
         tabbed_browser = self._tabbed_browser
@@ -131,10 +132,16 @@ class CommandDispatcher:
         if window or private:
             tabbed_browser = self._new_tabbed_browser(private)
             tabbed_browser.tabopen(url)
-        elif tab:
-            tabbed_browser.tabopen(url, background=False, related=related)
-        elif background:
-            tabbed_browser.tabopen(url, background=True, related=related)
+        elif tab or background:
+            if tabbed_browser.is_treetabbedbrowser:
+                tabbed_browser.tabopen(url, background=background,
+                                    related=related, sibling=sibling)
+            elif sibling:
+                raise cmdutils.CommandError("--sibling flag only works with \
+                                            tree-tab enabled")
+            else:
+                tabbed_browser.tabopen(url, background=background,
+                                    related=related)
         else:
             widget = self._current_widget()
             widget.load_url(url)
@@ -296,8 +303,9 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', name='open',
                        maxsplit=0, scope='window')
     @cmdutils.argument('url', completion=urlmodel.url)
+    @cmdutils.argument('sibling', flag='S')
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def openurl(self, url=None, related=False,
+    def openurl(self, url=None, related=False, sibling=False,
                 bg=False, tab=False, window=False, count=None, secure=False,
                 private=False):
         """Open a URL in the current/[count]th tab.
@@ -311,6 +319,8 @@ class CommandDispatcher:
             window: Open in a new window.
             related: If opening a new tab, position the tab as related to the
                      current one (like clicking on a link).
+            sibling: If opening a new tab, position the as a sibling of the
+                     current one.
             count: The tab index to open the URL in, or None.
             secure: Force HTTPS.
             private: Open a new window in private browsing mode.
@@ -328,8 +338,8 @@ class CommandDispatcher:
                 bg = True
 
             if tab or bg or window or private:
-                self._open(cur_url, tab, bg, window, related=related,
-                           private=private)
+                self._open(cur_url, tab, bg, window, private=private,
+                           related=related, sibling=sibling)
             else:
                 curtab = self._cntwidget(count)
                 if curtab is None:
@@ -996,7 +1006,7 @@ class CommandDispatcher:
                    Negative indices count from the end, such that -1 is the
                    last tab.
             count: The tab index to focus, starting with 1.
-            parent: If given, focus parent (in a tree) of current tab.
+            parent: If given, focus parent (in a tree) of current tab
             no_last: Whether to avoid focusing last tab if already focused.
         """
         index = count if count is not None else index

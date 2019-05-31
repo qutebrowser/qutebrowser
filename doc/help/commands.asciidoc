@@ -857,7 +857,8 @@ Do nothing.
 
 [[open]]
 === open
-Syntax: +:open [*--related*] [*--bg*] [*--tab*] [*--window*] [*--secure*] [*--private*]
+Syntax: +:open [*--related*] [*--sibling*] [*--bg*] [*--tab*] [*--window*] [*--secure*]
+     [*--private*]
      ['url']+
 
 Open a URL in the current/[count]th tab.
@@ -869,6 +870,8 @@ If the URL contains newlines, each line gets opened in its own tab.
 
 ==== optional arguments
 * +*-r*+, +*--related*+: If opening a new tab, position the tab as related to the current one (like clicking on a link).
+
+* +*-S*+, +*--sibling*+: If opening a new tab, position the as a sibling of the current one.
 
 * +*-b*+, +*--bg*+: Open in a new background tab.
 * +*-t*+, +*--tab*+: Open in a new tab.
@@ -1330,7 +1333,7 @@ If neither count nor index are given, it behaves like tab-next. If both are give
 
 ==== optional arguments
 * +*-n*+, +*--no-last*+: Whether to avoid focusing last tab if already focused.
-* +*-p*+, +*--parent*+: If given, focus parent (in a tree) of current tab.
+* +*-p*+, +*--parent*+: If given, focus parent (in a tree) of current tab
 
 ==== count
 The tab index to focus, starting with 1.

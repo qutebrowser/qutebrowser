@@ -196,8 +196,8 @@ class TreeTabbedBrowser(TabbedBrowser):
     @pyqtSlot('QUrl')
     @pyqtSlot('QUrl', bool)
     @pyqtSlot('QUrl', bool, bool)
-    def tabopen(self, url=None, background=None, related=True, idx=None, *,
-                ignore_tabs_are_windows=False):
+    def tabopen(self, url=None, background=None, related=True, sibling=False,
+                idx=None, *, ignore_tabs_are_windows=False):
         # we save this now because super.tabopen also resets the focus
         cur_tab = self.widget.currentWidget()
         tab = super().tabopen(url, background, related, idx,
@@ -205,18 +205,31 @@ class TreeTabbedBrowser(TabbedBrowser):
 
         tab.node.parent = self.widget.tree_root
         if cur_tab is not None:
-            if related:
-                pos = config.val.tabs.new_position.tree.new_child
+            if related or sibling:
+                if related:
+                    pos = config.val.tabs.new_position.tree.new_child
+                    # pos can only be first, last
+                else:
+                    pos = config.val.tabs.new_position.tree.new_sibling
+                    # pos can be first, last, prev, next
                 if tab is not cur_tab:  # check we're not opening first tab
-                    parent = cur_tab.node
+                    parent = cur_tab.node.parent if sibling else cur_tab.node
                     siblings = list(parent.children)
-                    if pos in ['first', 'prev']:
+                    if pos == 'first':
                         rel_idx = 0
                         if config.val.tabs.new_position.stacking:
                             rel_idx += self._tree_tab_insert_rel_idx
                             self._tree_tab_insert_rel_idx += 1
                         siblings.insert(rel_idx, tab.node)
-                    else:
+                    elif pos in ['prev', 'next'] and sibling:
+                        direction = -1 if pos == 'prev' else 1
+                        rel_idx = 0 if pos == 'prev' else 1
+                        tgt_idx = siblings.index(cur_tab.node) + rel_idx
+                        if config.val.tabs.new_position.stacking:
+                            tgt_idx += self._tree_tab_insert_rel_idx
+                            self._tree_tab_insert_rel_idx += direction
+                        siblings.insert(tgt_idx, tab.node)
+                    else:  # position == 'last'
                         siblings.append(tab.node)
                     parent.children = siblings
             else:

@@ -271,6 +271,7 @@
 |<<tabs.new_position.stacking,tabs.new_position.stacking>>|Stack related tabs on top of each other when opened consecutively.
 |<<tabs.new_position.tree.demote,tabs.new_position.tree.demote>>|Position of new tabs which are not opened from another tab.
 |<<tabs.new_position.tree.new_child,tabs.new_position.tree.new_child>>|Position of new children among siblings.
+|<<tabs.new_position.tree.new_sibling,tabs.new_position.tree.new_sibling>>|Position of new siblings.
 |<<tabs.new_position.tree.new_toplevel,tabs.new_position.tree.new_toplevel>>|Position of new top-level tabs related to the topmost ancestor of current tab.
 |<<tabs.new_position.tree.promote,tabs.new_position.tree.promote>>|Position at which a promoted tab is placed among its siblings.
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which are not opened from another tab.
@@ -3411,6 +3412,21 @@ Type: <<types,NewChildPosition>>
 
 Valid values:
 
+ * +first+: At the beginning.
+ * +last+: At the end.
+
+Default: +pass:[first]+
+
+[[tabs.new_position.tree.new_sibling]]
+=== tabs.new_position.tree.new_sibling
+Position of new siblings.
+
+Type: <<types,NewTabPosition>>
+
+Valid values:
+
+ * +prev+: Before the current tab.
+ * +next+: After the current tab.
  * +first+: At the beginning.
  * +last+: At the end.
 
