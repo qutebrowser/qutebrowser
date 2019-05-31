@@ -346,6 +346,10 @@ class Config(QObject):
                 name, deleted=deleted, renamed=renamed)
             raise exception from None
 
+    def ensure_has_opt(self, name: str) -> None:
+        """Raise NoOptionError if the given setting does not exist."""
+        self.get_opt(name)
+
     def get(self,
             name: str,
             url: QUrl = None, *,
@@ -379,7 +383,7 @@ class Config(QObject):
         Note that the returned values are not watched for mutation.
         If a URL is given, return the value which should be used for that URL.
         """
-        self.get_opt(name)  # To make sure it exists
+        self.ensure_has_opt(name)
         value = self._values[name].get_for_url(url, fallback=fallback)
         return self._maybe_copy(value)
 
@@ -392,7 +396,7 @@ class Config(QObject):
         This gets the overridden value for a given pattern, or
         configutils.UNSET if no such override exists.
         """
-        self.get_opt(name)  # To make sure it exists
+        self.ensure_has_opt(name)
         value = self._values[name].get_for_pattern(pattern, fallback=False)
         return self._maybe_copy(value)
 
@@ -404,7 +408,7 @@ class Config(QObject):
         Note that it's impossible to get a mutable object for a URL as we
         wouldn't know what pattern to apply.
         """
-        self.get_opt(name)  # To make sure it exists
+        self.ensure_has_opt(name)
 
         # If we allow mutation, there is a chance that prior mutations already
         # entered the mutable dictionary and thus further copies are unneeded
