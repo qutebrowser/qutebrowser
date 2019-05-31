@@ -674,6 +674,7 @@ Default:
 * +pass:[za]+: +pass:[tree-tab-toggle-hide]+
 * +pass:[zd]+: +pass:[tab-close -r]+
 * +pass:[zg]+: +pass:[set-cmd-text -s :tree-tab-create-group -r]+
+* +pass:[zp]+: +pass:[tab-focus --parent]+
 * +pass:[{{]+: +pass:[navigate prev -t]+
 * +pass:[}}]+: +pass:[navigate next -t]+
 - +pass:[passthrough]+:

@@ -1316,7 +1316,7 @@ The tab index to close
 
 [[tab-focus]]
 === tab-focus
-Syntax: +:tab-focus [*--no-last*] ['index']+
+Syntax: +:tab-focus [*--no-last*] [*--parent*] ['index']+
 
 Select the tab given as argument/[count].
 
@@ -1330,6 +1330,7 @@ If neither count nor index are given, it behaves like tab-next. If both are give
 
 ==== optional arguments
 * +*-n*+, +*--no-last*+: Whether to avoid focusing last tab if already focused.
+* +*-p*+, +*--parent*+: If given, focus parent (in a tree) of current tab.
 
 ==== count
 The tab index to focus, starting with 1.
@@ -1416,7 +1417,7 @@ Syntax: +:tab-prev [*--sibling*]+
 Switch to the previous tab, or switch [count] tabs back.
 
 ==== optional arguments
-* +*-s*+, +*--sibling*+: Whether to focus the previus tree sibling.
+* +*-s*+, +*--sibling*+: Whether to focus the previous tree sibling.
 
 ==== count
 How many tabs to switch back.

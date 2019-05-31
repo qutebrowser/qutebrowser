@@ -984,7 +984,7 @@ class CommandDispatcher:
     @cmdutils.argument('index', choices=['last'])
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_focus(self, index: typing.Union[str, int] = None,
-                  count: int = None, no_last: bool = False) -> None:
+                  count: int = None, no_last: bool = False, parent: bool = False) -> None:
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -996,6 +996,7 @@ class CommandDispatcher:
                    Negative indices count from the end, such that -1 is the
                    last tab.
             count: The tab index to focus, starting with 1.
+            parent: If given, focus parent (in a tree) of current tab.
             no_last: Whether to avoid focusing last tab if already focused.
         """
         index = count if count is not None else index
@@ -1003,6 +1004,9 @@ class CommandDispatcher:
         if index == 'last':
             self._tab_focus_last()
             return
+        elif parent:
+            parent_tab = self._current_widget().node.parent.value
+            index = self._tabbed_browser.widget.indexOf(parent_tab) + 1
         elif index is None:
             self.tab_next()
             return
