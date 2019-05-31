@@ -172,7 +172,16 @@ window._qutebrowser.scroll = (function() {
         for (let i = 0; i < childElements.length; i++) {
             const result = firstScrollableElement(childElements[i].element);
             if (result !== null) {
-                return result;
+                const rect = result.getBoundingClientRect();
+                // Some sites have their scrollable element behind elements of
+                // size zero. We can't handle this case very well, but
+                // refusing to actually pick small elements can help.
+                //
+                // We pick > 1 since some websites have 1x1 dummy elements
+                // that are 'scrollable'.
+                if (rect && rect.width > 1 && rect.height > 1) {
+                    return result;
+                }
             }
         }
         return null;
