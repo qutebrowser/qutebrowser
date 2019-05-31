@@ -81,7 +81,7 @@ new_instance_open_target_window:
   desc: >-
     Which window to choose when opening links as new tabs.
 
-    When `new_instance_open_target` is not set to `window`, this is ignored.
+    When `new_instance_open_target` is set to `window`, this is ignored.
 
 session_default_name:
   renamed: session.default_name
