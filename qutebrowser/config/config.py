@@ -683,6 +683,7 @@ class StyleSheetObserver(QObject):
     @pyqtSlot(str)
     def _maybe_update_stylesheet(self, option: str) -> None:
         """Update the stylesheet for obj if the option changed affects it."""
+        assert self._options is not None
         if option in self._options:
             self._obj.setStyleSheet(self._get_stylesheet())
 
