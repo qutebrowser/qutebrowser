@@ -202,6 +202,7 @@ PERFECT_FILES = [
 # 100% coverage because of end2end tests, but no perfect unit tests yet.
 WHITELISTED_FILES = [
     'browser/webkit/webkitinspector.py',
+    'misc/debugcachestats.py',
     'keyinput/macros.py',
     'browser/webkit/webkitelem.py',
     'api/interceptor.py',
