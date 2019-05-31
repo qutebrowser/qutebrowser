@@ -320,6 +320,9 @@ class BaseType:
                 out.append((val, desc))
             return out
 
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok)
+
 
 class MappingType(BaseType):
 
@@ -344,6 +347,10 @@ class MappingType(BaseType):
             return None
         self._validate_valid_values(value.lower())
         return self.MAPPING[value.lower()]
+
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values)
 
 
 class String(BaseType):
@@ -426,6 +433,14 @@ class String(BaseType):
             return self._completions
         else:
             return super().complete()
+
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values,
+                              minlen=self.minlen,
+                              maxlen=self.maxlen, forbidden=self.forbidden,
+                              completions=self._completions,
+                              encoding=self.encoding)
 
 
 class UniqueCharString(String):
@@ -531,6 +546,10 @@ class List(BaseType):
                 self.valtype.to_doc(elem, indent=indent+1)))
         return '\n'.join(lines)
 
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype,
+                              length=self.length)
+
 
 class ListOrValue(BaseType):
 
@@ -603,6 +622,9 @@ class ListOrValue(BaseType):
         val, typ = self._val_and_type(value)
         return typ.to_doc(val)
 
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype)
+
 
 class FlagList(List):
 
@@ -655,6 +677,11 @@ class FlagList(List):
             for combination in itertools.combinations(combinables, size):
                 out.append((json.dumps(combination), ''))
         return out
+
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values,
+                              length=self.length)
 
 
 class Bool(BaseType):
@@ -775,6 +802,10 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
         if value is None:
             return ''
         return str(value)
+
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval,
+                              maxval=self.maxval)
 
 
 class Int(_Numeric):
@@ -927,6 +958,11 @@ class PercOrInt(_Numeric):
         else:
             self._validate_bounds(value)
         return value
+
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, minint=self.minval,
+                              maxint=self.maxval, minperc=self.minperc,
+                              maxperc=self.maxperc)
 
 
 class Command(BaseType):
@@ -1315,6 +1351,9 @@ class Regex(BaseType):
             assert isinstance(value, str)
             return value
 
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, flags=self.flags)
+
 
 class Dict(BaseType):
 
@@ -1417,6 +1456,11 @@ class Dict(BaseType):
             )).splitlines()
         return '\n'.join(line.rstrip(' ') for line in lines)
 
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, keytype=self.keytype,
+                              valtype=self.valtype, fixed_keys=self.fixed_keys,
+                              required_keys=self.required_keys)
+
 
 class File(BaseType):
 
@@ -1448,6 +1492,10 @@ class File(BaseType):
             raise configexc.ValidationError(value, e)
 
         return value
+
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              required=self.required)
 
 
 class Directory(BaseType):
@@ -1501,6 +1549,9 @@ class FormatString(BaseType):
 
         return value
 
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok, fields=self.fields)
+
 
 class ShellCommand(List):
 
@@ -1536,6 +1587,10 @@ class ShellCommand(List):
                                             "{}-placeholder or a "
                                             "{file}-placeholder.")
         return py_value
+
+    def __repr__(self):
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              placeholder=self.placeholder)
 
 
 class Proxy(BaseType):
