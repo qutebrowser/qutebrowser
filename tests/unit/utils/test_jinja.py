@@ -146,3 +146,16 @@ def test_autoescape(escape):
 
     template = jinja.environment.from_string("{{ v }}")
     assert template.render(v='<foo') == '&lt;foo'
+
+
+@pytest.mark.parametrize('template, expected', [
+    ('{{ func1(conf.aliases) }} {{ func2(conf.backend) }}',
+     ['aliases', 'backend']),
+    ('{{ (conf.aliases).a1.a2 }}', ['aliases']),
+    ('{{ conf.auto_save.interval + conf.hints.min_chars }}',
+     ['auto_save.interval', 'hints.min_chars']),
+    ('{{ notconf.a.b.c }}', []),
+])
+def test_template_config_variables(template, expected):
+    """Make sure undefined attributes crash since we preload resources.."""
+    assert jinja.template_config_variables(template) == frozenset(expected)
