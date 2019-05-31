@@ -320,7 +320,7 @@ class BaseType:
                 out.append((val, desc))
             return out
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok)
 
 
@@ -348,7 +348,7 @@ class MappingType(BaseType):
         self._validate_valid_values(value.lower())
         return self.MAPPING[value.lower()]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok,
                               valid_values=self.valid_values)
 
@@ -434,7 +434,7 @@ class String(BaseType):
         else:
             return super().complete()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok,
                               valid_values=self.valid_values,
                               minlen=self.minlen,
@@ -546,7 +546,7 @@ class List(BaseType):
                 self.valtype.to_doc(elem, indent=indent+1)))
         return '\n'.join(lines)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype,
                               length=self.length)
 
@@ -622,7 +622,7 @@ class ListOrValue(BaseType):
         val, typ = self._val_and_type(value)
         return typ.to_doc(val)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype)
 
 
@@ -678,7 +678,7 @@ class FlagList(List):
                 out.append((json.dumps(combination), ''))
         return out
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok,
                               valid_values=self.valid_values,
                               length=self.length)
@@ -803,7 +803,7 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
             return ''
         return str(value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval,
                               maxval=self.maxval)
 
@@ -959,7 +959,7 @@ class PercOrInt(_Numeric):
             self._validate_bounds(value)
         return value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok, minint=self.minval,
                               maxint=self.maxval, minperc=self.minperc,
                               maxperc=self.maxperc)
@@ -1351,7 +1351,7 @@ class Regex(BaseType):
             assert isinstance(value, str)
             return value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok, flags=self.flags)
 
 
@@ -1456,7 +1456,7 @@ class Dict(BaseType):
             )).splitlines()
         return '\n'.join(line.rstrip(' ') for line in lines)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok, keytype=self.keytype,
                               valtype=self.valtype, fixed_keys=self.fixed_keys,
                               required_keys=self.required_keys)
@@ -1493,7 +1493,7 @@ class File(BaseType):
 
         return value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok,
                               required=self.required)
 
@@ -1549,7 +1549,7 @@ class FormatString(BaseType):
 
         return value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok, fields=self.fields)
 
 
@@ -1588,7 +1588,7 @@ class ShellCommand(List):
                                             "{file}-placeholder.")
         return py_value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok,
                               placeholder=self.placeholder)
 
