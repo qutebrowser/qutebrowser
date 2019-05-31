@@ -31,8 +31,7 @@ from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configdata, configtypes
-from qutebrowser.misc import consolewidget
+from qutebrowser.misc import consolewidget, debugcachestats
 from qutebrowser.utils.version import pastebin_version
 from qutebrowser.qt import sip
 
@@ -121,35 +120,7 @@ def debug_all_objects():
 @cmdutils.register(debug=True)
 def debug_cache_stats():
     """Print LRU cache stats."""
-    prefix_info = configdata.is_valid_prefix.cache_info()
-    # pylint: disable=protected-access
-    render_stylesheet_info = config._render_stylesheet.cache_info()
-    # pylint: enable=protected-access
-
-    history_info = None
-    try:
-        from PyQt5.QtWebKit import QWebHistoryInterface
-        interface = QWebHistoryInterface.defaultInterface()
-        if interface is not None:
-            history_info = interface.historyContains.cache_info()
-    except ImportError:
-        pass
-
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window='last-focused')
-    # pylint: disable=protected-access
-    tab_bar = tabbed_browser.widget.tabBar()
-    tabbed_browser_info = tab_bar._minimum_tab_size_hint_helper.cache_info()
-
-    str_validation_info = (configtypes.BaseType.
-                           _basic_str_validation_cache.cache_info())
-    # pylint: enable=protected-access
-
-    log.misc.info('is_valid_prefix: {}'.format(prefix_info))
-    log.misc.info('_render_stylesheet: {}'.format(render_stylesheet_info))
-    log.misc.info('history: {}'.format(history_info))
-    log.misc.info('tab width cache: {}'.format(tabbed_browser_info))
-    log.misc.info('str validation cache: {}'.format(str_validation_info))
+    debugcachestats.debug_cache_stats()
 
 
 @cmdutils.register(debug=True)
