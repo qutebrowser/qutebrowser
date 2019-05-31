@@ -146,11 +146,9 @@ def template_config_variables(template: str) -> typing.FrozenSet[str]:
         # List of attribute names in reverse order.
         # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
         attrlist = []  # type: typing.List[str]
-        while True:
+        while isinstance(node, jinja2.nodes.Getattr):
             attrlist.append(node.attr)
             node = node.node
-            if not isinstance(node, jinja2.nodes.Getattr):
-                break
 
         if isinstance(node, jinja2.nodes.Name):
             if node.name == 'conf':
