@@ -902,7 +902,9 @@ Feature: Tab management
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new window
         And I run :close
+        And I wait for "removed: tabbed-browser" in the log
         And I run :undo -w
+        And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
             - tabs:
@@ -921,7 +923,9 @@ Feature: Tab management
         And I open data/numbers/2.txt in a new window
         And I open data/numbers/3.txt in a new tab
         And I run :close
+        And I wait for "removed: tabbed-browser" in the log
         And I run :undo -w
+        And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
             - tabs:
@@ -943,8 +947,10 @@ Feature: Tab management
         And I open data/numbers/3.txt in a new tab
         And I run :tab-close
         And I run :close
+        And I wait for "removed: tabbed-browser" in the log
         And I run :undo -w
         And I run :undo
+        And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
             - tabs:
@@ -966,7 +972,9 @@ Feature: Tab management
         And I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new tab
         And I run :tab-close
+        And I wait for "removed: tabbed-browser" in the log
         And I run :undo -w
+        And I wait for "Focus object changed: *" in the log
         Then the session should look like:
             windows:
             - tabs:
