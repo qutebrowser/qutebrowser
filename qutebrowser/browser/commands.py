@@ -135,13 +135,13 @@ class CommandDispatcher:
         elif tab or background:
             if tabbed_browser.is_treetabbedbrowser:
                 tabbed_browser.tabopen(url, background=background,
-                                    related=related, sibling=sibling)
+                                       related=related, sibling=sibling)
             elif sibling:
                 raise cmdutils.CommandError("--sibling flag only works with \
                                             tree-tab enabled")
             else:
                 tabbed_browser.tabopen(url, background=background,
-                                    related=related)
+                                       related=related)
         else:
             widget = self._current_widget()
             widget.load_url(url)
