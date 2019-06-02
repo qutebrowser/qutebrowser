@@ -1971,7 +1971,7 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        tree_tab=True)
-    def tree_tab_create_group(self, name: str, related=False,
+    def tree_tab_create_group(self, *name: str, related=False,
                               background=False):
         """Wrapper around :open qute://treegroup/name. Correctly escapes names.
 
@@ -1983,7 +1983,8 @@ class CommandDispatcher:
             related: whether to open as a child of current tab or under root
             background: whether to open in a background tab
         """
-        path = urllib.parse.quote(name)
+        title = ' '.join(name)
+        path = urllib.parse.quote(title)
         if background:
             self.openurl('qute://treegroup/' + path, related=related, bg=True)
         else:
