@@ -1014,9 +1014,22 @@ class CommandDispatcher:
         if index == 'last':
             self._tab_focus_last()
             return
-        elif parent:
-            parent_tab = self._current_widget().node.parent.value
-            index = self._tabbed_browser.widget.indexOf(parent_tab) + 1
+        elif parent and self._tabbed_browser.is_treetabbedbrowser:
+            node = self._current_widget().node
+            path = node.path
+            if count:
+                if count < len(path):
+                    path_idx = 0 - count - 1  # path[-1] is node, so shift by 1
+                else:
+                    path_idx = 1  # first non-root node
+            else:
+                path_idx = -2  # immediate parent (path[-1] is node)
+
+            target_node = path[path_idx]
+            if node is target_node or target_node.value is None:
+                raise cmdutils.CommandError("Tab has no parent! ")
+            target_tab = target_node.value
+            index = self._tabbed_browser.widget.indexOf(target_tab) + 1
         elif index is None:
             self.tab_next()
             return
