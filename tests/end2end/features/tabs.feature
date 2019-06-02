@@ -795,6 +795,7 @@ Feature: Tab management
     # :undo --window
 
     Scenario: Undo the closing of a window
+        Given I clear the log
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new window
         And I run :close
@@ -815,6 +816,7 @@ Feature: Tab management
                 - url: http://localhost:*/data/numbers/2.txt
 
     Scenario: Undo the closing of a window with multiple tabs
+        Given I clear the log
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new window
         And I open data/numbers/3.txt in a new tab
@@ -838,6 +840,7 @@ Feature: Tab management
                 - url: http://localhost:*/data/numbers/3.txt
 
     Scenario: Undo the closing of a window with multiple tabs with undo stack
+        Given I clear the log
         When I open data/numbers/1.txt
         And I open data/numbers/2.txt in a new window
         And I open data/numbers/3.txt in a new tab
@@ -863,6 +866,7 @@ Feature: Tab management
                 - url: http://localhost:*/data/numbers/3.txt
 
     Scenario: Undo the closing of a window with tabs are windows
+        Given I clear the log
         When I set tabs.last_close to close
         And I set tabs.tabs_are_windows to true
         And I open data/numbers/1.txt
