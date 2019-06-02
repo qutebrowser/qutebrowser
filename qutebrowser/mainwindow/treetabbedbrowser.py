@@ -198,6 +198,16 @@ class TreeTabbedBrowser(TabbedBrowser):
     @pyqtSlot('QUrl', bool, bool)
     def tabopen(self, url=None, background=None, related=True, sibling=False,
                 idx=None, *, ignore_tabs_are_windows=False):
+        """Open a new tab with a given url.
+
+        Args:
+            related: Whether to set the tab as a child of the currently focused
+                     tab. Follows `tabs.new_position.tree.related`.
+            sibling: Whether to set the tab as a sibling of the currently
+                     focused tab.  Follows `tabs.new_position.tree.sibling`.
+
+        """
+        # pylint: disable=arguments-differ
         # we save this now because super.tabopen also resets the focus
         cur_tab = self.widget.currentWidget()
         tab = super().tabopen(url, background, related, idx,
