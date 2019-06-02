@@ -269,11 +269,11 @@
 |<<tabs.mousewheel_switching,tabs.mousewheel_switching>>|Switch between tabs using the mouse wheel.
 |<<tabs.new_position.related,tabs.new_position.related>>|Position of new tabs opened from another tab.
 |<<tabs.new_position.stacking,tabs.new_position.stacking>>|Stack related tabs on top of each other when opened consecutively.
-|<<tabs.new_position.tree.demote,tabs.new_position.tree.demote>>|Position of new tabs which are not opened from another tab.
-|<<tabs.new_position.tree.new_child,tabs.new_position.tree.new_child>>|Position of new children among siblings.
-|<<tabs.new_position.tree.new_sibling,tabs.new_position.tree.new_sibling>>|Position of new siblings.
-|<<tabs.new_position.tree.new_toplevel,tabs.new_position.tree.new_toplevel>>|Position of new top-level tabs related to the topmost ancestor of current tab.
-|<<tabs.new_position.tree.promote,tabs.new_position.tree.promote>>|Position at which a promoted tab is placed among its siblings.
+|<<tabs.new_position.tree.demote,tabs.new_position.tree.demote>>|Position at which a tab is placed among its new siblings after being demoted with `:tree-tab-demote`
+|<<tabs.new_position.tree.new_child,tabs.new_position.tree.new_child>>|Position of new children among siblings, e.g. after calling `:open --relative ...` or following a link.
+|<<tabs.new_position.tree.new_sibling,tabs.new_position.tree.new_sibling>>|Position of siblings, e.g. after calling `:open --sibling ...`.
+|<<tabs.new_position.tree.new_toplevel,tabs.new_position.tree.new_toplevel>>|Position of new top-level tabs related to the topmost ancestor of current tab, e.g. when calling `:open ...` without `--relative` or `--sibling`.
+|<<tabs.new_position.tree.promote,tabs.new_position.tree.promote>>|Position at which a tab is placed among its new siblings after being promoted with `:tree-tab-promote`
 |<<tabs.new_position.unrelated,tabs.new_position.unrelated>>|Position of new tabs which are not opened from another tab.
 |<<tabs.padding,tabs.padding>>|Padding (in pixels) around text for tabs.
 |<<tabs.pinned.frozen,tabs.pinned.frozen>>|Force pinned tabs to stay at fixed URL.
@@ -3393,7 +3393,7 @@ Default: +pass:[true]+
 
 [[tabs.new_position.tree.demote]]
 === tabs.new_position.tree.demote
-Position of new tabs which are not opened from another tab.
+Position at which a tab is placed among its new siblings after being demoted with `:tree-tab-demote`
 
 Type: <<types,NewChildPosition>>
 
@@ -3406,7 +3406,7 @@ Default: +pass:[last]+
 
 [[tabs.new_position.tree.new_child]]
 === tabs.new_position.tree.new_child
-Position of new children among siblings.
+Position of new children among siblings, e.g. after calling `:open --relative ...` or following a link.
 
 Type: <<types,NewChildPosition>>
 
@@ -3419,7 +3419,7 @@ Default: +pass:[first]+
 
 [[tabs.new_position.tree.new_sibling]]
 === tabs.new_position.tree.new_sibling
-Position of new siblings.
+Position of siblings, e.g. after calling `:open --sibling ...`.
 
 Type: <<types,NewTabPosition>>
 
@@ -3434,7 +3434,7 @@ Default: +pass:[first]+
 
 [[tabs.new_position.tree.new_toplevel]]
 === tabs.new_position.tree.new_toplevel
-Position of new top-level tabs related to the topmost ancestor of current tab.
+Position of new top-level tabs related to the topmost ancestor of current tab, e.g. when calling `:open ...` without `--relative` or `--sibling`.
 
 Type: <<types,NewTabPosition>>
 
@@ -3449,7 +3449,7 @@ Default: +pass:[last]+
 
 [[tabs.new_position.tree.promote]]
 === tabs.new_position.tree.promote
-Position at which a promoted tab is placed among its siblings.
+Position at which a tab is placed among its new siblings after being promoted with `:tree-tab-promote`
 
 Type: <<types,NewTabPosition>>
 

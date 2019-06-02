@@ -1443,7 +1443,7 @@ Take a tab from another window.
 
 [[tree-tab-create-group]]
 === tree-tab-create-group
-Syntax: +:tree-tab-create-group [*--related*] [*--background*] 'name'+
+Syntax: +:tree-tab-create-group [*--related*] [*--background*] 'name' ['name' ...]+
 
 Wrapper around :open qute://treegroup/name. Correctly escapes names.
 

@@ -1574,32 +1574,35 @@ tabs.new_position.tree.new_child:
   default: first
   type: NewChildPosition
   desc: >-
-    Position of new children among siblings.
+    Position of new children among siblings, e.g. after calling `:open
+    --relative ...` or following a link.
 
 tabs.new_position.tree.new_sibling:
   default: first
   type: NewTabPosition
   desc: >-
-    Position of new siblings.
+    Position of siblings, e.g. after calling `:open --sibling ...`.
 
 tabs.new_position.tree.new_toplevel:
   default: last
   type: NewTabPosition
   desc: >-
     Position of new top-level tabs related to the topmost ancestor of current
-    tab.
+    tab, e.g. when calling `:open ...` without `--relative` or `--sibling`.
 
 tabs.new_position.tree.promote:
   default: next
   type: NewTabPosition
   desc: >-
-    Position at which a promoted tab is placed among its siblings.
+    Position at which a tab is placed among its new siblings after being
+    promoted with `:tree-tab-promote`
 
 tabs.new_position.tree.demote:
   default: last
   type: NewChildPosition
   desc: >-
-    Position of new tabs which are not opened from another tab.
+    Position at which a tab is placed among its new siblings after being
+    demoted with `:tree-tab-demote`
 
 tabs.padding:
   default:
