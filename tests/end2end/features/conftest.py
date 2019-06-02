@@ -174,6 +174,11 @@ def pdfjs_available(data_tmpdir):
         pytest.skip("No pdfjs installation found.")
 
 
+@bdd.given('I clear the log')
+def pdfjs_available(quteproc):
+    quteproc.clear_data()
+
+
 ## When
 
 
