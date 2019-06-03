@@ -188,9 +188,11 @@ def init(args: argparse.Namespace) -> None:
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init(args)
-    else:
+    elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.init(args)
+    else:
+        raise NotImplementedError
 
     # Make sure special URLs always get JS support
     for pattern in ['file://*', 'chrome://*/*', 'qute://*/*']:
@@ -203,8 +205,10 @@ def clear_private_data() -> None:
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.init_private_profile()
-    else:
+    elif objects.backend == usertypes.Backend.QtWebKit:
         objreg.get('ram-cookie-jar').setAllCookies([])
+    else:
+        raise NotImplementedError
 
 
 def shutdown() -> None:
@@ -212,6 +216,8 @@ def shutdown() -> None:
     if objects.backend == usertypes.Backend.QtWebEngine:
         from qutebrowser.browser.webengine import webenginesettings
         webenginesettings.shutdown()
-    else:
+    elif objects.backend == usertypes.Backend.QtWebKit:
         from qutebrowser.browser.webkit import webkitsettings
         webkitsettings.shutdown()
+    else:
+        raise NotImplementedError
