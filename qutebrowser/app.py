@@ -44,6 +44,7 @@ import tempfile
 import datetime
 import argparse
 import typing
+import collections
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon
@@ -502,7 +503,7 @@ class Application(QApplication):
             Argument namespace from argparse.
         """
         self._last_focus_object = None
-        self._undos = []
+        self._undos = collections.deque(maxlen=100)
 
         qt_args = qtargs.qt_args(args)
         log.init.debug("Commandline args: {}".format(sys.argv[1:]))
