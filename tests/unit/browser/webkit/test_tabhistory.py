@@ -115,8 +115,7 @@ def test_original_urls(objects, i, item):
 @pytest.mark.parametrize('i, item', enumerate(ITEMS))
 def test_titles(objects, i, item):
     """Check if the titles were loaded correctly."""
-    title = objects.history.itemAt(i).title()
-    assert title in [item.title, 'Network access is disabled']
+    assert objects.history.itemAt(i).title() == item.title
 
 
 def test_no_active_item():
