@@ -79,6 +79,7 @@ def test_add_module_info():
     mod = types.ModuleType('testmodule')
     info1 = loader.add_module_info(mod)
     assert mod.__qute_module_info is info1
+    assert mod.__qute_module_info.module is mod
 
     info2 = loader.add_module_info(mod)
     assert mod.__qute_module_info is info1
