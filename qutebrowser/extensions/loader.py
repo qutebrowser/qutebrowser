@@ -47,6 +47,7 @@ class ModuleInfo:
     This gets used by qutebrowser.api.hook.
     """
 
+    module: types.ModuleType
     skip_hooks: bool = False
     init_hook: Optional[InitHookType] = None
     config_changed_hooks: List[
@@ -69,7 +70,7 @@ def add_module_info(module: types.ModuleType) -> ModuleInfo:
     """Add ModuleInfo to a module (if not added yet)."""
     # pylint: disable=protected-access
     if not hasattr(module, '__qute_module_info'):
-        module.__qute_module_info = ModuleInfo()  # type: ignore[attr-defined]
+        module.__qute_module_info = ModuleInfo(module)  # type: ignore[attr-defined]
     return module.__qute_module_info
 
 
@@ -220,7 +221,7 @@ def _on_config_changed(changed_name: str) -> None:
                 log.extensions.exception(
                     "Exception while running config change hook for "
                     "item {} in extension: {}".format(
-                        changed_name, hook.__code__.co_filename,
+                        changed_name, mod_info.module.__file__,
                     )
                 )
 
