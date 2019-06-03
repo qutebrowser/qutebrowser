@@ -111,8 +111,10 @@ def walk_extensions() -> Iterator[ExtensionInfo]:
     if not os.path.exists(ext_dir):
         try:
             os.mkdir(ext_dir)
-        except OSError:
+        except FileExistsError:
             pass
+        except OSError:
+            log.extensions.exception("Failed to create extensions directory")
         return
 
     if os.listdir(ext_dir):
