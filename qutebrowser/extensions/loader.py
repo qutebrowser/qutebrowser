@@ -222,21 +222,21 @@ def _on_config_changed(changed_name: str) -> None:
         if mod_info.skip_hooks:
             continue
         for option, hook in mod_info.config_changed_hooks:
-            if option is None:
-                hook()
-            else:
-                cfilter = config.change_filter(option)
-                cfilter.validate()
-                if cfilter.check_match(changed_name):
-                    try:
+            try:
+                if option is None:
+                    hook()
+                else:
+                    cfilter = config.change_filter(option)
+                    cfilter.validate()
+                    if cfilter.check_match(changed_name):
                         hook()
-                    except Exception:
-                        log.extensions.exception(
-                            "Exception while running config change hook for "
-                            "item {} in extension: {}".format(
-                                changed_name, hook.__code__.co_filename,
-                            )
-                        )
+            except Exception:
+                log.extensions.exception(
+                    "Exception while running config change hook for "
+                    "item {} in extension: {}".format(
+                        changed_name, hook.__code__.co_filename,
+                    )
+                )
 
 
 def init() -> None:
