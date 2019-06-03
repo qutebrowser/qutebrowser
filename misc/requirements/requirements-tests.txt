@@ -20,7 +20,7 @@ Mako==1.0.11
 more-itertools==7.0.0
 parse==1.12.0
 parse-type==0.4.2
-pluggy==0.11.0
+pluggy==0.12.0
 py==1.8.0
 py-cpuinfo==5.0.0
 pytest==4.5.0
