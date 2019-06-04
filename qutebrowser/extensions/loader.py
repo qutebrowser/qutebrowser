@@ -93,6 +93,10 @@ def load_components(*, skip_hooks: bool = False) -> None:
     """Load everything from qutebrowser.components."""
     for info in walk_components():
         _load_component(info, skip_hooks=skip_hooks)
+
+
+def load_extensions(*, skip_hooks: bool = False) -> None:
+    """Load extensions from <datadir>/extensions."""
     for info in walk_extensions():
         _load_component(info, skip_hooks=skip_hooks)
 
