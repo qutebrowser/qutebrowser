@@ -2919,7 +2919,7 @@ Default: +pass:[tab]+
 [[new_instance_open_target_window]]
 === new_instance_open_target_window
 Which window to choose when opening links as new tabs.
-When `new_instance_open_target` is not set to `window`, this is ignored.
+When `new_instance_open_target` is set to `window`, this is ignored.
 
 Type: <<types,String>>
 
