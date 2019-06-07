@@ -1739,14 +1739,11 @@ class CommandDispatcher:
 
         window = self._tabbed_browser.widget.window()
 
-        if enter:
-            if window.isFullScreen():
-                return
-            window.setWindowState(Qt.WindowFullScreen)
-            return
-
         if not window.isFullScreen():
             window.state_before_fullscreen = window.windowState()
+        if enter:
+            window.setWindowState(window.windowState() | Qt.WindowFullScreen)
+            return
         window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
 
         log.misc.debug('state before fullscreen: {}'.format(
