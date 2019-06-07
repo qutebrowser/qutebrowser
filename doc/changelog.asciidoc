@@ -63,6 +63,9 @@ Changed
 - Various performance improvements.
 - The `colors.tabs.bar.bg` setting is now of type `QssColor` and thus supports
   gradients.
+- The `:fullscreen` command now understands a new `--enter` flag which
+  causes it to always enter fullscreen instead of toggling the current
+  state.
 
 Deprecated
 ~~~~~~~~~~
