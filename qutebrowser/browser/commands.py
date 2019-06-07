@@ -1743,8 +1743,8 @@ class CommandDispatcher:
             window.state_before_fullscreen = window.windowState()
         if enter:
             window.setWindowState(window.windowState() | Qt.WindowFullScreen)
-            return
-        window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
+        else:
+            window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
 
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))
