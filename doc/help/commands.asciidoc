@@ -556,12 +556,14 @@ How many pages to go forward.
 
 [[fullscreen]]
 === fullscreen
-Syntax: +:fullscreen [*--leave*]+
+Syntax: +:fullscreen [*--leave*] [*--enter*]+
 
 Toggle fullscreen mode.
 
 ==== optional arguments
 * +*-l*+, +*--leave*+: Only leave fullscreen if it was entered by the page.
+* +*-e*+, +*--enter*+: Activate fullscreen and do not toggle if it is already active.
+
 
 [[greasemonkey-reload]]
 === greasemonkey-reload
