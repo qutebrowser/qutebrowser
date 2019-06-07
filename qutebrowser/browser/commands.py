@@ -1721,11 +1721,13 @@ class CommandDispatcher:
                          private=private, related=related)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def fullscreen(self, leave=False):
+    def fullscreen(self, leave=False, enter=False):
         """Toggle fullscreen mode.
 
         Args:
             leave: Only leave fullscreen if it was entered by the page.
+            enter: Activate fullscreen and do not toggle if it is already
+                   active.
         """
         if leave:
             tab = self._current_widget()
@@ -1736,6 +1738,12 @@ class CommandDispatcher:
             return
 
         window = self._tabbed_browser.widget.window()
+
+        if enter:
+            if window.isFullScreen():
+                return
+            window.setWindowState(Qt.WindowFullScreen)
+            return
 
         if not window.isFullScreen():
             window.state_before_fullscreen = window.windowState()
