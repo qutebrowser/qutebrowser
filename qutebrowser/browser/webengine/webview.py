@@ -258,8 +258,17 @@ class WebEnginePage(QWebEnginePage):
             QWebEnginePage.NavigationTypeOther:
                 usertypes.NavigationRequest.Type.other,
         }
-        navigation = usertypes.NavigationRequest(url=url,
-                                                 navigation_type=type_map[typ],
-                                                 is_main_frame=is_main_frame)
+        try:
+            # Only available in Qt 5.14
+            type_map[QWebEnginePage.NavigationTypeRedirect] = (
+                usertypes.NavigationRequest.Type.redirect)
+        except AttributeError:
+            pass
+
+        navigation = usertypes.NavigationRequest(
+            url=url,
+            navigation_type=type_map.get(
+                typ, usertypes.NavigationRequest.Type.other),
+            is_main_frame=is_main_frame)
         self.navigation_request.emit(navigation)
         return navigation.accepted
