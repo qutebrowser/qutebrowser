@@ -114,6 +114,7 @@ Fixed
 - Crash when many prompts are opened at the same time.
 - Running without Qt installed now displays a proper error again.
 - High CPU usage when using the keyhint widget with a low delay.
+- Crash with Qt >= 5.14 on redirects.
 
 v1.6.1
 ------
