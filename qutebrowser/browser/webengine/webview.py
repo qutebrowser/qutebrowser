@@ -258,12 +258,6 @@ class WebEnginePage(QWebEnginePage):
             QWebEnginePage.NavigationTypeOther:
                 usertypes.NavigationRequest.Type.other,
         }
-        try:
-            # Only available in Qt 5.14
-            type_map[QWebEnginePage.NavigationTypeRedirect] = (
-                usertypes.NavigationRequest.Type.redirect)
-        except AttributeError:
-            pass
 
         navigation = usertypes.NavigationRequest(
             url=url,

@@ -451,7 +451,6 @@ class NavigationRequest:
         'form_resubmitted',  # QtWebKit only
         'back_forward',
         'reloaded',
-        'redirect',  # QtWebEngine >5.14 only
         'other'
     ])
 
