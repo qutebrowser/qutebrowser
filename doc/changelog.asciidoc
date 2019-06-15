@@ -96,6 +96,7 @@ Fixed
 ~~~~~
 
 - Crash when hinting and changing/closing the tab before hints are displayed.
+- Hide bogus warning with Qt 5.12.4.
 
 v1.6.2
 ------
