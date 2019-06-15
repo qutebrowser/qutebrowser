@@ -428,6 +428,9 @@ def qt_message_handler(msg_type, context, msg):
         'QXcbWindow: Unhandled client message: ""',
         # https://codereview.qt-project.org/176831
         "QObject::disconnect: Unexpected null parameter",
+        # https://bugreports.qt.io/browse/QTBUG-76391
+        "Attribute Qt::AA_ShareOpenGLContexts must be set before "
+        "QCoreApplication is created.",
     ]
     # not using utils.is_mac here, because we can't be sure we can successfully
     # import the utils module here.
