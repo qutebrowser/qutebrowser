@@ -26,6 +26,7 @@ import html
 import ctypes
 import ctypes.util
 import enum
+import shutil
 
 import attr
 from PyQt5.QtCore import Qt
@@ -33,8 +34,9 @@ from PyQt5.QtWidgets import (QApplication, QDialog, QPushButton, QHBoxLayout,
                              QVBoxLayout, QLabel, QMessageBox)
 from PyQt5.QtNetwork import QSslSocket
 
-from qutebrowser.config import config
-from qutebrowser.utils import usertypes, objreg, version, qtutils, log, utils
+from qutebrowser.config import config, configfiles
+from qutebrowser.utils import (usertypes, objreg, version, qtutils, log, utils,
+                               standarddir)
 from qutebrowser.misc import objects, msgbox
 
 
@@ -397,6 +399,29 @@ def _check_backend_modules():
     raise utils.Unreachable
 
 
+def _handle_cache_nuking():
+    """Nuke the QtWebEngine cache if the Qt version changed.
+
+    WORKAROUND for https://bugreports.qt.io/browse/QTBUG-72532
+    """
+    if not configfiles.state.qt_version_changed:
+        return
+
+    # Only nuke the cache in cases where we know there are problems.
+    # It seems these issues started with Qt 5.12.
+    # They should be fixed with Qt 5.12.5:
+    # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265408
+    affected = (qtutils.version_check('5.12', compiled=False) and not
+                qtutils.version_check('5.12.5', compiled=False))
+    if not affected:
+        return
+
+    log.init.info("Qt version changed, nuking QtWebEngine cache")
+    cache_dir = os.path.join(standarddir.cache(), 'webengine')
+    if os.path.exists(cache_dir):
+        shutil.rmtree(cache_dir)
+
+
 def init():
     """Check for various issues related to QtWebKit/QtWebEngine."""
     _check_backend_modules()
@@ -405,6 +430,7 @@ def init():
         _handle_wayland()
         _nvidia_shader_workaround()
         _handle_nouveau_graphics()
+        _handle_cache_nuking()
     else:
         assert objects.backend == usertypes.Backend.QtWebKit, objects.backend
         _handle_ssl_support(fatal=True)
