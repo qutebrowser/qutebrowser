@@ -30,7 +30,7 @@ import contextlib
 import typing
 
 import yaml
-from PyQt5.QtCore import pyqtSignal, QObject, QSettings
+from PyQt5.QtCore import pyqtSignal, QObject, QSettings, qVersion
 
 import qutebrowser
 from qutebrowser.config import configexc, config, configdata, configutils
@@ -55,6 +55,17 @@ class StateConfig(configparser.ConfigParser):
         super().__init__()
         self._filename = os.path.join(standarddir.data(), 'state')
         self.read(self._filename, encoding='utf-8')
+
+        qt_version = qVersion()
+        # We handle this here, so we can avoid setting qt_version_changed if
+        # the config is brand new, but can still set it when qt_version wasn't
+        # there before...
+        if 'general' in self:
+            old_qt_version = self['general'].get('qt_version', None)
+            self.qt_version_changed = old_qt_version != qt_version
+        else:
+            self.qt_version_changed = False
+
         for sect in ['general', 'geometry']:
             try:
                 self.add_section(sect)
@@ -64,6 +75,9 @@ class StateConfig(configparser.ConfigParser):
         deleted_keys = ['fooled', 'backend-warning-shown']
         for key in deleted_keys:
             self['general'].pop(key, None)
+
+        self['general']['qt_version'] = qt_version
+        self['general']['version'] = qutebrowser.__version__
 
     def init_save_manager(self,
                           save_manager: 'savemanager.SaveManager') -> None:
@@ -638,7 +652,6 @@ def init() -> None:
     """Initialize config storage not related to the main config."""
     global state
     state = StateConfig()
-    state['general']['version'] = qutebrowser.__version__
 
     # Set the QSettings path to something like
     # ~/.config/qutebrowser/qsettings/qutebrowser/qutebrowser.conf so it

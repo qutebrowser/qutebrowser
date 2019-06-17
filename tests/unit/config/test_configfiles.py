@@ -76,14 +76,48 @@ def autoconfig(config_tmpdir):
 
 
 @pytest.mark.parametrize('old_data, insert, new_data', [
-    (None, False, '[general]\n\n[geometry]\n\n'),
-    ('[general]\nfooled = true', False, '[general]\n\n[geometry]\n\n'),
-    ('[general]\nfoobar = 42', False,
-     '[general]\nfoobar = 42\n\n[geometry]\n\n'),
-    (None, True, '[general]\nnewval = 23\n\n[geometry]\n\n'),
+    (None,
+     False,
+     '[general]\n'
+     'qt_version = 5.6.7\n'
+     'version = 1.2.3\n'
+     '\n'
+     '[geometry]\n'
+     '\n'),
+    ('[general]\n'
+     'fooled = true',
+     False,
+     '[general]\n'
+     'qt_version = 5.6.7\n'
+     'version = 1.2.3\n'
+     '\n'
+     '[geometry]\n'
+     '\n'),
+    ('[general]\n'
+     'foobar = 42',
+     False,
+     '[general]\n'
+     'foobar = 42\n'
+     'qt_version = 5.6.7\n'
+     'version = 1.2.3\n'
+     '\n'
+     '[geometry]\n'
+     '\n'),
+    (None,
+     True,
+     '[general]\n'
+     'qt_version = 5.6.7\n'
+     'version = 1.2.3\n'
+     'newval = 23\n'
+     '\n'
+     '[geometry]\n'
+     '\n'),
 ])
-def test_state_config(fake_save_manager, data_tmpdir,
+def test_state_config(fake_save_manager, data_tmpdir, monkeypatch,
                       old_data, insert, new_data):
+    monkeypatch.setattr(configfiles.qutebrowser, '__version__', '1.2.3')
+    monkeypatch.setattr(configfiles, 'qVersion', lambda: '5.6.7')
+
     statefile = data_tmpdir / 'state'
     if old_data is not None:
         statefile.write_text(old_data, 'utf-8')
@@ -100,6 +134,28 @@ def test_state_config(fake_save_manager, data_tmpdir,
 
     assert statefile.read_text('utf-8') == new_data
     fake_save_manager.add_saveable('state-config', unittest.mock.ANY)
+
+
+@pytest.mark.parametrize('old_version, new_version, changed', [
+    (None, '5.12.1', False),
+    ('5.12.1', '5.12.1', False),
+    ('5.12.2', '5.12.1', True),
+    ('5.12.1', '5.12.2', True),
+    ('5.13.0', '5.12.2', True),
+    ('5.12.2', '5.13.0', True),
+])
+def test_qt_version_changed(data_tmpdir, monkeypatch,
+                            old_version, new_version, changed):
+    monkeypatch.setattr(configfiles, 'qVersion', lambda: new_version)
+
+    statefile = data_tmpdir / 'state'
+    if old_version is not None:
+        data = ('[general]\n'
+                'qt_version = {}'.format(old_version))
+        statefile.write_text(data, 'utf-8')
+
+    state = configfiles.StateConfig()
+    assert state.qt_version_changed == changed
 
 
 class TestYaml:
