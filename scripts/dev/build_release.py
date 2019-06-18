@@ -112,7 +112,7 @@ def patch_mac_app():
         plistlib.dump(plist_data, f)
 
     # Replace some duplicate files by symlinks
-    framework_path = os.path.join(app_path, 'Contents', 'Resources', 'PyQt5',
+    framework_path = os.path.join(app_path, 'Contents', 'MacOS', 'PyQt5',
                                   'Qt', 'lib', 'QtWebEngineCore.framework')
 
     core_lib = os.path.join(framework_path, 'Versions', '5', 'QtWebEngineCore')
