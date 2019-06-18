@@ -15,6 +15,38 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.6.3
+------
+
+Fixed
+~~~~~
+
+- Crash when hinting and changing/closing the tab before hints are displayed.
+- Crash on redirects with Qt 5.13.
+- Hide bogus `AA_ShareOpenGLContexts` warning with Qt 5.12.4.
+- Workaround for renderer process crashes with Qt 5.12.4.
+  If you're unable to update, you can remove `~/.cache/qutebrowser` for the
+  same result.
+
+v1.6.2
+------
+
+Changed
+~~~~~~~
+
+- Windows/macOS releases now ship with Qt 5.12.3, which includes security fixes
+  up to Chromium 73.0.3683.75.
+
+Fixed
+~~~~~
+
+- Crash when SQL errors occur while using the completion.
+- Crash when cancelling a download prompt started in an already closed window.
+- Crash when many prompts are opened at the same time.
+- Running without Qt installed now displays a proper error again.
+- High CPU usage when using the keyhint widget with a low delay.
+- Crash with Qt >= 5.14 on redirects.
+
 v1.6.1
 ------
 
