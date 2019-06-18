@@ -89,14 +89,18 @@ Fixed
   5.12.2).
 - Fixes for corner-cases when using :navigate increment/decrement.
 
-v1.6.3 (unreleased)
--------------------
+v1.6.3
+------
 
 Fixed
 ~~~~~
 
 - Crash when hinting and changing/closing the tab before hints are displayed.
-- Hide bogus warning with Qt 5.12.4.
+- Crash on redirects with Qt 5.13.
+- Hide bogus `AA_ShareOpenGLContexts` warning with Qt 5.12.4.
+- Workaround for renderer process crashes with Qt 5.12.4.
+  If you're unable to update, you can remove `~/.cache/qutebrowser` for the
+  same result.
 
 v1.6.2
 ------
