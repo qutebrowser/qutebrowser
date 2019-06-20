@@ -66,6 +66,8 @@ Changed
 - The `:fullscreen` command now understands a new `--enter` flag which
   causes it to always enter fullscreen instead of toggling the current
   state.
+- `--debug-flag stack` is now needed to show stack traces on renderer process
+  crashes.
 
 Deprecated
 ~~~~~~~~~~
