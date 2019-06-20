@@ -445,6 +445,16 @@ class TestQtArgs:
             assert '--disable-in-process-stack-traces' in args
             assert '--enable-in-process-stack-traces' not in args
 
+    @pytest.mark.parametrize('flags, expected', [
+        ([], []),
+        (['--debug-flag', 'chromium'], ['--enable-logging', '--v=1']),
+    ])
+    def test_chromium_debug(self, monkeypatch, parser, flags, expected):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        parsed = parser.parse_args(flags)
+        assert configinit.qt_args(parsed) == [sys.argv[0]] + expected
+
     def test_disable_gpu(self, config_stub, monkeypatch, parser):
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebEngine)

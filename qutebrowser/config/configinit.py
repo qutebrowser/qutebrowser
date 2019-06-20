@@ -201,6 +201,10 @@ def _qtwebengine_args(namespace: argparse.Namespace) -> typing.Iterator[str]:
         if 'stack' not in namespace.debug_flags:
             yield '--disable-in-process-stack-traces'
 
+    if 'chromium' in namespace.debug_flags:
+        yield '--enable-logging'
+        yield '--v=1'
+
     settings = {
         'qt.force_software_rendering': {
             'software-opengl': None,
