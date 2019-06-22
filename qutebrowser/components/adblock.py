@@ -219,37 +219,35 @@ class HostBlocker:
         self._in_progress.append(download)
         self._on_download_finished(download)
 
-    def _parse_line(self, raw_line: bytes) -> bool:
+    def _parse_line(self, raw_line: bytes) -> list:
         """Parse a line from a host file.
 
         Args:
             raw_line: The bytes object to parse.
 
         Returns:
-            True if parsing succeeded, False otherwise.
+            A list containg parsed hosts if successful,
+            list containing 'error' otherwise.
         """
         if raw_line.startswith(b'#'):
             # Ignoring comments early so we don't have to care about
             # encoding errors in them.
-            return True
+            return []
 
         try:
             line = raw_line.decode('utf-8')
         except UnicodeDecodeError:
             logger.error("Failed to decode: {!r}".format(raw_line))
-            return False
+            return ['error']
 
         # Remove comments
-        try:
-            hash_idx = line.index('#')
-            line = line[:hash_idx]
-        except ValueError:
-            pass
+        hash_idx = line.find('#')
+        line = line if hash_idx == -1 else line[:hash_idx]
 
         line = line.strip()
         # Skip empty lines
         if not line:
-            return True
+            return []
 
         parts = line.split()
         if len(parts) == 1:
@@ -259,13 +257,15 @@ class HostBlocker:
             # /etc/hosts format
             hosts = parts[1:]
 
+        accepted_hosts = []
         for host in hosts:
             if ('.' in host and
                     not host.endswith('.localdomain') and
                     host != '0.0.0.0'):
+                accepted_hosts.append(host)
                 self._blocked_hosts.add(host)
 
-        return True
+        return accepted_hosts
 
     def _merge_file(self, byte_io: io.BytesIO) -> None:
         """Read and merge host files.
@@ -285,8 +285,8 @@ class HostBlocker:
 
         for line in f:
             line_count += 1
-            ok = self._parse_line(line)
-            if not ok:
+            parsed_hosts = self._parse_line(line)
+            if 'error' in parsed_hosts:
                 error_count += 1
 
         logger.debug("{}: read {} lines".format(byte_io.name, line_count))
