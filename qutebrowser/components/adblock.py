@@ -147,7 +147,20 @@ class HostBlocker:
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 for line in f:
-                    target.add(line.strip())
+                    parts = line.strip().split()
+                    if len(parts) == 1:
+                        # "one host per line" format
+                        hosts = parts[:1]
+                    else:
+                        # /etc/hosts format
+                        hosts = parts[1:]
+                    
+                    for host in hosts:
+                        if ('.' in host and
+                                not host.endswith('.localdomain') and
+                                host != '0.0.0.0'):
+                            target.add(host)
+
         except (OSError, UnicodeDecodeError):
             logger.exception("Failed to read host blocklist!")
 
