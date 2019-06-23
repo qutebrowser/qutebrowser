@@ -426,8 +426,8 @@ class TestQtArgs:
         (usertypes.Backend.QtWebKit, False, True, None),
         (usertypes.Backend.QtWebKit, False, False, None),
     ])
-    def test_in_process_stack_traces(self, monkeypatch, parser,
-                                     backend, version_check, debug_flag, expected):
+    def test_in_process_stack_traces(self, monkeypatch, parser, backend,
+                                     version_check, debug_flag, expected):
         monkeypatch.setattr(configinit.qtutils, 'version_check',
                             lambda version, compiled=False: version_check)
         monkeypatch.setattr(configinit.objects, 'backend', backend)
