@@ -185,11 +185,11 @@ def download():
 
 def _init_runtime(args):
     """Initialize location for runtime data."""
-    if utils.is_linux:
-        typ = QStandardPaths.RuntimeLocation
-    else:
+    if utils.is_mac or utils.is_windows:
         # RuntimeLocation is a weird path on macOS and Windows.
         typ = QStandardPaths.TempLocation
+    else:
+        typ = QStandardPaths.RuntimeLocation
 
     overridden, path = _from_args(typ, args)
 
