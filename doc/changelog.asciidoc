@@ -70,6 +70,7 @@ Changed
   crashes.
 - For runtime data (such as the IPC socket), a proper runtime path is now used
   on BSD; only macOS/Windows continue to use the temporary directory.
+- PDF.js is now also searched in `/app/share/pdf.js/` (for Flatpak)
 
 Deprecated
 ~~~~~~~~~~
