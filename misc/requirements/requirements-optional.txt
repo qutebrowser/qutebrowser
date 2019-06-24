@@ -2,5 +2,5 @@
 
 colorama==0.4.1
 cssutils==1.0.2
-hunter==2.2.1
+hunter==3.0.1
 Pympler==0.7
