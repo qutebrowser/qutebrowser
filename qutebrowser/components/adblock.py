@@ -131,6 +131,37 @@ class HostBlocker:
                         .format(info.request_url.host()))
             info.block()
 
+    def _read_hosts_line(self, line: str) -> list:
+        """Read hosts from the given line.
+
+        Args:
+            line: The line to read.
+
+        Returns:
+            A list containing valid hosts found
+            in the file.
+        """
+        # Remove comments
+        hash_idx = line.find('#')
+        line = line if hash_idx == -1 else line[:hash_idx]
+
+        parts = line.strip().split()
+        if len(parts) == 1:
+            # "one host per line" format
+            hosts = parts[:1]
+        else:
+            # /etc/hosts format
+            hosts = parts[1:]
+
+        accepted_hosts = []
+        for host in hosts:
+            if ('.' in host and
+                    not host.endswith('.localdomain') and
+                    host != '0.0.0.0'):
+                accepted_hosts.append(host)
+
+        return accepted_hosts
+
     def _read_hosts_file(self, filename: str, target: typing.Set[str]) -> bool:
         """Read hosts from the given filename.
 
@@ -147,19 +178,8 @@ class HostBlocker:
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 for line in f:
-                    parts = line.strip().split()
-                    if len(parts) == 1:
-                        # "one host per line" format
-                        hosts = parts[:1]
-                    else:
-                        # /etc/hosts format
-                        hosts = parts[1:]
-                    
-                    for host in hosts:
-                        if ('.' in host and
-                                not host.endswith('.localdomain') and
-                                host != '0.0.0.0'):
-                            target.add(host)
+                    for host in self._read_hosts_line(line):
+                        target.add(host)
 
         except (OSError, UnicodeDecodeError):
             logger.exception("Failed to read host blocklist!")
@@ -234,38 +254,14 @@ class HostBlocker:
             # encoding errors in them.
             return []
 
-        try:
-            line = raw_line.decode('utf-8')
-        except UnicodeDecodeError:
-            logger.error("Failed to decode: {!r}".format(raw_line))
-            return ['error']
+        line = raw_line.decode('utf-8')
 
-        # Remove comments
-        hash_idx = line.find('#')
-        line = line if hash_idx == -1 else line[:hash_idx]
+        added_hosts = []
+        for host in self._read_hosts_line(line):
+            added_hosts.append(host)
+            self._blocked_hosts.add(host)
 
-        line = line.strip()
-        # Skip empty lines
-        if not line:
-            return []
-
-        parts = line.split()
-        if len(parts) == 1:
-            # "one host per line" format
-            hosts = [parts[0]]
-        else:
-            # /etc/hosts format
-            hosts = parts[1:]
-
-        accepted_hosts = []
-        for host in hosts:
-            if ('.' in host and
-                    not host.endswith('.localdomain') and
-                    host != '0.0.0.0'):
-                accepted_hosts.append(host)
-                self._blocked_hosts.add(host)
-
-        return accepted_hosts
+        return added_hosts
 
     def _merge_file(self, byte_io: io.BytesIO) -> None:
         """Read and merge host files.
@@ -285,8 +281,10 @@ class HostBlocker:
 
         for line in f:
             line_count += 1
-            parsed_hosts = self._parse_line(line)
-            if 'error' in parsed_hosts:
+            try:
+                self._parse_line(line)
+            except UnicodeDecodeError:
+                logger.error("Failed to decode: {!r}".format(line))
                 error_count += 1
 
         logger.debug("{}: read {} lines".format(byte_io.name, line_count))
