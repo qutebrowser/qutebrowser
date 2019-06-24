@@ -178,8 +178,7 @@ class HostBlocker:
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 for line in f:
-                    for host in self._read_hosts_line(line):
-                        target.add(host)
+                    target.update(self._read_hosts_line(line))
 
         except (OSError, UnicodeDecodeError):
             logger.exception("Failed to read host blocklist!")
@@ -246,8 +245,7 @@ class HostBlocker:
             raw_line: The bytes object to parse.
 
         Returns:
-            A list containg parsed hosts if successful,
-            list containing 'error' otherwise.
+            A list containg parsed hosts.
         """
         if raw_line.startswith(b'#'):
             # Ignoring comments early so we don't have to care about
@@ -256,10 +254,8 @@ class HostBlocker:
 
         line = raw_line.decode('utf-8')
 
-        added_hosts = []
-        for host in self._read_hosts_line(line):
-            added_hosts.append(host)
-            self._blocked_hosts.add(host)
+        added_hosts = self._read_hosts_line(line)
+        self._blocked_hosts.update(added_hosts)
 
         return added_hosts
 
