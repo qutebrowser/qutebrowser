@@ -10,7 +10,7 @@ Click==7.0
 coverage==4.5.3
 EasyProcess==0.2.7
 Flask==1.0.3
-glob2==0.6
+glob2==0.7
 hunter==3.0.1
 hypothesis==4.23.6
 itsdangerous==1.1.0
