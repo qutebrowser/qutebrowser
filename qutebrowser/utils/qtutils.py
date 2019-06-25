@@ -37,10 +37,15 @@ import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
                           QIODevice, QSaveFile, QT_VERSION_STR,
                           PYQT_VERSION_STR, QFileDevice, QObject)
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore  # noqa: N816
+
+from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes
 
 
 MAXVALS = {
@@ -85,9 +90,6 @@ def version_check(version: str,
         exact: if given, check with == instead of >=
         compiled: Set to False to not check the compiled version.
     """
-    # Catch code using the old API for this
-    assert exact not in [operator.gt, operator.lt, operator.ge, operator.le,
-                         operator.eq], exact
     if compiled and exact:
         raise ValueError("Can't use compiled=True with exact=True!")
 
@@ -114,6 +116,14 @@ def is_new_qtwebkit() -> bool:
             pkg_resources.parse_version('538.1'))
 
 
+def is_single_process():
+    """Check whether QtWebEngine is running in single-process mode."""
+    if objects.backend == usertypes.Backend.QtWebKit:
+        return False
+    args = QApplication.instance().arguments()
+    return '--single-process' in args
+
+
 def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
     """Check if the given argument is in bounds for the given type.
 
@@ -131,13 +141,11 @@ def check_overflow(arg: int, ctype: str, fatal: bool = True) -> int:
     if arg > maxval:
         if fatal:
             raise OverflowError(arg)
-        else:
-            return maxval
+        return maxval
     elif arg < minval:
         if fatal:
             raise OverflowError(arg)
-        else:
-            return minval
+        return minval
     else:
         return arg
 
@@ -216,6 +224,13 @@ def savefile_open(filename, binary=False, encoding='utf-8'):
         commit_ok = f.commit()
         if not commit_ok and not cancelled:
             raise QtOSError(f, msg="Commit failed!")
+
+
+def qcolor_to_qsscolor(c: QColor) -> str:
+    """Convert a QColor to a string that can be used in a QStyleSheet."""
+    ensure_valid(c)
+    return "rgba({}, {}, {}, {})".format(
+        c.red(), c.green(), c.blue(), c.alpha())
 
 
 class PyQIODevice(io.BufferedIOBase):

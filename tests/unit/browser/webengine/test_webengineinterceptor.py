@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -17,26 +17,23 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Various global objects."""
-
-# NOTE: We need to be careful with imports here, as this is imported from
-# earlyinit.
-
-import typing
-
-MYPY = False
-if MYPY:
-    from qutebrowser.utils import usertypes
-    from qutebrowser.commands import command
+"""Test interceptor.py for webengine."""
 
 
-class NoBackend:
+import pytest
 
-    """Special object when there's no backend set so we notice that."""
+pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
-    def __eq__(self, other: typing.Any) -> bool:
-        raise AssertionError("No backend set!")
+from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInfo
+
+from qutebrowser.browser.webengine import interceptor
 
 
-backend = NoBackend()  # type: typing.Union[usertypes.Backend, NoBackend]
-commands = {}  # type: typing.Dict[str, command.Command]
+class TestWebengineInterceptor:
+
+    def test_requestinfo_dict_valid(self):
+        """Test that the RESOURCE_TYPES dict is not missing any values."""
+        qb_keys = interceptor.RequestInterceptor.RESOURCE_TYPES.keys()
+        qt_keys = {i for i in vars(QWebEngineUrlRequestInfo).values()
+                   if isinstance(i, QWebEngineUrlRequestInfo.ResourceType)}
+        assert qt_keys == qb_keys

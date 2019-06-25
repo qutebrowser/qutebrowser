@@ -48,7 +48,6 @@ import codecs
 import os.path
 import itertools
 import warnings
-import datetime
 import functools
 import operator
 import json
@@ -176,8 +175,7 @@ class BaseType:
                 (pytype == dict and value == {})):
             if not self.none_ok:
                 raise configexc.ValidationError(value, "may not be null!")
-            else:
-                return
+            return
 
         if (not isinstance(value, pytype) or
                 pytype is int and isinstance(value, bool)):
@@ -204,6 +202,12 @@ class BaseType:
         assert isinstance(value, str), value
         if not value and not self.none_ok:
             raise configexc.ValidationError(value, "may not be empty!")
+        BaseType._basic_str_validation_cache(value)
+
+    @staticmethod
+    @functools.lru_cache(maxsize=2**9)
+    def _basic_str_validation_cache(value: str) -> None:
+        """Cache validation result to prevent looping over strings."""
         if any(ord(c) < 32 or ord(c) == 0x7f for c in value):
             raise configexc.ValidationError(
                 value, "may not contain unprintable chars!")
@@ -316,6 +320,9 @@ class BaseType:
                 out.append((val, desc))
             return out
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok)
+
 
 class MappingType(BaseType):
 
@@ -341,6 +348,10 @@ class MappingType(BaseType):
         self._validate_valid_values(value.lower())
         return self.MAPPING[value.lower()]
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values)
+
 
 class String(BaseType):
 
@@ -365,9 +376,9 @@ class String(BaseType):
 
         if minlen is not None and minlen < 1:
             raise ValueError("minlen ({}) needs to be >= 1!".format(minlen))
-        elif maxlen is not None and maxlen < 1:
+        if maxlen is not None and maxlen < 1:
             raise ValueError("maxlen ({}) needs to be >= 1!".format(maxlen))
-        elif maxlen is not None and minlen is not None and maxlen < minlen:
+        if maxlen is not None and minlen is not None and maxlen < minlen:
             raise ValueError("minlen ({}) needs to be <= maxlen ({})!".format(
                 minlen, maxlen))
         self.minlen = minlen
@@ -422,6 +433,14 @@ class String(BaseType):
             return self._completions
         else:
             return super().complete()
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values,
+                              minlen=self.minlen,
+                              maxlen=self.maxlen, forbidden=self.forbidden,
+                              completions=self._completions,
+                              encoding=self.encoding)
 
 
 class UniqueCharString(String):
@@ -527,6 +546,10 @@ class List(BaseType):
                 self.valtype.to_doc(elem, indent=indent+1)))
         return '\n'.join(lines)
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype,
+                              length=self.length)
+
 
 class ListOrValue(BaseType):
 
@@ -599,6 +622,9 @@ class ListOrValue(BaseType):
         val, typ = self._val_and_type(value)
         return typ.to_doc(val)
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype)
+
 
 class FlagList(List):
 
@@ -651,6 +677,11 @@ class FlagList(List):
             for combination in itertools.combinations(combinables, size):
                 out.append((json.dumps(combination), ''))
         return out
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values,
+                              length=self.length)
 
 
 class Bool(BaseType):
@@ -771,6 +802,10 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
         if value is None:
             return ''
         return str(value)
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval,
+                              maxval=self.maxval)
 
 
 class Int(_Numeric):
@@ -924,6 +959,11 @@ class PercOrInt(_Numeric):
             self._validate_bounds(value)
         return value
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, minint=self.minval,
+                              maxint=self.maxval, minperc=self.minperc,
+                              maxperc=self.maxperc)
+
 
 class Command(BaseType):
 
@@ -1001,16 +1041,16 @@ class QtColor(BaseType):
     * `hsv(h, s, v)` / `hsva(h, s, v, a)` (values 0-255, hue 0-359)
     """
 
-    def _parse_value(self, val: str) -> int:
+    def _parse_value(self, kind: str, val: str) -> int:
         try:
             return int(val)
         except ValueError:
             pass
 
-        mult = 255.0
+        mult = 359.0 if kind == 'h' else 255.0
         if val.endswith('%'):
             val = val[:-1]
-            mult = 255.0 / 100
+            mult = mult / 100
 
         try:
             return int(float(val) * mult)
@@ -1029,17 +1069,28 @@ class QtColor(BaseType):
             openparen = value.index('(')
             kind = value[:openparen]
             vals = value[openparen+1:-1].split(',')
-            int_vals = [self._parse_value(v) for v in vals]
-            if kind == 'rgba' and len(int_vals) == 4:
-                return QColor.fromRgb(*int_vals)
-            elif kind == 'rgb' and len(int_vals) == 3:
-                return QColor.fromRgb(*int_vals)
-            elif kind == 'hsva' and len(int_vals) == 4:
-                return QColor.fromHsv(*int_vals)
-            elif kind == 'hsv' and len(int_vals) == 3:
-                return QColor.fromHsv(*int_vals)
-            else:
-                raise configexc.ValidationError(value, "must be a valid color")
+
+            converters = {
+                'rgba': QColor.fromRgb,
+                'rgb': QColor.fromRgb,
+                'hsva': QColor.fromHsv,
+                'hsv': QColor.fromHsv,
+            }  # type: typing.Dict[str, typing.Callable[..., QColor]]
+
+            conv = converters.get(kind)
+            if not conv:
+                raise configexc.ValidationError(
+                    value,
+                    '{} not in {}'.format(kind, list(sorted(converters))))
+
+            if len(kind) != len(vals):
+                raise configexc.ValidationError(
+                    value,
+                    'expected {} values for {}'.format(len(kind), kind))
+
+            int_vals = [self._parse_value(kind, val)
+                        for kind, val in zip(kind, vals)]
+            return conv(*int_vals)
 
         color = QColor(value)
         if color.isValid():
@@ -1271,8 +1322,7 @@ class Regex(BaseType):
                     str(w.message).startswith('bad escape')):
                 raise configexc.ValidationError(
                     pattern, "must be a valid regex - " + str(w.message))
-            else:
-                warnings.warn(w.message)
+            warnings.warn(w.message)
 
         return compiled
 
@@ -1300,6 +1350,9 @@ class Regex(BaseType):
         else:
             assert isinstance(value, str)
             return value
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, flags=self.flags)
 
 
 class Dict(BaseType):
@@ -1403,6 +1456,11 @@ class Dict(BaseType):
             )).splitlines()
         return '\n'.join(line.rstrip(' ') for line in lines)
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, keytype=self.keytype,
+                              valtype=self.valtype, fixed_keys=self.fixed_keys,
+                              required_keys=self.required_keys)
+
 
 class File(BaseType):
 
@@ -1434,6 +1492,10 @@ class File(BaseType):
             raise configexc.ValidationError(value, e)
 
         return value
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              required=self.required)
 
 
 class Directory(BaseType):
@@ -1487,6 +1549,9 @@ class FormatString(BaseType):
 
         return value
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, fields=self.fields)
+
 
 class ShellCommand(List):
 
@@ -1522,6 +1587,10 @@ class ShellCommand(List):
                                             "{}-placeholder or a "
                                             "{file}-placeholder.")
         return py_value
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              placeholder=self.placeholder)
 
 
 class Proxy(BaseType):
@@ -1803,7 +1872,7 @@ class ConfirmQuit(FlagList):
             raise configexc.ValidationError(
                 values, "List cannot contain never!")
         # Always can't be set with other options
-        elif 'always' in values and len(values) > 1:
+        if 'always' in values and len(values) > 1:
             raise configexc.ValidationError(
                 values, "List cannot contain always!")
 
@@ -1821,31 +1890,6 @@ class NewTabPosition(String):
             ('next', "After the current tab."),
             ('first', "At the beginning."),
             ('last', "At the end."))
-
-
-class TimestampTemplate(BaseType):
-
-    """An strftime-like template for timestamps.
-
-    See https://sqlite.org/lang_datefunc.html for reference.
-    """
-
-    def to_py(self, value: _StrUnset) -> _StrUnsetNone:
-        self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
-            return value
-        elif not value:
-            return None
-
-        try:
-            # Dummy check to see if the template is valid
-            datetime.datetime.now().strftime(value)
-        except ValueError as error:
-            # thrown on invalid template string
-            raise configexc.ValidationError(
-                value, "Invalid format string: {}".format(error))
-
-        return value
 
 
 class Key(BaseType):

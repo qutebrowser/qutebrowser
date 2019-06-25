@@ -3,4 +3,4 @@
 colorama==0.4.1
 cssutils==1.0.2
 hunter==2.2.1
-Pympler==0.6
+Pympler==0.7

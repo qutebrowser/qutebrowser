@@ -136,8 +136,7 @@ class SessionManager(QObject):
             path = os.path.join(self._base_path, name + '.yml')
             if check_exists and not os.path.exists(path):
                 raise SessionNotFoundError(path)
-            else:
-                return path
+            return path
 
     def exists(self, name):
         """Check if a named session exists."""
@@ -405,6 +404,27 @@ class SessionManager(QObject):
         except ValueError as e:
             raise SessionError(e)
 
+    def _load_window(self, win):
+        """Turn yaml data into windows."""
+        window = mainwindow.MainWindow(geometry=win['geometry'],
+                                       private=win.get('private', None))
+        window.show()
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=window.win_id)
+        tab_to_focus = None
+        for i, tab in enumerate(win['tabs']):
+            new_tab = tabbed_browser.tabopen(background=False)
+            self._load_tab(new_tab, tab)
+            if tab.get('active', False):
+                tab_to_focus = i
+            if new_tab.data.pinned:
+                tabbed_browser.widget.set_tab_pinned(new_tab,
+                                                     new_tab.data.pinned)
+        if tab_to_focus is not None:
+            tabbed_browser.widget.setCurrentIndex(tab_to_focus)
+        if win.get('active', False):
+            QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
+
     def load(self, name, temp=False):
         """Load a named session.
 
@@ -423,25 +443,13 @@ class SessionManager(QObject):
         if data is None:
             raise SessionError("Got empty session file")
 
+        if qtutils.is_single_process():
+            if any(win.get('private') for win in data['windows']):
+                raise SessionError("Can't load a session with private windows "
+                                   "in single process mode.")
+
         for win in data['windows']:
-            window = mainwindow.MainWindow(geometry=win['geometry'],
-                                           private=win.get('private', None))
-            window.show()
-            tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                        window=window.win_id)
-            tab_to_focus = None
-            for i, tab in enumerate(win['tabs']):
-                new_tab = tabbed_browser.tabopen(background=False)
-                self._load_tab(new_tab, tab)
-                if tab.get('active', False):
-                    tab_to_focus = i
-                if new_tab.data.pinned:
-                    tabbed_browser.widget.set_tab_pinned(new_tab,
-                                                         new_tab.data.pinned)
-            if tab_to_focus is not None:
-                tabbed_browser.widget.setCurrentIndex(tab_to_focus)
-            if win.get('active', False):
-                QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
+            self._load_window(win)
 
         if data['windows']:
             self.did_load = True

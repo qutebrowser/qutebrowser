@@ -415,7 +415,7 @@ def qnam(qapp):
 
 
 @pytest.fixture
-def webengineview(qtbot, monkeypatch):
+def webengineview(qtbot, monkeypatch, web_tab_setup):
     """Get a QWebEngineView if QtWebEngine is available."""
     QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
@@ -428,7 +428,15 @@ def webengineview(qtbot, monkeypatch):
 def webpage(qnam):
     """Get a new QWebPage object."""
     QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
-    page = QtWebKitWidgets.QWebPage()
+    class WebPageStub(QtWebKitWidgets.QWebPage):
+
+        """QWebPage with default error pages disabled."""
+
+        def supportsExtension(self, _ext):
+            """No extensions needed."""
+            return False
+
+    page = WebPageStub()
     page.networkAccessManager().deleteLater()
     page.setNetworkAccessManager(qnam)
     return page

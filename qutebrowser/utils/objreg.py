@@ -304,6 +304,5 @@ def window_by_index(idx):
     """Get the Nth opened window object."""
     if not window_registry:
         raise NoWindow()
-    else:
-        key = sorted(window_registry)[idx]
-        return window_registry[key]
+    key = sorted(window_registry)[idx]
+    return window_registry[key]

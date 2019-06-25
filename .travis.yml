@@ -37,6 +37,7 @@ matrix:
 
     ### PyQt 5.12 (Python 3.7, with coverage)
     - env: TESTENV=py37-pyqt512-cov
+      # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
       addons:
         apt:
           packages:

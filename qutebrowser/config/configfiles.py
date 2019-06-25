@@ -28,9 +28,10 @@ import traceback
 import configparser
 import contextlib
 import typing
+import re
 
 import yaml
-from PyQt5.QtCore import pyqtSignal, QObject, QSettings
+from PyQt5.QtCore import pyqtSignal, QObject, QSettings, qVersion
 
 import qutebrowser
 from qutebrowser.config import configexc, config, configdata, configutils
@@ -55,6 +56,17 @@ class StateConfig(configparser.ConfigParser):
         super().__init__()
         self._filename = os.path.join(standarddir.data(), 'state')
         self.read(self._filename, encoding='utf-8')
+
+        qt_version = qVersion()
+        # We handle this here, so we can avoid setting qt_version_changed if
+        # the config is brand new, but can still set it when qt_version wasn't
+        # there before...
+        if 'general' in self:
+            old_qt_version = self['general'].get('qt_version', None)
+            self.qt_version_changed = old_qt_version != qt_version
+        else:
+            self.qt_version_changed = False
+
         for sect in ['general', 'geometry']:
             try:
                 self.add_section(sect)
@@ -64,6 +76,9 @@ class StateConfig(configparser.ConfigParser):
         deleted_keys = ['fooled', 'backend-warning-shown']
         for key in deleted_keys:
             self['general'].pop(key, None)
+
+        self['general']['qt_version'] = qt_version
+        self['general']['version'] = qutebrowser.__version__
 
     def init_save_manager(self,
                           save_manager: 'savemanager.SaveManager') -> None:
@@ -256,6 +271,16 @@ class YamlConfig(QObject):
                     settings[name][scope] = true_value if val else false_value
                     self._mark_changed()
 
+    def _migrate_string_value(self, settings: _SettingsType, name: str,
+                              source: str, target: str) -> None:
+        if name in settings:
+            for scope, val in settings[name].items():
+                if isinstance(val, str):
+                    new_val = re.sub(source, target, val)
+                    if new_val != val:
+                        settings[name][scope] = new_val
+                        self._mark_changed()
+
     def _handle_migrations(self, settings: _SettingsType) -> '_SettingsType':
         """Migrate older configs to the newest format."""
         # Simple renamed/deleted options
@@ -311,6 +336,12 @@ class YamlConfig(QObject):
                            'always', 'when-searching')
         self._migrate_bool(settings, 'qt.force_software_rendering',
                            'software-opengl', 'none')
+
+        for s in ['tabs.title.format',
+                  'tabs.title.format_pinned',
+                  'window.title_format']:
+            self._migrate_string_value(
+                settings, s, r'(?<!{)\{title\}(?!})', r'{current_title}')
 
         return settings
 
@@ -638,7 +669,6 @@ def init() -> None:
     """Initialize config storage not related to the main config."""
     global state
     state = StateConfig()
-    state['general']['version'] = qutebrowser.__version__
 
     # Set the QSettings path to something like
     # ~/.config/qutebrowser/qsettings/qutebrowser/qutebrowser.conf so it

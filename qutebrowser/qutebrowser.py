@@ -51,7 +51,6 @@ except ImportError:
         sys.stderr.flush()
         sys.exit(100)
 check_python_version()
-from qutebrowser.utils import log
 
 import argparse  # pylint: disable=wrong-import-order
 from qutebrowser.misc import earlyinit
@@ -148,6 +147,7 @@ def logfilter_error(logfilter):
     Args:
         logfilter: A comma separated list of logger names.
     """
+    from qutebrowser.utils import log
     if set(logfilter.lstrip('!').split(',')).issubset(log.LOGGER_NAMES):
         return logfilter
     else:
@@ -166,10 +166,12 @@ def debug_flag_error(flag):
         no-scroll-filtering: Process all scrolling updates.
         log-requests: Log all network requests.
         log-scroll-pos: Log all scrolling changes.
+        stack: Enable Chromium stack logging.
+        chromium: Enable Chromium logging.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
-                   'no-scroll-filtering', 'log-requests', 'log-scroll-pos',
-                   'lost-focusproxy']
+                   'no-scroll-filtering', 'log-requests', 'lost-focusproxy',
+                   'log-scroll-pos', 'stack', 'chromium']
 
     if flag in valid_flags:
         return flag

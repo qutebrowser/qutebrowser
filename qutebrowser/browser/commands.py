@@ -479,7 +479,7 @@ class CommandDispatcher:
         # Catch common cases before e.g. cloning tab
         if not forward and not history.can_go_back():
             raise cmdutils.CommandError("At beginning of history.")
-        elif forward and not history.can_go_forward():
+        if forward and not history.can_go_forward():
             raise cmdutils.CommandError("At end of history.")
 
         if tab or bg or window:
@@ -646,9 +646,11 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
-                                        'title', 'domain', 'markdown'])
-    def yank(self, what='url', sel=False, keep=False, quiet=False):
-        """Yank something to the clipboard or primary selection.
+                                        'title', 'domain', 'markdown',
+                                        'inline'])
+    def yank(self, what='url', inline=None,
+             sel=False, keep=False, quiet=False):
+        """Yank (copy) something to the clipboard or primary selection.
 
         Args:
             what: What to yank.
@@ -658,13 +660,20 @@ class CommandDispatcher:
                 - `title`: The current page's title.
                 - `domain`: The current scheme, domain, and port number.
                 - `selection`: The selection under the cursor.
-                - `markdown`: Yank title and URL in markdown format.
+                - `markdown`: Yank title and URL in markdown format
+                  (deprecated, use `:yank inline [{title}]({url})` instead).
+                - `inline`: Yank the text contained in the 'inline' argument.
 
             sel: Use the primary selection instead of the clipboard.
             keep: Stay in visual mode after yanking the selection.
             quiet: Don't show an information message.
+            inline: A block of text, to be yanked if 'what'
+                is inline and ignored otherwise.
         """
-        if what == 'title':
+        if what == 'inline':
+            s = inline
+            what = 'inline block'
+        elif what == 'title':
             s = self._tabbed_browser.widget.page_title(self._current_index())
         elif what == 'domain':
             port = self._current_url().port()
@@ -685,6 +694,8 @@ class CommandDispatcher:
             caret.selection(callback=_selection_callback)
             return
         elif what == 'markdown':
+            message.warning(":yank markdown is deprecated, use `:yank inline "
+                            "[{title}]({url})` instead.")
             idx = self._current_index()
             title = self._tabbed_browser.widget.page_title(idx)
             url = self._yank_url(what)
@@ -1026,7 +1037,10 @@ class CommandDispatcher:
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
                                          parent=self._tabbed_browser)
             if detach:
-                proc.start_detached(cmd, args)
+                ok = proc.start_detached(cmd, args)
+                if not ok:
+                    message.info("Hint: Try without --detach for a more "
+                                 "detailed error")
             else:
                 proc.start(cmd, args)
             proc.finished.connect(_on_proc_finished)
@@ -1196,6 +1210,7 @@ class CommandDispatcher:
             objreg.get('bookmark-manager').delete(url)
         except KeyError:
             raise cmdutils.CommandError("Bookmark '{}' not found!".format(url))
+        message.info("Removed bookmark {}".format(url))
 
     @cmdutils.register(instance='command-dispatcher', name='inspector',
                        scope='window')
@@ -1706,11 +1721,13 @@ class CommandDispatcher:
                          private=private, related=related)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    def fullscreen(self, leave=False):
+    def fullscreen(self, leave=False, enter=False):
         """Toggle fullscreen mode.
 
         Args:
             leave: Only leave fullscreen if it was entered by the page.
+            enter: Activate fullscreen and do not toggle if it is already
+                   active.
         """
         if leave:
             tab = self._current_widget()
@@ -1724,7 +1741,10 @@ class CommandDispatcher:
 
         if not window.isFullScreen():
             window.state_before_fullscreen = window.windowState()
-        window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
+        if enter:
+            window.setWindowState(window.windowState() | Qt.WindowFullScreen)
+        else:
+            window.setWindowState(window.windowState() ^ Qt.WindowFullScreen)
 
         log.misc.debug('state before fullscreen: {}'.format(
             debug.qflags_key(Qt, window.state_before_fullscreen)))

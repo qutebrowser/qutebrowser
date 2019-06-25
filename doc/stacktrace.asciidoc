@@ -98,7 +98,8 @@ Then run qutebrowser directly inside gdb like this:
 $ gdb $(readlink -f $(which python3)) -ex 'run -m qutebrowser --debug'
 ----
 
-After you reproduce the crash, you should now see something like:
+Note qutebrowser/gdb will take a long time to start. After you reproduce the
+crash, you should now see something like:
 
 ----
 Program received signal SIGSEGV, Segmentation fault.

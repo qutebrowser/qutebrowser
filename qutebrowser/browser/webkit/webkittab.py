@@ -351,6 +351,15 @@ class WebKitCaret(browsertab.AbstractCaret):
     def selection(self, callback):
         callback(self._widget.selectedText())
 
+    def reverse_selection(self):
+        self._tab.run_js_async("""{
+            const sel = window.getSelection();
+            sel.setBaseAndExtent(
+                sel.extentNode, sel.extentOffset, sel.baseNode,
+                sel.baseOffset
+            );
+        }""")
+
     def _follow_selected(self, *, tab=False):
         if QWebSettings.globalSettings().testAttribute(
                 QWebSettings.JavascriptEnabled):
@@ -781,6 +790,11 @@ class WebKitTab(browsertab.AbstractTab):
         nam.netrc_used = False
         # Make sure the icon is cleared when navigating to a page without one.
         self.icon_changed.emit(QIcon())
+
+    @pyqtSlot(bool)
+    def _on_load_finished(self, ok: bool) -> None:
+        super()._on_load_finished(ok)
+        self._update_load_status(ok)
 
     @pyqtSlot()
     def _on_frame_load_finished(self):

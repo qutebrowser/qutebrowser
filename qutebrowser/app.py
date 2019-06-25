@@ -105,7 +105,7 @@ def run(args):
     q_app = Application(args)
     q_app.setOrganizationName("qutebrowser")
     q_app.setApplicationName("qutebrowser")
-    q_app.setDesktopFileName("qutebrowser")
+    q_app.setDesktopFileName("org.qutebrowser.qutebrowser")
     q_app.setApplicationVersion(qutebrowser.__version__)
     q_app.lastWindowClosed.connect(quitter.on_last_window_closed)
 
@@ -162,6 +162,9 @@ def init(args, crash_handler):
         crash_handler: The CrashHandler instance.
     """
     log.init.debug("Starting init...")
+
+    crash_handler.init_faulthandler()
+
     q_app.setQuitOnLastWindowClosed(False)
     _init_icon()
 
@@ -217,6 +220,11 @@ def _process_args(args):
     session_manager = objreg.get('session-manager')
     if not session_manager.did_load:
         log.init.debug("Initializing main window...")
+        if config.val.content.private_browsing and qtutils.is_single_process():
+            err = Exception("Private windows are unavailable with "
+                            "the single-process process model.")
+            error.handle_fatal_exc(err, args, 'Cannot start in private mode')
+            sys.exit(usertypes.Exit.err_init)
         window = mainwindow.MainWindow(private=None)
         if not args.nowindow:
             window.show()
@@ -441,33 +449,34 @@ def _init_modules(args, crash_handler):
     log.init.debug("Initializing proxy...")
     proxy.init()
 
+    log.init.debug("Initializing downloads...")
+    downloads.init()
+
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
     objreg.register('readline-bridge', readline_bridge)
 
     try:
-        log.init.debug("Initializing sql...")
+        log.init.debug("Initializing SQL...")
         sql.init(os.path.join(standarddir.data(), 'history.sqlite'))
 
         log.init.debug("Initializing web history...")
         history.init(q_app)
-    except sql.SqlEnvironmentError as e:
+    except sql.KnownError as e:
         error.handle_fatal_exc(e, args, 'Error initializing SQL',
                                pre_text='Error initializing SQL')
         sys.exit(usertypes.Exit.err_init)
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
-
-    log.init.debug("Initializing crashlog...")
-    if not args.no_err_windows:
-        crash_handler.handle_segfault()
-
     log.init.debug("Initializing sessions...")
     sessions.init(q_app)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
+
+    if not args.no_err_windows:
+        crash_handler.display_faulthandler()
 
     log.init.debug("Initializing quickmarks...")
     quickmark_manager = urlmarks.QuickmarkManager(q_app)

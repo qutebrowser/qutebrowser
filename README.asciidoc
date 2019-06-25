@@ -141,7 +141,8 @@ If you want to give me a beer or a pizza back, I'm trying to make it as easy as
 possible for you to do so. If some other way would be easier for you, please
 get in touch!
 
-* PayPal: me@the-compiler.org
+* SEPA bank transfer inside Europe (no fee): Contact me for details
+* PayPal: https://www.paypal.me/thecompiler[thecompiler] / me@the-compiler.org
 * Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
 
 Sponsors

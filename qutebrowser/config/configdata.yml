@@ -81,7 +81,7 @@ new_instance_open_target_window:
   desc: >-
     Which window to choose when opening links as new tabs.
 
-    When `new_instance_open_target` is not set to `window`, this is ignored.
+    When `new_instance_open_target` is set to `window`, this is ignored.
 
 session_default_name:
   renamed: session.default_name
@@ -661,12 +661,15 @@ content.notifications:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend: QtWebKit
+  backend:
+    QtWebEngine: Qt 5.13
+    QtWebKit: true
   desc: Allow websites to show notifications.
 
 content.pdfjs:
   default: false
   type: Bool
+  supports_pattern: true
   desc: >-
     Allow pdf.js to view PDF files in the browser.
 
@@ -858,10 +861,13 @@ completion.scrollbar.padding:
 
 completion.timestamp_format:
   type:
-    name: TimestampTemplate
+    name: String
     none_ok: true
   default: '%Y-%m-%d'
-  desc: Format of timestamps (e.g. for the history completion).
+  desc: >-
+    Format of timestamps (e.g. for the history completion).
+
+    See https://sqlite.org/lang_datefunc.html for allowed substitutions.
 
 completion.web_history.exclude:
   type:
@@ -1197,6 +1203,11 @@ hints.uppercase:
   default: false
   type: Bool
   desc: Make characters in hint strings uppercase.
+
+hints.leave_on_load:
+  default: true
+  type: Bool
+  desc: Leave hint mode when starting a new page load.
 
 ## input
 
@@ -1619,13 +1630,13 @@ tabs.title.alignment:
   desc: Alignment of the text inside of tabs.
 
 tabs.title.format:
-  default: '{audio}{index}: {title}'
+  default: '{audio}{index}: {current_title}'
   type:
     name: FormatString
     fields:
       - perc
       - perc_raw
-      - title
+      - current_title
       - title_sep
       - index
       - id
@@ -1642,7 +1653,7 @@ tabs.title.format:
 
     * `{perc}`: Percentage as a string like `[10%]`.
     * `{perc_raw}`: Raw percentage, e.g. `10`.
-    * `{title}`: Title of the current web page.
+    * `{current_title}`: Title of the current web page.
     * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
     * `{index}`: Index of this tab.
     * `{id}`: Internal tab ID of this tab.
@@ -1661,7 +1672,7 @@ tabs.title.format_pinned:
     fields:
       - perc
       - perc_raw
-      - title
+      - current_title
       - title_sep
       - index
       - id
@@ -1853,7 +1864,7 @@ window.title_format:
     fields:
       - perc
       - perc_raw
-      - title
+      - current_title
       - title_sep
       - id
       - scroll_pos
@@ -1863,7 +1874,7 @@ window.title_format:
       - current_url
       - protocol
       - audio
-  default: '{perc}{title}{title_sep}qutebrowser'
+  default: '{perc}{current_title}{title_sep}qutebrowser'
   desc: |
     Format to use for the window title. The same placeholders like for
     `tabs.title.format` are defined.
@@ -1971,12 +1982,17 @@ colors.completion.item.selected.bg:
 colors.completion.item.selected.border.top:
   default: '#bbbb00'
   type: QssColor
-  desc: Top border color of the completion widget category headers.
+  desc: Top border color of the selected completion item.
 
 colors.completion.item.selected.border.bottom:
   default: '#bbbb00'
   type: QssColor
   desc: Bottom border color of the selected completion item.
+
+colors.completion.item.selected.match.fg:
+  default: '#ff4444'
+  type: QtColor
+  desc: Foreground color of the matched text in the selected completion item.
 
 colors.completion.match.fg:
   default: '#ff4444'
@@ -2255,7 +2271,7 @@ colors.statusbar.url.warn.fg:
 
 colors.tabs.bar.bg:
   default: '#555555'
-  type: QtColor
+  type: QssColor
   desc: Background color of the tab bar.
 
 colors.tabs.indicator.start:
@@ -2317,6 +2333,46 @@ colors.tabs.selected.even.bg:
   default: black
   type: QtColor
   desc: Background color of selected even tabs.
+
+colors.tabs.pinned.odd.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned unselected odd tabs.
+
+colors.tabs.pinned.odd.bg:
+  default: seagreen
+  type: QtColor
+  desc: Background color of pinned unselected odd tabs.
+
+colors.tabs.pinned.even.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned unselected even tabs.
+
+colors.tabs.pinned.even.bg:
+  default: darkseagreen
+  type: QtColor
+  desc: Background color of pinned unselected even tabs.
+
+colors.tabs.pinned.selected.odd.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned selected odd tabs.
+
+colors.tabs.pinned.selected.odd.bg:
+  default: black
+  type: QtColor
+  desc: Background color of pinned selected odd tabs.
+
+colors.tabs.pinned.selected.even.fg:
+  default: white
+  type: QtColor
+  desc: Foreground color of pinned selected even tabs.
+
+colors.tabs.pinned.selected.even.bg:
+  default: black
+  type: QtColor
+  desc: Background color of pinned selected even tabs.
 
 colors.webpage.bg:
   default: white
@@ -2597,8 +2653,8 @@ bindings.default:
       yD: yank domain -s
       yp: yank pretty-url
       yP: yank pretty-url -s
-      ym: yank markdown
-      yM: yank markdown -s
+      ym: yank inline [{title}]({url})
+      yM: yank inline [{title}]({url}) -s
       pp: open -- {clipboard}
       pP: open -- {primary}
       Pp: open -t -- {clipboard}
@@ -2776,6 +2832,7 @@ bindings.default:
       e: move-to-end-of-word
       w: move-to-next-word
       b: move-to-prev-word
+      o: reverse-selection
       "]": move-to-start-of-next-block
       "[": move-to-start-of-prev-block
       "}": move-to-end-of-next-block

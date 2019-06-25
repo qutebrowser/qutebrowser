@@ -209,6 +209,9 @@ class WebEngineElement(webelem.AbstractWebElement):
             self._js_dict['attributes']['target'] = '_top'
         self._js_call('remove_blank_target')
 
+    def delete(self) -> None:
+        self._js_call('delete')
+
     def _move_text_cursor(self) -> None:
         if self.is_text_input() and self.is_editable():
             self._js_call('move_cursor_to_end')

@@ -63,7 +63,7 @@ def _serialize_item(item):
 
 
 def serialize(items):
-    """Serialize a list of QWebHistoryItems to a data stream.
+    """Serialize a list of WebHistoryItems to a data stream.
 
     Args:
         items: An iterable of WebHistoryItems.
@@ -89,8 +89,7 @@ def serialize(items):
             if current_idx is not None:
                 raise ValueError("Multiple active items ({} and {}) "
                                  "found!".format(current_idx, i))
-            else:
-                current_idx = i
+            current_idx = i
 
     if items:
         if current_idx is None:

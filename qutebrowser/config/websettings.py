@@ -93,7 +93,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert value is not configutils.UNSET
+        assert value is not configutils.UNSET  # type: ignore
         family = self._FONT_SIZES[name]
         old_value = self._settings.fontSize(family)
         self._settings.setFontSize(family, value)
@@ -108,7 +108,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert value is not configutils.UNSET
+        assert value is not configutils.UNSET  # type: ignore
         family = self._FONT_FAMILIES[name]
         if value is None:
             font = QFont()
@@ -126,7 +126,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert encoding is not configutils.UNSET
+        assert encoding is not configutils.UNSET  # type: ignore
         old_value = self._settings.defaultTextEncoding()
         self._settings.setDefaultTextEncoding(encoding)
         return old_value != encoding
