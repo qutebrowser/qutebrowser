@@ -103,13 +103,17 @@ class MessageView(QWidget):
             interval *= min(5, len(self._messages))
             self._clear_timer.setInterval(interval)
 
+    def _remove_message(self, widget):
+        """Fully remove and destroy widget from this object."""
+        self._vbox.removeWidget(widget)
+        widget.hide()
+        widget.deleteLater()
+
     @pyqtSlot()
     def clear_messages(self):
         """Hide and delete all messages."""
         for widget in self._messages:
-            self._vbox.removeWidget(widget)
-            widget.hide()
-            widget.deleteLater()
+            self._remove_message(widget)
         self._messages = []
         self._last_text = None
         self.hide()
@@ -122,8 +126,7 @@ class MessageView(QWidget):
             return
 
         if replace and self._messages and self._messages[-1].replace:
-            old = self._messages.pop()
-            old.hide()
+            self._remove_message(self._messages.pop())
 
         widget = Message(level, text, replace=replace, parent=self)
         self._vbox.addWidget(widget)
