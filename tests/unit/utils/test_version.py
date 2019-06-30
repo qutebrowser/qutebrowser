@@ -791,7 +791,7 @@ class TestPDFJSVersion:
             lambda path: (pdfjs_code, '/foo/bar/pdf.js'))
         assert version._pdfjs_version() == '1.2.109 (/foo/bar/pdf.js)'
 
-    def test_real_file(self):
+    def test_real_file(self, data_tmpdir):
         """Test against the real file if pdfjs was found."""
         try:
             pdfjs.get_pdfjs_res_and_path('build/pdf.js')
