@@ -74,7 +74,8 @@ class DistributionInfo:
 pastebin_url = None
 Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
-                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
+                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro',
+                     'org.kde.Platform'])
 
 
 def distribution():
