@@ -75,7 +75,7 @@ pastebin_url = None
 Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
                      'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro',
-                     'org.kde.Platform'])
+                     'kde'])
 
 
 def distribution():
@@ -112,6 +112,7 @@ def distribution():
     dist_id = info.get('ID', None)
     id_mappings = {
         'funtoo': 'gentoo',  # does not have ID_LIKE=gentoo
+        'org.kde.Platform': 'kde',
     }
     try:
         parsed = Distribution[id_mappings.get(dist_id, dist_id)]

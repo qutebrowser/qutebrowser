@@ -176,6 +176,17 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='funtoo', parsed=version.Distribution.gentoo,
          version=None, pretty='Funtoo GNU/Linux')),
+    # KDE Platform
+    ("""
+        NAME=KDE
+        VERSION="5.12 (Flatpak runtime)"
+        VERSION_ID="5.12"
+        ID=org.kde.Platform
+    """,
+     version.DistributionInfo(
+         id='org.kde.Platform', parsed=version.Distribution.kde,
+         version=pkg_resources.parse_version('5.12'),
+         pretty='Unknown')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
