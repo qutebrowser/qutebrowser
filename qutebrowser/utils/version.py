@@ -123,6 +123,15 @@ def distribution():
                             id=dist_id)
 
 
+def sandboxed():
+    """Check whether the environment is a sandbox, i.e. has restricted access to the host system.
+
+    Return:
+        True if the environment is a sandbox.
+    """
+    return distribution().parsed == Distribution.kde
+
+
 def _git_str():
     """Try to find out git version.
 
