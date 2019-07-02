@@ -125,9 +125,6 @@ def distribution():
 
 def is_sandboxed():
     """Check whether the environment is a sandbox, i.e. has restricted access to the host system.
-
-    Return:
-        True if the environment is a sandbox.
     """
     return distribution().parsed == Distribution.kde
 
