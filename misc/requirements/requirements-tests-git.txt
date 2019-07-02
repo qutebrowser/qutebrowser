@@ -13,7 +13,6 @@ hg+https://bitbucket.org/pytest-dev/py
 git+https://github.com/pytest-dev/pytest.git@features
 git+https://github.com/pytest-dev/pytest-bdd.git
 git+https://github.com/pytest-dev/pytest-cov.git
-git+https://github.com/pytest-dev/pytest-faulthandler.git
 git+https://github.com/pytest-dev/pytest-instafail.git
 git+https://github.com/pytest-dev/pytest-mock.git
 git+https://github.com/pytest-dev/pytest-qt.git
