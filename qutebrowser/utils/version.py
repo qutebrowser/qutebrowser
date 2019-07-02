@@ -100,9 +100,9 @@ def distribution():
     except (OSError, UnicodeDecodeError):
         return None
 
-    pretty = info.get('PRETTY_NAME', 'Unknown')
-    if pretty == 'Linux':  # Thanks, Funtoo
-        pretty = info.get('NAME', pretty)
+    pretty = info.get('PRETTY_NAME', None)
+    if pretty in ['Linux', None]:  # Funtoo has PRETTY_NAME=Linux
+        pretty = info.get('NAME', 'Unknown')
 
     if 'VERSION_ID' in info:
         dist_version = pkg_resources.parse_version(info['VERSION_ID'])

@@ -186,7 +186,15 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='org.kde.Platform', parsed=version.Distribution.kde,
          version=pkg_resources.parse_version('5.12'),
-         pretty='Unknown')),
+         pretty='KDE')),
+    # No PRETTY_NAME
+    ("""
+        NAME="Tux"
+        ID=tux
+     """,
+     version.DistributionInfo(
+         id='tux', parsed=version.Distribution.unknown,
+         version=None, pretty='Tux')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
