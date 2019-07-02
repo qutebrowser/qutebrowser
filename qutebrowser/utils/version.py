@@ -123,7 +123,7 @@ def distribution():
                             id=dist_id)
 
 
-def sandboxed():
+def is_sandboxed():
     """Check whether the environment is a sandbox, i.e. has restricted access to the host system.
 
     Return:

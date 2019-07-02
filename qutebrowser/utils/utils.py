@@ -610,7 +610,7 @@ def open_file(filename, cmdline=None):
     from qutebrowser.utils import version, message
 
     # check whether we are in a sandbox environment
-    sandbox = version.sandboxed()
+    sandbox = version.is_sandboxed()
 
     # the default program to open downloads with - will be empty string
     # if we want to use the default
