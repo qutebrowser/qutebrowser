@@ -126,7 +126,10 @@ def distribution():
 def is_sandboxed():
     """Check whether the environment is a sandbox, i.e. has restricted access to the host system.
     """
-    return distribution().parsed == Distribution.kde
+    current_distro = distribution()
+    if current_distro is None:
+        return False
+    return current_distro.parsed == Distribution.kde
 
 
 def _git_str():
