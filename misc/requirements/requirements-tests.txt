@@ -13,16 +13,20 @@ Flask==1.0.3
 glob2==0.7
 hunter==3.0.1
 hypothesis==4.24.6
+importlib-metadata==0.18
 itsdangerous==1.1.0
-# Jinja2==2.10
-Mako==1.0.12
-# MarkupSafe==1.1.0
+# Jinja2==2.10.1
+Mako==1.0.13
+manhole==1.6.0
+# MarkupSafe==1.1.1
 more-itertools==7.1.0
+packaging==19.0
 parse==1.12.0
 parse-type==0.4.2
 pluggy==0.12.0
 py==1.8.0
 py-cpuinfo==5.0.0
+pyparsing==2.4.0
 pytest==5.0.0
 pytest-bdd==3.1.0
 pytest-benchmark==3.2.2
@@ -38,4 +42,6 @@ PyVirtualDisplay==0.2.4
 six==1.12.0
 soupsieve==1.9.2
 vulture==1.0
+wcwidth==0.1.7
 Werkzeug==0.15.4
+zipp==0.5.1
