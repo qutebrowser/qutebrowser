@@ -132,7 +132,8 @@ class TabbedBrowser(QWidget):
         else:
             self.cur_load_started.connect(self._leave_modes_on_load)
 
-        # This init is never used, it is immediately thrown away in the next line.
+        # This init is never used, it is immediately thrown away in the next
+        # line.
         self._undo_stack = collections.deque()
         self._update_stack_size()
         self._filter = signalfilter.SignalFilter(win_id, self)

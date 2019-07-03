@@ -27,6 +27,7 @@ Added
     new page is loaded.
   * `colors.completion.item.selected.match.fg` which allows configuring the
     text color for the matching text in the currently selected completion item.
+  * `tabs.undo_stack_size` to limit how many undo entries are kept for closed tabs.
 - New commands:
   * `:reverse-selection` (`o` in caret mode) to swap the stationary/moving ends
     of a selection.
