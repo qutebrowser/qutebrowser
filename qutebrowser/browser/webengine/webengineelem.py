@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -208,6 +208,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         if self._js_dict['attributes'].get('target') == '_blank':
             self._js_dict['attributes']['target'] = '_top'
         self._js_call('remove_blank_target')
+
+    def delete(self) -> None:
+        self._js_call('delete')
 
     def _move_text_cursor(self) -> None:
         if self.is_text_input() and self.is_editable():

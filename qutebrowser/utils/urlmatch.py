@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2018-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -205,7 +205,7 @@ class UrlPattern:
         if self._host.endswith('.*'):
             # Special case to have a nicer error
             raise ParseError("TLD wildcards are not implemented yet")
-        elif '*' in self._host:
+        if '*' in self._host:
             # Only * or *.foo is allowed as host.
             raise ParseError("Invalid host wildcard")
 

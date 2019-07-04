@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -42,7 +42,7 @@ from PyQt5.QtWidgets import QApplication
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
-    qWebKitVersion = None  # type: ignore
+    qWebKitVersion = None  # type: ignore  # noqa: N816
 
 try:
     from PyQt5.QtWebEngineWidgets import QWebEngineProfile
@@ -53,6 +53,11 @@ import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin
 from qutebrowser.browser import pdfjs
+
+try:
+    from qutebrowser.browser.webengine import webenginesettings
+except ImportError:  # pragma: no cover
+    webenginesettings = None  # type: ignore
 
 
 @attr.s
@@ -69,7 +74,8 @@ class DistributionInfo:
 pastebin_url = None
 Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
-                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
+                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro',
+                     'kde'])
 
 
 def distribution():
@@ -94,9 +100,9 @@ def distribution():
     except (OSError, UnicodeDecodeError):
         return None
 
-    pretty = info.get('PRETTY_NAME', 'Unknown')
-    if pretty == 'Linux':  # Thanks, Funtoo
-        pretty = info.get('NAME', pretty)
+    pretty = info.get('PRETTY_NAME', None)
+    if pretty in ['Linux', None]:  # Funtoo has PRETTY_NAME=Linux
+        pretty = info.get('NAME', 'Unknown')
 
     if 'VERSION_ID' in info:
         dist_version = pkg_resources.parse_version(info['VERSION_ID'])
@@ -106,6 +112,7 @@ def distribution():
     dist_id = info.get('ID', None)
     id_mappings = {
         'funtoo': 'gentoo',  # does not have ID_LIKE=gentoo
+        'org.kde.Platform': 'kde',
     }
     try:
         parsed = Distribution[id_mappings.get(dist_id, dist_id)]
@@ -324,7 +331,7 @@ def _chromium_version():
 
     Qt 5.9:  Chromium 56
     (LTS)    56.0.2924.122 (2017-01-25)
-             5.9.6: Security fixes up to 66.0.3359.170 (2018-05-10)
+             5.9.8: Security fixes up to 72.0.3626.121 (2019-03-01)
 
     Qt 5.10: Chromium 61
              61.0.3163.140 (2017-09-05)
@@ -332,20 +339,26 @@ def _chromium_version():
 
     Qt 5.11: Chromium 65
              65.0.3325.151 (.1: .230) (2018-03-06)
-             5.11.2: Security fixes up to 68.0.3440.75 (2018-07-24)
+             5.11.3: Security fixes up to 70.0.3538.102 (2018-11-09)
 
     Qt 5.12: Chromium 69
-             69.0.3497.128 (~2018-09-17)
-             5.12.0: Security fixes up to 70.0.3538.67 (2018-10-16)
+    (LTS)    69.0.3497.113 (2018-09-27)
+             5.12.4: Security fixes up to 74.0.3729.157 (2019-05-14)
+
+    Qt 5.13: Chromium 73
+             73.0.3683.105 (~2019-02-28)
+             5.13.0: Security fixes up to 74.0.3729.131 (2019-04-30)
 
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
     """
-    if QWebEngineProfile is None:
+    if webenginesettings is None or QWebEngineProfile is None:
         # This should never happen
         return 'unavailable'
-    profile = QWebEngineProfile()
-    ua = profile.httpUserAgent()
+    ua = webenginesettings.default_user_agent
+    if ua is None:
+        profile = QWebEngineProfile.defaultProfile()
+        ua = profile.httpUserAgent()
     match = re.search(r' Chrome/([^ ]*) ', ua)
     if not match:
         log.misc.error("Could not get Chromium version from: {}".format(ua))

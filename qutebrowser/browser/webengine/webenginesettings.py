@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -25,6 +25,7 @@ Module attributes:
 """
 
 import os
+import operator
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
@@ -42,6 +43,8 @@ private_profile = None
 # The global WebEngineSettings object
 global_settings = None
 
+default_user_agent = None
+
 
 class _SettingsWrapper:
 
@@ -51,8 +54,9 @@ class _SettingsWrapper:
     """
 
     def __init__(self):
-        self._settings = [default_profile.settings(),
-                          private_profile.settings()]
+        self._settings = [default_profile.settings()]
+        if private_profile:
+            self._settings.append(private_profile.settings())
 
     def setAttribute(self, *args, **kwargs):
         for settings in self._settings:
@@ -163,9 +167,14 @@ class WebEngineSettings(websettings.AbstractSettings):
             # Qt 5.8
             'content.print_element_backgrounds':
                 ('PrintElementBackgrounds', None),
+
             # Qt 5.11
             'content.autoplay':
-                ('PlaybackRequiresUserGesture', lambda val: not val),
+                ('PlaybackRequiresUserGesture', operator.not_),
+
+            # Qt 5.12
+            'content.dns_prefetch':
+                ('DnsPrefetchEnabled', None),
         }
         for name, (attribute, converter) in new_attributes.items():
             try:
@@ -259,10 +268,12 @@ def _update_settings(option):
     if option in ['content.headers.user_agent',
                   'content.headers.accept_language']:
         default_profile.setter.set_http_headers()
-        private_profile.setter.set_http_headers()
+        if private_profile:
+            private_profile.setter.set_http_headers()
     elif option == 'content.cache.size':
         default_profile.setter.set_http_cache_size()
-        private_profile.setter.set_http_cache_size()
+        if private_profile:
+            private_profile.setter.set_http_cache_size()
     elif (option == 'content.cookies.store' and
           # https://bugreports.qt.io/browse/QTBUG-58650
           qtutils.version_check('5.9', compiled=False)):
@@ -270,14 +281,16 @@ def _update_settings(option):
         # We're not touching the private profile's cookie policy.
     elif option == 'spellcheck.languages':
         default_profile.setter.set_dictionary_language()
-        private_profile.setter.set_dictionary_language(warn=False)
+        if private_profile:
+            private_profile.setter.set_dictionary_language(warn=False)
 
 
 def _init_profiles():
     """Init the two used QWebEngineProfiles."""
-    global default_profile, private_profile
+    global default_profile, private_profile, default_user_agent
 
     default_profile = QWebEngineProfile.defaultProfile()
+    default_user_agent = default_profile.httpUserAgent()
     default_profile.setter = ProfileSetter(default_profile)
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))
@@ -286,10 +299,11 @@ def _init_profiles():
     default_profile.setter.init_profile()
     default_profile.setter.set_persistent_cookie_policy()
 
-    private_profile = QWebEngineProfile()
-    private_profile.setter = ProfileSetter(private_profile)
-    assert private_profile.isOffTheRecord()
-    private_profile.setter.init_profile()
+    if not qtutils.is_single_process():
+        private_profile = QWebEngineProfile()
+        private_profile.setter = ProfileSetter(private_profile)
+        assert private_profile.isOffTheRecord()
+        private_profile.setter.init_profile()
 
 
 def init(args):

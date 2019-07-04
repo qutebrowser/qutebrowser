@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -19,6 +19,7 @@
 
 """The main tabbed browser widget."""
 
+import collections
 import functools
 
 import attr
@@ -111,6 +112,8 @@ class TabbedBrowser(QWidget):
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
 
     def __init__(self, *, win_id, private, parent=None):
+        if private:
+            assert not qtutils.is_single_process()
         super().__init__(parent)
         self.widget = tabwidget.TabWidget(win_id, parent=self)
         self._win_id = win_id
@@ -120,10 +123,19 @@ class TabbedBrowser(QWidget):
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(self.tabopen)
         self.widget.currentChanged.connect(self.on_current_changed)
-        self.cur_load_started.connect(self.on_cur_load_started)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self._undo_stack = []
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        if qtutils.version_check('5.10', compiled=False):
+            self.cur_load_finished.connect(self._leave_modes_on_load)
+        else:
+            self.cur_load_started.connect(self._leave_modes_on_load)
+
+        # This init is never used, it is immediately thrown away in the next
+        # line.
+        self._undo_stack = collections.deque()
+        self._update_stack_size()
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
         self.search_text = None
@@ -134,6 +146,13 @@ class TabbedBrowser(QWidget):
         self.is_private = private
         config.instance.changed.connect(self._on_config_changed)
 
+    def _update_stack_size(self):
+        newsize = config.instance.get('tabs.undo_stack_size')
+        if newsize < 0:
+            newsize = None
+        # We can't resize a collections.deque so just recreate it >:(
+        self._undo_stack = collections.deque(self._undo_stack, maxlen=newsize)
+
     def __repr__(self):
         return utils.get_repr(self, count=self.widget.count())
 
@@ -143,6 +162,8 @@ class TabbedBrowser(QWidget):
             self._update_favicons()
         elif option == 'window.title_format':
             self._update_window_title()
+        elif option == 'tabs.undo_stack_size':
+            self._update_stack_size()
         elif option in ['tabs.title.format', 'tabs.title.format_pinned']:
             self.widget.update_tab_titles()
 
@@ -442,7 +463,7 @@ class TabbedBrowser(QWidget):
         Args:
             url: The URL to open as QUrl or None for an empty tab.
             background: Whether to open the tab in the background.
-                        if None, the `tabs.background_tabs`` setting decides.
+                        if None, the `tabs.background` setting decides.
             related: Whether the tab was opened from another existing tab.
                      If this is set, the new position might be different. With
                      the default settings we handle it like Chromium does:
@@ -584,12 +605,25 @@ class TabbedBrowser(QWidget):
             self._update_window_title()
 
     @pyqtSlot()
-    def on_cur_load_started(self):
+    def _leave_modes_on_load(self):
         """Leave insert/hint mode when loading started."""
-        modeman.leave(self._win_id, usertypes.KeyMode.insert, 'load started',
-                      maybe=True)
-        modeman.leave(self._win_id, usertypes.KeyMode.hint, 'load started',
-                      maybe=True)
+        try:
+            url = self.current_url()
+            if not url.isValid():
+                url = None
+        except qtutils.QtValueError:
+            url = None
+        if config.instance.get('input.insert_mode.leave_on_load',
+                               url=url):
+            modeman.leave(self._win_id, usertypes.KeyMode.insert,
+                          'load started', maybe=True)
+        else:
+            log.modes.debug("Ignoring leave_on_load request due to setting.")
+        if config.cache['hints.leave_on_load']:
+            modeman.leave(self._win_id, usertypes.KeyMode.hint,
+                          'load started', maybe=True)
+        else:
+            log.modes.debug("Ignoring leave_on_load request due to setting.")
 
     @pyqtSlot(browsertab.AbstractTab, str)
     def on_title_changed(self, tab, text):

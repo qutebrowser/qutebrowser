@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -26,7 +26,6 @@ import typing
 
 MYPY = False
 if MYPY:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.utils import usertypes
     from qutebrowser.commands import command
 

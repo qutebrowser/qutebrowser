@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -171,6 +171,7 @@ def testdata_scheme(qapp):
         global _qute_scheme_handler
         from qutebrowser.browser.webengine import webenginequtescheme
         from PyQt5.QtWebEngineWidgets import QWebEngineProfile
+        webenginequtescheme.init()
         _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(
             parent=qapp)
         _qute_scheme_handler.install(QWebEngineProfile.defaultProfile())
@@ -414,7 +415,7 @@ def qnam(qapp):
 
 
 @pytest.fixture
-def webengineview(qtbot, monkeypatch):
+def webengineview(qtbot, monkeypatch, web_tab_setup):
     """Get a QWebEngineView if QtWebEngine is available."""
     QtWebEngineWidgets = pytest.importorskip('PyQt5.QtWebEngineWidgets')
     monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
@@ -427,7 +428,15 @@ def webengineview(qtbot, monkeypatch):
 def webpage(qnam):
     """Get a new QWebPage object."""
     QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
-    page = QtWebKitWidgets.QWebPage()
+    class WebPageStub(QtWebKitWidgets.QWebPage):
+
+        """QWebPage with default error pages disabled."""
+
+        def supportsExtension(self, _ext):
+            """No extensions needed."""
+            return False
+
+    page = WebPageStub()
     page.networkAccessManager().deleteLater()
     page.setNetworkAccessManager(qnam)
     return page

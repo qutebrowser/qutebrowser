@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -20,6 +20,7 @@
 
 import types
 import unittest.mock
+import functools
 
 import pytest
 from PyQt5.QtCore import QObject, QUrl
@@ -700,6 +701,19 @@ class TestConfig:
 
     def test_dump_userconfig_default(self, conf):
         assert conf.dump_userconfig() == '<Default configuration>'
+
+    @pytest.mark.parametrize('case', range(3))
+    def test_get_str_benchmark(self, conf, qtbot, benchmark, case):
+        strings = ['true',
+                   ('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML'
+                    ', like Gecko) QtWebEngine/5.7.1 Chrome/49.0.2623.111 '
+                    'Safari/537.36'),
+                   "a" * 10000]
+        conf.set_obj('content.headers.user_agent', strings[case])
+        benchmark(functools.partial(conf.get, 'content.headers.user_agent'))
+
+    def test_get_dict_benchmark(self, conf, qtbot, benchmark):
+        benchmark(functools.partial(conf.get, 'bindings.default'))
 
 
 class TestContainer:

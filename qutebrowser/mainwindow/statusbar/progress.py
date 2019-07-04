@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -59,6 +59,19 @@ class Progress(QProgressBar):
         """Clear old error and show progress, used as slot to loadStarted."""
         self.setValue(0)
         self.setVisible(self.enabled)
+
+    @pyqtSlot(int)
+    def on_load_progress(self, value):
+        """Hide the statusbar when loading finished.
+
+        We use this instead of loadFinished because we sometimes get
+        loadStarted and loadProgress(100) without loadFinished from Qt.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        """
+        self.setValue(value)
+        if value == 100:
+            self.hide()
 
     def on_tab_changed(self, tab):
         """Set the correct value when the current tab changed."""

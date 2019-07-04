@@ -2,6 +2,6 @@
 
 colorama==0.4.1
 cssutils==1.0.2
-hunter==2.1.0
-Pympler==0.6
-six==1.12.0
+hunter==3.0.1
+manhole==1.6.0
+Pympler==0.7

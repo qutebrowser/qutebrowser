@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -199,6 +199,12 @@ def init_log(args):
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
+    else:
+        # If we add no handler, we shouldn't process non visible logs at all
+        #
+        # disable blocks the current level (while setHandler shows the current
+        # level), so -1 to avoid blocking handled messages.
+        logging.disable(numeric_level - 1)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
@@ -428,6 +434,9 @@ def qt_message_handler(msg_type, context, msg):
         'QXcbWindow: Unhandled client message: ""',
         # https://codereview.qt-project.org/176831
         "QObject::disconnect: Unexpected null parameter",
+        # https://bugreports.qt.io/browse/QTBUG-76391
+        "Attribute Qt::AA_ShareOpenGLContexts must be set before "
+        "QCoreApplication is created.",
     ]
     # not using utils.is_mac here, because we can't be sure we can successfully
     # import the utils module here.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -27,7 +27,7 @@ import html
 import jinja2
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlutils, log
+from qutebrowser.utils import utils, urlutils, log, qtutils
 
 
 html_fallback = """
@@ -85,6 +85,7 @@ class Environment(jinja2.Environment):
         self.globals['resource_url'] = self._resource_url
         self.globals['file_url'] = urlutils.file_url
         self.globals['data_url'] = self._data_url
+        self.globals['qcolor_to_qsscolor'] = qtutils.qcolor_to_qsscolor
         self._autoescape = True
 
     @contextlib.contextmanager

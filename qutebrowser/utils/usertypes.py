@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -200,9 +200,8 @@ class NeighborList(collections.abc.Sequence):
         """Reset the position to the default."""
         if self._default is _UNSET:
             raise ValueError("No default set!")
-        else:
-            self._idx = self._items.index(self._default)
-            return self.curitem()
+        self._idx = self._items.index(self._default)
+        return self.curitem()
 
 
 # The mode of a Question.
@@ -451,6 +450,7 @@ class NavigationRequest:
         'form_resubmitted',  # QtWebKit only
         'back_forward',
         'reloaded',
+        'redirect',  # QtWebEngine >= 5.14 only
         'other'
     ])
 

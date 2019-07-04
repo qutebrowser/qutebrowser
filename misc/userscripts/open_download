@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Both standalone script and qutebrowser userscript that opens a rofi menu with
-# all files from the download director and opens the selected file. It works
+# all files from the download directory and opens the selected file. It works
 # both as a userscript and a standalone script that is called from outside of
 # qutebrowser.
 #

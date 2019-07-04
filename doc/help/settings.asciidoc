@@ -25,8 +25,9 @@
 |<<colors.completion.fg,colors.completion.fg>>|Text color of the completion widget.
 |<<colors.completion.item.selected.bg,colors.completion.item.selected.bg>>|Background color of the selected completion item.
 |<<colors.completion.item.selected.border.bottom,colors.completion.item.selected.border.bottom>>|Bottom border color of the selected completion item.
-|<<colors.completion.item.selected.border.top,colors.completion.item.selected.border.top>>|Top border color of the completion widget category headers.
+|<<colors.completion.item.selected.border.top,colors.completion.item.selected.border.top>>|Top border color of the selected completion item.
 |<<colors.completion.item.selected.fg,colors.completion.item.selected.fg>>|Foreground color of the selected completion item.
+|<<colors.completion.item.selected.match.fg,colors.completion.item.selected.match.fg>>|Foreground color of the matched text in the selected completion item.
 |<<colors.completion.match.fg,colors.completion.match.fg>>|Foreground color of the matched text in the completion.
 |<<colors.completion.odd.bg,colors.completion.odd.bg>>|Background color of the completion widget for odd rows.
 |<<colors.completion.scrollbar.bg,colors.completion.scrollbar.bg>>|Color of the scrollbar in the completion view.
@@ -91,6 +92,14 @@
 |<<colors.tabs.indicator.system,colors.tabs.indicator.system>>|Color gradient interpolation system for the tab indicator.
 |<<colors.tabs.odd.bg,colors.tabs.odd.bg>>|Background color of unselected odd tabs.
 |<<colors.tabs.odd.fg,colors.tabs.odd.fg>>|Foreground color of unselected odd tabs.
+|<<colors.tabs.pinned.even.bg,colors.tabs.pinned.even.bg>>|Background color of pinned unselected even tabs.
+|<<colors.tabs.pinned.even.fg,colors.tabs.pinned.even.fg>>|Foreground color of pinned unselected even tabs.
+|<<colors.tabs.pinned.odd.bg,colors.tabs.pinned.odd.bg>>|Background color of pinned unselected odd tabs.
+|<<colors.tabs.pinned.odd.fg,colors.tabs.pinned.odd.fg>>|Foreground color of pinned unselected odd tabs.
+|<<colors.tabs.pinned.selected.even.bg,colors.tabs.pinned.selected.even.bg>>|Background color of pinned selected even tabs.
+|<<colors.tabs.pinned.selected.even.fg,colors.tabs.pinned.selected.even.fg>>|Foreground color of pinned selected even tabs.
+|<<colors.tabs.pinned.selected.odd.bg,colors.tabs.pinned.selected.odd.bg>>|Background color of pinned selected odd tabs.
+|<<colors.tabs.pinned.selected.odd.fg,colors.tabs.pinned.selected.odd.fg>>|Foreground color of pinned selected odd tabs.
 |<<colors.tabs.selected.even.bg,colors.tabs.selected.even.bg>>|Background color of selected even tabs.
 |<<colors.tabs.selected.even.fg,colors.tabs.selected.even.fg>>|Foreground color of selected even tabs.
 |<<colors.tabs.selected.odd.bg,colors.tabs.selected.odd.bg>>|Background color of selected odd tabs.
@@ -202,6 +211,7 @@
 |<<hints.dictionary,hints.dictionary>>|Dictionary file to be used by the word hints.
 |<<hints.find_implementation,hints.find_implementation>>|Which implementation to use to find elements to hint.
 |<<hints.hide_unmatched_rapid_hints,hints.hide_unmatched_rapid_hints>>|Hide unmatched hints in rapid mode.
+|<<hints.leave_on_load,hints.leave_on_load>>|Leave hint mode when starting a new page load.
 |<<hints.min_chars,hints.min_chars>>|Minimum number of characters used for hint strings.
 |<<hints.mode,hints.mode>>|Mode to use for hints.
 |<<hints.next_regexes,hints.next_regexes>>|Comma-separated list of regular expressions to use for 'next' links.
@@ -215,6 +225,7 @@
 |<<input.insert_mode.auto_enter,input.insert_mode.auto_enter>>|Enter insert mode if an editable element is clicked.
 |<<input.insert_mode.auto_leave,input.insert_mode.auto_leave>>|Leave insert mode if a non-editable element is clicked.
 |<<input.insert_mode.auto_load,input.insert_mode.auto_load>>|Automatically enter insert mode if an editable element is focused after loading the page.
+|<<input.insert_mode.leave_on_load,input.insert_mode.leave_on_load>>|Leave insert mode when starting a new page load.
 |<<input.insert_mode.plugins,input.insert_mode.plugins>>|Switch to insert mode when clicking flash and other plugins.
 |<<input.links_included_in_focus_chain,input.links_included_in_focus_chain>>|Include hyperlinks in the keyboard focus chain when tabbing.
 |<<input.partial_timeout,input.partial_timeout>>|Timeout (in milliseconds) for partially typed key bindings.
@@ -271,6 +282,7 @@
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
+|<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of close tab actions to remember, per window (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
 |<<url.auto_search,url.auto_search>>|What search to start when something else than a URL is entered.
@@ -427,6 +439,7 @@ Default:
 * +pass:[j]+: +pass:[move-to-next-line]+
 * +pass:[k]+: +pass:[move-to-prev-line]+
 * +pass:[l]+: +pass:[move-to-next-char]+
+* +pass:[o]+: +pass:[reverse-selection]+
 * +pass:[v]+: +pass:[toggle-selection]+
 * +pass:[w]+: +pass:[move-to-next-word]+
 * +pass:[y]+: +pass:[yank selection]+
@@ -641,12 +654,12 @@ Default:
 * +pass:[xO]+: +pass:[set-cmd-text :open -b -r {url:pretty}]+
 * +pass:[xo]+: +pass:[set-cmd-text -s :open -b]+
 * +pass:[yD]+: +pass:[yank domain -s]+
-* +pass:[yM]+: +pass:[yank markdown -s]+
+* +pass:[yM]+: +pass:[yank inline [{title}]({url}) -s]+
 * +pass:[yP]+: +pass:[yank pretty-url -s]+
 * +pass:[yT]+: +pass:[yank title -s]+
 * +pass:[yY]+: +pass:[yank -s]+
 * +pass:[yd]+: +pass:[yank domain]+
-* +pass:[ym]+: +pass:[yank markdown]+
+* +pass:[ym]+: +pass:[yank inline [{title}]({url})]+
 * +pass:[yp]+: +pass:[yank pretty-url]+
 * +pass:[yt]+: +pass:[yank title]+
 * +pass:[yy]+: +pass:[yank]+
@@ -784,7 +797,7 @@ Default: +pass:[#bbbb00]+
 
 [[colors.completion.item.selected.border.top]]
 === colors.completion.item.selected.border.top
-Top border color of the completion widget category headers.
+Top border color of the selected completion item.
 
 Type: <<types,QssColor>>
 
@@ -797,6 +810,14 @@ Foreground color of the selected completion item.
 Type: <<types,QtColor>>
 
 Default: +pass:[black]+
+
+[[colors.completion.item.selected.match.fg]]
+=== colors.completion.item.selected.match.fg
+Foreground color of the matched text in the selected completion item.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[#ff4444]+
 
 [[colors.completion.match.fg]]
 === colors.completion.match.fg
@@ -1257,7 +1278,7 @@ Default: +pass:[yellow]+
 === colors.tabs.bar.bg
 Background color of the tab bar.
 
-Type: <<types,QtColor>>
+Type: <<types,QssColor>>
 
 Default: +pass:[#555555]+
 
@@ -1327,6 +1348,70 @@ Default: +pass:[grey]+
 [[colors.tabs.odd.fg]]
 === colors.tabs.odd.fg
 Foreground color of unselected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.even.bg]]
+=== colors.tabs.pinned.even.bg
+Background color of pinned unselected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[darkseagreen]+
+
+[[colors.tabs.pinned.even.fg]]
+=== colors.tabs.pinned.even.fg
+Foreground color of pinned unselected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.odd.bg]]
+=== colors.tabs.pinned.odd.bg
+Background color of pinned unselected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[seagreen]+
+
+[[colors.tabs.pinned.odd.fg]]
+=== colors.tabs.pinned.odd.fg
+Foreground color of pinned unselected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.selected.even.bg]]
+=== colors.tabs.pinned.selected.even.bg
+Background color of pinned selected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[black]+
+
+[[colors.tabs.pinned.selected.even.fg]]
+=== colors.tabs.pinned.selected.even.fg
+Foreground color of pinned selected even tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[white]+
+
+[[colors.tabs.pinned.selected.odd.bg]]
+=== colors.tabs.pinned.selected.odd.bg
+Background color of pinned selected odd tabs.
+
+Type: <<types,QtColor>>
+
+Default: +pass:[black]+
+
+[[colors.tabs.pinned.selected.odd.fg]]
+=== colors.tabs.pinned.selected.odd.fg
+Foreground color of pinned selected odd tabs.
 
 Type: <<types,QtColor>>
 
@@ -1474,8 +1559,9 @@ Default: +pass:[false]+
 [[completion.timestamp_format]]
 === completion.timestamp_format
 Format of timestamps (e.g. for the history completion).
+See https://sqlite.org/lang_datefunc.html for allowed substitutions.
 
-Type: <<types,TimestampTemplate>>
+Type: <<types,String>>
 
 Default: +pass:[%Y-%m-%d]+
 
@@ -1647,7 +1733,7 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
-This setting is only available with the QtWebKit backend.
+On QtWebEngine, this setting requires Qt 5.12 or newer.
 
 [[content.frame_flattening]]
 === content.frame_flattening
@@ -1989,12 +2075,14 @@ Valid values:
 
 Default: +pass:[ask]+
 
-This setting is only available with the QtWebKit backend.
+On QtWebEngine, this setting requires Qt 5.13 or newer.
 
 [[content.pdfjs]]
 === content.pdfjs
 Allow pdf.js to view PDF files in the browser.
 Note that the files can still be downloaded by clicking the download button in the pdf.js viewer.
+
+This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
@@ -2518,6 +2606,14 @@ Type: <<types,Bool>>
 
 Default: +pass:[true]+
 
+[[hints.leave_on_load]]
+=== hints.leave_on_load
+Leave hint mode when starting a new page load.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[hints.min_chars]]
 === hints.min_chars
 Minimum number of characters used for hint strings.
@@ -2711,6 +2807,17 @@ Type: <<types,Bool>>
 
 Default: +pass:[false]+
 
+[[input.insert_mode.leave_on_load]]
+=== input.insert_mode.leave_on_load
+Leave insert mode when starting a new page load.
+Patterns may be unreliable on this setting, and they may match the url you are navigating to, or the URL you are navigating from.
+
+This setting supports URL patterns.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[input.insert_mode.plugins]]
 === input.insert_mode.plugins
 Switch to insert mode when clicking flash and other plugins.
@@ -2813,7 +2920,7 @@ Default: +pass:[tab]+
 [[new_instance_open_target_window]]
 === new_instance_open_target_window
 Which window to choose when opening links as new tabs.
-When `new_instance_open_target` is not set to `window`, this is ignored.
+When `new_instance_open_target` is set to `window`, this is ignored.
 
 Type: <<types,String>>
 
@@ -3405,7 +3512,7 @@ The following placeholders are defined:
 
 * `{perc}`: Percentage as a string like `[10%]`.
 * `{perc_raw}`: Raw percentage, e.g. `10`.
-* `{title}`: Title of the current web page.
+* `{current_title}`: Title of the current web page.
 * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
 * `{index}`: Index of this tab.
 * `{id}`: Internal tab ID of this tab.
@@ -3420,7 +3527,7 @@ The following placeholders are defined:
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{audio}{index}: {title}]+
+Default: +pass:[{audio}{index}: {current_title}]+
 
 [[tabs.title.format_pinned]]
 === tabs.title.format_pinned
@@ -3429,6 +3536,14 @@ Format to use for the tab title for pinned tabs. The same placeholders like for 
 Type: <<types,FormatString>>
 
 Default: +pass:[{index}]+
+
+[[tabs.undo_stack_size]]
+=== tabs.undo_stack_size
+Number of close tab actions to remember, per window (-1 for no maximum).
+
+Type: <<types,Int>>
+
+Default: +pass:[100]+
 
 [[tabs.width]]
 === tabs.width
@@ -3550,7 +3665,7 @@ Format to use for the window title. The same placeholders like for
 
 Type: <<types,FormatString>>
 
-Default: +pass:[{perc}{title}{title_sep}qutebrowser]+
+Default: +pass:[{perc}{current_title}{title_sep}qutebrowser]+
 
 [[zoom.default]]
 === zoom.default
@@ -3668,9 +3783,6 @@ See the documentation for `List`.
 
 See the setting's valid values for more information on allowed values.
 |TextAlignment|Alignment of text.
-|TimestampTemplate|An strftime-like template for timestamps.
-
-See https://sqlite.org/lang_datefunc.html for reference.
 |UniqueCharString|A string which may not contain duplicate chars.
 |Url|A URL as a string.
 |UrlPattern|A match pattern for a URL.

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -214,8 +214,11 @@ class CompletionItemDelegate(QStyledItemDelegate):
             columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
                 pat = re.escape(pattern).replace(r'\ ', r'|')
-                _Highlighter(self._doc, pat,
-                             config.val.colors.completion.match.fg)
+                if self._opt.state & QStyle.State_Selected:
+                    color = config.val.colors.completion.item.selected.match.fg
+                else:
+                    color = config.val.colors.completion.match.fg
+                _Highlighter(self._doc, pat, color)
             self._doc.setPlainText(self._opt.text)
         else:
             self._doc.setHtml(

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -52,6 +52,10 @@ def normalize_line(line):
     # files could be either identified as x-javascript or just javascript
     line = line.replace('Content-Type: application/x-javascript',
                         'Content-Type: application/javascript')
+
+    # With QtWebKit and newer Werkzeug versions, we also get an encoding
+    # specified.
+    line = line.replace('javascript; charset=utf-8', 'javascript')
 
     # Added with Qt 5.11
     if (line.startswith('Snapshot-Content-Location: ') and

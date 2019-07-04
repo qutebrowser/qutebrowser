@@ -30,7 +30,7 @@ from PyQt5.QtCore import QUrl
 
 from qutebrowser.components import adblock
 from qutebrowser.utils import urlmatch
-from tests.helpers import utils
+from helpers import utils
 
 
 pytestmark = pytest.mark.usefixtures('qapp')
