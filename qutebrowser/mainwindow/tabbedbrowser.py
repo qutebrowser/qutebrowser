@@ -256,6 +256,8 @@ class TabbedBrowser(QWidget):
             functools.partial(self.on_load_finished, tab))
         tab.load_started.connect(
             functools.partial(self.on_load_started, tab))
+        tab.load_status_changed.connect(
+            functools.partial(self.on_load_status_changed, tab))
         tab.window_close_requested.connect(
             functools.partial(self.on_window_close_requested, tab))
         tab.renderer_process_terminated.connect(
@@ -589,18 +591,23 @@ class TabbedBrowser(QWidget):
         Args:
             tab: The tab where the signal belongs to.
         """
-        try:
-            idx = self._tab_index(tab)
-        except TabDeletedError:
-            # We can get signals for tabs we already deleted...
-            return
-        self.widget.update_tab_title(idx)
         if tab.data.keep_icon:
             tab.data.keep_icon = False
         else:
             if (config.val.tabs.tabs_are_windows and
                     tab.data.should_show_icon()):
                 self.widget.window().setWindowIcon(self.default_window_icon)
+
+    @pyqtSlot()
+    def on_load_status_changed(self, tab):
+        """Update tab/window titles if the load status changed."""
+        try:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
+            # We can get signals for tabs we already deleted...
+            return
+
+        self.widget.update_tab_title(idx)
         if idx == self.widget.currentIndex():
             self._update_window_title()
 
@@ -785,9 +792,7 @@ class TabbedBrowser(QWidget):
         else:
             color = config.val.colors.tabs.indicator.error
         self.widget.set_tab_indicator_color(idx, color)
-        self.widget.update_tab_title(idx)
         if idx == self.widget.currentIndex():
-            self._update_window_title()
             tab.private_api.handle_auto_insert_mode(ok)
 
     @pyqtSlot()
