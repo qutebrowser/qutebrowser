@@ -24,17 +24,16 @@ dependencies as possible to avoid cyclic dependencies.
 """
 
 import typing
-from typing import TypeVar, Callable
 
 
 # The second element of each tuple should be a lru_cache wrapped function
 _CACHE_FUNCTIONS = []  # type: typing.List[typing.Tuple[str, typing.Any]]
 
 
-_T = TypeVar('_T', bound=Callable)
+_T = typing.TypeVar('_T', bound=typing.Callable)
 
 
-def register(name: typing.Optional[str] = None) -> Callable[[_T], _T]:
+def register(name: typing.Optional[str] = None) -> typing.Callable[[_T], _T]:
     """Register a lru_cache wrapped function for debug_cache_stats."""
     def wrapper(fn: _T) -> _T:
         _CACHE_FUNCTIONS.append((fn.__name__ if name is None else name, fn))
