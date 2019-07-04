@@ -503,7 +503,7 @@ class Application(QApplication):
             Argument namespace from argparse.
         """
         self._last_focus_object = None
-        self._undos = collections.deque(maxlen=100)
+        self._undos = collections.deque()
 
         qt_args = qtargs.qt_args(args)
         log.init.debug("Commandline args: {}".format(sys.argv[1:]))
@@ -522,6 +522,10 @@ class Application(QApplication):
 
         self.new_window.connect(self._on_new_window)
 
+    @config.change_filter('tabs.undo_stack_size')
+    def _on_config_changed(self):
+        self._update_undo_stack_size()
+
     def _on_new_window(self, window):
         window.tabbed_browser.shutting_down.connect(
             functools.partial(self._on_window_closing, window)
@@ -533,6 +537,12 @@ class Application(QApplication):
             private=window.tabbed_browser.is_private,
             tab_stack=window.tabbed_browser.save_undo_stack(),
         ))
+
+    def _update_undo_stack_size(self):
+        newsize = config.instance.get('tabs.undo_stack_size')
+        if newsize < 0:
+            newsize = None
+        self._undos = collections.deque(self._undos, maxlen=newsize)
 
     def undo_last_window_close(self):
         """Restore the last window to be closed.
