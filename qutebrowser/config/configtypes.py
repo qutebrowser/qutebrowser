@@ -60,7 +60,7 @@ from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QTabWidget, QTabBar
 from PyQt5.QtNetwork import QNetworkProxy
 
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.config import configexc, configutils
 from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
                                usertypes)
@@ -205,6 +205,7 @@ class BaseType:
         BaseType._basic_str_validation_cache(value)
 
     @staticmethod
+    @debugcachestats.register(name='str validation cache')
     @functools.lru_cache(maxsize=2**9)
     def _basic_str_validation_cache(value: str) -> None:
         """Cache validation result to prevent looping over strings."""

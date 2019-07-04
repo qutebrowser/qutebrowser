@@ -29,7 +29,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
 
 from qutebrowser.config import configdata, configexc, configutils
 from qutebrowser.utils import utils, log, jinja, urlmatch
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.keyinput import keyutils
 
 MYPY = False
@@ -625,6 +625,7 @@ def set_register_stylesheet(obj: QObject, *,
     observer.register()
 
 
+@debugcachestats.register()
 @functools.lru_cache()
 def _render_stylesheet(stylesheet: str) -> str:
     """Render the given stylesheet jinja template."""
