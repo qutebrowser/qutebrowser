@@ -151,10 +151,17 @@ def main(arguments):
     password_store_path = os.path.expanduser(arguments.password_store)
 
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
-    # the registered domain name and finally: the IPv4 address if that's what the URL represents
+    # the registered domain name, the IPv4 address if that's what the URL represents and finally the private domain
+    # (if a non-public suffix was used).
     candidates = set()
     attempted_targets = []
-    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4]):
+
+    private_domain = ''
+    if not extract_result.suffix:
+        private_domain = ('.'.join((extract_result.subdomain, extract_result.domain))
+                          if extract_result.subdomain else extract_result.domain)
+
+    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain]):
         attempted_targets.append(target)
         target_candidates = find_pass_candidates(target, password_store_path)
         if not target_candidates:
