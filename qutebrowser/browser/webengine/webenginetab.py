@@ -726,10 +726,60 @@ class _WebEnginePermissions(QObject):
 
     """Handling of various permission-related signals."""
 
+    # Using 0 as WORKAROUND for:
+    # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
+
+    _options = {
+        0: 'content.notifications',
+        QWebEnginePage.Geolocation: 'content.geolocation',
+        QWebEnginePage.MediaAudioCapture: 'content.media_capture',
+        QWebEnginePage.MediaVideoCapture: 'content.media_capture',
+        QWebEnginePage.MediaAudioVideoCapture: 'content.media_capture',
+    }
+
+    _messages = {
+        0: 'show notifications',
+        QWebEnginePage.Geolocation: 'access your location',
+        QWebEnginePage.MediaAudioCapture: 'record audio',
+        QWebEnginePage.MediaVideoCapture: 'record video',
+        QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
+    }
+
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
         self._widget = None
+
+        try:
+            self._options.update({
+                QWebEnginePage.MouseLock:
+                    'content.mouse_lock',
+            })
+            self._messages.update({
+                QWebEnginePage.MouseLock:
+                    'hide your mouse pointer',
+            })
+        except AttributeError:
+            # Added in Qt 5.8
+            pass
+        try:
+            self._options.update({
+                QWebEnginePage.DesktopVideoCapture:
+                    'content.desktop_capture',
+                QWebEnginePage.DesktopAudioVideoCapture:
+                    'content.desktop_capture',
+            })
+            self._messages.update({
+                QWebEnginePage.DesktopVideoCapture:
+                    'capture your desktop',
+                QWebEnginePage.DesktopAudioVideoCapture:
+                    'capture your desktop and audio',
+            })
+        except AttributeError:
+            # Added in Qt 5.10
+            pass
+
+        assert self._options.keys() == self._messages.keys()
 
     def connect_signals(self):
         """Connect related signals from the QWebEnginePage."""
@@ -760,56 +810,9 @@ class _WebEnginePermissions(QObject):
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
         """Ask the user for approval for geolocation/media/etc.."""
-        # Using 0 as WORKAROUND for:
-        # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
-        options = {
-            0: 'content.notifications',
-            QWebEnginePage.Geolocation: 'content.geolocation',
-            QWebEnginePage.MediaAudioCapture: 'content.media_capture',
-            QWebEnginePage.MediaVideoCapture: 'content.media_capture',
-            QWebEnginePage.MediaAudioVideoCapture: 'content.media_capture',
-        }
-        messages = {
-            0: 'show notifications',
-            QWebEnginePage.Geolocation: 'access your location',
-            QWebEnginePage.MediaAudioCapture: 'record audio',
-            QWebEnginePage.MediaVideoCapture: 'record video',
-            QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
-        }
-        try:
-            options.update({
-                QWebEnginePage.MouseLock:
-                    'content.mouse_lock',
-            })
-            messages.update({
-                QWebEnginePage.MouseLock:
-                    'hide your mouse pointer',
-            })
-        except AttributeError:
-            # Added in Qt 5.8
-            pass
-        try:
-            options.update({
-                QWebEnginePage.DesktopVideoCapture:
-                    'content.desktop_capture',
-                QWebEnginePage.DesktopAudioVideoCapture:
-                    'content.desktop_capture',
-            })
-            messages.update({
-                QWebEnginePage.DesktopVideoCapture:
-                    'capture your desktop',
-                QWebEnginePage.DesktopAudioVideoCapture:
-                    'capture your desktop and audio',
-            })
-        except AttributeError:
-            # Added in Qt 5.10
-            pass
-
-        assert options.keys() == messages.keys()
-
         page = self._widget.page()
 
-        if feature not in options:
+        if feature not in self._options:
             log.webview.error("Unhandled feature permission {}".format(
                 debug.qenum_key(QWebEnginePage, feature)))
             page.setFeaturePermission(url, feature,
@@ -824,7 +827,8 @@ class _WebEnginePermissions(QObject):
             QWebEnginePage.PermissionDeniedByUser)
 
         question = shared.feature_permission(
-            url=url, option=options[feature], msg=messages[feature],
+            url=url,
+            option=self._options[feature], msg=self._messages[feature],
             yes_action=yes_action, no_action=no_action,
             abort_on=[self._tab.abort_questions])
 

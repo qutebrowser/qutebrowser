@@ -29,6 +29,8 @@ QWebEngineScript = QtWebEngineWidgets.QWebEngineScript
 
 from qutebrowser.browser import greasemonkey
 from qutebrowser.utils import usertypes
+webenginetab = pytest.importorskip(
+    "qutebrowser.browser.webengine.webenginetab")
 
 pytestmark = pytest.mark.usefixtures('greasemonkey_manager')
 
@@ -116,3 +118,15 @@ class TestWebengineScripts:
         collection = webengine_scripts._widget.page().scripts()
         script = collection.toList()[-1]
         assert script.injectionPoint() == QWebEngineScript.DocumentReady
+
+
+def test_notification_permission_workaround():
+    """Make sure the value for QWebEnginePage::Notifications is correct."""
+    try:
+        notifications = QWebEnginePage.Notifications
+    except AttributeError:
+        pytest.skip("No Notifications member")
+
+    permissions = webenginetab._WebEnginePermissions
+    assert permissions._options[notifications] == 'content.notifications'
+    assert permissions._messages[notifications] == 'show notifications'
