@@ -85,6 +85,7 @@ Feature: Prompts
 
     @qtwebengine_skip: QtWebEngine refuses to load anything with a JS question
     Scenario: Blocking question interrupted by async one
+        Given I have a fresh instance
         When I set content.javascript.alert to true
         And I set content.notifications to ask
         And I open data/prompt/jsalert.html
@@ -102,6 +103,7 @@ Feature: Prompts
 
     @qtwebengine_notifications
     Scenario: Async question interrupted by async one
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -117,6 +119,7 @@ Feature: Prompts
 
     @qtwebengine_notifications
     Scenario: Async question interrupted by blocking one
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I set content.javascript.alert to true
         And I open data/prompt/notifications.html in a new tab
@@ -236,6 +239,7 @@ Feature: Prompts
 
     @qtwebengine_notifications
     Scenario: Always rejecting notifications
+        Given I have a fresh instance
         When I set content.notifications to false
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -243,6 +247,7 @@ Feature: Prompts
 
     @qtwebengine_notifications
     Scenario: Always accepting notifications
+        Given I have a fresh instance
         When I set content.notifications to true
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -250,6 +255,7 @@ Feature: Prompts
 
     @qtwebengine_notifications
     Scenario: notifications with ask -> false
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -259,6 +265,7 @@ Feature: Prompts
 
     @qtwebengine_notifications
     Scenario: notifications with ask -> true
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -269,6 +276,7 @@ Feature: Prompts
     # This actually gives us a denied rather than an aborted
     @xfail_norun
     Scenario: notifications with ask -> abort
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -278,6 +286,7 @@ Feature: Prompts
 
     @qtwebengine_notifications
     Scenario: answering notification after closing tab
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -452,6 +461,7 @@ Feature: Prompts
     # https://github.com/qutebrowser/qutebrowser/pull/2054#issuecomment-258285544
     @qtwebengine_notifications
     Scenario: Interrupting SSL prompt during a notification prompt
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I set content.ssl_strict to ask
         And I open data/prompt/notifications.html in a new tab
