@@ -254,7 +254,7 @@ class TestArguments:
             assert standarddir.config() == str(basedir / 'config')
 
     def test_config_py_arg(self, tmpdir):
-        basedir = (tmpdir / 'basedir')
+        basedir = tmpdir / 'basedir'
         basedir.ensure(dir=True)
         with tmpdir.as_cwd():
             args = types.SimpleNamespace(
@@ -263,7 +263,7 @@ class TestArguments:
             assert standarddir.config_py() == str(basedir / 'config.py')
 
     def test_config_py_no_arg(self, tmpdir):
-        basedir = (tmpdir / 'basedir')
+        basedir = tmpdir / 'basedir'
         basedir.ensure(dir=True)
         with tmpdir.as_cwd():
             args = types.SimpleNamespace(basedir='basedir')

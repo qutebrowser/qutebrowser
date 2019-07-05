@@ -495,7 +495,6 @@ class TestSource:
 
     def test_config_py_arg_source(self, commands, config_py_arg, config_stub):
         assert config_stub.val.content.javascript.enabled
-        config_stub.val.search.ignore_case = 'always'
         config_py_arg.write_text('c.content.javascript.enabled = False\n',
                                  encoding='utf-8')
         commands.config_source()

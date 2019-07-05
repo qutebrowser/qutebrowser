@@ -117,8 +117,8 @@ def config(auto=False):
 def config_py() -> str:
     """Get the location for config.py.
 
-    hard-coding config.py in the config dir is not reliable, as config.py may
-    be overridden.
+    Usually, config.py is in standarddir.config(), but this can be overridden
+    with the --config-py argument.
     """
     return _locations[_Location.config_py]
 

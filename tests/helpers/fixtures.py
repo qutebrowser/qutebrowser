@@ -553,8 +553,8 @@ def config_tmpdir(monkeypatch, tmpdir):
 
 @pytest.fixture
 def config_py_arg(tmpdir, monkeypatch):
-    """Arguments needed for the config to init."""
-    f = tmpdir.join('temp_config.py')
+    """Set the config_py arg with a custom value for init."""
+    f = tmpdir / 'temp_config.py'
     monkeypatch.setattr(
         standarddir, 'config_py',
         lambda **_kwargs: str(f))
