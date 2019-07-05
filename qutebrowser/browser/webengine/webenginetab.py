@@ -760,13 +760,17 @@ class _WebEnginePermissions(QObject):
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
         """Ask the user for approval for geolocation/media/etc.."""
+        # Using 0 as WORKAROUND for:
+        # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
         options = {
+            0: 'content.notifications',
             QWebEnginePage.Geolocation: 'content.geolocation',
             QWebEnginePage.MediaAudioCapture: 'content.media_capture',
             QWebEnginePage.MediaVideoCapture: 'content.media_capture',
             QWebEnginePage.MediaAudioVideoCapture: 'content.media_capture',
         }
         messages = {
+            0: 'show notifications',
             QWebEnginePage.Geolocation: 'access your location',
             QWebEnginePage.MediaAudioCapture: 'record audio',
             QWebEnginePage.MediaVideoCapture: 'record video',
@@ -799,18 +803,6 @@ class _WebEnginePermissions(QObject):
             })
         except AttributeError:
             # Added in Qt 5.10
-            pass
-        try:
-            options.update({
-                QWebEnginePage.Notifications:
-                    'content.notifications',
-            })
-            messages.update({
-                QWebEnginePage.Notifications:
-                    'show notifications',
-            })
-        except AttributeError:
-            # Added in Qt 5.13
             pass
 
         assert options.keys() == messages.keys()
