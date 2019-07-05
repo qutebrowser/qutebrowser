@@ -100,7 +100,7 @@ Feature: Prompts
         Then the javascript message "Alert done" should be logged
         And the javascript message "notification permission granted" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: Async question interrupted by async one
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
@@ -115,7 +115,7 @@ Feature: Prompts
         Then the javascript message "notification permission granted" should be logged
         And "Added quickmark test for *" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: Async question interrupted by blocking one
         When I set content.notifications to ask
         And I set content.javascript.alert to true
@@ -234,21 +234,21 @@ Feature: Prompts
 
     # Notifications
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: Always rejecting notifications
         When I set content.notifications to false
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         Then the javascript message "notification permission denied" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: Always accepting notifications
         When I set content.notifications to true
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         Then the javascript message "notification permission granted" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: notifications with ask -> false
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
@@ -257,7 +257,7 @@ Feature: Prompts
         And I run :prompt-accept no
         Then the javascript message "notification permission denied" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: notifications with ask -> true
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
@@ -276,7 +276,7 @@ Feature: Prompts
         And I run :leave-mode
         Then the javascript message "notification permission aborted" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: answering notification after closing tab
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
@@ -450,7 +450,7 @@ Feature: Prompts
 
     # https://github.com/qutebrowser/qutebrowser/issues/1249#issuecomment-175205531
     # https://github.com/qutebrowser/qutebrowser/pull/2054#issuecomment-258285544
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: Interrupting SSL prompt during a notification prompt
         When I set content.notifications to ask
         And I set content.ssl_strict to ask
