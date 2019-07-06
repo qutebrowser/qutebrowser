@@ -268,7 +268,8 @@ def test_parsing_multiple_hosts_on_line(host_blocker_factory):
     """Ensure multiple hosts on a line get parsed correctly."""
     host_blocker = host_blocker_factory()
     bytes_host_line = ' '.join(BLOCKLIST_HOSTS).encode('utf-8')
-    host_blocker._parse_line(bytes_host_line)
+    parsed_hosts = host_blocker._read_hosts_line(bytes_host_line)
+    host_blocker._blocked_hosts |= parsed_hosts
     assert_urls(host_blocker, whitelisted=[])
 
 
@@ -294,7 +295,8 @@ def test_whitelisted_lines(host_blocker_factory, ip, host):
     """Make sure we don't block hosts we don't want to."""
     host_blocker = host_blocker_factory()
     line = ('{} {}'.format(ip, host)).encode('ascii')
-    host_blocker._parse_line(line)
+    parsed_hosts = host_blocker._read_hosts_line(line)
+    host_blocker._blocked_hosts |= parsed_hosts
     assert host not in host_blocker._blocked_hosts
 
 
