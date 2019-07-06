@@ -2078,7 +2078,7 @@ colors.hints.bg:
 
 colors.hints.match.fg:
   default: green
-  type: QssColor
+  type: QtColor
   desc: Font color for the matched part of hints.
 
 colors.keyhint.fg:

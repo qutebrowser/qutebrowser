@@ -103,7 +103,7 @@ class HintLabel(QLabel):
             matched = html.escape(matched)
             unmatched = html.escape(unmatched)
 
-        match_color = html.escape(config.cache['colors.hints.match.fg'])
+        match_color = config.cache['colors.hints.match.fg'].name()
         if matched:
             self.setText('<font color="{}">{}</font>{}'.format(
                 match_color, matched, unmatched))
