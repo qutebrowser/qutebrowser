@@ -958,7 +958,7 @@ Default: +pass:[black]+
 === colors.hints.match.fg
 Font color for the matched part of hints.
 
-Type: <<types,QssColor>>
+Type: <<types,QtColor>>
 
 Default: +pass:[green]+
 

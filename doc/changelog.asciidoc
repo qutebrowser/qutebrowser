@@ -94,6 +94,9 @@ Fixed
 - Handling of profiles and private windows (and resulting crashes with Qt
   5.12.2).
 - Fixes for corner-cases when using :navigate increment/decrement.
+- The type for the `colors.hints.match.fg` setting was changed to `QtColor`.
+  Gradients were never supported for this setting, and with this change, forms
+  like `rgb(0, 0, 0)` now work as well.
 
 v1.6.3
 ------
