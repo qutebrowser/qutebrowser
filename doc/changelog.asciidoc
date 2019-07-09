@@ -43,6 +43,7 @@ Added
 - New `delete` target for `:hint` which removes the hinted element from
   the DOM.
 - Support for notifications (shown via system tray) with Qt 5.13.
+- New `--config-py` commandline argument to use a custom `config.py` file.
 
 Changed
 ~~~~~~~
