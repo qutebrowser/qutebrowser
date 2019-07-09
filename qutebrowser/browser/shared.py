@@ -156,7 +156,8 @@ def ignore_certificate_errors(url, errors, abort_on):
     Return:
         True if the error should be ignored, False otherwise.
     """
-    ssl_strict = config.instance.get('content.ssl_strict', url=url)
+    option = 'content.ssl_strict'
+    ssl_strict = config.instance.get(option, url=url)
     log.webview.debug("Certificate errors {!r}, strict {}".format(
         errors, ssl_strict))
 
@@ -177,7 +178,7 @@ def ignore_certificate_errors(url, errors, abort_on):
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         ignore = message.ask(title="Certificate errors - continue?", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
-                             abort_on=abort_on, url=urlstr)
+                             abort_on=abort_on, url=urlstr, option=option)
         if ignore is None:
             # prompt aborted
             ignore = False
@@ -225,7 +226,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
 
         if blocking:
             answer = message.ask(abort_on=abort_on, title='Permission request',
-                                 text=text, url=urlstr,
+                                 text=text, url=urlstr, option=option,
                                  mode=usertypes.PromptMode.yesno)
             if answer:
                 yes_action()
@@ -236,7 +237,8 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
             return message.confirm_async(
                 yes_action=yes_action, no_action=no_action,
                 cancel_action=no_action, abort_on=abort_on,
-                title='Permission request', text=text, url=urlstr)
+                title='Permission request', text=text, url=urlstr,
+                option=option)
     elif config_val:
         yes_action()
         return None

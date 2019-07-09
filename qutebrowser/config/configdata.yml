@@ -2825,6 +2825,8 @@ bindings.default:
       <Return>: prompt-accept
       y: prompt-accept yes
       n: prompt-accept no
+      Y: prompt-accept --save yes
+      N: prompt-accept --save no
       <Alt-Y>: prompt-yank
       <Alt-Shift-Y>: prompt-yank --sel
       <Escape>: leave-mode

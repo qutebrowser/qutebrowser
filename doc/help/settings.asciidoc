@@ -703,6 +703,8 @@ Default:
 * +pass:[&lt;Alt-Y&gt;]+: +pass:[prompt-yank]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
 * +pass:[&lt;Return&gt;]+: +pass:[prompt-accept]+
+* +pass:[N]+: +pass:[prompt-accept --save no]+
+* +pass:[Y]+: +pass:[prompt-accept --save yes]+
 * +pass:[n]+: +pass:[prompt-accept no]+
 * +pass:[y]+: +pass:[prompt-accept yes]+
 
