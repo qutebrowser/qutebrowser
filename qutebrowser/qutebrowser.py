@@ -62,6 +62,7 @@ def get_argparser():
                                      description=qutebrowser.__description__)
     parser.add_argument('-B', '--basedir', help="Base directory for all "
                         "storage.")
+    parser.add_argument('-C', '--config-py', help="Path to config.py.")
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "

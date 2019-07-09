@@ -545,7 +545,20 @@ def config_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' config dir (~/.config/qute_test).
     """
+    monkeypatch.setattr(
+        standarddir, 'config_py',
+        lambda **_kwargs: str(tmpdir / 'config' / 'config.py'))
     return standarddir_tmpdir('config', monkeypatch, tmpdir)
+
+
+@pytest.fixture
+def config_py_arg(tmpdir, monkeypatch):
+    """Set the config_py arg with a custom value for init."""
+    f = tmpdir / 'temp_config.py'
+    monkeypatch.setattr(
+        standarddir, 'config_py',
+        lambda **_kwargs: str(f))
+    return f
 
 
 @pytest.fixture

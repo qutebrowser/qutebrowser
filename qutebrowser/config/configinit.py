@@ -59,7 +59,7 @@ def early_init(args: argparse.Namespace) -> None:
         config.instance, config.key_instance)
     objreg.register('config-commands', config_commands)
 
-    config_file = os.path.join(standarddir.config(), 'config.py')
+    config_file = standarddir.config_py()
 
     try:
         if os.path.exists(config_file):
