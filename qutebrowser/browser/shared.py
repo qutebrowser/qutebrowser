@@ -156,8 +156,7 @@ def ignore_certificate_errors(url, errors, abort_on):
     Return:
         True if the error should be ignored, False otherwise.
     """
-    option = 'content.ssl_strict'
-    ssl_strict = config.instance.get(option, url=url)
+    ssl_strict = config.instance.get('content.ssl_strict', url=url)
     log.webview.debug("Certificate errors {!r}, strict {}".format(
         errors, ssl_strict))
 
@@ -178,7 +177,7 @@ def ignore_certificate_errors(url, errors, abort_on):
         urlstr = url.toString(QUrl.RemovePassword | QUrl.FullyEncoded)
         ignore = message.ask(title="Certificate errors - continue?", text=msg,
                              mode=usertypes.PromptMode.yesno, default=False,
-                             abort_on=abort_on, url=urlstr, option=option)
+                             abort_on=abort_on, url=urlstr)
         if ignore is None:
             # prompt aborted
             ignore = False

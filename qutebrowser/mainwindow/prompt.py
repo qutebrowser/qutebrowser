@@ -873,7 +873,7 @@ class YesNoPrompt(_BasePrompt):
         self._init_key_label()
 
     def _check_save_support(self, save):
-        if self.question.option is None:
+        if save and self.question.option is None:
             raise Error("No setting available to save the answer for this "
                         "question.")
 
