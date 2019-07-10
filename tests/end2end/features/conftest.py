@@ -676,3 +676,10 @@ def check_not_scrolled(request, quteproc):
 def check_option(quteproc, option, value):
     actual_value = quteproc.get_setting(option)
     assert actual_value == value
+
+
+@bdd.then(bdd.parsers.parse("the per-domain option {option} should be set to {value} for {pattern}"))
+def check_option_per_domain(quteproc, option, value, pattern, server):
+    pattern = pattern.replace('(port)', str(server.port))
+    actual_value = quteproc.get_setting(option, pattern=pattern)
+    assert actual_value == value
