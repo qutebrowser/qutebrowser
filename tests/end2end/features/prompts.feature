@@ -234,7 +234,7 @@ Feature: Prompts
         And I wait for a prompt
         And I run :prompt-accept --save no
         Then the javascript message "geolocation permission denied" should be logged
-        And the per-domain option content.geolocation should be set to false for http://localhost:(port)/
+        And the per-domain option content.geolocation should be set to false for http://localhost:(port)
 
     Scenario: geolocation with ask -> abort
         When I set content.geolocation to ask
@@ -281,7 +281,7 @@ Feature: Prompts
         And I wait for a prompt
         And I run :prompt-accept --save no
         Then the javascript message "notification permission denied" should be logged
-        And the per-domain option content.notifications should be set to false for http://localhost:(port)/
+        And the per-domain option content.notifications should be set to false for http://localhost:(port)
 
     @qtwebengine_notifications
     Scenario: notifications with ask -> true
@@ -302,7 +302,7 @@ Feature: Prompts
         And I wait for a prompt
         And I run :prompt-accept --save yes
         Then the javascript message "notification permission granted" should be logged
-        And the per-domain option content.notifications should be set to true for http://localhost:(port)/
+        And the per-domain option content.notifications should be set to true for http://localhost:(port)
 
     # This actually gives us a denied rather than an aborted
     @xfail_norun

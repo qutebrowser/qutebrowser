@@ -827,7 +827,7 @@ class _WebEnginePermissions(QObject):
             QWebEnginePage.PermissionDeniedByUser)
 
         question = shared.feature_permission(
-            url=url,
+            url=url.adjusted(QUrl.RemovePath),
             option=self._options[feature], msg=self._messages[feature],
             yes_action=yes_action, no_action=no_action,
             abort_on=[self._tab.abort_questions])
@@ -854,7 +854,7 @@ class _WebEnginePermissions(QObject):
     def _on_quota_requested(self, request):
         size = utils.format_size(request.requestedSize())
         shared.feature_permission(
-            url=request.origin(),
+            url=request.origin().adjusted(QUrl.RemovePath),
             option='content.persistent_storage',
             msg='use {} of persistent storage'.format(size),
             yes_action=request.accept, no_action=request.reject,
@@ -863,7 +863,7 @@ class _WebEnginePermissions(QObject):
 
     def _on_register_protocol_handler_requested(self, request):
         shared.feature_permission(
-            url=request.origin(),
+            url=request.origin().adjusted(QUrl.RemovePath),
             option='content.register_protocol_handler',
             msg='open all {} links'.format(request.scheme()),
             yes_action=request.accept, no_action=request.reject,
