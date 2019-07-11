@@ -225,7 +225,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
 
         if blocking:
             answer = message.ask(abort_on=abort_on, title='Permission request',
-                                 text=text, url=urlstr,
+                                 text=text, url=urlstr, option=option,
                                  mode=usertypes.PromptMode.yesno)
             if answer:
                 yes_action()
@@ -236,7 +236,8 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
             return message.confirm_async(
                 yes_action=yes_action, no_action=no_action,
                 cancel_action=no_action, abort_on=abort_on,
-                title='Permission request', text=text, url=urlstr)
+                title='Permission request', text=text, url=urlstr,
+                option=option)
     elif config_val:
         yes_action()
         return None
