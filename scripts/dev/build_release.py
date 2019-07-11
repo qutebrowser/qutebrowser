@@ -392,14 +392,14 @@ def main():
                         "asciidoc.py. If not given, it's searched in PATH.",
                         nargs=2, required=False,
                         metavar=('PYTHON', 'ASCIIDOC'))
-    parser.add_argument('--upload', help="Tag to upload the release for",
-                        nargs=1, required=False, metavar='TAG')
+    parser.add_argument('--upload', action='store_true', required=False,
+                        help="Toggle to upload the release to GitHub")
     args = parser.parse_args()
     utils.change_cwd()
 
     upload_to_pypi = False
 
-    if args.upload is not None:
+    if args.upload:
         # Fail early when trying to upload without github3 installed
         # or without API token
         import github3  # pylint: disable=unused-import
@@ -419,10 +419,14 @@ def main():
         artifacts = build_sdist()
         upload_to_pypi = True
 
-    if args.upload is not None:
+    if args.upload:
+        from qutebrowser import __version__
         utils.print_title("Press enter to release...")
         input()
-        github_upload(artifacts, args.upload[0])
+
+        version_tag = "v" + __version__
+
+        github_upload(artifacts, version_tag)
         if upload_to_pypi:
             pypi_upload(artifacts)
     else:
