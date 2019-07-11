@@ -73,6 +73,9 @@ Changed
 - For runtime data (such as the IPC socket), a proper runtime path is now used
   on BSD; only macOS/Windows continue to use the temporary directory.
 - PDF.js is now also searched in `/app/share/pdf.js/` (for Flatpak)
+- Permission prompts can now be answered with `Y` (`:prompt-accept --save yes`)
+  and `N` (`:prompt-accept --save no`) to save the answer as a per-domain
+  setting.
 
 Deprecated
 ~~~~~~~~~~
