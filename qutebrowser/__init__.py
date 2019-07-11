@@ -27,7 +27,7 @@ __license__ = "GPL"
 __maintainer__ = __author__
 __email__ = "mail@qutebrowser.org"
 __version__ = "1.6.3"
-__version_info__ = [int(part) for part in __version__.split('.')]
+__version_info__ = tuple(int(part) for part in __version__.split('.'))
 __description__ = "A keyboard-driven, vim-like browser based on PyQt5."
 
 basedir = os.path.dirname(os.path.realpath(__file__))
