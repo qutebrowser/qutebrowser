@@ -202,7 +202,7 @@ def build_mac():
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
-    update_3rdparty.run(ace=False, pdfjs=True, fancy_dmg=False)
+    update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False)
 
     utils.print_title("Building Windows binaries")
     parts = str(sys.version_info.major), str(sys.version_info.minor)
@@ -256,11 +256,11 @@ def build_windows():
     utils.print_title("Building installers")
     subprocess.run(['makensis.exe',
                     '/DVERSION={}'.format(qutebrowser.__version__),
-                    'misc/qutebrowser.nsi'], check=True)
+                    'misc/nsis/qutebrowser.nsi'], check=True)
     subprocess.run(['makensis.exe',
-                    '/DX64',
+                    '/DX86',
                     '/DVERSION={}'.format(qutebrowser.__version__),
-                    'misc/qutebrowser.nsi'], check=True)
+                    'misc/nsis/qutebrowser.nsi'], check=True)
 
     name_32 = 'qutebrowser-{}-win32.exe'.format(qutebrowser.__version__)
     name_64 = 'qutebrowser-{}-amd64.exe'.format(qutebrowser.__version__)
