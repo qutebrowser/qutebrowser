@@ -23,12 +23,12 @@ import datetime
 import os.path
 import subprocess
 
-from lxml import etree
+import lxml.etree
 
-from qutebrowser import basedir
+import qutebrowser
 
 # use basedir to get project root dir
-appdata_path = os.path.join(os.path.dirname(basedir), "misc",
+appdata_path = os.path.join(os.path.dirname(qutebrowser.basedir), "misc",
                             "qutebrowser.appdata.xml")
 version_xpath = '//*[@type="desktop"]/releases'
 
@@ -50,7 +50,7 @@ def read_appdata():
         ElementTree object representing appdata.xml
     """
     with open(appdata_path, "rb") as f:
-        appdata = etree.fromstring(f.read())
+        appdata = lxml.etree.fromstring(f.read())
 
     return appdata
 
@@ -62,7 +62,7 @@ def write_appdata(appdata):
         appdata: appdata ElementTree object
     """
     with open(appdata_path, "wb") as f:
-        f.write(etree.tostring(appdata, pretty_print=True))
+        f.write(lxml.etree.tostring(appdata, pretty_print=True))
 
 
 def add_release(releases, version_string, date_string):
@@ -73,7 +73,7 @@ def add_release(releases, version_string, date_string):
         version_string: new qutebrowser version
         date_string: release date for the new version
     """
-    release = etree.Element("release")
+    release = lxml.etree.Element("release")
     release.attrib["version"] = version_string
     release.attrib["date"] = date_string
 
@@ -86,40 +86,35 @@ if __name__ == "__main__":
                         choices=["major", "minor", "patch"],
                         required=True, help="Update release version")
     args = parser.parse_args()
+    version = qutebrowser.__version__
 
     bump_version(args.bump)
 
-    from qutebrowser import __version__
-
     appdata_tree = read_appdata()
-
     releases_block = appdata_tree.xpath(version_xpath)[0]
-
-    add_release(releases_block, __version__, datetime.date.today().isoformat())
-
+    add_release(releases_block, version, datetime.date.today().isoformat())
     write_appdata(appdata_tree)
 
     print("Run the following commands to create a new release:")
-
-    print("* Run `git push origin; git push {v}`.".format(v=__version__))
-
-    print("* Create new release via GitHub",
-          "(required to upload release artifacts).")
-
-    print("* Linux: Run `git checkout {v} &&".format(v=__version__),
-          "./.venv/bin/python3 scripts/dev/build_release.py --upload`")
-
-    print("* Windows: Run `git checkout {v};".format(v=__version__),
-          "py -3 scripts\dev\\build_release.py --asciidoc",
-          "C:\Python27\python",
-          "%userprofile%\\bin\\asciidoc-8.6.10\\asciidoc.py --upload`.")
-
-    print("* macOS: Run `git checkout {v} &&".format(v=__version__),
-          "python3 scripts/dev/build_release.py --upload`.")
+    print("* Run `git push origin; git push {v}`.".format(v=version))
+    print("* If committing on minor branch, cherry-pick release commit to "
+          "master.")
+    print("* Create new release via GitHub (required to upload release "
+          "artifacts).")
+    print("* Linux: Run `git checkout {v} && "
+          "./.venv/bin/python3 scripts/dev/build_release.py --upload`"
+          .format(v=version))
+    print("* Windows: Run `git checkout {v}; "
+          "py -3 scripts\dev\\build_release.py --asciidoc "
+          "C:\Python27\python "
+          "%userprofile%\\bin\\asciidoc-8.6.10\\asciidoc.py --upload`."
+          .format(v=version))
+    print("* macOS: Run `git checkout {v} && "
+          "python3 scripts/dev/build_release.py --upload`."
+          .format(v=version))
 
     print("* On server:")
-    print("- Run `python3 scripts/dev/download_release.py",
-          "v{v}`.".format(v=__version__))
-    print("- Run `git pull github master &&",
-          "sudo python3 scripts/asciidoc2html.py",
-          "--website /srv/http/qutebrowser`")
+    print("- Run `python3 scripts/dev/download_release.py v{v}`."
+          .format(v=version))
+    print("- Run `git pull github master && sudo python3 "
+          "scripts/asciidoc2html.py --website /srv/http/qutebrowser`")

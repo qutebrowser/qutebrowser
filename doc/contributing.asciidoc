@@ -704,7 +704,6 @@ qutebrowser release
 * Make sure all issues with the related milestone are closed.
 * Update changelog (remove *(unreleased)*) and commit.
 * Consider updating the completions for `content.headers.user_agent` in `configdata.yml`.
-* If committing on minor branch, cherry-pick release commit to master.
 * Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones as closed.
 * Run `./.venv/bin/python3 scripts/dev/update_version.py {major,minor,patch}`.
 * Run the printed instructions accordingly.
