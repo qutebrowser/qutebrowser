@@ -9,5 +9,6 @@ pyparsing==2.4.0
 six==1.12.0
 toml==0.10.0
 tox==3.13.2
+tox-venv==0.4.0
 virtualenv==16.6.1
-zipp==0.5.1
+zipp==0.5.2
