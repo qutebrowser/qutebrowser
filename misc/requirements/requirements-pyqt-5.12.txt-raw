@@ -1,0 +1,4 @@
+#@ filter: PyQt5 < 5.13
+#@ filter: PyQtWebEngine < 5.13
+PyQt5 >= 5.12, < 5.13
+PyQtWebEngine >= 5.12, < 5.13
