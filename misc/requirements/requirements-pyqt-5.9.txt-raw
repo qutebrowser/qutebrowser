@@ -1,2 +1,2 @@
-#@ filter: PyQt5 < 5.9
-PyQt5 >= 5.8, < 5.9
+#@ filter: PyQt5 < 5.10
+PyQt5 >= 5.9, < 5.10
