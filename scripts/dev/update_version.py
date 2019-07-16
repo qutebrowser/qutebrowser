@@ -24,18 +24,12 @@ import datetime
 import os.path
 import subprocess
 
-import lxml.etree
-
 import qutebrowser
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
 from scripts import utils
-
-# use basedir to get project root dir
-appdata_path = os.path.join("misc", "org.qutebrowser.qutebrowser.appdata.xml")
-version_xpath = '//*[@type="desktop"]/releases'
 
 
 def bump_version(version_leap="patch"):
@@ -49,43 +43,6 @@ def bump_version(version_leap="patch"):
                    check=True)
 
 
-def read_appdata():
-    """Read qutebrowser.appdata.xml into an ElementTree object.
-
-    :Return:
-        ElementTree object representing appdata.xml
-    """
-    with open(appdata_path, "rb") as f:
-        appdata = lxml.etree.fromstring(f.read())
-
-    return appdata
-
-
-def write_appdata(appdata):
-    """Write qutebrowser.appdata ElementTree object to a file.
-
-    Args:
-        appdata: appdata ElementTree object
-    """
-    with open(appdata_path, "wb") as f:
-        f.write(lxml.etree.tostring(appdata, pretty_print=True))
-
-
-def add_release(releases, version_string, date_string):
-    """Add new <release> block to <releases> block of the appdata XML.
-
-    Args:
-        releases: <releases> XML ElementTree
-        version_string: new qutebrowser version
-        date_string: release date for the new version
-    """
-    release = lxml.etree.Element("release")
-    release.attrib["version"] = version_string
-    release.attrib["date"] = date_string
-
-    releases.append(release)
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Update release version.")
     parser.add_argument('bump', action="store",
@@ -96,11 +53,6 @@ if __name__ == "__main__":
 
     utils.change_cwd()
     bump_version(args.bump)
-
-    appdata_tree = read_appdata()
-    releases_block = appdata_tree.xpath(version_xpath)[0]
-    add_release(releases_block, version, datetime.date.today().isoformat())
-    write_appdata(appdata_tree)
 
     print("Run the following commands to create a new release:")
     print("* Run `git push origin; git push {v}`.".format(v=version))
