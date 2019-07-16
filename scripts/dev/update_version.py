@@ -24,8 +24,6 @@ import datetime
 import os.path
 import subprocess
 
-import qutebrowser
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
@@ -49,10 +47,12 @@ if __name__ == "__main__":
                         choices=["major", "minor", "patch"],
                         help="Update release version")
     args = parser.parse_args()
-    version = qutebrowser.__version__
 
     utils.change_cwd()
     bump_version(args.bump)
+
+    import qutebrowser
+    version = qutebrowser.__version__
 
     print("Run the following commands to create a new release:")
     print("* Run `git push origin; git push {v}`.".format(v=version))
