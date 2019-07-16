@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 import argparse
 import datetime
 import os.path
@@ -40,7 +41,8 @@ def bump_version(version_leap="patch"):
         version_leap: define the jump between versions
         ("major", "minor", "patch")
     """
-    subprocess.run(['bump2version', version_leap], check=True)
+    subprocess.run([sys.executable, '-m', 'bumpversion', version_leap],
+                   check=True)
 
 
 def read_appdata():
