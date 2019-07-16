@@ -36,7 +36,7 @@ from qutebrowser.config import configdata
 
 
 def download_nsis_plugins():
-    """Download the plugins required by the NSIS script"""
+    """Download the plugins required by the NSIS script."""
     github_url = 'https://raw.githubusercontent.com/Drizin/NsisMultiUser'
     git_commit = 'master'
     nsh_files = ('Include/NsisMultiUser.nsh', 'Include/NsisMultiUserLang.nsh',

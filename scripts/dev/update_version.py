@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2018 Andy Mender <andymenderunix@gmail.com>
+# Copyright 2018-2019 Andy Mender <andymenderunix@gmail.com>
+# Copyright 2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -18,9 +19,10 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Update version numbers using bump2version."""
+
 import sys
 import argparse
-import datetime
 import os.path
 import subprocess
 
@@ -64,8 +66,8 @@ if __name__ == "__main__":
           "./.venv/bin/python3 scripts/dev/build_release.py --upload`"
           .format(v=version))
     print("* Windows: Run `git checkout {v}; "
-          "py -3 scripts\dev\\build_release.py --asciidoc "
-          "C:\Python27\python "
+          "py -3 scripts\\dev\\build_release.py --asciidoc "
+          "C:\\Python27\\python "
           "%userprofile%\\bin\\asciidoc-8.6.10\\asciidoc.py --upload`."
           .format(v=version))
     print("* macOS: Run `git checkout {v} && "
