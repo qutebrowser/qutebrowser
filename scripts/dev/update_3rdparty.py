@@ -45,11 +45,11 @@ def download_nsis_plugins():
     dll_files = ('Plugins/x86-unicode/UAC.dll',
                  'Plugins/x86-unicode/StdUtils.dll')
     include_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                               '..', '..', 'misc', 'nsis',
-                                               'include')
+                               '..', '..', 'misc', 'nsis',
+                               'include')
     plugins_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                               '..', '..', 'misc', 'nsis',
-                                               'plugins', 'x86-unicode')
+                               '..', '..', 'misc', 'nsis',
+                               'plugins', 'x86-unicode')
     os.makedirs(include_dir, exist_ok=True)
     os.makedirs(plugins_dir, exist_ok=True)
     print("=> Downloading NSIS plugins")
