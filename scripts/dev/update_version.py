@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
 from scripts import utils
 
 # use basedir to get project root dir
-appdata_path = os.path.join("misc", "qutebrowser.appdata.xml")
+appdata_path = os.path.join("misc", "org.qutebrowser.qutebrowser.appdata.xml")
 version_xpath = '//*[@type="desktop"]/releases'
 
 
