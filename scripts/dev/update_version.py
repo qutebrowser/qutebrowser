@@ -84,7 +84,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Update release version.")
     parser.add_argument('bump', action="store",
                         choices=["major", "minor", "patch"],
-                        required=True, help="Update release version")
+                        help="Update release version")
     args = parser.parse_args()
     version = qutebrowser.__version__
 
