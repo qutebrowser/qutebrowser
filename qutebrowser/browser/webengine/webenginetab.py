@@ -1524,6 +1524,13 @@ class WebEngineTab(browsertab.AbstractTab):
 
         if qtutils.version_check('5.12'):
             page.printRequested.connect(self._on_print_requested)
+
+        try:
+            from PyQt5.QtWebEngineWidgets import (
+                QWebEngineClientCertificateSelection)
+        except ImportError:
+            pass
+        else:
             page.selectClientCertificate.connect(
                 self._on_select_client_certificate)
 
