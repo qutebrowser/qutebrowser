@@ -196,10 +196,17 @@ class ProfileSetter:
         """Initialize settings on the given profile."""
         self.set_http_headers()
         self.set_http_cache_size()
+        self._set_hardcoded_settings()
+        if qtutils.version_check('5.8'):
+            self.set_dictionary_language()
 
+    def _set_hardcoded_settings(self):
+        """Set up settings with a fixed value."""
         settings = self._profile.settings()
+
         settings.setAttribute(
             QWebEngineSettings.FullScreenSupportEnabled, True)
+
         try:
             settings.setAttribute(
                 QWebEngineSettings.FocusOnNavigationEnabled, False)
@@ -207,8 +214,11 @@ class ProfileSetter:
             # Added in Qt 5.8
             pass
 
-        if qtutils.version_check('5.8'):
-            self.set_dictionary_language()
+        try:
+            settings.setAttribute(QWebEngineSettings.PdfViewerEnabled, False)
+        except AttributeError:
+            # Added in Qt 5.13
+            pass
 
     def set_http_headers(self):
         """Set the user agent and accept-language for the given profile.
