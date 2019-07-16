@@ -28,9 +28,13 @@ import lxml.etree
 
 import qutebrowser
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
+                                os.pardir))
+
+from scripts import utils
+
 # use basedir to get project root dir
-appdata_path = os.path.join(os.path.dirname(qutebrowser.basedir), "misc",
-                            "qutebrowser.appdata.xml")
+appdata_path = os.path.join("misc", "qutebrowser.appdata.xml")
 version_xpath = '//*[@type="desktop"]/releases'
 
 
@@ -90,6 +94,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     version = qutebrowser.__version__
 
+    utils.change_cwd()
     bump_version(args.bump)
 
     appdata_tree = read_appdata()
