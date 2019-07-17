@@ -1526,6 +1526,7 @@ class WebEngineTab(browsertab.AbstractTab):
             page.printRequested.connect(self._on_print_requested)
 
         try:
+            # pylint: disable=unused-import
             from PyQt5.QtWebEngineWidgets import (
                 QWebEngineClientCertificateSelection)
         except ImportError:
