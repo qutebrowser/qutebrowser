@@ -53,6 +53,10 @@ Changed
    - Qt 5.12.4, which includes security fixes up to Chromium 74.0.3729.157
    - Python 3.7.4
    - OpenSSL 1.1.1
+   - Note: This release includes Qt 5.12.4 instead of Qt 5.13.0 due to
+     https://bugreports.qt.io/browse/QTBUG-76913[QTBUG-76913] causing frequent
+     segfaults with Qt 5.13. After Qt 5.13.1 is released, qutebrowser v1.8.0
+     will be released with an updated Qt.
 - Completely revamped Windows installer which allows installing without admin
   permissions and allows setting qutebrowser as default browser.
 - The desktop file `qutebrowser.desktop` is now renamed to
@@ -124,8 +128,8 @@ Fixed
 - Crash on start when PyQt was built without SSL support with Qt >= 5.12.
 - Minor memory leaks.
 
-v1.6.3
-------
+v1.6.3 (2019-06-18)
+-------------------
 
 Fixed
 ~~~~~
@@ -137,8 +141,8 @@ Fixed
   If you're unable to update, you can remove `~/.cache/qutebrowser` for the
   same result.
 
-v1.6.2
-------
+v1.6.2 (2019-05-06)
+-------------------
 
 Changed
 ~~~~~~~
@@ -156,8 +160,8 @@ Fixed
 - High CPU usage when using the keyhint widget with a low delay.
 - Crash with Qt >= 5.14 on redirects.
 
-v1.6.1
-------
+v1.6.1 (2019-03-20)
+-------------------
 
 Changed
 ~~~~~~~
@@ -176,8 +180,8 @@ Fixed
 - Setting `colors.statusbar.*.bg` to a gradient now has the expected effect of
   the gradient spanning the entire statusbar.
 
-v1.6.0
-------
+v1.6.0 (2019-02-25)
+-------------------
 
 Added
 ~~~~~
@@ -282,8 +286,8 @@ Fixed
     document-start, some known-broken scripts (Iridium, userstyles.org) are now
     forced to run at document-end.
 
-v1.5.2
-------
+v1.5.2 (2018-10-26)
+-------------------
 
 Changed
 ~~~~~~~
@@ -292,8 +296,8 @@ Changed
   `no-3rdparty` by default, as `no-3rdparty` breaks various pages such as
   GMail.
 
-v1.5.1
-------
+v1.5.1 (2018-10-10)
+-------------------
 
 Fixed
 ~~~~~
@@ -307,8 +311,8 @@ Fixed
 - Crash when closing a tab after doing a search.
 - Tabs appearing when hidden after e.g. closing tabs.
 
-v1.5.0
-------
+v1.5.0 (2018-10-03)
+-------------------
 
 Added
 ~~~~~
@@ -402,8 +406,8 @@ Removed
 - The `content.webrtc_public_interfaces_only` setting has been removed and
   replaced by `content.webrtc_ip_handling_policy`.
 
-v1.4.2
-------
+v1.4.2 (2018-09-02)
+-------------------
 
 Changed
 ~~~~~~~
@@ -432,8 +436,8 @@ Fixed
 - Crash when using :// as URL pattern.
 - The `:buffer` completion now sorts tabs with indices >= 10 correctly again.
 
-v1.4.1
-------
+v1.4.1 (2018-07-11)
+-------------------
 
 Security
 ~~~~~~~~
@@ -456,8 +460,8 @@ Fixed
   new one, fixing issues with qutebrowser not starting after installing v1.4.0
   over v1.3.3.
 
-v1.4.0
-------
+v1.4.0 (2018-07-03)
+-------------------
 
 Added
 ~~~~~
@@ -574,8 +578,8 @@ Removed
 - The `content.developer_extras` setting got removed. On QtWebKit, developer
   extras are now automatically enabled when opening the inspector.
 
-v1.3.3
-------
+v1.3.3 (2018-06-21)
+-------------------
 
 Security
 ~~~~~~~~
@@ -595,8 +599,8 @@ Fixed
   introduced. Since that module isn't packaged everywhere, it's been removed
   again.
 
-v1.3.2
-------
+v1.3.2 (2018-06-10)
+-------------------
 
 Fixed
 ~~~~~
@@ -610,8 +614,8 @@ Fixed
 - QtWebEngine: It's now possible to open external links such as `magnet://` or
   `mailto:` via hints.
 
-v1.3.1
-------
+v1.3.1 (2018-05-29)
+-------------------
 
 Fixed
 ~~~~~
@@ -625,8 +629,8 @@ Fixed
 - Don't crash when a tab is opened and quickly closed again.
 
 
-v1.3.0
-------
+v1.3.0 (2018-05-03)
+-------------------
 
 Added
 ~~~~~
@@ -705,8 +709,8 @@ Fixed
   messenger.
 - The macOS release now should work again on macOS 10.11 and newer.
 
-v1.2.1
-------
+v1.2.1 (2018-03-14)
+-------------------
 
 Fixed
 ~~~~~
@@ -728,8 +732,8 @@ Fixed
   from sessions.
 - Shortcuts now correctly use `Ctrl` instead of `Command` on macOS again.
 
-v1.2.0
-------
+v1.2.0 (2018-03-09)
+-------------------
 
 Added
 ~~~~~
@@ -860,8 +864,8 @@ Removed
 - The `tabs.persist_mode_on_change` setting has been removed and replaced by
   `tabs.mode_on_change`.
 
-v1.1.2
-------
+v1.1.2 (2018-03-01)
+-------------------
 
 Changed
 ~~~~~~~
@@ -875,8 +879,8 @@ Fixed
 - QtWebEngine: Crash with Qt 5.10.1 when using :undo on some tabs.
 - Compatibility with Python 3.7
 
-v1.1.1
-------
+v1.1.1 (2018-01-20)
+-------------------
 
 Fixed
 ~~~~~
@@ -884,8 +888,8 @@ Fixed
 - The Makefile now actually works.
 - Fixed crashes with Qt 5.10 when closing a tab before it finished loading.
 
-v1.1.0
-------
+v1.1.0 (2018-01-15)
+-------------------
 
 Added
 ~~~~~
@@ -1027,8 +1031,8 @@ Removed
 - The `x[xtb]` default bindings got removed again as many users accidentally
   triggered them.
 
-v1.0.4
-------
+v1.0.4 (2017-11-28)
+-------------------
 
 Fixed
 ~~~~~
@@ -1040,8 +1044,8 @@ Fixed
 - Improved handling for various SQL errors
 - Fix crash when setting content.cache.size to a big value (> 2 GB)
 
-v1.0.3
-------
+v1.0.3 (2017-11-04)
+-------------------
 
 Changed
 ~~~~~~~
@@ -1062,8 +1066,8 @@ Fixed
 - Unbinding a default keybinding twice now doesn't bind it again
 - Completions are now sorted correctly again when filtered
 
-v1.0.2
-------
+v1.0.2 (2017-10-17)
+-------------------
 
 Fixed
 ~~~~~
@@ -1080,8 +1084,8 @@ Changed
 
 - Nicer error messages and other minor improvements
 
-v1.0.1
-------
+v1.0.1 (2017-10-13)
+-------------------
 
 Fixed
 ~~~~~
@@ -1090,8 +1094,8 @@ Fixed
 - Fixed starting with old PyQt versions compiled against newer Qt versions.
 - Fixed check for PyQt version to correctly enforce 5.7 (not 5.2).
 
-v1.0.0
-------
+v1.0.0 (2017-10-12)
+-------------------
 
 Major changes
 ~~~~~~~~~~~~~
@@ -1180,8 +1184,8 @@ Fixes
   count.
 - The `window.hide_wayland_decoration` setting now works correctly again.
 
-v0.11.1
--------
+v0.11.1 (2017-10-09)
+--------------------
 
 Fixes
 ~~~~~
@@ -1194,8 +1198,8 @@ Fixes
 - :spawn -u -d is now disallowed.
 - :spawn -d shows error messages correctly now.
 
-v0.11.0
--------
+v0.11.0 (2017-07-04)
+--------------------
 
 New dependencies
 ~~~~~~~~~~~~~~~~
@@ -1320,8 +1324,8 @@ Fixed
   frequent crashes due to a Qt bug.
 - (QtWebKit) Fixed Crash when a PAC file returns an invalid value.
 
-v0.10.1
--------
+v0.10.1 (2017-03-08)
+--------------------
 
 Changed
 ~~~~~~~
@@ -1341,8 +1345,8 @@ Fixed
 - Crash when trying to print a tab which was closed in the meantime
 - Crash when trying to open a file twice on Windows
 
-v0.10.0
--------
+v0.10.0 (2017-02-25)
+--------------------
 
 Added
 ~~~~~
@@ -1420,8 +1424,8 @@ Fixed
 - Fixed a crash when hinting with target `userscript` and spawning a non-existing script
 - Lines in Jupyter notebook now trigger insert mode
 
-v0.9.1
-------
+v0.9.1 (2017-01-13)
+-------------------
 
 Fixed
 ~~~~~
@@ -1429,8 +1433,8 @@ Fixed
 - Prevent websites from downloading files to a location outside of the download
   folder with QtWebEngine.
 
-v0.9.0
-------
+v0.9.0 (2016-12-28)
+-------------------
 
 Added
 ~~~~~
@@ -1613,8 +1617,8 @@ Fixed
 - Fixed crash when a userscript writes invalid unicode data to the FIFO
 - Fixed crash when a included HTML was not found
 
-v0.8.3
-------
+v0.8.3 (2016-11-05)
+-------------------
 
 Fixed
 ~~~~~
@@ -1633,8 +1637,8 @@ Fixed
 - Fixed crash when closing a window without focusing it
 - Userscripts now can access QUTE_FIFO correctly on Windows
 
-v0.8.2
-------
+v0.8.2 (2016-08-02)
+-------------------
 
 Fixed
 ~~~~~
@@ -1656,8 +1660,8 @@ Fixed
   `:prompt-open-download`.
 - Fixed `:restart` deleting the basedir when it was given with `--basedir`.
 
-v0.8.1
-------
+v0.8.1 (2016-07-27)
+-------------------
 
 Fixed
 ~~~~~
@@ -1667,8 +1671,8 @@ Fixed
   X .app currently.
 - Hide Harfbuzz warning with the macOS .app
 
-v0.8.0
-------
+v0.8.0 (2016-07-26)
+-------------------
 
 Added
 ~~~~~
@@ -1704,7 +1708,7 @@ Changed
   is given.
 
 Fixed
------
+~~~~~
 
 - Compatibility with PyQt 5.7
 - Fixed some configuration values being lost when a config option gets removed
@@ -1714,7 +1718,7 @@ Fixed
   anymore.
 
 Removed
--------
+~~~~~~~
 
 - The ability to display status messages from webpages, as well as the related
   `ui ->  display-statusbar-messages` setting.
@@ -1725,8 +1729,8 @@ Removed
 - `:edit-url` now doesn't accept a count anymore as its behavior was confusing
   and it doesn't make much sense to add a count.
 
-v0.7.0
-------
+v0.7.0 (2016-06-10)
+-------------------
 
 Added
 ~~~~~
@@ -1786,7 +1790,7 @@ Changed
   history too, marked with a `-r` suffix to the timestamp field.
 
 Fixed
------
+~~~~~
 
 - Fixed using `:hint links spawn` with flags - you can now use things like the
   `-v` argument for `:spawn` or pass flags to the spawned commands.
@@ -1811,8 +1815,8 @@ Fixed
 - Hints now work with (non-standard) links with spaces around the URL
 - Strip off trailing spaces for history entries with no title
 
-v0.6.2
-------
+v0.6.2 (2016-04-30)
+-------------------
 
 Fixed
 ~~~~~
@@ -1825,8 +1829,8 @@ Fixed
 - Fixed crash in some circumstances when using dictionary hints
 - Fixed various crashes related to PyQt 5.6
 
-v0.6.1
------
+v0.6.1 (2016-04-10)
+-------------------
 
 Fixed
 ~~~~~~
@@ -1836,8 +1840,8 @@ Fixed
 - Fixed crash when downloading non-ascii files with a broken locale (`LC_ALL=C`)
 - Added workaround for a Qt/PyQt bug which is too weird to describe here
 
-v0.6.0
-------
+v0.6.0 (2016-04-04)
+-------------------
 
 Added
 ~~~~~
@@ -1908,8 +1912,8 @@ Removed
   (except for existing configs) to make room for the `gt` binding to show
   buffers.
 
-v0.5.1
-------
+v0.5.1 (2016-01-18)
+-------------------
 
 Fixed
 ~~~~~
@@ -1919,8 +1923,8 @@ Fixed
 - Prevented an error being logged when a website with HTTP authentication was
   opened on Windows.
 
-v0.5.0
-------
+v0.5.0 (2016-01-05)
+-------------------
 
 Added
 ~~~~~
@@ -2036,8 +2040,8 @@ Fixed
 - Fixed restarting after a crash is reported.
 - Removed `.pyc` files accidentally contained in source releases.
 
-v0.4.1
-------
+v0.4.1 (2015-09-30)
+-------------------
 
 Fixed
 ~~~~~
@@ -2057,8 +2061,8 @@ Fixed
   versions (e.g. on Debian experimental).
 - Fixed various `PendingDeprecationWarnings` shown with Python 3.5.
 
-v0.4.0
-------
+v0.4.0 (2015-09-11)
+-------------------
 
 Added
 ~~~~~
@@ -2142,8 +2146,8 @@ Removed
 - The `tabs -> hide-always` and `tabs -> hide-auto` settings got merged into
   the new `tabs -> show` setting.
 
-v0.3.0
-------
+v0.3.0 (2015-06-28)
+-------------------
 
 Added
 ~~~~~
@@ -2220,16 +2224,16 @@ Fixed
 - Fixed horrible completion performance when the `shrink` option was set.
 - Sessions now store zoom/scroll-position correctly.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.2.1[v0.2.1]
------------------------------------------------------------------------
+v0.2.1 (2015-04-19)
+-------------------
 
 Fixed
 ~~~~~
 
 - Added missing manpage (doc/qutebrowser.1.asciidoc) to archive.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.2.0[v0.2.0]
------------------------------------------------------------------------
+v0.2.0 (2015-04-19)
+-------------------
 
 Added
 ~~~~~
@@ -2371,8 +2375,8 @@ Fixed
 - Add a timeout to pastebin HTTP replies.
 - Various other fixes for small/rare bugs.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.4[v0.1.4]
------------------------------------------------------------------------
+v0.1.4 (2015-03-19)
+-------------------
 
 Changed
 ~~~~~~~
@@ -2415,8 +2419,8 @@ Security
 * Stop the icon database from being created when private-browsing is set to true.
 * Disable insecure SSL ciphers.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.3[v0.1.3]
------------------------------------------------------------------------
+v0.1.3 (2015-02-12)
+-------------------
 
 Changed
 ~~~~~~~
@@ -2449,8 +2453,8 @@ Security
 
 * Fix for HTTP passwords accidentally being written to debug log.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.2[v0.1.2]
------------------------------------------------------------------------
+v0.1.2 (2015-01-09)
+-------------------
 
 Changed
 ~~~~~~~
@@ -2481,8 +2485,8 @@ Fixed
 * Fix user-stylesheet setting with an empty value.
 
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1.1[v0.1.1]
------------------------------------------------------------------------
+v0.1.1 (2014-12-28)
+-------------------
 
 Added
 ~~~~~
@@ -2539,7 +2543,7 @@ Fixed
 * Ensure the docs get included in `freeze.py`.
 * Fix crash with `:zoom`.
 
-https://github.com/qutebrowser/qutebrowser/releases/tag/v0.1[v0.1]
--------------------------------------------------------------------
+v0.1 (2014-12-14)
+-----------------
 
 Initial release.
