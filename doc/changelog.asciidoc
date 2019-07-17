@@ -76,6 +76,8 @@ Changed
 - Permission prompts can now be answered with `Y` (`:prompt-accept --save yes`)
   and `N` (`:prompt-accept --save no`) to save the answer as a per-domain
   setting.
+- `content.dns_prefetch` is now turned off by default, as it causes crashes
+  inside QtWebEngine.
 
 Deprecated
 ~~~~~~~~~~

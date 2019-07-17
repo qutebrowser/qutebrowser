@@ -1733,7 +1733,7 @@ This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
-Default: +pass:[true]+
+Default: +pass:[false]+
 
 On QtWebEngine, this setting requires Qt 5.12 or newer.
 
