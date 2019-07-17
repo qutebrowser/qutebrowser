@@ -42,18 +42,23 @@ Added
   replacement.
 - New `delete` target for `:hint` which removes the hinted element from
   the DOM.
-- Support for notifications (shown via system tray) with Qt 5.13.
 - New `--config-py` commandline argument to use a custom `config.py` file.
+- Qt 5.13: Support for notifications (shown via system tray).
 
 Changed
 ~~~~~~~
 
+- Updated dependencies for Windows/macOS releases:
+   - PyQt5 5.12.3 / PyQtWebEngine 5.12.1
+   - Qt 5.12.4, which includes security fixes up to Chromium 74.0.3729.157
+   - Python 3.7.4
+   - OpenSSL 1.1.1
+- Completely revamped Windows installer which allows installing without admin
+  permissions and allows setting qutebrowser as default browser.
 - The desktop file `qutebrowser.desktop` is now renamed to
   `org.qutebrowser.qutebrowser.desktop`.
 - Pinned tabs now always show a favicon (even if the site doesn't provide one)
   when shrinking.
-- Slight performance improvements for the `:open` completion.
-- Performance improvements for showing hints.
 - Setting `downloads.location.directory` now changes the directory displayed in
   the download prompt even if `downloads.location.remember` is set.
 - The `yank` command gained a new `inline` argument, which allows to e.g. use
@@ -62,7 +67,6 @@ Changed
 - More detailed error messages when spawning a process failed.
 - The `content.pdfjs` setting now supports domain patterns.
 - Improved process status output with `:spawn -o`.
-- Various performance improvements.
 - The `colors.tabs.bar.bg` setting is now of type `QssColor` and thus supports
   gradients.
 - The `:fullscreen` command now understands a new `--enter` flag which
@@ -70,6 +74,7 @@ Changed
   state.
 - `--debug-flag stack` is now needed to show stack traces on renderer process
   crashes.
+- `--debug-flag chromium` can be used to easily turn on verbose Chromium logging.
 - For runtime data (such as the IPC socket), a proper runtime path is now used
   on BSD; only macOS/Windows continue to use the temporary directory.
 - PDF.js is now also searched in `/app/share/pdf.js/` (for Flatpak)
@@ -78,6 +83,18 @@ Changed
   setting.
 - `content.dns_prefetch` is now turned off by default, as it causes crashes
   inside QtWebEngine.
+- The (still unofficial) interceptor plugin API now contains `resource_type`
+  for a request and allows redirecting requests.
+- `:bookmark-remove` now shows a message for consistency with `:bookmark-add`.
+- Very early segfaults are now also caught by the crash handler.
+- The appdata XML now contains proper release information and an (empty) OARS
+  content rating.
+- Improved Linux distribution detection.
+- Qt 5.13: Request filtering now happens in the UI rather than IO thread.
+- Qt 5.13: Support for PDFium (Chromium's PDF viewer) is disabled for now so
+  that PDFs can still be downloaded (or shown with PDF.js) properly.
+- Various performance improvements (e.g. for showing hints or the :open
+  completion).
 
 Deprecated
 ~~~~~~~~~~
@@ -95,14 +112,17 @@ Fixed
   entering/exiting caret mode quickly.
 - Using `100%` for a hue in a `hsv(...)` config value now corresponds to 359
   (rather than 255), matching the fixed behavior in Qt 5.13.
-- Chaining commands with ;; used to abort with some failing commands. It now
+- Chaining commands with `;;` used to abort with some failing commands. It now
   runs the second command no matter whether the first one succeeded or not.
 - Handling of profiles and private windows (and resulting crashes with Qt
   5.12.2).
-- Fixes for corner-cases when using :navigate increment/decrement.
+- Fixes for corner-cases when using `:navigate increment/decrement`.
 - The type for the `colors.hints.match.fg` setting was changed to `QtColor`.
-  Gradients were never supported for this setting, and with this change, forms
+  Gradients were never supported for this setting, and with this change, values
   like `rgb(0, 0, 0)` now work as well.
+- Permission prompts now show a properly normalized URL with QtWebKit.
+- Crash on start when PyQt was built without SSL support with Qt >= 5.12.
+- Minor memory leaks.
 
 v1.6.3
 ------
