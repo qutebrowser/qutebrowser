@@ -238,32 +238,37 @@ def patch_windows(out_dir, x64):
         shutil.copy(os.path.join(dll_dir, dll), out_dir)
 
 
+def _get_windows_python_path(x64):
+    """Get the path to Python.exe on Windows."""
+    parts = str(sys.version_info.major), str(sys.version_info.minor)
+    ver = ''.join(parts)
+    dot_ver = '.'.join(parts)
+
+    if x64:
+        path = (r'SOFTWARE\Python\PythonCore\{}\InstallPath'
+                .format(dot_ver))
+        fallback = r'C:\Python{}\python.exe'.format(ver)
+    else:
+        path = (r'SOFTWARE\WOW6432Node\Python\PythonCore\{}-32\InstallPath'
+                .format(dot_ver))
+        fallback = r'C:\Python{}-32\python.exe'.format(ver)
+
+    try:
+        key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE, path)
+        return winreg.QueryValueEx(key, 'ExecutablePath')[0]
+    except FileNotFoundError:
+        return fallback
+
+
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
     update_3rdparty.run(nsis=True, ace=False, pdfjs=True, fancy_dmg=False)
 
     utils.print_title("Building Windows binaries")
-    parts = str(sys.version_info.major), str(sys.version_info.minor)
-    ver = ''.join(parts)
-    dot_ver = '.'.join(parts)
 
-    # Get python path from registry if possible
-    try:
-        reg64_key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
-                                     r'SOFTWARE\Python\PythonCore'
-                                     r'\{}\InstallPath'.format(dot_ver))
-        python_x64 = winreg.QueryValueEx(reg64_key, 'ExecutablePath')[0]
-    except FileNotFoundError:
-        python_x64 = r'C:\Python{}\python.exe'.format(ver)
-
-    try:
-        reg32_key = winreg.OpenKeyEx(winreg.HKEY_LOCAL_MACHINE,
-                                     r'SOFTWARE\WOW6432Node\Python\PythonCore'
-                                     r'\{}-32\InstallPath'.format(dot_ver))
-        python_x86 = winreg.QueryValueEx(reg32_key, 'ExecutablePath')[0]
-    except FileNotFoundError:
-        python_x86 = r'C:\Python{}-32\python.exe'.format(ver)
+    python_x64 = _get_windows_python_path(x64=True)
+    python_x86 = _get_windows_python_path(x64=False)
 
     out_pyinstaller = os.path.join('dist', 'qutebrowser')
     out_32 = os.path.join('dist',
