@@ -62,7 +62,7 @@ if __name__ == "__main__":
     version = qutebrowser.__version__
 
     print("Run the following commands to create a new release:")
-    print("* Run `git push origin; git push v{v}`.".format(v=version))
+    print("* Run `git push origin; git push origin v{v}`.".format(v=version))
     print("* If committing on minor branch, cherry-pick release commit to "
           "master.")
     print("* Create new release via GitHub (required to upload release "
