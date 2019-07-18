@@ -108,7 +108,8 @@ def smoke_test(executable):
         r'\[.*\] LOADER: .*',
 
         # https://github.com/qutebrowser/qutebrowser/issues/4919
-        r'objc\[.*\]: .* One of the two will be used\. Which one is undefined\.',
+        (r'objc\[.*\]: .* One of the two will be used\. '
+         r'Which one is undefined\.'),
         (r'QCoreApplication::applicationDirPath: Please instantiate the '
          r'QApplication object first'),
     ]
