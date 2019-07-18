@@ -39,8 +39,12 @@ def bump_version(version_leap="patch"):
         version_leap: define the jump between versions
         ("major", "minor", "patch")
     """
-    subprocess.run([sys.executable, '-m', 'bumpversion', '--verbose',
-                    version_leap], check=True)
+    subprocess.run([sys.executable, '-m', 'bumpversion', version_leap],
+                   check=True)
+
+
+def show_commit():
+    subprocess.run(['git', 'show'], check=True)
 
 
 if __name__ == "__main__":
@@ -52,6 +56,7 @@ if __name__ == "__main__":
 
     utils.change_cwd()
     bump_version(args.bump)
+    show_commit()
 
     import qutebrowser
     version = qutebrowser.__version__
