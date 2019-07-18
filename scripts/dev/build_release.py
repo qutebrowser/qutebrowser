@@ -224,6 +224,17 @@ def build_mac():
     return [(dmg_name, 'application/x-apple-diskimage', 'macOS .dmg')]
 
 
+def patch_windows(out_dir, x64):
+    """Copy missing DLLs for windows into the given output."""
+    dll_dir = os.path.join('.tox', 'pyinstaller', 'lib', 'site-packages',
+                           'PyQt5', 'Qt', 'bin')
+    dlls = ['libEGL.dll', 'd3dcompiler_47.dll']
+    if x64:
+        dlls += ['libssl-1_1-x64.dll', 'libcrypto-1_1-x64.dll']
+    for dll in dlls:
+        shutil.copy(os.path.join(dll_dir, dll), out_dir)
+
+
 def build_windows():
     """Build windows executables/setups."""
     utils.print_title("Updating 3rdparty content")
@@ -267,11 +278,13 @@ def build_windows():
     _maybe_remove(out_32)
     call_tox('pyinstaller', '-r', python=python_x86)
     shutil.move(out_pyinstaller, out_32)
+    patch_windows(out_32, x64=False)
 
     utils.print_title("Running pyinstaller 64bit")
     _maybe_remove(out_64)
     call_tox('pyinstaller', '-r', python=python_x64)
     shutil.move(out_pyinstaller, out_64)
+    patch_windows(out_64, x64=True)
 
     utils.print_title("Running 32bit smoke test")
     smoke_test(os.path.join(out_32, 'qutebrowser.exe'))
