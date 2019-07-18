@@ -228,9 +228,12 @@ def patch_windows(out_dir, x64):
     """Copy missing DLLs for windows into the given output."""
     dll_dir = os.path.join('.tox', 'pyinstaller', 'lib', 'site-packages',
                            'PyQt5', 'Qt', 'bin')
+    # https://github.com/pyinstaller/pyinstaller/issues/4322
     dlls = ['libEGL.dll', 'd3dcompiler_47.dll']
+    # https://github.com/pyinstaller/pyinstaller/issues/4321
     if x64:
         dlls += ['libssl-1_1-x64.dll', 'libcrypto-1_1-x64.dll']
+
     for dll in dlls:
         shutil.copy(os.path.join(dll_dir, dll), out_dir)
 
