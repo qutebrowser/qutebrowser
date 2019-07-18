@@ -39,8 +39,8 @@ def bump_version(version_leap="patch"):
         version_leap: define the jump between versions
         ("major", "minor", "patch")
     """
-    subprocess.run([sys.executable, '-m', 'bumpversion', version_leap],
-                   check=True)
+    subprocess.run([sys.executable, '-m', 'bumpversion', '--verbose',
+                    version_leap], check=True)
 
 
 if __name__ == "__main__":
@@ -57,25 +57,25 @@ if __name__ == "__main__":
     version = qutebrowser.__version__
 
     print("Run the following commands to create a new release:")
-    print("* Run `git push origin; git push {v}`.".format(v=version))
+    print("* Run `git push origin; git push v{v}`.".format(v=version))
     print("* If committing on minor branch, cherry-pick release commit to "
           "master.")
     print("* Create new release via GitHub (required to upload release "
           "artifacts).")
-    print("* Linux: Run `git checkout {v} && "
+    print("* Linux: Run `git checkout v{v} && "
           "./.venv/bin/python3 scripts/dev/build_release.py --upload`"
           .format(v=version))
-    print("* Windows: Run `git checkout {v}; "
+    print("* Windows: Run `git checkout v{v}; "
           "py -3 scripts\\dev\\build_release.py --asciidoc "
           "C:\\Python27\\python "
           "%userprofile%\\bin\\asciidoc-8.6.10\\asciidoc.py --upload`."
           .format(v=version))
-    print("* macOS: Run `git checkout {v} && "
+    print("* macOS: Run `git checkout v{v} && "
           "python3 scripts/dev/build_release.py --upload`."
           .format(v=version))
 
     print("* On server:")
-    print("- Run `python3 scripts/dev/download_release.py v{v}`."
+    print("- Run `python3 scripts/dev/download_release.py {v}`."
           .format(v=version))
     print("- Run `git pull github master && sudo python3 "
           "scripts/asciidoc2html.py --website /srv/http/qutebrowser`")
