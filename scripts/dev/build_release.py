@@ -380,8 +380,16 @@ def github_upload(artifacts, tag):
 
 def pypi_upload(artifacts):
     """Upload the given artifacts to PyPI using twine."""
+    utils.print_title("Uploading to PyPI...")
     filenames = [a[0] for a in artifacts]
-    subprocess.run(['twine', 'upload'] + filenames, check=True)
+    subprocess.run([sys.executable, '-m', 'twine', 'upload'] + filenames,
+                   check=True)
+
+
+def upgrade_sdist_dependencies():
+    """Make sure we have the latest tools for an sdist release."""
+    subprocess.run([sys.executable, '-m', 'pip', 'install', '-U', 'twine',
+                    'pip', 'wheel', 'setuptools'], check=True)
 
 
 def main():
@@ -415,6 +423,7 @@ def main():
     elif sys.platform == 'darwin':
         artifacts = build_mac()
     else:
+        upgrade_sdist_dependencies()
         test_makefile()
         artifacts = build_sdist()
         upload_to_pypi = True
