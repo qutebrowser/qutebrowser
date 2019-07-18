@@ -32,6 +32,7 @@ import argparse
 import tarfile
 import tempfile
 import collections
+import re
 
 try:
     import winreg
@@ -92,11 +93,35 @@ def _maybe_remove(path):
         pass
 
 
+def _filter_whitelisted(output, patterns):
+    for line in output.decode('utf-8').splitlines():
+        if not any(re.fullmatch(pattern, line) for pattern in patterns):
+            yield line
+
+
 def smoke_test(executable):
     """Try starting the given qutebrowser executable."""
-    subprocess.run([executable, '--no-err-windows', '--nowindow',
-                    '--temp-basedir', 'about:blank', ':later 500 quit'],
-                   check=True)
+    stdout_whitelist = []
+    stderr_whitelist = [
+        # PyInstaller debug output
+        r'\[.*\] PyInstaller Bootloader .*',
+        r'\[.*\] LOADER: .*',
+
+        # https://github.com/qutebrowser/qutebrowser/issues/4919
+        r'objc\[.*\]: .* One of the two will be used\. Which one is undefined\.',
+        (r'QCoreApplication::applicationDirPath: Please instantiate the '
+         r'QApplication object first'),
+    ]
+
+    proc = subprocess.run([executable, '--no-err-windows', '--nowindow',
+                           '--temp-basedir', 'about:blank',
+                           ':later 500 quit'], check=True, capture_output=True)
+    stdout = '\n'.join(_filter_whitelisted(proc.stdout, stdout_whitelist))
+    stderr = '\n'.join(_filter_whitelisted(proc.stderr, stderr_whitelist))
+    if stdout:
+        raise Exception("Unexpected stdout:\n{}".format(stdout))
+    if stderr:
+        raise Exception("Unexpected stderr:\n{}".format(stderr))
 
 
 def patch_mac_app():
