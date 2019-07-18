@@ -66,8 +66,8 @@ if __name__ == "__main__":
     print("Run the following commands to create a new release:")
     print("* Run `git push origin; git push origin v{v}`.".format(v=version))
     if args.bump == 'patch':
-        print("* Run `git checkout master && git cherry-pick v{x} && "
-              "git push origin`.".format(x=x_version))
+        print("* Run `git checkout master && git cherry-pick v{v} && "
+              "git push origin`.".format(v=version))
     else:
         print("* Run `git branch v{x} v{v}` && git push origin v{x}."
               .format(v=version, x=x_version))
