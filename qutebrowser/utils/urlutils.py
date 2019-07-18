@@ -558,7 +558,7 @@ def _get_incdec_value(match, incdec, url, count):
 # of information. (host and path use FullyDecoded by default)
 _URL_SEGMENTS = [
     ('host',
-     lambda url: url.host(QUrl.PrettyDecoded),
+     lambda url: url.host(QUrl.FullyEncoded),
      lambda url, host: url.setHost(host, QUrl.StrictMode)),
 
     ('port',
@@ -566,15 +566,15 @@ _URL_SEGMENTS = [
      lambda url, x: url.setPort(int(x))),
 
     ('path',
-     lambda url: url.path(QUrl.PrettyDecoded),
+     lambda url: url.path(QUrl.FullyEncoded),
      lambda url, path: url.setPath(path, QUrl.StrictMode)),
 
     ('query',
-     lambda url: url.query(QUrl.PrettyDecoded),
+     lambda url: url.query(QUrl.FullyEncoded),
      lambda url, query: url.setQuery(query, QUrl.StrictMode)),
 
     ('anchor',
-     lambda url: url.fragment(QUrl.PrettyDecoded),
+     lambda url: url.fragment(QUrl.FullyEncoded),
      lambda url, fragment: url.setFragment(fragment, QUrl.StrictMode)),
 ]
 
