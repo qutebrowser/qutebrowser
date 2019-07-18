@@ -140,6 +140,7 @@ def pyinstaller_qt_workaround():
     if (hasattr(sys, 'frozen') and
             hasattr(sys, '_MEIPASS') and
             sys.platform == 'win32'):
+        # pylint: disable=no-member,protected-access
         os.environ['PATH'] += os.pathsep + sys._MEIPASS
 
 
