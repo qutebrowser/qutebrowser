@@ -60,11 +60,17 @@ if __name__ == "__main__":
 
     import qutebrowser
     version = qutebrowser.__version__
+    x_version = '.'.join([str(p) for p in qutebrowser.__version_info__[:-1]] +
+                         ['x'])
 
     print("Run the following commands to create a new release:")
     print("* Run `git push origin; git push origin v{v}`.".format(v=version))
-    print("* If committing on minor branch, cherry-pick release commit to "
-          "master.")
+    if args.bump == 'patch':
+        print("* Run `git checkout master && git cherry-pick v{x} && "
+              "git push origin`.")
+    else:
+        print("* Run `git branch v{x} v{v}` && git push origin v{x}."
+              .format(v=version, x=x_version))
     print("* Create new release via GitHub (required to upload release "
           "artifacts).")
     print("* Linux: Run `git checkout v{v} && "
