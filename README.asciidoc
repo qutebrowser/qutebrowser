@@ -197,6 +197,7 @@ Active
 * Firefox addons (based on WebExtensions):
   https://github.com/cmcaine/tridactyl[Tridactyl],
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
+  https://github.com/brookhong/Surfingkeys[Surfingkeys],
   https://github.com/ueokande/vim-vixen[Vim Vixen],
   https://github.com/amedama41/vvimpulation[VVimpulation]
 
