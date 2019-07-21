@@ -31,6 +31,7 @@ from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
 from qutebrowser.misc import miscwidgets
 from qutebrowser.qt import sip
 
+from urllib.parse import urlparse
 
 class WebEngineView(QWebEngineView):
 
@@ -40,6 +41,9 @@ class WebEngineView(QWebEngineView):
         super().__init__(parent)
         self._win_id = win_id
         self._tabdata = tabdata
+
+        self._command_dispatcher = objreg.get(
+            'command-dispatcher', scope='window', window=self._win_id)
 
         theme_color = self.style().standardPalette().color(QPalette.Base)
         if private:
@@ -58,6 +62,23 @@ class WebEngineView(QWebEngineView):
             # and other related issues.
             sip.delete(self.layout())
             self._layout = miscwidgets.PseudoLayout(self)
+
+    def contextMenuEvent(self, e):
+        page = self.page()
+        selectedText = page.selectedText()
+        if selectedText:
+            menu = page.createStandardContextMenu()
+            for (k, v) in config.val.url.searchengines.items():
+                action = menu.addAction('Search on ' + urlparse(v).netloc)
+                action.triggered.connect(self.searchForSelectedTextWithSearchEngine(k, selectedText))
+            menu.exec_(e.globalPos())
+        else:
+            super().contextMenuEvent(e)
+
+    def searchForSelectedTextWithSearchEngine(self, searchEngine, selectedText):
+        def searchForSelectedText():
+            self._command_dispatcher.openurl(url=searchEngine + ' ' + selectedText, tab=True)
+        return searchForSelectedText
 
     def render_widget(self):
         """Get the RenderWidgetHostViewQt for this view.
