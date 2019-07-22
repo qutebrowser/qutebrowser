@@ -23,6 +23,8 @@ Changed
 
 - The statusbar text for passthrough mode now shows all configured bindings to
   leave the mode, not only one.
+- When `:config-source` is used with a relative filename, the file is now
+  searched in the config directory instead of the current working directory.
 
 v1.7.0 (2019-07-18)
 -------------------

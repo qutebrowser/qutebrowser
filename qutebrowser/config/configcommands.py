@@ -397,6 +397,8 @@ class ConfigCommands:
             filename = standarddir.config_py()
         else:
             filename = os.path.expanduser(filename)
+            if not os.path.isabs(filename):
+                filename = os.path.join(standarddir.config(), filename)
 
         if clear:
             self.config_clear()

@@ -470,19 +470,25 @@ class TestSource:
     pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
                                          'config_stub', 'key_config_stub')
 
-    @pytest.mark.parametrize('use_default_dir', [True, False])
+    @pytest.mark.parametrize('location', ['default', 'absolute', 'relative'])
     @pytest.mark.parametrize('clear', [True, False])
     def test_config_source(self, tmpdir, commands, config_stub, config_tmpdir,
-                           use_default_dir, clear):
+                           location, clear):
         assert config_stub.val.content.javascript.enabled
         config_stub.val.search.ignore_case = 'always'
 
-        if use_default_dir:
+        if location == 'default':
             pyfile = config_tmpdir / 'config.py'
             arg = None
-        else:
+        elif location == 'absolute':
             pyfile = tmpdir / 'sourced.py'
             arg = str(pyfile)
+        elif location == 'relative':
+            pyfile = config_tmpdir / 'sourced.py'
+            arg = 'sourced.py'
+        else:
+            assert False, location
+
         pyfile.write_text('c.content.javascript.enabled = False\n',
                           encoding='utf-8')
 
