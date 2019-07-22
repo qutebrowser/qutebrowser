@@ -44,4 +44,4 @@ soupsieve==1.9.2
 vulture==1.0
 wcwidth==0.1.7
 Werkzeug==0.15.5
-zipp==0.5.1
+zipp==0.5.2
