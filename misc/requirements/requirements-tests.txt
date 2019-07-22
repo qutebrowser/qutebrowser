@@ -28,7 +28,7 @@ py==1.8.0
 py-cpuinfo==5.0.0
 pyparsing==2.4.1
 pytest==5.0.1
-pytest-bdd==3.1.0
+pytest-bdd==3.1.1
 pytest-benchmark==3.2.2
 pytest-cov==2.7.1
 pytest-instafail==0.4.1
