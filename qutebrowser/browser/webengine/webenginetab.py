@@ -490,10 +490,13 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._tab.load_url(url)
 
     def delta(self, x=0, y=0):
-        self._tab.run_js_async(javascript.assemble('window', 'scrollBy', x, y))
+        js_code = javascript.assemble('scroll', 'delta_px', x, y,
+                                      config.val.scrolling.smooth)
+        self._tab.run_js_async(js_code)
 
     def delta_page(self, x=0, y=0):
-        js_code = javascript.assemble('scroll', 'delta_page', x, y)
+        js_code = javascript.assemble('scroll', 'delta_page', x, y,
+                                      config.val.scrolling.smooth)
         self._tab.run_js_async(js_code)
 
     def up(self, count=1):
@@ -650,9 +653,9 @@ class WebEngineElements(browsertab.AbstractElements):
             callback(elem)
 
     def find_css(self, selector, callback, error_cb, *,
-                 only_visible=False):
+                 only_visible=False, special_classes=()):
         js_code = javascript.assemble('webelem', 'find_css', selector,
-                                      only_visible)
+                                      only_visible, special_classes)
         js_cb = functools.partial(self._js_cb_multiple, callback, error_cb)
         self._tab.run_js_async(js_code, js_cb)
 
@@ -892,6 +895,8 @@ class _WebEngineScripts(QObject):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
             self._init_stylesheet()
             self._update_stylesheet()
+        elif option == 'content.javascript.injection':
+            self._init_injection()
 
     @pyqtSlot(bool)
     def _update_stylesheet(self, searching=False):
@@ -937,6 +942,7 @@ class _WebEngineScripts(QObject):
         """Initialize global qutebrowser JavaScript."""
         js_code = javascript.wrap_global(
             'scripts',
+            utils.read_file('javascript/utils.js'),
             utils.read_file('javascript/scroll.js'),
             utils.read_file('javascript/webelem.js'),
             utils.read_file('javascript/caret.js'),
@@ -952,6 +958,7 @@ class _WebEngineScripts(QObject):
         # FIXME:qtwebengine what about subframes=True?
         self._inject_early_js('js', js_code, subframes=True)
         self._init_stylesheet()
+        self._init_injection()
 
         # The Greasemonkey metadata block support in QtWebEngine only starts at
         # Qt 5.8. With 5.7.1, we need to inject the scripts ourselves in
@@ -978,6 +985,17 @@ class _WebEngineScripts(QObject):
             javascript.assemble('stylesheet', 'set_css', css),
         )
         self._inject_early_js('stylesheet', js_code, subframes=True)
+
+    def _init_injection(self):
+        """Initialize js code that runs in the MainWorld."""
+        self._remove_early_js('inject')
+        js_code = ""
+        if config.val.content.javascript.injection:
+            js_code = javascript.wrap_global(
+                'inject', utils.read_file('javascript/inject.js'))
+        self._inject_early_js(
+            'inject', js_code,
+            subframes=True, world=QWebEngineScript.MainWorld)
 
     @pyqtSlot(QUrl)
     def _inject_greasemonkey_scripts_for_url(self, url):

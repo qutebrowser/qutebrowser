@@ -144,7 +144,7 @@ def prevnext(*, browsertab, win_id, baseurl, prev=False,
             browsertab.load_url(url)
 
     try:
-        link_selector = webelem.css_selector('links', baseurl)
+        link_selector, _ = webelem.css_selector('links', baseurl)
     except webelem.Error as e:
         raise Error(str(e))
 

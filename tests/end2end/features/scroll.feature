@@ -338,3 +338,62 @@ Feature: Scrolling
         And I run :tab-next
         And I run :jseval --world main checkAnchor()
         Then "[*] [PASS] Positions equal: *" should be logged
+
+    ## frame scrolling
+
+    @qtwebkit_skip: QtWebKit has its own native scrolling
+    Scenario: Scrolling pixel-wise in a frame
+        When I open data/scroll/frame.html
+        And I run :tab-only
+        And I hint with args "scrollable" and follow a
+        And I run :scroll-px 0 100
+        Then the javascript message "scroll y px: 100" should be logged
+
+    @qtwebkit_skip: QtWebKit has its own native scrolling
+    Scenario: Scrolling to a position in a frame
+        When I open data/scroll/frame.html
+        And I run :tab-only
+        And I hint with args "scrollable" and follow a
+        And I run :scroll-px 0 100
+        And I wait for the javascript message "scroll y px: 100"
+        And I run :scroll-to-perc 0
+        Then the javascript message "scroll y px: 0" should be logged
+
+
+    ## Nested element scrolling
+
+    @qtwebkit_skip: QtWebKit has its own native scrolling
+    Scenario: Scrolling pixel-wise in a pane without selection
+        When I open data/scroll/scroll_panes.html
+        And I run :tab-only
+        And I run :scroll-px 0 100
+        Then the javascript message "large: scroll y px: 100" should be logged
+
+    @qtwebkit_skip: QtWebKit has its own native scrolling
+    Scenario: Scrolling to a position in a pane without selection
+        When I open data/scroll/scroll_panes.html
+        And I run :tab-only
+        And I run :scroll-px 0 100
+        And I wait for the javascript message "large: scroll y px: 100"
+        And I run :scroll-to-perc 0
+        Then the javascript message "large: scroll y px: 0" should be logged
+
+    @qtwebkit_skip: QtWebKit has its own native scrolling
+    Scenario: Scrolling pixel-wise in a pane
+        When I open data/scroll/scroll_panes.html
+        And I run :tab-only
+        # Click on smaller pane
+        And I hint with args "scrollable" and follow s
+        And I run :scroll-px 0 100
+        Then the javascript message "small: scroll y px: 100" should be logged
+
+    @qtwebkit_skip: QtWebKit has its own native scrolling
+    Scenario: Scrolling to a position in a pane
+        When I open data/scroll/scroll_panes.html
+        And I run :tab-only
+        # Click on smaller pane
+        And I hint with args "scrollable" and follow s
+        And I run :scroll-px 0 100
+        And I wait for the javascript message "small: scroll y px: 100"
+        And I run :scroll-to-perc 0
+        Then the javascript message "small: scroll y px: 0" should be logged

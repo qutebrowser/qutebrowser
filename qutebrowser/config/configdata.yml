@@ -622,6 +622,14 @@ content.javascript.prompt:
   type: Bool
   desc: Show javascript prompts.
 
+content.javascript.injection:
+  default: true
+  type: Bool
+  desc: >-
+    Enable qutebrowser injection of js into the main world.
+
+    This may break some sites, but is needed for some features.
+
 content.local_content_can_access_remote_urls:
   default: false
   type: Bool
@@ -1188,6 +1196,10 @@ hints.selectors:
       - 'input[type="week"]'
       - 'input:not([type])'
       - 'textarea'
+    event-listener:
+      - '__qute_event_listener'
+    scrollable:
+      - '__qute_scrollable'
   type:
     name: Dict
     keytype: String
@@ -1377,7 +1389,7 @@ scrolling.smooth:
   desc: >-
     Enable smooth scrolling for web pages.
 
-    Note smooth scrolling does not work with the `:scroll-px` command.
+    Note smooth scrolling does not work with the `:scroll-*` commands on webkit or webengine<5.10.
 
 ## spellcheck
 
@@ -2630,6 +2642,7 @@ bindings.default:
       ;h: hint all hover
       ;i: hint images
       ;I: hint images tab
+      ;s: hint scrollable
       ;o: hint links fill :open {hint-url}
       ;O: hint links fill :open -t -r {hint-url}
       ;y: hint links yank

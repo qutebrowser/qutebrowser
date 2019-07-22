@@ -40,8 +40,11 @@ window._qutebrowser.webelem = (function() {
     const funcs = {};
     const elements = [];
 
+    const utils = window._qutebrowser.utils;
+    const scroll = window._qutebrowser.scroll;
+
     function get_frame_offset(frame) {
-        if (frame === null) {
+        if (frame === null || !frame.frameElement) {
             // Dummy object with zero offset
             return {
                 "top": 0,
@@ -86,7 +89,7 @@ window._qutebrowser.webelem = (function() {
         return null;
     }
 
-    function serialize_elem(elem, frame = null) {
+    function serialize_elem(elem, frame = null, hintReason = null) {
         if (!elem) {
             return null;
         }
@@ -156,6 +159,12 @@ window._qutebrowser.webelem = (function() {
             );
         }
 
+        if (hintReason === null) {
+            out.hint_reason = null;
+        } else {
+            out.hint_reason = hintReason;
+        }
+
         // console.log(JSON.stringify(out));
 
         return out;
@@ -202,59 +211,12 @@ window._qutebrowser.webelem = (function() {
         return true;
     }
 
-    // Returns true if the iframe is accessible without
-    // cross domain errors, else false.
-    function iframe_same_domain(frame) {
-        try {
-            frame.document; // eslint-disable-line no-unused-expressions
-            return true;
-        } catch (err) {
-            return false;
-        }
-    }
-
-    funcs.find_css = (selector, only_visible) => {
-        let elems;
-
-        try {
-            elems = document.querySelectorAll(selector);
-        } catch (ex) {
-            return {"success": false, "error": ex.toString()};
-        }
-
-        const subelem_frames = window.frames;
-        const out = [];
-
-        for (let i = 0; i < elems.length; ++i) {
-            if (!only_visible || is_visible(elems[i])) {
-                out.push(serialize_elem(elems[i]));
-            }
-        }
-
-        // Recurse into frames and add them
-        for (let i = 0; i < subelem_frames.length; i++) {
-            if (iframe_same_domain(subelem_frames[i])) {
-                const frame = subelem_frames[i];
-                const subelems = frame.document.
-                    querySelectorAll(selector);
-                for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
-                    if (!only_visible ||
-                        is_visible(subelems[elem_num], frame)) {
-                        out.push(serialize_elem(subelems[elem_num], frame));
-                    }
-                }
-            }
-        }
-
-        return {"success": true, "result": out};
-    };
-
     // Runs a function in a frame until the result is not null, then return
     // If no frame succeds, return null
     function run_frames(func) {
         for (let i = 0; i < window.frames.length; ++i) {
             const frame = window.frames[i];
-            if (iframe_same_domain(frame)) {
+            if (utils.iframe_same_domain(frame)) {
                 const result = func(frame);
                 if (result) {
                     return result;
@@ -263,6 +225,97 @@ window._qutebrowser.webelem = (function() {
         }
         return null;
     }
+
+    // Return elements that are scrollable
+    function find_scrollable(only_visible) {
+        let scrollable_elts = [];
+        if (document.scrollingElement !== null &&
+            scroll.is_scrollable_y(document.scrollingElement)) {
+            scrollable_elts.push(serialize_elem(
+                document.scrollingElement, null, "scrollable"));
+        }
+        scrollable_elts = scrollable_elts.concat(
+            Array.from(document.querySelectorAll("div,ol,ul")).
+                filter((elt) => elt.clientHeight < elt.scrollHeight &&
+                        scroll.is_scrollable_y(elt)).
+                filter((elt) => !only_visible || is_visible(elt)).
+                map((elt) => serialize_elem(elt, null, "scrollable")));
+        run_frames((frame) => {
+            const scroller = frame.window.document.scrollingElement;
+            if (scroller !== null && is_visible(scroller, frame)) {
+                scrollable_elts.push(
+                    serialize_elem(
+                        scroller,
+                        frame,
+                        "scrollable"));
+            }
+        });
+        return scrollable_elts;
+    }
+
+    // Find and serialize elements matching a css selector (and/or special hint
+    // categories as well)
+    funcs.find_css = (selector_c, only_visible, special_classes = []) => {
+        let elems;
+
+        let selector = selector_c;
+        const subelem_frames = window.frames;
+        const selector_out = [];
+        let special_out = [];
+
+        special_classes.forEach((classStr) => {
+            switch (classStr) {
+            case "scrollable":
+                special_out = find_scrollable(only_visible);
+                break;
+            case "eventlistener":
+                if (selector) {
+                    selector += ",.__qute_has_onclick_listener";
+                } else {
+                    selector = ".__qute_has_onclick_listener";
+                }
+                break;
+            default:
+                // Unknown special class, ignore for now.
+            }
+        });
+
+        // If we don't have a real selector, don't continue.
+        if (selector === null || selector === "") {
+            return {"success": true, "result": special_out};
+        }
+
+        try {
+            elems = document.querySelectorAll(selector);
+        } catch (ex) {
+            return {"success": false, "error": ex.toString()};
+        }
+
+        for (let i = 0; i < elems.length; ++i) {
+            if (!only_visible || is_visible(elems[i])) {
+                selector_out.push(serialize_elem(elems[i]));
+            }
+        }
+
+        // Recurse into frames and add them
+        for (let i = 0; i < subelem_frames.length; i++) {
+            if (utils.iframe_same_domain(subelem_frames[i])) {
+                const frame = subelem_frames[i];
+                const subelems = frame.document.
+                    querySelectorAll(selector);
+                for (let elem_num = 0; elem_num < subelems.length; ++elem_num) {
+                    if (!only_visible ||
+                        is_visible(subelems[elem_num], frame)) {
+                        selector_out.push(
+                            serialize_elem(subelems[elem_num], frame));
+                    }
+                }
+            }
+        }
+        // special elements should always show up after normally hinted
+        // elements.
+        return {"success": true, "result": selector_out.concat(special_out)};
+    };
 
     funcs.find_id = (id) => {
         const elem = document.getElementById(id);
@@ -282,20 +335,6 @@ window._qutebrowser.webelem = (function() {
         return null;
     };
 
-    // Check if elem is an iframe, and if so, return the result of func on it.
-    // If no iframes match, return null
-    function call_if_frame(elem, func) {
-        // Check if elem is a frame, and if so, call func on the window
-        if ("contentWindow" in elem) {
-            const frame = elem.contentWindow;
-            if (iframe_same_domain(frame) &&
-                "frameElement" in elem.contentWindow) {
-                return func(frame);
-            }
-        }
-        return null;
-    }
-
     funcs.find_focused = () => {
         const elem = document.activeElement;
 
@@ -305,33 +344,23 @@ window._qutebrowser.webelem = (function() {
             return null;
         }
 
-        // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = call_if_frame(elem,
-            (frame) => serialize_elem(frame.document.activeElement, frame));
-
-        if (frame_elem !== null) {
-            return frame_elem;
-        }
-        return serialize_elem(elem);
+        // Get the window of the frame/root
+        const frame_win = utils.get_frame_window(elem);
+        return serialize_elem(frame_win.document.activeElement, frame_win);
     };
 
     funcs.find_at_pos = (x, y) => {
         const elem = document.elementFromPoint(x, y);
 
+        const frame_win = utils.get_frame_window(elem);
 
-        // Check if we got an iframe, and if so, recurse inside of it
-        const frame_elem = call_if_frame(elem,
-            (frame) => {
-                // Subtract offsets due to being in an iframe
-                const frame_offset_rect =
-                      frame.frameElement.getBoundingClientRect();
-                return serialize_elem(frame.document.
-                    elementFromPoint(x - frame_offset_rect.left,
-                        y - frame_offset_rect.top), frame);
-            });
-
-        if (frame_elem !== null) {
-            return frame_elem;
+        if (frame_win !== window) {
+            // Subtract offsets due to being in an iframe
+            const frame_offset_rect =
+                  frame_win.frameElement.getBoundingClientRect();
+            return serialize_elem(frame_win.document.
+                elementFromPoint(x - frame_offset_rect.left,
+                    y - frame_offset_rect.top), frame_win);
         }
         return serialize_elem(elem);
     };
@@ -410,6 +439,11 @@ window._qutebrowser.webelem = (function() {
         const elem = elements[id];
         elem.selectionStart = elem.value.length;
         elem.selectionEnd = elem.value.length;
+    };
+
+    funcs.set_activated_element = (id) => {
+        const elem = elements[id];
+        scroll.set_activated_element(elem);
     };
 
     funcs.delete = (id) => {

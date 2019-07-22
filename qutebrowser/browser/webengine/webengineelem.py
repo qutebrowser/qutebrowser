@@ -55,6 +55,7 @@ class WebEngineElement(webelem.AbstractWebElement):
             'rects': list,
             'attributes': dict,
             'caret_position': (int, type(None)),
+            'hint_reason': (str, type(None)),
         }  # type: typing.Dict[str, typing.Union[type, typing.Tuple[type,...]]]
         assert set(js_dict.keys()).issubset(js_dict_types.keys())
         for name, typ in js_dict_types.items():
@@ -142,6 +143,16 @@ class WebEngineElement(webelem.AbstractWebElement):
 
     def set_value(self, value: webelem.JsValueType) -> None:
         self._js_call('set_value', value)
+
+    def hint_reason(self) -> typing.Optional[str]:
+        return self._js_dict.get('hint_reason', None)
+
+    def special_click_handler(self) -> bool:
+        """Handle setting activatedElement on scrollable elements."""
+        if self.hint_reason() == "scrollable":
+            self._js_call('set_activated_element')
+            return True
+        return False
 
     def dispatch_event(self, event: str,
                        bubbles: bool = False,

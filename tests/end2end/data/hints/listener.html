@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Hinting a clickable div</title>
+    </head>
+    <body>
+        <div id="clickable-div">
+            Div with addEventListener
+        </div>
+        <script>
+            document.getElementById("clickable-div").addEventListener(
+                "click", function(){ console.log("clicked div"); });
+        </script>
+    </body>
+</html>

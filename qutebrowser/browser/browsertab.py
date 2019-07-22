@@ -685,7 +685,8 @@ class AbstractElements:
     def find_css(self, selector: str,
                  callback: _MultiCallback,
                  error_cb: _ErrorCallback, *,
-                 only_visible: bool = False) -> None:
+                 only_visible: bool = False,
+                 special_classes: typing.Sequence[str] = ()) -> None:
         """Find all HTML elements matching a given selector async.
 
         If there's an error, the callback is called with a webelem.Error

@@ -310,6 +310,12 @@ Feature: Using hints
         And I hint with args "all current" and follow a
         Then no crash should happen
 
+    ### Clicking divs with click handlers
+    Scenario: Clicking elements marked with addEventListener
+        When I open data/hints/listener.html
+        And I hint with args "event-listener" and follow a
+        Then the javascript message "clicked div" should be logged
+
     ### hints.auto_follow.timeout
 
     @not_mac @flaky
