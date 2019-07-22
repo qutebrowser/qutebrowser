@@ -221,6 +221,7 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
                 html.escape(url.toDisplayString()), msg)
         else:
             urlstr = None
+            option = None  # For message.ask/confirm_async
             text = "Allow the website to {}?".format(msg)
 
         if blocking:
