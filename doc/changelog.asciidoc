@@ -26,6 +26,14 @@ Changed
 - When `:config-source` is used with a relative filename, the file is now
   searched in the config directory instead of the current working directory.
 
+v1.7.1 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Crash when showing a permission request in certain scenarios.
+
 v1.7.0 (2019-07-18)
 -------------------
 
