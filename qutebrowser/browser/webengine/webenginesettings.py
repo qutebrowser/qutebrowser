@@ -26,6 +26,7 @@ Module attributes:
 
 import os
 import operator
+import typing
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
@@ -37,9 +38,9 @@ from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import utils, standarddir, qtutils, message, log
 
 # The default QWebEngineProfile
-default_profile = None
+default_profile = None  # type: typing.Optional[QWebEngineProfile]
 # The QWebEngineProfile used for private (off-the-record) windows
-private_profile = None
+private_profile = None  # type: typing.Optional[QWebEngineProfile]
 # The global WebEngineSettings object
 global_settings = None
 

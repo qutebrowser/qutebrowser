@@ -187,7 +187,7 @@ class KeyConfig:
     def get_command(self,
                     key: keyutils.KeySequence,
                     mode: str,
-                    default: bool = False) -> str:
+                    default: bool = False) -> typing.Optional[str]:
         """Get the command for a given key (or None)."""
         self._validate(key, mode)
         if default:
@@ -202,7 +202,7 @@ class KeyConfig:
              mode: str,
              save_yaml: bool = False) -> None:
         """Add a new binding from key to command."""
-        if command is not None and not command.strip():
+        if not command.strip():
             raise configexc.KeybindingError(
                 "Can't add binding '{}' with empty command in {} "
                 'mode'.format(key, mode))
