@@ -25,6 +25,7 @@ Changed
   leave the mode, not only one.
 - When `:config-source` is used with a relative filename, the file is now
   searched in the config directory instead of the current working directory.
+- HTML5 inputs with date/time types now enter insert mode when selected.
 
 v1.7.1 (unreleased)
 -------------------
