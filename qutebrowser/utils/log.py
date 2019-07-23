@@ -259,7 +259,7 @@ def _init_handlers(level, color, force_color, json_logging, ram_capacity):
         level, color, force_color, json_logging)
 
     if sys.stderr is None:
-        console_handler = None
+        console_handler = None  # type: ignore
     else:
         strip = False if force_color else None
         if use_colorama:
@@ -313,7 +313,7 @@ def _init_formatters(level, color, force_color, json_logging):
     html_formatter = HTMLFormatter(EXTENDED_FMT_HTML, DATEFMT,
                                    log_colors=LOG_COLORS)
     if sys.stderr is None:
-        return None, ram_formatter, html_formatter, False
+        return None, ram_formatter, html_formatter, False  # type: ignore
 
     if json_logging:
         console_formatter = JSONFormatter()
