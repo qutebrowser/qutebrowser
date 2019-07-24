@@ -12,10 +12,10 @@ endif
 
 .PHONY: install
 
-doc/qutebrowser.1.html:
-	a2x -f manpage doc/qutebrowser.1.asciidoc
+doc/qutebrowser.1: doc/qutebrowser.1.asciidoc
+	a2x -f manpage $<
 
-install: doc/qutebrowser.1.html
+install: doc/qutebrowser.1
 	$(PYTHON) setup.py install --prefix="$(PREFIX)" --optimize=1 $(SETUPTOOLSOPTS)
 	install -Dm644 misc/org.qutebrowser.qutebrowser.appdata.xml \
 		"$(DESTDIR)$(DATADIR)/metainfo/org.qutebrowser.qutebrowser.appdata.xml"
