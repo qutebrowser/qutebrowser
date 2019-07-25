@@ -26,6 +26,8 @@ Changed
 - When `:config-source` is used with a relative filename, the file is now
   searched in the config directory instead of the current working directory.
 - HTML5 inputs with date/time types now enter insert mode when selected.
+- `dictcli.py` now shows where dictionaries are installed to and complains when
+  running it as root if doing so would result in a wrong installation path.
 
 v1.7.1 (unreleased)
 -------------------
