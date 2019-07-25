@@ -222,7 +222,7 @@ def install_lang(lang):
     print('Downloading {}'.format(lang_url))
     dest = os.path.join(spell.dictionary_dir(), lang.remote_path)
     download_dictionary(lang_url, dest)
-    print('Done.')
+    print('Installed to {}.'.format(dest))
 
 
 def install(languages):
