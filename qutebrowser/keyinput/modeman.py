@@ -209,8 +209,11 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         # handle like matching KeyPress
+        # also filter out key repeats when in passthrough mode
         keyevent = KeyEvent.from_event(event)
-        if keyevent in self._releaseevents_to_pass:
+        passthrough = self._parsers[self.mode].passthrough
+        if (not (event.isAutoRepeat() and passthrough) and
+                keyevent in self._releaseevents_to_pass):
             self._releaseevents_to_pass.remove(keyevent)
             filter_this = False
         else:
