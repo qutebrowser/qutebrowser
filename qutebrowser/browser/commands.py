@@ -1945,14 +1945,15 @@ class CommandDispatcher:
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        tree_tab=True)
-    def tree_tab_toggle_hide(self):
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tree_tab_toggle_hide(self, count=None):
         """If the current tab's children are shown hide them, and vice-versa.
 
         This toggles the current tab's node's `collapsed` attribute.
         """
         if not self._tabbed_browser.is_treetabbedbrowser:
             raise cmdutils.CommandError('Tree-tabs are disabled')
-        tab = self._current_widget()
+        tab = self._cntwidget(count)
         if not tab.node.children:
             return
         collapsed = tab.node.collapsed
