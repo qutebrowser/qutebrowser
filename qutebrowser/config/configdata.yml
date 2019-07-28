@@ -2795,7 +2795,7 @@ bindings.default:
       zg: set-cmd-text -s :tree-tab-create-group -r
       zG: set-cmd-text -s :tree-tab-create-group
       za: tree-tab-toggle-hide
-      zp: tab-focus --parent
+      zp: tab-focus parent
     insert:
       <Ctrl-E>: open-editor
       <Shift-Ins>: insert-text {primary}

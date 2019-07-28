@@ -991,10 +991,10 @@ class CommandDispatcher:
         tabbed_browser.widget.setCurrentWidget(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', choices=['last'])
+    @cmdutils.argument('index', choices=['last', 'parent'])
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_focus(self, index: typing.Union[str, int] = None,
-                  count: int = None, no_last: bool = False, parent: bool = False) -> None:
+                  count: int = None, no_last: bool = False) -> None:
         """Select the tab given as argument/[count].
 
         If neither count nor index are given, it behaves like tab-next.
@@ -1003,10 +1003,10 @@ class CommandDispatcher:
         Args:
             index: The tab index to focus, starting with 1. The special value
                    `last` focuses the last focused tab (regardless of count).
-                   Negative indices count from the end, such that -1 is the
-                   last tab.
+                   The value `parent` focuses the parent tab in the tree
+                   hierarchy, if `tabs.tree_tabs` is enabled. Negative indices
+                   count from the end, such that -1 is the last tab.
             count: The tab index to focus, starting with 1.
-            parent: If given, focus parent (in a tree) of current tab
             no_last: Whether to avoid focusing last tab if already focused.
         """
         index = count if count is not None else index
@@ -1014,7 +1014,7 @@ class CommandDispatcher:
         if index == 'last':
             self._tab_focus_last()
             return
-        elif parent and self._tabbed_browser.is_treetabbedbrowser:
+        elif index == 'parent'  and self._tabbed_browser.is_treetabbedbrowser:
             node = self._current_widget().node
             path = node.path
             if count:
