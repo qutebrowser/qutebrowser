@@ -225,6 +225,9 @@ class TreeTabbedBrowser(TabbedBrowser):
                 if tab is not cur_tab:  # check we're not opening first tab
                     parent = cur_tab.node.parent if sibling else cur_tab.node
                     siblings = list(parent.children)
+                    if tab.node in siblings:  # true if parent is tree_root
+                        # remove it and add it later in the right position
+                        siblings.remove(tab.node)
                     if pos == 'first':
                         rel_idx = 0
                         if config.val.tabs.new_position.stacking:
