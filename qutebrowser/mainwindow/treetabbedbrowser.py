@@ -260,6 +260,8 @@ class TreeTabbedBrowser(TabbedBrowser):
                     cur_top_idx = root_children.index(cur_topmost)
                     root_children.insert(cur_top_idx + diff, tab.node)
                     self.widget.tree_root.children = root_children
+            if cur_tab.node.collapsed:
+                self.widget.removeTab(self.widget.indexOf(tab))
         self.widget.tree_tab_update()
         return tab
 
