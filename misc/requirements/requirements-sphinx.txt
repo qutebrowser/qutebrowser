@@ -4,7 +4,7 @@ alabaster==0.7.12
 Babel==2.7.0
 certifi==2019.6.16
 chardet==3.0.4
-docutils==0.14
+docutils==0.15.1
 idna==2.8
 imagesize==1.1.0
 Jinja2==2.10.1
