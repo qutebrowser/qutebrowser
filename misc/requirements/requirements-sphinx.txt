@@ -4,14 +4,14 @@ alabaster==0.7.12
 Babel==2.7.0
 certifi==2019.6.16
 chardet==3.0.4
-docutils==0.14
+docutils==0.15
 idna==2.8
 imagesize==1.1.0
 Jinja2==2.10.1
 MarkupSafe==1.1.1
 packaging==19.0
 Pygments==2.4.2
-pyparsing==2.4.0
+pyparsing==2.4.2
 pytz==2019.1
 requests==2.22.0
 six==1.12.0

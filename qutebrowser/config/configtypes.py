@@ -740,7 +740,7 @@ class BoolAsk(Bool):
                  value: str) -> typing.Union[bool, str, None]:
         # basic validation unneeded if it's == 'ask' and done by Bool if we
         # call super().from_str
-        if isinstance(value, str) and value.lower() == 'ask':
+        if value.lower() == 'ask':
             return 'ask'
         return super().from_str(value)
 
@@ -1147,7 +1147,7 @@ class Font(BaseType):
     """
 
     # Gets set when the config is initialized.
-    monospace_fonts = None
+    monospace_fonts = None  # type: str
     font_regex = re.compile(r"""
         (
             (
@@ -1329,7 +1329,7 @@ class Regex(BaseType):
 
     def to_py(
             self,
-            value: typing.Union[str, typing.Pattern[str]]
+            value: typing.Union[str, typing.Pattern[str], configutils.Unset]
     ) -> typing.Union[configutils.Unset, None, typing.Pattern[str]]:
         """Get a compiled regex from either a string or a regex object."""
         self._basic_py_validation(value, (str, self._regex_type))

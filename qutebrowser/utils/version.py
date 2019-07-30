@@ -352,9 +352,9 @@ def _chromium_version():
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
     """
-    if webenginesettings is None or QWebEngineProfile is None:
+    if webenginesettings is None or QWebEngineProfile is None:  # type: ignore
         # This should never happen
-        return 'unavailable'
+        return 'unavailable'  # type: ignore
     ua = webenginesettings.default_user_agent
     if ua is None:
         profile = QWebEngineProfile.defaultProfile()

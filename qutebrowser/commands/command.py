@@ -203,7 +203,7 @@ class Command:
         else:
             raise TypeError("{}: Invalid value={!r} for argument '{}'!"
                             .format(self.name, arg_info.value, param.name))
-        return False
+        raise utils.Unreachable
 
     def _inspect_func(self):
         """Inspect the function to get useful information from it.

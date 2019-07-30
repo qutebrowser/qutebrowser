@@ -788,7 +788,9 @@ class AbstractTabPrivate:
         if cur_mode == usertypes.KeyMode.insert:
             return
 
-        def _auto_insert_mode_cb(elem: 'webelem.AbstractWebElement') -> None:
+        def _auto_insert_mode_cb(
+                elem: typing.Optional['webelem.AbstractWebElement']
+        ) -> None:
             """Called from JS after finding the focused element."""
             if elem is None:
                 log.webview.debug("No focused element!")
