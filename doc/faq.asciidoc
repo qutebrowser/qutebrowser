@@ -79,7 +79,7 @@ QtWebEngine is based on Google's https://www.chromium.org/Home[Chromium]. While
 Qt only updates to a new Chromium release on every minor Qt release (all ~6
 months), every patch release backports security fixes from newer Chromium
 versions. In other words: As long as you're using an up-to-date Qt, you should
-be recieving security updates on a regular basis, without qutebrowser having to
+be receiving security updates on a regular basis, without qutebrowser having to
 do anything. Chromium's process isolation and
 https://chromium.googlesource.com/chromium/src/+/master/docs/design/sandbox.md[sandboxing]
 features are also enabled as a second line of defense.
@@ -314,7 +314,7 @@ Lastly, set your `qt.args` to point to that directory and restart qutebrowser:
 Unable to use `spawn` on MacOS.::
 When running qutebrowser from the prebuilt binary (`qutebrowser.app`) it *will
 not* read any files that would alter your `$PATH` (e.g. `.profile`, `.bashrc`,
-etc). This is not a bug, just that `.profile` is not propogated to GUI
+etc). This is not a bug, just that `.profile` is not propagated to GUI
 applications in MacOS.
 +
 See https://github.com/qutebrowser/qutebrowser/issues/4273[Issue #4273] for
