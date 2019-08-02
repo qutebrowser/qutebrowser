@@ -566,14 +566,20 @@ class ConfigPyWriter:
         if normal_bindings:
             yield self._line('# Bindings for normal mode')
             for key, command in sorted(normal_bindings.items()):
-                yield self._line('config.bind({!r}, {!r})'.format(
+                if command is None:
+                    yield self._line('config.unbind({!r})'.format(key))
+                else:
+                    yield self._line('config.bind({!r}, {!r})'.format(
                     key, command))
             yield ''
 
         for mode, mode_bindings in sorted(self._bindings.items()):
             yield self._line('# Bindings for {} mode'.format(mode))
             for key, command in sorted(mode_bindings.items()):
-                yield self._line('config.bind({!r}, {!r}, mode={!r})'.format(
+                if command is None:
+                    yield self._line('config.unbind({!r}), mode={!r}'.format(key, mode))
+                else:
+                    yield self._line('config.bind({!r}, {!r}, mode={!r})'.format(
                     key, command, mode))
             yield ''
 
