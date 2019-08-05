@@ -480,7 +480,8 @@ class ConfigPyWriter:
     def __init__(
             self,
             options: typing.List,
-            bindings: typing.MutableMapping[str, typing.Mapping[str, typing.Optional[str]]], *,
+            bindings: typing.MutableMapping[str, typing.Mapping[
+                str, typing.Optional[str]]], *,
             commented: bool) -> None:
         self._options = options
         self._bindings = bindings
@@ -580,8 +581,9 @@ class ConfigPyWriter:
                     yield self._line('config.unbind({!r}), mode={!r}'.format(
                         key, mode))
                 else:
-                    yield self._line('config.bind({!r}, {!r}, mode={!r})'.format(
-                        key, command, mode))
+                    yield self._line(
+                        'config.bind({!r}, {!r}, mode={!r})'.format(
+                            key, command, mode))
             yield ''
 
 
