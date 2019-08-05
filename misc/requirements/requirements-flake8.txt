@@ -9,7 +9,7 @@ flake8-comprehensions==2.1.0
 flake8-copyright==0.2.2
 flake8-debugger==3.1.0
 flake8-deprecated==1.3
-flake8-docstrings==1.3.0
+flake8-docstrings==1.3.1
 flake8-future-import==0.4.5
 flake8-mock==0.3
 flake8-polyfill==1.0.2
