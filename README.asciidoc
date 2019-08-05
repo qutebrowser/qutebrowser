@@ -135,10 +135,8 @@ Donating
 --------
 
 Working on qutebrowser is a very rewarding hobby, but like (nearly) all hobbies
-it also costs some money. Namely I have to pay for the server and domain, and
-do occasional hardware upgrades footnote:[It turned out a 160 GB SSD is rather
-small - the VMs and custom Qt builds I use for testing/developing qutebrowser
-need about 100 GB of space].
+it also costs some money (as an example, I have to pay for the server and
+domain).
 
 If you want to give me a beer or a pizza back, I'm trying to make it as easy as
 possible for you to do so. If some other way would be easier for you, please
