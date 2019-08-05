@@ -16,7 +16,7 @@ hypothesis==4.32.3
 importlib-metadata==0.19
 itsdangerous==1.1.0
 # Jinja2==2.10.1
-Mako==1.0.14
+Mako==1.1.0
 manhole==1.6.0
 # MarkupSafe==1.1.1
 more-itertools==7.2.0
