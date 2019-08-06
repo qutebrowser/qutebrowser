@@ -578,7 +578,7 @@ class ConfigPyWriter:
             yield self._line('# Bindings for {} mode'.format(mode))
             for key, command in sorted(mode_bindings.items()):
                 if command is None:
-                    yield self._line('config.unbind({!r}), mode={!r}'.format(
+                    yield self._line('config.unbind({!r}, mode={!r})'.format(
                         key, mode))
                 else:
                     yield self._line(

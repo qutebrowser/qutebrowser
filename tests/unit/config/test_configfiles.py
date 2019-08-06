@@ -1007,7 +1007,7 @@ class TestConfigPyWriter:
             description='Hello World')
         options = [(None, opt, 'val')]
         bindings = {'normal': {',x': None},
-                    'caret': {',y': 'message-info caret'}}
+                    'caret': {',y': 'message-info caret', ',z': None}}
 
         writer = configfiles.ConfigPyWriter(options, bindings, commented=False)
         lines = list(writer._gen_lines())
@@ -1017,6 +1017,7 @@ class TestConfigPyWriter:
         assert "c.opt = 'val'" in lines
         assert "# Bindings for normal mode" in lines
         assert "config.unbind(',x')" in lines
+        assert "config.unbind(',z', mode='caret')" in lines
         caret_bind = ("config.bind(',y', 'message-info caret', "
                       "mode='caret')")
         assert caret_bind in lines
