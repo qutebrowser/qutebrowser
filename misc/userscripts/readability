@@ -33,8 +33,13 @@ with codecs.open(os.environ['QUTE_HTML'], 'r', 'utf-8') as source:
         doc = Document(data)
         content = doc.summary().replace('<html>', '<html><head><title>%s</title></head>' % doc.title())
 
+    content_type = '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>'
+    viewport = '<meta name="viewport" content="width=device-width, initial-scale=1">'
+    style = '''<style type="text/css">
+    body{margin:40px auto;max-width:650px;line-height:1.4;padding:0 10px}
+    h1,h2,h3{line-height:1.2}</style>'''
     with codecs.open(tmpfile, 'w', 'utf-8') as target:
-        target.write('<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />')
+        target.write("{}{}{}".format(content_type, viewport, style))
         target.write(content)
 
     with open(os.environ['QUTE_FIFO'], 'w') as fifo:
