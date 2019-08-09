@@ -284,6 +284,7 @@ class Config(QObject):
         self._mutables = {}  # type: MutableMapping[str, Tuple[Any, Any]]
         self._yaml = yaml_config
         self._init_values()
+        self.yaml_loaded = False
 
     def _init_values(self) -> None:
         """Populate the self._values dict."""
@@ -330,6 +331,7 @@ class Config(QObject):
     def read_yaml(self) -> None:
         """Read the YAML settings from self._yaml."""
         self._yaml.load()
+        self.yaml_loaded = True
         for values in self._yaml:
             for scoped in values:
                 self._set_value(values.opt, scoped.value,
