@@ -21,6 +21,7 @@
 
 from qutebrowser.mainwindow.tabwidget import TabWidget
 from qutebrowser.misc.notree import Node
+from qutebrowser.misc import notree
 from qutebrowser.utils import log
 
 
@@ -71,7 +72,32 @@ class TreeTabWidget(TabWidget):
                 cur_idx = self.indexOf(node.value)
                 self.tabBar().moveTab(cur_idx, idx-1)
 
+
+    def update_tree_tab_visibility(self):
+        for node in self.tree_root.traverse():
+            if node.value is None:
+                continue
+            if any(ancestor.collapsed for ancestor in node.path[:-1]):
+                if self.indexOf(node.value) != -1:
+                    # node should be hidden but is shown
+                    order = notree.TraverseOrder.POST
+                    cur_tab = node.value
+                    idx = self.indexOf(cur_tab)
+                    if idx != -1:
+                        self.removeTab(idx)
+            else:
+                if self.indexOf(node.value) == -1:
+                    # node should be shown but is hidden
+                    parent = node.parent
+                    tab = node.value
+                    name = tab.title()
+                    icon = tab.icon()
+                    parent_idx = self.indexOf(node.parent.value)
+                    self.insertTab(parent_idx + 1, tab, icon, name)
+                    tab.node.parent = parent  # insertTab resets node
+
     def tree_tab_update(self):
         """Update titles and positions."""
+        self.update_tree_tab_visibility()
         self.update_tree_tab_positions()
         self.update_tab_titles()

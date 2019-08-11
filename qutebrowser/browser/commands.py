@@ -1956,12 +1956,7 @@ class CommandDispatcher:
         tab = self._cntwidget(count)
         if not tab.node.children:
             return
-        collapsed = tab.node.collapsed
-
-        if collapsed:
-            self._tabbed_browser.show_tab(tab)
-        else:
-            self._tabbed_browser.hide_tab(tab)
+        tab.node.collapsed = not tab.node.collapsed
 
         self._tabbed_browser.widget.tree_tab_update()
 
