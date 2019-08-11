@@ -636,9 +636,16 @@ class TestIncDecNumber:
         'http://localhost/?v=:{}',
         'http://localhost/#%3A{}',
         'http://localhost/#:{}',
+
+        # Make sure that spaces in paths work
+        'http://example.com/path with {} spaces',
     ])
     def test_incdec_number(self, incdec, value, url):
         """Test incdec_number with valid URLs."""
+        if (value == '{}foo' and
+                url == 'http://example.com/path with {} spaces'):
+            pytest.xfail("https://github.com/qutebrowser/qutebrowser/issues/4917")
+
         # The integer used should not affect test output, as long as it's
         # bigger than 1
         # 20 was chosen by dice roll, guaranteed to be random
@@ -679,7 +686,7 @@ class TestIncDecNumber:
         'http://example.com:80/v1/query_test?value={}',
         'http://example.com:80/v1/anchor_test#{}',
         'http://host_{}_test.com:80',
-        'http://m4ny.c0m:80/number5/3very?where=yes#{}'
+        'http://m4ny.c0m:80/number5/3very?where=yes#{}',
     ])
     @pytest.mark.parametrize('count', [1, 5, 100])
     def test_incdec_number_count(self, incdec, value, url, count):

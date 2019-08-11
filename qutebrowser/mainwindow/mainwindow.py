@@ -490,8 +490,7 @@ class MainWindow(QWidget):
         # statusbar
         self.tabbed_browser.current_tab_changed.connect(status.on_tab_changed)
 
-        self.tabbed_browser.cur_progress.connect(status.prog.setValue)
-        self.tabbed_browser.cur_load_finished.connect(status.prog.hide)
+        self.tabbed_browser.cur_progress.connect(status.prog.on_load_progress)
         self.tabbed_browser.cur_load_started.connect(
             status.prog.on_load_started)
 

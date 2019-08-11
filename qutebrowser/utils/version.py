@@ -74,7 +74,8 @@ class DistributionInfo:
 pastebin_url = None
 Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
-                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro'])
+                     'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro',
+                     'kde'])
 
 
 def distribution():
@@ -99,9 +100,9 @@ def distribution():
     except (OSError, UnicodeDecodeError):
         return None
 
-    pretty = info.get('PRETTY_NAME', 'Unknown')
-    if pretty == 'Linux':  # Thanks, Funtoo
-        pretty = info.get('NAME', pretty)
+    pretty = info.get('PRETTY_NAME', None)
+    if pretty in ['Linux', None]:  # Funtoo has PRETTY_NAME=Linux
+        pretty = info.get('NAME', 'Unknown')
 
     if 'VERSION_ID' in info:
         dist_version = pkg_resources.parse_version(info['VERSION_ID'])
@@ -111,6 +112,7 @@ def distribution():
     dist_id = info.get('ID', None)
     id_mappings = {
         'funtoo': 'gentoo',  # does not have ID_LIKE=gentoo
+        'org.kde.Platform': 'kde',
     }
     try:
         parsed = Distribution[id_mappings.get(dist_id, dist_id)]
@@ -341,7 +343,7 @@ def _chromium_version():
 
     Qt 5.12: Chromium 69
     (LTS)    69.0.3497.113 (2018-09-27)
-             5.12.3: Security fixes up to 73.0.3683.75 (2019-03-12)
+             5.12.4: Security fixes up to 74.0.3729.157 (2019-05-14)
 
     Qt 5.13: Chromium 73
              73.0.3683.105 (~2019-02-28)
@@ -350,9 +352,9 @@ def _chromium_version():
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
     """
-    if webenginesettings is None or QWebEngineProfile is None:
+    if webenginesettings is None or QWebEngineProfile is None:  # type: ignore
         # This should never happen
-        return 'unavailable'
+        return 'unavailable'  # type: ignore
     ua = webenginesettings.default_user_agent
     if ua is None:
         profile = QWebEngineProfile.defaultProfile()

@@ -131,6 +131,8 @@ def get_pdfjs_res_and_path(path):
         # Debian pdf.js-common
         # Arch Linux pdfjs (AUR)
         '/usr/share/pdf.js/',
+        # Flatpak (Flathub)
+        '/app/share/pdf.js/',
         # Arch Linux pdf.js (AUR)
         '/usr/share/javascript/pdf.js/',
         # Debian libjs-pdf

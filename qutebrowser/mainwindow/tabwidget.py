@@ -19,6 +19,7 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
+import typing
 import functools
 import contextlib
 
@@ -32,7 +33,7 @@ from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.browser import browsertab
 
 
@@ -349,7 +350,8 @@ class TabWidget(QTabWidget):
 
     def setTabIcon(self, idx: int, icon: QIcon):
         """Always show tab icons for pinned tabs in some circumstances."""
-        tab = self.widget(idx)
+        tab = typing.cast(typing.Optional[browsertab.AbstractTab],
+                          self.widget(idx))
         if (icon.isNull() and
                 config.cache['tabs.favicons.show'] != 'never' and
                 config.cache['tabs.pinned.shrink'] and
@@ -571,6 +573,7 @@ class TabBar(QTabBar):
                                                   icon_width, ellipsis,
                                                   pinned)
 
+    @debugcachestats.register(name='tab width cache')
     @functools.lru_cache(maxsize=2**9)
     def _minimum_tab_size_hint_helper(self, tab_text: str,
                                       icon_width: int,

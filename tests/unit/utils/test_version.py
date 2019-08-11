@@ -176,6 +176,25 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='funtoo', parsed=version.Distribution.gentoo,
          version=None, pretty='Funtoo GNU/Linux')),
+    # KDE Platform
+    ("""
+        NAME=KDE
+        VERSION="5.12 (Flatpak runtime)"
+        VERSION_ID="5.12"
+        ID=org.kde.Platform
+    """,
+     version.DistributionInfo(
+         id='org.kde.Platform', parsed=version.Distribution.kde,
+         version=pkg_resources.parse_version('5.12'),
+         pretty='KDE')),
+    # No PRETTY_NAME
+    ("""
+        NAME="Tux"
+        ID=tux
+     """,
+     version.DistributionInfo(
+         id='tux', parsed=version.Distribution.unknown,
+         version=None, pretty='Tux')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
@@ -780,7 +799,7 @@ class TestPDFJSVersion:
             lambda path: (pdfjs_code, '/foo/bar/pdf.js'))
         assert version._pdfjs_version() == '1.2.109 (/foo/bar/pdf.js)'
 
-    def test_real_file(self):
+    def test_real_file(self, data_tmpdir):
         """Test against the real file if pdfjs was found."""
         try:
             pdfjs.get_pdfjs_res_and_path('build/pdf.js')

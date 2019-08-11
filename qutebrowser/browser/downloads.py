@@ -1270,7 +1270,7 @@ class TempDownloadManager:
 
         Args:
             suggested_name: str of the "suggested"/original filename. Used as a
-                            suffix, so any file extenions are preserved.
+                            suffix, so any file extensions are preserved.
 
         Return:
             A tempfile.NamedTemporaryFile that should be used to save the file.

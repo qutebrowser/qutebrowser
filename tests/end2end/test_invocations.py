@@ -387,3 +387,6 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
 
     quteproc_new.start(args)
     assert quteproc_new.get_setting('search.ignore_case') == 'always'
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()

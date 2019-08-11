@@ -66,7 +66,7 @@ def _serialize_item(item, stream):
 
 
 def serialize(items):
-    """Serialize a list of QWebHistoryItems to a data stream.
+    """Serialize a list of WebHistoryItems to a data stream.
 
     Args:
         items: An iterable of WebHistoryItems.

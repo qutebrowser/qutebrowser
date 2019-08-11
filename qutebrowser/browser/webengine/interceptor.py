@@ -27,7 +27,7 @@ from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
 
 from qutebrowser.config import config
 from qutebrowser.browser import shared
-from qutebrowser.utils import utils, log, debug
+from qutebrowser.utils import utils, log, debug, qtutils
 from qutebrowser.extensions import interceptors
 
 
@@ -112,17 +112,23 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
     def install(self, profile):
         """Install the interceptor on the given QWebEngineProfile."""
-        profile.setRequestInterceptor(self)
+        try:
+            # Qt >= 5.13, GUI thread
+            profile.setUrlRequestInterceptor(self)
+        except AttributeError:
+            # Qt <= 5.12, IO thread
+            profile.setRequestInterceptor(self)
 
     # Gets called in the IO thread -> showing crash window will fail
-    @utils.prevent_exceptions(None)
+    @utils.prevent_exceptions(None, not qtutils.version_check('5.13'))
     def interceptRequest(self, info):
         """Handle the given request.
 
         Reimplementing this virtual function and setting the interceptor on a
-        profile makes it possible to intercept URL requests. This function is
-        executed on the IO thread, and therefore running long tasks here will
-        block networking.
+        profile makes it possible to intercept URL requests.
+
+        On Qt < 5.13, this function is executed on the IO thread, and therefore
+        running long tasks here will block networking.
 
         info contains the information about the URL request and will track
         internally whether its members have been altered.
