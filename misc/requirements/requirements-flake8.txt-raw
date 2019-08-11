@@ -12,8 +12,5 @@ flake8-string-format
 flake8-tidy-imports
 flake8-tuple
 pep8-naming
-pydocstyle < 4
+pydocstyle
 pyflakes
-
-# WORKAROUND for https://gitlab.com/pycqa/flake8-docstrings/issues/36
-#@ filter: pydocstyle < 4
