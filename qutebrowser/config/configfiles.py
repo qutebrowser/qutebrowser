@@ -480,9 +480,9 @@ class ConfigPyWriter:
     def __init__(
             self,
             options: typing.List,
-            bindings: typing.MutableMapping[str, typing.Mapping[
-                str, typing.Optional[str]]], *,
-            commented: bool) -> None:
+            bindings: typing.MutableMapping[
+                str, typing.Mapping[str, typing.Optional[str]]],
+            *, commented: bool) -> None:
         self._options = options
         self._bindings = bindings
         self._commented = commented
