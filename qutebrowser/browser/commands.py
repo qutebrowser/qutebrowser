@@ -2003,3 +2003,16 @@ class CommandDispatcher:
             self.openurl('qute://treegroup/' + path, related=related, bg=True)
         else:
             self.openurl('qute://treegroup/' + path, related=related, tab=True)
+
+    @cmdutils.register(instance='command-dispatcher', scope='window',
+                       tree_tab=True)
+    @cmdutils.argument('count', value=cmdutils.Value.count)
+    def tree_tab_suspend_children(self, count=None):
+        tab = self._cntwidget(count)
+        for descendent in tab.node.traverse():
+            cur_tab = descendent.value
+            if cur_tab and cur_tab is not tab:
+                cur_url = cur_tab.url().url()
+                if not cur_url.startswith("qute://"):
+                    new_url = self._parse_url("qute://back/#" + cur_tab.title())
+                    cur_tab.load_url(new_url)
