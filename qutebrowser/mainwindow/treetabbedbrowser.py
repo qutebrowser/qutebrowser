@@ -79,7 +79,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         self.widget = TreeTabWidget(win_id, parent=self)
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(self.tabopen)
-        self.widget.currentChanged.connect(self.on_current_changed)
+        self.widget.currentChanged.connect(self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tree_tab_insert_rel_idx = 0
@@ -266,8 +266,8 @@ class TreeTabbedBrowser(TabbedBrowser):
         return tab
 
     @pyqtSlot(int)
-    def on_current_changed(self, idx):
-        super().on_current_changed(idx)
+    def _on_current_changed(self, idx):
+        super()._on_current_changed(idx)
         self._tree_tab_insert_rel_idx = 0
 
     def cycle_hide_tab(self, node):
