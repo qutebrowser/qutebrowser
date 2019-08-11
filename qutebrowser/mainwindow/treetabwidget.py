@@ -75,8 +75,3 @@ class TreeTabWidget(TabWidget):
         """Update titles and positions."""
         self.update_tree_tab_positions()
         self.update_tab_titles()
-
-    def tabRemoved(self, idx):
-        """Call tree_tab_update after super().tabRemoved."""
-        super().tabRemoved(idx)
-        self.tree_tab_update()
