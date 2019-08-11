@@ -29,6 +29,12 @@ Changed
 - `dictcli.py` now shows where dictionaries are installed to and complains when
   running it as root if doing so would result in a wrong installation path.
 
+Fixed
+~~~~~
+
+- `:config-write-py` now correctly writes `config.unbind(...)` lines (instead
+  of `config.bind(..., None)`) when unbinding a default keybinding.
+
 v1.7.1 (unreleased)
 -------------------
 
