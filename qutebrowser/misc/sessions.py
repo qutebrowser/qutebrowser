@@ -264,6 +264,7 @@ class SessionManager(QObject):
                     active = i == tabbed_browser.widget.currentIndex()
                     node_data['tab'] = self._save_tab(node.value, active)
                     node_data['children'] = [c.uid for c in node.children]
+                    node_data['collapsed'] = node.collapsed
                     tree_data[node.uid] = node_data
                 win_data['tree'] = tree_data
             else:
@@ -429,7 +430,6 @@ class SessionManager(QObject):
         root_node = tabbed_browser.widget.tree_root
 
         def recursive_load_node(uid):
-            # import pdb; pdb.set_trace()  # XXX BREAKPOINT
             node_data = tree_data[uid]
             children_uids = node_data['children']
 
@@ -441,6 +441,7 @@ class SessionManager(QObject):
 
             new_tab.node.parent = root_node
             new_tab.node.children = children
+            new_tab.node.collapsed = node_data['collapsed']
             return new_tab.node
 
         for child_uid in root_data['children']:
