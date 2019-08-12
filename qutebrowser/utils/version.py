@@ -386,7 +386,7 @@ def _uptime() -> datetime.timedelta:
 
 
 def _autoconfig_loaded() -> str:
-    return ("yes" if config.instance.yaml_loaded else "no")
+    return "yes" if config.instance.yaml_loaded else "no"
 
 
 def version():

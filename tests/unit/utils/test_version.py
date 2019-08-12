@@ -894,7 +894,8 @@ class VersionParams:
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
 ], ids=lambda param: param.name)
-def test_version_output(params, stubs, monkeypatch):
+@pytest.mark.parametrize('autoconfig_loaded', [True, False])
+def test_version_output(params, stubs, monkeypatch, autoconfig_loaded):
     """Test version.version()."""
     class FakeWebEngineSettings:
         default_user_agent = ('Toaster/4.0.4 Chrome/CHROMIUMVERSION '
@@ -923,6 +924,7 @@ def test_version_output(params, stubs, monkeypatch):
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
+        '_autoconfig_loaded': lambda: ("yes" if autoconfig_loaded else "no")
     }
 
     substitutions = {
@@ -969,6 +971,8 @@ def test_version_output(params, stubs, monkeypatch):
         monkeypatch.delattr(sys, 'frozen', raising=False)
 
     substitutions['uptime'] = "1:23:45"
+    substitutions['autoconfig_loaded'] = (
+        "yes" if autoconfig_loaded else "no")
 
     template = textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
@@ -993,6 +997,7 @@ def test_version_output(params, stubs, monkeypatch):
         Paths:
         PATH DESC: PATH NAME
 
+        Autoconfig loaded: {autoconfig_loaded}
         Uptime: {uptime}
     """.lstrip('\n'))
 
