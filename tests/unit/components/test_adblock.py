@@ -296,8 +296,7 @@ def test_whitelisted_lines(host_blocker_factory, ip, host):
     host_blocker = host_blocker_factory()
     line = ('{} {}'.format(ip, host)).encode('ascii')
     parsed_hosts = host_blocker._read_hosts_line(line)
-    host_blocker._blocked_hosts |= parsed_hosts
-    assert host not in host_blocker._blocked_hosts
+    assert host not in parsed_hosts
 
 
 def test_failed_dl_update(config_stub, tmpdir, caplog, host_blocker_factory):
