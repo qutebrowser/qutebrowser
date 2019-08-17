@@ -394,11 +394,17 @@ class KeySequence:
     def __init__(self, *keys):
         self._sequences = []
         for sub in utils.chunk(keys, self._MAX_LEN):
-            sequence = QKeySequence(*sub)
+            args = [self._convert_key(key) for key in sub]
+            sequence = QKeySequence(*args)
             self._sequences.append(sequence)
         if keys:
             assert self
         self._validate()
+
+    def _convert_key(self, key):
+        """Convert a single key for QKeySequence."""
+        assert isinstance(key, (int, Qt.KeyboardModifiers)), key
+        return int(key)
 
     def __str__(self):
         parts = []
