@@ -40,7 +40,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.browser import mouse, hints
+from qutebrowser.browser import eventfilter, hints
 from qutebrowser.qt import sip
 MYPY = False
 if MYPY:
@@ -885,7 +885,7 @@ class AbstractTab(QWidget):
         self._progress = 0
         self._has_ssl_errors = False
         self._load_status = usertypes.LoadStatus.none
-        self._mouse_event_filter = mouse.MouseEventFilter(
+        self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend = None
 

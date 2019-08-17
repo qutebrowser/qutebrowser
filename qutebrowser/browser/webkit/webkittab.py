@@ -725,7 +725,7 @@ class WebKitTab(browsertab.AbstractTab):
         self.backend = usertypes.Backend.QtWebKit
 
     def _install_event_filter(self):
-        self._widget.installEventFilter(self._mouse_event_filter)
+        self._widget.installEventFilter(self._tab_event_filter)
 
     def _make_private(self, widget):
         settings = widget.settings()

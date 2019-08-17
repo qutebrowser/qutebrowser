@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Mouse handling for a browser tab."""
+"""Event handling for a browser tab."""
 
 from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
@@ -28,7 +28,7 @@ from qutebrowser.keyinput import modeman
 
 class ChildEventFilter(QObject):
 
-    """An event filter re-adding MouseEventFilter on ChildEvent.
+    """An event filter re-adding TabEventFilter on ChildEvent.
 
     This is needed because QtWebEngine likes to randomly change its
     focusProxy...
@@ -51,7 +51,7 @@ class ChildEventFilter(QObject):
         """Act on ChildAdded events."""
         if event.type() == QEvent.ChildAdded:
             child = event.child()
-            log.mouse.debug("{} got new child {}, installing filter".format(
+            log.misc.debug("{} got new child {}, installing filter".format(
                 obj, child))
             assert obj is self._widget
             child.installEventFilter(self._filter)
@@ -76,14 +76,14 @@ class ChildEventFilter(QObject):
 
         elif event.type() == QEvent.ChildRemoved:
             child = event.child()
-            log.mouse.debug("{}: removed child {}".format(obj, child))
+            log.misc.debug("{}: removed child {}".format(obj, child))
 
         return False
 
 
-class MouseEventFilter(QObject):
+class TabEventFilter(QObject):
 
-    """Handle mouse events on a tab.
+    """Handle mouse/keyboard events on a tab.
 
     Attributes:
         _tab: The browsertab object this filter is installed on.
