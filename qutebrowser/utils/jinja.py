@@ -149,11 +149,11 @@ def template_config_variables(template: str) -> typing.FrozenSet[str]:
         # For example it's ['ab', 'c', 'd'] for 'conf.d.c.ab'.
         attrlist = []  # type: typing.List[str]
         while isinstance(node, jinja2.nodes.Getattr):
-            attrlist.append(node.attr)
-            node = node.node
+            attrlist.append(node.attr)  # type: ignore
+            node = node.node  # type: ignore
 
         if isinstance(node, jinja2.nodes.Name):
-            if node.name == 'conf':
+            if node.name == 'conf':  # type: ignore
                 result.add('.'.join(reversed(attrlist)))
             # otherwise, the node is a Name node so it doesn't have any
             # child nodes
