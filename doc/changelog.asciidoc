@@ -34,6 +34,7 @@ Fixed
 
 - `:config-write-py` now correctly writes `config.unbind(...)` lines (instead
   of `config.bind(..., None)`) when unbinding a default keybinding.
+- Prevent repeat keyup events for JavaScript when a key is held down.
 
 v1.7.1 (unreleased)
 -------------------

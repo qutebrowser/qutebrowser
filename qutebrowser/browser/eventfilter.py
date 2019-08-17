@@ -23,6 +23,7 @@ from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg
+from qutebrowser.misc import objects
 from qutebrowser.keyinput import modeman
 
 
@@ -101,6 +102,7 @@ class TabEventFilter(QObject):
             QEvent.MouseButtonRelease: self._handle_mouse_release,
             QEvent.Wheel: self._handle_wheel,
             QEvent.ContextMenu: self._handle_context_menu,
+            QEvent.KeyRelease: self._handle_key_release,
         }
         self._ignore_wheel_event = False
         self._check_insertmode_on_release = False
@@ -170,6 +172,15 @@ class TabEventFilter(QObject):
     def _handle_context_menu(self, _e):
         """Suppress context menus if rocker gestures are turned on."""
         return config.val.input.rocker_gestures
+
+    def _handle_key_release(self, e):
+        """Ignore repeated key release events going to the website.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-77208
+        """
+        return (e.isAutoRepeat() and
+                qtutils.version_check('5.10') and
+                objects.backend == usertypes.Backend.QtWebEngine)
 
     def _mousepress_insertmode_cb(self, elem):
         """Check if the clicked element is editable."""
