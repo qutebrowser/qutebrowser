@@ -30,7 +30,7 @@ import jinja2
 import jinja2.nodes
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlutils, log, qtutils
+from qutebrowser.utils import utils, urlutils, log, qtutils, javascript
 from qutebrowser.misc import debugcachestats
 
 
@@ -90,6 +90,7 @@ class Environment(jinja2.Environment):
         self.globals['file_url'] = urlutils.file_url
         self.globals['data_url'] = self._data_url
         self.globals['qcolor_to_qsscolor'] = qtutils.qcolor_to_qsscolor
+        self.filters['js_string_escape'] = javascript.string_escape
         self._autoescape = True
 
     @contextlib.contextmanager

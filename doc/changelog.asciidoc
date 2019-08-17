@@ -43,6 +43,8 @@ Fixed
 - The Makefile now rebuilds the manpage correctly.
 - `~/.config/qutebrowser/blocked-hosts` can now also contain /etc/hosts-like
   lines, not just simple hostnames.
+- Restored compatibility with Jinja2 2.8 (e.g. used on Debian Stretch or Ubuntu
+  16.04 LTS).
 
 v1.7.1 (unreleased)
 -------------------
