@@ -30,7 +30,7 @@ Changed
   running it as root if doing so would result in a wrong installation path.
 - The Makefile now can also run `setup.py build` when invoked without a target.
 - Changes to the qute-pass userscript:
-  * Don't run `pass` if only an username is requested.
+  * Don't run `pass` if only a username is requested.
   * Support private domains like `myrouter.local`.
 - Performance improvements when loading config files.
 
