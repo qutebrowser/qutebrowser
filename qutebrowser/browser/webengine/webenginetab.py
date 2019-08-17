@@ -30,7 +30,7 @@ from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
-from qutebrowser.config import configdata, config
+from qutebrowser.config import configdata, config, configutils
 from qutebrowser.browser import browsertab, mouse, shared, webelem
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
@@ -882,23 +882,43 @@ class _WebEngineScripts(QObject):
     def connect_signals(self):
         """Connect signals to our private slots."""
         config.instance.changed.connect(self._on_config_changed)
+        self._tab.url_changed.connect(self._update_stylesheet)
+        self._tab.load_finished.connect(self._on_load_finished)
 
-        self._tab.search.cleared.connect(functools.partial(
-            self._update_stylesheet, searching=False))
-        self._tab.search.finished.connect(self._update_stylesheet)
+        self._tab.search.cleared.connect(
+            lambda: self._update_stylesheet(self._tab.url(), searching=False, force=True))
+        self._tab.search.finished.connect(
+            lambda found: self._update_stylesheet(self._tab.url(), searching=found, force=True))
 
     @pyqtSlot(str)
     def _on_config_changed(self, option):
         if option in ['scrolling.bar', 'content.user_stylesheets']:
             self._init_stylesheet()
-            self._update_stylesheet()
+            self._update_stylesheet(self._tab.url(), force=True)
 
-    @pyqtSlot(bool)
-    def _update_stylesheet(self, searching=False):
-        """Update the custom stylesheet in existing tabs."""
-        css = shared.get_user_stylesheet(searching=searching)
-        code = javascript.assemble('stylesheet', 'set_css', css)
-        self._tab.run_js_async(code)
+    @pyqtSlot()
+    def _on_load_finished(self, searching=False):
+        url = self._tab.url()
+        self._update_stylesheet(url, searching=searching)
+
+    @pyqtSlot(QUrl)
+    def _update_stylesheet(self, url, searching=False, force=False):
+        """Update the custom stylesheet in existing tabs.
+
+        Arguments:
+            url: The url to get the stylesheet for.
+            force: Also update the global stylesheet.
+        """
+        if not url.isValid():
+            # FIXME should we be dropping this request completely?
+            url = None
+        css = shared.get_user_stylesheet(searching=searching, url=url)
+        if css is configutils.UNSET and force:
+            css = shared.get_user_stylesheet(searching=searching, url=None)
+
+        if css is not configutils.UNSET:
+            code = javascript.assemble('stylesheet', 'set_css', css)
+            self._tab.run_js_async(code)
 
     def _inject_early_js(self, name, js_code, *,
                          world=QWebEngineScript.ApplicationWorld,
@@ -971,7 +991,7 @@ class _WebEngineScripts(QObject):
         https://github.com/QupZilla/qupzilla/blob/v2.0/src/lib/app/mainapplication.cpp#L1063-L1101
         """
         self._remove_early_js('stylesheet')
-        css = shared.get_user_stylesheet()
+        css = shared.get_user_stylesheet(url=None)
         js_code = javascript.wrap_global(
             'stylesheet',
             utils.read_file('javascript/stylesheet.js'),

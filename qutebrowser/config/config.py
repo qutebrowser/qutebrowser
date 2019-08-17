@@ -353,10 +353,15 @@ class Config(QObject):
         """Get the given setting converted for Python code.
 
         Args:
-            fallback: Use the global value if there's no URL-specific one.
+            name: The name of the setting to get.
+            url: The QUrl to get the setting for.
+            fallback: If False, return configutils.UNSET when there's no
+                      override for this domain.
         """
         opt = self.get_opt(name)
         obj = self.get_obj(name, url=url, fallback=fallback)
+        if obj is configutils.UNSET:
+            return obj
         return opt.typ.to_py(obj)
 
     def _maybe_copy(self, value: Any) -> Any:
@@ -378,6 +383,12 @@ class Config(QObject):
 
         Note that the returned values are not watched for mutation.
         If a URL is given, return the value which should be used for that URL.
+
+        Args:
+            name: The name of the setting to get.
+            url: The QUrl to get the setting for.
+            fallback: If False, return configutils.UNSET when there's no
+                      override for this domain.
         """
         self.get_opt(name)  # To make sure it exists
         value = self._values[name].get_for_url(url, fallback=fallback)

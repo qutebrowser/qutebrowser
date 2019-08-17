@@ -745,6 +745,7 @@ content.user_stylesheets:
     valtype: File
     none_ok: True
   default: []
+  supports_pattern: true
   desc: List of user stylesheet filenames to use.
 
 content.webgl:

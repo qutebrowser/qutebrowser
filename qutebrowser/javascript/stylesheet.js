@@ -120,14 +120,19 @@ window._qutebrowser.stylesheet = (function() {
         if (!initialized) {
             init();
         }
+
+        if (css_content === css) {
+            return;
+        }
+
+        css_content = css;
+
         if (style_elem) {
             style_elem.textContent = css;
             // The browser seems to rewrite the document in same-origin frames
             // without notifying the mutation observer. Ensure that the
             // stylesheet is in the current document.
             watch_root();
-        } else {
-            css_content = css;
         }
         // Propagate the new CSS to all child frames.
         // FIXME:qtwebengine This does not work for cross-origin frames.

@@ -480,6 +480,18 @@ class TestConfig:
         conf.set_obj(name, False, pattern=pattern)
         assert conf.get(name, url=QUrl('https://example.com/')) is False
 
+    @pytest.mark.parametrize('fallback', [True, False])
+    def test_get_for_url_unset(self, conf, fallback):
+        """Test config.get() with falling back to a global object."""
+        name = 'content.javascript.enabled'
+        conf.set_obj(name, False)
+        val = conf.get(name,
+                       url=QUrl('https://example.com/'),
+                       fallback=fallback)
+
+        expected = False if fallback else configutils.UNSET
+        assert val == expected
+
     @pytest.mark.parametrize('fallback, expected', [
         (True, True),
         (False, configutils.UNSET)

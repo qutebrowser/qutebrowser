@@ -29,7 +29,7 @@ import os.path
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebKit import QWebSettings
 
-from qutebrowser.config import config, websettings
+from qutebrowser.config import config, websettings, configutils
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import standarddir, urlutils
 from qutebrowser.browser import shared
@@ -120,43 +120,50 @@ class WebKitSettings(websettings.AbstractSettings):
         QWebSettings.FantasyFont: QFont.Fantasy,
     }
 
+    def _set_user_stylesheet(self, url=None):
+        """Set the generated user-stylesheet."""
+        stylesheet = shared.get_user_stylesheet(url=url)
+        if stylesheet is configutils.UNSET:
+            return
+        url = urlutils.data_url('text/css;charset=utf-8',
+                                stylesheet.encode('utf-8'))
+        self._settings.setUserStyleSheetUrl(url)
 
-def _set_user_stylesheet(settings):
-    """Set the generated user-stylesheet."""
-    stylesheet = shared.get_user_stylesheet().encode('utf-8')
-    url = urlutils.data_url('text/css;charset=utf-8', stylesheet)
-    settings.setUserStyleSheetUrl(url)
+    def _set_cookie_accept_policy(self):
+        """Update the content.cookies.accept setting."""
+        mapping = {
+            'all': QWebSettings.AlwaysAllowThirdPartyCookies,
+            'no-3rdparty': QWebSettings.AlwaysBlockThirdPartyCookies,
+            'never': QWebSettings.AlwaysBlockThirdPartyCookies,
+            'no-unknown-3rdparty': QWebSettings.AllowThirdPartyWithExistingCookies,
+        }
+        value = config.val.content.cookies.accept
+        self._settings.setThirdPartyCookiePolicy(mapping[value])
 
+    def _set_cache_maximum_pages(self):
+        """Update the content.cache.maximum_pages setting."""
+        value = config.val.content.cache.maximum_pages
+        self._settings.setMaximumPagesInCache(value)
 
-def _set_cookie_accept_policy(settings):
-    """Update the content.cookies.accept setting."""
-    mapping = {
-        'all': QWebSettings.AlwaysAllowThirdPartyCookies,
-        'no-3rdparty': QWebSettings.AlwaysBlockThirdPartyCookies,
-        'never': QWebSettings.AlwaysBlockThirdPartyCookies,
-        'no-unknown-3rdparty': QWebSettings.AllowThirdPartyWithExistingCookies,
-    }
-    value = config.val.content.cookies.accept
-    settings.setThirdPartyCookiePolicy(mapping[value])
+    def update_setting(self, option):
+        if option in ['scrollbar.hide', 'content.user_stylesheets']:
+            self._set_user_stylesheet()
+        elif option == 'content.cookies.accept':
+            self._set_cookie_accept_policy()
+        elif option == 'content.cache.maximum_pages':
+            self._set_cache_maximum_pages()
+        else:
+            super().update_setting(option)
 
+    def update_for_url(self, url):
+        super().update_for_url(url)
+        self._set_user_stylesheet(url)
 
-def _set_cache_maximum_pages(settings):
-    """Update the content.cache.maximum_pages setting."""
-    value = config.val.content.cache.maximum_pages
-    settings.setMaximumPagesInCache(value)
-
-
-def _update_settings(option):
-    """Update global settings when qwebsettings changed."""
-    global_settings.update_setting(option)
-
-    settings = QWebSettings.globalSettings()
-    if option in ['scrollbar.hide', 'content.user_stylesheets']:
-        _set_user_stylesheet(settings)
-    elif option == 'content.cookies.accept':
-        _set_cookie_accept_policy(settings)
-    elif option == 'content.cache.maximum_pages':
-        _set_cache_maximum_pages(settings)
+    def init_settings(self):
+        super().init_settings()
+        self._set_user_stylesheet()
+        self._set_cookie_accept_policy()
+        self._set_cache_maximum_pages()
 
 
 def init(_args):
@@ -172,16 +179,10 @@ def init(_args):
     QWebSettings.setOfflineStoragePath(
         os.path.join(data_path, 'offline-storage'))
 
-    settings = QWebSettings.globalSettings()
-    _set_user_stylesheet(settings)
-    _set_cookie_accept_policy(settings)
-    _set_cache_maximum_pages(settings)
-
-    config.instance.changed.connect(_update_settings)
-
     global global_settings
     global_settings = WebKitSettings(QWebSettings.globalSettings())
     global_settings.init_settings()
+    config.instance.changed.connect(global_settings.update_setting)
 
 
 def shutdown():
