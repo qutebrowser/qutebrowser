@@ -138,7 +138,7 @@ js_environment = jinja2.Environment(loader=Loader('javascript'))
 def template_config_variables(template: str) -> typing.FrozenSet[str]:
     """Return the config variables used in the template."""
     unvisted_nodes = [environment.parse(template)]
-    result = []  # type: typing.List[str]
+    result = set()  # type: typing.Set[str]
     while unvisted_nodes:
         node = unvisted_nodes.pop()
         if not isinstance(node, jinja2.nodes.Getattr):
@@ -154,7 +154,7 @@ def template_config_variables(template: str) -> typing.FrozenSet[str]:
 
         if isinstance(node, jinja2.nodes.Name):
             if node.name == 'conf':
-                result.append('.'.join(reversed(attrlist)))
+                result.add('.'.join(reversed(attrlist)))
             # otherwise, the node is a Name node so it doesn't have any
             # child nodes
         else:
