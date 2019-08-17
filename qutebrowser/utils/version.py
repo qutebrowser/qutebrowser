@@ -455,10 +455,7 @@ def version():
 
     lines += [
         "",
-        "Autoconfig loaded: {}".format(_autoconfig_loaded())
-    ]
-
-    lines += [
+        "Autoconfig loaded: {}".format(_autoconfig_loaded()),
         'Uptime: {}'.format(_uptime())
     ]
 
