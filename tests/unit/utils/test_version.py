@@ -883,6 +883,7 @@ class VersionParams:
     with_webkit = attr.ib(True)
     known_distribution = attr.ib(True)
     ssl_support = attr.ib(True)
+    autoconfig_loaded = attr.ib(True)
 
 
 @pytest.mark.parametrize('params', [
@@ -893,9 +894,9 @@ class VersionParams:
     VersionParams('no-webkit', with_webkit=False),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
+    VersionParams('autoconfig_loaded', autoconfig_loaded=False),
 ], ids=lambda param: param.name)
-@pytest.mark.parametrize('autoconfig_loaded', [True, False])
-def test_version_output(params, stubs, monkeypatch, autoconfig_loaded):
+def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
     class FakeWebEngineSettings:
         default_user_agent = ('Toaster/4.0.4 Chrome/CHROMIUMVERSION '
@@ -924,7 +925,7 @@ def test_version_output(params, stubs, monkeypatch, autoconfig_loaded):
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
-        '_autoconfig_loaded': lambda: ("yes" if autoconfig_loaded else "no")
+        '_autoconfig_loaded': lambda: ("yes" if params.autoconfig_loaded else "no")
     }
 
     substitutions = {
@@ -934,6 +935,8 @@ def test_version_output(params, stubs, monkeypatch, autoconfig_loaded):
         'frozen': str(params.frozen),
         'import_path': import_path,
         'python_path': 'EXECUTABLE PATH',
+        'uptime': "1:23:45",
+        'autoconfig_loaded': ("yes" if params.autoconfig_loaded else "no")
     }
 
     if params.with_webkit:
@@ -969,10 +972,6 @@ def test_version_output(params, stubs, monkeypatch, autoconfig_loaded):
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
-
-    substitutions['uptime'] = "1:23:45"
-    substitutions['autoconfig_loaded'] = (
-        "yes" if autoconfig_loaded else "no")
 
     template = textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
