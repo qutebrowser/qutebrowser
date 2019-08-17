@@ -28,6 +28,7 @@ Changed
 - HTML5 inputs with date/time types now enter insert mode when selected.
 - `dictcli.py` now shows where dictionaries are installed to and complains when
   running it as root if doing so would result in a wrong installation path.
+- The Makefile now can also run `setup.py build` when invoked without a target.
 
 Fixed
 ~~~~~
@@ -35,6 +36,7 @@ Fixed
 - `:config-write-py` now correctly writes `config.unbind(...)` lines (instead
   of `config.bind(..., None)`) when unbinding a default keybinding.
 - Prevent repeat keyup events for JavaScript when a key is held down.
+- The Makefile now rebuilds the manpage correctly.
 
 v1.7.1 (unreleased)
 -------------------
