@@ -326,7 +326,7 @@ class FullscreenNotification(QLabel):
             geom = self.parentWidget().geometry()
         else:
             geom = QApplication.desktop().screenGeometry(self)
-        self.move((geom.width() - self.sizeHint().width()) / 2, 30)
+        self.move((geom.width() - self.sizeHint().width()) // 2, 30)
 
     def set_timeout(self, timeout):
         """Hide the widget after the given timeout."""

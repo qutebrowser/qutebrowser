@@ -334,7 +334,7 @@ class SignalHandler(QObject):
             self._notifier.setEnabled(False)
             rfd = self._notifier.socket()
             wfd = signal.set_wakeup_fd(self._orig_wakeup_fd)
-            os.close(rfd)
+            os.close(int(rfd))
             os.close(wfd)
         for sig, handler in self._orig_handlers.items():
             signal.signal(sig, handler)
@@ -353,7 +353,7 @@ class SignalHandler(QObject):
         self._notifier.setEnabled(False)
         read_fd = self._notifier.socket()
         try:
-            os.read(read_fd, 1)
+            os.read(int(read_fd), 1)
         except OSError:
             log.destroy.exception("Failed to read wakeup fd.")
         self._notifier.setEnabled(True)

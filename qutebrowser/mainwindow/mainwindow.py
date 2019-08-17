@@ -284,7 +284,7 @@ class MainWindow(QWidget):
             left = padding
         else:
             width = min(size_hint.width(), self.width() - 2 * padding)
-            left = (self.width() - width) / 2 if centered else 0
+            left = (self.width() - width) // 2 if centered else 0
 
         height_padding = 20
         status_position = config.val.statusbar.position

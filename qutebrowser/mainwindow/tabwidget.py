@@ -511,7 +511,7 @@ class TabBar(QTabBar):
     def _set_icon_size(self):
         """Set the tab bar favicon size."""
         size = self.fontMetrics().height() - 2
-        size *= config.val.tabs.favicons.scale
+        size = int(size * config.val.tabs.favicons.scale)
         self.setIconSize(QSize(size, size))
 
     def mouseReleaseEvent(self, e):
@@ -836,9 +836,13 @@ class TabBarStyle(QCommonStyle):
                 self._draw_icon(layouts, opt, p)
             alignment = (config.cache['tabs.title.alignment'] |
                          Qt.AlignVCenter | Qt.TextHideMnemonic)
-            self._style.drawItemText(p, layouts.text, alignment, opt.palette,
-                                     opt.state & QStyle.State_Enabled,
-                                     opt.text, QPalette.WindowText)
+            self._style.drawItemText(p,
+                                     layouts.text,
+                                     int(alignment),
+                                     opt.palette,
+                                     bool(opt.state & QStyle.State_Enabled),
+                                     opt.text,
+                                     QPalette.WindowText)
         else:
             raise ValueError("Invalid element {!r}".format(element))
 
@@ -970,7 +974,7 @@ class TabBarStyle(QCommonStyle):
                 min(actual_size.width(), icon_size.width()),
                 min(actual_size.height(), icon_size.height()))
 
-        icon_top = text_rect.center().y() + 1 - tab_icon_size.height() / 2
+        icon_top = text_rect.center().y() + 1 - tab_icon_size.height() // 2
         icon_rect = QRect(QPoint(text_rect.left(), icon_top), tab_icon_size)
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
         return icon_rect

@@ -349,7 +349,7 @@ class CompletionView(QTreeView):
         confheight = str(config.val.completion.height)
         if confheight.endswith('%'):
             perc = int(confheight.rstrip('%'))
-            height = self.window().height() * perc / 100
+            height = self.window().height() * perc // 100
         else:
             height = int(confheight)
         # Shrink to content size if needed and shrinking is enabled
