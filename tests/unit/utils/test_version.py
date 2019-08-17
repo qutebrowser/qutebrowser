@@ -894,7 +894,7 @@ class VersionParams:
     VersionParams('no-webkit', with_webkit=False),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
-    VersionParams('autoconfig_loaded', autoconfig_loaded=False),
+    VersionParams('no-autoconfig-loaded', autoconfig_loaded=False),
 ], ids=lambda param: param.name)
 def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
@@ -925,7 +925,7 @@ def test_version_output(params, stubs, monkeypatch):
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
-        '_autoconfig_loaded': lambda: ("yes" if params.autoconfig_loaded else "no")
+        '_autoconfig_loaded': lambda: "yes" if params.autoconfig_loaded else "no",
     }
 
     substitutions = {
@@ -936,7 +936,7 @@ def test_version_output(params, stubs, monkeypatch):
         'import_path': import_path,
         'python_path': 'EXECUTABLE PATH',
         'uptime': "1:23:45",
-        'autoconfig_loaded': ("yes" if params.autoconfig_loaded else "no")
+        'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
     }
 
     if params.with_webkit:
