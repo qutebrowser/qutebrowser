@@ -32,6 +32,7 @@ Changed
 - Changes to the qute-pass userscript:
   * Don't run `pass` if only an username is requested.
   * Support private domains like `myrouter.local`.
+- Performance improvements when loading config files.
 
 Fixed
 ~~~~~
