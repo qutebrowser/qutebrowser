@@ -884,6 +884,7 @@ class VersionParams:
     known_distribution = attr.ib(True)
     ssl_support = attr.ib(True)
     autoconfig_loaded = attr.ib(True)
+    config_py_loaded = attr.ib(True)
 
 
 @pytest.mark.parametrize('params', [
@@ -895,6 +896,7 @@ class VersionParams:
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
     VersionParams('no-autoconfig-loaded', autoconfig_loaded=False),
+    VersionParams('no-config-py-loaded', config_py_loaded=False),
 ], ids=lambda param: param.name)
 def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
@@ -927,6 +929,8 @@ def test_version_output(params, stubs, monkeypatch):
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
         '_autoconfig_loaded': lambda: ("yes" if params.autoconfig_loaded
                                        else "no"),
+        '_config_py_loaded': lambda: ("yes" if params.config_py_loaded
+                                     else "no"),
     }
 
     substitutions = {
@@ -938,6 +942,7 @@ def test_version_output(params, stubs, monkeypatch):
         'python_path': 'EXECUTABLE PATH',
         'uptime': "1:23:45",
         'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
+        'config_py_loaded': "yes" if params.config_py_loaded else "no"
     }
 
     if params.with_webkit:
@@ -998,6 +1003,7 @@ def test_version_output(params, stubs, monkeypatch):
         PATH DESC: PATH NAME
 
         Autoconfig loaded: {autoconfig_loaded}
+        Config.py: {config_py_loaded}
         Uptime: {uptime}
     """.lstrip('\n'))
 
