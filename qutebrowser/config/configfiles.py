@@ -647,6 +647,7 @@ def read_config_py(filename: str, raising: bool = False) -> None:
 
     if api.errors:
         raise configexc.ConfigFileErrors('config.py', api.errors)
+    config.instance.config_py_loaded = True
 
 
 def read_autoconfig() -> None:

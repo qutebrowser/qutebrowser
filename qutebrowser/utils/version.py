@@ -389,6 +389,11 @@ def _autoconfig_loaded() -> str:
     return "yes" if config.instance.yaml_loaded else "no"
 
 
+def _config_py_loaded() -> str:
+    return "{} has been loaded".format(standarddir.config_py()) if \
+        config.instance.config_py_loaded else "no config.py was loaded"
+
+
 def version():
     """Return a string with various version information."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
@@ -454,8 +459,9 @@ def version():
         lines += ['{}: {}'.format(name, path)]
 
     lines += [
-        "",
-        "Autoconfig loaded: {}".format(_autoconfig_loaded()),
+        '',
+        'Autoconfig loaded: {}'.format(_autoconfig_loaded()),
+        'Config.py: {}'.format(_config_py_loaded()),
         'Uptime: {}'.format(_uptime())
     ]
 
