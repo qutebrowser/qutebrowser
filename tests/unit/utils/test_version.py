@@ -930,7 +930,7 @@ def test_version_output(params, stubs, monkeypatch):
         '_autoconfig_loaded': lambda: ("yes" if params.autoconfig_loaded
                                        else "no"),
         '_config_py_loaded': lambda: ("yes" if params.config_py_loaded
-                                     else "no"),
+                                      else "no"),
     }
 
     substitutions = {
