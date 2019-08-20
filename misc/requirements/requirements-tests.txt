@@ -12,7 +12,7 @@ EasyProcess==0.2.7
 Flask==1.1.1
 glob2==0.7
 hunter==3.0.1
-hypothesis==4.32.3
+hypothesis==4.33.0
 importlib-metadata==0.19
 itsdangerous==1.1.0
 # Jinja2==2.10.1
@@ -28,7 +28,7 @@ py==1.8.0
 py-cpuinfo==5.0.0
 pyparsing==2.4.2
 pytest==5.1.0
-pytest-bdd==3.1.1
+pytest-bdd==3.2.0
 pytest-benchmark==3.2.2
 pytest-cov==2.7.1
 pytest-instafail==0.4.1
