@@ -468,7 +468,7 @@ class Process(QObject):
             else:
                 timeout = 5000
 
-        timeout /= divisor
+        timeout //= divisor
 
         if not kwargs:
             raise TypeError("No keyword arguments given!")

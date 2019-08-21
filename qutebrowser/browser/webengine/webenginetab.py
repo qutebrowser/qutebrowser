@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.config import configdata, config
-from qutebrowser.browser import browsertab, mouse, shared, webelem
+from qutebrowser.browser import browsertab, eventfilter, shared, webelem
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
@@ -1141,9 +1141,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def _install_event_filter(self):
         fp = self._widget.focusProxy()
         if fp is not None:
-            fp.installEventFilter(self._mouse_event_filter)
-        self._child_event_filter = mouse.ChildEventFilter(
-            eventfilter=self._mouse_event_filter, widget=self._widget,
+            fp.installEventFilter(self._tab_event_filter)
+        self._child_event_filter = eventfilter.ChildEventFilter(
+            eventfilter=self._tab_event_filter, widget=self._widget,
             win_id=self.win_id, parent=self)
         self._widget.installEventFilter(self._child_event_filter)
 

@@ -883,6 +883,7 @@ class VersionParams:
     with_webkit = attr.ib(True)
     known_distribution = attr.ib(True)
     ssl_support = attr.ib(True)
+    autoconfig_loaded = attr.ib(True)
 
 
 @pytest.mark.parametrize('params', [
@@ -893,6 +894,7 @@ class VersionParams:
     VersionParams('no-webkit', with_webkit=False),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
+    VersionParams('no-autoconfig-loaded', autoconfig_loaded=False),
 ], ids=lambda param: param.name)
 def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
@@ -923,6 +925,8 @@ def test_version_output(params, stubs, monkeypatch):
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
+        '_autoconfig_loaded': lambda: ("yes" if params.autoconfig_loaded
+                                       else "no"),
     }
 
     substitutions = {
@@ -932,6 +936,8 @@ def test_version_output(params, stubs, monkeypatch):
         'frozen': str(params.frozen),
         'import_path': import_path,
         'python_path': 'EXECUTABLE PATH',
+        'uptime': "1:23:45",
+        'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
     }
 
     if params.with_webkit:
@@ -968,8 +974,6 @@ def test_version_output(params, stubs, monkeypatch):
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
 
-    substitutions['uptime'] = "1:23:45"
-
     template = textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
         Backend: {backend}
@@ -993,6 +997,7 @@ def test_version_output(params, stubs, monkeypatch):
         Paths:
         PATH DESC: PATH NAME
 
+        Autoconfig loaded: {autoconfig_loaded}
         Uptime: {uptime}
     """.lstrip('\n'))
 

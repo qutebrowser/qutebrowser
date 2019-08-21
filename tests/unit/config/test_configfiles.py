@@ -1000,6 +1000,19 @@ class TestConfigPyWriter:
         assert 'bindings.default' not in text
         assert 'bindings.commands' not in text
 
+    def test_unbind(self):
+        bindings = {'normal': {',x': None},
+                    'caret': {',y': 'message-info caret', ',z': None}}
+
+        writer = configfiles.ConfigPyWriter([], bindings, commented=False)
+        lines = list(writer._gen_lines())
+
+        assert "config.unbind(',x')" in lines
+        assert "config.unbind(',z', mode='caret')" in lines
+        caret_bind = ("config.bind(',y', 'message-info caret', "
+                      "mode='caret')")
+        assert caret_bind in lines
+
     def test_commented(self):
         opt = configdata.Option(
             name='opt', typ=configtypes.Int(), default='def',

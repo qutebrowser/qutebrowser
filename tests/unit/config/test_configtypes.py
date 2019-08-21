@@ -1377,7 +1377,7 @@ class TestFont:
         'bold italic 10pt "Foobar Neue"':
             FontDesc(QFont.StyleItalic, QFont.Bold, 10, None, 'Foobar Neue'),
         'normal 300 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, 37.5, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, 37, 10, None, 'Foobar Neue'),
         'normal 800 10pt "Foobar Neue"':
             FontDesc(QFont.StyleNormal, 99, 10, None, 'Foobar Neue'),
     }

@@ -53,6 +53,7 @@ import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin
 from qutebrowser.browser import pdfjs
+from qutebrowser.config import config
 
 try:
     from qutebrowser.browser.webengine import webenginesettings
@@ -384,6 +385,10 @@ def _uptime() -> datetime.timedelta:
     return time_delta
 
 
+def _autoconfig_loaded() -> str:
+    return "yes" if config.instance.yaml_loaded else "no"
+
+
 def version():
     """Return a string with various version information."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
@@ -449,8 +454,9 @@ def version():
         lines += ['{}: {}'.format(name, path)]
 
     lines += [
-        '',
-        'Uptime: {}'.format(_uptime()),
+        "",
+        "Autoconfig loaded: {}".format(_autoconfig_loaded()),
+        'Uptime: {}'.format(_uptime())
     ]
 
     return '\n'.join(lines)
