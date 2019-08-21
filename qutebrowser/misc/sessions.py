@@ -306,6 +306,8 @@ class SessionManager(QObject):
         Return:
             The name of the saved session.
         """
+        name = self._get_session_name(name)
+
         if last_window:
             data = self._last_window_session
             if data is None:
@@ -436,7 +438,6 @@ class SessionManager(QObject):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
     def _save_session_file(self, name, data):
-        name = self._get_session_name(name)
         path = self._get_session_path(name)
 
         log.sessions.debug("Saving session {} to {}...".format(name, path))
@@ -456,7 +457,6 @@ class SessionManager(QObject):
                 return utils.yaml_load(f)
         except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
             raise SessionError(e)
-======= end
 
     def load(self, name, temp=False):
         """Load a named session.
@@ -661,6 +661,7 @@ class SessionManager(QObject):
                 "to load anyways.".format(name))
 
         try:
+            name = self._get_session_name(name)
             self.add_url_to_session(name)
         except SessionNotFoundError:
             raise cmdutils.CommandError("Session {} not found!".format(name))
