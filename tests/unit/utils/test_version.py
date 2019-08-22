@@ -943,10 +943,13 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         'python_path': 'EXECUTABLE PATH',
         'uptime': "1:23:45",
         'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
-        'config_py_loaded': "{} has been loaded".format(
-            standarddir.config_py()) if params.config_py_loaded else \
-                    "no config.py was loaded",
     }
+
+    if params.config_py_loaded:
+        substitutions["config_py_loaded"] = "{} has been loaded".format(
+            standarddir.config_py())
+    else:
+        substitutions["config_py_loaded"] = "no config.py was loaded"
 
     if params.with_webkit:
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
