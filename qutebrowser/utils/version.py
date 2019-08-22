@@ -390,8 +390,10 @@ def _autoconfig_loaded() -> str:
 
 
 def _config_py_loaded() -> str:
-    return "{} has been loaded".format(standarddir.config_py()) if \
-        config.instance.config_py_loaded else "no config.py was loaded"
+    if config.instance.config_py_loaded:
+        return "{} has been loaded".format(standarddir.config_py())
+    else:
+        return "no config.py was loaded"
 
 
 def version():

@@ -37,7 +37,8 @@ import pkg_resources
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version, usertypes, utils
+from qutebrowser.config import config
+from qutebrowser.utils import version, usertypes, utils, standarddir
 from qutebrowser.misc import pastebin
 from qutebrowser.browser import pdfjs
 
@@ -898,12 +899,14 @@ class VersionParams:
     VersionParams('no-autoconfig-loaded', autoconfig_loaded=False),
     VersionParams('no-config-py-loaded', config_py_loaded=False),
 ], ids=lambda param: param.name)
-def test_version_output(params, stubs, monkeypatch):
+def test_version_output(params, stubs, monkeypatch, config_stub):
     """Test version.version()."""
     class FakeWebEngineSettings:
         default_user_agent = ('Toaster/4.0.4 Chrome/CHROMIUMVERSION '
                               'Teapot/4.1.8')
 
+    config.instance = config_stub
+    config.instance.config_py_loaded = params.config_py_loaded
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
         'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
@@ -929,8 +932,6 @@ def test_version_output(params, stubs, monkeypatch):
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
         '_autoconfig_loaded': lambda: ("yes" if params.autoconfig_loaded
                                        else "no"),
-        '_config_py_loaded': lambda: ("yes" if params.config_py_loaded
-                                      else "no"),
     }
 
     substitutions = {
@@ -942,7 +943,9 @@ def test_version_output(params, stubs, monkeypatch):
         'python_path': 'EXECUTABLE PATH',
         'uptime': "1:23:45",
         'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
-        'config_py_loaded': "yes" if params.config_py_loaded else "no"
+        'config_py_loaded': "{} has been loaded".format(
+            standarddir.config_py()) if params.config_py_loaded else \
+                    "no config.py was loaded",
     }
 
     if params.with_webkit:
