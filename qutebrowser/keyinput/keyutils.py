@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -394,11 +394,17 @@ class KeySequence:
     def __init__(self, *keys):
         self._sequences = []
         for sub in utils.chunk(keys, self._MAX_LEN):
-            sequence = QKeySequence(*sub)
+            args = [self._convert_key(key) for key in sub]
+            sequence = QKeySequence(*args)
             self._sequences.append(sequence)
         if keys:
             assert self
         self._validate()
+
+    def _convert_key(self, key):
+        """Convert a single key for QKeySequence."""
+        assert isinstance(key, (int, Qt.KeyboardModifiers)), key
+        return int(key)
 
     def __str__(self):
         parts = []

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -277,7 +277,9 @@ class ModeManager(QObject):
         """Enter a key mode.
 
         Args:
-            mode: The mode to enter.
+            mode: The mode to enter. See `:help bindings.commands` for the
+                  available modes, but note that hint/command/yesno/prompt mode
+                  can't be entered manually.
         """
         try:
             m = usertypes.KeyMode[mode]

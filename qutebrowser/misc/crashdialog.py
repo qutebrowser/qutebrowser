@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -585,7 +585,10 @@ class ReportDialog(_CrashDialog):
             ("Objects", self._qobjects),
         ]
         try:
-            self._crash_info.append(("Debug log", log.ram_handler.dump_log()))
+            text = "Log output was disabled."
+            if log.ram_handler is not None:
+                text = log.ram_handler.dump_log()
+            self._crash_info.append(("Debug log", text))
         except Exception:
             self._crash_info.append(("Debug log", traceback.format_exc()))
 

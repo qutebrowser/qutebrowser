@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 # Copyright 2017-2018 Michal Siedlaczek <michal.siedlaczek@gmail.com>
 
 # This file is part of qutebrowser.
@@ -221,7 +222,7 @@ def install_lang(lang):
     print('Downloading {}'.format(lang_url))
     dest = os.path.join(spell.dictionary_dir(), lang.remote_path)
     download_dictionary(lang_url, dest)
-    print('Done.')
+    print('Installed to {}.'.format(dest))
 
 
 def install(languages):
@@ -255,7 +256,21 @@ def remove_old(languages):
             os.remove(os.path.join(spell.dictionary_dir(), old_file))
 
 
+def check_root():
+    """Ask for confirmation if running as root when unnecessary."""
+    if spell.can_use_data_path() and os.geteuid() == 0:
+        print("You're running Qt >= 5.10 which means qutebrowser will "
+              "load dictionaries from a path in your home-directory. "
+              "Unless you run qutebrowser as root (bad idea!), you "
+              "most likely want to run this script as your user. ")
+        answer = input("Do you want to continue anyways? [y/N] ")
+        if answer not in ['y', 'Y']:
+            sys.exit(0)
+
+
 def main():
+    check_root()
+
     if configdata.DATA is None:
         configdata.init()
     standarddir.init(None)

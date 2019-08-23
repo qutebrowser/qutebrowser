@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The-Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -29,6 +29,7 @@ try:
 except ImportError:
     hunter = None
 
+import os
 import sys
 import faulthandler
 import traceback
@@ -130,26 +131,40 @@ def init_faulthandler(fileobj=sys.__stderr__):
         # pylint: enable=no-member,useless-suppression
 
 
-def check_pyqt_core():
-    """Check if PyQt core is installed."""
-    try:
-        import PyQt5.QtCore  # pylint: disable=unused-import
-    except ImportError as e:
-        text = _missing_str('PyQt5')
-        text = text.replace('<b>', '')
-        text = text.replace('</b>', '')
-        text = text.replace('<br />', '\n')
-        text = text.replace('%ERROR%', str(e))
-        if tkinter and '--no-err-windows' not in sys.argv:
-            root = tkinter.Tk()
-            root.withdraw()
-            tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
-        else:
-            print(text, file=sys.stderr)
-        if '--debug' in sys.argv or '--no-err-windows' in sys.argv:
-            print(file=sys.stderr)
-            traceback.print_exc()
-        sys.exit(1)
+def pyinstaller_qt_workaround():
+    """Work around PATH issues with PyInstaller.
+
+    See https://github.com/pyinstaller/pyinstaller/issues/4293
+    and https://github.com/gridsync/gridsync/pull/236/commits/0abf8e7363cc8c2a10a0263e6dcceb3be1c07022
+    """
+    if (hasattr(sys, 'frozen') and
+            hasattr(sys, '_MEIPASS') and
+            sys.platform == 'win32'):
+        # pylint: disable=no-member,protected-access
+        os.environ['PATH'] += os.pathsep + sys._MEIPASS
+
+
+def check_pyqt():
+    """Check if PyQt core modules (QtCore/QtWidgets) are installed."""
+    for name in ['PyQt5.QtCore', 'PyQt5.QtWidgets']:
+        try:
+            importlib.import_module(name)
+        except ImportError as e:
+            text = _missing_str(name)
+            text = text.replace('<b>', '')
+            text = text.replace('</b>', '')
+            text = text.replace('<br />', '\n')
+            text = text.replace('%ERROR%', str(e))
+            if tkinter and '--no-err-windows' not in sys.argv:
+                root = tkinter.Tk()
+                root.withdraw()
+                tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
+            else:
+                print(text, file=sys.stderr)
+            if '--debug' in sys.argv or '--no-err-windows' in sys.argv:
+                print(file=sys.stderr)
+                traceback.print_exc()
+            sys.exit(1)
 
 
 def qt_version(qversion=None, qt_version_str=None):
@@ -173,8 +188,10 @@ def check_qt_version():
                               PYQT_VERSION_STR)
     from pkg_resources import parse_version
     from qutebrowser.utils import log
+    parsed_qversion = parse_version(qVersion())
+
     if (QT_VERSION < 0x050701 or PYQT_VERSION < 0x050700 or
-            parse_version(qVersion()) < parse_version('5.7.1')):
+            parsed_qversion < parse_version('5.7.1')):
         text = ("Fatal error: Qt >= 5.7.1 and PyQt >= 5.7 are required, "
                 "but Qt {} / PyQt {} is installed.".format(qt_version(),
                                                            PYQT_VERSION_STR))
@@ -183,6 +200,12 @@ def check_qt_version():
     if qVersion().startswith('5.8.'):
         log.init.warning("Running qutebrowser with Qt 5.8 is untested and "
                          "unsupported!")
+
+    if (parsed_qversion >= parse_version('5.12') and
+            (PYQT_VERSION < 0x050c00 or QT_VERSION < 0x050c00)):
+        log.init.warning("Combining PyQt {} with Qt {} is unsupported! Ensure "
+                         "all versions are newer than 5.12 to avoid potential "
+                         "issues.".format(PYQT_VERSION_STR, qt_version()))
 
 
 def check_ssl_support():
@@ -199,19 +222,11 @@ def _check_modules(modules):
 
     for name, text in modules.items():
         try:
-            # https://github.com/pallets/jinja/pull/628
-            # https://bitbucket.org/birkenfeld/pygments-main/issues/1314/
-            # https://github.com/pallets/jinja/issues/646
             # https://bitbucket.org/fdik/pypeg/commits/dd15ca462b532019c0a3be1d39b8ee2f3fa32f4e
-            messages = ['invalid escape sequence',
-                        'Flags not at the start of the expression']
             # pylint: disable=bad-continuation
             with log.ignore_py_warnings(
                 category=DeprecationWarning,
-                message=r'({})'.format('|'.join(messages))
-            ), log.ignore_py_warnings(
-                category=PendingDeprecationWarning,
-                module='imp'
+                message=r'invalid escape sequence'
             ), log.ignore_py_warnings(
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'
@@ -288,7 +303,8 @@ def early_init(args):
     init_faulthandler()
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
-    check_pyqt_core()
+    pyinstaller_qt_workaround()
+    check_pyqt()
     # Init logging as early as possible
     init_log(args)
     # Now we can be sure QtCore is available, so we can print dialogs on

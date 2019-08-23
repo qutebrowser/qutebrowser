@@ -89,7 +89,7 @@ You can run `:config-edit` inside qutebrowser to open the file in your editor,
 The file should be located in the "config" location listed on
 link:qute://version[], which is typically `~/.config/qutebrowser/config.py` on
 Linux, `~/.qutebrowser/config.py` on macOS, and
-`%APPDATA%/qutebrowser/config.py` on Windows.
+`%APPDATA%/qutebrowser/config/config.py` on Windows.
 
 Two global objects are pre-defined when running `config.py`: `c` and `config`.
 
@@ -309,7 +309,7 @@ You can use:
 import yaml
 
 with (config.configdir / 'config.yml').open() as f:
-    yaml_data = yaml.load(f)
+    yaml_data = yaml.safe_load(f)
 
 for k, v in yaml_data.items():
     config.set(k, v)
@@ -339,7 +339,7 @@ You can use:
 import yaml
 
 with (config.configdir / 'colors.yml').open() as f:
-    yaml_data = yaml.load(f)
+    yaml_data = yaml.safe_load(f)
 
 def dict_attrs(obj, path=''):
     if isinstance(obj, dict):
@@ -396,6 +396,7 @@ Pre-built colorschemes
 - A collection of https://github.com/chriskempson/base16[base16] color-schemes can be found in https://github.com/theova/base16-qutebrowser[base16-qutebrowser] and used with https://github.com/AuditeMarlow/base16-manager[base16-manager].
 - Two implementations of the https://github.com/arcticicestudio/nord[Nord] colorscheme for qutebrowser exist: https://github.com/Linuus/nord-qutebrowser[Linuus], https://github.com/KnownAsDon/QuteBrowser-Nord-Theme[KnownAsDon]
 - https://github.com/evannagle/qutebrowser-dracula-theme[Dracula]
+- https://github.com/jjzmajic/qutewal[Pywal theme]
 
 Avoiding flake8 errors
 ^^^^^^^^^^^^^^^^^^^^^^

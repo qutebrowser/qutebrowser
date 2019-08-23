@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -199,6 +199,12 @@ def init_log(args):
         root.addHandler(console)
     if ram is not None:
         root.addHandler(ram)
+    else:
+        # If we add no handler, we shouldn't process non visible logs at all
+        #
+        # disable blocks the current level (while setHandler shows the current
+        # level), so -1 to avoid blocking handled messages.
+        logging.disable(numeric_level - 1)
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
@@ -214,9 +220,9 @@ def _init_py_warnings():
     warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
     # This happens in many qutebrowser dependencies...
     warnings.filterwarnings('ignore', category=DeprecationWarning,
-                            message="Using or importing the ABCs from "
-                            "'collections' instead of from 'collections.abc' "
-                            "is deprecated, and in 3.8 it will stop working")
+                            message=r"Using or importing the ABCs from "
+                            r"'collections' instead of from 'collections.abc' "
+                            r"is deprecated.*")
 
 
 @contextlib.contextmanager
@@ -253,7 +259,7 @@ def _init_handlers(level, color, force_color, json_logging, ram_capacity):
         level, color, force_color, json_logging)
 
     if sys.stderr is None:
-        console_handler = None
+        console_handler = None  # type: ignore
     else:
         strip = False if force_color else None
         if use_colorama:
@@ -307,7 +313,7 @@ def _init_formatters(level, color, force_color, json_logging):
     html_formatter = HTMLFormatter(EXTENDED_FMT_HTML, DATEFMT,
                                    log_colors=LOG_COLORS)
     if sys.stderr is None:
-        return None, ram_formatter, html_formatter, False
+        return None, ram_formatter, html_formatter, False  # type: ignore
 
     if json_logging:
         console_formatter = JSONFormatter()
@@ -428,6 +434,9 @@ def qt_message_handler(msg_type, context, msg):
         'QXcbWindow: Unhandled client message: ""',
         # https://codereview.qt-project.org/176831
         "QObject::disconnect: Unexpected null parameter",
+        # https://bugreports.qt.io/browse/QTBUG-76391
+        "Attribute Qt::AA_ShareOpenGLContexts must be set before "
+        "QCoreApplication is created.",
     ]
     # not using utils.is_mac here, because we can't be sure we can successfully
     # import the utils module here.

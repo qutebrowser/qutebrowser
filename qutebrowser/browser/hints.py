@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -41,7 +41,8 @@ from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
 
 Target = enum.Enum('Target', ['normal', 'current', 'tab', 'tab_fg', 'tab_bg',
                               'window', 'yank', 'yank_primary', 'run', 'fill',
-                              'hover', 'download', 'userscript', 'spawn'])
+                              'hover', 'download', 'userscript', 'spawn',
+                              'delete'])
 
 
 class HintingError(Exception):
@@ -65,24 +66,16 @@ class HintLabel(QLabel):
         _context: The current hinting context.
     """
 
-    STYLESHEET = """
-        QLabel {
-            background-color: {{ conf.colors.hints.bg }};
-            color: {{ conf.colors.hints.fg }};
-            font: {{ conf.fonts.hints }};
-            border: {{ conf.hints.border }};
-            padding-left: -3px;
-            padding-right: -3px;
-        }
-    """
-
     def __init__(self, elem, context):
         super().__init__(parent=context.tab)
         self._context = context
         self.elem = elem
 
+        # Make sure we can style the background via a style sheet, and we don't
+        # get any extra text indent from Qt.
+        # The real stylesheet lives in mainwindow.py for performance reasons..
         self.setAttribute(Qt.WA_StyledBackground, True)
-        config.set_register_stylesheet(self)
+        self.setIndent(0)
 
         self._context.tab.contents_size_changed.connect(self._move_to_elem)
         self._move_to_elem()
@@ -110,8 +103,8 @@ class HintLabel(QLabel):
             matched = html.escape(matched)
             unmatched = html.escape(unmatched)
 
-        match_color = html.escape(config.cache['colors.hints.match.fg'])
         if matched:
+            match_color = config.cache['colors.hints.match.fg'].name()
             self.setText('<font color="{}">{}</font>{}'.format(
                 match_color, matched, unmatched))
         else:
@@ -155,6 +148,7 @@ class HintContext:
                 download: Download the link.
                 userscript: Call a custom userscript.
                 spawn: Spawn a simple command.
+                delete: Delete the selected element.
         to_follow: The link to follow when enter is pressed.
         args: Custom arguments for userscript/spawn
         rapid: Whether to do rapid hinting.
@@ -335,6 +329,9 @@ class HintActions:
         except userscripts.Error as e:
             raise HintingError(str(e))
 
+    def delete(self, elem, _context):
+        elem.delete()
+
     def spawn(self, url, context):
         """Spawn a simple command from a hint.
 
@@ -379,6 +376,7 @@ class HintManager(QObject):
         Target.download: "Download hint",
         Target.userscript: "Call userscript via hint",
         Target.spawn: "Spawn command via hint",
+        Target.delete: "Delete an element",
     }
 
     def __init__(self, win_id, tab_id, parent=None):
@@ -599,6 +597,18 @@ class HintManager(QObject):
             message.error("No elements found.")
             return
 
+        # Because _start_cb is called asynchronously, it's possible that the
+        # user switched to another tab or closed the tab/window. In that case
+        # we should not start hinting.
+        tabbed_browser = objreg.get('tabbed-browser', default=None,
+                                    scope='window', window=self._win_id)
+        tab = tabbed_browser.widget.currentWidget()
+        if tab.tab_id != self._tab_id:
+            log.hints.debug(
+                "Current tab changed ({} -> {}) before _start_cb is run."
+                .format(self._tab_id, tab.tab_id))
+            return
+
         strings = self._hint_strings(elems)
         log.hints.debug("hints: {}".format(', '.join(strings)))
 
@@ -636,7 +646,7 @@ class HintManager(QObject):
             rapid: Whether to do rapid hinting. With rapid hinting, the hint
                    mode isn't left after a hint is followed, so you can easily
                    open multiple links. This is only possible with targets
-                   `tab` (with `tabs.background_tabs=true`), `tab-bg`,
+                   `tab` (with `tabs.background=true`), `tab-bg`,
                    `window`, `run`, `hover`, `userscript` and `spawn`.
             add_history: Whether to add the spawned or yanked link to the
                          browsing history.
@@ -656,7 +666,7 @@ class HintManager(QObject):
                 - `normal`: Open the link.
                 - `current`: Open the link in the current tab.
                 - `tab`: Open the link in a new tab (honoring the
-                         `tabs.background_tabs` setting).
+                         `tabs.background` setting).
                 - `tab-fg`: Open the link in a new foreground tab.
                 - `tab-bg`: Open the link in a new background tab.
                 - `window`: Open the link in a new window.
@@ -670,6 +680,7 @@ class HintManager(QObject):
                 - `userscript`: Call a userscript with `$QUTE_URL` set to the
                                 link.
                 - `spawn`: Spawn a command.
+                - `delete`: Delete the selected element.
 
             mode: The hinting mode to use.
 
@@ -896,6 +907,7 @@ class HintManager(QObject):
             # _download needs a QWebElement to get the frame.
             Target.download: self._actions.download,
             Target.userscript: self._actions.call_userscript,
+            Target.delete: self._actions.delete,
         }
         # Handlers which take a QUrl
         url_handlers = {
@@ -956,10 +968,9 @@ class HintManager(QObject):
         if keystring is None:
             if self._context.to_follow is None:
                 raise cmdutils.CommandError("No hint to follow")
-            elif select:
+            if select:
                 raise cmdutils.CommandError("Can't use --select without hint.")
-            else:
-                keystring = self._context.to_follow
+            keystring = self._context.to_follow
         elif keystring not in self._context.labels:
             raise cmdutils.CommandError("No hint {}!".format(keystring))
 

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -101,8 +101,11 @@ def _generate_stylesheet():
         QWidget#StatusBar QLabel,
         QWidget#StatusBar QLineEdit {
             font: {{ conf.fonts.statusbar }};
-            background-color: {{ conf.colors.statusbar.normal.bg }};
             color: {{ conf.colors.statusbar.normal.fg }};
+        }
+
+        QWidget#StatusBar {
+            background-color: {{ conf.colors.statusbar.normal.bg }};
         }
     """
     for flag, option in flags:
@@ -111,10 +114,13 @@ def _generate_stylesheet():
             QWidget#StatusBar[color_flags~="%s"] QLabel,
             QWidget#StatusBar[color_flags~="%s"] QLineEdit {
                 color: {{ conf.colors.%s }};
+            }
+
+            QWidget#StatusBar[color_flags~="%s"] {
                 background-color: {{ conf.colors.%s }};
             }
         """ % (flag, flag, flag,  # noqa: S001
-               option + '.fg', option + '.bg')
+               option + '.fg', flag, option + '.bg')
     return stylesheet
 
 
@@ -302,7 +308,7 @@ class StatusBar(QWidget):
             all_bindings = key_instance.get_reverse_bindings_for('passthrough')
             bindings = all_bindings.get('leave-mode')
             if bindings:
-                suffix = ' ({} to leave)'.format(bindings[0])
+                suffix = ' ({} to leave)'.format(' or '.join(bindings))
             else:
                 suffix = ''
         else:

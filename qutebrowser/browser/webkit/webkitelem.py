@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -172,7 +172,8 @@ class WebKitElement(webelem.AbstractWebElement):
     def _parent(self) -> typing.Optional['WebKitElement']:
         """Get the parent element of this element."""
         self._check_vanished()
-        elem = self._elem.parent()
+        elem = typing.cast(typing.Optional[QWebElement],
+                           self._elem.parent())
         if elem is None or elem.isNull():
             return None
         return WebKitElement(elem, tab=self._tab)
@@ -323,6 +324,9 @@ class WebKitElement(webelem.AbstractWebElement):
                     elem['target'] = '_top'
                 break
             elem = elem._parent()  # pylint: disable=protected-access
+
+    def delete(self) -> None:
+        self._elem.evaluateJavaScript('this.remove();')
 
     def _move_text_cursor(self) -> None:
         if self.is_text_input() and self.is_editable():

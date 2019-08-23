@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -252,6 +252,24 @@ class TestArguments:
             args = types.SimpleNamespace(basedir='basedir')
             standarddir._init_dirs(args)
             assert standarddir.config() == str(basedir / 'config')
+
+    def test_config_py_arg(self, tmpdir):
+        basedir = tmpdir / 'basedir'
+        basedir.ensure(dir=True)
+        with tmpdir.as_cwd():
+            args = types.SimpleNamespace(
+                basedir='foo', config_py='basedir/config.py')
+            standarddir._init_dirs(args)
+            assert standarddir.config_py() == str(basedir / 'config.py')
+
+    def test_config_py_no_arg(self, tmpdir):
+        basedir = tmpdir / 'basedir'
+        basedir.ensure(dir=True)
+        with tmpdir.as_cwd():
+            args = types.SimpleNamespace(basedir='basedir')
+            standarddir._init_dirs(args)
+            assert standarddir.config_py() == str(
+                basedir / 'config' / 'config.py')
 
 
 class TestInitCacheDirTag:

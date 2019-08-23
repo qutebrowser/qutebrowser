@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -31,8 +31,7 @@ from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configdata
-from qutebrowser.misc import consolewidget
+from qutebrowser.misc import consolewidget, debugcachestats
 from qutebrowser.utils.version import pastebin_version
 from qutebrowser.qt import sip
 
@@ -121,31 +120,7 @@ def debug_all_objects():
 @cmdutils.register(debug=True)
 def debug_cache_stats():
     """Print LRU cache stats."""
-    prefix_info = configdata.is_valid_prefix.cache_info()
-    # pylint: disable=protected-access
-    render_stylesheet_info = config._render_stylesheet.cache_info()
-    # pylint: enable=protected-access
-
-    history_info = None
-    try:
-        from PyQt5.QtWebKit import QWebHistoryInterface
-        interface = QWebHistoryInterface.defaultInterface()
-        if interface is not None:
-            history_info = interface.historyContains.cache_info()
-    except ImportError:
-        pass
-
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window='last-focused')
-    # pylint: disable=protected-access
-    tab_bar = tabbed_browser.widget.tabBar()
-    tabbed_browser_info = tab_bar._minimum_tab_size_hint_helper.cache_info()
-    # pylint: enable=protected-access
-
-    log.misc.info('is_valid_prefix: {}'.format(prefix_info))
-    log.misc.info('_render_stylesheet: {}'.format(render_stylesheet_info))
-    log.misc.info('history: {}'.format(history_info))
-    log.misc.info('tab width cache: {}'.format(tabbed_browser_info))
+    debugcachestats.debug_cache_stats()
 
 
 @cmdutils.register(debug=True)
@@ -243,9 +218,8 @@ def log_capacity(capacity: int) -> None:
     """
     if capacity < 0:
         raise cmdutils.CommandError("Can't set a negative log capacity!")
-    else:
-        assert log.ram_handler is not None
-        log.ram_handler.change_log_capacity(capacity)
+    assert log.ram_handler is not None
+    log.ram_handler.change_log_capacity(capacity)
 
 
 @cmdutils.register(debug=True)
@@ -311,7 +285,7 @@ def version(win_id, paste=False):
     """
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    tabbed_browser.load_url(QUrl('qute://version'), newtab=True)
+    tabbed_browser.load_url(QUrl('qute://version/'), newtab=True)
 
     if paste:
         pastebin_version()

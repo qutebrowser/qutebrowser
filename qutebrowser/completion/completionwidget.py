@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -349,7 +349,7 @@ class CompletionView(QTreeView):
         confheight = str(config.val.completion.height)
         if confheight.endswith('%'):
             perc = int(confheight.rstrip('%'))
-            height = self.window().height() * perc / 100
+            height = self.window().height() * perc // 100
         else:
             height = int(confheight)
         # Shrink to content size if needed and shrinking is enabled
@@ -359,8 +359,6 @@ class CompletionView(QTreeView):
                 self.horizontalScrollBar().sizeHint().height())
             if contents_height <= height:
                 height = contents_height
-        else:
-            contents_height = -1
         # The width isn't really relevant as we're expanding anyways.
         return QSize(-1, height)
 

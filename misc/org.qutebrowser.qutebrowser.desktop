@@ -48,6 +48,7 @@ Terminal=false
 StartupNotify=false
 MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/qute;
 Keywords=Browser
+Actions=new-window;preferences;
 
 [Desktop Action new-window]
 Name=New Window

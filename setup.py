@@ -2,7 +2,7 @@
 
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2017 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -74,7 +74,7 @@ try:
         install_requires=['pypeg2', 'jinja2', 'pygments', 'PyYAML', 'attrs'],
         python_requires='>=3.5',
         name='qutebrowser',
-        version='.'.join(str(e) for e in _get_constant('version_info')),
+        version=_get_constant('version'),
         description=_get_constant('description'),
         long_description=read_file('README.asciidoc'),
         long_description_content_type='text/plain',

@@ -40,9 +40,9 @@ setupcommon.write_git_file()
 
 
 if os.name == 'nt':
-    icon = 'icons/qutebrowser.ico'
+    icon = '../icons/qutebrowser.ico'
 elif sys.platform == 'darwin':
-    icon = 'icons/qutebrowser.icns'
+    icon = '../icons/qutebrowser.icns'
 else:
     icon = None
 
@@ -69,7 +69,7 @@ exe = EXE(pyz,
           strip=False,
           upx=False,
           console=False,
-          version='misc/file_version_info.txt')
+          version='../misc/file_version_info.txt')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -66,7 +66,7 @@ def _serialize_item(item, stream):
 
 
 def serialize(items):
-    """Serialize a list of QWebHistoryItems to a data stream.
+    """Serialize a list of WebHistoryItems to a data stream.
 
     Args:
         items: An iterable of WebHistoryItems.

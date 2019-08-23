@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -46,7 +46,7 @@ class Message:
     text = attr.ib()
 
 
-MsgType = enum.Enum('MsgType', 'insufficent_coverage, perfect_file')
+MsgType = enum.Enum('MsgType', 'insufficient_coverage, perfect_file')
 
 
 # A list of (test_file, tested_file) tuples. test_file can be None.
@@ -202,6 +202,7 @@ PERFECT_FILES = [
 # 100% coverage because of end2end tests, but no perfect unit tests yet.
 WHITELISTED_FILES = [
     'browser/webkit/webkitinspector.py',
+    'misc/debugcachestats.py',
     'keyinput/macros.py',
     'browser/webkit/webkitelem.py',
     'api/interceptor.py',
@@ -235,11 +236,11 @@ def check(fileobj, perfect_files):
     """Main entry point which parses/checks coverage.xml if applicable."""
     if not utils.is_linux:
         raise Skipped("on non-Linux system.")
-    elif '-k' in sys.argv[1:]:
+    if '-k' in sys.argv[1:]:
         raise Skipped("because -k is given.")
-    elif '-m' in sys.argv[1:]:
+    if '-m' in sys.argv[1:]:
         raise Skipped("because -m is given.")
-    elif '--lf' in sys.argv[1:]:
+    if '--lf' in sys.argv[1:]:
         raise Skipped("because --lf is given.")
 
     perfect_src_files = [e[1] for e in perfect_files]
@@ -275,7 +276,7 @@ def check(fileobj, perfect_files):
         if filename in perfect_src_files and is_bad:
             text = "{} has {:.2f}% line and {:.2f}% branch coverage!".format(
                 filename, line_cov, branch_cov)
-            messages.append(Message(MsgType.insufficent_coverage, filename,
+            messages.append(Message(MsgType.insufficient_coverage, filename,
                                     text))
         elif (filename not in perfect_src_files and not is_bad and
               filename not in WHITELISTED_FILES):
@@ -338,7 +339,7 @@ def main_check_all():
         os.remove('coverage.xml')
 
         messages = [msg for msg in messages
-                    if msg.typ == MsgType.insufficent_coverage]
+                    if msg.typ == MsgType.insufficient_coverage]
         if messages:
             for msg in messages:
                 print(msg.text)

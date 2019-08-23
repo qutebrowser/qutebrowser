@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -30,6 +30,7 @@ import datetime
 import traceback
 import functools
 import contextlib
+import posixpath
 import socket
 import shlex
 import glob
@@ -41,7 +42,7 @@ from PyQt5.QtWidgets import QApplication
 import pkg_resources
 import yaml
 try:
-    from yaml import (CSafeLoader as YamlLoader,  # type: ignore
+    from yaml import (CSafeLoader as YamlLoader,
                       CSafeDumper as YamlDumper)
     YAML_C_EXT = True
 except ImportError:  # pragma: no cover
@@ -165,6 +166,9 @@ def read_file(filename, binary=False):
     Return:
         The file contents as string.
     """
+    assert not posixpath.isabs(filename), filename
+    assert os.path.pardir not in filename.split(posixpath.sep), filename
+
     if not binary and filename in _resource_cache:
         return _resource_cache[filename]
 
@@ -655,7 +659,14 @@ def expand_windows_drive(path):
 def yaml_load(f):
     """Wrapper over yaml.load using the C loader if possible."""
     start = datetime.datetime.now()
-    data = yaml.load(f, Loader=YamlLoader)
+
+    # WORKAROUND for https://github.com/yaml/pyyaml/pull/181
+    with log.ignore_py_warnings(
+            category=DeprecationWarning,
+            message=r"Using or importing the ABCs from 'collections' instead "
+            r"of from 'collections\.abc' is deprecated.*"):
+        data = yaml.load(f, Loader=YamlLoader)
+
     end = datetime.datetime.now()
 
     delta = (end - start).total_seconds()

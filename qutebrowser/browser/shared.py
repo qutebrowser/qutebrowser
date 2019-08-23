@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2016-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2016-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -42,7 +42,6 @@ def custom_headers(url):
     if dnt_config is not None:
         dnt = b'1' if dnt_config else b'0'
         headers[b'DNT'] = dnt
-        headers[b'X-Do-Not-Track'] = dnt
 
     conf_headers = config.instance.get('content.headers.custom', url=url)
     for header, value in conf_headers.items():
@@ -222,11 +221,12 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
                 html.escape(url.toDisplayString()), msg)
         else:
             urlstr = None
+            option = None  # For message.ask/confirm_async
             text = "Allow the website to {}?".format(msg)
 
         if blocking:
             answer = message.ask(abort_on=abort_on, title='Permission request',
-                                 text=text, url=urlstr,
+                                 text=text, url=urlstr, option=option,
                                  mode=usertypes.PromptMode.yesno)
             if answer:
                 yes_action()
@@ -237,7 +237,8 @@ def feature_permission(url, option, msg, yes_action, no_action, abort_on,
             return message.confirm_async(
                 yes_action=yes_action, no_action=no_action,
                 cancel_action=no_action, abort_on=abort_on,
-                title='Permission request', text=text, url=urlstr)
+                title='Permission request', text=text, url=urlstr,
+                option=option)
     elif config_val:
         yes_action()
         return None

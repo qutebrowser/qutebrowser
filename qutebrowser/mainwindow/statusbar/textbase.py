@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -87,4 +87,4 @@ class TextBase(QLabel):
             geom = self.geometry()
             qtutils.ensure_valid(geom)
             painter.drawText(0, 0, geom.width(), geom.height(),
-                             self.alignment(), self._elided_text)
+                             int(self.alignment()), self._elided_text)

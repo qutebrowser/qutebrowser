@@ -100,7 +100,7 @@
 
         const head = document.getElementsByTagName("head")[0];
         if (head === undefined) {
-            // no head yet, stick it whereever
+            // no head yet, stick it wherever
             document.documentElement.appendChild(oStyle);
         } else {
             head.appendChild(oStyle);

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2014-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2014-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -326,7 +326,7 @@ class FullscreenNotification(QLabel):
             geom = self.parentWidget().geometry()
         else:
             geom = QApplication.desktop().screenGeometry(self)
-        self.move((geom.width() - self.sizeHint().width()) / 2, 30)
+        self.move((geom.width() - self.sizeHint().width()) // 2, 30)
 
     def set_timeout(self, timeout):
         """Hide the widget after the given timeout."""

@@ -1,5 +1,5 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
-# Copyright 2017-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2017-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 
 # This file is part of qutebrowser.
 #
@@ -64,6 +64,12 @@ def configdata_init(monkeypatch):
 
 
 class TestEarlyInit:
+
+    def test_config_py_path(self, args, init_patch, config_py_arg):
+        config_py_arg.write('c.colors.hints.bg = "red"\n')
+        configinit.early_init(args)
+        expected = 'colors.hints.bg = red'
+        assert config.instance.dump_userconfig() == expected
 
     @pytest.mark.parametrize('config_py', [True, 'error', False])
     def test_config_py(self, init_patch, config_tmpdir, caplog, args,
@@ -401,8 +407,8 @@ class TestQtArgs:
         assert configinit.qt_args(parsed) == [sys.argv[0], '--foo', '--bar']
 
     @pytest.mark.parametrize('backend, expected', [
-        (usertypes.Backend.QtWebEngine, ['--disable-shared-workers']),
-        (usertypes.Backend.QtWebKit, []),
+        (usertypes.Backend.QtWebEngine, True),
+        (usertypes.Backend.QtWebKit, False),
     ])
     def test_shared_workers(self, config_stub, monkeypatch, parser,
                             backend, expected):
@@ -410,6 +416,49 @@ class TestQtArgs:
                             lambda version, compiled=False: False)
         monkeypatch.setattr(configinit.objects, 'backend', backend)
         parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+        assert ('--disable-shared-workers' in args) == expected
+
+    @pytest.mark.parametrize('backend, version_check, debug_flag, expected', [
+        # Qt >= 5.12.3: Enable with -D stack, do nothing without it.
+        (usertypes.Backend.QtWebEngine, True, True, True),
+        (usertypes.Backend.QtWebEngine, True, False, None),
+        # Qt < 5.12.3: Do nothing with -D stack, disable without it.
+        (usertypes.Backend.QtWebEngine, False, True, None),
+        (usertypes.Backend.QtWebEngine, False, False, False),
+        # QtWebKit: Do nothing
+        (usertypes.Backend.QtWebKit, True, True, None),
+        (usertypes.Backend.QtWebKit, True, False, None),
+        (usertypes.Backend.QtWebKit, False, True, None),
+        (usertypes.Backend.QtWebKit, False, False, None),
+    ])
+    def test_in_process_stack_traces(self, monkeypatch, parser, backend,
+                                     version_check, debug_flag, expected):
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, compiled=False: version_check)
+        monkeypatch.setattr(configinit.objects, 'backend', backend)
+        parsed = parser.parse_args(['--debug-flag', 'stack'] if debug_flag
+                                   else [])
+        args = configinit.qt_args(parsed)
+
+        if expected is None:
+            assert '--disable-in-process-stack-traces' not in args
+            assert '--enable-in-process-stack-traces' not in args
+        elif expected:
+            assert '--disable-in-process-stack-traces' not in args
+            assert '--enable-in-process-stack-traces' in args
+        else:
+            assert '--disable-in-process-stack-traces' in args
+            assert '--enable-in-process-stack-traces' not in args
+
+    @pytest.mark.parametrize('flags, expected', [
+        ([], []),
+        (['--debug-flag', 'chromium'], ['--enable-logging', '--v=1']),
+    ])
+    def test_chromium_debug(self, monkeypatch, parser, flags, expected):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        parsed = parser.parse_args(flags)
         assert configinit.qt_args(parsed) == [sys.argv[0]] + expected
 
     def test_disable_gpu(self, config_stub, monkeypatch, parser):

@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -28,8 +28,8 @@ bdd.scenarios('downloads.feature')
 
 
 PROMPT_MSG = ("Asking question <qutebrowser.utils.usertypes.Question "
-              "default={!r} mode=<PromptMode.download: 5> text=* "
-              "title='Save file to:'>, *")
+              "default={!r} mode=<PromptMode.download: 5> option=None "
+              "text=* title='Save file to:'>, *")
 
 
 @bdd.given("I set up a temporary download dir")

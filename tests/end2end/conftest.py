@@ -1,6 +1,6 @@
 # vim: ft=python fileencoding=utf-8 sts=4 sw=4 et:
 
-# Copyright 2015-2018 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
+# Copyright 2015-2019 Florian Bruhin (The Compiler) <mail@qutebrowser.org>
 #
 # This file is part of qutebrowser.
 #
@@ -110,6 +110,7 @@ def _get_backend_tag(tag):
     pytest_marks = {
         'qtwebengine_todo': pytest.mark.qtwebengine_todo,
         'qtwebengine_skip': pytest.mark.qtwebengine_skip,
+        'qtwebengine_notifications': pytest.mark.qtwebengine_notifications,
         'qtwebkit_skip': pytest.mark.qtwebkit_skip,
     }
     if not any(tag.startswith(t + ':') for t in pytest_marks):
@@ -141,6 +142,10 @@ def pytest_collection_modifyitems(config, items):
          config.webengine),
         ('qtwebengine_skip', 'Skipped with QtWebEngine', pytest.mark.skipif,
          config.webengine),
+        ('qtwebengine_notifications',
+         'Skipped with QtWebEngine < 5.13',
+         pytest.mark.skipif,
+         config.webengine and not qtutils.version_check('5.13')),
         ('qtwebkit_skip', 'Skipped with QtWebKit', pytest.mark.skipif,
          not config.webengine),
         ('qtwebengine_flaky', 'Flaky with QtWebEngine', pytest.mark.skipif,

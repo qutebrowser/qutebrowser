@@ -79,7 +79,7 @@ QtWebEngine is based on Google's https://www.chromium.org/Home[Chromium]. While
 Qt only updates to a new Chromium release on every minor Qt release (all ~6
 months), every patch release backports security fixes from newer Chromium
 versions. In other words: As long as you're using an up-to-date Qt, you should
-be recieving security updates on a regular basis, without qutebrowser having to
+be receiving security updates on a regular basis, without qutebrowser having to
 do anything. Chromium's process isolation and
 https://chromium.googlesource.com/chromium/src/+/master/docs/design/sandbox.md[sandboxing]
 features are also enabled as a second line of defense.
@@ -154,7 +154,7 @@ How do I use qutebrowser with mutt?::
     extension:
 +
 ----
-    text/html; qutebrowser %s; nametemplate=%s.html
+    text/html; qutebrowser %s; needsterminal; nametemplate=%s.html
 ----
 
 What is the difference between bookmarks and quickmarks?::
@@ -211,9 +211,10 @@ Why does J move to the next (right) tab, and K to the previous (left) one?::
 
 What's the difference between insert and passthrough mode?::
     They are quite similar, but insert mode has some bindings (like `Ctrl-e` to
-    open an editor) while passthrough mode only has escape bound. It might also
-    be useful to rebind escape to something else in passthrough mode only, to be
-    able to send an escape keypress to the website.
+    open an editor) while passthrough mode only has shift+escape bound. This is
+    because shift+escape is unlikely to be a useful binding to be passed to a
+    webpage. However, any other keys may be assigned to leaving passthrough mode
+    instead of shift+escape should this be desired.
 
 Why does it take longer to open a URL in qutebrowser than in chromium?::
     When opening a URL in an existing instance, the normal qutebrowser
@@ -225,9 +226,7 @@ Why does it take longer to open a URL in qutebrowser than in chromium?::
     and place it in your $PATH with the name "qutebrowser". This
     script passes the URL via an unix socket to qutebrowser (if its
     running already) using socat which is much faster and starts a new
-    qutebrowser if it is not running already. Also check if you want
-    to use webengine as backend in line 17 and change it to your
-    needs.
+    qutebrowser if it is not running already.
 
 How do I make qutebrowser use greasemonkey scripts?::
     There is currently no UI elements to handle managing greasemonkey scripts.
@@ -298,15 +297,10 @@ Unable to view DRM content (Netflix, Spotify, etc.).::
     You will need to install `widevine` and set `qt.args` to point to it.
     Qt 5.9 currently only supports widevine up to Chrome version 61.
 +
-On Arch, simply install `qt5-webengine-widevine` from the AUR and run:
-+
-----
-:set qt.args '["ppapi-widevine-path=/usr/lib/qt/plugins/ppapi/libwidevinecdmadapter.so"]'
-:restart
-----
+On Arch, simply install `chromium-widevine` from the AUR.
 +
 For other distributions, download the chromium tarball and widevine-cdm zip from
-https://aur.archlinux.org/packages/qt5-webengine-widevine/[the AUR page],
+https://aur.archlinux.org/packages/chromium-widevine/[the AUR page],
 extract `libwidevinecdmadapter.so` and `libwidevinecdm.so` files, respectively,
 and move them to the `ppapi` plugin directory in your Qt library directory (create it if it does not exist).
 +
@@ -320,7 +314,7 @@ Lastly, set your `qt.args` to point to that directory and restart qutebrowser:
 Unable to use `spawn` on MacOS.::
 When running qutebrowser from the prebuilt binary (`qutebrowser.app`) it *will
 not* read any files that would alter your `$PATH` (e.g. `.profile`, `.bashrc`,
-etc). This is not a bug, just that `.profile` is not propogated to GUI
+etc). This is not a bug, just that `.profile` is not propagated to GUI
 applications in MacOS.
 +
 See https://github.com/qutebrowser/qutebrowser/issues/4273[Issue #4273] for
