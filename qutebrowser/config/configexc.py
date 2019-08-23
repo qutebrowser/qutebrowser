@@ -22,7 +22,7 @@
 import typing
 import attr
 
-from qutebrowser.utils import jinja, usertypes
+from qutebrowser.utils import jinja, usertypes, log
 
 
 class Error(Exception):
@@ -146,6 +146,10 @@ class ConfigFileErrors(Error):
             basename, '\n'.join('  {}'.format(e) for e in errors)))
         self.basename = basename
         self.errors = errors
+        for err in errors:
+            if err.traceback:
+                log.config.debug("Config error stack:")
+                log.config.debug(err.traceback)
 
     def to_html(self) -> str:
         """Get the error texts as a HTML snippet."""

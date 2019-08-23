@@ -40,7 +40,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.browser import mouse, hints
+from qutebrowser.browser import eventfilter, hints
 from qutebrowser.qt import sip
 MYPY = False
 if MYPY:
@@ -788,7 +788,9 @@ class AbstractTabPrivate:
         if cur_mode == usertypes.KeyMode.insert:
             return
 
-        def _auto_insert_mode_cb(elem: 'webelem.AbstractWebElement') -> None:
+        def _auto_insert_mode_cb(
+                elem: typing.Optional['webelem.AbstractWebElement']
+        ) -> None:
             """Called from JS after finding the focused element."""
             if elem is None:
                 log.webview.debug("No focused element!")
@@ -883,7 +885,7 @@ class AbstractTab(QWidget):
         self._progress = 0
         self._has_ssl_errors = False
         self._load_status = usertypes.LoadStatus.none
-        self._mouse_event_filter = mouse.MouseEventFilter(
+        self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend = None
 
@@ -1016,7 +1018,19 @@ class AbstractTab(QWidget):
             return
 
         sess_manager.save_autosave()
+        self.load_finished.emit(ok)
 
+        if not self.title():
+            self.title_changed.emit(self.url().toDisplayString())
+
+        self.zoom.reapply()
+
+    def _update_load_status(self, ok: bool) -> None:
+        """Update the load status after a page finished loading.
+
+        Needs to be called by subclasses to trigger a load status update, e.g.
+        as a response to a loadFinished signal.
+        """
         if ok and not self._has_ssl_errors:
             if self.url().scheme() == 'https':
                 self._set_load_status(usertypes.LoadStatus.success_https)
@@ -1026,13 +1040,6 @@ class AbstractTab(QWidget):
             self._set_load_status(usertypes.LoadStatus.warn)
         else:
             self._set_load_status(usertypes.LoadStatus.error)
-
-        self.load_finished.emit(ok)
-
-        if not self.title():
-            self.title_changed.emit(self.url().toDisplayString())
-
-        self.zoom.reapply()
 
     @pyqtSlot()
     def _on_history_trigger(self) -> None:

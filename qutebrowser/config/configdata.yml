@@ -81,7 +81,7 @@ new_instance_open_target_window:
   desc: >-
     Which window to choose when opening links as new tabs.
 
-    When `new_instance_open_target` is not set to `window`, this is ignored.
+    When `new_instance_open_target` is set to `window`, this is ignored.
 
 session_default_name:
   renamed: session.default_name
@@ -377,7 +377,7 @@ content.developer_extras:
   deleted: true
 
 content.dns_prefetch:
-  default: true
+  default: false
   type: Bool
   backend:
     QtWebKit: true
@@ -479,11 +479,11 @@ content.headers.user_agent:
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/71.0.3578.98 Safari/537.36"
-        - Chrome 71.0 Win10
+          like Gecko) Chrome/75.0.3770.100 Safari/537.36"
+        - Chrome 75.0 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/71.0.3578.98 Safari/537.36"
-        - Chrome 71.0 Linux
+          Gecko) Chrome/75.0.3770.100 Safari/537.36 "
+        - Chrome 75.0 Linux
       - - ""
         - Use default QtWebKit/QtWebEngine User-Agent
 
@@ -661,12 +661,15 @@ content.notifications:
   default: ask
   type: BoolAsk
   supports_pattern: true
-  backend: QtWebKit
+  backend:
+    QtWebEngine: Qt 5.13
+    QtWebKit: true
   desc: Allow websites to show notifications.
 
 content.pdfjs:
   default: false
   type: Bool
+  supports_pattern: true
   desc: >-
     Allow pdf.js to view PDF files in the browser.
 
@@ -1201,6 +1204,11 @@ hints.uppercase:
   type: Bool
   desc: Make characters in hint strings uppercase.
 
+hints.leave_on_load:
+  default: true
+  type: Bool
+  desc: Leave hint mode when starting a new page load.
+
 ## input
 
 input.escape_quits_reporter:
@@ -1622,13 +1630,13 @@ tabs.title.alignment:
   desc: Alignment of the text inside of tabs.
 
 tabs.title.format:
-  default: '{audio}{index}: {title}'
+  default: '{audio}{index}: {current_title}'
   type:
     name: FormatString
     fields:
       - perc
       - perc_raw
-      - title
+      - current_title
       - title_sep
       - index
       - id
@@ -1645,7 +1653,7 @@ tabs.title.format:
 
     * `{perc}`: Percentage as a string like `[10%]`.
     * `{perc_raw}`: Raw percentage, e.g. `10`.
-    * `{title}`: Title of the current web page.
+    * `{current_title}`: Title of the current web page.
     * `{title_sep}`: The string ` - ` if a title is set, empty otherwise.
     * `{index}`: Index of this tab.
     * `{id}`: Internal tab ID of this tab.
@@ -1664,7 +1672,7 @@ tabs.title.format_pinned:
     fields:
       - perc
       - perc_raw
-      - title
+      - current_title
       - title_sep
       - index
       - id
@@ -1755,6 +1763,14 @@ tabs.pinned.frozen:
     type: Bool
     default: True
     desc: Force pinned tabs to stay at fixed URL.
+
+tabs.undo_stack_size:
+  default: 100
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+  desc: Number of close tab actions to remember, per window (-1 for no maximum).
 
 tabs.wrap:
   default: true
@@ -1856,7 +1872,7 @@ window.title_format:
     fields:
       - perc
       - perc_raw
-      - title
+      - current_title
       - title_sep
       - id
       - scroll_pos
@@ -1866,7 +1882,7 @@ window.title_format:
       - current_url
       - protocol
       - audio
-  default: '{perc}{title}{title_sep}qutebrowser'
+  default: '{perc}{current_title}{title_sep}qutebrowser'
   desc: |
     Format to use for the window title. The same placeholders like for
     `tabs.title.format` are defined.
@@ -1974,12 +1990,17 @@ colors.completion.item.selected.bg:
 colors.completion.item.selected.border.top:
   default: '#bbbb00'
   type: QssColor
-  desc: Top border color of the completion widget category headers.
+  desc: Top border color of the selected completion item.
 
 colors.completion.item.selected.border.bottom:
   default: '#bbbb00'
   type: QssColor
   desc: Bottom border color of the selected completion item.
+
+colors.completion.item.selected.match.fg:
+  default: '#ff4444'
+  type: QtColor
+  desc: Foreground color of the matched text in the selected completion item.
 
 colors.completion.match.fg:
   default: '#ff4444'
@@ -2057,7 +2078,7 @@ colors.hints.bg:
 
 colors.hints.match.fg:
   default: green
-  type: QssColor
+  type: QtColor
   desc: Font color for the matched part of hints.
 
 colors.keyhint.fg:
@@ -2258,7 +2279,7 @@ colors.statusbar.url.warn.fg:
 
 colors.tabs.bar.bg:
   default: '#555555'
-  type: QtColor
+  type: QssColor
   desc: Background color of the tab bar.
 
 colors.tabs.indicator.start:
@@ -2804,6 +2825,8 @@ bindings.default:
       <Return>: prompt-accept
       y: prompt-accept yes
       n: prompt-accept no
+      Y: prompt-accept --save yes
+      N: prompt-accept --save no
       <Alt-Y>: prompt-yank
       <Alt-Shift-Y>: prompt-yank --sel
       <Escape>: leave-mode

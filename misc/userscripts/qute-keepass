@@ -244,7 +244,7 @@ def run(args):
         # Enter username and password using insert-key and fake-key <Tab>
         # (which supports more passwords than fake-key only), then switch back
         # into insert-mode, so the form can be directly submitted by hitting
-        # enter afterwards. It dosen't matter when we go into insert mode, but
+        # enter afterwards. It doesn't matter when we go into insert mode, but
         # the other commands need to be be executed sequentially, so we add
         # delays with later.
         qute_command('insert-text {} ;;'

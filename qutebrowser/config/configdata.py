@@ -31,6 +31,7 @@ import functools
 import attr
 from qutebrowser.config import configtypes
 from qutebrowser.utils import usertypes, qtutils, utils
+from qutebrowser.misc import debugcachestats
 
 DATA = typing.cast(typing.Mapping[str, 'Option'], None)
 MIGRATIONS = typing.cast('Migrations', None)
@@ -165,6 +166,7 @@ def _parse_yaml_backends_dict(
         'Qt 5.10': qtutils.version_check('5.10'),
         'Qt 5.11': qtutils.version_check('5.11'),
         'Qt 5.12': qtutils.version_check('5.12'),
+        'Qt 5.13': qtutils.version_check('5.13'),
     }
     for key in sorted(node.keys()):
         if conditionals[node[key]]:
@@ -266,6 +268,7 @@ def _read_yaml(
     return parsed, migrations
 
 
+@debugcachestats.register()
 @functools.lru_cache(maxsize=256)
 def is_valid_prefix(prefix: str) -> bool:
     """Check whether the given prefix is a valid prefix for some option."""

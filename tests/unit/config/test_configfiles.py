@@ -76,14 +76,48 @@ def autoconfig(config_tmpdir):
 
 
 @pytest.mark.parametrize('old_data, insert, new_data', [
-    (None, False, '[general]\n\n[geometry]\n\n'),
-    ('[general]\nfooled = true', False, '[general]\n\n[geometry]\n\n'),
-    ('[general]\nfoobar = 42', False,
-     '[general]\nfoobar = 42\n\n[geometry]\n\n'),
-    (None, True, '[general]\nnewval = 23\n\n[geometry]\n\n'),
+    (None,
+     False,
+     '[general]\n'
+     'qt_version = 5.6.7\n'
+     'version = 1.2.3\n'
+     '\n'
+     '[geometry]\n'
+     '\n'),
+    ('[general]\n'
+     'fooled = true',
+     False,
+     '[general]\n'
+     'qt_version = 5.6.7\n'
+     'version = 1.2.3\n'
+     '\n'
+     '[geometry]\n'
+     '\n'),
+    ('[general]\n'
+     'foobar = 42',
+     False,
+     '[general]\n'
+     'foobar = 42\n'
+     'qt_version = 5.6.7\n'
+     'version = 1.2.3\n'
+     '\n'
+     '[geometry]\n'
+     '\n'),
+    (None,
+     True,
+     '[general]\n'
+     'qt_version = 5.6.7\n'
+     'version = 1.2.3\n'
+     'newval = 23\n'
+     '\n'
+     '[geometry]\n'
+     '\n'),
 ])
-def test_state_config(fake_save_manager, data_tmpdir,
+def test_state_config(fake_save_manager, data_tmpdir, monkeypatch,
                       old_data, insert, new_data):
+    monkeypatch.setattr(configfiles.qutebrowser, '__version__', '1.2.3')
+    monkeypatch.setattr(configfiles, 'qVersion', lambda: '5.6.7')
+
     statefile = data_tmpdir / 'state'
     if old_data is not None:
         statefile.write_text(old_data, 'utf-8')
@@ -100,6 +134,28 @@ def test_state_config(fake_save_manager, data_tmpdir,
 
     assert statefile.read_text('utf-8') == new_data
     fake_save_manager.add_saveable('state-config', unittest.mock.ANY)
+
+
+@pytest.mark.parametrize('old_version, new_version, changed', [
+    (None, '5.12.1', False),
+    ('5.12.1', '5.12.1', False),
+    ('5.12.2', '5.12.1', True),
+    ('5.12.1', '5.12.2', True),
+    ('5.13.0', '5.12.2', True),
+    ('5.12.2', '5.13.0', True),
+])
+def test_qt_version_changed(data_tmpdir, monkeypatch,
+                            old_version, new_version, changed):
+    monkeypatch.setattr(configfiles, 'qVersion', lambda: new_version)
+
+    statefile = data_tmpdir / 'state'
+    if old_version is not None:
+        data = ('[general]\n'
+                'qt_version = {}'.format(old_version))
+        statefile.write_text(data, 'utf-8')
+
+    state = configfiles.StateConfig()
+    assert state.qt_version_changed == changed
 
 
 class TestYaml:
@@ -250,6 +306,19 @@ class TestYaml:
         data = autoconfig.read()
         assert data['content.webrtc_ip_handling_policy']['global'] == expected
 
+    @pytest.fixture
+    def migration_test(self, yaml, autoconfig):
+        def run(setting, old, new):
+            autoconfig.write({setting: {'global': old}})
+
+            yaml.load()
+            yaml._save()
+
+            data = autoconfig.read()
+            assert data[setting]['global'] == new
+
+        return run
+
     @pytest.mark.parametrize('setting, old, new', [
         ('tabs.favicons.show', True, 'always'),
         ('tabs.favicons.show', False, 'never'),
@@ -263,15 +332,25 @@ class TestYaml:
         ('qt.force_software_rendering', False, 'none'),
         ('qt.force_software_rendering', 'chromium', 'chromium'),
     ])
-    def test_bool_migrations(self, yaml, autoconfig, setting, old, new):
+    def test_bool_migrations(self, migration_test, setting, old, new):
         """Tests for migration of former boolean settings."""
-        autoconfig.write({setting: {'global': old}})
+        migration_test(setting, old, new)
 
-        yaml.load()
-        yaml._save()
-
-        data = autoconfig.read()
-        assert data[setting]['global'] == new
+    @pytest.mark.parametrize('setting', [
+        'tabs.title.format',
+        'tabs.title.format_pinned',
+        'window.title_format'
+    ])
+    @pytest.mark.parametrize('old, new', [
+        ('{title}', '{current_title}'),
+        ('eve{title}duna', 'eve{current_title}duna'),
+        ('eve{{title}}duna', 'eve{{title}}duna'),
+        ('{{title}}', '{{title}}'),
+        ('', ''),
+        (None, None),
+    ])
+    def test_title_format_migrations(self, migration_test, setting, old, new):
+        migration_test(setting, old, new)
 
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):
@@ -920,6 +999,19 @@ class TestConfigPyWriter:
         text = '\n'.join(writer._gen_lines())
         assert 'bindings.default' not in text
         assert 'bindings.commands' not in text
+
+    def test_unbind(self):
+        bindings = {'normal': {',x': None},
+                    'caret': {',y': 'message-info caret', ',z': None}}
+
+        writer = configfiles.ConfigPyWriter([], bindings, commented=False)
+        lines = list(writer._gen_lines())
+
+        assert "config.unbind(',x')" in lines
+        assert "config.unbind(',z', mode='caret')" in lines
+        caret_bind = ("config.bind(',y', 'message-info caret', "
+                      "mode='caret')")
+        assert caret_bind in lines
 
     def test_commented(self):
         opt = configdata.Option(

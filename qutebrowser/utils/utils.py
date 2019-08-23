@@ -664,8 +664,7 @@ def yaml_load(f):
     with log.ignore_py_warnings(
             category=DeprecationWarning,
             message=r"Using or importing the ABCs from 'collections' instead "
-            r"of from 'collections\.abc' is deprecated, and in 3\.8 it will "
-            r"stop working"):
+            r"of from 'collections\.abc' is deprecated.*"):
         data = yaml.load(f, Loader=YamlLoader)
 
     end = datetime.datetime.now()

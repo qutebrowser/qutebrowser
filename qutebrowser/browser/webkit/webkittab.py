@@ -725,7 +725,7 @@ class WebKitTab(browsertab.AbstractTab):
         self.backend = usertypes.Backend.QtWebKit
 
     def _install_event_filter(self):
-        self._widget.installEventFilter(self._mouse_event_filter)
+        self._widget.installEventFilter(self._tab_event_filter)
 
     def _make_private(self, widget):
         settings = widget.settings()
@@ -790,6 +790,11 @@ class WebKitTab(browsertab.AbstractTab):
         nam.netrc_used = False
         # Make sure the icon is cleared when navigating to a page without one.
         self.icon_changed.emit(QIcon())
+
+    @pyqtSlot(bool)
+    def _on_load_finished(self, ok: bool) -> None:
+        super()._on_load_finished(ok)
+        self._update_load_status(ok)
 
     @pyqtSlot()
     def _on_frame_load_finished(self):

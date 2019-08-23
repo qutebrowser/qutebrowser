@@ -131,6 +131,8 @@ def get_pdfjs_res_and_path(path):
         # Debian pdf.js-common
         # Arch Linux pdfjs (AUR)
         '/usr/share/pdf.js/',
+        # Flatpak (Flathub)
+        '/app/share/pdf.js/',
         # Arch Linux pdf.js (AUR)
         '/usr/share/javascript/pdf.js/',
         # Debian libjs-pdf
@@ -231,7 +233,8 @@ def should_use_pdfjs(mimetype, url):
     is_download_url = (url.scheme() == 'blob' and
                        QUrl(url.path()).scheme() == 'qute')
     is_pdf = mimetype in ['application/pdf', 'application/x-pdf']
-    return is_pdf and not is_download_url and config.val.content.pdfjs
+    config_enabled = config.instance.get('content.pdfjs', url=url)
+    return is_pdf and not is_download_url and config_enabled
 
 
 def get_main_url(filename):

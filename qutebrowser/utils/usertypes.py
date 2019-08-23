@@ -309,6 +309,7 @@ class Question(QObject):
         title: The question title to show.
         text: The prompt text to display to the user.
         url: Any URL referenced in prompts.
+        option: Boolean option to be set when answering always/never.
         answer: The value the user entered (as password for user_pwd).
         is_aborted: Whether the question was aborted.
         interrupted: Whether the question was interrupted by another one.
@@ -340,13 +341,15 @@ class Question(QObject):
         self.title = None
         self.text = None
         self.url = None
+        self.option = None
         self.answer = None
         self.is_aborted = False
         self.interrupted = False
 
     def __repr__(self):
         return utils.get_repr(self, title=self.title, text=self.text,
-                              mode=self._mode, default=self.default)
+                              mode=self._mode, default=self.default,
+                              option=self.option)
 
     @property
     def mode(self):
@@ -450,6 +453,7 @@ class NavigationRequest:
         'form_resubmitted',  # QtWebKit only
         'back_forward',
         'reloaded',
+        'redirect',  # QtWebEngine >= 5.14 only
         'other'
     ])
 

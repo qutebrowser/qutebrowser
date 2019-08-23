@@ -190,8 +190,8 @@ class WebEngineElement(webelem.AbstractWebElement):
                 # We're not checking for zoom.text_only here as that doesn't
                 # exist for QtWebEngine.
                 zoom = self._tab.zoom.factor()
-                rect = QRect(left * zoom, top * zoom,
-                             width * zoom, height * zoom)
+                rect = QRect(int(left * zoom), int(top * zoom),
+                             int(width * zoom), int(height * zoom))
                 # FIXME:qtwebengine
                 # frame = self._elem.webFrame()
                 # while frame is not None:
@@ -208,6 +208,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         if self._js_dict['attributes'].get('target') == '_blank':
             self._js_dict['attributes']['target'] = '_top'
         self._js_call('remove_blank_target')
+
+    def delete(self) -> None:
+        self._js_call('delete')
 
     def _move_text_cursor(self) -> None:
         if self.is_text_input() and self.is_editable():

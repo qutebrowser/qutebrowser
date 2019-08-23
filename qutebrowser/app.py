@@ -162,6 +162,9 @@ def init(args, crash_handler):
         crash_handler: The CrashHandler instance.
     """
     log.init.debug("Starting init...")
+
+    crash_handler.init_faulthandler()
+
     q_app.setQuitOnLastWindowClosed(False)
     _init_icon()
 
@@ -217,6 +220,11 @@ def _process_args(args):
     session_manager = objreg.get('session-manager')
     if not session_manager.did_load:
         log.init.debug("Initializing main window...")
+        if config.val.content.private_browsing and qtutils.is_single_process():
+            err = Exception("Private windows are unavailable with "
+                            "the single-process process model.")
+            error.handle_fatal_exc(err, args, 'Cannot start in private mode')
+            sys.exit(usertypes.Exit.err_init)
         window = mainwindow.MainWindow(private=None)
         if not args.nowindow:
             window.show()
@@ -461,16 +469,14 @@ def _init_modules(args, crash_handler):
 
     log.init.debug("Initializing command history...")
     cmdhistory.init()
-
-    log.init.debug("Initializing crashlog...")
-    if not args.no_err_windows:
-        crash_handler.handle_segfault()
-
     log.init.debug("Initializing sessions...")
     sessions.init(q_app)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
+
+    if not args.no_err_windows:
+        crash_handler.display_faulthandler()
 
     log.init.debug("Initializing quickmarks...")
     quickmark_manager = urlmarks.QuickmarkManager(q_app)

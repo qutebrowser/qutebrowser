@@ -19,6 +19,7 @@
 
 """The main tabbed browser widget."""
 
+import collections
 import functools
 
 import attr
@@ -111,6 +112,8 @@ class TabbedBrowser(QWidget):
     new_tab = pyqtSignal(browsertab.AbstractTab, int)
 
     def __init__(self, *, win_id, private, parent=None):
+        if private:
+            assert not qtutils.is_single_process()
         super().__init__(parent)
         self.widget = tabwidget.TabWidget(win_id, parent=self)
         self._win_id = win_id
@@ -119,11 +122,20 @@ class TabbedBrowser(QWidget):
         self.shutting_down = False
         self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(self.tabopen)
-        self.widget.currentChanged.connect(self.on_current_changed)
-        self.cur_load_started.connect(self.on_cur_load_started)
+        self.widget.currentChanged.connect(self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self._undo_stack = []
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        if qtutils.version_check('5.10', compiled=False):
+            self.cur_load_finished.connect(self._leave_modes_on_load)
+        else:
+            self.cur_load_started.connect(self._leave_modes_on_load)
+
+        # This init is never used, it is immediately thrown away in the next
+        # line.
+        self._undo_stack = collections.deque()
+        self._update_stack_size()
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
         self.search_text = None
@@ -134,6 +146,13 @@ class TabbedBrowser(QWidget):
         self.is_private = private
         config.instance.changed.connect(self._on_config_changed)
 
+    def _update_stack_size(self):
+        newsize = config.instance.get('tabs.undo_stack_size')
+        if newsize < 0:
+            newsize = None
+        # We can't resize a collections.deque so just recreate it >:(
+        self._undo_stack = collections.deque(self._undo_stack, maxlen=newsize)
+
     def __repr__(self):
         return utils.get_repr(self, count=self.widget.count())
 
@@ -143,6 +162,8 @@ class TabbedBrowser(QWidget):
             self._update_favicons()
         elif option == 'window.title_format':
             self._update_window_title()
+        elif option == 'tabs.undo_stack_size':
+            self._update_stack_size()
         elif option in ['tabs.title.format', 'tabs.title.format_pinned']:
             self.widget.update_tab_titles()
 
@@ -221,22 +242,24 @@ class TabbedBrowser(QWidget):
         tab.caret.selection_toggled.connect(
             self._filter.create(self.cur_caret_selection_toggled, tab))
         # misc
-        tab.scroller.perc_changed.connect(self.on_scroll_pos_changed)
+        tab.scroller.perc_changed.connect(self._on_scroll_pos_changed)
         tab.scroller.before_jump_requested.connect(lambda: self.set_mark("'"))
         tab.url_changed.connect(
-            functools.partial(self.on_url_changed, tab))
+            functools.partial(self._on_url_changed, tab))
         tab.title_changed.connect(
-            functools.partial(self.on_title_changed, tab))
+            functools.partial(self._on_title_changed, tab))
         tab.icon_changed.connect(
-            functools.partial(self.on_icon_changed, tab))
+            functools.partial(self._on_icon_changed, tab))
         tab.load_progress.connect(
-            functools.partial(self.on_load_progress, tab))
+            functools.partial(self._on_load_progress, tab))
         tab.load_finished.connect(
-            functools.partial(self.on_load_finished, tab))
+            functools.partial(self._on_load_finished, tab))
         tab.load_started.connect(
-            functools.partial(self.on_load_started, tab))
+            functools.partial(self._on_load_started, tab))
+        tab.load_status_changed.connect(
+            functools.partial(self._on_load_status_changed, tab))
         tab.window_close_requested.connect(
-            functools.partial(self.on_window_close_requested, tab))
+            functools.partial(self._on_window_close_requested, tab))
         tab.renderer_process_terminated.connect(
             functools.partial(self._on_renderer_process_terminated, tab))
         tab.audio.muted_changed.connect(
@@ -421,7 +444,7 @@ class TabbedBrowser(QWidget):
             tab, False, lambda: self.close_tab(tab))
 
     @pyqtSlot(browsertab.AbstractTab)
-    def on_window_close_requested(self, widget):
+    def _on_window_close_requested(self, widget):
         """Close a tab with a widget given."""
         try:
             self.close_tab(widget)
@@ -562,29 +585,34 @@ class TabbedBrowser(QWidget):
             self.widget.update_tab_favicon(tab)
 
     @pyqtSlot()
-    def on_load_started(self, tab):
+    def _on_load_started(self, tab):
         """Clear icon and update title when a tab started loading.
 
         Args:
             tab: The tab where the signal belongs to.
         """
-        try:
-            idx = self._tab_index(tab)
-        except TabDeletedError:
-            # We can get signals for tabs we already deleted...
-            return
-        self.widget.update_tab_title(idx)
         if tab.data.keep_icon:
             tab.data.keep_icon = False
         else:
             if (config.val.tabs.tabs_are_windows and
                     tab.data.should_show_icon()):
                 self.widget.window().setWindowIcon(self.default_window_icon)
+
+    @pyqtSlot()
+    def _on_load_status_changed(self, tab):
+        """Update tab/window titles if the load status changed."""
+        try:
+            idx = self._tab_index(tab)
+        except TabDeletedError:
+            # We can get signals for tabs we already deleted...
+            return
+
+        self.widget.update_tab_title(idx)
         if idx == self.widget.currentIndex():
             self._update_window_title()
 
     @pyqtSlot()
-    def on_cur_load_started(self):
+    def _leave_modes_on_load(self):
         """Leave insert/hint mode when loading started."""
         try:
             url = self.current_url()
@@ -598,11 +626,14 @@ class TabbedBrowser(QWidget):
                           'load started', maybe=True)
         else:
             log.modes.debug("Ignoring leave_on_load request due to setting.")
-        modeman.leave(self._win_id, usertypes.KeyMode.hint,
-                      'load started', maybe=True)
+        if config.cache['hints.leave_on_load']:
+            modeman.leave(self._win_id, usertypes.KeyMode.hint,
+                          'load started', maybe=True)
+        else:
+            log.modes.debug("Ignoring leave_on_load request due to setting.")
 
     @pyqtSlot(browsertab.AbstractTab, str)
-    def on_title_changed(self, tab, text):
+    def _on_title_changed(self, tab, text):
         """Set the title of a tab.
 
         Slot for the title_changed signal of any tab.
@@ -626,7 +657,7 @@ class TabbedBrowser(QWidget):
             self._update_window_title()
 
     @pyqtSlot(browsertab.AbstractTab, QUrl)
-    def on_url_changed(self, tab, url):
+    def _on_url_changed(self, tab, url):
         """Set the new URL as title if there's no title yet.
 
         Args:
@@ -643,7 +674,7 @@ class TabbedBrowser(QWidget):
             self.widget.set_page_title(idx, url.toDisplayString())
 
     @pyqtSlot(browsertab.AbstractTab, QIcon)
-    def on_icon_changed(self, tab, icon):
+    def _on_icon_changed(self, tab, icon):
         """Set the icon of a tab.
 
         Slot for the iconChanged signal of any tab.
@@ -686,7 +717,7 @@ class TabbedBrowser(QWidget):
             widget.data.input_mode = usertypes.KeyMode.normal
 
     @pyqtSlot(int)
-    def on_current_changed(self, idx):
+    def _on_current_changed(self, idx):
         """Set last-focused-tab and leave hinting mode when focus changed."""
         mode_on_change = config.val.tabs.mode_on_change
         if idx == -1 or self.shutting_down:
@@ -730,7 +761,7 @@ class TabbedBrowser(QWidget):
         """Set focus when the commandline closes."""
         log.modes.debug("Commandline closed, focusing {!r}".format(self))
 
-    def on_load_progress(self, tab, perc):
+    def _on_load_progress(self, tab, perc):
         """Adjust tab indicator on load progress."""
         try:
             idx = self._tab_index(tab)
@@ -746,7 +777,7 @@ class TabbedBrowser(QWidget):
         if idx == self.widget.currentIndex():
             self._update_window_title()
 
-    def on_load_finished(self, tab, ok):
+    def _on_load_finished(self, tab, ok):
         """Adjust tab indicator when loading finished."""
         try:
             idx = self._tab_index(tab)
@@ -761,13 +792,11 @@ class TabbedBrowser(QWidget):
         else:
             color = config.val.colors.tabs.indicator.error
         self.widget.set_tab_indicator_color(idx, color)
-        self.widget.update_tab_title(idx)
         if idx == self.widget.currentIndex():
-            self._update_window_title()
             tab.private_api.handle_auto_insert_mode(ok)
 
     @pyqtSlot()
-    def on_scroll_pos_changed(self):
+    def _on_scroll_pos_changed(self):
         """Update tab and window title when scroll position changed."""
         idx = self.widget.currentIndex()
         if idx == -1:

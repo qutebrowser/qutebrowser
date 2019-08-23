@@ -656,8 +656,11 @@ class QuteProc(testprocess.Process):
         Args:
             count: The count to pass to the command.
             invalid: If True, we don't wait for "command called: ..." in the
-                     log
+                     log and return None.
             escape: Escape backslashes in the command
+
+        Return:
+            The parsed log line with "command called: ..." or None.
         """
         summary = command
         if count is not None:
@@ -672,16 +675,27 @@ class QuteProc(testprocess.Process):
                                                      command.lstrip(':'))
 
         self.send_ipc([command])
-        if not invalid:
-            self.wait_for(category='commands', module='command',
-                          function='run', message='command called: *')
+        if invalid:
+            return None
+        else:
+            return self.wait_for(category='commands', module='command',
+                                 function='run', message='command called: *')
 
-    def get_setting(self, opt):
+    def get_setting(self, opt, pattern=None):
         """Get the value of a qutebrowser setting."""
-        self.send_cmd(':set {}?'.format(opt))
+        if pattern is None:
+            cmd = ':set {}?'.format(opt)
+        else:
+            cmd = ':set -u {} {}?'.format(pattern, opt)
+
+        self.send_cmd(cmd)
         msg = self.wait_for(loglevel=logging.INFO, category='message',
                             message='{} = *'.format(opt))
-        return msg.message.split(' = ')[1]
+
+        if pattern is None:
+            return msg.message.split(' = ')[1]
+        else:
+            return msg.message.split(' = ')[1].split(' for ')[0]
 
     def set_setting(self, option, value):
         # \ and " in a value should be treated literally, so escape them
@@ -716,19 +730,20 @@ class QuteProc(testprocess.Process):
 
         if as_url:
             self.send_cmd(url, invalid=True)
+            line = None
         elif new_tab:
-            self.send_cmd(':open -t ' + url)
+            line = self.send_cmd(':open -t ' + url)
         elif new_bg_tab:
-            self.send_cmd(':open -b ' + url)
+            line = self.send_cmd(':open -b ' + url)
         elif new_window:
-            self.send_cmd(':open -w ' + url)
+            line = self.send_cmd(':open -w ' + url)
         elif private:
-            self.send_cmd(':open -p ' + url)
+            line = self.send_cmd(':open -p ' + url)
         else:
-            self.send_cmd(':open ' + url)
+            line = self.send_cmd(':open ' + url)
 
         if wait:
-            self.wait_for_load_finished_url(url)
+            self.wait_for_load_finished_url(url, after=line)
 
     def mark_expected(self, category=None, loglevel=None, message=None):
         """Mark a given logging message as expected."""
@@ -737,7 +752,7 @@ class QuteProc(testprocess.Process):
         line.expected = True
 
     def wait_for_load_finished_url(self, url, *, timeout=None,
-                                   load_status='success'):
+                                   load_status='success', after=None):
         """Wait until a URL has finished loading."""
         __tracebackhide__ = (lambda e: e.errisinstance(
             testprocess.WaitForTimeout))
@@ -773,7 +788,7 @@ class QuteProc(testprocess.Process):
                     load_status=re.escape(load_status), url=re.escape(url)))
 
         try:
-            self.wait_for(message=pattern, timeout=timeout)
+            self.wait_for(message=pattern, timeout=timeout, after=after)
         except testprocess.WaitForTimeout:
             raise testprocess.WaitForTimeout("Timed out while waiting for {} "
                                              "to be loaded".format(url))

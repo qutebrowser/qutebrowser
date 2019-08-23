@@ -284,7 +284,7 @@ class MainWindow(QWidget):
             left = padding
         else:
             width = min(size_hint.width(), self.width() - 2 * padding)
-            left = (self.width() - width) / 2 if centered else 0
+            left = (self.width() - width) // 2 if centered else 0
 
         height_padding = 20
         status_position = config.val.statusbar.position
@@ -487,8 +487,7 @@ class MainWindow(QWidget):
         # statusbar
         self.tabbed_browser.current_tab_changed.connect(status.on_tab_changed)
 
-        self.tabbed_browser.cur_progress.connect(status.prog.setValue)
-        self.tabbed_browser.cur_load_finished.connect(status.prog.hide)
+        self.tabbed_browser.cur_progress.connect(status.prog.on_load_progress)
         self.tabbed_browser.cur_load_started.connect(
             status.prog.on_load_started)
 

@@ -414,9 +414,11 @@ class ConfigCommands:
             clear: Clear current settings first.
         """
         if filename is None:
-            filename = os.path.join(standarddir.config(), 'config.py')
+            filename = standarddir.config_py()
         else:
             filename = os.path.expanduser(filename)
+            if not os.path.isabs(filename):
+                filename = os.path.join(standarddir.config(), filename)
 
         if clear:
             self.config_clear()
@@ -447,7 +449,7 @@ class ConfigCommands:
         if not no_source:
             ed.file_updated.connect(on_file_updated)
 
-        filename = os.path.join(standarddir.config(), 'config.py')
+        filename = standarddir.config_py()
         ed.edit_file(filename)
 
     @cmdutils.register(instance='config-commands')
@@ -461,7 +463,7 @@ class ConfigCommands:
             defaults: Write the defaults instead of values configured via :set.
         """
         if filename is None:
-            filename = os.path.join(standarddir.config(), 'config.py')
+            filename = standarddir.config_py()
         else:
             if not os.path.isabs(filename):
                 filename = os.path.join(standarddir.config(), filename)

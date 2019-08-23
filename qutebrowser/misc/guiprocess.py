@@ -92,35 +92,37 @@ class GUIProcess(QObject):
         stdout = bytes(self._proc.readAllStandardOutput()).decode(
             encoding, 'replace')
 
-        qutescheme.spawn_output = self._spawn_format(code, status,
-                                                     stdout, stderr)
-
         if status == QProcess.CrashExit:
-            message.error("{} crashed!".format(self._what.capitalize()))
+            exitinfo = "{} crashed!".format(self._what.capitalize())
+            message.error(exitinfo)
         elif status == QProcess.NormalExit and code == 0:
+            exitinfo = "{} exited successfully.".format(
+                self._what.capitalize())
             if self.verbose:
-                message.info("{} exited successfully.".format(
-                    self._what.capitalize()))
+                message.info(exitinfo)
         else:
             assert status == QProcess.NormalExit
             # We call this 'status' here as it makes more sense to the user -
             # it's actually 'code'.
-            message.error("{} exited with status {}, see :messages for "
-                          "details.".format(self._what.capitalize(), code))
+            exitinfo = ("{} exited with status {}, see :messages for "
+                        "details.").format(self._what.capitalize(), code)
+            message.error(exitinfo)
 
             if stdout:
                 log.procs.error("Process stdout:\n" + stdout.strip())
             if stderr:
                 log.procs.error("Process stderr:\n" + stderr.strip())
 
-    def _spawn_format(self, code=0, status=0, stdout="", stderr=""):
+        qutescheme.spawn_output = self._spawn_format(exitinfo, stdout, stderr)
+
+    def _spawn_format(self, exitinfo, stdout, stderr):
         """Produce a formatted string for spawn output."""
         stdout = (stdout or "(No output)").strip()
         stderr = (stderr or "(No output)").strip()
 
-        spawn_string = ("Process finished with code {}, status {}\n"
+        spawn_string = ("{}\n"
                         "\nProcess stdout:\n {}"
-                        "\nProcess stderr:\n {}").format(code, status,
+                        "\nProcess stderr:\n {}").format(exitinfo,
                                                          stdout, stderr)
         return spawn_string
 
