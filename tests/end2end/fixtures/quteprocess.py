@@ -681,12 +681,21 @@ class QuteProc(testprocess.Process):
             return self.wait_for(category='commands', module='command',
                                  function='run', message='command called: *')
 
-    def get_setting(self, opt):
+    def get_setting(self, opt, pattern=None):
         """Get the value of a qutebrowser setting."""
-        self.send_cmd(':set {}?'.format(opt))
+        if pattern is None:
+            cmd = ':set {}?'.format(opt)
+        else:
+            cmd = ':set -u {} {}?'.format(pattern, opt)
+
+        self.send_cmd(cmd)
         msg = self.wait_for(loglevel=logging.INFO, category='message',
                             message='{} = *'.format(opt))
-        return msg.message.split(' = ')[1]
+
+        if pattern is None:
+            return msg.message.split(' = ')[1]
+        else:
+            return msg.message.split(' = ')[1].split(' for ')[0]
 
     def set_setting(self, option, value):
         # \ and " in a value should be treated literally, so escape them

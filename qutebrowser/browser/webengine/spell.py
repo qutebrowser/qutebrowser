@@ -32,6 +32,15 @@ from qutebrowser.utils import log, message, standarddir, qtutils
 dict_version_re = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
 
 
+def can_use_data_path():
+    """Whether the current Qt version can use a customized path.
+
+    Qt >= 5.10 understands QTWEBENGINE_DICTIONARIES_PATH which means we don't
+    need to put them to a fixed root-only folder.
+    """
+    return qtutils.version_check('5.10', compiled=False)
+
+
 def version(filename):
     """Extract the version number from the dictionary file name."""
     match = dict_version_re.match(filename)
@@ -44,7 +53,7 @@ def version(filename):
 
 def dictionary_dir(old=False):
     """Return the path (str) to the QtWebEngine's dictionaries directory."""
-    if qtutils.version_check('5.10', compiled=False) and not old:
+    if can_use_data_path() and not old:
         datapath = standarddir.data()
     else:
         datapath = QLibraryInfo.location(QLibraryInfo.DataPath)
@@ -83,7 +92,7 @@ def local_filename(code):
 
 def init():
     """Initialize the dictionary path if supported."""
-    if qtutils.version_check('5.10', compiled=False):
+    if can_use_data_path():
         new_dir = dictionary_dir()
         old_dir = dictionary_dir(old=True)
         os.environ['QTWEBENGINE_DICTIONARIES_PATH'] = new_dir

@@ -346,8 +346,13 @@ class BrowserPage(QWebPage):
             self.setFeaturePermission, frame, feature,
             QWebPage.PermissionDeniedByUser)
 
+        url = frame.url().adjusted(QUrl.RemoveUserInfo |
+                                   QUrl.RemovePath |
+                                   QUrl.RemoveQuery |
+                                   QUrl.RemoveFragment)
+
         question = shared.feature_permission(
-            url=frame.url(),
+            url=url,
             option=options[feature], msg=messages[feature],
             yes_action=yes_action, no_action=no_action,
             abort_on=[self.shutting_down, self.loadStarted])

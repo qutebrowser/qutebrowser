@@ -55,6 +55,8 @@ The following userscripts can be found on their own repositories.
   [Pinboard][] bookmark manager.
 - [qute-capture](https://github.com/alcah/qute-capture): Capture links with
   Emacs's org-mode to a read-later file.
+- [qute-code-hint](https://github.com/LaurenceWarne/qute-code-hint): Copy code
+  snippets on web pages to the clipboard via hints.
 
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/

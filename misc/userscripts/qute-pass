@@ -151,10 +151,17 @@ def main(arguments):
     password_store_path = os.path.expanduser(arguments.password_store)
 
     # Try to find candidates using targets in the following order: fully-qualified domain name (includes subdomains),
-    # the registered domain name and finally: the IPv4 address if that's what the URL represents
+    # the registered domain name, the IPv4 address if that's what the URL represents and finally the private domain
+    # (if a non-public suffix was used).
     candidates = set()
     attempted_targets = []
-    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4]):
+
+    private_domain = ''
+    if not extract_result.suffix:
+        private_domain = ('.'.join((extract_result.subdomain, extract_result.domain))
+                          if extract_result.subdomain else extract_result.domain)
+
+    for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain]):
         attempted_targets.append(target)
         target_candidates = find_pass_candidates(target, password_store_path)
         if not target_candidates:
@@ -174,7 +181,17 @@ def main(arguments):
     if not selection:
         return ExitCodes.SUCCESS
 
-    secret = pass_(selection, arguments.io_encoding)
+    # If username-target is path and user asked for username-only, we don't need to run pass
+    secret = None
+    if not (arguments.username_target == 'path' and arguments.username_only):
+        secret = pass_(selection, arguments.io_encoding)
+
+        # Match password
+        match = re.match(arguments.password_pattern, secret)
+        if not match:
+            stderr('Failed to match password pattern on secret!')
+            return ExitCodes.COULD_NOT_MATCH_PASSWORD
+        password = match.group(1)
 
     # Match username
     target = selection if arguments.username_target == 'path' else secret
@@ -183,13 +200,6 @@ def main(arguments):
         stderr('Failed to match username pattern on {}!'.format(arguments.username_target))
         return ExitCodes.COULD_NOT_MATCH_USERNAME
     username = match.group(1)
-
-    # Match password
-    match = re.match(arguments.password_pattern, secret)
-    if not match:
-        stderr('Failed to match password pattern on secret!')
-        return ExitCodes.COULD_NOT_MATCH_PASSWORD
-    password = match.group(1)
 
     if arguments.username_only:
         fake_key_raw(username)

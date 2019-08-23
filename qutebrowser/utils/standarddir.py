@@ -46,6 +46,7 @@ class _Location(enum.Enum):
     cache = 5
     download = 6
     runtime = 7
+    config_py = 8
 
 
 APPNAME = 'qutebrowser'
@@ -96,6 +97,11 @@ def _init_config(args):
             _create(path)
             _locations[_Location.config] = path
 
+    config_py_file = os.path.join(_locations[_Location.config], 'config.py')
+    if getattr(args, 'config_py', None) is not None:
+        config_py_file = os.path.abspath(args.config_py)
+    _locations[_Location.config_py] = config_py_file
+
 
 def config(auto=False):
     """Get the location for the config directory.
@@ -106,6 +112,15 @@ def config(auto=False):
     if auto:
         return _locations[_Location.auto_config]
     return _locations[_Location.config]
+
+
+def config_py() -> str:
+    """Get the location for config.py.
+
+    Usually, config.py is in standarddir.config(), but this can be overridden
+    with the --config-py argument.
+    """
+    return _locations[_Location.config_py]
 
 
 def _init_data(args):
@@ -185,11 +200,11 @@ def download():
 
 def _init_runtime(args):
     """Initialize location for runtime data."""
-    if utils.is_linux:
-        typ = QStandardPaths.RuntimeLocation
-    else:
+    if utils.is_mac or utils.is_windows:
         # RuntimeLocation is a weird path on macOS and Windows.
         typ = QStandardPaths.TempLocation
+    else:
+        typ = QStandardPaths.RuntimeLocation
 
     overridden, path = _from_args(typ, args)
 

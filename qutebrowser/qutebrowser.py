@@ -62,6 +62,8 @@ def get_argparser():
                                      description=qutebrowser.__description__)
     parser.add_argument('-B', '--basedir', help="Base directory for all "
                         "storage.")
+    parser.add_argument('-C', '--config-py', help="Path to config.py.",
+                        metavar='CONFIG')
     parser.add_argument('-V', '--version', help="Show version and quit.",
                         action='store_true')
     parser.add_argument('-s', '--set', help="Set a temporary setting for "
@@ -165,9 +167,12 @@ def debug_flag_error(flag):
         no-sql-history: Don't store history items.
         no-scroll-filtering: Process all scrolling updates.
         log-requests: Log all network requests.
+        stack: Enable Chromium stack logging.
+        chromium: Enable Chromium logging.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
-                   'no-scroll-filtering', 'log-requests', 'lost-focusproxy']
+                   'no-scroll-filtering', 'log-requests', 'lost-focusproxy',
+                   'stack', 'chromium']
 
     if flag in valid_flags:
         return flag

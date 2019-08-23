@@ -29,7 +29,6 @@ Currently not tested:
 - Any other features we don't need, such as .GetAsString() or set operations.
 """
 
-import re
 import sys
 import string
 
@@ -71,15 +70,13 @@ from qutebrowser.utils import urlmatch
     # Chromium: PARSE_ERROR_INVALID_PORT
     ("http://foo:/", "Invalid port: Port is empty"),
     ("http://*.foo:/", "Invalid port: Port is empty"),
-    ("http://foo:com/",
-     "Invalid port: invalid literal for int() with base 10: 'com'"),
+    ("http://foo:com/", "Invalid port: .* 'com'"),
     pytest.param("http://foo:123456/",
                  "Invalid port: Port out of range 0-65535",
                  marks=pytest.mark.skipif(
                      sys.hexversion < 0x03060000,
                      reason="Doesn't show an error on Python 3.5")),
-    ("http://foo:80:80/monkey",
-     "Invalid port: invalid literal for int() with base 10: '80:80'"),
+    ("http://foo:80:80/monkey", "Invalid port: .* '80:80'"),
     ("chrome://foo:1234/bar", "Ports are unsupported with chrome scheme"),
 
     # Additional tests
@@ -88,18 +85,18 @@ from qutebrowser.utils import urlmatch
     ("http://[fc2e::bb88::edac]", 'Invalid IPv6 address; source was "fc2e::bb88::edac"; host = ""'),
     ("http://[fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:0e35:bb88::edac:fc2e:0e35:bb88:edac"; host = ""'),
     ("http://[fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:0e35:bb88:af:edac:fc2e:0e35:bb88:edac"; host = ""'),
-    ("http://[127.0.0.1:fc2e::bb88:edac]", 'Invalid IPv6 address; source was "127.0.0.1:fc2e::bb88:edac'),
+    ("http://[127.0.0.1:fc2e::bb88:edac]", r'Invalid IPv6 address; source was "127\.0\.0\.1:fc2e::bb88:edac'),
     ("http://[]:20", "Pattern without host"),
     ("http://[fc2e::bb88", "Invalid IPv6 URL"),
-    ("http://[[fc2e::bb88:edac]", """Expected ']' to match '[' in hostname; source was "[fc2e::bb88:edac"; host = """""),
+    ("http://[[fc2e::bb88:edac]", r"""Expected '\]' to match '\[' in hostname; source was "\[fc2e::bb88:edac"; host = """""),
     pytest.param("http://[fc2e::bb88:edac]]", "Invalid IPv6 URL", marks=pytest.mark.xfail(reason="https://bugs.python.org/issue34360")),
     ("http://[fc2e:bb88:edac]", 'Invalid IPv6 address; source was "fc2e:bb88:edac"; host = ""'),
     ("http://[fc2e:bb88:edac::z]", 'Invalid IPv6 address; source was "fc2e:bb88:edac::z"; host = ""'),
-    ("http://[fc2e:bb88:edac::2]:2a2", "Invalid port: invalid literal for int() with base 10: '2a2'"),
+    ("http://[fc2e:bb88:edac::2]:2a2", "Invalid port: .* '2a2'"),
     ("://", "Missing scheme"),
 ])
 def test_invalid_patterns(pattern, error):
-    with pytest.raises(urlmatch.ParseError, match=re.escape(error)):
+    with pytest.raises(urlmatch.ParseError, match=error):
         urlmatch.UrlPattern(pattern)
 
 

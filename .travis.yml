@@ -17,10 +17,10 @@ matrix:
 
     ### PyQt 5.7.1 (Python 3.5)
     - python: 3.5
-      env: TESTENV=py35-pyqt571
+      env: TESTENV=py35-pyqt57
     ### PyQt 5.7.1 (Python 3.6)
     - python: 3.6
-      env: TESTENV=py36-pyqt571
+      env: TESTENV=py36-pyqt57
 
     ### PyQt 5.9
     - env: TESTENV=py37-pyqt59
@@ -35,8 +35,16 @@ matrix:
     ### PyQt 5.11
     - env: TESTENV=py37-pyqt511
 
-    ### PyQt 5.12 (Python 3.7, with coverage)
-    - env: TESTENV=py37-pyqt512-cov
+    ### PyQt 5.12
+    - env: TESTENV=py37-pyqt512
+      # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
+      addons:
+        apt:
+          packages:
+          - libxkbcommon-x11-0
+
+    ### PyQt 5.13 (Python 3.7, with coverage)
+    - env: TESTENV=py37-pyqt513-cov
       # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
       addons:
         apt:
@@ -45,7 +53,7 @@ matrix:
 
     ### macOS sierra
     - os: osx
-      env: TESTENV=py37-pyqt512 OSX=sierra
+      env: TESTENV=py37-pyqt513 OSX=sierra
       osx_image: xcode9.2
       language: generic
     ### macOS yosemite

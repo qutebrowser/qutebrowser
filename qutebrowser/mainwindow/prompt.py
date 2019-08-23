@@ -32,10 +32,11 @@ from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
                              QSpacerItem)
 
 from qutebrowser.browser import downloads
-from qutebrowser.config import config
+from qutebrowser.config import config, configtypes, configexc
 from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
 from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
+from qutebrowser.utils import urlmatch
 
 
 prompt_queue = None
@@ -55,7 +56,7 @@ class Error(Exception):
     """Base class for errors in this module."""
 
 
-class UnsupportedOperationError(Exception):
+class UnsupportedOperationError(Error):
 
     """Raised when the prompt class doesn't support the requested operation."""
 
@@ -377,7 +378,7 @@ class PromptContainer(QWidget):
     @cmdutils.register(instance='prompt-container', scope='window',
                        modes=[usertypes.KeyMode.prompt,
                               usertypes.KeyMode.yesno])
-    def prompt_accept(self, value=None):
+    def prompt_accept(self, value=None, *, save=False):
         """Accept the current prompt.
 
         //
@@ -388,12 +389,15 @@ class PromptContainer(QWidget):
         Args:
             value: If given, uses this value instead of the entered one.
                    For boolean prompts, "yes"/"no" are accepted as value.
+            save: Save the value to the config.
         """
         question = self._prompt.question
+
         try:
-            done = self._prompt.accept(value)
+            done = self._prompt.accept(value, save=save)
         except Error as e:
             raise cmdutils.CommandError(str(e))
+
         if done:
             message.global_bridge.prompt_done.emit(self._prompt.KEY_MODE)
             question.done()
@@ -545,7 +549,12 @@ class _BasePrompt(QWidget):
 
         self._vbox.addLayout(self._key_grid)
 
-    def accept(self, value=None):
+    def _check_save_support(self, save):
+        if save:
+            raise UnsupportedOperationError("Saving answers is only possible "
+                                            "with yes/no prompts.")
+
+    def accept(self, value=None, save=False):
         raise NotImplementedError
 
     def download_open(self, cmdline, pdfjs):
@@ -577,7 +586,8 @@ class LineEditPrompt(_BasePrompt):
         self.setFocusProxy(self._lineedit)
         self._init_key_label()
 
-    def accept(self, value=None):
+    def accept(self, value=None, save=False):
+        self._check_save_support(save)
         text = value if value is not None else self._lineedit.text()
         self.question.answer = text
         return True
@@ -693,7 +703,8 @@ class FilenamePrompt(_BasePrompt):
         self._file_model.directoryLoaded.connect(
             lambda: self._file_model.sort(0))
 
-    def accept(self, value=None):
+    def accept(self, value=None, save=False):
+        self._check_save_support(save)
         text = value if value is not None else self._lineedit.text()
         text = downloads.transform_path(text)
         if text is None:
@@ -763,8 +774,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
         super().__init__(question, parent)
         self._file_model.setFilter(QDir.AllDirs | QDir.Drives | QDir.NoDot)
 
-    def accept(self, value=None):
-        done = super().accept(value)
+    def accept(self, value=None, save=False):
+        done = super().accept(value, save)
         answer = self.question.answer
         if answer is not None:
             self.question.answer = downloads.FileDownloadTarget(answer)
@@ -817,7 +828,8 @@ class AuthenticationPrompt(_BasePrompt):
         assert not question.default, question.default
         self.setFocusProxy(self._user_lineedit)
 
-    def accept(self, value=None):
+    def accept(self, value=None, save=False):
+        self._check_save_support(save)
         if value is not None:
             if ':' not in value:
                 raise Error("Value needs to be in the format "
@@ -860,7 +872,14 @@ class YesNoPrompt(_BasePrompt):
         self._init_texts(question)
         self._init_key_label()
 
-    def accept(self, value=None):
+    def _check_save_support(self, save):
+        if save and self.question.option is None:
+            raise Error("No setting available to save the answer for this "
+                        "question.")
+
+    def accept(self, value=None, save=False):
+        self._check_save_support(save)
+
         if value is None:
             if self.question.default is None:
                 raise Error("No default value was set for this question!")
@@ -871,14 +890,30 @@ class YesNoPrompt(_BasePrompt):
             self.question.answer = False
         else:
             raise Error("Invalid value {} - expected yes/no!".format(value))
+
+        if save:
+            opt = config.instance.get_opt(self.question.option)
+            assert isinstance(opt.typ, configtypes.Bool)
+            pattern = urlmatch.UrlPattern(self.question.url)
+
+            try:
+                config.instance.set_obj(opt.name, self.question.answer,
+                                        pattern=pattern, save_yaml=True)
+            except configexc.Error as e:
+                raise Error(str(e))
+
         return True
 
     def _allowed_commands(self):
-        cmds = [
-            ('prompt-accept yes', "Yes"),
-            ('prompt-accept no', "No"),
-            ('prompt-yank', "Yank URL"),
-        ]
+        cmds = []
+
+        cmds.append(('prompt-accept yes', "Yes"))
+        if self.question.option is not None:
+            cmds.append(('prompt-accept --save yes', "Always"))
+
+        cmds.append(('prompt-accept no', "No"))
+        if self.question.option is not None:
+            cmds.append(('prompt-accept --save no', "Never"))
 
         if self.question.default is not None:
             assert self.question.default in [True, False]
@@ -886,6 +921,7 @@ class YesNoPrompt(_BasePrompt):
             cmds.append(('prompt-accept', "Use default ({})".format(default)))
 
         cmds.append(('leave-mode', "Abort"))
+        cmds.append(('prompt-yank', "Yank URL"))
         return cmds
 
 
@@ -898,7 +934,8 @@ class AlertPrompt(_BasePrompt):
         self._init_texts(question)
         self._init_key_label()
 
-    def accept(self, value=None):
+    def accept(self, value=None, save=False):
+        self._check_save_support(save)
         if value is not None:
             raise Error("No value is permitted with alert prompts!")
         # Simply mark prompt as done without setting self.question.answer

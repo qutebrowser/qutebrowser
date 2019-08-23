@@ -19,6 +19,16 @@ Feature: Using hints
         When I run :hint --mode=foobar
         Then the error "Invalid mode: Invalid value 'foobar' - valid values: number, letter, word" should be shown
 
+    Scenario: Switching tab between :hint and start_cb (issue 3892)
+        When I open data/hints/html/simple.html
+        And I open data/hints/html/simple.html in a new tab
+        And I run :hint ;; tab-prev
+        And I wait for regex "hints: .*|Current tab changed \(\d* -> \d*\) before _start_cb is run\." in the log
+        # 'hints: .*' is logged when _start_cb is called before tab-prev (on
+        # qtwebkit, _start_cb is called synchronously)
+        And I run :follow-hint a
+        Then the error "follow-hint: This command is only allowed in hint mode, not normal." should be shown
+
     ### Opening in current or new tab
 
     Scenario: Following a hint and force to open in current tab.
@@ -425,6 +435,21 @@ Feature: Using hints
         And I wait for "Filtering hints on 's'" in the log
         And I run :follow-hint 1
         Then data/numbers/7.txt should be loaded
+
+    ### hints.leave_on_load
+    Scenario: Leaving hint mode on reload
+        When I open data/hints/html/wrapped.html
+        And I hint with args "all"
+        And I run :reload
+        Then "Leaving mode KeyMode.hint (reason: load started)" should be logged
+
+    Scenario: Leaving hint mode on reload without leave_on_load
+        When I set hints.leave_on_load to false
+        And I open data/hints/html/simple.html
+        And I hint with args "all"
+        And I run :reload
+        Then "Leaving mode KeyMode.hint (reason: load started)" should not be logged
+
 
     ### hints.auto_follow option
 

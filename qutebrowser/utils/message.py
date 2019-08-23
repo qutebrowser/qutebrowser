@@ -83,7 +83,7 @@ def info(message: str, *, replace: bool = False) -> None:
 
 
 def _build_question(title, text=None, *, mode, default=None, abort_on=(),
-                    url=None):
+                    url=None, option=None):
     """Common function for ask/ask_async."""
     if not isinstance(mode, usertypes.PromptMode):
         raise TypeError("Mode {} is no PromptMode member!".format(mode))
@@ -93,6 +93,14 @@ def _build_question(title, text=None, *, mode, default=None, abort_on=(),
     question.mode = mode
     question.default = default
     question.url = url
+
+    if option is not None:
+        if mode != usertypes.PromptMode.yesno:
+            raise ValueError("Can only 'option' with PromptMode.yesno")
+        if url is None:
+            raise ValueError("Need 'url' given when 'option' is given")
+    question.option = option
+
     for sig in abort_on:
         sig.connect(question.abort)
     return question
@@ -106,6 +114,8 @@ def ask(*args, **kwargs):
         mode: A PromptMode.
         default: The default value to display.
         text: Additional text to show
+        option: The option for always/never question answers.
+                Only available with PromptMode.yesno.
         abort_on: A list of signals which abort the question if emitted.
 
     Return:
@@ -145,6 +155,7 @@ def confirm_async(*, yes_action, no_action=None, cancel_action=None,
         cancel_action: Callable to be called when the user cancelled the
                        question.
         default: True/False to set a default value, or None.
+        option: The option for always/never question answers.
         text: Additional text to show.
 
     Return:
