@@ -556,12 +556,14 @@ How many pages to go forward.
 
 [[fullscreen]]
 === fullscreen
-Syntax: +:fullscreen [*--leave*]+
+Syntax: +:fullscreen [*--leave*] [*--enter*]+
 
 Toggle fullscreen mode.
 
 ==== optional arguments
 * +*-l*+, +*--leave*+: Only leave fullscreen if it was entered by the page.
+* +*-e*+, +*--enter*+: Activate fullscreen and do not toggle if it is already active.
+
 
 [[greasemonkey-reload]]
 === greasemonkey-reload
@@ -1742,13 +1744,16 @@ How many blocks to move.
 
 [[prompt-accept]]
 === prompt-accept
-Syntax: +:prompt-accept ['value']+
+Syntax: +:prompt-accept [*--save*] ['value']+
 
 Accept the current prompt.
 
 ==== positional arguments
 * +'value'+: If given, uses this value instead of the entered one. For boolean prompts, "yes"/"no" are accepted as value.
 
+
+==== optional arguments
+* +*-s*+, +*--save*+: Save the value to the config.
 
 [[prompt-item-focus]]
 === prompt-item-focus

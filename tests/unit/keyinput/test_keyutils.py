@@ -206,10 +206,14 @@ class TestKeySequence:
         seq = keyutils.KeySequence()
         assert not seq
 
-    @pytest.mark.parametrize('key', [Qt.Key_unknown, -1, '\x1f', 0])
+    @pytest.mark.parametrize('key', [Qt.Key_unknown, -1, 0])
     def test_init_unknown(self, key):
         with pytest.raises(keyutils.KeyParseError):
             keyutils.KeySequence(key)
+
+    def test_parse_unknown(self):
+        with pytest.raises(keyutils.KeyParseError):
+            keyutils.KeySequence.parse('\x1f')
 
     @pytest.mark.parametrize('orig, normalized', [
         ('<Control+x>', '<Ctrl+x>'),
@@ -420,7 +424,9 @@ class TestKeySequence:
 
     def test_with_mappings(self):
         seq = keyutils.KeySequence.parse('foobar')
-        mappings = {keyutils.KeySequence('b'): keyutils.KeySequence('t')}
+        mappings = {
+            keyutils.KeySequence.parse('b'): keyutils.KeySequence.parse('t')
+        }
         seq2 = seq.with_mappings(mappings)
         assert seq2 == keyutils.KeySequence.parse('footar')
 

@@ -214,8 +214,11 @@ class CompletionItemDelegate(QStyledItemDelegate):
             columns_to_filter = index.model().columns_to_filter(index)
             if index.column() in columns_to_filter and pattern:
                 pat = re.escape(pattern).replace(r'\ ', r'|')
-                _Highlighter(self._doc, pat,
-                             config.val.colors.completion.match.fg)
+                if self._opt.state & QStyle.State_Selected:
+                    color = config.val.colors.completion.item.selected.match.fg
+                else:
+                    color = config.val.colors.completion.match.fg
+                _Highlighter(self._doc, pat, color)
             self._doc.setPlainText(self._opt.text)
         else:
             self._doc.setHtml(

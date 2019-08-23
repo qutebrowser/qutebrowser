@@ -85,6 +85,7 @@ Feature: Prompts
 
     @qtwebengine_skip: QtWebEngine refuses to load anything with a JS question
     Scenario: Blocking question interrupted by async one
+        Given I have a fresh instance
         When I set content.javascript.alert to true
         And I set content.notifications to ask
         And I open data/prompt/jsalert.html
@@ -100,8 +101,9 @@ Feature: Prompts
         Then the javascript message "Alert done" should be logged
         And the javascript message "notification permission granted" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: Async question interrupted by async one
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -115,8 +117,9 @@ Feature: Prompts
         Then the javascript message "notification permission granted" should be logged
         And "Added quickmark test for *" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: Async question interrupted by blocking one
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I set content.javascript.alert to true
         And I open data/prompt/notifications.html in a new tab
@@ -224,6 +227,15 @@ Feature: Prompts
         And I run :prompt-accept no
         Then the javascript message "geolocation permission denied" should be logged
 
+    Scenario: geolocation with ask -> false and save
+        When I set content.geolocation to ask
+        And I open data/prompt/geolocation.html in a new tab
+        And I run :click-element id button
+        And I wait for a prompt
+        And I run :prompt-accept --save no
+        Then the javascript message "geolocation permission denied" should be logged
+        And the per-domain option content.geolocation should be set to false for http://localhost:(port)
+
     Scenario: geolocation with ask -> abort
         When I set content.geolocation to ask
         And I open data/prompt/geolocation.html in a new tab
@@ -234,22 +246,25 @@ Feature: Prompts
 
     # Notifications
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: Always rejecting notifications
+        Given I have a fresh instance
         When I set content.notifications to false
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         Then the javascript message "notification permission denied" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: Always accepting notifications
+        Given I have a fresh instance
         When I set content.notifications to true
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
         Then the javascript message "notification permission granted" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: notifications with ask -> false
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -257,8 +272,20 @@ Feature: Prompts
         And I run :prompt-accept no
         Then the javascript message "notification permission denied" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
+    Scenario: notifications with ask -> false and save
+        Given I have a fresh instance
+        When I set content.notifications to ask
+        And I open data/prompt/notifications.html in a new tab
+        And I run :click-element id button
+        And I wait for a prompt
+        And I run :prompt-accept --save no
+        Then the javascript message "notification permission denied" should be logged
+        And the per-domain option content.notifications should be set to false for http://localhost:(port)
+
+    @qtwebengine_notifications
     Scenario: notifications with ask -> true
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -266,9 +293,21 @@ Feature: Prompts
         And I run :prompt-accept yes
         Then the javascript message "notification permission granted" should be logged
 
+    @qtwebengine_notifications
+    Scenario: notifications with ask -> true and save
+        Given I have a fresh instance
+        When I set content.notifications to ask
+        And I open data/prompt/notifications.html in a new tab
+        And I run :click-element id button
+        And I wait for a prompt
+        And I run :prompt-accept --save yes
+        Then the javascript message "notification permission granted" should be logged
+        And the per-domain option content.notifications should be set to true for http://localhost:(port)
+
     # This actually gives us a denied rather than an aborted
     @xfail_norun
     Scenario: notifications with ask -> abort
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -276,8 +315,9 @@ Feature: Prompts
         And I run :leave-mode
         Then the javascript message "notification permission aborted" should be logged
 
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: answering notification after closing tab
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I open data/prompt/notifications.html in a new tab
         And I run :click-element id button
@@ -450,8 +490,9 @@ Feature: Prompts
 
     # https://github.com/qutebrowser/qutebrowser/issues/1249#issuecomment-175205531
     # https://github.com/qutebrowser/qutebrowser/pull/2054#issuecomment-258285544
-    @qtwebengine_todo: Notifications are not implemented in QtWebEngine
+    @qtwebengine_notifications
     Scenario: Interrupting SSL prompt during a notification prompt
+        Given I have a fresh instance
         When I set content.notifications to ask
         And I set content.ssl_strict to ask
         And I open data/prompt/notifications.html in a new tab

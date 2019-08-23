@@ -59,7 +59,7 @@ def early_init(args: argparse.Namespace) -> None:
         config.instance, config.key_instance)
     objreg.register('config-commands', config_commands)
 
-    config_file = os.path.join(standarddir.config(), 'config.py')
+    config_file = standarddir.config_py()
 
     try:
         if os.path.exists(config_file):
@@ -175,18 +175,35 @@ def qt_args(namespace: argparse.Namespace) -> typing.List[str]:
     argv += ['--' + arg for arg in config.val.qt.args]
 
     if objects.backend == usertypes.Backend.QtWebEngine:
-        argv += list(_qtwebengine_args())
+        argv += list(_qtwebengine_args(namespace))
 
     return argv
 
 
-def _qtwebengine_args() -> typing.Iterator[str]:
+def _qtwebengine_args(namespace: argparse.Namespace) -> typing.Iterator[str]:
     """Get the QtWebEngine arguments to use based on the config."""
     if not qtutils.version_check('5.11', compiled=False):
         # WORKAROUND equivalent to
         # https://codereview.qt-project.org/#/c/217932/
         # Needed for Qt < 5.9.5 and < 5.10.1
         yield '--disable-shared-workers'
+
+    # WORKAROUND equivalent to
+    # https://codereview.qt-project.org/c/qt/qtwebengine/+/256786
+    # also see:
+    # https://codereview.qt-project.org/c/qt/qtwebengine-chromium/+/265753
+    if qtutils.version_check('5.12.3', compiled=False):
+        if 'stack' in namespace.debug_flags:
+            # Only actually available in Qt 5.12.5, but let's save another
+            # check, as passing the option won't hurt.
+            yield '--enable-in-process-stack-traces'
+    else:
+        if 'stack' not in namespace.debug_flags:
+            yield '--disable-in-process-stack-traces'
+
+    if 'chromium' in namespace.debug_flags:
+        yield '--enable-logging'
+        yield '--v=1'
 
     settings = {
         'qt.force_software_rendering': {

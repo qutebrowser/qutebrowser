@@ -250,7 +250,7 @@ window._qutebrowser.webelem = (function() {
     };
 
     // Runs a function in a frame until the result is not null, then return
-    // If no frame succeds, return null
+    // If no frame succeeds, return null
     function run_frames(func) {
         for (let i = 0; i < window.frames.length; ++i) {
             const frame = window.frames[i];

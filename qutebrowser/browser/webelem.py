@@ -201,7 +201,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
             return self.is_writable()
         else:
             if objtype in ['text', 'email', 'url', 'tel', 'number', 'password',
-                           'search']:
+                           'search', 'date', 'time', 'datetime',
+                           'datetime-local', 'month', 'week']:
                 return self.is_writable()
             else:
                 return False

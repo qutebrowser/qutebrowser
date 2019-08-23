@@ -29,6 +29,7 @@ try:
 except ImportError:
     hunter = None
 
+import os
 import sys
 import faulthandler
 import traceback
@@ -130,26 +131,40 @@ def init_faulthandler(fileobj=sys.__stderr__):
         # pylint: enable=no-member,useless-suppression
 
 
-def check_pyqt_core():
-    """Check if PyQt core is installed."""
-    try:
-        import PyQt5.QtCore  # pylint: disable=unused-import
-    except ImportError as e:
-        text = _missing_str('PyQt5')
-        text = text.replace('<b>', '')
-        text = text.replace('</b>', '')
-        text = text.replace('<br />', '\n')
-        text = text.replace('%ERROR%', str(e))
-        if tkinter and '--no-err-windows' not in sys.argv:
-            root = tkinter.Tk()
-            root.withdraw()
-            tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
-        else:
-            print(text, file=sys.stderr)
-        if '--debug' in sys.argv or '--no-err-windows' in sys.argv:
-            print(file=sys.stderr)
-            traceback.print_exc()
-        sys.exit(1)
+def pyinstaller_qt_workaround():
+    """Work around PATH issues with PyInstaller.
+
+    See https://github.com/pyinstaller/pyinstaller/issues/4293
+    and https://github.com/gridsync/gridsync/pull/236/commits/0abf8e7363cc8c2a10a0263e6dcceb3be1c07022
+    """
+    if (hasattr(sys, 'frozen') and
+            hasattr(sys, '_MEIPASS') and
+            sys.platform == 'win32'):
+        # pylint: disable=no-member,protected-access
+        os.environ['PATH'] += os.pathsep + sys._MEIPASS
+
+
+def check_pyqt():
+    """Check if PyQt core modules (QtCore/QtWidgets) are installed."""
+    for name in ['PyQt5.QtCore', 'PyQt5.QtWidgets']:
+        try:
+            importlib.import_module(name)
+        except ImportError as e:
+            text = _missing_str(name)
+            text = text.replace('<b>', '')
+            text = text.replace('</b>', '')
+            text = text.replace('<br />', '\n')
+            text = text.replace('%ERROR%', str(e))
+            if tkinter and '--no-err-windows' not in sys.argv:
+                root = tkinter.Tk()
+                root.withdraw()
+                tkinter.messagebox.showerror("qutebrowser: Fatal error!", text)
+            else:
+                print(text, file=sys.stderr)
+            if '--debug' in sys.argv or '--no-err-windows' in sys.argv:
+                print(file=sys.stderr)
+                traceback.print_exc()
+            sys.exit(1)
 
 
 def qt_version(qversion=None, qt_version_str=None):
@@ -288,7 +303,8 @@ def early_init(args):
     init_faulthandler()
     # Here we check if QtCore is available, and if not, print a message to the
     # console or via Tk.
-    check_pyqt_core()
+    pyinstaller_qt_workaround()
+    check_pyqt()
     # Init logging as early as possible
     init_log(args)
     # Now we can be sure QtCore is available, so we can print dialogs on

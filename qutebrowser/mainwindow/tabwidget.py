@@ -19,6 +19,7 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
+import typing
 import functools
 import contextlib
 
@@ -32,7 +33,7 @@ from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.browser import browsertab
 
 
@@ -347,7 +348,8 @@ class TabWidget(QTabWidget):
 
     def setTabIcon(self, idx: int, icon: QIcon):
         """Always show tab icons for pinned tabs in some circumstances."""
-        tab = self.widget(idx)
+        tab = typing.cast(typing.Optional[browsertab.AbstractTab],
+                          self.widget(idx))
         if (icon.isNull() and
                 config.cache['tabs.favicons.show'] != 'never' and
                 config.cache['tabs.pinned.shrink'] and
@@ -509,7 +511,7 @@ class TabBar(QTabBar):
     def _set_icon_size(self):
         """Set the tab bar favicon size."""
         size = self.fontMetrics().height() - 2
-        size *= config.val.tabs.favicons.scale
+        size = int(size * config.val.tabs.favicons.scale)
         self.setIconSize(QSize(size, size))
 
     def mouseReleaseEvent(self, e):
@@ -569,6 +571,7 @@ class TabBar(QTabBar):
                                                   icon_width, ellipsis,
                                                   pinned)
 
+    @debugcachestats.register(name='tab width cache')
     @functools.lru_cache(maxsize=2**9)
     def _minimum_tab_size_hint_helper(self, tab_text: str,
                                       icon_width: int,
@@ -833,9 +836,13 @@ class TabBarStyle(QCommonStyle):
                 self._draw_icon(layouts, opt, p)
             alignment = (config.cache['tabs.title.alignment'] |
                          Qt.AlignVCenter | Qt.TextHideMnemonic)
-            self._style.drawItemText(p, layouts.text, alignment, opt.palette,
-                                     opt.state & QStyle.State_Enabled,
-                                     opt.text, QPalette.WindowText)
+            self._style.drawItemText(p,
+                                     layouts.text,
+                                     int(alignment),
+                                     opt.palette,
+                                     bool(opt.state & QStyle.State_Enabled),
+                                     opt.text,
+                                     QPalette.WindowText)
         else:
             raise ValueError("Invalid element {!r}".format(element))
 
@@ -967,7 +974,7 @@ class TabBarStyle(QCommonStyle):
                 min(actual_size.width(), icon_size.width()),
                 min(actual_size.height(), icon_size.height()))
 
-        icon_top = text_rect.center().y() + 1 - tab_icon_size.height() / 2
+        icon_top = text_rect.center().y() + 1 - tab_icon_size.height() // 2
         icon_rect = QRect(QPoint(text_rect.left(), icon_top), tab_icon_size)
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
         return icon_rect

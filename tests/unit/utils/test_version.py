@@ -176,6 +176,25 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='funtoo', parsed=version.Distribution.gentoo,
          version=None, pretty='Funtoo GNU/Linux')),
+    # KDE Platform
+    ("""
+        NAME=KDE
+        VERSION="5.12 (Flatpak runtime)"
+        VERSION_ID="5.12"
+        ID=org.kde.Platform
+    """,
+     version.DistributionInfo(
+         id='org.kde.Platform', parsed=version.Distribution.kde,
+         version=pkg_resources.parse_version('5.12'),
+         pretty='KDE')),
+    # No PRETTY_NAME
+    ("""
+        NAME="Tux"
+        ID=tux
+     """,
+     version.DistributionInfo(
+         id='tux', parsed=version.Distribution.unknown,
+         version=None, pretty='Tux')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
@@ -780,7 +799,7 @@ class TestPDFJSVersion:
             lambda path: (pdfjs_code, '/foo/bar/pdf.js'))
         assert version._pdfjs_version() == '1.2.109 (/foo/bar/pdf.js)'
 
-    def test_real_file(self):
+    def test_real_file(self, data_tmpdir):
         """Test against the real file if pdfjs was found."""
         try:
             pdfjs.get_pdfjs_res_and_path('build/pdf.js')
@@ -864,6 +883,7 @@ class VersionParams:
     with_webkit = attr.ib(True)
     known_distribution = attr.ib(True)
     ssl_support = attr.ib(True)
+    autoconfig_loaded = attr.ib(True)
 
 
 @pytest.mark.parametrize('params', [
@@ -874,6 +894,7 @@ class VersionParams:
     VersionParams('no-webkit', with_webkit=False),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
+    VersionParams('no-autoconfig-loaded', autoconfig_loaded=False),
 ], ids=lambda param: param.name)
 def test_version_output(params, stubs, monkeypatch):
     """Test version.version()."""
@@ -904,6 +925,8 @@ def test_version_output(params, stubs, monkeypatch):
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
+        '_autoconfig_loaded': lambda: ("yes" if params.autoconfig_loaded
+                                       else "no"),
     }
 
     substitutions = {
@@ -913,6 +936,8 @@ def test_version_output(params, stubs, monkeypatch):
         'frozen': str(params.frozen),
         'import_path': import_path,
         'python_path': 'EXECUTABLE PATH',
+        'uptime': "1:23:45",
+        'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
     }
 
     if params.with_webkit:
@@ -949,8 +974,6 @@ def test_version_output(params, stubs, monkeypatch):
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
 
-    substitutions['uptime'] = "1:23:45"
-
     template = textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
         Backend: {backend}
@@ -974,6 +997,7 @@ def test_version_output(params, stubs, monkeypatch):
         Paths:
         PATH DESC: PATH NAME
 
+        Autoconfig loaded: {autoconfig_loaded}
         Uptime: {uptime}
     """.lstrip('\n'))
 
