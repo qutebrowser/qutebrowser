@@ -311,7 +311,9 @@ def netrc_authentication(url, authenticator):
     try:
         net = netrc.netrc(config.val.content.netrc_file)
         if url.port():
-            authenticators = net.authenticators("{}:{}".format(url.host(), url.port()))
+            authenticators = net.authenticators(
+                "{}:{}".format(url.host(), url.port())
+            )
         if not authenticators:
             authenticators = net.authenticators(url.host())
         if authenticators is not None:
