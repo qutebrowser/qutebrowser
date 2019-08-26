@@ -310,7 +310,7 @@ def netrc_authentication(url, authenticator):
     user, password = None, None
     try:
         net = netrc.netrc(config.val.content.netrc_file)
-        if url.port():
+        if url.port() != -1:
             authenticators = net.authenticators(
                 "{}:{}".format(url.host(), url.port())
             )
