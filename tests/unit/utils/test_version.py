@@ -905,7 +905,6 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         default_user_agent = ('Toaster/4.0.4 Chrome/CHROMIUMVERSION '
                               'Teapot/4.1.8')
 
-    config.instance = config_stub
     config.instance.config_py_loaded = params.config_py_loaded
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
