@@ -23,7 +23,8 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-import typing
+import typing  # pylint: disable=unused-import,useless-suppression
+
 
 from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
@@ -107,8 +108,7 @@ class CompletionView(QTreeView):
     update_geometry = pyqtSignal()
     selection_changed = pyqtSignal(str)
 
-    def __init__(self, win_id: int,
-                 parent: typing.Optional[QWidget] = None) -> None:
+    def __init__(self, win_id: int, parent: QWidget = None) -> None:
         super().__init__(parent)
         self.pattern = None  # type: typing.Optional[str]
         self._win_id = win_id

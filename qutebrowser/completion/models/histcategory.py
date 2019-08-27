@@ -19,7 +19,7 @@
 
 """A completion category that queries the SQL history store."""
 
-import typing
+import typing  # pylint: disable=unused-import,useless-suppression
 
 from PyQt5.QtSql import QSqlQueryModel
 from PyQt5.QtWidgets import QWidget
@@ -27,14 +27,16 @@ from PyQt5.QtWidgets import QWidget
 from qutebrowser.misc import sql
 from qutebrowser.utils import debug, message, log
 from qutebrowser.config import config
+from qutebrowser.completion.models import util
 
 
 class HistoryCategory(QSqlQueryModel):
 
     """A completion category that queries the SQL history store."""
 
-    def __init__(self, *, delete_func=None,
-                 parent: typing.Optional[QWidget] = None) -> None:
+    def __init__(self, *,
+                 delete_func: util.DeleteFuncType = None,
+                 parent: QWidget = None) -> None:
         """Create a new History completion category."""
         super().__init__(parent=parent)
         self.name = "History"
