@@ -448,7 +448,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
                 perc_x = min(100, round(100 / scrollable_x * pos.x()))
             except ValueError:
                 # https://github.com/qutebrowser/qutebrowser/issues/3219
-                log.misc.debug("Got ValueError!")
+                log.misc.debug("Got ValueError for perc_x!")
                 log.misc.debug("contents_size.width(): {}".format(
                     contents_size.width()))
                 log.misc.debug("self._widget.width(): {}".format(
@@ -461,7 +461,18 @@ class WebEngineScroller(browsertab.AbstractScroller):
         if scrollable_y == 0:
             perc_y = 0
         else:
-            perc_y = min(100, round(100 / scrollable_y * pos.y()))
+            try:
+                perc_y = min(100, round(100 / scrollable_y * pos.y()))
+            except ValueError:
+                # https://github.com/qutebrowser/qutebrowser/issues/3219
+                log.misc.debug("Got ValueError for perc_y!")
+                log.misc.debug("contents_size.height(): {}".format(
+                    contents_size.height()))
+                log.misc.debug("self._widget.height(): {}".format(
+                    self._widget.height()))
+                log.misc.debug("scrollable_y: {}".format(scrollable_y))
+                log.misc.debug("pos.y(): {}".format(pos.y()))
+                raise
 
         self._at_bottom = math.ceil(pos.y()) >= scrollable_y
 
