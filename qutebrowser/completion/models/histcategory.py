@@ -19,10 +19,13 @@
 
 """A completion category that queries the SQL history store."""
 
+import typing
+
 from PyQt5.QtSql import QSqlQueryModel
+from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.misc import sql
-from qutebrowser.utils import debug, message
+from qutebrowser.utils import debug, message, log
 from qutebrowser.config import config
 
 
@@ -30,7 +33,8 @@ class HistoryCategory(QSqlQueryModel):
 
     """A completion category that queries the SQL history store."""
 
-    def __init__(self, *, delete_func=None, parent=None):
+    def __init__(self, *, delete_func=None,
+                 parent: typing.Optional[QWidget] = None) -> None:
         """Create a new History completion category."""
         super().__init__(parent=parent)
         self.name = "History"
@@ -39,6 +43,7 @@ class HistoryCategory(QSqlQueryModel):
         # advertise that this model filters by URL and title
         self.columns_to_filter = [0, 1]
         self.delete_func = delete_func
+        self._empty_prefix = None  # type: typing.Optional[str]
 
     def _atime_expr(self):
         """If max_items is set, return an expression to limit the query."""
@@ -67,6 +72,15 @@ class HistoryCategory(QSqlQueryModel):
         Args:
             pattern: string pattern to filter by.
         """
+        raw_pattern = pattern
+        if (self._empty_prefix is not None and raw_pattern.startswith(
+                self._empty_prefix)):
+            log.sql.debug('Skipping query on {} due to '
+                          'prefix {} returning nothing.'
+                          .format(raw_pattern, self._empty_prefix))
+            return
+        self._empty_prefix = None
+
         # escape to treat a user input % or _ as a literal, not a wildcard
         pattern = pattern.replace('%', '\\%')
         pattern = pattern.replace('_', '\\_')
@@ -111,6 +125,8 @@ class HistoryCategory(QSqlQueryModel):
             message.error("Error with SQL query: {}".format(e.text()))
             return
         self.setQuery(self._query.query)
+        if not self.rowCount() and not self.canFetchMore():
+            self._empty_prefix = raw_pattern
 
     def removeRows(self, row, _count, _parent=None):
         """Override QAbstractItemModel::removeRows to re-run SQL query."""
