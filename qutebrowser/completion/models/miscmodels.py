@@ -19,6 +19,8 @@
 
 """Functions that return miscellaneous completion models."""
 
+import typing
+
 from qutebrowser.config import configdata
 from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
@@ -49,7 +51,7 @@ def helptopic(*, info):
 
 def quickmark(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with all quickmarks."""
-    def delete(data):
+    def delete(data: typing.Sequence[int]) -> None:
         """Delete a quickmark from the completion menu."""
         name = data[0]
         quickmark_manager = objreg.get('quickmark-manager')
@@ -66,7 +68,7 @@ def quickmark(*, info=None):  # pylint: disable=unused-argument
 
 def bookmark(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with all bookmarks."""
-    def delete(data):
+    def delete(data: typing.Sequence[int]) -> None:
         """Delete a bookmark from the completion menu."""
         urlstr = data[0]
         log.completion.debug('Deleting bookmark {}'.format(urlstr))

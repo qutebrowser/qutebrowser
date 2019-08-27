@@ -20,10 +20,13 @@
 """Completion category that uses a list of tuples as a data source."""
 
 import re
+import typing
 
 from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
+from PyQt5.QtWidgets import QWidget
 
+from qutebrowser.completion.models import util
 from qutebrowser.utils import qtutils, log
 
 
@@ -31,7 +34,12 @@ class ListCategory(QSortFilterProxyModel):
 
     """Expose a list of items as a category for the CompletionModel."""
 
-    def __init__(self, name, items, sort=True, delete_func=None, parent=None):
+    def __init__(self,
+                 name: str,
+                 items: typing.Sequence[str],
+                 sort: bool = True,
+                 delete_func: util.DeleteFuncType = None,
+                 parent: QWidget = None):
         super().__init__(parent)
         self.name = name
         self.srcmodel = QStandardItemModel(parent=self)
