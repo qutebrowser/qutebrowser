@@ -31,7 +31,7 @@ import pathlib
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.api import (cmdutils, hook, config, message, downloads,
-                             interceptor, apitypes)
+                             interceptor, apitypes, qtutils)
 
 
 logger = logging.getLogger('misc')
@@ -113,6 +113,8 @@ class HostBlocker:
         """Check whether the given request is blocked."""
         if first_party_url is not None and not first_party_url.isValid():
             first_party_url = None
+
+        qtutils.ensure_valid(request_url)
 
         if not config.get('content.host_blocking.enabled',
                           url=first_party_url):

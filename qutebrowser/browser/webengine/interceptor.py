@@ -150,6 +150,11 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
 
         url = info.requestUrl()
         first_party = info.firstPartyUrl()
+        if not url.isValid():
+            log.webview.debug("Ignoring invalid intercepted URL: {}".format(
+                url.errorString()))
+            return
+
         # Per QWebEngineUrlRequestInfo::ResourceType documentation, if we fail
         # our lookup, we should fall back to ResourceTypeUnknown
         try:
