@@ -29,7 +29,7 @@ import shutil
 from PyQt5.QtCore import QLibraryInfo
 from qutebrowser.utils import log, message, standarddir, qtutils
 
-dict_version_re = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
+dict_version_re = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)")
 
 
 def can_use_data_path():
