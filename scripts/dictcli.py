@@ -61,36 +61,23 @@ class Language:
     name = attr.ib()
     remote_filename = attr.ib()
     local_filename = attr.ib(default=None)
-    _file_extension = attr.ib('bdic', init=False)
 
     def __attrs_post_init__(self):
         if self.local_filename is None:
             self.local_filename = spell.local_filename(self.code)
 
     @property
-    def remote_path(self):
-        """Resolve the filename with extension the remote dictionary."""
-        return '.'.join([self.remote_filename, self._file_extension])
-
-    @property
-    def local_path(self):
-        """Resolve the filename with extension the local dictionary."""
-        if self.local_filename is None:
-            return None
-        return '.'.join([self.local_filename, self._file_extension])
-
-    @property
     def remote_version(self):
         """Resolve the version of the local dictionary."""
-        return spell.version(self.remote_path)
+        return spell.version(self.remote_filename)
 
     @property
     def local_version(self):
         """Resolve the version of the local dictionary."""
-        local_path = self.local_path
-        if local_path is None:
+        local_filename = self.local_filename
+        if local_filename is None:
             return None
-        return spell.version(local_path)
+        return spell.version(local_filename)
 
 
 def get_argparser():
@@ -143,7 +130,7 @@ def valid_languages():
 def parse_entry(entry):
     """Parse an entry from the remote API."""
     dict_re = re.compile(r"""
-        (?P<filename>(?P<code>[a-z]{2}(-[A-Z]{2})?).*)\.bdic
+        (?P<filename>(?P<code>[a-z]{2}(-[A-Z]{2})?).*\.bdic)
     """, re.VERBOSE)
     match = dict_re.fullmatch(entry['name'])
     if match is not None:
@@ -214,13 +201,13 @@ def filter_languages(languages, selected):
 
 def install_lang(lang):
     """Install a single lang given by the argument."""
-    lang_url = API_URL + lang.remote_path + '?format=TEXT'
+    lang_url = API_URL + lang.remote_filename + '?format=TEXT'
     if not os.path.isdir(spell.dictionary_dir()):
         msg = '{} does not exist, creating the directory'
         print(msg.format(spell.dictionary_dir()))
         os.makedirs(spell.dictionary_dir())
     print('Downloading {}'.format(lang_url))
-    dest = os.path.join(spell.dictionary_dir(), lang.remote_path)
+    dest = os.path.join(spell.dictionary_dir(), lang.remote_filename)
     download_dictionary(lang_url, dest)
     print('Installed to {}.'.format(dest))
 
