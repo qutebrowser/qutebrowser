@@ -33,7 +33,9 @@ Changed
   * qute-pass: Don't run `pass` if only a username is requested.
   * qute-pass: Support private domains like `myrouter.local`.
   * readability: Improved CSS styling
-- Performance improvements when loading config files.
+- Various performance improvements:
+  * When loading config files
+  * When typing without any completion matches
 - `:version` now shows details about the loaded autoconfig.yml/config.py.
 - Hosts are now additionally looked up including their ports in netrc files.
 
