@@ -63,6 +63,7 @@ with codecs.open(os.environ['QUTE_HTML'], 'r', 'utf-8') as source:
     # SVGs often look odd. Better remove them.
     content = remove_tag(content, "svg")
     content = remove_tag(content, "button")
+    content = remove_tag(content, "input")
     
     with codecs.open(tmpfile, 'w', 'utf-8') as target:
         target.write(content.lstrip())
