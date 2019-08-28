@@ -27,7 +27,7 @@ import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
                           QEvent, QPoint)
 from PyQt5.QtGui import QKeyEvent, QIcon
-from PyQt5.QtWidgets import QWidget, QApplication, QDialog
+from PyQt5.QtWidgets import QWidget, QApplication, QDialog, QSplitter
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
@@ -36,7 +36,7 @@ import pygments.lexers
 import pygments.formatters
 
 from qutebrowser.keyinput import modeman
-from qutebrowser.config import config
+from qutebrowser.config import config, configfiles
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
@@ -121,6 +121,7 @@ class TabData:
         fullscreen: Whether the tab has a video shown fullscreen currently.
         netrc_used: Whether netrc authentication was performed.
         input_mode: current input mode for the tab.
+        splitter: InspectorSplitter used to show inspector inside the tab
     """
 
     keep_icon = attr.ib(False)  # type: bool
@@ -133,10 +134,95 @@ class TabData:
     fullscreen = attr.ib(False)  # type: bool
     netrc_used = attr.ib(False)  # type: bool
     input_mode = attr.ib(usertypes.KeyMode.normal)  # type: usertypes.KeyMode
+    splitter = attr.ib(None)
 
     def should_show_icon(self) -> bool:
         return (config.val.tabs.favicons.show == 'always' or
                 config.val.tabs.favicons.show == 'pinned' and self.pinned)
+
+
+class InspectorSplitter(QSplitter):
+
+    """Allows putting an inspector inside the tab.
+
+    Attributes:
+        _main_idx: index of the main webview widget
+        _position: position of the inspector (right/left/top/bottom)
+        _preferred_size: the preferred size of the inpector widget in pixels
+    """
+
+    _main_idx = 0
+    _position = None
+    _preferred_size = None
+
+    def __init__(self, main_webview):
+        super().__init__()
+        self.addWidget(main_webview)
+        self.splitterMoved.connect(self._onSplitterMoved)
+
+    def set_inspector(self, inspector, position):
+        """Set the position of the inspector."""
+        assert position in ['right', 'left', 'top', 'bottom']
+        self._main_idx = 0 if position in ['right', 'bottom'] else 1
+        self.setStretchFactor(self._main_idx, 1)
+        self.setStretchFactor(self._inspector_idx(), 0)
+        self.setOrientation(Qt.Horizontal if position in ['right', 'left']
+                            else Qt.Vertical)
+        self.insertWidget(self._inspector_idx(), inspector)
+        self._position = position
+        self._load_preferred_size()
+        self._adjust_size()
+
+    def _save_preferred_size(self):
+        """Save the preferred size of the inspector widget."""
+        configfiles.state['geometry']['inspector_' + self._position] = str(
+            self._preferred_size)
+
+    def _load_preferred_size(self):
+        """Load the preferred size of the inspector widget."""
+        if self.orientation() == Qt.Horizontal:
+            full = self.width()
+        else:
+            full = self.height()
+        self._preferred_size = max(300, full / 2)
+
+        try:
+            self._preferred_size = int(
+                configfiles.state['geometry']['inspector_' + self._position])
+        except KeyError:
+            # First start
+            pass
+        except:
+            log.misc.exception("Error while reading preferred size")
+
+    def _inspector_idx(self):
+        return 1 - self._main_idx
+
+    def _adjust_size(self):
+        sizes = self.sizes()
+        total = sizes[0] + sizes[1]
+        protected_main_size = 150
+        preferred_size = self._preferred_size
+        if (total >= preferred_size + protected_main_size and
+                sizes[self._inspector_idx()] != preferred_size):
+            sizes[self._inspector_idx()] = preferred_size
+            sizes[self._main_idx] = total - preferred_size
+            self.setSizes(sizes)
+        if sizes[self._main_idx] < protected_main_size and total >= 300:
+            sizes[self._main_idx] = protected_main_size
+            sizes[self._inspector_idx()] = total - protected_main_size
+            self.setSizes(sizes)
+
+    def _onSplitterMoved(self, _pos, _index):
+        sizes = self.sizes()
+        self._preferred_size = sizes[self._inspector_idx()]
+        self._save_preferred_size()
+
+    def resizeEvent(self, e):
+        """Window resize event."""
+        super().resizeEvent(e)
+        if self.count() == 2:
+            self._adjust_size()
 
 
 class AbstractAction:
@@ -900,7 +986,8 @@ class AbstractTab(QWidget):
     def _set_widget(self, widget: QWidget) -> None:
         # pylint: disable=protected-access
         self._widget = widget
-        self._layout.wrap(self, widget)
+        self.data.splitter = InspectorSplitter(widget)
+        self._layout.wrap(self, self.data.splitter)
         self.history._history = widget.history()
         self.history.private_api._history = widget.history()
         self.scroller._init_widget(widget)

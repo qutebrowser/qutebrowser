@@ -31,8 +31,8 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     """A web inspector for QtWebEngine."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, splitter, parent=None):
+        super().__init__(splitter, parent)
         self.port = None
         view = QWebEngineView()
         settings = view.settings()
