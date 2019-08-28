@@ -10,16 +10,8 @@
 # Usage:
 #   :spawn --userscript readability
 #
-from __future__ import absolute_import
 import codecs, os
-
-tmpfile = os.path.join(
-    os.environ.get('QUTE_DATA_DIR',
-                   os.path.expanduser('~/.local/share/qutebrowser')),
-    'userscripts/readability.html')
-
-if not os.path.exists(os.path.dirname(tmpfile)):
-    os.makedirs(os.path.dirname(tmpfile))
+import re
 
 # Styling for dynamic window margin scaling and line height
 HEADER = """
@@ -43,6 +35,17 @@ HEADER = """
 </head>
 """
 
+def remove_tag(content, tag_type):
+    return re.sub(r'<%s.*?>' % tag_type, '', content)
+
+tmpfile = os.path.join(
+    os.environ.get('QUTE_DATA_DIR',
+                   os.path.expanduser('~/.local/share/qutebrowser')),
+    'userscripts/readability.html')
+
+if not os.path.exists(os.path.dirname(tmpfile)):
+    os.makedirs(os.path.dirname(tmpfile))
+
 with codecs.open(os.environ['QUTE_HTML'], 'r', 'utf-8') as source:
     data = source.read()
 
@@ -57,6 +60,10 @@ with codecs.open(os.environ['QUTE_HTML'], 'r', 'utf-8') as source:
         title = doc.title()
         content = doc.summary().replace('<html>', HEADER % title)
 
+    # SVGs often look odd. Better remove them.
+    content = remove_tag(content, "svg")
+    content = remove_tag(content, "button")
+    
     with codecs.open(tmpfile, 'w', 'utf-8') as target:
         target.write(content.lstrip())
 
