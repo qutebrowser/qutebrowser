@@ -307,17 +307,23 @@ def netrc_authentication(url, authenticator):
         # os.environ. We don't want to log that, so we prevent it
         # altogether.
         return False
-    user, password = None, None
+
+    user = None
+    password = None
+    authenticators = None
+
     try:
         net = netrc.netrc(config.val.content.netrc_file)
+
         if url.port() != -1:
             authenticators = net.authenticators(
-                "{}:{}".format(url.host(), url.port())
-            )
+                "{}:{}".format(url.host(), url.port()))
+
         if not authenticators:
             authenticators = net.authenticators(url.host())
-        if authenticators is not None:
-            (user, _account, password) = authenticators
+
+        if authenticators:
+            user, _account, password = authenticators
     except FileNotFoundError:
         log.misc.debug("No .netrc file found")
     except OSError as e:
