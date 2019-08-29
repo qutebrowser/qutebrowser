@@ -10,17 +10,16 @@
 # Usage:
 #   :spawn --userscript readability
 #
-import codecs, os
-import re
+import os
+import xml.etree.ElementTree as ET
 
 # Styling for dynamic window margin scaling and line height
 HEADER = """
-<!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, text/html, charset=UTF-8" http-equiv="Content-Type">
+    </meta>
     <title>%s</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <style type="text/css">
         body {
             margin: 40px auto;
@@ -35,8 +34,11 @@ HEADER = """
 </head>
 """
 
-def remove_tag(content, tag_type):
-    return re.sub(r'<%s.*?>' % tag_type, '', content)
+def remove_tags(xml, tags):
+    for elem in xml.iter():
+        for child in list(elem):
+            if child.tag in tags:
+                elem.remove(child)
 
 tmpfile = os.path.join(
     os.environ.get('QUTE_DATA_DIR',
@@ -46,27 +48,30 @@ tmpfile = os.path.join(
 if not os.path.exists(os.path.dirname(tmpfile)):
     os.makedirs(os.path.dirname(tmpfile))
 
-with codecs.open(os.environ['QUTE_HTML'], 'r', 'utf-8') as source:
+with open(os.environ['QUTE_HTML'], 'r', encoding='UTF-8') as source:
     data = source.read()
 
-    try:
-        from breadability.readable import Article as reader
-        doc = reader(data)
-        title = doc._original_document.title
-        content = HEADER % title + doc.readable + "</html>"
-    except ImportError:
-        from readability import Document
-        doc = Document(data)
-        title = doc.title()
-        content = doc.summary().replace('<html>', HEADER % title)
+try:
+    from breadability.readable import Article as reader
+    doc = reader(data)
+    title = doc._original_document.title
+    content = HEADER % title + doc.readable + '</html>'
+except ImportError:
+    from readability import Document
+    doc = Document(data)
+    title = doc.title()
+    content = doc.summary().replace('<html>', HEADER % title)
 
-    # SVGs often look odd. Better remove them.
-    content = remove_tag(content, "svg")
-    content = remove_tag(content, "button")
-    content = remove_tag(content, "input")
-    
-    with codecs.open(tmpfile, 'w', 'utf-8') as target:
-        target.write(content.lstrip())
+xml = ET.fromstring(content)
+# SVGs often look odd. Better remove them.
+tags = ['svg', 'button', 'input']
+remove_tags(xml, tags)
 
-    with open(os.environ['QUTE_FIFO'], 'w') as fifo:
-        fifo.write('open -t %s' % tmpfile)
+with open(tmpfile, 'wb') as target: 
+    # When breadability is eventually depecrecated one day, write full HEADER here
+    # xml.etree removes DOCTYPE declarations
+    target.write("<!DOCTYPE html>\n".encode("UTF-8"))
+    ET.ElementTree(xml).write(target, "UTF-8", xml_declaration=False, method='html')
+
+with open(os.environ['QUTE_FIFO'], 'w') as fifo:
+    fifo.write('open -t %s' % tmpfile)
