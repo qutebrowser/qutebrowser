@@ -1014,7 +1014,7 @@ class CommandDispatcher:
         if index == 'last':
             self._tab_focus_last()
             return
-        elif index == 'parent'  and self._tabbed_browser.is_treetabbedbrowser:
+        elif index == 'parent' and self._tabbed_browser.is_treetabbedbrowser:
             node = self._current_widget().node
             path = node.path
             if count:
@@ -2008,6 +2008,11 @@ class CommandDispatcher:
                        tree_tab=True)
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tree_tab_suspend_children(self, count=None):
+        """Suspends all descendent of a tab to reduce memory usage.
+
+        Args:
+            count: Target tab.
+        """
         tab = self._cntwidget(count)
         for descendent in tab.node.traverse():
             cur_tab = descendent.value
