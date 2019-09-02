@@ -72,7 +72,6 @@ class TreeTabWidget(TabWidget):
                 cur_idx = self.indexOf(node.value)
                 self.tabBar().moveTab(cur_idx, idx-1)
 
-
     def update_tree_tab_visibility(self):
         for node in self.tree_root.traverse():
             if node.value is None:
@@ -80,7 +79,6 @@ class TreeTabWidget(TabWidget):
             if any(ancestor.collapsed for ancestor in node.path[:-1]):
                 if self.indexOf(node.value) != -1:
                     # node should be hidden but is shown
-                    order = notree.TraverseOrder.POST
                     cur_tab = node.value
                     idx = self.indexOf(cur_tab)
                     if idx != -1:
