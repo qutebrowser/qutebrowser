@@ -1867,9 +1867,7 @@ Local domains are always exempt from hostblocking.
 
 Type: <<types,List of UrlPattern>>
 
-Default: 
-
-- +pass:[piwik.org]+
+Default: empty
 
 [[content.hyperlink_auditing]]
 === content.hyperlink_auditing
