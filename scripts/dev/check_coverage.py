@@ -64,6 +64,8 @@ PERFECT_FILES = [
      'api/config.py'),
     (None,
      'api/message.py'),
+    (None,
+     'api/qtutils.py'),
 
     ('tests/unit/browser/webkit/test_cache.py',
      'browser/webkit/cache.py'),
