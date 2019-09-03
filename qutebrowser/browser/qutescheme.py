@@ -33,6 +33,7 @@ import urllib
 import collections
 import base64
 import typing
+from typing import TypeVar, Callable, Union, Tuple
 
 try:
     import secrets
@@ -91,9 +92,14 @@ class Redirect(Exception):
         url: The URL to redirect to, as a QUrl.
     """
 
-    def __init__(self, url):
+    def __init__(self, url: QUrl):
         super().__init__(url.toDisplayString())
         self.url = url
+
+
+# Return value: (mimetype, data) (encoded as utf-8 if a str is returned)
+Handler = TypeVar('Handler',
+                  bound=Callable[[QUrl], Tuple[str, Union[str, bytes]]])
 
 
 class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
@@ -108,7 +114,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
         self._name = name
         self._function = None
 
-    def __call__(self, function):
+    def __call__(self, function: Handler) -> Handler:
         self._function = function
         _HANDLERS[self._name] = self.wrapper
         return function
@@ -502,8 +508,12 @@ def qute_pastebin_version(_url):
 
 
 @add_handler('pdfjs')
-def qute_pdfjs(url):
-    """Handler for qute://pdfjs. Return the pdf.js viewer."""
+def qute_pdfjs(url: QUrl):
+    """Handler for qute://pdfjs.
+
+    Return the pdf.js viewer or redirect to original URL if the file does not
+    exist.
+    """
     if url.path() == '/file':
         filename = QUrlQuery(url).queryItemValue('filename')
         if not filename:
@@ -521,9 +531,19 @@ def qute_pdfjs(url):
         return mimetype, data
 
     if url.path() == '/web/viewer.html':
-        filename = QUrlQuery(url).queryItemValue("filename")
+        query = QUrlQuery(url)
+        filename = query.queryItemValue("filename")
         if not filename:
             raise UrlInvalidError("Missing filename")
+
+        path = os.path.join(downloads.temp_download_manager.get_tmpdir().name,
+                            filename)
+        if not os.path.isfile(path):
+            source = query.queryItemValue('source')
+            if not source:  # This may happen with old URLs stored in history
+                raise UrlInvalidError("Missing source")
+            raise Redirect(QUrl(source))
+
         data = pdfjs.generate_pdfjs_page(filename, url)
         return 'text/html', data
 

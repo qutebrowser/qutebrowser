@@ -39,15 +39,16 @@ class DownloadItem(downloads.AbstractDownloadItem):
         _qt_item: The wrapped item.
     """
 
-    def __init__(self, qt_item, parent=None):
+    def __init__(self, qt_item: QWebEngineDownloadItem, parent=None):
         super().__init__(parent)
         self._qt_item = qt_item
-        qt_item.downloadProgress.connect(self.stats.on_download_progress)
-        qt_item.stateChanged.connect(self._on_state_changed)
+        qt_item.downloadProgress.connect(  # type: ignore
+            self.stats.on_download_progress)
+        qt_item.stateChanged.connect(self._on_state_changed)  # type: ignore
 
         # Ensure wrapped qt_item is deleted manually when the wrapper object
         # is deleted. See https://github.com/qutebrowser/qutebrowser/issues/3373
-        self.destroyed.connect(self._qt_item.deleteLater)
+        self.destroyed.connect(self._qt_item.deleteLater)  # type: ignore
 
     def _is_page_download(self):
         """Check if this item is a page (i.e. mhtml) download."""
@@ -116,6 +117,9 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _get_open_filename(self):
         return self._filename
+
+    def url(self) -> str:
+        return self._qt_item.url().toString()
 
     def _set_fileobj(self, fileobj, *, autoclose=True):
         raise downloads.UnsupportedOperationError
