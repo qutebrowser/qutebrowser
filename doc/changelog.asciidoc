@@ -51,6 +51,8 @@ Fixed
 - Restored compatibility with Jinja2 2.8 (e.g. used on Debian Stretch or Ubuntu
   16.04 LTS).
 - Fixed implicit type conversion warning with Python 3.8.
+- The desktop file now sets `StartupWMClass` correctly, so the qutebrowser icon
+  is no longer shown twice in the Gnome dock when pinned.
 
 v1.7.1 (unreleased)
 -------------------
