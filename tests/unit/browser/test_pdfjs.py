@@ -254,5 +254,6 @@ def test_should_use_pdfjs_url_pattern(config_stub, url, expected):
 
 def test_get_main_url():
     expected = ('qute://pdfjs/web/viewer.html?filename='
-                'hello?world.pdf&file=')
-    assert pdfjs.get_main_url('hello?world.pdf') == QUrl(expected)
+                'hello?world.pdf&file=&source=http://a.com/hello?world.pdf')
+    assert pdfjs.get_main_url('hello?world.pdf',
+                              'http://a.com/hello?world.pdf') == QUrl(expected)
