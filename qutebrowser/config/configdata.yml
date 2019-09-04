@@ -2301,6 +2301,11 @@ colors.tabs.indicator.system:
   type: ColorSystem
   desc: Color gradient interpolation system for the tab indicator.
 
+colors.tabs.indicator.suspended:
+  default: '#ee9944'
+  type: QtColor
+  desc: Color for the tab indicator for susupended tabs.
+
 colors.tabs.odd.fg:
   default: white
   type: QtColor
