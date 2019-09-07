@@ -21,7 +21,6 @@
 
 from qutebrowser.mainwindow.tabwidget import TabWidget
 from qutebrowser.misc.notree import Node
-from qutebrowser.misc import notree
 from qutebrowser.utils import log
 
 
@@ -73,6 +72,10 @@ class TreeTabWidget(TabWidget):
                 self.tabBar().moveTab(cur_idx, idx-1)
 
     def update_tree_tab_visibility(self):
+        """Hide collapsed tabs and show uncollapsed ones.
+
+        Sync the internal tree to the tabs the user can actually see.
+        """
         for node in self.tree_root.traverse():
             if node.value is None:
                 continue

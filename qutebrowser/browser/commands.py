@@ -2019,5 +2019,6 @@ class CommandDispatcher:
             if cur_tab and cur_tab is not tab:
                 cur_url = cur_tab.url().url()
                 if not cur_url.startswith("qute://"):
-                    new_url = self._parse_url("qute://back/#" + cur_tab.title())
+                    new_url = self._parse_url(
+                        "qute://back/#" + cur_tab.title())
                     cur_tab.load_url(new_url)
