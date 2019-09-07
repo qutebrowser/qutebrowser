@@ -129,6 +129,7 @@ possible to run or bind multiple commands by separating them with `;;`.
 |<<tree-tab-cycle-hide,tree-tab-cycle-hide>>|Hides levels of descendents: children, grandchildren, and so on.
 |<<tree-tab-demote,tree-tab-demote>>|Demote a tab making it children of its previous adjacent sibling.
 |<<tree-tab-promote,tree-tab-promote>>|Promote a tab so it becomes next sibling of its parent.
+|<<tree-tab-suspend-children,tree-tab-suspend-children>>|Suspends all descendent of a tab to reduce memory usage.
 |<<tree-tab-toggle-hide,tree-tab-toggle-hide>>|If the current tab's children are shown hide them, and vice-versa.
 |<<unbind,unbind>>|Unbind a keychain.
 |<<undo,undo>>|Re-open the last closed tab or tabs.
@@ -1321,7 +1322,7 @@ The tab index to close
 
 [[tab-focus]]
 === tab-focus
-Syntax: +:tab-focus [*--no-last*] [*--parent*] ['index']+
+Syntax: +:tab-focus [*--no-last*] ['index']+
 
 Select the tab given as argument/[count].
 
@@ -1329,13 +1330,13 @@ If neither count nor index are given, it behaves like tab-next. If both are give
 
 ==== positional arguments
 * +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab (regardless of count).
- Negative indices count from the end, such that -1 is the
- last tab.
+ The value `parent` focuses the parent tab in the tree
+ hierarchy, if `tabs.tree_tabs` is enabled. Negative indices
+ count from the end, such that -1 is the last tab.
 
 
 ==== optional arguments
 * +*-n*+, +*--no-last*+: Whether to avoid focusing last tab if already focused.
-* +*-p*+, +*--parent*+: If given, focus parent (in a tree) of current tab
 
 ==== count
 The tab index to focus, starting with 1.
@@ -1480,11 +1481,21 @@ Observes tabs.new_position.tree.promote in positioning the tab among new sibling
 ==== count
 How many levels the tabs should be promoted to
 
+[[tree-tab-suspend-children]]
+=== tree-tab-suspend-children
+Suspends all descendent of a tab to reduce memory usage.
+
+==== count
+Target tab.
+
 [[tree-tab-toggle-hide]]
 === tree-tab-toggle-hide
 If the current tab's children are shown hide them, and vice-versa.
 
 This toggles the current tab's node's `collapsed` attribute.
+
+==== count
+Which tab to collapse
 
 [[unbind]]
 === unbind

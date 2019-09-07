@@ -313,7 +313,7 @@ The keys of the given dictionary are the aliases, while the values are the comma
 
 Type: <<types,Dict>>
 
-Default:
+Default: 
 
 - +pass:[q]+: +pass:[close]+
 - +pass:[qa]+: +pass:[quit]+
@@ -419,7 +419,7 @@ This setting can only be set in config.py.
 
 Type: <<types,Dict>>
 
-Default:
+Default: 
 
 - +pass:[caret]+:
 
@@ -674,10 +674,12 @@ Default:
 * +pass:[zJ]+: +pass:[tab-next -s]+
 * +pass:[zK]+: +pass:[tab-prev -s]+
 * +pass:[zL]+: +pass:[tree-tab-demote]+
+* +pass:[zO]+: +pass:[set-cmd-text --space :open -tS]+
 * +pass:[za]+: +pass:[tree-tab-toggle-hide]+
 * +pass:[zd]+: +pass:[tab-close -r]+
 * +pass:[zg]+: +pass:[set-cmd-text -s :tree-tab-create-group -r]+
-* +pass:[zp]+: +pass:[tab-focus --parent]+
+* +pass:[zo]+: +pass:[set-cmd-text --space :open -tr]+
+* +pass:[zp]+: +pass:[tab-focus parent]+
 * +pass:[{{]+: +pass:[navigate prev -t]+
 * +pass:[}}]+: +pass:[navigate next -t]+
 - +pass:[passthrough]+:
@@ -732,7 +734,7 @@ Note that when a key is bound (via `bindings.default` or `bindings.commands`), t
 
 Type: <<types,Dict>>
 
-Default:
+Default: 
 
 - +pass:[&lt;Ctrl-6&gt;]+: +pass:[&lt;Ctrl-^&gt;]+
 - +pass:[&lt;Ctrl-Enter&gt;]+: +pass:[&lt;Ctrl-Return&gt;]+
@@ -790,7 +792,7 @@ May be a single color to use for all columns or a list of three colors, one for 
 
 Type: <<types,List of QtColor&#44; or QtColor>>
 
-Default:
+Default: 
 
 - +pass:[white]+
 - +pass:[white]+
@@ -1520,7 +1522,7 @@ Valid values:
  * +bookmarks+
  * +history+
 
-Default:
+Default: 
 
 - +pass:[searchengines]+
 - +pass:[quickmarks]+
@@ -1623,7 +1625,7 @@ Valid values:
  * +downloads+: Show a confirmation if downloads are running
  * +never+: Never show a confirmation.
 
-Default:
+Default: 
 
 - +pass:[never]+
 
@@ -1870,7 +1872,7 @@ The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
 
 Type: <<types,List of Url>>
 
-Default:
+Default: 
 
 - +pass:[https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts]+
 
@@ -1882,7 +1884,7 @@ Local domains are always exempt from hostblocking.
 
 Type: <<types,List of UrlPattern>>
 
-Default:
+Default: 
 
 - +pass:[piwik.org]+
 
@@ -1965,7 +1967,7 @@ On QtWebKit, the "unknown" setting is always used.
 
 Type: <<types,Dict>>
 
-Default:
+Default: 
 
 - +pass:[error]+: +pass:[debug]+
 - +pass:[info]+: +pass:[debug]+
@@ -2352,7 +2354,7 @@ Editor (and arguments) to use for the `open-editor` command. The following place
 
 Type: <<types,ShellCommand>>
 
-Default:
+Default: 
 
 - +pass:[gvim]+
 - +pass:[-f]+
@@ -2659,7 +2661,7 @@ Comma-separated list of regular expressions to use for 'next' links.
 
 Type: <<types,List of Regex>>
 
-Default:
+Default: 
 
 - +pass:[\bnext\b]+
 - +pass:[\bmore\b]+
@@ -2674,7 +2676,7 @@ Comma-separated list of regular expressions to use for 'prev' links.
 
 Type: <<types,List of Regex>>
 
-Default:
+Default: 
 
 - +pass:[\bprev(ious)?\b]+
 - +pass:[\bback\b]+
@@ -2701,7 +2703,7 @@ This setting can only be set in config.py.
 
 Type: <<types,Dict>>
 
-Default:
+Default: 
 
 - +pass:[all]+:
 
@@ -3193,7 +3195,7 @@ Padding (in pixels) for the statusbar.
 
 Type: <<types,Padding>>
 
-Default:
+Default: 
 
 - +pass:[bottom]+: +pass:[1]+
 - +pass:[left]+: +pass:[0]+
@@ -3229,7 +3231,7 @@ Valid values:
  * +keypress+: Display pressed keys when composing a vi command.
  * +progress+: Progress bar for the current page loading.
 
-Default:
+Default: 
 
 - +pass:[keypress]+
 - +pass:[url]+
@@ -3304,7 +3306,7 @@ Padding (in pixels) for tab indicators.
 
 Type: <<types,Padding>>
 
-Default:
+Default: 
 
 - +pass:[bottom]+: +pass:[2]+
 - +pass:[left]+: +pass:[0]+
@@ -3496,7 +3498,7 @@ Padding (in pixels) around text for tabs.
 
 Type: <<types,Padding>>
 
-Default:
+Default: 
 
 - +pass:[bottom]+: +pass:[0]+
 - +pass:[left]+: +pass:[5]+
@@ -3697,7 +3699,7 @@ Valid values:
  * +query+
  * +anchor+
 
-Default:
+Default: 
 
 - +pass:[path]+
 - +pass:[query]+
@@ -3718,7 +3720,7 @@ The search engine named `DEFAULT` is used when `url.auto_search` is turned on an
 
 Type: <<types,Dict>>
 
-Default:
+Default: 
 
 - +pass:[DEFAULT]+: +pass:[https://duckduckgo.com/?q={}]+
 
@@ -3736,7 +3738,7 @@ URL parameters to strip with `:yank url`.
 
 Type: <<types,List of String>>
 
-Default:
+Default: 
 
 - +pass:[ref]+
 - +pass:[utm_source]+
@@ -3780,7 +3782,7 @@ Available zoom levels.
 
 Type: <<types,List of Perc>>
 
-Default:
+Default: 
 
 - +pass:[25%]+
 - +pass:[33%]+

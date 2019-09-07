@@ -1955,6 +1955,9 @@ class CommandDispatcher:
         """If the current tab's children are shown hide them, and vice-versa.
 
         This toggles the current tab's node's `collapsed` attribute.
+
+        Args:
+            count: Which tab to collapse
         """
         if not self._tabbed_browser.is_treetabbedbrowser:
             raise cmdutils.CommandError('Tree-tabs are disabled')
