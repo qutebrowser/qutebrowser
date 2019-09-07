@@ -214,54 +214,53 @@ class TreeTabbedBrowser(TabbedBrowser):
                               ignore_tabs_are_windows=ignore_tabs_are_windows)
 
         tab.node.parent = self.widget.tree_root
-        if cur_tab is not None:
-            if related or sibling:
-                if related:
-                    pos = config.val.tabs.new_position.tree.new_child
-                    # pos can only be first, last
-                else:
-                    pos = config.val.tabs.new_position.tree.new_sibling
-                    # pos can be first, last, prev, next
-                if tab is not cur_tab:  # check we're not opening first tab
-                    parent = cur_tab.node.parent if sibling else cur_tab.node
-                    siblings = list(parent.children)
-                    if tab.node in siblings:  # true if parent is tree_root
-                        # remove it and add it later in the right position
-                        siblings.remove(tab.node)
-                    if pos == 'first':
-                        rel_idx = 0
-                        if config.val.tabs.new_position.stacking:
-                            rel_idx += self._tree_tab_insert_rel_idx
-                            self._tree_tab_insert_rel_idx += 1
-                        siblings.insert(rel_idx, tab.node)
-                    elif pos in ['prev', 'next'] and sibling:
-                        direction = -1 if pos == 'prev' else 1
-                        rel_idx = 0 if pos == 'prev' else 1
-                        tgt_idx = siblings.index(cur_tab.node) + rel_idx
-                        if config.val.tabs.new_position.stacking:
-                            tgt_idx += self._tree_tab_insert_rel_idx
-                            self._tree_tab_insert_rel_idx += direction
-                        siblings.insert(tgt_idx, tab.node)
-                    else:  # position == 'last'
-                        siblings.append(tab.node)
-                    parent.children = siblings
-            else:
-                pos = config.val.tabs.new_position.tree.new_toplevel
-                if pos == 'first':
-                    children = list(tab.node.parent.children)
-                    children.insert(0, children.pop())
-                    tab.node.parent.children = children
-                elif pos in ['next', 'prev']:
-                    diff = 1 if pos == 'next' else 0
-                    root_children = list(self.widget.tree_root.children)
-                    root_children.remove(tab.node)
+        if cur_tab is None or tab is cur_tab:
+            self.widget.tree_tab_update()
+            return tab
 
-                    cur_topmost = cur_tab.node.path[1]
-                    cur_top_idx = root_children.index(cur_topmost)
-                    root_children.insert(cur_top_idx + diff, tab.node)
-                    self.widget.tree_root.children = root_children
-            if cur_tab.node.collapsed:
-                self.widget.removeTab(self.widget.indexOf(tab))
+        toplevel = not sibling and not related
+
+        # get pos
+        if related:
+            pos = config.val.tabs.new_position.tree.new_child
+            parent = cur_tab.node
+            # pos can only be first, last
+        elif sibling:
+            pos = config.val.tabs.new_position.tree.new_sibling
+            parent = cur_tab.node.parent
+            # pos can be first, last, prev, next
+        else:
+            pos = config.val.tabs.new_position.tree.new_toplevel
+            parent = self.widget.tree_root
+
+        siblings = list(parent.children)
+        if tab.node in siblings:  # true if parent is tree_root
+            # remove it and add it later in the right position
+            siblings.remove(tab.node)
+
+        if pos == 'first':
+            rel_idx = 0
+            if config.val.tabs.new_position.stacking:
+                rel_idx += self._tree_tab_insert_rel_idx
+                self._tree_tab_insert_rel_idx += 1
+            siblings.insert(rel_idx, tab.node)
+        elif pos in ['prev', 'next'] and (sibling or toplevel):
+            # pivot is the tab relative to which 'prev' or 'next' apply
+            # it is always a member of 'siblings'
+            if sibling:
+                pivot = cur_tab.node
+            elif toplevel:
+                pivot = cur_tab.node.path[1]
+            direction = -1 if pos == 'prev' else 1
+            rel_idx = 0 if pos == 'prev' else 1
+            tgt_idx = siblings.index(pivot) + rel_idx
+            if config.val.tabs.new_position.stacking:
+                tgt_idx += self._tree_tab_insert_rel_idx
+                self._tree_tab_insert_rel_idx += direction
+            siblings.insert(tgt_idx, tab.node)
+        else:  # position == 'last'
+            siblings.append(tab.node)
+        parent.children = siblings
         self.widget.tree_tab_update()
         return tab
 
