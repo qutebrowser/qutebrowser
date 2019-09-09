@@ -200,6 +200,9 @@ def _handle_nouveau_graphics():
     if os.environ.get('QUTE_SKIP_NOUVEAU_CHECK'):
         return
 
+    if qtutils.version_check('5.10', compiled=False):
+        return
+
     if version.opengl_vendor() != 'nouveau':
         return
 
