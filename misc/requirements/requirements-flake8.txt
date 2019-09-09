@@ -22,4 +22,4 @@ pycodestyle==2.5.0
 pydocstyle==4.0.1
 pyflakes==2.1.1
 six==1.12.0
-snowballstemmer==1.9.0
+snowballstemmer==1.9.1
