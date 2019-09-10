@@ -39,9 +39,6 @@ _MODIFIER_MAP = {
 }
 
 
-_SPECIAL_NAMES = {}
-
-
 def _build_special_names():
     """Build _SPECIAL_NAMES dict from the special_names_str mapping below.
 
@@ -136,16 +133,19 @@ def _build_special_names():
         # For some keys, we just want a different name
         'Escape': 'Escape',
     }
+    special_names = {}
 
     for k, v in special_names_str.items():
         try:
-            _SPECIAL_NAMES[getattr(Qt, 'Key_' + k)] = v
+            special_names[getattr(Qt, 'Key_' + k)] = v
         except AttributeError:  # pragma: no cover
             pass
-        _SPECIAL_NAMES[0x0] = 'nil'
+
+    special_names[0x0] = 'nil'
+    return special_names
 
 
-_build_special_names()
+_SPECIAL_NAMES = _build_special_names()
 
 
 def _assert_plain_key(key):
