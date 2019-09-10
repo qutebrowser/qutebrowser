@@ -69,10 +69,10 @@ case $TESTENV in
     shellcheck)
         ;;
     *)
-        pip_install pip
-        pip_install -r misc/requirements/requirements-tox.txt
+        pip_install -U pip
+        pip_install -U -r misc/requirements/requirements-tox.txt
         if [[ $TESTENV == *-cov ]]; then
-            pip_install -r misc/requirements/requirements-codecov.txt
+            pip_install -U -r misc/requirements/requirements-codecov.txt
         fi
         ;;
 esac
