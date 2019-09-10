@@ -54,10 +54,10 @@ JSDOM.fromURL(process.env.QUTE_URL).then(dom => {
 
     fs.writeFile(tmpFile, content, (err) => {
         if (err) {
-            qute._execFifo(null, ['message-error', err]);
+            qute.messageError([err]);
             return 1;
         }
         // Success
-        qute._execFifo(null, ['open', '-t', tmpFile]);
+        qute.open(['-t', tmpFile]);
     })
 });
