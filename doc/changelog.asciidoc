@@ -56,6 +56,7 @@ Fixed
 - Fixed implicit type conversion warning with Python 3.8.
 - The desktop file now sets `StartupWMClass` correctly, so the qutebrowser icon
   is no longer shown twice in the Gnome dock when pinned.
+- Bindings involving keys which need the AltGr key now work properly.
 
 v1.7.1 (unreleased)
 -------------------
