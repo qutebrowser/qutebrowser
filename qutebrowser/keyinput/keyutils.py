@@ -581,7 +581,10 @@ class KeySequence:
         keys = [key & ~modifiers for key in self._iter_keys()]
         return self.__class__(*keys)
 
-    def with_mappings(self, mappings: typing.Mapping):
+    def with_mappings(
+            self,
+            mappings: typing.Mapping['KeySequence', 'KeySequence']
+    ) -> 'KeySequence':
         """Get a new KeySequence with the given mappings applied."""
         keys = []
         for key in self._iter_keys():
