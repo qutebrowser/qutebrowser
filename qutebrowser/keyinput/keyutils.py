@@ -145,8 +145,7 @@ def _build_special_names():
         _SPECIAL_NAMES[0x0] = 'nil'
 
 
-if not _SPECIAL_NAMES:
-    _build_special_names()
+_build_special_names()
 
 
 def _assert_plain_key(key):
