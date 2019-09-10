@@ -140,7 +140,7 @@ def _build_special_names():
     for k, v in special_names_str.items():
         try:
             _SPECIAL_NAMES[getattr(Qt, 'Key_' + k)] = v
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             pass
         _SPECIAL_NAMES[0x0] = 'nil'
 
