@@ -20,6 +20,7 @@
 """Our own QKeySequence-like class and related utilities."""
 
 import itertools
+import typing
 
 import attr
 from PyQt5.QtCore import Qt, QEvent
@@ -38,63 +39,15 @@ _MODIFIER_MAP = {
 }
 
 
-def _assert_plain_key(key):
-    """Make sure this is a key without KeyboardModifiers mixed in."""
-    assert not key & Qt.KeyboardModifierMask, hex(key)
+_SPECIAL_NAMES = {}
 
 
-def _assert_plain_modifier(key):
-    """Make sure this is a modifier without a key mixed in."""
-    assert not key & ~Qt.KeyboardModifierMask, hex(key)
+def _build_special_names():
+    """Build _SPECIAL_NAMES dict from the special_names_str mapping below.
 
-
-def _is_printable(key):
-    _assert_plain_key(key)
-    return key <= 0xff and key not in [Qt.Key_Space, 0x0]
-
-
-def is_special(key, modifiers):
-    """Check whether this key requires special key syntax."""
-    _assert_plain_key(key)
-    _assert_plain_modifier(modifiers)
-    return not (_is_printable(key) and
-                modifiers in [Qt.ShiftModifier, Qt.NoModifier,
-                              Qt.KeypadModifier])
-
-
-def is_modifier_key(key):
-    """Test whether the given key is a modifier.
-
-    This only considers keys which are part of Qt::KeyboardModifiers, i.e.
-    which would interrupt a key chain like "yY" when handled.
+    The reason we don't do this directly is that certain Qt versions don't have
+    all the keys, so we want to ignore AttributeErrors.
     """
-    _assert_plain_key(key)
-    return key in _MODIFIER_MAP
-
-
-def _check_valid_utf8(s, data):
-    """Make sure the given string is valid UTF-8.
-
-    Makes sure there are no chars where Qt did fall back to weird UTF-16
-    surrogates.
-    """
-    try:
-        s.encode('utf-8')
-    except UnicodeEncodeError as e:  # pragma: no cover
-        raise ValueError("Invalid encoding in 0x{:x} -> {}: {}"
-                         .format(data, s, e))
-
-
-def _key_to_string(key):
-    """Convert a Qt::Key member to a meaningful name.
-
-    Args:
-        key: A Qt::Key member.
-
-    Return:
-        A name of the key as a string.
-    """
-    _assert_plain_key(key)
     special_names_str = {
         # Some keys handled in a weird way by QKeySequence::toString.
         # See https://bugreports.qt.io/browse/QTBUG-40030
@@ -183,19 +136,79 @@ def _key_to_string(key):
         # For some keys, we just want a different name
         'Escape': 'Escape',
     }
-    # We now build our real special_names dict from the string mapping above.
-    # The reason we don't do this directly is that certain Qt versions don't
-    # have all the keys, so we want to ignore AttributeErrors.
-    special_names = {}
+
     for k, v in special_names_str.items():
         try:
-            special_names[getattr(Qt, 'Key_' + k)] = v
+            _SPECIAL_NAMES[getattr(Qt, 'Key_' + k)] = v
         except AttributeError:
             pass
-        special_names[0x0] = 'nil'
+        _SPECIAL_NAMES[0x0] = 'nil'
 
-    if key in special_names:
-        return special_names[key]
+
+if not _SPECIAL_NAMES:
+    _build_special_names()
+
+
+def _assert_plain_key(key):
+    """Make sure this is a key without KeyboardModifiers mixed in."""
+    assert not key & Qt.KeyboardModifierMask, hex(key)
+
+
+def _assert_plain_modifier(key):
+    """Make sure this is a modifier without a key mixed in."""
+    assert not key & ~Qt.KeyboardModifierMask, hex(key)
+
+
+def _is_printable(key):
+    _assert_plain_key(key)
+    return key <= 0xff and key not in [Qt.Key_Space, 0x0]
+
+
+def is_special(key, modifiers):
+    """Check whether this key requires special key syntax."""
+    _assert_plain_key(key)
+    _assert_plain_modifier(modifiers)
+    return not (_is_printable(key) and
+                modifiers in [Qt.ShiftModifier, Qt.NoModifier,
+                              Qt.KeypadModifier])
+
+
+def is_modifier_key(key):
+    """Test whether the given key is a modifier.
+
+    This only considers keys which are part of Qt::KeyboardModifiers, i.e.
+    which would interrupt a key chain like "yY" when handled.
+    """
+    _assert_plain_key(key)
+    return key in _MODIFIER_MAP
+
+
+def _check_valid_utf8(s, data):
+    """Make sure the given string is valid UTF-8.
+
+    Makes sure there are no chars where Qt did fall back to weird UTF-16
+    surrogates.
+    """
+    try:
+        s.encode('utf-8')
+    except UnicodeEncodeError as e:  # pragma: no cover
+        raise ValueError("Invalid encoding in 0x{:x} -> {}: {}"
+                         .format(data, s, e))
+
+
+def _key_to_string(key):
+    """Convert a Qt::Key member to a meaningful name.
+
+    Args:
+        key: A Qt::Key member.
+
+    Return:
+        A name of the key as a string.
+    """
+    _assert_plain_key(key)
+
+    if key in _SPECIAL_NAMES:
+        return _SPECIAL_NAMES[key]
 
     result = QKeySequence(key).toString()
     _check_valid_utf8(result, key)
@@ -569,7 +582,7 @@ class KeySequence:
         keys = [key & ~modifiers for key in self._iter_keys()]
         return self.__class__(*keys)
 
-    def with_mappings(self, mappings):
+    def with_mappings(self, mappings: typing.Mapping):
         """Get a new KeySequence with the given mappings applied."""
         keys = []
         for key in self._iter_keys():

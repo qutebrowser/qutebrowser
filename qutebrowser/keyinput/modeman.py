@@ -176,7 +176,7 @@ class ModeManager(QObject):
             event.modifiers() not in [Qt.NoModifier, Qt.ShiftModifier] or
             not event.text().strip())
 
-        forward_unbound_keys = config.val.input.forward_unbound_keys
+        forward_unbound_keys = config.cache['input.forward_unbound_keys']
 
         if match:
             filter_this = True
