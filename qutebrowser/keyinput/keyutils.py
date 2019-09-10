@@ -133,7 +133,7 @@ def _build_special_names():
         # For some keys, we just want a different name
         'Escape': 'Escape',
     }
-    special_names = {}
+    special_names = {0x0: 'nil'}
 
     for k, v in special_names_str.items():
         try:
@@ -141,7 +141,6 @@ def _build_special_names():
         except AttributeError:  # pragma: no cover
             pass
 
-    special_names[0x0] = 'nil'
     return special_names
 
 
