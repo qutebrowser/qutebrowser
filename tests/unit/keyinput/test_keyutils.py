@@ -158,9 +158,16 @@ class TestKeyToString:
     (Qt.Key_A,
      Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier | Qt.ShiftModifier,
      '<Meta+Ctrl+Alt+Shift+a>'),
+    (ord('Œ'), Qt.NoModifier, '<Œ>'),
+    (ord('Œ'), Qt.ShiftModifier, '<Shift+Œ>'),
+    (ord('Œ'), Qt.GroupSwitchModifier, '<AltGr+Œ>'),
+    (ord('Œ'), Qt.GroupSwitchModifier | Qt.ShiftModifier, '<AltGr+Shift+Œ>'),
 
     (Qt.Key_Shift, Qt.ShiftModifier, '<Shift>'),
     (Qt.Key_Shift, Qt.ShiftModifier | Qt.ControlModifier, '<Ctrl+Shift>'),
+    (Qt.Key_Alt, Qt.AltModifier, '<Alt>'),
+    (Qt.Key_Shift, Qt.GroupSwitchModifier | Qt.ShiftModifier, '<AltGr+Shift>'),
+    (Qt.Key_AltGr, Qt.GroupSwitchModifier, '<AltGr>'),
 ])
 def test_key_info_str(key, modifiers, expected):
     assert str(keyutils.KeyInfo(key, modifiers)) == expected

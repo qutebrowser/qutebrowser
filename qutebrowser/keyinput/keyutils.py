@@ -35,6 +35,7 @@ _MODIFIER_MAP = {
     Qt.Key_Control: Qt.ControlModifier,
     Qt.Key_Alt: Qt.AltModifier,
     Qt.Key_Meta: Qt.MetaModifier,
+    Qt.Key_AltGr: Qt.GroupSwitchModifier,
     Qt.Key_Mode_switch: Qt.GroupSwitchModifier,
 }
 
