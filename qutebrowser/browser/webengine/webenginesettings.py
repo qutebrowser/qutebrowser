@@ -265,7 +265,7 @@ class ProfileSetter:
                                     "sources".format(code))
                 continue
 
-            filenames.append(local_filename)
+            filenames.append(os.path.splitext(local_filename)[0])
 
         log.config.debug("Found dicts: {}".format(filenames))
         self._profile.setSpellCheckLanguages(filenames)
