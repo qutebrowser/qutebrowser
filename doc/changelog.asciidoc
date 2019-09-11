@@ -59,6 +59,7 @@ Fixed
 - Bindings involving keys which need the AltGr key now work properly.
 - Fixed crash (caused by a Qt bug) when typing characters above the Unicode BMP
   (such as certain emoji or CJK characters).
+- `dictcli.py` now works properly again.
 
 v1.7.1 (unreleased)
 -------------------
