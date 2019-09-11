@@ -173,6 +173,34 @@ def test_key_info_str(key, modifiers, expected):
     assert str(keyutils.KeyInfo(key, modifiers)) == expected
 
 
+@pytest.mark.parametrize('key, modifiers, text, expected', [
+    (0xd83c, Qt.NoModifier, '🏻', '<🏻>'),
+    (0xd867, Qt.NoModifier, '𩷶', '<𩷶>'),
+    (0xd867, Qt.ShiftModifier, '𩷶', '<Shift+𩷶>'),
+])
+def test_surrogates(key, modifiers, text, expected):
+    evt = QKeyEvent(QKeyEvent.KeyPress, key, modifiers, text)
+    assert str(keyutils.KeyInfo.from_event(evt)) == expected
+
+
+@pytest.mark.parametrize('keys, expected', [
+    ([0x1f3fb], '<🏻>'),
+    ([0x29df6], '<𩷶>'),
+    ([Qt.Key_Shift, 0x29df6], '<Shift><𩷶>'),
+    ([0x1f468, 0x200d, 0x1f468, 0x200d, 0x1f466], '<👨><‍><👨><‍><👦>'),
+])
+def test_surrogate_sequences(keys, expected):
+    seq = keyutils.KeySequence(*keys)
+    assert str(seq) == expected
+
+
+# This shouldn't happen, but if it does we should handle it well
+def test_surrogate_error():
+    evt = QKeyEvent(QKeyEvent.KeyPress, 0xd83e, Qt.NoModifier, '🤞🏻')
+    with pytest.raises(keyutils.KeyParseError):
+        keyutils.KeyInfo.from_event(evt)
+
+
 @pytest.mark.parametrize('keystr, expected', [
     ('foo', "Could not parse 'foo': error"),
     (None, "Could not parse keystring: error"),
