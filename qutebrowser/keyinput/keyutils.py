@@ -163,14 +163,19 @@ def _is_printable(key):
     return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
 
-def _is_surrogate(key):
-    """Check if a codepoint is a UTF-16 surrogate.
+def is_special_hint_mode(key, modifiers):
+    """Check whether this key should clear the keychain in hint mode.
 
-    UTF-16 surrogates are a reserved range of Unicode from 0xd800
-    to 0xd8ff, used to encode Unicode codepoints above the BMP
-    (Base Multilingual Plane).
+    When we press "s<Escape>", we don't want <Escape> to be handled as part of
+    a key chain in hint mode.
     """
-    return 0xd800 <= key <= 0xdfff
+    _assert_plain_key(key)
+    _assert_plain_modifier(modifiers)
+    if is_modifier_key(key):
+        return False
+    return not (_is_printable(key) and
+                modifiers in [Qt.ShiftModifier, Qt.NoModifier,
+                              Qt.KeypadModifier])
 
 
 def is_special(key, modifiers):
@@ -178,8 +183,7 @@ def is_special(key, modifiers):
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
     return not (_is_printable(key) and
-                modifiers in [Qt.ShiftModifier, Qt.NoModifier,
-                              Qt.KeypadModifier])
+                modifiers in [Qt.ShiftModifier, Qt.NoModifier])
 
 
 def is_modifier_key(key):
@@ -190,6 +194,16 @@ def is_modifier_key(key):
     """
     _assert_plain_key(key)
     return key in _MODIFIER_MAP
+
+
+def _is_surrogate(key):
+    """Check if a codepoint is a UTF-16 surrogate.
+
+    UTF-16 surrogates are a reserved range of Unicode from 0xd800
+    to 0xd8ff, used to encode Unicode codepoints above the BMP
+    (Base Multilingual Plane).
+    """
+    return 0xd800 <= key <= 0xdfff
 
 
 def _remap_unicode(key, text):
@@ -380,8 +394,7 @@ class KeyInfo:
                 key_string = key_string.lower()
 
         # "special" binding
-        assert (is_special(self.key, self.modifiers) or
-                self.modifiers == Qt.KeypadModifier)
+        assert is_special(self.key, self.modifiers)
         modifier_string = _modifiers_to_string(modifiers)
         return '<{}{}>'.format(modifier_string, key_string)
 
