@@ -54,13 +54,9 @@ WEBENGINE_SCHEMES = [
 ]
 
 
-class InvalidUrlError(ValueError):
+class InvalidUrlError(Exception):
 
-    """Error raised if a function got an invalid URL.
-
-    Inherits ValueError because that was the exception originally used for
-    that, so there still might be some code around which checks for that.
-    """
+    """Error raised if a function got an invalid URL."""
 
     def __init__(self, url):
         if url.isValid():
@@ -218,8 +214,7 @@ def fuzzy_url(urlstr, cwd=None, relative=False, do_search=True,
     if do_search and config.val.url.auto_search != 'never' and urlstr:
         qtutils.ensure_valid(url)
     else:
-        if not url.isValid():
-            raise InvalidUrlError(url)
+        ensure_valid(url)
     return url
 
 
@@ -344,6 +339,11 @@ def qurl_from_user_input(urlstr):
         return QUrl('http://[{}]{}'.format(ipstr, rest))
 
 
+def ensure_valid(url):
+    if not url.isValid():
+        raise InvalidUrlError(url)
+
+
 def invalid_url_error(url, action):
     """Display an error message for a URL.
 
@@ -360,8 +360,10 @@ def invalid_url_error(url, action):
 
 def raise_cmdexc_if_invalid(url):
     """Check if the given QUrl is invalid, and if so, raise a CommandError."""
-    if not url.isValid():
-        raise cmdutils.CommandError(get_errstring(url))
+    try:
+        ensure_valid(url)
+    except InvalidUrlError as e:
+        raise cmdutils.CommandError(str(e))
 
 
 def get_path_if_valid(pathstr, cwd=None, relative=False, check_exists=False):
@@ -434,8 +436,7 @@ def host_tuple(url):
 
     This is suitable to identify a connection, e.g. for SSL errors.
     """
-    if not url.isValid():
-        raise InvalidUrlError(url)
+    ensure_valid(url)
     scheme, host, port = url.scheme(), url.host(), url.port()
     assert scheme
     if not host:
@@ -484,10 +485,8 @@ def same_domain(url1, url2):
     Return:
         True if the domains are the same, False otherwise.
     """
-    if not url1.isValid():
-        raise InvalidUrlError(url1)
-    if not url2.isValid():
-        raise InvalidUrlError(url2)
+    ensure_valid(url1)
+    ensure_valid(url2)
 
     suffix1 = url1.topLevelDomain()
     suffix2 = url2.topLevelDomain()
@@ -537,8 +536,7 @@ def safe_display_string(qurl):
     See https://github.com/qutebrowser/qutebrowser/issues/2547
     and https://bugreports.qt.io/browse/QTBUG-60365
     """
-    if not qurl.isValid():
-        raise InvalidUrlError(qurl)
+    ensure_valid(qurl)
 
     host = qurl.host(QUrl.FullyEncoded)
     if '..' in host:  # pragma: no cover
@@ -581,8 +579,7 @@ def proxy_from_url(url):
     Return:
         New QNetworkProxy.
     """
-    if not url.isValid():
-        raise InvalidUrlError(url)
+    ensure_valid(url)
 
     scheme = url.scheme()
     if scheme in ['pac+http', 'pac+https', 'pac+file']:

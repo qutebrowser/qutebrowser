@@ -511,11 +511,7 @@ def test_filename_from_url(qurl, output):
     assert urlutils.filename_from_url(qurl) == output
 
 
-@pytest.mark.parametrize('qurl, tpl', [
-    (QUrl(), None),
-    (QUrl('qute://'), None),
-    (QUrl('qute://foobar'), None),
-    (QUrl('mailto:nobody'), None),
+@pytest.mark.parametrize('qurl, expected', [
     (QUrl('ftp://example.com/'), ('ftp', 'example.com', 21)),
     (QUrl('ftp://example.com:2121/'), ('ftp', 'example.com', 2121)),
     (QUrl('http://qutebrowser.org:8010/waterfall'),
@@ -525,18 +521,19 @@ def test_filename_from_url(qurl, output):
     (QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'),
      ('http', 'qutebrowser.org', 80)),
 ])
-def test_host_tuple(qurl, tpl):
-    """Test host_tuple().
+def test_host_tuple_valid(qurl, expected):
+    assert urlutils.host_tuple(qurl) == expected
 
-    Args:
-        qurl: The QUrl to pass.
-        tpl: The expected tuple, or None if a ValueError is expected.
-    """
-    if tpl is None:
-        with pytest.raises(ValueError):
-            urlutils.host_tuple(qurl)
-    else:
-        assert urlutils.host_tuple(qurl) == tpl
+
+@pytest.mark.parametrize('qurl, expected', [
+    (QUrl(), urlutils.InvalidUrlError),
+    (QUrl('qute://'), ValueError),
+    (QUrl('qute://foobar'), ValueError),
+    (QUrl('mailto:nobody'), ValueError),
+])
+def test_host_tuple_invalid(qurl, expected):
+    with pytest.raises(expected):
+        urlutils.host_tuple(qurl)
 
 
 class TestInvalidUrlError:
@@ -568,11 +565,6 @@ class TestInvalidUrlError:
             if has_err_string:
                 expected_text += " - " + url.errorString()
             assert str(excinfo.value) == expected_text
-
-    def test_value_error_subclass(self):
-        """Make sure InvalidUrlError is a ValueError subclass."""
-        with pytest.raises(ValueError):
-            raise urlutils.InvalidUrlError(QUrl())
 
 
 @pytest.mark.parametrize('are_same, url1, url2', [

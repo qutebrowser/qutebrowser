@@ -95,9 +95,8 @@ def incdec(url, count, inc_or_dec):
         background: Open the link in a new background tab.
         window: Open the link in a new window.
     """
+    urlutils.ensure_valid(url)
     segments = set(config.val.url.incdec_segments)
-    if not url.isValid():
-        raise urlutils.InvalidUrlError(url)
 
     if segments is None:
         segments = {'path', 'query'}
