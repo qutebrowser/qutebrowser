@@ -60,6 +60,9 @@ Fixed
 - Fixed crash (caused by a Qt bug) when typing characters above the Unicode BMP
   (such as certain emoji or CJK characters).
 - `dictcli.py` now works properly again.
+- Shift can now be used while typing hint keystrings, which e.g. allows typing
+  number hints on French keyboards.
+
 
 v1.7.1 (unreleased)
 -------------------
