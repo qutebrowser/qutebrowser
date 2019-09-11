@@ -19,7 +19,10 @@
 
 """Implementation of :navigate."""
 
+import re
 import posixpath
+
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import webelem
 from qutebrowser.config import config
@@ -30,6 +33,55 @@ from qutebrowser.mainwindow import mainwindow
 class Error(Exception):
 
     """Raised when the navigation can't be done."""
+
+
+# Order of the segments in a URL.
+# Each list entry is a tuple of (path name (string), getter, setter).
+# Note that the getters must not use FullyDecoded decoded mode to prevent loss
+# of information. (host and path use FullyDecoded by default)
+_URL_SEGMENTS = [
+    ('host',
+     lambda url: url.host(QUrl.FullyEncoded),
+     lambda url, host: url.setHost(host, QUrl.StrictMode)),
+
+    ('port',
+     lambda url: str(url.port()) if url.port() > 0 else '',
+     lambda url, x: url.setPort(int(x))),
+
+    ('path',
+     lambda url: url.path(QUrl.FullyEncoded),
+     lambda url, path: url.setPath(path, QUrl.StrictMode)),
+
+    ('query',
+     lambda url: url.query(QUrl.FullyEncoded),
+     lambda url, query: url.setQuery(query, QUrl.StrictMode)),
+
+    ('anchor',
+     lambda url: url.fragment(QUrl.FullyEncoded),
+     lambda url, fragment: url.setFragment(fragment, QUrl.StrictMode)),
+]
+
+
+def _get_incdec_value(match, inc_or_dec, count):
+    """Get an incremented/decremented URL based on a URL match."""
+    pre, zeroes, number, post = match.groups()
+    # This should always succeed because we match \d+
+    val = int(number)
+    if inc_or_dec == 'decrement':
+        if val < count:
+            raise Error("Can't decrement {} by {}!".format(val, count))
+        val -= count
+    elif inc_or_dec == 'increment':
+        val += count
+    else:
+        raise ValueError("Invalid value {} for inc_or_dec!".format(inc_or_dec))
+    if zeroes:
+        if len(number) < len(str(val)):
+            zeroes = zeroes[1:]
+        elif len(number) > len(str(val)):
+            zeroes += '0'
+
+    return ''.join([pre, zeroes, str(val), post])
 
 
 def incdec(url, count, inc_or_dec):
@@ -44,12 +96,31 @@ def incdec(url, count, inc_or_dec):
         window: Open the link in a new window.
     """
     segments = set(config.val.url.incdec_segments)
-    try:
-        new_url = urlutils.incdec_number(url, inc_or_dec, count,
-                                         segments=segments)
-    except urlutils.IncDecError as error:
-        raise Error(error.msg)
-    return new_url
+    if not url.isValid():
+        raise urlutils.InvalidUrlError(url)
+
+    if segments is None:
+        segments = {'path', 'query'}
+
+    # Make a copy of the QUrl so we don't modify the original
+    url = QUrl(url)
+    # We're searching the last number so we walk the url segments backwards
+    for segment, getter, setter in reversed(_URL_SEGMENTS):
+        if segment not in segments:
+            continue
+
+        # Get the last number in a string not preceded by regex '%' or '%.'
+        match = re.fullmatch(r'(.*\D|^)(?<!%)(?<!%.)(0*)(\d+)(.*)',
+                             getter(url))
+        if not match:
+            continue
+
+        setter(url, _get_incdec_value(match, inc_or_dec, count))
+        qtutils.ensure_valid(url)
+
+        return url
+
+    raise Error("No number found in URL!")
 
 
 def path_up(url, count):
