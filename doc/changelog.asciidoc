@@ -57,6 +57,8 @@ Fixed
 - The desktop file now sets `StartupWMClass` correctly, so the qutebrowser icon
   is no longer shown twice in the Gnome dock when pinned.
 - Bindings involving keys which need the AltGr key now work properly.
+- Fixed crash (caused by a Qt bug) when typing characters above the Unicode BMP
+  (such as certain emoji or CJK characters).
 
 v1.7.1 (unreleased)
 -------------------
