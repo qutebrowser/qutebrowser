@@ -168,7 +168,8 @@ def _is_surrogate(key):
 
     UTF-16 surrogates are a reserved range of Unicode from 0xd800
     to 0xd8ff, used to encode Unicode codepoints above the BMP
-    (Base Multilingual Plane)"""
+    (Base Multilingual Plane).
+    """
     return 0xd800 <= key <= 0xdfff
 
 
@@ -202,14 +203,14 @@ def _remap_unicode(key, text):
     breaks UTF-8 encoding, causing crashes. So we detect this
     case, and reassign the key code to be the full Unicode
     codepoint, which we can recover from the text() property,
-    wihch has the full character."""
+    wihch has the full character.
+    """
     if _is_surrogate(key):
         if len(text) != 1:
-            raise KeyParseError(text, "Key had too many characters!")
-        else:
-            return ord(text[0])
-    else:
-        return key
+            raise KeyParseError(text, "Expected 1 character for surrogate, "
+                                "but got {}!".format(len(text)))
+        return ord(text[0])
+    return key
 
 
 def _check_valid_utf8(s, data):
