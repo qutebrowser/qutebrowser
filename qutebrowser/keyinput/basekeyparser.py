@@ -41,11 +41,19 @@ class BindingTrie:
 
     """Helper class for key parser. Represents a set of bindings.
 
-    Except for the root item, there is no children BindingTrie with no bound
-    commands.
+    Every BindingTree will either contain children or a command (for leaf
+    nodes). The only exception is the root BindingNode, if there are no
+    bindings at all.
 
-    This class works like a dict[keyutils.KeySequence, str], but with matches
-    method added.
+    From the outside, this class works similar to a mapping of
+    keyutils.KeySequence to str. Operations like __{get,set}attr__ work like
+    you'd expect. Additionally, a "matches" method can be used to do partial
+    matching.
+
+    However, some mapping methods are not (yet) implemented:
+    - __len__
+    - __iter__
+    - __delitem__
 
     Attributes:
         child: A mapping from KeyInfo to children BindingTries.
@@ -92,7 +100,7 @@ class BindingTrie:
         """Try to match a given keystring with any bound keychain.
 
         Args:
-            sequence: The command string to find.
+            sequence: The key sequence to match.
 
         Return:
             A tuple (matchtype, binding).
@@ -113,7 +121,7 @@ class BindingTrie:
             return QKeySequence.ExactMatch, node.command
         elif node.child:
             return QKeySequence.PartialMatch, None
-        else:  # This can only happen when there is no bindings
+        else:  # This can only happen when there are no bindings at all.
             return QKeySequence.NoMatch, None
 
 
@@ -302,9 +310,6 @@ class BaseKeyParser(QObject):
 
     @config.change_filter('bindings')
     def _on_config_changed(self) -> None:
-        # Note: This function is called which erases and rebuild the whole
-        # self.bindings object, even if it only needs to add or remove one
-        # item.
         self._read_config()
 
     def _read_config(self, modename: str = None) -> None:

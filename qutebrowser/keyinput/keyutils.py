@@ -27,7 +27,7 @@ To make things worse, when talking about a "key", sometimes Qt means a Qt::Key
 member. However, sometimes it means a Qt::Key member ORed with
 Qt.KeyboardModifiers...
 
-Because of that, _assert_plain_key() and _assert_plain_modifiers() make sure we
+Because of that, _assert_plain_key() and _assert_plain_modifier() make sure we
 handle what we actually think we do.
 """
 
@@ -222,15 +222,15 @@ def _is_surrogate(key: Qt.Key) -> bool:
 def _remap_unicode(key: Qt.Key, text: str) -> Qt.Key:
     """Work around QtKeyEvent's bad values for high codepoints.
 
-    QKeyEvent handles higher unicode codepoints poorly (see
-    QTBUG-72776). It uses UTF-16 to handle key events, and for
-    higher codepoints that require UTF-16 surrogates (e.g. emoji
-    and some CJK characters), it sets the keycode to just the
-    upper half of the surrogate, which renders it useless, and
-    breaks UTF-8 encoding, causing crashes. So we detect this
-    case, and reassign the key code to be the full Unicode
-    codepoint, which we can recover from the text() property,
-    wihch has the full character.
+    QKeyEvent handles higher unicode codepoints poorly. It uses UTF-16 to
+    handle key events, and for higher codepoints that require UTF-16 surrogates
+    (e.g. emoji and some CJK characters), it sets the keycode to just the upper
+    half of the surrogate, which renders it useless, and breaks UTF-8 encoding,
+    causing crashes. So we detect this case, and reassign the key code to be
+    the full Unicode codepoint, which we can recover from the text() property,
+    which has the full character.
+
+    This is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-72776.
     """
     _assert_plain_key(key)
     if _is_surrogate(key):
@@ -377,6 +377,11 @@ class KeyInfo:
 
     @classmethod
     def from_event(cls, e: QKeyEvent) -> 'KeyInfo':
+        """Get a KeyInfo object from a QKeyEvent.
+
+        This makes sure that key/modifiers are never mixed and also remaps
+        UTF-16 surrogates to work around QTBUG-72776.
+        """
         key = _remap_unicode(Qt.Key(e.key()), e.text())
         modifiers = e.modifiers()
         _assert_plain_key(key)
