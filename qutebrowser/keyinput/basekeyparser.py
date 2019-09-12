@@ -23,7 +23,7 @@ import string
 import types
 import typing
 
-from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtCore import pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QKeySequence, QKeyEvent
 from PyQt5.QtWidgets import QWidget
 
@@ -248,7 +248,7 @@ class BaseKeyParser(QObject):
         Return:
             A QKeySequence match.
         """
-        key = e.key()
+        key = Qt.Key(e.key())
         txt = str(keyutils.KeyInfo.from_event(e))
         self._debug_log("Got key: 0x{:x} / modifiers: 0x{:x} / text: '{}' / "
                         "dry_run {}".format(key, int(e.modifiers()), txt,

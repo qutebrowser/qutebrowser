@@ -27,8 +27,7 @@ To make things worse, when talking about a "key", sometimes Qt means a Qt::Key
 member. However, sometimes it means a Qt::Key member ORed with
 Qt.KeyboardModifiers...
 
-Because of that, most type annotations in this module use "int" rather than
-"Qt.Key", while _assert_plain_key() and _assert_plain_modifiers() make sure we
+Because of that, _assert_plain_key() and _assert_plain_modifiers() make sure we
 handle what we actually think we do.
 """
 
@@ -161,22 +160,22 @@ def _build_special_names() -> typing.Mapping[Qt.Key, str]:
 _SPECIAL_NAMES = _build_special_names()
 
 
-def _assert_plain_key(key: int) -> None:
+def _assert_plain_key(key: Qt.Key) -> None:
     """Make sure this is a key without KeyboardModifiers mixed in."""
     assert not key & Qt.KeyboardModifierMask, hex(key)
 
 
-def _assert_plain_modifier(key: int) -> None:
+def _assert_plain_modifier(key: Qt.KeyboardModifier) -> None:
     """Make sure this is a modifier without a key mixed in."""
     assert not key & ~Qt.KeyboardModifierMask, hex(key)
 
 
-def _is_printable(key: int) -> bool:
+def _is_printable(key: Qt.Key) -> bool:
     _assert_plain_key(key)
     return key <= 0xff and key not in [Qt.Key_Space, 0x0]
 
 
-def is_special_hint_mode(key: int, modifiers: Qt.KeyboardModifier) -> bool:
+def is_special_hint_mode(key: Qt.Key, modifiers: Qt.KeyboardModifier) -> bool:
     """Check whether this key should clear the keychain in hint mode.
 
     When we press "s<Escape>", we don't want <Escape> to be handled as part of
@@ -191,7 +190,7 @@ def is_special_hint_mode(key: int, modifiers: Qt.KeyboardModifier) -> bool:
                               Qt.KeypadModifier])
 
 
-def is_special(key: int, modifiers: Qt.KeyboardModifier) -> bool:
+def is_special(key: Qt.Key, modifiers: Qt.KeyboardModifier) -> bool:
     """Check whether this key requires special key syntax."""
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
@@ -199,7 +198,7 @@ def is_special(key: int, modifiers: Qt.KeyboardModifier) -> bool:
                 modifiers in [Qt.ShiftModifier, Qt.NoModifier])
 
 
-def is_modifier_key(key: int) -> bool:
+def is_modifier_key(key: Qt.Key) -> bool:
     """Test whether the given key is a modifier.
 
     This only considers keys which are part of Qt::KeyboardModifiers, i.e.
@@ -209,17 +208,18 @@ def is_modifier_key(key: int) -> bool:
     return key in _MODIFIER_MAP
 
 
-def _is_surrogate(key: int) -> bool:
+def _is_surrogate(key: Qt.Key) -> bool:
     """Check if a codepoint is a UTF-16 surrogate.
 
     UTF-16 surrogates are a reserved range of Unicode from 0xd800
     to 0xd8ff, used to encode Unicode codepoints above the BMP
     (Base Multilingual Plane).
     """
+    _assert_plain_key(key)
     return 0xd800 <= key <= 0xdfff
 
 
-def _remap_unicode(key: int, text: str) -> int:
+def _remap_unicode(key: Qt.Key, text: str) -> Qt.Key:
     """Work around QtKeyEvent's bad values for high codepoints.
 
     QKeyEvent handles higher unicode codepoints poorly (see
@@ -232,15 +232,17 @@ def _remap_unicode(key: int, text: str) -> int:
     codepoint, which we can recover from the text() property,
     wihch has the full character.
     """
+    _assert_plain_key(key)
     if _is_surrogate(key):
         if len(text) != 1:
             raise KeyParseError(text, "Expected 1 character for surrogate, "
                                 "but got {}!".format(len(text)))
-        return ord(text[0])
+        return Qt.Key(ord(text[0]))
     return key
 
 
-def _check_valid_utf8(s: str, data: int) -> None:
+def _check_valid_utf8(s: str,
+                      data: typing.Union[Qt.Key, Qt.KeyboardModifier]) -> None:
     """Make sure the given string is valid UTF-8.
 
     Makes sure there are no chars where Qt did fall back to weird UTF-16
@@ -272,7 +274,7 @@ def _key_to_string(key: Qt.Key) -> str:
     return result
 
 
-def _modifiers_to_string(modifiers: int) -> str:
+def _modifiers_to_string(modifiers: Qt.KeyboardModifier) -> str:
     """Convert the given Qt::KeyboardModifiers to a string.
 
     Handles Qt.GroupSwitchModifier because Qt doesn't handle that as a
@@ -280,7 +282,7 @@ def _modifiers_to_string(modifiers: int) -> str:
     """
     _assert_plain_modifier(modifiers)
     if modifiers & Qt.GroupSwitchModifier:
-        modifiers &= ~Qt.GroupSwitchModifier
+        modifiers &= ~Qt.GroupSwitchModifier  # type: ignore
         result = 'AltGr+'
     else:
         result = ''
@@ -375,7 +377,11 @@ class KeyInfo:
 
     @classmethod
     def from_event(cls, e: QKeyEvent) -> 'KeyInfo':
-        return cls(Qt.Key(_remap_unicode(e.key(), e.text())), e.modifiers())
+        key = _remap_unicode(Qt.Key(e.key()), e.text())
+        modifiers = e.modifiers()
+        _assert_plain_key(key)
+        _assert_plain_modifier(modifiers)
+        return cls(key, modifiers)
 
     def __hash__(self) -> int:
         """Convert KeyInfo to int before hashing.
@@ -413,6 +419,8 @@ class KeyInfo:
             else:
                 # Use special binding syntax, but <Ctrl-a> instead of <Ctrl-A>
                 key_string = key_string.lower()
+
+        modifiers = Qt.KeyboardModifier(modifiers)
 
         # "special" binding
         assert is_special(self.key, self.modifiers)
@@ -602,11 +610,13 @@ class KeySequence:
 
     def append_event(self, ev: QKeyEvent) -> 'KeySequence':
         """Create a new KeySequence object with the given QKeyEvent added."""
-        key = _remap_unicode(ev.key(), ev.text())
-        modifiers = typing.cast(int, ev.modifiers())
+        key = Qt.Key(ev.key())
 
         _assert_plain_key(key)
-        _assert_plain_modifier(modifiers)
+        _assert_plain_modifier(ev.modifiers())
+
+        key = _remap_unicode(key, ev.text())
+        modifiers = int(ev.modifiers())
 
         if key == 0x0:
             raise KeyParseError(None, "Got nil key!")
@@ -631,7 +641,7 @@ class KeySequence:
         # In addition, Shift also *is* relevant when other modifiers are
         # involved. Shift-Ctrl-X should not be equivalent to Ctrl-X.
         if (modifiers == Qt.ShiftModifier and
-                _is_printable(ev.key()) and
+                _is_printable(key) and
                 not ev.text().isupper()):
             modifiers = Qt.KeyboardModifiers()
 
