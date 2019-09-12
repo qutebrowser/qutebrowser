@@ -58,11 +58,12 @@ class BindingTrie:
     bindings at all.
 
     From the outside, this class works similar to a mapping of
-    keyutils.KeySequence to str. Operations like __{get,set}attr__ work like
-    you'd expect. Additionally, a "matches" method can be used to do partial
-    matching.
+    keyutils.KeySequence to str. Doing trie[sequence] = 'command' adds a
+    binding, and so does calling .update() with a mapping. Additionally, a
+    "matches" method can be used to do partial matching.
 
     However, some mapping methods are not (yet) implemented:
+    - __getitem__ (use matches() instead)
     - __len__
     - __iter__
     - __delitem__
@@ -78,13 +79,6 @@ class BindingTrie:
         self.children = {
         }  # type: typing.MutableMapping[keyutils.KeyInfo, BindingTrie]
         self.command = None  # type: typing.Optional[str]
-
-    def __getitem__(self,
-                    sequence: keyutils.KeySequence) -> typing.Optional[str]:
-        result = self.matches(sequence)
-        if result.match_type != QKeySequence.ExactMatch:
-            raise KeyError(sequence)
-        return result.command
 
     def __setitem__(self, sequence: keyutils.KeySequence,
                     command: str) -> None:
