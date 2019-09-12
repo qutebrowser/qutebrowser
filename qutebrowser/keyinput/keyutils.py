@@ -51,6 +51,8 @@ _MODIFIER_MAP = {
     Qt.Key_Mode_switch: Qt.GroupSwitchModifier,
 }
 
+_NIL_KEY = Qt.Key(0)
+
 
 def _build_special_names() -> typing.Mapping[Qt.Key, str]:
     """Build _SPECIAL_NAMES dict from the special_names_str mapping below.
@@ -146,7 +148,7 @@ def _build_special_names() -> typing.Mapping[Qt.Key, str]:
         # For some keys, we just want a different name
         'Escape': 'Escape',
     }
-    special_names = {Qt.Key(0): 'nil'}
+    special_names = {_NIL_KEY: 'nil'}
 
     for k, v in special_names_str.items():
         try:
@@ -172,7 +174,7 @@ def _assert_plain_modifier(key: Qt.KeyboardModifier) -> None:
 
 def _is_printable(key: Qt.Key) -> bool:
     _assert_plain_key(key)
-    return key <= 0xff and key not in [Qt.Key_Space, 0x0]
+    return key <= 0xff and key not in [Qt.Key_Space, _NIL_KEY]
 
 
 def is_special_hint_mode(key: Qt.Key, modifiers: Qt.KeyboardModifier) -> bool:
@@ -623,7 +625,7 @@ class KeySequence:
         key = _remap_unicode(key, ev.text())
         modifiers = int(ev.modifiers())
 
-        if key == 0x0:
+        if key == _NIL_KEY:
             raise KeyParseError(None, "Got nil key!")
 
         # We always remove Qt.GroupSwitchModifier because QKeySequence has no
