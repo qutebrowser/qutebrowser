@@ -330,7 +330,7 @@ def test_launching_with_python2():
     except FileNotFoundError:
         pytest.skip("python2 not found")
     assert proc.returncode == 1
-    error = "At least Python 3.5 is required to run qutebrowser"
+    error = "At least Python 3.5.2 is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 

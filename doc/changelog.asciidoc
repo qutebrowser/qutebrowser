@@ -65,6 +65,12 @@ Fixed
 - With rapid hinting in number mode, backspace now edits the filter text after
   following a hint.
 
+Removed
+~~~~~~~
+
+- At least Python 3.5.2 is now required to run qutebrowser, support for 3.5.0
+  and 3.5.1 was dropped.
+
 
 v1.7.1 (unreleased)
 -------------------
