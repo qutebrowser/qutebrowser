@@ -21,7 +21,6 @@
 
 import string
 import types
-import collections
 
 from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtGui import QKeySequence
@@ -32,10 +31,10 @@ from qutebrowser.keyinput import keyutils
 
 MYPY = False
 if MYPY:
-    from typing import MutableMapping, Optional
+    from typing import MutableMapping, Optional, Mapping
 
 
-class BindingTrie(collections.abc.MutableMapping):
+class BindingTrie:
 
     """Helper class for key parser. Represents a set of bindings.
 
@@ -72,14 +71,17 @@ class BindingTrie(collections.abc.MutableMapping):
 
         node.command = command
 
-    def __delitem__(self, sequence: keyutils.KeySequence):
-        raise NotImplementedError
+    def __contains__(self, sequence: keyutils.KeySequence) -> bool:
+        matchtype, _command = self.matches(sequence)
+        return matchtype == QKeySequence.ExactMatch
 
-    def __iter__(self):
-        raise NotImplementedError
+    def __repr__(self):
+        return utils.get_repr(self, child=self.child, command=self.command)
 
-    def __len__(self):
-        raise NotImplementedError
+    def update(self, mapping: Mapping) -> None:
+        """Add data from the given mapping to the trie."""
+        for key in mapping:
+            self[key] = mapping[key]
 
     def matches(self, sequence: keyutils.KeySequence):
         """Try to match a given keystring with any bound keychain.
