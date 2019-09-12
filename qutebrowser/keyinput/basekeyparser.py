@@ -56,14 +56,14 @@ class BindingTrie:
     - __delitem__
 
     Attributes:
-        child: A mapping from KeyInfo to children BindingTries.
+        children: A mapping from KeyInfo to children BindingTries.
         command: Command associated with this trie node.
     """
 
-    __slots__ = 'child', 'command'
+    __slots__ = 'children', 'command'
 
     def __init__(self) -> None:
-        self.child = {
+        self.children = {
         }  # type: typing.MutableMapping[keyutils.KeyInfo, BindingTrie]
         self.command = None  # type: typing.Optional[str]
 
@@ -78,9 +78,9 @@ class BindingTrie:
                     command: str) -> None:
         node = self
         for key in sequence:
-            if key not in node.child:
-                node.child[key] = BindingTrie()
-            node = node.child[key]
+            if key not in node.children:
+                node.children[key] = BindingTrie()
+            node = node.children[key]
 
         node.command = command
 
@@ -89,7 +89,8 @@ class BindingTrie:
         return matchtype == QKeySequence.ExactMatch
 
     def __repr__(self) -> str:
-        return utils.get_repr(self, child=self.child, command=self.command)
+        return utils.get_repr(self, children=self.children,
+                              command=self.command)
 
     def update(self, mapping: typing.Mapping) -> None:
         """Add data from the given mapping to the trie."""
@@ -113,13 +114,13 @@ class BindingTrie:
         node = self
         for key in sequence:
             try:
-                node = node.child[key]
+                node = node.children[key]
             except KeyError:
                 return QKeySequence.NoMatch, None
 
         if node.command is not None:
             return QKeySequence.ExactMatch, node.command
-        elif node.child:
+        elif node.children:
             return QKeySequence.PartialMatch, None
         else:  # This can only happen when there are no bindings at all.
             return QKeySequence.NoMatch, None
