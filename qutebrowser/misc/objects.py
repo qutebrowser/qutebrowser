@@ -24,8 +24,7 @@
 
 import typing
 
-MYPY = False
-if MYPY:
+if typing.TYPE_CHECKING:
     from qutebrowser.utils import usertypes
     from qutebrowser.commands import command
 

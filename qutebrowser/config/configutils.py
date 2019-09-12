@@ -29,8 +29,7 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.utils import utils, urlmatch
 from qutebrowser.config import configexc
 
-MYPY = False
-if MYPY:
+if typing.TYPE_CHECKING:
     # pylint: disable=unused-import,useless-suppression
     from qutebrowser.config import configdata
 

@@ -28,8 +28,8 @@ from PyQt5.QtWebKitWidgets import QWebFrame
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
-MYPY = False
-if MYPY:
+
+if typing.TYPE_CHECKING:
     # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser.webkit import webkittab
 

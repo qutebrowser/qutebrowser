@@ -31,8 +31,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 
 from qutebrowser.utils import log, javascript, urlutils, usertypes
 from qutebrowser.browser import webelem
-MYPY = False
-if MYPY:
+
+if typing.TYPE_CHECKING:
     # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser.webengine import webenginetab
 

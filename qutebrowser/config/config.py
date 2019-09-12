@@ -32,8 +32,7 @@ from qutebrowser.utils import utils, log, jinja, urlmatch
 from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.keyinput import keyutils
 
-MYPY = False
-if MYPY:
+if typing.TYPE_CHECKING:
     # pylint: disable=unused-import,useless-suppression
     from typing import Tuple, MutableMapping
     from qutebrowser.config import configcache, configfiles

@@ -42,9 +42,8 @@ from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
 from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.browser import eventfilter, hints
 from qutebrowser.qt import sip
-MYPY = False
-if MYPY:
-    # pylint can't interpret type comments with Python 3.7
+
+if typing.TYPE_CHECKING:
     # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector

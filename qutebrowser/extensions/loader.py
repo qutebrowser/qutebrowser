@@ -34,8 +34,7 @@ from qutebrowser import components
 from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir, objreg
 
-MYPY = False
-if MYPY:
+if typing.TYPE_CHECKING:
     # pylint: disable=unused-import,useless-suppression
     import argparse
 

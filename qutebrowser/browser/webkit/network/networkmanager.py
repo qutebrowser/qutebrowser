@@ -21,7 +21,7 @@
 
 import collections
 import html
-import typing  # pylint: disable=unused-import
+import typing
 
 import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
@@ -29,12 +29,6 @@ from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket
 
 from qutebrowser.config import config
-
-MYPY = False
-if MYPY:
-    # pylint can't interpret type comments with Python 3.7
-    # pylint: disable=unused-import,useless-suppression
-    from qutebrowser.mainwindow import prompt
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)
 from qutebrowser.browser import shared
@@ -42,6 +36,10 @@ from qutebrowser.extensions import interceptors
 from qutebrowser.browser.webkit import certificateerror
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
+
+if typing.TYPE_CHECKING:
+    # pylint: disable=unused-import,useless-suppression
+    from qutebrowser.mainwindow import prompt
 
 
 HOSTBLOCK_ERROR_STRING = '%HOSTBLOCK%'
