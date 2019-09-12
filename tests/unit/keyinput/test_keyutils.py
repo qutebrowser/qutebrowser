@@ -380,11 +380,11 @@ class TestKeySequence:
         ('', 'a', QKeySequence.PartialMatch),
         ('a', '', QKeySequence.NoMatch)]
 
-    @pytest.mark.parametrize('entered, configured, expected', MATCH_TESTS)
-    def test_matches(self, entered, configured, expected):
+    @pytest.mark.parametrize('entered, configured, match_type', MATCH_TESTS)
+    def test_matches(self, entered, configured, match_type):
         entered = keyutils.KeySequence.parse(entered)
         configured = keyutils.KeySequence.parse(configured)
-        assert entered.matches(configured) == expected
+        assert entered.matches(configured) == match_type
 
     @pytest.mark.parametrize('old, key, modifiers, text, expected', [
         ('a', Qt.Key_B, Qt.NoModifier, 'b', 'ab'),

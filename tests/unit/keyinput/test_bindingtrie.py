@@ -31,18 +31,21 @@ from qutebrowser.keyinput import keyutils
 from unit.keyinput import test_keyutils
 
 
-@pytest.mark.parametrize('entered, configured, expected',
+@pytest.mark.parametrize('entered, configured, match_type',
                          test_keyutils.TestKeySequence.MATCH_TESTS)
-def test_matches_single(entered, configured, expected):
+def test_matches_single(entered, configured, match_type):
     entered = keyutils.KeySequence.parse(entered)
     configured = keyutils.KeySequence.parse(configured)
     trie = basekeyparser.BindingTrie()
     trie[configured] = "eeloo"
-    ret_expected = "eeloo" if expected == QKeySequence.ExactMatch else None
-    assert trie.matches(entered) == (expected, ret_expected)
+    command = "eeloo" if match_type == QKeySequence.ExactMatch else None
+    result = basekeyparser.MatchResult(match_type=match_type,
+                                       command=command,
+                                       sequence=entered)
+    assert trie.matches(entered) == result
 
 
-@pytest.mark.parametrize('configured, expected_results', [
+@pytest.mark.parametrize('configured, expected', [
     ([],
      # null match
      [('a', QKeySequence.NoMatch),
@@ -62,17 +65,20 @@ def test_matches_single(entered, configured, expected):
      [('a', QKeySequence.ExactMatch),
       ('!', QKeySequence.NoMatch)]),
 ])
-def test_matches_tree(configured, expected_results, benchmark):
+def test_matches_tree(configured, expected, benchmark):
     trie = basekeyparser.BindingTrie()
     trie.update({keyutils.KeySequence.parse(keys): "eeloo"
                  for keys in configured})
 
     def run():
-        for entered, expected in expected_results:
+        for entered, match_type in expected:
             sequence = keyutils.KeySequence.parse(entered)
-            ret_expected = ("eeloo" if expected == QKeySequence.ExactMatch
-                            else None)
-            assert trie.matches(sequence) == (expected, ret_expected)
+            command = ("eeloo" if match_type == QKeySequence.ExactMatch
+                       else None)
+            result = basekeyparser.MatchResult(match_type=match_type,
+                                               command=command,
+                                               sequence=sequence)
+            assert trie.matches(sequence) == result
 
     benchmark(run)
 
