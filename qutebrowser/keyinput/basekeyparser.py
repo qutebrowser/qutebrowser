@@ -21,17 +21,20 @@
 
 import string
 import types
+import typing
 
 from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtGui import QKeySequence
+from PyQt5.QtGui import QKeySequence, QKeyEvent
+from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes, log, utils
 from qutebrowser.keyinput import keyutils
 
-MYPY = False
-if MYPY:
-    from typing import MutableMapping, Optional, Mapping
+_MatchType = typing.Tuple[QKeySequence.SequenceMatch, typing.Optional[str]]
+_MatchSequenceType = typing.Tuple[QKeySequence.SequenceMatch,
+                                  typing.Optional[str],
+                                  keyutils.KeySequence]
 
 
 class BindingTrie:
@@ -51,18 +54,20 @@ class BindingTrie:
 
     __slots__ = 'child', 'command'
 
-    def __init__(self):
-        self.child = {}  # type: MutableMapping[keyutils.KeyInfo, BindingTrie]
-        self.command = None  # type: Optional[str]
+    def __init__(self) -> None:
+        self.child = {
+        }  # type: typing.MutableMapping[keyutils.KeyInfo, BindingTrie]
+        self.command = None  # type: typing.Optional[str]
 
-    def __getitem__(self, sequence: keyutils.KeySequence):
+    def __getitem__(self,
+                    sequence: keyutils.KeySequence) -> typing.Optional[str]:
         matchtype, command = self.matches(sequence)
         if matchtype != QKeySequence.ExactMatch:
             raise KeyError(sequence)
         return command
 
-    def __setitem__(
-            self, sequence: keyutils.KeySequence, command: str):
+    def __setitem__(self, sequence: keyutils.KeySequence,
+                    command: str) -> None:
         node = self
         for key in sequence:
             if key not in node.child:
@@ -75,15 +80,15 @@ class BindingTrie:
         matchtype, _command = self.matches(sequence)
         return matchtype == QKeySequence.ExactMatch
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, child=self.child, command=self.command)
 
-    def update(self, mapping: Mapping) -> None:
+    def update(self, mapping: typing.Mapping) -> None:
         """Add data from the given mapping to the trie."""
         for key in mapping:
             self[key] = mapping[key]
 
-    def matches(self, sequence: keyutils.KeySequence):
+    def matches(self, sequence: keyutils.KeySequence) -> _MatchType:
         """Try to match a given keystring with any bound keychain.
 
         Args:
@@ -151,7 +156,8 @@ class BaseKeyParser(QObject):
     do_log = True
     passthrough = False
 
-    def __init__(self, win_id, parent=None, supports_count=True):
+    def __init__(self, win_id: int, parent: QWidget = None,
+                 supports_count: bool = True) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self._modename = None
@@ -161,10 +167,10 @@ class BaseKeyParser(QObject):
         self.bindings = BindingTrie()
         config.instance.changed.connect(self._on_config_changed)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, supports_count=self._supports_count)
 
-    def _debug_log(self, message):
+    def _debug_log(self, message: str) -> None:
         """Log a message to the debug log if logging is active.
 
         Args:
@@ -173,7 +179,7 @@ class BaseKeyParser(QObject):
         if self.do_log:
             log.keyboard.debug(message)
 
-    def _match_key(self, sequence):
+    def _match_key(self, sequence: keyutils.KeySequence) -> _MatchType:
         """Try to match a given keystring with any bound keychain.
 
         Args:
@@ -190,14 +196,16 @@ class BaseKeyParser(QObject):
 
         return self.bindings.matches(sequence)
 
-    def _match_without_modifiers(self, sequence):
+    def _match_without_modifiers(
+            self, sequence: keyutils.KeySequence) -> _MatchSequenceType:
         """Try to match a key with optional modifiers stripped."""
         self._debug_log("Trying match without modifiers")
         sequence = sequence.strip_modifiers()
         match, binding = self._match_key(sequence)
         return match, binding, sequence
 
-    def _match_key_mapping(self, sequence):
+    def _match_key_mapping(
+            self, sequence: keyutils.KeySequence) -> _MatchSequenceType:
         """Try to match a key in bindings.key_mappings."""
         self._debug_log("Trying match with key_mappings")
         mapped = sequence.with_mappings(
@@ -210,7 +218,8 @@ class BaseKeyParser(QObject):
             return match, binding, sequence
         return QKeySequence.NoMatch, None, sequence
 
-    def _match_count(self, sequence, dry_run):
+    def _match_count(self, sequence: keyutils.KeySequence,
+                     dry_run: bool) -> bool:
         """Try to match a key as count."""
         txt = str(sequence[-1])  # To account for sequences changed above.
         if (txt in string.digits and self._supports_count and
@@ -223,7 +232,8 @@ class BaseKeyParser(QObject):
             return True
         return False
 
-    def handle(self, e, *, dry_run=False):
+    def handle(self, e: QKeyEvent, *,
+               dry_run: bool = False) -> QKeySequence.SequenceMatch:
         """Handle a new keypress.
 
         Separate the keypress into count/command, then check if it matches
@@ -271,6 +281,7 @@ class BaseKeyParser(QObject):
         self._sequence = sequence
 
         if match == QKeySequence.ExactMatch:
+            assert binding is not None
             self._debug_log("Definitive match for '{}'.".format(
                 sequence))
             count = int(self._count) if self._count else None
@@ -290,13 +301,13 @@ class BaseKeyParser(QObject):
         return match
 
     @config.change_filter('bindings')
-    def _on_config_changed(self):
+    def _on_config_changed(self) -> None:
         # Note: This function is called which erases and rebuild the whole
         # self.bindings object, even if it only needs to add or remove one
         # item.
         self._read_config()
 
-    def _read_config(self, modename=None):
+    def _read_config(self, modename: str = None) -> None:
         """Read the configuration.
 
         Config format: key = command, e.g.:
@@ -319,7 +330,7 @@ class BaseKeyParser(QObject):
             assert cmd
             self.bindings[key] = cmd
 
-    def execute(self, cmdstr, count=None):
+    def execute(self, cmdstr: str, count: int = None) -> None:
         """Handle a completed keychain.
 
         Args:
@@ -328,7 +339,7 @@ class BaseKeyParser(QObject):
         """
         raise NotImplementedError
 
-    def clear_keystring(self):
+    def clear_keystring(self) -> None:
         """Clear the currently entered key sequence."""
         if self._sequence:
             self._debug_log("Clearing keystring (was: {}).".format(
