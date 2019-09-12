@@ -483,13 +483,19 @@ class TestYaml:
         msg = "Can't read config from incompatible newer version"
         assert error.exception == msg
 
-    def test_oserror(self, yaml, autoconfig):
+    @pytest.fixture
+    def unreadable_autoconfig(self, autoconfig):
         autoconfig.fobj.ensure()
         autoconfig.fobj.chmod(0)
         if os.access(str(autoconfig.fobj), os.R_OK):
             # Docker container or similar
             pytest.skip("File was still readable")
 
+        yield autoconfig
+
+        autoconfig.fobj.chmod(0o755)
+
+    def test_oserror(self, yaml, unreadable_autoconfig):
         with pytest.raises(configexc.ConfigFileErrors) as excinfo:
             yaml.load()
 
