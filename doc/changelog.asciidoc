@@ -62,6 +62,8 @@ Fixed
 - `dictcli.py` now works properly again.
 - Shift can now be used while typing hint keystrings, which e.g. allows typing
   number hints on French keyboards.
+- With rapid hinting in number mode, backspace now edits the filter text after
+  following a hint.
 
 
 v1.7.1 (unreleased)
