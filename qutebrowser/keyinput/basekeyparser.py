@@ -46,15 +46,14 @@ class BindingTrie(collections.abc.MutableMapping):
     method added.
 
     Attributes:
-        child: A map. Keys of this map can be get from the KeyInfo.to_int
-               method.
+        child: A mapping from KeyInfo to children BindingTries.
         command: Command associated with this trie node.
     """
 
     __slots__ = 'child', 'command'
 
     def __init__(self):
-        self.child = {}  # type: MutableMapping[int, BindingTrie]
+        self.child = {}  # type: MutableMapping[keyutils.KeyInfo, BindingTrie]
         self.command = None  # type: Optional[str]
 
     def __getitem__(self, sequence: keyutils.KeySequence):
@@ -67,10 +66,9 @@ class BindingTrie(collections.abc.MutableMapping):
             self, sequence: keyutils.KeySequence, command: str):
         node = self
         for key in sequence:
-            key_int = key.to_int()
-            if key_int not in node.child:
-                node.child[key_int] = BindingTrie()
-            node = node.child[key_int]
+            if key not in node.child:
+                node.child[key] = BindingTrie()
+            node = node.child[key]
 
         node.command = command
 
@@ -100,7 +98,7 @@ class BindingTrie(collections.abc.MutableMapping):
         node = self
         for key in sequence:
             try:
-                node = node.child[key.to_int()]
+                node = node.child[key]
             except KeyError:
                 return QKeySequence.NoMatch, None
 

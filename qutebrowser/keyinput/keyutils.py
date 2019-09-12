@@ -347,7 +347,7 @@ def _parse_single_key(keystr):
     return 'Shift+' + keystr if keystr.isupper() else keystr
 
 
-@attr.s
+@attr.s(frozen=True, hash=False)
 class KeyInfo:
 
     """A key with optional modifiers.
@@ -363,6 +363,14 @@ class KeyInfo:
     @classmethod
     def from_event(cls, e):
         return cls(_remap_unicode(e.key(), e.text()), e.modifiers())
+
+    def __hash__(self):
+        """Convert KeyInfo to int before hashing.
+
+        This is needed as a WORKAROUND because enum members aren't hashable
+        with PyQt 5.7.
+        """
+        return hash(self.to_int())
 
     def __str__(self):
         """Convert this KeyInfo to a meaningful name.
