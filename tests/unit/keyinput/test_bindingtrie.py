@@ -38,56 +38,55 @@ def test_matches_single(entered, configured, expected):
     configured = keyutils.KeySequence.parse(configured)
     trie = basekeyparser.BindingTrie()
     trie[configured] = "eeloo"
-    ret_expected = None
-    if expected == QKeySequence.ExactMatch:
-        ret_expected = "eeloo"
+    ret_expected = "eeloo" if expected == QKeySequence.ExactMatch else None
     assert trie.matches(entered) == (expected, ret_expected)
 
 
-@pytest.mark.parametrize(
-    'configured, expected_tuple',
-    (((),
-      # null match
-      (('a', QKeySequence.NoMatch),
-       ('', QKeySequence.NoMatch))),
-     (('abcd',),
-      (('abcd', QKeySequence.ExactMatch),
-       ('abc', QKeySequence.PartialMatch))),
-     (('aa', 'ab', 'ac', 'ad'),
-      (('ac', QKeySequence.ExactMatch),
-       ('a', QKeySequence.PartialMatch),
-       ('f', QKeySequence.NoMatch),
-       ('acd', QKeySequence.NoMatch))),
-     (('aaaaaaab', 'aaaaaaac', 'aaaaaaad'),
-      (('aaaaaaab', QKeySequence.ExactMatch),
-       ('z', QKeySequence.NoMatch))),
-     (tuple(string.ascii_letters),
-      (('a', QKeySequence.ExactMatch),
-       ('!', QKeySequence.NoMatch)))))
-def test_matches_tree(configured, expected_tuple, benchmark):
+@pytest.mark.parametrize('configured, expected_results', [
+    ([],
+     # null match
+     [('a', QKeySequence.NoMatch),
+      ('', QKeySequence.NoMatch)]),
+    (['abcd'],
+     [('abcd', QKeySequence.ExactMatch),
+      ('abc', QKeySequence.PartialMatch)]),
+    (['aa', 'ab', 'ac', 'ad'],
+     [('ac', QKeySequence.ExactMatch),
+      ('a', QKeySequence.PartialMatch),
+      ('f', QKeySequence.NoMatch),
+      ('acd', QKeySequence.NoMatch)]),
+    (['aaaaaaab', 'aaaaaaac', 'aaaaaaad'],
+     [('aaaaaaab', QKeySequence.ExactMatch),
+      ('z', QKeySequence.NoMatch)]),
+    (string.ascii_letters,
+     [('a', QKeySequence.ExactMatch),
+      ('!', QKeySequence.NoMatch)]),
+])
+def test_matches_tree(configured, expected_results, benchmark):
     trie = basekeyparser.BindingTrie()
-    trie.update(dict.fromkeys(
-        map(keyutils.KeySequence.parse, configured), "eeloo"))
+    trie.update({keyutils.KeySequence.parse(keys): "eeloo"
+                 for keys in configured})
 
-    def _run():
-        for entered, expected in expected_tuple:
-            entered = keyutils.KeySequence.parse(entered)
-            ret_expected = None
-            if expected == QKeySequence.ExactMatch:
-                ret_expected = "eeloo"
-            assert trie.matches(entered) == (expected, ret_expected)
-    benchmark(_run)
+    def run():
+        for entered, expected in expected_results:
+            sequence = keyutils.KeySequence.parse(entered)
+            ret_expected = ("eeloo" if expected == QKeySequence.ExactMatch
+                            else None)
+            assert trie.matches(sequence) == (expected, ret_expected)
+
+    benchmark(run)
 
 
-@pytest.mark.parametrize(
-    'configured',
-    ('a',
-     itertools.permutations('asdfghjkl', 3)))
+@pytest.mark.parametrize('configured', [
+    ['a'],
+    itertools.permutations('asdfghjkl', 3)
+])
 def test_bench_create(configured, benchmark):
-    configured = dict.fromkeys(
-        map(keyutils.KeySequence.parse, configured), "dres")
+    bindings = {keyutils.KeySequence.parse(keys): "dres"
+                for keys in configured}
 
-    def _run():
+    def run():
         trie = basekeyparser.BindingTrie()
-        trie.update(configured)
-    benchmark(_run)
+        trie.update(bindings)
+
+    benchmark(run)
