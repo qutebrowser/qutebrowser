@@ -23,6 +23,8 @@ import typing
 import time
 import functools
 
+from PyQt5.QtCore import QObject
+
 from qutebrowser.utils import usertypes
 
 
@@ -83,6 +85,7 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
             self._pending_call = (args, kwargs)
         wrapped_fn.throttle_set = self.throttle_set  # type: ignore
         wrapped_fn.throttle_cancel = self.throttle_cancel  # type: ignore
+        wrapped_fn.throttle_set_parent = self.throttle_set_parent  # type: ignore
         return wrapped_fn
 
     def throttle_set(self, delay_ms: int) -> None:
@@ -92,3 +95,12 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
     def throttle_cancel(self) -> None:
         """Cancel any pending instance of this timer."""
         self._timer.stop()
+
+    def throttle_set_parent(self, parent: QObject) -> None:
+        """Set the parent for the throttle's QTimer.
+
+        Calling this is strongly recommended if throttle is used inside a
+        QObject. This ensures that the underlying method doesn't get called
+        after the C++ object was deleted.
+        """
+        self._timer.setParent(parent)

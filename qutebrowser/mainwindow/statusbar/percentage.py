@@ -34,10 +34,6 @@ class Percentage(textbase.TextBase):
         super().__init__(parent, elidemode=Qt.ElideNone)
         self.set_perc(0, 0)
         self.raw = False
-        # If the object is destroyed for any reason, cancel in-flight scrolls
-        # pylint: disable=no-member
-        self.destroyed.connect(self.set_perc.throttle_cancel)
-        # pylint: enable=no-member
 
     @pyqtSlot(int, int)
     @throttle.throttle(100)

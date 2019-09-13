@@ -21,6 +21,9 @@
 
 from unittest import mock
 
+import sip
+from PyQt5.QtCore import QObject
+
 from qutebrowser.misc.throttle import throttle
 
 
@@ -137,3 +140,22 @@ def test_throttle_set(qtbot):
 
     func.assert_called_once_with("bar")
     func.reset_mock()
+
+
+def test_deleted_object(qtbot):
+    class Obj(QObject):
+
+        def __init__(self, parent=None):
+            super().__init__(parent)
+            self.func.throttle_set_parent(self)
+
+        @throttle(100)
+        def func(self):
+            self.setObjectName("test")
+
+    obj = Obj()
+    obj.func()
+    obj.func()
+    sip.delete(obj)
+
+    qtbot.wait(150)
