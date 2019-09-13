@@ -83,20 +83,18 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
                 self._timer.start()
             # Update arguments for an existing pending call
             self._pending_call = (args, kwargs)
-        wrapped_fn.throttle_set = self.throttle_set  # type: ignore
-        wrapped_fn.throttle_cancel = self.throttle_cancel  # type: ignore
-        wrapped_fn.throttle_set_parent = self.throttle_set_parent  # type: ignore
+        wrapped_fn.throttle = self  # type: ignore
         return wrapped_fn
 
-    def throttle_set(self, delay_ms: int) -> None:
+    def set_delay(self, delay_ms: int) -> None:
         """Set the delay to wait between invocation of this function."""
         self._delay_ms = delay_ms
 
-    def throttle_cancel(self) -> None:
+    def cancel(self) -> None:
         """Cancel any pending instance of this timer."""
         self._timer.stop()
 
-    def throttle_set_parent(self, parent: QObject) -> None:
+    def set_parent(self, parent: QObject) -> None:
         """Set the parent for the throttle's QTimer.
 
         Calling this is strongly recommended if throttle is used inside a

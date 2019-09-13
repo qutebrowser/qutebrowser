@@ -117,7 +117,7 @@ def test_throttle_cancel(qtbot):
     throttled_func("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
-    throttled_func.throttle_cancel()
+    throttled_func.throttle.cancel()
 
     qtbot.wait(150)
 
@@ -128,7 +128,7 @@ def test_throttle_cancel(qtbot):
 def test_throttle_set(qtbot):
     func = mock.Mock(spec=[])
     throttled_func = throttle(1000)(func)
-    throttled_func.throttle_set(100)
+    throttled_func.throttle.set_delay(100)
     throttled_func("foo")
     throttled_func("foo")
     throttled_func("foo")
@@ -147,7 +147,7 @@ def test_deleted_object(qtbot):
 
         def __init__(self, parent=None):
             super().__init__(parent)
-            self.func.throttle_set_parent(self)
+            self.func.throttle.set_parent(self)  # pylint: disable=no-member
 
         @throttle(100)
         def func(self):
