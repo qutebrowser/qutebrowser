@@ -19,9 +19,10 @@
 
 """Scroll percentage displayed in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 
 from qutebrowser.mainwindow.statusbar import textbase
+from qutebrowser.misc import throttle
 
 
 class Percentage(textbase.TextBase):
@@ -30,11 +31,16 @@ class Percentage(textbase.TextBase):
 
     def __init__(self, parent=None):
         """Constructor. Set percentage to 0%."""
-        super().__init__(parent)
+        super().__init__(parent, elidemode=Qt.ElideNone)
         self.set_perc(0, 0)
         self.raw = False
+        # If the object is destroyed for any reason, cancel in-flight scrolls
+        # pylint: disable=no-member
+        self.destroyed.connect(self.set_perc.throttle_cancel)
+        # pylint: enable=no-member
 
     @pyqtSlot(int, int)
+    @throttle.throttle(100)
     def set_perc(self, x, y):  # pylint: disable=unused-argument
         """Setter to be used as a Qt slot.
 
@@ -49,8 +55,8 @@ class Percentage(textbase.TextBase):
         elif y is None:
             self.setText('[???]')
         else:
-            text = '[{:02}]' if self.raw else '[{:02}%]'
-            self.setText(text.format(y))
+            text = '[%02d]' if self.raw else '[%02d%%]'
+            self.setText(text % y)
 
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""

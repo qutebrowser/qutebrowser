@@ -20,8 +20,16 @@
 import os.path
 import logging
 
+import pytest
 import pytest_bdd as bdd
 bdd.scenarios('sessions.feature')
+
+
+@pytest.fixture(autouse=True)
+def turn_on_scroll_logging(quteproc):
+    """Make sure all scrolling changes are logged."""
+    quteproc.send_cmd(":debug-pyeval -q objreg.get('args')."
+                      "debug_flags.append('log-scroll-pos')")
 
 
 @bdd.when(bdd.parsers.parse('I have a "{name}" session file:\n{contents}'))
