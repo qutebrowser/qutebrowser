@@ -33,10 +33,11 @@ Changed
   * qute-pass: Don't run `pass` if only a username is requested.
   * qute-pass: Support private domains like `myrouter.local`.
   * readability: Improved CSS styling
-- Various performance improvements:
-  * When loading config files
-  * When typing without any completion matches
-  * For keyboard handling in general
+- Performance improvements in various areas:
+  * Loading config files
+  * Typing without any completion matches
+  * General keyboard handling
+  * Scrolling
 - `:version` now shows details about the loaded autoconfig.yml/config.py.
 - Hosts are now additionally looked up including their ports in netrc files.
 - With Qt 5.10 or newer, qutebrowser now doesn't force software rendering with
