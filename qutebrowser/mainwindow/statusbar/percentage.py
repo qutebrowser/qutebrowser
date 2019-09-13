@@ -44,7 +44,6 @@ class Percentage(textbase.TextBase):
         strings = {
             0: '[top]',
             100: '[bot]',
-            None: '[???]',
         }
         for i in range(1, 100):
             fmt = '[{:02}]' if raw else '[{:02}%]'
@@ -59,7 +58,7 @@ class Percentage(textbase.TextBase):
             x: The x percentage (int), currently ignored.
             y: The y percentage (int)
         """
-        self._set_text(self._strings[y])
+        self._set_text(self._strings.get(y, '[???]'))
 
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""
