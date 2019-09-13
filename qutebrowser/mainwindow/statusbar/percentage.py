@@ -32,8 +32,23 @@ class Percentage(textbase.TextBase):
     def __init__(self, parent=None):
         """Constructor. Set percentage to 0%."""
         super().__init__(parent, elidemode=Qt.ElideNone)
+        self._strings = self._calc_strings()
         self.set_perc(0, 0)
-        self.raw = False
+
+    def set_raw(self):
+        self._strings = self._calc_strings(raw=True)
+
+    def _calc_strings(self, raw=False):
+        """Pre-calculate strings for the statusbar."""
+        strings = {
+            0: '[top]',
+            100: '[bot]',
+            None: '[???]',
+        }
+        for i in range(1, 100):
+            fmt = '[{:02}]' if raw else '[{:02}%]'
+            strings[i] = fmt.format(i)
+        return strings
 
     @pyqtSlot(int, int)
     @throttle.throttle(100)
@@ -44,15 +59,7 @@ class Percentage(textbase.TextBase):
             x: The x percentage (int), currently ignored.
             y: The y percentage (int)
         """
-        if y == 0:
-            self.setText('[top]')
-        elif y == 100:
-            self.setText('[bot]')
-        elif y is None:
-            self.setText('[???]')
-        else:
-            text = '[%02d]' if self.raw else '[%02d%%]'
-            self.setText(text % y)
+        self.setText(self._strings[y])
 
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""

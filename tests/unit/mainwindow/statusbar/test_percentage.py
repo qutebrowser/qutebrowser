@@ -57,7 +57,8 @@ def test_percentage_text(percentage, y, raw, expected):
            parametrized.
         expected: expected text given y position. parametrized.
     """
-    percentage.raw = raw
+    if raw:
+        percentage.set_raw()
     percentage.set_perc(x=None, y=y)
     assert percentage.text() == expected
 
