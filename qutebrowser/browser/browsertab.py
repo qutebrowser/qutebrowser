@@ -528,8 +528,7 @@ class AbstractScroller(QObject):
         super().__init__(parent)
         self._tab = tab
         self._widget = None  # type: typing.Optional[QWidget]
-        args = objreg.get('args', None)
-        if args is not None and 'log-scroll-pos' in args.debug_flags:
+        if 'log-scroll-pos' in objects.debug_flags:
             self.perc_changed.connect(self._log_scroll_pos_change)
 
     @pyqtSlot()

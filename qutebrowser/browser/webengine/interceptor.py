@@ -29,6 +29,7 @@ from qutebrowser.config import config
 from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log, debug, qtutils
 from qutebrowser.extensions import interceptors
+from qutebrowser.misc import objects
 
 
 @attr.s
@@ -106,10 +107,6 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             interceptors.ResourceType.unknown,
     }
 
-    def __init__(self, args, parent=None):
-        super().__init__(parent)
-        self._args = args
-
     def install(self, profile):
         """Install the interceptor on the given QWebEngineProfile."""
         try:
@@ -136,7 +133,7 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         Args:
             info: QWebEngineUrlRequestInfo &info
         """
-        if 'log-requests' in self._args.debug_flags:
+        if 'log-requests' in objects.debug_flags:
             resource_type = debug.qenum_key(QWebEngineUrlRequestInfo,
                                             info.resourceType())
             navigation_type = debug.qenum_key(QWebEngineUrlRequestInfo,

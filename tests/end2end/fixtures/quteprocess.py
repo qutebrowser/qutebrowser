@@ -874,11 +874,10 @@ class QuteProc(testprocess.Process):
 
     def turn_on_scroll_logging(self, no_scroll_filtering=False):
         """Make sure all scrolling changes are logged."""
+        cmd = ":debug-pyeval -q objects.debug_flags.add('{}')"
         if no_scroll_filtering:
-            self.send_cmd(":debug-pyeval -q objreg.get('args')."
-                          "debug_flags.append('no-scroll-filtering')")
-        self.send_cmd(":debug-pyeval -q objreg.get('args')."
-                      "debug_flags.append('log-scroll-pos')")
+            self.send_cmd(cmd.format('no-scroll-filtering'))
+        self.send_cmd(cmd.format('log-scroll-pos'))
 
 
 class YamlLoader(yaml.SafeLoader):

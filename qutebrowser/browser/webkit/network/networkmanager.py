@@ -36,6 +36,7 @@ from qutebrowser.extensions import interceptors
 from qutebrowser.browser.webkit import certificateerror
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
+from qutebrowser.misc import objects
 
 if typing.TYPE_CHECKING:
     # pylint: disable=unused-import,useless-suppression
@@ -154,7 +155,6 @@ class NetworkManager(QNetworkAccessManager):
             super().__init__(parent)
         log.init.debug("NetworkManager init done")
         self.adopted_downloads = 0
-        self._args = objreg.get('args')
         self._win_id = win_id
         self._tab_id = tab_id
         self._private = private
@@ -412,7 +412,7 @@ class NetworkManager(QNetworkAccessManager):
                 req, HOSTBLOCK_ERROR_STRING, QNetworkReply.ContentAccessDenied,
                 self)
 
-        if 'log-requests' in self._args.debug_flags:
+        if 'log-requests' in objects.debug_flags:
             operation = debug.qenum_key(QNetworkAccessManager, op)
             operation = operation.replace('Operation', '').upper()
             log.webview.debug("{} {}, first-party {}".format(

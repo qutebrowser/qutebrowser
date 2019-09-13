@@ -36,7 +36,7 @@ from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
                                            webenginesettings, certificateerror)
-from qutebrowser.misc import miscwidgets
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
 from qutebrowser.qt import sip
@@ -60,8 +60,7 @@ def init():
         _qute_scheme_handler.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing request interceptor...")
-    args = objreg.get('args')
-    req_interceptor = interceptor.RequestInterceptor(args=args, parent=app)
+    req_interceptor = interceptor.RequestInterceptor(parent=app)
     req_interceptor.install(webenginesettings.default_profile)
     if webenginesettings.private_profile:
         req_interceptor.install(webenginesettings.private_profile)
@@ -419,7 +418,6 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._args = objreg.get('args')
         self._pos_perc = (0, 0)
         self._pos_px = QPoint()
         self._at_bottom = False
@@ -477,7 +475,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
         self._at_bottom = math.ceil(pos.y()) >= scrollable_y
 
         if (self._pos_perc != (perc_x, perc_y) or
-                'no-scroll-filtering' in self._args.debug_flags):
+                'no-scroll-filtering' in objects.debug_flags):
             self._pos_perc = perc_x, perc_y
             self.perc_changed.emit(*self._pos_perc)
 
