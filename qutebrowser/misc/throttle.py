@@ -23,9 +23,17 @@ import typing
 import time
 import functools
 
+import attr
 from PyQt5.QtCore import QObject
 
 from qutebrowser.utils import usertypes
+
+
+@attr.s
+class _CallArgs:
+
+    args = attr.ib()  # type: typing.Sequence[typing.Any]
+    kwargs = attr.ib()  # type: typing.Mapping[str, typing.Any]
 
 
 class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
@@ -46,10 +54,7 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
                          function. -1 disables the wrapper.
         """
         self._delay_ms = delay_ms
-        # None if no call is pending, a tuple of (args, kwargs) (to call with)
-        # if a call is pending.
-        self._pending_call = (None) \
-            #type:typing.Optional[typing.Tuple[typing.Sequence,typing.Mapping]]
+        self._pending_call = None  # type: typing.Optional[_CallArgs]
         self._last_call_ms = None  # type: typing.Optional[int]
         self._timer = usertypes.Timer(None, 'throttle-timer')
         self._timer.setSingleShot(True)
@@ -68,7 +73,7 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
 
                 # Start a pending call
                 def call_pending():
-                    func(*self._pending_call[0], **self._pending_call[1])
+                    func(*self._pending_call.args, **self._pending_call.kwargs)
                     self._pending_call = None
                     self._last_call_ms = int(time.monotonic() * 1000)
 
@@ -82,7 +87,7 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
                 self._timer.timeout.connect(call_pending)
                 self._timer.start()
             # Update arguments for an existing pending call
-            self._pending_call = (args, kwargs)
+            self._pending_call = _CallArgs(args=args, kwargs=kwargs)
         wrapped_fn.throttle = self  # type: ignore
         return wrapped_fn
 
