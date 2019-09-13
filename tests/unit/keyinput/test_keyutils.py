@@ -173,6 +173,21 @@ def test_key_info_str(key, modifiers, expected):
     assert str(keyutils.KeyInfo(key, modifiers)) == expected
 
 
+@pytest.mark.parametrize('info1, info2, equal', [
+    (keyutils.KeyInfo(Qt.Key_A, Qt.NoModifier),
+     keyutils.KeyInfo(Qt.Key_A, Qt.NoModifier),
+     True),
+    (keyutils.KeyInfo(Qt.Key_A, Qt.NoModifier),
+     keyutils.KeyInfo(Qt.Key_B, Qt.NoModifier),
+     False),
+    (keyutils.KeyInfo(Qt.Key_A, Qt.NoModifier),
+     keyutils.KeyInfo(Qt.Key_B, Qt.ControlModifier),
+     False),
+])
+def test_hash(info1, info2, equal):
+    assert (hash(info1) == hash(info2)) == equal
+
+
 @pytest.mark.parametrize('key, modifiers, text, expected', [
     (0xd83c, Qt.NoModifier, '🏻', '<🏻>'),
     (0xd867, Qt.NoModifier, '𩷶', '<𩷶>'),
@@ -315,6 +330,14 @@ class TestKeySequence:
             operator.ne: operator.eq,
         }
         assert opposite[op](seq1, seq2) != result
+
+    @pytest.mark.parametrize('op, result', [
+        (operator.eq, False),
+        (operator.ne, True),
+    ])
+    def test_operators_other_type(self, op, result):
+        seq = keyutils.KeySequence.parse('a')
+        assert op(seq, 'x') == result
 
     @pytest.mark.parametrize('seq1, seq2, equal', [
         ('a', 'a', True),

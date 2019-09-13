@@ -15,6 +15,7 @@ exclude_lines =
     raise utils\.Unreachable
     if __name__ == ["']__main__["']:
     if typing.TYPE_CHECKING:
+    \.\.\.
 
 [xml]
 output=coverage.xml
