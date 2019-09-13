@@ -872,6 +872,14 @@ class QuteProc(testprocess.Process):
             msg += '\nsee stdout for details'
             pytest.fail(msg)
 
+    def turn_on_scroll_logging(self, no_scroll_filtering=False):
+        """Make sure all scrolling changes are logged."""
+        if no_scroll_filtering:
+            self.send_cmd(":debug-pyeval -q objreg.get('args')."
+                          "debug_flags.append('no-scroll-filtering')")
+        self.send_cmd(":debug-pyeval -q objreg.get('args')."
+                      "debug_flags.append('log-scroll-pos')")
+
 
 class YamlLoader(yaml.SafeLoader):
 
