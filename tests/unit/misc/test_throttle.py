@@ -22,29 +22,32 @@
 from unittest import mock
 
 import sip
+import pytest
 from PyQt5.QtCore import QObject
 
 from qutebrowser.misc.throttle import throttle
 
 
-def test_throttle_imm(qtbot):
-    func = mock.Mock(spec=[])
+@pytest.fixture
+def func():
+    return mock.Mock(spec=[])
+
+
+def test_immediate(func, qapp):
     throttled_func = throttle(100)(func)
     throttled_func("foo")
     throttled_func("foo")
     func.assert_called_once_with("foo")
 
 
-def test_throttle_imm_kw(qtbot):
-    func = mock.Mock(spec=[])
+def test_immediate_kwargs(func, qapp):
     throttled_func = throttle(100)(func)
     throttled_func(foo="bar")
     throttled_func(foo="bar")
     func.assert_called_once_with(foo="bar")
 
 
-def test_throttle_delay(qtbot):
-    func = mock.Mock(spec=[])
+def test_delayed(func, qtbot):
     throttled_func = throttle(100)(func)
     throttled_func("foo")
     throttled_func("foo")
@@ -58,8 +61,7 @@ def test_throttle_delay(qtbot):
     func.assert_called_once_with("bar")
 
 
-def test_throttle_delay_imm_delay(qtbot):
-    func = mock.Mock(spec=[])
+def test_delayed_immediate_delayed(func, qtbot):
     throttled_func = throttle(100)(func)
     throttled_func("foo")
     throttled_func("foo")
@@ -84,8 +86,7 @@ def test_throttle_delay_imm_delay(qtbot):
     func.assert_called_once_with("bop")
 
 
-def test_throttle_delay_delay(qtbot):
-    func = mock.Mock(spec=[])
+def test_delayed_delayed(func, qtbot):
     throttled_func = throttle(100)(func)
     throttled_func("foo")
     throttled_func("foo")
@@ -108,8 +109,7 @@ def test_throttle_delay_delay(qtbot):
     func.reset_mock()
 
 
-def test_throttle_cancel(qtbot):
-    func = mock.Mock(spec=[])
+def test_cancel(func, qtbot):
     throttled_func = throttle(100)(func)
     throttled_func("foo")
     throttled_func("foo")
@@ -125,8 +125,7 @@ def test_throttle_cancel(qtbot):
     func.reset_mock()
 
 
-def test_throttle_set(qtbot):
-    func = mock.Mock(spec=[])
+def test_set(func, qtbot):
     throttled_func = throttle(1000)(func)
     throttled_func.throttle.set_delay(100)
     throttled_func("foo")

@@ -43,7 +43,6 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
     If a request comes in, it will be processed immediately. If another request
     comes in too soon, it is ignored, but will be processed when a timeout
     ends. If another request comes in, it will update the pending request.
-
     """
 
     def __init__(self, delay_ms: int) -> None:
@@ -86,8 +85,10 @@ class throttle:  # noqa: N801,N806 pylint: disable=invalid-name
                     pass
                 self._timer.timeout.connect(call_pending)
                 self._timer.start()
+
             # Update arguments for an existing pending call
             self._pending_call = _CallArgs(args=args, kwargs=kwargs)
+
         wrapped_fn.throttle = self  # type: ignore
         return wrapped_fn
 
