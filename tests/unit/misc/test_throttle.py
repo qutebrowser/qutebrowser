@@ -34,27 +34,27 @@ def func():
 
 
 @pytest.fixture
-def throttled_func(func):
+def throttled(func):
     return throttle.Throttle(func, 100)
 
 
-def test_immediate(throttled_func, func, qapp):
-    throttled_func("foo")
-    throttled_func("foo")
+def test_immediate(throttled, func, qapp):
+    throttled("foo")
+    throttled("foo")
     func.assert_called_once_with("foo")
 
 
-def test_immediate_kwargs(throttled_func, func, qapp):
-    throttled_func(foo="bar")
-    throttled_func(foo="bar")
+def test_immediate_kwargs(throttled, func, qapp):
+    throttled(foo="bar")
+    throttled(foo="bar")
     func.assert_called_once_with(foo="bar")
 
 
-def test_delayed(throttled_func, func, qtbot):
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("bar")
+def test_delayed(throttled, func, qtbot):
+    throttled("foo")
+    throttled("foo")
+    throttled("foo")
+    throttled("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
 
@@ -63,11 +63,11 @@ def test_delayed(throttled_func, func, qtbot):
     func.assert_called_once_with("bar")
 
 
-def test_delayed_immediate_delayed(throttled_func, func, qtbot):
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("bar")
+def test_delayed_immediate_delayed(throttled, func, qtbot):
+    throttled("foo")
+    throttled("foo")
+    throttled("foo")
+    throttled("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
 
@@ -75,9 +75,9 @@ def test_delayed_immediate_delayed(throttled_func, func, qtbot):
 
     func.assert_called_once_with("bar")
     func.reset_mock()
-    throttled_func("baz")
-    throttled_func("baz")
-    throttled_func("bop")
+    throttled("baz")
+    throttled("baz")
+    throttled("bop")
 
     func.assert_called_once_with("baz")
     func.reset_mock()
@@ -87,11 +87,11 @@ def test_delayed_immediate_delayed(throttled_func, func, qtbot):
     func.assert_called_once_with("bop")
 
 
-def test_delayed_delayed(throttled_func, func, qtbot):
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("bar")
+def test_delayed_delayed(throttled, func, qtbot):
+    throttled("foo")
+    throttled("foo")
+    throttled("foo")
+    throttled("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
 
@@ -99,9 +99,9 @@ def test_delayed_delayed(throttled_func, func, qtbot):
 
     func.assert_called_once_with("bar")
     func.reset_mock()
-    throttled_func("baz")
-    throttled_func("baz")
-    throttled_func("bop")
+    throttled("baz")
+    throttled("baz")
+    throttled("bop")
 
     qtbot.wait(200)
 
@@ -109,14 +109,14 @@ def test_delayed_delayed(throttled_func, func, qtbot):
     func.reset_mock()
 
 
-def test_cancel(throttled_func, func, qtbot):
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("bar")
+def test_cancel(throttled, func, qtbot):
+    throttled("foo")
+    throttled("foo")
+    throttled("foo")
+    throttled("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
-    throttled_func.cancel()
+    throttled.cancel()
 
     qtbot.wait(150)
 
@@ -125,12 +125,12 @@ def test_cancel(throttled_func, func, qtbot):
 
 
 def test_set(func, qtbot):
-    throttled_func = throttle.Throttle(func, 100)
-    throttled_func.set_delay(100)
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("bar")
+    throttled = throttle.Throttle(func, 100)
+    throttled.set_delay(100)
+    throttled("foo")
+    throttled("foo")
+    throttled("foo")
+    throttled("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
 
@@ -148,9 +148,9 @@ def test_deleted_object(qtbot):
 
     obj = Obj()
 
-    throttled_func = throttle.Throttle(obj.func, 100, parent=obj)
-    throttled_func()
-    throttled_func()
+    throttled = throttle.Throttle(obj.func, 100, parent=obj)
+    throttled()
+    throttled()
 
     sip.delete(obj)
 
