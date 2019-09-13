@@ -30,7 +30,7 @@ def percentage(qtbot):
     """Fixture providing a Percentage widget."""
     widget = Percentage()
     # Force immediate update of percentage widget
-    widget.set_perc.throttle.set_delay(-1)  # pylint: disable=no-member
+    widget._set_text.set_delay(-1)
     qtbot.add_widget(widget)
     return widget
 

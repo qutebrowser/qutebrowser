@@ -33,6 +33,7 @@ class Percentage(textbase.TextBase):
         """Constructor. Set percentage to 0%."""
         super().__init__(parent, elidemode=Qt.ElideNone)
         self._strings = self._calc_strings()
+        self._set_text = throttle.Throttle(self.setText, 100, parent=self)
         self.set_perc(0, 0)
 
     def set_raw(self):
@@ -51,7 +52,6 @@ class Percentage(textbase.TextBase):
         return strings
 
     @pyqtSlot(int, int)
-    @throttle.throttle(100)
     def set_perc(self, x, y):  # pylint: disable=unused-argument
         """Setter to be used as a Qt slot.
 
@@ -59,7 +59,7 @@ class Percentage(textbase.TextBase):
             x: The x percentage (int), currently ignored.
             y: The y percentage (int)
         """
-        self.setText(self._strings[y])
+        self._set_text(self._strings[y])
 
     def on_tab_changed(self, tab):
         """Update scroll position when tab changed."""
