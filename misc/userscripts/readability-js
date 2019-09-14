@@ -27,7 +27,6 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 
-const tmpFile = path.join(process.env.QUTE_DATA_DIR, 'userscripts/readability.html');
 const HEADER = `
 <!DOCTYPE html>
 <html>
@@ -47,6 +46,12 @@ const HEADER = `
         }
     </style>
 </head>`;
+const scriptsDir = path.join(process.env.QUTE_DATA_DIR, 'userscripts.html');
+const tmpFile = path.join(scriptsDir, '/readability.html');
+
+if (!fs.existsSync(scriptsDir)){
+    fs.mkdirSync(scriptsDir);
+}
 
 JSDOM.fromFile(process.env.QUTE_HTML, { url: process.env.QUTE_URL }).then(dom => {
     let reader = new Readability(dom.window.document);
