@@ -46,7 +46,7 @@ const HEADER = `
         }
     </style>
 </head>`;
-const scriptsDir = path.join(process.env.QUTE_DATA_DIR, 'userscripts.html');
+const scriptsDir = path.join(process.env.QUTE_DATA_DIR, 'userscripts');
 const tmpFile = path.join(scriptsDir, '/readability.html');
 
 if (!fs.existsSync(scriptsDir)){
