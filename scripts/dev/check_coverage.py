@@ -124,6 +124,8 @@ PERFECT_FILES = [
      'misc/pastebin.py'),
     ('tests/unit/misc/test_objects.py',
      'misc/objects.py'),
+    ('tests/unit/misc/test_throttle.py',
+     'misc/throttle.py'),
 
     (None,
      'mainwindow/statusbar/keystring.py'),

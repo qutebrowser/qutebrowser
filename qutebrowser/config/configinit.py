@@ -80,6 +80,7 @@ def early_init(args: argparse.Namespace) -> None:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     objects.backend = get_backend(args)
+    objects.debug_flags = set(args.debug_flags)
 
     configtypes.Font.monospace_fonts = config.val.fonts.monospace
     config.instance.changed.connect(_update_monospace_fonts)

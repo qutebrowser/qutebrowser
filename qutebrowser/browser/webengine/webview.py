@@ -27,8 +27,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from qutebrowser.browser import shared
 from qutebrowser.browser.webengine import webenginesettings, certificateerror
 from qutebrowser.config import config
-from qutebrowser.utils import log, debug, usertypes, objreg, qtutils
-from qutebrowser.misc import miscwidgets
+from qutebrowser.utils import log, debug, usertypes, qtutils
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.qt import sip
 
 
@@ -68,7 +68,7 @@ class WebEngineView(QWebEngineView):
 
         This got introduced in Qt 5.11.0 and fixed in 5.12.0.
         """
-        if 'lost-focusproxy' not in objreg.get('args').debug_flags:
+        if 'lost-focusproxy' not in objects.debug_flags:
             proxy = self.focusProxy()
             if proxy is not None:
                 return proxy

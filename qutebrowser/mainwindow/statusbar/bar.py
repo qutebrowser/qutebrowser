@@ -232,7 +232,7 @@ class StatusBar(QWidget):
                 self.percentage.show()
             elif segment == 'scroll_raw':
                 self._hbox.addWidget(self.percentage)
-                self.percentage.raw = True
+                self.percentage.set_raw()
                 self.percentage.show()
             elif segment == 'history':
                 self._hbox.addWidget(self.backforward)

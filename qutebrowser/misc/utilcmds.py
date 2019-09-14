@@ -19,19 +19,21 @@
 
 """Misc. utility commands exposed to the user."""
 
+# QApplication and objects are imported so they're usable in :debug-pyeval
+
 import functools
 import os
 import traceback
 
 from PyQt5.QtCore import QUrl
-# so it's available for :debug-pyeval
 from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.misc import consolewidget, debugcachestats
+from qutebrowser.misc import (  # pylint: disable=unused-import
+    consolewidget, debugcachestats, objects)
 from qutebrowser.utils.version import pastebin_version
 from qutebrowser.qt import sip
 

@@ -205,7 +205,7 @@ class TabbedBrowser(QWidget):
             field: A field name which was updated. If given, the title
                    is only set if the given field is in the template.
         """
-        title_format = config.val.window.title_format
+        title_format = config.cache['window.title_format']
         if field is not None and ('{' + field + '}') not in title_format:
             return
 

@@ -38,7 +38,7 @@ from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 
 from qutebrowser.api import cmdutils
-from qutebrowser.misc import earlyinit, crashdialog, ipc
+from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 
 
@@ -157,9 +157,9 @@ class CrashHandler(QObject):
         """Report a bug in qutebrowser."""
         pages = self._recover_pages()
         cmd_history = objreg.get('command-history')[-5:]
-        objects = debug.get_all_objects()
+        all_objects = debug.get_all_objects()
         self._crash_dialog = crashdialog.ReportDialog(pages, cmd_history,
-                                                      objects)
+                                                      all_objects)
         self._crash_dialog.show()
 
     def destroy_crashlogfile(self):
@@ -198,11 +198,11 @@ class CrashHandler(QObject):
             cmd_history = []
 
         try:
-            objects = debug.get_all_objects()
+            all_objects = debug.get_all_objects()
         except Exception:
             log.destroy.exception("Error while getting objects")
-            objects = ""
-        return ExceptionInfo(pages, cmd_history, objects)
+            all_objects = ""
+        return ExceptionInfo(pages, cmd_history, all_objects)
 
     def exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
@@ -222,10 +222,10 @@ class CrashHandler(QObject):
         is_ignored_exception = (exctype is bdb.BdbQuit or
                                 not issubclass(exctype, Exception))
 
-        if 'pdb-postmortem' in self._args.debug_flags:
+        if 'pdb-postmortem' in objects.debug_flags:
             pdb.post_mortem(tb)
 
-        if is_ignored_exception or 'pdb-postmortem' in self._args.debug_flags:
+        if is_ignored_exception or 'pdb-postmortem' in objects.debug_flags:
             # pdb exit, KeyboardInterrupt, ...
             sys.exit(usertypes.Exit.exception)
 

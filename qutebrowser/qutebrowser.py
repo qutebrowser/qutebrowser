@@ -167,12 +167,13 @@ def debug_flag_error(flag):
         no-sql-history: Don't store history items.
         no-scroll-filtering: Process all scrolling updates.
         log-requests: Log all network requests.
+        log-scroll-pos: Log all scrolling changes.
         stack: Enable Chromium stack logging.
         chromium: Enable Chromium logging.
     """
     valid_flags = ['debug-exit', 'pdb-postmortem', 'no-sql-history',
                    'no-scroll-filtering', 'log-requests', 'lost-focusproxy',
-                   'stack', 'chromium']
+                   'log-scroll-pos', 'stack', 'chromium']
 
     if flag in valid_flags:
         return flag

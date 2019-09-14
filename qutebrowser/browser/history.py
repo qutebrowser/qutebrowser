@@ -328,7 +328,7 @@ class WebHistory(sql.SqlTable):
             log.misc.warning("Ignoring invalid URL being added to history")
             return
 
-        if 'no-sql-history' in objreg.get('args').debug_flags:
+        if 'no-sql-history' in objects.debug_flags:
             return
 
         atime = int(atime) if (atime is not None) else int(time.time())

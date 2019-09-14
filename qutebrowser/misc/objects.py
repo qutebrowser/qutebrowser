@@ -39,3 +39,4 @@ class NoBackend:
 
 backend = NoBackend()  # type: typing.Union[usertypes.Backend, NoBackend]
 commands = {}  # type: typing.Dict[str, command.Command]
+debug_flags = set()  # type: typing.Set[str]

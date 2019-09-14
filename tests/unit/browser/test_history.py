@@ -27,13 +27,12 @@ from PyQt5.QtCore import QUrl
 from qutebrowser.browser import history
 from qutebrowser.utils import objreg, urlutils, usertypes
 from qutebrowser.api import cmdutils
-from qutebrowser.misc import sql
+from qutebrowser.misc import sql, objects
 
 
 @pytest.fixture(autouse=True)
 def prerequisites(config_stub, fake_save_manager, init_sql, fake_args):
     """Make sure everything is ready to initialize a WebHistory."""
-    fake_args.debug_flags = []
     config_stub.data = {'general': {'private-browsing': False}}
 
 
@@ -171,8 +170,8 @@ class TestAdd:
             expected = [(completion_url, title, atime)]
             assert list(web_history.completion) == expected
 
-    def test_no_sql_web_history(self, web_history, fake_args):
-        fake_args.debug_flags = 'no-sql-history'
+    def test_no_sql_web_history(self, web_history, monkeypatch):
+        monkeypatch.setattr(objects, 'debug_flags', {'no-sql-history'})
         web_history.add_url(QUrl('https://www.example.com/'), atime=12346,
                             title='Hello World', redirect=False)
         assert not list(web_history)
