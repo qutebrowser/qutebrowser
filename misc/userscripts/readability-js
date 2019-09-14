@@ -60,7 +60,7 @@ JSDOM.fromFile(process.env.QUTE_HTML, { url: process.env.QUTE_URL }).then(dom =>
 
     fs.writeFile(tmpFile, content, (err) => {
         if (err) {
-            qute.messageError([err]);
+            qute.messageError([`"${err}"`])
             return 1;
         }
         // Success
