@@ -41,13 +41,9 @@ class Percentage(textbase.TextBase):
 
     def _calc_strings(self, raw=False):
         """Pre-calculate strings for the statusbar."""
-        strings = {
-            0: '[top]',
-            100: '[bot]',
-        }
-        for i in range(1, 100):
-            fmt = '[{:02}]' if raw else '[{:02}%]'
-            strings[i] = fmt.format(i)
+        fmt = '[{:02}]' if raw else '[{:02}%]'
+        strings = {i: fmt.format(i) for i in range(1, 100)}
+        strings.update({0: '[top]', 100: '[bot]'})
         return strings
 
     @pyqtSlot(int, int)
