@@ -10,6 +10,7 @@
 //   - NODE_PATH might be required to point to your global node libraries (e.g. /usr/lib/node_modules)
 //   - Mozilla's readability library (npm install -g https://github.com/mozilla/readability.git)
 //     NOTE: You might have to *login* as root for a system-wide installation to work (e.g. sudo -s)
+//   - jsdom (npm install -g jsdom)
 //   - qutejs (npm install -g qutejs)
 // 
 // # Usage
