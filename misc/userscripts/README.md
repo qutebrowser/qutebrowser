@@ -22,6 +22,8 @@ The following userscripts are included in the current directory.
 - [qutedmenu](./qutedmenu): Handle open -s && open -t with bemenu.
 - [readability](./readability): Executes python-readability on current page and
   opens the summary as new tab.
+- [readability-js](./readability-js): Processes the current page with the readability 
+  library used in Firefox Reader View and opens the summary as new tab.
 - [ripbang](./ripbang): Adds DuckDuckGo bang as searchengine.
 - [rss](./rss): Keeps track of URLs in RSS feeds and opens new ones.
 - [taskadd](./taskadd): Adds a task to taskwarrior.
