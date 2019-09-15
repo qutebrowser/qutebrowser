@@ -18,6 +18,12 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.8.0 (unreleased)
 -------------------
 
+Added
+~~~~~
+
+- New `readability-js` userscript which uses Mozilla's node.js readability
+  library.
+
 Changed
 ~~~~~~~
 
