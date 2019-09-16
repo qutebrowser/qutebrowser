@@ -2,7 +2,7 @@
 
 attrs==19.1.0
 filelock==3.0.12
-importlib-metadata==0.20
+importlib-metadata==0.23
 more-itertools==7.2.0
 packaging==19.1
 pluggy==0.12.0
