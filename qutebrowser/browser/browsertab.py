@@ -781,7 +781,7 @@ class AbstractTabPrivate:
 
     def handle_auto_insert_mode(self, ok: bool) -> None:
         """Handle `input.insert_mode.auto_load` after loading finished."""
-        if not config.val.input.insert_mode.auto_load or not ok:
+        if not ok or not config.cache['input.insert_mode.auto_load']:
             return
 
         cur_mode = self._mode_manager.mode

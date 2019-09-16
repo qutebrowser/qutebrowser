@@ -594,7 +594,7 @@ class TabbedBrowser(QWidget):
         if tab.data.keep_icon:
             tab.data.keep_icon = False
         else:
-            if (config.val.tabs.tabs_are_windows and
+            if (config.cache['tabs.tabs_are_windows'] and
                     tab.data.should_show_icon()):
                 self.widget.window().setWindowIcon(self.default_window_icon)
 
@@ -785,12 +785,12 @@ class TabbedBrowser(QWidget):
             # We can get signals for tabs we already deleted...
             return
         if ok:
-            start = config.val.colors.tabs.indicator.start
-            stop = config.val.colors.tabs.indicator.stop
-            system = config.val.colors.tabs.indicator.system
+            start = config.cache['colors.tabs.indicator.start']
+            stop = config.cache['colors.tabs.indicator.stop']
+            system = config.cache['colors.tabs.indicator.system']
             color = utils.interpolate_color(start, stop, 100, system)
         else:
-            color = config.val.colors.tabs.indicator.error
+            color = config.cache['colors.tabs.indicator.error']
         self.widget.set_tab_indicator_color(idx, color)
         if idx == self.widget.currentIndex():
             tab.private_api.handle_auto_insert_mode(ok)
