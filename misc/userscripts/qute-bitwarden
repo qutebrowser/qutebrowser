@@ -66,7 +66,7 @@ argument_parser.add_argument('--io-encoding', '-i', default='UTF-8',
                              help='Encoding used to communicate with subprocesses')
 argument_parser.add_argument('--merge-candidates', '-m', action='store_true',
                              help='Merge pass candidates for fully-qualified and registered domain name')
-argument_parser.add_argument('--auto-lock', default=900,
+argument_parser.add_argument('--auto-lock', type=int, default=900,
                              help='Automatically lock the vault after this many seconds')
 group = argument_parser.add_mutually_exclusive_group()
 group.add_argument('--username-only', '-e',
