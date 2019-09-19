@@ -539,10 +539,13 @@ class ImportFake:
             ('cssutils', True),
             ('attr', True),
             ('PyQt5.QtWebEngineWidgets', True),
+            ('PyQt5.QtWebEngine', True),
             ('PyQt5.QtWebKitWidgets', True),
         ])
-        self.no_version_attribute = ['sip', 'PyQt5.QtWebEngineWidgets',
-                                     'PyQt5.QtWebKitWidgets']
+        self.no_version_attribute = ['sip',
+                                     'PyQt5.QtWebEngineWidgets',
+                                     'PyQt5.QtWebKitWidgets',
+                                     'PyQt5.QtWebEngine']
         self.version_attribute = '__version__'
         self.version = '1.2.3'
         self._real_import = builtins.__import__

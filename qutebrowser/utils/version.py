@@ -217,6 +217,7 @@ def _module_versions():
         ('cssutils', ['__version__']),
         ('attr', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
+        ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
         ('PyQt5.QtWebKitWidgets', []),
     ])
     for modname, attributes in modules.items():
