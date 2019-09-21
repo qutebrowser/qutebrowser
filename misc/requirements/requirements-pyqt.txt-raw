@@ -1,2 +1,3 @@
-PyQt5
+#@ filter: PyQt5 != 5.13.1
+PyQt5 != 5.13.1
 PyQtWebEngine
