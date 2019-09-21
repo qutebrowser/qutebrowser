@@ -780,13 +780,17 @@ content.webrtc_ip_handling_policy:
 
 content.xss_auditing:
   type: Bool
-  default: true
+  default: false
   supports_pattern: true
   desc: >-
     Monitor load requests for cross-site scripting attempts.
 
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console.
+
+    Note that bypasses for the XSS auditor are widely known and it can be
+    abused for cross-site info leaks in some scenarios, see:
+    https://www.chromium.org/developers/design-documents/xss-auditor
 
 content.mute:
   default: false

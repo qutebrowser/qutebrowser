@@ -48,6 +48,10 @@ Changed
 - Hosts are now additionally looked up including their ports in netrc files.
 - With Qt 5.10 or newer, qutebrowser now doesn't force software rendering with
   Nouveau drivers anymore. However, QtWebEngine/Chromium still do so.
+- The XSS Auditor is now disabled by default (`content.xss_auditing` =
+  `false`). This reflects a similar change in Chromium, see
+  their https://www.chromium.org/developers/design-documents/xss-auditor[XSS
+  Auditor Design Document] for details.
 
 Fixed
 ~~~~~
