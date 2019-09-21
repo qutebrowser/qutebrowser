@@ -199,7 +199,8 @@ class KeyConfig:
              key: keyutils.KeySequence,
              command: str, *,
              mode: str,
-             save_yaml: bool = False) -> None:
+             save_yaml: bool = False,
+             update_mutables: bool = True) -> None:
         """Add a new binding from key to command."""
         if not command.strip():
             raise configexc.KeybindingError(
@@ -214,7 +215,8 @@ class KeyConfig:
         if mode not in bindings:
             bindings[mode] = {}
         bindings[mode][str(key)] = command
-        self._config.update_mutables(save_yaml=save_yaml)
+        if update_mutables:
+            self._config.update_mutables(save_yaml=save_yaml)
 
     def bind_default(self,
                      key: keyutils.KeySequence, *,
@@ -234,7 +236,8 @@ class KeyConfig:
     def unbind(self,
                key: keyutils.KeySequence, *,
                mode: str = 'normal',
-               save_yaml: bool = False) -> None:
+               save_yaml: bool = False,
+               update_mutables: bool = True) -> None:
         """Unbind the given key in the given mode."""
         self._validate(key, mode)
 
@@ -252,7 +255,8 @@ class KeyConfig:
             raise configexc.KeybindingError(
                 "Can't find binding '{}' in {} mode".format(key, mode))
 
-        self._config.update_mutables(save_yaml=save_yaml)
+        if update_mutables:
+            self._config.update_mutables(save_yaml=save_yaml)
 
 
 class Config(QObject):
