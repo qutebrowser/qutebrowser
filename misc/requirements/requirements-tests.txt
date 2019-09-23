@@ -20,7 +20,7 @@ Mako==1.1.0
 manhole==1.6.0
 # MarkupSafe==1.1.1
 more-itertools==7.2.0
-packaging==19.1
+packaging==19.2
 parse==1.12.1
 parse-type==0.5.2
 pluggy==0.13.0
