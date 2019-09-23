@@ -41,7 +41,7 @@ pytest-xvfb==1.2.0
 PyVirtualDisplay==0.2.4
 six==1.12.0
 soupsieve==1.9.3
-vulture==1.0
+vulture==1.1
 wcwidth==0.1.7
 Werkzeug==0.15.6
 zipp==0.6.0
