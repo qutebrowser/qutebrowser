@@ -43,6 +43,7 @@ class SqliteErrorCode:
     CORRUPT = '11'  # database disk image is malformed
     FULL = '13'  # database or disk is full
     CANTOPEN = '14'  # unable to open database file
+    PROTOCOL = '15'  # locking protocol error
     CONSTRAINT = '19'  # UNIQUE constraint failed
 
 
@@ -102,6 +103,7 @@ def raise_sqlite_error(msg, error):
         SqliteErrorCode.CORRUPT,
         SqliteErrorCode.FULL,
         SqliteErrorCode.CANTOPEN,
+        SqliteErrorCode.PROTOCOL,
     ]
 
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70506

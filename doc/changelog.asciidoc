@@ -75,6 +75,8 @@ Fixed
   number hints on French keyboards.
 - With rapid hinting in number mode, backspace now edits the filter text after
   following a hint.
+- A certain type of error ("locking protocol") while initializing sqlite now
+  isn't handled as crash anymore.
 
 Removed
 ~~~~~~~
