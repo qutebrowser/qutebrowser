@@ -232,7 +232,6 @@ def _has_explicit_scheme(url):
     # symbols, we treat this as not a URI anyways.
     return (url.isValid() and url.scheme() and
             (url.host() or url.path()) and
-            ' ' not in url.path() and
             not url.path().startswith(':'))
 
 
@@ -277,10 +276,10 @@ def is_url(urlstr):
             return engine is None
 
     if not qurl_userinput.isValid():
-        # This will also catch URLs containing spaces.
+        # This will also catch non-URLs containing spaces.
         return False
 
-    if _has_explicit_scheme(qurl):
+    if _has_explicit_scheme(qurl) and ' ' not in urlstr:
         # URLs with explicit schemes are always URLs
         log.url.debug("Contains explicit scheme")
         url = True
