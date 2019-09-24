@@ -81,7 +81,7 @@ def main():
     profiler.dump_stats(profilefile)
 
     if args.profile_tool == 'none':
-        pass
+        print("Profile data written to {}".format(profilefile))
     elif args.profile_tool == 'gprof2dot':
         # yep, shell=True. I know what I'm doing.
         subprocess.run(
