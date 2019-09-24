@@ -147,7 +147,9 @@ def _is_url_naive(urlstr):
         return False
 
     host = url.host()
-    return '.' in host and not host.endswith('.')
+    tld = r'\.([^.0-9_-]+|xn--[a-z0-9-]+)$'
+    forbidden = r'[\u0000-\u002c\u002f-\u002f\u003a-\u0060\u007b-\u00b6]'
+    return bool(re.search(tld, host) and not re.search(forbidden, host))
 
 
 def _is_url_dns(urlstr):
