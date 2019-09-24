@@ -27,6 +27,9 @@ Added
 Changed
 ~~~~~~~
 
+- The Windows/macOS releases now ship with Qt 5.13.0 and QtWebEngine 5.13.1.
+  QtWebEngine 5.13.1 is based on Chromium 73.0.3683.105 with security fixes up
+  to Chromium 76.0.3809.87.
 - The statusbar text for passthrough mode now shows all configured bindings to
   leave the mode, not only one.
 - When `:config-source` is used with a relative filename, the file is now
@@ -38,7 +41,7 @@ Changed
 - Changes to userscripts:
   * qute-pass: Don't run `pass` if only a username is requested.
   * qute-pass: Support private domains like `myrouter.local`.
-  * readability: Improved CSS styling
+  * readability: Improved CSS styling.
 - Performance improvements in various areas:
   * Loading config files
   * Typing without any completion matches
@@ -77,6 +80,7 @@ Fixed
   following a hint.
 - A certain type of error ("locking protocol") while initializing sqlite now
   isn't handled as crash anymore.
+- Crash when showing a permission request in certain scenarios.
 
 Removed
 ~~~~~~~
@@ -84,14 +88,6 @@ Removed
 - At least Python 3.5.2 is now required to run qutebrowser, support for 3.5.0
   and 3.5.1 was dropped.
 
-
-v1.7.1 (unreleased)
--------------------
-
-Fixed
-~~~~~
-
-- Crash when showing a permission request in certain scenarios.
 
 v1.7.0 (2019-07-18)
 -------------------
