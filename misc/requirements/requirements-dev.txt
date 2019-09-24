@@ -20,4 +20,4 @@ python-dateutil==2.8.0
 requests==2.22.0
 six==1.12.0
 uritemplate==3.0.0
-urllib3==1.25.3
+urllib3==1.25.5
