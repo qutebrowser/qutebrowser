@@ -21,8 +21,9 @@ v1.8.0 (unreleased)
 Added
 ~~~~~
 
-- New `readability-js` userscript which uses Mozilla's node.js readability
-  library.
+- New userscripts:
+  * `readability-js` which uses Mozilla's node.js readability library.
+  * `qute-bitwarden` which integrates the Bitwarden CLI.
 
 Changed
 ~~~~~~~
