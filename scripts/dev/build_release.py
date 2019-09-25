@@ -431,6 +431,14 @@ def github_upload(artifacts, tag):
                 utils.print_col('Failed to upload: {}'.format(e), 'red')
                 print("Press Enter to retry...")
                 input()
+                print("Retrying!")
+
+                assets = [asset for asset in release.assets()
+                          if asset.name == basename]
+                if assets:
+                    asset = assets[0]
+                    print("Deleting stray asset {}".format(asset.name))
+                    asset.delete()
             else:
                 break
         asset.edit(basename, description)
