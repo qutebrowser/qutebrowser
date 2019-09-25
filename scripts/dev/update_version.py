@@ -64,29 +64,29 @@ if __name__ == "__main__":
                          ['x'])
 
     print("Run the following commands to create a new release:")
-    print("* Run `git push origin; git push origin v{v}`.".format(v=version))
+    print("* git push origin; git push origin v{v}".format(v=version))
     if args.bump == 'patch':
-        print("* Run `git checkout master && git cherry-pick v{v} && "
-              "git push origin`.".format(v=version))
+        print("* git checkout master && git cherry-pick v{v} && "
+              "git push origin.".format(v=version))
     else:
-        print("* Run `git branch v{x} v{v}` && git push origin v{x}."
+        print("* git branch v{x} v{v} && git push origin v{x}"
               .format(v=version, x=x_version))
     print("* Create new release via GitHub (required to upload release "
           "artifacts).")
-    print("* Linux: Run `git checkout v{v} && "
-          "./.venv/bin/python3 scripts/dev/build_release.py --upload`"
+    print("* Linux: git pull && git checkout v{v} && "
+          "./.venv/bin/python3 scripts/dev/build_release.py --upload"
           .format(v=version))
-    print("* Windows: Run `git checkout v{v}; "
+    print("* Windows: git pull && git checkout v{v}; "
           "py -3 scripts\\dev\\build_release.py --asciidoc "
           "C:\\Python27\\python "
-          "%userprofile%\\bin\\asciidoc-8.6.10\\asciidoc.py --upload`."
+          "$env:userprofile\\bin\\asciidoc-8.6.10\\asciidoc.py --upload"
           .format(v=version))
-    print("* macOS: Run `git checkout v{v} && "
-          "python3 scripts/dev/build_release.py --upload`."
+    print("* macOS: git pull && git checkout v{v} && "
+          "python3 scripts/dev/build_release.py --upload"
           .format(v=version))
 
     print("* On server:")
-    print("- Run `python3 scripts/dev/download_release.py {v}`."
+    print("  - python3 scripts/dev/download_release.py {v}"
           .format(v=version))
-    print("- Run `git pull github master && sudo python3 "
-          "scripts/asciidoc2html.py --website /srv/http/qutebrowser`")
+    print("  - git pull github master && sudo python3 "
+          "scripts/asciidoc2html.py --website /srv/http/qutebrowser")
