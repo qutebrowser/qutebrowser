@@ -1,5 +1,6 @@
-import pytest
+import logging
 
+import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import objreg, usertypes
@@ -13,21 +14,28 @@ not_finished_statuses = [
 
 
 @pytest.fixture()
-def browser(qtbot, real_tabbed_browser):
+def browser(caplog, qtbot, real_tabbed_browser):
+    real_tabbed_browser.container.expose()
+
     command_dispatcher = commands.CommandDispatcher(
         real_tabbed_browser._win_id, real_tabbed_browser)
 
-    command_dispatcher.openurl(
-        url=QUrl("about:blank"),
-    )
-    command_dispatcher.openurl(
-        url=QUrl("about:blank"),
-        bg=True,
-    )
-    command_dispatcher.openurl(
-        url=QUrl("about:blank"),
-        bg=True,
-    )
+    with caplog.at_level(logging.WARNING):
+        # For some reason, TabBarStyle fails to get the tab layout for those
+        # tabs, so it fails to render properly and logs a warning.
+
+        command_dispatcher.openurl(
+            url=QUrl("about:blank"),
+        )
+        command_dispatcher.openurl(
+            url=QUrl("about:blank"),
+            bg=True,
+        )
+        command_dispatcher.openurl(
+            url=QUrl("about:blank"),
+            bg=True,
+        )
+
     signals = [
         tab.load_finished
         for tab in real_tabbed_browser.widgets()
@@ -35,10 +43,11 @@ def browser(qtbot, real_tabbed_browser):
     ]
     with qtbot.waitSignals(signals):
         pass
+
     return real_tabbed_browser
 
 
-def test_backround_tabs_webcontent_hidden(qtbot, browser):
+def test_background_tabs_webcontent_hidden(qtbot, browser):
     visibility_states = {}
     for idx, tab in enumerate(browser.widgets()):
         with qtbot.waitCallback() as callback:

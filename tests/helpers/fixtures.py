@@ -405,10 +405,10 @@ def tabbed_browser_stubs(qapp, stubs, win_registry):
 
 
 @pytest.fixture
-def real_tabbed_browser(qtbot, config_stub, mode_manager, tab_registry,
-                        web_tab_setup, web_history):
+def real_tabbed_browser(widget_container, config_stub, mode_manager,
+                        tab_registry, web_tab_setup, web_history):
     tb = tabbedbrowser.TabbedBrowser(win_id=0, private=False)
-    qtbot.add_widget(tb)
+    widget_container.set_widget(tb)
     objreg.register('tabbed-browser', tb, scope='window', window=0)
     yield tb
     objreg.delete('tabbed-browser', scope='window', window=0)
