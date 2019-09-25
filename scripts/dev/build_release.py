@@ -112,6 +112,8 @@ def smoke_test(executable):
          r'Which one is undefined\.'),
         (r'QCoreApplication::applicationDirPath: Please instantiate the '
          r'QApplication object first'),
+        (r'\[.*:ERROR:mach_port_broker.mm\(48\)\] bootstrap_look_up '
+         r'org\.chromium\.Chromium\.rohitfork\.1: Permission denied \(1100\)'),
     ]
 
     proc = subprocess.run([executable, '--no-err-windows', '--nowindow',
