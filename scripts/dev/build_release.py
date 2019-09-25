@@ -422,6 +422,7 @@ def github_upload(artifacts, tag):
         raise Exception("No release found for {!r}!".format(tag))
 
     for filename, mimetype, description in artifacts:
+        print("Uploading {}".format(filename))
         while True:
             try:
                 with open(filename, 'rb') as f:
