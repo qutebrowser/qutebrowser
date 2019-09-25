@@ -407,6 +407,7 @@ def github_upload(artifacts, tag):
         tag: The name of the release tag
     """
     import github3
+    import github3.exceptions
     utils.print_title("Uploading to github...")
 
     token = read_github_token()
@@ -421,9 +422,17 @@ def github_upload(artifacts, tag):
         raise Exception("No release found for {!r}!".format(tag))
 
     for filename, mimetype, description in artifacts:
-        with open(filename, 'rb') as f:
-            basename = os.path.basename(filename)
-            asset = release.upload_asset(mimetype, basename, f)
+        while True:
+            try:
+                with open(filename, 'rb') as f:
+                    basename = os.path.basename(filename)
+                    asset = release.upload_asset(mimetype, basename, f)
+            except github3.exceptions.ConnectionError as e:
+                utils.print_col('Failed to upload: {}'.format(e), 'red')
+                print("Press Enter to retry...")
+                input()
+            else:
+                break
         asset.edit(basename, description)
 
 
