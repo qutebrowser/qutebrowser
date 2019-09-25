@@ -426,14 +426,13 @@ def github_upload(artifacts, tag):
             try:
                 with open(filename, 'rb') as f:
                     basename = os.path.basename(filename)
-                    asset = release.upload_asset(mimetype, basename, f)
+                    release.upload_asset(mimetype, basename, f, description)
             except github3.exceptions.ConnectionError as e:
                 utils.print_col('Failed to upload: {}'.format(e), 'red')
                 print("Press Enter to retry...")
                 input()
             else:
                 break
-        asset.edit(basename, description)
 
 
 def pypi_upload(artifacts):
