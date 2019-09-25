@@ -479,11 +479,11 @@ content.headers.user_agent:
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/75.0.3770.100 Safari/537.36"
-        - Chrome 75.0 Win10
+          like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+        - Chrome 76 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/75.0.3770.100 Safari/537.36 "
-        - Chrome 75.0 Linux
+          Gecko) Chrome/76.0.3809.132 Safari/537.36"
+        - Chrome 76 Linux
       - - ""
         - Use default QtWebKit/QtWebEngine User-Agent
 
