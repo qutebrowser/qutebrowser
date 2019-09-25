@@ -52,6 +52,7 @@ from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.misc import savemanager, sql, objects, sessions
 from qutebrowser.keyinput import modeman
 from qutebrowser.qt import sip
+from qutebrowser.mainwindow import tabbedbrowser
 
 
 _qute_scheme_handler = None
@@ -401,6 +402,25 @@ def tabbed_browser_stubs(qapp, stubs, win_registry):
     yield stubs
     objreg.delete('tabbed-browser', scope='window', window=0)
     objreg.delete('tabbed-browser', scope='window', window=1)
+
+
+@pytest.fixture
+def real_tabbed_browser(qtbot, config_stub, mode_manager, tab_registry,
+                        web_tab_setup, web_history):
+    tb = tabbedbrowser.TabbedBrowser(win_id=0, private=False)
+    qtbot.add_widget(tb)
+    objreg.register('tabbed-browser', tb, scope='window', window=0)
+    yield tb
+    objreg.delete('tabbed-browser', scope='window', window=0)
+
+
+@pytest.fixture
+def app_stub(stubs):
+    """Fixture which provides a fake app object."""
+    stub = stubs.ApplicationStub()
+    objreg.register('app', stub)
+    yield stub
+    objreg.delete('app')
 
 
 @pytest.fixture

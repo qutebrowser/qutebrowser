@@ -77,7 +77,7 @@ from qutebrowser.browser import commands
 # pylint: enable=unused-import
 
 
-def run(args, no_mainloop=False):
+def run(args):
     """Initialize everything and run the application."""
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
@@ -127,9 +127,8 @@ def run(args, no_mainloop=False):
         lambda args, target_arg, cwd:
         process_pos_args(args, cwd=cwd, via_ipc=True, target_arg=target_arg))
 
-    if no_mainloop:
-        return 0
-    return qt_mainloop()
+    ret = qt_mainloop()
+    return ret
 
 
 def qt_mainloop():
