@@ -114,6 +114,8 @@ def smoke_test(executable):
          r'QApplication object first'),
         (r'\[.*:ERROR:mach_port_broker.mm\(48\)\] bootstrap_look_up '
          r'org\.chromium\.Chromium\.rohitfork\.1: Permission denied \(1100\)'),
+        (r'\[.*:ERROR:mach_port_broker.mm\(43\)\] bootstrap_look_up: '
+         r'Unknown service name \(1102\)')
     ]
 
     proc = subprocess.run([executable, '--no-err-windows', '--nowindow',
