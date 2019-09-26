@@ -15,15 +15,6 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.8.1 (unreleased)
--------------------
-
-Changed
-~~~~~~~
-
-- Builds using `tox -e mkvenv-pypi` now also use Qt 5.13.
-
-
 v1.8.0 (2019-09-25)
 -------------------
 
