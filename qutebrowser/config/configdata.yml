@@ -2759,7 +2759,7 @@ bindings.default:
       tIu: config-cycle -p -u {url} content.images ;; reload
     insert:
       <Ctrl-E>: open-editor
-      <Shift-Ins>: insert-text {primary}
+      <Shift-Ins>: insert-text -- {primary}
       <Escape>: leave-mode
     hint:
       <Return>: follow-hint
