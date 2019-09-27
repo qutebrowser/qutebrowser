@@ -487,7 +487,7 @@ Default:
 
 * +pass:[&lt;Ctrl-E&gt;]+: +pass:[open-editor]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
-* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text {primary}]+
+* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text -- {primary}]+
 - +pass:[normal]+:
 
 * +pass:[&#x27;]+: +pass:[enter-mode jump_mark]+
