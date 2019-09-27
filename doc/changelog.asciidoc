@@ -15,6 +15,20 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.8.1 (unreleased)
+-------------------
+
+Changed
+~~~~~~~
+
+- No code changes - this release only repackages the Windows/macOS
+  releases due to issues with the v1.8.0 release.
+- Updated dependencies for Windows/macOS releases:
+  * macOS and Windows releases now ship with Qt/QtWebEngine 5.12.5. Those
+    are based on Chromium 69.0.3497.128 with security fixes up to Chromium
+    76.0.3809.87.
+  * Qt 5.13 couldn't be used yet due to various bugs in Qt 5.13.0 and .1.
+
 v1.8.0 (2019-09-25)
 -------------------
 
@@ -28,13 +42,6 @@ Added
 Changed
 ~~~~~~~
 
-- Updated dependencies for Windows/macOS releases:
-  * macOS releases now ship with Qt 5.13.0 and QtWebEngine 5.13.1. Those are
-    based on Chromium 73.0.3683.105 with security fixes up to Chromium 76.0.3809.87.
-  * Windows releases now ship with Qt/QtWebEngine 5.12.5. Those are based on
-    Chromium 69.0.3497.128 with security fixes up to Chromium 76.0.3809.87.
-  * Those specific combinations were chosen due to various issues with newer Qt
-    releases. Hopefully, those will be unified again with Qt 5.13.2.
 - The statusbar text for passthrough mode now shows all configured bindings to
   leave the mode, not only one.
 - When `:config-source` is used with a relative filename, the file is now
