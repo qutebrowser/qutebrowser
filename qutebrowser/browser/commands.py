@@ -861,20 +861,11 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('text', completion=urlmodel.url_or_buffer)
-    def switch_buffer_or_open(self, text=None):
+    def goto(self, text=None, tab=False):
         try:
             self.buffer(index=text)
         except cmdutils.CommandError:
-            self.openurl(url=text)
-
-    @cmdutils.register(instance='command-dispatcher', scope='window',
-                       maxsplit=0)
-    @cmdutils.argument('text', completion=urlmodel.url_or_buffer)
-    def switch_buffer_or_open_tab(self, text=None):
-        try:
-            self.buffer(index=text)
-        except cmdutils.CommandError:
-            self.openurl(url=text, tab=True)
+            self.openurl(url=text, tab=tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
