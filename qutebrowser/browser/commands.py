@@ -861,7 +861,25 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('text', completion=urlmodel.url_or_buffer)
-    def goto(self, text=None, tab=False):
+    def goto(self, text=None, related=False, bg=False, tab=False, window=False,
+             count=None, secure=False, private=False):
+        """Select an open tab or open an url.
+
+        First the argument is matched against open tabs (like with `:buffer`).
+        If a match is found switch to that tab.  If no match is found open the
+        argument like with `:open`.
+
+        Args:
+            text: The buffer specification or an URL.
+            bg: Open in a new background tab.
+            tab: Open in a new tab.
+            window: Open in a new window.
+            related: If opening a new tab, position the tab as related to the
+                     current one (like clicking on a link).
+            count: The tab index to open the URL in, or None.
+            secure: Force HTTPS.
+            private: Open a new window in private browsing mode.
+        """
         try:
             self.buffer(index=text)
         except cmdutils.CommandError:
