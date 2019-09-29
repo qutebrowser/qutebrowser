@@ -294,10 +294,10 @@ def is_url(urlstr):
         log.url.debug("Checking via DNS check")
         # We want to use qurl_from_user_input here, as the user might enter
         # "foo.de" and that should be treated as URL here.
-        url = _is_url_dns(urlstr)
+        url = ' ' not in qurl_userinput.userName() and _is_url_dns(urlstr)
     elif autosearch == 'naive':
         log.url.debug("Checking via naive check")
-        url = _is_url_naive(urlstr)
+        url = ' ' not in qurl_userinput.userName() and _is_url_naive(urlstr)
     else:  # pragma: no cover
         raise ValueError("Invalid autosearch value")
     log.url.debug("url = {}".format(url))
