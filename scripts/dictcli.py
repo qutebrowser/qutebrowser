@@ -245,7 +245,7 @@ def remove_old(languages):
 
 def check_root():
     """Ask for confirmation if running as root when unnecessary."""
-    if sys.platform == "linux":
+    if sys.platform not in "win32":
         if spell.can_use_data_path() and os.geteuid() == 0:
             print("You're running Qt >= 5.10 which means qutebrowser will "
                   "load dictionaries from a path in your home-directory. "
