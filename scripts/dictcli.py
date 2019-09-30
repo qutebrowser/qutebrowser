@@ -245,14 +245,15 @@ def remove_old(languages):
 
 def check_root():
     """Ask for confirmation if running as root when unnecessary."""
-    if spell.can_use_data_path() and os.geteuid() == 0:
-        print("You're running Qt >= 5.10 which means qutebrowser will "
-              "load dictionaries from a path in your home-directory. "
-              "Unless you run qutebrowser as root (bad idea!), you "
-              "most likely want to run this script as your user. ")
-        answer = input("Do you want to continue anyways? [y/N] ")
-        if answer not in ['y', 'Y']:
-            sys.exit(0)
+    if sys.platform == "linux":
+        if spell.can_use_data_path() and os.geteuid() == 0:
+            print("You're running Qt >= 5.10 which means qutebrowser will "
+                  "load dictionaries from a path in your home-directory. "
+                  "Unless you run qutebrowser as root (bad idea!), you "
+                  "most likely want to run this script as your user. ")
+            answer = input("Do you want to continue anyways? [y/N] ")
+            if answer not in ['y', 'Y']:
+                sys.exit(0)
 
 
 def main():
