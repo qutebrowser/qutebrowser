@@ -23,7 +23,7 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-import typing  # pylint: disable=unused-import,useless-suppression
+import typing
 
 
 from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget

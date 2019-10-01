@@ -257,10 +257,8 @@ def get_tab(win_id, target):
         target: A usertypes.ClickTarget
     """
     if target == usertypes.ClickTarget.tab:
-        win_id = win_id
         bg_tab = False
     elif target == usertypes.ClickTarget.tab_bg:
-        win_id = win_id
         bg_tab = True
     elif target == usertypes.ClickTarget.window:
         tabbed_browser = objreg.get('tabbed-browser', scope='window',

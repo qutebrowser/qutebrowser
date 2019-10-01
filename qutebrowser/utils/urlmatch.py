@@ -110,7 +110,6 @@ class UrlPattern:
     def __eq__(self, other):
         if not isinstance(other, UrlPattern):
             return NotImplemented
-        # pylint: disable=protected-access
         return self._to_tuple() == other._to_tuple()
 
     def __repr__(self):
@@ -162,7 +161,7 @@ class UrlPattern:
 
         if parsed.path == '/*':
             self._path = None
-        elif parsed.path == '':
+        elif not parsed.path:
             # When the user doesn't add a trailing slash, we assume the pattern
             # matches any path.
             self._path = None

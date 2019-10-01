@@ -84,7 +84,6 @@ def restore_loggers():
         logger_dict = logging.getLogger().manager.loggerDict
         logger_dict.clear()
         logger_dict.update(saved_loggers)
-        logger_states = logger_states
         for name in logger_states:
             if logger_states[name] is not None:
                 saved_loggers[name].disabled = logger_states[name]

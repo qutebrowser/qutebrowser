@@ -39,7 +39,6 @@ from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import, useless-suppression
     from qutebrowser.misc import savemanager
 
 

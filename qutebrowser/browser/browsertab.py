@@ -44,7 +44,6 @@ from qutebrowser.browser import eventfilter, hints
 from qutebrowser.qt import sip
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector
 

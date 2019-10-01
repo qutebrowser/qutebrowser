@@ -31,7 +31,7 @@ Module attributes:
 import io
 import operator
 import contextlib
-import typing  # pylint: disable=unused-import,useless-suppression
+import typing
 
 import pkg_resources
 from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,

@@ -26,7 +26,7 @@ Module attributes:
 
 import os
 import operator
-import typing  # pylint: disable=unused-import,useless-suppression
+import typing
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,

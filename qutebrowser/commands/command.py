@@ -404,7 +404,7 @@ class Command:
                 self.name))
 
         if getattr(typ, '__origin__', None) is typing.Union or (
-                # Older Python 3.5 patch versions
+                # Python 3.5.2
                 # pylint: disable=no-member,useless-suppression
                 hasattr(typing, 'UnionMeta') and
                 isinstance(typ, typing.UnionMeta)):
@@ -412,7 +412,7 @@ class Command:
             try:
                 types = list(typ.__args__)
             except AttributeError:
-                # Older Python 3.5 patch versions
+                # Python 3.5.2
                 types = list(typ.__union_params__)
             # pylint: enable=no-member,useless-suppression
             if param.default is not inspect.Parameter.empty:

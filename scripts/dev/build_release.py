@@ -222,7 +222,7 @@ def build_mac():
                 smoke_test(binary)
             finally:
                 time.sleep(5)
-                subprocess.run(['hdiutil', 'detach', tmpdir])
+                subprocess.run(['hdiutil', 'detach', tmpdir], check=False)
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
 
