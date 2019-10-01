@@ -66,7 +66,7 @@ class TabDeque:
     def __init__(self) -> None:
         self._stack = collections.deque(
             maxlen=config.val.tabs.focus_stack_size
-        )  # type:typing.Deque[weakref.ReferenceType[QWidget]]
+        )  # type: typing.Deque[weakref.ReferenceType[QWidget]]
         # Items that have been removed from the primary stack.
         self._stack_deleted = [
         ]  # type: typing.List[weakref.ReferenceType[QWidget]]
@@ -90,7 +90,7 @@ class TabDeque:
 
         Throws IndexError on failure.
         """
-        tab = None
+        tab = None  # type: typing.Optional[QWidget]
         while tab is None or tab.pending_removal or tab is cur_tab:
             tab = self._stack.pop()()
         self._stack_deleted.append(weakref.ref(cur_tab))
@@ -102,7 +102,7 @@ class TabDeque:
 
         Throws IndexError on failure.
         """
-        tab = None
+        tab = None  # type: typing.Optional[QWidget]
         while tab is None or tab.pending_removal or tab is cur_tab:
             tab = self._stack_deleted.pop()()
         # On next tab-switch, current tab will be added to stack as normal.
