@@ -110,7 +110,6 @@ class UrlPattern:
     def __eq__(self, other):
         if not isinstance(other, UrlPattern):
             return NotImplemented
-        # pylint: disable=protected-access
         return self._to_tuple() == other._to_tuple()
 
     def __repr__(self):

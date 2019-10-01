@@ -516,29 +516,23 @@ class KeySequence:
         return utils.get_repr(self, keys=str(self))
 
     def __lt__(self, other: 'KeySequence') -> bool:
-        # pylint: disable=protected-access
         return self._sequences < other._sequences
 
     def __gt__(self, other: 'KeySequence') -> bool:
-        # pylint: disable=protected-access
         return self._sequences > other._sequences
 
     def __le__(self, other: 'KeySequence') -> bool:
-        # pylint: disable=protected-access
         return self._sequences <= other._sequences
 
     def __ge__(self, other: 'KeySequence') -> bool:
-        # pylint: disable=protected-access
         return self._sequences >= other._sequences
 
     def __eq__(self, other: object) -> bool:
-        # pylint: disable=protected-access
         if not isinstance(other, KeySequence):
             return NotImplemented
         return self._sequences == other._sequences
 
     def __ne__(self, other: object) -> bool:
-        # pylint: disable=protected-access
         if not isinstance(other, KeySequence):
             return NotImplemented
         return self._sequences != other._sequences

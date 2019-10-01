@@ -85,7 +85,7 @@ class WebEngineElement(webelem.AbstractWebElement):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, WebEngineElement):
             return NotImplemented
-        return self._id == other._id  # pylint: disable=protected-access
+        return self._id == other._id
 
     def __getitem__(self, key: str) -> str:
         attrs = self._js_dict['attributes']

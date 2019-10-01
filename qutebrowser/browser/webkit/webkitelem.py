@@ -57,7 +57,7 @@ class WebKitElement(webelem.AbstractWebElement):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, WebKitElement):
             return NotImplemented
-        return self._elem == other._elem  # pylint: disable=protected-access
+        return self._elem == other._elem
 
     def __getitem__(self, key: str) -> str:
         self._check_vanished()
