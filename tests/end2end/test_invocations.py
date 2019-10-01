@@ -325,8 +325,10 @@ def test_command_on_start(request, quteproc_new):
 
 def test_launching_with_python2():
     try:
-        proc = subprocess.run(['python2', '-m', 'qutebrowser',
-                               '--no-err-windows'], stderr=subprocess.PIPE)
+        proc = subprocess.run(
+            ['python2', '-m', 'qutebrowser', '--no-err-windows'],
+            stderr=subprocess.PIPE,
+            check=False)
     except FileNotFoundError:
         pytest.skip("python2 not found")
     assert proc.returncode == 1
