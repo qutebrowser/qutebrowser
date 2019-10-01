@@ -161,7 +161,7 @@ class UrlPattern:
 
         if parsed.path == '/*':
             self._path = None
-        elif parsed.path == '':
+        elif not parsed.path:
             # When the user doesn't add a trailing slash, we assume the pattern
             # matches any path.
             self._path = None

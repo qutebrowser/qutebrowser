@@ -7,7 +7,8 @@ load-plugins=qute_pylint.config,
              qute_pylint.modeline,
              qute_pylint.openencoding,
              qute_pylint.settrace,
-             pylint.extensions.docstyle
+             pylint.extensions.docstyle,
+             pylint.extensions.emptystring,
 persistent=n
 
 [MESSAGES CONTROL]

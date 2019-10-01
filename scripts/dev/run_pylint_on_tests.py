@@ -57,6 +57,7 @@ def main():
         'missing-docstring',
         'protected-access',
         'len-as-condition',
+        'compare-to-empty-string',
         # directories without __init__.py...
         'import-error',
     ]
