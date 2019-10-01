@@ -9,7 +9,11 @@ load-plugins=qute_pylint.config,
              qute_pylint.settrace,
              pylint.extensions.docstyle,
              pylint.extensions.emptystring,
+             pylint.extensions.broad_try_clause,
 persistent=n
+
+[broad_try_clause]
+max-try-statements=7
 
 [MESSAGES CONTROL]
 enable=all
