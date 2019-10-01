@@ -39,7 +39,6 @@ from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
 from qutebrowser.misc import objects
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.mainwindow import prompt
 
 

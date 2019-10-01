@@ -30,7 +30,6 @@ from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser.webkit import webkittab
 
 

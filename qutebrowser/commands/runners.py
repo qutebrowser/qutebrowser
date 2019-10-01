@@ -34,7 +34,6 @@ from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.mainwindow import tabbedbrowser
 _ReplacementFunction = typing.Callable[['tabbedbrowser.TabbedBrowser'], str]
 

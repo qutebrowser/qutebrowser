@@ -19,7 +19,7 @@
 
 """A completion category that queries the SQL history store."""
 
-import typing  # pylint: disable=unused-import,useless-suppression
+import typing
 
 from PyQt5.QtSql import QSqlQueryModel
 from PyQt5.QtWidgets import QWidget

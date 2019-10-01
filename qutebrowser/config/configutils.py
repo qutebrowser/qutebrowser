@@ -30,7 +30,6 @@ from qutebrowser.utils import utils, urlmatch
 from qutebrowser.config import configexc
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.config import configdata
 
 

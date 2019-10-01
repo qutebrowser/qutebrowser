@@ -33,7 +33,6 @@ from qutebrowser.misc import editor
 from qutebrowser.keyinput import keyutils
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.config.config import Config, KeyConfig
 
 
