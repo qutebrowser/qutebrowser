@@ -40,7 +40,8 @@ disable=locally-disabled,
         too-many-branches,
         too-many-statements,
         too-few-public-methods,
-        bad-builtin
+        bad-builtin,
+        import-outside-toplevel
 
 [BASIC]
 function-rgx=[a-z_][a-z0-9_]{2,50}$
