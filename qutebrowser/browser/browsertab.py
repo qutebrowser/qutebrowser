@@ -22,6 +22,7 @@
 import enum
 import itertools
 import typing
+import functools
 
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
@@ -887,6 +888,10 @@ class AbstractTab(QWidget):
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend = None
+        # If true, this tab has been requested to be removed (or is removed).
+        self.pending_removal = False
+        self.shutting_down.connect(functools.partial(
+            setattr, self, 'pending_removal', True))
 
         # FIXME:qtwebengine  Should this be public api via self.hints?
         #                    Also, should we get it out of objreg?
