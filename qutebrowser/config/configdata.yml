@@ -1786,6 +1786,7 @@ tabs.focus_stack_size:
     name: Int
     minval: -1
     maxval: maxint
+    zero_ok: false
   desc: Maximum stack size to remember for tab switches (-1 for no maximum).
 
 ## url

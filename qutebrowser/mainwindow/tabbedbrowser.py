@@ -125,10 +125,6 @@ class TabDeque:
         newsize = config.val.tabs.focus_stack_size
         if newsize < 0:
             newsize = None
-        if newsize == 0:
-            # We can't seem to blacklist 0 but allow -1, so treat 0 as size 1
-            # for basic functionality.
-            newsize = 1
         # We can't resize a collections.deque so just recreate it >:(
         self._stack = collections.deque(self._stack, maxlen=newsize)
 

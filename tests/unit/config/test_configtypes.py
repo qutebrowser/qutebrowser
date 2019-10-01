@@ -936,6 +936,9 @@ class TestNumeric:
         ({'maxval': 2}, 3, False),
         ({'minval': 2, 'maxval': 3}, 1, False),
         ({'minval': 2, 'maxval': 3}, 4, False),
+
+        ({'zero_ok': False}, 0, False),
+        ({'minval': -1}, 0, True),
     ])
     def test_validate_bounds_invalid(self, klass, kwargs, val, valid):
         if valid:
