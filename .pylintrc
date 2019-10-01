@@ -7,7 +7,6 @@ load-plugins=qute_pylint.config,
              qute_pylint.modeline,
              qute_pylint.openencoding,
              qute_pylint.settrace,
-             pylint.extensions.bad_builtin,
              pylint.extensions.docstyle
 persistent=n
 
@@ -41,7 +40,6 @@ disable=locally-disabled,
         too-many-branches,
         too-many-statements,
         too-few-public-methods,
-        bad-builtin,
         import-outside-toplevel
 
 [BASIC]
