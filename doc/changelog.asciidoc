@@ -15,6 +15,19 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
+v1.9.0 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- dictcli.py now works correctly on Windows again.
+- Unbinding keys via `config.bind(key, None)` accidentally worked in
+  v1.7.0 but raises an exception in v1.8.0. It now works again, but is
+  deprecated and shows an error. Note that `:config-py-write` did write
+  such invalid lines before v1.8.0, so existing config files might need
+  adjustments.
+
 v1.8.1 (2019-09-27)
 -------------------
 

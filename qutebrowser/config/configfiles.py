@@ -442,11 +442,21 @@ class ConfigAPI:
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             self._config.set_obj(name, value, pattern=urlpattern)
 
-    def bind(self, key: str, command: str, mode: str = 'normal') -> None:
+    def bind(self, key: str,
+             command: typing.Optional[str],
+             mode: str = 'normal') -> None:
         """Bind a key to a command, with an optional key mode."""
         with self._handle_error('binding', key):
             seq = keyutils.KeySequence.parse(key)
-            self._keyconfig.bind(seq, command, mode=mode)
+            if command is None:
+                text = ("Unbinding commands with config.bind('{key}', None) "
+                        "is deprecated. Use config.unbind('{key}') instead."
+                        .format(key=key))
+                self.errors.append(configexc.ConfigErrorDesc(
+                    "While unbinding '{}'".format(key), text))
+                self._keyconfig.unbind(seq, mode=mode)
+            else:
+                self._keyconfig.bind(seq, command, mode=mode)
 
     def unbind(self, key: str, mode: str = 'normal') -> None:
         """Unbind a key from a command, with an optional key mode."""
