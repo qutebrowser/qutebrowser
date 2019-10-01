@@ -86,16 +86,6 @@ def print_subtitle(text):
     print_col("------ {} ------".format(text), 'cyan')
 
 
-def print_bold(text):
-    """Print a bold text."""
-    if use_color:
-        bold = _esc(term_attributes['bright'])
-        reset = _esc(term_attributes['reset'])
-        print(''.join([bold, text, reset]))
-    else:
-        print(text)
-
-
 def change_cwd():
     """Change the scripts cwd if it was started inside the script folder."""
     cwd = os.getcwd()
