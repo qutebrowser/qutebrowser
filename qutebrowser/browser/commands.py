@@ -920,8 +920,7 @@ class CommandDispatcher:
         """
         index = count if count is not None else index
 
-        if index in {
-                'last', 'stack-next', 'stack-prev'} and isinstance(index, str):
+        if index in {'last', 'stack-next', 'stack-prev'}:
             self._tab_focus_stack(index)
             return
         elif index is None:
