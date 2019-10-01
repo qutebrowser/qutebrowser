@@ -21,7 +21,6 @@
 
 import collections
 import functools
-import collections
 import weakref
 import typing
 
