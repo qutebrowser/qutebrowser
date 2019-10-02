@@ -79,7 +79,7 @@ class AbstractWebInspector(QWidget):
         self._layout.wrap(self, widget)
 
     def set_position(self, position):
-        """Set the position of the inspector."""
+        """Set the position of the inspector. Will close the inspector if position is None."""
         if position != self._position:
             if self._position == 'window':
                 self._save_state_geometry()
