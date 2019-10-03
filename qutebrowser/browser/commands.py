@@ -812,6 +812,17 @@ class CommandDispatcher:
         else:
             log.webview.debug("Last tab")
 
+    @cmdutils.register(instance='command-dispatcher', scope='window')
+    def tab_suspend(self):
+        """ Suspend tab and switch to the previous tab. """
+        if self._count() == 1:
+            raise cmdutils.CommandError(
+                "Cannot suspend the only tab in a window"
+            )
+
+        self.openurl('qute://back')
+        self.tab_prev()
+
     def _resolve_buffer_index(self, index):
         """Resolve a buffer index to the tabbedbrowser and tab.
 
