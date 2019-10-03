@@ -1372,3 +1372,22 @@ Feature: Tab management
         And I open data/hello.txt in a new tab
         And I run :fake-key -g hello-world<enter>
         Then the message "hello-world" should be shown
+
+    # tab-suspend
+
+    Scenario: Tab is suspended and the previous tab is selected
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-suspend
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - quote://back
+
+    Scenario: Tab is suspended then navigate to the suspended tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-suspend
+        And I run :tab-next
+        Then the following tabs should be open:
+            - data/numbers/1.txt
+            - data/numbers/2.txt (active)
