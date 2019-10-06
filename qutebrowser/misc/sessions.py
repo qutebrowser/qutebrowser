@@ -221,6 +221,21 @@ class SessionManager(QObject):
                 data['history'].append(item_data)
         return data
 
+    def _get_window_properties(self, window, private=False, active=False):
+        """Get a dict with data specific to a window."""
+        win_data = {}
+
+        win_data['geometry'] = bytes(window.saveGeometry())
+        win_data['tabs'] = []
+
+        if active:
+            win_data['active'] = True
+
+        if private:
+            win_data['private'] = True
+
+        return win_data
+
     def _save_all(self, *, only_window=None, with_private=False):
         """Get a dict with data for all windows/tabs."""
         data = {'windows': []}
@@ -242,18 +257,22 @@ class SessionManager(QObject):
             if tabbed_browser.is_private and not with_private:
                 continue
 
-            win_data = {}
             active_window = QApplication.instance().activeWindow()
+            is_active = False
             if getattr(active_window, 'win_id', None) == win_id:
-                win_data['active'] = True
-            win_data['geometry'] = bytes(main_window.saveGeometry())
-            win_data['tabs'] = []
-            if tabbed_browser.is_private:
-                win_data['private'] = True
+                is_active = True
+
+            win_data = self._get_window_properties(
+                main_window,
+                tabbed_browser.is_private,
+                is_active
+            )
+
             for i, tab in enumerate(tabbed_browser.widgets()):
                 active = i == tabbed_browser.widget.currentIndex()
                 win_data['tabs'].append(self._save_tab(tab, active))
             data['windows'].append(win_data)
+
         return data
 
     def _get_session_name(self, name):
@@ -289,9 +308,7 @@ class SessionManager(QObject):
             The name of the saved session.
         """
         name = self._get_session_name(name)
-        path = self._get_session_path(name)
 
-        log.sessions.debug("Saving session {} to {}...".format(name, path))
         if last_window:
             data = self._last_window_session
             if data is None:
@@ -300,12 +317,8 @@ class SessionManager(QObject):
         else:
             data = self._save_all(only_window=only_window,
                                   with_private=with_private)
-        log.sessions.vdebug("Saving data: {}".format(data))
-        try:
-            with qtutils.savefile_open(path) as f:
-                utils.yaml_dump(data, f)
-        except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
-            raise SessionError(e)
+
+        self._save_session_file(name, data)
 
         if load_next_time:
             configfiles.state['general']['session'] = name
@@ -425,6 +438,27 @@ class SessionManager(QObject):
         if win.get('active', False):
             QTimer.singleShot(0, tabbed_browser.widget.activateWindow)
 
+    def _save_session_file(self, name, data):
+        path = self._get_session_path(name)
+
+        log.sessions.debug("Saving session {} to {}...".format(name, path))
+        log.sessions.vdebug("Saving data: {}".format(data))
+        try:
+            with qtutils.savefile_open(path) as f:
+                utils.yaml_dump(data, f)
+        except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
+            raise SessionError(e)
+
+    def _load_session_file(self, name):
+        """Load the session's YAML file."""
+        path = self._get_session_path(name, check_exists=True)
+        log.sessions.debug("Loading session {} from {}...".format(name, path))
+        try:
+            with open(path, encoding='utf-8') as f:
+                return utils.yaml_load(f)
+        except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
+            raise SessionError(e)
+
     def load(self, name, temp=False):
         """Load a named session.
 
@@ -432,14 +466,8 @@ class SessionManager(QObject):
             name: The name of the session to load.
             temp: If given, don't set the current session.
         """
-        path = self._get_session_path(name, check_exists=True)
-        try:
-            with open(path, encoding='utf-8') as f:
-                data = utils.yaml_load(f)
-        except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
-            raise SessionError(e)
+        data = self._load_session_file(name)
 
-        log.sessions.debug("Loading session {} from {}...".format(name, path))
         if data is None:
             raise SessionError("Got empty session file")
 
@@ -472,6 +500,37 @@ class SessionManager(QObject):
             if ext == '.yml':
                 sessions.append(base)
         return sorted(sessions)
+
+    def add_url_to_session(self, name):
+        """Appends the current tab's URL to a named session."""
+        main_window = objreg.get(
+            'main-window',
+            scope='window',
+            window='current'
+        )
+        tabbed_browser = objreg.get(
+            'tabbed-browser',
+            scope='window',
+            window='current'
+        )
+
+        try:
+            data = self._load_session_file(name)
+        except SessionNotFoundError:
+            data = {'windows': [
+                self._get_window_properties(
+                    main_window, tabbed_browser.is_private, True
+                )]}
+
+        current_tab = tabbed_browser.widget.currentWidget()
+
+        windows = data.get('windows', [])
+        if not windows:
+            raise SessionError('Session is is either corrupt or invalid')
+
+        windows[0]['tabs'].append(self._save_tab(current_tab, False))
+
+        self._save_session_file(name, data)
 
     @cmdutils.register(instance='session-manager')
     @cmdutils.argument('name', completion=miscmodels.session)
@@ -586,3 +645,30 @@ class SessionManager(QObject):
                                         .format(e))
         else:
             log.sessions.debug("Deleted session {}.".format(name))
+
+    @cmdutils.register(instance='session-manager')
+    @cmdutils.argument('name', completion=miscmodels.session)
+    def session_add_url(self, name, force=False):
+        """Add URL to session.
+
+        Args:
+            name: The name of the session.
+            force: Force adding URL to internal sessions (starting with an
+                   underline).
+        """
+        if name.startswith('_') and not force:
+            raise cmdutils.CommandError(
+                "{} is an internal session, use --force "
+                "to load anyways.".format(name))
+
+        try:
+            name = self._get_session_name(name)
+            self.add_url_to_session(name)
+        except SessionNotFoundError:
+            raise cmdutils.CommandError("Session {} not found!".format(name))
+        except SessionError as e:
+            log.sessions.exception("Error while adding url to session!")
+            raise cmdutils.CommandError("Error while adding url to session: {}"
+                                        .format(e))
+        else:
+            log.sessions.debug("URL added to session {}.".format(name))
