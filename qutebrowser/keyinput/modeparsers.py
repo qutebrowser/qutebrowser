@@ -265,6 +265,13 @@ class HintKeyParser(CommandKeyParser):
 
         return match
 
+    def clear_filtertext(self):
+        """Clear the filter text.
+
+        This is used for example when a complete hint is fired.
+        """
+        self._filtertext = ''
+
     def update_bindings(self, strings, preserve_filter=False):
         """Update bindings when the hint strings changed.
 
