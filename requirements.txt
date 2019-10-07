@@ -3,7 +3,7 @@
 attrs==19.2.0
 colorama==0.4.1
 cssutils==1.0.2
-Jinja2==2.10.1
+Jinja2==2.10.3
 MarkupSafe==1.1.1
 Pygments==2.4.2
 pyPEG2==2.15.2
