@@ -737,12 +737,26 @@ class TestConfigPy:
         expected = {'normal': {'H': 'message-info back'}}
         assert config.instance.get_obj('bindings.commands') == expected
 
-    def test_bind_none(self, confpy):
+    def test_bind_nop(self, confpy):
         confpy.write("c.bindings.commands = None",
                      "config.bind(',x', 'nop')")
         confpy.read()
         expected = {'normal': {',x': 'nop'}}
         assert config.instance.get_obj('bindings.commands') == expected
+
+    def test_bind_none(self, confpy):
+        confpy.write("config.bind('<Ctrl+q>', None)")
+        with pytest.raises(configexc.ConfigFileErrors) as excinfo:
+            confpy.read()
+
+        expected = {'normal': {'<Ctrl+q>': None}}
+        assert config.instance.get_obj('bindings.commands') == expected
+
+        msg = ("While unbinding '<Ctrl+q>': Unbinding commands with "
+               "config.bind('<Ctrl+q>', None) is deprecated. Use "
+               "config.unbind('<Ctrl+q>') instead.")
+        assert len(excinfo.value.errors) == 1
+        assert str(excinfo.value.errors[0]) == msg
 
     @pytest.mark.parametrize('line, key, mode', [
         ('config.unbind("o")', 'o', 'normal'),
