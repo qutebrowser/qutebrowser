@@ -153,8 +153,9 @@ class TabWidget(QTabWidget):
         if tabbar.tabText(idx) != title:
             tabbar.setTabText(idx, title)
 
-        # always show only plain title in tooltips
-        tabbar.setTabToolTip(idx, fields['current_title'])
+        if config.cache['tabs.tooltips']:
+            # always show only plain title in tooltips
+            tabbar.setTabToolTip(idx, fields['current_title'])
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
