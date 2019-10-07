@@ -1783,8 +1783,10 @@ tabs.wrap:
 tabs.tooltips:
   default: true
   type: Bool
-  restart: true
-  desc: Show tooltips on tabs.
+  desc: >-
+    Show tooltips on tabs.
+
+    Note this setting only affects windows opened after it has been set.
 
 ## url
 

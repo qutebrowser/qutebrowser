@@ -3542,7 +3542,7 @@ Default: +pass:[{index}]+
 [[tabs.tooltips]]
 === tabs.tooltips
 Show tooltips on tabs.
-This setting requires a restart.
+Note this setting only affects windows opened after it has been set.
 
 Type: <<types,Bool>>
 
