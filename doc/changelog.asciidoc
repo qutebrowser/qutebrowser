@@ -27,6 +27,8 @@ Fixed
   deprecated and shows an error. Note that `:config-py-write` did write
   such invalid lines before v1.8.0, so existing config files might need
   adjustments.
+- The `readability-js` userscript now handles encodings correctly (which it
+  didn't before for some websites).
 
 v1.8.1 (2019-09-27)
 -------------------
