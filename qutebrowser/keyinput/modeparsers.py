@@ -47,8 +47,8 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
         _commandrunner: CommandRunner instance.
     """
 
-    def __init__(self, win_id, parent=None, supports_count=None):
-        super().__init__(win_id, parent, supports_count)
+    def __init__(self, win_id, parent=None):
+        super().__init__(win_id, parent)
         self._commandrunner = runners.CommandRunner(win_id)
 
     def execute(self, cmdstr, count=None):
@@ -67,7 +67,7 @@ class NormalKeyParser(CommandKeyParser):
     """
 
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=True)
+        super().__init__(win_id, parent)
         self._read_config('normal')
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
@@ -142,6 +142,7 @@ class PassthroughKeyParser(CommandKeyParser):
 
     do_log = False
     passthrough = True
+    supports_count = False
 
     def __init__(self, win_id, mode, parent=None):
         """Constructor.
@@ -163,8 +164,10 @@ class PromptKeyParser(CommandKeyParser):
 
     """KeyParser for yes/no prompts."""
 
+    supports_count = False
+
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=False)
+        super().__init__(win_id, parent)
         self._read_config('yesno')
 
     def __repr__(self):
@@ -180,8 +183,10 @@ class HintKeyParser(CommandKeyParser):
         _last_press: The nature of the last keypress, a LastPress member.
     """
 
+    supports_count = False
+
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=False)
+        super().__init__(win_id, parent)
         self._filtertext = ''
         self._last_press = LastPress.none
         self._read_config('hint')
@@ -294,7 +299,7 @@ class CaretKeyParser(CommandKeyParser):
     passthrough = True
 
     def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent, supports_count=True)
+        super().__init__(win_id, parent)
         self._read_config('caret')
 
 
@@ -307,8 +312,10 @@ class RegisterKeyParser(CommandKeyParser):
         and KeyMode.run_macro.
     """
 
+    supports_count = False
+
     def __init__(self, win_id, mode, parent=None):
-        super().__init__(win_id, parent, supports_count=False)
+        super().__init__(win_id, parent)
         self._mode = mode
         self._read_config('register')
 
