@@ -23,13 +23,14 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
+import typing
 import traceback
 import enum
 
-from PyQt5.QtCore import pyqtSlot, Qt
-from PyQt5.QtGui import QKeySequence
+from PyQt5.QtCore import pyqtSlot, Qt, QObject
+from PyQt5.QtGui import QKeySequence, QKeyEvent
 
-from qutebrowser.commands import cmdexc
+from qutebrowser.commands import runners, cmdexc
 from qutebrowser.config import config
 from qutebrowser.keyinput import basekeyparser, keyutils
 from qutebrowser.utils import usertypes, log, message, objreg, utils
@@ -47,11 +48,13 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
         _commandrunner: CommandRunner instance.
     """
 
-    def __init__(self, win_id, commandrunner, parent=None):
+    def __init__(self, win_id: int,
+                 commandrunner: runners.CommandRunner,
+                 parent: QObject = None) -> None:
         super().__init__(win_id, parent)
         self._commandrunner = commandrunner
 
-    def execute(self, cmdstr, count=None):
+    def execute(self, cmdstr: str, count: int = None) -> None:
         try:
             self._commandrunner.run(cmdstr, count)
         except cmdexc.Error as e:
@@ -66,7 +69,9 @@ class NormalKeyParser(CommandKeyParser):
         _partial_timer: Timer to clear partial keypresses.
     """
 
-    def __init__(self, win_id, commandrunner, parent=None):
+    def __init__(self, win_id: int,
+                 commandrunner: runners.CommandRunner,
+                 parent: QObject = None) -> None:
         super().__init__(win_id, commandrunner, parent)
         self._read_config('normal')
         self._partial_timer = usertypes.Timer(self, 'partial-match')
@@ -76,20 +81,12 @@ class NormalKeyParser(CommandKeyParser):
         self._inhibited_timer = usertypes.Timer(self, 'normal-inhibited')
         self._inhibited_timer.setSingleShot(True)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self)
 
-    def handle(self, e, *, dry_run=False):
-        """Override to abort if the key is a startchar.
-
-        Args:
-            e: the KeyPressEvent from Qt.
-            dry_run: Don't actually execute anything, only check whether there
-                     would be a match.
-
-        Return:
-            A self.Match member.
-        """
+    def handle(self, e: QKeyEvent, *,
+               dry_run: bool = False) -> QKeySequence.SequenceMatch:
+        """Override to abort if the key is a startchar."""
         txt = e.text().strip()
         if self._inhibited:
             self._debug_log("Ignoring key '{}', because the normal mode is "
@@ -105,7 +102,7 @@ class NormalKeyParser(CommandKeyParser):
                 self._partial_timer.start()
         return match
 
-    def set_inhibited_timeout(self, timeout):
+    def set_inhibited_timeout(self, timeout: int) -> None:
         """Ignore keypresses for the given duration."""
         if timeout != 0:
             self._debug_log("Inhibiting the normal mode for {}ms.".format(
@@ -116,7 +113,7 @@ class NormalKeyParser(CommandKeyParser):
             self._inhibited_timer.start()
 
     @pyqtSlot()
-    def _clear_partial_match(self):
+    def _clear_partial_match(self) -> None:
         """Clear a partial keystring after a timeout."""
         self._debug_log("Clearing partial keystring {}".format(
             self._sequence))
@@ -124,7 +121,7 @@ class NormalKeyParser(CommandKeyParser):
         self.keystring_updated.emit(str(self._sequence))
 
     @pyqtSlot()
-    def _clear_inhibited(self):
+    def _clear_inhibited(self) -> None:
         """Reset inhibition state after a timeout."""
         self._debug_log("Releasing inhibition state of normal mode.")
         self._inhibited = False
@@ -144,7 +141,10 @@ class PassthroughKeyParser(CommandKeyParser):
     passthrough = True
     supports_count = False
 
-    def __init__(self, win_id, mode, commandrunner, parent=None):
+    def __init__(self, win_id: int,
+                 mode: str,
+                 commandrunner: runners.CommandRunner,
+                 parent: QObject = None) -> None:
         """Constructor.
 
         Args:
@@ -156,7 +156,7 @@ class PassthroughKeyParser(CommandKeyParser):
         self._read_config(mode)
         self._mode = mode
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, mode=self._mode)
 
 
@@ -166,11 +166,13 @@ class PromptKeyParser(CommandKeyParser):
 
     supports_count = False
 
-    def __init__(self, win_id, commandrunner, parent=None):
+    def __init__(self, win_id: int,
+                 commandrunner: runners.CommandRunner,
+                 parent: QObject = None) -> None:
         super().__init__(win_id, commandrunner, parent)
         self._read_config('yesno')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self)
 
 
@@ -185,24 +187,17 @@ class HintKeyParser(CommandKeyParser):
 
     supports_count = False
 
-    def __init__(self, win_id, commandrunner, parent=None):
+    def __init__(self, win_id: int,
+                 commandrunner: runners.CommandRunner,
+                 parent: QObject = None) -> None:
         super().__init__(win_id, commandrunner, parent)
         self._filtertext = ''
         self._last_press = LastPress.none
         self._read_config('hint')
         self.keystring_updated.connect(self.on_keystring_updated)
 
-    def _handle_filter_key(self, e):
-        """Handle keys for string filtering.
-
-        Return True if the keypress has been handled, and False if not.
-
-        Args:
-            e: the KeyPressEvent from Qt.
-
-        Return:
-            A QKeySequence match.
-        """
+    def _handle_filter_key(self, e: QKeyEvent) -> QKeySequence.SequenceMatch:
+        """Handle keys for string filtering."""
         log.keyboard.debug("Got filter key 0x{:x} text {}".format(
             e.key(), e.text()))
         hintmanager = objreg.get('hintmanager', scope='tab',
@@ -237,21 +232,13 @@ class HintKeyParser(CommandKeyParser):
             self._last_press = LastPress.filtertext
             return QKeySequence.ExactMatch
 
-    def handle(self, e, *, dry_run=False):
-        """Handle a new keypress and call the respective handlers.
-
-        Args:
-            e: the KeyPressEvent from Qt
-            dry_run: Don't actually execute anything, only check whether there
-                     would be a match.
-
-        Returns:
-            True if the match has been handled, False otherwise.
-        """
+    def handle(self, e: QKeyEvent, *,
+               dry_run: bool = False) -> QKeySequence.SequenceMatch:
+        """Handle a new keypress and call the respective handlers."""
         if dry_run:
             return super().handle(e, dry_run=True)
 
-        if keyutils.is_special_hint_mode(e.key(), e.modifiers()):
+        if keyutils.is_special_hint_mode(Qt.Key(e.key()), e.modifiers()):
             log.keyboard.debug("Got special key, clearing keychain")
             self.clear_keystring()
 
@@ -270,7 +257,8 @@ class HintKeyParser(CommandKeyParser):
 
         return match
 
-    def update_bindings(self, strings, preserve_filter=False):
+    def update_bindings(self, strings: typing.Sequence[str],
+                        preserve_filter: bool = False) -> None:
         """Update bindings when the hint strings changed.
 
         Args:
@@ -285,7 +273,7 @@ class HintKeyParser(CommandKeyParser):
             self._filtertext = ''
 
     @pyqtSlot(str)
-    def on_keystring_updated(self, keystr):
+    def on_keystring_updated(self, keystr: str) -> None:
         """Update hintmanager when the keystring was updated."""
         hintmanager = objreg.get('hintmanager', scope='tab',
                                  window=self._win_id, tab='current')
@@ -298,7 +286,9 @@ class CaretKeyParser(CommandKeyParser):
 
     passthrough = True
 
-    def __init__(self, win_id, commandrunner, parent=None):
+    def __init__(self, win_id: int,
+                 commandrunner: runners.CommandRunner,
+                 parent: QObject = None) -> None:
         super().__init__(win_id, commandrunner, parent)
         self._read_config('caret')
 
@@ -314,27 +304,22 @@ class RegisterKeyParser(CommandKeyParser):
 
     supports_count = False
 
-    def __init__(self, win_id, mode, commandrunner, parent=None):
+    def __init__(self, win_id: int,
+                 mode: usertypes.KeyMode,
+                 commandrunner: runners.CommandRunner,
+                 parent: QObject = None) -> None:
         super().__init__(win_id, commandrunner, parent)
         self._mode = mode
         self._read_config('register')
 
-    def handle(self, e, *, dry_run=False):
-        """Override handle to always match the next key and use the register.
-
-        Args:
-            e: the KeyPressEvent from Qt.
-            dry_run: Don't actually execute anything, only check whether there
-                     would be a match.
-
-        Return:
-            True if event has been handled, False otherwise.
-        """
+    def handle(self, e: QKeyEvent, *,
+               dry_run: bool = False) -> QKeySequence.SequenceMatch:
+        """Override to always match the next key and use the register."""
         match = super().handle(e, dry_run=dry_run)
         if match or dry_run:
             return match
 
-        if keyutils.is_special(e.key(), e.modifiers()):
+        if keyutils.is_special(Qt.Key(e.key()), e.modifiers()):
             # this is not a proper register key, let it pass and keep going
             return QKeySequence.NoMatch
 
