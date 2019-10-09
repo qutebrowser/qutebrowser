@@ -42,7 +42,7 @@ class MatchResult:
     command = attr.ib()  # type: typing.Optional[str]
     sequence = attr.ib()  # type: keyutils.KeySequence
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         if self.match_type == QKeySequence.ExactMatch:
             assert self.command is not None
         else:
