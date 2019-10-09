@@ -29,7 +29,7 @@ import enum
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QKeySequence
 
-from qutebrowser.commands import runners, cmdexc
+from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
 from qutebrowser.keyinput import basekeyparser, keyutils
 from qutebrowser.utils import usertypes, log, message, objreg, utils
@@ -47,9 +47,9 @@ class CommandKeyParser(basekeyparser.BaseKeyParser):
         _commandrunner: CommandRunner instance.
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id, commandrunner, parent=None):
         super().__init__(win_id, parent)
-        self._commandrunner = runners.CommandRunner(win_id)
+        self._commandrunner = commandrunner
 
     def execute(self, cmdstr, count=None):
         try:
@@ -66,8 +66,8 @@ class NormalKeyParser(CommandKeyParser):
         _partial_timer: Timer to clear partial keypresses.
     """
 
-    def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent)
+    def __init__(self, win_id, commandrunner, parent=None):
+        super().__init__(win_id, commandrunner, parent)
         self._read_config('normal')
         self._partial_timer = usertypes.Timer(self, 'partial-match')
         self._partial_timer.setSingleShot(True)
@@ -144,7 +144,7 @@ class PassthroughKeyParser(CommandKeyParser):
     passthrough = True
     supports_count = False
 
-    def __init__(self, win_id, mode, parent=None):
+    def __init__(self, win_id, mode, commandrunner, parent=None):
         """Constructor.
 
         Args:
@@ -152,7 +152,7 @@ class PassthroughKeyParser(CommandKeyParser):
             parent: Qt parent.
             warn: Whether to warn if an ignored key was bound.
         """
-        super().__init__(win_id, parent)
+        super().__init__(win_id, commandrunner, parent)
         self._read_config(mode)
         self._mode = mode
 
@@ -166,8 +166,8 @@ class PromptKeyParser(CommandKeyParser):
 
     supports_count = False
 
-    def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent)
+    def __init__(self, win_id, commandrunner, parent=None):
+        super().__init__(win_id, commandrunner, parent)
         self._read_config('yesno')
 
     def __repr__(self):
@@ -185,8 +185,8 @@ class HintKeyParser(CommandKeyParser):
 
     supports_count = False
 
-    def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent)
+    def __init__(self, win_id, commandrunner, parent=None):
+        super().__init__(win_id, commandrunner, parent)
         self._filtertext = ''
         self._last_press = LastPress.none
         self._read_config('hint')
@@ -298,8 +298,8 @@ class CaretKeyParser(CommandKeyParser):
 
     passthrough = True
 
-    def __init__(self, win_id, parent=None):
-        super().__init__(win_id, parent)
+    def __init__(self, win_id, commandrunner, parent=None):
+        super().__init__(win_id, commandrunner, parent)
         self._read_config('caret')
 
 
@@ -314,8 +314,8 @@ class RegisterKeyParser(CommandKeyParser):
 
     supports_count = False
 
-    def __init__(self, win_id, mode, parent=None):
-        super().__init__(win_id, parent)
+    def __init__(self, win_id, mode, commandrunner, parent=None):
+        super().__init__(win_id, commandrunner, parent)
         self._mode = mode
         self._read_config('register')
 
