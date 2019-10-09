@@ -48,8 +48,8 @@ class TestsNormalKeyParser:
 
     def test_keychain(self, keyparser, fake_keyevent, commandrunner):
         """Test valid keychain."""
-        # Press 'x' which is ignored because of no match
-        keyparser.handle(fake_keyevent(Qt.Key_X))
+        # Press 'z' which is ignored because of no match
+        keyparser.handle(fake_keyevent(Qt.Key_Z))
         # Then start the real chain
         keyparser.handle(fake_keyevent(Qt.Key_B))
         keyparser.handle(fake_keyevent(Qt.Key_A))
