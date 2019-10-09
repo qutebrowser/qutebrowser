@@ -77,62 +77,50 @@ def init(win_id, parent):
 
     keyparsers = {
         usertypes.KeyMode.normal:
-            modeparsers.NormalKeyParser(win_id=win_id,
-                                        commandrunner=commandrunner,
-                                        parent=modeman),
+            modeparsers.NormalKeyParser(
+                win_id=win_id, commandrunner=commandrunner, parent=modeman),
         usertypes.KeyMode.hint:
-            modeparsers.HintKeyParser(win_id=win_id,
-                                      commandrunner=commandrunner,
-                                      hintmanager=hintmanager,
-                                      parent=modeman),
+            modeparsers.HintKeyParser(
+                win_id=win_id, commandrunner=commandrunner,
+                hintmanager=hintmanager, parent=modeman),
         usertypes.KeyMode.insert:
-            modeparsers.PassthroughKeyParser(win_id=win_id,
-                                             mode=usertypes.KeyMode.insert,
-                                             commandrunner=commandrunner,
-                                             parent=modeman),
+            modeparsers.PassthroughKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.insert,
+                commandrunner=commandrunner, parent=modeman),
         usertypes.KeyMode.passthrough:
-            modeparsers.PassthroughKeyParser(win_id=win_id,
-                                             mode=usertypes.KeyMode.passthrough,
-                                             commandrunner=commandrunner,
-                                             parent=modeman),
+            modeparsers.PassthroughKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.passthrough,
+                commandrunner=commandrunner, parent=modeman),
         usertypes.KeyMode.command:
-            modeparsers.PassthroughKeyParser(win_id=win_id,
-                                             mode=usertypes.KeyMode.command,
-                                             commandrunner=commandrunner,
-                                             parent=modeman),
+            modeparsers.PassthroughKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.command,
+                commandrunner=commandrunner, parent=modeman),
         usertypes.KeyMode.prompt:
-            modeparsers.PassthroughKeyParser(win_id=win_id,
-                                             mode=usertypes.KeyMode.prompt,
-                                             commandrunner=commandrunner,
-                                             parent=modeman),
+            modeparsers.PassthroughKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.prompt,
+                commandrunner=commandrunner, parent=modeman),
         usertypes.KeyMode.yesno:
-            modeparsers.PromptKeyParser(win_id=win_id,
-                                        commandrunner=commandrunner,
-                                        parent=modeman),
+            modeparsers.PromptKeyParser(
+                win_id=win_id, commandrunner=commandrunner, parent=modeman),
         usertypes.KeyMode.caret:
-            modeparsers.CaretKeyParser(win_id=win_id,
-                                       commandrunner=commandrunner,
-                                       parent=modeman),
+            modeparsers.CaretKeyParser(
+                win_id=win_id, commandrunner=commandrunner, parent=modeman),
         usertypes.KeyMode.set_mark:
-            modeparsers.RegisterKeyParser(win_id=win_id,
-                                          mode=usertypes.KeyMode.set_mark,
-                                          commandrunner=commandrunner,
-                                          parent=modeman),
+            modeparsers.RegisterKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.set_mark,
+                commandrunner=commandrunner, parent=modeman),
         usertypes.KeyMode.jump_mark:
-            modeparsers.RegisterKeyParser(win_id=win_id,
-                                          mode=usertypes.KeyMode.jump_mark,
-                                          commandrunner=commandrunner,
-                                          parent=modeman),
+            modeparsers.RegisterKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.jump_mark,
+                commandrunner=commandrunner, parent=modeman),
         usertypes.KeyMode.record_macro:
-            modeparsers.RegisterKeyParser(win_id=win_id,
-                                          mode=usertypes.KeyMode.record_macro,
-                                          commandrunner=commandrunner,
-                                          parent=modeman),
+            modeparsers.RegisterKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.record_macro,
+                commandrunner=commandrunner, parent=modeman),
         usertypes.KeyMode.run_macro:
-            modeparsers.RegisterKeyParser(win_id=win_id,
-                                          mode=usertypes.KeyMode.run_macro,
-                                          commandrunner=commandrunner,
-                                          parent=modeman),
+            modeparsers.RegisterKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.run_macro,
+                commandrunner=commandrunner, parent=modeman),
     }
     objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
     modeman.destroyed.connect(
