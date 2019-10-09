@@ -554,7 +554,9 @@ class KeySequence:
     def __getitem__(self, item: slice) -> 'KeySequence':
         ...
 
-    def __getitem__(self, item):
+    def __getitem__(
+            self, item: typing.Union[int, slice]
+    ) -> typing.Union[KeyInfo, 'KeySequence']:
         if isinstance(item, slice):
             keys = list(self._iter_keys())
             return self.__class__(*keys[item])
