@@ -55,11 +55,12 @@ class TestsNormalKeyParser:
         assert not keyparser._sequence
 
     def test_partial_keychain_timeout(self, keyparser, config_stub,
-                                      fake_keyevent):
+                                      fake_keyevent, qtbot):
         """Test partial keychain timeout."""
         config_stub.val.input.partial_timeout = 100
         timer = keyparser._partial_timer
         assert not timer.isActive()
+
         # Press 'b' for a partial match.
         # Then we check if the timer has been set up correctly
         keyparser.handle(fake_keyevent(Qt.Key_B))
@@ -69,13 +70,14 @@ class TestsNormalKeyParser:
 
         assert not keyparser.execute.called
         assert keyparser._sequence == keyutils.KeySequence.parse('b')
+
         # Now simulate a timeout and check the keystring has been cleared.
-        keystring_updated_mock = mock.Mock()
-        keyparser.keystring_updated.connect(keystring_updated_mock)
-        timer.timeout.emit()
+        with qtbot.wait_signal(keyparser.keystring_updated) as blocker:
+            timer.timeout.emit()
+
         assert not keyparser.execute.called
         assert not keyparser._sequence
-        keystring_updated_mock.assert_called_once_with('')
+        assert blocker.args == ['']
 
 
 class TestHintKeyParser:
