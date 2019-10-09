@@ -30,6 +30,7 @@ from qutebrowser.keyinput import modeparsers
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.browser import hints
 
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
@@ -70,6 +71,10 @@ def init(win_id, parent):
 
     commandrunner = runners.CommandRunner(win_id)
 
+    hintmanager = hints.HintManager(win_id, parent=parent)
+    objreg.register('hintmanager', hintmanager, scope='window',
+                    window=win_id)
+
     keyparsers = {
         usertypes.KeyMode.normal:
             modeparsers.NormalKeyParser(win_id=win_id,
@@ -78,6 +83,7 @@ def init(win_id, parent):
         usertypes.KeyMode.hint:
             modeparsers.HintKeyParser(win_id=win_id,
                                       commandrunner=commandrunner,
+                                      hintmanager=hintmanager,
                                       parent=modeman),
         usertypes.KeyMode.insert:
             modeparsers.PassthroughKeyParser(win_id=win_id,

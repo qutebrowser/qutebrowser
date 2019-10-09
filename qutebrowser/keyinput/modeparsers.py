@@ -30,6 +30,7 @@ import enum
 from PyQt5.QtCore import pyqtSlot, Qt, QObject
 from PyQt5.QtGui import QKeySequence, QKeyEvent
 
+from qutebrowser.browser import hints
 from qutebrowser.commands import runners, cmdexc
 from qutebrowser.config import config
 from qutebrowser.keyinput import basekeyparser, keyutils
@@ -182,6 +183,7 @@ class HintKeyParser(CommandKeyParser):
 
     Attributes:
         _filtertext: The text to filter with.
+        _hintmanager: The HintManager to use.
         _last_press: The nature of the last keypress, a LastPress member.
     """
 
@@ -189,19 +191,19 @@ class HintKeyParser(CommandKeyParser):
 
     def __init__(self, win_id: int,
                  commandrunner: runners.CommandRunner,
+                 hintmanager: hints.HintManager,
                  parent: QObject = None) -> None:
         super().__init__(win_id, commandrunner, parent)
+        self._hintmanager = hintmanager
         self._filtertext = ''
         self._last_press = LastPress.none
         self._read_config('hint')
-        self.keystring_updated.connect(self.on_keystring_updated)
+        self.keystring_updated.connect(self._hintmanager.handle_partial_key)
 
     def _handle_filter_key(self, e: QKeyEvent) -> QKeySequence.SequenceMatch:
         """Handle keys for string filtering."""
         log.keyboard.debug("Got filter key 0x{:x} text {}".format(
             e.key(), e.text()))
-        hintmanager = objreg.get('hintmanager', scope='tab',
-                                 window=self._win_id, tab='current')
         if e.key() == Qt.Key_Backspace:
             log.keyboard.debug("Got backspace, mode {}, filtertext '{}', "
                                "sequence '{}'".format(self._last_press,
@@ -209,7 +211,7 @@ class HintKeyParser(CommandKeyParser):
                                                       self._sequence))
             if self._last_press != LastPress.keystring and self._filtertext:
                 self._filtertext = self._filtertext[:-1]
-                hintmanager.filter_hints(self._filtertext)
+                self._hintmanager.filter_hints(self._filtertext)
                 return QKeySequence.ExactMatch
             elif self._last_press == LastPress.keystring and self._sequence:
                 self._sequence = self._sequence[:-1]
@@ -217,18 +219,18 @@ class HintKeyParser(CommandKeyParser):
                 if not self._sequence and self._filtertext:
                     # Switch back to hint filtering mode (this can happen only
                     # in numeric mode after the number has been deleted).
-                    hintmanager.filter_hints(self._filtertext)
+                    self._hintmanager.filter_hints(self._filtertext)
                     self._last_press = LastPress.filtertext
                 return QKeySequence.ExactMatch
             else:
                 return QKeySequence.NoMatch
-        elif hintmanager.current_mode() != 'number':
+        elif self._hintmanager.current_mode() != 'number':
             return QKeySequence.NoMatch
         elif not e.text():
             return QKeySequence.NoMatch
         else:
             self._filtertext += e.text()
-            hintmanager.filter_hints(self._filtertext)
+            self._hintmanager.filter_hints(self._filtertext)
             self._last_press = LastPress.filtertext
             return QKeySequence.ExactMatch
 
@@ -271,13 +273,6 @@ class HintKeyParser(CommandKeyParser):
                               'follow-hint -s ' + s for s in strings})
         if not preserve_filter:
             self._filtertext = ''
-
-    @pyqtSlot(str)
-    def on_keystring_updated(self, keystr: str) -> None:
-        """Update hintmanager when the keystring was updated."""
-        hintmanager = objreg.get('hintmanager', scope='tab',
-                                 window=self._win_id, tab='current')
-        hintmanager.handle_partial_key(keystr)
 
 
 class CaretKeyParser(CommandKeyParser):

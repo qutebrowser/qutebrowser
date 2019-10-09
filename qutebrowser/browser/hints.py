@@ -379,11 +379,10 @@ class HintManager(QObject):
         Target.delete: "Delete an element",
     }
 
-    def __init__(self, win_id, tab_id, parent=None):
+    def __init__(self, win_id, parent=None):
         """Constructor."""
         super().__init__(parent)
         self._win_id = win_id
-        self._tab_id = tab_id
         self._context = None
         self._word_hinter = WordHinter()
 
@@ -603,10 +602,10 @@ class HintManager(QObject):
         tabbed_browser = objreg.get('tabbed-browser', default=None,
                                     scope='window', window=self._win_id)
         tab = tabbed_browser.widget.currentWidget()
-        if tab.tab_id != self._tab_id:
+        if tab.tab_id != self._context.tab.tab_id:
             log.hints.debug(
                 "Current tab changed ({} -> {}) before _start_cb is run."
-                .format(self._tab_id, tab.tab_id))
+                .format(self._context.tab.tab_id, tab.tab_id))
             return
 
         strings = self._hint_strings(elems)
@@ -635,7 +634,7 @@ class HintManager(QObject):
         # to make auto_follow == 'always' work
         self._handle_auto_follow()
 
-    @cmdutils.register(instance='hintmanager', scope='tab', name='hint',
+    @cmdutils.register(instance='hintmanager', scope='window', name='hint',
                        star_args_optional=True, maxsplit=2)
     def start(self,  # pylint: disable=keyword-arg-before-vararg
               group='all', target=Target.normal, *args, mode=None,
@@ -810,6 +809,7 @@ class HintManager(QObject):
             # unpacking gets us the first (and only) key in the dict.
             self._fire(*visible)
 
+    @pyqtSlot(str)
     def handle_partial_key(self, keystr):
         """Handle a new partial keypress."""
         if self._context is None:
@@ -956,7 +956,7 @@ class HintManager(QObject):
         if self._context is not None:
             self._context.first_run = False
 
-    @cmdutils.register(instance='hintmanager', scope='tab',
+    @cmdutils.register(instance='hintmanager', scope='window',
                        modes=[usertypes.KeyMode.hint])
     def follow_hint(self, select=False, keystring=None):
         """Follow a hint.

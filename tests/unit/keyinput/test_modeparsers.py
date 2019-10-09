@@ -85,10 +85,15 @@ class TestsNormalKeyParser:
 class TestHintKeyParser:
 
     @pytest.fixture
-    def keyparser(self, config_stub, key_config_stub, commandrunner):
-        kp = modeparsers.HintKeyParser(win_id=0, commandrunner=commandrunner)
-        kp.keystring_updated.disconnect()  # Don't try to update HintManager
-        return kp
+    def hintmanager(self, stubs):
+        return stubs.FakeHintManager()
+
+    @pytest.fixture
+    def keyparser(self, config_stub, key_config_stub, commandrunner,
+                  hintmanager):
+        return modeparsers.HintKeyParser(win_id=0,
+                                         hintmanager=hintmanager,
+                                         commandrunner=commandrunner)
 
     def test_simple_hint_match(self, keyparser, fake_keyevent, commandrunner):
         keyparser.update_bindings(['aa', 'as'])

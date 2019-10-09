@@ -650,3 +650,12 @@ class FakeCommandRunner(runners.AbstractCommandRunner):
 
     def run(self, text, count=None, *, safely=False):
         self.commands.append((text, count))
+
+
+class FakeHintManager:
+
+    def __init__(self):
+        self.keystr = None
+
+    def handle_partial_key(self, keystr):
+        self.keystr = keystr
