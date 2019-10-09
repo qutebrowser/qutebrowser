@@ -87,22 +87,22 @@ def init(win_id, parent):
                                       parent=modeman),
         usertypes.KeyMode.insert:
             modeparsers.PassthroughKeyParser(win_id=win_id,
-                                             mode='insert',
+                                             mode=usertypes.KeyMode.insert,
                                              commandrunner=commandrunner,
                                              parent=modeman),
         usertypes.KeyMode.passthrough:
             modeparsers.PassthroughKeyParser(win_id=win_id,
-                                             mode='passthrough',
+                                             mode=usertypes.KeyMode.passthrough,
                                              commandrunner=commandrunner,
                                              parent=modeman),
         usertypes.KeyMode.command:
             modeparsers.PassthroughKeyParser(win_id=win_id,
-                                             mode='command',
+                                             mode=usertypes.KeyMode.command,
                                              commandrunner=commandrunner,
                                              parent=modeman),
         usertypes.KeyMode.prompt:
             modeparsers.PassthroughKeyParser(win_id=win_id,
-                                             mode='prompt',
+                                             mode=usertypes.KeyMode.prompt,
                                              commandrunner=commandrunner,
                                              parent=modeman),
         usertypes.KeyMode.yesno:

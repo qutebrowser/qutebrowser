@@ -143,7 +143,7 @@ class PassthroughKeyParser(CommandKeyParser):
     supports_count = False
 
     def __init__(self, win_id: int,
-                 mode: str,
+                 mode: usertypes.KeyMode,
                  commandrunner: runners.CommandRunner,
                  parent: QObject = None) -> None:
         """Constructor.
@@ -154,7 +154,7 @@ class PassthroughKeyParser(CommandKeyParser):
             warn: Whether to warn if an ignored key was bound.
         """
         super().__init__(win_id, commandrunner, parent)
-        self._read_config(mode)
+        self._read_config(mode.name)
         self._mode = mode
 
     def __repr__(self) -> str:
