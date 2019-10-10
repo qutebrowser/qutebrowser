@@ -280,6 +280,8 @@ class BaseKeyParser(QObject):
             return QKeySequence.NoMatch
 
         result = self._match_key(sequence)
+        del sequence  # Enforce code below to use the modified result.sequence
+
         if result.match_type == QKeySequence.NoMatch:
             result = self._match_without_modifiers(result.sequence)
         if result.match_type == QKeySequence.NoMatch:
@@ -304,7 +306,7 @@ class BaseKeyParser(QObject):
         elif result.match_type == QKeySequence.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
                 result.sequence, txt))
-            self.keystring_updated.emit(self._count + str(sequence))
+            self.keystring_updated.emit(self._count + str(result.sequence))
         elif result.match_type == QKeySequence.NoMatch:
             self._debug_log("Giving up with '{}', no matches".format(
                 result.sequence))

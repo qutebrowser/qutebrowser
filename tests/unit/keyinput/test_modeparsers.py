@@ -95,20 +95,30 @@ class TestHintKeyParser:
                                          hintmanager=hintmanager,
                                          commandrunner=commandrunner)
 
-    def test_simple_hint_match(self, keyparser, fake_keyevent, commandrunner):
+    def test_simple_hint_match(self, keyparser, fake_keyevent,
+                               commandrunner, hintmanager):
         keyparser.update_bindings(['aa', 'as'])
 
         match = keyparser.handle(fake_keyevent(Qt.Key_A))
         assert match == QKeySequence.PartialMatch
+        assert hintmanager.keystr == 'a'
+
         match = keyparser.handle(fake_keyevent(Qt.Key_S))
         assert match == QKeySequence.ExactMatch
+        assert not hintmanager.keystr
 
         assert commandrunner.commands == [('follow-hint -s as', None)]
 
-    def test_numberkey_hint_match(self, keyparser, fake_keyevent):
+    def test_numberkey_hint_match(self, keyparser, fake_keyevent,
+                                  commandrunner, hintmanager):
         keyparser.update_bindings(['21', '22'])
 
         match = keyparser.handle(fake_keyevent(Qt.Key_2, Qt.KeypadModifier))
         assert match == QKeySequence.PartialMatch
+        assert hintmanager.keystr == '2'
+
         match = keyparser.handle(fake_keyevent(Qt.Key_2, Qt.KeypadModifier))
         assert match == QKeySequence.ExactMatch
+        assert not hintmanager.keystr
+
+        assert commandrunner.commands == [('follow-hint -s 22', None)]
