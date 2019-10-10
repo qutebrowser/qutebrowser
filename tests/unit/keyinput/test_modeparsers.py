@@ -95,30 +95,32 @@ class TestHintKeyParser:
                                          hintmanager=hintmanager,
                                          commandrunner=commandrunner)
 
-    def test_simple_hint_match(self, keyparser, fake_keyevent,
-                               commandrunner, hintmanager):
-        keyparser.update_bindings(['aa', 'as'])
+    @pytest.mark.parametrize('bindings, event1, event2, prefix, command', [
+        (
+            ['aa', 'as'],
+            [Qt.Key_A],
+            [Qt.Key_S],
+            'a',
+            'follow-hint -s as'
+        ),
+        (
+            ['21', '22'],
+            [Qt.Key_2, Qt.KeypadModifier],
+            [Qt.Key_2, Qt.KeypadModifier],
+            '2',
+            'follow-hint -s 22'
+        ),
+    ])
+    def test_match(self, keyparser, fake_keyevent, commandrunner, hintmanager,
+                   bindings, event1, event2, prefix, command):
+        keyparser.update_bindings(bindings)
 
-        match = keyparser.handle(fake_keyevent(Qt.Key_A))
+        match = keyparser.handle(fake_keyevent(*event1))
         assert match == QKeySequence.PartialMatch
-        assert hintmanager.keystr == 'a'
+        assert hintmanager.keystr == prefix
 
-        match = keyparser.handle(fake_keyevent(Qt.Key_S))
+        match = keyparser.handle(fake_keyevent(*event2))
         assert match == QKeySequence.ExactMatch
         assert not hintmanager.keystr
 
-        assert commandrunner.commands == [('follow-hint -s as', None)]
-
-    def test_numberkey_hint_match(self, keyparser, fake_keyevent,
-                                  commandrunner, hintmanager):
-        keyparser.update_bindings(['21', '22'])
-
-        match = keyparser.handle(fake_keyevent(Qt.Key_2, Qt.KeypadModifier))
-        assert match == QKeySequence.PartialMatch
-        assert hintmanager.keystr == '2'
-
-        match = keyparser.handle(fake_keyevent(Qt.Key_2, Qt.KeypadModifier))
-        assert match == QKeySequence.ExactMatch
-        assert not hintmanager.keystr
-
-        assert commandrunner.commands == [('follow-hint -s 22', None)]
+        assert commandrunner.commands == [(command, None)]
