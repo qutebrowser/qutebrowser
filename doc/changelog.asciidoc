@@ -33,6 +33,8 @@ Fixed
   tabs.
 - <Shift-Insert> can now be used to paste text starting with a hyphen.
 - Following hints via the number keypad now works properly again.
+- The logic for `:restart` has been revisited which should fix issues with
+  relative basedirs.
 
 v1.8.1 (2019-09-27)
 -------------------
