@@ -359,10 +359,10 @@ def change_console_formatter(level: int) -> None:
     """
     assert console_handler is not None
 
-    use_colors = console_handler.formatter.use_colors
+    old_formatter = typing.cast(ColoredFormatter, console_handler.formatter)
     console_fmt = get_console_format(level)
     console_formatter = ColoredFormatter(console_fmt, DATEFMT, '{',
-                                         use_colors=use_colors)
+                                         use_colors=old_formatter.use_colors)
     console_handler.setFormatter(console_formatter)
 
 
@@ -473,13 +473,14 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
         level = qt_to_logging[msg_type]
 
     if context.function is None:
-        func = 'none'
+        func = 'none'  # type: ignore
     elif ':' in context.function:
         func = '"{}"'.format(context.function)
     else:
         func = context.function
 
-    if context.category is None or context.category == 'default':
+    if (context.category is None or  # type: ignore
+            context.category == 'default'):
         name = 'qt'
     else:
         name = 'qt-' + context.category
@@ -491,17 +492,19 @@ def qt_message_handler(msg_type: QtCore.QtMsgType,
                 "    pacman -S libxkbcommon-x11")
         faulthandler.disable()
 
+    assert _args is not None
     if _args.debug:
-        stack = ''.join(traceback.format_stack())
+        stack = ''.join(traceback.format_stack())  # type: typing.Optional[str]
     else:
         stack = None
+
     record = qt.makeRecord(name, level, context.file, context.line, msg, (),
                            None, func, sinfo=stack)
     qt.handle(record)
 
 
 @contextlib.contextmanager
-def hide_qt_warning(pattern: str, logger: str = 'qt') -> typing.Iterator[str]:
+def hide_qt_warning(pattern: str, logger: str = 'qt') -> typing.Iterator[None]:
     """Hide Qt warnings matching the given regex."""
     log_filter = QtWarningFilter(pattern)
     logger_obj = logging.getLogger(logger)
@@ -580,7 +583,9 @@ class RAMHandler(logging.Handler):
         super().__init__()
         self.html_formatter = None  # type: typing.Optional[HTMLFormatter]
         if capacity != -1:
-            self._data = collections.deque(maxlen=capacity)
+            self._data = collections.deque(
+                maxlen=capacity
+            )  # type: typing.MutableSequence[logging.LogRecord]
         else:
             self._data = collections.deque()
 
@@ -596,6 +601,7 @@ class RAMHandler(logging.Handler):
         (probably obsolete when moving to a widget for logging,
         https://github.com/qutebrowser/qutebrowser/issues/34
         """
+        assert self.html_formatter is not None
         minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
         fmt = self.html_formatter.format if html else self.format
         self.acquire()
@@ -607,7 +613,7 @@ class RAMHandler(logging.Handler):
             self.release()
         return '\n'.join(lines)
 
-    def change_log_capacity(self, capacity):
+    def change_log_capacity(self, capacity: int) -> None:
         self._data = collections.deque(self._data, maxlen=capacity)
 
 
@@ -660,8 +666,8 @@ class HTMLFormatter(logging.Formatter):
             log_colors: The colors to use for logging levels.
         """
         super().__init__(fmt, datefmt)
-        self._log_colors = log_colors
-        self._colordict = {}
+        self._log_colors = log_colors  # type: typing.Mapping[str, str]
+        self._colordict = {}  # type: typing.Mapping[str, str]
         # We could solve this nicer by using CSS, but for this simple case this
         # works.
         for color in COLORS:
@@ -673,9 +679,9 @@ class HTMLFormatter(logging.Formatter):
         record_clone.__dict__.update(self._colordict)
         if record_clone.levelname in self._log_colors:
             color = self._log_colors[record_clone.levelname]
-            record_clone.log_color = self._colordict[color]
+            record_clone.log_color = self._colordict[color]  # type: ignore
         else:
-            record_clone.log_color = ''
+            record_clone.log_color = ''  # type: ignore
         for field in ['msg', 'filename', 'funcName', 'levelname', 'module',
                       'name', 'pathname', 'processName', 'threadName']:
             data = str(getattr(record_clone, field))
@@ -687,7 +693,8 @@ class HTMLFormatter(logging.Formatter):
 
     def formatTime(self, record: logging.LogRecord,
                    datefmt: str = None) -> str:
-        out = super().formatTime(record, datefmt)
+        # https://github.com/python/typeshed/pull/3343
+        out = super().formatTime(record, datefmt)  # type: ignore
         return pyhtml.escape(out)
 
 
