@@ -340,9 +340,7 @@ def change_console_formatter(level):
     Args:
         level: The numeric logging level
     """
-    if not isinstance(console_handler.formatter, ColoredFormatter):
-        # JSON Formatter being used for end2end tests
-        pass
+    assert console_handler is not None
 
     use_colors = console_handler.formatter.use_colors
     console_fmt = get_console_format(level)
