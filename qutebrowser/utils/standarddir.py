@@ -25,6 +25,8 @@ import sys
 import shutil
 import contextlib
 import enum
+import argparse
+import typing
 
 from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtWidgets import QApplication
@@ -58,7 +60,7 @@ class EmptyValueError(Exception):
 
 
 @contextlib.contextmanager
-def _unset_organization():
+def _unset_organization() -> typing.Iterator[None]:
     """Temporarily unset QApplication.organizationName().
 
     This is primarily needed in config.py.
@@ -66,7 +68,7 @@ def _unset_organization():
     qapp = QApplication.instance()
     if qapp is not None:
         orgname = qapp.organizationName()
-        qapp.setOrganizationName(None)
+        qapp.setOrganizationName(None)  # type: ignore
     try:
         yield
     finally:
@@ -74,7 +76,7 @@ def _unset_organization():
             qapp.setOrganizationName(orgname)
 
 
-def _init_config(args):
+def _init_config(args: argparse.Namespace) -> None:
     """Initialize the location for configs."""
     typ = QStandardPaths.ConfigLocation
     overridden, path = _from_args(typ, args)
@@ -103,7 +105,7 @@ def _init_config(args):
     _locations[_Location.config_py] = config_py_file
 
 
-def config(auto=False):
+def config(auto: bool = False) -> str:
     """Get the location for the config directory.
 
     If auto=True is given, get the location for the autoconfig.yml directory,
@@ -123,7 +125,7 @@ def config_py() -> str:
     return _locations[_Location.config_py]
 
 
-def _init_data(args):
+def _init_data(args: argparse.Namespace) -> None:
     """Initialize the location for data."""
     typ = QStandardPaths.DataLocation
     overridden, path = _from_args(typ, args)
@@ -148,7 +150,7 @@ def _init_data(args):
             _locations[_Location.system_data] = path
 
 
-def data(system=False):
+def data(system: bool = False) -> str:
     """Get the data directory.
 
     If system=True is given, gets the system-wide (probably non-writable) data
@@ -162,7 +164,7 @@ def data(system=False):
     return _locations[_Location.data]
 
 
-def _init_cache(args):
+def _init_cache(args: argparse.Namespace) -> None:
     """Initialize the location for the cache."""
     typ = QStandardPaths.CacheLocation
     overridden, path = _from_args(typ, args)
@@ -177,11 +179,11 @@ def _init_cache(args):
     _locations[_Location.cache] = path
 
 
-def cache():
+def cache() -> str:
     return _locations[_Location.cache]
 
 
-def _init_download(args):
+def _init_download(args: argparse.Namespace) -> None:
     """Initialize the location for downloads.
 
     Note this is only the default directory as found by Qt.
@@ -194,11 +196,11 @@ def _init_download(args):
     _locations[_Location.download] = path
 
 
-def download():
+def download() -> str:
     return _locations[_Location.download]
 
 
-def _init_runtime(args):
+def _init_runtime(args: argparse.Namespace) -> None:
     """Initialize location for runtime data."""
     if utils.is_mac or utils.is_windows:
         # RuntimeLocation is a weird path on macOS and Windows.
@@ -231,11 +233,11 @@ def _init_runtime(args):
     _locations[_Location.runtime] = path
 
 
-def runtime():
+def runtime() -> str:
     return _locations[_Location.runtime]
 
 
-def _writable_location(typ):
+def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
     """Wrapper around QStandardPaths.writableLocation.
 
     Arguments:
@@ -271,16 +273,15 @@ def _writable_location(typ):
     return path
 
 
-def _from_args(typ, args):
+def _from_args(
+        typ: QStandardPaths.StandardLocation,
+        args: typing.Optional[argparse.Namespace]
+) -> typing.Tuple[bool, typing.Optional[str]]:
     """Get the standard directory from an argparse namespace.
-
-    Args:
-        typ: A member of the QStandardPaths::StandardLocation enum
-        args: An argparse namespace or None.
 
     Return:
         A (override, path) tuple.
-            override: boolean, if the user did override the path
+            override: If the user did override the path
             path: The overridden path, or None to turn off storage.
     """
     basedir_suffix = {
@@ -303,7 +304,7 @@ def _from_args(typ, args):
         return (False, None)
 
 
-def _create(path):
+def _create(path: str) -> None:
     """Create the `path` directory.
 
     From the XDG basedir spec:
@@ -315,7 +316,7 @@ def _create(path):
     os.makedirs(path, 0o700, exist_ok=True)
 
 
-def _init_dirs(args=None):
+def _init_dirs(args: argparse.Namespace = None) -> None:
     """Create and cache standard directory locations.
 
     Mainly in a separate function because we need to call it in tests.
@@ -327,7 +328,7 @@ def _init_dirs(args=None):
     _init_runtime(args)
 
 
-def init(args):
+def init(args: argparse.Namespace) -> None:
     """Initialize all standard dirs."""
     if args is not None:
         # args can be None during tests
@@ -342,7 +343,7 @@ def init(args):
             _move_windows()
 
 
-def _move_macos():
+def _move_macos() -> None:
     """Move most config files to new location on macOS."""
     old_config = config(auto=True)  # ~/Library/Preferences/qutebrowser
     new_config = config()  # ~/.qutebrowser
@@ -352,7 +353,7 @@ def _move_macos():
                        os.path.join(new_config, f))
 
 
-def _move_windows():
+def _move_windows() -> None:
     """Move the whole qutebrowser directory from Local to Roaming AppData."""
     # %APPDATA%\Local\qutebrowser
     old_appdata_dir = _writable_location(QStandardPaths.DataLocation)
@@ -375,7 +376,7 @@ def _move_windows():
                        os.path.join(new_config_dir, f))
 
 
-def _init_cachedir_tag():
+def _init_cachedir_tag() -> None:
     """Create CACHEDIR.TAG if it doesn't exist.
 
     See http://www.brynosaurus.com/cachedir/spec.html
@@ -394,7 +395,7 @@ def _init_cachedir_tag():
             log.init.exception("Failed to create CACHEDIR.TAG")
 
 
-def _move_data(old, new):
+def _move_data(old: str, new: str) -> bool:
     """Migrate data from an old to a new directory.
 
     If the old directory does not exist, the migration is skipped.
