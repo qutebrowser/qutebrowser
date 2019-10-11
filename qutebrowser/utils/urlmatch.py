@@ -27,6 +27,7 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 
 import ipaddress
 import fnmatch
+import typing
 import urllib.parse
 
 from PyQt5.QtCore import QUrl
@@ -64,15 +65,15 @@ class UrlPattern:
     _DEFAULT_PORTS = {'https': 443, 'http': 80, 'ftp': 21}
     _SCHEMES_WITHOUT_HOST = ['about', 'file', 'data', 'javascript']
 
-    def __init__(self, pattern):
+    def __init__(self, pattern: str) -> None:
         # Make sure all attributes are initialized if we exit early.
         self._pattern = pattern
         self._match_all = False
         self._match_subdomains = False
-        self._scheme = None
-        self._host = None
-        self._path = None
-        self._port = None
+        self._scheme = None  # type: typing.Optional[str]
+        self._host = None  # type: typing.Optional[str]
+        self._path = None  # type: typing.Optional[str]
+        self._port = None  # type: typing.Optional[int]
 
         # > The special pattern <all_urls> matches any URL that starts with a
         # > permitted scheme.
@@ -99,26 +100,26 @@ class UrlPattern:
         self._init_path(parsed)
         self._init_port(parsed)
 
-    def _to_tuple(self):
+    def _to_tuple(self) -> typing.Tuple:
         """Get a pattern with information used for __eq__/__hash__."""
         return (self._match_all, self._match_subdomains, self._scheme,
                 self._host, self._path, self._port)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self._to_tuple())
 
-    def __eq__(self, other):
+    def __eq__(self, other: typing.Any) -> bool:
         if not isinstance(other, UrlPattern):
             return NotImplemented
         return self._to_tuple() == other._to_tuple()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, pattern=self._pattern, constructor=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._pattern
 
-    def _fixup_pattern(self, pattern):
+    def _fixup_pattern(self, pattern: str) -> str:
         """Make sure the given pattern is parseable by urllib.parse."""
         if pattern.startswith('*:'):  # Any scheme, but *:// is unparseable
             pattern = 'any:' + pattern[2:]
@@ -135,7 +136,7 @@ class UrlPattern:
 
         return pattern
 
-    def _init_scheme(self, parsed):
+    def _init_scheme(self, parsed: urllib.parse.ParseResult) -> None:
         """Parse the scheme from the given URL.
 
         Deviation from Chromium:
@@ -150,7 +151,7 @@ class UrlPattern:
 
         self._scheme = parsed.scheme
 
-    def _init_path(self, parsed):
+    def _init_path(self, parsed: urllib.parse.ParseResult) -> None:
         """Parse the path from the given URL.
 
         Deviation from Chromium:
@@ -168,13 +169,14 @@ class UrlPattern:
         else:
             self._path = parsed.path
 
-    def _init_host(self, parsed):
+    def _init_host(self, parsed: urllib.parse.ParseResult) -> None:
         """Parse the host from the given URL.
 
         Deviation from Chromium:
         - http://:1234/ is not a valid URL because it has no host.
         """
-        if parsed.hostname is None or not parsed.hostname.strip():
+        # https://github.com/python/typeshed/commit/f0ccb325aa787ca0a539ef9914276b2c3148327a
+        if parsed.hostname is None or not parsed.hostname.strip():  # type: ignore
             if self._scheme not in self._SCHEMES_WITHOUT_HOST:
                 raise ParseError("Pattern without host")
             assert self._host is None
@@ -208,7 +210,7 @@ class UrlPattern:
             # Only * or *.foo is allowed as host.
             raise ParseError("Invalid host wildcard")
 
-    def _init_port(self, parsed):
+    def _init_port(self, parsed: urllib.parse.ParseResult) -> None:
         """Parse the port from the given URL.
 
         Deviation from Chromium:
@@ -225,15 +227,16 @@ class UrlPattern:
             except ValueError as e:
                 raise ParseError("Invalid port: {}".format(e))
 
-        if (self._scheme not in list(self._DEFAULT_PORTS) + [None] and
-                self._port is not None):
+        scheme_has_port = (self._scheme in list(self._DEFAULT_PORTS) or
+                           self._scheme is None)
+        if self._port is not None and not scheme_has_port:
             raise ParseError("Ports are unsupported with {} scheme".format(
                 self._scheme))
 
-    def _matches_scheme(self, scheme):
+    def _matches_scheme(self, scheme: str) -> bool:
         return self._scheme is None or self._scheme == scheme
 
-    def _matches_host(self, host):
+    def _matches_host(self, host: str) -> bool:
         # FIXME what about multiple dots?
         host = host.rstrip('.')
 
@@ -268,12 +271,12 @@ class UrlPattern:
 
         return host[len(host) - len(self._host) - 1] == '.'
 
-    def _matches_port(self, scheme, port):
+    def _matches_port(self, scheme: str, port: int) -> bool:
         if port == -1 and scheme in self._DEFAULT_PORTS:
             port = self._DEFAULT_PORTS[scheme]
         return self._port is None or self._port == port
 
-    def _matches_path(self, path):
+    def _matches_path(self, path: str) -> bool:
         if self._path is None:
             return True
 
@@ -285,7 +288,7 @@ class UrlPattern:
         # doesn't rely on regexes. Do we need that too?
         return fnmatch.fnmatchcase(path, self._path)
 
-    def matches(self, qurl):
+    def matches(self, qurl: QUrl) -> bool:
         """Check if the pattern matches the given QUrl."""
         qtutils.ensure_valid(qurl)
 
