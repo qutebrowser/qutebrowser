@@ -33,6 +33,16 @@ from qutebrowser.utils import log, qtutils, utils
 T = typing.TypeVar('T')
 
 
+class UnsetObject:
+
+    """Class for an unset object."""
+
+    __slots__ = ()
+
+
+UNSET = UnsetObject()
+
+
 class NeighborList(collections.abc.Sequence):
 
     """A list of items which saves its current position.
@@ -50,7 +60,7 @@ class NeighborList(collections.abc.Sequence):
     Modes = enum.Enum('Modes', ['edge', 'exception'])
 
     def __init__(self, items: typing.Sequence[T] = None,
-                 default: typing.Union[T, utils.UnsetObject] = utils.UNSET,
+                 default: typing.Union[T, UnsetObject] = UNSET,
                  mode: Modes = Modes.exception) -> None:
         """Constructor.
 
@@ -69,7 +79,7 @@ class NeighborList(collections.abc.Sequence):
             self._items = list(items)
         self._default = default
 
-        if not isinstance(default, utils.UnsetObject):
+        if not isinstance(default, UnsetObject):
             idx = self._items.index(default)
             self._idx = idx  # type: typing.Optional[int]
         else:
@@ -205,7 +215,7 @@ class NeighborList(collections.abc.Sequence):
 
     def reset(self) -> T:
         """Reset the position to the default."""
-        if self._default is utils.UNSET:
+        if self._default is UNSET:
             raise ValueError("No default set!")
         self._idx = self._items.index(self._default)
         return self.curitem()

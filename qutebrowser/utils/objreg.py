@@ -25,7 +25,7 @@ import functools
 
 from PyQt5.QtCore import QObject, QTimer
 
-from qutebrowser.utils import log, utils
+from qutebrowser.utils import log, usertypes
 
 
 class RegistryUnavailableError(Exception):
@@ -203,7 +203,7 @@ def _get_registry(scope, window=None, tab=None):
         raise ValueError("Invalid scope '{}'!".format(scope))
 
 
-def get(name, default=utils.UNSET, scope='global', window=None, tab=None):
+def get(name, default=usertypes.UNSET, scope='global', window=None, tab=None):
     """Helper function to get an object.
 
     Args:
@@ -213,7 +213,7 @@ def get(name, default=utils.UNSET, scope='global', window=None, tab=None):
     try:
         return reg[name]
     except KeyError:
-        if default is not utils.UNSET:
+        if default is not usertypes.UNSET:
             return default
         else:
             raise
