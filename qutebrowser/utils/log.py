@@ -31,6 +31,8 @@ import traceback
 import warnings
 import json
 import inspect
+import typing
+import argparse
 
 from PyQt5 import QtCore
 # Optional imports
@@ -91,7 +93,10 @@ LOG_LEVELS = {
 }
 
 
-def vdebug(self, msg, *args, **kwargs):
+def vdebug(self: logging.Logger,
+           msg: str,
+           *args: typing.Any,
+           **kwargs: typing.Any) -> None:
     """Log with a VDEBUG level.
 
     VDEBUG is used when a debug message is rather verbose, and probably of
@@ -100,7 +105,7 @@ def vdebug(self, msg, *args, **kwargs):
     """
     if self.isEnabledFor(VDEBUG_LEVEL):
         # pylint: disable=protected-access
-        self._log(VDEBUG_LEVEL, msg, args, **kwargs)
+        self._log(VDEBUG_LEVEL, msg, args, **kwargs)  # type: ignore
         # pylint: enable=protected-access
 
 
@@ -151,12 +156,12 @@ LOGGER_NAMES = [
 ]
 
 
-ram_handler = None
-console_handler = None
+ram_handler = None  # type: typing.Optional[RAMHandler]
+console_handler = None  # type: typing.Optional[logging.Handler]
 console_filter = None
 
 
-def stub(suffix=''):
+def stub(suffix: str = '') -> None:
     """Show a STUB: message for the calling function."""
     try:
         function = inspect.stack()[1][3]
@@ -169,7 +174,7 @@ def stub(suffix=''):
     misc.warning(text)
 
 
-def init_log(args):
+def init_log(args: argparse.Namespace) -> None:
     """Init loggers based on the argparse namespace passed."""
     level = args.loglevel.upper()
     try:
@@ -208,13 +213,13 @@ def init_log(args):
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
-    QtCore.qInstallMessageHandler(qt_message_handler)
+    QtCore.qInstallMessageHandler(qt_message_handler)  # type: ignore
     global _log_inited, _args
     _log_inited = True
     _args = args
 
 
-def _init_py_warnings():
+def _init_py_warnings() -> None:
     """Initialize Python warning handling."""
     warnings.simplefilter('default')
     warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
@@ -226,7 +231,7 @@ def _init_py_warnings():
 
 
 @contextlib.contextmanager
-def disable_qt_msghandler():
+def disable_qt_msghandler() -> typing.Iterator[None]:
     """Contextmanager which temporarily disables the Qt message handler."""
     old_handler = QtCore.qInstallMessageHandler(None)
     try:
@@ -236,7 +241,7 @@ def disable_qt_msghandler():
 
 
 @contextlib.contextmanager
-def ignore_py_warnings(**kwargs):
+def ignore_py_warnings(**kwargs: typing.Any) -> typing.Iterator[None]:
     """Contextmanager to temporarily disable certain Python warnings."""
     warnings.filterwarnings('ignore', **kwargs)
     yield
@@ -244,7 +249,13 @@ def ignore_py_warnings(**kwargs):
         _init_py_warnings()
 
 
-def _init_handlers(level, color, force_color, json_logging, ram_capacity):
+def _init_handlers(
+        level: int,
+        color: bool,
+        force_color: bool,
+        json_logging: bool,
+        ram_capacity: int
+) -> typing.Tuple[logging.StreamHandler, typing.Optional['RAMHandler']]:
     """Init log handlers.
 
     Args:
@@ -281,7 +292,7 @@ def _init_handlers(level, color, force_color, json_logging, ram_capacity):
     return console_handler, ram_handler
 
 
-def get_console_format(level):
+def get_console_format(level: int) -> str:
     """Get the log format the console logger should use.
 
     Args:
@@ -293,7 +304,13 @@ def get_console_format(level):
     return EXTENDED_FMT if level <= logging.DEBUG else SIMPLE_FMT
 
 
-def _init_formatters(level, color, force_color, json_logging):
+def _init_formatters(
+        level: int,
+        color: bool,
+        force_color: bool,
+        json_logging: bool
+) -> typing.Tuple[typing.Union['JSONFormatter', 'ColoredFormatter'],
+                  'ColoredFormatter', 'HTMLFormatter', bool]:
     """Init log formatters.
 
     Args:
@@ -316,8 +333,8 @@ def _init_formatters(level, color, force_color, json_logging):
         return None, ram_formatter, html_formatter, False  # type: ignore
 
     if json_logging:
-        console_formatter = JSONFormatter()
-        return console_formatter, ram_formatter, html_formatter, False
+        json_formatter = JSONFormatter()
+        return json_formatter, ram_formatter, html_formatter, False
 
     use_colorama = False
     color_supported = os.name == 'posix' or colorama
@@ -334,7 +351,7 @@ def _init_formatters(level, color, force_color, json_logging):
     return console_formatter, ram_formatter, html_formatter, use_colorama
 
 
-def change_console_formatter(level):
+def change_console_formatter(level: int) -> None:
     """Change console formatter based on level.
 
     Args:
@@ -351,7 +368,9 @@ def change_console_formatter(level):
     console_handler.setFormatter(console_formatter)
 
 
-def qt_message_handler(msg_type, context, msg):
+def qt_message_handler(msg_type: QtCore.QtMsgType,
+                       context: QtCore.QMessageLogContext,
+                       msg: str) -> None:
     """Qt message handler to redirect qWarning etc. to the logging system.
 
     Args:
@@ -484,7 +503,7 @@ def qt_message_handler(msg_type, context, msg):
 
 
 @contextlib.contextmanager
-def hide_qt_warning(pattern, logger='qt'):
+def hide_qt_warning(pattern: str, logger: str = 'qt') -> typing.Iterator[str]:
     """Hide Qt warnings matching the given regex."""
     log_filter = QtWarningFilter(pattern)
     logger_obj = logging.getLogger(logger)
@@ -503,11 +522,11 @@ class QtWarningFilter(logging.Filter):
         _pattern: The start of the message.
     """
 
-    def __init__(self, pattern):
+    def __init__(self, pattern: str) -> None:
         super().__init__()
         self._pattern = pattern
 
-    def filter(self, record):
+    def filter(self, record: logging.LogRecord) -> bool:
         """Determine if the specified record is to be logged."""
         do_log = not record.msg.strip().startswith(self._pattern)
         return do_log
@@ -525,12 +544,13 @@ class LogFilter(logging.Filter):
         negated: Whether names is a list of records to log or to suppress.
     """
 
-    def __init__(self, names, negate=False):
+    def __init__(self, names: typing.Optional[typing.Iterable[str]],
+                 negate: bool = False) -> None:
         super().__init__()
         self.names = names
         self.negated = negate
 
-    def filter(self, record):
+    def filter(self, record: logging.LogRecord) -> bool:
         """Determine if the specified record is to be logged."""
         if self.names is None:
             return True
@@ -558,20 +578,20 @@ class RAMHandler(logging.Handler):
         _data: A deque containing the logging records.
     """
 
-    def __init__(self, capacity):
+    def __init__(self, capacity: int) -> None:
         super().__init__()
-        self.html_formatter = None
+        self.html_formatter = None  # type: typing.Optional[HTMLFormatter]
         if capacity != -1:
             self._data = collections.deque(maxlen=capacity)
         else:
             self._data = collections.deque()
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         if record.levelno >= logging.DEBUG:
             # We don't log VDEBUG to RAM.
             self._data.append(record)
 
-    def dump_log(self, html=False, level='vdebug'):
+    def dump_log(self, html: bool = False, level: str = 'vdebug') -> str:
         """Dump the complete formatted log data as string.
 
         FIXME: We should do all the HTML formatter via jinja2.
@@ -601,11 +621,14 @@ class ColoredFormatter(logging.Formatter):
         use_colors: Whether to do colored logging or not.
     """
 
-    def __init__(self, fmt, datefmt, style, *, use_colors):
+    def __init__(self, fmt: str,
+                 datefmt: str,
+                 style: str, *,
+                 use_colors: bool) -> None:
         super().__init__(fmt, datefmt, style)
         self.use_colors = use_colors
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         if self.use_colors:
             color_dict = dict(COLOR_ESCAPES)
             color_dict['reset'] = RESET_ESCAPE
@@ -628,7 +651,9 @@ class HTMLFormatter(logging.Formatter):
         _colordict: The colordict passed to the logger.
     """
 
-    def __init__(self, fmt, datefmt, log_colors):
+    def __init__(self, fmt: str,
+                 datefmt: str,
+                 log_colors: typing.Mapping[str, str]) -> None:
         """Constructor.
 
         Args:
@@ -645,7 +670,7 @@ class HTMLFormatter(logging.Formatter):
             self._colordict[color] = '<font color="{}">'.format(color)
         self._colordict['reset'] = '</font>'
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         record_clone = copy.copy(record)
         record_clone.__dict__.update(self._colordict)
         if record_clone.levelname in self._log_colors:
@@ -662,7 +687,8 @@ class HTMLFormatter(logging.Formatter):
             msg += self._colordict['reset']
         return msg
 
-    def formatTime(self, record, datefmt=None):
+    def formatTime(self, record: logging.LogRecord,
+                   datefmt: str = None) -> str:
         out = super().formatTime(record, datefmt)
         return pyhtml.escape(out)
 
@@ -671,7 +697,7 @@ class JSONFormatter(logging.Formatter):
 
     """Formatter for JSON-encoded log messages."""
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         obj = {}
         for field in ['created', 'msecs', 'levelname', 'name', 'module',
                       'funcName', 'lineno', 'levelno']:
