@@ -76,7 +76,7 @@ def _unset_organization() -> typing.Iterator[None]:
             qapp.setOrganizationName(orgname)
 
 
-def _init_config(args: argparse.Namespace) -> None:
+def _init_config(args: typing.Optional[argparse.Namespace]) -> None:
     """Initialize the location for configs."""
     typ = QStandardPaths.ConfigLocation
     path = _from_args(typ, args)
@@ -102,6 +102,7 @@ def _init_config(args: argparse.Namespace) -> None:
 
     config_py_file = os.path.join(_locations[_Location.config], 'config.py')
     if getattr(args, 'config_py', None) is not None:
+        assert args is not None
         config_py_file = os.path.abspath(args.config_py)
     _locations[_Location.config_py] = config_py_file
 
@@ -126,7 +127,7 @@ def config_py() -> str:
     return _locations[_Location.config_py]
 
 
-def _init_data(args: argparse.Namespace) -> None:
+def _init_data(args: typing.Optional[argparse.Namespace]) -> None:
     """Initialize the location for data."""
     typ = QStandardPaths.DataLocation
     path = _from_args(typ, args)
@@ -166,7 +167,7 @@ def data(system: bool = False) -> str:
     return _locations[_Location.data]
 
 
-def _init_cache(args: argparse.Namespace) -> None:
+def _init_cache(args: typing.Optional[argparse.Namespace]) -> None:
     """Initialize the location for the cache."""
     typ = QStandardPaths.CacheLocation
     path = _from_args(typ, args)
@@ -186,7 +187,7 @@ def cache() -> str:
     return _locations[_Location.cache]
 
 
-def _init_download(args: argparse.Namespace) -> None:
+def _init_download(args: typing.Optional[argparse.Namespace]) -> None:
     """Initialize the location for downloads.
 
     Note this is only the default directory as found by Qt.
@@ -203,7 +204,7 @@ def download() -> str:
     return _locations[_Location.download]
 
 
-def _init_runtime(args: argparse.Namespace) -> None:
+def _init_runtime(args: typing.Optional[argparse.Namespace]) -> None:
     """Initialize location for runtime data."""
     if utils.is_mac or utils.is_windows:
         # RuntimeLocation is a weird path on macOS and Windows.
@@ -294,6 +295,7 @@ def _from_args(
 
     if getattr(args, 'basedir', None) is None:
         return None
+    assert args is not None
 
     try:
         suffix = basedir_suffix[typ]
@@ -326,7 +328,7 @@ def _init_dirs(args: argparse.Namespace = None) -> None:
     _init_runtime(args)
 
 
-def init(args: argparse.Namespace) -> None:
+def init(args: typing.Optional[argparse.Namespace]) -> None:
     """Initialize all standard dirs."""
     if args is not None:
         # args can be None during tests
