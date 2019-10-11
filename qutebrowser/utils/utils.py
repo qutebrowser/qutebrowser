@@ -69,6 +69,16 @@ class Unreachable(Exception):
     """Raised when there was unreachable code."""
 
 
+class UnsetObject:
+
+    """Class for an unset object."""
+
+    __slots__ = ()
+
+
+UNSET = UnsetObject()
+
+
 class ClipboardError(Exception):
 
     """Raised if the clipboard contents are unavailable for some reason."""

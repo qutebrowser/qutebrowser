@@ -373,7 +373,7 @@ class AbstractZoom(QObject):
             levels, mode=usertypes.NeighborList.Modes.edge)
         self._neighborlist.fuzzyval = config.val.zoom.default
 
-    def apply_offset(self, offset: int) -> None:
+    def apply_offset(self, offset: int) -> int:
         """Increase/Decrease the zoom level by the given offset.
 
         Args:
@@ -382,7 +382,7 @@ class AbstractZoom(QObject):
         Return:
             The new zoom percentage.
         """
-        level = self._neighborlist.getitem(offset)
+        level = self._neighborlist.getitem(offset)  # type: int
         self.set_factor(float(level) / 100, fuzzyval=False)
         return level
 
