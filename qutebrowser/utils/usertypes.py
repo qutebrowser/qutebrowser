@@ -452,7 +452,7 @@ class NavigationRequest:
         'other'
     ])
 
-    url = attr.ib()
-    navigation_type = attr.ib()
-    is_main_frame = attr.ib()
-    accepted = attr.ib(default=True)
+    url = attr.ib()  # type: QUrl
+    navigation_type = attr.ib()  # type: Type
+    is_main_frame = attr.ib()  # type: bool
+    accepted = attr.ib(default=True)  # type: bool
