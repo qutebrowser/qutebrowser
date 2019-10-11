@@ -601,9 +601,14 @@ class RAMHandler(logging.Handler):
         (probably obsolete when moving to a widget for logging,
         https://github.com/qutebrowser/qutebrowser/issues/34
         """
-        assert self.html_formatter is not None
         minlevel = LOG_LEVELS.get(level.upper(), VDEBUG_LEVEL)
-        fmt = self.html_formatter.format if html else self.format
+
+        if html:
+            assert self.html_formatter is not None
+            fmt = self.html_formatter.format
+        else:
+            fmt = self.format
+
         self.acquire()
         try:
             lines = [fmt(record)
