@@ -79,22 +79,23 @@ def _unset_organization() -> typing.Iterator[None]:
 def _init_config(args: argparse.Namespace) -> None:
     """Initialize the location for configs."""
     typ = QStandardPaths.ConfigLocation
-    overridden, path = _from_args(typ, args)
-    if not overridden:
+    path = _from_args(typ, args)
+    if path is None:
         if utils.is_windows:
             app_data_path = _writable_location(
                 QStandardPaths.AppDataLocation)
             path = os.path.join(app_data_path, 'config')
         else:
             path = _writable_location(typ)
+
     _create(path)
     _locations[_Location.config] = path
     _locations[_Location.auto_config] = path
 
     # Override the normal (non-auto) config on macOS
     if utils.is_mac:
-        overridden, path = _from_args(typ, args)
-        if not overridden:  # pragma: no branch
+        path = _from_args(typ, args)
+        if path is None:  # pragma: no branch
             path = os.path.expanduser('~/.' + APPNAME)
             _create(path)
             _locations[_Location.config] = path
@@ -128,8 +129,8 @@ def config_py() -> str:
 def _init_data(args: argparse.Namespace) -> None:
     """Initialize the location for data."""
     typ = QStandardPaths.DataLocation
-    overridden, path = _from_args(typ, args)
-    if not overridden:
+    path = _from_args(typ, args)
+    if path is None:
         if utils.is_windows:
             app_data_path = _writable_location(QStandardPaths.AppDataLocation)
             path = os.path.join(app_data_path, 'data')
@@ -139,6 +140,7 @@ def _init_data(args: argparse.Namespace) -> None:
             path = os.path.join(config_path, 'data')
         else:
             path = _writable_location(typ)
+
     _create(path)
     _locations[_Location.data] = path
 
@@ -167,14 +169,15 @@ def data(system: bool = False) -> str:
 def _init_cache(args: argparse.Namespace) -> None:
     """Initialize the location for the cache."""
     typ = QStandardPaths.CacheLocation
-    overridden, path = _from_args(typ, args)
-    if not overridden:
+    path = _from_args(typ, args)
+    if path is None:
         if utils.is_windows:
             # Local, not Roaming!
             data_path = _writable_location(QStandardPaths.DataLocation)
             path = os.path.join(data_path, 'cache')
         else:
             path = _writable_location(typ)
+
     _create(path)
     _locations[_Location.cache] = path
 
@@ -190,8 +193,8 @@ def _init_download(args: argparse.Namespace) -> None:
     Therefore, we also don't create it.
     """
     typ = QStandardPaths.DownloadLocation
-    overridden, path = _from_args(typ, args)
-    if not overridden:
+    path = _from_args(typ, args)
+    if path is None:
         path = _writable_location(typ)
     _locations[_Location.download] = path
 
@@ -208,9 +211,8 @@ def _init_runtime(args: argparse.Namespace) -> None:
     else:
         typ = QStandardPaths.RuntimeLocation
 
-    overridden, path = _from_args(typ, args)
-
-    if not overridden:
+    path = _from_args(typ, args)
+    if path is None:
         try:
             path = _writable_location(typ)
         except EmptyValueError:
@@ -276,13 +278,11 @@ def _writable_location(typ: QStandardPaths.StandardLocation) -> str:
 def _from_args(
         typ: QStandardPaths.StandardLocation,
         args: typing.Optional[argparse.Namespace]
-) -> typing.Tuple[bool, typing.Optional[str]]:
+) -> typing.Optional[str]:
     """Get the standard directory from an argparse namespace.
 
     Return:
-        A (override, path) tuple.
-            override: If the user did override the path
-            path: The overridden path, or None to turn off storage.
+        The overridden path, or None if there is no override.
     """
     basedir_suffix = {
         QStandardPaths.ConfigLocation: 'config',
@@ -292,16 +292,14 @@ def _from_args(
         QStandardPaths.RuntimeLocation: 'runtime',
     }
 
-    if getattr(args, 'basedir', None) is not None:
-        basedir = args.basedir
+    if getattr(args, 'basedir', None) is None:
+        return None
 
-        try:
-            suffix = basedir_suffix[typ]
-        except KeyError:  # pragma: no cover
-            return (False, None)
-        return (True, os.path.abspath(os.path.join(basedir, suffix)))
-    else:
-        return (False, None)
+    try:
+        suffix = basedir_suffix[typ]
+    except KeyError:  # pragma: no cover
+        return None
+    return os.path.abspath(os.path.join(args.basedir, suffix))
 
 
 def _create(path: str) -> None:
