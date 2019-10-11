@@ -27,6 +27,16 @@ Fixed
   deprecated and shows an error. Note that `:config-py-write` did write
   such invalid lines before v1.8.0, so existing config files might need
   adjustments.
+- The `readability-js` userscript now handles encodings correctly (which it
+  didn't before for some websites).
+- New `tabs.tooltips` setting which can be used to disable hover tooltips for
+  tabs.
+- <Shift-Insert> can now be used to paste text starting with a hyphen.
+- Following hints via the number keypad now works properly again.
+- The logic for `:restart` has been revisited which should fix issues with
+  relative basedirs.
+- Errors while reading the state file are now displayed instead of causing a
+  crash.
 
 v1.8.1 (2019-09-27)
 -------------------
