@@ -115,7 +115,7 @@ class Environment(jinja2.Environment):
         urlstr = url.toString(QUrl.FullyEncoded)  # type: ignore
         return urlstr
 
-    def _data_url(self, path: str) -> None:
+    def _data_url(self, path: str) -> str:
         """Get a data: url for the broken qutebrowser logo."""
         data = utils.read_file(path, binary=True)
         filename = utils.resource_filename(path)
