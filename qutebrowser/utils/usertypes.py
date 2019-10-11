@@ -435,16 +435,16 @@ class AbstractCertificateErrorWrapper:
 
     """A wrapper over an SSL/certificate error."""
 
-    def __init__(self, error):
+    def __init__(self, error: typing.Any) -> None:
         self._error = error
 
-    def __str__(self):
+    def __str__(self) -> str:
         raise NotImplementedError
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         raise NotImplementedError
 
-    def is_overridable(self):
+    def is_overridable(self) -> bool:
         raise NotImplementedError
 
 
