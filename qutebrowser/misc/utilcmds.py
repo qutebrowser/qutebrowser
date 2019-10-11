@@ -234,8 +234,11 @@ def debug_log_level(level: str) -> None:
     Args:
         level: The log level to set.
     """
+    if log.console_handler is None:
+        raise cmdutils.CommandError("No log.console_handler. Not attached "
+                                    "to a console?")
+
     log.change_console_formatter(log.LOG_LEVELS[level.upper()])
-    assert log.console_handler is not None
     log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
 
 
