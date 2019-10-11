@@ -156,7 +156,8 @@ def preload_resources() -> None:
             _resource_cache[sub_path] = read_file(sub_path)
 
 
-def read_file(filename: str, binary: bool = False) -> typing.Union[str, bytes]:
+# FIXME:typing Return value should be bytes/str
+def read_file(filename: str, binary: bool = False) -> typing.Any:
     """Get the contents of a file contained with qutebrowser.
 
     Args:
@@ -431,7 +432,7 @@ def is_enum(obj: typing.Any) -> bool:
 
 def get_repr(obj: typing.Any,
              constructor: bool = False,
-             **attrs: typing.Mapping) -> str:
+             **attrs: typing.Any) -> str:
     """Get a suitable __repr__ string for an object.
 
     Args:
@@ -482,7 +483,8 @@ def qualname(obj: typing.Any) -> str:
         return repr(obj)
 
 
-def raises(exc: typing.Union[BaseException, typing.Tuple[BaseException]],
+def raises(exc: typing.Union[typing.Type[BaseException],
+                             typing.Tuple[typing.Type[BaseException]]],
            func: typing.Callable,
            *args: typing.Any) -> bool:
     """Check if a function raises a given exception.
@@ -497,7 +499,7 @@ def raises(exc: typing.Union[BaseException, typing.Tuple[BaseException]],
     """
     try:
         func(*args)
-    except exc:  # type: ignore
+    except exc:
         return True
     else:
         return False
