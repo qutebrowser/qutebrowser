@@ -25,12 +25,13 @@ import enum
 import typing
 
 import attr
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer, QUrl
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import QUrl  # pylint: disable=unused-import
 
 from qutebrowser.utils import log, qtutils, utils
 
 
-T = typing.TypeVar('T')
+_T = typing.TypeVar('_T')
 
 
 class UnsetObject:
@@ -59,8 +60,8 @@ class NeighborList(collections.abc.Sequence):
 
     Modes = enum.Enum('Modes', ['edge', 'exception'])
 
-    def __init__(self, items: typing.Sequence[T] = None,
-                 default: typing.Union[T, UnsetObject] = UNSET,
+    def __init__(self, items: typing.Sequence[_T] = None,
+                 default: typing.Union[_T, UnsetObject] = UNSET,
                  mode: Modes = Modes.exception) -> None:
         """Constructor.
 
@@ -74,7 +75,7 @@ class NeighborList(collections.abc.Sequence):
         if not isinstance(mode, self.Modes):
             raise TypeError("Mode {} is not a Modes member!".format(mode))
         if items is None:
-            self._items = []  # type: typing.Sequence[T]
+            self._items = []  # type: typing.Sequence[_T]
         else:
             self._items = list(items)
         self._default = default
@@ -88,7 +89,7 @@ class NeighborList(collections.abc.Sequence):
         self._mode = mode
         self.fuzzyval = None  # type: typing.Optional[int]
 
-    def __getitem__(self, key: int) -> T:  # type: ignore
+    def __getitem__(self, key: int) -> _T:  # type: ignore
         return self._items[key]
 
     def __len__(self) -> int:
@@ -126,7 +127,7 @@ class NeighborList(collections.abc.Sequence):
         self._idx = item[0]
         return self.fuzzyval not in self._items
 
-    def _get_new_item(self, offset: int) -> T:
+    def _get_new_item(self, offset: int) -> _T:
         """Logic for getitem to get the item at offset.
 
         Args:
@@ -155,11 +156,11 @@ class NeighborList(collections.abc.Sequence):
         return new
 
     @property
-    def items(self) -> typing.Sequence[T]:
+    def items(self) -> typing.Sequence[_T]:
         """Getter for items, which should not be set."""
         return self._items
 
-    def getitem(self, offset: int) -> T:
+    def getitem(self, offset: int) -> _T:
         """Get the item with a relative position.
 
         Args:
@@ -184,36 +185,36 @@ class NeighborList(collections.abc.Sequence):
             self.fuzzyval = None
         return self._get_new_item(offset)
 
-    def curitem(self) -> T:
+    def curitem(self) -> _T:
         """Get the current item in the list."""
         if self._idx is not None:
             return self._items[self._idx]
         else:
             raise IndexError("No current item!")
 
-    def nextitem(self) -> T:
+    def nextitem(self) -> _T:
         """Get the next item in the list."""
         return self.getitem(1)
 
-    def previtem(self) -> T:
+    def previtem(self) -> _T:
         """Get the previous item in the list."""
         return self.getitem(-1)
 
-    def firstitem(self) -> T:
+    def firstitem(self) -> _T:
         """Get the first item in the list."""
         if not self._items:
             raise IndexError("No items found!")
         self._idx = 0
         return self.curitem()
 
-    def lastitem(self) -> T:
+    def lastitem(self) -> _T:
         """Get the last item in the list."""
         if not self._items:
             raise IndexError("No items found!")
         self._idx = len(self._items) - 1
         return self.curitem()
 
-    def reset(self) -> T:
+    def reset(self) -> _T:
         """Reset the position to the default."""
         if self._default is UNSET:
             raise ValueError("No default set!")
