@@ -205,6 +205,12 @@ class TestEarlyInit:
 
         assert dump == '\n'.join(expected)
 
+    def test_state_init_errors(self, init_patch, args, data_tmpdir):
+        state_file = data_tmpdir / 'state'
+        state_file.write_binary(b'\x00')
+        configinit.early_init(args)
+        assert configinit._init_errors.errors
+
     def test_invalid_change_filter(self, init_patch, args):
         config.change_filter('foobar')
         with pytest.raises(configexc.NoOptionError):
@@ -325,16 +331,23 @@ class TestEarlyInit:
         configinit._init_envvars()
 
 
-@pytest.mark.parametrize('errors', [True, False])
+@pytest.mark.parametrize('errors', [True, 'fatal', False])
 def test_late_init(init_patch, monkeypatch, fake_save_manager, args,
                    mocker, errors):
     configinit.early_init(args)
+
     if errors:
         err = configexc.ConfigErrorDesc("Error text", Exception("Exception"))
         errs = configexc.ConfigFileErrors("config.py", [err])
+        if errors == 'fatal':
+            errs.fatal = True
+
         monkeypatch.setattr(configinit, '_init_errors', errs)
+
     msgbox_mock = mocker.patch('qutebrowser.config.configinit.msgbox.msgbox',
                                autospec=True)
+    exit_mock = mocker.patch('qutebrowser.config.configinit.sys.exit',
+                             autospec=True)
 
     configinit.late_init(fake_save_manager)
 
@@ -342,12 +355,15 @@ def test_late_init(init_patch, monkeypatch, fake_save_manager, args,
         'state-config', unittest.mock.ANY)
     fake_save_manager.add_saveable.assert_any_call(
         'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
+
     if errors:
         assert len(msgbox_mock.call_args_list) == 1
         _call_posargs, call_kwargs = msgbox_mock.call_args_list[0]
         text = call_kwargs['text'].strip()
         assert text.startswith('Errors occurred while reading config.py:')
         assert '<b>Error text</b>: Exception' in text
+
+        assert exit_mock.called == (errors == 'fatal')
     else:
         assert not msgbox_mock.called
 

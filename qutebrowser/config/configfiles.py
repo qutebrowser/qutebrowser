@@ -54,7 +54,6 @@ class StateConfig(configparser.ConfigParser):
         super().__init__()
         self._filename = os.path.join(standarddir.data(), 'state')
         self.read(self._filename, encoding='utf-8')
-
         qt_version = qVersion()
         # We handle this here, so we can avoid setting qt_version_changed if
         # the config is brand new, but can still set it when qt_version wasn't
@@ -689,7 +688,13 @@ def saved_sys_properties() -> typing.Iterator[None]:
 def init() -> None:
     """Initialize config storage not related to the main config."""
     global state
-    state = StateConfig()
+
+    try:
+        state = StateConfig()
+    except configparser.Error as e:
+        msg = "While loading state file from {}".format(standarddir.data())
+        desc = configexc.ConfigErrorDesc(msg, e)
+        raise configexc.ConfigFileErrors('state', [desc], fatal=True)
 
     # Set the QSettings path to something like
     # ~/.config/qutebrowser/qsettings/qutebrowser/qutebrowser.conf so it

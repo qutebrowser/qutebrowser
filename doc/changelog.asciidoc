@@ -35,6 +35,8 @@ Fixed
 - Following hints via the number keypad now works properly again.
 - The logic for `:restart` has been revisited which should fix issues with
   relative basedirs.
+- Errors while reading the state file are now displayed instead of causing a
+  crash.
 
 v1.8.1 (2019-09-27)
 -------------------
