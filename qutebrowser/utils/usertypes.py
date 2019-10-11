@@ -25,7 +25,7 @@ import enum
 import typing
 
 import attr
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer, QUrl
 
 from qutebrowser.utils import log, qtutils, utils
 
@@ -341,37 +341,25 @@ class Question(QObject):
     answered_no = pyqtSignal()
     completed = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
-        self._mode = None
-        self.default = None
-        self.title = None
-        self.text = None
-        self.url = None
-        self.option = None
-        self.answer = None
+        self.mode = None  # type: typing.Optional[PromptMode]
+        self.default = None  # type: typing.Union[bool, str, None]
+        self.title = None  # type: typing.Optional[str]
+        self.text = None  # type: typing.Optional[str]
+        self.url = None  # type: typing.Optional[QUrl]
+        self.option = None  # type: typing.Optional[bool]
+        self.answer = None  # type: typing.Union[str, bool, None]
         self.is_aborted = False
         self.interrupted = False
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, title=self.title, text=self.text,
-                              mode=self._mode, default=self.default,
+                              mode=self.mode, default=self.default,
                               option=self.option)
 
-    @property
-    def mode(self):
-        """Getter for mode so we can define a setter."""
-        return self._mode
-
-    @mode.setter
-    def mode(self, val):
-        """Setter for mode to do basic type checking."""
-        if not isinstance(val, PromptMode):
-            raise TypeError("Mode {} is no PromptMode member!".format(val))
-        self._mode = val
-
     @pyqtSlot()
-    def done(self):
+    def done(self) -> None:
         """Must be called when the question was answered completely."""
         self.answered.emit(self.answer)
         if self.mode == PromptMode.yesno:
@@ -382,13 +370,13 @@ class Question(QObject):
         self.completed.emit()
 
     @pyqtSlot()
-    def cancel(self):
+    def cancel(self) -> None:
         """Cancel the question (resulting from user-input)."""
         self.cancelled.emit()
         self.completed.emit()
 
     @pyqtSlot()
-    def abort(self):
+    def abort(self) -> None:
         """Abort the question."""
         if self.is_aborted:
             log.misc.debug("Question was already aborted")
@@ -406,7 +394,7 @@ class Timer(QTimer):
         _name: The name of the timer.
     """
 
-    def __init__(self, parent=None, name=None):
+    def __init__(self, parent: QObject = None, name: str = None) -> None:
         super().__init__(parent)
         if name is None:
             self._name = "unnamed"
@@ -414,15 +402,15 @@ class Timer(QTimer):
             self.setObjectName(name)
             self._name = name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, name=self._name)
 
-    def setInterval(self, msec):
+    def setInterval(self, msec: int) -> None:
         """Extend setInterval to check for overflows."""
         qtutils.check_overflow(msec, 'int')
         super().setInterval(msec)
 
-    def start(self, msec=None):
+    def start(self, msec: int = None) -> None:
         """Extend start to check for overflows."""
         if msec is not None:
             qtutils.check_overflow(msec, 'int')

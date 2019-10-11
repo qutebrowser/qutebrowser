@@ -89,7 +89,7 @@ def _build_question(title: str,
                     default: typing.Union[None, bool, str] = None,
                     abort_on: typing.Iterable[pyqtSignal] = (),
                     url: QUrl = None,
-                    option: str = None) -> usertypes.Question:
+                    option: bool = None) -> usertypes.Question:
     """Common function for ask/ask_async."""
     question = usertypes.Question()
     question.title = title
