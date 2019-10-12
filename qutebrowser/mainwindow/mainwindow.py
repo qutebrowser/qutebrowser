@@ -511,6 +511,10 @@ class MainWindow(QWidget):
             self._on_fullscreen_requested)
         self.tabbed_browser.cur_fullscreen_requested.connect(status.maybe_hide)
 
+        # downloadview
+        self.tabbed_browser.cur_fullscreen_requested.connect(
+            self._downloadview.on_fullscreen_requested)
+
         # command input / completion
         mode_manager.entered.connect(self.tabbed_browser.on_mode_entered)
         mode_manager.left.connect(self.tabbed_browser.on_mode_left)

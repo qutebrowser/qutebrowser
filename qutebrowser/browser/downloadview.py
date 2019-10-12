@@ -103,6 +103,14 @@ class DownloadView(QListView):
             count = model.rowCount()
         return utils.get_repr(self, count=count)
 
+    @pyqtSlot(bool)
+    def on_fullscreen_requested(self, on):
+        """Hide/show the downloadview when entering/leaving fullscreen."""
+        if on:
+            self.hide()
+        else:
+            self.show()
+
     @pyqtSlot('QModelIndex')
     def on_clicked(self, index):
         """Handle clicking of an item.
