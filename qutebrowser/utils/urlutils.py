@@ -235,8 +235,8 @@ def _has_explicit_scheme(url: QUrl) -> bool:
     # using this and want to support e.g. searching for scoped C++
     # symbols, we treat this as not a URI anyways.
     return bool(url.isValid() and url.scheme() and
-            (url.host() or url.path()) and
-            not url.path().startswith(':'))
+                (url.host() or url.path()) and
+                not url.path().startswith(':'))
 
 
 def is_special_url(url: QUrl) -> bool:
