@@ -57,6 +57,7 @@ def main():
         'missing-docstring',
         'protected-access',
         'len-as-condition',
+        'compare-to-empty-string',
         # directories without __init__.py...
         'import-error',
     ]
@@ -75,7 +76,7 @@ def main():
     env = os.environ.copy()
     env['PYTHONPATH'] = os.pathsep.join(pythonpath)
 
-    ret = subprocess.run(['pylint'] + args, env=env).returncode
+    ret = subprocess.run(['pylint'] + args, env=env, check=False).returncode
     return ret
 
 

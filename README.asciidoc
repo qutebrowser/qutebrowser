@@ -97,8 +97,9 @@ Requirements
 The following software and libraries are required to run qutebrowser:
 
 * https://www.python.org/[Python] 3.5.2 or newer (3.6 recommended)
-* https://www.qt.io/[Qt] 5.7.1 or newer (5.12 recommended due to https://bugreports.qt.io/browse/QTBUG-76913[segfaults on media pages with Qt 5.13]); support for < 5.9
-  will be dropped soon) with the following modules:
+* https://www.qt.io/[Qt] 5.7.1 or newer (5.12 recommended due to severe bugs in
+  Qt 5.13.0 and .1); support for < 5.9 will be dropped soon) with the following
+  modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
   - QtSQL (part of qtbase in some distributions)
@@ -142,7 +143,13 @@ If you want to give me a beer or a pizza back, I'm trying to make it as easy as
 possible for you to do so. If some other way would be easier for you, please
 get in touch!
 
-* SEPA bank transfer inside Europe (no fee): Contact me at mail@qutebrowser.org for details
+* SEPA bank transfer inside Europe (no fee):
+  - Account holder: Florian Bruhin
+  - Country: Switzerland
+  - IBAN (EUR): CH13 0900 0000 9160 4094 6
+  - IBAN (other): CH80 0900 0000 8711 8587 3
+  - Bank: PostFinance AG, Mingerstrasse 20, 3030 Bern, Switzerland (BIC: POFICHBEXXX)
+  - If you need any other information: Contact me at mail@qutebrowser.org.
 * PayPal: https://www.paypal.me/thecompiler[thecompiler] / me@the-compiler.org
 * Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
 
@@ -196,7 +203,7 @@ Active
   https://vimium.github.io/[Vimium],
   https://github.com/brookhong/Surfingkeys[Surfingkeys]
 * Firefox addons (based on WebExtensions):
-  https://github.com/cmcaine/tridactyl[Tridactyl],
+  https://github.com/tridactyl/tridactyl[Tridactyl],
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
   https://github.com/brookhong/Surfingkeys[Surfingkeys],
   https://github.com/ueokande/vim-vixen[Vim Vixen],

@@ -7,7 +7,8 @@
 // 
 // # Prerequisites
 // 
-//   - NODE_PATH might be required to point to your global node libraries (e.g. /usr/lib/node_modules)
+//   - NODE_PATH might be required to point to your global node libraries:
+//     export NODE_PATH=$NODE_PATH:$(npm root -g)
 //   - Mozilla's readability library (npm install -g https://github.com/mozilla/readability.git)
 //     NOTE: You might have to *login* as root for a system-wide installation to work (e.g. sudo -s)
 //   - jsdom (npm install -g jsdom)
@@ -48,12 +49,13 @@ const HEADER = `
 </head>`;
 const scriptsDir = path.join(process.env.QUTE_DATA_DIR, 'userscripts');
 const tmpFile = path.join(scriptsDir, '/readability.html');
+const domOpts = {url: process.env.QUTE_URL, contentType: "text/html; charset=utf-8"}
 
 if (!fs.existsSync(scriptsDir)){
     fs.mkdirSync(scriptsDir);
 }
 
-JSDOM.fromFile(process.env.QUTE_HTML, { url: process.env.QUTE_URL }).then(dom => {
+JSDOM.fromFile(process.env.QUTE_HTML, domOpts).then(dom => {
     let reader = new Readability(dom.window.document);
     let article = reader.parse();
     let content = util.format(HEADER, article.title) + article.content;

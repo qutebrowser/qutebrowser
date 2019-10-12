@@ -141,11 +141,13 @@ class ConfigFileErrors(Error):
 
     def __init__(self,
                  basename: str,
-                 errors: typing.Sequence[ConfigErrorDesc]) -> None:
+                 errors: typing.Sequence[ConfigErrorDesc], *,
+                 fatal: bool = False) -> None:
         super().__init__("Errors occurred while reading {}:\n{}".format(
             basename, '\n'.join('  {}'.format(e) for e in errors)))
         self.basename = basename
         self.errors = errors
+        self.fatal = fatal
         for err in errors:
             if err.traceback:
                 log.config.debug("Config error stack:")

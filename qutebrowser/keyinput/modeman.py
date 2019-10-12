@@ -20,18 +20,25 @@
 """Mode manager singleton which handles the current keyboard mode."""
 
 import functools
+import typing
 
 import attr
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
+from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.keyinput import modeparsers
+from qutebrowser.commands import runners
+from qutebrowser.keyinput import modeparsers, basekeyparser
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, objreg, utils
+from qutebrowser.browser import hints
 
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
+
+_ParserDictType = typing.MutableMapping[
+    usertypes.KeyMode, basekeyparser.BaseKeyParser]
 
 
 @attr.s(frozen=True)
@@ -48,13 +55,13 @@ class KeyEvent:
         text: A string (QKeyEvent::text).
     """
 
-    key = attr.ib()
-    text = attr.ib()
+    key = attr.ib()  # type: Qt.Key
+    text = attr.ib()  # type: str
 
     @classmethod
-    def from_event(cls, event):
+    def from_event(cls, event: QKeyEvent) -> 'KeyEvent':
         """Initialize a KeyEvent from a QKeyEvent."""
-        return cls(event.key(), event.text())
+        return cls(Qt.Key(event.key()), event.text())
 
 
 class NotInModeError(Exception):
@@ -62,39 +69,66 @@ class NotInModeError(Exception):
     """Exception raised when we want to leave a mode we're not in."""
 
 
-def init(win_id, parent):
+def init(win_id: int, parent: QObject) -> 'ModeManager':
     """Initialize the mode manager and the keyparsers for the given win_id."""
-    KM = usertypes.KeyMode  # noqa: N806
     modeman = ModeManager(win_id, parent)
     objreg.register('mode-manager', modeman, scope='window', window=win_id)
+
+    commandrunner = runners.CommandRunner(win_id)
+
+    hintmanager = hints.HintManager(win_id, parent=parent)
+    objreg.register('hintmanager', hintmanager, scope='window',
+                    window=win_id)
+
     keyparsers = {
-        KM.normal:
-            modeparsers.NormalKeyParser(win_id, modeman),
-        KM.hint:
-            modeparsers.HintKeyParser(win_id, modeman),
-        KM.insert:
-            modeparsers.PassthroughKeyParser(win_id, 'insert', modeman),
-        KM.passthrough:
-            modeparsers.PassthroughKeyParser(win_id, 'passthrough', modeman),
-        KM.command:
-            modeparsers.PassthroughKeyParser(win_id, 'command', modeman),
-        KM.prompt:
-            modeparsers.PassthroughKeyParser(win_id, 'prompt', modeman),
-        KM.yesno:
-            modeparsers.PromptKeyParser(win_id, modeman),
-        KM.caret:
-            modeparsers.CaretKeyParser(win_id, modeman),
-        KM.set_mark:
-            modeparsers.RegisterKeyParser(win_id, KM.set_mark, modeman),
-        KM.jump_mark:
-            modeparsers.RegisterKeyParser(win_id, KM.jump_mark, modeman),
-        KM.record_macro:
-            modeparsers.RegisterKeyParser(win_id, KM.record_macro, modeman),
-        KM.run_macro:
-            modeparsers.RegisterKeyParser(win_id, KM.run_macro, modeman),
-    }
+        usertypes.KeyMode.normal:
+            modeparsers.NormalKeyParser(
+                win_id=win_id, commandrunner=commandrunner, parent=modeman),
+        usertypes.KeyMode.hint:
+            modeparsers.HintKeyParser(
+                win_id=win_id, commandrunner=commandrunner,
+                hintmanager=hintmanager, parent=modeman),
+        usertypes.KeyMode.insert:
+            modeparsers.PassthroughKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.insert,
+                commandrunner=commandrunner, parent=modeman),
+        usertypes.KeyMode.passthrough:
+            modeparsers.PassthroughKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.passthrough,
+                commandrunner=commandrunner, parent=modeman),
+        usertypes.KeyMode.command:
+            modeparsers.PassthroughKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.command,
+                commandrunner=commandrunner, parent=modeman),
+        usertypes.KeyMode.prompt:
+            modeparsers.PassthroughKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.prompt,
+                commandrunner=commandrunner, parent=modeman),
+        usertypes.KeyMode.yesno:
+            modeparsers.PromptKeyParser(
+                win_id=win_id, commandrunner=commandrunner, parent=modeman),
+        usertypes.KeyMode.caret:
+            modeparsers.CaretKeyParser(
+                win_id=win_id, commandrunner=commandrunner, parent=modeman),
+        usertypes.KeyMode.set_mark:
+            modeparsers.RegisterKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.set_mark,
+                commandrunner=commandrunner, parent=modeman),
+        usertypes.KeyMode.jump_mark:
+            modeparsers.RegisterKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.jump_mark,
+                commandrunner=commandrunner, parent=modeman),
+        usertypes.KeyMode.record_macro:
+            modeparsers.RegisterKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.record_macro,
+                commandrunner=commandrunner, parent=modeman),
+        usertypes.KeyMode.run_macro:
+            modeparsers.RegisterKeyParser(
+                win_id=win_id, mode=usertypes.KeyMode.run_macro,
+                commandrunner=commandrunner, parent=modeman),
+    }  # type: _ParserDictType
     objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
-    modeman.destroyed.connect(
+    modeman.destroyed.connect(  # type: ignore
         functools.partial(objreg.delete, 'keyparsers', scope='window',
                           window=win_id))
     for mode, parser in keyparsers.items():
@@ -102,17 +136,23 @@ def init(win_id, parent):
     return modeman
 
 
-def instance(win_id):
+def instance(win_id: int) -> 'ModeManager':
     """Get a modemanager object."""
     return objreg.get('mode-manager', scope='window', window=win_id)
 
 
-def enter(win_id, mode, reason=None, only_if_normal=False):
+def enter(win_id: int,
+          mode: usertypes.KeyMode,
+          reason: str = None,
+          only_if_normal: bool = False) -> None:
     """Enter the mode 'mode'."""
     instance(win_id).enter(mode, reason, only_if_normal)
 
 
-def leave(win_id, mode, reason=None, *, maybe=False):
+def leave(win_id: int,
+          mode: usertypes.KeyMode,
+          reason: str = None, *,
+          maybe: bool = False) -> None:
     """Leave the mode 'mode'."""
     instance(win_id).leave(mode, reason, maybe=maybe)
 
@@ -144,18 +184,19 @@ class ModeManager(QObject):
     entered = pyqtSignal(usertypes.KeyMode, int)
     left = pyqtSignal(usertypes.KeyMode, usertypes.KeyMode, int)
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, win_id: int, parent: QObject = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
-        self._parsers = {}
+        self._parsers = {}  # type: _ParserDictType
         self._prev_mode = usertypes.KeyMode.normal
         self.mode = usertypes.KeyMode.normal
-        self._releaseevents_to_pass = set()
+        self._releaseevents_to_pass = set()  # type: typing.Set[KeyEvent]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, mode=self.mode)
 
-    def _handle_keypress(self, event, *, dry_run=False):
+    def _handle_keypress(self, event: QKeyEvent, *,
+                         dry_run: bool = False) -> bool:
         """Handle filtering of KeyPress events.
 
         Args:
@@ -199,7 +240,7 @@ class ModeManager(QObject):
                                 filter_this, focus_widget))
         return filter_this
 
-    def _handle_keyrelease(self, event):
+    def _handle_keyrelease(self, event: QKeyEvent) -> bool:
         """Handle filtering of KeyRelease events.
 
         Args:
@@ -219,19 +260,16 @@ class ModeManager(QObject):
             log.modes.debug("filter: {}".format(filter_this))
         return filter_this
 
-    def register(self, mode, parser):
-        """Register a new mode.
-
-        Args:
-            mode: The name of the mode.
-            parser: The KeyParser which should be used.
-        """
-        assert isinstance(mode, usertypes.KeyMode)
+    def register(self, mode: usertypes.KeyMode,
+                 parser: basekeyparser.BaseKeyParser) -> None:
+        """Register a new mode."""
         assert parser is not None
         self._parsers[mode] = parser
         parser.request_leave.connect(self.leave)
 
-    def enter(self, mode, reason=None, only_if_normal=False):
+    def enter(self, mode: usertypes.KeyMode,
+              reason: str = None,
+              only_if_normal: bool = False) -> None:
         """Enter a new mode.
 
         Args:
@@ -239,9 +277,6 @@ class ModeManager(QObject):
             reason: Why the mode was entered.
             only_if_normal: Only enter the new mode if we're in normal mode.
         """
-        if not isinstance(mode, usertypes.KeyMode):
-            raise TypeError("Mode {} is no KeyMode member!".format(mode))
-
         if mode == usertypes.KeyMode.normal:
             self.leave(self.mode, reason='enter normal: {}'.format(reason))
             return
@@ -273,7 +308,7 @@ class ModeManager(QObject):
         self.entered.emit(mode, self._win_id)
 
     @cmdutils.register(instance='mode-manager', scope='window')
-    def enter_mode(self, mode):
+    def enter_mode(self, mode: str) -> None:
         """Enter a key mode.
 
         Args:
@@ -294,7 +329,9 @@ class ModeManager(QObject):
         self.enter(m, 'command')
 
     @pyqtSlot(usertypes.KeyMode, str, bool)
-    def leave(self, mode, reason=None, maybe=False):
+    def leave(self, mode: usertypes.KeyMode,
+              reason: str = None,
+              maybe: bool = False) -> None:
         """Leave a key mode.
 
         Args:
@@ -324,13 +361,13 @@ class ModeManager(QObject):
 
     @cmdutils.register(instance='mode-manager', name='leave-mode',
                        not_modes=[usertypes.KeyMode.normal], scope='window')
-    def leave_current_mode(self):
+    def leave_current_mode(self) -> None:
         """Leave the mode we're currently in."""
         if self.mode == usertypes.KeyMode.normal:
             raise ValueError("Can't leave normal mode!")
         self.leave(self.mode, 'leave current')
 
-    def handle_event(self, event):
+    def handle_event(self, event: QEvent) -> bool:
         """Filter all events based on the currently set mode.
 
         Also calls the real keypress handler.
@@ -341,20 +378,16 @@ class ModeManager(QObject):
         Return:
             True if event should be filtered, False otherwise.
         """
-        if self.mode is None:
-            # We got events before mode is set, so just pass them through.
-            return False
-
         handlers = {
             QEvent.KeyPress: self._handle_keypress,
             QEvent.KeyRelease: self._handle_keyrelease,
             QEvent.ShortcutOverride:
                 functools.partial(self._handle_keypress, dry_run=True),
-        }
+        }  # type: typing.Mapping[QEvent.Type, typing.Callable[[QEvent], bool]]
         handler = handlers[event.type()]
         return handler(event)
 
     @cmdutils.register(instance='mode-manager', scope='window')
-    def clear_keychain(self):
+    def clear_keychain(self) -> None:
         """Clear the currently entered key chain."""
         self._parsers[self.mode].clear_keystring()

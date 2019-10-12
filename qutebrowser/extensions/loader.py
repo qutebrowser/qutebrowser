@@ -35,7 +35,6 @@ from qutebrowser.config import config
 from qutebrowser.utils import log, standarddir, objreg
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import,useless-suppression
     import argparse
 
 

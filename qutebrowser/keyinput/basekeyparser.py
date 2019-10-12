@@ -42,7 +42,7 @@ class MatchResult:
     command = attr.ib()  # type: typing.Optional[str]
     sequence = attr.ib()  # type: keyutils.KeySequence
 
-    def __attrs_post_init__(self):
+    def __attrs_post_init__(self) -> None:
         if self.match_type == QKeySequence.ExactMatch:
             assert self.command is not None
         else:
@@ -151,13 +151,13 @@ class BaseKeyParser(QObject):
         do_log: Whether to log keypresses or not.
         passthrough: Whether unbound keys should be passed through with this
                      handler.
+        supports_count: Whether count is supported.
 
     Attributes:
         bindings: Bound key bindings
         _win_id: The window ID this keyparser is associated with.
         _sequence: The currently entered key sequence
         _modename: The name of the input mode associated with this keyparser.
-        _supports_count: Whether count is supported
 
     Signals:
         keystring_updated: Emitted when the keystring is updated.
@@ -172,20 +172,19 @@ class BaseKeyParser(QObject):
     request_leave = pyqtSignal(usertypes.KeyMode, str, bool)
     do_log = True
     passthrough = False
+    supports_count = True
 
-    def __init__(self, win_id: int, parent: QWidget = None,
-                 supports_count: bool = True) -> None:
+    def __init__(self, win_id: int, parent: QWidget = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
         self._modename = None
         self._sequence = keyutils.KeySequence()
         self._count = ''
-        self._supports_count = supports_count
         self.bindings = BindingTrie()
         config.instance.changed.connect(self._on_config_changed)
 
     def __repr__(self) -> str:
-        return utils.get_repr(self, supports_count=self._supports_count)
+        return utils.get_repr(self)
 
     def _debug_log(self, message: str) -> None:
         """Log a message to the debug log if logging is active.
@@ -237,7 +236,7 @@ class BaseKeyParser(QObject):
                      dry_run: bool) -> bool:
         """Try to match a key as count."""
         txt = str(sequence[-1])  # To account for sequences changed above.
-        if (txt in string.digits and self._supports_count and
+        if (txt in string.digits and self.supports_count and
                 not (not self._count and txt == '0')):
             self._debug_log("Trying match as count")
             assert len(txt) == 1, txt
@@ -281,6 +280,8 @@ class BaseKeyParser(QObject):
             return QKeySequence.NoMatch
 
         result = self._match_key(sequence)
+        del sequence  # Enforce code below to use the modified result.sequence
+
         if result.match_type == QKeySequence.NoMatch:
             result = self._match_without_modifiers(result.sequence)
         if result.match_type == QKeySequence.NoMatch:
@@ -305,7 +306,7 @@ class BaseKeyParser(QObject):
         elif result.match_type == QKeySequence.PartialMatch:
             self._debug_log("No match for '{}' (added {})".format(
                 result.sequence, txt))
-            self.keystring_updated.emit(self._count + str(sequence))
+            self.keystring_updated.emit(self._count + str(result.sequence))
         elif result.match_type == QKeySequence.NoMatch:
             self._debug_log("Giving up with '{}', no matches".format(
                 result.sequence))

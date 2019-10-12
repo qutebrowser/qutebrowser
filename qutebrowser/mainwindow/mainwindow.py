@@ -220,7 +220,7 @@ class MainWindow(QWidget):
         self._init_completion()
 
         log.init.debug("Initializing modes...")
-        modeman.init(self.win_id, self)
+        modeman.init(win_id=self.win_id, parent=self)
 
         self._commandrunner = runners.CommandRunner(self.win_id,
                                                     partial_match=True)

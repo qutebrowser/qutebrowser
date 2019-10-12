@@ -30,7 +30,6 @@ from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser.webkit import webkittab
 
 
@@ -58,7 +57,7 @@ class WebKitElement(webelem.AbstractWebElement):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, WebKitElement):
             return NotImplemented
-        return self._elem == other._elem  # pylint: disable=protected-access
+        return self._elem == other._elem
 
     def __getitem__(self, key: str) -> str:
         self._check_vanished()

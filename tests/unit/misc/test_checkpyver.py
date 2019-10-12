@@ -39,7 +39,8 @@ def test_python2():
         proc = subprocess.run(
             ['python2', checkpyver.__file__, '--no-err-windows'],
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+            stderr=subprocess.PIPE,
+            check=False)
     except FileNotFoundError:
         pytest.skip("python2 not found")
     assert not proc.stdout

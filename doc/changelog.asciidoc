@@ -15,14 +15,53 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.8.0 (unreleased)
+v1.9.0 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- dictcli.py now works correctly on Windows again.
+- Unbinding keys via `config.bind(key, None)` accidentally worked in
+  v1.7.0 but raises an exception in v1.8.0. It now works again, but is
+  deprecated and shows an error. Note that `:config-py-write` did write
+  such invalid lines before v1.8.0, so existing config files might need
+  adjustments.
+- The `readability-js` userscript now handles encodings correctly (which it
+  didn't before for some websites).
+- New `tabs.tooltips` setting which can be used to disable hover tooltips for
+  tabs.
+- <Shift-Insert> can now be used to paste text starting with a hyphen.
+- Following hints via the number keypad now works properly again.
+- The logic for `:restart` has been revisited which should fix issues with
+  relative basedirs.
+- Errors while reading the state file are now displayed instead of causing a
+  crash.
+- Crash when using `:debug-log-level` without a console attached.
+
+v1.8.1 (2019-09-27)
+-------------------
+
+Changed
+~~~~~~~
+
+- No code changes - this release only repackages the Windows/macOS
+  releases due to issues with the v1.8.0 release.
+- Updated dependencies for Windows/macOS releases:
+  * macOS and Windows releases now ship with Qt/QtWebEngine 5.12.5. Those
+    are based on Chromium 69.0.3497.128 with security fixes up to Chromium
+    76.0.3809.87.
+  * Qt 5.13 couldn't be used yet due to various bugs in Qt 5.13.0 and .1.
+
+v1.8.0 (2019-09-25)
 -------------------
 
 Added
 ~~~~~
 
-- New `readability-js` userscript which uses Mozilla's node.js readability
-  library.
+- New userscripts:
+  * `readability-js` which uses Mozilla's node.js readability library.
+  * `qute-bitwarden` which integrates the Bitwarden CLI.
 
 Changed
 ~~~~~~~
@@ -38,7 +77,7 @@ Changed
 - Changes to userscripts:
   * qute-pass: Don't run `pass` if only a username is requested.
   * qute-pass: Support private domains like `myrouter.local`.
-  * readability: Improved CSS styling
+  * readability: Improved CSS styling.
 - Performance improvements in various areas:
   * Loading config files
   * Typing without any completion matches
@@ -75,6 +114,9 @@ Fixed
   number hints on French keyboards.
 - With rapid hinting in number mode, backspace now edits the filter text after
   following a hint.
+- A certain type of error ("locking protocol") while initializing sqlite now
+  isn't handled as crash anymore.
+- Crash when showing a permission request in certain scenarios.
 
 Removed
 ~~~~~~~
@@ -82,14 +124,6 @@ Removed
 - At least Python 3.5.2 is now required to run qutebrowser, support for 3.5.0
   and 3.5.1 was dropped.
 
-
-v1.7.1 (unreleased)
--------------------
-
-Fixed
-~~~~~
-
-- Crash when showing a permission request in certain scenarios.
 
 v1.7.0 (2019-07-18)
 -------------------

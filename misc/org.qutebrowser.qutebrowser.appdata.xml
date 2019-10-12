@@ -44,6 +44,8 @@
 	</content_rating>
 	<releases>
 <!-- Add new releases here -->
+<release version="1.8.1" date="2019-09-27"/>
+<release version="1.8.0" date="2019-09-25"/>
 <release version="1.7.0" date="2019-07-18"/>
 <release version="1.6.3" date="2019-06-18"/>
 <release version="1.6.2" date="2019-05-06"/>

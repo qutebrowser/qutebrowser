@@ -552,7 +552,7 @@ class Quitter:
                         compile(f.read(), fn, 'exec')
 
     def _get_restart_args(self, pages=(), session=None, override_args=None):
-        """Get the current working directory and args to relaunch qutebrowser.
+        """Get args to relaunch qutebrowser.
 
         Args:
             pages: The pages to re-open.
@@ -560,26 +560,15 @@ class Quitter:
             override_args: Argument overrides as a dict.
 
         Return:
-            An (args, cwd) tuple.
-                args: The commandline as a list of strings.
-                cwd: The current working directory as a string.
+            The commandline as a list of strings.
         """
         if os.path.basename(sys.argv[0]) == 'qutebrowser':
             # Launched via launcher script
             args = [sys.argv[0]]
-            cwd = None
         elif hasattr(sys, 'frozen'):
             args = [sys.executable]
-            cwd = os.path.abspath(os.path.dirname(sys.executable))
         else:
             args = [sys.executable, '-m', 'qutebrowser']
-            cwd = os.path.join(
-                os.path.abspath(os.path.dirname(qutebrowser.__file__)), '..')
-            if not os.path.isdir(cwd):
-                # Probably running from a python egg. Let's fallback to
-                # cwd=None and see if that works out.
-                # See https://github.com/qutebrowser/qutebrowser/issues/323
-                cwd = None
 
         # Add all open pages so they get reopened.
         page_args = []
@@ -616,9 +605,8 @@ class Quitter:
         args += ['--json-args', data]
 
         log.destroy.debug("args: {}".format(args))
-        log.destroy.debug("cwd: {}".format(cwd))
 
-        return args, cwd
+        return args
 
     @cmdutils.register(instance='quitter', name='restart')
     def restart_cmd(self):
@@ -671,11 +659,8 @@ class Quitter:
 
         # Open a new process and immediately shutdown the existing one
         try:
-            args, cwd = self._get_restart_args(pages, session, override_args)
-            if cwd is None:
-                subprocess.Popen(args)
-            else:
-                subprocess.Popen(args, cwd=cwd)
+            args = self._get_restart_args(pages, session, override_args)
+            subprocess.Popen(args)
         except OSError:
             log.destroy.exception("Failed to restart")
             return False

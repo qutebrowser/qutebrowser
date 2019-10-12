@@ -254,7 +254,6 @@ class PACFetcher(QObject):
         self._reply = None
 
     def __eq__(self, other):
-        # pylint: disable=protected-access
         return self._pac_url == other._pac_url
 
     def __repr__(self):

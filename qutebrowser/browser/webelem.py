@@ -31,7 +31,6 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser import browsertab
 
 
@@ -90,7 +89,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def __repr__(self) -> str:
         try:
-            html = utils.compact_text(self.outer_xml(), 500)
+            html = utils.compact_text(
+                self.outer_xml(), 500)  # type: typing.Optional[str]
         except Error:
             html = None
         return utils.get_repr(self, html=html)

@@ -43,32 +43,31 @@ Google's https://www.chromium.org/Home[Chromium]. With an up-to-date Qt, it has
 much more man-power behind it than WebKitGTK+ has, and thus supports more modern
 web features - it's also arguably more secure.
 
-What's wrong with https://www.mozilla.org/en-US/firefox/new/[Firefox] and link:http://bug.5digits.org/pentadactyl/[Pentadactyl]/link:http://www.vimperator.org/vimperator[Vimperator]?::
-    Firefox likes to break compatibility with addons on each upgrade, gets
-    slower and more bloated with every upgrade, and has some
-    https://blog.mozilla.org/advancingcontent/2014/02/11/publisher-transformation-with-users-at-the-center/[horrible
-    ideas] lately.
-+
-Also, developing addons for it is a nightmare.
-
-What's wrong with https://www.chromium.org/Home[Chromium] and https://vimium.github.io/[Vimium]?::
-    The Chrome plugin API doesn't seem to allow much freedom for plugin
-    writers, which results in Vimium not really having all the features you'd
-    expect from a proper minimal, vim-like browser.
+What's the difference to Firefox/Chromium addons like https://github.com/tridactyl/tridactyl[Tridactyl] or https://vimium.github.io/[Vimium]?::
+    The WebExtensions API doesn't seem to allow much freedom for plugin
+    writers, which results in Vimium/Tridactyl not really having all the
+    features you'd expect from a proper minimal, vim-like browser. Due to the
+    same reason, those addons are quite inconsistent - on some pages, they
+    can't run and intercept keyboard inputs correctly. Tridactyl gets around
+    those limitations with various measures (such as a native messenger written
+    in Python doing some work which can't be done from the addon directly), but
+    there's only so much that can be done.
 
 Why Python?::
     I enjoy writing Python since 2011, which made it one of the possible
     choices. I wanted to use https://www.qt.io/[Qt] because of
     https://wiki.qt.io/QtWebKit[QtWebKit] so I didn't have
-    https://wiki.qt.io/Category:LanguageBindings[many other choices]. I don't
-    like C++ and can't write it very well, so that wasn't an alternative.
+    https://wiki.qt.io/Category:LanguageBindings[many other choices]. At that
+    point, I wasn't comfortable with C++ so that wasn't an alternative.
 
 But isn't Python too slow for a browser?::
-    https://www.infoworld.com/d/application-development/van-rossum-python-not-too-slow-188715[No.]
-    I believe efficiency while coding is a lot more important than efficiency
-    while running. Also, most of the heavy lifting of qutebrowser is done by Qt
-    and WebKit in C++, with the
+    https://www.infoworld.com/d/application-development/van-rossum-python-not-too-slow-188715[It's generally less of a problem than one would expect.]
+    Most of the heavy lifting of qutebrowser is done by Qt and
+    QtWebKit/QtWebEngine in C++, with the
     https://wiki.python.org/moin/GlobalInterpreterLock[GIL] released.
++
+It can be problematic in some areas, but various performance optimizations have
+been carried out to problematic portions of the code.
 
 Is qutebrowser secure?::
     Most security issues are in the backend (which handles networking,
@@ -90,8 +89,8 @@ https://github.com/annulen/webkit/releases[in a while]. It also doesn't have any
 process isolation or sandboxing. See
 https://github.com/qutebrowser/qutebrowser/issues/4039[#4039] for more details.
 +
-Security issues in qutebrowser's code happen very rarely (as per July 2018,
-there have been three security issues caused by qutebrowser in over 4.5 years).
+Security issues in qutebrowser's code happen very rarely (as per September 2019,
+there have been three security issues caused by qutebrowser in almost 6 years).
 Those were handled appropriately
 (http://seclists.org/oss-sec/2018/q3/29[example]) and fixed timely. To report
 security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
@@ -124,9 +123,12 @@ How do I play Youtube videos with mpv?::
     player - optionally even with hinting for links:
 +
 ----
-:bind m spawn mpv {url}
-:bind M hint links spawn mpv {hint-url}
+:bind ,m spawn mpv {url}
+:bind ,M hint links spawn mpv {hint-url}
 ----
++
+The comma prefix is used to make sure user-defined bindings don't conflict with
+the built-in ones.
 +
 Note that you might need an additional package (e.g.
 https://www.archlinux.org/packages/community/any/youtube-dl/[youtube-dl] on
@@ -141,8 +143,8 @@ You can find the script here: https://github.com/mpv-player/mpv/blob/master/TOOL
 It also works nicely with rapid hints:
 +
 ----
-:bind m spawn umpv {url}
-:bind M hint links spawn umpv {hint-url}
+:bind ,m spawn umpv {url}
+:bind ,M hint links spawn umpv {hint-url}
 :bind ;M hint --rapid links spawn umpv {hint-url}
 ----
 
@@ -267,58 +269,36 @@ How do I change the `WM_CLASS` used by qutebrowser windows?::
 
 == Troubleshooting
 
-Unable to view flash content.::
-    If you have flash installed for on your system, it's necessary to enable plugins
+Unable to view Flash content.::
+    If you have Flash installed for on your system, it's necessary to enable plugins
     to use the flash plugin. Using the command `:set content.plugins true`
-    in qutebrowser will enable plugins. Packages for flash should
+    in qutebrowser will enable plugins. Packages for Flash should
     be provided for your platform or it can be obtained from
-    https://get.adobe.com/flashplayer/[Adobe].
+    https://get.adobe.com/flashplayer/[Adobe]. Note that QtWebEngine needs
+    PPAPI Flash, while QtWebKit needs NPAPI Flash.
 
-Experiencing freezing on sites like duckduckgo and youtube.::
+Unable to view DRM content (Netflix, Spotify, etc.).::
+    On Arch Linux, simply install `chromium-widevine` from the AUR.
++
+For other distributions, it should be possible to obtain the needed
+widevine files and store them in the correct places, but the details differ
+wildly between various Qt versions.
+
+Unable to use `spawn` on MacOS.::
+    When running qutebrowser from the prebuilt binary (`qutebrowser.app`) it
+    *will not* read any files that would alter your `$PATH` (e.g. `.profile`,
+    `.bashrc`, etc). This is not a bug, just that `.profile` is not propagated
+    to GUI applications in MacOS.
++
+See https://github.com/qutebrowser/qutebrowser/issues/4273[Issue #4273] for
+details and potential workarounds.
+
+QtWebKit: Experiencing freezing on sites like DuckDuckGo and YouTube.::
     This issue could be caused by stale plugin files installed by `mozplugger`
     if mozplugger was subsequently removed.
     Try exiting qutebrowser and removing `~/.mozilla/plugins/mozplugger*.so`.
     See https://github.com/qutebrowser/qutebrowser/issues/357[Issue #357]
     for more details.
-
-When using QtWebEngine, qutebrowser reports "Render Process Crashed" and the console prints a traceback on Gentoo Linux or another Source-Based Distro::
-    As stated in https://gcc.gnu.org/gcc-6/changes.html[GCC's Website] GCC 6 has introduced some optimizations that could break non-conforming codebases, like QtWebEngine. +
-    As a workaround, you can disable the nullpointer check optimization by adding the -fno-delete-null-pointer-checks flag while compiling. +
-    On gentoo, you just need to add it into your make.conf, like this: +
-
-    CFLAGS="... -fno-delete-null-pointer-checks"
-    CXXFLAGS="... -fno-delete-null-pointer-checks"
-+
-And then re-emerging qtwebengine with: +
-
-    emerge -1 qtwebengine
-
-Unable to view DRM content (Netflix, Spotify, etc.).::
-    You will need to install `widevine` and set `qt.args` to point to it.
-    Qt 5.9 currently only supports widevine up to Chrome version 61.
-+
-On Arch, simply install `chromium-widevine` from the AUR.
-+
-For other distributions, download the chromium tarball and widevine-cdm zip from
-https://aur.archlinux.org/packages/chromium-widevine/[the AUR page],
-extract `libwidevinecdmadapter.so` and `libwidevinecdm.so` files, respectively,
-and move them to the `ppapi` plugin directory in your Qt library directory (create it if it does not exist).
-+
-Lastly, set your `qt.args` to point to that directory and restart qutebrowser:
-+
-----
-:set qt.args '["ppapi-widevine-path=/usr/lib64/qt5/plugins/ppapi/libwidevinecdmadapter.so"]'
-:restart
-----
-
-Unable to use `spawn` on MacOS.::
-When running qutebrowser from the prebuilt binary (`qutebrowser.app`) it *will
-not* read any files that would alter your `$PATH` (e.g. `.profile`, `.bashrc`,
-etc). This is not a bug, just that `.profile` is not propagated to GUI
-applications in MacOS.
-+
-See https://github.com/qutebrowser/qutebrowser/issues/4273[Issue #4273] for
-details and potential workarounds.
 
 My issue is not listed.::
     If you experience any segfaults or crashes, you can report the issue in

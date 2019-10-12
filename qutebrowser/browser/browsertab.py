@@ -40,11 +40,10 @@ from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
 from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.browser import eventfilter, hints
+from qutebrowser.browser import eventfilter
 from qutebrowser.qt import sip
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import,useless-suppression
     from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector
 
@@ -374,7 +373,7 @@ class AbstractZoom(QObject):
             levels, mode=usertypes.NeighborList.Modes.edge)
         self._neighborlist.fuzzyval = config.val.zoom.default
 
-    def apply_offset(self, offset: int) -> None:
+    def apply_offset(self, offset: int) -> int:
         """Increase/Decrease the zoom level by the given offset.
 
         Args:
@@ -383,7 +382,7 @@ class AbstractZoom(QObject):
         Return:
             The new zoom percentage.
         """
-        level = self._neighborlist.getitem(offset)
+        level = self._neighborlist.getitem(offset)  # type: int
         self.set_factor(float(level) / 100, fuzzyval=False)
         return level
 
@@ -888,13 +887,6 @@ class AbstractTab(QWidget):
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend = None
-
-        # FIXME:qtwebengine  Should this be public api via self.hints?
-        #                    Also, should we get it out of objreg?
-        hintmanager = hints.HintManager(win_id, self.tab_id, parent=self)
-        objreg.register('hintmanager', hintmanager, scope='tab',
-                        window=self.win_id, tab=self.tab_id)
-
         self.before_load_started.connect(self._on_before_load_started)
 
     def _set_widget(self, widget: QWidget) -> None:

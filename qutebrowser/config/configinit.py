@@ -60,6 +60,7 @@ def early_init(args: argparse.Namespace) -> None:
     objreg.register('config-commands', config_commands)
 
     config_file = standarddir.config_py()
+    global _init_errors
 
     try:
         if os.path.exists(config_file):
@@ -68,10 +69,12 @@ def early_init(args: argparse.Namespace) -> None:
             configfiles.read_autoconfig()
     except configexc.ConfigFileErrors as e:
         log.config.exception("Error while loading {}".format(e.basename))
-        global _init_errors
         _init_errors = e
 
-    configfiles.init()
+    try:
+        configfiles.init()
+    except configexc.ConfigFileErrors as e:
+        _init_errors = e
 
     for opt, val in args.temp_settings:
         try:
@@ -149,6 +152,10 @@ def late_init(save_manager: savemanager.SaveManager) -> None:
                                icon=QMessageBox.Warning,
                                plain_text=False)
         errbox.exec_()
+
+        if _init_errors.fatal:
+            sys.exit(usertypes.Exit.err_init)
+
     _init_errors = None
 
     config.instance.init_save_manager(save_manager)

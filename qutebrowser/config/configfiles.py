@@ -39,7 +39,6 @@ from qutebrowser.keyinput import keyutils
 from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
 
 if typing.TYPE_CHECKING:
-    # pylint: disable=unused-import, useless-suppression
     from qutebrowser.misc import savemanager
 
 
@@ -55,7 +54,6 @@ class StateConfig(configparser.ConfigParser):
         super().__init__()
         self._filename = os.path.join(standarddir.data(), 'state')
         self.read(self._filename, encoding='utf-8')
-
         qt_version = qVersion()
         # We handle this here, so we can avoid setting qt_version_changed if
         # the config is brand new, but can still set it when qt_version wasn't
@@ -160,7 +158,7 @@ class YamlConfig(QObject):
                 # Instead, create a config.py - see :help for details.
 
             """.lstrip('\n')))
-            utils.yaml_dump(data, f)
+            utils.yaml_dump(data, f)  # type: ignore
 
     def _pop_object(self,
                     yaml_data: typing.Any,
@@ -442,11 +440,21 @@ class ConfigAPI:
             urlpattern = urlmatch.UrlPattern(pattern) if pattern else None
             self._config.set_obj(name, value, pattern=urlpattern)
 
-    def bind(self, key: str, command: str, mode: str = 'normal') -> None:
+    def bind(self, key: str,
+             command: typing.Optional[str],
+             mode: str = 'normal') -> None:
         """Bind a key to a command, with an optional key mode."""
         with self._handle_error('binding', key):
             seq = keyutils.KeySequence.parse(key)
-            self._keyconfig.bind(seq, command, mode=mode)
+            if command is None:
+                text = ("Unbinding commands with config.bind('{key}', None) "
+                        "is deprecated. Use config.unbind('{key}') instead."
+                        .format(key=key))
+                self.errors.append(configexc.ConfigErrorDesc(
+                    "While unbinding '{}'".format(key), text))
+                self._keyconfig.unbind(seq, mode=mode)
+            else:
+                self._keyconfig.bind(seq, command, mode=mode)
 
     def unbind(self, key: str, mode: str = 'normal') -> None:
         """Unbind a key from a command, with an optional key mode."""
@@ -680,7 +688,13 @@ def saved_sys_properties() -> typing.Iterator[None]:
 def init() -> None:
     """Initialize config storage not related to the main config."""
     global state
-    state = StateConfig()
+
+    try:
+        state = StateConfig()
+    except configparser.Error as e:
+        msg = "While loading state file from {}".format(standarddir.data())
+        desc = configexc.ConfigErrorDesc(msg, e)
+        raise configexc.ConfigFileErrors('state', [desc], fatal=True)
 
     # Set the QSettings path to something like
     # ~/.config/qutebrowser/qsettings/qutebrowser/qutebrowser.conf so it

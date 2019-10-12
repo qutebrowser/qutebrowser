@@ -107,26 +107,26 @@ def run_with_count(count_arg: int, command: str, win_id: int,
 
 
 @cmdutils.register()
-def clear_messages():
+def clear_messages() -> None:
     """Clear all message notifications."""
     message.global_bridge.clear_messages.emit()
 
 
 @cmdutils.register(debug=True)
-def debug_all_objects():
+def debug_all_objects() -> None:
     """Print a list of  all objects to the debug log."""
     s = debug.get_all_objects()
     log.misc.debug(s)
 
 
 @cmdutils.register(debug=True)
-def debug_cache_stats():
+def debug_cache_stats() -> None:
     """Print LRU cache stats."""
     debugcachestats.debug_cache_stats()
 
 
 @cmdutils.register(debug=True)
-def debug_console():
+def debug_console() -> None:
     """Show the debugging console."""
     try:
         con_widget = objreg.get('debug-console')
@@ -144,7 +144,7 @@ def debug_console():
 
 
 @cmdutils.register(maxsplit=0, debug=True, no_cmd_split=True)
-def debug_pyeval(s, file=False, quiet=False):
+def debug_pyeval(s: str, file: bool = False, quiet: bool = False) -> None:
     """Evaluate a python string and display the results as a web page.
 
     Args:
@@ -182,7 +182,7 @@ def debug_pyeval(s, file=False, quiet=False):
 
 
 @cmdutils.register(debug=True)
-def debug_set_fake_clipboard(s=None):
+def debug_set_fake_clipboard(s: str = None) -> None:
     """Put data into the fake clipboard and enable logging, used for tests.
 
     Args:
@@ -197,7 +197,7 @@ def debug_set_fake_clipboard(s=None):
 @cmdutils.register()
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def repeat_command(win_id, count=None):
+def repeat_command(win_id: int, count: int = None) -> None:
     """Repeat the last executed command.
 
     Args:
@@ -234,8 +234,11 @@ def debug_log_level(level: str) -> None:
     Args:
         level: The log level to set.
     """
+    if log.console_handler is None:
+        raise cmdutils.CommandError("No log.console_handler. Not attached "
+                                    "to a console?")
+
     log.change_console_formatter(log.LOG_LEVELS[level.upper()])
-    assert log.console_handler is not None
     log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
 
 
@@ -265,7 +268,7 @@ def debug_log_filter(filters: str) -> None:
 
 @cmdutils.register()
 @cmdutils.argument('current_win_id', value=cmdutils.Value.win_id)
-def window_only(current_win_id):
+def window_only(current_win_id: int) -> None:
     """Close all windows except for the current one."""
     for win_id, window in objreg.window_registry.items():
 
@@ -279,7 +282,7 @@ def window_only(current_win_id):
 
 @cmdutils.register()
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-def version(win_id, paste=False):
+def version(win_id: int, paste: bool = False) -> None:
     """Show version information.
 
     Args:
