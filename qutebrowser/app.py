@@ -497,14 +497,10 @@ def _init_modules(*, args, crash_handler, quitter):
     objreg.register('bookmark-manager', bookmark_manager)
 
     log.init.debug("Initializing cookies...")
-    cookie_jar = cookies.CookieJar(q_app)
-    ram_cookie_jar = cookies.RAMCookieJar(q_app)
-    objreg.register('cookie-jar', cookie_jar)
-    objreg.register('ram-cookie-jar', ram_cookie_jar)
+    cookies.init(q_app)
 
     log.init.debug("Initializing cache...")
-    diskcache = cache.DiskCache(standarddir.cache(), parent=q_app)
-    objreg.register('cache', diskcache)
+    cache.init(q_app)
 
     log.init.debug("Initializing downloads...")
     download_manager = qtnetworkdownloads.DownloadManager(parent=q_app)

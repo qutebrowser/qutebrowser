@@ -47,7 +47,7 @@ from qutebrowser.config import (config, configdata, configtypes, configexc,
 from qutebrowser.api import config as configapi
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
 from qutebrowser.browser import greasemonkey, history, qutescheme
-from qutebrowser.browser.webkit import cookies
+from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.misc import savemanager, sql, objects
 from qutebrowser.keyinput import modeman
 
@@ -456,18 +456,11 @@ def webframe(webpage):
 
 
 @pytest.fixture
-def cookiejar_and_cache(stubs):
+def cookiejar_and_cache(stubs, monkeypatch):
     """Fixture providing a fake cookie jar and cache."""
-    jar = QNetworkCookieJar()
-    ram_jar = cookies.RAMCookieJar()
-    cache = stubs.FakeNetworkCache()
-    objreg.register('cookie-jar', jar)
-    objreg.register('ram-cookie-jar', ram_jar)
-    objreg.register('cache', cache)
-    yield
-    objreg.delete('cookie-jar')
-    objreg.delete('ram-cookie-jar')
-    objreg.delete('cache')
+    monkeypatch.setattr(cookies, 'cookie_jar', QNetworkCookieJar())
+    monkeypatch.setattr(cookies, 'ram_cookie_jar', cookies.RAMCookieJar())
+    monkeypatch.setattr(cache, 'diskcache', stubs.FakeNetworkCache())
 
 
 @pytest.fixture
