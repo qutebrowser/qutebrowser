@@ -44,6 +44,11 @@ class NoWindow(Exception):
     """Exception raised by last_window if no window is available."""
 
 
+class CommandOnlyError(Exception):
+
+    """Raised when an object is requested which is used for commands only."""
+
+
 class ObjectRegistry(collections.UserDict):
 
     """A registry of long-living objects in qutebrowser.
@@ -52,12 +57,14 @@ class ObjectRegistry(collections.UserDict):
 
     Attributes:
         _partial_objs: A dictionary of the connected partial objects.
+        command_only: Objects which are only registered for commands.
     """
 
     def __init__(self) -> None:
         super().__init__()
         self._partial_objs = {
         }  # type: typing.MutableMapping[str, typing.Callable[[], None]]
+        self.command_only = []  # type: typing.Sequence[str]
 
     def __setitem__(self, name: str, obj: typing.Any) -> None:
         """Register an object in the object registry.
@@ -217,13 +224,18 @@ def get(name: str,
         default: typing.Any = usertypes.UNSET,
         scope: str = 'global',
         window: _WindowTab = None,
-        tab: _WindowTab = None) -> typing.Any:
+        tab: _WindowTab = None,
+        from_command: bool = False) -> typing.Any:
     """Helper function to get an object.
 
     Args:
         default: A default to return if the object does not exist.
     """
     reg = _get_registry(scope, window, tab)
+    if name in reg.command_only and not from_command:
+        raise CommandOnlyError("{} is only registered for commands"
+                               .format(name))
+
     try:
         return reg[name]
     except KeyError:
@@ -239,7 +251,8 @@ def register(name: str,
              scope: str = None,
              registry: ObjectRegistry = None,
              window: _WindowTab = None,
-             tab: _WindowTab = None) -> None:
+             tab: _WindowTab = None,
+             command_only: bool = False) -> None:
     """Helper function to register an object.
 
     Args:
@@ -250,16 +263,21 @@ def register(name: str,
     if scope is not None and registry is not None:
         raise ValueError("scope ({}) and registry ({}) can't be given at the "
                          "same time!".format(scope, registry))
+
     if registry is not None:
         reg = registry
     else:
         if scope is None:
             scope = 'global'
         reg = _get_registry(scope, window, tab)
+
     if not update and name in reg:
         raise KeyError("Object '{}' is already registered ({})!".format(
             name, repr(reg[name])))
     reg[name] = obj
+
+    if command_only:
+        reg.command_only.append(name)
 
 
 def delete(name: str,
