@@ -381,7 +381,7 @@ class PyQIODevice(io.BufferedIOBase):
         self._check_open()
         self._check_readable()
 
-        if size is None:
+        if size in [None, -1]:
             buf = self.dev.readAll()
         else:
             buf = self.dev.read(size)  # type: ignore
