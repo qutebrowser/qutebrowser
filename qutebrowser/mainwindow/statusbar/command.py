@@ -19,7 +19,6 @@
 
 """The commandline in the statusbar."""
 
-import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
 from PyQt5.QtGui import QKeyEvent

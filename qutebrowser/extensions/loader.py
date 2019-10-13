@@ -32,7 +32,7 @@ from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser import components
 from qutebrowser.config import config
-from qutebrowser.utils import log, standarddir, objreg
+from qutebrowser.utils import log, standarddir
 from qutebrowser.misc import objects
 
 if typing.TYPE_CHECKING:

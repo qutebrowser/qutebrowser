@@ -25,7 +25,7 @@ from PyQt5.QtCore import QUrl, pyqtSlot
 from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
-from qutebrowser.utils import objreg, message, usertypes, urlutils
+from qutebrowser.utils import message, usertypes, urlutils
 from qutebrowser.misc import objects
 from qutebrowser.browser.network import pac
 

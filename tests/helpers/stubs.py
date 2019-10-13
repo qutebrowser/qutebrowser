@@ -34,7 +34,6 @@ from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab, downloads
 from qutebrowser.utils import usertypes
-from qutebrowser.mainwindow import mainwindow
 from qutebrowser.commands import runners
 
 

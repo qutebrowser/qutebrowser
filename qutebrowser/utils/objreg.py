@@ -25,7 +25,8 @@ import functools
 import typing
 
 from PyQt5.QtCore import QObject, QTimer
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QWidget  # pylint: disable=unused-import
 
 from qutebrowser.utils import log, usertypes
 if typing.TYPE_CHECKING:

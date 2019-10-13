@@ -21,7 +21,7 @@
 
 import typing
 
-from qutebrowser.utils import objreg, usertypes
+from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
 
 
