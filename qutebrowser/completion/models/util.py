@@ -43,7 +43,7 @@ def get_cmd_completions(info, include_hidden, include_aliases, prefix=''):
     cmdlist = []
     cmd_to_keys = info.keyconf.get_reverse_bindings_for('normal')
     for obj in set(objects.commands.values()):
-        hide_debug = obj.debug and not objreg.get('args').debug
+        hide_debug = obj.debug and not objects.args.debug
         hide_mode = (usertypes.KeyMode.normal not in obj.modes and
                      not include_hidden)
         if not (hide_debug or hide_mode or obj.deprecated):

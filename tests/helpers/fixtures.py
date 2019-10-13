@@ -496,9 +496,7 @@ def fake_args(request):
     ns = types.SimpleNamespace()
     ns.backend = 'webengine' if request.config.webengine else 'webkit'
     ns.debug_flags = []
-    objreg.register('args', ns)
-    yield ns
-    objreg.delete('args')
+    return ns
 
 
 @pytest.fixture

@@ -797,9 +797,9 @@ class Application(QApplication):
         log.init.debug("Qt arguments: {}, based on {}".format(qt_args, args))
         super().__init__(qt_args)
 
-        log.init.debug("Initializing application...")
+        objects.args = args
 
-        objreg.register('args', args)
+        log.init.debug("Initializing application...")
 
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(self.on_focus_object_changed)
