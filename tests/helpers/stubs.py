@@ -548,13 +548,6 @@ class TabWidgetStub(QObject):
         return self.tabs[idx - 1]
 
 
-class ApplicationStub(QObject):
-
-    """Stub to insert as the app object in objreg."""
-
-    new_window = pyqtSignal(mainwindow.MainWindow)
-
-
 class HTTPPostStub(QObject):
 
     """A stub class for HTTPClient.

@@ -371,15 +371,6 @@ def tabbed_browser_stubs(qapp, stubs, win_registry):
 
 
 @pytest.fixture
-def app_stub(stubs):
-    """Fixture which provides a fake app object."""
-    stub = stubs.ApplicationStub()
-    objreg.register('app', stub)
-    yield stub
-    objreg.delete('app')
-
-
-@pytest.fixture
 def status_command_stub(stubs, qtbot, win_registry):
     """Fixture which provides a fake status-command object."""
     cmd = stubs.StatusBarCommandStub()

@@ -800,7 +800,6 @@ class Application(QApplication):
         log.init.debug("Initializing application...")
 
         objreg.register('args', args)
-        objreg.register('app', self)
 
         self.launch_time = datetime.datetime.now()
         self.focusObjectChanged.connect(self.on_focus_object_changed)

@@ -248,7 +248,7 @@ class MainWindow(QWidget):
         QTimer.singleShot(0, self._connect_overlay_signals)
         config.instance.changed.connect(self._on_config_changed)
 
-        objreg.get("app").new_window.emit(self)
+        QApplication.instance().new_window.emit(self)
         self._set_decoration(config.val.window.hide_decoration)
 
         self.state_before_fullscreen = self.windowState()

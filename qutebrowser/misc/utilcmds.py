@@ -50,8 +50,7 @@ def later(ms: int, command: str, win_id: int) -> None:
     if ms < 0:
         raise cmdutils.CommandError("I can't run something in the past!")
     commandrunner = runners.CommandRunner(win_id)
-    app = objreg.get('app')
-    timer = usertypes.Timer(name='later', parent=app)
+    timer = usertypes.Timer(name='later', parent=QApplication.instance())
     try:
         timer.setSingleShot(True)
         try:
