@@ -22,7 +22,8 @@
 import functools
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
-from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtWidgets import QSizePolicy, QWidget
 
 from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.api import cmdutils
@@ -59,7 +60,9 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     show_cmd = pyqtSignal()
     hide_cmd = pyqtSignal()
 
-    def __init__(self, *, win_id, private, parent=None):
+    def __init__(self, *, win_id: int,
+                 private: bool,
+                 parent: QWidget = None) -> None:
         misc.CommandLineEdit.__init__(self, parent=parent)
         misc.MinimalLineEditMixin.__init__(self)
         self._win_id = win_id
@@ -73,7 +76,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.textChanged.connect(self.updateGeometry)
         self.textChanged.connect(self._incremental_search)
 
-    def _handle_search(self):
+    def _handle_search(self) -> bool:
         """Check if the currently entered text is a search, and if so, run it.
 
         Return:
@@ -88,7 +91,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         else:
             return False
 
-    def prefix(self):
+    def prefix(self) -> str:
         """Get the currently entered command prefix."""
         text = self.text()
         if not text:
@@ -98,7 +101,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         else:
             return ''
 
-    def set_cmd_text(self, text):
+    def set_cmd_text(self, text: str) -> None:
         """Preset the statusbar to some text.
 
         Args:
@@ -113,8 +116,11 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     @cmdutils.register(instance='status-command', name='set-cmd-text',
                        scope='window', maxsplit=0)
     @cmdutils.argument('count', value=cmdutils.Value.count)
-    def set_cmd_text_command(self, text, count=None, space=False, append=False,
-                             run_on_count=False):
+    def set_cmd_text_command(self, text: str,
+                             count: int = None,
+                             space: bool = False,
+                             append: bool = False,
+                             run_on_count: bool = False) -> None:
         """Preset the statusbar to some text.
 
         //
@@ -147,7 +153,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
-    def command_history_prev(self):
+    def command_history_prev(self) -> None:
         """Go back in the commandline history."""
         try:
             if not self.history.is_browsing():
@@ -162,7 +168,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
-    def command_history_next(self):
+    def command_history_next(self) -> None:
         """Go forward in the commandline history."""
         if not self.history.is_browsing():
             return
@@ -175,7 +181,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
 
     @cmdutils.register(instance='status-command',
                        modes=[usertypes.KeyMode.command], scope='window')
-    def command_accept(self, rapid=False):
+    def command_accept(self, rapid: bool = False) -> None:
         """Execute the command currently in the commandline.
 
         Args:
@@ -194,7 +200,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.got_cmd[str].emit(text[1:])
 
     @cmdutils.register(instance='status-command', scope='window')
-    def edit_command(self, run=False):
+    def edit_command(self, run: bool = False) -> None:
         """Open an editor to modify the current command.
 
         Args:
@@ -216,7 +222,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         ed.edit(self.text())
 
     @pyqtSlot(usertypes.KeyMode)
-    def on_mode_left(self, mode):
+    def on_mode_left(self, mode: usertypes.KeyMode) -> None:
         """Clear up when command mode was left.
 
         - Clear the statusbar text if it's explicitly unfocused.
@@ -233,7 +239,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.clear_completion_selection.emit()
             self.hide_completion.emit()
 
-    def setText(self, text):
+    def setText(self, text: str) -> None:
         """Extend setText to set prefix and make sure the prompt is ok."""
         if not text:
             pass
@@ -244,7 +250,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                                     "'{}'!".format(text))
         super().setText(text)
 
-    def keyPressEvent(self, e):
+    def keyPressEvent(self, e: QKeyEvent) -> None:
         """Override keyPressEvent to ignore Return key presses.
 
         If this widget is focused, we are in passthrough key mode, and
@@ -263,7 +269,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         else:
             super().keyPressEvent(e)
 
-    def sizeHint(self):
+    def sizeHint(self) -> QSize:
         """Dynamically calculate the needed size."""
         height = super().sizeHint().height()
         text = self.text()
@@ -273,7 +279,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         return QSize(width, height)
 
     @pyqtSlot()
-    def _incremental_search(self):
+    def _incremental_search(self) -> None:
         if not config.val.search.incremental:
             return
 
