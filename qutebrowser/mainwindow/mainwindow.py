@@ -139,6 +139,7 @@ class MainWindow(QWidget):
         tabbed_browser: The TabbedBrowser widget.
         state_before_fullscreen: window state before activation of fullscreen.
         _downloadview: The DownloadView widget.
+        _download_model: The DownloadModel instance.
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
         _overlays: Widgets shown as overlay for the current webpage.
@@ -193,7 +194,8 @@ class MainWindow(QWidget):
         self._vbox.setSpacing(0)
 
         self._init_downloadmanager()
-        self._downloadview = downloadview.DownloadView(self.win_id)
+        self._downloadview = downloadview.DownloadView(
+            model=self._download_model)
 
         if config.val.content.private_browsing:
             # This setting always trumps what's passed in.
@@ -329,10 +331,11 @@ class MainWindow(QWidget):
         except KeyError:
             webengine_download_manager = None
 
-        download_model = downloads.DownloadModel(qtnetwork_download_manager,
-                                                 webengine_download_manager)
-        objreg.register('download-model', download_model, scope='window',
-                        window=self.win_id)
+        self._download_model = downloads.DownloadModel(
+            qtnetwork_download_manager, webengine_download_manager)
+        objreg.register('download-model', self._download_model,
+                        scope='window', window=self.win_id,
+                        command_only=True)
 
     def _init_completion(self):
         self._completion = completionwidget.CompletionView(cmd=self.status.cmd,
@@ -603,9 +606,7 @@ class MainWindow(QWidget):
             e.accept()
             return
         tab_count = self.tabbed_browser.widget.count()
-        download_model = objreg.get('download-model', scope='window',
-                                    window=self.win_id)
-        download_count = download_model.running_downloads()
+        download_count = self._download_model.running_downloads()
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in config.val.confirm_quit and tab_count > 1:
