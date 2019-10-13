@@ -447,7 +447,6 @@ class MainWindow(QWidget):
 
     def _connect_signals(self):
         """Connect all mainwindow signals."""
-        status = self._get_object('statusbar')
         keyparsers = self._get_object('keyparsers')
         completion_obj = self._get_object('completion')
         cmd = self._get_object('status-command')
@@ -459,14 +458,14 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(hints.on_mode_entered)
 
         # status bar
-        mode_manager.entered.connect(status.on_mode_entered)
-        mode_manager.left.connect(status.on_mode_left)
+        mode_manager.entered.connect(self.status.on_mode_entered)
+        mode_manager.left.connect(self.status.on_mode_left)
         mode_manager.left.connect(cmd.on_mode_left)
         mode_manager.left.connect(message.global_bridge.mode_left)
 
         # commands
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
-            status.keystring.setText)
+            self.status.keystring.setText)
         cmd.got_cmd[str].connect(self._commandrunner.run_safely)
         cmd.got_cmd[str, int].connect(self._commandrunner.run_safely)
         cmd.returnPressed.connect(self.tabbed_browser.on_cmd_return_pressed)
@@ -484,35 +483,41 @@ class MainWindow(QWidget):
         message.global_bridge.clear_messages.connect(
             self._messageview.clear_messages)
 
-        message_bridge.s_set_text.connect(status.set_text)
-        message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
+        message_bridge.s_set_text.connect(self.status.set_text)
+        message_bridge.s_maybe_reset_text.connect(
+            self.status.txt.maybe_reset_text)
 
         # statusbar
-        self.tabbed_browser.current_tab_changed.connect(status.on_tab_changed)
+        self.tabbed_browser.current_tab_changed.connect(
+            self.status.on_tab_changed)
 
-        self.tabbed_browser.cur_progress.connect(status.prog.on_load_progress)
+        self.tabbed_browser.cur_progress.connect(
+            self.status.prog.on_load_progress)
         self.tabbed_browser.cur_load_started.connect(
-            status.prog.on_load_started)
+            self.status.prog.on_load_started)
 
         self.tabbed_browser.cur_scroll_perc_changed.connect(
-            status.percentage.set_perc)
+            self.status.percentage.set_perc)
         self.tabbed_browser.widget.tab_index_changed.connect(
-            status.tabindex.on_tab_index_changed)
+            self.status.tabindex.on_tab_index_changed)
 
-        self.tabbed_browser.cur_url_changed.connect(status.url.set_url)
+        self.tabbed_browser.cur_url_changed.connect(
+            self.status.url.set_url)
         self.tabbed_browser.cur_url_changed.connect(functools.partial(
-            status.backforward.on_tab_cur_url_changed,
+            self.status.backforward.on_tab_cur_url_changed,
             tabs=self.tabbed_browser))
-        self.tabbed_browser.cur_link_hovered.connect(status.url.set_hover_url)
+        self.tabbed_browser.cur_link_hovered.connect(
+            self.status.url.set_hover_url)
         self.tabbed_browser.cur_load_status_changed.connect(
-            status.url.on_load_status_changed)
+            self.status.url.on_load_status_changed)
 
         self.tabbed_browser.cur_caret_selection_toggled.connect(
-            status.on_caret_selection_toggled)
+            self.status.on_caret_selection_toggled)
 
         self.tabbed_browser.cur_fullscreen_requested.connect(
             self._on_fullscreen_requested)
-        self.tabbed_browser.cur_fullscreen_requested.connect(status.maybe_hide)
+        self.tabbed_browser.cur_fullscreen_requested.connect(
+            self.status.maybe_hide)
 
         # command input / completion
         mode_manager.entered.connect(self.tabbed_browser.on_mode_entered)
