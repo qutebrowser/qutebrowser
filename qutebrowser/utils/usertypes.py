@@ -110,7 +110,7 @@ class NeighborList(collections.abc.Sequence):
             True if the value snapped in (changed),
             False when the value already was in the list.
         """
-        assert isinstance(self.fuzzyval, int)
+        assert isinstance(self.fuzzyval, (int, float)), self.fuzzyval
 
         op = operator.le if offset < 0 else operator.ge
         items = [(idx, e) for (idx, e) in enumerate(self._items)
