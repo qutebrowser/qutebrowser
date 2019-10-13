@@ -47,6 +47,7 @@ import tempfile
 import atexit
 import datetime
 import tokenize
+import argparse
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QWindow
@@ -91,7 +92,7 @@ def run(args):
     if args.temp_basedir:
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
-    quitter = Quitter(args)
+    quitter = Quitter(args=args)
     objreg.register('quitter', quitter, command_only=True)
 
     log.init.debug("Initializing directories...")
@@ -521,7 +522,7 @@ class Quitter:
         _args: The argparse namespace.
     """
 
-    def __init__(self, args):
+    def __init__(self, *, args: argparse.Namespace) -> None:
         self.quit_status = {
             'crash': True,
             'tabs': False,
@@ -734,6 +735,7 @@ class Quitter:
         if q_app is None:
             # No QApplication exists yet, so quit hard.
             sys.exit(status)
+
         # Remove eventfilter
         try:
             log.destroy.debug("Removing eventfilter...")
@@ -742,13 +744,16 @@ class Quitter:
                 q_app.removeEventFilter(event_filter)
         except AttributeError:
             pass
+
         # Close all windows
         QApplication.closeAllWindows()
+
         # Shut down IPC
         try:
             ipc.server.shutdown()
         except KeyError:
             pass
+
         # Save everything
         try:
             save_manager = objreg.get('save-manager')
@@ -763,29 +768,37 @@ class Quitter:
                     error.handle_fatal_exc(
                         e, self._args, "Error while saving!",
                         pre_text="Error while saving {}".format(key))
+
         # Disable storage so removing tempdir will work
         websettings.shutdown()
+
         # Disable application proxy factory to fix segfaults with Qt 5.10.1
         proxy.shutdown()
+
         # Re-enable faulthandler to stdout, then remove crash log
         log.destroy.debug("Deactivating crash log...")
         objreg.get('crash-handler').destroy_crashlogfile()
+
         # Delete temp basedir
         if ((self._args.temp_basedir or self._args.temp_basedir_restarted) and
                 not restart):
             atexit.register(shutil.rmtree, self._args.basedir,
                             ignore_errors=True)
+
         # Delete temp download dir
         downloads.temp_download_manager.cleanup()
+
         # If we don't kill our custom handler here we might get segfaults
         log.destroy.debug("Deactivating message handler...")
         qInstallMessageHandler(None)
-        # Now we can hopefully quit without segfaults
-        log.destroy.debug("Deferring QApplication::exit...")
+
         objreg.get('signal-handler').deactivate()
         session_manager = objreg.get('session-manager', None)
         if session_manager is not None:
             session_manager.delete_autosave()
+
+        # Now we can hopefully quit without segfaults
+        log.destroy.debug("Deferring QApplication::exit...")
         # We use a singleshot timer to exit here to minimize the likelihood of
         # segfaults.
         QTimer.singleShot(0, functools.partial(q_app.exit, status))
