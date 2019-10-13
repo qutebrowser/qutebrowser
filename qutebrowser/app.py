@@ -479,6 +479,7 @@ def _init_modules(*, args, crash_handler, quitter):
     cmdhistory.init()
     log.init.debug("Initializing sessions...")
     sessions.init(q_app)
+    quitter.shutting_down.connect(sessions.shutdown)
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
