@@ -235,7 +235,7 @@ class MainWindow(QWidget):
                           self._prompt_container.update_geometry,
                           centered=True, padding=10)
         objreg.register('prompt-container', self._prompt_container,
-                        scope='window', window=self.win_id)
+                        scope='window', window=self.win_id, command_only=True)
         self._prompt_container.hide()
 
         self._messageview = messageview.MessageView(parent=self)

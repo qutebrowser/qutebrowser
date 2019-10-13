@@ -78,7 +78,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
 
     hintmanager = hints.HintManager(win_id, parent=parent)
     objreg.register('hintmanager', hintmanager, scope='window',
-                    window=win_id)
+                    window=win_id, command_only=True)
 
     keyparsers = {
         usertypes.KeyMode.normal:
