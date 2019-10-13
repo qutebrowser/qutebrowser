@@ -221,8 +221,8 @@ def _process_args(args):
     """Open startpage etc. and process commandline args."""
     if not args.override_restore:
         _load_session(args.session)
-    session_manager = objreg.get('session-manager')
-    if not session_manager.did_load:
+
+    if not sessions.session_manager.did_load:
         log.init.debug("Initializing main window...")
         if config.val.content.private_browsing and qtutils.is_single_process():
             err = Exception("Private windows are unavailable with "
@@ -248,8 +248,7 @@ def _load_session(name):
     Args:
         name: The name of the session to load, or None to read state file.
     """
-    session_manager = objreg.get('session-manager')
-    if name is None and session_manager.exists('_autosave'):
+    if name is None and sessions.session_manager.exists('_autosave'):
         name = '_autosave'
     elif name is None:
         try:
@@ -260,7 +259,7 @@ def _load_session(name):
             return
 
     try:
-        session_manager.load(name)
+        sessions.session_manager.load(name)
     except sessions.SessionNotFoundError:
         message.error("Session {} not found!".format(name))
     except sessions.SessionError as e:
@@ -271,7 +270,7 @@ def _load_session(name):
         pass
     # If this was a _restart session, delete it.
     if name == '_restart':
-        session_manager.delete('_restart')
+        sessions.session_manager.delete('_restart')
 
 
 def process_pos_args(args, via_ipc=False, cwd=None, target_arg=None):
@@ -667,8 +666,7 @@ class Quitter(QObject):
 
         # Save the session if one is given.
         if session is not None:
-            session_manager = objreg.get('session-manager')
-            session_manager.save(session, with_private=True)
+            sessions.session_manager.save(session, with_private=True)
 
         # Make sure we're not accepting a connection from the new process
         # before we fully exited.
@@ -724,14 +722,15 @@ class Quitter(QObject):
         self._is_shutting_down = True
         log.destroy.debug("Shutting down with status {}, session {}...".format(
             status, session))
-        session_manager = objreg.get('session-manager', None)
-        if session_manager is not None:
+        if sessions.session_manager is not None:
             if session is not None:
-                session_manager.save(session, last_window=last_window,
-                                     load_next_time=True)
+                sessions.session_manager.save(session,
+                                              last_window=last_window,
+                                              load_next_time=True)
             elif config.val.auto_save.session:
-                session_manager.save(sessions.default, last_window=last_window,
-                                     load_next_time=True)
+                sessions.session_manager.save(sessions.default,
+                                              last_window=last_window,
+                                              load_next_time=True)
 
         if prompt.prompt_queue.shutdown():
             # If shutdown was called while we were asking a question, we're in

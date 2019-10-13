@@ -39,7 +39,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
-from qutebrowser.misc import miscwidgets, objects
+from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter
 from qutebrowser.qt import sip
 
@@ -1003,13 +1003,9 @@ class AbstractTab(QWidget):
             # https://github.com/qutebrowser/qutebrowser/issues/3498
             return
 
-        try:
-            sess_manager = objreg.get('session-manager')
-        except KeyError:
-            # https://github.com/qutebrowser/qutebrowser/issues/4311
-            return
+        if sessions.session_manager is not None:
+            sessions.session_manager.save_autosave()
 
-        sess_manager.save_autosave()
         self.load_finished.emit(ok)
 
         if not self.title():

@@ -48,9 +48,8 @@ def sess_man(tmpdir):
 class TestInit:
 
     @pytest.fixture(autouse=True)
-    def cleanup(self):
-        yield
-        objreg.delete('session-manager')
+    def cleanup(self, monkeypatch):
+        monkeypatch.setattr(sessions, 'session_manager', None)
 
     @pytest.mark.parametrize('create_dir', [True, False])
     def test_with_standarddir(self, tmpdir, monkeypatch, create_dir):
@@ -60,10 +59,9 @@ class TestInit:
             session_dir.ensure(dir=True)
 
         sessions.init()
-        manager = objreg.get('session-manager')
 
         assert session_dir.exists()
-        assert manager._base_path == str(session_dir)
+        assert sessions.session_manager._base_path == str(session_dir)
 
 
 def test_did_not_load(sess_man):

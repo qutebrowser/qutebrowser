@@ -63,7 +63,7 @@ def init(parent=None):
 
     global session_manager
     session_manager = SessionManager(base_path, parent)
-    objreg.register('session-manager', session_manager)
+    objreg.register('session-manager', session_manager, command_only=True)
 
 
 @pyqtSlot()

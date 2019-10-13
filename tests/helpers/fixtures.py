@@ -48,7 +48,7 @@ from qutebrowser.api import config as configapi
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
 from qutebrowser.browser import greasemonkey, history, qutescheme
 from qutebrowser.browser.webkit import cookies, cache
-from qutebrowser.misc import savemanager, sql, objects
+from qutebrowser.misc import savemanager, sql, objects, sessions
 from qutebrowser.keyinput import modeman
 
 
@@ -350,12 +350,11 @@ def bookmark_manager_stub(stubs):
 
 
 @pytest.fixture
-def session_manager_stub(stubs):
+def session_manager_stub(stubs, monkeypatch):
     """Fixture which provides a fake session-manager object."""
     stub = stubs.SessionManagerStub()
-    objreg.register('session-manager', stub)
-    yield stub
-    objreg.delete('session-manager')
+    monkeypatch.setattr(sessions, 'session_manager', stub)
+    return stub
 
 
 @pytest.fixture

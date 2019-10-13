@@ -37,7 +37,7 @@ from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import commands, downloadview, hints, downloads
-from qutebrowser.misc import crashsignal, keyhintwidget
+from qutebrowser.misc import crashsignal, keyhintwidget, sessions
 
 
 win_id_gen = itertools.count(0)
@@ -592,7 +592,7 @@ class MainWindow(QWidget):
                 objreg.delete('last-visible-main-window')
         except KeyError:
             pass
-        objreg.get('session-manager').save_last_window_session()
+        sessions.session_manager.save_last_window_session()
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))
         self.tabbed_browser.shutdown()
