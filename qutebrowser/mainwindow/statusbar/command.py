@@ -71,8 +71,10 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             self.history.history = command_history.data
             self.history.changed.connect(command_history.changed)
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Ignored)
-        self.cursorPositionChanged.connect(self.update_completion)
-        self.textChanged.connect(self.update_completion)
+
+        self.cursorPositionChanged.connect(
+            self.update_completion)  # type: ignore
+        self.textChanged.connect(self.update_completion)  # type: ignore
         self.textChanged.connect(self.updateGeometry)
         self.textChanged.connect(self._incremental_search)
 
@@ -147,7 +149,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
             raise cmdutils.CommandError(
                 "Invalid command text '{}'.".format(text))
         if run_on_count and count is not None:
-            self.got_cmd[str, int].emit(text, count)
+            self.got_cmd[str, int].emit(text, count)  # type: ignore
         else:
             self.set_cmd_text(text)
 
@@ -197,7 +199,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
                           'cmd accept')
 
         if not was_search:
-            self.got_cmd[str].emit(text[1:])
+            self.got_cmd[str].emit(text[1:])  # type: ignore
 
     @cmdutils.register(instance='status-command', scope='window')
     def edit_command(self, run: bool = False) -> None:
@@ -208,7 +210,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         """
         ed = editor.ExternalEditor(parent=self)
 
-        def callback(text):
+        def callback(text: str) -> None:
             """Set the commandline to the edited text."""
             if not text or text[0] not in modeparsers.STARTCHARS:
                 message.error('command must start with one of {}'

@@ -25,7 +25,7 @@ import functools
 import typing
 
 from PyQt5.QtCore import QObject, QTimer
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QWidget
 
 from qutebrowser.utils import log, usertypes
 if typing.TYPE_CHECKING:
@@ -160,7 +160,7 @@ def _get_tab_registry(win_id: _WindowTab,
     if tab_id is None:
         raise ValueError("Got tab_id None (win_id {})".format(win_id))
     if tab_id == 'current' and win_id is None:
-        window = QApplication.activeWindow()
+        window = QApplication.activeWindow()  # type: typing.Optional[QWidget]
         if window is None or not hasattr(window, 'win_id'):
             raise RegistryUnavailableError('tab')
         win_id = window.win_id
@@ -188,13 +188,17 @@ def _get_window_registry(window: _WindowTab) -> ObjectRegistry:
         raise TypeError("window is None with scope window!")
     try:
         if window == 'current':
-            win = QApplication.activeWindow()
+            win = QApplication.activeWindow()  # type: typing.Optional[QWidget]
         elif window == 'last-focused':
             win = last_focused_window()
         else:
             win = window_registry[window]
     except (KeyError, NoWindow):
         win = None
+
+    if win is None:
+        raise RegistryUnavailableError('window')
+
     try:
         return win.registry
     except AttributeError:
