@@ -347,7 +347,7 @@ class MainWindow(QWidget):
         self._completion.selection_changed.connect(
             completer_obj.on_selection_changed)
         objreg.register('completion', self._completion, scope='window',
-                        window=self.win_id)
+                        window=self.win_id, command_only=True)
         self._add_overlay(self._completion, self._completion.update_geometry)
 
     def _init_command_dispatcher(self):
@@ -453,7 +453,6 @@ class MainWindow(QWidget):
     def _connect_signals(self):
         """Connect all mainwindow signals."""
         keyparsers = self._get_object('keyparsers')
-        completion_obj = self._get_object('completion')
         message_bridge = self._get_object('message-bridge')
         mode_manager = self._get_object('mode-manager')
 
@@ -528,11 +527,14 @@ class MainWindow(QWidget):
             self.status.maybe_hide)
 
         # command input / completion
-        mode_manager.entered.connect(self.tabbed_browser.on_mode_entered)
-        mode_manager.left.connect(self.tabbed_browser.on_mode_left)
+        mode_manager.entered.connect(
+            self.tabbed_browser.on_mode_entered)
+        mode_manager.left.connect(
+            self.tabbed_browser.on_mode_left)
         self.status.cmd.clear_completion_selection.connect(
-            completion_obj.on_clear_completion_selection)
-        self.status.cmd.hide_completion.connect(completion_obj.hide)
+            self._completion.on_clear_completion_selection)
+        self.status.cmd.hide_completion.connect(
+            self._completion.hide)
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""
