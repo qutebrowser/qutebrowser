@@ -42,6 +42,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     Signals:
         got_cmd: Emitted when a command is triggered by the user.
                  arg: The command string and also potentially the count.
+        got_search: Emitted when a search should happen.
         clear_completion_selection: Emitted before the completion widget is
                                     hidden.
         hide_completion: Emitted when the completion widget should be hidden.
@@ -51,6 +52,7 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
     """
 
     got_cmd = pyqtSignal([str], [str, int])
+    got_search = pyqtSignal(str, bool)  # text, reverse
     clear_completion_selection = pyqtSignal()
     hide_completion = pyqtSignal()
     update_completion = pyqtSignal()
@@ -71,25 +73,20 @@ class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):
         self.textChanged.connect(self.updateGeometry)
         self.textChanged.connect(self._incremental_search)
 
-        self._command_dispatcher = objreg.get(
-            'command-dispatcher', scope='window', window=self._win_id)
-
     def _handle_search(self):
         """Check if the currently entered text is a search, and if so, run it.
 
         Return:
             True if a search was executed, False otherwise.
         """
-        search_prefixes = {
-            '/': self._command_dispatcher.search,
-            '?': functools.partial(
-                self._command_dispatcher.search, reverse=True)
-        }
-        if self.prefix() in search_prefixes:
-            search_fn = search_prefixes[self.prefix()]
-            search_fn(self.text()[1:])
+        if self.prefix() == '/':
+            self.got_search.emit(self.text()[1:], False)
             return True
-        return False
+        elif self.prefix() == '?':
+            self.got_search.emit(self.text()[1:], True)
+            return True
+        else:
+            return False
 
     def prefix(self):
         """Get the currently entered command prefix."""

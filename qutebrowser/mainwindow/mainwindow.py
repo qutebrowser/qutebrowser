@@ -346,10 +346,12 @@ class MainWindow(QWidget):
         self._add_overlay(self._completion, self._completion.update_geometry)
 
     def _init_command_dispatcher(self):
-        dispatcher = commands.CommandDispatcher(self.win_id,
-                                                self.tabbed_browser)
-        objreg.register('command-dispatcher', dispatcher, scope='window',
-                        window=self.win_id)
+        self._command_dispatcher = commands.CommandDispatcher(
+            self.win_id, self.tabbed_browser)
+        objreg.register('command-dispatcher',
+                        self._command_dispatcher,
+                        command_only=True,
+                        scope='window', window=self.win_id)
         self.tabbed_browser.widget.destroyed.connect(
             functools.partial(objreg.delete, 'command-dispatcher',
                               scope='window', window=self.win_id))
@@ -468,6 +470,7 @@ class MainWindow(QWidget):
         cmd.got_cmd[str].connect(self._commandrunner.run_safely)
         cmd.got_cmd[str, int].connect(self._commandrunner.run_safely)
         cmd.returnPressed.connect(self.tabbed_browser.on_cmd_return_pressed)
+        cmd.got_search.connect(self._command_dispatcher.search)
 
         # key hint popup
         for mode, parser in keyparsers.items():
