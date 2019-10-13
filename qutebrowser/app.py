@@ -48,9 +48,10 @@ import atexit
 import datetime
 import tokenize
 import argparse
+import typing
 
 from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QWindow
+from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QWindow, QKeyEvent
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
                           QObject, QEvent, pyqtSignal, Qt)
 try:
@@ -94,6 +95,7 @@ def run(args):
 
     quitter = Quitter(args=args)
     objreg.register('quitter', quitter, command_only=True)
+    quitter.shutting_down.connect(log.shutdown_log)
 
     log.init.debug("Initializing directories...")
     standarddir.init(args)
@@ -116,13 +118,14 @@ def run(args):
 
     crash_handler = crashsignal.CrashHandler(
         app=q_app, quitter=quitter, args=args, parent=q_app)
+    objreg.register('crash-handler', crash_handler, command_only=True)
     crash_handler.activate()
-    objreg.register('crash-handler', crash_handler)
+    quitter.shutting_down.connect(crash_handler.shutdown)
 
     signal_handler = crashsignal.SignalHandler(app=q_app, quitter=quitter,
                                                parent=q_app)
     signal_handler.activate()
-    objreg.register('signal-handler', signal_handler)
+    quitter.shutting_down.connect(signal_handler.deactivate)
 
     try:
         server = ipc.send_or_listen(args)
@@ -137,6 +140,7 @@ def run(args):
                 "Backend from the running instance will be used")
         sys.exit(usertypes.Exit.ok)
     else:
+        quitter.shutting_down.connect(server.shutdown)
         server.got_args.connect(lambda args, target_arg, cwd:
                                 process_pos_args(args, cwd=cwd, via_ipc=True,
                                                  target_arg=target_arg))
@@ -155,19 +159,17 @@ def qt_mainloop():
     return q_app.exec_()
 
 
-def init(*, args, crash_handler, quitter):
-    """Initialize everything.
-
-    Args:
-        args: The argparse namespace.
-        crash_handler: The CrashHandler instance.
-        quitter: The Quitter instance.
-    """
+def init(*, args: argparse.Namespace,
+         crash_handler: crashsignal.CrashHandler,
+         quitter: 'Quitter'):
+    """Initialize everything."""
     log.init.debug("Starting init...")
 
     crash_handler.init_faulthandler()
 
     q_app.setQuitOnLastWindowClosed(False)
+    quitter.shutting_down.connect(QApplication.closeAllWindows)
+
     _init_icon()
 
     loader.init()
@@ -181,8 +183,8 @@ def init(*, args, crash_handler, quitter):
 
     log.init.debug("Initializing eventfilter...")
     event_filter = EventFilter(q_app)
-    q_app.installEventFilter(event_filter)
-    objreg.register('event-filter', event_filter)
+    event_filter.install()
+    quitter.shutting_down.connect(event_filter.shutdown)
 
     log.init.debug("Connecting signals...")
     q_app.focusChanged.connect(on_focus_changed)
@@ -438,6 +440,7 @@ def _init_modules(*, args, crash_handler, quitter):
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(q_app)
     objreg.register('save-manager', save_manager)
+    quitter.shutting_down.connect(save_manager.shutdown)
     configinit.late_init(save_manager)
 
     log.init.debug("Checking backend requirements...")
@@ -451,9 +454,11 @@ def _init_modules(*, args, crash_handler, quitter):
 
     log.init.debug("Initializing proxy...")
     proxy.init()
+    quitter.shutting_down.connect(proxy.shutdown)
 
     log.init.debug("Initializing downloads...")
     downloads.init()
+    quitter.shutting_down.connect(downloads.shutdown)
 
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
@@ -477,6 +482,7 @@ def _init_modules(*, args, crash_handler, quitter):
 
     log.init.debug("Initializing websettings...")
     websettings.init(args)
+    quitter.shutting_down.connect(websettings.shutdown)
 
     if not args.no_err_windows:
         crash_handler.display_faulthandler()
@@ -512,30 +518,35 @@ def _init_modules(*, args, crash_handler, quitter):
     browsertab.init()
 
 
-class Quitter:
+class Quitter(QObject):
 
     """Utility class to quit/restart the QApplication.
 
     Attributes:
         quit_status: The current quitting status.
-        _shutting_down: Whether we're currently shutting down.
+        _is_shutting_down: Whether we're currently shutting down.
         _args: The argparse namespace.
     """
 
-    def __init__(self, *, args: argparse.Namespace) -> None:
+    shutting_down = pyqtSignal()  # Emitted immediately before shut down
+
+    def __init__(self, *,
+                 args: argparse.Namespace,
+                 parent: QObject = None) -> None:
+        super().__init__(parent)
         self.quit_status = {
             'crash': True,
             'tabs': False,
             'main': False,
         }
-        self._shutting_down = False
+        self._is_shutting_down = False
         self._args = args
 
-    def on_last_window_closed(self):
+    def on_last_window_closed(self) -> None:
         """Slot which gets invoked when the last window was closed."""
         self.shutdown(last_window=True)
 
-    def _compile_modules(self):
+    def _compile_modules(self) -> None:
         """Compile all modules to catch SyntaxErrors."""
         if os.path.basename(sys.argv[0]) == 'qutebrowser':
             # Launched via launcher script
@@ -554,7 +565,11 @@ class Quitter:
                     with tokenize.open(os.path.join(dirpath, fn)) as f:
                         compile(f.read(), fn, 'exec')
 
-    def _get_restart_args(self, pages=(), session=None, override_args=None):
+    def _get_restart_args(
+            self, pages: typing.Iterable[str] = (),
+            session: str = None,
+            override_args: typing.Mapping[str, str] = None
+    ) -> typing.Sequence[str]:
         """Get args to relaunch qutebrowser.
 
         Args:
@@ -612,7 +627,7 @@ class Quitter:
         return args
 
     @cmdutils.register(instance='quitter', name='restart')
-    def restart_cmd(self):
+    def restart_cmd(self) -> None:
         """Restart qutebrowser while keeping existing tabs open."""
         try:
             ok = self.restart(session='_restart')
@@ -627,7 +642,9 @@ class Quitter:
         if ok:
             self.shutdown(restart=True)
 
-    def restart(self, pages=(), session=None, override_args=None):
+    def restart(self, pages: typing.Sequence[str] = (),
+                session: str = None,
+                override_args: typing.Mapping[str, str] = None) -> bool:
         """Inner logic to restart qutebrowser.
 
         The "better" way to restart is to pass a session (_restart usually) as
@@ -672,7 +689,7 @@ class Quitter:
 
     @cmdutils.register(instance='quitter', name='quit')
     @cmdutils.argument('session', completion=miscmodels.session)
-    def quit(self, save=False, session=None):
+    def quit(self, save: bool = False, session: str = None) -> None:
         """Quit qutebrowser.
 
         Args:
@@ -689,8 +706,10 @@ class Quitter:
         else:
             self.shutdown()
 
-    def shutdown(self, status=0, session=None, last_window=False,
-                 restart=False):
+    def shutdown(self, status: int = 0,
+                 session: str = None,
+                 last_window: bool = False,
+                 restart: bool = False) -> None:
         """Quit qutebrowser.
 
         Args:
@@ -700,9 +719,9 @@ class Quitter:
                             closing.
             restart: If we're planning to restart.
         """
-        if self._shutting_down:
+        if self._is_shutting_down:
             return
-        self._shutting_down = True
+        self._is_shutting_down = True
         log.destroy.debug("Shutting down with status {}, session {}...".format(
             status, session))
         session_manager = objreg.get('session-manager', None)
@@ -729,73 +748,21 @@ class Quitter:
             # event loop, so we can shut down immediately.
             self._shutdown(status, restart=restart)
 
-    def _shutdown(self, status, restart):  # noqa
+    def _shutdown(self, status: int, restart: bool) -> None:  # noqa
         """Second stage of shutdown."""
         log.destroy.debug("Stage 2 of shutting down...")
         if q_app is None:
             # No QApplication exists yet, so quit hard.
             sys.exit(status)
 
-        # Remove eventfilter
-        try:
-            log.destroy.debug("Removing eventfilter...")
-            event_filter = objreg.get('event-filter', None)
-            if event_filter is not None:
-                q_app.removeEventFilter(event_filter)
-        except AttributeError:
-            pass
-
-        # Close all windows
-        QApplication.closeAllWindows()
-
-        # Shut down IPC
-        try:
-            ipc.server.shutdown()
-        except KeyError:
-            pass
-
-        # Save everything
-        try:
-            save_manager = objreg.get('save-manager')
-        except KeyError:
-            log.destroy.debug("Save manager not initialized yet, so not "
-                              "saving anything.")
-        else:
-            for key in save_manager.saveables:
-                try:
-                    save_manager.save(key, is_exit=True)
-                except OSError as e:
-                    error.handle_fatal_exc(
-                        e, self._args, "Error while saving!",
-                        pre_text="Error while saving {}".format(key))
-
-        # Disable storage so removing tempdir will work
-        websettings.shutdown()
-
-        # Disable application proxy factory to fix segfaults with Qt 5.10.1
-        proxy.shutdown()
-
-        # Re-enable faulthandler to stdout, then remove crash log
-        log.destroy.debug("Deactivating crash log...")
-        objreg.get('crash-handler').destroy_crashlogfile()
+        # Tell everything to shut itself down
+        self.shutting_down.emit()
 
         # Delete temp basedir
         if ((self._args.temp_basedir or self._args.temp_basedir_restarted) and
                 not restart):
             atexit.register(shutil.rmtree, self._args.basedir,
                             ignore_errors=True)
-
-        # Delete temp download dir
-        downloads.temp_download_manager.cleanup()
-
-        # If we don't kill our custom handler here we might get segfaults
-        log.destroy.debug("Deactivating message handler...")
-        qInstallMessageHandler(None)
-
-        objreg.get('signal-handler').deactivate()
-        session_manager = objreg.get('session-manager', None)
-        if session_manager is not None:
-            session_manager.delete_autosave()
 
         # Now we can hopefully quit without segfaults
         log.destroy.debug("Deferring QApplication::exit...")
@@ -883,7 +850,7 @@ class EventFilter(QObject):
                    event.
     """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._activated = True
         self._handlers = {
@@ -892,7 +859,14 @@ class EventFilter(QObject):
             QEvent.ShortcutOverride: self._handle_key_event,
         }
 
-    def _handle_key_event(self, event):
+    def install(self):
+        q_app.installEventFilter(self)
+
+    @pyqtSlot()
+    def shutdown(self):
+        q_app.removeEventFilter(self)
+
+    def _handle_key_event(self, event: QKeyEvent) -> bool:
         """Handle a key press/release event.
 
         Args:
@@ -912,7 +886,7 @@ class EventFilter(QObject):
             # No window available yet, or not a MainWindow
             return False
 
-    def eventFilter(self, obj, event):
+    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         """Handle an event.
 
         Args:

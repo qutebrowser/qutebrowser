@@ -20,7 +20,7 @@
 """Handling of proxies."""
 
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, pyqtSlot
 from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
 
 from qutebrowser.config import config, configtypes
@@ -48,6 +48,7 @@ def _warn_for_pac():
         message.error("PAC support isn't implemented for QtWebEngine yet!")
 
 
+@pyqtSlot()
 def shutdown():
     QNetworkProxyFactory.setApplicationProxyFactory(None)
 
