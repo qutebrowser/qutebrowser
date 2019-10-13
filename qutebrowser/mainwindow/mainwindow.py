@@ -335,9 +335,11 @@ class MainWindow(QWidget):
                         window=self.win_id)
 
     def _init_completion(self):
-        self._completion = completionwidget.CompletionView(self.win_id, self)
-        cmd = objreg.get('status-command', scope='window', window=self.win_id)
-        completer_obj = completer.Completer(cmd=cmd, win_id=self.win_id,
+        self._completion = completionwidget.CompletionView(cmd=self.status.cmd,
+                                                           win_id=self.win_id,
+                                                           parent=self)
+        completer_obj = completer.Completer(cmd=self.status.cmd,
+                                            win_id=self.win_id,
                                             parent=self._completion)
         self._completion.selection_changed.connect(
             completer_obj.on_selection_changed)
@@ -449,7 +451,6 @@ class MainWindow(QWidget):
         """Connect all mainwindow signals."""
         keyparsers = self._get_object('keyparsers')
         completion_obj = self._get_object('completion')
-        cmd = self._get_object('status-command')
         message_bridge = self._get_object('message-bridge')
         mode_manager = self._get_object('mode-manager')
 
@@ -460,16 +461,20 @@ class MainWindow(QWidget):
         # status bar
         mode_manager.entered.connect(self.status.on_mode_entered)
         mode_manager.left.connect(self.status.on_mode_left)
-        mode_manager.left.connect(cmd.on_mode_left)
+        mode_manager.left.connect(self.status.cmd.on_mode_left)
         mode_manager.left.connect(message.global_bridge.mode_left)
 
         # commands
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
             self.status.keystring.setText)
-        cmd.got_cmd[str].connect(self._commandrunner.run_safely)
-        cmd.got_cmd[str, int].connect(self._commandrunner.run_safely)
-        cmd.returnPressed.connect(self.tabbed_browser.on_cmd_return_pressed)
-        cmd.got_search.connect(self._command_dispatcher.search)
+        self.status.cmd.got_cmd[str].connect(
+            self._commandrunner.run_safely)
+        self.status.cmd.got_cmd[str, int].connect(
+            self._commandrunner.run_safely)
+        self.status.cmd.returnPressed.connect(
+            self.tabbed_browser.on_cmd_return_pressed)
+        self.status.cmd.got_search.connect(
+            self._command_dispatcher.search)
 
         # key hint popup
         for mode, parser in keyparsers.items():
@@ -522,9 +527,9 @@ class MainWindow(QWidget):
         # command input / completion
         mode_manager.entered.connect(self.tabbed_browser.on_mode_entered)
         mode_manager.left.connect(self.tabbed_browser.on_mode_left)
-        cmd.clear_completion_selection.connect(
+        self.status.cmd.clear_completion_selection.connect(
             completion_obj.on_clear_completion_selection)
-        cmd.hide_completion.connect(completion_obj.hide)
+        self.status.cmd.hide_completion.connect(completion_obj.hide)
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""
