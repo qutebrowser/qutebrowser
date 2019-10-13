@@ -52,8 +52,8 @@ import typing
 
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QWindow, QKeyEvent
-from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QTimer, QUrl,
-                          QObject, QEvent, pyqtSignal, Qt)
+from PyQt5.QtCore import (pyqtSlot, QTimer, QUrl, QObject, QEvent, pyqtSignal,
+                          Qt)
 try:
     import hunter
 except ImportError:
@@ -191,9 +191,9 @@ def init(*, args: argparse.Namespace,
 
     _process_args(args)
 
-    QDesktopServices.setUrlHandler('http', open_desktopservices_url)  # type: ignore
-    QDesktopServices.setUrlHandler('https', open_desktopservices_url)  # type: ignore
-    QDesktopServices.setUrlHandler('qute', open_desktopservices_url)  # type: ignore
+    for scheme in ['http', 'https', 'qute']:
+        QDesktopServices.setUrlHandler(scheme,
+                                       open_desktopservices_url)  # type: ignore
 
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
