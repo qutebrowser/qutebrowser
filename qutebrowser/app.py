@@ -92,7 +92,7 @@ def run(args):
         args.basedir = tempfile.mkdtemp(prefix='qutebrowser-basedir-')
 
     quitter = Quitter(args)
-    objreg.register('quitter', quitter)
+    objreg.register('quitter', quitter, command_only=True)
 
     log.init.debug("Initializing directories...")
     standarddir.init(args)
@@ -140,7 +140,7 @@ def run(args):
                                 process_pos_args(args, cwd=cwd, via_ipc=True,
                                                  target_arg=target_arg))
 
-    init(args, crash_handler)
+    init(args=args, crash_handler=crash_handler, quitter=quitter)
     ret = qt_mainloop()
     return ret
 
@@ -154,12 +154,13 @@ def qt_mainloop():
     return q_app.exec_()
 
 
-def init(args, crash_handler):
+def init(*, args, crash_handler, quitter):
     """Initialize everything.
 
     Args:
         args: The argparse namespace.
         crash_handler: The CrashHandler instance.
+        quitter: The Quitter instance.
     """
     log.init.debug("Starting init...")
 
@@ -171,7 +172,7 @@ def init(args, crash_handler):
     loader.init()
     loader.load_components()
     try:
-        _init_modules(args, crash_handler)
+        _init_modules(args=args, crash_handler=crash_handler, quitter=quitter)
     except (OSError, UnicodeDecodeError, browsertab.WebTabError) as e:
         error.handle_fatal_exc(e, args, "Error while initializing!",
                                pre_text="Error while initializing")
@@ -425,12 +426,13 @@ def open_desktopservices_url(url):
     tabbed_browser.tabopen(url)
 
 
-def _init_modules(args, crash_handler):
+def _init_modules(*, args, crash_handler, quitter):
     """Initialize all 'modules' which need to be initialized.
 
     Args:
         args: The argparse namespace.
         crash_handler: The CrashHandler instance.
+        quitter: The Quitter instance.
     """
     log.init.debug("Initializing save manager...")
     save_manager = savemanager.SaveManager(q_app)
@@ -438,7 +440,7 @@ def _init_modules(args, crash_handler):
     configinit.late_init(save_manager)
 
     log.init.debug("Checking backend requirements...")
-    backendproblem.init()
+    backendproblem.init(quitter=quitter, args=args, save_manager=save_manager)
 
     log.init.debug("Initializing prompts...")
     prompt.init()
