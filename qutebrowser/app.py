@@ -462,7 +462,7 @@ def _init_modules(*, args, crash_handler, quitter):
 
     log.init.debug("Initializing readline-bridge...")
     readline_bridge = readline.ReadlineBridge()
-    objreg.register('readline-bridge', readline_bridge)
+    objreg.register('readline-bridge', readline_bridge, command_only=True)
 
     try:
         log.init.debug("Initializing SQL...")
