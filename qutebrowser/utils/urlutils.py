@@ -219,10 +219,7 @@ def fuzzy_url(urlstr: str,
         url = qurl_from_user_input(urlstr)
     log.url.debug("Converting fuzzy term {!r} to URL -> {}".format(
         urlstr, url.toDisplayString()))
-    if do_search and config.val.url.auto_search != 'never' and urlstr:
-        qtutils.ensure_valid(url)
-    else:
-        ensure_valid(url)
+    ensure_valid(url)
     return url
 
 
