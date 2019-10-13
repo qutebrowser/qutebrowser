@@ -57,7 +57,7 @@ def early_init(args: argparse.Namespace) -> None:
 
     config_commands = configcommands.ConfigCommands(
         config.instance, config.key_instance)
-    objreg.register('config-commands', config_commands)
+    objreg.register('config-commands', config_commands, command_only=True)
 
     config_file = standarddir.config_py()
     global _init_errors
