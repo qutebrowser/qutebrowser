@@ -32,6 +32,7 @@ from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)
 from qutebrowser.browser import shared
+from qutebrowser.browser.network import proxy
 from qutebrowser.extensions import interceptors
 from qutebrowser.browser.webkit import certificateerror
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
@@ -375,9 +376,8 @@ class NetworkManager(QNetworkAccessManager):
         Return:
             A QNetworkReply.
         """
-        proxy_factory = objreg.get('proxy-factory', None)
-        if proxy_factory is not None:
-            proxy_error = proxy_factory.get_error()
+        if proxy.application_factory is not None:
+            proxy_error = proxy.application_factory.get_error()
             if proxy_error is not None:
                 return networkreply.ErrorNetworkReply(
                     req, proxy_error, QNetworkReply.UnknownProxyError,

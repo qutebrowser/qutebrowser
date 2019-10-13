@@ -19,6 +19,7 @@
 
 """Handling of proxies."""
 
+import typing
 
 from PyQt5.QtCore import QUrl, pyqtSlot
 from PyQt5.QtNetwork import QNetworkProxy, QNetworkProxyFactory
@@ -29,11 +30,14 @@ from qutebrowser.misc import objects
 from qutebrowser.browser.network import pac
 
 
+application_factory = None
+
+
 def init():
     """Set the application wide proxy factory."""
-    proxy_factory = ProxyFactory()
-    objreg.register('proxy-factory', proxy_factory)
-    QNetworkProxyFactory.setApplicationProxyFactory(proxy_factory)
+    global application_factory
+    application_factory = ProxyFactory()
+    QNetworkProxyFactory.setApplicationProxyFactory(application_factory)
 
     config.instance.changed.connect(_warn_for_pac)
     _warn_for_pac()
