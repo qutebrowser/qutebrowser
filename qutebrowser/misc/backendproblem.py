@@ -33,7 +33,7 @@ import argparse
 import attr
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QApplication, QDialog, QPushButton, QHBoxLayout,
-                             QVBoxLayout, QLabel, QMessageBox)
+                             QVBoxLayout, QLabel, QMessageBox, QWidget)
 from PyQt5.QtNetwork import QSslSocket
 
 from qutebrowser.config import config, configfiles
@@ -59,13 +59,15 @@ class _Button:
 
     """A button passed to BackendProblemDialog."""
 
-    text = attr.ib()
-    setting = attr.ib()
-    value = attr.ib()
-    default = attr.ib(default=False)
+    text = attr.ib()  # type: str
+    setting = attr.ib()  # type: str
+    value = attr.ib()  # type: str
+    default = attr.ib(default=False)  # type: bool
 
 
-def _other_backend(backend):
+def _other_backend(
+        backend: usertypes.Backend
+) -> typing.Tuple[usertypes.Backend, str]:
     """Get the other backend enum/setting for a given backend."""
     other_backend = {
         usertypes.Backend.QtWebKit: usertypes.Backend.QtWebEngine,
@@ -75,7 +77,7 @@ def _other_backend(backend):
     return (other_backend, other_setting)
 
 
-def _error_text(because, text, backend):
+def _error_text(because: str, text: str, backend: usertypes.Backend) -> str:
     """Get an error text for the given information."""
     other_backend, other_setting = _other_backend(backend)
     if other_backend == usertypes.Backend.QtWebKit:
@@ -100,14 +102,19 @@ class _Dialog(QDialog):
 
     """A dialog which gets shown if there are issues with the backend."""
 
-    def __init__(self, because, text, backend, buttons=None, parent=None):
+    def __init__(self, *, because: str,
+                 text: str,
+                 backend: usertypes.Backend,
+                 buttons: typing.Sequence[_Button] = None,
+                 parent: QWidget = None) -> None:
         super().__init__(parent)
         vbox = QVBoxLayout(self)
 
         other_backend, other_setting = _other_backend(backend)
         text = _error_text(because, text, backend)
 
-        label = QLabel(text, wordWrap=True)
+        label = QLabel(text)
+        label.setWordWrap(True)
         label.setTextFormat(Qt.RichText)
         vbox.addWidget(label)
 
@@ -127,14 +134,15 @@ class _Dialog(QDialog):
         hbox.addWidget(backend_button)
 
         for button in buttons:
-            btn = QPushButton(button.text, default=button.default)
+            btn = QPushButton(button.text)
+            btn.setDefault(button.default)
             btn.clicked.connect(functools.partial(
                 self._change_setting, button.setting, button.value))
             hbox.addWidget(btn)
 
         vbox.addLayout(hbox)
 
-    def _change_setting(self, setting, value):
+    def _change_setting(self, setting: str, value: str) -> None:
         """Change the given setting and restart."""
         config.instance.set_obj(setting, value, save_yaml=True)
 
@@ -151,10 +159,10 @@ class _BackendImports:
 
     """Whether backend modules could be imported."""
 
-    webkit_available = attr.ib(default=None)
-    webengine_available = attr.ib(default=None)
-    webkit_error = attr.ib(default=None)
-    webengine_error = attr.ib(default=None)
+    webkit_available = attr.ib(default=None)  # type: bool
+    webengine_available = attr.ib(default=None)  # type: bool
+    webkit_error = attr.ib(default=None)  # type: str
+    webengine_error = attr.ib(default=None)  # type: str
 
 
 class _BackendProblemChecker:
@@ -439,7 +447,7 @@ class _BackendProblemChecker:
     def _assert_backend(self, backend: usertypes.Backend) -> None:
         assert objects.backend == backend, objects.backend
 
-    def check(self):
+    def check(self) -> None:
         """Run all checks."""
         self._check_backend_modules()
         if objects.backend == usertypes.Backend.QtWebEngine:

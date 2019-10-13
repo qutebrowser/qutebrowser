@@ -64,7 +64,7 @@ class ObjectRegistry(collections.UserDict):
         super().__init__()
         self._partial_objs = {
         }  # type: typing.MutableMapping[str, typing.Callable[[], None]]
-        self.command_only = []  # type: typing.Sequence[str]
+        self.command_only = []  # type: typing.MutableSequence[str]
 
     def __setitem__(self, name: str, obj: typing.Any) -> None:
         """Register an object in the object registry.

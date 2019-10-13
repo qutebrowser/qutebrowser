@@ -85,7 +85,7 @@ from qutebrowser.misc import utilcmds
 # pylint: enable=unused-import
 
 
-q_app = None
+q_app = typing.cast(QApplication, None)
 
 
 def run(args):
@@ -187,13 +187,13 @@ def init(*, args: argparse.Namespace,
     quitter.shutting_down.connect(event_filter.shutdown)
 
     log.init.debug("Connecting signals...")
-    q_app.focusChanged.connect(on_focus_changed)
+    q_app.focusChanged.connect(on_focus_changed)  # type: ignore
 
     _process_args(args)
 
-    QDesktopServices.setUrlHandler('http', open_desktopservices_url)
-    QDesktopServices.setUrlHandler('https', open_desktopservices_url)
-    QDesktopServices.setUrlHandler('qute', open_desktopservices_url)
+    QDesktopServices.setUrlHandler('http', open_desktopservices_url)  # type: ignore
+    QDesktopServices.setUrlHandler('https', open_desktopservices_url)  # type: ignore
+    QDesktopServices.setUrlHandler('qute', open_desktopservices_url)  # type: ignore
 
     log.init.debug("Init done!")
     crash_handler.raise_crashdlg()
@@ -589,7 +589,7 @@ class Quitter(QObject):
             args = [sys.executable, '-m', 'qutebrowser']
 
         # Add all open pages so they get reopened.
-        page_args = []
+        page_args = []  # type: typing.MutableSequence[str]
         for win in pages:
             page_args.extend(win)
             page_args.append('')
@@ -675,6 +675,7 @@ class Quitter(QObject):
 
         # Make sure we're not accepting a connection from the new process
         # before we fully exited.
+        assert ipc.server is not None
         ipc.server.shutdown()
 
         # Open a new process and immediately shutdown the existing one
@@ -689,7 +690,9 @@ class Quitter(QObject):
 
     @cmdutils.register(instance='quitter', name='quit')
     @cmdutils.argument('session', completion=miscmodels.session)
-    def quit(self, save: bool = False, session: str = None) -> None:
+    def quit(self,
+             save: bool = False,
+             session: sessions.ArgType = None) -> None:
         """Quit qutebrowser.
 
         Args:
@@ -707,7 +710,7 @@ class Quitter(QObject):
             self.shutdown()
 
     def shutdown(self, status: int = 0,
-                 session: str = None,
+                 session: sessions.ArgType = None,
                  last_window: bool = False,
                  restart: bool = False) -> None:
         """Quit qutebrowser.

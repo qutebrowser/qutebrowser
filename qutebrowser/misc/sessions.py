@@ -46,6 +46,8 @@ class Sentinel:
 default = Sentinel()
 session_manager = None
 
+ArgType = typing.Union[str, Sentinel]
+
 
 def init(parent=None):
     """Initialize sessions.
@@ -525,7 +527,7 @@ class SessionManager(QObject):
     @cmdutils.argument('name', completion=miscmodels.session)
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('with_private', flag='p')
-    def session_save(self, name: typing.Union[str, Sentinel] = default,
+    def session_save(self, name: ArgType = default,
                      current: bool = False,
                      quiet: bool = False,
                      force: bool = False,
