@@ -32,6 +32,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
+from qutebrowser.keyinput import macros
 
 if typing.TYPE_CHECKING:
     from qutebrowser.mainwindow import tabbedbrowser
@@ -383,5 +384,4 @@ class CommandRunner(AbstractCommandRunner):
             last_command[cur_mode] = (text, count)
 
         if record_macro and cur_mode == usertypes.KeyMode.normal:
-            macro_recorder = objreg.get('macro-recorder')
-            macro_recorder.record_command(text, count)
+            macros.macro_recorder.record_command(text, count)

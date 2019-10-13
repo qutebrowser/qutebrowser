@@ -33,7 +33,7 @@ from PyQt5.QtGui import QKeySequence, QKeyEvent
 from qutebrowser.browser import hints
 from qutebrowser.commands import runners, cmdexc
 from qutebrowser.config import config
-from qutebrowser.keyinput import basekeyparser, keyutils
+from qutebrowser.keyinput import basekeyparser, keyutils, macros
 from qutebrowser.utils import usertypes, log, message, objreg, utils
 
 
@@ -322,7 +322,6 @@ class RegisterKeyParser(CommandKeyParser):
 
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
-        macro_recorder = objreg.get('macro-recorder')
 
         try:
             if self._mode == usertypes.KeyMode.set_mark:
@@ -330,9 +329,9 @@ class RegisterKeyParser(CommandKeyParser):
             elif self._mode == usertypes.KeyMode.jump_mark:
                 tabbed_browser.jump_mark(key)
             elif self._mode == usertypes.KeyMode.record_macro:
-                macro_recorder.record_macro(key)
+                macros.macro_recorder.record_macro(key)
             elif self._mode == usertypes.KeyMode.run_macro:
-                macro_recorder.run_macro(self._win_id, key)
+                macros.macro_recorder.run_macro(self._win_id, key)
             else:
                 raise ValueError(
                     "{} is not a valid register mode".format(self._mode))
