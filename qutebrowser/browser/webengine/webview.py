@@ -192,8 +192,8 @@ class WebEnginePage(QWebEnginePage):
         """Override javaScriptConfirm to use qutebrowser prompts."""
         if (
                 self._is_shutting_down or
-                not self.parent().isVisible() or
-                not self.parent().window().isActiveWindow()
+                not self.view().isVisible() or
+                not self.view().window().isActiveWindow()
         ):
             return False
         escape_msg = qtutils.version_check('5.11', compiled=False)
@@ -214,8 +214,8 @@ class WebEnginePage(QWebEnginePage):
             escape_msg = qtutils.version_check('5.11', compiled=False)
             if (
                     self._is_shutting_down or
-                    not self.parent().isVisible() or
-                    not self.parent().window().isActiveWindow()
+                    not self.view().isVisible() or
+                    not self.view().window().isActiveWindow()
             ):
                 return (False, "")
             try:
@@ -230,8 +230,8 @@ class WebEnginePage(QWebEnginePage):
         """Override javaScriptAlert to use qutebrowser prompts."""
         if (
                 self._is_shutting_down or
-                not self.parent().isVisible() or
-                not self.parent().window().isActiveWindow()
+                not self.view().isVisible() or
+                not self.view().window().isActiveWindow()
         ):
             return
         escape_msg = qtutils.version_check('5.11', compiled=False)
