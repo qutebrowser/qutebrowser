@@ -950,6 +950,5 @@ def init():
     """Initialize global prompt objects."""
     global prompt_queue
     prompt_queue = PromptQueue()
-    objreg.register('prompt-queue', prompt_queue)  # for commands
     message.global_bridge.ask_question.connect(
         prompt_queue.ask_question, Qt.DirectConnection)
