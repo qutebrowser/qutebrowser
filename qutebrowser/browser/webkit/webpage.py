@@ -105,7 +105,11 @@ class BrowserPage(QWebPage):
 
     def javaScriptPrompt(self, frame, js_msg, default):
         """Override javaScriptPrompt to use qutebrowser prompts."""
-        if self._is_shutting_down:
+        if (
+                self._is_shutting_down or
+                not self.parent().isVisible() or
+                not self.parent().window().isActiveWindow()
+        ):
             return (False, "")
         try:
             return shared.javascript_prompt(frame.url(), js_msg, default,
@@ -446,7 +450,11 @@ class BrowserPage(QWebPage):
 
     def javaScriptAlert(self, frame, js_msg):
         """Override javaScriptAlert to use qutebrowser prompts."""
-        if self._is_shutting_down:
+        if (
+                self._is_shutting_down or
+                not self.parent().isVisible() or
+                not self.parent().window().isActiveWindow()
+        ):
             return
         try:
             shared.javascript_alert(frame.url(), js_msg,
@@ -457,7 +465,11 @@ class BrowserPage(QWebPage):
 
     def javaScriptConfirm(self, frame, js_msg):
         """Override javaScriptConfirm to use the statusbar."""
-        if self._is_shutting_down:
+        if (
+                self._is_shutting_down or
+                not self.parent().isVisible() or
+                not self.parent().window().isActiveWindow()
+        ):
             return False
         try:
             return shared.javascript_confirm(frame.url(), js_msg,
