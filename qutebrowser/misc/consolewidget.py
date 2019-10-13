@@ -31,6 +31,9 @@ from qutebrowser.misc import cmdhistory, miscwidgets
 from qutebrowser.utils import utils, objreg
 
 
+console_widget = None
+
+
 class ConsoleLineEdit(miscwidgets.CommandLineEdit):
 
     """A QLineEdit which executes entered code and provides a history.
@@ -211,3 +214,9 @@ class ConsoleWidget(QWidget):
     def _curprompt(self):
         """Get the prompt which is visible currently."""
         return sys.ps2 if self._more else sys.ps1
+
+
+def init():
+    """Initialize a global console."""
+    global console_widget
+    console_widget = ConsoleWidget()
