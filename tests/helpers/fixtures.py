@@ -484,10 +484,12 @@ def fake_save_manager():
 
 
 @pytest.fixture
-def fake_args(request):
+def fake_args(request, monkeypatch):
     ns = types.SimpleNamespace()
     ns.backend = 'webengine' if request.config.webengine else 'webkit'
     ns.debug_flags = []
+
+    monkeypatch.setattr(objects, 'args', ns)
     return ns
 
 

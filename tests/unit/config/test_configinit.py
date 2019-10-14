@@ -101,7 +101,6 @@ class TestEarlyInit:
         assert actual_errors == expected_errors
 
         # Make sure things have been init'ed
-        objreg.get('config-commands')
         assert isinstance(config.instance, config.Config)
         assert isinstance(config.key_instance, config.KeyConfig)
 
