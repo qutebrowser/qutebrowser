@@ -50,6 +50,11 @@ class TestInit:
     @pytest.fixture(autouse=True)
     def cleanup(self, monkeypatch):
         monkeypatch.setattr(sessions, 'session_manager', None)
+        yield
+        try:
+            objreg.delete('session-manager')
+        except KeyError:
+            pass
 
     @pytest.mark.parametrize('create_dir', [True, False])
     def test_with_standarddir(self, tmpdir, monkeypatch, create_dir):

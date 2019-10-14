@@ -119,6 +119,7 @@ class CookieJar(RAMCookieJar):
 
 
 def init(qapp):
+    """Initialize the global cookie jars."""
     global cookie_jar, ram_cookie_jar
     cookie_jar = CookieJar(qapp)
     ram_cookie_jar = RAMCookieJar(qapp)
