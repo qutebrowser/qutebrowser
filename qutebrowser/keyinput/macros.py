@@ -30,7 +30,7 @@ from qutebrowser.utils import message, objreg, usertypes
 
 _CommandType = typing.Tuple[str, int]  # command, type
 
-macro_recorder = None
+macro_recorder = typing.cast('MacroRecorder', None)
 
 
 class MacroRecorder:

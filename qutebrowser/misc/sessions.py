@@ -44,7 +44,7 @@ class Sentinel:
 
 
 default = Sentinel()
-session_manager = None
+session_manager = typing.cast('SessionManager', None)
 
 ArgType = typing.Union[str, Sentinel]
 

@@ -33,7 +33,7 @@ from qutebrowser.completion import completiondelegate
 from qutebrowser.utils import utils, usertypes, debug, log
 from qutebrowser.api import cmdutils
 if typing.TYPE_CHECKING:
-    from qutebrowser.statusbar import command
+    from qutebrowser.mainwindow.statusbar import command
 
 
 class CompletionView(QTreeView):

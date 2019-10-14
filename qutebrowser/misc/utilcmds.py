@@ -129,7 +129,9 @@ def debug_console() -> None:
     """Show the debugging console."""
     if consolewidget.console_widget is None:
         log.misc.debug('initializing debug console')
-        consolewidget.console_widget.init()
+        consolewidget.init()
+
+    assert consolewidget.console_widget is not None
 
     if consolewidget.console_widget.isVisible():
         log.misc.debug('hiding debug console')
