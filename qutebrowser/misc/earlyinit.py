@@ -141,7 +141,7 @@ def pyinstaller_qt_workaround():
             hasattr(sys, '_MEIPASS') and
             sys.platform == 'win32'):
         # pylint: disable=no-member,protected-access
-        os.environ['PATH'] += os.pathsep + sys._MEIPASS
+        os.environ['PATH'] += os.pathsep + sys._MEIPASS  # type: ignore
 
 
 def check_pyqt():
@@ -265,7 +265,7 @@ def configure_pyqt():
     from qutebrowser.qt import sip
     try:
         # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)
+        sip.enableoverflowchecking(True)  # type: ignore
     except AttributeError:
         pass
 

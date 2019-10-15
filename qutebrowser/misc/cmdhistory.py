@@ -19,6 +19,8 @@
 
 """Command history for the status bar."""
 
+import typing
+
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
 
 from qutebrowser.utils import usertypes, log, standarddir, objreg
@@ -58,7 +60,7 @@ class History(QObject):
         super().__init__(parent)
         self._tmphist = None
         if history is None:
-            self.history = []
+            self.history = []  # type: typing.Sequence[str]
         else:
             self.history = history
 

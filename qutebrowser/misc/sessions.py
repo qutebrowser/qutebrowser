@@ -38,6 +38,9 @@ from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
 
 
+_JsonType = typing.MutableMapping[str, typing.Any]
+
+
 class Sentinel:
 
     """Sentinel value for default argument."""
@@ -169,7 +172,7 @@ class SessionManager(QObject):
         """
         data = {
             'url': bytes(item.url().toEncoded()).decode('ascii'),
-        }
+        }  # type: _JsonType
 
         if item.title():
             data['title'] = item.title()
@@ -215,7 +218,7 @@ class SessionManager(QObject):
             tab: The WebView to save.
             active: Whether the tab is currently active.
         """
-        data = {'history': []}
+        data = {'history': []}  # type: _JsonType
         if active:
             data['active'] = True
         for idx, item in enumerate(tab.history):
@@ -232,9 +235,9 @@ class SessionManager(QObject):
 
     def _save_all(self, *, only_window=None, with_private=False):
         """Get a dict with data for all windows/tabs."""
-        data = {'windows': []}
+        data = {'windows': []}  # type: _JsonType
         if only_window is not None:
-            winlist = [only_window]
+            winlist = [only_window]  # type: typing.Iterable[int]
         else:
             winlist = objreg.window_registry
 
@@ -251,7 +254,7 @@ class SessionManager(QObject):
             if tabbed_browser.is_private and not with_private:
                 continue
 
-            win_data = {}
+            win_data = {}  # type: _JsonType
             active_window = QApplication.instance().activeWindow()
             if getattr(active_window, 'win_id', None) == win_id:
                 win_data['active'] = True
@@ -309,10 +312,10 @@ class SessionManager(QObject):
         else:
             data = self._save_all(only_window=only_window,
                                   with_private=with_private)
-        log.sessions.vdebug("Saving data: {}".format(data))
+        log.sessions.vdebug("Saving data: {}".format(data))  # type: ignore
         try:
             with qtutils.savefile_open(path) as f:
-                utils.yaml_dump(data, f)
+                utils.yaml_dump(data, f)  # type: ignore
         except (OSError, UnicodeEncodeError, yaml.YAMLError) as e:
             raise SessionError(e)
 
@@ -345,7 +348,7 @@ class SessionManager(QObject):
     def _load_tab(self, new_tab, data):
         """Load yaml data into a newly opened tab."""
         entries = []
-        lazy_load = []
+        lazy_load = []  # type: typing.MutableSequence[_JsonType]
         # use len(data['history'])
         # -> dropwhile empty if not session.lazy_session
         lazy_index = len(data['history'])

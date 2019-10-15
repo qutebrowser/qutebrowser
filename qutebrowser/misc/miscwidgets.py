@@ -54,7 +54,7 @@ class MinimalLineEditMixin:
                 e.accept()
                 self.insert(text)
             return
-        super().keyPressEvent(e)
+        super().keyPressEvent(e)  # type: ignore
 
     def __repr__(self):
         return utils.get_repr(self)

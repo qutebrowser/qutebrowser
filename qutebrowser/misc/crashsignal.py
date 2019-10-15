@@ -27,6 +27,7 @@ import pdb  # noqa: T002
 import signal
 import functools
 import faulthandler
+import typing
 try:
     # WORKAROUND for segfaults when using pdb in pytest for some reason...
     import readline  # pylint: disable=unused-import
@@ -36,6 +37,7 @@ except ImportError:
 import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
+from PyQt5.QtCore import pyqtSignal  # pylint: disable=unused-import
 
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
@@ -236,10 +238,11 @@ class CrashHandler(QObject):
         self._quitter.quit_status['crash'] = False
         info = self._get_exception_info()
 
-        try:
-            ipc.server.ignored = True
-        except Exception:
-            log.destroy.exception("Error while ignoring ipc")
+        if ipc.server is not None:
+            try:
+                ipc.server.ignored = True
+            except Exception:
+                log.destroy.exception("Error while ignoring ipc")
 
         try:
             self._app.lastWindowClosed.disconnect(
@@ -295,7 +298,8 @@ class SignalHandler(QObject):
         self._quitter = quitter
         self._notifier = None
         self._timer = usertypes.Timer(self, 'python_hacks')
-        self._orig_handlers = {}
+        self._orig_handlers = {
+        }  # type: typing.Mapping[pyqtSignal, typing.Callable[..., None]]
         self._activated = False
         self._orig_wakeup_fd = None
 
@@ -322,7 +326,8 @@ class SignalHandler(QObject):
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
             self._notifier = QSocketNotifier(read_fd, QSocketNotifier.Read,
                                              self)
-            self._notifier.activated.connect(self.handle_signal_wakeup)
+            self._notifier.activated.connect(  # type: ignore
+                self.handle_signal_wakeup)
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
             # pylint: enable=import-error,no-member,useless-suppression
         else:

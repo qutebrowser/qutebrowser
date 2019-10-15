@@ -139,7 +139,7 @@ def split(s, keep=False):
     out = []
     spaces = ""
 
-    log.shlexer.vdebug("{!r} -> {!r}".format(s, tokens))
+    log.shlexer.vdebug("{!r} -> {!r}".format(s, tokens))  # type: ignore
 
     for t in tokens:
         if t.isspace():

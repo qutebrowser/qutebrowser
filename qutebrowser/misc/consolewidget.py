@@ -173,7 +173,7 @@ class ConsoleWidget(QWidget):
             'objreg': objreg,
         }
         self._more = False
-        self._buffer = []
+        self._buffer = []  # type: typing.MutableSequence[str]
         self._lineedit = ConsoleLineEdit(namespace, self)
         self._lineedit.execute.connect(self.push)
         self._output = ConsoleTextEdit()

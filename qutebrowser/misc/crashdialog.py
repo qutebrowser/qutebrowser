@@ -28,6 +28,7 @@ import fnmatch
 import traceback
 import datetime
 import enum
+import typing
 
 import pkg_resources
 from PyQt5.QtCore import pyqtSlot, Qt, QSize
@@ -117,7 +118,7 @@ class _CrashDialog(QDialog):
         super().__init__(parent)
         # We don't set WA_DeleteOnClose here as on an exception, we'll get
         # closed anyways, and it only could have unintended side-effects.
-        self._crash_info = []
+        self._crash_info = []  # type: typing.Sequence[typing.Tuple[str, str]]
         self._btn_box = None
         self._btn_report = None
         self._btn_cancel = None
@@ -135,18 +136,23 @@ class _CrashDialog(QDialog):
 
         info = QLabel("What were you doing when this crash/bug happened?")
         self._vbox.addWidget(info)
-        self._info = QTextEdit(tabChangesFocus=True, acceptRichText=False)
+        self._info = QTextEdit()
+        self._info.setTabChangesFocus(True)
+        self._info.setAcceptRichText(False)
         self._info.setPlaceholderText("- Opened http://www.example.com/\n"
                                       "- Switched tabs\n"
                                       "- etc...")
         self._vbox.addWidget(self._info, 5)
 
         self._vbox.addSpacing(15)
-        self._debug_log = QTextEdit(tabChangesFocus=True, acceptRichText=False,
-                                    lineWrapMode=QTextEdit.NoWrap)
+        self._debug_log = QTextEdit()
+        self._debug_log.setTabChangesFocus(True)
+        self._debug_log.setAcceptRichText(False)
+        self._debug_log.setLineWrapMode(QTextEdit.NoWrap)
         self._debug_log.hide()
         info = QLabel("<i>You can edit the log below to remove sensitive "
-                      "information.</i>", wordWrap=True)
+                      "information.</i>")
+        info.setWordWrap(True)
         info.hide()
         self._fold = miscwidgets.DetailFold("Show log", self)
         self._fold.toggled.connect(self._debug_log.setVisible)
@@ -174,10 +180,12 @@ class _CrashDialog(QDialog):
         """Initialize the widget asking for contact info."""
         contact = QLabel("I'd like to be able to follow up with you, to keep "
                          "you posted on the status of this crash and get more "
-                         "information if I need it - how can I contact you?",
-                         wordWrap=True)
+                         "information if I need it - how can I contact you?")
+        contact.setWordWrap(True)
         self._vbox.addWidget(contact)
-        self._contact = QTextEdit(tabChangesFocus=True, acceptRichText=False)
+        self._contact = QTextEdit()
+        self._contact.setTabChangesFocus(True)
+        self._contact.setAcceptRichText(False)
         try:
             try:
                 info = configfiles.state['general']['contact-info']
@@ -195,8 +203,10 @@ class _CrashDialog(QDialog):
 
         Should be extended by subclasses to set the actual text.
         """
-        self._lbl = QLabel(wordWrap=True, openExternalLinks=True,
-                           textInteractionFlags=Qt.LinksAccessibleByMouse)
+        self._lbl = QLabel()
+        self._lbl.setWordWrap(True)
+        self._lbl.setOpenExternalLinks(True)
+        self._lbl.setTextInteractionFlags(Qt.LinksAccessibleByMouse)
         self._vbox.addWidget(self._lbl)
 
     def _init_checkboxes(self):
@@ -207,19 +217,21 @@ class _CrashDialog(QDialog):
         self._btn_box = QDialogButtonBox()
         self._vbox.addWidget(self._btn_box)
 
-        self._btn_report = QPushButton("Report", default=True)
+        self._btn_report = QPushButton("Report")
+        self._btn_report.setDefault(True)
         self._btn_report.clicked.connect(self.on_report_clicked)
         self._btn_box.addButton(self._btn_report, QDialogButtonBox.AcceptRole)
 
-        self._btn_cancel = QPushButton("Don't report", autoDefault=False)
+        self._btn_cancel = QPushButton("Don't report")
+        self._btn_cancel.setAutoDefault(False)
         self._btn_cancel.clicked.connect(self.finish)
         self._btn_box.addButton(self._btn_cancel, QDialogButtonBox.RejectRole)
 
     def _init_info_text(self):
         """Add an info text encouraging the user to report crashes."""
         info_label = QLabel("<br/><b>Note that without your help, I can't fix "
-                            "the bug you encountered.</b>",
-                            wordWrap=True)
+                            "the bug you encountered.</b>")
+        info_label.setWordWrap(True)
         self._vbox.addWidget(info_label)
 
     def _gather_crash_info(self):
@@ -338,7 +350,7 @@ class _CrashDialog(QDialog):
             text: The paste text to show.
         """
         error_dlg = ReportErrorDialog(text, self._paste_text, self)
-        error_dlg.finished.connect(self.finish)
+        error_dlg.finished.connect(self.finish)  # type: ignore
         error_dlg.show()
 
     @pyqtSlot(str)
@@ -415,8 +427,8 @@ class ExceptionCrashDialog(_CrashDialog):
         self._chk_restore = QCheckBox("Restore open pages")
         self._chk_restore.setChecked(True)
         self._vbox.addWidget(self._chk_restore)
-        self._chk_log = QCheckBox("Include a debug log in the report",
-                                  checked=True)
+        self._chk_log = QCheckBox("Include a debug log in the report")
+        self._chk_log.setChecked(True)
         try:
             if config.val.content.private_browsing:
                 self._chk_log.setChecked(False)
@@ -427,7 +439,8 @@ class ExceptionCrashDialog(_CrashDialog):
         info_label = QLabel("<i>This makes it a lot easier to diagnose the "
                             "crash, but it might contain sensitive "
                             "information such as which pages you visited "
-                            "or keyboard input.</i>", wordWrap=True)
+                            "or keyboard input.</i>")
+        info_label.setWordWrap(True)
         self._vbox.addWidget(info_label)
 
     def _get_error_type(self):
@@ -450,8 +463,10 @@ class ExceptionCrashDialog(_CrashDialog):
                 ("Objects", self._qobjects),
             ]
             try:
-                self._crash_info.append(
-                    ("Debug log", log.ram_handler.dump_log()))
+                text = "Log output was disabled."
+                if log.ram_handler is not None:
+                    text = log.ram_handler.dump_log()
+                self._crash_info.append(("Debug log", text))
             except Exception:
                 self._crash_info.append(("Debug log", traceback.format_exc()))
 
@@ -508,8 +523,8 @@ class FatalCrashDialog(_CrashDialog):
         """Add checkboxes to the dialog."""
         super()._init_checkboxes()
         self._chk_history = QCheckBox("Include a history of the last "
-                                      "accessed pages in the report.",
-                                      checked=True)
+                                      "accessed pages in the report.")
+        self._chk_history.setChecked(True)
         try:
             if config.val.content.private_browsing:
                 self._chk_history.setChecked(False)
@@ -607,8 +622,10 @@ class ReportErrorDialog(QDialog):
                        "crash@qutebrowser.org</a> - Thanks!".format(
                            html.escape(exc_text)))
         vbox.addWidget(label)
-        txt = QTextEdit(readOnly=True, tabChangesFocus=True,
-                        acceptRichText=False)
+        txt = QTextEdit()
+        txt.setReadOnly(True)
+        txt.setTabChangesFocus(True)
+        txt.setAcceptRichText(False)
         txt.setText(text)
         txt.selectAll()
         vbox.addWidget(txt)
