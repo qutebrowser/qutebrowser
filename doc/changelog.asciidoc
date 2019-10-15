@@ -23,6 +23,9 @@ Changed
 
 - The `qute-pass` userscript now has a new `--extra-url-suffixes` (`-s`)
   argument which passes extra URL suffixes to the tldextract library.
+- A stack is now used for `:tab-focus last` rather than just saving one tab.
+  Additionally, `:tab-focus` now understands `stack-prev` and `stack-next`
+  arguments to traverse that stack.
 
 Fixed
 ~~~~~
