@@ -51,7 +51,7 @@ def helptopic(*, info):
 
 def quickmark(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with all quickmarks."""
-    def delete(data: typing.Sequence[int]) -> None:
+    def delete(data: typing.Sequence[str]) -> None:
         """Delete a quickmark from the completion menu."""
         name = data[0]
         quickmark_manager = objreg.get('quickmark-manager')
@@ -68,7 +68,7 @@ def quickmark(*, info=None):  # pylint: disable=unused-argument
 
 def bookmark(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with all bookmarks."""
-    def delete(data: typing.Sequence[int]) -> None:
+    def delete(data: typing.Sequence[str]) -> None:
         """Delete a bookmark from the completion menu."""
         urlstr = data[0]
         log.completion.debug('Deleting bookmark {}'.format(urlstr))
@@ -88,10 +88,10 @@ def session(*, info=None):  # pylint: disable=unused-argument
     from qutebrowser.misc import sessions
     model = completionmodel.CompletionModel()
     try:
-        sessions = ((name,) for name
-                    in sessions.session_manager.list_sessions()
-                    if not name.startswith('_'))
-        model.add_category(listcategory.ListCategory("Sessions", sessions))
+        sess = ((name,) for name
+                in sessions.session_manager.list_sessions()
+                if not name.startswith('_'))
+        model.add_category(listcategory.ListCategory("Sessions", sess))
     except OSError:
         log.completion.exception("Failed to list sessions!")
     return model
