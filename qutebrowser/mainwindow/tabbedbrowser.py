@@ -49,6 +49,7 @@ class UndoEntry:
 
 
 class TabDeque:
+
     """Class which manages the 'last visited' tab stack.
 
     Instead of handling deletions by clearing old entries, they are handled by
@@ -59,7 +60,6 @@ class TabDeque:
     getter functions. This is done because the on_switch functions will be
     called upon switch, and we don't want to duplicate entries in the stack
     for a single switch.
-
     """
 
     def __init__(self) -> None:
