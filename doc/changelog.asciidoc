@@ -47,6 +47,7 @@ Fixed
 - Errors while reading the state file are now displayed instead of causing a
   crash.
 - Crash when using `:debug-log-level` without a console attached.
+- Downloads are now hidden proplerly when the browser is in fullscreen mode.
 
 v1.8.1 (2019-09-27)
 -------------------
