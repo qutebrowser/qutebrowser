@@ -406,11 +406,14 @@ class Command:
             raise TypeError("{}: Legacy tuple type annotation!".format(
                 self.name))
 
-        if getattr(typ, '__origin__', None) is typing.Union or (
-                # Python 3.5.2
-                # pylint: disable=no-member,useless-suppression
-                hasattr(typing, 'UnionMeta') and
-                isinstance(typ, typing.UnionMeta)):  # type: ignore
+        if hasattr(typing, 'UnionMeta'):
+            # Python 3.5.2
+            # pylint: disable=no-member,useless-suppression
+            is_union = isinstance(typ, typing.UnionMeta)  # type: ignore
+        else:
+            is_union = getattr(typ, '__origin__', None) is typing.Union
+
+        if is_union:
             # this is... slightly evil, I know
             try:
                 types = list(typ.__args__)
