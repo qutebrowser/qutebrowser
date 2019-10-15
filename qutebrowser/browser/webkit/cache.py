@@ -24,7 +24,10 @@ import os.path
 from PyQt5.QtNetwork import QNetworkDiskCache
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, qtutils
+from qutebrowser.utils import utils, qtutils, standarddir
+
+
+diskcache = None
 
 
 class DiskCache(QNetworkDiskCache):
@@ -52,3 +55,9 @@ class DiskCache(QNetworkDiskCache):
         if not qtutils.version_check('5.9', compiled=False):
             size = 0  # pragma: no cover
         self.setMaximumCacheSize(size)
+
+
+def init(parent):
+    """Initialize the global cache."""
+    global diskcache
+    diskcache = DiskCache(standarddir.cache(), parent=parent)

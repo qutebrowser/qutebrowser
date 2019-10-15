@@ -183,17 +183,21 @@ tox -e py35-cov -- tests/unit/browser/test_webelem.py
 Profiling
 ~~~~~~~~~
 
-In the _scripts/_ subfolder there's a `run_profile.py` which profiles the code
-and shows a graphical representation of what takes how much time.
+In the _scripts/dev/_ subfolder there's `run_profile.py` which profiles the
+code and shows a graphical representation of what takes how much time.
 
 It uses the built-in Python
-https://docs.python.org/3.6/library/profile.html[cProfile] module and can show
-the output in four different ways:
+https://docs.python.org/3/library/profile.html[cProfile] module. It launches a
+qutebrowser instance, waits for it to exit and then shows the graph.
 
-* Raw profile file (`--profile-tool=none`)
+Available methods for visualization are:
+
+* https://jiffyclub.github.io/snakeviz/[SnakeViz] (`--profile-tool=snakeviz`, the default)
 * https://pypi.python.org/pypi/pyprof2calltree/[pyprof2calltree] and http://kcachegrind.sourceforge.net/html/Home.html[KCacheGrind] (`--profile-tool=kcachegrind`)
-* https://jiffyclub.github.io/snakeviz/[SnakeViz] (`--profile-tool=snakeviz`)
-* https://github.com/jrfonseca/gprof2dot[gprof2dot] (needs `dot` from http://graphviz.org/[Graphviz] and http://feh.finalrewind.org/[feh])
+* https://github.com/jrfonseca/gprof2dot[gprof2dot] (`--profile-tool=gprof2dot`, needs `dot` from http://graphviz.org/[Graphviz] and http://feh.finalrewind.org/[feh])
+* https://github.com/nschloe/tuna[tuna] (`--profile-tool=tuna`)
+
+You can also save the binary profile data to a file (`--profile-tool=none`).
 
 Debugging
 ~~~~~~~~~

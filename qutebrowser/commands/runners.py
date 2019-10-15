@@ -32,6 +32,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
+from qutebrowser.keyinput import macros
 
 if typing.TYPE_CHECKING:
     from qutebrowser.mainwindow import tabbedbrowser
@@ -303,7 +304,21 @@ class CommandParser:
             return split_args
 
 
-class CommandRunner(QObject):
+class AbstractCommandRunner(QObject):
+
+    """Abstract base class for CommandRunner."""
+
+    def run(self, text, count=None, *, safely=False):
+        raise NotImplementedError
+
+    @pyqtSlot(str, int)
+    @pyqtSlot(str)
+    def run_safely(self, text, count=None):
+        """Run a command and display exceptions in the statusbar."""
+        self.run(text, count, safely=True)
+
+
+class CommandRunner(AbstractCommandRunner):
 
     """Parse and run qutebrowser commandline commands.
 
@@ -369,11 +384,4 @@ class CommandRunner(QObject):
             last_command[cur_mode] = (text, count)
 
         if record_macro and cur_mode == usertypes.KeyMode.normal:
-            macro_recorder = objreg.get('macro-recorder')
-            macro_recorder.record_command(text, count)
-
-    @pyqtSlot(str, int)
-    @pyqtSlot(str)
-    def run_safely(self, text, count=None):
-        """Run a command and display exceptions in the statusbar."""
-        self.run(text, count, safely=True)
+            macros.macro_recorder.record_command(text, count)

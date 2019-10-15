@@ -103,18 +103,18 @@ def _build_special_names() -> typing.Mapping[Qt.Key, str]:
         'Dead_Hook': 'Hook',
         'Dead_Horn': 'Horn',
 
-        'Dead_Stroke': '̵',
-        'Dead_Abovecomma': '̓',
-        'Dead_Abovereversedcomma': '̔',
-        'Dead_Doublegrave': '̏',
-        'Dead_Belowring': '̥',
-        'Dead_Belowmacron': '̱',
-        'Dead_Belowcircumflex': '̭',
-        'Dead_Belowtilde': '̰',
-        'Dead_Belowbreve': '̮',
-        'Dead_Belowdiaeresis': '̤',
-        'Dead_Invertedbreve': '̑',
-        'Dead_Belowcomma': '̦',
+        'Dead_Stroke': '\u0335',  # '̵'
+        'Dead_Abovecomma': '\u0313',  # '̓'
+        'Dead_Abovereversedcomma': '\u0314',  # '̔'
+        'Dead_Doublegrave': '\u030f',  # '̏'
+        'Dead_Belowring': '\u0325',  # '̥'
+        'Dead_Belowmacron': '\u0331',  # '̱'
+        'Dead_Belowcircumflex': '\u032d',  # '̭'
+        'Dead_Belowtilde': '\u0330',  # '̰'
+        'Dead_Belowbreve': '\u032e',  # '̮'
+        'Dead_Belowdiaeresis': '\u0324',  # '̤'
+        'Dead_Invertedbreve': '\u0311',  # '̑'
+        'Dead_Belowcomma': '\u0326',  # '̦'
         'Dead_Currency': '¤',
         'Dead_a': 'a',
         'Dead_A': 'A',
@@ -129,10 +129,10 @@ def _build_special_names() -> typing.Mapping[Qt.Key, str]:
         'Dead_Small_Schwa': 'ə',
         'Dead_Capital_Schwa': 'Ə',
         'Dead_Greek': 'Greek',
-        'Dead_Lowline': '̲',
-        'Dead_Aboveverticalline': '̍',
+        'Dead_Lowline': '\u0332',  # '̲'
+        'Dead_Aboveverticalline': '\u030d',  # '̍'
         'Dead_Belowverticalline': '\u0329',
-        'Dead_Longsolidusoverlay': '̸',
+        'Dead_Longsolidusoverlay': '\u0338',  # '̸'
 
         'Memo': 'Memo',
         'ToDoList': 'To Do List',
@@ -554,7 +554,9 @@ class KeySequence:
     def __getitem__(self, item: slice) -> 'KeySequence':
         ...
 
-    def __getitem__(self, item):
+    def __getitem__(
+            self, item: typing.Union[int, slice]
+    ) -> typing.Union[KeyInfo, 'KeySequence']:
         if isinstance(item, slice):
             keys = list(self._iter_keys())
             return self.__class__(*keys[item])

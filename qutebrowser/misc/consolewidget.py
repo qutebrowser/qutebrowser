@@ -21,6 +21,7 @@
 
 import sys
 import code
+import typing
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
 from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
@@ -29,6 +30,9 @@ from PyQt5.QtGui import QTextCursor
 from qutebrowser.config import config
 from qutebrowser.misc import cmdhistory, miscwidgets
 from qutebrowser.utils import utils, objreg
+
+
+console_widget = None
 
 
 class ConsoleLineEdit(miscwidgets.CommandLineEdit):
@@ -211,3 +215,9 @@ class ConsoleWidget(QWidget):
     def _curprompt(self):
         """Get the prompt which is visible currently."""
         return sys.ps2 if self._more else sys.ps1
+
+
+def init():
+    """Initialize a global console."""
+    global console_widget
+    console_widget = ConsoleWidget()

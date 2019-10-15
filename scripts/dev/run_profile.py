@@ -49,6 +49,7 @@ def parse_args():
                         default='snakeviz',
                         help="The tool to use to view the profiling data")
     parser.add_argument('--profile-file', metavar='FILE', action='store',
+                        default="profile_data",
                         help="The filename to use with --profile-tool=none")
     parser.add_argument('--profile-test', action='store_true',
                         help="Run pytest instead of qutebrowser")
@@ -80,7 +81,7 @@ def main():
     profiler.dump_stats(profilefile)
 
     if args.profile_tool == 'none':
-        pass
+        print("Profile data written to {}".format(profilefile))
     elif args.profile_tool == 'gprof2dot':
         # yep, shell=True. I know what I'm doing.
         subprocess.run(

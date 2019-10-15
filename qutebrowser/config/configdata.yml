@@ -1789,6 +1789,14 @@ tabs.focus_stack_size:
     zero_ok: false
   desc: Maximum stack size to remember for tab switches (-1 for no maximum).
 
+tabs.tooltips:
+  default: true
+  type: Bool
+  desc: >-
+    Show tooltips on tabs.
+
+    Note this setting only affects windows opened after it has been set.
+
 ## url
 
 url.auto_search:
@@ -2768,7 +2776,7 @@ bindings.default:
       tIu: config-cycle -p -u {url} content.images ;; reload
     insert:
       <Ctrl-E>: open-editor
-      <Shift-Ins>: insert-text {primary}
+      <Shift-Ins>: insert-text -- {primary}
       <Escape>: leave-mode
     hint:
       <Return>: follow-hint

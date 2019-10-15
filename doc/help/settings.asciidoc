@@ -282,6 +282,7 @@
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
+|<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
 |<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of close tab actions to remember, per window (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
@@ -487,7 +488,7 @@ Default:
 
 * +pass:[&lt;Ctrl-E&gt;]+: +pass:[open-editor]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
-* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text {primary}]+
+* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text -- {primary}]+
 - +pass:[normal]+:
 
 * +pass:[&#x27;]+: +pass:[enter-mode jump_mark]+
@@ -3537,6 +3538,15 @@ Format to use for the tab title for pinned tabs. The same placeholders like for 
 Type: <<types,FormatString>>
 
 Default: +pass:[{index}]+
+
+[[tabs.tooltips]]
+=== tabs.tooltips
+Show tooltips on tabs.
+Note this setting only affects windows opened after it has been set.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[tabs.undo_stack_size]]
 === tabs.undo_stack_size

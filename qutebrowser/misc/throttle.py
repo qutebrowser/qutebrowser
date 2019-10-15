@@ -64,8 +64,9 @@ class Throttle(QObject):
         self._timer = usertypes.Timer(self, 'throttle-timer')
         self._timer.setSingleShot(True)
 
-    def _call_pending(self):
+    def _call_pending(self) -> None:
         """Start a pending call."""
+        assert self._pending_call is not None
         self._func(*self._pending_call.args, **self._pending_call.kwargs)
         self._pending_call = None
         self._last_call_ms = int(time.monotonic() * 1000)

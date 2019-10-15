@@ -40,8 +40,8 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
-from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.browser import eventfilter, hints
+from qutebrowser.misc import miscwidgets, objects, sessions
+from qutebrowser.browser import eventfilter
 from qutebrowser.qt import sip
 
 if typing.TYPE_CHECKING:
@@ -374,7 +374,7 @@ class AbstractZoom(QObject):
             levels, mode=usertypes.NeighborList.Modes.edge)
         self._neighborlist.fuzzyval = config.val.zoom.default
 
-    def apply_offset(self, offset: int) -> None:
+    def apply_offset(self, offset: int) -> int:
         """Increase/Decrease the zoom level by the given offset.
 
         Args:
@@ -383,7 +383,7 @@ class AbstractZoom(QObject):
         Return:
             The new zoom percentage.
         """
-        level = self._neighborlist.getitem(offset)
+        level = self._neighborlist.getitem(offset)  # type: int
         self.set_factor(float(level) / 100, fuzzyval=False)
         return level
 
@@ -888,16 +888,11 @@ class AbstractTab(QWidget):
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend = None
+
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False
         self.shutting_down.connect(functools.partial(
             setattr, self, 'pending_removal', True))
-
-        # FIXME:qtwebengine  Should this be public api via self.hints?
-        #                    Also, should we get it out of objreg?
-        hintmanager = hints.HintManager(win_id, self.tab_id, parent=self)
-        objreg.register('hintmanager', hintmanager, scope='tab',
-                        window=self.win_id, tab=self.tab_id)
 
         self.before_load_started.connect(self._on_before_load_started)
 
@@ -1015,13 +1010,9 @@ class AbstractTab(QWidget):
             # https://github.com/qutebrowser/qutebrowser/issues/3498
             return
 
-        try:
-            sess_manager = objreg.get('session-manager')
-        except KeyError:
-            # https://github.com/qutebrowser/qutebrowser/issues/4311
-            return
+        if sessions.session_manager is not None:
+            sessions.session_manager.save_autosave()
 
-        sess_manager.save_autosave()
         self.load_finished.emit(ok)
 
         if not self.title():

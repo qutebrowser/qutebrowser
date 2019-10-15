@@ -27,6 +27,10 @@ from qutebrowser.utils import utils, standarddir, objreg
 from qutebrowser.misc import lineparser
 
 
+cookie_jar = None
+ram_cookie_jar = None
+
+
 class RAMCookieJar(QNetworkCookieJar):
 
     """An in-RAM cookie jar.
@@ -112,3 +116,10 @@ class CookieJar(RAMCookieJar):
             self._lineparser.data = []
             self._lineparser.save()
             self.changed.emit()
+
+
+def init(qapp):
+    """Initialize the global cookie jars."""
+    global cookie_jar, ram_cookie_jar
+    cookie_jar = CookieJar(qapp)
+    ram_cookie_jar = RAMCookieJar(qapp)

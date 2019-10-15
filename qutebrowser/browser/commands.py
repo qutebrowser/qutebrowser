@@ -849,7 +849,7 @@ class CommandDispatcher:
             idx = int(index_parts[1])
         elif len(index_parts) == 1:
             idx = int(index_parts[0])
-            active_win = objreg.get('app').activeWindow()
+            active_win = QApplication.activeWindow()
             if active_win is None:
                 # Not sure how you enter a command without an active window...
                 raise cmdutils.CommandError(

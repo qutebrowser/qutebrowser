@@ -143,7 +143,13 @@ If you want to give me a beer or a pizza back, I'm trying to make it as easy as
 possible for you to do so. If some other way would be easier for you, please
 get in touch!
 
-* SEPA bank transfer inside Europe (no fee): Contact me at mail@qutebrowser.org for details
+* SEPA bank transfer inside Europe (no fee):
+  - Account holder: Florian Bruhin
+  - Country: Switzerland
+  - IBAN (EUR): CH13 0900 0000 9160 4094 6
+  - IBAN (other): CH80 0900 0000 8711 8587 3
+  - Bank: PostFinance AG, Mingerstrasse 20, 3030 Bern, Switzerland (BIC: POFICHBEXXX)
+  - If you need any other information: Contact me at mail@qutebrowser.org.
 * PayPal: https://www.paypal.me/thecompiler[thecompiler] / me@the-compiler.org
 * Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
 

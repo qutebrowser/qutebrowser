@@ -395,6 +395,7 @@ class IPCServer(QObject):
         log.ipc.debug("Touching {}".format(path))
         os.utime(path)
 
+    @pyqtSlot()
     def shutdown(self):
         """Shut down the IPC server cleanly."""
         log.ipc.debug("Shutting down IPC (socket 0x{:x})".format(
