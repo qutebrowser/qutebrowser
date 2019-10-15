@@ -1319,9 +1319,10 @@ Select the tab given as argument/[count].
 If neither count nor index are given, it behaves like tab-next. If both are given, use count.
 
 ==== positional arguments
-* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab (regardless of count).
- Negative indices count from the end, such that -1 is the
- last tab.
+* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab (regardless of count),
+ and `stack-prev`/`stack-next` traverse a stack of visited
+ tabs. Negative indices count from the end, such that -1 is
+ the last tab.
 
 
 ==== optional arguments

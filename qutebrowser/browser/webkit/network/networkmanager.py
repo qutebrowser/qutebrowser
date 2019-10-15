@@ -32,8 +32,9 @@ from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
                                urlutils, debug)
 from qutebrowser.browser import shared
+from qutebrowser.browser.network import proxy as proxymod
 from qutebrowser.extensions import interceptors
-from qutebrowser.browser.webkit import certificateerror
+from qutebrowser.browser.webkit import certificateerror, cookies, cache
 from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
                                                 filescheme)
 from qutebrowser.misc import objects
@@ -174,9 +175,10 @@ class NetworkManager(QNetworkAccessManager):
     def _set_cookiejar(self):
         """Set the cookie jar of the NetworkManager correctly."""
         if self._private:
-            cookie_jar = objreg.get('ram-cookie-jar')
+            cookie_jar = cookies.ram_cookie_jar
         else:
-            cookie_jar = objreg.get('cookie-jar')
+            cookie_jar = cookies.cookie_jar
+        assert cookie_jar is not None
 
         # We have a shared cookie jar - we restore its parent so we don't
         # take ownership of it.
@@ -191,9 +193,8 @@ class NetworkManager(QNetworkAccessManager):
         # We have a shared cache - we restore its parent so we don't take
         # ownership of it.
         app = QCoreApplication.instance()
-        cache = objreg.get('cache')
-        self.setCache(cache)
-        cache.setParent(app)
+        self.setCache(cache.diskcache)
+        cache.diskcache.setParent(app)
 
     def _get_abort_signals(self, owner=None):
         """Get a list of signals which should abort a question."""
@@ -375,9 +376,8 @@ class NetworkManager(QNetworkAccessManager):
         Return:
             A QNetworkReply.
         """
-        proxy_factory = objreg.get('proxy-factory', None)
-        if proxy_factory is not None:
-            proxy_error = proxy_factory.get_error()
+        if proxymod.application_factory is not None:
+            proxy_error = proxymod.application_factory.get_error()
             if proxy_error is not None:
                 return networkreply.ErrorNetworkReply(
                     req, proxy_error, QNetworkReply.UnknownProxyError,

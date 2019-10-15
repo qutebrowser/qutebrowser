@@ -18,6 +18,15 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.9.0 (unreleased)
 -------------------
 
+Changed
+~~~~~~~
+
+- The `qute-pass` userscript now has a new `--extra-url-suffixes` (`-s`)
+  argument which passes extra URL suffixes to the tldextract library.
+- A stack is now used for `:tab-focus last` rather than just saving one tab.
+  Additionally, `:tab-focus` now understands `stack-prev` and `stack-next`
+  arguments to traverse that stack.
+
 Fixed
 ~~~~~
 
@@ -38,6 +47,7 @@ Fixed
 - Errors while reading the state file are now displayed instead of causing a
   crash.
 - Crash when using `:debug-log-level` without a console attached.
+- Downloads are now hidden properly when the browser is in fullscreen mode.
 
 v1.8.1 (2019-09-27)
 -------------------

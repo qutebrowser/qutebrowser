@@ -43,8 +43,9 @@ matrix:
           packages:
           - libxkbcommon-x11-0
 
-    ### PyQt 5.13 (Python 3.7, with coverage)
-    - env: TESTENV=py37-pyqt513-cov
+    ### PyQt 5.13 (Python 3.8, with coverage)
+    - env: TESTENV=py38-pyqt513-cov
+      python: 3.8-dev
       # http://code.qt.io/cgit/qt/qtbase.git/commit/?id=c3a963da1f9e7b1d37e63eedded61da4fbdaaf9a
       addons:
         apt:

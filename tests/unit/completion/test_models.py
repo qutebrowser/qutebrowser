@@ -677,7 +677,7 @@ def test_session_completion(qtmodeltester, session_manager_stub):
     })
 
 
-def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
+def test_tab_completion(qtmodeltester, fake_web_tab, win_registry,
                         tabbed_browser_stubs):
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
@@ -703,8 +703,8 @@ def test_tab_completion(qtmodeltester, fake_web_tab, app_stub, win_registry,
     })
 
 
-def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
-                               win_registry, tabbed_browser_stubs):
+def test_tab_completion_delete(qtmodeltester, fake_web_tab, win_registry,
+                               tabbed_browser_stubs):
     """Verify closing a tab by deleting it from the completion widget."""
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
@@ -731,8 +731,8 @@ def test_tab_completion_delete(qtmodeltester, fake_web_tab, app_stub,
                       QUrl('https://duckduckgo.com')]
 
 
-def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, app_stub,
-                                   win_registry, tabbed_browser_stubs):
+def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, win_registry,
+                                   tabbed_browser_stubs):
     """Ensure that the completion row order is the same as tab index order.
 
     Would be violated for more than 9 tabs if the completion was being
@@ -758,8 +758,8 @@ def test_tab_completion_not_sorted(qtmodeltester, fake_web_tab, app_stub,
     })
 
 
-def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
-                                 win_registry, tabbed_browser_stubs, info):
+def test_other_buffer_completion(qtmodeltester, fake_web_tab, win_registry,
+                                 tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
         fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
@@ -782,7 +782,7 @@ def test_other_buffer_completion(qtmodeltester, fake_web_tab, app_stub,
     })
 
 
-def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab, app_stub,
+def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab,
                                      win_registry, tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
         fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),

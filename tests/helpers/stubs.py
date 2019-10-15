@@ -34,7 +34,6 @@ from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab, downloads
 from qutebrowser.utils import usertypes
-from qutebrowser.mainwindow import mainwindow
 from qutebrowser.commands import runners
 
 
@@ -546,13 +545,6 @@ class TabWidgetStub(QObject):
         if idx == -1:
             return None
         return self.tabs[idx - 1]
-
-
-class ApplicationStub(QObject):
-
-    """Stub to insert as the app object in objreg."""
-
-    new_window = pyqtSignal(mainwindow.MainWindow)
 
 
 class HTTPPostStub(QObject):

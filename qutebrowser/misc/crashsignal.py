@@ -162,6 +162,10 @@ class CrashHandler(QObject):
                                                       all_objects)
         self._crash_dialog.show()
 
+    @pyqtSlot()
+    def shutdown(self):
+        self.destroy_crashlogfile()
+
     def destroy_crashlogfile(self):
         """Clean up the crash log file and delete it."""
         if self._crash_log_file is None:

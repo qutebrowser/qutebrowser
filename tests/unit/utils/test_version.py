@@ -25,7 +25,7 @@ import collections
 import os.path
 import subprocess
 import contextlib
-import builtins
+import builtins  # noqa https://github.com/JBKahn/flake8-debugger/issues/20
 import types
 import importlib
 import logging

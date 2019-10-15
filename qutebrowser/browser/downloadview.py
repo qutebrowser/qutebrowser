@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
 
 from qutebrowser.browser import downloads
 from qutebrowser.config import config
-from qutebrowser.utils import qtutils, utils, objreg
+from qutebrowser.utils import qtutils, utils
 from qutebrowser.qt import sip
 
 
@@ -59,7 +59,6 @@ class DownloadView(QListView):
 
     Attributes:
         _menu: The QMenu which is currently displayed.
-        _model: The currently set model.
     """
 
     STYLESHEET = """
@@ -73,7 +72,7 @@ class DownloadView(QListView):
         }
     """
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, model, parent=None):
         super().__init__(parent)
         if not utils.is_mac:
             self.setStyle(QStyleFactory.create('Fusion'))
@@ -85,7 +84,6 @@ class DownloadView(QListView):
         self.setFlow(QListView.LeftToRight)
         self.setSpacing(1)
         self._menu = None
-        model = objreg.get('download-model', scope='window', window=win_id)
         model.rowsInserted.connect(functools.partial(update_geometry, self))
         model.rowsRemoved.connect(functools.partial(update_geometry, self))
         model.dataChanged.connect(functools.partial(update_geometry, self))
@@ -102,6 +100,14 @@ class DownloadView(QListView):
         else:
             count = model.rowCount()
         return utils.get_repr(self, count=count)
+
+    @pyqtSlot(bool)
+    def on_fullscreen_requested(self, on):
+        """Hide/show the downloadview when entering/leaving fullscreen."""
+        if on:
+            self.hide()
+        else:
+            self.show()
 
     @pyqtSlot('QModelIndex')
     def on_clicked(self, index):

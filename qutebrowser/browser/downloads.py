@@ -77,6 +77,11 @@ def init():
     config.instance.changed.connect(_clear_last_used)
 
 
+@pyqtSlot()
+def shutdown():
+    temp_download_manager.cleanup()
+
+
 @config.change_filter('downloads.location.directory', function=True)
 def _clear_last_used():
     global last_used_directory

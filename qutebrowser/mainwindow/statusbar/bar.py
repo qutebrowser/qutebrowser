@@ -157,7 +157,6 @@ class StatusBar(QWidget):
 
     def __init__(self, *, win_id, private, parent=None):
         super().__init__(parent)
-        objreg.register('statusbar', self, scope='window', window=win_id)
         self.setObjectName(self.__class__.__name__)
         self.setAttribute(Qt.WA_StyledBackground)
         config.set_register_stylesheet(self)

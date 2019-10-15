@@ -25,7 +25,7 @@ import itertools
 import urllib
 import typing
 
-from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer
+from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer, pyqtSlot
 from PyQt5.QtWidgets import QApplication
 import yaml
 
@@ -44,6 +44,9 @@ class Sentinel:
 
 
 default = Sentinel()
+session_manager = typing.cast('SessionManager', None)
+
+ArgType = typing.Union[str, Sentinel]
 
 
 def init(parent=None):
@@ -58,8 +61,14 @@ def init(parent=None):
     except FileExistsError:
         pass
 
+    global session_manager
     session_manager = SessionManager(base_path, parent)
-    objreg.register('session-manager', session_manager)
+    objreg.register('session-manager', session_manager, command_only=True)
+
+
+@pyqtSlot()
+def shutdown():
+    session_manager.delete_autosave()
 
 
 class SessionError(Exception):
@@ -518,7 +527,7 @@ class SessionManager(QObject):
     @cmdutils.argument('name', completion=miscmodels.session)
     @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
     @cmdutils.argument('with_private', flag='p')
-    def session_save(self, name: typing.Union[str, Sentinel] = default,
+    def session_save(self, name: ArgType = default,
                      current: bool = False,
                      quiet: bool = False,
                      force: bool = False,

@@ -219,6 +219,11 @@ def init_log(args: argparse.Namespace) -> None:
     _args = args
 
 
+@QtCore.pyqtSlot()
+def shutdown_log() -> None:
+    QtCore.qInstallMessageHandler(None)
+
+
 def _init_py_warnings() -> None:
     """Initialize Python warning handling."""
     warnings.simplefilter('default')

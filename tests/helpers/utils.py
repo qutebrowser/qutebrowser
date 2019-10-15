@@ -188,6 +188,5 @@ def ignore_bs4_warning():
     with log.ignore_py_warnings(
             category=DeprecationWarning,
             message="Using or importing the ABCs from 'collections' instead "
-            "of from 'collections.abc' is deprecated, and in 3.8 it will stop "
-            "working", module='bs4.element'):
+            "of from 'collections.abc' is deprecated", module='bs4.element'):
         yield

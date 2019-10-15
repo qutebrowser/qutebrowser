@@ -26,7 +26,7 @@ import os
 import traceback
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
+from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
@@ -50,8 +50,7 @@ def later(ms: int, command: str, win_id: int) -> None:
     if ms < 0:
         raise cmdutils.CommandError("I can't run something in the past!")
     commandrunner = runners.CommandRunner(win_id)
-    app = objreg.get('app')
-    timer = usertypes.Timer(name='later', parent=app)
+    timer = usertypes.Timer(name='later', parent=QApplication.instance())
     try:
         timer.setSingleShot(True)
         try:
@@ -128,19 +127,18 @@ def debug_cache_stats() -> None:
 @cmdutils.register(debug=True)
 def debug_console() -> None:
     """Show the debugging console."""
-    try:
-        con_widget = objreg.get('debug-console')
-    except KeyError:
+    if consolewidget.console_widget is None:
         log.misc.debug('initializing debug console')
-        con_widget = consolewidget.ConsoleWidget()
-        objreg.register('debug-console', con_widget)
+        consolewidget.init()
 
-    if con_widget.isVisible():
+    assert consolewidget.console_widget is not None
+
+    if consolewidget.console_widget.isVisible():
         log.misc.debug('hiding debug console')
-        con_widget.hide()
+        consolewidget.console_widget.hide()
     else:
         log.misc.debug('showing debug console')
-        con_widget.show()
+        consolewidget.console_widget.show()
 
 
 @cmdutils.register(maxsplit=0, debug=True, no_cmd_split=True)

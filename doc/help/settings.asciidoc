@@ -261,6 +261,7 @@
 |<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|How to behave when the close mouse button is pressed on the tab bar.
 |<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling factor for favicons in the tab bar.
 |<<tabs.favicons.show,tabs.favicons.show>>|When to show favicons in the tab bar.
+|<<tabs.focus_stack_size,tabs.focus_stack_size>>|Maximum stack size to remember for tab switches (-1 for no maximum).
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
@@ -3282,6 +3283,14 @@ Valid values:
  * +pinned+: Show favicons only on pinned tabs.
 
 Default: +pass:[always]+
+
+[[tabs.focus_stack_size]]
+=== tabs.focus_stack_size
+Maximum stack size to remember for tab switches (-1 for no maximum).
+
+Type: <<types,Int>>
+
+Default: +pass:[10]+
 
 [[tabs.indicator.padding]]
 === tabs.indicator.padding

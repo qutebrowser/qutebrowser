@@ -30,6 +30,8 @@ from qutebrowser.utils import message, objreg, usertypes
 
 _CommandType = typing.Tuple[str, int]  # command, type
 
+macro_recorder = typing.cast('MacroRecorder', None)
+
 
 class MacroRecorder:
 
@@ -119,5 +121,6 @@ class MacroRecorder:
 
 def init() -> None:
     """Initialize the MacroRecorder."""
+    global macro_recorder
     macro_recorder = MacroRecorder()
-    objreg.register('macro-recorder', macro_recorder)
+    objreg.register('macro-recorder', macro_recorder, command_only=True)

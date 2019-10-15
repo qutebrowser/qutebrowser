@@ -85,10 +85,11 @@ def bookmark(*, info=None):  # pylint: disable=unused-argument
 
 def session(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with session names."""
+    from qutebrowser.misc import sessions
     model = completionmodel.CompletionModel()
     try:
-        manager = objreg.get('session-manager')
-        sessions = ((name,) for name in manager.list_sessions()
+        sessions = ((name,) for name
+                    in sessions.session_manager.list_sessions()
                     if not name.startswith('_'))
         model.add_category(listcategory.ListCategory("Sessions", sessions))
     except OSError:

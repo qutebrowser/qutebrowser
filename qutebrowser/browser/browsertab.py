@@ -22,6 +22,7 @@
 import enum
 import itertools
 import typing
+import functools
 
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
@@ -39,7 +40,7 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
-from qutebrowser.misc import miscwidgets, objects
+from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter
 from qutebrowser.qt import sip
 
@@ -887,6 +888,12 @@ class AbstractTab(QWidget):
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
         self.backend = None
+
+        # If true, this tab has been requested to be removed (or is removed).
+        self.pending_removal = False
+        self.shutting_down.connect(functools.partial(
+            setattr, self, 'pending_removal', True))
+
         self.before_load_started.connect(self._on_before_load_started)
 
     def _set_widget(self, widget: QWidget) -> None:
@@ -1003,13 +1010,9 @@ class AbstractTab(QWidget):
             # https://github.com/qutebrowser/qutebrowser/issues/3498
             return
 
-        try:
-            sess_manager = objreg.get('session-manager')
-        except KeyError:
-            # https://github.com/qutebrowser/qutebrowser/issues/4311
-            return
+        if sessions.session_manager is not None:
+            sessions.session_manager.save_autosave()
 
-        sess_manager.save_autosave()
         self.load_finished.emit(ok)
 
         if not self.title():

@@ -359,7 +359,8 @@ class Command:
             tab_id = None
         else:
             raise ValueError("Invalid scope {}!".format(scope))
-        return objreg.get(name, scope=scope, window=win_id, tab=tab_id)
+        return objreg.get(name, scope=scope, window=win_id, tab=tab_id,
+                          from_command=True)
 
     def _add_special_arg(self, *, value, param, args, kwargs):
         """Add a special argument value to a function call.
