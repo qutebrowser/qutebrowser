@@ -110,7 +110,8 @@ def run(args):
     q_app.setApplicationName("qutebrowser")
     q_app.setDesktopFileName("org.qutebrowser.qutebrowser")
     q_app.setApplicationVersion(qutebrowser.__version__)
-    q_app.lastWindowClosed.connect(quitter.on_last_window_closed)
+    q_app.lastWindowClosed.connect(  # type: ignore
+        quitter.on_last_window_closed)
 
     if args.version:
         print(version.version())
@@ -350,7 +351,7 @@ def _open_startpage(win_id=None):
                 If set, open the startpage in the given window.
     """
     if win_id is not None:
-        window_ids = [win_id]
+        window_ids = [win_id]  # type: typing.Iterable[int]
     else:
         window_ids = objreg.window_registry
     for cur_win_id in list(window_ids):  # Copying as the dict could change
