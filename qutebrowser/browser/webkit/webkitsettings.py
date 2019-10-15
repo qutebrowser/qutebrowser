@@ -24,6 +24,7 @@ Module attributes:
                 constants.
 """
 
+import typing
 import os.path
 
 from PyQt5.QtGui import QFont
@@ -36,7 +37,7 @@ from qutebrowser.browser import shared
 
 
 # The global WebKitSettings object
-global_settings = None
+global_settings = typing.cast('WebKitSettings', None)
 
 
 class WebKitSettings(websettings.AbstractSettings):

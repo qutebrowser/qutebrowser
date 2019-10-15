@@ -33,6 +33,7 @@ import email.encoders
 import email.mime.multipart
 import email.message
 import quopri
+import typing
 
 import attr
 from PyQt5.QtCore import QUrl
@@ -188,7 +189,7 @@ class MHTMLWriter:
         self.root_content = root_content
         self.content_location = content_location
         self.content_type = content_type
-        self._files = {}
+        self._files = {}  # type: typing.Mapping[QUrl, _File]
 
     def add_file(self, location, content, content_type=None,
                  transfer_encoding=E_QUOPRI):
@@ -263,7 +264,8 @@ class _Downloader:
         self.target = target
         self.writer = None
         self.loaded_urls = {tab.url()}
-        self.pending_downloads = set()
+        self.pending_downloads = set(
+        )  # type: typing.Set[typing.Tuple[QUrl,downloads.AbstractDownloadItem]]
         self._finished_file = False
         self._used = False
 

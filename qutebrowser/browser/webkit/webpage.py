@@ -202,8 +202,8 @@ class BrowserPage(QWebPage):
         suggested_file = ""
         if info.suggestedFileNames:
             suggested_file = info.suggestedFileNames[0]
-        files.fileNames, _ = QFileDialog.getOpenFileNames(None, None,
-                                                          suggested_file)
+        files.fileNames, _ = QFileDialog.getOpenFileNames(
+            None, None, suggested_file)  # type: ignore
         return True
 
     def shutdown(self):
@@ -348,7 +348,7 @@ class BrowserPage(QWebPage):
 
         url = frame.url().adjusted(QUrl.RemoveUserInfo |
                                    QUrl.RemovePath |
-                                   QUrl.RemoveQuery |
+                                   QUrl.RemoveQuery |  # type: ignore
                                    QUrl.RemoveFragment)
 
         question = shared.feature_permission(

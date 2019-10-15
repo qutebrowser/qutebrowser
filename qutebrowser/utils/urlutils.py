@@ -438,7 +438,10 @@ def filename_from_url(url: QUrl) -> typing.Optional[str]:
         return None
 
 
-def host_tuple(url: QUrl) -> typing.Tuple[str, str, int]:
+HostTupleType = typing.Tuple[str, str, int]
+
+
+def host_tuple(url: QUrl) -> HostTupleType:
     """Get a (scheme, host, port) tuple from a QUrl.
 
     This is suitable to identify a connection, e.g. for SSL errors.

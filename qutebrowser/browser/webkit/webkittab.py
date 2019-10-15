@@ -85,7 +85,7 @@ class WebKitSearch(browsertab.AbstractSearch):
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._flags = QWebPage.FindFlags(0)
+        self._flags = QWebPage.FindFlags(0)  # type: ignore
 
     def _call_cb(self, callback, found, text, flags, caller):
         """Call the given callback if it's non-None.
@@ -157,7 +157,7 @@ class WebKitSearch(browsertab.AbstractSearch):
     def prev_result(self, *, result_cb=None):
         self.search_displayed = True
         # The int() here makes sure we get a copy of the flags.
-        flags = QWebPage.FindFlags(int(self._flags))
+        flags = QWebPage.FindFlags(int(self._flags))  # type: ignore
         if flags & QWebPage.FindBackward:
             flags &= ~QWebPage.FindBackward
         else:

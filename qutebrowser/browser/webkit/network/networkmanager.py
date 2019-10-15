@@ -26,7 +26,8 @@ import typing
 import attr
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
                           QByteArray)
-from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslSocket
+from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
+                             QSslError)
 
 from qutebrowser.config import config
 from qutebrowser.utils import (message, log, usertypes, utils, objreg,
@@ -120,6 +121,10 @@ def init():
     QSslSocket.setDefaultCiphers(good_ciphers)
 
 
+_SavedErrorsType = typing.Mapping[urlutils.HostTupleType,
+                                    typing.Sequence[QSslError]]
+
+
 class NetworkManager(QNetworkAccessManager):
 
     """Our own QNetworkAccessManager.
@@ -165,8 +170,10 @@ class NetworkManager(QNetworkAccessManager):
         self._set_cookiejar()
         self._set_cache()
         self.sslErrors.connect(self.on_ssl_errors)
-        self._rejected_ssl_errors = collections.defaultdict(list)
-        self._accepted_ssl_errors = collections.defaultdict(list)
+        self._rejected_ssl_errors = collections.defaultdict(
+            list)  # type: _SavedErrorsType
+        self._accepted_ssl_errors = collections.defaultdict(
+            list)  # type: _SavedErrorsType
         self.authenticationRequired.connect(self.on_authentication_required)
         self.proxyAuthenticationRequired.connect(
             self.on_proxy_authentication_required)
@@ -230,7 +237,8 @@ class NetworkManager(QNetworkAccessManager):
         log.webview.debug("Certificate errors: {!r}".format(
             ' / '.join(str(err) for err in errors)))
         try:
-            host_tpl = urlutils.host_tuple(reply.url())
+            host_tpl = urlutils.host_tuple(
+                reply.url())  # type: typing.Optional[urlutils.HostTupleType]
         except ValueError:
             host_tpl = None
             is_accepted = False

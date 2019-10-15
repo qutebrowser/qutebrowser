@@ -151,9 +151,12 @@ def ask_async(title: str,
     global_bridge.ask(question, blocking=False)
 
 
-def confirm_async(*, yes_action: typing.Callable[[], None],
-                  no_action: typing.Callable[[], None] = None,
-                  cancel_action: typing.Callable[[], None] = None,
+_ActionType = typing.Callable[[], typing.Any]
+
+
+def confirm_async(*, yes_action: _ActionType,
+                  no_action: _ActionType = None,
+                  cancel_action: _ActionType = None,
                   **kwargs: typing.Any) -> usertypes.Question:
     """Ask a yes/no question to the user and execute the given actions.
 
