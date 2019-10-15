@@ -3,14 +3,14 @@
 atomicwrites==1.3.0
 attrs==19.2.0
 beautifulsoup4==4.8.1
-cheroot==8.0.0
+cheroot==8.1.0
 Click==7.0
 # colorama==0.4.1
 coverage==4.5.4
 EasyProcess==0.2.7
 Flask==1.1.1
 glob2==0.7
-hunter==3.0.1
+hunter==3.0.3
 hypothesis==4.40.0
 importlib-metadata==0.23
 itsdangerous==1.1.0
