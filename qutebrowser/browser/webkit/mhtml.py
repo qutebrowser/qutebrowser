@@ -264,8 +264,9 @@ class _Downloader:
         self.target = target
         self.writer = None
         self.loaded_urls = {tab.url()}
-        self.pending_downloads = set(
-        )  # type: typing.Set[typing.Tuple[QUrl,downloads.AbstractDownloadItem]]
+        pending_download_type = typing.Set[  # pylint: disable=unused-variable
+            typing.Tuple[QUrl, downloads.AbstractDownloadItem]]
+        self.pending_downloads = set()  # type: pending_download_type
         self._finished_file = False
         self._used = False
 

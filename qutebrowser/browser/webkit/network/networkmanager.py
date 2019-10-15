@@ -122,7 +122,7 @@ def init():
 
 
 _SavedErrorsType = typing.Mapping[urlutils.HostTupleType,
-                                    typing.Sequence[QSslError]]
+                                  typing.Sequence[QSslError]]
 
 
 class NetworkManager(QNetworkAccessManager):

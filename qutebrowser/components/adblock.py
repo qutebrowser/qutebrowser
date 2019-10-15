@@ -19,7 +19,6 @@
 
 """Functions related to ad blocking."""
 
-import io
 import os.path
 import functools
 import posixpath
