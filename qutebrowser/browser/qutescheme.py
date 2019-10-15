@@ -32,6 +32,7 @@ import textwrap
 import urllib
 import collections
 import base64
+import typing
 
 try:
     import secrets
@@ -190,7 +191,8 @@ def qute_bookmarks(_url):
 @add_handler('tabs')
 def qute_tabs(_url):
     """Handler for qute://tabs. Display information about all open tabs."""
-    tabs = collections.defaultdict(list)
+    tabs = collections.defaultdict(
+        list)  # type: typing.Dict[str, typing.List[typing.Tuple[str, str]]]
     for win_id, window in objreg.window_registry.items():
         if sip.isdeleted(window):
             continue
@@ -234,15 +236,16 @@ def history_data(start_time, offset=None):
 def qute_history(url):
     """Handler for qute://history. Display and serve history."""
     if url.path() == '/data':
+        q_offset = QUrlQuery(url).queryItemValue("offset")
         try:
-            offset = QUrlQuery(url).queryItemValue("offset")
-            offset = int(offset) if offset else None
+            offset = int(q_offset) if q_offset else None
         except ValueError:
             raise UrlInvalidError("Query parameter offset is invalid")
+
         # Use start_time in query or current time.
+        q_start_time = QUrlQuery(url).queryItemValue("start_time")
         try:
-            start_time = QUrlQuery(url).queryItemValue("start_time")
-            start_time = float(start_time) if start_time else time.time()
+            start_time = float(q_start_time) if q_start_time else time.time()
         except ValueError:
             raise UrlInvalidError("Query parameter start_time is invalid")
 
@@ -451,9 +454,11 @@ def qute_bindings(_url):
     """Handler for qute://bindings. View keybindings."""
     bindings = {}
     defaults = config.val.bindings.default
-    modes = set(defaults.keys()).union(config.val.bindings.commands)
-    modes.remove('normal')
-    modes = ['normal'] + sorted(list(modes))
+
+    config_modes = set(defaults.keys()).union(config.val.bindings.commands)
+    config_modes.remove('normal')
+
+    modes = ['normal'] + sorted(list(config_modes))
     for mode in modes:
         bindings[mode] = config.key_instance.get_bindings_for(mode)
 

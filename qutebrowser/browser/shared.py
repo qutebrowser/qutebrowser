@@ -22,6 +22,7 @@
 import os
 import html
 import netrc
+import typing
 
 from PyQt5.QtCore import QUrl
 
@@ -138,7 +139,7 @@ _JS_LOGMAP = {
     'info': log.js.info,
     'warning': log.js.warning,
     'error': log.js.error,
-}
+}  # type: typing.Mapping[str, typing.Callable[[str], None]]
 
 
 def javascript_log_message(level, source, line, msg):

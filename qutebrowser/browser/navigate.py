@@ -21,6 +21,7 @@
 
 import re
 import posixpath
+import typing
 
 from PyQt5.QtCore import QUrl
 
@@ -96,7 +97,9 @@ def incdec(url, count, inc_or_dec):
         window: Open the link in a new window.
     """
     urlutils.ensure_valid(url)
-    segments = set(config.val.url.incdec_segments)
+    segments = (
+        set(config.val.url.incdec_segments)
+    )  # type: typing.Optional[typing.Set[str]]
 
     if segments is None:
         segments = {'path', 'query'}
@@ -159,7 +162,8 @@ def _find_prevnext(prev, elems):
     # pylint: disable=bad-config-option
     for regex in getattr(config.val.hints, option):
         # pylint: enable=bad-config-option
-        log.hints.vdebug("== Checking regex '{}'.".format(regex.pattern))
+        log.hints.vdebug("== Checking regex '{}'."  # type: ignore
+                         .format(regex.pattern))
         for e in elems:
             text = str(e)
             if not text:
@@ -169,7 +173,8 @@ def _find_prevnext(prev, elems):
                     regex.pattern, text))
                 return e
             else:
-                log.hints.vdebug("No match on '{}'!".format(text))
+                log.hints.vdebug("No match on '{}'!"  # type: ignore
+                                 .format(text))
     return None
 
 

@@ -28,6 +28,7 @@ import functools
 import pathlib
 import tempfile
 import enum
+import typing
 
 from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
                           QTimer, QAbstractListModel, QUrl)
@@ -48,7 +49,7 @@ class ModelRole(enum.IntEnum):
 
 
 # Remember the last used directory
-last_used_directory = None
+last_used_directory = None  # type: typing.Optional[str]
 
 # All REFRESH_INTERVAL milliseconds, speeds will be recalculated and downloads
 # redrawn.
@@ -226,12 +227,13 @@ def suggested_fn_from_title(url_path, title=None):
     """
     ext_whitelist = [".html", ".htm", ".php", ""]
     _, ext = os.path.splitext(url_path)
+
+    suggested_fn = None  # type: typing.Optional[str]
     if ext.lower() in ext_whitelist and title:
         suggested_fn = utils.sanitize_filename(title)
         if not suggested_fn.lower().endswith((".html", ".htm")):
             suggested_fn += ".html"
-    else:
-        suggested_fn = None
+
     return suggested_fn
 
 
@@ -352,7 +354,8 @@ class DownloadItemStats(QObject):
         self.speed = 0
         self._last_done = 0
         samples = int(self.SPEED_AVG_WINDOW * (1000 / _REFRESH_INTERVAL))
-        self._speed_avg = collections.deque(maxlen=samples)
+        self._speed_avg = collections.deque(
+            maxlen=samples)  # type: typing.Sequence[float]
 
     def update_speed(self):
         """Recalculate the current download speed.
@@ -451,7 +454,8 @@ class AbstractDownloadItem(QObject):
         self.basename = '???'
         self.successful = False
 
-        self.fileobj = UnsupportedAttribute()
+        self.fileobj = UnsupportedAttribute(
+        )  # type: typing.Union[UnsupportedAttribute, typing.IO[bytes]]
         self.raw_headers = UnsupportedAttribute()
 
         self._filename = None
@@ -830,7 +834,7 @@ class AbstractDownloadManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.downloads = []
+        self.downloads = []  # type: typing.Sequence[AbstractDownloadItem]
         self._update_timer = usertypes.Timer(self, 'download-update')
         self._update_timer.timeout.connect(self._update_gui)
         self._update_timer.setInterval(_REFRESH_INTERVAL)
@@ -1195,7 +1199,7 @@ class DownloadModel(QAbstractListModel):
 
         item = self[index.row()]
         if role == Qt.DisplayRole:
-            data = str(item)
+            data = str(item)  # type: typing.Any
         elif role == Qt.ForegroundRole:
             data = item.get_status_color('fg')
         elif role == Qt.BackgroundRole:
@@ -1241,7 +1245,7 @@ class TempDownloadManager:
     """
 
     def __init__(self):
-        self.files = []
+        self.files = []  # type: typing.Sequence[typing.IO[str]]
         self._tmpdir = None
 
     def cleanup(self):

@@ -20,6 +20,7 @@
 """The ListView to display downloads in."""
 
 import functools
+import typing
 
 from PyQt5.QtCore import pyqtSlot, QSize, Qt, QTimer
 from PyQt5.QtWidgets import QListView, QSizePolicy, QMenu, QStyleFactory
@@ -51,6 +52,14 @@ def update_geometry(obj):
     # If we don't use a singleShot QTimer, the geometry isn't updated correctly
     # and won't include the new item.
     QTimer.singleShot(0, _update_geometry)
+
+
+_ActionListType = typing.MutableSequence[
+    typing.Union[
+        typing.Tuple[None, None],  # separator
+        typing.Tuple[str, typing.Callable[[], None]],
+    ]
+]
 
 
 class DownloadView(QListView):
@@ -123,19 +132,14 @@ class DownloadView(QListView):
             item.open_file()
             item.remove()
 
-    def _get_menu_actions(self, item):
+    def _get_menu_actions(self, item) -> _ActionListType:
         """Get the available context menu actions for a given DownloadItem.
 
         Args:
             item: The DownloadItem to get the actions for, or None.
-
-        Return:
-            A list of either:
-                - (QAction, callable) tuples.
-                - (None, None) for a separator
         """
         model = self.model()
-        actions = []
+        actions = []  # type: _ActionListType
         if item is None:
             pass
         elif item.done:

@@ -26,6 +26,7 @@ import fnmatch
 import functools
 import glob
 import textwrap
+import typing
 
 import attr
 from PyQt5.QtCore import pyqtSignal, QObject, QUrl
@@ -50,10 +51,10 @@ class GreasemonkeyScript:
     def __init__(self, properties, code,  # noqa: C901 pragma: no mccabe
                  filename=None):
         self._code = code
-        self.includes = []
-        self.matches = []
-        self.excludes = []
-        self.requires = []
+        self.includes = []  # type: typing.Sequence[str]
+        self.matches = []  # type: typing.Sequence[str]
+        self.excludes = []  # type: typing.Sequence[str]
+        self.requires = []  # type: typing.Sequence[str]
         self.description = None
         self.name = None
         self.namespace = None
@@ -253,10 +254,11 @@ class GreasemonkeyManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._run_start = []
-        self._run_end = []
-        self._run_idle = []
-        self._in_progress_dls = []
+        self._run_start = []  # type: typing.Sequence[GreasemonkeyScript]
+        self._run_end = []  # type: typing.Sequence[GreasemonkeyScript]
+        self._run_idle = []  # type: typing.Sequence[GreasemonkeyScript]
+        self._in_progress_dls = [
+        ]  # type: typing.Sequence[downloads.AbstractDownloadItem]
 
         self.load_scripts()
 

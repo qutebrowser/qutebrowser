@@ -247,7 +247,7 @@ class HostBlocker:
         self._in_progress.append(download)
         self._on_download_finished(download)
 
-    def _merge_file(self, byte_io: io.BytesIO) -> None:
+    def _merge_file(self, byte_io: typing.IO[bytes]) -> None:
         """Read and merge host files.
 
         Args:
@@ -303,6 +303,8 @@ class HostBlocker:
         self._in_progress.remove(download)
         if download.successful:
             self._done_count += 1
+            assert not isinstance(download.fileobj,
+                                  downloads.UnsupportedAttribute)
             try:
                 self._merge_file(download.fileobj)
             finally:

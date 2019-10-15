@@ -54,7 +54,7 @@ def _warn_for_pac():
 
 @pyqtSlot()
 def shutdown():
-    QNetworkProxyFactory.setApplicationProxyFactory(None)
+    QNetworkProxyFactory.setApplicationProxyFactory(None)  # type: ignore
 
 
 class ProxyFactory(QNetworkProxyFactory):
@@ -99,9 +99,10 @@ class ProxyFactory(QNetworkProxyFactory):
         for p in proxies:
             if p.type() != QNetworkProxy.NoProxy:
                 capabilities = p.capabilities()
+                lookup_cap = QNetworkProxy.HostNameLookupCapability
                 if config.val.content.proxy_dns_requests:
-                    capabilities |= QNetworkProxy.HostNameLookupCapability
+                    capabilities |= lookup_cap  # type: ignore
                 else:
-                    capabilities &= ~QNetworkProxy.HostNameLookupCapability
+                    capabilities &= ~lookup_cap  # type: ignore
                 p.setCapabilities(capabilities)
         return proxies

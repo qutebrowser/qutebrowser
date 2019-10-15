@@ -214,9 +214,10 @@ class PACResolver:
         if from_file:
             string_flags = QUrl.PrettyDecoded
         else:
-            string_flags = QUrl.RemoveUserInfo
+            string_flags = QUrl.RemoveUserInfo  # type: ignore
             if query.url().scheme() == 'https':
-                string_flags |= QUrl.RemovePath | QUrl.RemoveQuery
+                string_flags |= QUrl.RemovePath  # type: ignore
+                string_flags |= QUrl.RemoveQuery  # type: ignore
 
         result = self._resolver.call([query.url().toString(string_flags),
                                       query.peerHostName()])
