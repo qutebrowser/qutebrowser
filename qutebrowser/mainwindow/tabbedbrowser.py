@@ -217,14 +217,18 @@ class TabbedBrowser(QWidget):
 
         # This init is never used, it is immediately thrown away in the next
         # line.
-        self._undo_stack = collections.deque()
+        self._undo_stack = (
+            collections.deque()
+        )  # type: typing.Sequence[typing.Sequence[UndoEntry]]
         self._update_stack_size()
         self._filter = signalfilter.SignalFilter(win_id, self)
         self._now_focused = None
         self.search_text = None
-        self.search_options = {}
-        self._local_marks = {}
-        self._global_marks = {}
+        self.search_options = {}  # type: typing.Mapping[str, typing.Any]
+        self._local_marks = {
+        }  # type: typing.Mapping[QUrl, typing.Mapping[str, int]]
+        self._global_marks = {
+        }  # type: typing.Mapping[str, typing.Tuple[QUrl, int]]
         self.default_window_icon = self.widget.window().windowIcon()
         self.is_private = private
         self.tab_deque = TabDeque()

@@ -244,8 +244,9 @@ class Command:
             args = self._param_to_argparse_args(param, is_bool)
             callsig = debug_utils.format_call(self.parser.add_argument, args,
                                               kwargs, full=False)
-            log.commands.vdebug('Adding arg {} of type {} -> {}'  # type: ignore
-                                .format(param.name, typ, callsig))
+            log.commands.vdebug(  # type: ignore
+                'Adding arg {} of type {} -> {}'
+                .format(param.name, typ, callsig))
             self.parser.add_argument(*args, **kwargs)
             if param.kind == inspect.Parameter.VAR_POSITIONAL:
                 self._has_vararg = True

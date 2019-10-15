@@ -23,8 +23,9 @@ import binascii
 import base64
 import itertools
 import functools
+import typing
 
-from PyQt5.QtCore import (pyqtSlot, QRect, QPoint, QTimer, Qt,
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
@@ -101,7 +102,7 @@ def raise_window(window, alert=True):
     window.setWindowState(window.windowState() | Qt.WindowActive)
     window.raise_()
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
-    QCoreApplication.processEvents(
+    QCoreApplication.processEvents(  # type: ignore
         QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
     window.activateWindow()
 
@@ -125,6 +126,9 @@ def get_target_window():
             raise ValueError("Invalid win_mode {}".format(win_mode))
     except objreg.NoWindow:
         return None
+
+
+_OverlayInfoType = typing.Tuple[QWidget, pyqtSignal, bool, str]
 
 
 class MainWindow(QWidget):
@@ -174,7 +178,7 @@ class MainWindow(QWidget):
 
         self.setAttribute(Qt.WA_DeleteOnClose)
         self._commandrunner = None
-        self._overlays = []
+        self._overlays = []  # type: typing.Sequence[_OverlayInfoType]
         self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()
         objreg.window_registry[self.win_id] = self
@@ -542,7 +546,7 @@ class MainWindow(QWidget):
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""
-        window_flags = Qt.Window
+        window_flags = Qt.Window  # type: int
         refresh_window = self.isVisible()
         if hidden:
             window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint

@@ -102,8 +102,9 @@ class PromptQueue(QObject):
         super().__init__(parent)
         self._question = None
         self._shutting_down = False
-        self._loops = []
-        self._queue = collections.deque()
+        self._loops = []  # type: typing.Iterable[qtutils.EventLoop]
+        self._queue = collections.deque(
+        )  # type: typing.Sequence[usertypes.Question]
         message.global_bridge.mode_left.connect(self._on_mode_left)
 
     def __repr__(self):
@@ -191,7 +192,8 @@ class PromptQueue(QObject):
         if blocking:
             loop = qtutils.EventLoop()
             self._loops.append(loop)
-            loop.destroyed.connect(lambda: self._loops.remove(loop))
+            loop.destroyed.connect(  # type: ignore
+                lambda: self._loops.remove(loop))
             question.completed.connect(loop.quit)
             question.completed.connect(loop.deleteLater)
             log.prompt.debug("Starting loop.exec_() for {}".format(question))
@@ -286,7 +288,7 @@ class PromptContainer(QWidget):
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(10, 10, 10, 10)
         self._win_id = win_id
-        self._prompt = None
+        self._prompt = None  # type: typing.Optional[_BasePrompt]
 
         self.setObjectName('PromptContainer')
         self.setAttribute(Qt.WA_StyledBackground, True)
@@ -327,7 +329,7 @@ class PromptContainer(QWidget):
             usertypes.PromptMode.alert: AlertPrompt,
         }
         klass = classes[question.mode]
-        prompt = klass(question)
+        prompt = typing.cast(_BasePrompt, klass(question))
 
         log.prompt.debug("Displaying prompt {}".format(prompt))
         self._prompt = prompt
@@ -419,6 +421,7 @@ class PromptContainer(QWidget):
                      cmdline.
             pdfjs: Open the download via PDF.js.
         """
+        assert self._prompt is not None
         try:
             self._prompt.download_open(cmdline, pdfjs=pdfjs)
         except UnsupportedOperationError:
@@ -784,7 +787,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def download_open(self, cmdline, pdfjs):
         if pdfjs:
-            target = downloads.PDFJSDownloadTarget()
+            target = downloads.PDFJSDownloadTarget(
+            )  # type: downloads._DownloadTarget
         else:
             target = downloads.OpenFileDownloadTarget(cmdline)
 
@@ -950,5 +954,5 @@ def init():
     """Initialize global prompt objects."""
     global prompt_queue
     prompt_queue = PromptQueue()
-    message.global_bridge.ask_question.connect(
+    message.global_bridge.ask_question.connect(  # type: ignore
         prompt_queue.ask_question, Qt.DirectConnection)

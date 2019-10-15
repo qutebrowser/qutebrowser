@@ -60,10 +60,10 @@ class TabWidget(QTabWidget):
         bar = TabBar(win_id, self)
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
-        bar.tabCloseRequested.connect(self.tabCloseRequested)
-        bar.tabMoved.connect(functools.partial(
+        bar.tabCloseRequested.connect(self.tabCloseRequested)  # type: ignore
+        bar.tabMoved.connect(functools.partial(  # type: ignore
             QTimer.singleShot, 0, self.update_tab_titles))
-        bar.currentChanged.connect(self._on_current_changed)
+        bar.currentChanged.connect(self._on_current_changed)  # type: ignore
         bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)

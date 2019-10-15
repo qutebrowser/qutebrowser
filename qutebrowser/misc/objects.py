@@ -34,6 +34,10 @@ class NoBackend:
 
     """Special object when there's no backend set so we notice that."""
 
+    @property
+    def name(self) -> str:
+        raise AssertionError("No backend set!")
+
     def __eq__(self, other: typing.Any) -> bool:
         raise AssertionError("No backend set!")
 
