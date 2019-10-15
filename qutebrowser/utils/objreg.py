@@ -145,7 +145,9 @@ class ObjectRegistry(collections.UserDict):
             except RuntimeError:
                 # Underlying object deleted probably
                 obj_repr = '<deleted>'
-            lines.append("{}: {}".format(name, obj_repr))
+            suffix = (" (for commands only)" if name in self.command_only
+                      else "")
+            lines.append("{}: {}{}".format(name, obj_repr, suffix))
         return lines
 
 
