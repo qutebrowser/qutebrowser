@@ -159,9 +159,10 @@ class CommandDispatcher:
 
     def _tab_focus_stack(self, mode: str, *, show_error=True):
         """Select the tab which was last focused."""
+        tab_deque = self._tabbed_browser.tab_deque
+        cur_tab = self._cntwidget()
+
         try:
-            tab_deque = self._tabbed_browser.tab_deque
-            cur_tab = self._cntwidget()
             if mode == "last":
                 tab = tab_deque.last(cur_tab)
             elif mode == "stack-prev":
@@ -171,11 +172,11 @@ class CommandDispatcher:
             else:
                 raise NotImplementedError(
                     "Missing implementation for stack mode!")
-
         except IndexError:
             if not show_error:
                 return
             raise cmdutils.CommandError("Could not find requested tab!")
+
         idx = self._tabbed_browser.widget.indexOf(tab)
         if idx == -1:
             raise cmdutils.CommandError("Requested tab vanished!")
