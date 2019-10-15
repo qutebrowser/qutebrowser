@@ -23,6 +23,7 @@ import math
 import functools
 import re
 import html as html_utils
+import typing
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QTimer, QObject)
@@ -166,7 +167,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._flags = QWebEnginePage.FindFlags(0)
+        self._flags = QWebEnginePage.FindFlags(0)  # type: ignore
         self._pending_searches = 0
 
     def _find(self, text, flags, callback, caller):
@@ -216,7 +217,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
             return
 
         self.text = text
-        self._flags = QWebEnginePage.FindFlags(0)
+        self._flags = QWebEnginePage.FindFlags(0)  # type: ignore
         if self._is_case_sensitive(ignore_case):
             self._flags |= QWebEnginePage.FindCaseSensitively
         if reverse:
@@ -232,7 +233,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
-        flags = QWebEnginePage.FindFlags(int(self._flags))
+        flags = QWebEnginePage.FindFlags(int(self._flags))  # type: ignore
         if flags & QWebEnginePage.FindBackward:
             flags &= ~QWebEnginePage.FindBackward
         else:
@@ -1138,7 +1139,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.backend = usertypes.Backend.QtWebEngine
         self._child_event_filter = None
         self._saved_zoom = None
-        self._reload_url = None
+        self._reload_url = None  # type: typing.Optional[QUrl]
         self._scripts.init()
 
     def _set_widget(self, widget):
@@ -1196,8 +1197,9 @@ class WebEngineTab(browsertab.AbstractTab):
             self._widget.page().toHtml(callback)
 
     def run_js_async(self, code, callback=None, *, world=None):
+        world_id_type = typing.Union[QWebEngineScript.ScriptWorldId, int]
         if world is None:
-            world_id = QWebEngineScript.ApplicationWorld
+            world_id = QWebEngineScript.ApplicationWorld  # type: world_id_type
         elif isinstance(world, int):
             world_id = world
             if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
@@ -1264,7 +1266,9 @@ class WebEngineTab(browsertab.AbstractTab):
         title = self.title()
         title_url = QUrl(url)
         title_url.setScheme('')
-        if title == title_url.toDisplayString(QUrl.RemoveScheme).strip('/'):
+        title_url_str = title_url.toDisplayString(
+            QUrl.RemoveScheme)  # type: ignore
+        if title == title_url_str.strip('/'):
             title = ""
 
         # Don't add history entry if the URL is invalid anyways
@@ -1290,7 +1294,7 @@ class WebEngineTab(browsertab.AbstractTab):
             authenticator.setPassword(answer.password)
         else:
             try:
-                sip.assign(authenticator, QAuthenticator())
+                sip.assign(authenticator, QAuthenticator())  # type: ignore
             except AttributeError:
                 self._show_error_page(url, "Proxy authentication required")
 
@@ -1311,7 +1315,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if not netrc_success and answer is None:
             log.network.debug("Aborting auth")
             try:
-                sip.assign(authenticator, QAuthenticator())
+                sip.assign(authenticator, QAuthenticator())  # type: ignore
             except AttributeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html
@@ -1536,7 +1540,7 @@ class WebEngineTab(browsertab.AbstractTab):
 
         try:
             # pylint: disable=unused-import
-            from PyQt5.QtWebEngineWidgets import (
+            from PyQt5.QtWebEngineWidgets import (  # type: ignore
                 QWebEngineClientCertificateSelection)
         except ImportError:
             pass

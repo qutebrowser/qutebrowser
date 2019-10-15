@@ -358,7 +358,7 @@ class Question(QObject):
         self.default = None  # type: typing.Union[bool, str, None]
         self.title = None  # type: typing.Optional[str]
         self.text = None  # type: typing.Optional[str]
-        self.url = None  # type: typing.Optional[QUrl]
+        self.url = None  # type: typing.Optional[str]
         self.option = None  # type: typing.Optional[bool]
         self.answer = None  # type: typing.Union[str, bool, None]
         self.is_aborted = False

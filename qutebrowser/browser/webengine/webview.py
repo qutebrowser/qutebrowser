@@ -216,7 +216,8 @@ class WebEnginePage(QWebEnginePage):
                                                           self.shutting_down],
                                                 escape_msg=escape_msg)
             except shared.CallSuper:
-                return super().javaScriptPrompt(url, js_msg, default)
+                return super().javaScriptPrompt(  # type: ignore
+                    url, js_msg, default)
 
     def javaScriptAlert(self, url, js_msg):
         """Override javaScriptAlert to use qutebrowser prompts."""

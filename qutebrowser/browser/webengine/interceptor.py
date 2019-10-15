@@ -134,16 +134,16 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             info: QWebEngineUrlRequestInfo &info
         """
         if 'log-requests' in objects.debug_flags:
-            resource_type = debug.qenum_key(QWebEngineUrlRequestInfo,
-                                            info.resourceType())
-            navigation_type = debug.qenum_key(QWebEngineUrlRequestInfo,
-                                              info.navigationType())
+            resource_type_str = debug.qenum_key(QWebEngineUrlRequestInfo,
+                                                info.resourceType())
+            navigation_type_str = debug.qenum_key(QWebEngineUrlRequestInfo,
+                                                  info.navigationType())
             log.webview.debug("{} {}, first-party {}, resource {}, "
                               "navigation {}".format(
                                   bytes(info.requestMethod()).decode('ascii'),
                                   info.requestUrl().toDisplayString(),
                                   info.firstPartyUrl().toDisplayString(),
-                                  resource_type, navigation_type))
+                                  resource_type_str, navigation_type_str))
 
         url = info.requestUrl()
         first_party = info.firstPartyUrl()
