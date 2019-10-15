@@ -116,12 +116,13 @@ class Command:
         self.parser.add_argument('-h', '--help', action=argparser.HelpAction,
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
-        self.opt_args = collections.OrderedDict()
+        self.opt_args = collections.OrderedDict(
+        )  # type: typing.Mapping[str, typing.Tuple[str, str]]
         self.namespace = None
         self._count = None
-        self.pos_args = []
-        self.desc = None
-        self.flags_with_args = []
+        self.pos_args = [
+        ]  # type: typing.Sequence[typing.Tuple[str, str]]
+        self.flags_with_args = []  # type: typing.Sequence[str]
         self._has_vararg = False
 
         # This is checked by future @cmdutils.argument calls so they fail
@@ -243,8 +244,8 @@ class Command:
             args = self._param_to_argparse_args(param, is_bool)
             callsig = debug_utils.format_call(self.parser.add_argument, args,
                                               kwargs, full=False)
-            log.commands.vdebug('Adding arg {} of type {} -> {}'.format(
-                param.name, typ, callsig))
+            log.commands.vdebug('Adding arg {} of type {} -> {}'  # type: ignore
+                                .format(param.name, typ, callsig))
             self.parser.add_argument(*args, **kwargs)
             if param.kind == inspect.Parameter.VAR_POSITIONAL:
                 self._has_vararg = True
@@ -408,7 +409,7 @@ class Command:
                 # Python 3.5.2
                 # pylint: disable=no-member,useless-suppression
                 hasattr(typing, 'UnionMeta') and
-                isinstance(typ, typing.UnionMeta)):
+                isinstance(typ, typing.UnionMeta)):  # type: ignore
             # this is... slightly evil, I know
             try:
                 types = list(typ.__args__)
@@ -491,8 +492,8 @@ class Command:
         Return:
             An (args, kwargs) tuple.
         """
-        args = []
-        kwargs = {}
+        args = []  # type: typing.Any
+        kwargs = {}  # type: typing.MutableMapping[str, typing.Any]
         signature = inspect.signature(self.handler)
 
         for i, param in enumerate(signature.parameters.values()):
@@ -570,7 +571,7 @@ class Command:
 
     def register(self):
         """Register this command in objects.commands."""
-        log.commands.vdebug(
+        log.commands.vdebug(  # type: ignore
             "Registering command {} (from {}:{})".format(
                 self.name, self.handler.__module__, self.handler.__qualname__))
         if self.name in objects.commands:

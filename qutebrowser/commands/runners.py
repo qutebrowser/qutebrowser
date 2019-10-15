@@ -108,7 +108,7 @@ def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    values = {}
+    values = {}  # type: typing.MutableMapping[str, str]
     args = []
 
     def repl_cb(matchobj):
