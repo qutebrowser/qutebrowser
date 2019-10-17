@@ -21,7 +21,7 @@
 
 import typing
 
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtWebKit import QWebElement, QWebSettings
 from PyQt5.QtWebKitWidgets import QWebFrame
 
@@ -353,7 +353,8 @@ class WebKitElement(webelem.AbstractWebElement):
             log.webelem.debug("Failed to click via JS, falling back to event")
             self._click_fake_event(click_target)
 
-    def _click_fake_event(self, click_target: usertypes.ClickTarget) -> None:
+    def _click_fake_event(self, click_target: usertypes.ClickTarget,
+                          button: Qt.MouseButton = Qt.LeftButton) -> None:
         self._tab.data.override_target = click_target
         super()._click_fake_event(click_target)
 
