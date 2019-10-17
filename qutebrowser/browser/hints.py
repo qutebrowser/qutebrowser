@@ -45,7 +45,7 @@ if typing.TYPE_CHECKING:
 Target = enum.Enum('Target', ['normal', 'current', 'tab', 'tab_fg', 'tab_bg',
                               'window', 'yank', 'yank_primary', 'run', 'fill',
                               'hover', 'download', 'userscript', 'spawn',
-                              'delete'])
+                              'delete', 'right_click'])
 
 
 class HintingError(Exception):
@@ -146,6 +146,7 @@ class HintContext:
         target: What to do with the opened links.
                 normal/current/tab/tab_fg/tab_bg/window: Get passed to
                                                          BrowserTab.
+                right_click: Right-click the selected element.
                 yank/yank_primary: Yank to clipboard/primary selection.
                 run: Run a command.
                 fill: Fill commandline with link.
@@ -203,7 +204,8 @@ class HintActions:
             Target.tab_fg: usertypes.ClickTarget.tab,
             Target.tab_bg: usertypes.ClickTarget.tab_bg,
             Target.window: usertypes.ClickTarget.window,
-            Target.hover: usertypes.ClickTarget.normal,
+            Target.hover: None,
+            Target.right_click: None,
         }
         if config.val.tabs.background:
             target_mapping[Target.tab] = usertypes.ClickTarget.tab_bg
@@ -217,6 +219,8 @@ class HintActions:
         try:
             if context.target == Target.hover:
                 elem.hover()
+            elif context.target == Target.right_click:
+                elem.right_click()
             elif context.target == Target.current:
                 elem.remove_blank_target()
                 elem.click(target_mapping[context.target])
@@ -366,6 +370,7 @@ class HintManager(QObject):
         Target.run: "Run a command on a hint",
         Target.fill: "Set hint in commandline",
         Target.hover: "Hover over a hint",
+        Target.right_click: "Right-click hint",
         Target.download: "Download hint",
         Target.userscript: "Call userscript via hint",
         Target.spawn: "Spawn command via hint",
@@ -681,6 +686,7 @@ class HintManager(QObject):
                 - `tab-bg`: Open the link in a new background tab.
                 - `window`: Open the link in a new window.
                 - `hover` : Hover over the link.
+                - `right-click`: Right-click the element.
                 - `yank`: Yank the link to the clipboard.
                 - `yank-primary`: Yank the link to the primary selection.
                 - `run`: Run the argument as command.
@@ -925,6 +931,7 @@ class HintManager(QObject):
             Target.tab_bg: self._actions.click,
             Target.window: self._actions.click,
             Target.hover: self._actions.click,
+            Target.right_click: self._actions.click,
             # _download needs a QWebElement to get the frame.
             Target.download: self._actions.download,
             Target.userscript: self._actions.call_userscript,

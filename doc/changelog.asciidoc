@@ -26,6 +26,8 @@ Changed
 - A stack is now used for `:tab-focus last` rather than just saving one tab.
   Additionally, `:tab-focus` now understands `stack-prev` and `stack-next`
   arguments to traverse that stack.
+- `:hint` now has a new `right-click` target which allows right-clicking
+  elements via hints.
 
 Fixed
 ~~~~~

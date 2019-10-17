@@ -322,7 +322,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Move cursor to end after clicking."""
         raise NotImplementedError
 
-    def _click_fake_event(self, click_target: usertypes.ClickTarget) -> None:
+    def _click_fake_event(self, click_target: usertypes.ClickTarget,
+                          button: Qt.MouseButton = Qt.LeftButton) -> None:
         """Send a fake click event to the element."""
         pos = self._mouse_pos()
 
@@ -346,10 +347,10 @@ class AbstractWebElement(collections.abc.MutableMapping):
         events = [
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
-                        Qt.LeftButton, modifiers),
-            QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
-                        Qt.NoButton, modifiers),
+            QMouseEvent(QEvent.MouseButtonPress, pos, button, button,
+                        modifiers),
+            QMouseEvent(QEvent.MouseButtonRelease, pos, button, Qt.NoButton,
+                        modifiers),
         ]
 
         for evt in events:
@@ -436,3 +437,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
         event = QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                             Qt.NoModifier)
         self._tab.send_event(event)
+
+    def right_click(self) -> None:
+        """Simulate a right-click on the element."""
+        self._click_fake_event(usertypes.ClickTarget.normal,
+                               button=Qt.RightButton)
