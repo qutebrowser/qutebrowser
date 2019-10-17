@@ -45,8 +45,7 @@ def wait_for_prompt(quteproc):
 
 @bdd.then("no prompt should be shown")
 def no_prompt_shown(quteproc):
-    quteproc.ensure_not_logged(message='Entering mode KeyMode.* (reason: '
-                                       'question asked)')
+    quteproc.ensure_not_logged(delay=2000, message='Asking question *')
 
 
 @bdd.then("a SSL error page should be shown")
