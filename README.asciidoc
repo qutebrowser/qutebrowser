@@ -150,7 +150,7 @@ get in touch!
   - IBAN (other): CH80 0900 0000 8711 8587 3
   - Bank: PostFinance AG, Mingerstrasse 20, 3030 Bern, Switzerland (BIC: POFICHBEXXX)
   - If you need any other information: Contact me at mail@qutebrowser.org.
-* PayPal: https://www.paypal.me/thecompiler[thecompiler] / me@the-compiler.org
+* PayPal: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=CHF&source=url[CHF], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=EUR&source=url[EUR], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=USD&source=url[USD]
 * Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
 
 Sponsors
