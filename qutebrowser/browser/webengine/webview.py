@@ -192,9 +192,10 @@ class WebEnginePage(QWebEnginePage):
         """Override javaScriptConfirm to use qutebrowser prompts."""
         if (
                 self._is_shutting_down or
-                not self.view().isVisible() or
-                not self.view().window().isActiveWindow()
+                not shared.is_js_dialog_allowed(self)
         ):
+            log.webview.info('Ignored JavaScript confirm from {}'.format(
+                url.toString()))
             return False
         escape_msg = qtutils.version_check('5.11', compiled=False)
         try:
@@ -214,9 +215,10 @@ class WebEnginePage(QWebEnginePage):
             escape_msg = qtutils.version_check('5.11', compiled=False)
             if (
                     self._is_shutting_down or
-                    not self.view().isVisible() or
-                    not self.view().window().isActiveWindow()
+                    not shared.is_js_dialog_allowed(self)
             ):
+                log.webview.info('Ignored JavaScript prompt from {}'.format(
+                    url.toString()))
                 return (False, "")
             try:
                 return shared.javascript_prompt(url, js_msg, default,
@@ -230,9 +232,10 @@ class WebEnginePage(QWebEnginePage):
         """Override javaScriptAlert to use qutebrowser prompts."""
         if (
                 self._is_shutting_down or
-                not self.view().isVisible() or
-                not self.view().window().isActiveWindow()
+                not shared.is_js_dialog_allowed(self)
         ):
+            log.webview.info('Ignored JavaScript alert from {}'.format(
+                url.toString()))
             return
         escape_msg = qtutils.version_check('5.11', compiled=False)
         try:

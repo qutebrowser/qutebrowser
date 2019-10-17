@@ -338,3 +338,8 @@ def netrc_authentication(url, authenticator):
     authenticator.setPassword(password)
 
     return True
+
+
+def is_js_dialog_allowed(page):
+    """Return if a webpage is allowed to raise an alert, prompt or confirm."""
+    return page.view().isVisible() and page.view().window().isActiveWindow()
