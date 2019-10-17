@@ -134,6 +134,10 @@ def whitelist_generator():  # noqa
     # component hooks
     yield 'qutebrowser.components.adblock.on_config_changed'
 
+    # used in type comments
+    yield 'pending_download_type'
+    yield 'world_id_type'
+
 
 def filter_func(item):
     """Check if a missing function should be filtered or not.
