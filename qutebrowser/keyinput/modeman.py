@@ -28,11 +28,13 @@ from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.api import cmdutils
-from qutebrowser.browser import hints
 from qutebrowser.commands import runners
 from qutebrowser.config import config
 from qutebrowser.keyinput import basekeyparser, modeparsers
 from qutebrowser.utils import log, objreg, usertypes, utils
+
+if True:
+    from qutebrowser.browser import hints
 
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]

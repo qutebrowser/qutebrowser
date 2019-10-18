@@ -34,12 +34,14 @@ from PyQt5.QtNetwork import QNetworkAccessManager
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtWidgets import QApplication, QDialog, QWidget
 
-from qutebrowser.browser import eventfilter
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.qt import sip
 from qutebrowser.utils import log, message, objreg, qtutils, urlutils, usertypes, utils
+
+if True:
+    from qutebrowser.browser import eventfilter
 
 if typing.TYPE_CHECKING:
     from qutebrowser.browser import webelem
