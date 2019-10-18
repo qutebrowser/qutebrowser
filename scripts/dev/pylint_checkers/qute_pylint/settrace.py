@@ -19,8 +19,8 @@
 
 """Custom astroid checker for set_trace calls."""
 
-from pylint.interfaces import IAstroidChecker
 from pylint.checkers import BaseChecker, utils
+from pylint.interfaces import IAstroidChecker
 
 
 class SetTraceChecker(BaseChecker):

@@ -19,15 +19,15 @@
 
 """Generic web element related code."""
 
-import typing
 import collections.abc
+import typing
 
-from PyQt5.QtCore import QUrl, Qt, QEvent, QTimer, QRect, QPoint
+from PyQt5.QtCore import QEvent, QPoint, QRect, Qt, QTimer, QUrl
 from PyQt5.QtGui import QMouseEvent
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
+from qutebrowser.utils import log, objreg, qtutils, usertypes, utils
 
 if typing.TYPE_CHECKING:
     from qutebrowser.browser import browsertab

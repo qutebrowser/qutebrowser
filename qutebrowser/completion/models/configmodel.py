@@ -19,9 +19,9 @@
 
 """Functions that return config-related completion models."""
 
-from qutebrowser.config import configdata, configexc
+from qutebrowser.commands import cmdexc, runners
 from qutebrowser.completion.models import completionmodel, listcategory, util
-from qutebrowser.commands import runners, cmdexc
+from qutebrowser.config import configdata, configexc
 from qutebrowser.keyinput import keyutils
 
 

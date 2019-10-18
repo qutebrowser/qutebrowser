@@ -23,7 +23,6 @@ from qutebrowser.extensions import interceptors
 # pylint: disable=unused-import
 from qutebrowser.extensions.interceptors import Request
 
-
 #: Type annotation for an interceptor function.
 InterceptorType = interceptors.InterceptorType
 

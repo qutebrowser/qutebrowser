@@ -26,12 +26,12 @@ for qutebrowser's needs. Note that it probably doesn't handle e.g. multiple
 parameters or headers with the same name properly.
 """
 
-import sys
 import json
-import time
-import signal
 import os
+import signal
+import sys
 import threading
+import time
 from http import HTTPStatus
 
 import cheroot.wsgi

@@ -20,20 +20,21 @@
 
 """Generate the html documentation based on the asciidoc files."""
 
-import re
+import argparse
+import glob
+import io
 import os
 import os.path
-import sys
-import subprocess
-import glob
+import re
 import shutil
+import subprocess
+import sys
 import tempfile
-import argparse
-import io
+
+from scripts import utils
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
-from scripts import utils
 
 
 class AsciiDoc:

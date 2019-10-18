@@ -19,22 +19,23 @@
 
 """Loggers and utilities related to logging."""
 
-import os
-import sys
-import html as pyhtml
-import logging
-import contextlib
+import argparse
 import collections
+import contextlib
 import copy
 import faulthandler
-import traceback
-import warnings
-import json
+import html as pyhtml
 import inspect
+import json
+import logging
+import os
+import sys
+import traceback
 import typing
-import argparse
+import warnings
 
 from PyQt5 import QtCore
+
 # Optional imports
 try:
     import colorama

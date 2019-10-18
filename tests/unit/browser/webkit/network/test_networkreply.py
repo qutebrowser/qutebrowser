@@ -20,9 +20,8 @@
 """Tests for browser.network.networkreply."""
 
 import pytest
-
-from PyQt5.QtCore import QUrl, QIODevice
-from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
+from PyQt5.QtCore import QIODevice, QUrl
+from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 
 from qutebrowser.browser.webkit.network import networkreply
 

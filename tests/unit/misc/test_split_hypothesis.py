@@ -19,8 +19,8 @@
 
 """Hypothesis tests for qutebrowser.misc.split."""
 
-import pytest
 import hypothesis
+import pytest
 from hypothesis import strategies
 
 from qutebrowser.misc import split

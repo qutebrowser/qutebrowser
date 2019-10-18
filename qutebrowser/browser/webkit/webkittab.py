@@ -19,21 +19,20 @@
 
 """Wrapper over our (QtWebKit) WebView."""
 
-import re
 import functools
+import re
 import xml.etree.ElementTree
 
-from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QPoint, QTimer, QSizeF, QSize
+from PyQt5.QtCore import QPoint, QSize, QSizeF, Qt, QTimer, QUrl, pyqtSlot
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
-from PyQt5.QtWebKit import QWebSettings
 from PyQt5.QtPrintSupport import QPrinter
+from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtWebKitWidgets import QWebFrame, QWebPage
 
 from qutebrowser.browser import browsertab, shared
-from qutebrowser.browser.webkit import (webview, tabhistory, webkitelem,
-                                        webkitsettings)
-from qutebrowser.utils import qtutils, usertypes, utils, log, debug
+from qutebrowser.browser.webkit import tabhistory, webkitelem, webkitsettings, webview
 from qutebrowser.qt import sip
+from qutebrowser.utils import debug, log, qtutils, usertypes, utils
 
 
 class WebKitAction(browsertab.AbstractAction):

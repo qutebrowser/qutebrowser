@@ -20,26 +20,26 @@
 
 """Run vulture on the source files and filter out false-positives."""
 
-import sys
+import argparse
+import inspect
 import os
 import re
+import sys
 import tempfile
-import inspect
-import argparse
 
 import vulture
 
 import qutebrowser.app  # pylint: disable=unused-import
-from qutebrowser.extensions import loader
-from qutebrowser.misc import objects
-from qutebrowser.utils import utils
+# pylint: enable=unused-import
+from qutebrowser.browser import qutescheme
 from qutebrowser.browser.webkit import rfc6266
 # To run the decorators from there
 # pylint: disable=unused-import
 from qutebrowser.browser.webkit.network import webkitqutescheme
-# pylint: enable=unused-import
-from qutebrowser.browser import qutescheme
 from qutebrowser.config import configtypes
+from qutebrowser.extensions import loader
+from qutebrowser.misc import objects
+from qutebrowser.utils import utils
 
 
 def whitelist_generator():  # noqa

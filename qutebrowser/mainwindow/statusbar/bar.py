@@ -20,17 +20,24 @@
 """The main statusbar widget."""
 
 import enum
+
 import attr
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QSize, QTimer
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
+from PyQt5.QtCore import QSize, Qt, QTimer, pyqtProperty, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QHBoxLayout, QSizePolicy, QStackedLayout, QWidget
 
 from qutebrowser.browser import browsertab
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log, objreg, utils
-from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
-                                              keystring, percentage, url,
-                                              tabindex)
-from qutebrowser.mainwindow.statusbar import text as textwidget
+from qutebrowser.mainwindow.statusbar import (
+    backforward,
+    command,
+    keystring,
+    percentage,
+    progress,
+    tabindex,
+    text as textwidget,
+    url,
+)
+from qutebrowser.utils import log, objreg, usertypes, utils
 
 
 @attr.s

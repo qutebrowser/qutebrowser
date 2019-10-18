@@ -25,9 +25,9 @@
 import traceback
 import typing
 
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from PyQt5.QtCore import QObject, QUrl, pyqtSignal
 
-from qutebrowser.utils import usertypes, log, utils
+from qutebrowser.utils import log, usertypes, utils
 
 
 def _log_stack(typ: str, stack: str) -> None:

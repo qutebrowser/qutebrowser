@@ -19,26 +19,31 @@
 
 """Utilities to show various version information."""
 
-import re
-import sys
+import collections
+import datetime
+import enum
+import getpass
 import glob
+import importlib
 import os.path
 import platform
+import re
 import subprocess
-import importlib
-import collections
-import enum
-import datetime
-import getpass
+import sys
 import typing
 
 import attr
 import pkg_resources
 from PyQt5.QtCore import PYQT_VERSION_STR, QLibraryInfo
+from PyQt5.QtGui import QOffscreenSurface, QOpenGLContext, QOpenGLVersionProfile
 from PyQt5.QtNetwork import QSslSocket
-from PyQt5.QtGui import (QOpenGLContext, QOpenGLVersionProfile,
-                         QOffscreenSurface)
 from PyQt5.QtWidgets import QApplication
+
+import qutebrowser
+from qutebrowser.browser import pdfjs
+from qutebrowser.config import config
+from qutebrowser.misc import earlyinit, httpclient, objects, pastebin, sql
+from qutebrowser.utils import log, message, standarddir, usertypes, utils
 
 try:
     from PyQt5.QtWebKit import qWebKitVersion
@@ -50,11 +55,6 @@ try:
 except ImportError:  # pragma: no cover
     QWebEngineProfile = None  # type: ignore
 
-import qutebrowser
-from qutebrowser.utils import log, utils, standarddir, usertypes, message
-from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin
-from qutebrowser.browser import pdfjs
-from qutebrowser.config import config
 
 try:
     from qutebrowser.browser.webengine import webenginesettings

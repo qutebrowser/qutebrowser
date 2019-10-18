@@ -25,7 +25,6 @@ dependencies as possible to avoid cyclic dependencies.
 
 import typing
 
-
 # The second element of each tuple should be a lru_cache wrapped function
 _CACHE_FUNCTIONS = []  # type: typing.List[typing.Tuple[str, typing.Any]]
 

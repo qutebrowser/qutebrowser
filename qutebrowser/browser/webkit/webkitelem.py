@@ -25,9 +25,9 @@ from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtWebKit import QWebElement, QWebSettings
 from PyQt5.QtWebKitWidgets import QWebFrame
 
-from qutebrowser.config import config
-from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
+from qutebrowser.config import config
+from qutebrowser.utils import javascript, log, usertypes, utils
 
 if typing.TYPE_CHECKING:
     from qutebrowser.browser.webkit import webkittab

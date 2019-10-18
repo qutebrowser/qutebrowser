@@ -21,8 +21,8 @@
 
 import typing
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt, QSize
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
+from PyQt5.QtCore import QSize, Qt, QTimer, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QLabel, QSizePolicy, QVBoxLayout, QWidget
 
 from qutebrowser.config import config
 from qutebrowser.utils import usertypes

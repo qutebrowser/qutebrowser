@@ -18,7 +18,6 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest_bdd as bdd
-
 # pylint: disable=unused-import
 from end2end.features.test_yankpaste_bdd import init_fake_clipboard
 

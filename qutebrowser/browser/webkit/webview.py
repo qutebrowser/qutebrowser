@@ -19,15 +19,15 @@
 
 """The main browser widgets."""
 
-from PyQt5.QtCore import pyqtSignal, Qt, QUrl
-from PyQt5.QtWidgets import QStyleFactory
+from PyQt5.QtCore import Qt, QUrl, pyqtSignal
 from PyQt5.QtWebKit import QWebSettings
-from PyQt5.QtWebKitWidgets import QWebView, QWebPage
+from PyQt5.QtWebKitWidgets import QWebPage, QWebView
+from PyQt5.QtWidgets import QStyleFactory
 
+from qutebrowser.browser.webkit import webpage
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.utils import log, usertypes, utils, objreg, debug
-from qutebrowser.browser.webkit import webpage
+from qutebrowser.utils import debug, log, objreg, usertypes, utils
 
 
 class WebView(QWebView):

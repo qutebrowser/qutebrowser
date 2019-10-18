@@ -25,13 +25,15 @@ import sys
 
 # pylint: disable=import-error,no-member,useless-suppression
 from PyInstaller.utils.win32 import versioninfo as vs
+from scripts import utils
+
+import qutebrowser
+
 # pylint: enable=import-error,no-member,useless-suppression
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
-import qutebrowser
-from scripts import utils
 
 
 def main():

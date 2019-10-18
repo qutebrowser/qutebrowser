@@ -27,10 +27,10 @@ from datetime import datetime
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.misc import objects
 from qutebrowser.completion import completer
-from qutebrowser.completion.models import miscmodels, urlmodel, configmodel
+from qutebrowser.completion.models import configmodel, miscmodels, urlmodel
 from qutebrowser.config import configdata, configtypes
+from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
 
 

@@ -21,12 +21,11 @@
 """Test Statusbar url."""
 
 import pytest
-
+from helpers import utils
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes, urlutils
 from qutebrowser.mainwindow.statusbar import url
-from helpers import utils
+from qutebrowser.utils import urlutils, usertypes
 
 
 @pytest.fixture

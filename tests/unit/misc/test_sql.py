@@ -20,11 +20,9 @@
 """Test the SQL API."""
 
 import pytest
-
 from PyQt5.QtSql import QSqlError
 
 from qutebrowser.misc import sql
-
 
 pytestmark = pytest.mark.usefixtures('init_sql')
 

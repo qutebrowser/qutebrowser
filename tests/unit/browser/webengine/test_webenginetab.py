@@ -22,13 +22,15 @@
 import logging
 
 import pytest
+
+from qutebrowser.browser import greasemonkey
+from qutebrowser.utils import usertypes
+
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
 QWebEnginePage = QtWebEngineWidgets.QWebEnginePage
 QWebEngineScriptCollection = QtWebEngineWidgets.QWebEngineScriptCollection
 QWebEngineScript = QtWebEngineWidgets.QWebEngineScript
 
-from qutebrowser.browser import greasemonkey
-from qutebrowser.utils import usertypes
 webenginetab = pytest.importorskip(
     "qutebrowser.browser.webengine.webenginetab")
 

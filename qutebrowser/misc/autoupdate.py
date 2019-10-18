@@ -21,7 +21,7 @@
 
 import json
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
+from PyQt5.QtCore import QObject, QUrl, pyqtSignal, pyqtSlot
 
 from qutebrowser.misc import httpclient
 

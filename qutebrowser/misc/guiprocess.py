@@ -22,11 +22,10 @@
 import locale
 import shlex
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QObject, QProcess,
-                          QProcessEnvironment)
+from PyQt5.QtCore import QObject, QProcess, QProcessEnvironment, pyqtSignal, pyqtSlot
 
-from qutebrowser.utils import message, log
 from qutebrowser.browser import qutescheme
+from qutebrowser.utils import log, message
 
 
 class GUIProcess(QObject):

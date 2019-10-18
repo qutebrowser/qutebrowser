@@ -24,10 +24,10 @@ import logging
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.browser import history
-from qutebrowser.utils import objreg, urlutils, usertypes
 from qutebrowser.api import cmdutils
-from qutebrowser.misc import sql, objects
+from qutebrowser.browser import history
+from qutebrowser.misc import objects, sql
+from qutebrowser.utils import objreg, urlutils, usertypes
 
 
 @pytest.fixture(autouse=True)

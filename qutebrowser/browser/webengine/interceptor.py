@@ -20,16 +20,14 @@
 """A request interceptor taking care of adblocking and custom headers."""
 
 import attr
+from PyQt5.QtCore import QByteArray, QUrl
+from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInfo, QWebEngineUrlRequestInterceptor
 
-from PyQt5.QtCore import QUrl, QByteArray
-from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
-                                   QWebEngineUrlRequestInfo)
-
-from qutebrowser.config import config
 from qutebrowser.browser import shared
-from qutebrowser.utils import utils, log, debug, qtutils
+from qutebrowser.config import config
 from qutebrowser.extensions import interceptors
 from qutebrowser.misc import objects
+from qutebrowser.utils import debug, log, qtutils, utils
 
 
 @attr.s

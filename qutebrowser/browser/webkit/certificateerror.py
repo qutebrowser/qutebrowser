@@ -22,7 +22,7 @@
 
 from PyQt5.QtNetwork import QSslError
 
-from qutebrowser.utils import usertypes, utils, debug
+from qutebrowser.utils import debug, usertypes, utils
 
 
 class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):

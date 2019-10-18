@@ -18,18 +18,18 @@
 
 """Tests for qutebrowser.config.config."""
 
+import functools
 import types
 import unittest.mock
-import functools
 
 import pytest
 from PyQt5.QtCore import QObject, QUrl
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config, configdata, configexc, configutils
-from qutebrowser.utils import usertypes, urlmatch
-from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
+from qutebrowser.misc import objects
+from qutebrowser.utils import urlmatch, usertypes
 
 
 @pytest.fixture(autouse=True)

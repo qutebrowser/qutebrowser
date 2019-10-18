@@ -21,12 +21,11 @@
 
 import enum
 
-from PyQt5.QtCore import pyqtSlot, pyqtProperty, QUrl
+from PyQt5.QtCore import QUrl, pyqtProperty, pyqtSlot
 
-from qutebrowser.mainwindow.statusbar import textbase
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, urlutils
-
+from qutebrowser.mainwindow.statusbar import textbase
+from qutebrowser.utils import urlutils, usertypes
 
 # Note this has entries for success/error/warn from widgets.webview:LoadStatus
 UrlType = enum.Enum('UrlType', ['success', 'success_https', 'error', 'warn',

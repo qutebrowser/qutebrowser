@@ -18,20 +18,18 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import os
 import os.path
-import zipfile
-import logging
 import shutil
+import zipfile
 
 import pytest
-
+from helpers import utils
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.components import adblock
 from qutebrowser.utils import urlmatch
-from helpers import utils
-
 
 pytestmark = pytest.mark.usefixtures('qapp')
 

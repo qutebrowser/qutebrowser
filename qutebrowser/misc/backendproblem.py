@@ -19,27 +19,35 @@
 
 """Dialogs shown when there was a problem with a backend choice."""
 
-import os
-import sys
-import functools
-import html
+import argparse
 import ctypes
 import ctypes.util
 import enum
+import functools
+import html
+import os
 import shutil
+import sys
 import typing
-import argparse
 
 import attr
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QApplication, QDialog, QPushButton, QHBoxLayout,
-                             QVBoxLayout, QLabel, QMessageBox, QWidget)
 from PyQt5.QtNetwork import QSslSocket
+from PyQt5.QtWidgets import (
+    QApplication,
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from qutebrowser.config import config, configfiles
-from qutebrowser.utils import (usertypes, version, qtutils, log, utils,
-                               standarddir)
-from qutebrowser.misc import objects, msgbox, savemanager
+from qutebrowser.misc import msgbox, objects, savemanager
+from qutebrowser.utils import log, qtutils, standarddir, usertypes, utils, version
+
 if typing.TYPE_CHECKING:
     from qutebrowser import app
 

@@ -20,21 +20,22 @@
 
 """Various small code checkers."""
 
+import argparse
+import collections
 import os
 import os.path
+import pathlib
 import re
-import sys
-import argparse
 import subprocess
+import sys
 import tokenize
 import traceback
-import collections
-import pathlib
+
+from scripts import utils
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
-from scripts import utils
 
 
 def _get_files(only_py=False):

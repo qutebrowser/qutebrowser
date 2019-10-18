@@ -22,12 +22,11 @@
 import os
 import tempfile
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QObject, QProcess,
-                          QFileSystemWatcher)
+from PyQt5.QtCore import QFileSystemWatcher, QObject, QProcess, pyqtSignal, pyqtSlot
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log
 from qutebrowser.misc import guiprocess
+from qutebrowser.utils import log, message
 
 
 class ExternalEditor(QObject):

@@ -21,10 +21,10 @@
 
 import typing
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
-from qutebrowser.utils import usertypes, log, standarddir, objreg
 from qutebrowser.misc import lineparser
+from qutebrowser.utils import log, objreg, standarddir, usertypes
 
 
 class HistoryEmptyError(Exception):

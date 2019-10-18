@@ -24,13 +24,13 @@ import os.path
 import tempfile
 import typing
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSocketNotifier
+from PyQt5.QtCore import QObject, QSocketNotifier, pyqtSignal, pyqtSlot
 
-from qutebrowser.utils import message, log, objreg, standarddir, utils
+from qutebrowser.browser import downloads
 from qutebrowser.commands import runners
 from qutebrowser.config import config
 from qutebrowser.misc import guiprocess
-from qutebrowser.browser import downloads
+from qutebrowser.utils import log, message, objreg, standarddir, utils
 
 
 class _QtFIFOReader(QObject):

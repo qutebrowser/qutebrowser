@@ -19,26 +19,33 @@
 
 """Shared QtWebKit/QtWebEngine code for downloads."""
 
-import re
-import sys
+import collections
+import enum
+import functools
 import html
 import os.path
-import collections
-import functools
 import pathlib
+import re
+import sys
 import tempfile
-import enum
 import typing
 
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QObject, QModelIndex,
-                          QTimer, QAbstractListModel, QUrl)
+from PyQt5.QtCore import (
+    QAbstractListModel,
+    QModelIndex,
+    QObject,
+    Qt,
+    QTimer,
+    QUrl,
+    pyqtSignal,
+    pyqtSlot,
+)
 
-from qutebrowser.browser import pdfjs
 from qutebrowser.api import cmdutils
+from qutebrowser.browser import pdfjs
 from qutebrowser.config import config
-from qutebrowser.utils import (usertypes, standarddir, utils, message, log,
-                               qtutils, objreg)
 from qutebrowser.qt import sip
+from qutebrowser.utils import log, message, objreg, qtutils, standarddir, usertypes, utils
 
 
 class ModelRole(enum.IntEnum):

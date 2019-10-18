@@ -20,17 +20,18 @@
 
 """Script to clean up the mess made by Python/setuptools/PyInstaller."""
 
+import fnmatch
+import glob
 import os
 import os.path
-import sys
-import glob
 import shutil
-import fnmatch
+import sys
+
+from scripts import utils
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
-from scripts import utils
 
 
 recursive_lint = ('__pycache__', '*.pyc')

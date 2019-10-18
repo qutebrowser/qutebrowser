@@ -20,20 +20,21 @@
 
 """Enforce perfect coverage on some files."""
 
+import enum
 import os
 import os.path
-import sys
-import enum
 import subprocess
+import sys
 from xml.etree import ElementTree
 
 import attr
+from scripts import utils as scriptutils
+
+from qutebrowser.utils import utils
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
-from scripts import utils as scriptutils
-from qutebrowser.utils import utils
 
 
 @attr.s

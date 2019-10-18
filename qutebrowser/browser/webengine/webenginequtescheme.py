@@ -20,16 +20,17 @@
 """QtWebEngine specific qute://* handlers and glue code."""
 
 from PyQt5.QtCore import QBuffer, QIODevice, QUrl
-from PyQt5.QtWebEngineCore import (QWebEngineUrlSchemeHandler,
-                                   QWebEngineUrlRequestJob)
+from PyQt5.QtWebEngineCore import QWebEngineUrlRequestJob, QWebEngineUrlSchemeHandler
+
+from qutebrowser.browser import qutescheme
+from qutebrowser.utils import log, qtutils
+
 try:
     from PyQt5.QtWebEngineCore import QWebEngineUrlScheme  # type: ignore
 except ImportError:
     # Added in Qt 5.12
     QWebEngineUrlScheme = None
 
-from qutebrowser.browser import qutescheme
-from qutebrowser.utils import log, qtutils
 
 
 class QuteSchemeHandler(QWebEngineUrlSchemeHandler):

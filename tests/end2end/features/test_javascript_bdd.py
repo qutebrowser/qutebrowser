@@ -20,6 +20,7 @@
 import os.path
 
 import pytest_bdd as bdd
+
 bdd.scenarios('javascript.feature')
 
 

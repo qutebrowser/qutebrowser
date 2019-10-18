@@ -22,7 +22,6 @@
 import os
 import os.path
 
-
 # Import side-effects are an evil thing, but here it's okay so scripts using
 # colors work on Windows as well.
 try:

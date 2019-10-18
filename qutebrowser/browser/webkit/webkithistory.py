@@ -23,8 +23,8 @@ import functools
 
 from PyQt5.QtWebKit import QWebHistoryInterface
 
-from qutebrowser.utils import debug
 from qutebrowser.misc import debugcachestats
+from qutebrowser.utils import debug
 
 
 class WebHistoryInterface(QWebHistoryInterface):

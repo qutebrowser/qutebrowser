@@ -19,26 +19,34 @@
 
 """Command dispatcher for TabbedBrowser."""
 
+import functools
 import os.path
 import shlex
-import functools
 import typing
 
+from PyQt5.QtCore import QEvent, Qt, QUrl, QUrlQuery, pyqtSlot
 from PyQt5.QtWidgets import QApplication, QTabBar
-from PyQt5.QtCore import pyqtSlot, Qt, QUrl, QEvent, QUrlQuery
 
-from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
+from qutebrowser.browser import browsertab, downloads, inspector, navigate, urlmarks, webelem
+from qutebrowser.commands import runners, userscripts
+from qutebrowser.completion.models import miscmodels, urlmodel
 from qutebrowser.config import config, configdata
-from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
-                                 webelem, downloads)
-from qutebrowser.keyinput import modeman, keyutils
-from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils, standarddir, debug)
-from qutebrowser.utils.usertypes import KeyMode
-from qutebrowser.misc import editor, guiprocess, objects
-from qutebrowser.completion.models import urlmodel, miscmodels
+from qutebrowser.keyinput import keyutils, modeman
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.misc import editor, guiprocess, objects
+from qutebrowser.utils import (
+    debug,
+    log,
+    message,
+    objreg,
+    qtutils,
+    standarddir,
+    urlutils,
+    usertypes,
+    utils,
+)
+from qutebrowser.utils.usertypes import KeyMode
 
 
 class CommandDispatcher:

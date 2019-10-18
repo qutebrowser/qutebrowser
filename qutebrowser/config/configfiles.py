@@ -19,24 +19,24 @@
 
 """Configuration files residing on disk."""
 
-import pathlib
-import types
+import configparser
+import contextlib
 import os.path
+import pathlib
+import re
 import sys
 import textwrap
 import traceback
-import configparser
-import contextlib
+import types
 import typing
-import re
 
 import yaml
-from PyQt5.QtCore import pyqtSignal, QObject, QSettings, qVersion
+from PyQt5.QtCore import QObject, QSettings, pyqtSignal, qVersion
 
 import qutebrowser
-from qutebrowser.config import configexc, config, configdata, configutils
+from qutebrowser.config import config, configdata, configexc, configutils
 from qutebrowser.keyinput import keyutils
-from qutebrowser.utils import standarddir, utils, qtutils, log, urlmatch
+from qutebrowser.utils import log, qtutils, standarddir, urlmatch, utils
 
 if typing.TYPE_CHECKING:
     from qutebrowser.misc import savemanager

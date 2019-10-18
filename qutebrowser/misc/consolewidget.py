@@ -19,18 +19,17 @@
 
 """Debugging console."""
 
-import sys
 import code
+import sys
 import typing
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt
-from PyQt5.QtWidgets import QTextEdit, QWidget, QVBoxLayout, QApplication
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QTextCursor
+from PyQt5.QtWidgets import QApplication, QTextEdit, QVBoxLayout, QWidget
 
 from qutebrowser.config import config
 from qutebrowser.misc import cmdhistory, miscwidgets
-from qutebrowser.utils import utils, objreg
-
+from qutebrowser.utils import objreg, utils
 
 console_widget = None
 

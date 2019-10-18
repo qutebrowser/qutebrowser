@@ -30,24 +30,35 @@ Module attributes:
 """
 
 
+import contextlib
 import io
 import operator
-import contextlib
 import typing
 
 import pkg_resources
-from PyQt5.QtCore import (qVersion, QEventLoop, QDataStream, QByteArray,
-                          QIODevice, QSaveFile, QT_VERSION_STR,
-                          PYQT_VERSION_STR, QFileDevice, QObject)
+from PyQt5.QtCore import (
+    PYQT_VERSION_STR,
+    QT_VERSION_STR,
+    QByteArray,
+    QDataStream,
+    QEventLoop,
+    QFileDevice,
+    QIODevice,
+    QObject,
+    QSaveFile,
+    qVersion,
+)
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
+
+from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes
+
 try:
     from PyQt5.QtWebKit import qWebKitVersion
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore  # noqa: N816
 
-from qutebrowser.misc import objects
-from qutebrowser.utils import usertypes
 
 
 MAXVALS = {

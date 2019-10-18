@@ -19,14 +19,22 @@
 
 """Misc. widgets used at different places."""
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QSize, QTimer
-from PyQt5.QtWidgets import (QLineEdit, QWidget, QHBoxLayout, QLabel,
-                             QStyleOption, QStyle, QLayout, QApplication)
-from PyQt5.QtGui import QValidator, QPainter
+from PyQt5.QtCore import QSize, Qt, QTimer, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QPainter, QValidator
+from PyQt5.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QLayout,
+    QLineEdit,
+    QStyle,
+    QStyleOption,
+    QWidget,
+)
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils
 from qutebrowser.misc import cmdhistory
+from qutebrowser.utils import utils
 
 
 class MinimalLineEditMixin:

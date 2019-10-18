@@ -24,13 +24,13 @@ import types
 import typing
 
 import attr
-from PyQt5.QtCore import pyqtSignal, QObject, Qt
-from PyQt5.QtGui import QKeySequence, QKeyEvent
+from PyQt5.QtCore import QObject, Qt, pyqtSignal
+from PyQt5.QtGui import QKeyEvent, QKeySequence
 from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, log, utils
 from qutebrowser.keyinput import keyutils
+from qutebrowser.utils import log, usertypes, utils
 
 
 @attr.s(frozen=True)

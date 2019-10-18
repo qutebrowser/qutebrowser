@@ -24,7 +24,7 @@ import textwrap
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, qtutils, usertypes
+from qutebrowser.utils import qtutils, usertypes, utils
 
 
 @pytest.fixture

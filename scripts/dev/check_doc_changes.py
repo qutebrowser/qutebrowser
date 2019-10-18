@@ -20,9 +20,9 @@
 
 """Check if docs changed and output an error if so."""
 
-import sys
-import subprocess
 import os
+import subprocess
+import sys
 
 code = subprocess.run(['git', '--no-pager', 'diff',
                        '--exit-code', '--stat'], check=False).returncode

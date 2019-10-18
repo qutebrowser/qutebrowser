@@ -22,9 +22,8 @@
 import os
 import os.path
 
-import pytest
 import jinja2
-
+import pytest
 from PyQt5.QtCore import QUrl
 
 import qutebrowser

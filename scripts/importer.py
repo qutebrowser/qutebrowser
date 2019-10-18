@@ -28,11 +28,11 @@ profiles is supported.
 
 
 import argparse
-import sqlite3
-import os
-import urllib.parse
 import json
+import os
+import sqlite3
 import string
+import urllib.parse
 
 browser_default_input_format = {
     'chromium': 'chrome',

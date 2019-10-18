@@ -19,8 +19,8 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import io
-import textwrap
 import re
+import textwrap
 
 import pytest
 

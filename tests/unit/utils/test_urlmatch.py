@@ -29,12 +29,12 @@ Currently not tested:
 - Any other features we don't need, such as .GetAsString() or set operations.
 """
 
-import sys
 import string
+import sys
 
-import pytest
 import hypothesis
 import hypothesis.strategies as hst
+import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import urlmatch

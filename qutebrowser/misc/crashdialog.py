@@ -19,28 +19,36 @@
 
 """The dialog which gets shown when qutebrowser crashes."""
 
-import re
-import os
-import sys
-import html
-import getpass
-import fnmatch
-import traceback
 import datetime
 import enum
+import fnmatch
+import getpass
+import html
+import os
+import re
+import sys
+import traceback
 import typing
 
 import pkg_resources
-from PyQt5.QtCore import pyqtSlot, Qt, QSize
-from PyQt5.QtWidgets import (QDialog, QLabel, QTextEdit, QPushButton,
-                             QVBoxLayout, QHBoxLayout, QCheckBox,
-                             QDialogButtonBox, QApplication, QMessageBox)
+from PyQt5.QtCore import QSize, Qt, pyqtSlot
+from PyQt5.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QDialog,
+    QDialogButtonBox,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+)
 
 import qutebrowser
-from qutebrowser.utils import version, log, utils, objreg
-from qutebrowser.misc import (miscwidgets, autoupdate, msgbox, httpclient,
-                              pastebin)
 from qutebrowser.config import config, configfiles
+from qutebrowser.misc import autoupdate, httpclient, miscwidgets, msgbox, pastebin
+from qutebrowser.utils import log, objreg, utils, version
 
 
 class Result(enum.IntEnum):

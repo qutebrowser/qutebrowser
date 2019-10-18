@@ -19,15 +19,15 @@
 
 """Tests for qutebrowser.components.misccommands."""
 
-import signal
 import contextlib
+import signal
 import time
 
 import pytest
 
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import utils
 from qutebrowser.components import misccommands
+from qutebrowser.utils import utils
 
 
 @contextlib.contextmanager

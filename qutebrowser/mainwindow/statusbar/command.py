@@ -20,16 +20,15 @@
 """The commandline in the statusbar."""
 
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QSize
+from PyQt5.QtCore import QSize, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QSizePolicy, QWidget
 
-from qutebrowser.keyinput import modeman, modeparsers
 from qutebrowser.api import cmdutils
-from qutebrowser.misc import cmdhistory, editor
-from qutebrowser.misc import miscwidgets as misc
-from qutebrowser.utils import usertypes, log, objreg, message, utils
 from qutebrowser.config import config
+from qutebrowser.keyinput import modeman, modeparsers
+from qutebrowser.misc import cmdhistory, editor, miscwidgets as misc
+from qutebrowser.utils import log, message, objreg, usertypes, utils
 
 
 class Command(misc.MinimalLineEditMixin, misc.CommandLineEdit):

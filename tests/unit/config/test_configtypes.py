@@ -18,27 +18,27 @@
 
 """Tests for qutebrowser.config.configtypes."""
 
-import re
+import functools
+import inspect
 import json
 import math
+import re
 import warnings
-import inspect
-import functools
 
 import attr
-import pytest
 import hypothesis
+import pytest
+from helpers import utils as testutils
 from hypothesis import strategies
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
-from qutebrowser.misc import objects
-from qutebrowser.config import configtypes, configexc, configutils
-from qutebrowser.utils import debug, utils, qtutils, urlmatch
 from qutebrowser.browser.network import pac
+from qutebrowser.config import configexc, configtypes, configutils
 from qutebrowser.keyinput import keyutils
-from helpers import utils as testutils
+from qutebrowser.misc import objects
+from qutebrowser.utils import debug, qtutils, urlmatch, utils
 
 
 class Font(QFont):

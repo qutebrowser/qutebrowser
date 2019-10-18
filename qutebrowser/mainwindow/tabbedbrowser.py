@@ -21,20 +21,19 @@
 
 import collections
 import functools
-import weakref
 import typing
+import weakref
 
 import attr
-from PyQt5.QtWidgets import QSizePolicy, QWidget, QApplication
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QTimer, QUrl
+from PyQt5.QtCore import QTimer, QUrl, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication, QSizePolicy, QWidget
 
+from qutebrowser.browser import browsertab, signalfilter
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.mainwindow import tabwidget, mainwindow
-from qutebrowser.browser import signalfilter, browsertab
-from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
-                               urlutils, message, jinja)
+from qutebrowser.mainwindow import mainwindow, tabwidget
+from qutebrowser.utils import jinja, log, message, objreg, qtutils, urlutils, usertypes, utils
 
 
 @attr.s

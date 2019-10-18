@@ -20,8 +20,8 @@
 import textwrap
 
 import pytest
-
 import pytest_bdd as bdd
+
 bdd.scenarios('hints.feature')
 
 

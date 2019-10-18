@@ -19,19 +19,18 @@
 
 """Simple history which gets written to disk."""
 
+import contextlib
 import os
 import time
-import contextlib
 import typing
 
-from PyQt5.QtCore import pyqtSlot, QUrl, pyqtSignal
-from PyQt5.QtWidgets import QProgressDialog, QApplication
+from PyQt5.QtCore import QUrl, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QApplication, QProgressDialog
 
-from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import utils, objreg, log, usertypes, message, qtutils
+from qutebrowser.config import config
 from qutebrowser.misc import objects, sql
-
+from qutebrowser.utils import log, message, objreg, qtutils, usertypes, utils
 
 # increment to indicate that HistoryCompletion must be regenerated
 _USER_VERSION = 2

@@ -19,17 +19,15 @@
 
 """Test starting qutebrowser with special arguments/environments."""
 
-import subprocess
-import socket
-import sys
 import logging
 import re
+import socket
+import subprocess
+import sys
 
 import pytest
-from PyQt5.QtCore import QProcess, qVersion
-
 from helpers import utils
-
+from PyQt5.QtCore import QProcess, qVersion
 
 ascii_locale = pytest.mark.skipif(sys.hexversion >= 0x03070000,
                                   reason="Python >= 3.7 doesn't force ASCII "

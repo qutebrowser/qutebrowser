@@ -19,18 +19,18 @@
 
 """Utilities used for debugging."""
 
-import re
+import datetime
+import functools
 import inspect
 import logging
-import functools
-import datetime
-import typing
+import re
 import types
+import typing
 
-from PyQt5.QtCore import Qt, QEvent, QMetaMethod, QObject, pyqtSignal
+from PyQt5.QtCore import QEvent, QMetaMethod, QObject, Qt, pyqtSignal
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, utils, qtutils, objreg
+from qutebrowser.utils import log, objreg, qtutils, utils
 
 
 def log_events(klass: typing.Type) -> typing.Type:

@@ -20,8 +20,8 @@
 
 import textwrap
 
-import yaml
 import pytest
+import yaml
 
 # To run cmdutils.register decorators
 from qutebrowser import app  # pylint: disable=unused-import

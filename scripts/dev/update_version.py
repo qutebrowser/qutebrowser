@@ -21,15 +21,16 @@
 
 """Update version numbers using bump2version."""
 
-import sys
 import argparse
 import os.path
 import subprocess
+import sys
+
+from scripts import utils
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
-from scripts import utils
 
 
 def bump_version(version_leap="patch"):

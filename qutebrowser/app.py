@@ -37,51 +37,77 @@ After all initialization is done, the qt_mainloop() function is called, which
 blocks and spins the Qt mainloop.
 """
 
-import os
-import sys
-import subprocess
-import functools
-import json
-import shutil
-import tempfile
+import argparse
 import atexit
 import datetime
+import functools
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
 import tokenize
-import argparse
 import typing
 
+from PyQt5.QtCore import QEvent, QObject, Qt, QTimer, QUrl, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QDesktopServices, QIcon, QKeyEvent, QPixmap, QWindow
 from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtGui import QDesktopServices, QPixmap, QIcon, QWindow, QKeyEvent
-from PyQt5.QtCore import (pyqtSlot, QTimer, QUrl, QObject, QEvent, pyqtSignal,
-                          Qt)
+
+import qutebrowser
+import qutebrowser.resources
+from qutebrowser.api import cmdutils
+from qutebrowser.browser import (
+    browsertab,
+    downloads,
+    greasemonkey,
+    history,
+    qtnetworkdownloads,
+    urlmarks,
+)
+from qutebrowser.browser.network import proxy
+from qutebrowser.browser.webkit import cache, cookies
+from qutebrowser.browser.webkit.network import networkmanager
+from qutebrowser.commands import runners
+from qutebrowser.completion.models import miscmodels
+from qutebrowser.config import config, configfiles, configinit, websettings
+from qutebrowser.extensions import loader
+from qutebrowser.keyinput import macros
+from qutebrowser.mainwindow import mainwindow, prompt
+# pylint: disable=unused-import
+# We import those to run the cmdutils.register decorators.
+from qutebrowser.mainwindow.statusbar import command
+from qutebrowser.misc import (
+    backendproblem,
+    cmdhistory,
+    crashsignal,
+    earlyinit,
+    ipc,
+    objects,
+    readline,
+    savemanager,
+    sessions,
+    sql,
+    utilcmds,
+)
+from qutebrowser.utils import (
+    error,
+    log,
+    message,
+    objreg,
+    qtutils,
+    standarddir,
+    urlutils,
+    usertypes,
+    utils,
+    version,
+)
+
 try:
     import hunter
 except ImportError:
     hunter = None
 
-import qutebrowser
-import qutebrowser.resources
-from qutebrowser.completion.models import miscmodels
-from qutebrowser.commands import runners
-from qutebrowser.api import cmdutils
-from qutebrowser.config import config, websettings, configfiles, configinit
-from qutebrowser.browser import (urlmarks, history, browsertab,
-                                 qtnetworkdownloads, downloads, greasemonkey)
-from qutebrowser.browser.network import proxy
-from qutebrowser.browser.webkit import cookies, cache
-from qutebrowser.browser.webkit.network import networkmanager
-from qutebrowser.extensions import loader
-from qutebrowser.keyinput import macros
-from qutebrowser.mainwindow import mainwindow, prompt
-from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, sql, cmdhistory,
-                              backendproblem, objects)
-from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
-                               usertypes, standarddir, error, qtutils)
-# pylint: disable=unused-import
-# We import those to run the cmdutils.register decorators.
-from qutebrowser.mainwindow.statusbar import command
-from qutebrowser.misc import utilcmds
 # pylint: enable=unused-import
 
 

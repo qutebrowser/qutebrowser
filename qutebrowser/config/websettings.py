@@ -19,15 +19,15 @@
 
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
-import typing
 import argparse
+import typing
 
 from PyQt5.QtCore import QUrl, pyqtSlot
 from PyQt5.QtGui import QFont
 
 from qutebrowser.config import config, configutils
-from qutebrowser.utils import log, usertypes, urlmatch, qtutils
 from qutebrowser.misc import objects
+from qutebrowser.utils import log, qtutils, urlmatch, usertypes
 
 UNSET = object()
 

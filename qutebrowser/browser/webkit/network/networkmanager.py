@@ -24,21 +24,17 @@ import html
 import typing
 
 import attr
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QCoreApplication, QUrl,
-                          QByteArray)
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkReply, QSslSocket,
-                             QSslError)
+from PyQt5.QtCore import QByteArray, QCoreApplication, QUrl, pyqtSignal, pyqtSlot
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QSslError, QSslSocket
 
-from qutebrowser.config import config
-from qutebrowser.utils import (message, log, usertypes, utils, objreg,
-                               urlutils, debug)
 from qutebrowser.browser import shared
 from qutebrowser.browser.network import proxy as proxymod
+from qutebrowser.browser.webkit import cache, certificateerror, cookies
+from qutebrowser.browser.webkit.network import filescheme, networkreply, webkitqutescheme
+from qutebrowser.config import config
 from qutebrowser.extensions import interceptors
-from qutebrowser.browser.webkit import certificateerror, cookies, cache
-from qutebrowser.browser.webkit.network import (webkitqutescheme, networkreply,
-                                                filescheme)
 from qutebrowser.misc import objects
+from qutebrowser.utils import debug, log, message, objreg, urlutils, usertypes, utils
 
 if typing.TYPE_CHECKING:
     from qutebrowser.mainwindow import prompt

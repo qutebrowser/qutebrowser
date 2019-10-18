@@ -24,10 +24,10 @@ import typing
 from PyQt5.QtSql import QSqlQueryModel
 from PyQt5.QtWidgets import QWidget
 
-from qutebrowser.misc import sql
-from qutebrowser.utils import debug, message, log
-from qutebrowser.config import config
 from qutebrowser.completion.models import util
+from qutebrowser.config import config
+from qutebrowser.misc import sql
+from qutebrowser.utils import debug, log, message
 
 
 class HistoryCategory(QSqlQueryModel):

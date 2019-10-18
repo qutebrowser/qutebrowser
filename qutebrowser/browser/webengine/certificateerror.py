@@ -21,7 +21,7 @@
 
 from PyQt5.QtWebEngineWidgets import QWebEngineCertificateError
 
-from qutebrowser.utils import usertypes, utils, debug
+from qutebrowser.utils import debug, usertypes, utils
 
 
 class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):

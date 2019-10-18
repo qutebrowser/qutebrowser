@@ -20,24 +20,25 @@
 """A HintManager to draw hints over links."""
 
 import collections
-import typing
+import enum
 import functools
+import html
 import os
 import re
-import html
-import enum
+import typing
 from string import ascii_lowercase
 
 import attr
-from PyQt5.QtCore import pyqtSlot, QObject, Qt, QUrl
+from PyQt5.QtCore import QObject, Qt, QUrl, pyqtSlot
 from PyQt5.QtWidgets import QLabel
 
+from qutebrowser.api import cmdutils
+from qutebrowser.browser import webelem
+from qutebrowser.commands import runners, userscripts
 from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers
-from qutebrowser.browser import webelem
-from qutebrowser.commands import userscripts, runners
-from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
+from qutebrowser.utils import log, message, objreg, qtutils, usertypes, utils
+
 if typing.TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 

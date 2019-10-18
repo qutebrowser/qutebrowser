@@ -19,24 +19,24 @@
 
 """Steps for bdd-like tests."""
 
+import collections
+import json
+import logging
 import os
 import os.path
 import re
-import sys
-import time
-import json
-import logging
-import collections
-import textwrap
 import subprocess
+import sys
+import textwrap
+import time
 
 import pytest
 import pytest_bdd as bdd
+from helpers import utils as testutils
 
 import qutebrowser
-from qutebrowser.utils import log, utils, docutils
 from qutebrowser.browser import pdfjs
-from helpers import utils as testutils
+from qutebrowser.utils import docutils, log, utils
 
 
 def _get_echo_exe_path():

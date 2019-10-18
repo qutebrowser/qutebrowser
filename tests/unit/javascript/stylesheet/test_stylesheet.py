@@ -20,12 +20,14 @@
 """Tests for stylesheet.js."""
 
 import os
+
 import pytest
+
+from qutebrowser.utils import javascript
 
 QtWebEngineWidgets = pytest.importorskip("PyQt5.QtWebEngineWidgets")
 QWebEngineProfile = QtWebEngineWidgets.QWebEngineProfile
 
-from qutebrowser.utils import javascript
 
 
 DEFAULT_BODY_BG = "rgba(0, 0, 0, 0)"

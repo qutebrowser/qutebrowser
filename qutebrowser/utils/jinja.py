@@ -19,20 +19,19 @@
 
 """Utilities related to jinja2."""
 
+import contextlib
+import functools
+import html
 import os
 import os.path
 import typing
-import functools
-import contextlib
-import html
 
 import jinja2
 import jinja2.nodes
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlutils, log, qtutils, javascript
 from qutebrowser.misc import debugcachestats
-
+from qutebrowser.utils import javascript, log, qtutils, urlutils, utils
 
 html_fallback = """
 <!DOCTYPE html>

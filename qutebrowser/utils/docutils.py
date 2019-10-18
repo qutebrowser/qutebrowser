@@ -19,12 +19,12 @@
 
 """Utilities used for the documentation and built-in help."""
 
-import re
-import sys
-import inspect
-import os.path
 import collections
 import enum
+import inspect
+import os.path
+import re
+import sys
 import typing
 
 import qutebrowser

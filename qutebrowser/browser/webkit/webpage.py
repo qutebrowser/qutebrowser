@@ -19,22 +19,22 @@
 
 """The main browser widgets."""
 
-import html
 import functools
+import html
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QUrl, QPoint
+from PyQt5.QtCore import QPoint, Qt, QUrl, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
-from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtPrintSupport import QPrintDialog
-from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
+from PyQt5.QtWebKitWidgets import QWebFrame, QWebPage
+from PyQt5.QtWidgets import QFileDialog
 
-from qutebrowser.config import config
-from qutebrowser.browser import pdfjs, shared, downloads
+from qutebrowser.browser import downloads, pdfjs, shared
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
-from qutebrowser.utils import message, usertypes, log, jinja, objreg
+from qutebrowser.config import config
 from qutebrowser.qt import sip
+from qutebrowser.utils import jinja, log, message, objreg, usertypes
 
 
 class BrowserPage(QWebPage):

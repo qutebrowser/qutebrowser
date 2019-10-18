@@ -22,9 +22,9 @@
 import collections
 
 from PyQt5.QtCore import QObject, pyqtSignal
-from PyQt5.QtSql import QSqlDatabase, QSqlQuery, QSqlError
+from PyQt5.QtSql import QSqlDatabase, QSqlError, QSqlQuery
 
-from qutebrowser.utils import log, debug
+from qutebrowser.utils import debug, log
 
 
 class SqliteErrorCode:

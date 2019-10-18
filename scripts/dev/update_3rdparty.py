@@ -22,17 +22,19 @@
 """Update all third-party-modules."""
 
 import argparse
-import urllib.request
-import urllib.error
-import shutil
 import json
 import os
+import shutil
 import sys
+import urllib.error
+import urllib.request
+
+from scripts import dictcli
+
+from qutebrowser.config import configdata
 
 sys.path.insert(
     0, os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
-from scripts import dictcli
-from qutebrowser.config import configdata
 
 
 def download_nsis_plugins():

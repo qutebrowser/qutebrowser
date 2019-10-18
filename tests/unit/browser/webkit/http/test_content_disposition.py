@@ -23,7 +23,6 @@ import pytest
 
 from qutebrowser.browser.webkit import http
 
-
 DEFAULT_NAME = 'qutebrowser-download'
 
 

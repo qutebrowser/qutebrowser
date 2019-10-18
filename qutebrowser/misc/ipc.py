@@ -19,19 +19,18 @@
 
 """Utilities for IPC with existing instances."""
 
+import binascii
+import getpass
+import hashlib
+import json
 import os
 import time
-import json
-import getpass
-import binascii
-import hashlib
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, Qt
-from PyQt5.QtNetwork import QLocalSocket, QLocalServer, QAbstractSocket
+from PyQt5.QtCore import QObject, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtNetwork import QAbstractSocket, QLocalServer, QLocalSocket
 
 import qutebrowser
-from qutebrowser.utils import log, usertypes, error, standarddir, utils
-
+from qutebrowser.utils import error, log, standarddir, usertypes, utils
 
 CONNECT_TIMEOUT = 100  # timeout for connecting/disconnecting
 WRITE_TIMEOUT = 1000

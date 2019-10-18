@@ -19,15 +19,15 @@
 
 """Parser for line-based files like histories."""
 
+import contextlib
 import os
 import os.path
-import contextlib
 import typing
 
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
-from qutebrowser.utils import log, utils, qtutils
 from qutebrowser.config import config
+from qutebrowser.utils import log, qtutils, utils
 
 
 class BaseLineParser(QObject):

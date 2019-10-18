@@ -19,18 +19,25 @@
 
 """Contains the Command class, a skeleton for a command."""
 
-import inspect
 import collections
+import inspect
 import traceback
 import typing
 
 import attr
 
 from qutebrowser.api import cmdutils
-from qutebrowser.commands import cmdexc, argparser
-from qutebrowser.utils import log, message, docutils, objreg, usertypes, utils
-from qutebrowser.utils import debug as debug_utils
+from qutebrowser.commands import argparser, cmdexc
 from qutebrowser.misc import objects
+from qutebrowser.utils import (
+    debug as debug_utils,
+    docutils,
+    log,
+    message,
+    objreg,
+    usertypes,
+    utils,
+)
 
 
 @attr.s

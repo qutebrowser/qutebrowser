@@ -24,8 +24,7 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import pdfjs
-from qutebrowser.utils import usertypes, utils, urlmatch
-
+from qutebrowser.utils import urlmatch, usertypes, utils
 
 pytestmark = [pytest.mark.usefixtures('data_tmpdir')]
 

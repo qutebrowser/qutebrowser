@@ -20,12 +20,13 @@
 """Tests for webelement.tabhistory."""
 
 import attr
-from PyQt5.QtCore import QUrl, QPoint
 import pytest
+from PyQt5.QtCore import QPoint, QUrl
 
-tabhistory = pytest.importorskip('qutebrowser.browser.webkit.tabhistory')
 from qutebrowser.misc.sessions import TabHistoryItem as Item
 from qutebrowser.utils import qtutils
+
+tabhistory = pytest.importorskip('qutebrowser.browser.webkit.tabhistory')
 
 
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')

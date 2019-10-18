@@ -19,7 +19,7 @@
 
 """Zooming-related commands."""
 
-from qutebrowser.api import cmdutils, apitypes, message, config
+from qutebrowser.api import apitypes, cmdutils, config, message
 
 
 @cmdutils.register()

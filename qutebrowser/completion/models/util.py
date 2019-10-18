@@ -21,9 +21,8 @@
 
 import typing
 
-from qutebrowser.utils import usertypes
 from qutebrowser.misc import objects
-
+from qutebrowser.utils import usertypes
 
 DeleteFuncType = typing.Callable[[typing.Sequence[str]], None]
 

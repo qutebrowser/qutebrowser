@@ -18,18 +18,18 @@
 
 """Tests for qutebrowser.config.configcommands."""
 
-import logging
 import functools
+import logging
 import unittest.mock
 
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.config import configcommands, configutils
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes, urlmatch
+from qutebrowser.config import configcommands, configutils
 from qutebrowser.keyinput import keyutils
 from qutebrowser.misc import objects
+from qutebrowser.utils import urlmatch, usertypes
 
 
 # Alias because we need this a lot in here.

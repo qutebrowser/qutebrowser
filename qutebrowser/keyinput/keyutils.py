@@ -35,11 +35,10 @@ import itertools
 import typing
 
 import attr
-from PyQt5.QtCore import Qt, QEvent
-from PyQt5.QtGui import QKeySequence, QKeyEvent
+from PyQt5.QtCore import QEvent, Qt
+from PyQt5.QtGui import QKeyEvent, QKeySequence
 
 from qutebrowser.utils import utils
-
 
 # Map Qt::Key values to their Qt::KeyboardModifier value.
 _MODIFIER_MAP = {

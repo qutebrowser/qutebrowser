@@ -24,15 +24,23 @@ Module attributes:
     _HANDLERS: The handlers registered via decorators.
 """
 
+import base64
+import collections
 import html
 import json
 import os
-import time
 import textwrap
-import urllib
-import collections
-import base64
+import time
 import typing
+import urllib
+
+from PyQt5.QtCore import QUrl, QUrlQuery, qVersion
+
+import qutebrowser
+from qutebrowser.browser import downloads, pdfjs
+from qutebrowser.config import config, configdata, configdiff, configexc
+from qutebrowser.qt import sip
+from qutebrowser.utils import docutils, jinja, log, message, objreg, urlutils, utils, version
 
 try:
     import secrets
@@ -40,14 +48,7 @@ except ImportError:
     # New in Python 3.6
     secrets = None  # type: ignore
 
-from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
-import qutebrowser
-from qutebrowser.browser import pdfjs, downloads
-from qutebrowser.config import config, configdata, configexc, configdiff
-from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
-                               objreg, urlutils)
-from qutebrowser.qt import sip
 
 
 pyeval_output = ":pyeval was never called"

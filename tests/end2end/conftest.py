@@ -21,25 +21,25 @@
 
 """Things needed for end2end testing."""
 
-import re
+import operator
 import os
 import os.path
-import sys
-import shutil
 import pstats
-import operator
+import re
+import shutil
+import sys
 
 import pytest
+from end2end.fixtures.quteprocess import quteproc, quteproc_new, quteproc_process
+from end2end.fixtures.testprocess import pytest_runtest_makereport
+from end2end.fixtures.webserver import server, server_per_test, ssl_server
 from PyQt5.QtCore import PYQT_VERSION
+
+from qutebrowser.browser.webengine import spell
+from qutebrowser.utils import qtutils, utils
 
 pytest.register_assert_rewrite('end2end.fixtures')
 
-from end2end.fixtures.webserver import server, server_per_test, ssl_server
-from end2end.fixtures.quteprocess import (quteproc_process, quteproc,
-                                          quteproc_new)
-from end2end.fixtures.testprocess import pytest_runtest_makereport
-from qutebrowser.utils import qtutils, utils
-from qutebrowser.browser.webengine import spell
 
 
 def pytest_configure(config):

@@ -19,24 +19,22 @@
 
 """Management of sessions - saved tabs/windows."""
 
+import itertools
 import os
 import os.path
-import itertools
-import urllib
 import typing
+import urllib
 
-from PyQt5.QtCore import QUrl, QObject, QPoint, QTimer, pyqtSlot
-from PyQt5.QtWidgets import QApplication
 import yaml
+from PyQt5.QtCore import QObject, QPoint, QTimer, QUrl, pyqtSlot
+from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import (standarddir, objreg, qtutils, log, message,
-                               utils)
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configfiles
 from qutebrowser.completion.models import miscmodels
+from qutebrowser.config import config, configfiles
 from qutebrowser.mainwindow import mainwindow
 from qutebrowser.qt import sip
-
+from qutebrowser.utils import log, message, objreg, qtutils, standarddir, utils
 
 _JsonType = typing.MutableMapping[str, typing.Any]
 

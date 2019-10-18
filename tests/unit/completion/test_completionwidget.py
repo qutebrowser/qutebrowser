@@ -23,9 +23,9 @@ from unittest import mock
 
 import pytest
 
+from qutebrowser.api import cmdutils
 from qutebrowser.completion import completionwidget
 from qutebrowser.completion.models import completionmodel, listcategory
-from qutebrowser.api import cmdutils
 
 
 @pytest.fixture

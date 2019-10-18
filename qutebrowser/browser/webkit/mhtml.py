@@ -20,28 +20,28 @@
 
 """Utils for writing an MHTML file."""
 
-import html
+import email.encoders
+import email.generator
+import email.message
+import email.mime.multipart
+import email.policy
 import functools
+import html
 import io
 import os
+import quopri
 import re
 import sys
-import uuid
-import email.policy
-import email.generator
-import email.encoders
-import email.mime.multipart
-import email.message
-import quopri
 import typing
+import uuid
 
 import attr
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import webkitelem
-from qutebrowser.utils import log, objreg, message, usertypes, utils, urlutils
 from qutebrowser.extensions import interceptors
+from qutebrowser.utils import log, message, objreg, urlutils, usertypes, utils
 
 
 @attr.s

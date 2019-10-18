@@ -19,26 +19,41 @@
 
 """Showing prompts above the statusbar."""
 
-import os.path
-import html
 import collections
 import functools
+import html
+import os.path
 import typing
 
 import attr
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, Qt, QTimer, QDir, QModelIndex,
-                          QItemSelectionModel, QObject, QEventLoop)
-from PyQt5.QtWidgets import (QWidget, QGridLayout, QVBoxLayout, QLineEdit,
-                             QLabel, QFileSystemModel, QTreeView, QSizePolicy,
-                             QSpacerItem)
+from PyQt5.QtCore import (
+    QDir,
+    QEventLoop,
+    QItemSelectionModel,
+    QModelIndex,
+    QObject,
+    Qt,
+    QTimer,
+    pyqtSignal,
+    pyqtSlot,
+)
+from PyQt5.QtWidgets import (
+    QFileSystemModel,
+    QGridLayout,
+    QLabel,
+    QLineEdit,
+    QSizePolicy,
+    QSpacerItem,
+    QTreeView,
+    QVBoxLayout,
+    QWidget,
+)
 
-from qutebrowser.browser import downloads
-from qutebrowser.config import config, configtypes, configexc
-from qutebrowser.utils import usertypes, log, utils, qtutils, objreg, message
-from qutebrowser.keyinput import modeman
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import urlmatch
-
+from qutebrowser.browser import downloads
+from qutebrowser.config import config, configexc, configtypes
+from qutebrowser.keyinput import modeman
+from qutebrowser.utils import log, message, objreg, qtutils, urlmatch, usertypes, utils
 
 prompt_queue = typing.cast('PromptQueue', None)
 

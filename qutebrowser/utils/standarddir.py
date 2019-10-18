@@ -19,19 +19,19 @@
 
 """Utilities to get and initialize data/config paths."""
 
-import os
-import os.path
-import sys
-import shutil
+import argparse
 import contextlib
 import enum
-import argparse
+import os
+import os.path
+import shutil
+import sys
 import typing
 
 from PyQt5.QtCore import QStandardPaths
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, debug, message, utils
+from qutebrowser.utils import debug, log, message, utils
 
 # The cached locations
 _locations = {}

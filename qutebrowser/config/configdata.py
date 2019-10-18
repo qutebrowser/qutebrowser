@@ -24,14 +24,15 @@ Module attributes:
 DATA: A dict of Option objects after init() has been called.
 """
 
+import functools
 import typing
 from typing import Optional
-import functools
 
 import attr
+
 from qutebrowser.config import configtypes
-from qutebrowser.utils import usertypes, qtutils, utils
 from qutebrowser.misc import debugcachestats
+from qutebrowser.utils import qtutils, usertypes, utils
 
 DATA = typing.cast(typing.Mapping[str, 'Option'], None)
 MIGRATIONS = typing.cast('Migrations', None)

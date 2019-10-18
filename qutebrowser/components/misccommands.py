@@ -19,21 +19,23 @@
 
 """Various commands."""
 
-import os
-import signal
 import functools
 import logging
+import os
+import signal
 import typing
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtPrintSupport import QPrintPreviewDialog
+
+from qutebrowser.api import apitypes, cmdutils, config, message
 
 try:
     import hunter
 except ImportError:
     hunter = None
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtPrintSupport import QPrintPreviewDialog
 
-from qutebrowser.api import cmdutils, apitypes, message, config
 
 
 @cmdutils.register(name='reload')

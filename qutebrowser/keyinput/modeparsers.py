@@ -23,18 +23,19 @@ Module attributes:
     STARTCHARS: Possible chars for starting a commandline input.
 """
 
-import typing
-import traceback
 import enum
+import traceback
+import typing
 
-from PyQt5.QtCore import pyqtSlot, Qt, QObject
-from PyQt5.QtGui import QKeySequence, QKeyEvent
+from PyQt5.QtCore import QObject, Qt, pyqtSlot
+from PyQt5.QtGui import QKeyEvent, QKeySequence
 
 from qutebrowser.browser import hints
 from qutebrowser.commands import cmdexc
 from qutebrowser.config import config
 from qutebrowser.keyinput import basekeyparser, keyutils, macros
-from qutebrowser.utils import usertypes, log, message, objreg, utils
+from qutebrowser.utils import log, message, objreg, usertypes, utils
+
 if typing.TYPE_CHECKING:
     from qutebrowser.commands import runners
 

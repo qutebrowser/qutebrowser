@@ -22,8 +22,8 @@
 # NOTE: We need to be careful with imports here, as this is imported from
 # earlyinit.
 
-import typing
 import argparse
+import typing
 
 if typing.TYPE_CHECKING:
     from qutebrowser.utils import usertypes

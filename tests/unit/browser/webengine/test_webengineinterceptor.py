@@ -21,12 +21,13 @@
 
 
 import pytest
-
-pytest.importorskip('PyQt5.QtWebEngineWidgets')
-
 from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInfo
 
 from qutebrowser.browser.webengine import interceptor
+
+pytest.importorskip('PyQt5.QtWebEngineWidgets')
+
+
 
 
 class TestWebengineInterceptor:

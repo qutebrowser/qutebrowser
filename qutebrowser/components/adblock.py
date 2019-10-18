@@ -19,19 +19,26 @@
 
 """Functions related to ad blocking."""
 
-import os.path
 import functools
-import posixpath
-import zipfile
 import logging
-import typing
+import os.path
 import pathlib
+import posixpath
+import typing
+import zipfile
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.api import (cmdutils, hook, config, message, downloads,
-                             interceptor, apitypes, qtutils)
-
+from qutebrowser.api import (
+    apitypes,
+    cmdutils,
+    config,
+    downloads,
+    hook,
+    interceptor,
+    message,
+    qtutils,
+)
 
 logger = logging.getLogger('misc')
 _host_blocker = typing.cast('HostBlocker', None)

@@ -21,8 +21,8 @@
 
 from unittest import mock
 
-import sip
 import pytest
+import sip
 from PyQt5.QtCore import QObject
 
 from qutebrowser.misc import throttle

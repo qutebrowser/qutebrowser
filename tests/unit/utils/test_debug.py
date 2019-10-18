@@ -21,12 +21,12 @@
 
 import logging
 import re
-import time
 import textwrap
+import time
 
 import pytest
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QObject
-from PyQt5.QtWidgets import QStyle, QFrame
+from PyQt5.QtCore import QEvent, QObject, Qt, pyqtSignal
+from PyQt5.QtWidgets import QFrame, QStyle
 
 from qutebrowser.utils import debug
 

@@ -28,16 +28,17 @@ import argparse
 import base64
 import json
 import os
-import sys
 import re
+import sys
 import urllib.request
 
 import attr
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import configdata
 from qutebrowser.utils import standarddir, utils
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 
 API_URL = 'https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries.git/+/master/'

@@ -20,17 +20,18 @@
 
 """Script to regenerate requirements files in misc/requirements."""
 
-import re
-import sys
-import os.path
 import glob
+import os.path
+import re
 import subprocess
+import sys
 import tempfile
+
+from .. import utils
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
-from scripts import utils
 
 REPO_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         '..', '..')  # /scripts/dev -> /scripts -> /

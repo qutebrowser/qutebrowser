@@ -19,7 +19,7 @@
 
 """Scrolling-related commands."""
 
-from qutebrowser.api import cmdutils, apitypes
+from qutebrowser.api import apitypes, cmdutils
 
 
 @cmdutils.register()

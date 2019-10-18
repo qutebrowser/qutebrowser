@@ -21,10 +21,10 @@
 
 import typing
 
-from PyQt5.QtCore import Qt, QModelIndex, QAbstractItemModel
+from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt
 
-from qutebrowser.utils import log, qtutils
 from qutebrowser.api import cmdutils
+from qutebrowser.utils import log, qtutils
 
 
 class CompletionModel(QAbstractItemModel):

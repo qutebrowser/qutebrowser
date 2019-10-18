@@ -19,16 +19,14 @@
 
 """Tests for the BindingTrie."""
 
-import string
 import itertools
+import string
 
 import pytest
-
 from PyQt5.QtGui import QKeySequence
-
-from qutebrowser.keyinput import basekeyparser
-from qutebrowser.keyinput import keyutils
 from unit.keyinput import test_keyutils
+
+from qutebrowser.keyinput import basekeyparser, keyutils
 
 
 @pytest.mark.parametrize('entered, configured, match_type',

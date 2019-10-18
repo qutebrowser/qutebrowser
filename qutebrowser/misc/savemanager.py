@@ -19,15 +19,15 @@
 
 """Saving things to disk periodically."""
 
-import os.path
 import collections
+import os.path
 import typing
 
-from PyQt5.QtCore import pyqtSlot, QObject, QTimer
+from PyQt5.QtCore import QObject, QTimer, pyqtSlot
 
-from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import utils, log, message, usertypes, error
+from qutebrowser.config import config
+from qutebrowser.utils import error, log, message, usertypes, utils
 
 
 class Saveable:

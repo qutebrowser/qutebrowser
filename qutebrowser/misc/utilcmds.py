@@ -28,14 +28,17 @@ import traceback
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.browser import qutescheme
-from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
-from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
+from qutebrowser.browser import qutescheme
+from qutebrowser.commands import runners
 from qutebrowser.misc import (  # pylint: disable=unused-import
-    consolewidget, debugcachestats, objects)
-from qutebrowser.utils.version import pastebin_version
+    consolewidget,
+    debugcachestats,
+    objects,
+)
 from qutebrowser.qt import sip
+from qutebrowser.utils import debug, log, message, objreg, usertypes, utils
+from qutebrowser.utils.version import pastebin_version
 
 
 @cmdutils.register(maxsplit=1, no_cmd_split=True, no_replace_variables=True)

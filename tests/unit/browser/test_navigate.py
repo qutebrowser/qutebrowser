@@ -19,7 +19,6 @@
 
 
 import pytest
-
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import navigate

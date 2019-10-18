@@ -25,32 +25,30 @@ See https://pytest.org/latest/fixture.html
 """
 
 
-import sys
-import tempfile
 import itertools
-import textwrap
-import unittest.mock
-import types
 import mimetypes
 import os.path
+import sys
+import tempfile
+import textwrap
+import types
+import unittest.mock
 
 import attr
-import pytest
-import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QSize, Qt
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
-from PyQt5.QtNetwork import QNetworkCookieJar
-
 import helpers.stubs as stubsmod
-from qutebrowser.config import (config, configdata, configtypes, configexc,
-                                configfiles, configcache)
-from qutebrowser.api import config as configapi
-from qutebrowser.utils import objreg, standarddir, utils, usertypes
-from qutebrowser.browser import greasemonkey, history, qutescheme
-from qutebrowser.browser.webkit import cookies, cache
-from qutebrowser.misc import savemanager, sql, objects, sessions
-from qutebrowser.keyinput import modeman
+import py.path  # pylint: disable=no-name-in-module
+import pytest
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtNetwork import QNetworkCookieJar
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 
+from qutebrowser.api import config as configapi
+from qutebrowser.browser import greasemonkey, history, qutescheme
+from qutebrowser.browser.webkit import cache, cookies
+from qutebrowser.config import config, configcache, configdata, configexc, configfiles, configtypes
+from qutebrowser.keyinput import modeman
+from qutebrowser.misc import objects, savemanager, sessions, sql
+from qutebrowser.utils import objreg, standarddir, usertypes, utils
 
 _qute_scheme_handler = None
 

@@ -19,13 +19,13 @@
 
 """Tests for qutebrowser.misc.editor."""
 
-import time
+import logging
 import os
 import os.path
-import logging
+import time
 
-from PyQt5.QtCore import QProcess
 import pytest
+from PyQt5.QtCore import QProcess
 
 from qutebrowser.misc import editor as editormod
 from qutebrowser.utils import usertypes

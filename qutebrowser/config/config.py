@@ -19,18 +19,18 @@
 
 """Configuration storage and config-related utilities."""
 
-import copy
 import contextlib
+import copy
 import functools
 import typing
-from typing import Any, Optional, FrozenSet
+from typing import Any, FrozenSet, Optional
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
+from PyQt5.QtCore import QObject, QUrl, pyqtSignal, pyqtSlot
 
 from qutebrowser.config import configdata, configexc, configutils
-from qutebrowser.utils import utils, log, jinja, urlmatch
-from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.keyinput import keyutils
+from qutebrowser.misc import debugcachestats, objects
+from qutebrowser.utils import jinja, log, urlmatch, utils
 
 if typing.TYPE_CHECKING:
     from typing import Tuple, MutableMapping

@@ -20,6 +20,7 @@
 import json
 
 import pytest_bdd as bdd
+
 bdd.scenarios('private.feature')
 
 

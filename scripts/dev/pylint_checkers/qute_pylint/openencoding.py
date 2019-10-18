@@ -20,7 +20,7 @@
 """Make sure open() has an encoding set."""
 
 import astroid
-from pylint import interfaces, checkers
+from pylint import checkers, interfaces
 from pylint.checkers import utils
 
 

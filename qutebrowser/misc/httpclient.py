@@ -19,14 +19,13 @@
 
 """An HTTP client based on QNetworkAccessManager."""
 
-import typing
 import functools
-import urllib.request
+import typing
 import urllib.parse
+import urllib.request
 
-from PyQt5.QtCore import pyqtSignal, QObject, QTimer
-from PyQt5.QtNetwork import (QNetworkAccessManager, QNetworkRequest,
-                             QNetworkReply)
+from PyQt5.QtCore import QObject, QTimer, pyqtSignal
+from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
 
 class HTTPRequest(QNetworkRequest):

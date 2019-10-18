@@ -20,20 +20,19 @@
 """Loader for qutebrowser extensions."""
 
 import importlib.abc
+import pathlib
 import pkgutil
+import sys
 import types
 import typing
-import sys
-import pathlib
 
 import attr
-
 from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser import components
 from qutebrowser.config import config
-from qutebrowser.utils import log, standarddir
 from qutebrowser.misc import objects
+from qutebrowser.utils import log, standarddir
 
 if typing.TYPE_CHECKING:
     import argparse

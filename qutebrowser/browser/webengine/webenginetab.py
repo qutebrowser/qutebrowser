@@ -19,29 +19,43 @@
 
 """Wrapper over a QWebEngineView."""
 
-import math
 import functools
-import re
 import html as html_utils
+import math
+import re
 import typing
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
-                          QTimer, QObject)
+from PyQt5.QtCore import QObject, QPoint, QPointF, Qt, QTimer, QUrl, pyqtSignal, pyqtSlot
 from PyQt5.QtNetwork import QAuthenticator
-from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
+from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.config import configdata, config
 from qutebrowser.browser import browsertab, eventfilter, shared, webelem
-from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
-                                           interceptor, webenginequtescheme,
-                                           cookies, webenginedownloads,
-                                           webenginesettings, certificateerror)
+from qutebrowser.browser.webengine import (
+    certificateerror,
+    cookies,
+    interceptor,
+    tabhistory,
+    webenginedownloads,
+    webengineelem,
+    webenginequtescheme,
+    webenginesettings,
+    webview,
+)
+from qutebrowser.config import config, configdata
 from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
-                               message, objreg, jinja, debug)
 from qutebrowser.qt import sip
-
+from qutebrowser.utils import (
+    debug,
+    javascript,
+    jinja,
+    log,
+    message,
+    objreg,
+    qtutils,
+    usertypes,
+    utils,
+)
 
 _qute_scheme_handler = None
 

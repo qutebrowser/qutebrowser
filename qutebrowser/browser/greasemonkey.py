@@ -19,24 +19,33 @@
 
 """Load, parse and make available Greasemonkey scripts."""
 
-import re
-import os
-import json
 import fnmatch
 import functools
 import glob
+import json
+import os
+import re
 import textwrap
 import typing
 
 import attr
-from PyQt5.QtCore import pyqtSignal, QObject, QUrl
+from PyQt5.QtCore import QObject, QUrl, pyqtSignal
 
-from qutebrowser.utils import (log, standarddir, jinja, objreg, utils,
-                               javascript, urlmatch, version, usertypes,
-                               qtutils)
 from qutebrowser.api import cmdutils
 from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
+from qutebrowser.utils import (
+    javascript,
+    jinja,
+    log,
+    objreg,
+    qtutils,
+    standarddir,
+    urlmatch,
+    usertypes,
+    utils,
+    version,
+)
 
 
 def _scripts_dir():

@@ -21,8 +21,8 @@
 
 from unittest import mock
 
-from PyQt5.QtCore import Qt
 import pytest
+from PyQt5.QtCore import Qt
 
 from qutebrowser.keyinput import basekeyparser, keyutils
 from qutebrowser.utils import utils

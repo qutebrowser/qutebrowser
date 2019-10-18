@@ -24,8 +24,8 @@ import pytest
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QMessageBox
 
-from qutebrowser.utils import error, utils
 from qutebrowser.misc import ipc
+from qutebrowser.utils import error, utils
 
 
 class Error(Exception):

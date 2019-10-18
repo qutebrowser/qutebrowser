@@ -19,13 +19,13 @@
 
 """Test the quteproc fixture used for tests."""
 
-import logging
 import datetime
 import json
+import logging
 
 import pytest
-
 from end2end.fixtures import quteprocess, testprocess
+
 from qutebrowser.utils import log
 
 

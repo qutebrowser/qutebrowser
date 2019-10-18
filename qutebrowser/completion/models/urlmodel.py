@@ -21,11 +21,9 @@
 
 import typing
 
-from qutebrowser.completion.models import (completionmodel, listcategory,
-                                           histcategory)
-from qutebrowser.utils import log, objreg
+from qutebrowser.completion.models import completionmodel, histcategory, listcategory
 from qutebrowser.config import config
-
+from qutebrowser.utils import log, objreg
 
 _URLCOL = 0
 _TEXTCOL = 1

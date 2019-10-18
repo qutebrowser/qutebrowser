@@ -25,14 +25,14 @@ https://cs.chromium.org/chromium/src/extensions/common/url_pattern.cc
 https://cs.chromium.org/chromium/src/extensions/common/url_pattern.h
 """
 
-import ipaddress
 import fnmatch
+import ipaddress
 import typing
 import urllib.parse
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, qtutils
+from qutebrowser.utils import qtutils, utils
 
 
 class ParseError(Exception):

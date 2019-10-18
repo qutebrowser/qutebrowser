@@ -21,9 +21,9 @@
 
 import typing
 
-from qutebrowser.config import configdata
-from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
+from qutebrowser.config import configdata
+from qutebrowser.utils import log, objreg
 
 
 def command(*, info):

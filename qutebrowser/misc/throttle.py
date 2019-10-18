@@ -19,8 +19,8 @@
 
 """A throttle for throttling function calls."""
 
-import typing
 import time
+import typing
 
 import attr
 from PyQt5.QtCore import QObject

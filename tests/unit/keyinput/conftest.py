@@ -20,12 +20,10 @@
 """pytest fixtures for tests.keyinput."""
 
 import pytest
-
 from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtGui import QKeyEvent
 
 from qutebrowser.keyinput import keyutils
-
 
 BINDINGS = {'prompt': {'<Ctrl-a>': 'message-info ctrla',
                        'a': 'message-info a',

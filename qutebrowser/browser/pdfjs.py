@@ -24,10 +24,9 @@ import os
 
 from PyQt5.QtCore import QUrl, QUrlQuery
 
-from qutebrowser.utils import (utils, javascript, jinja, qtutils, usertypes,
-                               standarddir, log)
-from qutebrowser.misc import objects
 from qutebrowser.config import config
+from qutebrowser.misc import objects
+from qutebrowser.utils import javascript, jinja, log, qtutils, standarddir, usertypes, utils
 
 
 class PDFJSNotFound(Exception):

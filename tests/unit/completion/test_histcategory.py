@@ -24,8 +24,8 @@ import logging
 
 import pytest
 
-from qutebrowser.misc import sql
 from qutebrowser.completion.models import histcategory
+from qutebrowser.misc import sql
 from qutebrowser.utils import usertypes
 
 

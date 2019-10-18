@@ -18,8 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-
-from PyQt5.QtCore import Qt, QObject, pyqtSignal
+from PyQt5.QtCore import QObject, Qt, pyqtSignal
 
 from qutebrowser.utils import usertypes
 

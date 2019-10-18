@@ -19,16 +19,16 @@
 
 """Various utilities shared between webpage/webview subclasses."""
 
-import os
 import html
 import netrc
+import os
 import typing
 
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import config
-from qutebrowser.utils import usertypes, message, log, objreg, jinja, utils
 from qutebrowser.mainwindow import mainwindow
+from qutebrowser.utils import jinja, log, message, objreg, usertypes, utils
 
 
 class CallSuper(Exception):

@@ -19,14 +19,13 @@
 
 """Tests for qutebrowser.misc.readline."""
 
-import re
 import inspect
+import re
 
-from PyQt5.QtWidgets import QLineEdit, QApplication
 import pytest
+from PyQt5.QtWidgets import QApplication, QLineEdit
 
 from qutebrowser.misc import readline
-
 
 # Some functions aren't 100% readline compatible:
 # https://github.com/qutebrowser/qutebrowser/issues/678

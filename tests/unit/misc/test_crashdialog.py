@@ -20,9 +20,10 @@
 """Tests for qutebrowser.misc.crashdialog."""
 
 import os
-import pytest
-from qutebrowser.misc import crashdialog
 
+import pytest
+
+from qutebrowser.misc import crashdialog
 
 VALID_CRASH_TEXT = """
 Fatal Python error: Segmentation fault

@@ -20,9 +20,11 @@
 import time
 
 import pytest_bdd as bdd
-bdd.scenarios('prompts.feature')
 
 from qutebrowser.utils import qtutils
+
+bdd.scenarios('prompts.feature')
+
 
 
 @bdd.when("I load an SSL page")

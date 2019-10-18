@@ -19,14 +19,13 @@
 
 """HTTP network cache."""
 
-import typing
 import os.path
+import typing
 
 from PyQt5.QtNetwork import QNetworkDiskCache
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, qtutils, standarddir
-
+from qutebrowser.utils import qtutils, standarddir, utils
 
 diskcache = typing.cast('DiskCache', None)
 

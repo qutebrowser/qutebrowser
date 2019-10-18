@@ -33,10 +33,13 @@ qutebrowser's initialization process roughly looks like this:
   See the docstring of app.py for details.
 """
 
-import sys
+import argparse  # pylint: disable=wrong-import-order
 import json
+import sys
 
 import qutebrowser
+from qutebrowser.misc import earlyinit
+
 try:
     from qutebrowser.misc.checkpyver import check_python_version
 except ImportError:
@@ -52,8 +55,6 @@ except ImportError:
         sys.exit(100)
 check_python_version()
 
-import argparse  # pylint: disable=wrong-import-order
-from qutebrowser.misc import earlyinit
 
 
 def get_argparser():

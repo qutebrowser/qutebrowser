@@ -23,11 +23,10 @@
 
 import io
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
+from PyQt5.QtCore import QObject, QUrl, pyqtSignal, pyqtSlot
 
 from qutebrowser.browser import downloads, qtnetworkdownloads
 from qutebrowser.utils import objreg
-
 
 UnsupportedAttribute = downloads.UnsupportedAttribute
 

@@ -27,13 +27,17 @@ import typing
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.api import config as configapi
-from qutebrowser.config import (config, configdata, configfiles, configtypes,
-                                configexc, configcommands)
-from qutebrowser.utils import (objreg, usertypes, log, standarddir, message,
-                               qtutils)
-from qutebrowser.config import configcache
+from qutebrowser.config import (
+    config,
+    configcache,
+    configcommands,
+    configdata,
+    configexc,
+    configfiles,
+    configtypes,
+)
 from qutebrowser.misc import msgbox, objects, savemanager
-
+from qutebrowser.utils import log, message, objreg, qtutils, standarddir, usertypes
 
 # Error which happened during init, so we can show a message box.
 _init_errors = None

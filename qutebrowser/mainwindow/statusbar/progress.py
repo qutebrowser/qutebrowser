@@ -19,11 +19,11 @@
 
 """The progress bar in the statusbar."""
 
-from PyQt5.QtCore import pyqtSlot, QSize
+from PyQt5.QtCore import QSize, pyqtSlot
 from PyQt5.QtWidgets import QProgressBar, QSizePolicy
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, usertypes
+from qutebrowser.utils import usertypes, utils
 
 
 class Progress(QProgressBar):

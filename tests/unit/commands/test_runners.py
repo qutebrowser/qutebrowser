@@ -21,8 +21,8 @@
 
 import pytest
 
+from qutebrowser.commands import cmdexc, runners
 from qutebrowser.misc import objects
-from qutebrowser.commands import runners, cmdexc
 
 
 class TestCommandParser:

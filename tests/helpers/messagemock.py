@@ -24,7 +24,7 @@ import logging
 import attr
 import pytest
 
-from qutebrowser.utils import usertypes, message, objreg
+from qutebrowser.utils import message, objreg, usertypes
 
 
 @attr.s

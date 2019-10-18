@@ -19,9 +19,9 @@
 
 """Tests for qutebrowser.utils.javascript."""
 
-import pytest
 import hypothesis
 import hypothesis.strategies
+import pytest
 
 from qutebrowser.utils import javascript
 

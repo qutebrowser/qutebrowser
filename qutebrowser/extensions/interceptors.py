@@ -19,11 +19,10 @@
 
 """Infrastructure for intercepting requests."""
 
-import typing
 import enum
+import typing
 
 import attr
-
 from PyQt5.QtCore import QUrl
 
 

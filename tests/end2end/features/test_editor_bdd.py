@@ -17,17 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import json
-import textwrap
 import os
 import signal
+import sys
+import textwrap
 import time
 
 import pytest_bdd as bdd
-bdd.scenarios('editor.feature')
 
 from qutebrowser.utils import utils
+
+bdd.scenarios('editor.feature')
+
 
 
 @bdd.when(bdd.parsers.parse('I set up a fake editor replacing "{text}" by '

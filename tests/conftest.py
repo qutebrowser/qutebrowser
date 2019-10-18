@@ -21,28 +21,29 @@
 
 """The qutebrowser test suite conftest file."""
 
-import os
-import sys
-import warnings
-import pathlib
 import ctypes
 import ctypes.util
+import os
+import pathlib
+import sys
+import warnings
 
-import pytest
 import hypothesis
-from PyQt5.QtCore import qVersion, PYQT_VERSION
+import pytest
+from helpers import logfail
+from helpers.fixtures import *  # noqa: F403
+from helpers.logfail import fail_on_logging
+from helpers.messagemock import message_bridge, message_mock
+from PyQt5.QtCore import PYQT_VERSION, qVersion
+
+import qutebrowser.app  # To register commands
+from qutebrowser.misc import objects
+from qutebrowser.qt import sip
+from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
 
 pytest.register_assert_rewrite('helpers')
 
-from helpers import logfail
-from helpers.logfail import fail_on_logging
-from helpers.messagemock import message_mock, message_bridge
-from helpers.fixtures import *  # noqa: F403
-from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
-from qutebrowser.misc import objects
-from qutebrowser.qt import sip
 
-import qutebrowser.app  # To register commands
 
 
 ON_CI = 'CI' in os.environ

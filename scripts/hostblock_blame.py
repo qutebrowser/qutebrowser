@@ -20,15 +20,16 @@
 
 """Check by which hostblock list a host was blocked."""
 
-import sys
 import io
 import os
 import os.path
+import sys
 import urllib.request
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 from qutebrowser.components import adblock
 from qutebrowser.config import configdata
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir))
 
 
 def main():

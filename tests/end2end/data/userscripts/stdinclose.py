@@ -20,8 +20,9 @@
 
 """A userscript to check if the stdin gets closed."""
 
-import sys
 import os
+import sys
+
 sys.stdin.read()
 with open(os.environ['QUTE_FIFO'], 'wb') as fifo:
     fifo.write(b':message-info "stdin closed"\n')

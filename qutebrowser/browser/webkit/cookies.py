@@ -21,13 +21,12 @@
 
 import typing
 
+from PyQt5.QtCore import QDateTime, pyqtSignal
 from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
-from PyQt5.QtCore import pyqtSignal, QDateTime
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, standarddir, objreg
 from qutebrowser.misc import lineparser
-
+from qutebrowser.utils import objreg, standarddir, utils
 
 cookie_jar = None
 ram_cookie_jar = None

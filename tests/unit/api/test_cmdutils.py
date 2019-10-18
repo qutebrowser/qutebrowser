@@ -21,17 +21,17 @@
 
 """Tests for qutebrowser.api.cmdutils."""
 
-import sys
+import enum
 import logging
+import sys
 import types
 import typing
-import enum
 
 import pytest
 
-from qutebrowser.misc import objects
-from qutebrowser.commands import cmdexc, argparser, command
 from qutebrowser.api import cmdutils
+from qutebrowser.commands import argparser, cmdexc, command
+from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
 
 

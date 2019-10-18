@@ -19,19 +19,19 @@
 
 """Tests for qutebrowser.utils.log."""
 
-import logging
 import argparse
 import itertools
+import logging
 import sys
 import warnings
 
+import _pytest.logging
 import attr
 import pytest
-import _pytest.logging
 from PyQt5 import QtCore
 
-from qutebrowser.utils import log
 from qutebrowser.misc import utilcmds
+from qutebrowser.utils import log
 
 
 @pytest.fixture(autouse=True)

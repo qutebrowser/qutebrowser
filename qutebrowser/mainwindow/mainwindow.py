@@ -19,27 +19,33 @@
 
 """The main window of qutebrowser."""
 
-import binascii
 import base64
-import itertools
+import binascii
 import functools
+import itertools
 import typing
 
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
-                          QCoreApplication, QEventLoop)
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
+from PyQt5.QtCore import (
+    QCoreApplication,
+    QEventLoop,
+    QPoint,
+    QRect,
+    Qt,
+    QTimer,
+    pyqtSignal,
+    pyqtSlot,
+)
+from PyQt5.QtWidgets import QApplication, QSizePolicy, QVBoxLayout, QWidget
 
-from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
+from qutebrowser.browser import commands, downloads, downloadview, hints
+from qutebrowser.commands import runners
+from qutebrowser.completion import completer, completionwidget
 from qutebrowser.config import config, configfiles
-from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
-                               jinja, debug)
-from qutebrowser.mainwindow import messageview, prompt
-from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
-from qutebrowser.browser import commands, downloadview, hints, downloads
+from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.misc import crashsignal, keyhintwidget, sessions
-
+from qutebrowser.utils import debug, jinja, log, message, objreg, qtutils, usertypes, utils
 
 win_id_gen = itertools.count(0)
 

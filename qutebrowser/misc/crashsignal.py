@@ -19,29 +19,31 @@
 
 """Handlers for crashes and OS signals."""
 
+import bdb
+import faulthandler
+import functools
 import os
 import os.path
-import sys
-import bdb
 import pdb  # noqa: T002
 import signal
-import functools
-import faulthandler
+import sys
 import typing
+
+import attr
+from PyQt5.QtCore import pyqtSignal  # pylint: disable=unused-import
+from PyQt5.QtCore import QObject, QSocketNotifier, QTimer, QUrl, pyqtSlot, qInstallMessageHandler
+
+from qutebrowser.api import cmdutils
+from qutebrowser.misc import crashdialog, earlyinit, ipc, objects
+from qutebrowser.utils import debug, log, objreg, standarddir, usertypes, utils
+
 try:
     # WORKAROUND for segfaults when using pdb in pytest for some reason...
     import readline  # pylint: disable=unused-import
 except ImportError:
     pass
 
-import attr
-from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
-                          QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtCore import pyqtSignal  # pylint: disable=unused-import
 
-from qutebrowser.api import cmdutils
-from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
-from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 
 
 @attr.s

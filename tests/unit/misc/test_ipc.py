@@ -19,24 +19,23 @@
 
 """Tests for qutebrowser.misc.ipc."""
 
-import os
 import getpass
-import logging
-import json
 import hashlib
+import json
+import logging
+import os
 from unittest import mock
 
 import attr
 import pytest
-from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtNetwork import QLocalServer, QLocalSocket, QAbstractSocket
+from helpers import stubs
+from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtNetwork import QAbstractSocket, QLocalServer, QLocalSocket
 from PyQt5.QtTest import QSignalSpy
 
 import qutebrowser
 from qutebrowser.misc import ipc
 from qutebrowser.utils import standarddir, utils
-from helpers import stubs
-
 
 pytestmark = pytest.mark.usefixtures('qapp')
 

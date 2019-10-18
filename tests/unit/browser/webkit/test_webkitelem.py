@@ -19,20 +19,22 @@
 
 """Tests for the webelement utils."""
 
-from unittest import mock
 import collections.abc
-import operator
 import itertools
+import operator
+from unittest import mock
 
 import attr
 import pytest
-from PyQt5.QtCore import QRect, QPoint, QUrl
-QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
+from PyQt5.QtCore import QPoint, QRect, QUrl
 
 from qutebrowser.browser import browsertab
 from qutebrowser.browser.webkit import webkitelem
 from qutebrowser.misc import objects
 from qutebrowser.utils import usertypes
+
+QWebElement = pytest.importorskip('PyQt5.QtWebKit').QWebElement
+
 
 
 def get_webelem(geometry=None, frame=None, *, null=False, style=None,

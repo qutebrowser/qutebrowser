@@ -19,16 +19,21 @@
 
 """Evaluation of PAC scripts."""
 
-import sys
 import functools
+import sys
 
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
-from PyQt5.QtNetwork import (QNetworkProxy, QNetworkRequest, QHostInfo,
-                             QNetworkReply, QNetworkAccessManager,
-                             QHostAddress)
+from PyQt5.QtCore import QObject, QUrl, pyqtSignal, pyqtSlot
+from PyQt5.QtNetwork import (
+    QHostAddress,
+    QHostInfo,
+    QNetworkAccessManager,
+    QNetworkProxy,
+    QNetworkReply,
+    QNetworkRequest,
+)
 from PyQt5.QtQml import QJSEngine, QJSValue
 
-from qutebrowser.utils import log, utils, qtutils
+from qutebrowser.utils import log, qtutils, utils
 
 
 class ParseProxyError(Exception):

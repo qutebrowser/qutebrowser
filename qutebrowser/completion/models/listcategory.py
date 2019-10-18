@@ -22,13 +22,12 @@
 import re
 import typing
 
-from PyQt5.QtCore import Qt, QSortFilterProxyModel, QRegExp
+from PyQt5.QtCore import QRegExp, QSortFilterProxyModel, Qt
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.completion.models import util
-from qutebrowser.utils import qtutils, log
-
+from qutebrowser.utils import log, qtutils
 
 _ItemType = typing.Union[typing.Tuple[str],
                          typing.Tuple[str, str],

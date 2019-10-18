@@ -27,7 +27,6 @@ import pytest
 from qutebrowser.misc import cmdhistory
 from qutebrowser.utils import objreg
 
-
 HISTORY = ['first', 'second', 'third', 'fourth', 'fifth']
 
 

@@ -20,7 +20,7 @@
 """Filter for QtWebEngine cookies."""
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, qtutils
+from qutebrowser.utils import qtutils, utils
 
 
 def _accept_cookie(request):

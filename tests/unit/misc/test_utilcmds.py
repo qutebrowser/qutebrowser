@@ -24,8 +24,8 @@ import logging
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.misc import utilcmds
 from qutebrowser.api import cmdutils
+from qutebrowser.misc import utilcmds
 from qutebrowser.utils import objreg
 
 

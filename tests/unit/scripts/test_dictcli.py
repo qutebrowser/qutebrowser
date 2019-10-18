@@ -21,10 +21,10 @@
 
 import py.path  # pylint: disable=no-name-in-module
 import pytest
+from scripts import dictcli
 
 from qutebrowser.browser.webengine import spell
 from qutebrowser.config import configdata
-from scripts import dictcli
 
 
 def afrikaans():

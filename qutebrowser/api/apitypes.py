@@ -20,8 +20,7 @@
 """A single tab."""
 
 # pylint: disable=unused-import
-from qutebrowser.browser.browsertab import WebTabError, AbstractTab as Tab
-from qutebrowser.browser.webelem import (Error as WebElemError,
-                                         AbstractWebElement as WebElement)
-from qutebrowser.utils.usertypes import ClickTarget, JsWorld
+from qutebrowser.browser.browsertab import AbstractTab as Tab, WebTabError
+from qutebrowser.browser.webelem import AbstractWebElement as WebElement, Error as WebElemError
 from qutebrowser.extensions.loader import InitContext
+from qutebrowser.utils.usertypes import ClickTarget, JsWorld

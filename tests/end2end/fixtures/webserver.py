@@ -19,17 +19,16 @@
 
 """Fixtures for the server webserver."""
 
-import re
-import sys
 import json
 import os.path
+import re
+import sys
 from http import HTTPStatus
 
 import attr
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl
-
 from end2end.fixtures import testprocess
+from PyQt5.QtCore import QUrl, pyqtSignal
 
 from qutebrowser.utils import utils
 

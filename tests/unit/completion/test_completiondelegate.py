@@ -20,7 +20,7 @@ from unittest import mock
 
 import pytest
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QTextDocument, QColor
+from PyQt5.QtGui import QColor, QTextDocument
 from PyQt5.QtWidgets import QTextEdit
 
 from qutebrowser.completion import completiondelegate

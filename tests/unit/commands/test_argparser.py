@@ -19,14 +19,13 @@
 
 """Tests for qutebrowser.commands.argparser."""
 
-import inspect
 import enum
+import inspect
 
 import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import argparser, cmdexc
-
 
 Enum = enum.Enum('Enum', ['foo', 'foo_bar'])
 

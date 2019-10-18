@@ -20,16 +20,15 @@
 
 import os
 import sys
-import unittest.mock
 import textwrap
+import unittest.mock
 
 import pytest
 from PyQt5.QtCore import QSettings
 
-from qutebrowser.config import (config, configfiles, configexc, configdata,
-                                configtypes)
-from qutebrowser.utils import utils, usertypes, urlmatch
+from qutebrowser.config import config, configdata, configexc, configfiles, configtypes
 from qutebrowser.keyinput import keyutils
+from qutebrowser.utils import urlmatch, usertypes, utils
 
 
 @pytest.fixture(autouse=True)

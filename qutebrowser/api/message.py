@@ -20,4 +20,4 @@
 """Utilities to display messages above the status bar."""
 
 # pylint: disable=unused-import
-from qutebrowser.utils.message import error, warning, info
+from qutebrowser.utils.message import error, info, warning

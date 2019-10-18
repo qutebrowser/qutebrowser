@@ -19,28 +19,28 @@
 
 """Tests for qutebrowser.utils.version."""
 
-import io
-import sys
+import builtins  # noqa https://github.com/JBKahn/flake8-debugger/issues/20
 import collections
+import contextlib
+import datetime
+import importlib
+import io
+import logging
 import os.path
 import subprocess
-import contextlib
-import builtins  # noqa https://github.com/JBKahn/flake8-debugger/issues/20
-import types
-import importlib
-import logging
+import sys
 import textwrap
-import datetime
+import types
 
 import attr
 import pkg_resources
 import pytest
 
 import qutebrowser
-from qutebrowser.config import config
-from qutebrowser.utils import version, usertypes, utils, standarddir
-from qutebrowser.misc import pastebin
 from qutebrowser.browser import pdfjs
+from qutebrowser.config import config
+from qutebrowser.misc import pastebin
+from qutebrowser.utils import standarddir, usertypes, utils, version
 
 
 @pytest.mark.parametrize('os_release, expected', [

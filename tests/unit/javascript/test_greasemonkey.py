@@ -21,12 +21,12 @@
 import logging
 import textwrap
 
-import pytest
 import py.path  # pylint: disable=no-name-in-module
+import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes
 from qutebrowser.browser import greasemonkey
+from qutebrowser.utils import usertypes
 
 test_gm_script = r"""
 // ==UserScript==

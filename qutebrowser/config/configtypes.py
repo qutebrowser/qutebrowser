@@ -42,29 +42,28 @@ Config types can do different conversations:
   This also validates whether the object is actually correct (type/value).
 """
 
-import re
-import html
 import codecs
-import os.path
-import itertools
-import warnings
 import functools
-import operator
+import html
+import itertools
 import json
+import operator
+import os.path
+import re
 import typing
+import warnings
 
 import attr
 import yaml
-from PyQt5.QtCore import QUrl, Qt
+from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QColor, QFont
-from PyQt5.QtWidgets import QTabWidget, QTabBar
 from PyQt5.QtNetwork import QNetworkProxy
+from PyQt5.QtWidgets import QTabBar, QTabWidget
 
-from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.config import configexc, configutils
-from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
-                               usertypes)
 from qutebrowser.keyinput import keyutils
+from qutebrowser.misc import debugcachestats, objects
+from qutebrowser.utils import qtutils, standarddir, urlmatch, urlutils, usertypes, utils
 
 
 class _SystemProxy:

@@ -19,20 +19,20 @@
 
 """Download manager."""
 
+import functools
 import io
 import os.path
 import shutil
-import functools
 
 import attr
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
-from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
+from PyQt5.QtCore import QTimer, pyqtSignal, pyqtSlot
+from PyQt5.QtNetwork import QNetworkReply, QNetworkRequest
 
-from qutebrowser.config import config
-from qutebrowser.utils import message, usertypes, log, urlutils, utils, debug
 from qutebrowser.browser import downloads
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
+from qutebrowser.config import config
+from qutebrowser.utils import debug, log, message, urlutils, usertypes, utils
 
 
 @attr.s

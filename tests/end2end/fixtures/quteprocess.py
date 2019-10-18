@@ -19,27 +19,26 @@
 
 """Fixtures to run qutebrowser in a QProcess and communicate."""
 
+import contextlib
+import datetime
+import itertools
+import json
+import logging
 import os
 import os.path
 import re
 import sys
-import time
-import datetime
-import logging
 import tempfile
-import contextlib
-import itertools
-import json
+import time
 
-import yaml
 import pytest
-from PyQt5.QtCore import pyqtSignal, QUrl, qVersion
+import yaml
+from end2end.fixtures import testprocess
+from helpers import utils as testutils
+from PyQt5.QtCore import QUrl, pyqtSignal, qVersion
 
 from qutebrowser.misc import ipc
-from qutebrowser.utils import log, utils, javascript, qtutils
-from helpers import utils as testutils
-from end2end.fixtures import testprocess
-
+from qutebrowser.utils import javascript, log, qtutils, utils
 
 instance_counter = itertools.count()
 

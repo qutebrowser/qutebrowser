@@ -23,14 +23,12 @@
 import os
 
 import attr
-import pytest
 import bs4
-
+import pytest
+from helpers import utils as testutils
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import urlutils
-from helpers import utils as testutils
-
 
 pytestmark = pytest.mark.qtwebengine_skip("Title is empty when parsing for "
                                           "some reason?")

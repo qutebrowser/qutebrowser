@@ -18,12 +18,13 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import sys
 import shlex
+import sys
 
 import pytest
 import pytest_bdd as bdd
 from PyQt5.QtNetwork import QSslSocket
+
 bdd.scenarios('downloads.feature')
 
 

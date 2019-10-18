@@ -19,15 +19,15 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import logging
 import os
 import time
-import logging
 
 import py.path  # pylint: disable=no-name-in-module
-from PyQt5.QtCore import QUrl, QUrlQuery
 import pytest
+from PyQt5.QtCore import QUrl, QUrlQuery
 
-from qutebrowser.browser import qutescheme, pdfjs, downloads
+from qutebrowser.browser import downloads, pdfjs, qutescheme
 
 
 class TestJavascriptHandler:

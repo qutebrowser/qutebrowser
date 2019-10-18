@@ -23,16 +23,16 @@ import functools
 import typing
 
 import attr
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QObject, QEvent
+from PyQt5.QtCore import QEvent, QObject, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.commands import runners
-from qutebrowser.keyinput import modeparsers, basekeyparser
-from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.browser import hints
+from qutebrowser.commands import runners
+from qutebrowser.config import config
+from qutebrowser.keyinput import basekeyparser, modeparsers
+from qutebrowser.utils import log, objreg, usertypes, utils
 
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]

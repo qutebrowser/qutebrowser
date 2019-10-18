@@ -19,8 +19,8 @@
 
 import logging
 
-import pytest
 import hypothesis
+import pytest
 from hypothesis import strategies
 
 from qutebrowser.browser.webkit import http, rfc6266

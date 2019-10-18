@@ -19,20 +19,20 @@
 
 """Module containing command managers (SearchRunner and CommandRunner)."""
 
-import traceback
-import re
-import typing
 import contextlib
+import re
+import traceback
+import typing
 
 import attr
-from PyQt5.QtCore import pyqtSlot, QUrl, QObject
+from PyQt5.QtCore import QObject, QUrl, pyqtSlot
 
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
-from qutebrowser.misc import split, objects
+from qutebrowser.config import config
 from qutebrowser.keyinput import macros
+from qutebrowser.misc import objects, split
+from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 
 if typing.TYPE_CHECKING:
     from qutebrowser.mainwindow import tabbedbrowser

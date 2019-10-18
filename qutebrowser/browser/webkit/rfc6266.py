@@ -19,9 +19,9 @@
 
 """pyPEG parsing for the RFC 6266 (Content-Disposition) header."""
 
-import urllib.parse
-import string
 import re
+import string
+import urllib.parse
 
 import attr
 import pypeg2 as peg

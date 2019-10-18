@@ -20,9 +20,10 @@
 """Test widgets in miscwidgets module."""
 
 from unittest import mock
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtWidgets import QApplication, QWidget
+
 import pytest
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtWidgets import QApplication, QWidget
 
 from qutebrowser.misc import miscwidgets
 

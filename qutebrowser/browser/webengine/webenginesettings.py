@@ -24,18 +24,17 @@ Module attributes:
                 constants.
 """
 
-import os
 import operator
+import os
 import typing
 
 from PyQt5.QtGui import QFont
-from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
-                                      QWebEnginePage)
+from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineProfile, QWebEngineSettings
 
 from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
-from qutebrowser.utils import utils, standarddir, qtutils, message, log
+from qutebrowser.utils import log, message, qtutils, standarddir, utils
 
 # The default QWebEngineProfile
 default_profile = typing.cast(QWebEngineProfile, None)

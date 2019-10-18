@@ -19,12 +19,11 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-from PyQt5.QtCore import QUrl, QDateTime
-from PyQt5.QtNetwork import QNetworkDiskCache, QNetworkCacheMetaData
+from PyQt5.QtCore import QDateTime, QUrl
+from PyQt5.QtNetwork import QNetworkCacheMetaData, QNetworkDiskCache
 
 from qutebrowser.browser.webkit import cache
 from qutebrowser.utils import qtutils
-
 
 pytestmark = pytest.mark.skipif(
     qtutils.version_check('5.7.1', compiled=False) and

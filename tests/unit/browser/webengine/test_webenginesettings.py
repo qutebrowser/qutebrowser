@@ -17,16 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import types
 import logging
+import types
 
 import pytest
 
+from qutebrowser.browser.webengine import webenginesettings
+from qutebrowser.misc import objects
+from qutebrowser.utils import qtutils, usertypes
+
 pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
-from qutebrowser.browser.webengine import webenginesettings
-from qutebrowser.utils import usertypes, qtutils
-from qutebrowser.misc import objects
 
 
 @pytest.fixture(autouse=True)

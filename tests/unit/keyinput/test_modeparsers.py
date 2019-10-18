@@ -19,12 +19,11 @@
 
 """Tests for mode parsers."""
 
+import pytest
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 
-import pytest
-
-from qutebrowser.keyinput import modeparsers, keyutils
+from qutebrowser.keyinput import keyutils, modeparsers
 
 
 @pytest.fixture

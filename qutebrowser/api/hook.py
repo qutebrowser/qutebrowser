@@ -24,7 +24,6 @@
 import importlib
 import typing
 
-
 from qutebrowser.extensions import loader
 
 

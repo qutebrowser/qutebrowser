@@ -18,4 +18,5 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest_bdd as bdd
+
 bdd.scenarios('spawn.feature')

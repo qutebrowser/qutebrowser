@@ -24,17 +24,17 @@ with each possible completion of that keystring and the corresponding command.
 It is intended to help discoverability of keybindings.
 """
 
-import html
 import fnmatch
+import html
 import re
 
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QLabel, QSizePolicy
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt
 
 from qutebrowser.config import config
-from qutebrowser.utils import utils, usertypes
-from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
+from qutebrowser.misc import objects
+from qutebrowser.utils import usertypes, utils
 
 
 class KeyHintView(QLabel):

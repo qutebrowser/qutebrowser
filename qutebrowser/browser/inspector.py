@@ -25,8 +25,8 @@ import binascii
 from PyQt5.QtWidgets import QWidget
 
 from qutebrowser.config import configfiles
-from qutebrowser.utils import log, usertypes
 from qutebrowser.misc import miscwidgets, objects
+from qutebrowser.utils import log, usertypes
 
 
 def create(parent=None):

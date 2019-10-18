@@ -18,13 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import os.path
+import sys
 
 import pytest
-
 from scripts.dev import check_coverage
-
 
 pytest_plugins = 'pytester'
 pytestmark = [pytest.mark.linux, pytest.mark.not_frozen]

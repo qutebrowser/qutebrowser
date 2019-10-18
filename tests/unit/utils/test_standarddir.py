@@ -19,21 +19,20 @@
 
 """Tests for qutebrowser.utils.standarddir."""
 
+import json
+import logging
 import os
 import os.path
-import sys
-import json
-import types
-import textwrap
-import logging
 import subprocess
+import sys
+import textwrap
+import types
 
 import attr
-from PyQt5.QtCore import QStandardPaths
 import pytest
+from PyQt5.QtCore import QStandardPaths
 
 from qutebrowser.utils import standarddir, utils
-
 
 # Use a different application name for tests to make sure we don't change real
 # qutebrowser data if we accidentally access the real path in a test.

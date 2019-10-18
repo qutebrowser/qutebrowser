@@ -18,16 +18,14 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import http.server
-import threading
 import logging
-import pytest
+import threading
 
+import pytest
 from PyQt5.QtCore import QUrl
-from PyQt5.QtNetwork import (QNetworkProxy, QNetworkProxyQuery, QHostInfo,
-                             QHostAddress)
+from PyQt5.QtNetwork import QHostAddress, QHostInfo, QNetworkProxy, QNetworkProxyQuery
 
 from qutebrowser.browser.network import pac
-
 
 pytestmark = pytest.mark.usefixtures('qapp')
 

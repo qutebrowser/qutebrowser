@@ -19,12 +19,12 @@
 
 """Event handling for a browser tab."""
 
-from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
+from PyQt5.QtCore import QEvent, QObject, Qt, QTimer
 
 from qutebrowser.config import config
-from qutebrowser.utils import message, log, usertypes, qtutils, objreg
-from qutebrowser.misc import objects
 from qutebrowser.keyinput import modeman
+from qutebrowser.misc import objects
+from qutebrowser.utils import log, message, objreg, qtutils, usertypes
 
 
 class ChildEventFilter(QObject):

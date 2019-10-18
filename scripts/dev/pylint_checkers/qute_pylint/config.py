@@ -19,14 +19,13 @@
 
 """Custom astroid checker for config calls."""
 
-import sys
 import pathlib
+import sys
 
-import yaml
 import astroid
-from pylint import interfaces, checkers
+import yaml
+from pylint import checkers, interfaces
 from pylint.checkers import utils
-
 
 OPTIONS = None
 FAILED_LOAD = False

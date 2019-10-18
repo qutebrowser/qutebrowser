@@ -24,8 +24,7 @@ import argparse
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.commands import cmdexc
-from qutebrowser.utils import utils, objreg, log
-
+from qutebrowser.utils import log, objreg, utils
 
 SUPPRESS = argparse.SUPPRESS
 

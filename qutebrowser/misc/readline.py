@@ -24,8 +24,7 @@ import typing
 from PyQt5.QtWidgets import QApplication, QLineEdit
 
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import usertypes as typ
-from qutebrowser.utils import utils
+from qutebrowser.utils import usertypes as typ, utils
 
 
 class ReadlineBridge:

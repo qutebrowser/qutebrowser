@@ -20,20 +20,21 @@
 
 """Profile qutebrowser."""
 
-import sys
-import cProfile
-import os.path
-import os
-import tempfile
-import subprocess
-import shutil
 import argparse
+import cProfile
+import os
+import os.path
 import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+
+import qutebrowser.qutebrowser
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
-import qutebrowser.qutebrowser
 
 
 def parse_args():

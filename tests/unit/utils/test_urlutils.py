@@ -19,18 +19,18 @@
 
 """Tests for qutebrowser.utils.urlutils."""
 
-import os.path
 import logging
+import os.path
 
 import attr
+import pytest
+from helpers import utils as testutils
 from PyQt5.QtCore import QUrl
 from PyQt5.QtNetwork import QNetworkProxy
-import pytest
 
 from qutebrowser.api import cmdutils
 from qutebrowser.browser.network import pac
-from qutebrowser.utils import utils, urlutils, qtutils, usertypes
-from helpers import utils as testutils
+from qutebrowser.utils import qtutils, urlutils, usertypes, utils
 
 
 class FakeDNS:

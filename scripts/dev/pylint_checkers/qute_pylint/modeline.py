@@ -18,10 +18,10 @@
 
 """Checker for vim modelines in files."""
 
-import os.path
 import contextlib
+import os.path
 
-from pylint import interfaces, checkers
+from pylint import checkers, interfaces
 
 
 class ModelineChecker(checkers.BaseChecker):

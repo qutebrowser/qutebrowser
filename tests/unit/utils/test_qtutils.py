@@ -26,13 +26,23 @@ import os.path
 import unittest
 import unittest.mock
 
+import overflow_test_cases
 import pytest
-from PyQt5.QtCore import (QDataStream, QPoint, QUrl, QByteArray, QIODevice,
-                          QTimer, QBuffer, QFile, QProcess, QFileDevice)
+from PyQt5.QtCore import (
+    QBuffer,
+    QByteArray,
+    QDataStream,
+    QFile,
+    QFileDevice,
+    QIODevice,
+    QPoint,
+    QProcess,
+    QTimer,
+    QUrl,
+)
 from PyQt5.QtGui import QColor
 
-from qutebrowser.utils import qtutils, utils, usertypes
-import overflow_test_cases
+from qutebrowser.utils import qtutils, usertypes, utils
 
 if utils.is_linux:
     # Those are not run on macOS because that seems to cause a hang sometimes.

@@ -25,7 +25,6 @@ from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
 
 from qutebrowser.utils import qtutils
 
-
 HISTORY_STREAM_VERSION = 3
 
 

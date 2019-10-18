@@ -22,15 +22,13 @@
 This script gets called as a QProcess from end2end/conftest.py.
 """
 
-import ssl
-import sys
 import logging
 import os.path
+import ssl
+import sys
 
 import flask
-
 import webserver_sub
-
 
 app = flask.Flask(__name__)
 

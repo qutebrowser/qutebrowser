@@ -19,14 +19,13 @@
 """Tests for qutebrowser.misc.checkpyver."""
 
 import re
-import sys
 import subprocess
+import sys
 import unittest.mock
 
 import pytest
 
 from qutebrowser.misc import checkpyver
-
 
 TEXT = (r"At least Python 3.5.2 is required to run qutebrowser, but it's "
         r"running with \d+\.\d+\.\d+.\n")

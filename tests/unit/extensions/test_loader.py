@@ -24,7 +24,6 @@ import pytest
 from qutebrowser.extensions import loader
 from qutebrowser.misc import objects
 
-
 pytestmark = pytest.mark.usefixtures('data_tmpdir', 'config_tmpdir',
                                      'fake_args')
 

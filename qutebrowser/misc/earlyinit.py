@@ -29,13 +29,14 @@ try:
 except ImportError:
     hunter = None
 
-import os
-import sys
-import faulthandler
-import traceback
-import signal
-import importlib
 import datetime
+import faulthandler
+import importlib
+import os
+import signal
+import sys
+import traceback
+
 try:
     import tkinter
 except ImportError:

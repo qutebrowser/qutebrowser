@@ -24,8 +24,8 @@ import os.path
 import textwrap
 
 import attr
-import pytest
 import bs4
+import pytest
 
 from qutebrowser.utils import utils
 

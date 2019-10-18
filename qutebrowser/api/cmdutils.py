@@ -52,10 +52,10 @@ Possible values:
 import inspect
 import typing
 
+from qutebrowser.commands import cmdexc, command
 from qutebrowser.utils import qtutils
-from qutebrowser.commands import command, cmdexc
 # pylint: disable=unused-import
-from qutebrowser.utils.usertypes import KeyMode, CommandValue as Value
+from qutebrowser.utils.usertypes import CommandValue as Value, KeyMode
 
 
 class CommandError(cmdexc.Error):

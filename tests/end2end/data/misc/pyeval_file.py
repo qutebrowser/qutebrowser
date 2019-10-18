@@ -20,4 +20,5 @@
 """Simple test file for :debug-pyeval."""
 
 from qutebrowser.utils import message
+
 message.info("Hello World")

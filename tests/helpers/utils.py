@@ -20,15 +20,14 @@
 """Partial comparison of dicts/lists."""
 
 
-import re
-import pprint
-import os.path
 import contextlib
+import os.path
+import pprint
+import re
 
 import pytest
 
-from qutebrowser.utils import qtutils, log
-
+from qutebrowser.utils import log, qtutils
 
 qt58 = pytest.mark.skipif(
     qtutils.version_check('5.9'), reason="Needs Qt 5.8 or earlier")

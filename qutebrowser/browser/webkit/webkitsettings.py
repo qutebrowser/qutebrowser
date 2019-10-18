@@ -24,17 +24,16 @@ Module attributes:
                 constants.
 """
 
-import typing
 import os.path
+import typing
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebKit import QWebSettings
 
+from qutebrowser.browser import shared
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import standarddir, urlutils
-from qutebrowser.browser import shared
-
 
 # The global WebKitSettings object
 global_settings = typing.cast('WebKitSettings', None)

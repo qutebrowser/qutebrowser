@@ -19,22 +19,29 @@
 
 """The tab widget used for TabbedBrowser from browser.py."""
 
-import typing
-import functools
 import contextlib
+import functools
+import typing
 
 import attr
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
-                          QTimer, QUrl)
-from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
-                             QStyle, QStylePainter, QStyleOptionTab,
-                             QStyleFactory, QWidget)
-from PyQt5.QtGui import QIcon, QPalette, QColor
+from PyQt5.QtCore import QPoint, QRect, QSize, Qt, QTimer, QUrl, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QColor, QIcon, QPalette
+from PyQt5.QtWidgets import (
+    QCommonStyle,
+    QSizePolicy,
+    QStyle,
+    QStyleFactory,
+    QStyleOptionTab,
+    QStylePainter,
+    QTabBar,
+    QTabWidget,
+    QWidget,
+)
 
-from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
-from qutebrowser.config import config
-from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.browser import browsertab
+from qutebrowser.config import config
+from qutebrowser.misc import debugcachestats, objects
+from qutebrowser.utils import log, objreg, qtutils, usertypes, utils
 
 
 class TabWidget(QTabWidget):

@@ -19,18 +19,18 @@
 
 """Commands related to the configuration."""
 
-import typing
-import os.path
 import contextlib
+import os.path
+import typing
 
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.api import cmdutils
 from qutebrowser.completion.models import configmodel
-from qutebrowser.utils import objreg, message, standarddir, urlmatch
-from qutebrowser.config import configtypes, configexc, configfiles, configdata
-from qutebrowser.misc import editor
+from qutebrowser.config import configdata, configexc, configfiles, configtypes
 from qutebrowser.keyinput import keyutils
+from qutebrowser.misc import editor
+from qutebrowser.utils import message, objreg, standarddir, urlmatch
 
 if typing.TYPE_CHECKING:
     from qutebrowser.config.config import Config, KeyConfig

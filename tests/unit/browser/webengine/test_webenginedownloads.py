@@ -20,11 +20,12 @@
 import os.path
 
 import pytest
+from helpers import utils
+
+from qutebrowser.browser.webengine import webenginedownloads
 
 pytest.importorskip('PyQt5.QtWebEngineWidgets')
 
-from qutebrowser.browser.webengine import webenginedownloads
-from helpers import utils
 
 
 @pytest.mark.parametrize('path, expected', [

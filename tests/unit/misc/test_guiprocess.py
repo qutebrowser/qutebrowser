@@ -24,9 +24,9 @@ import logging
 import pytest
 from PyQt5.QtCore import QProcess
 
+from qutebrowser.browser import qutescheme
 from qutebrowser.misc import guiprocess
 from qutebrowser.utils import usertypes
-from qutebrowser.browser import qutescheme
 
 
 @pytest.fixture()

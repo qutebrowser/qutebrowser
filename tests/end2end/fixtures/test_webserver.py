@@ -20,8 +20,8 @@
 """Test the server webserver used for tests."""
 
 import json
-import urllib.request
 import urllib.error
+import urllib.request
 from http import HTTPStatus
 
 import pytest

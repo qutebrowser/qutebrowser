@@ -19,16 +19,15 @@
 
 """Code to show a diff of the legacy config format."""
 
-import typing
 import difflib
 import os.path
+import typing
 
 import pygments
-import pygments.lexers
 import pygments.formatters
+import pygments.lexers
 
 from qutebrowser.utils import standarddir
-
 
 OLD_CONF = """
 [general]

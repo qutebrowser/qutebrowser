@@ -22,14 +22,20 @@
 We use this to be able to highlight parts of the text.
 """
 
-import re
 import html
+import re
 
-from PyQt5.QtWidgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
 from PyQt5.QtCore import QRectF, QSize, Qt
-from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
-                         QAbstractTextDocumentLayout, QSyntaxHighlighter,
-                         QTextCharFormat)
+from PyQt5.QtGui import (
+    QAbstractTextDocumentLayout,
+    QIcon,
+    QPalette,
+    QSyntaxHighlighter,
+    QTextCharFormat,
+    QTextDocument,
+    QTextOption,
+)
+from PyQt5.QtWidgets import QStyle, QStyledItemDelegate, QStyleOptionViewItem
 
 from qutebrowser.config import config
 from qutebrowser.utils import qtutils

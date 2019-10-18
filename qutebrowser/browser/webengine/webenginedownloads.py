@@ -19,16 +19,16 @@
 
 """QtWebEngine specific code for downloads."""
 
-import re
-import os.path
-import urllib
 import functools
+import os.path
+import re
+import urllib
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
-from qutebrowser.utils import debug, usertypes, message, log, qtutils
+from qutebrowser.utils import debug, log, message, qtutils, usertypes
 
 
 class DownloadItem(downloads.AbstractDownloadItem):

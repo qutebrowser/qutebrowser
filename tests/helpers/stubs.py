@@ -21,20 +21,19 @@
 
 """Fake objects/stubs."""
 
-from unittest import mock
 import contextlib
 import shutil
+from unittest import mock
 
 import attr
-from PyQt5.QtCore import pyqtSignal, QPoint, QProcess, QObject, QUrl
+from PyQt5.QtCore import QObject, QPoint, QProcess, QUrl, pyqtSignal
 from PyQt5.QtGui import QIcon
-from PyQt5.QtNetwork import (QNetworkRequest, QAbstractNetworkCache,
-                             QNetworkCacheMetaData)
-from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
+from PyQt5.QtNetwork import QAbstractNetworkCache, QNetworkCacheMetaData, QNetworkRequest
+from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QTabBar, QWidget
 
 from qutebrowser.browser import browsertab, downloads
-from qutebrowser.utils import usertypes
 from qutebrowser.commands import runners
+from qutebrowser.utils import usertypes
 
 
 class FakeNetworkCache(QAbstractNetworkCache):

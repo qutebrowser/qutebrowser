@@ -20,9 +20,10 @@
 """Exceptions related to config parsing."""
 
 import typing
+
 import attr
 
-from qutebrowser.utils import jinja, usertypes, log
+from qutebrowser.utils import jinja, log, usertypes
 
 
 class Error(Exception):

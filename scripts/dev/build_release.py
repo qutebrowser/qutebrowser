@@ -21,18 +21,23 @@
 """Build a new release."""
 
 
+import argparse
+import collections
 import os
 import os.path
-import sys
-import time
-import shutil
 import plistlib
+import re
+import shutil
 import subprocess
-import argparse
+import sys
 import tarfile
 import tempfile
-import collections
-import re
+import time
+
+from scripts import utils
+from scripts.dev import update_3rdparty
+
+import qutebrowser
 
 try:
     import winreg
@@ -42,9 +47,6 @@ except ImportError:
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
-import qutebrowser
-from scripts import utils
-from scripts.dev import update_3rdparty
 
 
 def call_script(name, *args, python=sys.executable):

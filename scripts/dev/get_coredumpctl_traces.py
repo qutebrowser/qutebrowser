@@ -20,19 +20,19 @@
 
 """Get qutebrowser crash information and stacktraces from coredumpctl."""
 
+import argparse
 import os
 import os.path
-import sys
-import argparse
 import subprocess
+import sys
 import tempfile
 
 import attr
+from scripts import utils
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), os.pardir,
                                 os.pardir))
 
-from scripts import utils
 
 
 @attr.s

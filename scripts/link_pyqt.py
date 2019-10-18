@@ -20,14 +20,14 @@
 
 """Symlink PyQt into a given virtualenv."""
 
+import argparse
+import filecmp
 import os
 import os.path
-import argparse
 import shutil
-import sys
 import subprocess
+import sys
 import tempfile
-import filecmp
 
 
 class Error(Exception):

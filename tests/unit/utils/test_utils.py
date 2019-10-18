@@ -19,28 +19,27 @@
 
 """Tests for qutebrowser.utils.utils."""
 
-import sys
 import enum
-import os.path
+import functools
 import io
 import logging
-import functools
-import socket
+import math
+import os.path
 import re
 import shlex
-import math
+import socket
+import sys
 
 import attr
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor, QClipboard
-import pytest
 import hypothesis
+import pytest
 from hypothesis import strategies
+from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QClipboard, QColor
 
 import qutebrowser
 import qutebrowser.utils  # for test_qualname
-from qutebrowser.utils import utils, qtutils
-
+from qutebrowser.utils import qtutils, utils
 
 ELLIPSIS = '\u2026'
 

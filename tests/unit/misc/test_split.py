@@ -24,7 +24,6 @@ import pytest
 
 from qutebrowser.misc import split
 
-
 # Most tests copied from Python's shlex.
 # The original test data set was from shellwords, by Hartmut Goebel.
 

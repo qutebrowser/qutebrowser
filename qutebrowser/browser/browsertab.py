@@ -20,29 +20,26 @@
 """Base class for a wrapper over QWebView/QWebEngineView."""
 
 import enum
+import functools
 import itertools
 import typing
-import functools
 
 import attr
-from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
-                          QEvent, QPoint)
-from PyQt5.QtGui import QKeyEvent, QIcon
-from PyQt5.QtWidgets import QWidget, QApplication, QDialog
-from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
-from PyQt5.QtNetwork import QNetworkAccessManager
-
 import pygments
-import pygments.lexers
 import pygments.formatters
+import pygments.lexers
+from PyQt5.QtCore import QEvent, QObject, QPoint, QSizeF, Qt, QUrl, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QIcon, QKeyEvent
+from PyQt5.QtNetwork import QNetworkAccessManager
+from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
+from PyQt5.QtWidgets import QApplication, QDialog, QWidget
 
-from qutebrowser.keyinput import modeman
-from qutebrowser.config import config
-from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message)
-from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter
+from qutebrowser.config import config
+from qutebrowser.keyinput import modeman
+from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.qt import sip
+from qutebrowser.utils import log, message, objreg, qtutils, urlutils, usertypes, utils
 
 if typing.TYPE_CHECKING:
     from qutebrowser.browser import webelem

@@ -18,18 +18,17 @@
 
 """Tests for qutebrowser.config.configinit."""
 
+import logging
 import os
 import sys
-import logging
 import unittest.mock
 
 import pytest
+from helpers import utils
 
 from qutebrowser import qutebrowser
-from qutebrowser.config import (config, configexc, configfiles, configinit,
-                                configdata, configtypes)
+from qutebrowser.config import config, configdata, configexc, configfiles, configinit, configtypes
 from qutebrowser.utils import objreg, usertypes
-from helpers import utils
 
 
 @pytest.fixture

@@ -24,13 +24,13 @@
 
 import typing
 
-from PyQt5.QtCore import QRect, Qt, QPoint, QEventLoop
+from PyQt5.QtCore import QEventLoop, QPoint, QRect, Qt
 from PyQt5.QtGui import QMouseEvent
-from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings
+from PyQt5.QtWidgets import QApplication
 
-from qutebrowser.utils import log, javascript, urlutils, usertypes
 from qutebrowser.browser import webelem
+from qutebrowser.utils import javascript, log, urlutils, usertypes
 
 if typing.TYPE_CHECKING:
     from qutebrowser.browser.webengine import webenginetab

@@ -19,29 +19,33 @@
 
 """Other utilities which don't fit anywhere else."""
 
+import contextlib
+import datetime
+import enum
+import functools
+import glob
+import io
+import json
+import mimetypes
 import os
 import os.path
-import io
-import re
-import sys
-import enum
-import json
-import datetime
-import traceback
-import functools
-import contextlib
 import posixpath
-import socket
+import re
 import shlex
-import glob
-import mimetypes
+import socket
+import sys
+import traceback
 import typing
 
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QColor, QClipboard, QDesktopServices
-from PyQt5.QtWidgets import QApplication
 import pkg_resources
 import yaml
+from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QClipboard, QColor, QDesktopServices
+from PyQt5.QtWidgets import QApplication
+
+import qutebrowser
+from qutebrowser.utils import log, qtutils
+
 try:
     from yaml import (CSafeLoader as YamlLoader,
                       CSafeDumper as YamlDumper)
@@ -51,8 +55,6 @@ except ImportError:  # pragma: no cover
                       SafeDumper as YamlDumper)
     YAML_C_EXT = False
 
-import qutebrowser
-from qutebrowser.utils import qtutils, log
 
 
 fake_clipboard = None

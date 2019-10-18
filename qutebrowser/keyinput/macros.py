@@ -22,11 +22,10 @@
 
 import typing
 
-from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
+from qutebrowser.commands import runners
 from qutebrowser.keyinput import modeman
 from qutebrowser.utils import message, objreg, usertypes
-
 
 _CommandType = typing.Tuple[str, int]  # command, type
 

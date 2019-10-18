@@ -19,17 +19,16 @@
 
 """Custom useful data types."""
 
-import operator
 import collections.abc
 import enum
+import operator
 import typing
 
 import attr
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
 from PyQt5.QtCore import QUrl  # pylint: disable=unused-import
+from PyQt5.QtCore import QObject, QTimer, pyqtSignal, pyqtSlot
 
 from qutebrowser.utils import log, qtutils, utils
-
 
 _T = typing.TypeVar('_T')
 

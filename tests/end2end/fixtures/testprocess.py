@@ -19,18 +19,23 @@
 
 """Base class for a subprocess run for tests."""
 
-import re
 import os
+import re
 import time
 
 import attr
 import pytest
 import pytestqt.plugin
-from PyQt5.QtCore import (pyqtSlot, pyqtSignal, QProcess, QObject,
-                          QElapsedTimer, QProcessEnvironment)
-from PyQt5.QtTest import QSignalSpy
-
 from helpers import utils
+from PyQt5.QtCore import (
+    QElapsedTimer,
+    QObject,
+    QProcess,
+    QProcessEnvironment,
+    pyqtSignal,
+    pyqtSlot,
+)
+from PyQt5.QtTest import QSignalSpy
 
 from qutebrowser.utils import utils as quteutils
 
