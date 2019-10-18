@@ -71,7 +71,7 @@ Feature: Prompts
         And I run :jseval setTimeout(confirm, 300)
         And I run :tab-clone
         Then no prompt should be shown
-        And "Ignored JavaScript confirm from about:blank" should be logged
+        And regex "Ignored JavaScript confirm from (?:about:blank|)$" should be logged
 
     Scenario: Ignore JavaScript alert
         Given I clean up open tabs
@@ -79,7 +79,7 @@ Feature: Prompts
         And I run :jseval setTimeout(alert, 300)
         And I run :tab-clone
         Then no prompt should be shown
-        And "Ignored JavaScript alert from about:blank" should be logged
+        And regex "Ignored JavaScript alert from (?:about:blank|)$" should be logged
 
     Scenario: Ignore JavaScript prompt
         Given I clean up open tabs
@@ -87,7 +87,7 @@ Feature: Prompts
         And I run :jseval setTimeout(prompt, 300)
         And I run :tab-clone
         Then no prompt should be shown
-        And "Ignored JavaScript prompt from about:blank" should be logged
+        And regex "Ignored JavaScript prompt from (?:about:blank|)$" should be logged
 
     # Multiple prompts
 
