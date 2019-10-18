@@ -38,6 +38,8 @@ Fixed
 - Errors while reading the state file are now displayed instead of causing a
   crash.
 - Crash when using `:debug-log-level` without a console attached.
+- Downloads are now hidden properly when the browser is in fullscreen mode.
+- Crash when setting `colors.webpage.bg` to an empty value with QtWebKit.
 
 v1.8.1 (2019-09-27)
 -------------------

@@ -51,7 +51,9 @@ class WebView(QWebView):
 
     STYLESHEET = """
         WebView {
+            {% if conf.colors.webpage.bg %}
             background-color: {{ qcolor_to_qsscolor(conf.colors.webpage.bg) }};
+            {% endif %}
         }
     """
 
