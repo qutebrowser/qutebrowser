@@ -140,7 +140,7 @@ class SessionManager(QObject):
             A dict with the saved data for this item.
         """
         data = {
-            'url': bytes(item.url().toEncoded()).decode('ascii'),
+            'url': bytes(item.url.toEncoded()).decode('ascii'),
         }  # type: _JsonType
 
         if item.title:
