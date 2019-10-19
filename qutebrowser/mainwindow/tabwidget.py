@@ -73,17 +73,6 @@ class TabWidget(QTabWidget):
         self._init_config()
         config.instance.changed.connect(self._init_config)
 
-    def setCurrentIndex(self, idx):
-        """Set the focus to the tab at index idx and load it.
-
-        Args:
-            idx index of the tab to focus
-        """
-        super().setCurrentIndex(idx)
-        tab = self.widget(idx)
-        if tab.history.load_on_focus:
-            tab.load()
-
     @config.change_filter('tabs')
     def _init_config(self):
         """Initialize attributes based on the config."""

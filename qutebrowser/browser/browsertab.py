@@ -1160,12 +1160,6 @@ class AbstractTab(QWidget):
             page_template.render(title=self.title(), icon_url=icon_url),
             self._widget.url())
 
-    def setFocus(self):
-        """Load the tab when it gets focused."""
-        super().setFocus()
-        if self.history.load_on_focus:
-            self.history.load()
-
     def _load_url_prepare(self, url: QUrl, *,
                           emit_before_load_started: bool = True) -> None:
         qtutils.ensure_valid(url)
@@ -1249,3 +1243,15 @@ class AbstractTab(QWidget):
     def is_deleted(self) -> bool:
         assert self._widget is not None
         return sip.isdeleted(self._widget)
+
+    def showEvent(self, event):
+        """Load tab if unloaded.
+
+        Args:
+            event: QShowEvent
+        """
+        if event.spontaneous():
+            return
+
+        if self.history.load_on_focus:
+            self.load()
