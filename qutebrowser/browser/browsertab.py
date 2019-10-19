@@ -43,7 +43,7 @@ import pygments.formatters
 from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
-                               urlutils, message)
+                               urlutils, message, jinja)
 from qutebrowser.misc import miscwidgets, objects, sessions
 from qutebrowser.browser import eventfilter
 from qutebrowser.qt import sip
@@ -1139,28 +1139,25 @@ class AbstractTab(QWidget):
 
         self.history.unload()
 
-        # this would be a better way to do it if I could find a way to clear
-        # the page without the webview triggering the title and icon change
-        # signals
-
-        # title = self.title()
-        # icon = self.icon()
-        # self._widget.setHtml("", self._widget.url())
-        # self.title_changed.emit(title)
-        # self.icon_changed.emit(icon)
-
         try:
-            icon_url = \
-                self._widget.iconUrl().toDisplayString(QUrl.EncodeUnicode)
-            icon_tag = '<link rel="shortcut icon" href="{icon_url}"/>'.format(
-                icon_url=icon_url)
+            icon_url = self._widget.iconUrl().toDisplayString(
+                QUrl.EncodeUnicode
+            )
         except AttributeError:
             # QtWebkit doesn't have the iconUrl property
-            icon_tag = ''
+            icon_url = ''
+
+        page_template = jinja.environment.from_string(
+            '<html><head>'
+            '{% if icon_url %}'
+            '<link rel="shortcut icon" href="{{icon_url}}"/>'
+            '{% endif %}'
+            '<title>{{title}}</title>'
+            '</head></html>'
+        )
 
         self._widget.setHtml(
-            '<html><head>{icon_tag}<title>{title}</title></head></html>'
-            ''.format(title=self.title(), icon_tag=icon_tag),
+            page_template.render(title=self.title(), icon_url=icon_url),
             self._widget.url())
 
     def setFocus(self):
