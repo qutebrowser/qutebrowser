@@ -115,7 +115,8 @@ class TestEarlyInit:
     @pytest.mark.parametrize('config_py', [True, 'error', False])
     @pytest.mark.parametrize('invalid_yaml', ['42', 'list', 'unknown',
                                               'wrong-type', False])
-    def test_autoconfig_yml(self, init_patch, config_tmpdir, caplog, args,
+    def test_autoconfig_yml(self, init_patch, config_tmpdir,  # noqa: C901
+                            caplog, args,
                             load_autoconfig, config_py, invalid_yaml):
         """Test interaction between config.py and autoconfig.yml."""
         # Prepare files
