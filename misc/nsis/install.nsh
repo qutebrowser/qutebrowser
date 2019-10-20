@@ -384,7 +384,7 @@ SectionGroupEnd
 
 SectionGroup /e "Shortcuts" SectionGroupShortcuts
 
-Section "Dektop Icon" SectionDesktopIcon
+Section "Desktop Icon" SectionDesktopIcon
   SectionIn 1 2
 
   !insertmacro MULTIUSER_GetCurrentUserString $0
