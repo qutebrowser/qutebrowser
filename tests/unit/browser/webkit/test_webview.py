@@ -18,8 +18,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 import pytest
-
-from qutebrowser.browser.webkit import webview
+webview = pytest.importorskip('qutebrowser.browser.webkit.webview')
 
 
 @pytest.fixture
