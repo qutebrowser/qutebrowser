@@ -58,7 +58,7 @@ Section "un.Program Files" SectionUninstallProgram
   ; Try to delete the EXE as the first step - if it's in use, don't remove anything else
   !insertmacro DeleteRetryAbort "$INSTDIR\${PROGEXE}"
 
-  ; Clean up "Dektop Icon"
+  ; Clean up "Desktop Icon"
   !insertmacro MULTIUSER_GetCurrentUserString $0
   !insertmacro DeleteRetryAbort "$DESKTOP\${PRODUCT_NAME}$0.lnk"
 
