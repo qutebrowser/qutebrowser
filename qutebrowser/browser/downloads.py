@@ -455,8 +455,9 @@ class AbstractDownloadItem(QObject):
         self.successful = False
 
         self.fileobj = UnsupportedAttribute(
-        )  # type: typing.Union[UnsupportedAttribute, typing.IO[bytes]]
-        self.raw_headers = UnsupportedAttribute()
+        )  # type: typing.Union[UnsupportedAttribute, typing.IO[bytes], None]
+        self.raw_headers = UnsupportedAttribute(
+        )  # type: typing.Union[UnsupportedAttribute, typing.Dict[bytes, bytes]]
 
         self._filename = None
         self._dead = False

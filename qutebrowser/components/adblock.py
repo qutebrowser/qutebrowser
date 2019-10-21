@@ -304,6 +304,7 @@ class HostBlocker:
             self._done_count += 1
             assert not isinstance(download.fileobj,
                                   downloads.UnsupportedAttribute)
+            assert download.fileobj is not None
             try:
                 self._merge_file(download.fileobj)
             finally:
