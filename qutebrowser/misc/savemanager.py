@@ -192,7 +192,7 @@ class SaveManager(QObject):
         if what:
             explicit = True
         else:
-            what = self.saveables
+            what = tuple(self.saveables)
             explicit = False
         for key in what:
             if key not in self.saveables:
