@@ -3,7 +3,7 @@
 asn1crypto==1.2.0
 bump2version==0.5.11
 certifi==2019.9.11
-cffi==1.12.3
+cffi==1.13.1
 chardet==3.0.4
 colorama==0.4.1
 cryptography==2.7
