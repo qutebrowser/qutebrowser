@@ -161,7 +161,8 @@ class TabWidget(QTabWidget):
         """Get the tab field data."""
         tab = self.widget(idx)
         if tab is None:
-            log.misc.debug("Got None-tab in get_tab_fields!")
+            log.misc.debug(  # type: ignore
+                "Got None-tab in get_tab_fields!")
 
         page_title = self.page_title(idx)
 
@@ -327,7 +328,7 @@ class TabWidget(QTabWidget):
         """
         tab = self.widget(idx)
         if tab is None:
-            url = QUrl()
+            url = QUrl()  # type: ignore
         else:
             url = tab.url()
         # It's possible for url to be invalid, but the caller will handle that.
@@ -541,7 +542,7 @@ class TabBar(QTabBar):
                     idx = self.currentIndex()
                 elif action == 'close-last':
                     idx = self.count() - 1
-            self.tabCloseRequested.emit(idx)
+            self.tabCloseRequested.emit(idx)  # type: ignore
             return
         super().mousePressEvent(e)
 
