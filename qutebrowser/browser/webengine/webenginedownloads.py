@@ -47,7 +47,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
         # Ensure wrapped qt_item is deleted manually when the wrapper object
         # is deleted. See https://github.com/qutebrowser/qutebrowser/issues/3373
-        self.destroyed.connect(self._qt_item.deleteLater)
+        self.destroyed.connect(self._qt_item.deleteLater)  # type: ignore
 
     def _is_page_download(self):
         """Check if this item is a page (i.e. mhtml) download."""
@@ -149,6 +149,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _ask_create_parent_question(self, title, msg,
                                     force_overwrite, remember_directory):
+        assert self._filename is not None
         no_action = functools.partial(self.cancel, remove_data=False)
         question = usertypes.Question()
         question.title = title
