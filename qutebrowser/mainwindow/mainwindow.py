@@ -177,8 +177,7 @@ class MainWindow(QWidget):
         from qutebrowser.mainwindow.statusbar import bar
 
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self._commandrunner = None
-        self._overlays = []  # type: typing.Sequence[_OverlayInfoType]
+        self._overlays = []  # type: typing.MutableSequence[_OverlayInfoType]
         self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()
         objreg.window_registry[self.win_id] = self
@@ -361,7 +360,7 @@ class MainWindow(QWidget):
                         self._command_dispatcher,
                         command_only=True,
                         scope='window', window=self.win_id)
-        self.tabbed_browser.widget.destroyed.connect(
+        self.tabbed_browser.widget.destroyed.connect(  # type: ignore
             functools.partial(objreg.delete, 'command-dispatcher',
                               scope='window', window=self.win_id))
 
@@ -473,9 +472,9 @@ class MainWindow(QWidget):
         # commands
         keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
             self.status.keystring.setText)
-        self.status.cmd.got_cmd[str].connect(
+        self.status.cmd.got_cmd[str].connect(  # type: ignore
             self._commandrunner.run_safely)
-        self.status.cmd.got_cmd[str, int].connect(
+        self.status.cmd.got_cmd[str, int].connect(  # type: ignore
             self._commandrunner.run_safely)
         self.status.cmd.returnPressed.connect(
             self.tabbed_browser.on_cmd_return_pressed)
@@ -559,8 +558,8 @@ class MainWindow(QWidget):
         if not config.val.content.windowed_fullscreen:
             if on:
                 self.state_before_fullscreen = self.windowState()
-                self.setWindowState(
-                    Qt.WindowFullScreen | self.state_before_fullscreen)
+                self.setWindowState(Qt.WindowFullScreen |  # type: ignore
+                                    self.state_before_fullscreen)
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(
