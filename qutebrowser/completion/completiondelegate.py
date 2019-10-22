@@ -276,14 +276,16 @@ class CompletionItemDelegate(QStyledItemDelegate):
         Return:
             A QSize with the recommended size.
         """
-        assert self._doc is not None
         value = index.data(Qt.SizeHintRole)
         if value is not None:
             return value
         self._opt = QStyleOptionViewItem(option)
         self.initStyleOption(self._opt, index)
         self._style = self._opt.widget.style()
+
         self._get_textdoc(index)
+        assert self._doc is not None
+
         docsize = self._doc.size().toSize()
         size = self._style.sizeFromContents(QStyle.CT_ItemViewItem, self._opt,
                                             docsize, self._opt.widget)

@@ -171,9 +171,9 @@ class _BaseUserscriptRunner(QObject):
 
     def _cleanup(self):
         """Clean up temporary files."""
-        assert self._filepath is not None
         if self._cleaned_up:
             return
+        assert self._filepath is not None
         self._cleaned_up = True
 
         tempfiles = [self._filepath]
@@ -273,9 +273,9 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
 
     def _cleanup(self):
         """Clean up reader and temporary files."""
-        assert self._reader is not None
         if self._cleaned_up:
             return
+        assert self._reader is not None
 
         log.procs.debug("Cleaning up")
         self._reader.cleanup()
@@ -300,9 +300,9 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
 
     def _cleanup(self):
         """Clean up temporary files after the userscript finished."""
-        assert self._filepath is not None
         if self._cleaned_up:
             return
+        assert self._filepath is not None
 
         try:
             with open(self._filepath, 'r', encoding='utf-8') as f:

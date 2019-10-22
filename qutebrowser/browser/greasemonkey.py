@@ -61,6 +61,8 @@ class GreasemonkeyScript:
         self.script_meta = None
         self.runs_on_sub_frames = True
         self.jsworld = "main"
+        self.name = ''
+
         for name, value in properties:
             if name == 'name':
                 self.name = value
