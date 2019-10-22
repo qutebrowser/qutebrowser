@@ -68,7 +68,8 @@ class ObjectRegistry(collections.UserDict):
         }  # type: typing.MutableMapping[str, typing.Callable[[], None]]
         self.command_only = []  # type: typing.MutableSequence[str]
 
-    def __setitem__(self, name: str, obj: typing.Any) -> None:
+    def __setitem__(self, name: typing.Union[int, str],
+                    obj: typing.Any) -> None:
         """Register an object in the object registry.
 
         Sets a slot to remove QObjects when they are destroyed.
