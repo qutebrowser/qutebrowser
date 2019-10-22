@@ -175,9 +175,7 @@ class UrlPattern:
         Deviation from Chromium:
         - http://:1234/ is not a valid URL because it has no host.
         """
-        # https://github.com/python/typeshed/commit/f0ccb325aa787ca0a539ef9914276b2c3148327a
-        if (parsed.hostname is None or  # type: ignore
-                not parsed.hostname.strip()):
+        if parsed.hostname is None or not parsed.hostname.strip():
             if self._scheme not in self._SCHEMES_WITHOUT_HOST:
                 raise ParseError("Pattern without host")
             assert self._host is None
