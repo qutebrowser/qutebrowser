@@ -82,11 +82,16 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
     def _draw_background(self):
         """Draw the background of an ItemViewItem."""
+        assert self._opt is not None
+        assert self._style is not None
         self._style.drawPrimitive(self._style.PE_PanelItemViewItem, self._opt,
                                   self._painter, self._opt.widget)
 
     def _draw_icon(self):
         """Draw the icon of an ItemViewItem."""
+        assert self._opt is not None
+        assert self._style is not None
+
         icon_rect = self._style.subElementRect(
             self._style.SE_ItemViewItemDecoration, self._opt, self._opt.widget)
         if not icon_rect.isValid():
@@ -112,6 +117,9 @@ class CompletionItemDelegate(QStyledItemDelegate):
         Args:
             index: The QModelIndex of the item to draw.
         """
+        assert self._opt is not None
+        assert self._painter is not None
+        assert self._style is not None
         if not self._opt.text:
             return
 
@@ -161,6 +169,10 @@ class CompletionItemDelegate(QStyledItemDelegate):
         Args:
             rect: The QRect to clip the drawing to.
         """
+        assert self._painter is not None
+        assert self._doc is not None
+        assert self._opt is not None
+
         # We can't use drawContents because then the color would be ignored.
         clip = QRectF(0, 0, rect.width(), rect.height())
         self._painter.save()
@@ -189,6 +201,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         Args:
             index: The QModelIndex of the item to draw.
         """
+        assert self._opt is not None
         # FIXME we probably should do eliding here. See
         # qcommonstyle.cpp:viewItemDrawText
         # https://github.com/qutebrowser/qutebrowser/issues/118
@@ -228,6 +241,8 @@ class CompletionItemDelegate(QStyledItemDelegate):
 
     def _draw_focus_rect(self):
         """Draw the focus rectangle of an ItemViewItem."""
+        assert self._opt is not None
+        assert self._style is not None
         state = self._opt.state
         if not state & QStyle.State_HasFocus:
             return
@@ -261,6 +276,7 @@ class CompletionItemDelegate(QStyledItemDelegate):
         Return:
             A QSize with the recommended size.
         """
+        assert self._doc is not None
         value = index.data(Qt.SizeHintRole)
         if value is not None:
             return value
