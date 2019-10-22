@@ -59,33 +59,33 @@ class _SettingsWrapper:
         if private_profile:
             self._settings.append(private_profile.settings())
 
-    def setAttribute(self, *args, **kwargs):
+    def setAttribute(self, attribute, on):
         for settings in self._settings:
-            settings.setAttribute(*args, **kwargs)
+            settings.setAttribute(attribute, on)
 
-    def setFontFamily(self, *args, **kwargs):
+    def setFontFamily(self, which, family):
         for settings in self._settings:
-            settings.setFontFamily(*args, **kwargs)
+            settings.setFontFamily(which, family)
 
-    def setFontSize(self, *args, **kwargs):
+    def setFontSize(self, fonttype, size):
         for settings in self._settings:
-            settings.setFontSize(*args, **kwargs)
+            settings.setFontSize(fonttype, size)
 
-    def setDefaultTextEncoding(self, *args, **kwargs):
+    def setDefaultTextEncoding(self, encoding):
         for settings in self._settings:
-            settings.setDefaultTextEncoding(*args, **kwargs)
+            settings.setDefaultTextEncoding(encoding)
 
-    def testAttribute(self, *args, **kwargs):
-        return self._settings[0].testAttribute(*args, **kwargs)
+    def testAttribute(self, attribute):
+        return self._settings[0].testAttribute(attribute)
 
-    def fontSize(self, *args, **kwargs):
-        return self._settings[0].fontSize(*args, **kwargs)
+    def fontSize(self, fonttype):
+        return self._settings[0].fontSize(fonttype)
 
-    def fontFamily(self, *args, **kwargs):
-        return self._settings[0].fontFamily(*args, **kwargs)
+    def fontFamily(self, which):
+        return self._settings[0].fontFamily(which)
 
-    def defaultTextEncoding(self, *args, **kwargs):
-        return self._settings[0].defaultTextEncoding(*args, **kwargs)
+    def defaultTextEncoding(self):
+        return self._settings[0].defaultTextEncoding()
 
 
 class WebEngineSettings(websettings.AbstractSettings):
