@@ -32,6 +32,10 @@ from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
+if typing.TYPE_CHECKING:
+    from PyQt5.QtWebKit import QWebHistory
+    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
+
 import pygments
 import pygments.lexers
 import pygments.formatters
@@ -47,8 +51,6 @@ from qutebrowser.qt import sip
 if typing.TYPE_CHECKING:
     from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector
-    from PyQt5.QtWebKit import QWebHistory
-    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
 
 
 tab_id_gen = itertools.count(0)
