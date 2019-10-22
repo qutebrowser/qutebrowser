@@ -42,10 +42,6 @@ class ShellLexer:
         self.escape = '\\'
         self.escapedquotes = '"'
         self.keep = False
-        self.quoted = None
-        self.escapedstate = None
-        self.token = None
-        self.state = None
         self.reset()
 
     def reset(self):
