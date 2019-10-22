@@ -274,13 +274,12 @@ class log_time:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def __exit__(self, _exc_type: typing.Optional[typing.Type[BaseException]],
                  _exc_val: typing.Optional[BaseException],
-                 _exc_tb: typing.Optional[types.TracebackType]) -> bool:
+                 _exc_tb: typing.Optional[types.TracebackType]) -> None:
         assert self._started is not None
         finished = datetime.datetime.now()
         delta = (finished - self._started).total_seconds()
         self._logger.debug("{} took {} seconds.".format(
             self._action.capitalize(), delta))
-        return False
 
     def __call__(self, func: typing.Callable) -> typing.Callable:
         @functools.wraps(func)
