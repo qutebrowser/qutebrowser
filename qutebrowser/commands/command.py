@@ -117,12 +117,12 @@ class Command:
                                  default=argparser.SUPPRESS, nargs=0,
                                  help=argparser.SUPPRESS)
         self.opt_args = collections.OrderedDict(
-        )  # type: typing.Mapping[str, typing.Tuple[str, str]]
+        )  # type: typing.MutableMapping[str, typing.Tuple[str, str]]
         self.namespace = None
         self._count = None
         self.pos_args = [
-        ]  # type: typing.Sequence[typing.Tuple[str, str]]
-        self.flags_with_args = []  # type: typing.Sequence[str]
+        ]  # type: typing.MutableSequence[typing.Tuple[str, str]]
+        self.flags_with_args = []  # type: typing.MutableSequence[str]
         self._has_vararg = False
 
         # This is checked by future @cmdutils.argument calls so they fail
