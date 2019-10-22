@@ -21,6 +21,7 @@
 
 import base64
 import binascii
+import typing
 
 from PyQt5.QtWidgets import QWidget
 
@@ -56,7 +57,7 @@ class AbstractWebInspector(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self._layout = miscwidgets.WrapperLayout(self)
         self._load_state_geometry()
 
