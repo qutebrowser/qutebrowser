@@ -118,11 +118,8 @@ class _CrashDialog(QDialog):
         super().__init__(parent)
         # We don't set WA_DeleteOnClose here as on an exception, we'll get
         # closed anyways, and it only could have unintended side-effects.
-        self._crash_info = []  # type: typing.Sequence[typing.Tuple[str, str]]
+        self._crash_info = []  # type: typing.List[typing.Tuple[str, str]]
         self._btn_box = None
-        self._btn_report = None
-        self._btn_cancel = None
-        self._lbl = None
         self._paste_text = None
         self.setWindowTitle("Whoops!")
         self.resize(QSize(640, 600))
@@ -406,8 +403,6 @@ class ExceptionCrashDialog(_CrashDialog):
     """
 
     def __init__(self, debug, pages, cmdhist, exc, qobjects, parent=None):
-        self._chk_log = None
-        self._chk_restore = None
         super().__init__(debug, parent)
         self._pages = pages
         self._cmdhist = cmdhist
@@ -492,7 +487,6 @@ class FatalCrashDialog(_CrashDialog):
     """
 
     def __init__(self, debug, text, parent=None):
-        self._chk_history = None
         super().__init__(debug, parent)
         self._log = text
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -633,7 +627,7 @@ class ReportErrorDialog(QDialog):
         hbox = QHBoxLayout()
         hbox.addStretch()
         btn = QPushButton("Close")
-        btn.clicked.connect(self.close)
+        btn.clicked.connect(self.close)  # type: ignore
         hbox.addWidget(btn)
         vbox.addLayout(hbox)
 
