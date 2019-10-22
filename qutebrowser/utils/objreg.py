@@ -51,6 +51,9 @@ class CommandOnlyError(Exception):
     """Raised when an object is requested which is used for commands only."""
 
 
+_IndexType = typing.Union[str, int]
+
+
 class ObjectRegistry(collections.UserDict):
 
     """A registry of long-living objects in qutebrowser.
@@ -65,11 +68,10 @@ class ObjectRegistry(collections.UserDict):
     def __init__(self) -> None:
         super().__init__()
         self._partial_objs = {
-        }  # type: typing.MutableMapping[str, typing.Callable[[], None]]
+        }  # type: typing.MutableMapping[_IndexType, typing.Callable[[], None]]
         self.command_only = []  # type: typing.MutableSequence[str]
 
-    def __setitem__(self, name: typing.Union[int, str],
-                    obj: typing.Any) -> None:
+    def __setitem__(self, name: _IndexType, obj: typing.Any) -> None:
         """Register an object in the object registry.
 
         Sets a slot to remove QObjects when they are destroyed.
@@ -94,7 +96,7 @@ class ObjectRegistry(collections.UserDict):
         self._disconnect_destroyed(name)
         super().__delitem__(name)
 
-    def _disconnect_destroyed(self, name: str) -> None:
+    def _disconnect_destroyed(self, name: _IndexType) -> None:
         """Disconnect the destroyed slot if it was connected."""
         try:
             partial_objs = self._partial_objs
