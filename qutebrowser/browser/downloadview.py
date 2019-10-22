@@ -105,7 +105,7 @@ class DownloadView(QListView):
     def __repr__(self):
         model = self.model()
         if model is None:
-            count = 'None'
+            count = 'None'  # type: ignore
         else:
             count = model.rowCount()
         return utils.get_repr(self, count=count)
@@ -169,6 +169,8 @@ class DownloadView(QListView):
             if name is None and handler is None:
                 self._menu.addSeparator()
             else:
+                assert name is not None
+                assert handler is not None
                 action = self._menu.addAction(name)
                 action.triggered.connect(handler)
         if actions:
