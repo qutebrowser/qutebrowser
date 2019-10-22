@@ -166,8 +166,8 @@ offer, and without them, no macOS releases or tests would exist)
 Thanks to the https://www.hsr.ch/[HSR Hochschule für Technik Rapperswil], which
 made it possible to work on qutebrowser extensions as a student research project.
 
-image:.github/img/macstadium.png["powered by MacStadium",width=200,link="https://www.macstadium.com/"]
-image:.github/img/hsr.png["HSR Hochschule für Technik Rapperswil",link="https://www.hsr.ch/"]
+image:doc/img/sponsors/macstadium.png["powered by MacStadium",width=200,link="https://www.macstadium.com/"]
+image:doc/img/sponsors/hsr.png["HSR Hochschule für Technik Rapperswil",link="https://www.hsr.ch/"]
 
 Authors
 -------
