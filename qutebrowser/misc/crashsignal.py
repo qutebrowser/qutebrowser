@@ -37,7 +37,6 @@ except ImportError:
 import attr
 from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
-from PyQt5.QtCore import pyqtSignal  # pylint: disable=unused-import
 
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
@@ -299,9 +298,9 @@ class SignalHandler(QObject):
         self._notifier = None
         self._timer = usertypes.Timer(self, 'python_hacks')
         self._orig_handlers = {
-        }  # type: typing.Mapping[pyqtSignal, typing.Callable[..., None]]
+        }  # type: typing.MutableMapping[int, signal._HANDLER]
         self._activated = False
-        self._orig_wakeup_fd = None
+        self._orig_wakeup_fd = None  # type: typing.Optional[int]
 
     def activate(self):
         """Set up signal handlers.
@@ -340,6 +339,7 @@ class SignalHandler(QObject):
         if not self._activated:
             return
         if self._notifier is not None:
+            assert self._orig_wakeup_fd is not None
             self._notifier.setEnabled(False)
             rfd = self._notifier.socket()
             wfd = signal.set_wakeup_fd(self._orig_wakeup_fd)
@@ -358,6 +358,7 @@ class SignalHandler(QObject):
 
         Python will get control here, so the signal will get handled.
         """
+        assert self._notifier is not None
         log.destroy.debug("Handling signal wakeup!")
         self._notifier.setEnabled(False)
         read_fd = self._notifier.socket()
