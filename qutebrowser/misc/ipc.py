@@ -178,7 +178,8 @@ class IPCServer(QObject):
             self._atime_timer.setTimerType(Qt.VeryCoarseTimer)
 
         self._server = QLocalServer(self)
-        self._server.newConnection.connect(self.handle_connection)
+        self._server.newConnection.connect(  # type: ignore
+            self.handle_connection)
 
         self._socket = None
         self._old_socket = None
@@ -251,21 +252,21 @@ class IPCServer(QObject):
             return
         socket = self._server.nextPendingConnection()
         if socket is None:
-            log.ipc.debug("No new connection to handle.")
+            log.ipc.debug("No new connection to handle.")  # type: ignore
             return
         log.ipc.debug("Client connected (socket 0x{:x}).".format(id(socket)))
         self._timer.start()
         self._socket = socket
-        socket.readyRead.connect(self.on_ready_read)
+        socket.readyRead.connect(self.on_ready_read)  # type: ignore
         if socket.canReadLine():
             log.ipc.debug("We can read a line immediately.")
             self.on_ready_read()
-        socket.error.connect(self.on_error)
+        socket.error.connect(self.on_error)  # type: ignore
         if socket.error() not in [QLocalSocket.UnknownSocketError,
                                   QLocalSocket.PeerClosedError]:
             log.ipc.debug("We got an error immediately.")
             self.on_error(socket.error())
-        socket.disconnected.connect(self.on_disconnected)
+        socket.disconnected.connect(self.on_disconnected)  # type: ignore
         if socket.state() == QLocalSocket.UnconnectedState:
             log.ipc.debug("Socket was disconnected immediately.")
             self.on_disconnected()
@@ -285,6 +286,7 @@ class IPCServer(QObject):
 
     def _handle_invalid_data(self):
         """Handle invalid data we got from a QLocalSocket."""
+        assert self._socket is not None
         log.ipc.error("Ignoring invalid IPC data from socket 0x{:x}.".format(
             id(self._socket)))
         self.got_invalid_data.emit()
