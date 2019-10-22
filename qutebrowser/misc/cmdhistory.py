@@ -60,7 +60,7 @@ class History(QObject):
         super().__init__(parent)
         self._tmphist = None
         if history is None:
-            self.history = []  # type: typing.Sequence[str]
+            self.history = []  # type: typing.MutableSequence[str]
         else:
             self.history = history
 
@@ -82,7 +82,9 @@ class History(QObject):
         """
         log.misc.debug("Preset text: '{}'".format(text))
         if text:
-            items = [e for e in self.history if e.startswith(text)]
+            items = [
+                e for e in self.history
+                if e.startswith(text)]  # type: typing.MutableSequence[str]
         else:
             items = self.history
         if not items:
@@ -102,6 +104,8 @@ class History(QObject):
         """
         if not self.is_browsing():
             raise ValueError("Currently not browsing history")
+        assert self._tmphist is not None
+
         try:
             return self._tmphist.previtem()
         except IndexError:
@@ -114,6 +118,8 @@ class History(QObject):
         """
         if not self.is_browsing():
             raise ValueError("Currently not browsing history")
+        assert self._tmphist is not None
+
         try:
             return self._tmphist.nextitem()
         except IndexError:
