@@ -56,12 +56,13 @@ class GreasemonkeyScript:
         self.excludes = []  # type: typing.Sequence[str]
         self.requires = []  # type: typing.Sequence[str]
         self.description = None
-        self.name = None
         self.namespace = None
         self.run_at = None
         self.script_meta = None
         self.runs_on_sub_frames = True
         self.jsworld = "main"
+        self.name = ''
+
         for name, value in properties:
             if name == 'name':
                 self.name = value
@@ -254,11 +255,11 @@ class GreasemonkeyManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._run_start = []  # type: typing.Sequence[GreasemonkeyScript]
-        self._run_end = []  # type: typing.Sequence[GreasemonkeyScript]
-        self._run_idle = []  # type: typing.Sequence[GreasemonkeyScript]
+        self._run_start = []  # type: typing.List[GreasemonkeyScript]
+        self._run_end = []  # type: typing.List[GreasemonkeyScript]
+        self._run_idle = []  # type: typing.List[GreasemonkeyScript]
         self._in_progress_dls = [
-        ]  # type: typing.Sequence[downloads.AbstractDownloadItem]
+        ]  # type: typing.List[downloads.AbstractDownloadItem]
 
         self.load_scripts()
 

@@ -350,12 +350,12 @@ class DownloadItemStats(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.total = None
-        self.done = 0
+        self.done = None
         self.speed = 0
         self._last_done = 0
         samples = int(self.SPEED_AVG_WINDOW * (1000 / _REFRESH_INTERVAL))
         self._speed_avg = collections.deque(
-            maxlen=samples)  # type: typing.Sequence[float]
+            maxlen=samples)  # type: typing.MutableSequence[float]
 
     def update_speed(self):
         """Recalculate the current download speed.
@@ -379,9 +379,10 @@ class DownloadItemStats(QObject):
         """The current download percentage, or None if unknown."""
         if self.done == self.total:
             return 100
-        elif self.total == 0 or self.total is None:
+        elif self.total is None:
             return None
         else:
+            assert self.done is not None
             return 100 * self.done / self.total
 
     def remaining_time(self):
@@ -455,8 +456,9 @@ class AbstractDownloadItem(QObject):
         self.successful = False
 
         self.fileobj = UnsupportedAttribute(
-        )  # type: typing.Union[UnsupportedAttribute, typing.IO[bytes]]
-        self.raw_headers = UnsupportedAttribute()
+        )  # type: typing.Union[UnsupportedAttribute, typing.IO[bytes], None]
+        self.raw_headers = UnsupportedAttribute(
+        )  # type: typing.Union[UnsupportedAttribute, typing.Dict[bytes,bytes]]
 
         self._filename = None
         self._dead = False
@@ -722,6 +724,7 @@ class AbstractDownloadItem(QObject):
             remember_directory: If True, remember the directory for future
                                 downloads.
         """
+        assert self._filename is not None
         global last_used_directory
 
         try:
@@ -834,7 +837,7 @@ class AbstractDownloadManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.downloads = []  # type: typing.Sequence[AbstractDownloadItem]
+        self.downloads = []  # type: typing.List[AbstractDownloadItem]
         self._update_timer = usertypes.Timer(self, 'download-update')
         self._update_timer.timeout.connect(self._update_gui)
         self._update_timer.setInterval(_REFRESH_INTERVAL)
@@ -1245,7 +1248,7 @@ class TempDownloadManager:
     """
 
     def __init__(self):
-        self.files = []  # type: typing.Sequence[typing.IO[str]]
+        self.files = []  # type: typing.MutableSequence[typing.IO[bytes]]
         self._tmpdir = None
 
     def cleanup(self):

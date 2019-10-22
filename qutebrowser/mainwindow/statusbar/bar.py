@@ -150,8 +150,6 @@ class StatusBar(QWidget):
 
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
-    _severity = None
-    _color_flags = None
 
     STYLESHEET = _generate_stylesheet()
 
@@ -216,6 +214,7 @@ class StatusBar(QWidget):
         for widget in [self.url, self.percentage,
                        self.backforward, self.tabindex,
                        self.keystring, self.prog]:
+            assert isinstance(widget, QWidget)
             widget.hide()
             self._hbox.removeWidget(widget)
 

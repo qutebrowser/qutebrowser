@@ -106,8 +106,7 @@ class DocstringParser:
                 log.commands.warning(
                     "Function {}() from {} has no docstring".format(
                         utils.qualname(func),
-                        # https://github.com/python/typeshed/pull/3295
-                        inspect.getsourcefile(func)))  # type: ignore
+                        inspect.getsourcefile(func)))
             self.long_desc = ""
             self.short_desc = ""
             return

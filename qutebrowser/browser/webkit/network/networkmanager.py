@@ -121,8 +121,8 @@ def init():
     QSslSocket.setDefaultCiphers(good_ciphers)
 
 
-_SavedErrorsType = typing.Mapping[urlutils.HostTupleType,
-                                  typing.Sequence[QSslError]]
+_SavedErrorsType = typing.MutableMapping[urlutils.HostTupleType,
+                                         typing.Sequence[QSslError]]
 
 
 class NetworkManager(QNetworkAccessManager):
@@ -169,13 +169,14 @@ class NetworkManager(QNetworkAccessManager):
         }
         self._set_cookiejar()
         self._set_cache()
-        self.sslErrors.connect(self.on_ssl_errors)
+        self.sslErrors.connect(self.on_ssl_errors)  # type: ignore
         self._rejected_ssl_errors = collections.defaultdict(
             list)  # type: _SavedErrorsType
         self._accepted_ssl_errors = collections.defaultdict(
             list)  # type: _SavedErrorsType
-        self.authenticationRequired.connect(self.on_authentication_required)
-        self.proxyAuthenticationRequired.connect(
+        self.authenticationRequired.connect(  # type: ignore
+            self.on_authentication_required)
+        self.proxyAuthenticationRequired.connect(  # type: ignore
             self.on_proxy_authentication_required)
         self.netrc_used = False
 
@@ -244,6 +245,7 @@ class NetworkManager(QNetworkAccessManager):
             is_accepted = False
             is_rejected = False
         else:
+            assert host_tpl is not None
             is_accepted = set(errors).issubset(
                 self._accepted_ssl_errors[host_tpl])
             is_rejected = set(errors).issubset(

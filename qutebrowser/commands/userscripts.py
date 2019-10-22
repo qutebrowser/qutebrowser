@@ -60,7 +60,7 @@ class _QtFIFOReader(QObject):
         # pylint: enable=no-member,useless-suppression
         self._fifo = os.fdopen(fd, 'r')
         self._notifier = QSocketNotifier(fd, QSocketNotifier.Read, self)
-        self._notifier.activated.connect(self.read_line)
+        self._notifier.activated.connect(self.read_line)  # type: ignore
 
     @pyqtSlot()
     def read_line(self):
@@ -117,8 +117,8 @@ class _BaseUserscriptRunner(QObject):
         self._env = {}  # type: typing.MutableMapping[str, str]
         self._text_stored = False
         self._html_stored = False
-        self._args = None
-        self._kwargs = None
+        self._args = ()  # type: typing.Tuple[typing.Any, ...]
+        self._kwargs = {}
 
     def store_text(self, text):
         """Called as callback when the text is ready from the web backend."""
@@ -157,9 +157,11 @@ class _BaseUserscriptRunner(QObject):
             env: A dictionary of environment variables to add.
             verbose: Show notifications when the command started/exited.
         """
+        assert self._filepath is not None
         self._env['QUTE_FIFO'] = self._filepath
         if env is not None:
             self._env.update(env)
+
         self._proc = guiprocess.GUIProcess('userscript',
                                            additional_env=self._env,
                                            verbose=verbose, parent=self)
@@ -171,12 +173,15 @@ class _BaseUserscriptRunner(QObject):
         """Clean up temporary files."""
         if self._cleaned_up:
             return
+        assert self._filepath is not None
         self._cleaned_up = True
+
         tempfiles = [self._filepath]
         if 'QUTE_HTML' in self._env:
             tempfiles.append(self._env['QUTE_HTML'])
         if 'QUTE_TEXT' in self._env:
             tempfiles.append(self._env['QUTE_TEXT'])
+
         for fn in tempfiles:
             log.procs.debug("Deleting temporary file {}.".format(fn))
             try:
@@ -186,6 +191,7 @@ class _BaseUserscriptRunner(QObject):
                 # executed async.
                 message.error("Failed to delete tempfile {} ({})!".format(
                     fn, e))
+
         self._filepath = None
         self._proc = None
         self._env = {}
@@ -255,7 +261,7 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
             return
 
         self._reader = _QtFIFOReader(self._filepath)
-        self._reader.got_line.connect(self.got_cmd)
+        self._reader.got_line.connect(self.got_cmd)  # type: ignore
 
     @pyqtSlot()
     def on_proc_finished(self):
@@ -269,6 +275,8 @@ class _POSIXUserscriptRunner(_BaseUserscriptRunner):
         """Clean up reader and temporary files."""
         if self._cleaned_up:
             return
+        assert self._reader is not None
+
         log.procs.debug("Cleaning up")
         self._reader.cleanup()
         self._reader.deleteLater()
@@ -294,6 +302,7 @@ class _WindowsUserscriptRunner(_BaseUserscriptRunner):
         """Clean up temporary files after the userscript finished."""
         if self._cleaned_up:
             return
+        assert self._filepath is not None
 
         try:
             with open(self._filepath, 'r', encoding='utf-8') as f:

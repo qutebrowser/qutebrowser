@@ -28,7 +28,7 @@ import typing
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QTimer, QObject)
 from PyQt5.QtNetwork import QAuthenticator
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.config import configdata, config
@@ -123,7 +123,8 @@ class WebEngineAction(browsertab.AbstractAction):
             # Qt < 5.8
             tb = objreg.get('tabbed-browser', scope='window',
                             window=self._tab.win_id)
-            urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
+            urlstr = self._tab.url().toString(
+                QUrl.RemoveUserInfo)  # type: ignore
             # The original URL becomes the path of a view-source: URL
             # (without a host), but query/fragment should stay.
             url = QUrl('view-source:' + urlstr)
@@ -758,7 +759,7 @@ class _WebEnginePermissions(QObject):
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
 
         try:
             self._options.update({
@@ -886,7 +887,7 @@ class _WebEngineScripts(QObject):
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self._greasemonkey = objreg.get('greasemonkey')
 
     def connect_signals(self):
@@ -1473,7 +1474,7 @@ class WebEngineTab(browsertab.AbstractTab):
         assert settings_needing_reload.issubset(configdata.DATA)
 
         changed = self.settings.update_for_url(navigation.url)
-        reload_needed = changed & settings_needing_reload
+        reload_needed = bool(changed & settings_needing_reload)
 
         # On Qt < 5.11, we don't don't need a reload when type == link_clicked.
         # On Qt 5.11.0, we always need a reload.
@@ -1559,8 +1560,8 @@ class WebEngineTab(browsertab.AbstractTab):
         page.loadFinished.connect(self._on_load_finished)
 
         self.before_load_started.connect(self._on_before_load_started)
-        self.shutting_down.connect(self.abort_questions)
-        self.load_started.connect(self.abort_questions)
+        self.shutting_down.connect(self.abort_questions)  # type: ignore
+        self.load_started.connect(self.abort_questions)  # type: ignore
 
         # pylint: disable=protected-access
         self.audio._connect_signals()

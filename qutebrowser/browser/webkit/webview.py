@@ -87,7 +87,8 @@ class WebView(QWebView):
         config.set_register_stylesheet(self)
 
     def __repr__(self):
-        url = utils.elide(self.url().toDisplayString(QUrl.EncodeUnicode), 100)
+        urlstr = self.url().toDisplayString(QUrl.EncodeUnicode)  # type: ignore
+        url = utils.elide(urlstr, 100)
         return utils.get_repr(self, tab_id=self._tab_id, url=url)
 
     def __del__(self):
@@ -96,7 +97,7 @@ class WebView(QWebView):
         # Copied from:
         # https://code.google.com/p/webscraping/source/browse/webkit.py#325
         try:
-            self.setPage(None)
+            self.setPage(None)  # type: ignore
         except RuntimeError:
             # It seems sometimes Qt has already deleted the QWebView and we
             # get: RuntimeError: wrapped C/C++ object of type WebView has been
@@ -179,8 +180,9 @@ class WebView(QWebView):
         This is not needed for QtWebEngine, so it's in here.
         """
         menu = self.page().createStandardContextMenu()
-        self.shutting_down.connect(menu.close)
-        modeman.instance(self.win_id).entered.connect(menu.close)
+        self.shutting_down.connect(menu.close)  # type: ignore
+        mm = modeman.instance(self.win_id)
+        mm.entered.connect(menu.close)  # type: ignore
         menu.exec_(e.globalPos())
 
     def showEvent(self, e):

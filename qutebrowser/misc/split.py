@@ -42,11 +42,10 @@ class ShellLexer:
         self.escape = '\\'
         self.escapedquotes = '"'
         self.keep = False
-        self.quoted = None
-        self.escapedstate = None
-        self.token = None
-        self.state = None
-        self.reset()
+        self.quoted = False
+        self.escapedstate = ' '
+        self.token = ''
+        self.state = ' '
 
     def reset(self):
         """Reset the state machine state to the defaults."""

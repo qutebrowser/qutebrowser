@@ -67,7 +67,7 @@ class HTTPClient(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._nam = QNetworkAccessManager(self)
-        self._timers = {}  # type: typing.Mapping[QNetworkReply, QTimer]
+        self._timers = {}  # type: typing.MutableMapping[QNetworkReply, QTimer]
 
     def post(self, url, data=None):
         """Create a new POST request.

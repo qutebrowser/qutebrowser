@@ -32,6 +32,10 @@ from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
+if typing.TYPE_CHECKING:
+    from PyQt5.QtWebKit import QWebHistory
+    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
+
 import pygments
 import pygments.lexers
 import pygments.formatters
@@ -127,7 +131,8 @@ class TabData:
     inspector = attr.ib(None)  # type: typing.Optional[AbstractWebInspector]
     open_target = attr.ib(
         usertypes.ClickTarget.normal)  # type: usertypes.ClickTarget
-    override_target = attr.ib(None)  # type: usertypes.ClickTarget
+    override_target = attr.ib(
+        None)  # type: typing.Optional[usertypes.ClickTarget]
     pinned = attr.ib(False)  # type: bool
     fullscreen = attr.ib(False)  # type: bool
     netrc_used = attr.ib(False)  # type: bool
@@ -199,7 +204,7 @@ class AbstractPrinting:
     """Attribute ``printing`` of AbstractTab for printing the page."""
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self._tab = tab
 
     def check_pdf_support(self) -> None:
@@ -288,7 +293,7 @@ class AbstractSearch(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self.text = None  # type: typing.Optional[str]
         self.search_displayed = False
 
@@ -350,7 +355,7 @@ class AbstractZoom(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         # Whether zoom was changed from the default.
         self._default_zoom_changed = False
         self._init_neighborlist()
@@ -434,7 +439,7 @@ class AbstractCaret(QObject):
                  parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self.selection_enabled = False
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
@@ -527,7 +532,7 @@ class AbstractScroller(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = None  # type: typing.Optional[QWidget]
+        self._widget = typing.cast(QWidget, None)
         if 'log-scroll-pos' in objects.debug_flags:
             self.perc_changed.connect(self._log_scroll_pos_change)
 
@@ -597,7 +602,8 @@ class AbstractHistoryPrivate:
 
     def __init__(self, tab: 'AbstractTab'):
         self._tab = tab
-        self._history = None
+        self._history = typing.cast(
+            typing.Union['QWebHistory', 'QWebEngineHistory'], None)
 
     def serialize(self) -> bytes:
         """Serialize into an opaque format understood by self.deserialize."""
@@ -618,7 +624,8 @@ class AbstractHistory:
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._tab = tab
-        self._history = None
+        self._history = typing.cast(
+            typing.Union['QWebHistory', 'QWebEngineHistory'], None)
         self.private_api = AbstractHistoryPrivate(tab)
 
     def __len__(self) -> int:
@@ -679,7 +686,7 @@ class AbstractElements:
     _ErrorCallback = typing.Callable[[Exception], None]
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self._tab = tab
 
     def find_css(self, selector: str,
@@ -740,7 +747,7 @@ class AbstractAudio(QObject):
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = None  # type: typing.Optional[QWidget]
+        self._widget = typing.cast(QWidget, None)
         self._tab = tab
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
@@ -771,7 +778,7 @@ class AbstractTabPrivate:
 
     def __init__(self, mode_manager: modeman.ModeManager,
                  tab: 'AbstractTab') -> None:
-        self._widget = None  # type: typing.Optional[QWidget]
+        self._widget = typing.cast(QWidget, None)
         self._tab = tab
         self._mode_manager = mode_manager
 
@@ -881,13 +888,13 @@ class AbstractTab(QWidget):
 
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
-        self._widget = None  # type: typing.Optional[QWidget]
+        self._widget = typing.cast(QWidget, None)
         self._progress = 0
         self._has_ssl_errors = False
         self._load_status = usertypes.LoadStatus.none
         self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
-        self.backend = None
+        self.backend = None  # type: typing.Optional[usertypes.Backend]
 
         # If true, this tab has been requested to be removed (or is removed).
         self.pending_removal = False

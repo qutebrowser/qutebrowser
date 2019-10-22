@@ -102,9 +102,9 @@ class PromptQueue(QObject):
         super().__init__(parent)
         self._question = None
         self._shutting_down = False
-        self._loops = []  # type: typing.Iterable[qtutils.EventLoop]
+        self._loops = []  # type: typing.MutableSequence[qtutils.EventLoop]
         self._queue = collections.deque(
-        )  # type: typing.Sequence[usertypes.Question]
+        )  # type: typing.Deque[usertypes.Question]
         message.global_bridge.mode_left.connect(self._on_mode_left)
 
     def __repr__(self):
@@ -394,6 +394,7 @@ class PromptContainer(QWidget):
                    For boolean prompts, "yes"/"no" are accepted as value.
             save: Save the value to the config.
         """
+        assert self._prompt is not None
         question = self._prompt.question
 
         try:
@@ -436,6 +437,7 @@ class PromptContainer(QWidget):
         Args:
             which: 'next', 'prev'
         """
+        assert self._prompt is not None
         try:
             self._prompt.item_focus(which)
         except UnsupportedOperationError:
@@ -450,6 +452,7 @@ class PromptContainer(QWidget):
         Args:
             sel: Use the primary selection instead of the clipboard.
         """
+        assert self._prompt is not None
         question = self._prompt.question
         if question.url is None:
             message.error('No URL found.')
@@ -704,7 +707,7 @@ class FilenamePrompt(_BasePrompt):
         # Nothing selected initially
         self._file_view.setCurrentIndex(QModelIndex())
         # The model needs to be sorted so we get the correct first/last index
-        self._file_model.directoryLoaded.connect(
+        self._file_model.directoryLoaded.connect(  # type: ignore
             lambda: self._file_model.sort(0))
 
     def accept(self, value=None, save=False):
@@ -751,7 +754,9 @@ class FilenamePrompt(_BasePrompt):
         idx = self._do_completion(idx, which)
 
         selmodel.setCurrentIndex(
-            idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+            idx,
+            QItemSelectionModel.ClearAndSelect |  # type: ignore
+            QItemSelectionModel.Rows)
         self._insert_path(idx, clicked=False)
 
     def _do_completion(self, idx, which):
@@ -776,7 +781,8 @@ class DownloadFilenamePrompt(FilenamePrompt):
 
     def __init__(self, question, parent=None):
         super().__init__(question, parent)
-        self._file_model.setFilter(QDir.AllDirs | QDir.Drives | QDir.NoDot)
+        self._file_model.setFilter(
+            QDir.AllDirs | QDir.Drives | QDir.NoDot)  # type: ignore
 
     def accept(self, value=None, save=False):
         done = super().accept(value, save)

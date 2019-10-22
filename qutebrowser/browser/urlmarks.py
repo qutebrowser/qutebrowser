@@ -79,7 +79,7 @@ class UrlMarkManager(QObject):
         super().__init__(parent)
 
         self.marks = collections.OrderedDict(
-        )  # type: typing.MutableMapping[str, QUrl]
+        )  # type: typing.MutableMapping[str, str]
 
         self._init_lineparser()
         for line in self._lineparser:

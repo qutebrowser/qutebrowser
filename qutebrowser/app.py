@@ -799,7 +799,8 @@ class Application(QApplication):
         log.init.debug("Initializing application...")
 
         self.launch_time = datetime.datetime.now()
-        self.focusObjectChanged.connect(self.on_focus_object_changed)
+        self.focusObjectChanged.connect(  # type: ignore
+            self.on_focus_object_changed)
         self.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
     @pyqtSlot(QObject)
