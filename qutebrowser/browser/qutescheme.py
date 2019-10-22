@@ -106,7 +106,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def __init__(self, name):
         self._name = name
-        self._function = None
+        self._function = None  # type: typing.Optional[typing.Callable]
 
     def __call__(self, function):
         self._function = function
@@ -115,6 +115,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
 
     def wrapper(self, *args, **kwargs):
         """Call the underlying function."""
+        assert self._function is not None
         return self._function(*args, **kwargs)
 
 
