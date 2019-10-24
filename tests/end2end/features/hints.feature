@@ -612,3 +612,19 @@ Feature: Using hints
         And I hint with args "all delete" and follow a
         And I run :hint
         Then the error "No elements found." should be shown
+
+    Scenario: Using hints.mode 'number' with title attribute filtering #1
+        When I open data/hints/filter_title.html
+        And I set hints.mode to number
+        And I set hints.extended_filter_attrs to ["title"]
+        And I hint with args "all"
+        And I press the key "yyi"
+        Then data/hello.txt should be loaded
+
+    Scenario: Using hints.mode 'number' with title attribute filtering #2
+        When I open data/hints/filter_title.html
+        And I set hints.mode to number
+        And I set hints.extended_filter_attrs to ["title"]
+        And I hint with args "all"
+        And I press the key "yyy"
+        Then data/hello2.txt should be loaded

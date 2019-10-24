@@ -110,6 +110,10 @@ class WebKitElement(webelem.AbstractWebElement):
         self._check_vanished()
         return self._elem.tagName().lower()
 
+    def attr(self, name: str) -> str:
+        """Get 'name' attribute if exists, or ''."""
+        return self._elem.attribute(name)
+
     def outer_xml(self) -> str:
         """Get the full HTML representation of this element."""
         self._check_vanished()

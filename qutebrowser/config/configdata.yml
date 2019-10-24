@@ -1100,6 +1100,22 @@ hints.mode:
       - word: Use hints words based on the html elements and the extra words.
   desc: Mode to use for hints.
 
+hints.extended_filter_attrs:
+  default:
+    - "text"
+  type:
+    name: List
+    valtype:
+      name: String
+      none_ok: true
+      valid_values:
+        - text: "the actual node text"
+        - title: "the 'title' attribute"
+        - alt: "the 'alt' attribute"
+  desc: >-
+    Which HTML element attributes to use additionally when filtering links in
+    `hints.mode` number.
+
 hints.next_regexes:
   default:
     - "\\bnext\\b"

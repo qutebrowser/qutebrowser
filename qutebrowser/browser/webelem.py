@@ -113,6 +113,34 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """
         raise NotImplementedError
 
+    def matches_hint_filter(self, filterstr: str, attrs: dict) -> bool:
+        """Check if filter matches the value of any of the elem attributes.
+
+        Args:
+            filterstr: The string that we're filtering against.
+            attrs: The element attributes to use in filtering.
+                   This usually is loaded from the configuration.
+        """
+        _words = filterstr.split()
+        for _attr in attrs:
+            if _attr == 'text':
+                matchstr = str(self).casefold()
+            else:
+                matchstr = self.attr(_attr).casefold()
+
+            if not matchstr:
+                continue
+
+            if all(word in matchstr for word in _words):
+                log.webelem.debug(
+                    "Matched hint {!r} on elem {!r}.".format(filterstr, _attr))
+                return True
+        return False
+
+    def attr(self, name: str) -> str:
+        """Get 'name' attribute if exists, or ''."""
+        raise NotImplementedError
+
     def outer_xml(self) -> str:
         """Get the full HTML representation of this element."""
         raise NotImplementedError
