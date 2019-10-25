@@ -411,3 +411,60 @@ The print will be a white silk-screen print, with the same design as in the
 2016 crowdfunding:
 +
 image:https://qutebrowser.org/img/sponsors/shirt.jpg["shirt",width=300,link="https://qutebrowser.org/img/sponsors/shirt.jpg"]
+
+[[privacy]]
+== Privacy Policy
+
+Being a mostly volunteer-run project, qutebrowser does not have the resources
+for a full legalese version of a privacy policy. Instead, this overview should
+answer the most common questions.
+
+For any privacy questions, please contact mailto:privacy@qutebrowser.org[].
+
+=== Website
+
+The qutebrowser.org website does not use any cookies or trackers.
+
+However, IP addresses are currently (October 2019) logged and stored
+indefinitely. It's planned to change this soon by migrating qutebrowser.org to
+a different server.
+
+Note that some services related to qutebrowser are stored on third-party
+services such as GitHub, Travis CI or AppVeyor. By using their websites, you're
+subject to their privacy policies.
+
+=== Crash reports
+
+When qutebrowser crashes or you use the `:report` command, you have the
+possibility to send a crash report. If you decide to do so, your crash report
+is stored on qutebrowser's server, where core qutebrowser developers (four
+people at the time of writing) can access it.
+
+If you select the option to include a debug log with your report, it's possible
+that sensitive information is contained in your report. You can show and edit
+the log in the crash report window to redact any such information as you see
+fit. Additionally, qutebrowser tries to avoid logging information such as
+passwords entirely (by not logging any input going to websites).
+
+Currently, crash reports are stored indefinitely for technical reasons. With a
+https://github.com/The-Compiler/crashbin/[new tool designed for crash reports],
+it'll become possible to delete crashreports after the underlying issue is
+fixed, but that tool needs some more work before qutebrowser can use it.
+
+=== Application
+
+Without any user interaction, qutebrowser can be expected to make no
+unsolicited requests. It does not contain any telemetry code.
+
+The QtWebEngine library (on which qutebrowser is based on) strips out any
+Chromium features which talk to Google servers, so any unsolicited requests
+should be treated as a bug.
+
+While qutebrowser uses DuckDuckGo as the default search page, no advertising
+deal exists between DuckDuckGo and qutebrowser. Note that by visiting
+DuckDuckGo, you're subject to their privacy policy.
+
+With regard to websites you visit, qutebrowser tries to strike a balance
+between usability/compatibility and privacy. There are various `content.*`
+settings which can be used to tweak such behavior, reduce fingerprinting or
+disable various features (usually at a cost of website compatibility).
