@@ -371,8 +371,7 @@ Is it possible to contribute via a one-time donation instead?::
   mailinglist and wait until there is an official way to do so. It's planned to
   set this up at a later date.
 
-I'd like a certain reward (e.g. a t-shirt) but I'd prefer making a smaller
-monthly donation. Can I upgrade via a one-time donation?::
+I'd like a certain reward (e.g. a t-shirt) but I'd prefer making a smaller monthly donation. Can I upgrade via a one-time donation?::
     It's planned to set up a donation page to allow this at a later date. Note
     that you can switch tiers on GitHub sponsors at any time.
 
@@ -392,6 +391,17 @@ Can I select my own amount rather than using the predefined tiers?::
     please mailto:mail@qutebrowser.org[get in touch] - I might be able to add a
     new sponsorship tier.
 
+When will rewards be shipped?::
+    Rewards will be ordered and subsequently shipped once it's clear how many
+    people are eliglible. The cut-off date for the donation goals is May
+    2020, so rewards will likely be shipped Q2/2020. This also applies to tiers
+    which make you eliglible for a certain perk immediately, though stickers
+    might be shipped earlier depending on how many people this affects.
+
+I'd like some stickers, but I can't donate anything because of my financial situation.::
+    Please mailto:mail@qutebrowser.org[get in touch]! As long as this doesn't
+    get abused, I'd happily send stickers for free.
+
 Can you share details on the stickers?::
     There are two sticker designs: Rectangular stickers (with text) and round
     vinyl stickers. Those are the same as during the 2016/2017 crowdfundings.
@@ -404,8 +414,11 @@ Can you share details on the swag?::
 image:https://qutebrowser.org/img/sponsors/swag.jpg["swag",width=300,link="https://qutebrowser.org/img/sponsors/swag.jpg"]
 +
 It's planned to order more swag, depending on the exact demand. Possibilites
-would include qutebrowser pens, notebooks (the paper kind) or USB-sticks (for
-the "expensive swag" reward).
+would include:
++
+- qutebrowser pens (refillable)
+- notebooks (the paper kind)
+- USB-sticks (for the "expensive swag" reward).
 
 Can you share details on the t-shirts?::
     The shirts will be
