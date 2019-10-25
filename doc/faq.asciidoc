@@ -381,6 +381,17 @@ GitHub tries to charge me for an entire year. What gives?::
     example a Pro membership or Marketplace subscription). At the moment,
     GitHub's billing system only supports annual sponsor payments in that case.
 
+Can I support you without getting any rewards/merchandise?::
+    Absolutely! Any merchandise is optional. Before sending out merchandise
+    I'll distribute forms asking for size/address/etc. - those forms will have
+    an option to not get any merch at all.
+
+Can I select my own amount rather than using the predefined tiers?::
+    Unfortunately, GitHub sponsors doesn't support this at the moment. The
+    existing tiers should hopefully cover various options. If you disagree,
+    please mailto:mail@qutebrowser.org[get in touch] - I might be able to add a
+    new sponsorship tier.
+
 Can you share details on the stickers?::
     There are two sticker designs: Rectangular stickers (with text) and round
     vinyl stickers. Those are the same as during the 2016/2017 crowdfundings.
