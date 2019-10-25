@@ -147,17 +147,11 @@ class _CrashDialog(QDialog):
         self._debug_log.setAcceptRichText(False)
         self._debug_log.setLineWrapMode(QTextEdit.NoWrap)
         self._debug_log.hide()
-        info = QLabel("<i>You can edit the log below to remove sensitive "
-                      "information.</i>")
-        info.setWordWrap(True)
-        info.hide()
         self._fold = miscwidgets.DetailFold("Show log", self)
         self._fold.toggled.connect(self._debug_log.setVisible)
-        self._fold.toggled.connect(info.setVisible)
         if debug:
             self._fold.toggle()
         self._vbox.addWidget(self._fold)
-        self._vbox.addWidget(info)
         self._vbox.addWidget(self._debug_log, 10)
         self._vbox.addSpacing(15)
 
@@ -226,8 +220,11 @@ class _CrashDialog(QDialog):
 
     def _init_info_text(self):
         """Add an info text encouraging the user to report crashes."""
-        info_label = QLabel("<br/><b>Note that without your help, I can't fix "
-                            "the bug you encountered.</b>")
+        info_label = QLabel("<br/>There is currently a big backlog of crash "
+                            "reports. Thus, it might take a while until your "
+                            "report is seen.<br/>A new tool allowing for more "
+                            "automation will fix this, but is not ready yet "
+                            "at this point.")
         info_label.setWordWrap(True)
         self._vbox.addWidget(info_label)
 
@@ -431,10 +428,11 @@ class ExceptionCrashDialog(_CrashDialog):
             log.misc.exception("Error while checking private browsing mode")
         self._chk_log.toggled.connect(self._set_crash_info)
         self._vbox.addWidget(self._chk_log)
-        info_label = QLabel("<i>This makes it a lot easier to diagnose the "
-                            "crash, but it might contain sensitive "
-                            "information such as which pages you visited "
-                            "or keyboard input.</i>")
+        info_label = QLabel("This makes it a lot easier to diagnose the "
+                            "crash.<br/><b>Note that the log might contain "
+                            "sensitive information such as which pages you "
+                            "visited or keyboard input.</b><br/>You can show "
+                            "and edit the log above.")
         info_label.setWordWrap(True)
         self._vbox.addWidget(info_label)
 
