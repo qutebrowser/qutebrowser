@@ -307,3 +307,107 @@ My issue is not listed.::
     If you are reporting a segfault, make sure you read the
     link:stacktrace{outfilesuffix}[guide] on how to report them with all needed
     information.
+
+[[sponsors]]
+== GitHub Sponsors FAQ
+
+NOTE: The crowdfunding via GitHub Sponsors isn't active yet, but should go live
+over the next days/weeks.
+
+Using https://github.com/sponsors/The-Compiler[GitHub Sponsors], you can sign
+up for a monthly donation to The-Compiler (qutebrowser's main developer),
+allowing him to work part-time on qutebrowser. If you sign up in 2019, you can
+even get qutebrowser shirts, stickers and other swag.
+
+Why GitHub Sponsors? What is the GitHub Matching Fund?::
+    Thanks to the
+    https://help.github.com/en/github/supporting-the-open-source-community-with-github-sponsors/about-github-sponsors#about-the-github-sponsors-matching-fund[GitHub Sponsors Matching Fund],
+    all donations are doubled by GitHub in the first year, up to a $5000 total limit.
++
+Even outside of the matching fund, GitHub Sponsors is nicely integrated with
+qutebrowser's existing GitHub page and a better offering than alternatives such
+as Patreon or Liberapay.
+
+How do the different tiers/perks work?::
+    The perks you will receive are based on the *total amount* you
+    contributed (without GitHub's matching) until May 2020. For example, anyone who contributed $15 by the
+    cut-off date will get qutebrowser stickers. You could reach that amount in
+    different ways: As an example, you could sign up for the $3/month tier in
+    November/December 2019, so that you paid that amount 5 times by then. Or
+    you could sign up for the $15/month tier at a later time to reach the same
+    goal.
++
+The displayed tiers take that into account - they're designed for people who
+sign up in 2019 and keep that tier until May 2020. In January 2020, they will
+be adjusted accordingly.
++
+In some cases, a tier allows you to reach a reward goal in a single month, but
+another higher goal when you keep it for those five months. For example, if you
+select the "shirt and premium swag" tier, you will receive stickers even if you
+only keep the tier for a single month, but get shirt and swag when you keep it
+for five months.
+
+Is it possible to contribute via a one-time donation instead?::
+   If you prefer a one-time donation, there are various possibilities:
++
+- Select a tier which covers the goal you want to reach (note that payments are
+  prorated based on the current date). After the payment is processed, cancel
+  your GitHub sponsors subscription again. This has a big benefit: Thanks to
+  GitHub's matching fund, your donation will be doubled (and nothing will be
+  lost to fees).
++
+- Sign up for a lower recurring donation instead. At a later point, it will be
+  possible to "upgrade" to a higher tier via a one-time donation - see the next
+  question for details.
++
+- Do so via the https://github.com/qutebrowser/qutebrowser#donating[existing
+  donation methods]. Rewards (shirts/stickers/swag) are handled on a
+  case-by-case basis as GitHub's matching fund isn't applicable and there might
+  be relatively high fees which make this tricky.
++
+- If you want to contribute via a one-time donation and want to make sure
+  you'll receive a reward, you might want to sign up to the
+  https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrowser-announce]
+  mailinglist and wait until there is an official way to do so. It's planned to
+  set this up at a later date.
+
+I'd like a certain reward (e.g. a t-shirt) but I'd prefer making a smaller
+monthly donation. Can I upgrade via a one-time donation?::
+    It's planned to set up a donation page to allow this at a later date. Note
+    that you can switch tiers on GitHub sponsors at any time.
+
+GitHub tries to charge me for an entire year. What gives?::
+    This happens if you have an existing annual billing cycle with GitHub (for
+    example a Pro membership or Marketplace subscription). At the moment,
+    GitHub's billing system only supports annual sponsor payments in that case.
+
+Can you share details on the stickers?::
+    There are two sticker designs: Rectangular stickers (with text) and round
+    vinyl stickers. Those are the same as during the 2016/2017 crowdfundings.
++
+image:https://qutebrowser.org/img/sponsors/stickers.jpg["stickers",width=300,link="https://qutebrowser.org/img/sponsors/stickers.jpg"]
+
+Can you share details on the swag?::
+    A limited number of metal buttons and magnets is available:
++
+image:https://qutebrowser.org/img/sponsors/swag.jpg["swag",width=300,link="https://qutebrowser.org/img/sponsors/swag.jpg"]
++
+It's planned to order more swag, depending on the exact demand. Possibilites
+would include qutebrowser pens, notebooks (the paper kind) or USB-sticks (for
+the "expensive swag" reward).
+
+Can you share details on the t-shirts?::
+    The shirts will be
+    https://www.bc-collection.eu/en/t-shirts/bc-e190-tu03t[B&C #E190] shirts
+    which are the successor to the "Exact 190" shirts distributed in the
+    previous crowdfundings: 100% cotton and relatively thick/heavy.
++
+Sizes from XS and 5XL are available, most of them also as a fitted (women) cut.
+Up to 40 colors are available from the supplier - there will be a selection of
+recommended/tested colors, but any available color can be selected on your own
+risk.
++
+The print will be a white silk-screen print, with the same design as in the
+2016 crowdfunding:
++
+image:https://qutebrowser.org/img/sponsors/shirt.jpg["shirt",width=300,link="https://qutebrowser.org/img/sponsors/shirt.jpg"]
