@@ -11,7 +11,7 @@ EasyProcess==0.2.7
 Flask==1.1.1
 glob2==0.7
 hunter==3.0.4
-hypothesis==4.41.2
+hypothesis==4.42.0
 importlib-metadata==0.23
 itsdangerous==1.1.0
 jaraco.functools==2.0
