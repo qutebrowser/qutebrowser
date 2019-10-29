@@ -11,5 +11,5 @@ six==1.12.0
 toml==0.10.0
 tox==3.14.0
 tox-venv==0.4.0
-virtualenv==16.7.6
+virtualenv==16.7.7
 zipp==0.6.0

@@ -2,10 +2,10 @@
 
 attrs==19.3.0
 entrypoints==0.3
-flake8==3.7.8
+flake8==3.7.9
 flake8-bugbear==19.8.0
 flake8-builtins==1.4.1
-flake8-comprehensions==2.2.0
+flake8-comprehensions==3.0.1
 flake8-copyright==0.2.2
 flake8-debugger==3.2.0
 flake8-deprecated==1.3
