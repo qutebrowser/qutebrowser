@@ -538,6 +538,24 @@ class WebEngineScroller(browsertab.AbstractScroller):
         return self._at_bottom
 
 
+class WebEngineHistoryItem(browsertab.AbstractHistoryItem):
+    @classmethod
+    def from_qt(cls, qt_item, active=False):
+        """Construct a WebEngineHistoryItem from a Qt history item.
+
+        Args:
+            qt_item: a QWebEngineHistoryItem
+        """
+        qtutils.ensure_valid(qt_item)
+
+        return cls(
+            qt_item.url(),
+            qt_item.title(),
+            original_url=qt_item.originalUrl(),
+            active=active,
+            user_data=None)
+
+
 class WebEngineHistoryPrivate(browsertab.AbstractHistoryPrivate):
 
     """History-related methods which are not part of the extension API."""
@@ -1284,6 +1302,18 @@ class WebEngineTab(browsertab.AbstractTab):
             title="Error loading page: {}".format(url_string),
             url=url_string, error=error)
         self.set_html(error_page)
+
+    def history_item_from_qt(self, qt_item, active=False):
+        return WebEngineHistoryItem.from_qt(qt_item, active)
+
+    def new_history_item(self, url, original_url, title, active, user_data):
+        return WebEngineHistoryItem(
+            url=url,
+            original_url=original_url,
+            title=title,
+            active=active,
+            user_data=user_data
+        )
 
     @pyqtSlot()
     def _on_history_trigger(self):
