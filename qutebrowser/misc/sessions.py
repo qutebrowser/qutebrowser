@@ -367,14 +367,14 @@ class SessionManager(QObject):
 
         try:
             new_tab.loaded = False
-            new_tab.load_history_items(entries)
+            new_tab.history.load_items(entries, lazy=not data.get('active', False))
         except ValueError as e:
             raise SessionError(e)
 
     def _load_window(self, win):
         """Turn yaml data into windows."""
         window = mainwindow.MainWindow(geometry=win['geometry'],
-                                           private=win.get('private', None))
+                                       private=win.get('private', None))
         window.show()
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=window.win_id)
@@ -393,7 +393,7 @@ class SessionManager(QObject):
         for tab in new_tabs:
             tab.load_on_focus = True
             if not config.val.session.lazy_restore:
-                tab.load()
+                tab.history.load()
 
         if tab_to_focus is not None:
             tabbed_browser.widget.setCurrentIndex(tab_to_focus)
