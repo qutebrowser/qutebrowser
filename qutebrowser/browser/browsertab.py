@@ -679,7 +679,11 @@ class AbstractHistory:
         self._history = typing.cast(
             typing.Union['QWebHistory', 'QWebEngineHistory'], None)
         self.private_api = AbstractHistoryPrivate(tab)
+
+        # Lazy loading properties
         self.to_load = []
+        self.load_on_focus = True
+        self.loaded = False
 
     def __len__(self) -> int:
         raise NotImplementedError
@@ -721,13 +725,29 @@ class AbstractHistory:
     def can_go_forward(self) -> bool:
         raise NotImplementedError
 
-    def _item_at(self, i: int) -> typing.Any:
-        raise NotImplementedError
+    def load(self):
+        """Load the tab history."""
+        if self.loaded:
+            return
 
-    def _go_to_item(self, item: typing.Any) -> None:
-        raise NotImplementedError
+        self.private_api.load_items(self.to_load)
+        self.to_load = []
+        self.loaded = True
+        self.load_on_focus = False
 
-    def unload_items(self):
+    def load_items(self, entries, lazy=True):
+        """Add a list of TabHistoryItems to the tab's history.
+
+        Args:
+            entries: a list of TabHistoryItems
+            lazy: indicate if lazy history load
+        """
+        if lazy:
+            self.to_load.extend(entries)
+        else:
+            self.private_api.load_items(entries)
+
+    def unload(self):
         """Unload the history and store it in to_load."""
         self.to_load = []
         current_idx = self.current_idx()
@@ -735,7 +755,16 @@ class AbstractHistory:
             item = TabHistoryItem.from_qt(
                 item, active=idx == current_idx)
             self.to_load.append(item)
+
+        self.loaded = False
+        self.load_on_focus = True
         self._history.clear()
+
+    def _item_at(self, i: int) -> typing.Any:
+        raise NotImplementedError
+
+    def _go_to_item(self, item: typing.Any) -> None:
+        raise NotImplementedError
 
 
 class AbstractElements:
@@ -1120,25 +1149,12 @@ class AbstractTab(QWidget):
     def load_status(self) -> usertypes.LoadStatus:
         return self._load_status
 
-    def load(self):
-        """Load the tab history."""
-        if self.loaded:
-            return
-
-        self.history.private_api.load_items(self.history.to_load)
-        self.history.to_load = []
-        self.loaded = True
-        self.load_on_focus = False
-
     def unload(self):
         """Unload the tab."""
-        if not self.loaded:
+        if not self.history.loaded:
             return
 
-        self.loaded = False
-        self.load_on_focus = True
-
-        self.history.unload_items()
+        self.history.unload()
 
         # this would be a better way to do it if I could find a way to clear
         # the page without the webview triggering the title and icon change
@@ -1167,19 +1183,8 @@ class AbstractTab(QWidget):
     def setFocus(self):
         """Load the tab when it gets focused."""
         super().setFocus()
-        if self.load_on_focus:
-            self.load()
-
-    def load_history_items(self, entries):
-        """Add a list of TabHistoryItems to the tab's history.
-
-        Args:
-            entries: a list of TabHistoryItems
-        """
-        if self.loaded:
-            self.history.private_api.load_items(entries)
-        else:
-            self.history.to_load.extend(entries)
+        if self.history.load_on_focus:
+            self.history.load()
 
     def _load_url_prepare(self, url: QUrl, *,
                           emit_before_load_started: bool = True) -> None:

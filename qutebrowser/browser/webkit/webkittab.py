@@ -747,7 +747,7 @@ class WebKitTab(browsertab.AbstractTab):
         self._widget.load(url)
 
     def url(self, *, requested=False):
-        if not self.loaded and self.history.to_load:
+        if not self.history.loaded and self.history.to_load:
             idx = self.history.current_idx()
             return self.history.to_load[idx].url
 
@@ -776,7 +776,7 @@ class WebKitTab(browsertab.AbstractTab):
         return self._widget.icon()
 
     def reload(self, *, force=False):
-        if not self.loaded:
+        if not self.history.loaded:
             self.load()
             return
 

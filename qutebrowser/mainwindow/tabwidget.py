@@ -81,7 +81,7 @@ class TabWidget(QTabWidget):
         """
         super().setCurrentIndex(idx)
         tab = self.widget(idx)
-        if tab.load_on_focus:
+        if tab.history.load_on_focus:
             tab.load()
 
     @config.change_filter('tabs')
