@@ -191,9 +191,6 @@ class SessionManager(QObject):
         if active:
             data['active'] = True
         for idx, item in enumerate(tab.history):
-            if not isinstance(item, browsertab.AbstractHistoryItem):
-                item = tab.history_item_from_qt(item, active=active)
-
             item_data = self._save_tab_item(tab, idx, item)
             data['history'].append(item_data)
 
@@ -366,7 +363,6 @@ class SessionManager(QObject):
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
-            new_tab.loaded = False
             new_tab.history.load_items(entries, lazy=not data.get('active', False))
         except ValueError as e:
             raise SessionError(e)

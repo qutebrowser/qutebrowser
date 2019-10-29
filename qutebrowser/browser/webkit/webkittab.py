@@ -576,37 +576,6 @@ class WebKitHistory(browsertab.AbstractHistory):
         super().__init__(tab)
         self.private_api = WebKitHistoryPrivate(tab)
 
-    def __len__(self):
-        return len(self._history)
-
-    def __iter__(self):
-        if self.to_load:
-            return iter(self.to_load)
-        else:
-            return iter(self._history.items())
-
-    def current_idx(self):
-        if self.to_load:
-            for i, item in enumerate(self.to_load):
-                if item.active:
-                    return i
-            return len(self.to_load) - 1
-
-        return self._history.currentItemIndex()
-
-    def can_go_back(self):
-        return self._history.canGoBack()
-
-    def can_go_forward(self):
-        return self._history.canGoForward()
-
-    def _item_at(self, i):
-        return self._history.itemAt(i)
-
-    def _go_to_item(self, item):
-        self._tab.before_load_started.emit(item.url())
-        self._history.goToItem(item)
-
 
 class WebKitElements(browsertab.AbstractElements):
 

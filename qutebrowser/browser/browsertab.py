@@ -669,10 +669,20 @@ class AbstractHistory:
         self.loaded = False
 
     def __len__(self) -> int:
-        raise NotImplementedError
+        if self.to_load:
+            return len(self.to_load)
+
+        return len(self._history)
 
     def __iter__(self) -> typing.Iterable:
-        raise NotImplementedError
+        if self.to_load:
+            return iter(self.to_load)
+
+        return iter(
+            self._tab.history_item_from_qt(
+                item,
+                active=idx == self.current_idx())
+            for idx, item in enumerate(self._history.items()))
 
     def _check_count(self, count: int) -> None:
         """Check whether the count is positive."""
@@ -680,7 +690,13 @@ class AbstractHistory:
             raise WebTabError("count needs to be positive!")
 
     def current_idx(self) -> int:
-        raise NotImplementedError
+        if self.to_load:
+            for i, item in enumerate(self.to_load):
+                if item.active:
+                    return i
+            return len(self.to_load) - 1
+
+        return self._history.currentItemIndex()
 
     def back(self, count: int = 1) -> None:
         """Go back in the tab's history."""
@@ -703,22 +719,23 @@ class AbstractHistory:
             raise WebTabError("At end of history.")
 
     def can_go_back(self) -> bool:
-        raise NotImplementedError
+        if self.to_load:
+            return self.current_idx() > 0
+        return self._history.canGoBack()
 
     def can_go_forward(self) -> bool:
-        raise NotImplementedError
+        return self._history.canGoForward()
 
-    def load(self):
+    def load(self) -> None:
         """Load the tab history."""
         if self.loaded:
             return
-
         self.private_api.load_items(self.to_load)
         self.to_load = []
         self.loaded = True
         self.load_on_focus = False
 
-    def load_items(self, entries, lazy=True):
+    def load_items(self, entries, lazy=True) -> None:
         """Add a list of AbstractHistoryItems to the tab's history.
 
         Args:
@@ -726,28 +743,27 @@ class AbstractHistory:
             lazy: indicate if lazy history load
         """
         if lazy:
+            self.loaded = False
+            self.load_on_focus = True
             self.to_load.extend(entries)
         else:
             self.private_api.load_items(entries)
 
-    def unload(self):
+    def unload(self) -> None:
         """Unload the history and store it in to_load."""
         self.to_load = []
-        current_idx = self.current_idx()
         for idx, item in enumerate(self):
-            item = self._tab.history_item_from_qt(
-                item, active=idx == current_idx)
             self.to_load.append(item)
 
         self.loaded = False
         self.load_on_focus = True
         self._history.clear()
 
-    def _item_at(self, i: int) -> typing.Any:
-        raise NotImplementedError
+    def _item_at(self, i):
+        return self._history.itemAt(i)
 
-    def _go_to_item(self, item: typing.Any) -> None:
-        raise NotImplementedError
+    def _go_to_item(self, item):
+        self._tab.before_load_started.emit(item.url())
 
 
 class AbstractElements:
@@ -1254,4 +1270,4 @@ class AbstractTab(QWidget):
             return
 
         if self.history.load_on_focus:
-            self.load()
+            self.history.load()
