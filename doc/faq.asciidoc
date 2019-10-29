@@ -369,11 +369,15 @@ Is it possible to contribute via a one-time donation instead?::
   you'll receive a reward, you might want to sign up to the
   https://lists.schokokeks.org/mailman/listinfo.cgi/qutebrowser-announce[qutebrowser-announce]
   mailinglist and wait until there is an official way to do so. It's planned to
-  set this up at a later date.
+  set this up at a later date. Note that the thresholds for perks will be
+  higher because those donations aren't matched by GitHub and fees are
+  relatively high.
 
 I'd like a certain reward (e.g. a t-shirt) but I'd prefer making a smaller monthly donation. Can I upgrade via a one-time donation?::
-    It's planned to set up a donation page to allow this at a later date. Note
-    that you can switch tiers on GitHub sponsors at any time.
+    It's planned to set up a donation page to allow this at a later date.
+    However, the thresholds for perks will be higher because those donations
+    aren't matched by GitHub and fees are relatively high. Note that you can
+    switch tiers on GitHub sponsors at any time.
 
 GitHub tries to charge me for an entire year. What gives?::
     This happens if you have an existing annual billing cycle with GitHub (for
@@ -401,6 +405,12 @@ When will rewards be shipped?::
 I'd like some stickers, but I can't donate anything because of my financial situation.::
     Please mailto:mail@qutebrowser.org[get in touch]! As long as this doesn't
     get abused, I'd happily send stickers for free.
+
+We're a company interested in sponsoring qutebrowser, can you invoice us for the sponsored amount?::
+    You will receive a confirmation mail including a PDF receipt from GitHub
+    when sponsoring qutebrowser. If you really need an invoice, I can bill
+    you via my company, https://bruhin.software/[Bruhin Software]. Please
+    mailto:mail@qutebrowser.org[get in touch] to discuss details!
 
 Can you share details on the stickers?::
     There are two sticker designs: Rectangular stickers (with text) and round
