@@ -45,6 +45,7 @@ class SqliteErrorCode:
     CANTOPEN = '14'  # unable to open database file
     PROTOCOL = '15'  # locking protocol error
     CONSTRAINT = '19'  # UNIQUE constraint failed
+    NOTADB = '26'  # file is not a database
 
 
 class Error(Exception):
@@ -104,6 +105,7 @@ def raise_sqlite_error(msg, error):
         SqliteErrorCode.FULL,
         SqliteErrorCode.CANTOPEN,
         SqliteErrorCode.PROTOCOL,
+        SqliteErrorCode.NOTADB,
     ]
 
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70506
