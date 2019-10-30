@@ -23,8 +23,8 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QAbstractItemView
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize, QPoint, QModelIndex
+from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
 from qutebrowser.config import config
 from qutebrowser.completion import completiondelegate
@@ -197,7 +197,7 @@ class CompletionView(QTreeView):
         raise utils.Unreachable
 
     def _next_page(self, upwards):
-        """Return the index a page away from the selected index
+        """Return the index a page away from the selected index.
 
         Args:
             upwards: Get previous item, not next.
@@ -205,28 +205,26 @@ class CompletionView(QTreeView):
         Return:
             A QModelIndex.
         """
-
         idx = self.selectionModel().currentIndex()
 
         if not idx.isValid():
             # No item selected yet
-            page_length = 0  # No need to scroll yet
             if upwards:
                 return self.model().last_item()
             else:
                 return self.model().first_item()
-        else:
-            # Finds Height of each CompletionView elements
-            element_height = self.visualRect(idx).height()  
-            page_length = int(self.height()/element_height)
+
+        # Finds Height of each CompletionView elements
+        element_height = self.visualRect(idx).height()
+        page_length = int(self.height()/element_height)
 
         while True:
             if upwards:
                 # Ensures bottom element stays at top of next page
-                for _x in range(page_length-1):  
+                for _ in range(page_length-1):
                     idx = self.indexAbove(idx)
             else:
-                for _x in range(page_length-1):
+                for _ in range(page_length-1):
                     idx = self.indexBelow(idx)
             # wrap around if we arrived at beginning/end
             if not idx.isValid() and upwards:
@@ -272,8 +270,9 @@ class CompletionView(QTreeView):
 
     @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')
-    @cmdutils.argument('which', choices=['next', 'prev', 'next-category',
-                                         'prev-category', 'next-page', 'prev-page'])
+    @cmdutils.argument('which', choices=['next', 'prev',
+                                         'next-category', 'prev-category',
+                                         'next-page', 'prev-page'])
     @cmdutils.argument('history', flag='H')
     def completion_item_focus(self, which, history=False):
         """Shift the focus of the completion menu to another item.
