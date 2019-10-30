@@ -2662,7 +2662,7 @@ bindings.default:
       <Ctrl-Tab>: completion-item-focus next-category
       <Ctrl-Shift-Tab>: completion-item-focus prev-category
       <PgDown>: completion-item-focus next-page
-      <PgUp>: completion-item-focus last-page
+      <PgUp>: completion-item-focus prev-page
       <Ctrl-D>: completion-item-del
       <Shift-Delete>: completion-item-del
       <Ctrl-C>: completion-item-yank

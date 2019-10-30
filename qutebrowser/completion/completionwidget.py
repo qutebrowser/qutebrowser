@@ -273,7 +273,7 @@ class CompletionView(QTreeView):
     @cmdutils.register(instance='completion',
                        modes=[usertypes.KeyMode.command], scope='window')
     @cmdutils.argument('which', choices=['next', 'prev', 'next-category',
-                                         'prev-category', 'next-page', 'last-page'])
+                                         'prev-category', 'next-page', 'prev-page'])
     @cmdutils.argument('history', flag='H')
     def completion_item_focus(self, which, history=False):
         """Shift the focus of the completion menu to another item.
@@ -307,7 +307,7 @@ class CompletionView(QTreeView):
             'next-category': lambda: self._next_category_idx(upwards=False),
             'prev-category': lambda: self._next_category_idx(upwards=True),
             'next-page': lambda: self._next_page(upwards=False),
-            'last-page': lambda: self._next_page(upwards=True),
+            'prev-page': lambda: self._next_page(upwards=True),
         }
         idx = indices[which]()
 
