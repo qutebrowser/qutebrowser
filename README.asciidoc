@@ -21,6 +21,18 @@ on Python and PyQt5 and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
+// QUTE_WEB_HIDE
+**qutebrowser's primary maintainer, The-Compiler, is currently working
+part-time on qutebrowser, funded by donations.** To sustain this for a long
+time, your help is needed! See the
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
+information. Depending on your sign-up date and how long you keep a certain
+level, you can get qutebrowser t-shirts, stickers and more!
+
+Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
+Sponsors (up to a $5000 total) will be doubled until October 2020.
+// QUTE_WEB_HIDE_END
+
 Screenshots
 -----------
 
@@ -135,13 +147,19 @@ install qutebrowser and its dependencies.
 Donating
 --------
 
-Working on qutebrowser is a very rewarding hobby, but like (nearly) all hobbies
-it also costs some money (as an example, I have to pay for the server and
-domain).
+**qutebrowser's primary maintainer, The-Compiler, is currently working
+part-time on qutebrowser, funded by donations.** To sustain this for a long
+time, your help is needed! See the
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
+information. Depending on your sign-up date and how long you keep a certain
+level, you can get qutebrowser t-shirts, stickers and more!
 
-If you want to give me a beer or a pizza back, I'm trying to make it as easy as
-possible for you to do so. If some other way would be easier for you, please
-get in touch!
+Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
+Sponsors (up to a $5000 total) will be doubled until October 2020!
+
+Alternatively, the following donation methods are available -- note that
+eligibility for swag (shirts/stickers/etc.) is handled on a case-by-case basis
+for those, please mailto:mail@qutebrowser.org[get in touch] for details.
 
 * SEPA bank transfer inside Europe (no fee):
   - Account holder: Florian Bruhin

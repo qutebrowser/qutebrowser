@@ -311,9 +311,6 @@ My issue is not listed.::
 [[sponsors]]
 == GitHub Sponsors FAQ
 
-NOTE: The crowdfunding via GitHub Sponsors isn't active yet, but should go live
-over the next days/weeks.
-
 Using https://github.com/sponsors/The-Compiler[GitHub Sponsors], you can sign
 up for a monthly donation to The-Compiler (qutebrowser's main developer),
 allowing him to work part-time on qutebrowser. If you sign up in 2019, you can
