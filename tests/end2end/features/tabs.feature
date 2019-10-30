@@ -1490,3 +1490,71 @@ Feature: Tab management
         And I open data/hello.txt in a new tab
         And I run :fake-key -g hello-world<enter>
         Then the message "hello-world" should be shown
+
+    Scenario: Simple tab unload
+        When I open data/numbers/1.txt
+        And I run :tab-only
+        And I run :tab-unload
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+
+    Scenario: Simple tab unload / load
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I run :tab-unload
+        And I run :tab-load
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+                  active: true
+
+    Scenario: Simple tab unload then go backward to a new background tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt
+        And I run :tab-unload
+        And I run :back -b
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+                - url: http://localhost:*/data/numbers/3.txt
+                  active: true
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+                  active: true
+                - url: http://localhost:*/data/numbers/3.txt
+
+    Scenario: Simple tab unload then go forward to a new background tab
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new tab
+        And I open data/numbers/3.txt
+        And I run :back
+        And I run :tab-unload
+        And I run :forward -b
+        Then the session should look like:
+            windows:
+            - tabs:
+              - history:
+                - url: about:blank
+                - url: http://localhost:*/data/numbers/1.txt
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+                  active: true
+              - history:
+                - url: http://localhost:*/data/numbers/2.txt
+                - url: http://localhost:*/data/numbers/3.txt
+                  active: true
