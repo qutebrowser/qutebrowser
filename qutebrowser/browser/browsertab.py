@@ -708,6 +708,9 @@ class AbstractHistory:
 
     def back(self, count: int = 1) -> None:
         """Go back in the tab's history."""
+        if not self.loaded:
+            self.load()
+
         self._check_count(count)
         idx = self.current_idx() - count
         if idx >= 0:
@@ -718,6 +721,9 @@ class AbstractHistory:
 
     def forward(self, count: int = 1) -> None:
         """Go forward in the tab's history."""
+        if not self.loaded:
+            self.load()
+
         self._check_count(count)
         idx = self.current_idx() + count
         if idx < len(self):
@@ -775,6 +781,7 @@ class AbstractHistory:
 
     def _go_to_item(self, item: TypeHistoryItem) -> None:
         self._tab.before_load_started.emit(item.url())
+        self._history.goToItem(item)
 
 
 class AbstractElements:
