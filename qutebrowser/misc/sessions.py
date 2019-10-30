@@ -19,18 +19,15 @@
 
 """Management of sessions - saved tabs/windows."""
 
-import itertools
 import os
 import os.path
 import typing
-import urllib
 
 import yaml
 from PyQt5.QtCore import QObject, QPoint, QTimer, QUrl, pyqtSlot
 from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.api import cmdutils
-from qutebrowser.browser import browsertab
 from qutebrowser.completion.models import miscmodels
 from qutebrowser.config import config, configfiles
 from qutebrowser.mainwindow import mainwindow
@@ -319,7 +316,7 @@ class SessionManager(QObject):
         """Load yaml data into a newly opened tab."""
         entries = []
 
-        for i, histentry in enumerate(data['history']):
+        for histentry in data['history']:
             user_data = {}
 
             if 'zoom' in data:
@@ -363,7 +360,8 @@ class SessionManager(QObject):
                 new_tab.title_changed.emit(histentry['title'])
 
         try:
-            new_tab.history.load_items(entries, lazy=not data.get('active', False))
+            new_tab.history.load_items(entries,
+                                       lazy=not data.get('active', False))
         except ValueError as e:
             raise SessionError(e)
 

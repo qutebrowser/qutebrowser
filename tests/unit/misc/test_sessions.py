@@ -32,8 +32,6 @@ from qutebrowser.utils import objreg, qtutils
 
 QWebView = pytest.importorskip('PyQt5.QtWebKitWidgets').QWebView
 
-
-
 pytestmark = pytest.mark.qt_log_ignore('QIODevice::read.*: device not open')
 
 webengine_refactoring_xfail = pytest.mark.xfail(

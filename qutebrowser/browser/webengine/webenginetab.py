@@ -31,6 +31,9 @@ from PyQt5.QtNetwork import QAuthenticator
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
+if typing.TYPE_CHECKING:
+    from PyQt5.QtWebEngineWidgets import QWebEngineHistoryItem
+
 from qutebrowser.config import configdata, config
 from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
                                  history, greasemonkey)
@@ -539,6 +542,8 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
 
 class WebEngineHistoryItem(browsertab.AbstractHistoryItem):
+    """History item data derived from QWebEngineHistoryItem."""
+
     @classmethod
     def from_qt(cls, qt_item, active=False):
         """Construct a WebEngineHistoryItem from a Qt history item.
@@ -1270,8 +1275,9 @@ class WebEngineTab(browsertab.AbstractTab):
             url=url_string, error=error)
         self.set_html(error_page)
 
-    def history_item_from_qt(self, qt_item, active=False):
-        return WebEngineHistoryItem.from_qt(qt_item, active)
+    def history_item_from_qt(self, item: browsertab.TypeHistoryItem,
+                             active: bool = False) -> WebEngineHistoryItem:
+        return WebEngineHistoryItem.from_qt(item, active)
 
     def new_history_item(self, url, original_url, title, active, user_data):
         return WebEngineHistoryItem(
