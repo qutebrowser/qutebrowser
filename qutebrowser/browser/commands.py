@@ -1783,7 +1783,7 @@ class CommandDispatcher:
         if tab is None:
             return
 
-        tab.load()
+        tab.history.load()
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('count', value=cmdutils.Value.count)

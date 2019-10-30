@@ -685,11 +685,13 @@ class AbstractHistory:
         if self.to_load:
             return iter(self.to_load)
 
-        return iter(
+        return iter([
             self._tab.history_item_from_qt(
                 item,
-                active=idx == self.current_idx())
-            for idx, item in enumerate(self._history.items()))
+                active=idx == self.current_idx()
+            )
+            for idx, item in enumerate(self._history.items())
+        ])
 
     def _check_count(self, count: int) -> None:
         """Check whether the count is positive."""
@@ -740,7 +742,10 @@ class AbstractHistory:
 
     def can_go_forward(self) -> bool:
         """Determine whether tab can be navigated forward."""
-        return self._history.canGoForward()
+        if self.loaded:
+            return self._history.canGoForward()
+
+        return self.current_idx() < len(self.to_load)
 
     def load(self) -> None:
         """Load the tab history."""
