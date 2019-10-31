@@ -205,7 +205,8 @@ class CompletionView(QTreeView):
         Return:
             A QModelIndex.
         """
-        idx = self.selectionModel().currentIndex()
+        old_idx = self.selectionModel().currentIndex()
+        idx = old_idx
 
         if not idx.isValid():
             # No item selected yet
@@ -218,24 +219,29 @@ class CompletionView(QTreeView):
         element_height = self.visualRect(idx).height()
         page_length = int(self.height()/element_height)
 
-        while True:
-            if upwards:
-                # Ensures bottom element stays at top of next page
-                for _ in range(page_length-1):
-                    idx = self.indexAbove(idx)
-            else:
-                for _ in range(page_length-1):
-                    idx = self.indexBelow(idx)
-            # wrap around if we arrived at beginning/end
-            if not idx.isValid() and upwards:
-                return self.model().last_item()
-            elif not idx.isValid() and not upwards:
-                idx = self.model().first_item()
-                self.scrollTo(idx.parent())
-                return idx
-            elif idx.parent().isValid():
-                # Item is a real item, not a category header -> success
-                return idx
+        # Skip one pageful, except leave one old line visible
+        for _ in range(page_length-1):
+            idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
+
+        # Skip category headers
+        while idx.isValid() and not idx.parent().isValid():
+            idx = self.indexAbove(idx) if upwards else self.indexBelow(idx)
+
+        if idx.isValid():
+            return idx
+
+        # Wrap around if we were already at the beginning/end
+        if ((upwards and old_idx == self.model().first_item()) or
+            (not upwards and old_idx == self.model().last_item())):
+            return self._next_idx(upwards)
+
+        # Select the first/last item before wrapping around
+        if upwards:
+            idx = self.model().first_item()
+            self.scrollTo(idx.parent())
+            return idx
+        else:
+            return self.model().last_item()
 
     def _next_category_idx(self, upwards):
         """Get the index of the previous/next category.
