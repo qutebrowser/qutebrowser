@@ -284,7 +284,9 @@ class CompletionView(QTreeView):
         """Shift the focus of the completion menu to another item.
 
         Args:
-            which: 'next', 'prev', 'next-category', or 'prev-category'.
+            which: 'next', 'prev',
+                   'next-category', 'prev-category',
+                   'next-page', or 'prev-page'.
             history: Navigate through command history if no text was typed.
         """
         if history:
