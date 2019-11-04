@@ -16,7 +16,7 @@ lxml==4.4.1
 manhole==1.6.0
 pycparser==2.19
 Pympler==0.7
-python-dateutil==2.8.0
+python-dateutil==2.8.1
 requests==2.22.0
 six==1.12.0
 uritemplate==3.0.0
