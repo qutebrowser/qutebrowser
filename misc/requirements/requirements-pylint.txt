@@ -3,7 +3,7 @@
 asn1crypto==1.2.0
 astroid==2.3.2
 certifi==2019.9.11
-cffi==1.13.1
+cffi==1.13.2
 chardet==3.0.4
 cryptography==2.8
 github3.py==1.3.0
