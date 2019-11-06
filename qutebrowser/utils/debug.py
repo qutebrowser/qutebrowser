@@ -215,7 +215,7 @@ def signal_name(sig: pyqtSignal) -> str:
         # sig.signatures == ('signal2(QString,QString)',)
         m = re.fullmatch(r'(?P<name>.*)\(.*\)',
                          sig.signatures[0])  # type: ignore
-    else:
+    else:  # pragma: no cover
         # Unbound signal, PyQt < 5.11
         # Examples:
         # repr(sig) == "<unbound PYQT_SIGNAL SignalObject.signal1[]>"
