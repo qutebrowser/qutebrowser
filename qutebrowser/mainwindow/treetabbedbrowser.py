@@ -20,6 +20,7 @@
 """Subclass of TabbedBrowser to provide tree-tab functionality."""
 
 import collections
+import typing
 
 import attr
 from PyQt5.QtWidgets import QSizePolicy
@@ -77,9 +78,11 @@ class TreeTabbedBrowser(TabbedBrowser):
         super().__init__(win_id=win_id, private=private, parent=parent)
         self.is_treetabbedbrowser = True
         self.widget = TreeTabWidget(win_id, parent=self)
-        self.widget.tabCloseRequested.connect(self.on_tab_close_requested)
+        self.widget.tabCloseRequested.connect(  # type: ignore
+            self.on_tab_close_requested)
         self.widget.new_tab_requested.connect(self.tabopen)
-        self.widget.currentChanged.connect(self._on_current_changed)
+        self.widget.currentChanged.connect(  # type: ignore
+            self._on_current_changed)
         self.cur_fullscreen_requested.connect(self.widget.tabBar().maybe_hide)
         self.widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self._tree_tab_insert_rel_idx = 0
@@ -281,7 +284,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         def rel_depth(n):
             return n.depth - node.depth
 
-        levels = collections.defaultdict(list)
+        levels = collections.defaultdict(list)  # type: typing.Dict[int, list]
         for d in node.traverse(render_collapsed=False):
             r_depth = rel_depth(d)
             levels[r_depth].append(d)
