@@ -19,9 +19,9 @@
 
 """Subclass of TabbedBrowser to provide tree-tab functionality."""
 
-from collections import defaultdict
-import attr
+import collections
 
+import attr
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtCore import pyqtSlot
 
@@ -281,7 +281,7 @@ class TreeTabbedBrowser(TabbedBrowser):
         def rel_depth(n):
             return n.depth - node.depth
 
-        levels = defaultdict(list)
+        levels = collections.defaultdict(list)
         for d in node.traverse(render_collapsed=False):
             r_depth = rel_depth(d)
             levels[r_depth].append(d)
