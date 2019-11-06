@@ -632,6 +632,7 @@ Start hinting.
  - `tab-bg`: Open the link in a new background tab.
  - `window`: Open the link in a new window.
  - `hover` : Hover over the link.
+ - `right-click`: Right-click the element.
  - `yank`: Yank the link to the clipboard.
  - `yank-primary`: Yank the link to the primary selection.
  - `run`: Run the argument as command.
@@ -1329,10 +1330,14 @@ Select the tab given as argument/[count].
 If neither count nor index are given, it behaves like tab-next. If both are given, use count.
 
 ==== positional arguments
-* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab (regardless of count).
- The value `parent` focuses the parent tab in the tree
- hierarchy, if `tabs.tree_tabs` is enabled. Negative indices
- count from the end, such that -1 is the last tab.
+* +'index'+: The tab index to focus, starting with 1. Negative indices count from the end, such that -1 is the last tab. Special
+ values are:
+ - `last` focuses the last focused tab (regardless of
+ count).
+ - `parent` focuses the parent tab in the tree hierarchy,
+ if `tabs.tree_tabs` is enabled.
+ - `stack-prev`/`stack-next` traverse a stack of visited
+ tabs.
 
 
 ==== optional arguments

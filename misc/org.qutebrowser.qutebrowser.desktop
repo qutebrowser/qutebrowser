@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=qutebrowser
+StartupWMClass=qutebrowser
 GenericName=Web Browser
 GenericName[ar]=ﻢﺘﺼﻔﺣ ﺎﻠﺸﺒﻛﺓ
 GenericName[bg]=Уеб браузър

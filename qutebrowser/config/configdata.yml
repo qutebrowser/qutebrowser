@@ -479,11 +479,11 @@ content.headers.user_agent:
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/75.0.3770.100 Safari/537.36"
-        - Chrome 75.0 Win10
+          like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+        - Chrome 76 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/75.0.3770.100 Safari/537.36 "
-        - Chrome 75.0 Linux
+          Gecko) Chrome/76.0.3809.132 Safari/537.36"
+        - Chrome 76 Linux
       - - ""
         - Use default QtWebKit/QtWebEngine User-Agent
 
@@ -522,8 +522,7 @@ content.host_blocking.lists:
     The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
 
 content.host_blocking.whitelist:
-  default:
-  - piwik.org
+  default: []
   type:
     name: List
     valtype: UrlPattern
@@ -781,13 +780,17 @@ content.webrtc_ip_handling_policy:
 
 content.xss_auditing:
   type: Bool
-  default: true
+  default: false
   supports_pattern: true
   desc: >-
     Monitor load requests for cross-site scripting attempts.
 
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console.
+
+    Note that bypasses for the XSS auditor are widely known and it can be
+    abused for cross-site info leaks in some scenarios, see:
+    https://www.chromium.org/developers/design-documents/xss-auditor
 
 content.mute:
   default: false
@@ -1823,6 +1826,23 @@ tabs.tree_tabs:
   desc: Enable tree-tabs mode.
   restart: true
 
+tabs.focus_stack_size:
+  default: 10
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+    zero_ok: false
+  desc: Maximum stack size to remember for tab switches (-1 for no maximum).
+
+tabs.tooltips:
+  default: true
+  type: Bool
+  desc: >-
+    Show tooltips on tabs.
+
+    Note this setting only affects windows opened after it has been set.
+
 ## url
 
 url.auto_search:
@@ -2813,7 +2833,7 @@ bindings.default:
       zO: set-cmd-text --space :open -tS
     insert:
       <Ctrl-E>: open-editor
-      <Shift-Ins>: insert-text {primary}
+      <Shift-Ins>: insert-text -- {primary}
       <Escape>: leave-mode
     hint:
       <Return>: follow-hint

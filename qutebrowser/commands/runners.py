@@ -32,10 +32,9 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
+from qutebrowser.keyinput import macros
 
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import
+if typing.TYPE_CHECKING:
     from qutebrowser.mainwindow import tabbedbrowser
 _ReplacementFunction = typing.Callable[['tabbedbrowser.TabbedBrowser'], str]
 
@@ -109,7 +108,7 @@ def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-    values = {}
+    values = {}  # type: typing.MutableMapping[str, str]
     args = []
 
     def repl_cb(matchobj):
@@ -153,10 +152,10 @@ class CommandParser:
             otherwise.
         """
         parts = text.strip().split(maxsplit=1)
-        try:
-            alias = config.val.aliases[parts[0]]
-        except KeyError:
+        aliases = config.cache['aliases']
+        if parts[0] not in aliases:
             return default
+        alias = aliases[parts[0]]
 
         try:
             new_cmd = '{} {}'.format(alias, parts[1])
@@ -305,7 +304,21 @@ class CommandParser:
             return split_args
 
 
-class CommandRunner(QObject):
+class AbstractCommandRunner(QObject):
+
+    """Abstract base class for CommandRunner."""
+
+    def run(self, text, count=None, *, safely=False):
+        raise NotImplementedError
+
+    @pyqtSlot(str, int)
+    @pyqtSlot(str)
+    def run_safely(self, text, count=None):
+        """Run a command and display exceptions in the statusbar."""
+        self.run(text, count, safely=True)
+
+
+class CommandRunner(AbstractCommandRunner):
 
     """Parse and run qutebrowser commandline commands.
 
@@ -371,11 +384,4 @@ class CommandRunner(QObject):
             last_command[cur_mode] = (text, count)
 
         if record_macro and cur_mode == usertypes.KeyMode.normal:
-            macro_recorder = objreg.get('macro-recorder')
-            macro_recorder.record_command(text, count)
-
-    @pyqtSlot(str, int)
-    @pyqtSlot(str)
-    def run_safely(self, text, count=None):
-        """Run a command and display exceptions in the statusbar."""
-        self.run(text, count, safely=True)
+            macros.macro_recorder.record_command(text, count)

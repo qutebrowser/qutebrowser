@@ -165,18 +165,29 @@ class CommandDispatcher:
         else:
             return None
 
-    def _tab_focus_last(self, *, show_error=True):
+    def _tab_focus_stack(self, mode: str, *, show_error=True):
         """Select the tab which was last focused."""
+        tab_deque = self._tabbed_browser.tab_deque
+        cur_tab = self._cntwidget()
+
         try:
-            tab = objreg.get('last-focused-tab', scope='window',
-                             window=self._win_id)
-        except KeyError:
+            if mode == "last":
+                tab = tab_deque.last(cur_tab)
+            elif mode == "stack-prev":
+                tab = tab_deque.prev(cur_tab)
+            elif mode == "stack-next":
+                tab = tab_deque.next(cur_tab)
+            else:
+                raise NotImplementedError(
+                    "Missing implementation for stack mode!")
+        except IndexError:
             if not show_error:
                 return
-            raise cmdutils.CommandError("No last focused tab!")
+            raise cmdutils.CommandError("Could not find requested tab!")
+
         idx = self._tabbed_browser.widget.indexOf(tab)
         if idx == -1:
-            raise cmdutils.CommandError("Last focused tab vanished!")
+            raise cmdutils.CommandError("Requested tab vanished!")
         self._set_current_index(idx)
 
     def _get_selection_override(self, prev, next_, opposite):
@@ -694,9 +705,9 @@ class CommandDispatcher:
         assert what in ['url', 'pretty-url', 'markdown'], what
         flags = QUrl.RemovePassword
         if what == 'pretty-url':
-            flags |= QUrl.DecodeReserved
+            flags |= QUrl.DecodeReserved  # type: ignore
         else:
-            flags |= QUrl.FullyEncoded
+            flags |= QUrl.FullyEncoded  # type: ignore
         url = QUrl(self._current_url())
         url_query = QUrlQuery()
         url_query_str = urlutils.query_string(url)
@@ -707,7 +718,7 @@ class CommandDispatcher:
             if key in config.val.url.yank_ignored_parameters:
                 url_query.removeQueryItem(key)
         url.setQuery(url_query)
-        return url.toString(flags)
+        return url.toString(flags)  # type: ignore
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('what', choices=['selection', 'url', 'pretty-url',
@@ -940,7 +951,7 @@ class CommandDispatcher:
             idx = int(index_parts[1])
         elif len(index_parts) == 1:
             idx = int(index_parts[0])
-            active_win = objreg.get('app').activeWindow()
+            active_win = QApplication.activeWindow()
             if active_win is None:
                 # Not sure how you enter a command without an active window...
                 raise cmdutils.CommandError(
@@ -991,7 +1002,8 @@ class CommandDispatcher:
         tabbed_browser.widget.setCurrentWidget(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
-    @cmdutils.argument('index', choices=['last', 'parent'])
+    @cmdutils.argument('index', choices=['last', 'parent',
+                                         'stack-next', 'stack-prev'])
     @cmdutils.argument('count', value=cmdutils.Value.count)
     def tab_focus(self, index: typing.Union[str, int] = None,
                   count: int = None, no_last: bool = False) -> None:
@@ -1001,18 +1013,23 @@ class CommandDispatcher:
         If both are given, use count.
 
         Args:
-            index: The tab index to focus, starting with 1. The special value
-                   `last` focuses the last focused tab (regardless of count).
-                   The value `parent` focuses the parent tab in the tree
-                   hierarchy, if `tabs.tree_tabs` is enabled. Negative indices
-                   count from the end, such that -1 is the last tab.
+            index: The tab index to focus, starting with 1. Negative indices
+                   count from the end, such that -1 is the last tab. Special
+                   values are:
+                       - `last` focuses the last focused tab (regardless of
+                         count).
+                       - `parent` focuses the parent tab in the tree hierarchy,
+                         if `tabs.tree_tabs` is enabled.
+                       - `stack-prev`/`stack-next` traverse a stack of visited
+                         tabs.
             count: The tab index to focus, starting with 1.
             no_last: Whether to avoid focusing last tab if already focused.
         """
         index = count if count is not None else index
 
-        if index == 'last':
-            self._tab_focus_last()
+        if index in {'last', 'stack-next', 'stack-prev'}:
+            assert isinstance(index, str)
+            self._tab_focus_stack(index)
             return
         elif index == 'parent' and self._tabbed_browser.is_treetabbedbrowser:
             node = self._current_widget().node
@@ -1040,7 +1057,7 @@ class CommandDispatcher:
             index = self._count() + index + 1
 
         if not no_last and index == self._current_index() + 1:
-            self._tab_focus_last(show_error=False)
+            self._tab_focus_stack('last', show_error=False)
             return
 
         if 1 <= index <= self._count():

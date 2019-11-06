@@ -150,14 +150,11 @@ class StatusBar(QWidget):
 
     resized = pyqtSignal('QRect')
     moved = pyqtSignal('QPoint')
-    _severity = None
-    _color_flags = None
 
     STYLESHEET = _generate_stylesheet()
 
     def __init__(self, *, win_id, private, parent=None):
         super().__init__(parent)
-        objreg.register('statusbar', self, scope='window', window=win_id)
         self.setObjectName(self.__class__.__name__)
         self.setAttribute(Qt.WA_StyledBackground)
         config.set_register_stylesheet(self)
@@ -217,6 +214,7 @@ class StatusBar(QWidget):
         for widget in [self.url, self.percentage,
                        self.backforward, self.tabindex,
                        self.keystring, self.prog]:
+            assert isinstance(widget, QWidget)
             widget.hide()
             self._hbox.removeWidget(widget)
 
@@ -232,7 +230,7 @@ class StatusBar(QWidget):
                 self.percentage.show()
             elif segment == 'scroll_raw':
                 self._hbox.addWidget(self.percentage)
-                self.percentage.raw = True
+                self.percentage.set_raw()
                 self.percentage.show()
             elif segment == 'history':
                 self._hbox.addWidget(self.backforward)
@@ -407,7 +405,7 @@ class StatusBar(QWidget):
 
     def minimumSizeHint(self):
         """Set the minimum height to the text height plus some padding."""
-        padding = config.val.statusbar.padding
+        padding = config.cache['statusbar.padding']
         width = super().minimumSizeHint().width()
         height = self.fontMetrics().height() + padding.top + padding.bottom
         return QSize(width, height)

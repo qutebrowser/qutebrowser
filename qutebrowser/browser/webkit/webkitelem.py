@@ -21,16 +21,15 @@
 
 import typing
 
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtWebKit import QWebElement, QWebSettings
 from PyQt5.QtWebKitWidgets import QWebFrame
 
 from qutebrowser.config import config
 from qutebrowser.utils import log, utils, javascript, usertypes
 from qutebrowser.browser import webelem
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
+
+if typing.TYPE_CHECKING:
     from qutebrowser.browser.webkit import webkittab
 
 
@@ -58,7 +57,7 @@ class WebKitElement(webelem.AbstractWebElement):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, WebKitElement):
             return NotImplemented
-        return self._elem == other._elem  # pylint: disable=protected-access
+        return self._elem == other._elem
 
     def __getitem__(self, key: str) -> str:
         self._check_vanished()
@@ -354,7 +353,8 @@ class WebKitElement(webelem.AbstractWebElement):
             log.webelem.debug("Failed to click via JS, falling back to event")
             self._click_fake_event(click_target)
 
-    def _click_fake_event(self, click_target: usertypes.ClickTarget) -> None:
+    def _click_fake_event(self, click_target: usertypes.ClickTarget,
+                          button: Qt.MouseButton = Qt.LeftButton) -> None:
         self._tab.data.override_target = click_target
         super()._click_fake_event(click_target)
 

@@ -29,6 +29,7 @@ from qutebrowser.config import config
 from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log, debug, qtutils
 from qutebrowser.extensions import interceptors
+from qutebrowser.misc import objects
 
 
 @attr.s
@@ -106,10 +107,6 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
             interceptors.ResourceType.unknown,
     }
 
-    def __init__(self, args, parent=None):
-        super().__init__(parent)
-        self._args = args
-
     def install(self, profile):
         """Install the interceptor on the given QWebEngineProfile."""
         try:
@@ -136,20 +133,25 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         Args:
             info: QWebEngineUrlRequestInfo &info
         """
-        if 'log-requests' in self._args.debug_flags:
-            resource_type = debug.qenum_key(QWebEngineUrlRequestInfo,
-                                            info.resourceType())
-            navigation_type = debug.qenum_key(QWebEngineUrlRequestInfo,
-                                              info.navigationType())
+        if 'log-requests' in objects.debug_flags:
+            resource_type_str = debug.qenum_key(QWebEngineUrlRequestInfo,
+                                                info.resourceType())
+            navigation_type_str = debug.qenum_key(QWebEngineUrlRequestInfo,
+                                                  info.navigationType())
             log.webview.debug("{} {}, first-party {}, resource {}, "
                               "navigation {}".format(
                                   bytes(info.requestMethod()).decode('ascii'),
                                   info.requestUrl().toDisplayString(),
                                   info.firstPartyUrl().toDisplayString(),
-                                  resource_type, navigation_type))
+                                  resource_type_str, navigation_type_str))
 
         url = info.requestUrl()
         first_party = info.firstPartyUrl()
+        if not url.isValid():
+            log.webview.debug("Ignoring invalid intercepted URL: {}".format(
+                url.errorString()))
+            return
+
         # Per QWebEngineUrlRequestInfo::ResourceType documentation, if we fail
         # our lookup, we should fall back to ResourceTypeUnknown
         try:

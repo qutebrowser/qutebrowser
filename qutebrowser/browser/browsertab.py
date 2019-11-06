@@ -22,6 +22,7 @@
 import enum
 import itertools
 import typing
+import functools
 
 import attr
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QUrl, QObject, QSizeF, Qt,
@@ -31,6 +32,10 @@ from PyQt5.QtWidgets import QWidget, QApplication, QDialog
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 from PyQt5.QtNetwork import QNetworkAccessManager
 
+if typing.TYPE_CHECKING:
+    from PyQt5.QtWebKit import QWebHistory
+    from PyQt5.QtWebEngineWidgets import QWebEngineHistory
+
 import pygments
 import pygments.lexers
 import pygments.formatters
@@ -39,13 +44,11 @@ from qutebrowser.keyinput import modeman
 from qutebrowser.config import config
 from qutebrowser.utils import (utils, objreg, usertypes, log, qtutils,
                                urlutils, message)
-from qutebrowser.misc import miscwidgets, objects
-from qutebrowser.browser import mouse, hints
+from qutebrowser.misc import miscwidgets, objects, sessions
+from qutebrowser.browser import eventfilter
 from qutebrowser.qt import sip
-MYPY = False
-if MYPY:
-    # pylint can't interpret type comments with Python 3.7
-    # pylint: disable=unused-import,useless-suppression
+
+if typing.TYPE_CHECKING:
     from qutebrowser.browser import webelem
     from qutebrowser.browser.inspector import AbstractWebInspector
 
@@ -130,7 +133,8 @@ class TabData:
     inspector = attr.ib(None)  # type: typing.Optional[AbstractWebInspector]
     open_target = attr.ib(
         usertypes.ClickTarget.normal)  # type: usertypes.ClickTarget
-    override_target = attr.ib(None)  # type: usertypes.ClickTarget
+    override_target = attr.ib(
+        None)  # type: typing.Optional[usertypes.ClickTarget]
     pinned = attr.ib(False)  # type: bool
     fullscreen = attr.ib(False)  # type: bool
     netrc_used = attr.ib(False)  # type: bool
@@ -202,7 +206,7 @@ class AbstractPrinting:
     """Attribute ``printing`` of AbstractTab for printing the page."""
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self._tab = tab
 
     def check_pdf_support(self) -> None:
@@ -291,7 +295,7 @@ class AbstractSearch(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self.text = None  # type: typing.Optional[str]
         self.search_displayed = False
 
@@ -353,7 +357,7 @@ class AbstractZoom(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         # Whether zoom was changed from the default.
         self._default_zoom_changed = False
         self._init_neighborlist()
@@ -377,7 +381,7 @@ class AbstractZoom(QObject):
             levels, mode=usertypes.NeighborList.Modes.edge)
         self._neighborlist.fuzzyval = config.val.zoom.default
 
-    def apply_offset(self, offset: int) -> None:
+    def apply_offset(self, offset: int) -> int:
         """Increase/Decrease the zoom level by the given offset.
 
         Args:
@@ -386,7 +390,7 @@ class AbstractZoom(QObject):
         Return:
             The new zoom percentage.
         """
-        level = self._neighborlist.getitem(offset)
+        level = self._neighborlist.getitem(offset)  # type: int
         self.set_factor(float(level) / 100, fuzzyval=False)
         return level
 
@@ -437,7 +441,7 @@ class AbstractCaret(QObject):
                  parent: QWidget = None) -> None:
         super().__init__(parent)
         self._tab = tab
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self.selection_enabled = False
         self._mode_manager = mode_manager
         mode_manager.entered.connect(self._on_mode_entered)
@@ -530,8 +534,9 @@ class AbstractScroller(QObject):
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = None  # type: typing.Optional[QWidget]
-        self.perc_changed.connect(self._log_scroll_pos_change)
+        self._widget = typing.cast(QWidget, None)
+        if 'log-scroll-pos' in objects.debug_flags:
+            self.perc_changed.connect(self._log_scroll_pos_change)
 
     @pyqtSlot()
     def _log_scroll_pos_change(self) -> None:
@@ -599,7 +604,8 @@ class AbstractHistoryPrivate:
 
     def __init__(self, tab: 'AbstractTab'):
         self._tab = tab
-        self._history = None
+        self._history = typing.cast(
+            typing.Union['QWebHistory', 'QWebEngineHistory'], None)
 
     def serialize(self) -> bytes:
         """Serialize into an opaque format understood by self.deserialize."""
@@ -620,7 +626,8 @@ class AbstractHistory:
 
     def __init__(self, tab: 'AbstractTab') -> None:
         self._tab = tab
-        self._history = None
+        self._history = typing.cast(
+            typing.Union['QWebHistory', 'QWebEngineHistory'], None)
         self.private_api = AbstractHistoryPrivate(tab)
 
     def __len__(self) -> int:
@@ -681,7 +688,7 @@ class AbstractElements:
     _ErrorCallback = typing.Callable[[Exception], None]
 
     def __init__(self, tab: 'AbstractTab') -> None:
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
         self._tab = tab
 
     def find_css(self, selector: str,
@@ -742,7 +749,7 @@ class AbstractAudio(QObject):
 
     def __init__(self, tab: 'AbstractTab', parent: QWidget = None) -> None:
         super().__init__(parent)
-        self._widget = None  # type: typing.Optional[QWidget]
+        self._widget = typing.cast(QWidget, None)
         self._tab = tab
 
     def set_muted(self, muted: bool, override: bool = False) -> None:
@@ -773,7 +780,7 @@ class AbstractTabPrivate:
 
     def __init__(self, mode_manager: modeman.ModeManager,
                  tab: 'AbstractTab') -> None:
-        self._widget = None  # type: typing.Optional[QWidget]
+        self._widget = typing.cast(QWidget, None)
         self._tab = tab
         self._mode_manager = mode_manager
 
@@ -783,7 +790,7 @@ class AbstractTabPrivate:
 
     def handle_auto_insert_mode(self, ok: bool) -> None:
         """Handle `input.insert_mode.auto_load` after loading finished."""
-        if not config.val.input.insert_mode.auto_load or not ok:
+        if not ok or not config.cache['input.insert_mode.auto_load']:
             return
 
         cur_mode = self._mode_manager.mode
@@ -883,24 +890,23 @@ class AbstractTab(QWidget):
 
         self.data = TabData()
         self._layout = miscwidgets.WrapperLayout(self)
-        self._widget = None  # type: typing.Optional[QWidget]
+        self._widget = typing.cast(QWidget, None)
         self._progress = 0
         self._has_ssl_errors = False
         self._load_status = usertypes.LoadStatus.none
-        self._mouse_event_filter = mouse.MouseEventFilter(
+        self._tab_event_filter = eventfilter.TabEventFilter(
             self, parent=self)
-        self.backend = None
+        self.backend = None  # type: typing.Optional[usertypes.Backend]
 
         if parent and isinstance(parent, TreeTabWidget):
             self.node = Node(self, parent=parent.tree_root)
         else:
             self.node = Node(self, parent=None)
 
-        # FIXME:qtwebengine  Should this be public api via self.hints?
-        #                    Also, should we get it out of objreg?
-        hintmanager = hints.HintManager(win_id, self.tab_id, parent=self)
-        objreg.register('hintmanager', hintmanager, scope='tab',
-                        window=self.win_id, tab=self.tab_id)
+        # If true, this tab has been requested to be removed (or is removed).
+        self.pending_removal = False
+        self.shutting_down.connect(functools.partial(
+            setattr, self, 'pending_removal', True))
 
         self.before_load_started.connect(self._on_before_load_started)
 
@@ -1018,13 +1024,9 @@ class AbstractTab(QWidget):
             # https://github.com/qutebrowser/qutebrowser/issues/3498
             return
 
-        try:
-            sess_manager = objreg.get('session-manager')
-        except KeyError:
-            # https://github.com/qutebrowser/qutebrowser/issues/4311
-            return
+        if sessions.session_manager is not None:
+            sessions.session_manager.save_autosave()
 
-        sess_manager.save_autosave()
         self.load_finished.emit(ok)
 
         if not self.title():

@@ -112,6 +112,10 @@ def smoke_test(executable):
          r'Which one is undefined\.'),
         (r'QCoreApplication::applicationDirPath: Please instantiate the '
          r'QApplication object first'),
+        (r'\[.*:ERROR:mach_port_broker.mm\(48\)\] bootstrap_look_up '
+         r'org\.chromium\.Chromium\.rohitfork\.1: Permission denied \(1100\)'),
+        (r'\[.*:ERROR:mach_port_broker.mm\(43\)\] bootstrap_look_up: '
+         r'Unknown service name \(1102\)')
     ]
 
     proc = subprocess.run([executable, '--no-err-windows', '--nowindow',
@@ -218,7 +222,7 @@ def build_mac():
                 smoke_test(binary)
             finally:
                 time.sleep(5)
-                subprocess.run(['hdiutil', 'detach', tmpdir])
+                subprocess.run(['hdiutil', 'detach', tmpdir], check=False)
     except PermissionError as e:
         print("Failed to remove tempdir: {}".format(e))
 
@@ -405,6 +409,7 @@ def github_upload(artifacts, tag):
         tag: The name of the release tag
     """
     import github3
+    import github3.exceptions
     utils.print_title("Uploading to github...")
 
     token = read_github_token()
@@ -419,10 +424,26 @@ def github_upload(artifacts, tag):
         raise Exception("No release found for {!r}!".format(tag))
 
     for filename, mimetype, description in artifacts:
-        with open(filename, 'rb') as f:
-            basename = os.path.basename(filename)
-            asset = release.upload_asset(mimetype, basename, f)
-        asset.edit(basename, description)
+        print("Uploading {}".format(filename))
+        while True:
+            try:
+                with open(filename, 'rb') as f:
+                    basename = os.path.basename(filename)
+                    release.upload_asset(mimetype, basename, f, description)
+            except github3.exceptions.ConnectionError as e:
+                utils.print_col('Failed to upload: {}'.format(e), 'red')
+                print("Press Enter to retry...")
+                input()
+                print("Retrying!")
+
+                assets = [asset for asset in release.assets()
+                          if asset.name == basename]
+                if assets:
+                    asset = assets[0]
+                    print("Deleting stray asset {}".format(asset.name))
+                    asset.delete()
+            else:
+                break
 
 
 def pypi_upload(artifacts):

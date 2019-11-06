@@ -25,7 +25,7 @@ import collections
 import os.path
 import subprocess
 import contextlib
-import builtins
+import builtins  # noqa https://github.com/JBKahn/flake8-debugger/issues/20
 import types
 import importlib
 import logging
@@ -37,7 +37,8 @@ import pkg_resources
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version, usertypes, utils
+from qutebrowser.config import config
+from qutebrowser.utils import version, usertypes, utils, standarddir
 from qutebrowser.misc import pastebin
 from qutebrowser.browser import pdfjs
 
@@ -538,10 +539,13 @@ class ImportFake:
             ('cssutils', True),
             ('attr', True),
             ('PyQt5.QtWebEngineWidgets', True),
+            ('PyQt5.QtWebEngine', True),
             ('PyQt5.QtWebKitWidgets', True),
         ])
-        self.no_version_attribute = ['sip', 'PyQt5.QtWebEngineWidgets',
-                                     'PyQt5.QtWebKitWidgets']
+        self.no_version_attribute = ['sip',
+                                     'PyQt5.QtWebEngineWidgets',
+                                     'PyQt5.QtWebKitWidgets',
+                                     'PyQt5.QtWebEngine']
         self.version_attribute = '__version__'
         self.version = '1.2.3'
         self._real_import = builtins.__import__
@@ -883,6 +887,8 @@ class VersionParams:
     with_webkit = attr.ib(True)
     known_distribution = attr.ib(True)
     ssl_support = attr.ib(True)
+    autoconfig_loaded = attr.ib(True)
+    config_py_loaded = attr.ib(True)
 
 
 @pytest.mark.parametrize('params', [
@@ -893,13 +899,16 @@ class VersionParams:
     VersionParams('no-webkit', with_webkit=False),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
+    VersionParams('no-autoconfig-loaded', autoconfig_loaded=False),
+    VersionParams('no-config-py-loaded', config_py_loaded=False),
 ], ids=lambda param: param.name)
-def test_version_output(params, stubs, monkeypatch):
+def test_version_output(params, stubs, monkeypatch, config_stub):
     """Test version.version()."""
     class FakeWebEngineSettings:
         default_user_agent = ('Toaster/4.0.4 Chrome/CHROMIUMVERSION '
                               'Teapot/4.1.8')
 
+    config.instance.config_py_loaded = params.config_py_loaded
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
         'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
@@ -923,6 +932,8 @@ def test_version_output(params, stubs, monkeypatch):
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
+        '_autoconfig_loaded': lambda: ("yes" if params.autoconfig_loaded
+                                       else "no"),
     }
 
     substitutions = {
@@ -932,7 +943,15 @@ def test_version_output(params, stubs, monkeypatch):
         'frozen': str(params.frozen),
         'import_path': import_path,
         'python_path': 'EXECUTABLE PATH',
+        'uptime': "1:23:45",
+        'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
     }
+
+    if params.config_py_loaded:
+        substitutions["config_py_loaded"] = "{} has been loaded".format(
+            standarddir.config_py())
+    else:
+        substitutions["config_py_loaded"] = "no config.py was loaded"
 
     if params.with_webkit:
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
@@ -968,8 +987,6 @@ def test_version_output(params, stubs, monkeypatch):
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
 
-    substitutions['uptime'] = "1:23:45"
-
     template = textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
         Backend: {backend}
@@ -993,6 +1010,8 @@ def test_version_output(params, stubs, monkeypatch):
         Paths:
         PATH DESC: PATH NAME
 
+        Autoconfig loaded: {autoconfig_loaded}
+        Config.py: {config_py_loaded}
         Uptime: {uptime}
     """.lstrip('\n'))
 

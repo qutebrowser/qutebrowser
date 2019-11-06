@@ -100,7 +100,7 @@ class Request(testprocess.Line):
         return NotImplemented
 
 
-@attr.s(frozen=True, cmp=False, hash=True)
+@attr.s(frozen=True, eq=False, hash=True)
 class ExpectedRequest:
 
     """Class to compare expected requests easily."""

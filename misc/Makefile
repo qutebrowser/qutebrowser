@@ -5,17 +5,18 @@ DATAROOTDIR = $(PREFIX)/share
 DATADIR ?= $(DATAROOTDIR)
 MANDIR ?= $(DATAROOTDIR)/man
 
-SETUPTOOLSOPTIONS =
 ifdef DESTDIR
 SETUPTOOLSOPTS = --root="$(DESTDIR)"
 endif
 
-.PHONY: install
+all: man
+	$(PYTHON) setup.py build
 
-doc/qutebrowser.1.html:
-	a2x -f manpage doc/qutebrowser.1.asciidoc
+man: doc/qutebrowser.1
+doc/qutebrowser.1: doc/qutebrowser.1.asciidoc
+	a2x -f manpage $<
 
-install: doc/qutebrowser.1.html
+install: man
 	$(PYTHON) setup.py install --prefix="$(PREFIX)" --optimize=1 $(SETUPTOOLSOPTS)
 	install -Dm644 misc/org.qutebrowser.qutebrowser.appdata.xml \
 		"$(DESTDIR)$(DATADIR)/metainfo/org.qutebrowser.qutebrowser.appdata.xml"
@@ -33,3 +34,5 @@ install: doc/qutebrowser.1.html
 		$(filter-out scripts/__init__.py scripts/__pycache__ scripts/dev \
 		  scripts/testbrowser scripts/asciidoc2html.py scripts/setupcommon.py \
 			scripts/link_pyqt.py,$(wildcard scripts/*))
+
+.PHONY: all man install

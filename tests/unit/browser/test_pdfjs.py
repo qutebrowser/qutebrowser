@@ -190,7 +190,8 @@ def test_read_from_system(names, expected_name, tmpdir):
     assert pdfjs._read_from_system(str(tmpdir), names) == expected
 
 
-def test_read_from_system_oserror(tmpdir, caplog):
+@pytest.fixture
+def unreadable_file(tmpdir):
     unreadable_file = tmpdir / 'unreadable'
     unreadable_file.ensure()
     unreadable_file.chmod(0)
@@ -198,6 +199,12 @@ def test_read_from_system_oserror(tmpdir, caplog):
         # Docker container or similar
         pytest.skip("File was still readable")
 
+    yield unreadable_file
+
+    unreadable_file.chmod(0o755)
+
+
+def test_read_from_system_oserror(tmpdir, caplog, unreadable_file):
     expected = (None, None)
     with caplog.at_level(logging.WARNING):
         assert pdfjs._read_from_system(str(tmpdir), ['unreadable']) == expected

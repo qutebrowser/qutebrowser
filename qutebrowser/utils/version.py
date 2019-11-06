@@ -30,6 +30,7 @@ import collections
 import enum
 import datetime
 import getpass
+import typing
 
 import attr
 import pkg_resources
@@ -53,6 +54,7 @@ import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin
 from qutebrowser.browser import pdfjs
+from qutebrowser.config import config
 
 try:
     from qutebrowser.browser.webengine import webenginesettings
@@ -65,10 +67,10 @@ class DistributionInfo:
 
     """Information about the running distribution."""
 
-    id = attr.ib()
-    parsed = attr.ib()
-    version = attr.ib()
-    pretty = attr.ib()
+    id = attr.ib()  # type: typing.Optional[str]
+    parsed = attr.ib()  # type: Distribution
+    version = attr.ib()  # type: typing.Optional[typing.Tuple[str, ...]]
+    pretty = attr.ib()  # type: str
 
 
 pastebin_url = None
@@ -78,7 +80,7 @@ Distribution = enum.Enum(
                      'kde'])
 
 
-def distribution():
+def distribution() -> typing.Optional[DistributionInfo]:
     """Get some information about the running Linux distribution.
 
     Returns:
@@ -103,9 +105,12 @@ def distribution():
     pretty = info.get('PRETTY_NAME', None)
     if pretty in ['Linux', None]:  # Funtoo has PRETTY_NAME=Linux
         pretty = info.get('NAME', 'Unknown')
+    assert pretty is not None
 
     if 'VERSION_ID' in info:
-        dist_version = pkg_resources.parse_version(info['VERSION_ID'])
+        dist_version = pkg_resources.parse_version(
+            info['VERSION_ID']
+        )  # type: typing.Optional[typing.Tuple[str, ...]]
     else:
         dist_version = None
 
@@ -114,16 +119,19 @@ def distribution():
         'funtoo': 'gentoo',  # does not have ID_LIKE=gentoo
         'org.kde.Platform': 'kde',
     }
-    try:
-        parsed = Distribution[id_mappings.get(dist_id, dist_id)]
-    except KeyError:
-        parsed = Distribution.unknown
+
+    parsed = Distribution.unknown
+    if dist_id is not None:
+        try:
+            parsed = Distribution[id_mappings.get(dist_id, dist_id)]
+        except KeyError:
+            pass
 
     return DistributionInfo(parsed=parsed, version=dist_version, pretty=pretty,
                             id=dist_id)
 
 
-def _git_str():
+def _git_str() -> typing.Optional[str]:
     """Try to find out git version.
 
     Return:
@@ -149,7 +157,7 @@ def _git_str():
         return None
 
 
-def _git_str_subprocess(gitpath):
+def _git_str_subprocess(gitpath: str) -> typing.Optional[str]:
     """Try to get the git commit ID and timestamp by calling git.
 
     Args:
@@ -175,7 +183,7 @@ def _git_str_subprocess(gitpath):
         return None
 
 
-def _release_info():
+def _release_info() -> typing.Sequence[typing.Tuple[str, str]]:
     """Try to gather distribution release information.
 
     Return:
@@ -199,7 +207,7 @@ def _release_info():
     return data
 
 
-def _module_versions():
+def _module_versions() -> typing.Sequence[str]:
     """Get versions of optional modules.
 
     Return:
@@ -216,8 +224,9 @@ def _module_versions():
         ('cssutils', ['__version__']),
         ('attr', ['__version__']),
         ('PyQt5.QtWebEngineWidgets', []),
+        ('PyQt5.QtWebEngine', ['PYQT_WEBENGINE_VERSION_STR']),
         ('PyQt5.QtWebKitWidgets', []),
-    ])
+    ])  # type: typing.Mapping[str, typing.Sequence[str]]
     for modname, attributes in modules.items():
         try:
             module = importlib.import_module(modname)
@@ -237,7 +246,7 @@ def _module_versions():
     return lines
 
 
-def _path_info():
+def _path_info() -> typing.Mapping[str, str]:
     """Get info about important path names.
 
     Return:
@@ -256,7 +265,7 @@ def _path_info():
     return info
 
 
-def _os_info():
+def _os_info() -> typing.Sequence[str]:
     """Get operating system info.
 
     Return:
@@ -270,11 +279,11 @@ def _os_info():
     elif utils.is_windows:
         osver = ', '.join(platform.win32_ver())
     elif utils.is_mac:
-        release, versioninfo, machine = platform.mac_ver()
-        if all(not e for e in versioninfo):
+        release, info_tpl, machine = platform.mac_ver()
+        if all(not e for e in info_tpl):
             versioninfo = ''
         else:
-            versioninfo = '.'.join(versioninfo)
+            versioninfo = '.'.join(info_tpl)
         osver = ', '.join([e for e in [release, versioninfo, machine] if e])
     elif utils.is_posix:
         osver = ' '.join(platform.uname())
@@ -287,7 +296,7 @@ def _os_info():
     return lines
 
 
-def _pdfjs_version():
+def _pdfjs_version() -> str:
     """Get the pdf.js version.
 
     Return:
@@ -313,7 +322,7 @@ def _pdfjs_version():
         return '{} ({})'.format(pdfjs_version, file_path)
 
 
-def _chromium_version():
+def _chromium_version() -> str:
     """Get the Chromium version for QtWebEngine.
 
     This can also be checked by looking at this file with the right Qt tag:
@@ -343,11 +352,11 @@ def _chromium_version():
 
     Qt 5.12: Chromium 69
     (LTS)    69.0.3497.113 (2018-09-27)
-             5.12.4: Security fixes up to 74.0.3729.157 (2019-05-14)
+             5.12.5: Security fixes up to 76.0.3809.87 (2019-06-30)
 
     Qt 5.13: Chromium 73
              73.0.3683.105 (~2019-02-28)
-             5.13.0: Security fixes up to 74.0.3729.131 (2019-04-30)
+             5.13.1: Security fixes up to 76.0.3809.87 (2019-06-30)
 
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
@@ -366,7 +375,7 @@ def _chromium_version():
     return match.group(1)
 
 
-def _backend():
+def _backend() -> str:
     """Get the backend line with relevant information."""
     if objects.backend == usertypes.Backend.QtWebKit:
         return 'new QtWebKit (WebKit {})'.format(qWebKitVersion())
@@ -384,7 +393,18 @@ def _uptime() -> datetime.timedelta:
     return time_delta
 
 
-def version():
+def _autoconfig_loaded() -> str:
+    return "yes" if config.instance.yaml_loaded else "no"
+
+
+def _config_py_loaded() -> str:
+    if config.instance.config_py_loaded:
+        return "{} has been loaded".format(standarddir.config_py())
+    else:
+        return "no config.py was loaded"
+
+
+def version() -> str:
     """Return a string with various version information."""
     lines = ["qutebrowser v{}".format(qutebrowser.__version__)]
     gitver = _git_str()
@@ -450,13 +470,15 @@ def version():
 
     lines += [
         '',
-        'Uptime: {}'.format(_uptime()),
+        'Autoconfig loaded: {}'.format(_autoconfig_loaded()),
+        'Config.py: {}'.format(_config_py_loaded()),
+        'Uptime: {}'.format(_uptime())
     ]
 
     return '\n'.join(lines)
 
 
-def opengl_vendor():  # pragma: no cover
+def opengl_vendor() -> typing.Optional[str]:  # pragma: no cover
     """Get the OpenGL vendor used.
 
     This returns a string such as 'nouveau' or
@@ -470,7 +492,8 @@ def opengl_vendor():  # pragma: no cover
         log.init.debug("Using override {}".format(override))
         return override
 
-    old_context = QOpenGLContext.currentContext()
+    old_context = typing.cast(typing.Optional[QOpenGLContext],
+                              QOpenGLContext.currentContext())
     old_surface = None if old_context is None else old_context.surface()
 
     surface = QOffscreenSurface()
@@ -512,20 +535,22 @@ def opengl_vendor():  # pragma: no cover
             old_context.makeCurrent(old_surface)
 
 
-def pastebin_version(pbclient=None):
+def pastebin_version(pbclient: pastebin.PastebinClient = None) -> None:
     """Pastebin the version and log the url to messages."""
-    def _yank_url(url):
+    def _yank_url(url: str) -> None:
         utils.set_clipboard(url)
         message.info("Version url {} yanked to clipboard.".format(url))
 
-    def _on_paste_version_success(url):
+    def _on_paste_version_success(url: str) -> None:
+        assert pbclient is not None
         global pastebin_url
         url = url.strip()
         _yank_url(url)
         pbclient.deleteLater()
         pastebin_url = url
 
-    def _on_paste_version_err(text):
+    def _on_paste_version_err(text: str) -> None:
+        assert pbclient is not None
         message.error("Failed to pastebin version"
                       " info: {}".format(text))
         pbclient.deleteLater()

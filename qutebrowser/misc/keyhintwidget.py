@@ -89,7 +89,10 @@ class KeyHintView(QLabel):
         Args:
             prefix: The current partial keystring.
         """
-        countstr, prefix = re.fullmatch(r'(\d*)(.*)', prefix).groups()
+        match = re.fullmatch(r'(\d*)(.*)', prefix)
+        assert match is not None, prefix
+
+        countstr, prefix = match.groups()
         if not prefix:
             self._show_timer.stop()
             self.hide()

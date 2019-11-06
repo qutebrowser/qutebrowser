@@ -24,6 +24,7 @@
 import os
 import sys
 import warnings
+import pathlib
 import ctypes
 import ctypes.util
 
@@ -86,7 +87,7 @@ def _apply_platform_markers(config, item):
         ('unicode_locale', sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
         ('qtwebkit6021_skip',
-         version.qWebKitVersion and
+         version.qWebKitVersion and  # type: ignore
          version.qWebKitVersion() == '602.1',
          "Broken on WebKit 602.1")
     ]
@@ -139,11 +140,10 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker('gui')
 
         if hasattr(item, 'module'):
-            module_path = os.path.relpath(
-                item.module.__file__,
-                os.path.commonprefix([__file__, item.module.__file__]))
+            test_basedir = pathlib.Path(__file__).parent
+            module_path = pathlib.Path(item.module.__file__)
+            module_root_dir = module_path.relative_to(test_basedir).parts[0]
 
-            module_root_dir = module_path.split(os.sep)[0]
             assert module_root_dir in ['end2end', 'unit', 'helpers',
                                        'test_conftest.py']
             if module_root_dir == 'end2end':
@@ -211,7 +211,7 @@ def pytest_configure(config):
 
     try:
         # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)
+        sip.enableoverflowchecking(True)  # type: ignore
     except AttributeError:
         pass
 

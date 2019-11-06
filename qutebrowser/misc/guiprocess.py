@@ -60,12 +60,12 @@ class GUIProcess(QObject):
         self.args = None
 
         self._proc = QProcess(self)
-        self._proc.errorOccurred.connect(self._on_error)
-        self._proc.errorOccurred.connect(self.error)
-        self._proc.finished.connect(self._on_finished)
-        self._proc.finished.connect(self.finished)
-        self._proc.started.connect(self._on_started)
-        self._proc.started.connect(self.started)
+        self._proc.errorOccurred.connect(self._on_error)  # type: ignore
+        self._proc.errorOccurred.connect(self.error)  # type: ignore
+        self._proc.finished.connect(self._on_finished)  # type: ignore
+        self._proc.finished.connect(self.finished)  # type: ignore
+        self._proc.started.connect(self._on_started)  # type: ignore
+        self._proc.started.connect(self.started)  # type: ignore
 
         if additional_env is not None:
             procenv = QProcessEnvironment.systemEnvironment()
@@ -155,7 +155,7 @@ class GUIProcess(QObject):
         """Convenience wrapper around QProcess::startDetached."""
         log.procs.debug("Starting detached.")
         self._pre_start(cmd, args)
-        ok, _pid = self._proc.startDetached(cmd, args, None)
+        ok, _pid = self._proc.startDetached(cmd, args, None)  # type: ignore
 
         if not ok:
             message.error("Error while spawning {}".format(self._what))

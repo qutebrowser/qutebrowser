@@ -19,6 +19,8 @@
 
 """Bridge to provide readline-like shortcuts for QLineEdits."""
 
+import typing
+
 from PyQt5.QtWidgets import QApplication, QLineEdit
 
 from qutebrowser.api import cmdutils
@@ -34,13 +36,13 @@ class ReadlineBridge:
         _deleted: Mapping from widgets to their last deleted text.
     """
 
-    def __init__(self):
-        self._deleted = {}
+    def __init__(self) -> None:
+        self._deleted = {}  # type: typing.MutableMapping[QLineEdit, str]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self)
 
-    def _widget(self):
+    def _widget(self) -> typing.Optional[QLineEdit]:
         """Get the currently active QLineEdit."""
         w = QApplication.instance().focusWidget()
         if isinstance(w, QLineEdit):
@@ -50,7 +52,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_backward_char(self):
+    def rl_backward_char(self) -> None:
         """Move back a character.
 
         This acts like readline's backward-char.
@@ -62,7 +64,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_forward_char(self):
+    def rl_forward_char(self) -> None:
         """Move forward a character.
 
         This acts like readline's forward-char.
@@ -74,7 +76,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_backward_word(self):
+    def rl_backward_word(self) -> None:
         """Move back to the start of the current or previous word.
 
         This acts like readline's backward-word.
@@ -86,7 +88,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_forward_word(self):
+    def rl_forward_word(self) -> None:
         """Move forward to the end of the next word.
 
         This acts like readline's forward-word.
@@ -98,7 +100,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_beginning_of_line(self):
+    def rl_beginning_of_line(self) -> None:
         """Move to the start of the line.
 
         This acts like readline's beginning-of-line.
@@ -110,7 +112,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_end_of_line(self):
+    def rl_end_of_line(self) -> None:
         """Move to the end of the line.
 
         This acts like readline's end-of-line.
@@ -122,7 +124,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_unix_line_discard(self):
+    def rl_unix_line_discard(self) -> None:
         """Remove chars backward from the cursor to the beginning of the line.
 
         This acts like readline's unix-line-discard.
@@ -136,7 +138,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_kill_line(self):
+    def rl_kill_line(self) -> None:
         """Remove chars from the cursor to the end of the line.
 
         This acts like readline's kill-line.
@@ -148,7 +150,7 @@ class ReadlineBridge:
         self._deleted[widget] = widget.selectedText()
         widget.del_()
 
-    def _rubout(self, delim):
+    def _rubout(self, delim: typing.Iterable[str]) -> None:
         """Delete backwards using the characters in delim as boundaries."""
         widget = self._widget()
         if widget is None:
@@ -175,7 +177,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_unix_word_rubout(self):
+    def rl_unix_word_rubout(self) -> None:
         """Remove chars from the cursor to the beginning of the word.
 
         This acts like readline's unix-word-rubout. Whitespace is used as a
@@ -185,7 +187,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_unix_filename_rubout(self):
+    def rl_unix_filename_rubout(self) -> None:
         """Remove chars from the cursor to the previous path separator.
 
         This acts like readline's unix-filename-rubout.
@@ -194,7 +196,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_backward_kill_word(self):
+    def rl_backward_kill_word(self) -> None:
         """Remove chars from the cursor to the beginning of the word.
 
         This acts like readline's backward-kill-word. Any non-alphanumeric
@@ -209,7 +211,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_kill_word(self):
+    def rl_kill_word(self) -> None:
         """Remove chars from the cursor to the end of the current word.
 
         This acts like readline's kill-word.
@@ -223,7 +225,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_yank(self):
+    def rl_yank(self) -> None:
         """Paste the most recently deleted text.
 
         This acts like readline's yank.
@@ -235,7 +237,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_delete_char(self):
+    def rl_delete_char(self) -> None:
         """Delete the character after the cursor.
 
         This acts like readline's delete-char.
@@ -247,7 +249,7 @@ class ReadlineBridge:
 
     @cmdutils.register(instance='readline-bridge',
                        modes=[typ.KeyMode.command, typ.KeyMode.prompt])
-    def rl_backward_delete_char(self):
+    def rl_backward_delete_char(self) -> None:
         """Delete the character before the cursor.
 
         This acts like readline's backward-delete-char.

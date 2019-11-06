@@ -59,9 +59,9 @@ class TabWidget(QTabWidget):
         bar = TabBar(win_id, self)
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
-        bar.tabCloseRequested.connect(self.tabCloseRequested)
-        bar.tabMoved.connect(self.update_tab_titles)
-        bar.currentChanged.connect(self._on_current_changed)
+        bar.tabCloseRequested.connect(self.tabCloseRequested)  # type: ignore
+        bar.tabMoved.connect(self.update_tab_titles)  # type: ignore
+        bar.currentChanged.connect(self._on_current_changed)  # type: ignore
         bar.new_tab_requested.connect(self._on_new_tab_requested)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setDocumentMode(True)
@@ -152,14 +152,16 @@ class TabWidget(QTabWidget):
         if tabbar.tabText(idx) != title:
             tabbar.setTabText(idx, title)
 
-        # always show only plain title in tooltips
-        tabbar.setTabToolTip(idx, fields['current_title'])
+        if config.cache['tabs.tooltips']:
+            # always show only plain title in tooltips
+            tabbar.setTabToolTip(idx, fields['current_title'])
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
         tab = self.widget(idx)
         if tab is None:
-            log.misc.debug("Got None-tab in get_tab_fields!")
+            log.misc.debug(  # type: ignore
+                "Got None-tab in get_tab_fields!")
 
         page_title = self.page_title(idx)
 
@@ -328,7 +330,7 @@ class TabWidget(QTabWidget):
         """
         tab = self.widget(idx)
         if tab is None:
-            url = QUrl()
+            url = QUrl()  # type: ignore
         else:
             url = tab.url()
         # It's possible for url to be invalid, but the caller will handle that.
@@ -513,7 +515,7 @@ class TabBar(QTabBar):
     def _set_icon_size(self):
         """Set the tab bar favicon size."""
         size = self.fontMetrics().height() - 2
-        size *= config.val.tabs.favicons.scale
+        size = int(size * config.val.tabs.favicons.scale)
         self.setIconSize(QSize(size, size))
 
     def mouseReleaseEvent(self, e):
@@ -542,7 +544,7 @@ class TabBar(QTabBar):
                     idx = self.currentIndex()
                 elif action == 'close-last':
                     idx = self.count() - 1
-            self.tabCloseRequested.emit(idx)
+            self.tabCloseRequested.emit(idx)  # type: ignore
             return
         super().mousePressEvent(e)
 
@@ -838,9 +840,13 @@ class TabBarStyle(QCommonStyle):
                 self._draw_icon(layouts, opt, p)
             alignment = (config.cache['tabs.title.alignment'] |
                          Qt.AlignVCenter | Qt.TextHideMnemonic)
-            self._style.drawItemText(p, layouts.text, alignment, opt.palette,
-                                     opt.state & QStyle.State_Enabled,
-                                     opt.text, QPalette.WindowText)
+            self._style.drawItemText(p,
+                                     layouts.text,
+                                     int(alignment),
+                                     opt.palette,
+                                     bool(opt.state & QStyle.State_Enabled),
+                                     opt.text,
+                                     QPalette.WindowText)
         else:
             raise ValueError("Invalid element {!r}".format(element))
 
@@ -972,7 +978,7 @@ class TabBarStyle(QCommonStyle):
                 min(actual_size.width(), icon_size.width()),
                 min(actual_size.height(), icon_size.height()))
 
-        icon_top = text_rect.center().y() + 1 - tab_icon_size.height() / 2
+        icon_top = text_rect.center().y() + 1 - tab_icon_size.height() // 2
         icon_rect = QRect(QPoint(text_rect.left(), icon_top), tab_icon_size)
         icon_rect = self._style.visualRect(opt.direction, opt.rect, icon_rect)
         return icon_rect

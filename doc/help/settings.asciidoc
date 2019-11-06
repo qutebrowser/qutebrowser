@@ -261,6 +261,7 @@
 |<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|How to behave when the close mouse button is pressed on the tab bar.
 |<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling factor for favicons in the tab bar.
 |<<tabs.favicons.show,tabs.favicons.show>>|When to show favicons in the tab bar.
+|<<tabs.focus_stack_size,tabs.focus_stack_size>>|Maximum stack size to remember for tab switches (-1 for no maximum).
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
@@ -287,6 +288,7 @@
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
+|<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
 |<<tabs.tree_tabs,tabs.tree_tabs>>|Enable tree-tabs mode.
 |<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of close tab actions to remember, per window (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
@@ -493,7 +495,7 @@ Default:
 
 * +pass:[&lt;Ctrl-E&gt;]+: +pass:[open-editor]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
-* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text {primary}]+
+* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text -- {primary}]+
 - +pass:[normal]+:
 
 * +pass:[&#x27;]+: +pass:[enter-mode jump_mark]+
@@ -1884,9 +1886,7 @@ Local domains are always exempt from hostblocking.
 
 Type: <<types,List of UrlPattern>>
 
-Default: 
-
-- +pass:[piwik.org]+
+Default: empty
 
 [[content.hyperlink_auditing]]
 === content.hyperlink_auditing
@@ -2268,12 +2268,13 @@ Default: +pass:[false]+
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
 Suspicious scripts will be blocked and reported in the inspector's JavaScript console.
+Note that bypasses for the XSS auditor are widely known and it can be abused for cross-site info leaks in some scenarios, see: https://www.chromium.org/developers/design-documents/xss-auditor
 
 This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
-Default: +pass:[true]+
+Default: +pass:[false]+
 
 [[downloads.location.directory]]
 === downloads.location.directory
@@ -3300,6 +3301,14 @@ Valid values:
 
 Default: +pass:[always]+
 
+[[tabs.focus_stack_size]]
+=== tabs.focus_stack_size
+Maximum stack size to remember for tab switches (-1 for no maximum).
+
+Type: <<types,Int>>
+
+Default: +pass:[10]+
+
 [[tabs.indicator.padding]]
 === tabs.indicator.padding
 Padding (in pixels) for tab indicators.
@@ -3628,6 +3637,15 @@ Format to use for the tab title for pinned tabs. The same placeholders like for 
 Type: <<types,FormatString>>
 
 Default: +pass:[{index}]+
+
+[[tabs.tooltips]]
+=== tabs.tooltips
+Show tooltips on tabs.
+Note this setting only affects windows opened after it has been set.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[tabs.tree_tabs]]
 === tabs.tree_tabs

@@ -80,8 +80,8 @@ def test_local_filename_dictionary_installed(tmpdir, monkeypatch):
     monkeypatch.setattr(spell, 'dictionary_dir', lambda: str(tmpdir))
     for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'pl-PL-3-0.bdic']:
         (tmpdir / lang_file).ensure()
-    assert spell.local_filename('en-US') == 'en-US-11-0'
-    assert spell.local_filename('pl-PL') == 'pl-PL-3-0'
+    assert spell.local_filename('en-US') == 'en-US-11-0.bdic'
+    assert spell.local_filename('pl-PL') == 'pl-PL-3-0.bdic'
 
 
 def test_local_filename_installed_malformed(tmpdir, monkeypatch, caplog):
@@ -92,7 +92,7 @@ def test_local_filename_installed_malformed(tmpdir, monkeypatch, caplog):
     for lang_file in ['en-US-11-0.bdic', 'en-US-7-1.bdic', 'en-US.bdic']:
         (tmpdir / lang_file).ensure()
     with caplog.at_level(logging.WARNING):
-        assert spell.local_filename('en-US') == 'en-US-11-0'
+        assert spell.local_filename('en-US') == 'en-US-11-0.bdic'
 
 
 class TestInit:

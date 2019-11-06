@@ -32,11 +32,10 @@ from PyQt5.QtCore import pyqtSlot
 
 from qutebrowser import components
 from qutebrowser.config import config
-from qutebrowser.utils import log, standarddir, objreg
+from qutebrowser.utils import log, standarddir
+from qutebrowser.misc import objects
 
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
+if typing.TYPE_CHECKING:
     import argparse
 
 
@@ -139,7 +138,7 @@ def _get_init_context() -> InitContext:
     """Get an InitContext object."""
     return InitContext(data_dir=pathlib.Path(standarddir.data()),
                        config_dir=pathlib.Path(standarddir.config()),
-                       args=objreg.get('args'))
+                       args=objects.args)
 
 
 def _load_component(info: ExtensionInfo, *,

@@ -22,6 +22,7 @@
 import os
 import time
 import contextlib
+import typing
 
 from PyQt5.QtCore import pyqtSlot, QUrl, pyqtSignal
 from PyQt5.QtWidgets import QProgressDialog, QApplication
@@ -55,7 +56,7 @@ class HistoryProgress:
         self._progress.setMinimumDuration(500)
         self._progress.setLabelText(text)
         self._progress.setMaximum(maximum)
-        self._progress.setCancelButton(None)
+        self._progress.setCancelButton(None)  # type: ignore
         self._progress.show()
         QApplication.processEvents()
 
@@ -206,7 +207,11 @@ class WebHistory(sql.SqlTable):
         return any(pattern.matches(url) for pattern in patterns)
 
     def _rebuild_completion(self):
-        data = {'url': [], 'title': [], 'last_atime': []}
+        data = {
+            'url': [],
+            'title': [],
+            'last_atime': []
+        }  # type: typing.Mapping[str, typing.MutableSequence[str]]
         # select the latest entry for each url
         q = sql.Query('SELECT url, title, max(atime) AS atime FROM History '
                       'WHERE NOT redirect and url NOT LIKE "qute://back%" '
@@ -328,7 +333,7 @@ class WebHistory(sql.SqlTable):
             log.misc.warning("Ignoring invalid URL being added to history")
             return
 
-        if 'no-sql-history' in objreg.get('args').debug_flags:
+        if 'no-sql-history' in objects.debug_flags:
             return
 
         atime = int(atime) if (atime is not None) else int(time.time())

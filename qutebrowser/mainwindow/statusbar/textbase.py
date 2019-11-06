@@ -68,7 +68,8 @@ class TextBase(QLabel):
             txt: The text to set (string).
         """
         super().setText(txt)
-        self._update_elided_text(self.geometry().width())
+        if self._elidemode != Qt.ElideNone:
+            self._update_elided_text(self.geometry().width())
 
     def resizeEvent(self, e):
         """Extend QLabel::resizeEvent to update the elided text afterwards."""
@@ -87,4 +88,4 @@ class TextBase(QLabel):
             geom = self.geometry()
             qtutils.ensure_valid(geom)
             painter.drawText(0, 0, geom.width(), geom.height(),
-                             self.alignment(), self._elided_text)
+                             int(self.alignment()), self._elided_text)

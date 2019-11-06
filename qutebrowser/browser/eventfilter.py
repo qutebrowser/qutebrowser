@@ -17,18 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Mouse handling for a browser tab."""
+"""Event handling for a browser tab."""
 
 from PyQt5.QtCore import QObject, QEvent, Qt, QTimer
 
 from qutebrowser.config import config
 from qutebrowser.utils import message, log, usertypes, qtutils, objreg
+from qutebrowser.misc import objects
 from qutebrowser.keyinput import modeman
 
 
 class ChildEventFilter(QObject):
 
-    """An event filter re-adding MouseEventFilter on ChildEvent.
+    """An event filter re-adding TabEventFilter on ChildEvent.
 
     This is needed because QtWebEngine likes to randomly change its
     focusProxy...
@@ -51,7 +52,7 @@ class ChildEventFilter(QObject):
         """Act on ChildAdded events."""
         if event.type() == QEvent.ChildAdded:
             child = event.child()
-            log.mouse.debug("{} got new child {}, installing filter".format(
+            log.misc.debug("{} got new child {}, installing filter".format(
                 obj, child))
             assert obj is self._widget
             child.installEventFilter(self._filter)
@@ -76,14 +77,14 @@ class ChildEventFilter(QObject):
 
         elif event.type() == QEvent.ChildRemoved:
             child = event.child()
-            log.mouse.debug("{}: removed child {}".format(obj, child))
+            log.misc.debug("{}: removed child {}".format(obj, child))
 
         return False
 
 
-class MouseEventFilter(QObject):
+class TabEventFilter(QObject):
 
-    """Handle mouse events on a tab.
+    """Handle mouse/keyboard events on a tab.
 
     Attributes:
         _tab: The browsertab object this filter is installed on.
@@ -101,6 +102,7 @@ class MouseEventFilter(QObject):
             QEvent.MouseButtonRelease: self._handle_mouse_release,
             QEvent.Wheel: self._handle_wheel,
             QEvent.ContextMenu: self._handle_context_menu,
+            QEvent.KeyRelease: self._handle_key_release,
         }
         self._ignore_wheel_event = False
         self._check_insertmode_on_release = False
@@ -170,6 +172,15 @@ class MouseEventFilter(QObject):
     def _handle_context_menu(self, _e):
         """Suppress context menus if rocker gestures are turned on."""
         return config.val.input.rocker_gestures
+
+    def _handle_key_release(self, e):
+        """Ignore repeated key release events going to the website.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-77208
+        """
+        return (e.isAutoRepeat() and
+                qtutils.version_check('5.10') and
+                objects.backend == usertypes.Backend.QtWebEngine)
 
     def _mousepress_insertmode_cb(self, elem):
         """Check if the clicked element is editable."""
