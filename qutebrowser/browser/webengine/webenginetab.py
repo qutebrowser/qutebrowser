@@ -1352,13 +1352,22 @@ class WebEngineTab(browsertab.AbstractTab):
     def _error_page_workaround(self, html):
         """Check if we're displaying a Chromium error page.
 
-        This gets only called if we got loadFinished(False) without JavaScript,
-        so we can display at least some error page.
+        This gets called if we got a loadFinished(False), so we can display at
+        least some error page in situations where Chromium's can't be
+        displayed.
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
+        WORKAROUND for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=882805
+
         Needs to check the page content as a WORKAROUND for
         https://bugreports.qt.io/browse/QTBUG-66661
         """
+        js_enabled = self.settings.test_attribute('content.javascript.enabled')
+        missing_jst = 'jstProcess(' in html and 'jstProcess=' not in html
+
+        if js_enabled and not missing_jst:
+            return
+
         match = re.search(r'"errorCode":"([^"]*)"', html)
         if match is None:
             return
@@ -1388,8 +1397,7 @@ class WebEngineTab(browsertab.AbstractTab):
         else:
             self._update_load_status(ok)
 
-        js_enabled = self.settings.test_attribute('content.javascript.enabled')
-        if not ok and not js_enabled:
+        if not ok:
             self.dump_async(self._error_page_workaround)
 
         if ok and self._reload_url is not None:
