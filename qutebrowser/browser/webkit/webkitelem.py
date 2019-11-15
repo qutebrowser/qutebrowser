@@ -204,7 +204,8 @@ class WebKitElement(webelem.AbstractWebElement):
                     rect["top"] *= zoom
                     width *= zoom
                     height *= zoom
-                rect = QRect(rect["left"], rect["top"], width, height)
+                rect = QRect(int(rect["left"]), int(rect["top"]),
+                             int(width), int(height))
                 frame = self._elem.webFrame()
                 while frame is not None:
                     # Translate to parent frames' position (scroll position
