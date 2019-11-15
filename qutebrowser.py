@@ -21,8 +21,9 @@
 
 """Simple launcher for qutebrowser."""
 
-import qutebrowser.qutebrowser
 import sys
+
+import qutebrowser.qutebrowser
 
 
 if __name__ == '__main__':
