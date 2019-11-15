@@ -2413,7 +2413,7 @@ colors.webpage.bg:
 ## fonts
 
 fonts.monospace:
-  default: '"xos4 Terminus", Terminus, Monospace, "DejaVu Sans Mono", Monaco,
+  default: 'Monospace, "DejaVu Sans Mono", Monaco,
     "Bitstream Vera Sans Mono", "Andale Mono", "Courier New", Courier,
     "Liberation Mono", monospace, Fixed, Consolas, Terminal'
   type: Font

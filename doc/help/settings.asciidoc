@@ -2433,7 +2433,7 @@ Whenever "monospace" is used in a font setting, it's replaced with the fonts lis
 
 Type: <<types,Font>>
 
-Default: +pass:[&quot;xos4 Terminus&quot;, Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
+Default: +pass:[Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
 
 [[fonts.prompts]]
 === fonts.prompts
