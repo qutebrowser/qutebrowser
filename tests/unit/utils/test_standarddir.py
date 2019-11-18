@@ -160,6 +160,9 @@ class TestStandardDir:
             varname: The environment variable which should be set.
         """
         monkeypatch.setenv(varname, str(tmpdir))
+        if varname == 'XDG_RUNTIME_DIR':
+            tmpdir.chmod(0o0700)
+
         standarddir._init_dirs()
         assert func() == str(tmpdir / APPNAME)
 

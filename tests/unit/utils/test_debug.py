@@ -185,16 +185,16 @@ class TestQFlagsKey:
 
         No idea what's happening here exactly...
         """
-        QWebPage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
+        qwebpage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
 
-        flags = QWebPage.FindWrapsAroundDocument
-        flags |= QWebPage.FindBackward
-        flags &= ~QWebPage.FindBackward
-        flags &= ~QWebPage.FindWrapsAroundDocument
+        flags = qwebpage.FindWrapsAroundDocument
+        flags |= qwebpage.FindBackward
+        flags &= ~qwebpage.FindBackward
+        flags &= ~qwebpage.FindWrapsAroundDocument
 
-        debug.qflags_key(QWebPage,
+        debug.qflags_key(qwebpage,
                          flags,
-                         klass=QWebPage.FindFlag)
+                         klass=qwebpage.FindFlag)
 
     def test_add_base(self):
         """Test with add_base=True."""
