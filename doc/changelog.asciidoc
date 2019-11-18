@@ -61,6 +61,8 @@ Fixed
 - Crash when the history database file is not a proper sqlite database.
 - Workaround for missing/broken error pages on Debian.
 - Issues with Python 3.8 and QtWebKit.
+- A deprecation warning (caused by pywin32) about the imp module on Windows is
+  now hidden.
 
 v1.8.1 (2019-09-27)
 -------------------

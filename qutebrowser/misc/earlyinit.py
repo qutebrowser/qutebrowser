@@ -230,6 +230,9 @@ def _check_modules(modules):
             ), log.ignore_py_warnings(
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'
+            ), log.ignore_py_warnings(
+                category=DeprecationWarning,
+                message=r'the imp module is deprecated',
             ):
                 # pylint: enable=bad-continuation
                 importlib.import_module(name)
