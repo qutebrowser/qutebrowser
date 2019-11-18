@@ -836,11 +836,11 @@ class _WebEnginePermissions(QObject):
             return
 
         if (
-            hasattr(QWebEnginePage, 'DesktopVideoCapture') and
-            feature in [QWebEnginePage.DesktopVideoCapture,
-                        QWebEnginePage.DesktopAudioVideoCapture] and
-            qtutils.version_check('5.13', compiled=False) and
-            not qtutils.version_check('5.13.2', compiled=False)
+                hasattr(QWebEnginePage, 'DesktopVideoCapture') and
+                feature in [QWebEnginePage.DesktopVideoCapture,
+                            QWebEnginePage.DesktopAudioVideoCapture] and
+                qtutils.version_check('5.13', compiled=False) and
+                not qtutils.version_check('5.13.2', compiled=False)
         ):
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-78016
             log.webview.warning("Ignoring desktop sharing request due to "

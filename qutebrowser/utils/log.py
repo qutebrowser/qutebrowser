@@ -227,6 +227,7 @@ def shutdown_log() -> None:
 
 def _init_py_warnings() -> None:
     """Initialize Python warning handling."""
+    assert _args is not None
     warnings.simplefilter('error' if 'werror' in _args.debug_flags
                           else 'default')
     warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
