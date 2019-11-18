@@ -210,13 +210,14 @@ def init_log(args: argparse.Namespace) -> None:
         # disable blocks the current level (while setHandler shows the current
         # level), so -1 to avoid blocking handled messages.
         logging.disable(numeric_level - 1)
+
+    global _log_inited, _args
+    _args = args
     root.setLevel(logging.NOTSET)
     logging.captureWarnings(True)
     _init_py_warnings()
     QtCore.qInstallMessageHandler(qt_message_handler)  # type: ignore
-    global _log_inited, _args
     _log_inited = True
-    _args = args
 
 
 @QtCore.pyqtSlot()
@@ -226,7 +227,8 @@ def shutdown_log() -> None:
 
 def _init_py_warnings() -> None:
     """Initialize Python warning handling."""
-    warnings.simplefilter('default')
+    warnings.simplefilter('error' if 'werror' in _args.debug_flags
+                          else 'default')
     warnings.filterwarnings('ignore', module='pdb', category=ResourceWarning)
     # This happens in many qutebrowser dependencies...
     warnings.filterwarnings('ignore', category=DeprecationWarning,
