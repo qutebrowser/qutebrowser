@@ -822,25 +822,36 @@ class _WebEnginePermissions(QObject):
     def _on_feature_permission_requested(self, url, feature):
         """Ask the user for approval for geolocation/media/etc.."""
         page = self._widget.page()
+        grant_permission = functools.partial(
+            page.setFeaturePermission, url, feature,
+            QWebEnginePage.PermissionGrantedByUser)
+        deny_permission = functools.partial(
+            page.setFeaturePermission, url, feature,
+            QWebEnginePage.PermissionDeniedByUser)
 
         if feature not in self._options:
             log.webview.error("Unhandled feature permission {}".format(
                 debug.qenum_key(QWebEnginePage, feature)))
-            page.setFeaturePermission(url, feature,
-                                      QWebEnginePage.PermissionDeniedByUser)
+            deny_permission()
             return
 
-        yes_action = functools.partial(
-            page.setFeaturePermission, url, feature,
-            QWebEnginePage.PermissionGrantedByUser)
-        no_action = functools.partial(
-            page.setFeaturePermission, url, feature,
-            QWebEnginePage.PermissionDeniedByUser)
+        if (
+            hasattr(QWebEnginePage, 'DesktopVideoCapture') and
+            feature in [QWebEnginePage.DesktopVideoCapture,
+                        QWebEnginePage.DesktopAudioVideoCapture] and
+            qtutils.version_check('5.13', compiled=False) and
+            not qtutils.version_check('5.13.2', compiled=False)
+        ):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-78016
+            log.webview.warning("Ignoring desktop sharing request due to "
+                                "crashes in Qt < 5.13.2")
+            deny_permission()
+            return
 
         question = shared.feature_permission(
             url=url.adjusted(QUrl.RemovePath),
             option=self._options[feature], msg=self._messages[feature],
-            yes_action=yes_action, no_action=no_action,
+            yes_action=grant_permission, no_action=deny_permission,
             abort_on=[self._tab.abort_questions])
 
         if question is not None:

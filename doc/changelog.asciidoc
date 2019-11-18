@@ -32,6 +32,9 @@ Changed
   caused trouble with HighDPI setups. To get it back, add either
   `"xos4 Terminus"` or `Terminus` (depending on fontconfig version) to the
   beginning of the `fonts.monospace` setting.
+- As a workaround for a Qt bug causing a segfault, desktop sharing is now
+  automatically rejected on Qt versions before 5.13.2. Note that screen sharing
+  still won't work on Linux until Qt 5.14.
 
 Fixed
 ~~~~~
