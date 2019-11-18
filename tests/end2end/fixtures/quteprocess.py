@@ -487,7 +487,8 @@ class QuteProc(testprocess.Process):
         backend = 'webengine' if self.request.config.webengine else 'webkit'
         args = ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
-                '--backend', backend, '--debug-flag', 'no-sql-history']
+                '--backend', backend, '--debug-flag', 'no-sql-history',
+                '--debug-flag', 'werror']
         if qVersion() == '5.7.1':
             # https://github.com/qutebrowser/qutebrowser/issues/3163
             args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
