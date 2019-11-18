@@ -120,7 +120,8 @@ def qenum_key(base: typing.Type,
 
     try:
         idx = base.staticMetaObject.indexOfEnumerator(klass.__name__)
-        ret = base.staticMetaObject.enumerator(idx).valueToKey(value)
+        meta_enum = base.staticMetaObject.enumerator(idx)
+        ret = meta_enum.valueToKey(int(value))
     except AttributeError:
         ret = None
 

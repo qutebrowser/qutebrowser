@@ -434,12 +434,12 @@ class WebKitScroller(browsertab.AbstractScroller):
     def to_anchor(self, name):
         self._widget.page().mainFrame().scrollToAnchor(name)
 
-    def delta(self, x=0, y=0):
+    def delta(self, x: int = 0, y: int = 0) -> None:
         qtutils.check_overflow(x, 'int')
         qtutils.check_overflow(y, 'int')
         self._widget.page().mainFrame().scroll(x, y)
 
-    def delta_page(self, x=0.0, y=0.0):
+    def delta_page(self, x: float = 0.0, y: float = 0.0) -> None:
         if y.is_integer():
             y = int(y)
             if y == 0:
@@ -452,7 +452,7 @@ class WebKitScroller(browsertab.AbstractScroller):
         if x == 0 and y == 0:
             return
         size = self._widget.page().mainFrame().geometry()
-        self.delta(x * size.width(), y * size.height())
+        self.delta(int(x * size.width()), int(y * size.height()))
 
     def to_perc(self, x=None, y=None):
         if x is None and y == 0:

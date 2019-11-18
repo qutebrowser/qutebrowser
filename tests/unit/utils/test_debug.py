@@ -176,6 +176,26 @@ class TestQFlagsKey:
         flags = debug.qflags_key(base, value, klass=klass)
         assert flags == expected
 
+    def test_find_flags(self):
+        """Test a weird TypeError we get from PyQt.
+
+        In exactly this constellation (happening via the "Searching with
+        --reverse" BDD test), calling QMetaEnum::valueToKey without wrapping
+        the flags in int() causes a TypeError.
+
+        No idea what's happening here exactly...
+        """
+        QWebPage = pytest.importorskip("PyQt5.QtWebKitWidgets").QWebPage
+
+        flags = QWebPage.FindWrapsAroundDocument
+        flags |= QWebPage.FindBackward
+        flags &= ~QWebPage.FindBackward
+        flags &= ~QWebPage.FindWrapsAroundDocument
+
+        debug.qflags_key(QWebPage,
+                         flags,
+                         klass=QWebPage.FindFlag)
+
     def test_add_base(self):
         """Test with add_base=True."""
         flags = debug.qflags_key(Qt, Qt.AlignTop, add_base=True)
