@@ -2994,7 +2994,7 @@ This setting is only available with the QtWebEngine backend.
 [[qt.highdpi]]
 === qt.highdpi
 Turn on Qt HighDPI scaling.
-This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 in the environment.
+This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
 It's off by default as it can cause issues with some bitmap fonts. As an alternative to this, it's possible to set font sizes and the `zoom.default` setting.
 This setting requires a restart.
 

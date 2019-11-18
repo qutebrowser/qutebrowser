@@ -308,7 +308,6 @@ class TestEarlyInit:
         ('qt.force_software_rendering', 'chromium',
          'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND', '1'),
         ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
-        ('qt.highdpi', True, 'QT_AUTO_SCREEN_SCALE_FACTOR', '1'),
         ('window.hide_decoration', True,
          'QT_WAYLAND_DISABLE_WINDOWDECORATION', '1')
     ])
@@ -324,6 +323,33 @@ class TestEarlyInit:
         configinit._init_envvars()
 
         assert os.environ[envvar] == expected
+
+    @pytest.mark.parametrize('new_qt', [True, False])
+    def test_highdpi(self, monkeypatch, config_stub, new_qt):
+        """Test HighDPI environment variables.
+
+        Depending on the Qt version, there's a different variable which should
+        be set...
+        """
+        new_var = 'QT_ENABLE_HIGHDPI_SCALING'
+        old_var = 'QT_AUTO_SCREEN_SCALE_FACTOR'
+
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            new_qt)
+
+        for envvar in [new_var, old_var]:
+            monkeypatch.setenv(envvar, '')  # to make sure it gets restored
+            monkeypatch.delenv(envvar)
+
+        config_stub.set_obj('qt.highdpi', True)
+        configinit._init_envvars()
+
+        envvar = new_var if new_qt else old_var
+
+        assert os.environ[envvar] == '1'
 
     def test_env_vars_webkit(self, monkeypatch, config_stub):
         monkeypatch.setattr(configinit.objects, 'backend',

@@ -109,7 +109,10 @@ def _init_envvars() -> None:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
 
     if config.val.qt.highdpi:
-        os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
+        env_var = ('QT_ENABLE_HIGHDPI_SCALING'
+                   if qtutils.version_check('5.14', compiled=False)
+                   else 'QT_AUTO_SCREEN_SCALE_FACTOR')
+        os.environ[env_var] = '1'
 
 
 @config.change_filter('fonts.monospace', function=True)
