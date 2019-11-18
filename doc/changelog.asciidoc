@@ -18,6 +18,24 @@ breaking changes (such as renamed commands) can happen in minor releases.
 v1.9.0 (unreleased)
 -------------------
 
+Changed
+~~~~~~~
+
+- The `qute-pass` userscript now has a new `--extra-url-suffixes` (`-s`)
+  argument which passes extra URL suffixes to the tldextract library.
+- A stack is now used for `:tab-focus last` rather than just saving one tab.
+  Additionally, `:tab-focus` now understands `stack-prev` and `stack-next`
+  arguments to traverse that stack.
+- `:hint` now has a new `right-click` target which allows right-clicking
+  elements via hints.
+- The Terminus font has been removed from the default monospace fonts since it
+  caused trouble with HighDPI setups. To get it back, add either
+  `"xos4 Terminus"` or `Terminus` (depending on fontconfig version) to the
+  beginning of the `fonts.monospace` setting.
+- As a workaround for a Qt bug causing a segfault, desktop sharing is now
+  automatically rejected on Qt versions before 5.13.2. Note that screen sharing
+  still won't work on Linux until Qt 5.14.
+
 Fixed
 ~~~~~
 
