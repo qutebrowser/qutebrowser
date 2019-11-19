@@ -60,44 +60,78 @@ hypothesis.settings.load_profile('ci' if ON_CI else 'default')
 def _apply_platform_markers(config, item):
     """Apply a skip marker to a given item."""
     markers = [
-        ('posix', not utils.is_posix, "Requires a POSIX os"),
-        ('windows', not utils.is_windows, "Requires Windows"),
-        ('linux', not utils.is_linux, "Requires Linux"),
-        ('mac', not utils.is_mac, "Requires macOS"),
-        ('not_mac', utils.is_mac, "Skipped on macOS"),
-        ('not_frozen', getattr(sys, 'frozen', False),
+        ('posix',
+         pytest.mark.skipif,
+         not utils.is_posix,
+         "Requires a POSIX os"),
+        ('windows',
+         pytest.mark.skipif,
+         not utils.is_windows,
+         "Requires Windows"),
+        ('linux',
+         pytest.mark.skipif,
+         not utils.is_linux,
+         "Requires Linux"),
+        ('mac',
+         pytest.mark.skipif,
+         not utils.is_mac,
+         "Requires macOS"),
+        ('not_mac',
+         pytest.mark.skipif,
+         utils.is_mac,
+         "Skipped on macOS"),
+        ('not_frozen',
+         pytest.mark.skipif,
+         getattr(sys, 'frozen', False),
          "Can't be run when frozen"),
-        ('frozen', not getattr(sys, 'frozen', False),
+        ('frozen',
+         pytest.mark.skipif,
+         not getattr(sys, 'frozen', False),
          "Can only run when frozen"),
-        ('ci', not ON_CI, "Only runs on CI."),
-        ('no_ci', ON_CI, "Skipped on CI."),
-        ('issue2478', utils.is_windows and config.webengine,
+        ('ci',
+         pytest.mark.skipif,
+         not ON_CI,
+         "Only runs on CI."),
+        ('no_ci',
+         pytest.mark.skipif,
+         ON_CI,
+         "Skipped on CI."),
+        ('unicode_locale',
+         pytest.mark.skipif,
+         sys.getfilesystemencoding() == 'ascii',
+         "Skipped because of ASCII locale"),
+
+        ('issue2478',
+         pytest.mark.xfail,
+         utils.is_windows and config.webengine,
          "Broken with QtWebEngine on Windows"),
         ('issue3572',
+         pytest.mark.xfail,
          (qtutils.version_check('5.10', compiled=False, exact=True) or
           qtutils.version_check('5.10.1', compiled=False, exact=True)) and
          config.webengine and 'TRAVIS' in os.environ,
          "Broken with QtWebEngine with Qt 5.10 on Travis"),
         ('qtbug60673',
+         pytest.mark.xfail,
          qtutils.version_check('5.8') and
          not qtutils.version_check('5.10') and
          config.webengine,
          "Broken on webengine due to "
          "https://bugreports.qt.io/browse/QTBUG-60673"),
         ('qtbug80085',
+         pytest.mark.xfail,
          qtutils.version_check('5.14', compiled=False) and
          config.webengine,
          "Broken on webengine due to "
          "https://bugreports.qt.io/browse/QTBUG-80085"),
-        ('unicode_locale', sys.getfilesystemencoding() == 'ascii',
-         "Skipped because of ASCII locale"),
-        ('qtwebkit6021_skip',
+        ('qtwebkit6021_xfail',
+         pytest.mark.xfail,
          version.qWebKitVersion and  # type: ignore
          version.qWebKitVersion() == '602.1',
          "Broken on WebKit 602.1")
     ]
 
-    for searched_marker, condition, default_reason in markers:
+    for searched_marker, new_marker_kind, condition, default_reason in markers:
         marker = item.get_closest_marker(searched_marker)
         if not marker or not condition:
             continue
@@ -107,9 +141,9 @@ def _apply_platform_markers(config, item):
             del marker.kwargs['reason']
         else:
             reason = default_reason + '.'
-        skipif_marker = pytest.mark.skipif(condition, *marker.args,
-                                           reason=reason, **marker.kwargs)
-        item.add_marker(skipif_marker)
+        new_marker = new_marker_kind(condition, *marker.args,
+                                     reason=reason, **marker.kwargs)
+        item.add_marker(new_marker)
 
 
 def pytest_collection_modifyitems(config, items):
