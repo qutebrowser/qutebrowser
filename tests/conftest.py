@@ -101,10 +101,6 @@ def _apply_platform_markers(config, item):
          sys.getfilesystemencoding() == 'ascii',
          "Skipped because of ASCII locale"),
 
-        ('issue2478',
-         pytest.mark.xfail,
-         utils.is_windows and config.webengine,
-         "Broken with QtWebEngine on Windows"),
         ('issue3572',
          pytest.mark.xfail,
          (qtutils.version_check('5.10', compiled=False, exact=True) or
