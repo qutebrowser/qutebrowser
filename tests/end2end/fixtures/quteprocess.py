@@ -247,6 +247,13 @@ def is_ignored_chromium_message(line):
         # resource_coordinator.mojom.FrameCoordinationUnit
         'InterfaceRequest was dropped, the document is no longer active: '
         'resource_coordinator.mojom.FrameCoordinationUnit',
+
+        # Qt 5.14
+        # [1:7:1119/162200.709920:ERROR:command_buffer_proxy_impl.cc(124)]
+        # ContextResult::kTransientFailure: Failed to send
+        # GpuChannelMsg_CreateCommandBuffer.
+        'ContextResult::kTransientFailure: Failed to send '
+        'GpuChannelMsg_CreateCommandBuffer.',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
