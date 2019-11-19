@@ -32,7 +32,7 @@ import attr
 from PyQt5.QtCore import QStandardPaths
 import pytest
 
-from qutebrowser.utils import standarddir, utils
+from qutebrowser.utils import standarddir, utils, qtutils
 
 
 # Use a different application name for tests to make sure we don't change real
@@ -184,6 +184,9 @@ class TestStandardDir:
 
     @pytest.mark.linux
     @pytest.mark.qt_log_ignore(r'^QStandardPaths: ')
+    @pytest.mark.skipif(
+        qtutils.version_check('5.14', compiled=False),
+        reason="Qt 5.14 automatically creates missing runtime dirs")
     def test_linux_invalid_runtimedir(self, monkeypatch, tmpdir):
         """With invalid XDG_RUNTIME_DIR, fall back to TempLocation."""
         tmpdir_env = tmpdir / 'temp'
