@@ -6,9 +6,9 @@ os: linux
 
 matrix:
   fast_finish: true
-  allow_failures:
-    - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
-      services: docker
+  # allow_failures:
+  #   - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
+  #     services: docker
   include:
     ### Archlinux QtWebKit
     - env: DOCKER=archlinux-webkit
