@@ -26,7 +26,7 @@ import re
 import html
 
 from PyQt5.QtWidgets import QStyle, QStyleOptionViewItem, QStyledItemDelegate
-from PyQt5.QtCore import QRectF, QSize, Qt
+from PyQt5.QtCore import QRectF, QRegularExpression, QSize, Qt
 from PyQt5.QtGui import (QIcon, QPalette, QTextDocument, QTextOption,
                          QAbstractTextDocumentLayout, QSyntaxHighlighter,
                          QTextCharFormat)
@@ -41,14 +41,21 @@ class _Highlighter(QSyntaxHighlighter):
         super().__init__(doc)
         self._format = QTextCharFormat()
         self._format.setForeground(color)
-        self._pattern = pattern
+        self._expression = QRegularExpression(
+            pattern,
+            QRegularExpression.CaseInsensitiveOption
+        )
 
     def highlightBlock(self, text):
         """Override highlightBlock for custom highlighting."""
-        for match in re.finditer(self._pattern, text, re.IGNORECASE):
-            start, end = match.span()
-            length = end - start
-            self.setFormat(start, length, self._format)
+        match_iterator = self._expression.globalMatch(text)
+        while match_iterator.hasNext():
+            match = match_iterator.next()
+            self.setFormat(
+                match.capturedStart(),
+                match.capturedLength(),
+                self._format
+            )
 
 
 class CompletionItemDelegate(QStyledItemDelegate):
