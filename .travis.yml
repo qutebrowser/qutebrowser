@@ -6,7 +6,7 @@ os: linux
 
 matrix:
   fast_finish: true
-  allowed_failures:
+  allow_failures:
     - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
       services: docker
   include:
