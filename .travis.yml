@@ -58,17 +58,12 @@ matrix:
           packages:
           - libxkbcommon-x11-0
 
-    ### macOS sierra
+    ### macOS Mojave
     - os: osx
-      env: TESTENV=py37-pyqt513 OSX=sierra
-      osx_image: xcode9.2
+      env: TESTENV=py37-pyqt513 OSX=mojave
+      osx_image: xcode11.2
       language: generic
       python: 3.7
-    ### macOS yosemite
-    # https://github.com/qutebrowser/qutebrowser/issues/2013
-    # - os: osx
-    #   env: TESTENV=py35 OSX=yosemite
-    #   osx_image: xcode6.4
 
     ### pylint/flake8/mypy
     - env: TESTENV=pylint
