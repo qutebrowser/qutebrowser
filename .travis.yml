@@ -6,13 +6,20 @@ os: linux
 
 matrix:
   fast_finish: true
+  allowed_failures:
+    - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
+      services: docker
   include:
     ### Archlinux QtWebKit
-    - env: DOCKER=archlinux
+    - env: DOCKER=archlinux-webkit
       services: docker
 
     ### Archlinux QtWebEngine
     - env: DOCKER=archlinux-webengine QUTE_BDD_WEBENGINE=true
+      services: docker
+
+    ### Archlinux QtWebEngine with testing/KDE-Unstable
+    - env: DOCKER=archlinux-webengine-unstable QUTE_BDD_WEBENGINE=true
       services: docker
 
     ### PyQt 5.7.1 (Python 3.5)
