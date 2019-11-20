@@ -1429,9 +1429,22 @@ class WebEngineTab(browsertab.AbstractTab):
         # However, self.url() is not available yet and the requested URL
         # might not match the URL we get from the error - so we just apply a
         # heuristic here.
-        if (not qtutils.version_check('5.9') and
-                not error.ignore and
-                url.matches(self.url(requested=True), QUrl.RemoveScheme)):
+        must_show_cert_error = (
+            not qtutils.version_check('5.9') and
+            not error.ignore and
+            url.matches(self.url(requested=True), QUrl.RemoveScheme)
+        )
+        must_show_non_overridable_cert_error = (
+            not error.is_overridable() and (
+                qtutils.version_check('5.13') and
+                not qtutils.version_check('5.13.2') or
+                qtutils.version_check('5.12') and
+                not qtutils.version_check('5.12.6') or
+                not qtutils.version_check('5.12')
+            )
+        )
+
+        if (must_show_cert_error or must_show_non_overridable_cert_error):
             self._show_error_page(url, str(error))
 
     @pyqtSlot(QUrl)
