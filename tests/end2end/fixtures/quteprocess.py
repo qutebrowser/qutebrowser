@@ -254,6 +254,23 @@ def is_ignored_chromium_message(line):
         # GpuChannelMsg_CreateCommandBuffer.
         'ContextResult::kTransientFailure: Failed to send '
         'GpuChannelMsg_CreateCommandBuffer.',
+        # [156330:156350:1121/120052.060701:WARNING:
+        # important_file_writer.cc(97)]
+        # temp file failure: /home/florian/.local/share/qutebrowser/
+        # qutebrowser/QtWebEngine/Default/user_prefs.json : could not create
+        # temporary file: No such file or directory (2)
+        'temp file failure: */qutebrowser/qutebrowser/QtWebEngine/Default/'
+        'user_prefs.json : could not create temporary file: No such file or '
+        'directory (2)',
+        # [156330:156330:1121/120052.602236:ERROR:
+        # viz_process_transport_factory.cc(331)]
+        # Switching to software compositing.
+        'Switching to software compositing.',
+        # [160686:160712:1121/121226.457866:ERROR:surface_manager.cc(438)]
+        # Old/orphaned temporary reference to
+        # SurfaceId(FrameSinkId[](5, 2), LocalSurfaceId(8, 1, 7C3A...))
+        'Old/orphaned temporary reference to '
+        'SurfaceId(FrameSinkId[](*), LocalSurfaceId(*))',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
