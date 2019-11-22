@@ -51,7 +51,7 @@ Fixed
 - Remaining issues (mostly warnings) related to Python 3.8, especially for
   QtWebKit.
 
-v1.8.2 (unreleased)
+v1.8.2 (today)
 -------------------
 
 Changed
