@@ -96,7 +96,7 @@ class EditorPidWatcher(QObject):
                 self.has_pidfile = True
                 self.appeared.emit()
             else:
-                self._watcher.addPath(str(self._podfile))
+                self._watcher.addPath(str(self._pidfile))
 
 
 @pytest.fixture
