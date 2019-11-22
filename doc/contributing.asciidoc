@@ -709,7 +709,7 @@ qutebrowser release
 * Consider updating the completions for `content.headers.user_agent` in `configdata.yml`.
 * Make sure Python is up-to-date on build machines.
 * Mark the milestone at https://github.com/qutebrowser/qutebrowser/milestones as closed.
-* Update changelog, replace correct (unreleased) by (today).
+* Update changelog in master branch
 * If necessary: Update changelog in release branch from master.
 * Run `./.venv/bin/python3 scripts/dev/update_version.py {major,minor,patch}`.
 * Run the printed instructions accordingly.
