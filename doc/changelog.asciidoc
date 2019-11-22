@@ -15,31 +15,19 @@ breaking changes (such as renamed commands) can happen in minor releases.
 // `Fixed` for any bug fixes.
 // `Security` to invite users to upgrade in case of vulnerabilities.
 
-v1.9.0 (unreleased)
+v1.8.2 (unreleased)
 -------------------
 
 Changed
 ~~~~~~~
 
-- The `qute-pass` userscript now has a new `--extra-url-suffixes` (`-s`)
-  argument which passes extra URL suffixes to the tldextract library.
-- A stack is now used for `:tab-focus last` rather than just saving one tab.
-  Additionally, `:tab-focus` now understands `stack-prev` and `stack-next`
-  arguments to traverse that stack.
-- `:hint` now has a new `right-click` target which allows right-clicking
-  elements via hints.
-- The Terminus font has been removed from the default monospace fonts since it
-  caused trouble with HighDPI setups. To get it back, add either
-  `"xos4 Terminus"` or `Terminus` (depending on fontconfig version) to the
-  beginning of the `fonts.monospace` setting.
-- As a workaround for a Qt bug causing a segfault, desktop sharing is now
-  automatically rejected on Qt versions before 5.13.2. Note that screen sharing
-  still won't work on Linux until Qt 5.14.
+- Windows/macOS releases now ship with Qt 5.12.6. This includes security fixes
+  up to Chromium 77.0.3865.120 plus a security fix for CVE-2019-13720 from
+  Chromium 78.
 
 Fixed
 ~~~~~
 
-- dictcli.py now works correctly on Windows again.
 - Unbinding keys via `config.bind(key, None)` accidentally worked in
   v1.7.0 but raises an exception in v1.8.0. It now works again, but is
   deprecated and shows an error. Note that `:config-py-write` did write
@@ -47,12 +35,8 @@ Fixed
   adjustments.
 - The `readability-js` userscript now handles encodings correctly (which it
   didn't before for some websites).
-- New `tabs.tooltips` setting which can be used to disable hover tooltips for
-  tabs.
 - <Shift-Insert> can now be used to paste text starting with a hyphen.
 - Following hints via the number keypad now works properly again.
-- The logic for `:restart` has been revisited which should fix issues with
-  relative basedirs.
 - Errors while reading the state file are now displayed instead of causing a
   crash.
 - Crash when using `:debug-log-level` without a console attached.
@@ -60,7 +44,6 @@ Fixed
 - Crash when setting `colors.webpage.bg` to an empty value with QtWebKit.
 - Crash when the history database file is not a proper sqlite database.
 - Workaround for missing/broken error pages on Debian.
-- Issues with Python 3.8 and QtWebKit.
 - A deprecation warning (caused by pywin32) about the imp module on Windows is
   now hidden.
 
