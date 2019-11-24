@@ -103,6 +103,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._read_timer.setInterval(500)
         self._read_timer.timeout.connect(self._on_read_timer_timeout)
         self._redirects = 0
+        self._url = reply.url().toString()
         self._init_reply(reply)
 
     def _create_fileobj(self):
@@ -191,6 +192,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
         if filename is None:
             filename = getattr(self.fileobj, 'name', None)
         return filename
+
+    def url(self) -> str:
+        # Note: self._reply is deleted when the download finishes
+        return self._url
 
     def _ensure_can_set_filename(self, filename):
         if self.fileobj is not None:  # pragma: no cover

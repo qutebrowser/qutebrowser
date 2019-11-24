@@ -209,8 +209,18 @@ class TestPDFJSHandler:
 
     def test_viewer_page(self, data_tmpdir):
         """Load the /web/viewer.html page."""
+        filename = 'foobar.pdf'
+        path = os.path.join(downloads.temp_download_manager.get_tmpdir().name,
+                            filename)
+
+        # Make sure that the file exists otherwise the handler will attempt to
+        # redirect to source (it's not necessary to make sure that it's valid
+        # PDF content)
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write('<pdf content>')
+
         _mimetype, data = qutescheme.data_for_url(
-            QUrl('qute://pdfjs/web/viewer.html?filename=foobar'))
+            QUrl('qute://pdfjs/web/viewer.html?filename=' + filename))
         assert b'PDF.js' in data
 
     def test_viewer_no_filename(self):

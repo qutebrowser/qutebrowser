@@ -237,11 +237,12 @@ def should_use_pdfjs(mimetype, url):
     return is_pdf and not is_download_url and config_enabled
 
 
-def get_main_url(filename):
+def get_main_url(filename: str, original_url: str):
     """Get the URL to be opened to view a local PDF."""
     url = QUrl('qute://pdfjs/web/viewer.html')
     query = QUrlQuery()
     query.addQueryItem('filename', filename)  # read from our JS
     query.addQueryItem('file', '')  # to avoid pdfjs opening the default PDF
+    query.addQueryItem('source', original_url)
     url.setQuery(query)
     return url
