@@ -83,8 +83,8 @@ class UrlMarkManager(QObject):
 
         self._init_lineparser()
         for line in self._lineparser:
-            if not line.strip():
-                # Ignore empty or whitespace-only lines.
+            if not line.strip() or line.startswith('#'):
+                # Ignore empty or whitespace-only lines and comments.
                 continue
             self._parse_line(line)
         self._init_savemanager(objreg.get('save-manager'))
