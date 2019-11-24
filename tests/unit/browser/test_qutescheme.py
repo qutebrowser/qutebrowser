@@ -223,8 +223,20 @@ class TestPDFJSHandler:
         assert b'PDF.js' in data
 
     def test_viewer_no_filename(self):
-        with pytest.raises(qutescheme.UrlInvalidError):
+        with pytest.raises(qutescheme.UrlInvalidError,
+                           match='Missing filename'):
             qutescheme.data_for_url(QUrl('qute://pdfjs/web/viewer.html'))
+
+    def test_viewer_inexistent_file(self):
+        with pytest.raises(qutescheme.Redirect):
+            qutescheme.data_for_url(QUrl('qute://pdfjs/web/viewer.html?'
+                                         'filename=foobar&source=example.org'))
+
+    def test_viewer_inexistent_file_no_source(self):
+        with pytest.raises(qutescheme.UrlInvalidError,
+                           match='Missing source'):
+            qutescheme.data_for_url(
+                QUrl('qute://pdfjs/web/viewer.html?filename=foobar'))
 
     def test_file(self, download_tmpdir):
         """Load a file via qute://pdfjs/file."""
