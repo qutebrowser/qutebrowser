@@ -946,8 +946,7 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
-        '_autoconfig_loaded': lambda: ("yes" if params.autoconfig_loaded
-                                       else "no"),
+        'config.instance.yaml_loaded': params.autoconfig_loaded,
     }
 
     substitutions = {
