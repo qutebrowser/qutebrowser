@@ -43,6 +43,8 @@ Changed
   still won't work on Linux until Qt 5.14.
 - Comment lines in quickmarks/bookmarks files are now ignored. However, note that
   qutebrowser will overwrite those files if bookmark/quickmark commands are used.
+- Reopening PDF.js pages from e.g. a session file will now re-download and
+  display those PDFs.
 
 Fixed
 ~~~~~
