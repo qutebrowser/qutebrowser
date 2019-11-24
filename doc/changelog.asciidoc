@@ -45,6 +45,8 @@ Changed
   qutebrowser will overwrite those files if bookmark/quickmark commands are used.
 - Reopening PDF.js pages from e.g. a session file will now re-download and
   display those PDFs.
+- Improved behavior when using `:open-download` in a sandboxed environment (KDE
+  Flatpak).
 
 Fixed
 ~~~~~
