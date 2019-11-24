@@ -56,6 +56,17 @@ Fixed
   relative basedirs.
 - Remaining issues (mostly warnings) related to Python 3.8, especially for
   QtWebKit.
+- Various improvements for URL/searchengine detection:
+  - Strings with a dot but with characters not allowed in a URL (e.g. an
+    underscore) are now not treated as URL anymore.
+  - Strings like "5/8" are now not treated as IP anymore.
+  - URLs with an explicit scheme and a space (%20) are correctly treated as
+    URLs.
+  - Mail addresses are now treated as search terms.
+  - With `url.open_base_url` set, searching for a search engine name now works.
+  - `url.open_base_url = True` together with `url.auto_search = 'never'` is now
+    handled correctly.
+  - Fixed crash when a search engine URL turns out to be invalid.
 
 v1.8.2 (2019-11-22)
 -------------------
