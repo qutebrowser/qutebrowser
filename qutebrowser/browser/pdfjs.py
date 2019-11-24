@@ -243,6 +243,7 @@ def get_main_url(filename: str, original_url: QUrl) -> QUrl:
     query = QUrlQuery()
     query.addQueryItem('filename', filename)  # read from our JS
     query.addQueryItem('file', '')  # to avoid pdfjs opening the default PDF
-    query.addQueryItem('source', original_url.toString())
+    urlstr = original_url.toString(QUrl.FullyEncoded)  # type: ignore
+    query.addQueryItem('source', urlstr)
     url.setQuery(query)
     return url
