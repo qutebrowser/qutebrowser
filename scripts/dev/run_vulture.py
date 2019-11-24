@@ -137,6 +137,7 @@ def whitelist_generator():  # noqa
     # used in type comments
     yield 'pending_download_type'
     yield 'world_id_type'
+    yield 'ParserDictType'
 
 
 def filter_func(item):

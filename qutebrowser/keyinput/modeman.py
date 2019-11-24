@@ -220,7 +220,7 @@ class ModeManager(QObject):
     def __init__(self, win_id: int, parent: QObject = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
-        self.parsers = {}  # type: _ParserDictType
+        self.parsers = {}  # type: ParserDictType
         self._prev_mode = usertypes.KeyMode.normal
         self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = set()  # type: typing.Set[KeyEvent]

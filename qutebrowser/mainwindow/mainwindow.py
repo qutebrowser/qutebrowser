@@ -466,7 +466,8 @@ class MainWindow(QWidget):
         mode_manager.entered.connect(self.status.on_mode_entered)
         mode_manager.left.connect(self.status.on_mode_left)
         mode_manager.left.connect(self.status.cmd.on_mode_left)
-        mode_manager.left.connect(message.global_bridge.mode_left)
+        mode_manager.left.connect(
+            message.global_bridge.mode_left)  # type: ignore
 
         # commands
         normal_parser = mode_manager.parsers[usertypes.KeyMode.normal]
