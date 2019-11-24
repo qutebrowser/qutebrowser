@@ -77,7 +77,7 @@ pastebin_url = None
 Distribution = enum.Enum(
     'Distribution', ['unknown', 'ubuntu', 'debian', 'void', 'arch',
                      'gentoo', 'fedora', 'opensuse', 'linuxmint', 'manjaro',
-                     'kde'])
+                     'kde_flatpak'])
 
 
 def distribution() -> typing.Optional[DistributionInfo]:
@@ -117,7 +117,7 @@ def distribution() -> typing.Optional[DistributionInfo]:
     dist_id = info.get('ID', None)
     id_mappings = {
         'funtoo': 'gentoo',  # does not have ID_LIKE=gentoo
-        'org.kde.Platform': 'kde',
+        'org.kde.Platform': 'kde_flatpak',
     }
 
     parsed = Distribution.unknown
@@ -136,7 +136,7 @@ def is_sandboxed() -> bool:
     current_distro = distribution()
     if current_distro is None:
         return False
-    return current_distro.parsed == Distribution.kde
+    return current_distro.parsed == Distribution.kde_flatpak
 
 
 def _git_str() -> typing.Optional[str]:

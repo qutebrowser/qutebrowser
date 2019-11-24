@@ -185,7 +185,7 @@ from qutebrowser.browser import pdfjs
         ID=org.kde.Platform
     """,
      version.DistributionInfo(
-         id='org.kde.Platform', parsed=version.Distribution.kde,
+         id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
          version=pkg_resources.parse_version('5.12'),
          pretty='KDE')),
     # No PRETTY_NAME
@@ -209,7 +209,7 @@ def test_distribution(tmpdir, monkeypatch, os_release, expected):
 @pytest.mark.parametrize('distribution, expected', [
     (None, False),
     (version.DistributionInfo(
-        id='org.kde.Platform', parsed=version.Distribution.kde,
+        id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
         version=pkg_resources.parse_version('5.12'),
         pretty='Unknown'), True),
     (version.DistributionInfo(

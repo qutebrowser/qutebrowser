@@ -768,7 +768,7 @@ class TestOpenFile:
     def sandbox_patch(self, monkeypatch):
         info = version.DistributionInfo(
             id='org.kde.Platform',
-            parsed=version.Distribution.kde,
+            parsed=version.Distribution.kde_flatpak,
             version=pkg_resources.parse_version('5.12'),
             pretty='Unknown')
         monkeypatch.setattr(version, 'distribution',
