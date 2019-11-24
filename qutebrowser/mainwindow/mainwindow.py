@@ -456,7 +456,7 @@ class MainWindow(QWidget):
     def _connect_signals(self):
         """Connect all mainwindow signals."""
         message_bridge = self._get_object('message-bridge')
-        mode_manager = modeman.instance(self._win_id)
+        mode_manager = modeman.instance(self.win_id)
 
         # misc
         self.tabbed_browser.close_window.connect(self.close)
@@ -469,7 +469,7 @@ class MainWindow(QWidget):
         mode_manager.left.connect(message.global_bridge.mode_left)
 
         # commands
-        normal_parser = mode_manager.keyparsers[usertypes.KeyMode.normal]
+        normal_parser = mode_manager.parsers[usertypes.KeyMode.normal]
         normal_parser.keystring_updated.connect(
             self.status.keystring.setText)
         self.status.cmd.got_cmd[str].connect(  # type: ignore
