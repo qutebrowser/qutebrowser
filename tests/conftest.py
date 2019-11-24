@@ -39,7 +39,7 @@ from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock, message_bridge
 from helpers.fixtures import *  # noqa: F403
 from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, earlyinit
 from qutebrowser.qt import sip
 
 import qutebrowser.app  # To register commands
@@ -240,12 +240,7 @@ def pytest_configure(config):
     # Fail early if QtWebEngine is not available
     if config.webengine:
         import PyQt5.QtWebEngineWidgets
-
-    try:
-        # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)  # type: ignore
-    except AttributeError:
-        pass
+    earlyinit.configure_pyqt()
 
 
 @pytest.fixture(scope='session', autouse=True)
