@@ -1444,25 +1444,30 @@ class WebEngineTab(browsertab.AbstractTab):
             error.ignore, url, self.url(requested=True)))
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-56207
+        show_cert_error = (
+            not qtutils.version_check('5.9') and
+            not error.ignore
+        )
+        # WORKAROUND for https://codereview.qt-project.org/c/qt/qtwebengine/+/270556
+        show_non_overr_cert_error = (
+            not error.is_overridable() and (
+                # Affected Qt versions:
+                # 5.13 before 5.13.2
+                # 5.12 before 5.12.6
+                # < 5.12
+                (qtutils.version_check('5.13') and
+                 not qtutils.version_check('5.13.2')) or
+                (qtutils.version_check('5.12') and
+                 not qtutils.version_check('5.12.6')) or
+                not qtutils.version_check('5.12')
+            )
+        )
+
         # We can't really know when to show an error page, as the error might
         # have happened when loading some resource.
         # However, self.url() is not available yet and the requested URL
         # might not match the URL we get from the error - so we just apply a
         # heuristic here.
-        show_cert_error = (
-            not qtutils.version_check('5.9') and
-            not error.ignore
-        )
-        show_non_overr_cert_error = (
-            not error.is_overridable() and (
-                qtutils.version_check('5.13') and
-                not qtutils.version_check('5.13.2') or
-                qtutils.version_check('5.12') and
-                not qtutils.version_check('5.12.6') or
-                not qtutils.version_check('5.12')
-            )
-        )
-
         if ((show_cert_error or show_non_overr_cert_error) and
                 url.matches(self.url(requested=True), QUrl.RemoveScheme)):
             self._show_error_page(url, str(error))
