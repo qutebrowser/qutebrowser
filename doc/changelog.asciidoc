@@ -47,6 +47,9 @@ Changed
   display those PDFs.
 - Improved behavior when using `:open-download` in a sandboxed environment (KDE
   Flatpak).
+- qutebrowser now enables the new PyQt exit scheme, which should result in
+  things being cleaned up more properly (e.g. cookies being saved even without
+  a timeout) on PyQt 5.13.1 and newer.
 
 Fixed
 ~~~~~
