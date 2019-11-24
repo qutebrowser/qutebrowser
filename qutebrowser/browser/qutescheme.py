@@ -508,6 +508,12 @@ def qute_pastebin_version(_url):
     return 'text/plain', b'Paste called.'
 
 
+def _pdf_path(filename: str) -> str:
+    """Get the path of a temporary PDF file."""
+    return os.path.join(downloads.temp_download_manager.get_tmpdir().name,
+                        filename)
+
+
 @add_handler('pdfjs')
 def qute_pdfjs(url: QUrl):
     """Handler for qute://pdfjs.
@@ -522,9 +528,7 @@ def qute_pdfjs(url: QUrl):
         if '/' in filename or os.sep in filename:
             raise RequestDeniedError("Path separator in filename.")
 
-        path = os.path.join(downloads.temp_download_manager.get_tmpdir().name,
-                            filename)
-
+        path = _pdf_path(filename)
         with open(path, 'rb') as f:
             data = f.read()
 
@@ -537,8 +541,7 @@ def qute_pdfjs(url: QUrl):
         if not filename:
             raise UrlInvalidError("Missing filename")
 
-        path = os.path.join(downloads.temp_download_manager.get_tmpdir().name,
-                            filename)
+        path = _pdf_path(filename)
         if not os.path.isfile(path):
             source = query.queryItemValue('source')
             if not source:  # This may happen with old URLs stored in history
