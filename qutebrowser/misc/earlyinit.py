@@ -262,8 +262,13 @@ def configure_pyqt():
     Doing this means we can't use the interactive shell anymore (which we don't
     anyways), but we can use pdb instead.
     """
-    from PyQt5.QtCore import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
+    from PyQt5 import QtCore
+    QtCore.pyqtRemoveInputHook()
+    try:
+        QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore
+    except AttributeError:
+        # Added in PyQt 5.13 somewhere, going to be the default in 5.14
+        pass
 
     from qutebrowser.qt import sip
     try:
