@@ -633,19 +633,17 @@ def open_file(filename: str, cmdline: str = None) -> None:
     from qutebrowser.misc import guiprocess
     from qutebrowser.utils import version, message
 
-    # check whether we are in a sandbox environment
-    sandbox = version.is_sandboxed()
-
     # the default program to open downloads with - will be empty string
     # if we want to use the default
     override = config.val.downloads.open_dispatcher
 
-    if sandbox:
+    if version.is_sandboxed():
         if cmdline:
             message.error("Cannot spawn download dispatcher from sandbox")
             return
         if override:
-            message.warning("Ignoring download dispatcher from config in sandbox environment")
+            message.warning("Ignoring download dispatcher from config in "
+                            "sandbox environment")
             override = None
 
     # precedence order: cmdline > downloads.open_dispatcher > openUrl

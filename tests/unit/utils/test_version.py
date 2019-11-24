@@ -217,11 +217,7 @@ def test_distribution(tmpdir, monkeypatch, os_release, expected):
         pretty='Arch Linux'), False)
 ])
 def test_is_sandboxed(monkeypatch, distribution, expected):
-    def distribution_mock():
-        return distribution
-
-    monkeypatch.setattr(version, "distribution", distribution_mock)
-    
+    monkeypatch.setattr(version, "distribution", lambda: distribution)
     assert version.is_sandboxed() == expected
 
 
