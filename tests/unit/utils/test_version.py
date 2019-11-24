@@ -206,8 +206,26 @@ def test_distribution(tmpdir, monkeypatch, os_release, expected):
     assert version.distribution() == expected
 
 
-class GitStrSubprocessFake:
+@pytest.mark.parametrize('distribution, expected', [
+    (None, False),
+    (version.DistributionInfo(
+        id='org.kde.Platform', parsed=version.Distribution.kde,
+        version=pkg_resources.parse_version('5.12'),
+        pretty='Unknown'), True),
+    (version.DistributionInfo(
+        id='arch', parsed=version.Distribution.arch, version=None,
+        pretty='Arch Linux'), False)
+])
+def test_is_sandboxed(monkeypatch, distribution, expected):
+    def distribution_mock():
+        return distribution
 
+    monkeypatch.setattr(version, "distribution", distribution_mock)
+    
+    assert version.is_sandboxed() == expected
+
+
+class GitStrSubprocessFake:
     """Object returned by the git_str_subprocess_fake fixture.
 
     This provides a function which is used to patch _git_str_subprocess.

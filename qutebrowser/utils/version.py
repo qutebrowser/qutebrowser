@@ -131,6 +131,15 @@ def distribution() -> typing.Optional[DistributionInfo]:
                             id=dist_id)
 
 
+def is_sandboxed():
+    """Check whether the environment is a sandbox, i.e. has restricted access to the host system.
+    """
+    current_distro = distribution()
+    if current_distro is None:
+        return False
+    return current_distro.parsed == Distribution.kde
+
+
 def _git_str() -> typing.Optional[str]:
     """Try to find out git version.
 
