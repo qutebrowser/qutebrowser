@@ -37,7 +37,7 @@ from qutebrowser.browser import hints
 INPUT_MODES = [usertypes.KeyMode.insert, usertypes.KeyMode.passthrough]
 PROMPT_MODES = [usertypes.KeyMode.prompt, usertypes.KeyMode.yesno]
 
-_ParserDictType = typing.MutableMapping[
+ParserDictType = typing.MutableMapping[
     usertypes.KeyMode, basekeyparser.BaseKeyParser]
 
 
@@ -161,13 +161,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
                 mode=usertypes.KeyMode.run_macro,
                 commandrunner=commandrunner,
                 parent=modeman),
-    }  # type: _ParserDictType
-
-    objreg.register('keyparsers', keyparsers, scope='window', window=win_id)
-
-    modeman.destroyed.connect(  # type: ignore
-        functools.partial(objreg.delete, 'keyparsers', scope='window',
-                          window=win_id))
+    }  # type: ParserDictType
 
     for mode, parser in keyparsers.items():
         modeman.register(mode, parser)
@@ -204,7 +198,7 @@ class ModeManager(QObject):
         mode: The mode we're currently in.
         _win_id: The window ID of this ModeManager
         _prev_mode: Mode before a prompt popped up
-        _parsers: A dictionary of modes and their keyparsers.
+        parsers: A dictionary of modes and their keyparsers.
         _forward_unbound_keys: If we should forward unbound keys.
         _releaseevents_to_pass: A set of KeyEvents where the keyPressEvent was
                                 passed through, so the release event should as
@@ -226,7 +220,7 @@ class ModeManager(QObject):
     def __init__(self, win_id: int, parent: QObject = None) -> None:
         super().__init__(parent)
         self._win_id = win_id
-        self._parsers = {}  # type: _ParserDictType
+        self.parsers = {}  # type: _ParserDictType
         self._prev_mode = usertypes.KeyMode.normal
         self.mode = usertypes.KeyMode.normal
         self._releaseevents_to_pass = set()  # type: typing.Set[KeyEvent]
@@ -246,7 +240,7 @@ class ModeManager(QObject):
             True if event should be filtered, False otherwise.
         """
         curmode = self.mode
-        parser = self._parsers[curmode]
+        parser = self.parsers[curmode]
         if curmode != usertypes.KeyMode.insert:
             log.modes.debug("got keypress in mode {} - delegating to "
                             "{}".format(curmode, utils.qualname(parser)))
@@ -303,7 +297,7 @@ class ModeManager(QObject):
                  parser: basekeyparser.BaseKeyParser) -> None:
         """Register a new mode."""
         assert parser is not None
-        self._parsers[mode] = parser
+        self.parsers[mode] = parser
         parser.request_leave.connect(self.leave)
 
     def enter(self, mode: usertypes.KeyMode,
@@ -322,7 +316,7 @@ class ModeManager(QObject):
 
         log.modes.debug("Entering mode {}{}".format(
             mode, '' if reason is None else ' (reason: {})'.format(reason)))
-        if mode not in self._parsers:
+        if mode not in self.parsers:
             raise ValueError("No keyparser for mode {}".format(mode))
         if self.mode == mode or (self.mode in PROMPT_MODES and
                                  mode in PROMPT_MODES):
@@ -429,4 +423,4 @@ class ModeManager(QObject):
     @cmdutils.register(instance='mode-manager', scope='window')
     def clear_keychain(self) -> None:
         """Clear the currently entered key chain."""
-        self._parsers[self.mode].clear_keystring()
+        self.parsers[self.mode].clear_keystring()

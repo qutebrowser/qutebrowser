@@ -455,9 +455,8 @@ class MainWindow(QWidget):
 
     def _connect_signals(self):
         """Connect all mainwindow signals."""
-        keyparsers = self._get_object('keyparsers')
         message_bridge = self._get_object('message-bridge')
-        mode_manager = self._get_object('mode-manager')
+        mode_manager = modeman.instance(self._win_id)
 
         # misc
         self.tabbed_browser.close_window.connect(self.close)
@@ -470,7 +469,8 @@ class MainWindow(QWidget):
         mode_manager.left.connect(message.global_bridge.mode_left)
 
         # commands
-        keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
+        normal_parser = mode_manager.keyparsers[usertypes.KeyMode.normal]
+        normal_parser.keystring_updated.connect(
             self.status.keystring.setText)
         self.status.cmd.got_cmd[str].connect(  # type: ignore
             self._commandrunner.run_safely)
@@ -482,7 +482,7 @@ class MainWindow(QWidget):
             self._command_dispatcher.search)
 
         # key hint popup
-        for mode, parser in keyparsers.items():
+        for mode, parser in mode_manager.parsers.items():
             parser.keystring_updated.connect(functools.partial(
                 self._keyhint.update_keyhint, mode.name))
 

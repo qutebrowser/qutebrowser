@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QStackedLayout, QSizePolicy
 
 from qutebrowser.browser import browsertab
 from qutebrowser.config import config
+from qutebrowser.keyinput import modeman
 from qutebrowser.utils import usertypes, log, objreg, utils
 from qutebrowser.mainwindow.statusbar import (backforward, command, progress,
                                               keystring, percentage, url,
@@ -333,9 +334,8 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode)
     def on_mode_entered(self, mode):
         """Mark certain modes in the commandline."""
-        keyparsers = objreg.get('keyparsers', scope='window',
-                                window=self._win_id)
-        if keyparsers[mode].passthrough:
+        mode_manager = modeman.instance(self._win_id)
+        if mode_manager.parsers[mode].passthrough:
             self._set_mode_text(mode.name)
         if mode in [usertypes.KeyMode.insert,
                     usertypes.KeyMode.command,
@@ -348,10 +348,9 @@ class StatusBar(QWidget):
     @pyqtSlot(usertypes.KeyMode, usertypes.KeyMode)
     def on_mode_left(self, old_mode, new_mode):
         """Clear marked mode."""
-        keyparsers = objreg.get('keyparsers', scope='window',
-                                window=self._win_id)
-        if keyparsers[old_mode].passthrough:
-            if keyparsers[new_mode].passthrough:
+        mode_manager = modeman.instance(self._win_id)
+        if mode_manager.parsers[old_mode].passthrough:
+            if mode_manager.parsers[new_mode].passthrough:
                 self._set_mode_text(new_mode.name)
             else:
                 self.txt.set_text(self.txt.Text.normal, '')

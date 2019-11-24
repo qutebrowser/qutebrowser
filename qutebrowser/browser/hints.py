@@ -33,7 +33,7 @@ from PyQt5.QtCore import pyqtSlot, QObject, Qt, QUrl
 from PyQt5.QtWidgets import QLabel
 
 from qutebrowser.config import config, configexc
-from qutebrowser.keyinput import modeman, modeparsers
+from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
 from qutebrowser.browser import webelem
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
@@ -384,8 +384,7 @@ class HintManager(QObject):
 
         self._actions = HintActions(win_id)
 
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=win_id)
+        mode_manager = modeman.instance(self._win_id)
         mode_manager.left.connect(self.on_mode_left)
 
     def _get_text(self) -> str:
@@ -595,6 +594,11 @@ class HintManager(QObject):
         elemstr = elemstr.casefold()
         return filterstr == elemstr
 
+    def _get_keyparser(self,
+                       mode: usertypes.KeyMode) -> basekeyparser.BaseKeyParser:
+        mode_manager = modeman.instance(self._win_id)
+        return mode_manager.parsers[mode]
+
     def _start_cb(self, elems: _ElemsType) -> None:
         """Initialize the elements and labels based on the context set."""
         if self._context is None:
@@ -626,9 +630,7 @@ class HintManager(QObject):
             self._context.all_labels.append(label)
             self._context.labels[string] = label
 
-        keyparsers = objreg.get('keyparsers', scope='window',
-                                window=self._win_id)
-        keyparser = keyparsers[usertypes.KeyMode.hint]
+        keyparser = self._get_keyparser(usertypes.KeyMode.hint)
         keyparser.update_bindings(strings)
 
         message_bridge = objreg.get('message-bridge', scope='window',
@@ -724,8 +726,7 @@ class HintManager(QObject):
         if tab is None:
             raise cmdutils.CommandError("No WebView available yet!")
 
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
+        mode_manager = modeman.instance(self._win_id)
         if mode_manager.mode == usertypes.KeyMode.hint:
             modeman.leave(self._win_id, usertypes.KeyMode.hint, 're-hinting')
 
@@ -824,9 +825,7 @@ class HintManager(QObject):
         if follow:
             # apply auto_follow_timeout
             timeout = config.val.hints.auto_follow_timeout
-            keyparsers = objreg.get('keyparsers', scope='window',
-                                    window=self._win_id)
-            normal_parser = keyparsers[usertypes.KeyMode.normal]
+            normal_parser = self._get_keyparser(usertypes.KeyMode.normal)
             normal_parser.set_inhibited_timeout(timeout)
             # unpacking gets us the first (and only) key in the dict.
             self._fire(*visible)
@@ -901,9 +900,8 @@ class HintManager(QObject):
             for label, string in zip(visible, strings):
                 label.update_text('', string)
                 self._context.labels[string] = label
-            keyparsers = objreg.get('keyparsers', scope='window',
-                                    window=self._win_id)
-            keyparser = keyparsers[usertypes.KeyMode.hint]
+
+            keyparser = self._get_keyparser(usertypes.KeyMode.hint)
             keyparser.update_bindings(strings, preserve_filter=True)
 
             # Note: filter_hints can be called with non-None filterstr only
