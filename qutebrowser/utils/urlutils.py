@@ -151,7 +151,7 @@ def _is_url_naive(urlstr: str) -> bool:
 
     host = url.host()
     tld = r'\.([^.0-9_-]+|xn--[a-z0-9-]+)$'
-    forbidden = r'[\u0000-\u002c\u002f-\u002f\u003a-\u0060\u007b-\u00b6]'
+    forbidden = r'[\u0000-\u002c\u002e-\u002f\u003a-\u0060\u007b-\u00b6]'
     return bool(re.search(tld, host) and not re.search(forbidden, host))
 
 
