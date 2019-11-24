@@ -26,7 +26,7 @@ import functools
 import typing
 
 import attr
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qutebrowser.config import config
@@ -103,7 +103,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._read_timer.setInterval(500)
         self._read_timer.timeout.connect(self._on_read_timer_timeout)
         self._redirects = 0
-        self._url = reply.url().toString()
+        self._url = reply.url()
         self._init_reply(reply)
 
     def _create_fileobj(self):
@@ -193,7 +193,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
             filename = getattr(self.fileobj, 'name', None)
         return filename
 
-    def url(self) -> str:
+    def url(self) -> QUrl:
         # Note: self._reply is deleted when the download finishes
         return self._url
 

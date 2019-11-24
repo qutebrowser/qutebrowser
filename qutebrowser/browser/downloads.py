@@ -435,8 +435,9 @@ class AbstractDownloadItem(QObject):
                arg: The error message as string.
         remove_requested: Emitted when the removal of this download was
                           requested.
-        pdfjs_requested: Emitted when PDF.js should be opened with the given
-                         filename.
+        pdfjs_requested: Emitted when PDF.js should be opened.
+                         arg 1: The filename of the PDF download.
+                         arg 2: The original download URL.
     """
 
     data_changed = pyqtSignal()
@@ -444,7 +445,7 @@ class AbstractDownloadItem(QObject):
     error = pyqtSignal(str)
     cancelled = pyqtSignal()
     remove_requested = pyqtSignal()
-    pdfjs_requested = pyqtSignal(str, str)
+    pdfjs_requested = pyqtSignal(str, QUrl)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -606,7 +607,7 @@ class AbstractDownloadItem(QObject):
         except UnsupportedOperationError as e:
             message.error(str(e))
 
-    def url(self) -> str:
+    def url(self) -> QUrl:
         """Get the download's origin URL."""
         raise NotImplementedError
 
@@ -858,8 +859,8 @@ class AbstractDownloadManager(QObject):
             dl.stats.update_speed()
         self.data_changed.emit(-1)
 
-    @pyqtSlot(str, str)
-    def _on_pdfjs_requested(self, filename: str, original_url: str):
+    @pyqtSlot(str, QUrl)
+    def _on_pdfjs_requested(self, filename: str, original_url: QUrl):
         """Open PDF.js when a download requests it."""
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window='last-focused')

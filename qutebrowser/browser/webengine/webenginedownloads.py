@@ -24,7 +24,7 @@ import os.path
 import urllib
 import functools
 
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import pyqtSlot, Qt, QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineDownloadItem
 
 from qutebrowser.browser import downloads, pdfjs
@@ -118,8 +118,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
     def _get_open_filename(self):
         return self._filename
 
-    def url(self) -> str:
-        return self._qt_item.url().toString()
+    def url(self) -> QUrl:
+        return self._qt_item.url()
 
     def _set_fileobj(self, fileobj, *, autoclose=True):
         raise downloads.UnsupportedOperationError
