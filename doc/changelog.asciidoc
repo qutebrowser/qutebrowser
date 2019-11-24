@@ -41,6 +41,8 @@ Changed
 - As a workaround for a Qt bug causing a segfault, desktop sharing is now
   automatically rejected on Qt versions before 5.13.2. Note that screen sharing
   still won't work on Linux until Qt 5.14.
+- Comment lines in quickmarks/bookmarks files are now ignored. However, note that
+  qutebrowser will overwrite those files if bookmark/quickmark commands are used.
 
 Fixed
 ~~~~~
