@@ -1360,7 +1360,7 @@ class WebEngineTab(browsertab.AbstractTab):
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)
 
-    def _error_page_workaround(self, html):
+    def _error_page_workaround(self, js_enabled, html):
         """Check if we're displaying a Chromium error page.
 
         This gets called if we got a loadFinished(False), so we can display at
@@ -1373,9 +1373,7 @@ class WebEngineTab(browsertab.AbstractTab):
         Needs to check the page content as a WORKAROUND for
         https://bugreports.qt.io/browse/QTBUG-66661
         """
-        js_enabled = self.settings.test_attribute('content.javascript.enabled')
         missing_jst = 'jstProcess(' in html and 'jstProcess=' not in html
-
         if js_enabled and not missing_jst:
             return
 
@@ -1409,7 +1407,9 @@ class WebEngineTab(browsertab.AbstractTab):
             self._update_load_status(ok)
 
         if not ok:
-            self.dump_async(self._error_page_workaround)
+            self.dump_async(functools.partial(
+                self._error_page_workaround,
+                self.settings.test_attribute('content.javascript.enabled')))
 
         if ok and self._reload_url is not None:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
