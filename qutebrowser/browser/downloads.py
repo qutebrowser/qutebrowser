@@ -460,7 +460,7 @@ class AbstractDownloadItem(QObject):
         self.raw_headers = UnsupportedAttribute(
         )  # type: typing.Union[UnsupportedAttribute, typing.Dict[bytes,bytes]]
 
-        self._filename = None
+        self._filename = None  # type: typing.Optional[str]
         self._dead = False
 
     def __repr__(self):

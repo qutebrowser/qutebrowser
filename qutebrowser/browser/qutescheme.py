@@ -98,8 +98,8 @@ class Redirect(Exception):
 
 
 # Return value: (mimetype, data) (encoded as utf-8 if a str is returned)
-Handler = TypeVar('Handler',
-                  bound=Callable[[QUrl], Tuple[str, Union[str, bytes]]])
+_Handler = TypeVar('_Handler',
+                   bound=Callable[[QUrl], Tuple[str, Union[str, bytes]]])
 
 
 class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
@@ -114,7 +114,7 @@ class add_handler:  # noqa: N801,N806 pylint: disable=invalid-name
         self._name = name
         self._function = None  # type: typing.Optional[typing.Callable]
 
-    def __call__(self, function: Handler) -> Handler:
+    def __call__(self, function: _Handler) -> _Handler:
         self._function = function
         _HANDLERS[self._name] = self.wrapper
         return function

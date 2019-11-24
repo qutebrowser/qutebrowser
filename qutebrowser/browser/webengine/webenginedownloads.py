@@ -93,7 +93,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
                              "{}".format(state_name))
 
     def _do_die(self):
-        self._qt_item.downloadProgress.disconnect()
+        self._qt_item.downloadProgress.disconnect()  # type: ignore
         if self._qt_item.state() != QWebEngineDownloadItem.DownloadInterrupted:
             self._qt_item.cancel()
 
@@ -170,6 +170,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         message.global_bridge.ask(question, blocking=True)
 
     def _after_set_filename(self):
+        assert self._filename is not None
         self._qt_item.setPath(self._filename)
         self._qt_item.accept()
 
