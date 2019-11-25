@@ -174,7 +174,7 @@ class TestSaveAll:
 def test_get_session_name(config_stub, sess_man, arg, config, current,
                           expected):
     config_stub.val.session.default_name = config
-    sess_man._current = current
+    sess_man.current = current
     assert sess_man._get_session_name(arg) == expected
 
 
