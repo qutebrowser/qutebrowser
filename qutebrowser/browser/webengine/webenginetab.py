@@ -32,7 +32,8 @@ from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.config import configdata, config
-from qutebrowser.browser import browsertab, eventfilter, shared, webelem
+from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
+                                 history)
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
@@ -79,14 +80,13 @@ def init():
         cookies.install_filter(webenginesettings.private_profile)
 
     # Clear visited links on web history clear
-    hist = objreg.get('web-history')
     for p in [webenginesettings.default_profile,
               webenginesettings.private_profile]:
         if not p:
             continue
-        hist.history_cleared.connect(p.clearAllVisitedLinks)
-        hist.url_cleared.connect(lambda url, profile=p:
-                                 profile.clearVisitedLinks([url]))
+        history.web_history.history_cleared.connect(p.clearAllVisitedLinks)
+        history.web_history.url_cleared.connect(
+            lambda url, profile=p: profile.clearVisitedLinks([url]))
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.

@@ -29,12 +29,13 @@ from PyQt5.QtWidgets import QProgressDialog, QApplication
 
 from qutebrowser.config import config
 from qutebrowser.api import cmdutils
-from qutebrowser.utils import utils, objreg, log, usertypes, message, qtutils
+from qutebrowser.utils import utils, log, usertypes, message, qtutils
 from qutebrowser.misc import objects, sql
 
 
 # increment to indicate that HistoryCompletion must be regenerated
 _USER_VERSION = 2
+web_history = typing.cast('WebHistory', None)
 
 
 class HistoryProgress:
@@ -261,24 +262,8 @@ class WebHistory(sql.SqlTable):
         self._before_query.run(latest=latest, limit=limit, offset=offset)
         return iter(self._before_query)
 
-    @cmdutils.register(name='history-clear', instance='web-history')
-    def clear(self, force=False):
-        """Clear all browsing history.
-
-        Note this only clears the global history
-        (e.g. `~/.local/share/qutebrowser/history` on Linux) but not cookies,
-        the back/forward history of a tab, cache or other persistent data.
-
-        Args:
-            force: Don't ask for confirmation.
-        """
-        if force:
-            self._do_clear()
-        else:
-            message.confirm_async(yes_action=self._do_clear,
-                                  title="Clear all browsing history?")
-
-    def _do_clear(self):
+    def clear(self):
+        """Clear all browsing history."""
         with self._handle_sql_errors():
             self.delete_all()
             self.completion.delete_all()
@@ -359,26 +344,48 @@ class WebHistory(sql.SqlTable):
     def _format_completion_url(self, url):
         return url.toString(QUrl.RemovePassword)
 
-    @cmdutils.register(instance='web-history', debug=True)
-    def debug_dump_history(self, dest):
-        """Dump the history to a file in the old pre-SQL format.
 
-        Args:
-            dest: Where to write the file to.
-        """
-        dest = os.path.expanduser(dest)
+@cmdutils.register()
+def history_clear(force=False):
+    """Clear all browsing history.
 
-        lines = ('{}{} {} {}'
-                 .format(int(x.atime), '-r' * x.redirect, x.url, x.title)
-                 for x in self.select(sort_by='atime', sort_order='asc'))
+    Note this only clears the global history
+    (e.g. `~/.local/share/qutebrowser/history` on Linux) but not cookies,
+    the back/forward history of a tab, cache or other persistent data.
 
-        try:
-            with open(dest, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(lines))
-            message.info("Dumped history to {}".format(dest))
-        except OSError as e:
-            raise cmdutils.CommandError('Could not write history: {}'
-                                        .format(e))
+    Args:
+        force: Don't ask for confirmation.
+    """
+    if force:
+        web_history.clear()
+    else:
+        message.confirm_async(yes_action=web_history.clear,
+                              title="Clear all browsing history?")
+
+
+@cmdutils.register(debug=True)
+def debug_dump_history(dest):
+    """Dump the history to a file in the old pre-SQL format.
+
+    Args:
+        dest: Where to write the file to.
+    """
+    dest = os.path.expanduser(dest)
+
+    lines = ('{}{} {} {}'.format(int(x.atime),
+                                 '-r' * x.redirect,
+                                 x.url,
+                                 x.title)
+             for x in web_history.select(sort_by='atime',
+                                         sort_order='asc'))
+
+    try:
+        with open(dest, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(lines))
+        message.info("Dumped history to {}".format(dest))
+    except OSError as e:
+        raise cmdutils.CommandError('Could not write history: {}'
+                                    .format(e))
 
 
 def init(parent=None):
@@ -387,10 +394,10 @@ def init(parent=None):
     Args:
         parent: The parent to use for WebHistory.
     """
+    global web_history
     progress = HistoryProgress()
-    history = WebHistory(progress=progress, parent=parent)
-    objreg.register('web-history', history)
+    web_history = WebHistory(progress=progress, parent=parent)
 
     if objects.backend == usertypes.Backend.QtWebKit:  # pragma: no cover
         from qutebrowser.browser.webkit import webkithistory
-        webkithistory.init(history)
+        webkithistory.init(web_history)

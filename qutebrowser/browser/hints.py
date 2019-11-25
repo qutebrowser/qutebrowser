@@ -34,7 +34,7 @@ from PyQt5.QtWidgets import QLabel
 
 from qutebrowser.config import config, configexc
 from qutebrowser.keyinput import modeman, modeparsers, basekeyparser
-from qutebrowser.browser import webelem
+from qutebrowser.browser import webelem, history
 from qutebrowser.commands import userscripts, runners
 from qutebrowser.api import cmdutils
 from qutebrowser.utils import usertypes, log, qtutils, message, objreg, utils
@@ -958,7 +958,7 @@ class HintManager(QObject):
             handler = functools.partial(url_handlers[self._context.target],
                                         url, self._context)
             if self._context.add_history:
-                objreg.get('web-history').add_url(url, "")
+                history.web_history.add_url(url, "")
         else:
             raise ValueError("No suitable handler found!")
 

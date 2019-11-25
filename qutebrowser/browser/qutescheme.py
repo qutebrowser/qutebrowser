@@ -44,7 +44,7 @@ except ImportError:
 from PyQt5.QtCore import QUrlQuery, QUrl, qVersion
 
 import qutebrowser
-from qutebrowser.browser import pdfjs, downloads
+from qutebrowser.browser import pdfjs, downloads, history
 from qutebrowser.config import config, configdata, configexc, configdiff
 from qutebrowser.utils import (version, utils, jinja, log, message, docutils,
                                objreg, urlutils)
@@ -226,13 +226,13 @@ def history_data(start_time, offset=None):
     """
     # history atimes are stored as ints, ensure start_time is not a float
     start_time = int(start_time)
-    hist = objreg.get('web-history')
     if offset is not None:
-        entries = hist.entries_before(start_time, limit=1000, offset=offset)
+        entries = history.web_history.entries_before(start_time, limit=1000,
+                                                     offset=offset)
     else:
         # end is 24hrs earlier than start
         end_time = start_time - 24*60*60
-        entries = hist.entries_between(end_time, start_time)
+        entries = history.web_history.entries_between(end_time, start_time)
 
     return [{"url": e.url,
              "title": html.escape(e.title) or html.escape(e.url),

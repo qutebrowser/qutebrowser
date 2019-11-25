@@ -32,7 +32,7 @@ from PyQt5.QtGui import QIcon
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
 from qutebrowser.mainwindow import tabwidget, mainwindow
-from qutebrowser.browser import signalfilter, browsertab
+from qutebrowser.browser import signalfilter, browsertab, history
 from qutebrowser.utils import (log, usertypes, utils, qtutils, objreg,
                                urlutils, message, jinja)
 
@@ -361,8 +361,8 @@ class TabbedBrowser(QWidget):
             functools.partial(self._on_audio_changed, tab))
         tab.new_tab_requested.connect(self.tabopen)
         if not self.is_private:
-            web_history = objreg.get('web-history')
-            tab.history_item_triggered.connect(web_history.add_from_tab)
+            tab.history_item_triggered.connect(
+                history.web_history.add_from_tab)
 
     def current_url(self):
         """Get the URL of the current tab.

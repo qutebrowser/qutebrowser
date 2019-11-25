@@ -635,11 +635,11 @@ def download_stub(win_registry, tmpdir, stubs):
 
 
 @pytest.fixture
-def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs):
-    """Create a web history and register it into objreg."""
+def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs,
+                monkeypatch):
+    """Create a WebHistory object."""
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
     config_stub.val.completion.web_history.max_items = -1
     web_history = history.WebHistory(stubs.FakeHistoryProgress())
-    objreg.register('web-history', web_history)
-    yield web_history
-    objreg.delete('web-history')
+    monkeypatch.setattr(history, 'web_history', web_history)
+    return web_history
