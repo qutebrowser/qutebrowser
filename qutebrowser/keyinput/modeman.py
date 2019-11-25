@@ -169,7 +169,7 @@ def init(win_id: int, parent: QObject) -> 'ModeManager':
     return modeman
 
 
-def instance(win_id: int) -> 'ModeManager':
+def instance(win_id: typing.Union[int, str]) -> 'ModeManager':
     """Get a modemanager object."""
     return objreg.get('mode-manager', scope='window', window=win_id)
 

@@ -71,7 +71,7 @@ from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.extensions import loader
-from qutebrowser.keyinput import macros
+from qutebrowser.keyinput import macros, modeman
 from qutebrowser.mainwindow import mainwindow, prompt
 from qutebrowser.misc import (readline, ipc, savemanager, sessions,
                               crashsignal, earlyinit, sql, cmdhistory,
@@ -880,7 +880,7 @@ class EventFilter(QObject):
             # event through.
             return False
         try:
-            man = objreg.get('mode-manager', scope='window', window='current')
+            man = modeman.instance('current')
             return man.handle_event(event)
         except objreg.RegistryUnavailableError:
             # No window available yet, or not a MainWindow

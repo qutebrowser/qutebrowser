@@ -139,8 +139,8 @@ class Command:
         Args:
             win_id: The window ID the command is run in.
         """
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=win_id)
+        from qutebrowser.keyinput import modeman
+        mode_manager = modeman.instance(win_id)
         self.validate_mode(mode_manager.mode)
 
         if self.backend is not None and objects.backend != self.backend:

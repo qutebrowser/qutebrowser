@@ -30,6 +30,7 @@ from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
+from qutebrowser.keyinput import modeman
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
 from qutebrowser.misc import (  # pylint: disable=unused-import
@@ -201,7 +202,7 @@ def repeat_command(win_id: int, count: int = None) -> None:
     Args:
         count: Which count to pass the command.
     """
-    mode_manager = objreg.get('mode-manager', scope='window', window=win_id)
+    mode_manager = modeman.instance(win_id)
     if mode_manager.mode not in runners.last_command:
         raise cmdutils.CommandError("You didn't do anything yet.")
     cmd = runners.last_command[mode_manager.mode]

@@ -32,7 +32,7 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
-from qutebrowser.keyinput import macros
+from qutebrowser.keyinput import macros, modeman
 
 if typing.TYPE_CHECKING:
     from qutebrowser.mainwindow import tabbedbrowser
@@ -353,8 +353,7 @@ class CommandRunner(AbstractCommandRunner):
         record_last_command = True
         record_macro = True
 
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
+        mode_manager = modeman.instance(self._win_id)
         cur_mode = mode_manager.mode
 
         parsed = None
