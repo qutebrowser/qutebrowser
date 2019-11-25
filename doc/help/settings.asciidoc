@@ -1947,6 +1947,7 @@ Default: +pass:[true]+
 Log levels to use for JavaScript console logging messages.
 When a JavaScript message with the level given in the dictionary key is logged, the corresponding dictionary value selects the qutebrowser logger to use.
 On QtWebKit, the "unknown" setting is always used.
+The following levels are valid: `none`, `debug`, `info`, `warning`, `error`.
 
 Type: <<types,Dict>>
 

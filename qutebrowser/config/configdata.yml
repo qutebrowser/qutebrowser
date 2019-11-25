@@ -611,6 +611,9 @@ content.javascript.log:
 
     On QtWebKit, the "unknown" setting is always used.
 
+    The following levels are valid: `none`, `debug`, `info`, `warning`,
+    `error`.
+
 content.javascript.modal_dialog:
   type: Bool
   default: false
