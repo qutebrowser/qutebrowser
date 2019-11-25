@@ -124,6 +124,7 @@ class _ReadlineBridge:
         self._dispatch('cursorWordForward', mark=True, delete=True)
 
     def yank(self) -> None:
+        """Paste previously deleted text."""
         widget = self._widget()
         if widget is None or widget not in self._deleted:
             return

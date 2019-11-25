@@ -1169,7 +1169,6 @@ Delete a session.
 ==== optional arguments
 * +*-f*+, +*--force*+: Force deleting internal sessions (starting with an underline).
 
-
 [[session-load]]
 === session-load
 Syntax: +:session-load [*--clear*] [*--temp*] [*--force*] [*--delete*] 'name'+
@@ -1183,7 +1182,6 @@ Load a session.
 * +*-c*+, +*--clear*+: Close all existing windows.
 * +*-t*+, +*--temp*+: Don't set the current session for :session-save.
 * +*-f*+, +*--force*+: Force loading internal sessions (starting with an underline).
-
 * +*-d*+, +*--delete*+: Delete the saved session once it has loaded.
 
 [[session-save]]

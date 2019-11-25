@@ -100,10 +100,11 @@ PERFECT_FILES = [
     ('tests/unit/keyinput/test_keyutils.py',
      'keyinput/keyutils.py'),
 
+    ('tests/unit/components/test_readlinecommands.py',
+     'components/readlinecommands.py'),
+
     ('tests/unit/misc/test_autoupdate.py',
      'misc/autoupdate.py'),
-    ('tests/unit/misc/test_readline.py',
-     'misc/readline.py'),
     ('tests/unit/misc/test_split.py',
      'misc/split.py'),
     ('tests/unit/misc/test_msgbox.py',
