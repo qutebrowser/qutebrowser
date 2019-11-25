@@ -73,9 +73,9 @@ from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.extensions import loader
 from qutebrowser.keyinput import macros, modeman
 from qutebrowser.mainwindow import mainwindow, prompt
-from qutebrowser.misc import (readline, ipc, savemanager, sessions,
-                              crashsignal, earlyinit, sql, cmdhistory,
-                              backendproblem, objects)
+from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
+                              earlyinit, sql, cmdhistory, backendproblem,
+                              objects)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
                                usertypes, standarddir, error, qtutils)
 # pylint: disable=unused-import
@@ -459,10 +459,6 @@ def _init_modules(*, args, crash_handler, quitter):
     log.init.debug("Initializing downloads...")
     downloads.init()
     quitter.shutting_down.connect(downloads.shutdown)
-
-    log.init.debug("Initializing readline-bridge...")
-    readline_bridge = readline.ReadlineBridge()
-    objreg.register('readline-bridge', readline_bridge, command_only=True)
 
     try:
         log.init.debug("Initializing SQL...")
