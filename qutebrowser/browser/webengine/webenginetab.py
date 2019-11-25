@@ -33,7 +33,7 @@ from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.config import configdata, config
 from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
-                                 history)
+                                 history, greasemonkey)
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
@@ -899,7 +899,7 @@ class _WebEngineScripts(QObject):
         super().__init__(parent)
         self._tab = tab
         self._widget = typing.cast(QWidget, None)
-        self._greasemonkey = objreg.get('greasemonkey')
+        self._greasemonkey = greasemonkey.gm_manager
 
     def connect_signals(self):
         """Connect signals to our private slots."""

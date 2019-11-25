@@ -30,7 +30,7 @@ from PyQt5.QtPrintSupport import QPrintDialog
 from PyQt5.QtWebKitWidgets import QWebPage, QWebFrame
 
 from qutebrowser.config import config
-from qutebrowser.browser import pdfjs, shared, downloads
+from qutebrowser.browser import pdfjs, shared, downloads, greasemonkey
 from qutebrowser.browser.webkit import http
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.utils import message, usertypes, log, jinja, objreg
@@ -305,8 +305,7 @@ class BrowserPage(QWebPage):
         log.greasemonkey.debug("_inject_userjs called for {} ({})"
                                .format(frame, url.toDisplayString()))
 
-        greasemonkey = objreg.get('greasemonkey')
-        scripts = greasemonkey.scripts_for(url)
+        scripts = greasemonkey.gm_manager.scripts_for(url)
         # QtWebKit has trouble providing us with signals representing
         # page load progress at reasonable times, so we just load all
         # scripts on the same event.

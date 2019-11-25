@@ -39,6 +39,9 @@ from qutebrowser.browser import downloads
 from qutebrowser.misc import objects
 
 
+gm_manager = typing.cast('GreasemonkeyManager', None)
+
+
 def _scripts_dir():
     """Get the directory of the scripts."""
     return os.path.join(standarddir.data(), 'greasemonkey')
@@ -263,9 +266,7 @@ class GreasemonkeyManager(QObject):
 
         self.load_scripts()
 
-    @cmdutils.register(name='greasemonkey-reload',
-                       instance='greasemonkey')
-    def load_scripts(self, force=False):
+    def load_scripts(self, *, force=False):
         """Re-read Greasemonkey scripts from disk.
 
         The scripts are read from a 'greasemonkey' subdirectory in
@@ -423,10 +424,24 @@ class GreasemonkeyManager(QObject):
         return self._run_start + self._run_end + self._run_idle
 
 
+@cmdutils.register()
+def greasemonkey_reload(force=False):
+    """Re-read Greasemonkey scripts from disk.
+
+    The scripts are read from a 'greasemonkey' subdirectory in
+    qutebrowser's data directory (see `:version`).
+
+    Args:
+        force: For any scripts that have required dependencies,
+                re-download them.
+    """
+    gm_manager.load_scripts(force=force)
+
+
 def init():
     """Initialize Greasemonkey support."""
+    global gm_manager
     gm_manager = GreasemonkeyManager()
-    objreg.register('greasemonkey', gm_manager)
 
     try:
         os.mkdir(_scripts_dir())
