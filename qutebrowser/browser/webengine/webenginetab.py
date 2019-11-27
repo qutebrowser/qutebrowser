@@ -1469,7 +1469,7 @@ class WebEngineTab(browsertab.AbstractTab):
         # might not match the URL we get from the error - so we just apply a
         # heuristic here.
         if ((show_cert_error or show_non_overr_cert_error) and
-                url.matches(self.url(requested=True), QUrl.RemoveScheme)):
+                url.matches(self.data.last_navigation.url, QUrl.RemoveScheme)):
             self._show_error_page(url, str(error))
 
     @pyqtSlot(QUrl)

@@ -137,6 +137,7 @@ class TabData:
     fullscreen = attr.ib(False)  # type: bool
     netrc_used = attr.ib(False)  # type: bool
     input_mode = attr.ib(usertypes.KeyMode.normal)  # type: usertypes.KeyMode
+    last_navigation = attr.ib(None)  # type: usertypes.NavigationRequest
 
     def should_show_icon(self) -> bool:
         return (config.val.tabs.favicons.show == 'always' or
@@ -993,6 +994,9 @@ class AbstractTab(QWidget):
                           "{}".format(url,
                                       navigation.navigation_type,
                                       navigation.is_main_frame))
+
+        if navigation.is_main_frame:
+            self.data.last_navigation = navigation
 
         if not navigation.url.isValid():
             # Also a WORKAROUND for missing IDNA 2008 support in QUrl, see
