@@ -59,6 +59,8 @@ Fixed
   relative basedirs.
 - Remaining issues (mostly warnings) related to Python 3.8, especially for
   QtWebKit.
+- Workaround for a Qt bug where a page never finishes loading with a
+  non-overridable TLS error (e.g. due to HSTS).
 - Various improvements for URL/searchengine detection:
   - Strings with a dot but with characters not allowed in a URL (e.g. an
     underscore) are now not treated as URL anymore.
