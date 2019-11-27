@@ -94,7 +94,8 @@ class Values:
             self.add(*attr.astuple(v))
 
     def __repr__(self) -> str:
-        return utils.get_repr(self, opt=self.opt, vmap=self._vmap.values(),
+        return utils.get_repr(self, opt=self.opt,
+                              values=list(self._vmap.values()),
                               constructor=True)
 
     def __str__(self) -> str:
