@@ -81,14 +81,14 @@ class Values:
         values: A list of ScopedValues to start with.
     """
 
-    VMAP_KEY = typing.Optional[urlmatch.UrlPattern]
+    _VmapKeyType = typing.Optional[urlmatch.UrlPattern]
 
     def __init__(self,
                  opt: 'configdata.Option',
                  values: typing.Sequence[ScopedValue] = ()) -> None:
         self.opt = opt
         self._vmap = collections.OrderedDict()  \
-            # type: collections.OrderedDict[Values.VMAP_KEY, ScopedValue]
+            # type: collections.OrderedDict[Values._VmapKeyType, ScopedValue]
 
         for v in values:
             self.add(*attr.astuple(v))
