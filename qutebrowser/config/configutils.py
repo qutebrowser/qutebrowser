@@ -199,13 +199,8 @@ class Values:
         if url is None:
             return self._get_fallback(fallback)
 
-        widened_hosts = []  # type: typing.Iterable[typing.Optional[str]]
-        # Only compute widened domains if we have any non-domain matches
-        # to possibly hit.
-        if self._domain_map and self._domain_map.keys() != {None}:
-            widened_hosts = urlutils.widened_hostnames(url.host())
-
         candidates = []  # type: typing.List[ScopedValue]
+        widened_hosts = urlutils.widened_hostnames(url.host())
         # We must check the 'None' key as well, in case any patterns that
         # did not have a domain match.
         for host in itertools.chain(widened_hosts, [None]):
