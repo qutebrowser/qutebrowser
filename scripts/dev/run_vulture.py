@@ -138,6 +138,7 @@ def whitelist_generator():  # noqa
     yield 'pending_download_type'
     yield 'world_id_type'
     yield 'ParserDictType'
+    yield 'qutebrowser.config.configutils.VMAP_KEY'
 
 
 def filter_func(item):
