@@ -91,6 +91,7 @@ class Values:
             # type: collections.OrderedDict[Values._VmapKeyType, ScopedValue]
 
         for v in values:
+            # pylint: disable=no-value-for-parameter
             self.add(*attr.astuple(v))
 
     def __repr__(self) -> str:
