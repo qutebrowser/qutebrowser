@@ -56,8 +56,8 @@ def other_pattern():
 
 @pytest.fixture
 def values(opt, pattern):
-    scoped_values = [configutils.ScopedValue('global value', None, 1),
-                     configutils.ScopedValue('example value', pattern, 2)]
+    scoped_values = [configutils.ScopedValue('global value', None),
+                     configutils.ScopedValue('example value', pattern)]
     return configutils.Values(opt, scoped_values)
 
 
