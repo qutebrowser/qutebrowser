@@ -49,7 +49,7 @@ class Unset:
 UNSET = Unset()
 
 
-@attr.s(frozen=True, cmp=False, hash=False)
+@attr.s(frozen=True)
 class ScopedValue:
 
     """A configuration value which is valid for a UrlPattern.
@@ -62,7 +62,7 @@ class ScopedValue:
     value = attr.ib()  # type: typing.Any
     pattern = attr.ib()  # type: typing.Optional[urlmatch.UrlPattern]
     # An increasing counter of order this value was inserted in.
-    insert_id = attr.ib(cmp=False)  # type: int
+    insert_id = attr.ib()  # type: int
 
 
 class Values:
@@ -99,8 +99,7 @@ class Values:
         self._scoped_id = 0
 
         for v in values:
-            # pylint: disable=no-value-for-parameter
-            self.add(*attr.astuple(v, filter=lambda x, _: x.cmp))
+            self.add(value=v.value, pattern=v.pattern)
 
     def __repr__(self) -> str:
         return utils.get_repr(self, opt=self.opt,
