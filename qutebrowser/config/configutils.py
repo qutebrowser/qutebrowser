@@ -196,33 +196,30 @@ class Values:
           With fallback=False, UNSET is returned.
         """
         self._check_pattern_support(url)
-        candidates = []  # type: typing.List[ScopedValue]
-        if url is not None:
-            # We must check the 'None' key as well, in case any patterns that
-            # did not have a domain match.
-            widened_hosts = (
-                None,)  # type: typing.Iterable[typing.Optional[str]]
-            domains_len = len(self._domain_map)
-            if None in self._domain_map:
-                domains_len -= 1
-            # Only compute widened domains if we have any non-domain matches
-            # to possibly hit.
-            if domains_len > 0:
-                widened_hosts = itertools.chain(
-                    urlutils.widened_hostnames(url.host()),
-                    widened_hosts)
-            for host in widened_hosts:
-                host_set = self._domain_map.get(host, ())
-                for scoped in host_set:
-                    if (scoped.pattern is not None and
-                            scoped.pattern.matches(url)):
-                        candidates.append(scoped)
-            if candidates:
-                return max(
-                    candidates, key=operator.attrgetter('insert_id')).value
+        if url is None:
+            return self._get_fallback(fallback)
 
-            if not fallback:
-                return UNSET
+        widened_hosts = []  # type: typing.Iterable[typing.Optional[str]]
+        # Only compute widened domains if we have any non-domain matches
+        # to possibly hit.
+        if self._domain_map and self._domain_map.keys() != {None}:
+            widened_hosts = urlutils.widened_hostnames(url.host())
+
+        candidates = []  # type: typing.List[ScopedValue]
+        # We must check the 'None' key as well, in case any patterns that
+        # did not have a domain match.
+        for host in itertools.chain(widened_hosts, [None]):
+            host_set = self._domain_map.get(host, ())
+            for scoped in host_set:
+                if scoped.pattern is not None and scoped.pattern.matches(url):
+                    candidates.append(scoped)
+
+        if candidates:
+            scoped = max(candidates, key=operator.attrgetter('insert_id'))
+            return scoped.value
+
+        if not fallback:
+            return UNSET
 
         return self._get_fallback(fallback)
 
