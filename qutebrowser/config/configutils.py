@@ -96,7 +96,7 @@ class Values:
         # A map from domain parts to rules that fall under them.
         self._domain_map = collections.defaultdict(set)  \
             # type: typing.Dict[typing.Optional[str], typing.Set[ScopedValue]]
-        self._scoped_id = 0
+        self._scoped_id_gen = itertools.count(0)
 
         for v in values:
             self.add(value=v.value, pattern=v.pattern)
@@ -144,8 +144,8 @@ class Values:
         """Add a value with the given pattern to the list of values."""
         self._check_pattern_support(pattern)
         self.remove(pattern)
-        scoped = ScopedValue(value, pattern, self._scoped_id)
-        self._scoped_id += 1
+        scoped = ScopedValue(value, pattern,
+                             insert_id=next(self._scoped_id_gen))
         self._vmap[pattern] = scoped
 
         host = pattern.host if pattern else None
@@ -174,7 +174,7 @@ class Values:
         """Clear all customization for this value."""
         self._vmap.clear()
         self._domain_map.clear()
-        self._scoped_id = 0
+        self._scoped_id_gen = itertools.count(0)
 
     def _get_fallback(self, fallback: bool) -> typing.Any:
         """Get the fallback global/default value."""
