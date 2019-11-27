@@ -155,7 +155,7 @@ class Values:
         """Clear all customization for this value."""
         self._vmap = collections.OrderedDict()
 
-    def _get_fallback(self, fallback: typing.Any) -> typing.Any:
+    def _get_fallback(self, fallback: bool) -> typing.Any:
         """Get the fallback global/default value."""
         for scoped in self._vmap.values():
             if scoped.pattern is None:
