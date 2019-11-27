@@ -139,15 +139,6 @@ class Values:
         if arg is not None and not self.opt.supports_pattern:
             raise configexc.NoPatternError(self.opt.name)
 
-    @staticmethod
-    def _pattern_to_host(pattern: typing.Optional[urlmatch.UrlPattern]) \
-            -> typing.Optional[str]:
-        if pattern is None:
-            return None
-        else:
-            host, _ = pattern.get_host_information()
-            return host
-
     def add(self, value: typing.Any,
             pattern: urlmatch.UrlPattern = None) -> None:
         """Add a value with the given pattern to the list of values."""
@@ -157,7 +148,7 @@ class Values:
         self._scoped_id += 1
         self._vmap[pattern] = scoped
 
-        host = Values._pattern_to_host(pattern)
+        host = pattern.host if pattern else None
         self._domain_map[host].add(scoped)
 
     def remove(self, pattern: urlmatch.UrlPattern = None) -> bool:
@@ -169,7 +160,8 @@ class Values:
         self._check_pattern_support(pattern)
         if pattern not in self._vmap:
             return False
-        host = Values._pattern_to_host(pattern)
+
+        host = pattern.host if pattern else None
         scoped_value = self._vmap[pattern]
         # If we error here, that means domain_map and vmap are out of sync,
         # report a bug!
