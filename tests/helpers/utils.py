@@ -29,6 +29,7 @@ import pytest
 
 from qutebrowser.utils import qtutils, log
 
+ON_CI = 'CI' in os.environ
 
 qt58 = pytest.mark.skipif(
     qtutils.version_check('5.9'), reason="Needs Qt 5.8 or earlier")

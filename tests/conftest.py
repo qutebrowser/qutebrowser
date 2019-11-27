@@ -38,6 +38,7 @@ from helpers import logfail
 from helpers.logfail import fail_on_logging
 from helpers.messagemock import message_mock, message_bridge
 from helpers.fixtures import *  # noqa: F403
+from helpers import utils as testutils
 from qutebrowser.utils import qtutils, standarddir, usertypes, utils, version
 from qutebrowser.misc import objects, earlyinit
 from qutebrowser.qt import sip
@@ -45,7 +46,6 @@ from qutebrowser.qt import sip
 import qutebrowser.app  # To register commands
 
 
-ON_CI = 'CI' in os.environ
 _qute_scheme_handler = None
 
 
@@ -57,7 +57,7 @@ hypothesis.settings.register_profile('ci',
                                          deadline=None,
                                          suppress_health_check=[
                                              hypothesis.HealthCheck.too_slow]))
-hypothesis.settings.load_profile('ci' if ON_CI else 'default')
+hypothesis.settings.load_profile('ci' if testutils.ON_CI else 'default')
 
 
 def _apply_platform_markers(config, item):
@@ -93,11 +93,11 @@ def _apply_platform_markers(config, item):
          "Can only run when frozen"),
         ('ci',
          pytest.mark.skipif,
-         not ON_CI,
+         not testutils.ON_CI,
          "Only runs on CI."),
         ('no_ci',
          pytest.mark.skipif,
-         ON_CI,
+         testutils.ON_CI,
          "Skipped on CI."),
         ('unicode_locale',
          pytest.mark.skipif,
