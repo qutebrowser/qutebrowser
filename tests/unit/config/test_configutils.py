@@ -56,8 +56,8 @@ def other_pattern():
 
 @pytest.fixture
 def values(opt, pattern):
-    scoped_values = [configutils.ScopedValue('global value', None),
-                     configutils.ScopedValue('example value', pattern)]
+    scoped_values = [configutils.ScopedValue('global value', None, 1),
+                     configutils.ScopedValue('example value', pattern, 2)]
     return configutils.Values(opt, scoped_values)
 
 
@@ -68,9 +68,11 @@ def empty_values(opt):
 
 def test_repr(opt, values):
     expected = ("qutebrowser.config.configutils.Values(opt={!r}, "
-                "values=[ScopedValue(value='global value', pattern=None), "
+                "values=[ScopedValue(value='global value', pattern=None, "
+                "insert_id=0), "
                 "ScopedValue(value='example value', pattern=qutebrowser.utils."
-                "urlmatch.UrlPattern(pattern='*://www.example.com/'))])"
+                "urlmatch.UrlPattern(pattern='*://www.example.com/'), "
+                "insert_id=1)])"
                 .format(opt))
     assert repr(values) == expected
 
@@ -142,7 +144,7 @@ def test_get_unset(empty_values):
     assert empty_values.get_for_url(fallback=False) is configutils.UNSET
 
 
-def test_get_no_global(empty_values, other_pattern):
+def test_get_no_global(empty_values, other_pattern, pattern):
     empty_values.add('example.org value', pattern)
     assert empty_values.get_for_url(fallback=False) is configutils.UNSET
 
@@ -167,6 +169,16 @@ def test_get_multiple_matches(values):
     values.add('new value', all_pattern)
     url = QUrl('https://www.example.com/')
     assert values.get_for_url(url) == 'new value'
+
+
+def test_get_non_domain_patterns(empty_values):
+    """With multiple matching pattern, the last added should win."""
+    pat1 = urlmatch.UrlPattern('*://*/*')
+    empty_values.add('fallback')
+    empty_values.add('value', pat1)
+
+    assert empty_values.get_for_url(QUrl("http://qutebrowser.org")) == 'value'
+    assert empty_values.get_for_url() == 'fallback'
 
 
 def test_get_matching_pattern(values, pattern):
@@ -221,3 +233,19 @@ def test_add_url_benchmark(values, benchmark):
                 values.add(False, urlmatch.UrlPattern(line))
 
     benchmark(_add_blocked)
+
+
+@pytest.mark.parametrize('url', [
+    'http://www.qutebrowser.com/',
+    'http://foo.bar.baz/',
+    'http://bop.foo.bar.baz/',
+])
+def test_domain_lookup_sparse_benchmark(url, values, benchmark):
+    blocked_hosts = os.path.join(utils.abs_datapath(), 'blocked-hosts')
+    url = QUrl(url)
+    values.add(False, urlmatch.UrlPattern("*.foo.bar.baz"))
+    with open(blocked_hosts, 'r', encoding='utf-8') as f:
+        for line in f:
+            values.add(False, urlmatch.UrlPattern(line))
+
+    benchmark(lambda: values.get_for_url(url))

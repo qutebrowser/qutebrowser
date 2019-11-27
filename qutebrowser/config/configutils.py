@@ -23,11 +23,13 @@
 
 import typing
 import collections
+import itertools
+import operator
 
 import attr
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlmatch
+from qutebrowser.utils import utils, urlmatch, urlutils
 from qutebrowser.config import configexc
 
 if typing.TYPE_CHECKING:
@@ -47,7 +49,7 @@ class Unset:
 UNSET = Unset()
 
 
-@attr.s(frozen=True)
+@attr.s(frozen=True, cmp=False, hash=False)
 class ScopedValue:
 
     """A configuration value which is valid for a UrlPattern.
@@ -59,26 +61,28 @@ class ScopedValue:
 
     value = attr.ib()  # type: typing.Any
     pattern = attr.ib()  # type: typing.Optional[urlmatch.UrlPattern]
+    # An increasing counter of order this value was inserted in.
+    insert_id = attr.ib(cmp=False)  # type: int
 
 
 class Values:
 
     """A collection of values for a single setting.
 
-    Currently, this is a list and iterates through all possible ScopedValues to
-    find matching ones.
+    Currently, we store patterns in two dictionaries for different types of
+    lookups. A ordered, pattern keyed map, and an unordered, domain keyed map.
 
-    In the future, it should be possible to optimize this by doing
-    pre-selection based on hosts, by making this a dict mapping the
-    non-wildcard part of the host to a list of matching ScopedValues.
+    This means that finding a value based on a pattern is fast, and matching
+    url patterns is fast if all domains are unique.
 
-    That way, when searching for a setting for sub.example.com, we only have to
-    check 'sub.example.com', 'example.com', '.com' and '' instead of checking
-    all ScopedValues for the given setting.
+    If there are many patterns under the domain (or subdomain) that is being
+    evaluated, or any patterns that cannot have a concrete domain found, this
+    will become slow again.
 
     Attributes:
         opt: The Option being customized.
         values: A list of ScopedValues to start with.
+
     """
 
     _VmapKeyType = typing.Optional[urlmatch.UrlPattern]
@@ -89,10 +93,14 @@ class Values:
         self.opt = opt
         self._vmap = collections.OrderedDict()  \
             # type: collections.OrderedDict[Values._VmapKeyType, ScopedValue]
+        # A map from domain parts to rules that fall under them.
+        self._domain_map = collections.defaultdict(set)  \
+            # type: typing.Dict[typing.Optional[str], typing.Set[ScopedValue]]
+        self._scoped_id = 0
 
         for v in values:
             # pylint: disable=no-value-for-parameter
-            self.add(*attr.astuple(v))
+            self.add(*attr.astuple(v, filter=lambda x, _: x.cmp))
 
     def __repr__(self) -> str:
         return utils.get_repr(self, opt=self.opt,
@@ -132,13 +140,26 @@ class Values:
         if arg is not None and not self.opt.supports_pattern:
             raise configexc.NoPatternError(self.opt.name)
 
+    @staticmethod
+    def _pattern_to_host(pattern: typing.Optional[urlmatch.UrlPattern]) \
+            -> typing.Optional[str]:
+        if pattern is None:
+            return None
+        else:
+            host, _ = pattern.get_host_information()
+            return host
+
     def add(self, value: typing.Any,
             pattern: urlmatch.UrlPattern = None) -> None:
         """Add a value with the given pattern to the list of values."""
         self._check_pattern_support(pattern)
         self.remove(pattern)
-        scoped = ScopedValue(value, pattern)
+        scoped = ScopedValue(value, pattern, self._scoped_id)
+        self._scoped_id += 1
         self._vmap[pattern] = scoped
+
+        host = Values._pattern_to_host(pattern)
+        self._domain_map[host].add(scoped)
 
     def remove(self, pattern: urlmatch.UrlPattern = None) -> bool:
         """Remove the value with the given pattern.
@@ -149,18 +170,25 @@ class Values:
         self._check_pattern_support(pattern)
         if pattern not in self._vmap:
             return False
+        host = Values._pattern_to_host(pattern)
+        scoped_value = self._vmap[pattern]
+        # If we error here, that means domain_map and vmap are out of sync,
+        # report a bug!
+        assert host in self._domain_map
+        self._domain_map[host].remove(scoped_value)
         del self._vmap[pattern]
         return True
 
     def clear(self) -> None:
         """Clear all customization for this value."""
-        self._vmap = collections.OrderedDict()
+        self._vmap.clear()
+        self._domain_map.clear()
+        self._scoped_id = 0
 
     def _get_fallback(self, fallback: bool) -> typing.Any:
         """Get the fallback global/default value."""
-        for scoped in self._vmap.values():
-            if scoped.pattern is None:
-                return scoped.value
+        if None in self._vmap:
+            return self._vmap[None].value
 
         if fallback:
             return self.opt.default
@@ -177,10 +205,30 @@ class Values:
           With fallback=False, UNSET is returned.
         """
         self._check_pattern_support(url)
+        candidates = []  # type: typing.List[ScopedValue]
         if url is not None:
-            for scoped in reversed(self._vmap.values()):
-                if scoped.pattern is not None and scoped.pattern.matches(url):
-                    return scoped.value
+            # We must check the 'None' key as well, in case any patterns that
+            # did not have a domain match.
+            widened_hosts = (
+                None,)  # type: typing.Iterable[typing.Optional[str]]
+            domains_len = len(self._domain_map)
+            if None in self._domain_map:
+                domains_len -= 1
+            # Only compute widened domains if we have any non-domain matches
+            # to possibly hit.
+            if domains_len > 0:
+                widened_hosts = itertools.chain(
+                    urlutils.widened_hostnames(url.host()),
+                    widened_hosts)
+            for host in widened_hosts:
+                host_set = self._domain_map.get(host, ())
+                for scoped in host_set:
+                    if (scoped.pattern is not None and
+                            scoped.pattern.matches(url)):
+                        candidates.append(scoped)
+            if candidates:
+                return max(
+                    candidates, key=operator.attrgetter('insert_id')).value
 
             if not fallback:
                 return UNSET
