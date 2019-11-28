@@ -29,7 +29,7 @@ from helpers import utils
 from qutebrowser.misc import throttle
 
 
-DELAY = 200 if utils.ON_CI else 100
+DELAY = 300 if utils.ON_CI else 100
 
 
 @pytest.fixture
