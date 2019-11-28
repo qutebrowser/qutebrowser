@@ -66,17 +66,6 @@ def empty_values(opt):
     return configutils.Values(opt)
 
 
-def test_repr(opt, values):
-    expected = ("qutebrowser.config.configutils.Values(opt={!r}, "
-                "values=[ScopedValue(value='global value', pattern=None, "
-                "insert_id=0), "
-                "ScopedValue(value='example value', pattern=qutebrowser.utils."
-                "urlmatch.UrlPattern(pattern='*://www.example.com/'), "
-                "insert_id=1)])"
-                .format(opt))
-    assert repr(values) == expected
-
-
 def test_str(values):
     expected = [
         'example.option = global value',
