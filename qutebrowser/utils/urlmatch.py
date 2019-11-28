@@ -29,7 +29,6 @@ import ipaddress
 import fnmatch
 import typing
 import urllib.parse
-import typing
 
 from PyQt5.QtCore import QUrl
 

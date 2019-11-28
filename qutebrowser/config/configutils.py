@@ -65,7 +65,7 @@ class ScopedValue:
         self.pattern = pattern
         self.pattern_id = next(ScopedValue.id_gen)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, value=self.value, pattern=self.pattern,
                               pattern_id=self.pattern_id)
 
@@ -86,7 +86,8 @@ class Values:
 
     Attributes:
         opt: The Option being customized.
-        values: A list of ScopedValues to start with.
+        _vmap: A mapping of all pattern objects to ScopedValues.
+        _domain_map: A mapping from hostnames to all associated ScopedValues.
     """
 
     _VmapKeyType = typing.Optional[urlmatch.UrlPattern]
