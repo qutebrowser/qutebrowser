@@ -63,15 +63,11 @@ class ScopedValue:
                  pattern: typing.Optional[urlmatch.UrlPattern]) -> None:
         self.value = value
         self.pattern = pattern
-        self.insert_id = next(ScopedValue.id_gen)
+        self.pattern_id = next(ScopedValue.id_gen)
 
     def __repr__(self):
         return utils.get_repr(self, value=self.value, pattern=self.pattern,
-                              insert_id=self.insert_id)
-
-    @classmethod
-    def clear_id_gen(cls):
-        cls.id_gen = itertools.count(0)
+                              pattern_id=self.pattern_id)
 
 
 class Values:
@@ -180,7 +176,6 @@ class Values:
         """Clear all customization for this value."""
         self._vmap.clear()
         self._domain_map.clear()
-        ScopedValue.clear_id_gen()
 
     def _get_fallback(self, fallback: bool) -> typing.Any:
         """Get the fallback global/default value."""
@@ -216,7 +211,7 @@ class Values:
                     candidates.append(scoped)
 
         if candidates:
-            scoped = max(candidates, key=operator.attrgetter('insert_id'))
+            scoped = max(candidates, key=operator.attrgetter('pattern_id'))
             return scoped.value
 
         if not fallback:
