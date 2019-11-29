@@ -22,7 +22,7 @@ from qutebrowser.browser import (urlmarks, browsertab, navigate, webelem,
                                  downloads)
 from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils, standarddir, debug)
+                               objreg, utils, standarddir, tabutils, debug)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess, objects
 from qutebrowser.completion.models import urlmodel, miscmodels
@@ -106,6 +106,7 @@ class CommandDispatcher:
         window: bool = False,
         related: bool = False,
         private: Optional[bool] = None,
+        reuse: bool = True,
     ) -> None:
         """Helper function to open a page.
 
@@ -116,8 +117,19 @@ class CommandDispatcher:
             window: Whether to open in a new window
             private: If opening a new window, open it in private browsing mode.
                      If not given, inherit the current window's mode.
+            reuse: With tabs.switch_to_open_url set, switch to an existing tab
+                   showing the URL instead of opening it again. Pass False to
+                   force a fresh open (e.g. when taking a tab).
         """
         urlutils.raise_cmdexc_if_invalid(url)
+
+        existing_tab = tabutils.tab_for_url(
+            url, private=self._tabbed_browser.is_private)
+        if config.val.tabs.switch_to_open_url and reuse and \
+                existing_tab is not None:
+            tabutils.switch_to_tab(existing_tab)
+            return
+
         tabbed_browser = self._tabbed_browser
         cmdutils.check_exclusive((tab, background, window, private or False), 'tbwp')
         if window and private is None:
@@ -309,6 +321,13 @@ class CommandDispatcher:
             if secure and cur_url.scheme() == 'http':
                 cur_url.setScheme('https')
 
+            # The current-tab path below bypasses _open(), so check here too.
+            existing_tab = tabutils.tab_for_url(
+                cur_url, private=self._tabbed_browser.is_private)
+            if config.val.tabs.switch_to_open_url and existing_tab is not None:
+                tabutils.switch_to_tab(existing_tab)
+                continue
+
             if not window and i > 0:
                 tab = False
                 bg = True
@@ -450,7 +469,7 @@ class CommandDispatcher:
             raise cmdutils.CommandError("Can't take a tab from the same "
                                         "window")
 
-        self._open(tab.url(), tab=True)
+        self._open(tab.url(), tab=True, reuse=False)
         if not keep:
             tabbed_browser.close_tab(tab, add_undo=False, transfer=True)
 

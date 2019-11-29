@@ -53,7 +53,7 @@ from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
                               earlyinit, sql, cmdhistory, backendproblem,
                               objects, quitter, nativeeventfilter)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
-                               resources, usertypes, standarddir,
+                               resources, usertypes, standarddir, tabutils,
                                error, qtutils, debug)
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
@@ -287,6 +287,15 @@ def open_url(url, target=None, no_raise=False, via_ipc=True):
         The MainWindow of a window that was used to open the URL.
     """
     target = target or config.val.new_instance_open_target
+
+    existing_tab = tabutils.tab_for_url(
+        url, private=target == 'private-window')
+    if config.val.tabs.switch_to_open_url and existing_tab is not None:
+        tabutils.switch_to_tab(existing_tab)
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=existing_tab.win_id)
+        return tabbed_browser.widget.window()
+
     background = target in {'tab-bg', 'tab-bg-silent'}
     window = mainwindow.get_window(via_ipc=via_ipc, target=target, no_raise=no_raise)
     log.init.debug("About to open URL: {}".format(url.toDisplayString()))
