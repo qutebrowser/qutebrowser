@@ -431,11 +431,12 @@ def test_bookmark_completion_delete(qtmodeltester, bookmarks, row, removed):
 
 
 def test_url_completion(qtmodeltester, config_stub, web_history_populated,
-                        quickmarks, bookmarks, info):
+                        quickmarks, bookmarks, info, tabbed_browser_stubs,
+                        fake_web_tab):
     """Test the results of url completion.
 
     Verify that:
-        - searchengines, quickmarks, bookmarks, and urls are included
+        - searchengines, quickmarks, bookmarks, urls, and tabs are included
         - default search engine is not displayed
         - entries are sorted by access time
         - only the most recent entry is included for each url
@@ -445,11 +446,21 @@ def test_url_completion(qtmodeltester, config_stub, web_history_populated,
         "quickmarks",
         "bookmarks",
         "history",
+        "tabs",
     ]
     config_stub.val.url.searchengines = {
         "DEFAULT": "https://duckduckgo.com/?q={}",
         "google": "https://google.com/?q={}"
     }
+    config_stub.val.tabs.switch_to_open_url = True
+
+    tabbed_browser_stubs[0].widget.tabs = [
+        fake_web_tab(QUrl('https://github.com'), 'GitHub', 1),
+    ]
+    tab_1_1 = fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 1)
+    tab_1_1.win_id = 1
+    tabbed_browser_stubs[1].widget.tabs = [tab_1_1]
+
     model = urlmodel.url(info=info)
     model.set_pattern('')
     qtmodeltester.check(model)
@@ -472,6 +483,10 @@ def test_url_completion(qtmodeltester, config_stub, web_history_populated,
             ('https://github.com', 'https://github.com', '2016-05-01'),
             ('https://python.org', 'Welcome to Python.org', '2016-03-08'),
             ('http://qutebrowser.org', 'qutebrowser', '2015-09-05'),
+        ],
+        "Tabs": [
+            ('https://github.com', 'GitHub', "0/1"),
+            ('https://wiki.archlinux.org', 'ArchWiki', "1/1"),
         ],
     })
 
@@ -680,13 +695,13 @@ def test_session_completion(qtmodeltester, session_manager_stub):
 def test_tab_completion(qtmodeltester, fake_web_tab, win_registry,
                         tabbed_browser_stubs):
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
-        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+        fake_web_tab(QUrl('https://github.com'), 'GitHub'),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia'),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo'),
     ]
-    tabbed_browser_stubs[1].widget.tabs = [
-        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
-    ]
+    tab_1_1 = fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki')
+    tab_1_1.win_id = 1
+    tabbed_browser_stubs[1].widget.tabs = [tab_1_1]
     model = miscmodels.buffer()
     model.set_pattern('')
     qtmodeltester.check(model)
@@ -785,13 +800,13 @@ def test_other_buffer_completion(qtmodeltester, fake_web_tab, win_registry,
 def test_other_buffer_completion_id0(qtmodeltester, fake_web_tab,
                                      win_registry, tabbed_browser_stubs, info):
     tabbed_browser_stubs[0].widget.tabs = [
-        fake_web_tab(QUrl('https://github.com'), 'GitHub', 0),
-        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia', 1),
-        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo', 2),
+        fake_web_tab(QUrl('https://github.com'), 'GitHub'),
+        fake_web_tab(QUrl('https://wikipedia.org'), 'Wikipedia'),
+        fake_web_tab(QUrl('https://duckduckgo.com'), 'DuckDuckGo'),
     ]
-    tabbed_browser_stubs[1].widget.tabs = [
-        fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki', 0),
-    ]
+    tab_1_1 = fake_web_tab(QUrl('https://wiki.archlinux.org'), 'ArchWiki')
+    tab_1_1.win_id = 1
+    tabbed_browser_stubs[1].widget.tabs = [tab_1_1]
     info.win_id = 0
     model = miscmodels.other_buffer(info=info)
     model.set_pattern('')

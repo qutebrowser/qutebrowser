@@ -65,19 +65,20 @@ from qutebrowser.completion.models import miscmodels
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
 from qutebrowser.config import config, websettings, configfiles, configinit
-from qutebrowser.browser import (urlmarks, history, browsertab,
-                                 qtnetworkdownloads, downloads, greasemonkey)
+from qutebrowser.browser import (browsertab, downloads, greasemonkey, history,
+                                 qtnetworkdownloads, urlmarks)
 from qutebrowser.browser.network import proxy
 from qutebrowser.browser.webkit import cookies, cache
 from qutebrowser.browser.webkit.network import networkmanager
 from qutebrowser.extensions import loader
 from qutebrowser.keyinput import macros, modeman
 from qutebrowser.mainwindow import mainwindow, prompt
-from qutebrowser.misc import (ipc, savemanager, sessions, crashsignal,
-                              earlyinit, sql, cmdhistory, backendproblem,
-                              objects)
+from qutebrowser.misc import (ipc, savemanager, sessions,
+                              crashsignal, earlyinit, sql, cmdhistory,
+                              backendproblem, objects)
 from qutebrowser.utils import (log, version, message, utils, urlutils, objreg,
-                               usertypes, standarddir, error, qtutils)
+                               usertypes, standarddir, error, qtutils,
+                               tabutils)
 # pylint: disable=unused-import
 # We import those to run the cmdutils.register decorators.
 from qutebrowser.mainwindow.statusbar import command
@@ -337,6 +338,12 @@ def open_url(url, target=None, no_raise=False, via_ipc=True):
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
     log.init.debug("About to open URL: {}".format(url.toDisplayString()))
+
+    tab = tabutils.tab_for_url(url)
+    if config.val.tabs.switch_to_open_url and tab is not None:
+        tabutils.switch_to_tab(tab)
+        return tab.win_id
+
     tabbed_browser.tabopen(url, background=background, related=False)
     return win_id
 
