@@ -52,6 +52,7 @@ Changed
   a timeout) on PyQt 5.13.1 and newer.
 - Performance improvements for the following areas:
   * Adding settings with URL patterns
+  * Matching of settings using URL patterns
 
 Fixed
 ~~~~~
