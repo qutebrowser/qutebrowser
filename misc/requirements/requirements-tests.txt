@@ -23,7 +23,7 @@ more-itertools==8.0.0
 packaging==19.2
 parse==1.12.1
 parse-type==0.5.2
-pluggy==0.13.0
+pluggy==0.13.1
 py==1.8.0
 py-cpuinfo==5.0.0
 pyparsing==2.4.5
