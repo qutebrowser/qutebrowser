@@ -423,7 +423,7 @@ class TestMappingType:
                                      configtypes.Position(),
                                      configtypes.SelectOnRemove()])
     def test_mapping_type_matches_valid_values(self, typ):
-        assert list(sorted(typ.MAPPING)) == list(sorted(typ.valid_values))
+        assert sorted(typ.MAPPING) == sorted(typ.valid_values)
 
 
 class TestString:
