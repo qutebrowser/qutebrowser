@@ -19,7 +19,7 @@ flake8-tuple==0.4.0
 importlib-metadata==1.1.0
 mccabe==0.6.1
 more-itertools==8.0.0
-pep8-naming==0.8.2
+pep8-naming==0.9.1
 pycodestyle==2.5.0
 pydocstyle==4.0.1
 pyflakes==2.1.1
