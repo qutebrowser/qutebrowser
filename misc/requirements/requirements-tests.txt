@@ -12,7 +12,7 @@ Flask==1.1.1
 glob2==0.7
 hunter==3.0.4
 hypothesis==4.43.1
-importlib-metadata==0.23
+importlib-metadata==1.1.0
 itsdangerous==1.1.0
 jaraco.functools==2.0
 # Jinja2==2.10.3
