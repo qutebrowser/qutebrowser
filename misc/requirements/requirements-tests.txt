@@ -39,7 +39,7 @@ pytest-rerunfailures==7.0
 pytest-travis-fold==1.3.0
 pytest-xvfb==1.2.0
 PyVirtualDisplay==0.2.4
-six==1.12.0
+six==1.13.0
 soupsieve==1.9.5
 vulture==1.1
 wcwidth==0.1.7
