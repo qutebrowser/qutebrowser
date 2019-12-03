@@ -16,7 +16,7 @@ flake8-polyfill==1.0.2
 flake8-string-format==0.2.3
 flake8-tidy-imports==3.0.0
 flake8-tuple==0.4.0
-importlib-metadata==0.23
+importlib-metadata==1.1.0
 mccabe==0.6.1
 more-itertools==7.2.0
 pep8-naming==0.8.2
