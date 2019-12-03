@@ -143,7 +143,7 @@ def set_up_editor_wait(quteproc, tmpdir, text, editor_pid_watcher):
 @bdd.when("I wait until the editor has started")
 def wait_editor(qtbot, editor_pid_watcher):
     if not editor_pid_watcher.has_pidfile:
-        with qtbot.wait_signal(editor_pid_watcher.appeared):
+        with qtbot.wait_signal(editor_pid_watcher.appeared, timeout=5000):
             pass
 
 
