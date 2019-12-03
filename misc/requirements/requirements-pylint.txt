@@ -16,7 +16,7 @@ pylint==2.4.3
 python-dateutil==2.8.1
 ./scripts/dev/pylint_checkers
 requests==2.22.0
-six==1.12.0
+six==1.13.0
 typed-ast==1.4.0
 uritemplate==3.0.0
 urllib3==1.25.7
