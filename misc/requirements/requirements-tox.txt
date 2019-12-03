@@ -6,7 +6,7 @@ more-itertools==8.0.0
 packaging==19.2
 pluggy==0.13.0
 py==1.8.0
-pyparsing==2.4.2
+pyparsing==2.4.5
 six==1.13.0
 toml==0.10.0
 tox==3.14.0
