@@ -20,7 +20,6 @@
 """Custom useful data types."""
 
 import operator
-import collections.abc
 import enum
 import typing
 
@@ -44,7 +43,7 @@ class UnsetObject:
 UNSET = UnsetObject()
 
 
-class NeighborList(collections.abc.Sequence):
+class NeighborList(typing.Sequence[_T]):
 
     """A list of items which saves its current position.
 
