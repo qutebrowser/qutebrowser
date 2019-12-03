@@ -31,7 +31,7 @@ pytest==5.3.1
 pytest-bdd==3.2.1
 pytest-benchmark==3.2.2
 pytest-cov==2.8.1
-pytest-instafail==0.4.1
+pytest-instafail==0.4.1.post0
 pytest-mock==1.11.2
 pytest-qt==3.2.2
 pytest-repeat==0.8.0
