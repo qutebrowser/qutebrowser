@@ -27,7 +27,7 @@ pluggy==0.13.1
 py==1.8.0
 py-cpuinfo==5.0.0
 pyparsing==2.4.5
-pytest==5.2.2
+pytest==5.3.1
 pytest-bdd==3.2.1
 pytest-benchmark==3.2.2
 pytest-cov==2.8.1
