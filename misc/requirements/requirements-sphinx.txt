@@ -2,7 +2,7 @@
 
 alabaster==0.7.12
 Babel==2.7.0
-certifi==2019.9.11
+certifi==2019.11.28
 chardet==3.0.4
 docutils==0.15.2
 idna==2.8
