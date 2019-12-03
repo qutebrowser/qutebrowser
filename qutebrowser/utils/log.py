@@ -706,8 +706,7 @@ class HTMLFormatter(logging.Formatter):
 
     def formatTime(self, record: logging.LogRecord,
                    datefmt: str = None) -> str:
-        # https://github.com/python/typeshed/pull/3343
-        out = super().formatTime(record, datefmt)  # type: ignore
+        out = super().formatTime(record, datefmt)
         return pyhtml.escape(out)
 
 

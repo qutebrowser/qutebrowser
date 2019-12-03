@@ -439,7 +439,7 @@ class ReleaseInfoFake:
         if self._files is None:
             return ['fake-file']
         else:
-            return sorted(list(self._files))
+            return sorted(self._files)
 
     @contextlib.contextmanager
     def open_fake(self, filename, mode, encoding):

@@ -20,7 +20,6 @@
 """Custom useful data types."""
 
 import operator
-import collections.abc
 import enum
 import typing
 
@@ -44,7 +43,7 @@ class UnsetObject:
 UNSET = UnsetObject()
 
 
-class NeighborList(collections.abc.Sequence):
+class NeighborList(typing.Sequence[_T]):
 
     """A list of items which saves its current position.
 
@@ -120,8 +119,7 @@ class NeighborList(collections.abc.Sequence):
                 items,
                 key=lambda tpl: abs(self.fuzzyval - tpl[1]))  # type: ignore
         else:
-            sorted_items = sorted(((idx, e) for (idx, e) in
-                                   enumerate(self.items)), key=lambda e: e[1])
+            sorted_items = sorted(enumerate(self.items), key=lambda e: e[1])
             idx = 0 if offset < 0 else -1
             item = sorted_items[idx]
         self._idx = item[0]

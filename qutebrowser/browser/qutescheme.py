@@ -465,7 +465,7 @@ def qute_bindings(_url):
     config_modes = set(defaults.keys()).union(config.val.bindings.commands)
     config_modes.remove('normal')
 
-    modes = ['normal'] + sorted(list(config_modes))
+    modes = ['normal'] + sorted(config_modes)
     for mode in modes:
         bindings[mode] = config.key_instance.get_bindings_for(mode)
 

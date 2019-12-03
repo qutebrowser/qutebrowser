@@ -350,7 +350,7 @@ class BrowserPage(QWebPage):
 
         url = frame.url().adjusted(QUrl.RemoveUserInfo |
                                    QUrl.RemovePath |
-                                   QUrl.RemoveQuery |  # type: ignore
+                                   QUrl.RemoveQuery |
                                    QUrl.RemoveFragment)
 
         question = shared.feature_permission(
