@@ -19,7 +19,7 @@
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Insert login information using lastpass CLI and a dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...). 
+Insert login information using lastpass CLI and a dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...).
 A short demonstration can be seen here: https://i.imgur.com/zA61NrF.gifv.
 """
 
@@ -85,15 +85,12 @@ def pass_(domain, encoding):
     args = ['lpass', 'show', '-x', '-j', '-G', '.*{:s}.*'.format(domain)]
     process = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+    candidates = json.loads(process.stdout.decode(encoding).strip() or '[]')
     err = process.stderr.decode(encoding).strip()
-    if err:
-        msg = "LastPass CLI returned for {:s} - {:s}".format(domain, err)
-        stderr(msg)
-        return '[]'
+    if 'could not find specified account' in err.lower():
+        return candidates, ''
 
-    out = process.stdout.decode(encoding).strip()
-
-    return out
+    return candidates, err
 
 def dmenu(items, invocation, encoding):
     command = shlex.split(invocation)
@@ -121,7 +118,11 @@ def main(arguments):
     # the URL represents
     candidates = []
     for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.subdomain + extract_result.domain, extract_result.domain, extract_result.ipv4]):
-        target_candidates = json.loads(pass_(target, arguments.io_encoding))
+        target_candidates, err = pass_(target, arguments.io_encoding)
+        if err:
+            stderr("LastPass CLI returned for {:s} - {:s}".format(target, err))
+            return ExitCodes.FAILURE
+
         if not target_candidates:
             continue
 
