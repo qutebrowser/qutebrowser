@@ -6,6 +6,12 @@ os: linux
 
 matrix:
   fast_finish: true
+  allow_failures:
+    # Python 3.8 issues (fixed on master)
+    - env: DOCKER=archlinux
+      services: docker
+    # mypy issues (fixed on master)
+    - env: TESTENV=mypy
   include:
     ### Archlinux QtWebKit
     - env: DOCKER=archlinux
@@ -51,16 +57,19 @@ matrix:
           packages:
           - libxkbcommon-x11-0
 
-    ### macOS sierra
+    ### macOS Mojave (10.14)
     - os: osx
-      env: TESTENV=py37-pyqt513 OSX=sierra
-      osx_image: xcode9.2
+      env: TESTENV=py37-pyqt513 OSX=mojave
+      osx_image: xcode11.2
       language: generic
-    ### macOS yosemite
-    # https://github.com/qutebrowser/qutebrowser/issues/2013
-    # - os: osx
-    #   env: TESTENV=py35 OSX=yosemite
-    #   osx_image: xcode6.4
+      python: 3.7
+
+    ### macOS High Sierra (10.13)
+    - os: osx
+      env: TESTENV=py37-pyqt513 OSX=highsierra
+      osx_image: xcode10.1
+      language: generic
+      python: 3.7
 
     ### pylint/flake8/mypy
     - env: TESTENV=pylint
