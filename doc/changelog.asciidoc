@@ -76,6 +76,15 @@ Fixed
     handled correctly.
   - Fixed crash when a search engine URL turns out to be invalid.
 
+v1.8.3 (unreleased)
+-------------------
+
+Fixed
+~~~~~
+
+- Segmentation fault introduced in v1.8.2 when a tab gets closed immediately
+  after it has finished loading (e.g. with certain login flows).
+
 v1.8.2 (2019-11-22)
 -------------------
 
