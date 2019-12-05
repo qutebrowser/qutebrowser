@@ -76,7 +76,6 @@ Fixed
     handled correctly.
   - Fixed crash when a search engine URL turns out to be invalid.
 
-v1.8.3 (unreleased)
 v1.8.3 (2019-12-05)
 -------------------
 
