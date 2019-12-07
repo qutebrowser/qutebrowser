@@ -13,13 +13,14 @@ from qutebrowser.qt.core import (pyqtSignal, pyqtSlot, Qt, QSize, QRect, QPoint,
                           QTimer, QUrl)
 from qutebrowser.qt.widgets import (QTabWidget, QTabBar, QSizePolicy, QProxyStyle,
                              QStyle, QStylePainter, QStyleOptionTab,
-                             QCommonStyle)
+                             QCommonStyle, QToolButton)
 from qutebrowser.qt.gui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
 from qutebrowser.config import config, stylesheet
-from qutebrowser.misc import objects, debugcachestats
+from qutebrowser.misc import objects, debugcachestats, throttle
 from qutebrowser.browser import browsertab
+from qutebrowser.qt import sip
 
 
 class TabWidget(QTabWidget):
@@ -42,6 +43,7 @@ class TabWidget(QTabWidget):
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
+        self.scroll_tab_bar = throttle.Throttle(self._scroll_tab_bar, 100)
         bar = TabBar(win_id, self)
         self.setStyle(TabBarStyle())
         self.setTabBar(bar)
@@ -56,6 +58,7 @@ class TabWidget(QTabWidget):
         bar.setDrawBase(False)
         self._init_config()
         config.instance.changed.connect(self._init_config)
+        self._scroll_left, self._scroll_right = self.findChildren(QToolButton)
 
     @config.change_filter('tabs')
     def _init_config(self):
@@ -316,6 +319,49 @@ class TabWidget(QTabWidget):
         self.tab_bar().on_current_changed()
         self.update_tab_titles()
         self.tab_index_changed.emit(index, self.count())
+        QTimer.singleShot(0, self.scroll_tab_bar)
+
+    def _scroll_tab_bar(self):
+        """Scroll tab bar so that the current tab is not at an edge."""
+        if sip.isdeleted(self):
+            # probably called async while shutting down
+            return
+
+        num_tabs = 5  # padding required
+        idx = self.currentIndex()
+        if idx < 0:
+            return
+
+        position = config.cache['tabs.position']
+        if position == QTabWidget.TabPosition.North:
+            start = self.rect().topLeft()
+            end = self.rect().topRight()
+        elif position == QTabWidget.TabPosition.South:
+            start = self.rect().bottomLeft()
+            end = self.rect().bottomRight()
+        elif position == QTabWidget.TabPosition.West:
+            start = self.rect().topLeft()
+            end = self.rect().bottomLeft()
+        elif position == QTabWidget.TabPosition.East:
+            start = self.rect().topRight()
+            end = self.rect().bottomRight()
+
+        start_idx = self.tabBar().tabAt(start)
+        end_idx = self.tabBar().tabAt(end)
+        if start_idx < 0 or end_idx < 0:
+            log.misc.warning("Could not get tabs at edges of tab bar.")
+            return
+
+        count = num_tabs - (end_idx - idx)
+        if count > 0:
+            for _ in range(count):
+                self._scroll_right.click()
+            return
+        count = idx - start_idx
+        if count < num_tabs:
+            for _ in range(num_tabs - count):
+                self._scroll_left.click()
+            return
 
     @pyqtSlot()
     def _on_new_tab_requested(self):
@@ -774,6 +820,11 @@ class TabBar(QTabBar):
             tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                         window=self._win_id)
             tabbed_browser.wheelEvent(e)
+
+    @pyqtSlot()
+    def tabLayoutChange(self):
+        if self.currentIndex() > -1:
+            QTimer.singleShot(0, self.parent().scroll_tab_bar)
 
 
 @dataclasses.dataclass
