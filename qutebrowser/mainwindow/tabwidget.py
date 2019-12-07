@@ -321,6 +321,16 @@ class TabWidget(QTabWidget):
         self.tab_index_changed.emit(index, self.count())
         QTimer.singleShot(0, self.scroll_tab_bar)
 
+    def scroll_tab_bar_left(self, count):
+        """Scroll the tab bar count tabs to the left."""
+        for _ in range(count):
+            self._scroll_left.click()
+
+    def scroll_tab_bar_right(self, count):
+        """Scroll the tab bar count tabs to the right."""
+        for _ in range(count):
+            self._scroll_right.click()
+
     def _scroll_tab_bar(self):
         """Scroll tab bar so that the current tab is not at an edge."""
         if sip.isdeleted(self):
@@ -354,13 +364,11 @@ class TabWidget(QTabWidget):
 
         count = num_tabs - (end_idx - idx)
         if count > 0:
-            for _ in range(count):
-                self._scroll_right.click()
+            self.scroll_tab_bar_right(count)
             return
         count = idx - start_idx
         if count < num_tabs:
-            for _ in range(num_tabs - count):
-                self._scroll_left.click()
+            self.scroll_tab_bar_left(num_tabs - count)
             return
 
     @pyqtSlot()
@@ -801,7 +809,15 @@ class TabBar(QTabBar):
             e: The QWheelEvent
         """
         if config.val.tabs.mousewheel_switching:
-            if utils.is_mac:
+            if e.modifiers() & Qt.KeyboardModifier.ShiftModifier:
+                delta = e.angleDelta()
+                if not delta:
+                    return
+                if delta.y() < 0:
+                    self.parent().scroll_tab_bar_left(1)
+                else:
+                    self.parent().scroll_tab_bar_right(1)
+            elif utils.is_mac:
                 # WORKAROUND for this not being customizable until Qt 6:
                 # https://codereview.qt-project.org/c/qt/qtbase/+/327746
                 index = self.currentIndex()
