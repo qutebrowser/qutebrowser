@@ -346,7 +346,9 @@ def test_get_search_url_invalid(url):
     (True, True, False, '127.0.0.1'),
     (True, True, False, '::1'),
     (True, True, True, '2001:41d0:2:6c11::1'),
+    (True, True, True, '[2001:41d0:2:6c11::1]:8000'),
     (True, True, True, '94.23.233.17'),
+    (True, True, True, '94.23.233.17:8000'),
     # Special URLs
     (True, True, False, 'file:///tmp/foo'),
     (True, True, False, 'about:blank'),
