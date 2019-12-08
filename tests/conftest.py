@@ -108,12 +108,6 @@ def _apply_platform_markers(config, item):
          config.webengine,
          "Broken on webengine due to "
          "https://bugreports.qt.io/browse/QTBUG-60673"),
-        ('qtbug80085',
-         pytest.mark.xfail,
-         qtutils.version_check('5.14', compiled=False) and
-         config.webengine,
-         "Broken on webengine due to "
-         "https://bugreports.qt.io/browse/QTBUG-80085"),
         ('qtwebkit6021_xfail',
          pytest.mark.xfail,
          version.qWebKitVersion and  # type: ignore
