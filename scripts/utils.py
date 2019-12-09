@@ -52,14 +52,6 @@ fg_colors = {
 bg_colors = {name: col + 10 for name, col in fg_colors.items()}
 
 
-term_attributes = {
-    'bright': 1,
-    'dim': 2,
-    'normal': 22,
-    'reset': 0,
-}
-
-
 def _esc(code):
     """Get an ANSI color code based on a color number."""
     return '\033[{}m'.format(code)
@@ -84,16 +76,6 @@ def print_title(text):
 def print_subtitle(text):
     """Print a subtitle."""
     print_col("------ {} ------".format(text), 'cyan')
-
-
-def print_bold(text):
-    """Print a bold text."""
-    if use_color:
-        bold = _esc(term_attributes['bright'])
-        reset = _esc(term_attributes['reset'])
-        print(''.join([bold, text, reset]))
-    else:
-        print(text)
 
 
 def change_cwd():

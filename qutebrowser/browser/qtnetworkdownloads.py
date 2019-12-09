@@ -23,9 +23,10 @@ import io
 import os.path
 import shutil
 import functools
+import typing
 
 import attr
-from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer
+from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, QUrl
 from PyQt5.QtNetwork import QNetworkRequest, QNetworkReply
 
 from qutebrowser.config import config
@@ -90,8 +91,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
             reply: The QNetworkReply to download.
         """
         super().__init__(parent=manager)
-        self.fileobj = None
-        self.raw_headers = {}
+        self.fileobj = None  # type: typing.Optional[typing.IO[bytes]]
+        self.raw_headers = {}  # type: typing.Dict[bytes, bytes]
 
         self._autoclose = True
         self._manager = manager
@@ -102,10 +103,12 @@ class DownloadItem(downloads.AbstractDownloadItem):
         self._read_timer.setInterval(500)
         self._read_timer.timeout.connect(self._on_read_timer_timeout)
         self._redirects = 0
+        self._url = reply.url()
         self._init_reply(reply)
 
     def _create_fileobj(self):
         """Create a file object using the internal filename."""
+        assert self._filename is not None
         try:
             fileobj = open(self._filename, 'wb')
         except OSError as e:
@@ -177,6 +180,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         """Retry a failed download."""
         assert self.done
         assert not self.successful
+        assert self._retry_info is not None
         new_reply = self._retry_info.manager.get(self._retry_info.request)
         new_download = self._manager.fetch(new_reply,
                                            suggested_filename=self.basename)
@@ -188,6 +192,10 @@ class DownloadItem(downloads.AbstractDownloadItem):
         if filename is None:
             filename = getattr(self.fileobj, 'name', None)
         return filename
+
+    def url(self) -> QUrl:
+        # Note: self._reply is deleted when the download finishes
+        return self._url
 
     def _ensure_can_set_filename(self, filename):
         if self.fileobj is not None:  # pragma: no cover
@@ -208,6 +216,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _ask_create_parent_question(self, title, msg,
                                     force_overwrite, remember_directory):
+        assert self._filename is not None
         no_action = functools.partial(self.cancel, remove_data=False)
         url = 'file://{}'.format(os.path.dirname(self._filename))
         message.confirm_async(title=title, text=msg,
@@ -224,6 +233,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         Args:
             fileobj: A file-like object.
         """
+        assert self._reply is not None
         if self.fileobj is not None:  # pragma: no cover
             raise ValueError("fileobj was already set! Old: {}, new: "
                              "{}".format(self.fileobj, fileobj))
@@ -252,6 +262,8 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _finish_download(self):
         """Write buffered data to disk and finish the QNetworkReply."""
+        assert self._reply is not None
+        assert self.fileobj is not None
         log.downloads.debug("Finishing download...")
         if self._reply.isOpen():
             self.fileobj.write(self._reply.readAll())
@@ -319,6 +331,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
     @pyqtSlot()
     def _on_read_timer_timeout(self):
         """Read some bytes from the QNetworkReply periodically."""
+        assert self._reply is not None
         if not self._reply.isOpen():
             raise OSError("Reply is closed!")
         data = self._reply.read(1024)
@@ -340,6 +353,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
         Return:
             True if the download was redirected, False otherwise.
         """
+        assert self._reply is not None
         redirect = self._reply.attribute(
             QNetworkRequest.RedirectionTargetAttribute)
         if redirect is None or redirect.isEmpty():
@@ -357,8 +371,11 @@ class DownloadItem(downloads.AbstractDownloadItem):
         log.downloads.debug("{}: Handling redirect".format(self))
         self._redirects += 1
         new_request.setUrl(new_url)
+
         old_reply = self._reply
+        assert old_reply is not None
         old_reply.finished.disconnect(self._on_reply_finished)
+
         self._read_timer.stop()
         self._reply = None
         if self.fileobj is not None:
@@ -374,6 +391,7 @@ class DownloadItem(downloads.AbstractDownloadItem):
 
     def _uses_nam(self, nam):
         """Check if this download uses the given QNetworkAccessManager."""
+        assert self._retry_info is not None
         running_nam = self._reply is not None and self._reply.manager() is nam
         # user could request retry after tab is closed.
         retry_nam = (self.done and (not self.successful) and

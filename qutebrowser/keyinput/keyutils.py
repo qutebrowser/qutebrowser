@@ -17,7 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Our own QKeySequence-like class and related utilities."""
+"""Our own QKeySequence-like class and related utilities.
+
+Note that Qt's type safety (or rather, lack thereof) is somewhat scary when it
+comes to keys/modifiers. Many places (such as QKeyEvent::key()) don't actually
+return a Qt::Key, they return an int.
+
+To make things worse, when talking about a "key", sometimes Qt means a Qt::Key
+member. However, sometimes it means a Qt::Key member ORed with
+Qt.KeyboardModifiers...
+
+Because of that, _assert_plain_key() and _assert_plain_modifier() make sure we
+handle what we actually think we do.
+"""
 
 import itertools
 import typing
@@ -35,14 +47,14 @@ _MODIFIER_MAP = {
     Qt.Key_Control: Qt.ControlModifier,
     Qt.Key_Alt: Qt.AltModifier,
     Qt.Key_Meta: Qt.MetaModifier,
+    Qt.Key_AltGr: Qt.GroupSwitchModifier,
     Qt.Key_Mode_switch: Qt.GroupSwitchModifier,
 }
 
+_NIL_KEY = Qt.Key(0)
 
-_SPECIAL_NAMES = {}
 
-
-def _build_special_names():
+def _build_special_names() -> typing.Mapping[Qt.Key, str]:
     """Build _SPECIAL_NAMES dict from the special_names_str mapping below.
 
     The reason we don't do this directly is that certain Qt versions don't have
@@ -91,18 +103,18 @@ def _build_special_names():
         'Dead_Hook': 'Hook',
         'Dead_Horn': 'Horn',
 
-        'Dead_Stroke': '̵',
-        'Dead_Abovecomma': '̓',
-        'Dead_Abovereversedcomma': '̔',
-        'Dead_Doublegrave': '̏',
-        'Dead_Belowring': '̥',
-        'Dead_Belowmacron': '̱',
-        'Dead_Belowcircumflex': '̭',
-        'Dead_Belowtilde': '̰',
-        'Dead_Belowbreve': '̮',
-        'Dead_Belowdiaeresis': '̤',
-        'Dead_Invertedbreve': '̑',
-        'Dead_Belowcomma': '̦',
+        'Dead_Stroke': '\u0335',  # '̵'
+        'Dead_Abovecomma': '\u0313',  # '̓'
+        'Dead_Abovereversedcomma': '\u0314',  # '̔'
+        'Dead_Doublegrave': '\u030f',  # '̏'
+        'Dead_Belowring': '\u0325',  # '̥'
+        'Dead_Belowmacron': '\u0331',  # '̱'
+        'Dead_Belowcircumflex': '\u032d',  # '̭'
+        'Dead_Belowtilde': '\u0330',  # '̰'
+        'Dead_Belowbreve': '\u032e',  # '̮'
+        'Dead_Belowdiaeresis': '\u0324',  # '̤'
+        'Dead_Invertedbreve': '\u0311',  # '̑'
+        'Dead_Belowcomma': '\u0326',  # '̦'
         'Dead_Currency': '¤',
         'Dead_a': 'a',
         'Dead_A': 'A',
@@ -117,10 +129,10 @@ def _build_special_names():
         'Dead_Small_Schwa': 'ə',
         'Dead_Capital_Schwa': 'Ə',
         'Dead_Greek': 'Greek',
-        'Dead_Lowline': '̲',
-        'Dead_Aboveverticalline': '̍',
+        'Dead_Lowline': '\u0332',  # '̲'
+        'Dead_Aboveverticalline': '\u030d',  # '̍'
         'Dead_Belowverticalline': '\u0329',
-        'Dead_Longsolidusoverlay': '̸',
+        'Dead_Longsolidusoverlay': '\u0338',  # '̸'
 
         'Memo': 'Memo',
         'ToDoList': 'To Do List',
@@ -136,44 +148,59 @@ def _build_special_names():
         # For some keys, we just want a different name
         'Escape': 'Escape',
     }
+    special_names = {_NIL_KEY: 'nil'}
 
     for k, v in special_names_str.items():
         try:
-            _SPECIAL_NAMES[getattr(Qt, 'Key_' + k)] = v
-        except AttributeError:
+            special_names[getattr(Qt, 'Key_' + k)] = v
+        except AttributeError:  # pragma: no cover
             pass
-        _SPECIAL_NAMES[0x0] = 'nil'
+
+    return special_names
 
 
-if not _SPECIAL_NAMES:
-    _build_special_names()
+_SPECIAL_NAMES = _build_special_names()
 
 
-def _assert_plain_key(key):
+def _assert_plain_key(key: Qt.Key) -> None:
     """Make sure this is a key without KeyboardModifiers mixed in."""
     assert not key & Qt.KeyboardModifierMask, hex(key)
 
 
-def _assert_plain_modifier(key):
+def _assert_plain_modifier(key: Qt.KeyboardModifier) -> None:
     """Make sure this is a modifier without a key mixed in."""
     assert not key & ~Qt.KeyboardModifierMask, hex(key)
 
 
-def _is_printable(key):
+def _is_printable(key: Qt.Key) -> bool:
     _assert_plain_key(key)
-    return key <= 0xff and key not in [Qt.Key_Space, 0x0]
+    return key <= 0xff and key not in [Qt.Key_Space, _NIL_KEY]
 
 
-def is_special(key, modifiers):
-    """Check whether this key requires special key syntax."""
+def is_special_hint_mode(key: Qt.Key, modifiers: Qt.KeyboardModifier) -> bool:
+    """Check whether this key should clear the keychain in hint mode.
+
+    When we press "s<Escape>", we don't want <Escape> to be handled as part of
+    a key chain in hint mode.
+    """
     _assert_plain_key(key)
     _assert_plain_modifier(modifiers)
+    if is_modifier_key(key):
+        return False
     return not (_is_printable(key) and
                 modifiers in [Qt.ShiftModifier, Qt.NoModifier,
                               Qt.KeypadModifier])
 
 
-def is_modifier_key(key):
+def is_special(key: Qt.Key, modifiers: Qt.KeyboardModifier) -> bool:
+    """Check whether this key requires special key syntax."""
+    _assert_plain_key(key)
+    _assert_plain_modifier(modifiers)
+    return not (_is_printable(key) and
+                modifiers in [Qt.ShiftModifier, Qt.NoModifier])
+
+
+def is_modifier_key(key: Qt.Key) -> bool:
     """Test whether the given key is a modifier.
 
     This only considers keys which are part of Qt::KeyboardModifiers, i.e.
@@ -183,7 +210,41 @@ def is_modifier_key(key):
     return key in _MODIFIER_MAP
 
 
-def _check_valid_utf8(s, data):
+def _is_surrogate(key: Qt.Key) -> bool:
+    """Check if a codepoint is a UTF-16 surrogate.
+
+    UTF-16 surrogates are a reserved range of Unicode from 0xd800
+    to 0xd8ff, used to encode Unicode codepoints above the BMP
+    (Base Multilingual Plane).
+    """
+    _assert_plain_key(key)
+    return 0xd800 <= key <= 0xdfff
+
+
+def _remap_unicode(key: Qt.Key, text: str) -> Qt.Key:
+    """Work around QtKeyEvent's bad values for high codepoints.
+
+    QKeyEvent handles higher unicode codepoints poorly. It uses UTF-16 to
+    handle key events, and for higher codepoints that require UTF-16 surrogates
+    (e.g. emoji and some CJK characters), it sets the keycode to just the upper
+    half of the surrogate, which renders it useless, and breaks UTF-8 encoding,
+    causing crashes. So we detect this case, and reassign the key code to be
+    the full Unicode codepoint, which we can recover from the text() property,
+    which has the full character.
+
+    This is a WORKAROUND for https://bugreports.qt.io/browse/QTBUG-72776.
+    """
+    _assert_plain_key(key)
+    if _is_surrogate(key):
+        if len(text) != 1:
+            raise KeyParseError(text, "Expected 1 character for surrogate, "
+                                "but got {}!".format(len(text)))
+        return Qt.Key(ord(text[0]))
+    return key
+
+
+def _check_valid_utf8(s: str,
+                      data: typing.Union[Qt.Key, Qt.KeyboardModifier]) -> None:
     """Make sure the given string is valid UTF-8.
 
     Makes sure there are no chars where Qt did fall back to weird UTF-16
@@ -196,7 +257,7 @@ def _check_valid_utf8(s, data):
                          .format(data, s, e))
 
 
-def _key_to_string(key):
+def _key_to_string(key: Qt.Key) -> str:
     """Convert a Qt::Key member to a meaningful name.
 
     Args:
@@ -215,7 +276,7 @@ def _key_to_string(key):
     return result
 
 
-def _modifiers_to_string(modifiers):
+def _modifiers_to_string(modifiers: Qt.KeyboardModifier) -> str:
     """Convert the given Qt::KeyboardModifiers to a string.
 
     Handles Qt.GroupSwitchModifier because Qt doesn't handle that as a
@@ -223,7 +284,7 @@ def _modifiers_to_string(modifiers):
     """
     _assert_plain_modifier(modifiers)
     if modifiers & Qt.GroupSwitchModifier:
-        modifiers &= ~Qt.GroupSwitchModifier
+        modifiers &= ~Qt.GroupSwitchModifier  # type: ignore
         result = 'AltGr+'
     else:
         result = ''
@@ -238,7 +299,7 @@ class KeyParseError(Exception):
 
     """Raised by _parse_single_key/parse_keystring on parse errors."""
 
-    def __init__(self, keystr, error):
+    def __init__(self, keystr: typing.Optional[str], error: str) -> None:
         if keystr is None:
             msg = "Could not parse keystring: {}".format(error)
         else:
@@ -246,7 +307,7 @@ class KeyParseError(Exception):
         super().__init__(msg)
 
 
-def _parse_keystring(keystr):
+def _parse_keystring(keystr: str) -> typing.Iterator[str]:
     key = ''
     special = False
     for c in keystr:
@@ -270,7 +331,7 @@ def _parse_keystring(keystr):
             yield _parse_single_key(c)
 
 
-def _parse_special_key(keystr):
+def _parse_special_key(keystr: str) -> str:
     """Normalize a keystring like Ctrl-Q to a keystring like Ctrl+Q.
 
     Args:
@@ -298,12 +359,12 @@ def _parse_special_key(keystr):
     return keystr
 
 
-def _parse_single_key(keystr):
+def _parse_single_key(keystr: str) -> str:
     """Get a keystring for QKeySequence for a single key."""
     return 'Shift+' + keystr if keystr.isupper() else keystr
 
 
-@attr.s
+@attr.s(frozen=True, hash=False)
 class KeyInfo:
 
     """A key with optional modifiers.
@@ -313,14 +374,31 @@ class KeyInfo:
         modifiers: A Qt::KeyboardModifiers enum value.
     """
 
-    key = attr.ib()
-    modifiers = attr.ib()
+    key = attr.ib()  # type: Qt.Key
+    modifiers = attr.ib()  # type: Qt.KeyboardModifier
 
     @classmethod
-    def from_event(cls, e):
-        return cls(e.key(), e.modifiers())
+    def from_event(cls, e: QKeyEvent) -> 'KeyInfo':
+        """Get a KeyInfo object from a QKeyEvent.
 
-    def __str__(self):
+        This makes sure that key/modifiers are never mixed and also remaps
+        UTF-16 surrogates to work around QTBUG-72776.
+        """
+        key = _remap_unicode(Qt.Key(e.key()), e.text())
+        modifiers = e.modifiers()
+        _assert_plain_key(key)
+        _assert_plain_modifier(modifiers)
+        return cls(key, modifiers)
+
+    def __hash__(self) -> int:
+        """Convert KeyInfo to int before hashing.
+
+        This is needed as a WORKAROUND because enum members aren't hashable
+        with PyQt 5.7.
+        """
+        return hash(self.to_int())
+
+    def __str__(self) -> str:
         """Convert this KeyInfo to a meaningful name.
 
         Return:
@@ -349,13 +427,14 @@ class KeyInfo:
                 # Use special binding syntax, but <Ctrl-a> instead of <Ctrl-A>
                 key_string = key_string.lower()
 
+        modifiers = Qt.KeyboardModifier(modifiers)
+
         # "special" binding
-        assert (is_special(self.key, self.modifiers) or
-                self.modifiers == Qt.KeypadModifier)
+        assert is_special(self.key, self.modifiers)
         modifier_string = _modifiers_to_string(modifiers)
         return '<{}{}>'.format(modifier_string, key_string)
 
-    def text(self):
+    def text(self) -> str:
         """Get the text which would be displayed when pressing this key."""
         control = {
             Qt.Key_Space: ' ',
@@ -376,11 +455,11 @@ class KeyInfo:
             text = text.lower()
         return text
 
-    def to_event(self, typ=QEvent.KeyPress):
+    def to_event(self, typ: QEvent.Type = QEvent.KeyPress) -> QKeyEvent:
         """Get a QKeyEvent from this KeyInfo."""
         return QKeyEvent(typ, self.key, self.modifiers, self.text())
 
-    def to_int(self):
+    def to_int(self) -> int:
         """Get the key as an integer (with key/modifiers)."""
         return int(self.key) | int(self.modifiers)
 
@@ -404,8 +483,8 @@ class KeySequence:
 
     _MAX_LEN = 4
 
-    def __init__(self, *keys):
-        self._sequences = []
+    def __init__(self, *keys: int) -> None:
+        self._sequences = []  # type: typing.List[QKeySequence]
         for sub in utils.chunk(keys, self._MAX_LEN):
             args = [self._convert_key(key) for key in sub]
             sequence = QKeySequence(*args)
@@ -414,62 +493,70 @@ class KeySequence:
             assert self
         self._validate()
 
-    def _convert_key(self, key):
+    def _convert_key(self, key: Qt.Key) -> int:
         """Convert a single key for QKeySequence."""
         assert isinstance(key, (int, Qt.KeyboardModifiers)), key
         return int(key)
 
-    def __str__(self):
+    def __str__(self) -> str:
         parts = []
         for info in self:
             parts.append(str(info))
         return ''.join(parts)
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator[KeyInfo]:
         """Iterate over KeyInfo objects."""
         for key_and_modifiers in self._iter_keys():
-            key = int(key_and_modifiers) & ~Qt.KeyboardModifierMask
-            modifiers = Qt.KeyboardModifiers(int(key_and_modifiers) &
-                                             Qt.KeyboardModifierMask)
+            key = Qt.Key(int(key_and_modifiers) & ~Qt.KeyboardModifierMask)
+            modifiers = Qt.KeyboardModifiers(  # type: ignore
+                int(key_and_modifiers) & Qt.KeyboardModifierMask)
             yield KeyInfo(key=key, modifiers=modifiers)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return utils.get_repr(self, keys=str(self))
 
-    def __lt__(self, other):
-        # pylint: disable=protected-access
+    def __lt__(self, other: 'KeySequence') -> bool:
         return self._sequences < other._sequences
 
-    def __gt__(self, other):
-        # pylint: disable=protected-access
+    def __gt__(self, other: 'KeySequence') -> bool:
         return self._sequences > other._sequences
 
-    def __le__(self, other):
-        # pylint: disable=protected-access
+    def __le__(self, other: 'KeySequence') -> bool:
         return self._sequences <= other._sequences
 
-    def __ge__(self, other):
-        # pylint: disable=protected-access
+    def __ge__(self, other: 'KeySequence') -> bool:
         return self._sequences >= other._sequences
 
-    def __eq__(self, other):
-        # pylint: disable=protected-access
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, KeySequence):
+            return NotImplemented
         return self._sequences == other._sequences
 
-    def __ne__(self, other):
-        # pylint: disable=protected-access
+    def __ne__(self, other: object) -> bool:
+        if not isinstance(other, KeySequence):
+            return NotImplemented
         return self._sequences != other._sequences
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(tuple(self._sequences))
 
-    def __len__(self):
+    def __len__(self) -> int:
         return sum(len(seq) for seq in self._sequences)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self._sequences)
 
-    def __getitem__(self, item):
+    @typing.overload
+    def __getitem__(self, item: int) -> KeyInfo:
+        ...
+
+    @typing.overload
+    def __getitem__(self, item: slice) -> 'KeySequence':
+        ...
+
+    def __getitem__(
+            self, item: typing.Union[int, slice]
+    ) -> typing.Union[KeyInfo, 'KeySequence']:
         if isinstance(item, slice):
             keys = list(self._iter_keys())
             return self.__class__(*keys[item])
@@ -477,10 +564,10 @@ class KeySequence:
             infos = list(self)
             return infos[item]
 
-    def _iter_keys(self):
+    def _iter_keys(self) -> typing.Iterator[int]:
         return itertools.chain.from_iterable(self._sequences)
 
-    def _validate(self, keystr=None):
+    def _validate(self, keystr: str = None) -> None:
         for info in self:
             if info.key < Qt.Key_Space or info.key >= Qt.Key_unknown:
                 raise KeyParseError(keystr, "Got invalid key!")
@@ -489,7 +576,7 @@ class KeySequence:
             if not seq:
                 raise KeyParseError(keystr, "Got invalid key!")
 
-    def matches(self, other):
+    def matches(self, other: 'KeySequence') -> QKeySequence.SequenceMatch:
         """Check whether the given KeySequence matches with this one.
 
         We store multiple QKeySequences with <= 4 keys each, so we need to
@@ -524,15 +611,17 @@ class KeySequence:
         else:
             raise utils.Unreachable("self={!r} other={!r}".format(self, other))
 
-    def append_event(self, ev):
+    def append_event(self, ev: QKeyEvent) -> 'KeySequence':
         """Create a new KeySequence object with the given QKeyEvent added."""
-        key = ev.key()
-        modifiers = ev.modifiers()
+        key = Qt.Key(ev.key())
 
         _assert_plain_key(key)
-        _assert_plain_modifier(modifiers)
+        _assert_plain_modifier(ev.modifiers())
 
-        if key == 0x0:
+        key = _remap_unicode(key, ev.text())
+        modifiers = int(ev.modifiers())
+
+        if key == _NIL_KEY:
             raise KeyParseError(None, "Got nil key!")
 
         # We always remove Qt.GroupSwitchModifier because QKeySequence has no
@@ -555,7 +644,7 @@ class KeySequence:
         # In addition, Shift also *is* relevant when other modifiers are
         # involved. Shift-Ctrl-X should not be equivalent to Ctrl-X.
         if (modifiers == Qt.ShiftModifier and
-                _is_printable(ev.key()) and
+                _is_printable(key) and
                 not ev.text().isupper()):
             modifiers = Qt.KeyboardModifiers()
 
@@ -576,13 +665,16 @@ class KeySequence:
 
         return self.__class__(*keys)
 
-    def strip_modifiers(self):
+    def strip_modifiers(self) -> 'KeySequence':
         """Strip optional modifiers from keys."""
         modifiers = Qt.KeypadModifier
         keys = [key & ~modifiers for key in self._iter_keys()]
         return self.__class__(*keys)
 
-    def with_mappings(self, mappings: typing.Mapping):
+    def with_mappings(
+            self,
+            mappings: typing.Mapping['KeySequence', 'KeySequence']
+    ) -> 'KeySequence':
         """Get a new KeySequence with the given mappings applied."""
         keys = []
         for key in self._iter_keys():
@@ -595,7 +687,7 @@ class KeySequence:
         return self.__class__(*keys)
 
     @classmethod
-    def parse(cls, keystr):
+    def parse(cls, keystr: str) -> 'KeySequence':
         """Parse a keystring like <Ctrl-x> or xyz and return a KeySequence."""
         # pylint: disable=protected-access
         new = cls()

@@ -33,9 +33,7 @@ from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.keyinput import keyutils
 from qutebrowser.api import cmdutils
 
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
+if typing.TYPE_CHECKING:
     from typing import Tuple, MutableMapping
     from qutebrowser.config import configcache, configfiles
     from qutebrowser.misc import savemanager
@@ -189,7 +187,8 @@ class KeyConfig:
                     key: keyutils.KeySequence,
                     mode: str,
                     default: bool = False,
-                    pattern: urlmatch.UrlPattern = None) -> typing.Optional[str]:
+                    pattern: urlmatch.UrlPattern = None
+                    ) -> typing.Optional[str]:
         """Get the command for a given key (or None)."""
         self._validate(key, mode)
         if default:
@@ -320,6 +319,7 @@ class Config(QObject):
         self._yaml = yaml_config
         self._init_values()
         self.yaml_loaded = False
+        self.config_py_loaded = False
 
     def _init_values(self) -> None:
         """Populate the self._values dict."""

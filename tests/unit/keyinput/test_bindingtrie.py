@@ -31,63 +31,68 @@ from qutebrowser.keyinput import keyutils
 from unit.keyinput import test_keyutils
 
 
-@pytest.mark.parametrize('entered, configured, expected',
+@pytest.mark.parametrize('entered, configured, match_type',
                          test_keyutils.TestKeySequence.MATCH_TESTS)
-def test_matches_single(entered, configured, expected):
+def test_matches_single(entered, configured, match_type):
     entered = keyutils.KeySequence.parse(entered)
     configured = keyutils.KeySequence.parse(configured)
     trie = basekeyparser.BindingTrie()
     trie[configured] = "eeloo"
-    ret_expected = None
-    if expected == QKeySequence.ExactMatch:
-        ret_expected = "eeloo"
-    assert trie.matches(entered) == (expected, ret_expected)
+    command = "eeloo" if match_type == QKeySequence.ExactMatch else None
+    result = basekeyparser.MatchResult(match_type=match_type,
+                                       command=command,
+                                       sequence=entered)
+    assert trie.matches(entered) == result
 
 
-@pytest.mark.parametrize(
-    'configured, expected_tuple',
-    (((),
-      # null match
-      (('a', QKeySequence.NoMatch),
-       ('', QKeySequence.NoMatch))),
-     (('abcd',),
-      (('abcd', QKeySequence.ExactMatch),
-       ('abc', QKeySequence.PartialMatch))),
-     (('aa', 'ab', 'ac', 'ad'),
-      (('ac', QKeySequence.ExactMatch),
-       ('a', QKeySequence.PartialMatch),
-       ('f', QKeySequence.NoMatch),
-       ('acd', QKeySequence.NoMatch))),
-     (('aaaaaaab', 'aaaaaaac', 'aaaaaaad'),
-      (('aaaaaaab', QKeySequence.ExactMatch),
-       ('z', QKeySequence.NoMatch))),
-     (tuple(string.ascii_letters),
-      (('a', QKeySequence.ExactMatch),
-       ('!', QKeySequence.NoMatch)))))
-def test_matches_tree(configured, expected_tuple, benchmark):
+@pytest.mark.parametrize('configured, expected', [
+    ([],
+     # null match
+     [('a', QKeySequence.NoMatch),
+      ('', QKeySequence.NoMatch)]),
+    (['abcd'],
+     [('abcd', QKeySequence.ExactMatch),
+      ('abc', QKeySequence.PartialMatch)]),
+    (['aa', 'ab', 'ac', 'ad'],
+     [('ac', QKeySequence.ExactMatch),
+      ('a', QKeySequence.PartialMatch),
+      ('f', QKeySequence.NoMatch),
+      ('acd', QKeySequence.NoMatch)]),
+    (['aaaaaaab', 'aaaaaaac', 'aaaaaaad'],
+     [('aaaaaaab', QKeySequence.ExactMatch),
+      ('z', QKeySequence.NoMatch)]),
+    (string.ascii_letters,
+     [('a', QKeySequence.ExactMatch),
+      ('!', QKeySequence.NoMatch)]),
+])
+def test_matches_tree(configured, expected, benchmark):
     trie = basekeyparser.BindingTrie()
-    trie.update(dict.fromkeys(
-        map(keyutils.KeySequence.parse, configured), "eeloo"))
+    trie.update({keyutils.KeySequence.parse(keys): "eeloo"
+                 for keys in configured})
 
-    def _run():
-        for entered, expected in expected_tuple:
-            entered = keyutils.KeySequence.parse(entered)
-            ret_expected = None
-            if expected == QKeySequence.ExactMatch:
-                ret_expected = "eeloo"
-            assert trie.matches(entered) == (expected, ret_expected)
-    benchmark(_run)
+    def run():
+        for entered, match_type in expected:
+            sequence = keyutils.KeySequence.parse(entered)
+            command = ("eeloo" if match_type == QKeySequence.ExactMatch
+                       else None)
+            result = basekeyparser.MatchResult(match_type=match_type,
+                                               command=command,
+                                               sequence=sequence)
+            assert trie.matches(sequence) == result
+
+    benchmark(run)
 
 
-@pytest.mark.parametrize(
-    'configured',
-    ('a',
-     itertools.permutations('asdfghjkl', 3)))
+@pytest.mark.parametrize('configured', [
+    ['a'],
+    itertools.permutations('asdfghjkl', 3)
+])
 def test_bench_create(configured, benchmark):
-    configured = dict.fromkeys(
-        map(keyutils.KeySequence.parse, configured), "dres")
+    bindings = {keyutils.KeySequence.parse(keys): "dres"
+                for keys in configured}
 
-    def _run():
+    def run():
         trie = basekeyparser.BindingTrie()
-        trie.update(configured)
-    benchmark(_run)
+        trie.update(bindings)
+
+    benchmark(run)

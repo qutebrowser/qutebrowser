@@ -29,6 +29,9 @@ from qutebrowser.browser import downloads, qtnetworkdownloads
 from qutebrowser.utils import objreg
 
 
+UnsupportedAttribute = downloads.UnsupportedAttribute
+
+
 class TempDownload(QObject):
 
     """A download of some data into a file object."""

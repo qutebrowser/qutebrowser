@@ -145,7 +145,7 @@ def test_lightweight_patterns(pattern, scheme, host, path):
     """
     up = urlmatch.UrlPattern(pattern)
     assert up._scheme == scheme
-    assert up._host == host
+    assert up.host == host
     assert up._path == path
 
 
@@ -157,7 +157,7 @@ class TestMatchAllPagesForGivenScheme:
 
     def test_attrs(self, up):
         assert up._scheme == 'http'
-        assert up._host is None
+        assert up.host is None
         assert up._match_subdomains
         assert not up._match_all
         assert up._path is None
@@ -187,7 +187,7 @@ class TestMatchAllDomains:
 
     def test_attrs(self, up):
         assert up._scheme == 'https'
-        assert up._host is None
+        assert up.host is None
         assert up._match_subdomains
         assert not up._match_all
         assert up._path == '/foo*'
@@ -210,7 +210,7 @@ class TestMatchSubdomains:
 
     def test_attrs(self, up):
         assert up._scheme == 'http'
-        assert up._host == 'google.com'
+        assert up.host == 'google.com'
         assert up._match_subdomains
         assert not up._match_all
         assert up._path == '/foo*bar'
@@ -235,7 +235,7 @@ class TestMatchGlobEscaping:
 
     def test_attrs(self, up):
         assert up._scheme == 'file'
-        assert up._host is None
+        assert up.host is None
         assert not up._match_subdomains
         assert not up._match_all
         assert up._path == r'/foo-bar\*baz'
@@ -262,7 +262,7 @@ class TestMatchIpAddresses:
     def test_attrs(self, pattern, host, match_subdomains):
         up = urlmatch.UrlPattern(pattern)
         assert up._scheme == 'http'
-        assert up._host == host
+        assert up.host == host
         assert up._match_subdomains == match_subdomains
         assert not up._match_all
         assert up._path is None
@@ -285,7 +285,7 @@ class TestMatchChromeUrls:
 
     def test_attrs(self, up):
         assert up._scheme == 'chrome'
-        assert up._host == 'favicon'
+        assert up.host == 'favicon'
         assert not up._match_subdomains
         assert not up._match_all
         assert up._path is None
@@ -307,7 +307,7 @@ class TestMatchAnything:
 
     def test_attrs_common(self, up):
         assert up._scheme is None
-        assert up._host is None
+        assert up.host is None
         assert up._path is None
 
     def test_attrs_wildcard(self):
@@ -360,7 +360,7 @@ class TestFileScheme:
 
     def test_attrs(self, up):
         assert up._scheme == 'file'
-        assert up._host is None
+        assert up.host is None
         assert not up._match_subdomains
         assert not up._match_all
         assert up._path == '/foo*'
@@ -384,7 +384,7 @@ class TestMatchSpecificPort:
 
     def test_attrs(self, up):
         assert up._scheme == 'http'
-        assert up._host == 'www.example.com'
+        assert up.host == 'www.example.com'
         assert not up._match_subdomains
         assert not up._match_all
         assert up._path == '/foo'
@@ -407,7 +407,7 @@ class TestExplicitPortWildcard:
 
     def test_attrs(self, up):
         assert up._scheme == 'http'
-        assert up._host == 'www.example.com'
+        assert up.host == 'www.example.com'
         assert not up._match_subdomains
         assert not up._match_all
         assert up._path == '/foo'

@@ -57,9 +57,10 @@ def early_init(args: argparse.Namespace) -> None:
 
     config_commands = configcommands.ConfigCommands(
         config.instance, config.key_instance)
-    objreg.register('config-commands', config_commands)
+    objreg.register('config-commands', config_commands, command_only=True)
 
     config_file = standarddir.config_py()
+    global _init_errors
 
     try:
         if os.path.exists(config_file):
@@ -68,10 +69,12 @@ def early_init(args: argparse.Namespace) -> None:
             configfiles.read_autoconfig()
     except configexc.ConfigFileErrors as e:
         log.config.exception("Error while loading {}".format(e.basename))
-        global _init_errors
         _init_errors = e
 
-    configfiles.init()
+    try:
+        configfiles.init()
+    except configexc.ConfigFileErrors as e:
+        _init_errors = e
 
     for opt, val in args.temp_settings:
         try:
@@ -80,6 +83,7 @@ def early_init(args: argparse.Namespace) -> None:
             message.error("set: {} - {}".format(e.__class__.__name__, e))
 
     objects.backend = get_backend(args)
+    objects.debug_flags = set(args.debug_flags)
 
     configtypes.Font.monospace_fonts = config.val.fonts.monospace
     config.instance.changed.connect(_update_monospace_fonts)
@@ -105,7 +109,10 @@ def _init_envvars() -> None:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
 
     if config.val.qt.highdpi:
-        os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
+        env_var = ('QT_ENABLE_HIGHDPI_SCALING'
+                   if qtutils.version_check('5.14', compiled=False)
+                   else 'QT_AUTO_SCREEN_SCALE_FACTOR')
+        os.environ[env_var] = '1'
 
 
 @config.change_filter('fonts.monospace', function=True)
@@ -148,6 +155,10 @@ def late_init(save_manager: savemanager.SaveManager) -> None:
                                icon=QMessageBox.Warning,
                                plain_text=False)
         errbox.exec_()
+
+        if _init_errors.fatal:
+            sys.exit(usertypes.Exit.err_init)
+
     _init_errors = None
 
     config.instance.init_save_manager(save_manager)

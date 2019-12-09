@@ -84,7 +84,6 @@ def restore_loggers():
         logger_dict = logging.getLogger().manager.loggerDict
         logger_dict.clear()
         logger_dict.update(saved_loggers)
-        logger_states = logger_states
         for name in logger_states:
             if logger_states[name] is not None:
                 saved_loggers[name].disabled = logger_states[name]
@@ -197,18 +196,24 @@ class TestInitLog:
 
     """Tests for init_log."""
 
+    def _get_default_args(self):
+        return argparse.Namespace(debug=True, loglevel='debug', color=True,
+                                  loglines=10, logfilter="", force_color=False,
+                                  json_logging=False, debug_flags=set())
+
     @pytest.fixture(autouse=True)
     def setup(self, mocker):
-        """Mock out qInstallMessageHandler."""
         mocker.patch('qutebrowser.utils.log.QtCore.qInstallMessageHandler',
                      autospec=True)
+        yield
+        # Make sure logging is in a sensible default state
+        args = self._get_default_args()
+        log.init_log(args)
 
     @pytest.fixture
     def args(self):
         """Fixture providing an argparse namespace for init_log."""
-        return argparse.Namespace(debug=True, loglevel='debug', color=True,
-                                  loglines=10, logfilter="", force_color=False,
-                                  json_logging=False)
+        return self._get_default_args()
 
     def test_stderr_none(self, args):
         """Test init_log with sys.stderr = None."""
@@ -232,6 +237,22 @@ class TestInitLog:
         log.init_log(args)
         assert filter_mock.called
         assert filter_mock.call_args[0] == (expected_names, negated)
+
+    def test_python_warnings(self, args, caplog):
+        log.init_log(args)
+
+        with caplog.at_level(logging.WARNING):
+            warnings.warn("test warning", PendingDeprecationWarning)
+
+        expected = "PendingDeprecationWarning: test warning"
+        assert expected in caplog.records[0].message
+
+    def test_python_warnings_werror(self, args):
+        args.debug_flags = {'werror'}
+        log.init_log(args)
+
+        with pytest.raises(PendingDeprecationWarning):
+            warnings.warn("test warning", PendingDeprecationWarning)
 
 
 class TestHideQtWarning:

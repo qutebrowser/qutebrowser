@@ -261,6 +261,7 @@
 |<<tabs.close_mouse_button_on_bar,tabs.close_mouse_button_on_bar>>|How to behave when the close mouse button is pressed on the tab bar.
 |<<tabs.favicons.scale,tabs.favicons.scale>>|Scaling factor for favicons in the tab bar.
 |<<tabs.favicons.show,tabs.favicons.show>>|When to show favicons in the tab bar.
+|<<tabs.focus_stack_size,tabs.focus_stack_size>>|Maximum stack size to remember for tab switches (-1 for no maximum).
 |<<tabs.indicator.padding,tabs.indicator.padding>>|Padding (in pixels) for tab indicators.
 |<<tabs.indicator.width,tabs.indicator.width>>|Width (in pixels) of the progress indicator (0 to disable).
 |<<tabs.last_close,tabs.last_close>>|How to behave when the last tab is closed.
@@ -282,6 +283,7 @@
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
 |<<tabs.title.format_pinned,tabs.title.format_pinned>>|Format to use for the tab title for pinned tabs. The same placeholders like for `tabs.title.format` are defined.
+|<<tabs.tooltips,tabs.tooltips>>|Show tooltips on tabs.
 |<<tabs.undo_stack_size,tabs.undo_stack_size>>|Number of close tab actions to remember, per window (-1 for no maximum).
 |<<tabs.width,tabs.width>>|Width (in pixels or as percentage of the window) of the tab bar if it's vertical.
 |<<tabs.wrap,tabs.wrap>>|Wrap when changing tabs.
@@ -487,7 +489,7 @@ Default:
 
 * +pass:[&lt;Ctrl-E&gt;]+: +pass:[open-editor]+
 * +pass:[&lt;Escape&gt;]+: +pass:[leave-mode]+
-* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text {primary}]+
+* +pass:[&lt;Shift-Ins&gt;]+: +pass:[insert-text -- {primary}]+
 - +pass:[normal]+:
 
 * +pass:[&#x27;]+: +pass:[enter-mode jump_mark]+
@@ -1867,9 +1869,7 @@ Local domains are always exempt from hostblocking.
 
 Type: <<types,List of UrlPattern>>
 
-Default: 
-
-- +pass:[piwik.org]+
+Default: empty
 
 [[content.hyperlink_auditing]]
 === content.hyperlink_auditing
@@ -1947,6 +1947,7 @@ Default: +pass:[true]+
 Log levels to use for JavaScript console logging messages.
 When a JavaScript message with the level given in the dictionary key is logged, the corresponding dictionary value selects the qutebrowser logger to use.
 On QtWebKit, the "unknown" setting is always used.
+The following levels are valid: `none`, `debug`, `info`, `warning`, `error`.
 
 Type: <<types,Dict>>
 
@@ -2251,12 +2252,13 @@ Default: +pass:[false]+
 === content.xss_auditing
 Monitor load requests for cross-site scripting attempts.
 Suspicious scripts will be blocked and reported in the inspector's JavaScript console.
+Note that bypasses for the XSS auditor are widely known and it can be abused for cross-site info leaks in some scenarios, see: https://www.chromium.org/developers/design-documents/xss-auditor
 
 This setting supports URL patterns.
 
 Type: <<types,Bool>>
 
-Default: +pass:[true]+
+Default: +pass:[false]+
 
 [[downloads.location.directory]]
 === downloads.location.directory
@@ -2432,7 +2434,7 @@ Whenever "monospace" is used in a font setting, it's replaced with the fonts lis
 
 Type: <<types,Font>>
 
-Default: +pass:[&quot;xos4 Terminus&quot;, Terminus, Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
+Default: +pass:[Monospace, &quot;DejaVu Sans Mono&quot;, Monaco, &quot;Bitstream Vera Sans Mono&quot;, &quot;Andale Mono&quot;, &quot;Courier New&quot;, Courier, &quot;Liberation Mono&quot;, monospace, Fixed, Consolas, Terminal]+
 
 [[fonts.prompts]]
 === fonts.prompts
@@ -2993,7 +2995,7 @@ This setting is only available with the QtWebEngine backend.
 [[qt.highdpi]]
 === qt.highdpi
 Turn on Qt HighDPI scaling.
-This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 in the environment.
+This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
 It's off by default as it can cause issues with some bitmap fonts. As an alternative to this, it's possible to set font sizes and the `zoom.default` setting.
 This setting requires a restart.
 
@@ -3283,6 +3285,14 @@ Valid values:
 
 Default: +pass:[always]+
 
+[[tabs.focus_stack_size]]
+=== tabs.focus_stack_size
+Maximum stack size to remember for tab switches (-1 for no maximum).
+
+Type: <<types,Int>>
+
+Default: +pass:[10]+
+
 [[tabs.indicator.padding]]
 === tabs.indicator.padding
 Padding (in pixels) for tab indicators.
@@ -3538,6 +3548,15 @@ Format to use for the tab title for pinned tabs. The same placeholders like for 
 Type: <<types,FormatString>>
 
 Default: +pass:[{index}]+
+
+[[tabs.tooltips]]
+=== tabs.tooltips
+Show tooltips on tabs.
+Note this setting only affects windows opened after it has been set.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
 
 [[tabs.undo_stack_size]]
 === tabs.undo_stack_size

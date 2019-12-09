@@ -23,7 +23,7 @@ elif [[ $TESTENV == shellcheck ]]; then
     docker run \
            -v "$PWD:/outside" \
            -w /outside \
-           koalaman/shellcheck:latest "${scripts[@]}"
+           koalaman/shellcheck:stable "${scripts[@]}"
 else
     args=()
     # We only run unit tests on macOS because it's quite slow.

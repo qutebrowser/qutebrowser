@@ -228,7 +228,7 @@ def run(args):
                           args.io_encoding)
 
         if selection not in candidates_map:
-            stderr("'{}' was not a valid entry!").format(selection)
+            stderr("'{}' was not a valid entry!".format(selection))
             return ExitCodes.USER_QUIT
 
         selection = candidates_map[selection]

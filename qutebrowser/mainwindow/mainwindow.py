@@ -23,8 +23,9 @@ import binascii
 import base64
 import itertools
 import functools
+import typing
 
-from PyQt5.QtCore import (pyqtSlot, QRect, QPoint, QTimer, Qt,
+from PyQt5.QtCore import (pyqtSignal, pyqtSlot, QRect, QPoint, QTimer, Qt,
                           QCoreApplication, QEventLoop)
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
@@ -37,7 +38,7 @@ from qutebrowser.mainwindow import messageview, prompt
 from qutebrowser.completion import completionwidget, completer
 from qutebrowser.keyinput import modeman
 from qutebrowser.browser import commands, downloadview, hints, downloads
-from qutebrowser.misc import crashsignal, keyhintwidget
+from qutebrowser.misc import crashsignal, keyhintwidget, sessions
 
 
 win_id_gen = itertools.count(0)
@@ -101,7 +102,7 @@ def raise_window(window, alert=True):
     window.setWindowState(window.windowState() | Qt.WindowActive)
     window.raise_()
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-69568
-    QCoreApplication.processEvents(
+    QCoreApplication.processEvents(  # type: ignore
         QEventLoop.ExcludeUserInputEvents | QEventLoop.ExcludeSocketNotifiers)
     window.activateWindow()
 
@@ -127,6 +128,9 @@ def get_target_window():
         return None
 
 
+_OverlayInfoType = typing.Tuple[QWidget, pyqtSignal, bool, str]
+
+
 class MainWindow(QWidget):
 
     """The main window of qutebrowser.
@@ -139,6 +143,7 @@ class MainWindow(QWidget):
         tabbed_browser: The TabbedBrowser widget.
         state_before_fullscreen: window state before activation of fullscreen.
         _downloadview: The DownloadView widget.
+        _download_model: The DownloadModel instance.
         _vbox: The main QVBoxLayout.
         _commandrunner: The main CommandRunner instance.
         _overlays: Widgets shown as overlay for the current webpage.
@@ -172,8 +177,7 @@ class MainWindow(QWidget):
         from qutebrowser.mainwindow.statusbar import bar
 
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self._commandrunner = None
-        self._overlays = []
+        self._overlays = []  # type: typing.MutableSequence[_OverlayInfoType]
         self.win_id = next(win_id_gen)
         self.registry = objreg.ObjectRegistry()
         objreg.window_registry[self.win_id] = self
@@ -193,7 +197,8 @@ class MainWindow(QWidget):
         self._vbox.setSpacing(0)
 
         self._init_downloadmanager()
-        self._downloadview = downloadview.DownloadView(self.win_id)
+        self._downloadview = downloadview.DownloadView(
+            model=self._download_model)
 
         if config.val.content.private_browsing:
             # This setting always trumps what's passed in.
@@ -220,7 +225,7 @@ class MainWindow(QWidget):
         self._init_completion()
 
         log.init.debug("Initializing modes...")
-        modeman.init(self.win_id, self)
+        modeman.init(win_id=self.win_id, parent=self)
 
         self._commandrunner = runners.CommandRunner(self.win_id,
                                                     partial_match=True)
@@ -233,7 +238,7 @@ class MainWindow(QWidget):
                           self._prompt_container.update_geometry,
                           centered=True, padding=10)
         objreg.register('prompt-container', self._prompt_container,
-                        scope='window', window=self.win_id)
+                        scope='window', window=self.win_id, command_only=True)
         self._prompt_container.hide()
 
         self._messageview = messageview.MessageView(parent=self)
@@ -248,7 +253,7 @@ class MainWindow(QWidget):
         QTimer.singleShot(0, self._connect_overlay_signals)
         config.instance.changed.connect(self._on_config_changed)
 
-        objreg.get("app").new_window.emit(self)
+        QApplication.instance().new_window.emit(self)
         self._set_decoration(config.val.window.hide_decoration)
 
         self.state_before_fullscreen = self.windowState()
@@ -329,28 +334,33 @@ class MainWindow(QWidget):
         except KeyError:
             webengine_download_manager = None
 
-        download_model = downloads.DownloadModel(qtnetwork_download_manager,
-                                                 webengine_download_manager)
-        objreg.register('download-model', download_model, scope='window',
-                        window=self.win_id)
+        self._download_model = downloads.DownloadModel(
+            qtnetwork_download_manager, webengine_download_manager)
+        objreg.register('download-model', self._download_model,
+                        scope='window', window=self.win_id,
+                        command_only=True)
 
     def _init_completion(self):
-        self._completion = completionwidget.CompletionView(self.win_id, self)
-        cmd = objreg.get('status-command', scope='window', window=self.win_id)
-        completer_obj = completer.Completer(cmd=cmd, win_id=self.win_id,
+        self._completion = completionwidget.CompletionView(cmd=self.status.cmd,
+                                                           win_id=self.win_id,
+                                                           parent=self)
+        completer_obj = completer.Completer(cmd=self.status.cmd,
+                                            win_id=self.win_id,
                                             parent=self._completion)
         self._completion.selection_changed.connect(
             completer_obj.on_selection_changed)
         objreg.register('completion', self._completion, scope='window',
-                        window=self.win_id)
+                        window=self.win_id, command_only=True)
         self._add_overlay(self._completion, self._completion.update_geometry)
 
     def _init_command_dispatcher(self):
-        dispatcher = commands.CommandDispatcher(self.win_id,
-                                                self.tabbed_browser)
-        objreg.register('command-dispatcher', dispatcher, scope='window',
-                        window=self.win_id)
-        self.tabbed_browser.widget.destroyed.connect(
+        self._command_dispatcher = commands.CommandDispatcher(
+            self.win_id, self.tabbed_browser)
+        objreg.register('command-dispatcher',
+                        self._command_dispatcher,
+                        command_only=True,
+                        scope='window', window=self.win_id)
+        self.tabbed_browser.widget.destroyed.connect(  # type: ignore
             functools.partial(objreg.delete, 'command-dispatcher',
                               scope='window', window=self.win_id))
 
@@ -445,32 +455,35 @@ class MainWindow(QWidget):
 
     def _connect_signals(self):
         """Connect all mainwindow signals."""
-        status = self._get_object('statusbar')
-        keyparsers = self._get_object('keyparsers')
-        completion_obj = self._get_object('completion')
-        cmd = self._get_object('status-command')
         message_bridge = self._get_object('message-bridge')
-        mode_manager = self._get_object('mode-manager')
+        mode_manager = modeman.instance(self.win_id)
 
         # misc
         self.tabbed_browser.close_window.connect(self.close)
         mode_manager.entered.connect(hints.on_mode_entered)
 
         # status bar
-        mode_manager.entered.connect(status.on_mode_entered)
-        mode_manager.left.connect(status.on_mode_left)
-        mode_manager.left.connect(cmd.on_mode_left)
-        mode_manager.left.connect(message.global_bridge.mode_left)
+        mode_manager.entered.connect(self.status.on_mode_entered)
+        mode_manager.left.connect(self.status.on_mode_left)
+        mode_manager.left.connect(self.status.cmd.on_mode_left)
+        mode_manager.left.connect(
+            message.global_bridge.mode_left)  # type: ignore
 
         # commands
-        keyparsers[usertypes.KeyMode.normal].keystring_updated.connect(
-            status.keystring.setText)
-        cmd.got_cmd[str].connect(self._commandrunner.run_safely)
-        cmd.got_cmd[str, int].connect(self._commandrunner.run_safely)
-        cmd.returnPressed.connect(self.tabbed_browser.on_cmd_return_pressed)
+        normal_parser = mode_manager.parsers[usertypes.KeyMode.normal]
+        normal_parser.keystring_updated.connect(
+            self.status.keystring.setText)
+        self.status.cmd.got_cmd[str].connect(  # type: ignore
+            self._commandrunner.run_safely)
+        self.status.cmd.got_cmd[str, int].connect(  # type: ignore
+            self._commandrunner.run_safely)
+        self.status.cmd.returnPressed.connect(
+            self.tabbed_browser.on_cmd_return_pressed)
+        self.status.cmd.got_search.connect(
+            self._command_dispatcher.search)
 
         # key hint popup
-        for mode, parser in keyparsers.items():
+        for mode, parser in mode_manager.parsers.items():
             parser.keystring_updated.connect(functools.partial(
                 self._keyhint.update_keyhint, mode.name))
 
@@ -481,46 +494,59 @@ class MainWindow(QWidget):
         message.global_bridge.clear_messages.connect(
             self._messageview.clear_messages)
 
-        message_bridge.s_set_text.connect(status.set_text)
-        message_bridge.s_maybe_reset_text.connect(status.txt.maybe_reset_text)
+        message_bridge.s_set_text.connect(self.status.set_text)
+        message_bridge.s_maybe_reset_text.connect(
+            self.status.txt.maybe_reset_text)
 
         # statusbar
-        self.tabbed_browser.current_tab_changed.connect(status.on_tab_changed)
+        self.tabbed_browser.current_tab_changed.connect(
+            self.status.on_tab_changed)
 
-        self.tabbed_browser.cur_progress.connect(status.prog.on_load_progress)
+        self.tabbed_browser.cur_progress.connect(
+            self.status.prog.on_load_progress)
         self.tabbed_browser.cur_load_started.connect(
-            status.prog.on_load_started)
+            self.status.prog.on_load_started)
 
         self.tabbed_browser.cur_scroll_perc_changed.connect(
-            status.percentage.set_perc)
+            self.status.percentage.set_perc)
         self.tabbed_browser.widget.tab_index_changed.connect(
-            status.tabindex.on_tab_index_changed)
+            self.status.tabindex.on_tab_index_changed)
 
-        self.tabbed_browser.cur_url_changed.connect(status.url.set_url)
+        self.tabbed_browser.cur_url_changed.connect(
+            self.status.url.set_url)
         self.tabbed_browser.cur_url_changed.connect(functools.partial(
-            status.backforward.on_tab_cur_url_changed,
+            self.status.backforward.on_tab_cur_url_changed,
             tabs=self.tabbed_browser))
-        self.tabbed_browser.cur_link_hovered.connect(status.url.set_hover_url)
+        self.tabbed_browser.cur_link_hovered.connect(
+            self.status.url.set_hover_url)
         self.tabbed_browser.cur_load_status_changed.connect(
-            status.url.on_load_status_changed)
+            self.status.url.on_load_status_changed)
 
         self.tabbed_browser.cur_caret_selection_toggled.connect(
-            status.on_caret_selection_toggled)
+            self.status.on_caret_selection_toggled)
 
         self.tabbed_browser.cur_fullscreen_requested.connect(
             self._on_fullscreen_requested)
-        self.tabbed_browser.cur_fullscreen_requested.connect(status.maybe_hide)
+        self.tabbed_browser.cur_fullscreen_requested.connect(
+            self.status.maybe_hide)
+
+        # downloadview
+        self.tabbed_browser.cur_fullscreen_requested.connect(
+            self._downloadview.on_fullscreen_requested)
 
         # command input / completion
-        mode_manager.entered.connect(self.tabbed_browser.on_mode_entered)
-        mode_manager.left.connect(self.tabbed_browser.on_mode_left)
-        cmd.clear_completion_selection.connect(
-            completion_obj.on_clear_completion_selection)
-        cmd.hide_completion.connect(completion_obj.hide)
+        mode_manager.entered.connect(
+            self.tabbed_browser.on_mode_entered)
+        mode_manager.left.connect(
+            self.tabbed_browser.on_mode_left)
+        self.status.cmd.clear_completion_selection.connect(
+            self._completion.on_clear_completion_selection)
+        self.status.cmd.hide_completion.connect(
+            self._completion.hide)
 
     def _set_decoration(self, hidden):
         """Set the visibility of the window decoration via Qt."""
-        window_flags = Qt.Window
+        window_flags = Qt.Window  # type: int
         refresh_window = self.isVisible()
         if hidden:
             window_flags |= Qt.CustomizeWindowHint | Qt.NoDropShadowWindowHint
@@ -533,8 +559,8 @@ class MainWindow(QWidget):
         if not config.val.content.windowed_fullscreen:
             if on:
                 self.state_before_fullscreen = self.windowState()
-                self.setWindowState(
-                    Qt.WindowFullScreen | self.state_before_fullscreen)
+                self.setWindowState(Qt.WindowFullScreen |  # type: ignore
+                                    self.state_before_fullscreen)
             elif self.isFullScreen():
                 self.setWindowState(self.state_before_fullscreen)
         log.misc.debug('on: {}, state before fullscreen: {}'.format(
@@ -579,7 +605,7 @@ class MainWindow(QWidget):
                 objreg.delete('last-visible-main-window')
         except KeyError:
             pass
-        objreg.get('session-manager').save_last_window_session()
+        sessions.session_manager.save_last_window_session()
         self._save_geometry()
         log.destroy.debug("Closing window {}".format(self.win_id))
         self.tabbed_browser.shutdown()
@@ -590,9 +616,7 @@ class MainWindow(QWidget):
             e.accept()
             return
         tab_count = self.tabbed_browser.widget.count()
-        download_model = objreg.get('download-model', scope='window',
-                                    window=self.win_id)
-        download_count = download_model.running_downloads()
+        download_count = self._download_model.running_downloads()
         quit_texts = []
         # Ask if multiple-tabs are open
         if 'multiple-tabs' in config.val.confirm_quit and tab_count > 1:

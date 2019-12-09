@@ -427,6 +427,17 @@ Feature: Using hints
         And I hint with args "--rapid" and follow 00
         Then data/numbers/1.txt should be loaded
 
+    Scenario: Changing rapid hint filter after selecting hint
+        When I open data/hints/number.html
+        And I set hints.mode to number
+        And I hint with args "all tab-bg --rapid "
+        And I press the key "e"
+        And I press the key "2"
+        And I press the key "<Backspace>"
+        And I press the key "o"
+        And I press the key "0"
+        Then data/numbers/1.txt should be loaded
+
     Scenario: Using a specific hints mode
         When I open data/hints/number.html
         And I set hints.mode to letter

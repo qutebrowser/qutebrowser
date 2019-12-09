@@ -247,6 +247,30 @@ def is_ignored_chromium_message(line):
         # resource_coordinator.mojom.FrameCoordinationUnit
         'InterfaceRequest was dropped, the document is no longer active: '
         'resource_coordinator.mojom.FrameCoordinationUnit',
+
+        # Qt 5.14
+        # [1:7:1119/162200.709920:ERROR:command_buffer_proxy_impl.cc(124)]
+        # ContextResult::kTransientFailure: Failed to send
+        # GpuChannelMsg_CreateCommandBuffer.
+        'ContextResult::kTransientFailure: Failed to send '
+        'GpuChannelMsg_CreateCommandBuffer.',
+        # [156330:156350:1121/120052.060701:WARNING:
+        # important_file_writer.cc(97)]
+        # temp file failure: /home/florian/.local/share/qutebrowser/
+        # qutebrowser/QtWebEngine/Default/user_prefs.json : could not create
+        # temporary file: No such file or directory (2)
+        'temp file failure: */qutebrowser/qutebrowser/QtWebEngine/Default/'
+        'user_prefs.json : could not create temporary file: No such file or '
+        'directory (2)',
+        # [156330:156330:1121/120052.602236:ERROR:
+        # viz_process_transport_factory.cc(331)]
+        # Switching to software compositing.
+        'Switching to software compositing.',
+        # [160686:160712:1121/121226.457866:ERROR:surface_manager.cc(438)]
+        # Old/orphaned temporary reference to
+        # SurfaceId(FrameSinkId[](5, 2), LocalSurfaceId(8, 1, 7C3A...))
+        'Old/orphaned temporary reference to '
+        'SurfaceId(FrameSinkId[](*), LocalSurfaceId(*))',
     ]
     return any(testutils.pattern_match(pattern=pattern, value=message)
                for pattern in ignored_messages)
@@ -487,7 +511,8 @@ class QuteProc(testprocess.Process):
         backend = 'webengine' if self.request.config.webengine else 'webkit'
         args = ['--debug', '--no-err-windows', '--temp-basedir',
                 '--json-logging', '--loglevel', 'vdebug',
-                '--backend', backend, '--debug-flag', 'no-sql-history']
+                '--backend', backend, '--debug-flag', 'no-sql-history',
+                '--debug-flag', 'werror']
         if qVersion() == '5.7.1':
             # https://github.com/qutebrowser/qutebrowser/issues/3163
             args += ['--qt-flag', 'disable-seccomp-filter-sandbox']
@@ -871,6 +896,13 @@ class QuteProc(testprocess.Process):
             msg = "Session comparison failed: {}".format(outcome.error)
             msg += '\nsee stdout for details'
             pytest.fail(msg)
+
+    def turn_on_scroll_logging(self, no_scroll_filtering=False):
+        """Make sure all scrolling changes are logged."""
+        cmd = ":debug-pyeval -q objects.debug_flags.add('{}')"
+        if no_scroll_filtering:
+            self.send_cmd(cmd.format('no-scroll-filtering'))
+        self.send_cmd(cmd.format('log-scroll-pos'))
 
 
 class YamlLoader(yaml.SafeLoader):

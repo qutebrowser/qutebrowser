@@ -19,7 +19,7 @@
 
 """Code to show a diff of the legacy config format."""
 
-import typing  # pylint: disable=unused-import,useless-suppression
+import typing
 import difflib
 import os.path
 
