@@ -299,6 +299,12 @@ class TestAdd:
         else:
             assert yaml_value(name)[-1] == value
 
+    def test_list_add_invalid_option(self, commands):
+        with pytest.raises(
+                cmdutils.CommandError,
+                match="No option 'nonexistent'"):
+            commands.config_list_add('nonexistent', 'value')
+
     def test_list_add_non_list(self, commands):
         with pytest.raises(
                 cmdutils.CommandError,
@@ -342,6 +348,12 @@ class TestAdd:
                           "overwrite!"):
                 commands.config_dict_add(name, key, value, replace=False)
 
+    def test_dict_add_invalid_option(self, commands):
+        with pytest.raises(
+                cmdutils.CommandError,
+                match="No option 'nonexistent'"):
+            commands.config_dict_add('nonexistent', 'key', 'value')
+
     def test_dict_add_non_dict(self, commands):
         with pytest.raises(
                 cmdutils.CommandError,
@@ -371,6 +383,12 @@ class TestRemove:
         else:
             assert value not in yaml_value(name)
 
+    def test_list_remove_invalid_option(self, commands):
+        with pytest.raises(
+                cmdutils.CommandError,
+                match="No option 'nonexistent'"):
+            commands.config_list_remove('nonexistent', 'value')
+
     def test_list_remove_non_list(self, commands):
         with pytest.raises(
                 cmdutils.CommandError,
@@ -395,6 +413,12 @@ class TestRemove:
             assert yaml_value(name) == configutils.UNSET
         else:
             assert key not in yaml_value(name)
+
+    def test_dict_remove_invalid_option(self, commands):
+        with pytest.raises(
+                cmdutils.CommandError,
+                match="No option 'nonexistent'"):
+            commands.config_dict_remove('nonexistent', 'key')
 
     def test_dict_remove_non_dict(self, commands):
         with pytest.raises(
@@ -446,19 +470,25 @@ class TestSource:
     pytestmark = pytest.mark.usefixtures('config_tmpdir', 'data_tmpdir',
                                          'config_stub', 'key_config_stub')
 
-    @pytest.mark.parametrize('use_default_dir', [True, False])
+    @pytest.mark.parametrize('location', ['default', 'absolute', 'relative'])
     @pytest.mark.parametrize('clear', [True, False])
     def test_config_source(self, tmpdir, commands, config_stub, config_tmpdir,
-                           use_default_dir, clear):
+                           location, clear):
         assert config_stub.val.content.javascript.enabled
         config_stub.val.search.ignore_case = 'always'
 
-        if use_default_dir:
+        if location == 'default':
             pyfile = config_tmpdir / 'config.py'
             arg = None
-        else:
+        elif location == 'absolute':
             pyfile = tmpdir / 'sourced.py'
             arg = str(pyfile)
+        elif location == 'relative':
+            pyfile = config_tmpdir / 'sourced.py'
+            arg = 'sourced.py'
+        else:
+            assert False, location
+
         pyfile.write_text('c.content.javascript.enabled = False\n',
                           encoding='utf-8')
 
@@ -468,6 +498,13 @@ class TestSource:
         ignore_case = config_stub.val.search.ignore_case
         assert ignore_case == (usertypes.IgnoreCase.smart if clear
                                else usertypes.IgnoreCase.always)
+
+    def test_config_py_arg_source(self, commands, config_py_arg, config_stub):
+        assert config_stub.val.content.javascript.enabled
+        config_py_arg.write_text('c.content.javascript.enabled = False\n',
+                                 encoding='utf-8')
+        commands.config_source()
+        assert not config_stub.val.content.javascript.enabled
 
     def test_errors(self, commands, config_tmpdir):
         pyfile = config_tmpdir / 'config.py'
@@ -530,6 +567,15 @@ class TestEdit:
 
         mock.assert_called_once_with(unittest.mock.ANY)
         assert not config_stub.val.content.javascript.enabled
+
+    def test_config_py_with_sourcing(self, commands, config_stub, patch_editor, config_py_arg):
+        assert config_stub.val.content.javascript.enabled
+        conf = 'c.content.javascript.enabled = False'
+        mock = patch_editor(conf)
+        commands.config_edit()
+        mock.assert_called_once_with(unittest.mock.ANY)
+        assert not config_stub.val.content.javascript.enabled
+        assert config_py_arg.read_text('utf-8').splitlines() == [conf]
 
     def test_error(self, commands, config_stub, patch_editor, message_mock,
                    caplog):
@@ -602,6 +648,12 @@ class TestWritePy:
         """Test writing to a directory which does not exist."""
         with pytest.raises(cmdutils.CommandError):
             commands.config_write_py(str(tmpdir / 'foo' / 'config.py'))
+
+    def test_config_py_arg(self, commands, config_py_arg):
+        config_py_arg.ensure()
+        commands.config_write_py(str(config_py_arg), force=True)
+        lines = config_py_arg.read_text('utf-8').splitlines()
+        assert '# Autogenerated config.py' in lines
 
 
 class TestBind:

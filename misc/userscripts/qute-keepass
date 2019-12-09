@@ -148,7 +148,7 @@ def dmenu(items, invocation, encoding):
 
 def get_password():
     """Get a keepass db password from user."""
-    _app = QApplication(sys.argv)
+    _app = QApplication(sys.argv)  # don't remove this local variable
     text, ok = QInputDialog.getText(
         None, "KeePass DB Password",
         "Please enter your KeePass Master Password",
@@ -228,7 +228,7 @@ def run(args):
                           args.io_encoding)
 
         if selection not in candidates_map:
-            stderr("'{}' was not a valid entry!").format(selection)
+            stderr("'{}' was not a valid entry!".format(selection))
             return ExitCodes.USER_QUIT
 
         selection = candidates_map[selection]
@@ -244,7 +244,7 @@ def run(args):
         # Enter username and password using insert-key and fake-key <Tab>
         # (which supports more passwords than fake-key only), then switch back
         # into insert-mode, so the form can be directly submitted by hitting
-        # enter afterwards. It dosen't matter when we go into insert mode, but
+        # enter afterwards. It doesn't matter when we go into insert mode, but
         # the other commands need to be be executed sequentially, so we add
         # delays with later.
         qute_command('insert-text {} ;;'

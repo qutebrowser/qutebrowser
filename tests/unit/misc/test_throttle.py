@@ -21,119 +21,141 @@
 
 from unittest import mock
 
-from qutebrowser.misc.throttle import throttle
+import sip
+import pytest
+from PyQt5.QtCore import QObject
+
+from helpers import utils
+from qutebrowser.misc import throttle
 
 
-def test_throttle_imm(qtbot):
-    func = mock.Mock(spec=[])
-    throttled_func = throttle(100)(func)
-    throttled_func("foo")
-    throttled_func("foo")
+DELAY = 300 if utils.ON_CI else 100
+
+
+@pytest.fixture
+def func():
+    return mock.Mock(spec=[])
+
+
+@pytest.fixture
+def throttled(func):
+    return throttle.Throttle(func, DELAY)
+
+
+def test_immediate(throttled, func, qapp):
+    throttled("foo")
+    throttled("foo")
     func.assert_called_once_with("foo")
 
 
-def test_throttle_imm_kw(qtbot):
-    func = mock.Mock(spec=[])
-    throttled_func = throttle(100)(func)
-    throttled_func(foo="bar")
-    throttled_func(foo="bar")
+def test_immediate_kwargs(throttled, func, qapp):
+    throttled(foo="bar")
+    throttled(foo="bar")
     func.assert_called_once_with(foo="bar")
 
 
-def test_throttle_delay(qtbot):
-    func = mock.Mock(spec=[])
-    throttled_func = throttle(100)(func)
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("bar")
+def test_delayed(throttled, func, qtbot):
+    throttled("foo")
+    throttled("foo")
+    throttled("foo")
+    throttled("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
 
-    qtbot.wait(200)
+    qtbot.wait(2 * DELAY)
 
     func.assert_called_once_with("bar")
 
 
-def test_throttle_delay_imm_delay(qtbot):
-    func = mock.Mock(spec=[])
-    throttled_func = throttle(100)(func)
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("bar")
+def test_delayed_immediate_delayed(throttled, func, qtbot):
+    throttled("foo")
+    throttled("foo")
+    throttled("foo")
+    throttled("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
 
-    qtbot.wait(400)
+    qtbot.wait(4 * DELAY)
 
     func.assert_called_once_with("bar")
     func.reset_mock()
-    throttled_func("baz")
-    throttled_func("baz")
-    throttled_func("bop")
+    throttled("baz")
+    throttled("baz")
+    throttled("bop")
 
     func.assert_called_once_with("baz")
     func.reset_mock()
 
-    qtbot.wait(200)
+    qtbot.wait(2 * DELAY)
 
     func.assert_called_once_with("bop")
 
 
-def test_throttle_delay_delay(qtbot):
-    func = mock.Mock(spec=[])
-    throttled_func = throttle(100)(func)
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("bar")
+def test_delayed_delayed(throttled, func, qtbot):
+    throttled("foo")
+    throttled("foo")
+    throttled("foo")
+    throttled("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
 
-    qtbot.wait(150)
+    qtbot.wait(int(1.5 * DELAY))
 
     func.assert_called_once_with("bar")
     func.reset_mock()
-    throttled_func("baz")
-    throttled_func("baz")
-    throttled_func("bop")
+    throttled("baz")
+    throttled("baz")
+    throttled("bop")
 
-    qtbot.wait(200)
+    qtbot.wait(2 * DELAY)
 
     func.assert_called_once_with("bop")
     func.reset_mock()
 
 
-def test_throttle_cancel(qtbot):
-    func = mock.Mock(spec=[])
-    throttled_func = throttle(100)(func)
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("bar")
+def test_cancel(throttled, func, qtbot):
+    throttled("foo")
+    throttled("foo")
+    throttled("foo")
+    throttled("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
-    throttled_func.throttle_cancel()
+    throttled.cancel()
 
-    qtbot.wait(150)
+    qtbot.wait(int(1.5 * DELAY))
 
     func.assert_not_called()
     func.reset_mock()
 
 
-def test_throttle_set(qtbot):
-    func = mock.Mock(spec=[])
-    throttled_func = throttle(1000)(func)
-    throttled_func.throttle_set(100)
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("foo")
-    throttled_func("bar")
+def test_set(func, qtbot):
+    throttled = throttle.Throttle(func, DELAY)
+    throttled.set_delay(DELAY)
+    throttled("foo")
+    throttled("foo")
+    throttled("foo")
+    throttled("bar")
     func.assert_called_once_with("foo")
     func.reset_mock()
 
-    qtbot.wait(150)
+    qtbot.wait(int(1.5 * DELAY))
 
     func.assert_called_once_with("bar")
     func.reset_mock()
+
+
+def test_deleted_object(qtbot):
+    class Obj(QObject):
+
+        def func(self):
+            self.setObjectName("test")
+
+    obj = Obj()
+
+    throttled = throttle.Throttle(obj.func, DELAY, parent=obj)
+    throttled()
+    throttled()
+
+    sip.delete(obj)
+
+    qtbot.wait(int(1.5 * DELAY))

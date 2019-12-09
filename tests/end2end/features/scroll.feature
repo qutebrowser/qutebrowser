@@ -237,7 +237,6 @@ Feature: Scrolling
         Then the page should be scrolled vertically
 
     # https://github.com/qutebrowser/qutebrowser/issues/1821
-    @issue3572
     Scenario: :scroll-to-perc without doctype
         When I open data/scroll/no_doctype.html
         And I run :scroll-to-perc 100
@@ -291,7 +290,6 @@ Feature: Scrolling
         And I run :scroll-page --bottom-navigate next 0 1
         Then data/hello2.txt should be loaded
 
-    @issue3572
     Scenario: :scroll-page with --bottom-navigate and zoom
         When I run :zoom 200
         And I wait 0.5s
@@ -323,7 +321,6 @@ Feature: Scrolling
 
     ## issues
 
-    @issue3572
     Scenario: Relative scroll position with a position:absolute page
         When I open data/scroll/position_absolute.html
         And I run :scroll-to-perc 100

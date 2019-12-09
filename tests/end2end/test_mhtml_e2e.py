@@ -26,8 +26,6 @@ import collections
 
 import pytest
 
-from qutebrowser.utils import qtutils
-
 
 def collect_tests():
     basedir = os.path.dirname(__file__)
@@ -38,33 +36,22 @@ def collect_tests():
 
 def normalize_line(line):
     line = line.rstrip('\n')
-    line = re.sub('boundary="-+(=_qute|MultipartBoundary)-[0-9a-zA-Z-]+"',
+    line = re.sub('boundary="---=_qute-[0-9a-f-]+"',
                   'boundary="---=_qute-UUID"', line)
-    line = re.sub('^-+(=_qute|MultipartBoundary)-[0-9a-zA-Z-]+$',
+    line = re.sub('^-----+=_qute-[0-9a-f-]+$',
                   '-----=_qute-UUID', line)
     line = re.sub(r'localhost:\d{1,5}', 'localhost:(port)', line)
-    if line.startswith('Date: '):
-        line = 'Date: today'
-    if line.startswith('Content-ID: '):
-        line = 'Content-ID: 42'
 
     # Depending on Python's mimetypes module/the system's mime files, .js
     # files could be either identified as x-javascript or just javascript
     line = line.replace('Content-Type: application/x-javascript',
                         'Content-Type: application/javascript')
 
-    # Added with Qt 5.11
-    if (line.startswith('Snapshot-Content-Location: ') and
-            not qtutils.version_check('5.11', compiled=False)):
-        line = None
+    # With QtWebKit and newer Werkzeug versions, we also get an encoding
+    # specified.
+    line = line.replace('javascript; charset=utf-8', 'javascript')
 
     return line
-
-
-def normalize_whole(s, webengine):
-    if qtutils.version_check('5.12', compiled=False) and webengine:
-        s = s.replace('\n\n-----=_qute-UUID', '\n-----=_qute-UUID')
-    return s
 
 
 class DownloadDir:
@@ -93,9 +80,6 @@ class DownloadDir:
                                       if normalize_line(line) is not None)
         actual_data = '\n'.join(normalize_line(line)
                                 for line in self.read_file())
-        actual_data = normalize_whole(actual_data,
-                                      webengine=self._config.webengine)
-
         assert actual_data == expected_data
 
 
@@ -146,13 +130,12 @@ def test_mhtml(request, test_name, download_dir, quteproc, server):
     quteproc.wait_for(category='downloads',
                       message='File successfully written.')
 
-    suffix = '-webengine' if request.config.webengine else ''
-    filename = '{}{}.mht'.format(test_name, suffix)
-    expected_file = os.path.join(test_dir, filename)
-    if os.path.exists(expected_file):
-        download_dir.compare_mhtml(expected_file)
-    else:
+    if request.config.webengine:
         download_dir.sanity_check_mhtml()
+        return
 
-    if not request.config.webengine:
-        _test_mhtml_requests(test_dir, test_path, server)
+    filename = test_name + '.mht'
+    expected_file = os.path.join(test_dir, filename)
+
+    download_dir.compare_mhtml(expected_file)
+    _test_mhtml_requests(test_dir, test_path, server)

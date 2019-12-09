@@ -7,22 +7,26 @@ qute://warning/webkit</span> to show it again at a later time.</span>
 
 <p>You're using qutebrowser with the QtWebKit backend.</p>
 
-<p>Unfortunately, QtWebKit hasn't seen a release (including security updates)
-since June 2017, and it also lacks various security features (process
-isolation/sandboxing) present in QtWebEngine.</p>
+<p>While QtWebKit has gained some traction again recently, its latest release
+(5.212.0 Alpha 3) is still based on an old upstream WebKit. It also lacks
+various security features (process isolation/sandboxing) present in
+QtWebEngine. From the upstream release notes:</p>
 
-<p>Because of those security issues and the maintaince burden coming with
-supporting QtWebKit, support for it will be dropped in a future qutebrowser
-release. It's recommended that you use QtWebEngine instead.</p>
+<blockquote>WARNING: This release is based on old WebKit revision with known
+unpatched vulnerabilities. Please use it carefully and avoid visiting untrusted
+websites and using it for transmission of sensitive data. Wait for new release
+from qtwebkit-dev branch to use it with untrusted content.</blockquote>
+
+<p>It's recommended that you use QtWebEngine instead.</p>
 
 <h2>(Outdated) reasons to use QtWebKit</h2>
 <p>Most reasons why people preferred the QtWebKit backend aren't relevant anymore:</p>
 
-<p><b>PDF.js support</b>: This qutebrowser release comes with PDF.js support
-for QtWebEngine.</p>
+<p><b>PDF.js support</b>: Supported with QtWebEngine since qutebrowser v1.5.0.</p>
 
-<p><b>Missing control over Referer header</b>: This qutebrowser release
-supports <span class="mono">content.headers.referer</span> for QtWebEngine.</p>
+<p><b>Missing control over Referer header</b>: <span
+class="mono">content.headers.referer</span> is supported with QtWebEngine since
+qutebrowser v1.5.0.</p>
 
 <p><b>Missing control over cookies</b>: With Qt 5.11 or newer, the <span
 class="mono">content.cookies.accept</span> setting works on QtWebEngine.</p>
@@ -31,11 +35,10 @@ class="mono">content.cookies.accept</span> setting works on QtWebEngine.</p>
 class="mono">qt.force_software_rendering</span> setting added in v1.4.0 should
 hopefully help.</p>
 
-<p><b>Missing support for notifications</b>: Those <a
-href="https://bugreports.qt.io/browse/QTBUG-29611">aren't supported yet</a> in
-Qt, but support is planned to be added in Qt 5.13, released around May 2019.</p>
+<p><b>Missing support for notifications</b>: With qutebrowser v1.7.0, initial
+notification support was added for Qt 5.13.0.</p>
 
-<p><b>Resource usage</b>: This release adds the <span
+<p><b>Resource usage</b>: qutebrowser v1.5.0 added the <span
 class="mono">qt.process_model</span> and <span
 class="mono">qt.low_end_device_mode</span> settings which can be used to
 decrease the resource usage of QtWebEngine (but come with other drawbacks).</p>
@@ -50,10 +53,8 @@ heaps of security issues...</p>
 rendering. With Qt 5.13 (~May 2019) it might be possible to run with Nouveau
 without software rendering.</p>
 
-<p><b>Wayland</b>: It's possible to use QtWebEngine with XWayland. Some users
-also seem to be able to run it natively with Qt 5.11, but currently, <span
-class="mono">QUTE_SKIP_WAYLAND_CHECK=1</span> needs to be set in the
-environment to do so.</p>
+<p><b>Wayland</b>: It's possible to use QtWebEngine with XWayland. With Qt
+5.11.2 or newer, qutebrowser also runs natively with Wayland.</p>
 
 <p><b>Instability on FreeBSD</b>: Those seem to be FreeBSD-specific crashes,
 and unfortunately nobody has looked into them yet so far...</p>
@@ -69,11 +70,10 @@ installed.</p>
 <p><b>QtWebEngine being unavailable on Parabola</b>: Claims of Parabola
 developers about QtWebEngine being "non-free" have repeatedly been disputed,
 and so far nobody came up with solid evidence about that being the case. Also,
-note that their qutebrowser package is orphaned and was often outdated in the
-past (even qutebrowser security fixes took months to arrive there). You
-might be better off chosing an <a
-href="https://qutebrowser.org/doc/install.html">alternative install
-method</a>.</p>
+note that their qutebrowser package was often outdated in the past (even
+qutebrowser security fixes took months to arrive there). You might be better
+off chosing an <a href="https://qutebrowser.org/doc/install.html#tox">
+alternative install method</a>.</p>
 
 <p><b>White flashing between loads with a custom stylesheet</b>: This doesn't
 seem to happen with <span class="mono">qt.process_model = single-process</span>

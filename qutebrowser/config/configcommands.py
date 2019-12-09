@@ -32,9 +32,7 @@ from qutebrowser.config import configtypes, configexc, configfiles, configdata
 from qutebrowser.misc import editor
 from qutebrowser.keyinput import keyutils
 
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
+if typing.TYPE_CHECKING:
     from qutebrowser.config.config import Config, KeyConfig
 
 
@@ -152,9 +150,8 @@ class ConfigCommands:
             key: The keychain to bind. Examples of valid keychains are `gC`,
                  `<Ctrl-X>` or `<Ctrl-C>a`.
             command: The command to execute, with optional args.
-            mode: A comma-separated list of modes to bind the key in
-                  (default: `normal`). See `:help bindings.commands` for the
-                  available modes.
+            mode: The mode to bind the key in (default: `normal`). See `:help
+                  bindings.commands` for the available modes.
             default: If given, restore a default binding.
         """
         if key is None:
@@ -193,7 +190,7 @@ class ConfigCommands:
         Args:
             key: The keychain to unbind. See the help for `:bind` for the
                   correct syntax for keychains.
-            mode: A mode to unbind the key in (default: `normal`).
+            mode: The mode to unbind the key in (default: `normal`).
                   See `:help bindings.commands` for the available modes.
         """
         with self._handle_config_error():
@@ -275,7 +272,8 @@ class ConfigCommands:
             value: The value to append to the end of the list.
             temp: Add value temporarily until qutebrowser is closed.
         """
-        opt = self._config.get_opt(option)
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
         if not isinstance(opt.typ, valid_list_types):
             raise cmdutils.CommandError(":config-list-add can only be used "
@@ -300,7 +298,8 @@ class ConfigCommands:
             replace: Replace existing values. By default, existing values are
                      not overwritten.
         """
-        opt = self._config.get_opt(option)
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):
             raise cmdutils.CommandError(":config-dict-add can only be used "
                                         "for dicts")
@@ -327,7 +326,8 @@ class ConfigCommands:
             value: The value to remove from the list.
             temp: Remove value temporarily until qutebrowser is closed.
         """
-        opt = self._config.get_opt(option)
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
         valid_list_types = (configtypes.List, configtypes.ListOrValue)
         if not isinstance(opt.typ, valid_list_types):
             raise cmdutils.CommandError(":config-list-remove can only be used "
@@ -355,7 +355,8 @@ class ConfigCommands:
             key: The key to remove from the dict.
             temp: Remove value temporarily until qutebrowser is closed.
         """
-        opt = self._config.get_opt(option)
+        with self._handle_config_error():
+            opt = self._config.get_opt(option)
         if not isinstance(opt.typ, configtypes.Dict):
             raise cmdutils.CommandError(":config-dict-remove can only be used "
                                         "for dicts")
@@ -391,9 +392,11 @@ class ConfigCommands:
             clear: Clear current settings first.
         """
         if filename is None:
-            filename = os.path.join(standarddir.config(), 'config.py')
+            filename = standarddir.config_py()
         else:
             filename = os.path.expanduser(filename)
+            if not os.path.isabs(filename):
+                filename = os.path.join(standarddir.config(), filename)
 
         if clear:
             self.config_clear()
@@ -424,7 +427,7 @@ class ConfigCommands:
         if not no_source:
             ed.file_updated.connect(on_file_updated)
 
-        filename = os.path.join(standarddir.config(), 'config.py')
+        filename = standarddir.config_py()
         ed.edit_file(filename)
 
     @cmdutils.register(instance='config-commands')
@@ -438,7 +441,7 @@ class ConfigCommands:
             defaults: Write the defaults instead of values configured via :set.
         """
         if filename is None:
-            filename = os.path.join(standarddir.config(), 'config.py')
+            filename = standarddir.config_py()
         else:
             if not os.path.isabs(filename):
                 filename = os.path.join(standarddir.config(), filename)

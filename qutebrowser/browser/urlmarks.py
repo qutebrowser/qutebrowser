@@ -30,6 +30,7 @@ import os.path
 import html
 import functools
 import collections
+import typing
 
 from PyQt5.QtCore import pyqtSignal, QUrl, QObject
 
@@ -77,12 +78,13 @@ class UrlMarkManager(QObject):
         """Initialize and read quickmarks."""
         super().__init__(parent)
 
-        self.marks = collections.OrderedDict()
+        self.marks = collections.OrderedDict(
+        )  # type: typing.MutableMapping[str, str]
 
         self._init_lineparser()
         for line in self._lineparser:
-            if not line.strip():
-                # Ignore empty or whitespace-only lines.
+            if not line.strip() or line.startswith('#'):
+                # Ignore empty or whitespace-only lines and comments.
                 continue
             self._parse_line(line)
         self._init_savemanager(objreg.get('save-manager'))

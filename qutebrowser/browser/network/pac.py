@@ -21,6 +21,7 @@
 
 import sys
 import functools
+import typing
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
 from PyQt5.QtNetwork import (QNetworkProxy, QNetworkRequest, QHostInfo,
@@ -142,7 +143,8 @@ class PACResolver:
         config = [c.strip() for c in proxy_str.split(' ') if c]
         if not config:
             raise ParseProxyError("Empty proxy entry")
-        elif config[0] == "DIRECT":
+
+        if config[0] == "DIRECT":
             if len(config) != 1:
                 raise ParseProxyError("Invalid number of parameters for " +
                                       "DIRECT")
@@ -213,9 +215,10 @@ class PACResolver:
         if from_file:
             string_flags = QUrl.PrettyDecoded
         else:
-            string_flags = QUrl.RemoveUserInfo
+            string_flags = QUrl.RemoveUserInfo  # type: ignore
             if query.url().scheme() == 'https':
-                string_flags |= QUrl.RemovePath | QUrl.RemoveQuery
+                string_flags |= QUrl.RemovePath  # type: ignore
+                string_flags |= QUrl.RemoveQuery  # type: ignore
 
         result = self._resolver.call([query.url().toString(string_flags),
                                       query.peerHostName()])
@@ -246,14 +249,14 @@ class PACFetcher(QObject):
         url.setScheme(url.scheme()[len(pac_prefix):])
 
         self._pac_url = url
-        self._manager = QNetworkAccessManager()
+        self._manager = QNetworkAccessManager(
+        )  # type: typing.Optional[QNetworkAccessManager]
         self._manager.setProxy(QNetworkProxy(QNetworkProxy.NoProxy))
         self._pac = None
         self._error_message = None
         self._reply = None
 
     def __eq__(self, other):
-        # pylint: disable=protected-access
         return self._pac_url == other._pac_url
 
     def __repr__(self):
@@ -261,11 +264,13 @@ class PACFetcher(QObject):
 
     def fetch(self):
         """Fetch the proxy from the remote URL."""
+        assert self._manager is not None
         self._reply = self._manager.get(QNetworkRequest(self._pac_url))
-        self._reply.finished.connect(self._finish)
+        self._reply.finished.connect(self._finish)  # type: ignore
 
     @pyqtSlot()
     def _finish(self):
+        assert self._reply is not None
         if self._reply.error() != QNetworkReply.NoError:
             error = "Can't fetch PAC file from URL, error code {}: {}"
             self._error_message = error.format(
@@ -313,6 +318,7 @@ class PACFetcher(QObject):
         Return a list of QNetworkProxy objects in order of preference.
         """
         self._wait()
+        assert self._pac is not None
         from_file = self._pac_url.scheme() == 'file'
         try:
             return self._pac.resolve(query, from_file=from_file)

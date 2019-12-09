@@ -20,11 +20,13 @@
 """Test the web history completion category."""
 
 import datetime
+import logging
 
 import pytest
 
 from qutebrowser.misc import sql
 from qutebrowser.completion.models import histcategory
+from qutebrowser.utils import usertypes
 
 
 @pytest.fixture
@@ -133,6 +135,15 @@ def test_set_pattern_repeated(model_validator, hist):
     ])
 
 
+def test_set_pattern_long(hist, message_mock, caplog):
+    hist.insert({'url': 'example.com/foo', 'title': 'title1', 'last_atime': 1})
+    cat = histcategory.HistoryCategory()
+    with caplog.at_level(logging.ERROR):
+        cat.set_pattern(" ".join(map(str, range(10000))))
+    msg = message_mock.getmsg(usertypes.MessageLevel.error)
+    assert msg.text.startswith("Error with SQL query:")
+
+
 @pytest.mark.parametrize('max_items, before, after', [
     (-1, [
         ('a', 'a', '2017-04-16'),
@@ -230,3 +241,12 @@ def test_timestamp_fmt(fmt, expected, model_validator, config_stub, init_sql):
     model_validator.set_model(cat)
     cat.set_pattern('')
     model_validator.validate([('foo', '', expected)])
+
+
+def test_skip_duplicate_set(message_mock, caplog, hist):
+    cat = histcategory.HistoryCategory()
+    cat.set_pattern('foo')
+    cat.set_pattern('foobarbaz')
+    msg = caplog.messages[-1]
+    assert msg.startswith(
+        "Skipping query on foobarbaz due to prefix foo returning nothing.")

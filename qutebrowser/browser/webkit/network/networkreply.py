@@ -59,9 +59,12 @@ class FixedDataNetworkReply(QNetworkReply):
         # For some reason, a segfault will be triggered if these lambdas aren't
         # there.
         # pylint: disable=unnecessary-lambda
-        QTimer.singleShot(0, lambda: self.metaDataChanged.emit())
-        QTimer.singleShot(0, lambda: self.readyRead.emit())
-        QTimer.singleShot(0, lambda: self.finished.emit())
+        QTimer.singleShot(0, lambda:
+                          self.metaDataChanged.emit())  # type: ignore
+        QTimer.singleShot(0, lambda:
+                          self.readyRead.emit())  # type: ignore
+        QTimer.singleShot(0, lambda:
+                          self.finished.emit())  # type: ignore
 
     @pyqtSlot()
     def abort(self):
@@ -116,8 +119,10 @@ class ErrorNetworkReply(QNetworkReply):
         # the device to avoid getting a warning.
         self.setOpenMode(QIODevice.ReadOnly)
         self.setError(error, errorstring)
-        QTimer.singleShot(0, lambda: self.error.emit(error))
-        QTimer.singleShot(0, lambda: self.finished.emit())
+        QTimer.singleShot(0, lambda:
+                          self.error.emit(error))  # type: ignore
+        QTimer.singleShot(0, lambda:
+                          self.finished.emit())  # type: ignore
 
     def abort(self):
         """Do nothing since it's a fake reply."""
@@ -144,7 +149,8 @@ class RedirectNetworkReply(QNetworkReply):
     def __init__(self, new_url, parent=None):
         super().__init__(parent)
         self.setAttribute(QNetworkRequest.RedirectionTargetAttribute, new_url)
-        QTimer.singleShot(0, lambda: self.finished.emit())
+        QTimer.singleShot(0, lambda:
+                          self.finished.emit())  # type: ignore
 
     def abort(self):
         """Called when there's e.g. a redirection limit."""

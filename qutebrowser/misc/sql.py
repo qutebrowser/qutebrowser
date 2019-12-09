@@ -36,16 +36,19 @@ class SqliteErrorCode:
     """
 
     UNKNOWN = '-1'
+    ERROR = '1'  # generic error code
     BUSY = '5'  # database is locked
     READONLY = '8'  # attempt to write a readonly database
     IOERR = '10'  # disk I/O error
     CORRUPT = '11'  # database disk image is malformed
     FULL = '13'  # database or disk is full
     CANTOPEN = '14'  # unable to open database file
+    PROTOCOL = '15'  # locking protocol error
     CONSTRAINT = '19'  # UNIQUE constraint failed
+    NOTADB = '26'  # file is not a database
 
 
-class SqlError(Exception):
+class Error(Exception):
 
     """Base class for all SQL related errors."""
 
@@ -64,7 +67,7 @@ class SqlError(Exception):
             return self.error.databaseText()
 
 
-class SqlEnvironmentError(SqlError):
+class KnownError(Error):
 
     """Raised on an error interacting with the SQL database.
 
@@ -73,7 +76,7 @@ class SqlEnvironmentError(SqlError):
     """
 
 
-class SqlBugError(SqlError):
+class BugError(Error):
 
     """Raised on an error interacting with the SQL database.
 
@@ -82,7 +85,7 @@ class SqlBugError(SqlError):
 
 
 def raise_sqlite_error(msg, error):
-    """Raise either a SqlBugError or SqlEnvironmentError."""
+    """Raise either a BugError or KnownError."""
     error_code = error.nativeErrorCode()
     database_text = error.databaseText()
     driver_text = error.driverText()
@@ -94,13 +97,15 @@ def raise_sqlite_error(msg, error):
     log.sql.debug("driver text: {}".format(driver_text))
     log.sql.debug("error code: {}".format(error_code))
 
-    environmental_errors = [
+    known_errors = [
         SqliteErrorCode.BUSY,
         SqliteErrorCode.READONLY,
         SqliteErrorCode.IOERR,
         SqliteErrorCode.CORRUPT,
         SqliteErrorCode.FULL,
         SqliteErrorCode.CANTOPEN,
+        SqliteErrorCode.PROTOCOL,
+        SqliteErrorCode.NOTADB,
     ]
 
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70506
@@ -110,18 +115,26 @@ def raise_sqlite_error(msg, error):
                    driver_text == "Error opening database" and
                    database_text == "out of memory")
 
-    if error_code in environmental_errors or qtbug_70506:
-        raise SqlEnvironmentError(msg, error)
-    else:
-        raise SqlBugError(msg, error)
+    # https://github.com/qutebrowser/qutebrowser/issues/4681
+    # If the query we built was too long
+    too_long_err = (
+        error_code == SqliteErrorCode.ERROR and
+        driver_text == "Unable to execute statement" and
+        (database_text.startswith("Expression tree is too large") or
+         database_text == "too many SQL variables"))
+
+    if error_code in known_errors or qtbug_70506 or too_long_err:
+        raise KnownError(msg, error)
+
+    raise BugError(msg, error)
 
 
 def init(db_path):
     """Initialize the SQL database connection."""
     database = QSqlDatabase.addDatabase('QSQLITE')
     if not database.isValid():
-        raise SqlEnvironmentError('Failed to add database. Are sqlite and Qt '
-                                  'sqlite support installed?')
+        raise KnownError('Failed to add database. Are sqlite and Qt sqlite '
+                         'support installed?')
     database.setDatabaseName(db_path)
     if not database.open():
         error = database.lastError()
@@ -149,16 +162,16 @@ def version():
             close()
             return ver
         return Query("select sqlite_version()").run().value()
-    except SqlEnvironmentError as e:
+    except KnownError as e:
         return 'UNAVAILABLE ({})'.format(e)
 
 
 class Query:
 
-    """A prepared SQL Query."""
+    """A prepared SQL query."""
 
     def __init__(self, querystr, forward_only=True):
-        """Prepare a new sql query.
+        """Prepare a new SQL query.
 
         Args:
             querystr: String to prepare query from.
@@ -174,10 +187,10 @@ class Query:
 
     def __iter__(self):
         if not self.query.isActive():
-            raise SqlBugError("Cannot iterate inactive query")
+            raise BugError("Cannot iterate inactive query")
         rec = self.query.record()
         fields = [rec.fieldName(i) for i in range(rec.count())]
-        rowtype = collections.namedtuple('ResultRow', fields)
+        rowtype = collections.namedtuple('ResultRow', fields)  # type: ignore
 
         while self.query.next():
             rec = self.query.record()
@@ -195,7 +208,7 @@ class Query:
         for key, val in values.items():
             self.query.bindValue(':{}'.format(key), val)
         if any(val is None for val in self.bound_values().values()):
-            raise SqlBugError("Missing bound values!")
+            raise BugError("Missing bound values!")
 
     def run(self, **values):
         """Execute the prepared query."""
@@ -224,7 +237,7 @@ class Query:
         ok = self.query.execBatch()
         try:
             self._check_ok('execBatch', ok)
-        except SqlError:
+        except Error:
             # Not checking the return value here, as we're failing anyways...
             db.rollback()
             raise
@@ -235,7 +248,7 @@ class Query:
     def value(self):
         """Return the result of a single-value query (e.g. an EXISTS)."""
         if not self.query.next():
-            raise SqlBugError("No result for single-result query")
+            raise BugError("No result for single-result query")
         return self.query.record().value(0)
 
     def rows_affected(self):
@@ -247,7 +260,7 @@ class Query:
 
 class SqlTable(QObject):
 
-    """Interface to a sql table.
+    """Interface to a SQL table.
 
     Attributes:
         _name: Name of the SQL table this wraps.
@@ -259,7 +272,7 @@ class SqlTable(QObject):
     changed = pyqtSignal()
 
     def __init__(self, name, fields, constraints=None, parent=None):
-        """Create a new table in the sql database.
+        """Create a new table in the SQL database.
 
         Does nothing if the table already exists.
 

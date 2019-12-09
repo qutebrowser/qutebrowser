@@ -31,9 +31,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineSettings
 
 from qutebrowser.utils import log, javascript, urlutils, usertypes
 from qutebrowser.browser import webelem
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
+
+if typing.TYPE_CHECKING:
     from qutebrowser.browser.webengine import webenginetab
 
 
@@ -86,7 +85,7 @@ class WebEngineElement(webelem.AbstractWebElement):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, WebEngineElement):
             return NotImplemented
-        return self._id == other._id  # pylint: disable=protected-access
+        return self._id == other._id
 
     def __getitem__(self, key: str) -> str:
         attrs = self._js_dict['attributes']
@@ -190,8 +189,8 @@ class WebEngineElement(webelem.AbstractWebElement):
                 # We're not checking for zoom.text_only here as that doesn't
                 # exist for QtWebEngine.
                 zoom = self._tab.zoom.factor()
-                rect = QRect(left * zoom, top * zoom,
-                             width * zoom, height * zoom)
+                rect = QRect(int(left * zoom), int(top * zoom),
+                             int(width * zoom), int(height * zoom))
                 # FIXME:qtwebengine
                 # frame = self._elem.webFrame()
                 # while frame is not None:
@@ -208,6 +207,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         if self._js_dict['attributes'].get('target') == '_blank':
             self._js_dict['attributes']['target'] = '_top'
         self._js_call('remove_blank_target')
+
+    def delete(self) -> None:
+        self._js_call('delete')
 
     def _move_text_cursor(self) -> None:
         if self.is_text_input() and self.is_editable():
@@ -246,9 +248,9 @@ class WebEngineElement(webelem.AbstractWebElement):
         # (it does so with a 0ms QTimer...)
         # This is also used in Qt's tests:
         # https://github.com/qt/qtwebengine/commit/5e572e88efa7ba7c2b9138ec19e606d3e345ac90
-        qapp = QApplication.instance()
-        qapp.processEvents(QEventLoop.ExcludeSocketNotifiers |
-                           QEventLoop.ExcludeUserInputEvents)
+        QApplication.processEvents(  # type: ignore
+            QEventLoop.ExcludeSocketNotifiers |
+            QEventLoop.ExcludeUserInputEvents)
 
         def reset_setting(_arg: typing.Any) -> None:
             """Set the JavascriptCanOpenWindows setting to its old value."""

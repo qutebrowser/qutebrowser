@@ -89,4 +89,4 @@ def tabbed_browser(stubs, win_registry):
 
 def test_version(tabbed_browser, qapp):
     utilcmds.version(win_id=0)
-    assert tabbed_browser.loaded_url == QUrl('qute://version')
+    assert tabbed_browser.loaded_url == QUrl('qute://version/')

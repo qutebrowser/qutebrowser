@@ -3,30 +3,11 @@ Installing qutebrowser
 
 toc::[]
 
-NOTE: qutebrowser recently had some bigger dependency changes for v1.0.0, which
-means those instructions might be out of date in some places.
-https://github.com/qutebrowser/qutebrowser/blob/master/doc/contributing.asciidoc[Please help]
-updating them if you notice something being broken!
-
 On Debian / Ubuntu
 ------------------
 
 How to install qutebrowser depends a lot on the version of Debian/Ubuntu you're
 running.
-
-Debian Jessie / Ubuntu 14.04 LTS / Linux Mint < 18
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Those distributions only have Python 3.4 and a too old Qt version available,
-while qutebrowser requires Python 3.5 and Qt 5.7.1 or newer.
-
-It should be possible to install Python 3.5 e.g. from the
-https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa[deadsnakes PPA] or via
-https://github.com/pyenv/pyenv[pyenv], but nobody tried that yet.
-
-If you get qutebrowser running on those distributions, please
-https://github.com/qutebrowser/qutebrowser/blob/master/doc/contributing.asciidoc[contribute]
-to update this documentation!
 
 Ubuntu 16.04 LTS / Linux Mint 18
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -41,10 +22,10 @@ You'll need some basic libraries to use the tox-installed PyQt:
 # apt install libglib2.0-0 libgl1 libfontconfig1 libx11-xcb1 libxi6 libxrender1 libdbus-1-3
 ----
 
-Debian Stretch / Ubuntu 17.04 and 17.10
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Debian Stretch
+~~~~~~~~~~~~~~
 
-Those versions come with QtWebEngine in the repositories. This makes it possible
+Debian Stretch comes with QtWebEngine in the repositories. This makes it possible
 to install qutebrowser via the Debian package.
 
 You'll need to download three packages:
@@ -68,11 +49,11 @@ downloaded qutebrowser deb files in one apt command):
 For an update after the initial install, you only need to download/install the
 qutebrowser package.
 
-Debian Testing / Ubuntu 18.04
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Debian Buster / Ubuntu 18.04 LTS / Linux Mint 19 (or newer)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-On Debian Testing, qutebrowser is in the official repositories, and you can
-install it with apt:
+With those distributions, qutebrowser is in the official repositories, and you
+can install it with apt:
 
 ----
 # apt install qutebrowser
@@ -153,17 +134,11 @@ If video or sound don't work with QtWebKit, try installing the gstreamer plugins
 On Gentoo
 ---------
 
-NOTE: Gentoo's packages used to be severely outdated for a long time, but are
-now (October 2017) maintained and up-to-date again.
-
 qutebrowser is available in the main repository and can be installed with:
 
 ----
 # emerge -av qutebrowser
 ----
-
-To use QtWebKit instead of QtWebEngine, you'll need a newer QtWebKit using
-https://gist.github.com/annulen/309569fb61e5d64a703c055c1e726f71[this ebuild].
 
 If video or sound don't work with QtWebKit, try installing the gstreamer
 plugins:
@@ -420,27 +395,14 @@ $ tox -e mkvenv-pypi
 
 This installs all needed Python dependencies in a `.venv` subfolder.
 
-This comes with an up-to-date Qt/PyQt including QtWebEngine, but has a few
-caveats:
+This comes with an up-to-date Qt/PyQt including a pre-compiled QtWebEngine
+binary, but has a few caveats:
 
 - Make sure your `python3` is Python 3.5 or newer, otherwise you'll get a "No
   matching distribution found" error. Note that qutebrowser itself also requires
   this.
 - It only works on 64-bit x86 systems, with other architectures you'll get the
   same error.
-- If your distribution uses OpenSSL 1.1 (like Debian Stretch or Archlinux),
-  you'll need to set `LD_LIBRARY_PATH` to the OpenSSL 1.0 directory
-  (`export LD_LIBRARY_PATH=/usr/lib/openssl-1.0` on Archlinux) before starting
-  qutebrowser if you want SSL to work in certain downloads (e.g. for
-  `:adblock-update` or `:download`).
-  * On Ubuntu (tested on 18.04), you will need to install the `libssl1.0.0`
-    package (`apt install libssl1.0.0`). Then, in the qutebrowser git
-    repository, create a directory named `libssl` (`mkdir libssl`), and link
-    `libcrypto.so.1.0.0` and `libssl.so.1.0.0` into it without the versioning
-    part in their names (`ln -s /usr/lib/x86_64-linux-gnu/libcrypto.so.1.0.0
-    libssl/libcrypto.so` and `ln -s /usr/lib/x86_64-linux-gnu/libssl.so.1.0.0
-    libssl/libssl.so`). Now you can start qutebrowser issuing `export
-    LD_LIBRARY_PATH=$(pwd)/libssl` beforehand.
 - It comes with a QtWebEngine compiled without proprietary codec support (such
   as h.264).
 

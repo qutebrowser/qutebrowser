@@ -24,7 +24,9 @@ import os
 import signal
 import time
 
+import pytest
 import pytest_bdd as bdd
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QFileSystemWatcher
 bdd.scenarios('editor.feature')
 
 from qutebrowser.utils import utils
@@ -71,9 +73,40 @@ def set_up_editor_empty(quteproc, tmpdir):
     set_up_editor(quteproc, tmpdir, "")
 
 
+class EditorPidWatcher(QObject):
+
+    appeared = pyqtSignal()
+
+    def __init__(self, directory, parent=None):
+        super().__init__(parent)
+        self._pidfile = directory / 'editor_pid'
+        self._watcher = QFileSystemWatcher(self)
+        self._watcher.addPath(str(directory))
+        self._watcher.directoryChanged.connect(self._check_update)
+        self.has_pidfile = False
+        self._check_update()
+
+    @pyqtSlot()
+    def _check_update(self):
+        if self.has_pidfile:
+            return
+
+        if self._pidfile.check():
+            if self._pidfile.read():
+                self.has_pidfile = True
+                self.appeared.emit()
+            else:
+                self._watcher.addPath(str(self._pidfile))
+
+
+@pytest.fixture
+def editor_pid_watcher(tmpdir):
+    return EditorPidWatcher(tmpdir)
+
+
 @bdd.when(bdd.parsers.parse('I set up a fake editor that writes "{text}" on '
                             'save'))
-def set_up_editor_wait(quteproc, tmpdir, text):
+def set_up_editor_wait(quteproc, tmpdir, text, editor_pid_watcher):
     """Set up editor.command to a small python script inserting a text."""
     assert not utils.is_windows
     pidfile = tmpdir / 'editor_pid'
@@ -105,6 +138,13 @@ def set_up_editor_wait(quteproc, tmpdir, text):
     """.format(pidfile=pidfile, text=text)))
     editor = json.dumps([sys.executable, str(script), '{}'])
     quteproc.set_setting('editor.command', editor)
+
+
+@bdd.when("I wait until the editor has started")
+def wait_editor(qtbot, editor_pid_watcher):
+    if not editor_pid_watcher.has_pidfile:
+        with qtbot.wait_signal(editor_pid_watcher.appeared, timeout=5000):
+            pass
 
 
 @bdd.when(bdd.parsers.parse('I kill the waiting editor'))

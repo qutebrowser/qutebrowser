@@ -79,7 +79,7 @@ Feature: Downloading things from a website.
         And I set downloads.location.prompt to true
         And I open data/downloads/issue1243.html
         And I hint with args "links download" and follow a
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='qutebrowser-download' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
         Then the error "Download error: No handler found for qute://" should be shown
         And "NotFoundError while handling qute://* URL" should be logged
 
@@ -88,7 +88,16 @@ Feature: Downloading things from a website.
         And I set downloads.location.prompt to true
         And I open data/data_link.html
         And I hint with args "links download" and follow a
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='binary blob' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
+        And I run :leave-mode
+        Then no crash should happen
+
+    Scenario: Aborting a download in a different window (issue 3378)
+        When I set downloads.location.suggestion to filename
+        And I set downloads.location.prompt to true
+        And I open data/downloads/download.bin in a new window without waiting
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> *" in the log
+        And I run :window-only
         And I run :leave-mode
         Then no crash should happen
 
@@ -141,18 +150,26 @@ Feature: Downloading things from a website.
         And I wait until the download is finished
         Then the downloaded file download with spaces.bin should exist
 
-    @qtwebkit_skip @qt<5.9
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.8 or older)
+    @qtwebkit_skip @qt<5.9 @qt>=5.13
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.8 or older and 5.13 and newer)
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
         And I wait until the download is finished
         Then the downloaded file ../foo should not exist
         And the downloaded file foo should exist
 
-    @qtwebkit_skip @qt>=5.9
-    Scenario: Downloading a file with evil content-disposition header (Qt 5.9 or newer)
+    @qtwebkit_skip @qt<5.13 @qt>=5.9
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.9 to 5.12)
         # Content-Disposition: download; filename=..%2Ffoo
         When I open response-headers?Content-Disposition=download;%20filename%3D..%252Ffoo without waiting
+        And I wait until the download is finished
+        Then the downloaded file ../foo should not exist
+        And the downloaded file ..%2Ffoo should exist
+
+    @qtwebkit_skip @qt>=5.13
+    Scenario: Downloading a file with evil content-disposition header (Qt 5.13 or newer)
+        # Content-Disposition: download; filename=..%252Ffoo
+        When I open response-headers?Content-Disposition=download;%20filename%3D..%25252Ffoo without waiting
         And I wait until the download is finished
         Then the downloaded file ../foo should not exist
         And the downloaded file ..%2Ffoo should exist
@@ -161,7 +178,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading a file to a reserved path
         When I set downloads.location.prompt to true
         And I open data/downloads/download.bin without waiting
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept COM1
         And I run :leave-mode
         Then the error "Invalid filename" should be shown
@@ -170,7 +187,7 @@ Feature: Downloading things from a website.
     Scenario: Downloading a file to a drive-relative working directory
         When I set downloads.location.prompt to true
         And I open data/downloads/download.bin without waiting
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text='Please enter a location for <b>http://localhost:*/data/downloads/download.bin</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept C:foobar
         And I run :leave-mode
         Then the error "Invalid filename" should be shown
@@ -262,14 +279,14 @@ Feature: Downloading things from a website.
 
     Scenario: :download with a filename and directory which doesn't exist
         When I run :download --dest (tmpdir)(dirsep)downloads(dirsep)somedir(dirsep)file http://localhost:(port)/data/downloads/download.bin
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> text='<b>*</b> does not exist. Create it?' title='Create directory?'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> option=None text='<b>*</b> does not exist. Create it?' title='Create directory?'>, *" in the log
         And I run :prompt-accept yes
         And I wait until the download is finished
         Then the downloaded file somedir/file should exist
 
     Scenario: :download with a directory which doesn't exist
         When I run :download --dest (tmpdir)(dirsep)downloads(dirsep)somedir(dirsep) http://localhost:(port)/data/downloads/download.bin
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> text='<b>*</b> does not exist. Create it?' title='Create directory?'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> option=None text='<b>*</b> does not exist. Create it?' title='Create directory?'>, *" in the log
         And I run :prompt-accept yes
         And I wait until the download is finished
         Then the downloaded file somedir/download.bin should exist
@@ -294,13 +311,13 @@ Feature: Downloading things from a website.
         When I set downloads.location.prompt to true
         And I open data/title.html
         And I run :download --mhtml
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/title.html</b>' title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text='Please enter a location for <b>http://localhost:*/data/title.html</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept
         And I wait for "File successfully written." in the log
         And I run :download --mhtml
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text='Please enter a location for <b>http://localhost:*/data/title.html</b>' title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text='Please enter a location for <b>http://localhost:*/data/title.html</b>' title='Save file to:'>, *" in the log
         And I run :prompt-accept
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> text='<b>*</b> already exists. Overwrite?' title='Overwrite existing file?'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default=None mode=<PromptMode.yesno: 1> option=None text='<b>*</b> already exists. Overwrite?' title='Overwrite existing file?'>, *" in the log
         And I run :prompt-accept yes
         And I wait for "File successfully written." in the log
         Then the downloaded file Test title.mhtml should exist
@@ -522,6 +539,17 @@ Feature: Downloading things from a website.
         And I open data/downloads/download2.bin without waiting
         Then the download prompt should be shown with "(tmpdir)/downloads/subdir/download2.bin"
 
+    Scenario: Clearing the last download directory when changing download location
+        When I set downloads.location.prompt to true
+        And I set downloads.location.suggestion to both
+        And I set downloads.location.remember to true
+        And I open data/downloads/download.bin without waiting
+        And I wait for the download prompt for "*/download.bin"
+        And I run :prompt-accept (tmpdir)(dirsep)downloads(dirsep)subdir
+        And I run :set downloads.location.directory (tmpdir)(dirsep)downloads
+        And I open data/downloads/download2.bin without waiting
+        Then the download prompt should be shown with "(tmpdir)/downloads/download2.bin"
+
     Scenario: Not remembering the last download directory
         When I set downloads.location.prompt to true
         And I set downloads.location.suggestion to both
@@ -651,9 +679,9 @@ Feature: Downloading things from a website.
     Scenario: Answering a question for a cancelled download (#415)
         When I set downloads.location.prompt to true
         And I run :download http://localhost:(port)/data/downloads/download.bin
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
         And I run :download http://localhost:(port)/data/downloads/download2.bin
-        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> text=* title='Save file to:'>, *" in the log
+        And I wait for "Asking question <qutebrowser.utils.usertypes.Question default='*' mode=<PromptMode.download: 5> option=None text=* title='Save file to:'>, *" in the log
         And I run :download-cancel with count 2
         And I run :prompt-accept
         And I wait until the download is finished
