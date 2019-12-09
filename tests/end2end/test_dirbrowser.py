@@ -27,7 +27,9 @@ import pytest
 import bs4
 
 from PyQt5.QtCore import QUrl
+
 from qutebrowser.utils import urlutils
+from helpers import utils as testutils
 
 
 pytestmark = pytest.mark.qtwebengine_skip("Title is empty when parsing for "
@@ -127,7 +129,10 @@ def parse(quteproc):
     """
     html = quteproc.get_content(plain=False)
     soup = bs4.BeautifulSoup(html, 'html.parser')
-    print(soup.prettify())
+
+    with testutils.ignore_bs4_warning():
+        print(soup.prettify())
+
     title_prefix = 'Browse directory: '
     # Strip off the title prefix to obtain the path of the folder that
     # we're browsing

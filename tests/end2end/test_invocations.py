@@ -325,12 +325,14 @@ def test_command_on_start(request, quteproc_new):
 
 def test_launching_with_python2():
     try:
-        proc = subprocess.run(['python2', '-m', 'qutebrowser',
-                               '--no-err-windows'], stderr=subprocess.PIPE)
+        proc = subprocess.run(
+            ['python2', '-m', 'qutebrowser', '--no-err-windows'],
+            stderr=subprocess.PIPE,
+            check=False)
     except FileNotFoundError:
         pytest.skip("python2 not found")
     assert proc.returncode == 1
-    error = "At least Python 3.5 is required to run qutebrowser"
+    error = "At least Python 3.5.2 is required to run qutebrowser"
     assert proc.stderr.decode('ascii').startswith(error)
 
 
@@ -387,3 +389,6 @@ def test_qute_settings_persistence(short_tmpdir, request, quteproc_new):
 
     quteproc_new.start(args)
     assert quteproc_new.get_setting('search.ignore_case') == 'always'
+
+    quteproc_new.send_cmd(':quit')
+    quteproc_new.wait_for_quit()

@@ -24,6 +24,7 @@ import functools
 from PyQt5.QtWebKit import QWebHistoryInterface
 
 from qutebrowser.utils import debug
+from qutebrowser.misc import debugcachestats
 
 
 class WebHistoryInterface(QWebHistoryInterface):
@@ -42,6 +43,7 @@ class WebHistoryInterface(QWebHistoryInterface):
     def addHistoryEntry(self, url_string):
         """Required for a QWebHistoryInterface impl, obsoleted by add_url."""
 
+    @debugcachestats.register(name='history')
     @functools.lru_cache(maxsize=32768)
     def historyContains(self, url_string):
         """Called by WebKit to determine if a URL is contained in the history.

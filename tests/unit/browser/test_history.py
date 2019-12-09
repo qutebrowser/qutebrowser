@@ -25,15 +25,14 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.browser import history
-from qutebrowser.utils import objreg, urlutils, usertypes
+from qutebrowser.utils import urlutils, usertypes
 from qutebrowser.api import cmdutils
-from qutebrowser.misc import sql
+from qutebrowser.misc import sql, objects
 
 
 @pytest.fixture(autouse=True)
 def prerequisites(config_stub, fake_save_manager, init_sql, fake_args):
     """Make sure everything is ready to initialize a WebHistory."""
-    fake_args.debug_flags = []
     config_stub.data = {'general': {'private-browsing': False}}
 
 
@@ -108,13 +107,13 @@ class TestDelete:
 
         m = mocker.patch('qutebrowser.browser.history.message.confirm_async',
                          new=mocker.Mock, spec=[])
-        web_history.clear()
+        history.history_clear()
         assert m.called
 
     def test_clear_force(self, qtbot, tmpdir, web_history):
         web_history.add_url(QUrl('http://example.com/'))
         web_history.add_url(QUrl('http://www.qutebrowser.org/'))
-        web_history.clear(force=True)
+        history.history_clear(force=True)
         assert not len(web_history)
         assert not len(web_history.completion)
 
@@ -171,8 +170,8 @@ class TestAdd:
             expected = [(completion_url, title, atime)]
             assert list(web_history.completion) == expected
 
-    def test_no_sql_web_history(self, web_history, fake_args):
-        fake_args.debug_flags = 'no-sql-history'
+    def test_no_sql_web_history(self, web_history, monkeypatch):
+        monkeypatch.setattr(objects, 'debug_flags', {'no-sql-history'})
         web_history.add_url(QUrl('https://www.example.com/'), atime=12346,
                             title='Hello World', redirect=False)
         assert not list(web_history)
@@ -229,6 +228,37 @@ class TestAdd:
         assert list(web_history)
         assert not list(web_history.completion)
 
+    def test_no_immedate_duplicates(self, web_history, mock_time):
+        url = QUrl("http://example.com")
+        url2 = QUrl("http://example2.com")
+        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        hist = list(web_history)
+        assert hist
+        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        assert list(web_history) == hist
+        web_history.add_from_tab(QUrl(url2), QUrl(url2), 'title')
+        assert list(web_history) != hist
+
+    def test_delete_add_tab(self, web_history, mock_time):
+        url = QUrl("http://example.com")
+        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        hist = list(web_history)
+        assert hist
+        web_history.delete_url(QUrl(url))
+        assert len(web_history) == 0
+        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        assert list(web_history) == hist
+
+    def test_clear_add_tab(self, web_history, mock_time):
+        url = QUrl("http://example.com")
+        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        hist = list(web_history)
+        assert hist
+        history.history_clear(force=True)
+        assert len(web_history) == 0
+        web_history.add_from_tab(QUrl(url), QUrl(url), 'title')
+        assert list(web_history) == hist
+
 
 class TestHistoryInterface:
 
@@ -259,10 +289,9 @@ class TestInit:
     def cleanup_init(self):
         # prevent test_init from leaking state
         yield
-        web_history = objreg.get('web-history', None)
-        if web_history is not None:
-            web_history.setParent(None)
-            objreg.delete('web-history')
+        if history.web_history is not None:
+            history.web_history.setParent(None)
+            history.web_history = None
         try:
             from PyQt5.QtWebKit import QWebHistoryInterface
             QWebHistoryInterface.setDefaultInterface(None)
@@ -279,8 +308,7 @@ class TestInit:
 
         monkeypatch.setattr(history.objects, 'backend', backend)
         history.init(qapp)
-        hist = objreg.get('web-history')
-        assert hist.parent() is qapp
+        assert history.web_history.parent() is qapp
 
         try:
             from PyQt5.QtWebKit import QWebHistoryInterface
@@ -289,7 +317,7 @@ class TestInit:
 
         if backend == usertypes.Backend.QtWebKit:
             default_interface = QWebHistoryInterface.defaultInterface()
-            assert default_interface._history is hist
+            assert default_interface._history is history.web_history
         else:
             assert backend == usertypes.Backend.QtWebEngine
             if QWebHistoryInterface is None:
@@ -314,7 +342,7 @@ class TestDump:
         web_history.add_url(QUrl('http://example.com/4'),
                             title="Title4", atime=12348, redirect=True)
         histfile = tmpdir / 'history'
-        web_history.debug_dump_history(str(histfile))
+        history.debug_dump_history(str(histfile))
         expected = ['12345 http://example.com/1 Title1',
                     '12346 http://example.com/2 Title2',
                     '12347 http://example.com/3 Title3',
@@ -324,7 +352,7 @@ class TestDump:
     def test_nonexistent(self, web_history, tmpdir):
         histfile = tmpdir / 'nonexistent' / 'history'
         with pytest.raises(cmdutils.CommandError):
-            web_history.debug_dump_history(str(histfile))
+            history.debug_dump_history(str(histfile))
 
 
 class TestRebuild:

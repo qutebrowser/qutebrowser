@@ -34,7 +34,7 @@ from PyQt5.QtWidgets import QCommonStyle, QLineEdit, QWidget, QTabBar
 
 from qutebrowser.browser import browsertab, downloads
 from qutebrowser.utils import usertypes
-from qutebrowser.mainwindow import mainwindow
+from qutebrowser.commands import runners
 
 
 class FakeNetworkCache(QAbstractNetworkCache):
@@ -116,7 +116,7 @@ class FakeQApplication:
     UNSET = object()
 
     def __init__(self, style=None, all_widgets=None, active_window=None,
-                 instance=UNSET):
+                 instance=UNSET, arguments=None):
 
         if instance is self.UNSET:
             self.instance = mock.Mock(return_value=self)
@@ -128,6 +128,7 @@ class FakeQApplication:
 
         self.allWidgets = lambda: all_widgets
         self.activeWindow = lambda: active_window
+        self.arguments = lambda: arguments
 
 
 class FakeNetworkReply:
@@ -546,13 +547,6 @@ class TabWidgetStub(QObject):
         return self.tabs[idx - 1]
 
 
-class ApplicationStub(QObject):
-
-    """Stub to insert as the app object in objreg."""
-
-    new_window = pyqtSignal(mainwindow.MainWindow)
-
-
 class HTTPPostStub(QObject):
 
     """A stub class for HTTPClient.
@@ -638,3 +632,22 @@ class FakeHistoryProgress:
 
     def finish(self):
         self._finished = True
+
+
+class FakeCommandRunner(runners.AbstractCommandRunner):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.commands = []
+
+    def run(self, text, count=None, *, safely=False):
+        self.commands.append((text, count))
+
+
+class FakeHintManager:
+
+    def __init__(self):
+        self.keystr = None
+
+    def handle_partial_key(self, keystr):
+        self.keystr = keystr

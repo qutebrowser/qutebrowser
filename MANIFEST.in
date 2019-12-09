@@ -38,8 +38,8 @@ exclude qutebrowser/javascript/.eslintignore
 exclude doc/help
 exclude .*
 exclude misc/qutebrowser.spec
-exclude misc/qutebrowser.nsi
 exclude misc/qutebrowser.rcc
 prune doc/extapi
+prune misc/nsis
 
 global-exclude __pycache__ *.pyc *.pyo

@@ -309,7 +309,7 @@ class TestWindowIsolation:
         callback.assert_called_with(setup.expected)
 
     # The JSCore in 602.1 doesn't fully support Proxy.
-    @pytest.mark.qtwebkit6021_skip
+    @pytest.mark.qtwebkit6021_xfail
     def test_webkit(self, webview, setup):
         elem = webview.page().mainFrame().documentElement()
         elem.evaluateJavaScript(setup.setup_script)

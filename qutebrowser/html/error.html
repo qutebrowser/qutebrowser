@@ -61,7 +61,7 @@ li {
 {{ super() }}
 function tryagain()
 {
-    location.href = {{ url|tojson }};
+    location.href = "{{ url|js_string_escape|safe }}";
 }
 {% endblock %}
 

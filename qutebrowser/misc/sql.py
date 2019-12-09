@@ -43,7 +43,9 @@ class SqliteErrorCode:
     CORRUPT = '11'  # database disk image is malformed
     FULL = '13'  # database or disk is full
     CANTOPEN = '14'  # unable to open database file
+    PROTOCOL = '15'  # locking protocol error
     CONSTRAINT = '19'  # UNIQUE constraint failed
+    NOTADB = '26'  # file is not a database
 
 
 class Error(Exception):
@@ -102,6 +104,8 @@ def raise_sqlite_error(msg, error):
         SqliteErrorCode.CORRUPT,
         SqliteErrorCode.FULL,
         SqliteErrorCode.CANTOPEN,
+        SqliteErrorCode.PROTOCOL,
+        SqliteErrorCode.NOTADB,
     ]
 
     # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-70506
@@ -186,7 +190,7 @@ class Query:
             raise BugError("Cannot iterate inactive query")
         rec = self.query.record()
         fields = [rec.fieldName(i) for i in range(rec.count())]
-        rowtype = collections.namedtuple('ResultRow', fields)
+        rowtype = collections.namedtuple('ResultRow', fields)  # type: ignore
 
         while self.query.next():
             rec = self.query.record()

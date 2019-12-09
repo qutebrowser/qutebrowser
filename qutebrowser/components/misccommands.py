@@ -23,6 +23,7 @@ import os
 import signal
 import functools
 import logging
+import typing
 
 try:
     import hunter
@@ -37,7 +38,8 @@ from qutebrowser.api import cmdutils, apitypes, message, config
 
 @cmdutils.register(name='reload')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def reloadpage(tab: apitypes.Tab, force: bool = False) -> None:
+def reloadpage(tab: typing.Optional[apitypes.Tab],
+               force: bool = False) -> None:
     """Reload the current/[count]th tab.
 
     Args:
@@ -50,7 +52,7 @@ def reloadpage(tab: apitypes.Tab, force: bool = False) -> None:
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def stop(tab: apitypes.Tab) -> None:
+def stop(tab: typing.Optional[apitypes.Tab]) -> None:
     """Stop loading in the current/[count]th tab.
 
     Args:
@@ -90,7 +92,7 @@ def _print_pdf(tab: apitypes.Tab, filename: str) -> None:
 @cmdutils.register(name='print')
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
 @cmdutils.argument('pdf', flag='f', metavar='file')
-def printpage(tab: apitypes.Tab,
+def printpage(tab: typing.Optional[apitypes.Tab],
               preview: bool = False, *,
               pdf: str = None) -> None:
     """Print the current/[count]th tab.
@@ -156,7 +158,7 @@ def insert_text(tab: apitypes.Tab, text: str) -> None:
     Args:
         text: The text to insert.
     """
-    def _insert_text_cb(elem: apitypes.WebElement) -> None:
+    def _insert_text_cb(elem: typing.Optional[apitypes.WebElement]) -> None:
         if elem is None:
             message.error("No element focused!")
             return
@@ -188,7 +190,7 @@ def click_element(tab: apitypes.Tab, filter_: str, value: str, *,
         target: How to open the clicked element (normal/tab/tab-bg/window).
         force_event: Force generating a fake click event.
     """
-    def single_cb(elem: apitypes.WebElement) -> None:
+    def single_cb(elem: typing.Optional[apitypes.WebElement]) -> None:
         """Click a single element."""
         if elem is None:
             message.error("No element found with id {}!".format(value))
@@ -229,7 +231,7 @@ def debug_webaction(tab: apitypes.Tab, action: str, count: int = 1) -> None:
 
 @cmdutils.register()
 @cmdutils.argument('tab', value=cmdutils.Value.count_tab)
-def tab_mute(tab: apitypes.Tab) -> None:
+def tab_mute(tab: typing.Optional[apitypes.Tab]) -> None:
     """Mute/Unmute the current/[count]th tab.
 
     Args:

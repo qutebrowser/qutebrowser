@@ -60,7 +60,7 @@ from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import QTabWidget, QTabBar
 from PyQt5.QtNetwork import QNetworkProxy
 
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.config import configexc, configutils
 from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
                                usertypes)
@@ -202,6 +202,13 @@ class BaseType:
         assert isinstance(value, str), value
         if not value and not self.none_ok:
             raise configexc.ValidationError(value, "may not be empty!")
+        BaseType._basic_str_validation_cache(value)
+
+    @staticmethod
+    @debugcachestats.register(name='str validation cache')
+    @functools.lru_cache(maxsize=2**9)
+    def _basic_str_validation_cache(value: str) -> None:
+        """Cache validation result to prevent looping over strings."""
         if any(ord(c) < 32 or ord(c) == 0x7f for c in value):
             raise configexc.ValidationError(
                 value, "may not contain unprintable chars!")
@@ -314,6 +321,9 @@ class BaseType:
                 out.append((val, desc))
             return out
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok)
+
 
 class MappingType(BaseType):
 
@@ -338,6 +348,10 @@ class MappingType(BaseType):
             return None
         self._validate_valid_values(value.lower())
         return self.MAPPING[value.lower()]
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values)
 
 
 class String(BaseType):
@@ -420,6 +434,14 @@ class String(BaseType):
             return self._completions
         else:
             return super().complete()
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values,
+                              minlen=self.minlen,
+                              maxlen=self.maxlen, forbidden=self.forbidden,
+                              completions=self._completions,
+                              encoding=self.encoding)
 
 
 class UniqueCharString(String):
@@ -525,6 +547,10 @@ class List(BaseType):
                 self.valtype.to_doc(elem, indent=indent+1)))
         return '\n'.join(lines)
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype,
+                              length=self.length)
+
 
 class ListOrValue(BaseType):
 
@@ -597,6 +623,9 @@ class ListOrValue(BaseType):
         val, typ = self._val_and_type(value)
         return typ.to_doc(val)
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, valtype=self.valtype)
+
 
 class FlagList(List):
 
@@ -649,6 +678,11 @@ class FlagList(List):
             for combination in itertools.combinations(combinables, size):
                 out.append((json.dumps(combination), ''))
         return out
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              valid_values=self.valid_values,
+                              length=self.length)
 
 
 class Bool(BaseType):
@@ -706,7 +740,7 @@ class BoolAsk(Bool):
                  value: str) -> typing.Union[bool, str, None]:
         # basic validation unneeded if it's == 'ask' and done by Bool if we
         # call super().from_str
-        if isinstance(value, str) and value.lower() == 'ask':
+        if value.lower() == 'ask':
             return 'ask'
         return super().from_str(value)
 
@@ -731,10 +765,12 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
 
     def __init__(self, minval: int = None,
                  maxval: int = None,
+                 zero_ok: bool = True,
                  none_ok: bool = False) -> None:
         super().__init__(none_ok)
         self.minval = self._parse_bound(minval)
         self.maxval = self._parse_bound(maxval)
+        self.zero_ok = zero_ok
         if self.maxval is not None and self.minval is not None:
             if self.maxval < self.minval:
                 raise ValueError("minval ({}) needs to be <= maxval ({})!"
@@ -764,11 +800,17 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
         elif self.maxval is not None and value > self.maxval:
             raise configexc.ValidationError(
                 value, "must be {}{} or smaller!".format(self.maxval, suffix))
+        elif not self.zero_ok and value == 0:
+            raise configexc.ValidationError(value, "must not be 0!")
 
     def to_str(self, value: typing.Union[None, int, float]) -> str:
         if value is None:
             return ''
         return str(value)
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, minval=self.minval,
+                              maxval=self.maxval)
 
 
 class Int(_Numeric):
@@ -922,6 +964,11 @@ class PercOrInt(_Numeric):
             self._validate_bounds(value)
         return value
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, minint=self.minval,
+                              maxint=self.maxval, minperc=self.minperc,
+                              maxperc=self.maxperc)
+
 
 class Command(BaseType):
 
@@ -1039,7 +1086,7 @@ class QtColor(BaseType):
             if not conv:
                 raise configexc.ValidationError(
                     value,
-                    '{} not in {}'.format(kind, list(sorted(converters))))
+                    '{} not in {}'.format(kind, sorted(converters)))
 
             if len(kind) != len(vals):
                 raise configexc.ValidationError(
@@ -1104,7 +1151,7 @@ class Font(BaseType):
     """
 
     # Gets set when the config is initialized.
-    monospace_fonts = None
+    monospace_fonts = None  # type: str
     font_regex = re.compile(r"""
         (
             (
@@ -1286,7 +1333,7 @@ class Regex(BaseType):
 
     def to_py(
             self,
-            value: typing.Union[str, typing.Pattern[str]]
+            value: typing.Union[str, typing.Pattern[str], configutils.Unset]
     ) -> typing.Union[configutils.Unset, None, typing.Pattern[str]]:
         """Get a compiled regex from either a string or a regex object."""
         self._basic_py_validation(value, (str, self._regex_type))
@@ -1308,6 +1355,9 @@ class Regex(BaseType):
         else:
             assert isinstance(value, str)
             return value
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, flags=self.flags)
 
 
 class Dict(BaseType):
@@ -1411,6 +1461,11 @@ class Dict(BaseType):
             )).splitlines()
         return '\n'.join(line.rstrip(' ') for line in lines)
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, keytype=self.keytype,
+                              valtype=self.valtype, fixed_keys=self.fixed_keys,
+                              required_keys=self.required_keys)
+
 
 class File(BaseType):
 
@@ -1442,6 +1497,10 @@ class File(BaseType):
             raise configexc.ValidationError(value, e)
 
         return value
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              required=self.required)
 
 
 class Directory(BaseType):
@@ -1495,6 +1554,9 @@ class FormatString(BaseType):
 
         return value
 
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok, fields=self.fields)
+
 
 class ShellCommand(List):
 
@@ -1530,6 +1592,10 @@ class ShellCommand(List):
                                             "{}-placeholder or a "
                                             "{file}-placeholder.")
         return py_value
+
+    def __repr__(self) -> str:
+        return utils.get_repr(self, none_ok=self.none_ok,
+                              placeholder=self.placeholder)
 
 
 class Proxy(BaseType):

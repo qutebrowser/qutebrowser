@@ -15,7 +15,7 @@ MANIFEST.json
 -------------
 
 Here's an excerpt of the https://github.com/google/fonts/blob/master/apache/opensans/METADATA.json[MANIFEST.json] file
-from https://github.com/google/fonts/blob/master/apache/opensans/[the offical repository]:
+from https://github.com/google/fonts/blob/master/apache/opensans/[the official repository]:
 
 ----
 {

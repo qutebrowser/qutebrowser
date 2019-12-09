@@ -19,6 +19,7 @@
 
 """Utilities related to QWebHistory."""
 
+import typing
 
 from PyQt5.QtCore import QByteArray, QDataStream, QIODevice, QUrl
 
@@ -63,7 +64,7 @@ def _serialize_item(item):
 
 
 def serialize(items):
-    """Serialize a list of QWebHistoryItems to a data stream.
+    """Serialize a list of WebHistoryItems to a data stream.
 
     Args:
         items: An iterable of WebHistoryItems.
@@ -80,7 +81,7 @@ def serialize(items):
     """
     data = QByteArray()
     stream = QDataStream(data, QIODevice.ReadWrite)
-    user_data = []
+    user_data = []  # type: typing.List[typing.Mapping[str, typing.Any]]
 
     current_idx = None
 

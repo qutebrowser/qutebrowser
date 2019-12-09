@@ -24,10 +24,7 @@ import enum
 
 import attr
 
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
-    from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl
 
 
 class ResourceType(enum.Enum):
@@ -58,13 +55,25 @@ class ResourceType(enum.Enum):
     unknown = 255
 
 
+class RedirectException(Exception):
+    """Raised when there was an error with redirection."""
+
+
+class RedirectFailedException(RedirectException):
+    """Raised when the request was invalid, or a request was already made."""
+
+
+class RedirectUnsupportedException(RedirectException):
+    """Raised when redirection is currently unsupported."""
+
+
 @attr.s
 class Request:
 
     """A request which can be intercepted/blocked."""
 
     #: The URL of the page being shown.
-    first_party_url = attr.ib()  # type: QUrl
+    first_party_url = attr.ib()  # type: typing.Optional[QUrl]
 
     #: The URL of the file being requested.
     request_url = attr.ib()  # type: QUrl
@@ -77,6 +86,21 @@ class Request:
     def block(self) -> None:
         """Block this request."""
         self.is_blocked = True
+
+    def redirect(self, url: QUrl) -> None:
+        """Redirect this request.
+
+        Only some types of requests can be successfully redirected.
+        Improper use of this method can result in redirect loops.
+
+        This method will throw a RedirectFailedException if the request was not
+        possible.
+
+        Args:
+            url: The QUrl to try to redirect to.
+        """
+        # Will be overridden if the backend supports redirection
+        raise RedirectUnsupportedException("Unsupported backend.")
 
 
 #: Type annotation for an interceptor function.

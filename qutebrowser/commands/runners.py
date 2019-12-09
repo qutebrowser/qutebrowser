@@ -21,6 +21,8 @@
 
 import traceback
 import re
+import typing
+import contextlib
 
 import attr
 from PyQt5.QtCore import pyqtSlot, QUrl, QObject
@@ -30,6 +32,11 @@ from qutebrowser.config import config
 from qutebrowser.commands import cmdexc
 from qutebrowser.utils import message, objreg, qtutils, usertypes, utils
 from qutebrowser.misc import split, objects
+from qutebrowser.keyinput import macros, modeman
+
+if typing.TYPE_CHECKING:
+    from qutebrowser.mainwindow import tabbedbrowser
+_ReplacementFunction = typing.Callable[['tabbedbrowser.TabbedBrowser'], str]
 
 
 last_command = {}
@@ -45,7 +52,7 @@ class ParseResult:
     cmdline = attr.ib()
 
 
-def _current_url(tabbed_browser):
+def _url(tabbed_browser):
     """Convenience method to get the current url."""
     try:
         return tabbed_browser.current_url()
@@ -57,42 +64,66 @@ def _current_url(tabbed_browser):
         raise cmdutils.CommandError(msg)
 
 
+def _init_variable_replacements() -> typing.Mapping[str, _ReplacementFunction]:
+    """Return a dict from variable replacements to fns processing them."""
+    replacements = {
+        'url': lambda tb: _url(tb).toString(
+            QUrl.FullyEncoded | QUrl.RemovePassword),
+        'url:pretty': lambda tb: _url(tb).toString(
+            QUrl.DecodeReserved | QUrl.RemovePassword),
+        'url:domain': lambda tb: "{}://{}{}".format(
+            _url(tb).scheme(), _url(tb).host(),
+            ":" + str(_url(tb).port()) if _url(tb).port() != -1 else ""),
+        'url:auth': lambda tb: "{}:{}@".format(
+            _url(tb).userName(),
+            _url(tb).password()) if _url(tb).userName() else "",
+        'url:scheme': lambda tb: _url(tb).scheme(),
+        'url:username': lambda tb: _url(tb).userName(),
+        'url:password': lambda tb: _url(tb).password(),
+        'url:host': lambda tb: _url(tb).host(),
+        'url:port': lambda tb: str(
+            _url(tb).port()) if _url(tb).port() != -1 else "",
+        'url:path': lambda tb: _url(tb).path(),
+        'url:query': lambda tb: _url(tb).query(),
+        'title': lambda tb: tb.widget.page_title(tb.widget.currentIndex()),
+        'clipboard': lambda _: utils.get_clipboard(),
+        'primary': lambda _: utils.get_clipboard(selection=True),
+    }  # type: typing.Dict[str, _ReplacementFunction]
+
+    for key in list(replacements):
+        modified_key = '{' + key + '}'
+        # x = modified_key is to avoid binding x as a closure
+        replacements[modified_key] = (
+            lambda _, x=modified_key: x)  # type: ignore
+    return replacements
+
+
+VARIABLE_REPLACEMENTS = _init_variable_replacements()
+# A regex matching all variable replacements
+VARIABLE_REPLACEMENT_PATTERN = re.compile(
+    "{(?P<var>" + "|".join(VARIABLE_REPLACEMENTS.keys()) + ")}")
+
+
 def replace_variables(win_id, arglist):
     """Utility function to replace variables like {url} in a list of args."""
     tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                 window=win_id)
-
-    variables = {
-        'url': lambda: _current_url(tabbed_browser).toString(
-            QUrl.FullyEncoded | QUrl.RemovePassword),
-        'url:pretty': lambda: _current_url(tabbed_browser).toString(
-            QUrl.DecodeReserved | QUrl.RemovePassword),
-        'url:host': lambda: _current_url(tabbed_browser).host(),
-        'clipboard': utils.get_clipboard,
-        'primary': lambda: utils.get_clipboard(selection=True),
-    }
-
-    for key in list(variables):
-        modified_key = '{' + key + '}'
-        variables[modified_key] = lambda x=modified_key: x
-
-    values = {}
+    values = {}  # type: typing.MutableMapping[str, str]
     args = []
 
     def repl_cb(matchobj):
         """Return replacement for given match."""
         var = matchobj.group("var")
         if var not in values:
-            values[var] = variables[var]()
+            values[var] = VARIABLE_REPLACEMENTS[var](tabbed_browser)
         return values[var]
-    repl_pattern = re.compile("{(?P<var>" + "|".join(variables.keys()) + ")}")
 
     try:
         for arg in arglist:
             # using re.sub with callback function replaces all variables in a
             # single pass and avoids expansion of nested variables (e.g.
             # "{url}" from clipboard is not expanded)
-            args.append(repl_pattern.sub(repl_cb, arg))
+            args.append(VARIABLE_REPLACEMENT_PATTERN.sub(repl_cb, arg))
     except utils.ClipboardError as e:
         raise cmdutils.CommandError(e)
     return args
@@ -121,10 +152,10 @@ class CommandParser:
             otherwise.
         """
         parts = text.strip().split(maxsplit=1)
-        try:
-            alias = config.val.aliases[parts[0]]
-        except KeyError:
+        aliases = config.cache['aliases']
+        if parts[0] not in aliases:
             return default
+        alias = aliases[parts[0]]
 
         try:
             new_cmd = '{} {}'.format(alias, parts[1])
@@ -273,7 +304,21 @@ class CommandParser:
             return split_args
 
 
-class CommandRunner(QObject):
+class AbstractCommandRunner(QObject):
+
+    """Abstract base class for CommandRunner."""
+
+    def run(self, text, count=None, *, safely=False):
+        raise NotImplementedError
+
+    @pyqtSlot(str, int)
+    @pyqtSlot(str)
+    def run_safely(self, text, count=None):
+        """Run a command and display exceptions in the statusbar."""
+        self.run(text, count, safely=True)
+
+
+class CommandRunner(AbstractCommandRunner):
 
     """Parse and run qutebrowser commandline commands.
 
@@ -286,26 +331,46 @@ class CommandRunner(QObject):
         self._parser = CommandParser(partial_match=partial_match)
         self._win_id = win_id
 
-    def run(self, text, count=None):
+    @contextlib.contextmanager
+    def _handle_error(self, safely) -> typing.Iterator[None]:
+        """Show exceptions as errors if safely=True is given."""
+        try:
+            yield
+        except cmdexc.Error as e:
+            if safely:
+                message.error(str(e), stack=traceback.format_exc())
+            else:
+                raise
+
+    def run(self, text, count=None, *, safely=False):
         """Parse a command from a line of text and run it.
 
         Args:
             text: The text to parse.
             count: The count to pass to the command.
+            safely: Show CmdError exceptions as messages.
         """
         record_last_command = True
         record_macro = True
 
-        mode_manager = objreg.get('mode-manager', scope='window',
-                                  window=self._win_id)
+        mode_manager = modeman.instance(self._win_id)
         cur_mode = mode_manager.mode
 
-        for result in self._parser.parse_all(text):
-            if result.cmd.no_replace_variables:
-                args = result.args
-            else:
-                args = replace_variables(self._win_id, result.args)
-            result.cmd.run(self._win_id, args, count=count)
+        parsed = None
+        with self._handle_error(safely):
+            parsed = self._parser.parse_all(text)
+
+        if parsed is None:
+            return
+
+        for result in parsed:
+            with self._handle_error(safely):
+                if result.cmd.no_replace_variables:
+                    args = result.args
+                else:
+                    args = replace_variables(self._win_id, result.args)
+
+                result.cmd.run(self._win_id, args, count=count)
 
             if result.cmdline[0] == 'repeat-command':
                 record_last_command = False
@@ -318,14 +383,4 @@ class CommandRunner(QObject):
             last_command[cur_mode] = (text, count)
 
         if record_macro and cur_mode == usertypes.KeyMode.normal:
-            macro_recorder = objreg.get('macro-recorder')
-            macro_recorder.record_command(text, count)
-
-    @pyqtSlot(str, int)
-    @pyqtSlot(str)
-    def run_safely(self, text, count=None):
-        """Run a command and display exceptions in the statusbar."""
-        try:
-            self.run(text, count)
-        except cmdexc.Error as e:
-            message.error(str(e), stack=traceback.format_exc())
+            macros.macro_recorder.record_command(text, count)

@@ -23,21 +23,22 @@ import math
 import functools
 import re
 import html as html_utils
+import typing
 
 from PyQt5.QtCore import (pyqtSignal, pyqtSlot, Qt, QPoint, QPointF, QUrl,
                           QTimer, QObject)
-from PyQt5.QtGui import QIcon
 from PyQt5.QtNetwork import QAuthenticator
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineScript
 
 from qutebrowser.config import configdata, config
-from qutebrowser.browser import browsertab, mouse, shared, webelem
+from qutebrowser.browser import (browsertab, eventfilter, shared, webelem,
+                                 history, greasemonkey)
 from qutebrowser.browser.webengine import (webview, webengineelem, tabhistory,
                                            interceptor, webenginequtescheme,
                                            cookies, webenginedownloads,
                                            webenginesettings, certificateerror)
-from qutebrowser.misc import miscwidgets
+from qutebrowser.misc import miscwidgets, objects
 from qutebrowser.utils import (usertypes, qtutils, log, javascript, utils,
                                message, objreg, jinja, debug)
 from qutebrowser.qt import sip
@@ -57,31 +58,35 @@ def init():
     log.init.debug("Initializing qute://* handler...")
     _qute_scheme_handler = webenginequtescheme.QuteSchemeHandler(parent=app)
     _qute_scheme_handler.install(webenginesettings.default_profile)
-    _qute_scheme_handler.install(webenginesettings.private_profile)
+    if webenginesettings.private_profile:
+        _qute_scheme_handler.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing request interceptor...")
-    args = objreg.get('args')
-    req_interceptor = interceptor.RequestInterceptor(args=args, parent=app)
+    req_interceptor = interceptor.RequestInterceptor(parent=app)
     req_interceptor.install(webenginesettings.default_profile)
-    req_interceptor.install(webenginesettings.private_profile)
+    if webenginesettings.private_profile:
+        req_interceptor.install(webenginesettings.private_profile)
 
     log.init.debug("Initializing QtWebEngine downloads...")
     download_manager = webenginedownloads.DownloadManager(parent=app)
     download_manager.install(webenginesettings.default_profile)
-    download_manager.install(webenginesettings.private_profile)
+    if webenginesettings.private_profile:
+        download_manager.install(webenginesettings.private_profile)
     objreg.register('webengine-download-manager', download_manager)
 
     log.init.debug("Initializing cookie filter...")
     cookies.install_filter(webenginesettings.default_profile)
-    cookies.install_filter(webenginesettings.private_profile)
+    if webenginesettings.private_profile:
+        cookies.install_filter(webenginesettings.private_profile)
 
     # Clear visited links on web history clear
-    hist = objreg.get('web-history')
     for p in [webenginesettings.default_profile,
               webenginesettings.private_profile]:
-        hist.history_cleared.connect(p.clearAllVisitedLinks)
-        hist.url_cleared.connect(lambda url, profile=p:
-                                 profile.clearVisitedLinks([url]))
+        if not p:
+            continue
+        history.web_history.history_cleared.connect(p.clearAllVisitedLinks)
+        history.web_history.url_cleared.connect(
+            lambda url, profile=p: profile.clearVisitedLinks([url]))
 
 
 # Mapping worlds from usertypes.JsWorld to QWebEngineScript world IDs.
@@ -118,7 +123,8 @@ class WebEngineAction(browsertab.AbstractAction):
             # Qt < 5.8
             tb = objreg.get('tabbed-browser', scope='window',
                             window=self._tab.win_id)
-            urlstr = self._tab.url().toString(QUrl.RemoveUserInfo)
+            urlstr = self._tab.url().toString(
+                QUrl.RemoveUserInfo)  # type: ignore
             # The original URL becomes the path of a view-source: URL
             # (without a host), but query/fragment should stay.
             url = QUrl('view-source:' + urlstr)
@@ -162,7 +168,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._flags = QWebEnginePage.FindFlags(0)
+        self._flags = QWebEnginePage.FindFlags(0)  # type: ignore
         self._pending_searches = 0
 
     def _find(self, text, flags, callback, caller):
@@ -212,7 +218,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
             return
 
         self.text = text
-        self._flags = QWebEnginePage.FindFlags(0)
+        self._flags = QWebEnginePage.FindFlags(0)  # type: ignore
         if self._is_case_sensitive(ignore_case):
             self._flags |= QWebEnginePage.FindCaseSensitively
         if reverse:
@@ -228,7 +234,7 @@ class WebEngineSearch(browsertab.AbstractSearch):
 
     def prev_result(self, *, result_cb=None):
         # The int() here makes sure we get a copy of the flags.
-        flags = QWebEnginePage.FindFlags(int(self._flags))
+        flags = QWebEnginePage.FindFlags(int(self._flags))  # type: ignore
         if flags & QWebEnginePage.FindBackward:
             flags &= ~QWebEnginePage.FindBackward
         else:
@@ -414,7 +420,6 @@ class WebEngineScroller(browsertab.AbstractScroller):
 
     def __init__(self, tab, parent=None):
         super().__init__(tab, parent)
-        self._args = objreg.get('args')
         self._pos_perc = (0, 0)
         self._pos_px = QPoint()
         self._at_bottom = False
@@ -443,7 +448,7 @@ class WebEngineScroller(browsertab.AbstractScroller):
                 perc_x = min(100, round(100 / scrollable_x * pos.x()))
             except ValueError:
                 # https://github.com/qutebrowser/qutebrowser/issues/3219
-                log.misc.debug("Got ValueError!")
+                log.misc.debug("Got ValueError for perc_x!")
                 log.misc.debug("contents_size.width(): {}".format(
                     contents_size.width()))
                 log.misc.debug("self._widget.width(): {}".format(
@@ -456,12 +461,23 @@ class WebEngineScroller(browsertab.AbstractScroller):
         if scrollable_y == 0:
             perc_y = 0
         else:
-            perc_y = min(100, round(100 / scrollable_y * pos.y()))
+            try:
+                perc_y = min(100, round(100 / scrollable_y * pos.y()))
+            except ValueError:
+                # https://github.com/qutebrowser/qutebrowser/issues/3219
+                log.misc.debug("Got ValueError for perc_y!")
+                log.misc.debug("contents_size.height(): {}".format(
+                    contents_size.height()))
+                log.misc.debug("self._widget.height(): {}".format(
+                    self._widget.height()))
+                log.misc.debug("scrollable_y: {}".format(scrollable_y))
+                log.misc.debug("pos.y(): {}".format(pos.y()))
+                raise
 
         self._at_bottom = math.ceil(pos.y()) >= scrollable_y
 
         if (self._pos_perc != (perc_x, perc_y) or
-                'no-scroll-filtering' in self._args.debug_flags):
+                'no-scroll-filtering' in objects.debug_flags):
             self._pos_perc = perc_x, perc_y
             self.perc_changed.emit(*self._pos_perc)
 
@@ -724,10 +740,60 @@ class _WebEnginePermissions(QObject):
 
     """Handling of various permission-related signals."""
 
+    # Using 0 as WORKAROUND for:
+    # https://www.riverbankcomputing.com/pipermail/pyqt/2019-July/041903.html
+
+    _options = {
+        0: 'content.notifications',
+        QWebEnginePage.Geolocation: 'content.geolocation',
+        QWebEnginePage.MediaAudioCapture: 'content.media_capture',
+        QWebEnginePage.MediaVideoCapture: 'content.media_capture',
+        QWebEnginePage.MediaAudioVideoCapture: 'content.media_capture',
+    }
+
+    _messages = {
+        0: 'show notifications',
+        QWebEnginePage.Geolocation: 'access your location',
+        QWebEnginePage.MediaAudioCapture: 'record audio',
+        QWebEnginePage.MediaVideoCapture: 'record video',
+        QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
+    }
+
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = None
+        self._widget = typing.cast(QWidget, None)
+
+        try:
+            self._options.update({
+                QWebEnginePage.MouseLock:
+                    'content.mouse_lock',
+            })
+            self._messages.update({
+                QWebEnginePage.MouseLock:
+                    'hide your mouse pointer',
+            })
+        except AttributeError:
+            # Added in Qt 5.8
+            pass
+        try:
+            self._options.update({
+                QWebEnginePage.DesktopVideoCapture:
+                    'content.desktop_capture',
+                QWebEnginePage.DesktopAudioVideoCapture:
+                    'content.desktop_capture',
+            })
+            self._messages.update({
+                QWebEnginePage.DesktopVideoCapture:
+                    'capture your desktop',
+                QWebEnginePage.DesktopAudioVideoCapture:
+                    'capture your desktop and audio',
+            })
+        except AttributeError:
+            # Added in Qt 5.10
+            pass
+
+        assert self._options.keys() == self._messages.keys()
 
     def connect_signals(self):
         """Connect related signals from the QWebEnginePage."""
@@ -758,68 +824,37 @@ class _WebEnginePermissions(QObject):
     @pyqtSlot(QUrl, 'QWebEnginePage::Feature')
     def _on_feature_permission_requested(self, url, feature):
         """Ask the user for approval for geolocation/media/etc.."""
-        options = {
-            QWebEnginePage.Geolocation: 'content.geolocation',
-            QWebEnginePage.MediaAudioCapture: 'content.media_capture',
-            QWebEnginePage.MediaVideoCapture: 'content.media_capture',
-            QWebEnginePage.MediaAudioVideoCapture: 'content.media_capture',
-        }
-        messages = {
-            QWebEnginePage.Geolocation: 'access your location',
-            QWebEnginePage.MediaAudioCapture: 'record audio',
-            QWebEnginePage.MediaVideoCapture: 'record video',
-            QWebEnginePage.MediaAudioVideoCapture: 'record audio/video',
-        }
-        try:
-            options.update({
-                QWebEnginePage.MouseLock:
-                    'content.mouse_lock',
-            })
-            messages.update({
-                QWebEnginePage.MouseLock:
-                    'hide your mouse pointer',
-            })
-        except AttributeError:
-            # Added in Qt 5.8
-            pass
-        try:
-            options.update({
-                QWebEnginePage.DesktopVideoCapture:
-                    'content.desktop_capture',
-                QWebEnginePage.DesktopAudioVideoCapture:
-                    'content.desktop_capture',
-            })
-            messages.update({
-                QWebEnginePage.DesktopVideoCapture:
-                    'capture your desktop',
-                QWebEnginePage.DesktopAudioVideoCapture:
-                    'capture your desktop and audio',
-            })
-        except AttributeError:
-            # Added in Qt 5.10
-            pass
-
-        assert options.keys() == messages.keys()
-
         page = self._widget.page()
-
-        if feature not in options:
-            log.webview.error("Unhandled feature permission {}".format(
-                debug.qenum_key(QWebEnginePage, feature)))
-            page.setFeaturePermission(url, feature,
-                                      QWebEnginePage.PermissionDeniedByUser)
-            return
-
-        yes_action = functools.partial(
+        grant_permission = functools.partial(
             page.setFeaturePermission, url, feature,
             QWebEnginePage.PermissionGrantedByUser)
-        no_action = functools.partial(
+        deny_permission = functools.partial(
             page.setFeaturePermission, url, feature,
             QWebEnginePage.PermissionDeniedByUser)
 
+        if feature not in self._options:
+            log.webview.error("Unhandled feature permission {}".format(
+                debug.qenum_key(QWebEnginePage, feature)))
+            deny_permission()
+            return
+
+        if (
+                hasattr(QWebEnginePage, 'DesktopVideoCapture') and
+                feature in [QWebEnginePage.DesktopVideoCapture,
+                            QWebEnginePage.DesktopAudioVideoCapture] and
+                qtutils.version_check('5.13', compiled=False) and
+                not qtutils.version_check('5.13.2', compiled=False)
+        ):
+            # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-78016
+            log.webview.warning("Ignoring desktop sharing request due to "
+                                "crashes in Qt < 5.13.2")
+            deny_permission()
+            return
+
         question = shared.feature_permission(
-            url=url, option=options[feature], msg=messages[feature],
-            yes_action=yes_action, no_action=no_action,
+            url=url.adjusted(QUrl.RemovePath),
+            option=self._options[feature], msg=self._messages[feature],
+            yes_action=grant_permission, no_action=deny_permission,
             abort_on=[self._tab.abort_questions])
 
         if question is not None:
@@ -844,7 +879,7 @@ class _WebEnginePermissions(QObject):
     def _on_quota_requested(self, request):
         size = utils.format_size(request.requestedSize())
         shared.feature_permission(
-            url=request.origin(),
+            url=request.origin().adjusted(QUrl.RemovePath),
             option='content.persistent_storage',
             msg='use {} of persistent storage'.format(size),
             yes_action=request.accept, no_action=request.reject,
@@ -853,7 +888,7 @@ class _WebEnginePermissions(QObject):
 
     def _on_register_protocol_handler_requested(self, request):
         shared.feature_permission(
-            url=request.origin(),
+            url=request.origin().adjusted(QUrl.RemovePath),
             option='content.register_protocol_handler',
             msg='open all {} links'.format(request.scheme()),
             yes_action=request.accept, no_action=request.reject,
@@ -866,8 +901,8 @@ class _WebEngineScripts(QObject):
     def __init__(self, tab, parent=None):
         super().__init__(parent)
         self._tab = tab
-        self._widget = None
-        self._greasemonkey = objreg.get('greasemonkey')
+        self._widget = typing.cast(QWidget, None)
+        self._greasemonkey = greasemonkey.gm_manager
 
     def connect_signals(self):
         """Connect signals to our private slots."""
@@ -1089,14 +1124,10 @@ class WebEngineTab(browsertab.AbstractTab):
     """A QtWebEngine tab in the browser.
 
     Signals:
-        _load_finished_fake:
-            Used in place of unreliable loadFinished
         abort_questions: Emitted when a new load started or we're shutting
             down.
     """
 
-    # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-    _load_finished_fake = pyqtSignal(bool)
     abort_questions = pyqtSignal()
 
     def __init__(self, *, win_id, mode_manager, private, parent=None):
@@ -1124,7 +1155,7 @@ class WebEngineTab(browsertab.AbstractTab):
         self.backend = usertypes.Backend.QtWebEngine
         self._child_event_filter = None
         self._saved_zoom = None
-        self._reload_url = None
+        self._reload_url = None  # type: typing.Optional[QUrl]
         self._scripts.init()
 
     def _set_widget(self, widget):
@@ -1136,9 +1167,9 @@ class WebEngineTab(browsertab.AbstractTab):
     def _install_event_filter(self):
         fp = self._widget.focusProxy()
         if fp is not None:
-            fp.installEventFilter(self._mouse_event_filter)
-        self._child_event_filter = mouse.ChildEventFilter(
-            eventfilter=self._mouse_event_filter, widget=self._widget,
+            fp.installEventFilter(self._tab_event_filter)
+        self._child_event_filter = eventfilter.ChildEventFilter(
+            eventfilter=self._tab_event_filter, widget=self._widget,
             win_id=self.win_id, parent=self)
         self._widget.installEventFilter(self._child_event_filter)
 
@@ -1182,8 +1213,9 @@ class WebEngineTab(browsertab.AbstractTab):
             self._widget.page().toHtml(callback)
 
     def run_js_async(self, code, callback=None, *, world=None):
+        world_id_type = typing.Union[QWebEngineScript.ScriptWorldId, int]
         if world is None:
-            world_id = QWebEngineScript.ApplicationWorld
+            world_id = QWebEngineScript.ApplicationWorld  # type: world_id_type
         elif isinstance(world, int):
             world_id = world
             if not 0 <= world_id <= qtutils.MAX_WORLD_ID:
@@ -1250,7 +1282,9 @@ class WebEngineTab(browsertab.AbstractTab):
         title = self.title()
         title_url = QUrl(url)
         title_url.setScheme('')
-        if title == title_url.toDisplayString(QUrl.RemoveScheme).strip('/'):
+        title_url_str = title_url.toDisplayString(
+            QUrl.RemoveScheme)  # type: ignore
+        if title == title_url_str.strip('/'):
             title = ""
 
         # Don't add history entry if the URL is invalid anyways
@@ -1276,7 +1310,7 @@ class WebEngineTab(browsertab.AbstractTab):
             authenticator.setPassword(answer.password)
         else:
             try:
-                sip.assign(authenticator, QAuthenticator())
+                sip.assign(authenticator, QAuthenticator())  # type: ignore
             except AttributeError:
                 self._show_error_page(url, "Proxy authentication required")
 
@@ -1297,7 +1331,7 @@ class WebEngineTab(browsertab.AbstractTab):
         if not netrc_success and answer is None:
             log.network.debug("Aborting auth")
             try:
-                sip.assign(authenticator, QAuthenticator())
+                sip.assign(authenticator, QAuthenticator())  # type: ignore
             except AttributeError:
                 # WORKAROUND for
                 # https://www.riverbankcomputing.com/pipermail/pyqt/2016-December/038400.html
@@ -1335,46 +1369,56 @@ class WebEngineTab(browsertab.AbstractTab):
         }
         self.renderer_process_terminated.emit(status_map[status], exitcode)
 
-    @pyqtSlot(int)
-    def _on_load_progress_workaround(self, perc):
-        """Use loadProgress(100) to emit loadFinished(True).
-
-        See https://bugreports.qt.io/browse/QTBUG-65223
-        """
-        if perc == 100 and self.load_status() != usertypes.LoadStatus.error:
-            self._load_finished_fake.emit(True)
-
-    @pyqtSlot(bool)
-    def _on_load_finished_workaround(self, ok):
-        """Use only loadFinished(False).
-
-        See https://bugreports.qt.io/browse/QTBUG-65223
-        """
-        if not ok:
-            self._load_finished_fake.emit(False)
-
-    def _error_page_workaround(self, html):
+    def _error_page_workaround(self, js_enabled, html):
         """Check if we're displaying a Chromium error page.
 
-        This gets only called if we got loadFinished(False) without JavaScript,
-        so we can display at least some error page.
+        This gets called if we got a loadFinished(False), so we can display at
+        least some error page in situations where Chromium's can't be
+        displayed.
 
         WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66643
+        WORKAROUND for https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=882805
+
         Needs to check the page content as a WORKAROUND for
         https://bugreports.qt.io/browse/QTBUG-66661
         """
+        missing_jst = 'jstProcess(' in html and 'jstProcess=' not in html
+        if js_enabled and not missing_jst:
+            return
+
         match = re.search(r'"errorCode":"([^"]*)"', html)
         if match is None:
             return
         self._show_error_page(self.url(), error=match.group(1))
 
+    @pyqtSlot(int)
+    def _on_load_progress(self, perc: int) -> None:
+        """QtWebEngine-specific loadProgress workarounds.
+
+        WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        """
+        super()._on_load_progress(perc)
+        if (perc == 100 and
+                qtutils.version_check('5.10', compiled=False) and
+                self.load_status() != usertypes.LoadStatus.error):
+            self._update_load_status(ok=True)
+
     @pyqtSlot(bool)
-    def _on_load_finished(self, ok):
-        """Display a static error page if JavaScript is disabled."""
+    def _on_load_finished(self, ok: bool) -> None:
+        """QtWebEngine-specific loadFinished workarounds."""
         super()._on_load_finished(ok)
-        js_enabled = self.settings.test_attribute('content.javascript.enabled')
-        if not ok and not js_enabled:
-            self.dump_async(self._error_page_workaround)
+
+        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
+        if qtutils.version_check('5.10', compiled=False):
+            if not ok:
+                self._update_load_status(ok)
+        else:
+            self._update_load_status(ok)
+
+        if not ok:
+            self.dump_async(functools.partial(
+                self._error_page_workaround,
+                self.settings.test_attribute('content.javascript.enabled')))
 
         if ok and self._reload_url is not None:
             # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-66656
@@ -1385,13 +1429,6 @@ class WebEngineTab(browsertab.AbstractTab):
                 self.load_url, self._reload_url,
                 emit_before_load_started=False))
             self._reload_url = None
-
-        if not qtutils.version_check('5.10', compiled=False):
-            # We can't do this when we have the loadFinished workaround as that
-            # sometimes clears icons without loading a new page.
-            # In general, this is handled by Qt, but when loading takes long,
-            # the old icon is still displayed.
-            self.icon_changed.emit(QIcon())
 
     @pyqtSlot(certificateerror.CertificateErrorWrapper)
     def _on_ssl_errors(self, error):
@@ -1411,14 +1448,32 @@ class WebEngineTab(browsertab.AbstractTab):
             error.ignore, url, self.url(requested=True)))
 
         # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-56207
+        show_cert_error = (
+            not qtutils.version_check('5.9') and
+            not error.ignore
+        )
+        # WORKAROUND for https://codereview.qt-project.org/c/qt/qtwebengine/+/270556
+        show_non_overr_cert_error = (
+            not error.is_overridable() and (
+                # Affected Qt versions:
+                # 5.13 before 5.13.2
+                # 5.12 before 5.12.6
+                # < 5.12
+                (qtutils.version_check('5.13') and
+                 not qtutils.version_check('5.13.2')) or
+                (qtutils.version_check('5.12') and
+                 not qtutils.version_check('5.12.6')) or
+                not qtutils.version_check('5.12')
+            )
+        )
+
         # We can't really know when to show an error page, as the error might
         # have happened when loading some resource.
         # However, self.url() is not available yet and the requested URL
         # might not match the URL we get from the error - so we just apply a
         # heuristic here.
-        if (not qtutils.version_check('5.9') and
-                not error.ignore and
-                url.matches(self.url(requested=True), QUrl.RemoveScheme)):
+        if ((show_cert_error or show_non_overr_cert_error) and
+                url.matches(self.data.last_navigation.url, QUrl.RemoveScheme)):
             self._show_error_page(url, str(error))
 
     @pyqtSlot(QUrl)
@@ -1460,7 +1515,7 @@ class WebEngineTab(browsertab.AbstractTab):
         assert settings_needing_reload.issubset(configdata.DATA)
 
         changed = self.settings.update_for_url(navigation.url)
-        reload_needed = changed & settings_needing_reload
+        reload_needed = bool(changed & settings_needing_reload)
 
         # On Qt < 5.11, we don't don't need a reload when type == link_clicked.
         # On Qt 5.11.0, we always need a reload.
@@ -1524,6 +1579,14 @@ class WebEngineTab(browsertab.AbstractTab):
 
         if qtutils.version_check('5.12'):
             page.printRequested.connect(self._on_print_requested)
+
+        try:
+            # pylint: disable=unused-import
+            from PyQt5.QtWebEngineWidgets import (  # type: ignore
+                QWebEngineClientCertificateSelection)
+        except ImportError:
+            pass
+        else:
             page.selectClientCertificate.connect(
                 self._on_select_client_certificate)
 
@@ -1532,23 +1595,14 @@ class WebEngineTab(browsertab.AbstractTab):
         view.renderProcessTerminated.connect(
             self._on_render_process_terminated)
         view.iconChanged.connect(self.icon_changed)
-        # WORKAROUND for https://bugreports.qt.io/browse/QTBUG-65223
-        if qtutils.version_check('5.10', compiled=False):
-            page.loadProgress.connect(self._on_load_progress_workaround)
-            self._load_finished_fake.connect(self._on_history_trigger)
-            self._load_finished_fake.connect(self._restore_zoom)
-            self._load_finished_fake.connect(self._on_load_finished)
-            page.loadFinished.connect(self._on_load_finished_workaround)
-        else:
-            # for older Qt versions which break with the above
-            page.loadProgress.connect(self._on_load_progress)
-            page.loadFinished.connect(self._on_history_trigger)
-            page.loadFinished.connect(self._restore_zoom)
-            page.loadFinished.connect(self._on_load_finished)
+
+        page.loadFinished.connect(self._on_history_trigger)
+        page.loadFinished.connect(self._restore_zoom)
+        page.loadFinished.connect(self._on_load_finished)
 
         self.before_load_started.connect(self._on_before_load_started)
-        self.shutting_down.connect(self.abort_questions)
-        self.load_started.connect(self.abort_questions)
+        self.shutting_down.connect(self.abort_questions)  # type: ignore
+        self.load_started.connect(self.abort_questions)  # type: ignore
 
         # pylint: disable=protected-access
         self.audio._connect_signals()

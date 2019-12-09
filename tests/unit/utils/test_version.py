@@ -25,7 +25,7 @@ import collections
 import os.path
 import subprocess
 import contextlib
-import builtins
+import builtins  # noqa https://github.com/JBKahn/flake8-debugger/issues/20
 import types
 import importlib
 import logging
@@ -37,7 +37,8 @@ import pkg_resources
 import pytest
 
 import qutebrowser
-from qutebrowser.utils import version, usertypes, utils
+from qutebrowser.config import config
+from qutebrowser.utils import version, usertypes, utils, standarddir
 from qutebrowser.misc import pastebin
 from qutebrowser.browser import pdfjs
 
@@ -176,6 +177,25 @@ from qutebrowser.browser import pdfjs
      version.DistributionInfo(
          id='funtoo', parsed=version.Distribution.gentoo,
          version=None, pretty='Funtoo GNU/Linux')),
+    # KDE Platform
+    ("""
+        NAME=KDE
+        VERSION="5.12 (Flatpak runtime)"
+        VERSION_ID="5.12"
+        ID=org.kde.Platform
+    """,
+     version.DistributionInfo(
+         id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
+         version=pkg_resources.parse_version('5.12'),
+         pretty='KDE')),
+    # No PRETTY_NAME
+    ("""
+        NAME="Tux"
+        ID=tux
+     """,
+     version.DistributionInfo(
+         id='tux', parsed=version.Distribution.unknown,
+         version=None, pretty='Tux')),
 ])
 def test_distribution(tmpdir, monkeypatch, os_release, expected):
     os_release_file = tmpdir / 'os-release'
@@ -186,8 +206,22 @@ def test_distribution(tmpdir, monkeypatch, os_release, expected):
     assert version.distribution() == expected
 
 
-class GitStrSubprocessFake:
+@pytest.mark.parametrize('distribution, expected', [
+    (None, False),
+    (version.DistributionInfo(
+        id='org.kde.Platform', parsed=version.Distribution.kde_flatpak,
+        version=pkg_resources.parse_version('5.12'),
+        pretty='Unknown'), True),
+    (version.DistributionInfo(
+        id='arch', parsed=version.Distribution.arch, version=None,
+        pretty='Arch Linux'), False)
+])
+def test_is_sandboxed(monkeypatch, distribution, expected):
+    monkeypatch.setattr(version, "distribution", lambda: distribution)
+    assert version.is_sandboxed() == expected
 
+
+class GitStrSubprocessFake:
     """Object returned by the git_str_subprocess_fake fixture.
 
     This provides a function which is used to patch _git_str_subprocess.
@@ -405,7 +439,7 @@ class ReleaseInfoFake:
         if self._files is None:
             return ['fake-file']
         else:
-            return sorted(list(self._files))
+            return sorted(self._files)
 
     @contextlib.contextmanager
     def open_fake(self, filename, mode, encoding):
@@ -519,10 +553,13 @@ class ImportFake:
             ('cssutils', True),
             ('attr', True),
             ('PyQt5.QtWebEngineWidgets', True),
+            ('PyQt5.QtWebEngine', True),
             ('PyQt5.QtWebKitWidgets', True),
         ])
-        self.no_version_attribute = ['sip', 'PyQt5.QtWebEngineWidgets',
-                                     'PyQt5.QtWebKitWidgets']
+        self.no_version_attribute = ['sip',
+                                     'PyQt5.QtWebEngineWidgets',
+                                     'PyQt5.QtWebKitWidgets',
+                                     'PyQt5.QtWebEngine']
         self.version_attribute = '__version__'
         self.version = '1.2.3'
         self._real_import = builtins.__import__
@@ -780,7 +817,7 @@ class TestPDFJSVersion:
             lambda path: (pdfjs_code, '/foo/bar/pdf.js'))
         assert version._pdfjs_version() == '1.2.109 (/foo/bar/pdf.js)'
 
-    def test_real_file(self):
+    def test_real_file(self, data_tmpdir):
         """Test against the real file if pdfjs was found."""
         try:
             pdfjs.get_pdfjs_res_and_path('build/pdf.js')
@@ -821,19 +858,35 @@ class FakeQSslSocket:
      'QtWebEngine/5.8.0 Chrome/53.0.2785.148 Safari/537.36', '53.0.2785.148'),
 ])
 def test_chromium_version(monkeypatch, caplog, ua, expected):
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
     if ua is None:
-        monkeypatch.setattr(version, 'QWebEngineProfile', None)
+        monkeypatch.setattr(version, 'webenginesettings', None)
     else:
-        class FakeWebEngineProfile:
-            def httpUserAgent(self):
-                return ua
-        monkeypatch.setattr(version, 'QWebEngineProfile', FakeWebEngineProfile)
+        monkeypatch.setattr(version.webenginesettings,
+                            'default_user_agent', ua)
 
     with caplog.at_level(logging.ERROR):
         assert version._chromium_version() == expected
 
 
-def test_chromium_version_unpatched(qapp):
+def test_chromium_version_prefers_saved_user_agent(monkeypatch):
+    pytest.importorskip('PyQt5.QtWebEngineWidgets')
+    monkeypatch.setattr(
+        version.webenginesettings, 'default_user_agent',
+        'QtWebEngine/5.8.0 Chrome/53.0.2785.148 Safari/537.36'
+    )
+
+    class FakeProfile:
+        def defaultProfile(self):
+            raise AssertionError("Should not be called")
+
+    monkeypatch.setattr(version, 'QWebEngineProfile', FakeProfile())
+
+    version._chromium_version()
+
+
+def test_chromium_version_unpatched(qapp, cache_tmpdir, data_tmpdir,
+                                    config_stub):
     pytest.importorskip('PyQt5.QtWebEngineWidgets')
     assert version._chromium_version() not in ['', 'unknown', 'unavailable']
 
@@ -848,6 +901,8 @@ class VersionParams:
     with_webkit = attr.ib(True)
     known_distribution = attr.ib(True)
     ssl_support = attr.ib(True)
+    autoconfig_loaded = attr.ib(True)
+    config_py_loaded = attr.ib(True)
 
 
 @pytest.mark.parametrize('params', [
@@ -858,13 +913,16 @@ class VersionParams:
     VersionParams('no-webkit', with_webkit=False),
     VersionParams('unknown-dist', known_distribution=False),
     VersionParams('no-ssl', ssl_support=False),
+    VersionParams('no-autoconfig-loaded', autoconfig_loaded=False),
+    VersionParams('no-config-py-loaded', config_py_loaded=False),
 ], ids=lambda param: param.name)
-def test_version_output(params, stubs, monkeypatch):
+def test_version_output(params, stubs, monkeypatch, config_stub):
     """Test version.version()."""
-    class FakeWebEngineProfile:
-        def httpUserAgent(self):
-            return 'Toaster/4.0.4 Chrome/CHROMIUMVERSION Teapot/4.1.8'
+    class FakeWebEngineSettings:
+        default_user_agent = ('Toaster/4.0.4 Chrome/CHROMIUMVERSION '
+                              'Teapot/4.1.8')
 
+    config.instance.config_py_loaded = params.config_py_loaded
     import_path = os.path.abspath('/IMPORTPATH')
     patches = {
         'qutebrowser.__file__': os.path.join(import_path, '__init__.py'),
@@ -888,6 +946,7 @@ def test_version_output(params, stubs, monkeypatch):
         'QLibraryInfo.location': (lambda _loc: 'QT PATH'),
         'sql.version': lambda: 'SQLITE VERSION',
         '_uptime': lambda: datetime.timedelta(hours=1, minutes=23, seconds=45),
+        'config.instance.yaml_loaded': params.autoconfig_loaded,
     }
 
     substitutions = {
@@ -897,18 +956,27 @@ def test_version_output(params, stubs, monkeypatch):
         'frozen': str(params.frozen),
         'import_path': import_path,
         'python_path': 'EXECUTABLE PATH',
+        'uptime': "1:23:45",
+        'autoconfig_loaded': "yes" if params.autoconfig_loaded else "no",
     }
+
+    if params.config_py_loaded:
+        substitutions["config_py_loaded"] = "{} has been loaded".format(
+            standarddir.config_py())
+    else:
+        substitutions["config_py_loaded"] = "no config.py was loaded"
 
     if params.with_webkit:
         patches['qWebKitVersion'] = lambda: 'WEBKIT VERSION'
         patches['objects.backend'] = usertypes.Backend.QtWebKit
-        patches['QWebEngineProfile'] = None
+        patches['webenginesettings'] = None
         substitutions['backend'] = 'new QtWebKit (WebKit WEBKIT VERSION)'
     else:
         monkeypatch.delattr(version, 'qtutils.qWebKitVersion', raising=False)
         patches['objects.backend'] = usertypes.Backend.QtWebEngine
-        patches['QWebEngineProfile'] = FakeWebEngineProfile
         substitutions['backend'] = 'QtWebEngine (Chromium CHROMIUMVERSION)'
+        patches['webenginesettings'] = FakeWebEngineSettings
+        patches['QWebEngineProfile'] = True
 
     if params.known_distribution:
         patches['distribution'] = lambda: version.DistributionInfo(
@@ -931,8 +999,6 @@ def test_version_output(params, stubs, monkeypatch):
         monkeypatch.setattr(sys, 'frozen', True, raising=False)
     else:
         monkeypatch.delattr(sys, 'frozen', raising=False)
-
-    substitutions['uptime'] = "1:23:45"
 
     template = textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
@@ -957,6 +1023,8 @@ def test_version_output(params, stubs, monkeypatch):
         Paths:
         PATH DESC: PATH NAME
 
+        Autoconfig loaded: {autoconfig_loaded}
+        Config.py: {config_py_loaded}
         Uptime: {uptime}
     """.lstrip('\n'))
 

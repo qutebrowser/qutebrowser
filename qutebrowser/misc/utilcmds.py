@@ -19,20 +19,22 @@
 
 """Misc. utility commands exposed to the user."""
 
+# QApplication and objects are imported so they're usable in :debug-pyeval
+
 import functools
 import os
 import traceback
 
 from PyQt5.QtCore import QUrl
-# so it's available for :debug-pyeval
-from PyQt5.QtWidgets import QApplication  # pylint: disable=unused-import
+from PyQt5.QtWidgets import QApplication
 
 from qutebrowser.browser import qutescheme
 from qutebrowser.utils import log, objreg, usertypes, message, debug, utils
+from qutebrowser.keyinput import modeman
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configdata
-from qutebrowser.misc import consolewidget
+from qutebrowser.misc import (  # pylint: disable=unused-import
+    consolewidget, debugcachestats, objects)
 from qutebrowser.utils.version import pastebin_version
 from qutebrowser.qt import sip
 
@@ -49,8 +51,7 @@ def later(ms: int, command: str, win_id: int) -> None:
     if ms < 0:
         raise cmdutils.CommandError("I can't run something in the past!")
     commandrunner = runners.CommandRunner(win_id)
-    app = objreg.get('app')
-    timer = usertypes.Timer(name='later', parent=app)
+    timer = usertypes.Timer(name='later', parent=QApplication.instance())
     try:
         timer.setSingleShot(True)
         try:
@@ -106,68 +107,43 @@ def run_with_count(count_arg: int, command: str, win_id: int,
 
 
 @cmdutils.register()
-def clear_messages():
+def clear_messages() -> None:
     """Clear all message notifications."""
     message.global_bridge.clear_messages.emit()
 
 
 @cmdutils.register(debug=True)
-def debug_all_objects():
+def debug_all_objects() -> None:
     """Print a list of  all objects to the debug log."""
     s = debug.get_all_objects()
     log.misc.debug(s)
 
 
 @cmdutils.register(debug=True)
-def debug_cache_stats():
+def debug_cache_stats() -> None:
     """Print LRU cache stats."""
-    prefix_info = configdata.is_valid_prefix.cache_info()
-    # pylint: disable=protected-access
-    render_stylesheet_info = config._render_stylesheet.cache_info()
-    # pylint: enable=protected-access
-
-    history_info = None
-    try:
-        from PyQt5.QtWebKit import QWebHistoryInterface
-        interface = QWebHistoryInterface.defaultInterface()
-        if interface is not None:
-            history_info = interface.historyContains.cache_info()
-    except ImportError:
-        pass
-
-    tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                window='last-focused')
-    # pylint: disable=protected-access
-    tab_bar = tabbed_browser.widget.tabBar()
-    tabbed_browser_info = tab_bar._minimum_tab_size_hint_helper.cache_info()
-    # pylint: enable=protected-access
-
-    log.misc.info('is_valid_prefix: {}'.format(prefix_info))
-    log.misc.info('_render_stylesheet: {}'.format(render_stylesheet_info))
-    log.misc.info('history: {}'.format(history_info))
-    log.misc.info('tab width cache: {}'.format(tabbed_browser_info))
+    debugcachestats.debug_cache_stats()
 
 
 @cmdutils.register(debug=True)
-def debug_console():
+def debug_console() -> None:
     """Show the debugging console."""
-    try:
-        con_widget = objreg.get('debug-console')
-    except KeyError:
+    if consolewidget.console_widget is None:
         log.misc.debug('initializing debug console')
-        con_widget = consolewidget.ConsoleWidget()
-        objreg.register('debug-console', con_widget)
+        consolewidget.init()
 
-    if con_widget.isVisible():
+    assert consolewidget.console_widget is not None
+
+    if consolewidget.console_widget.isVisible():
         log.misc.debug('hiding debug console')
-        con_widget.hide()
+        consolewidget.console_widget.hide()
     else:
         log.misc.debug('showing debug console')
-        con_widget.show()
+        consolewidget.console_widget.show()
 
 
 @cmdutils.register(maxsplit=0, debug=True, no_cmd_split=True)
-def debug_pyeval(s, file=False, quiet=False):
+def debug_pyeval(s: str, file: bool = False, quiet: bool = False) -> None:
     """Evaluate a python string and display the results as a web page.
 
     Args:
@@ -205,7 +181,7 @@ def debug_pyeval(s, file=False, quiet=False):
 
 
 @cmdutils.register(debug=True)
-def debug_set_fake_clipboard(s=None):
+def debug_set_fake_clipboard(s: str = None) -> None:
     """Put data into the fake clipboard and enable logging, used for tests.
 
     Args:
@@ -220,13 +196,13 @@ def debug_set_fake_clipboard(s=None):
 @cmdutils.register()
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
 @cmdutils.argument('count', value=cmdutils.Value.count)
-def repeat_command(win_id, count=None):
+def repeat_command(win_id: int, count: int = None) -> None:
     """Repeat the last executed command.
 
     Args:
         count: Which count to pass the command.
     """
-    mode_manager = objreg.get('mode-manager', scope='window', window=win_id)
+    mode_manager = modeman.instance(win_id)
     if mode_manager.mode not in runners.last_command:
         raise cmdutils.CommandError("You didn't do anything yet.")
     cmd = runners.last_command[mode_manager.mode]
@@ -257,8 +233,11 @@ def debug_log_level(level: str) -> None:
     Args:
         level: The log level to set.
     """
+    if log.console_handler is None:
+        raise cmdutils.CommandError("No log.console_handler. Not attached "
+                                    "to a console?")
+
     log.change_console_formatter(log.LOG_LEVELS[level.upper()])
-    assert log.console_handler is not None
     log.console_handler.setLevel(log.LOG_LEVELS[level.upper()])
 
 
@@ -288,7 +267,7 @@ def debug_log_filter(filters: str) -> None:
 
 @cmdutils.register()
 @cmdutils.argument('current_win_id', value=cmdutils.Value.win_id)
-def window_only(current_win_id):
+def window_only(current_win_id: int) -> None:
     """Close all windows except for the current one."""
     for win_id, window in objreg.window_registry.items():
 
@@ -302,7 +281,7 @@ def window_only(current_win_id):
 
 @cmdutils.register()
 @cmdutils.argument('win_id', value=cmdutils.Value.win_id)
-def version(win_id, paste=False):
+def version(win_id: int, paste: bool = False) -> None:
     """Show version information.
 
     Args:

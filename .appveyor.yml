@@ -8,9 +8,10 @@ environment:
     PYTHON: C:\Python37-x64\python.exe
     matrix:
     - TESTENV: py37-pyqt512
-    - TESTENV: pylint
+    # - TESTENV: pylint
 
 install:
+  - '%PYTHON% --version'
   - '%PYTHON% -m pip install -U pip'
   - '%PYTHON% -m pip install -r misc\requirements\requirements-tox.txt'
   - 'set PATH=C:\Python37-x64;%PATH'

@@ -17,6 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
 import pytest_bdd as bdd
 
 bdd.scenarios('utilcmds.feature')
+
+
+@pytest.fixture(autouse=True)
+def turn_on_scroll_logging(quteproc):
+    quteproc.turn_on_scroll_logging()

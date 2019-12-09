@@ -24,7 +24,7 @@ import textwrap
 import pytest
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import usertypes
+from qutebrowser.utils import utils, qtutils, usertypes
 
 
 @pytest.fixture
@@ -287,12 +287,22 @@ def test_drop_selection(caret, selection):
 
 class TestSearch:
 
+    @pytest.fixture(autouse=True)
+    def expose(self, web_tab):
+        """Expose the web view if needed.
+
+        With QtWebEngine 5.13 on macOS/Windows, searching fails (callback
+        called with False) when the view isn't exposed.
+        """
+        if qtutils.version_check('5.13') and not utils.is_linux:
+            web_tab.container.expose()
+        web_tab.show()
+
     # https://bugreports.qt.io/browse/QTBUG-60673
 
     @pytest.mark.qtbug60673
     @pytest.mark.no_xvfb
     def test_yanking_a_searched_line(self, caret, selection, mode_manager, web_tab, qtbot):
-        web_tab.show()
         mode_manager.leave(usertypes.KeyMode.caret)
 
         with qtbot.wait_callback() as callback:
@@ -306,7 +316,6 @@ class TestSearch:
     @pytest.mark.qtbug60673
     @pytest.mark.no_xvfb
     def test_yanking_a_searched_line_with_multiple_matches(self, caret, selection, mode_manager, web_tab, qtbot):
-        web_tab.show()
         mode_manager.leave(usertypes.KeyMode.caret)
 
         with qtbot.wait_callback() as callback:
