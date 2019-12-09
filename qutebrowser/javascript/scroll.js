@@ -39,7 +39,7 @@ window._qutebrowser.scroll = (function() {
     }
 
     // Helper function which scrolls an element to x, y
-    function scroll_to_perc(elt, x, y) {
+    function scroll_to_perc(elt, x, y, smooth = false) {
         let x_px = elt.scrollLeft;
         let y_px = elt.scrollTop;
         const viewDoc = elt.ownerDocument;
@@ -76,8 +76,14 @@ window._qutebrowser.scroll = (function() {
             y_px = (height - viewHeight) / 100 * y;
         }
 
-        elt.scrollTop = y_px;
-        elt.scrollLeft = x_px;
+        if (smooth_supported()) {
+            elt.scrollTo(build_scroll_options(x_px, y_px, smooth));
+        } else if ("scrollTo" in elt) {
+            elt.scrollTo(x_px, y_px);
+        } else {
+            elt.scrollTop = y_px;
+            elt.scrollLeft = x_px;
+        }
     }
 
     function scroll_element(element, x, y, smooth = false) {
