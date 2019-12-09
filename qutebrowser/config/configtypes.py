@@ -765,10 +765,12 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
 
     def __init__(self, minval: int = None,
                  maxval: int = None,
+                 zero_ok: bool = True,
                  none_ok: bool = False) -> None:
         super().__init__(none_ok)
         self.minval = self._parse_bound(minval)
         self.maxval = self._parse_bound(maxval)
+        self.zero_ok = zero_ok
         if self.maxval is not None and self.minval is not None:
             if self.maxval < self.minval:
                 raise ValueError("minval ({}) needs to be <= maxval ({})!"
@@ -798,6 +800,8 @@ class _Numeric(BaseType):  # pylint: disable=abstract-method
         elif self.maxval is not None and value > self.maxval:
             raise configexc.ValidationError(
                 value, "must be {}{} or smaller!".format(self.maxval, suffix))
+        elif not self.zero_ok and value == 0:
+            raise configexc.ValidationError(value, "must not be 0!")
 
     def to_str(self, value: typing.Union[None, int, float]) -> str:
         if value is None:
@@ -1082,7 +1086,7 @@ class QtColor(BaseType):
             if not conv:
                 raise configexc.ValidationError(
                     value,
-                    '{} not in {}'.format(kind, list(sorted(converters))))
+                    '{} not in {}'.format(kind, sorted(converters)))
 
             if len(kind) != len(vals):
                 raise configexc.ValidationError(

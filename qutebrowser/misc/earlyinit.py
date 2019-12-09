@@ -141,7 +141,7 @@ def pyinstaller_qt_workaround():
             hasattr(sys, '_MEIPASS') and
             sys.platform == 'win32'):
         # pylint: disable=no-member,protected-access
-        os.environ['PATH'] += os.pathsep + sys._MEIPASS
+        os.environ['PATH'] += os.pathsep + sys._MEIPASS  # type: ignore
 
 
 def check_pyqt():
@@ -230,6 +230,9 @@ def _check_modules(modules):
             ), log.ignore_py_warnings(
                 category=ImportWarning,
                 message=r'Not importing directory .*: missing __init__'
+            ), log.ignore_py_warnings(
+                category=DeprecationWarning,
+                message=r'the imp module is deprecated',
             ):
                 # pylint: enable=bad-continuation
                 importlib.import_module(name)
@@ -259,13 +262,18 @@ def configure_pyqt():
     Doing this means we can't use the interactive shell anymore (which we don't
     anyways), but we can use pdb instead.
     """
-    from PyQt5.QtCore import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
+    from PyQt5 import QtCore
+    QtCore.pyqtRemoveInputHook()
+    try:
+        QtCore.pyqt5_enable_new_onexit_scheme(True)  # type: ignore
+    except AttributeError:
+        # Added in PyQt 5.13 somewhere, going to be the default in 5.14
+        pass
 
     from qutebrowser.qt import sip
     try:
         # Added in sip 4.19.4
-        sip.enableoverflowchecking(True)
+        sip.enableoverflowchecking(True)  # type: ignore
     except AttributeError:
         pass
 

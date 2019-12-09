@@ -177,7 +177,6 @@ Feature: Prompts
         Then the error "Certificate error: *" should be shown
         And the page should contain the plaintext "Hello World via SSL!"
 
-    @issue2478
     Scenario: SSL error with content.ssl_strict = true
         When I clear SSL errors
         And I set content.ssl_strict to true
@@ -193,7 +192,6 @@ Feature: Prompts
         And I wait until the SSL page finished loading
         Then the page should contain the plaintext "Hello World via SSL!"
 
-    @issue2478
     Scenario: SSL error with content.ssl_strict = ask -> no
         When I clear SSL errors
         And I set content.ssl_strict to ask
@@ -202,7 +200,6 @@ Feature: Prompts
         And I run :prompt-accept no
         Then a SSL error page should be shown
 
-    @issue2478
     Scenario: SSL error with content.ssl_strict = ask -> abort
         When I clear SSL errors
         And I set content.ssl_strict to ask

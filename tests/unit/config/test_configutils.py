@@ -17,12 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import pytest
 
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import configutils, configdata, configtypes
 from qutebrowser.utils import urlmatch
+from tests.helpers import utils
 
 
 def test_unset_object_identity():
@@ -64,15 +66,6 @@ def empty_values(opt):
     return configutils.Values(opt)
 
 
-def test_repr(opt, values):
-    expected = ("qutebrowser.config.configutils.Values(opt={!r}, "
-                "values=[ScopedValue(value='global value', pattern=None), "
-                "ScopedValue(value='example value', pattern=qutebrowser.utils."
-                "urlmatch.UrlPattern(pattern='*://www.example.com/'))])"
-                .format(opt))
-    assert repr(values) == expected
-
-
 def test_str(values):
     expected = [
         'example.option = global value',
@@ -91,7 +84,7 @@ def test_bool(values, empty_values):
 
 
 def test_iter(values):
-    assert list(iter(values)) == list(iter(values._values))
+    assert list(iter(values)) == list(iter(values._vmap.values()))
 
 
 def test_add_existing(values):
@@ -140,7 +133,7 @@ def test_get_unset(empty_values):
     assert empty_values.get_for_url(fallback=False) is configutils.UNSET
 
 
-def test_get_no_global(empty_values, other_pattern):
+def test_get_no_global(empty_values, other_pattern, pattern):
     empty_values.add('example.org value', pattern)
     assert empty_values.get_for_url(fallback=False) is configutils.UNSET
 
@@ -165,6 +158,16 @@ def test_get_multiple_matches(values):
     values.add('new value', all_pattern)
     url = QUrl('https://www.example.com/')
     assert values.get_for_url(url) == 'new value'
+
+
+def test_get_non_domain_patterns(empty_values):
+    """With multiple matching pattern, the last added should win."""
+    pat1 = urlmatch.UrlPattern('*://*/*')
+    empty_values.add('fallback')
+    empty_values.add('value', pat1)
+
+    assert empty_values.get_for_url(QUrl("http://qutebrowser.org")) == 'value'
+    assert empty_values.get_for_url() == 'fallback'
 
 
 def test_get_matching_pattern(values, pattern):
@@ -208,3 +211,30 @@ def test_get_equivalent_patterns(empty_values):
 
     assert empty_values.get_for_pattern(pat1) == 'pat1 value'
     assert empty_values.get_for_pattern(pat2) == 'pat2 value'
+
+
+def test_add_url_benchmark(values, benchmark):
+    blocked_hosts = os.path.join(utils.abs_datapath(), 'blocked-hosts')
+
+    def _add_blocked():
+        with open(blocked_hosts, 'r', encoding='utf-8') as f:
+            for line in f:
+                values.add(False, urlmatch.UrlPattern(line))
+
+    benchmark(_add_blocked)
+
+
+@pytest.mark.parametrize('url', [
+    'http://www.qutebrowser.com/',
+    'http://foo.bar.baz/',
+    'http://bop.foo.bar.baz/',
+])
+def test_domain_lookup_sparse_benchmark(url, values, benchmark):
+    blocked_hosts = os.path.join(utils.abs_datapath(), 'blocked-hosts')
+    url = QUrl(url)
+    values.add(False, urlmatch.UrlPattern("*.foo.bar.baz"))
+    with open(blocked_hosts, 'r', encoding='utf-8') as f:
+        for line in f:
+            values.add(False, urlmatch.UrlPattern(line))
+
+    benchmark(lambda: values.get_for_url(url))

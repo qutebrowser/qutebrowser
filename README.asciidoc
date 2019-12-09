@@ -21,6 +21,18 @@ on Python and PyQt5 and free software, licensed under the GPL.
 
 It was inspired by other browsers/addons like dwb and Vimperator/Pentadactyl.
 
+// QUTE_WEB_HIDE
+**qutebrowser's primary maintainer, The-Compiler, is currently working
+part-time on qutebrowser, funded by donations.** To sustain this for a long
+time, your help is needed! See the
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
+information. Depending on your sign-up date and how long you keep a certain
+level, you can get qutebrowser t-shirts, stickers and more!
+
+Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
+Sponsors (up to a $5000 total) will be doubled until October 2020.
+// QUTE_WEB_HIDE_END
+
 Screenshots
 -----------
 
@@ -96,9 +108,10 @@ Requirements
 
 The following software and libraries are required to run qutebrowser:
 
-* https://www.python.org/[Python] 3.5 or newer (3.6 recommended)
-* https://www.qt.io/[Qt] 5.7.1 or newer (5.12 recommended due to https://bugreports.qt.io/browse/QTBUG-76913[segfaults on media pages with Qt 5.13]); support for < 5.9
-  will be dropped soon) with the following modules:
+* https://www.python.org/[Python] 3.5.2 or newer (3.6 recommended)
+* https://www.qt.io/[Qt] 5.7.1 or newer (5.12 recommended due to severe bugs in
+  Qt 5.13.0 and .1); support for < 5.9 will be dropped soon) with the following
+  modules:
   - QtCore / qtbase
   - QtQuick (part of qtbase in some distributions)
   - QtSQL (part of qtbase in some distributions)
@@ -134,16 +147,28 @@ install qutebrowser and its dependencies.
 Donating
 --------
 
-Working on qutebrowser is a very rewarding hobby, but like (nearly) all hobbies
-it also costs some money (as an example, I have to pay for the server and
-domain).
+**qutebrowser's primary maintainer, The-Compiler, is currently working
+part-time on qutebrowser, funded by donations.** To sustain this for a long
+time, your help is needed! See the
+https://github.com/sponsors/The-Compiler/[GitHub Sponsors page] for more
+information. Depending on your sign-up date and how long you keep a certain
+level, you can get qutebrowser t-shirts, stickers and more!
 
-If you want to give me a beer or a pizza back, I'm trying to make it as easy as
-possible for you to do so. If some other way would be easier for you, please
-get in touch!
+Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
+Sponsors (up to a $5000 total) will be doubled until October 2020!
 
-* SEPA bank transfer inside Europe (no fee): Contact me for details
-* PayPal: https://www.paypal.me/thecompiler[thecompiler] / me@the-compiler.org
+Alternatively, the following donation methods are available -- note that
+eligibility for swag (shirts/stickers/etc.) is handled on a case-by-case basis
+for those, please mailto:mail@qutebrowser.org[get in touch] for details.
+
+* SEPA bank transfer inside Europe (no fee):
+  - Account holder: Florian Bruhin
+  - Country: Switzerland
+  - IBAN (EUR): CH13 0900 0000 9160 4094 6
+  - IBAN (other): CH80 0900 0000 8711 8587 3
+  - Bank: PostFinance AG, Mingerstrasse 20, 3030 Bern, Switzerland (BIC: POFICHBEXXX)
+  - If you need any other information: Contact me at mail@qutebrowser.org.
+* PayPal: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=CHF&source=url[CHF], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=EUR&source=url[EUR], https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=me%40the-compiler.org&item_name=qutebrowser&currency_code=USD&source=url[USD]
 * Bitcoin: link:bitcoin:1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE[1PMzbcetAHfpxoXww8Bj5XqquHtVvMjJtE]
 
 Sponsors
@@ -159,8 +184,8 @@ offer, and without them, no macOS releases or tests would exist)
 Thanks to the https://www.hsr.ch/[HSR Hochschule für Technik Rapperswil], which
 made it possible to work on qutebrowser extensions as a student research project.
 
-image:.github/img/macstadium.png["powered by MacStadium",width=200,link="https://www.macstadium.com/"]
-image:.github/img/hsr.png["HSR Hochschule für Technik Rapperswil",link="https://www.hsr.ch/"]
+image:doc/img/sponsors/macstadium.png["powered by MacStadium",width=200,link="https://www.macstadium.com/"]
+image:doc/img/sponsors/hsr.png["HSR Hochschule für Technik Rapperswil",link="https://www.hsr.ch/"]
 
 Authors
 -------
@@ -196,7 +221,7 @@ Active
   https://vimium.github.io/[Vimium],
   https://github.com/brookhong/Surfingkeys[Surfingkeys]
 * Firefox addons (based on WebExtensions):
-  https://github.com/cmcaine/tridactyl[Tridactyl],
+  https://github.com/tridactyl/tridactyl[Tridactyl],
   https://addons.mozilla.org/en-GB/firefox/addon/vimium-ff/[Vimium-FF] (experimental),
   https://github.com/brookhong/Surfingkeys[Surfingkeys],
   https://github.com/ueokande/vim-vixen[Vim Vixen],

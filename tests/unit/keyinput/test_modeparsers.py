@@ -19,14 +19,17 @@
 
 """Tests for mode parsers."""
 
-from unittest import mock
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 
 import pytest
 
 from qutebrowser.keyinput import modeparsers, keyutils
+
+
+@pytest.fixture
+def commandrunner(stubs):
+    return stubs.FakeCommandRunner()
 
 
 class TestsNormalKeyParser:
@@ -39,27 +42,27 @@ class TestsNormalKeyParser:
             stubs.FakeTimer)
 
     @pytest.fixture
-    def keyparser(self):
-        kp = modeparsers.NormalKeyParser(0)
-        kp.execute = mock.Mock()
+    def keyparser(self, commandrunner):
+        kp = modeparsers.NormalKeyParser(win_id=0, commandrunner=commandrunner)
         return kp
 
-    def test_keychain(self, keyparser, fake_keyevent):
+    def test_keychain(self, keyparser, fake_keyevent, commandrunner):
         """Test valid keychain."""
-        # Press 'x' which is ignored because of no match
-        keyparser.handle(fake_keyevent(Qt.Key_X))
+        # Press 'z' which is ignored because of no match
+        keyparser.handle(fake_keyevent(Qt.Key_Z))
         # Then start the real chain
         keyparser.handle(fake_keyevent(Qt.Key_B))
         keyparser.handle(fake_keyevent(Qt.Key_A))
-        keyparser.execute.assert_called_with('message-info ba', None)
+        assert commandrunner.commands == [('message-info ba', None)]
         assert not keyparser._sequence
 
     def test_partial_keychain_timeout(self, keyparser, config_stub,
-                                      fake_keyevent):
+                                      fake_keyevent, qtbot, commandrunner):
         """Test partial keychain timeout."""
         config_stub.val.input.partial_timeout = 100
         timer = keyparser._partial_timer
         assert not timer.isActive()
+
         # Press 'b' for a partial match.
         # Then we check if the timer has been set up correctly
         keyparser.handle(fake_keyevent(Qt.Key_B))
@@ -67,40 +70,57 @@ class TestsNormalKeyParser:
         assert timer.interval() == 100
         assert timer.isActive()
 
-        assert not keyparser.execute.called
+        assert not commandrunner.commands
         assert keyparser._sequence == keyutils.KeySequence.parse('b')
+
         # Now simulate a timeout and check the keystring has been cleared.
-        keystring_updated_mock = mock.Mock()
-        keyparser.keystring_updated.connect(keystring_updated_mock)
-        timer.timeout.emit()
-        assert not keyparser.execute.called
+        with qtbot.wait_signal(keyparser.keystring_updated) as blocker:
+            timer.timeout.emit()
+
+        assert not commandrunner.commands
         assert not keyparser._sequence
-        keystring_updated_mock.assert_called_once_with('')
+        assert blocker.args == ['']
 
 
 class TestHintKeyParser:
 
     @pytest.fixture
-    def keyparser(self, config_stub, key_config_stub):
-        kp = modeparsers.HintKeyParser(0)
-        kp.execute = mock.Mock()
-        kp.keystring_updated.disconnect()  # Don't try to update HintManager
-        return kp
+    def hintmanager(self, stubs):
+        return stubs.FakeHintManager()
 
-    def test_simple_hint_match(self, keyparser, fake_keyevent):
-        keyparser.update_bindings(['aa', 'as'])
+    @pytest.fixture
+    def keyparser(self, config_stub, key_config_stub, commandrunner,
+                  hintmanager):
+        return modeparsers.HintKeyParser(win_id=0,
+                                         hintmanager=hintmanager,
+                                         commandrunner=commandrunner)
 
-        match = keyparser.handle(fake_keyevent(Qt.Key_A))
+    @pytest.mark.parametrize('bindings, event1, event2, prefix, command', [
+        (
+            ['aa', 'as'],
+            [Qt.Key_A],
+            [Qt.Key_S],
+            'a',
+            'follow-hint -s as'
+        ),
+        (
+            ['21', '22'],
+            [Qt.Key_2, Qt.KeypadModifier],
+            [Qt.Key_2, Qt.KeypadModifier],
+            '2',
+            'follow-hint -s 22'
+        ),
+    ])
+    def test_match(self, keyparser, fake_keyevent, commandrunner, hintmanager,
+                   bindings, event1, event2, prefix, command):
+        keyparser.update_bindings(bindings)
+
+        match = keyparser.handle(fake_keyevent(*event1))
         assert match == QKeySequence.PartialMatch
-        match = keyparser.handle(fake_keyevent(Qt.Key_S))
+        assert hintmanager.keystr == prefix
+
+        match = keyparser.handle(fake_keyevent(*event2))
         assert match == QKeySequence.ExactMatch
+        assert not hintmanager.keystr
 
-        keyparser.execute.assert_called_with('follow-hint -s as', None)
-
-    def test_numberkey_hint_match(self, keyparser, fake_keyevent):
-        keyparser.update_bindings(['21', '22'])
-
-        match = keyparser.handle(fake_keyevent(Qt.Key_2, Qt.KeypadModifier))
-        assert match == QKeySequence.PartialMatch
-        match = keyparser.handle(fake_keyevent(Qt.Key_2, Qt.KeypadModifier))
-        assert match == QKeySequence.ExactMatch
+        assert commandrunner.commands == [(command, None)]

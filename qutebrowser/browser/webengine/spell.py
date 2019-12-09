@@ -29,7 +29,7 @@ import shutil
 from PyQt5.QtCore import QLibraryInfo
 from qutebrowser.utils import log, message, standarddir, qtutils
 
-dict_version_re = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
+_DICT_VERSION_RE = re.compile(r".+-(?P<version>[0-9]+-[0-9]+?)\.bdic")
 
 
 def can_use_data_path():
@@ -43,7 +43,7 @@ def can_use_data_path():
 
 def version(filename):
     """Extract the version number from the dictionary file name."""
-    match = dict_version_re.match(filename)
+    match = _DICT_VERSION_RE.fullmatch(filename)
     if match is None:
         message.warning(
             "Found a dictionary with a malformed name: {}".format(filename))
@@ -87,7 +87,7 @@ def local_filename(code):
     number or None if the dictionary is not installed.
     """
     all_installed = local_files(code)
-    return os.path.splitext(all_installed[0])[0] if all_installed else None
+    return all_installed[0] if all_installed else None
 
 
 def init():

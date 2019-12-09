@@ -19,12 +19,18 @@
 
 """Handling of HTTP cookies."""
 
+import typing
+
 from PyQt5.QtNetwork import QNetworkCookie, QNetworkCookieJar
 from PyQt5.QtCore import pyqtSignal, QDateTime
 
 from qutebrowser.config import config
 from qutebrowser.utils import utils, standarddir, objreg
 from qutebrowser.misc import lineparser
+
+
+cookie_jar = None
+ram_cookie_jar = None
 
 
 class RAMCookieJar(QNetworkCookieJar):
@@ -81,7 +87,7 @@ class CookieJar(RAMCookieJar):
 
     def parse_cookies(self):
         """Parse cookies from lineparser and store them."""
-        cookies = []
+        cookies = []  # type: typing.Sequence[QNetworkCookie]
         for line in self._lineparser:
             cookies += QNetworkCookie.parseCookies(line)
         self.setAllCookies(cookies)
@@ -112,3 +118,10 @@ class CookieJar(RAMCookieJar):
             self._lineparser.data = []
             self._lineparser.save()
             self.changed.emit()
+
+
+def init(qapp):
+    """Initialize the global cookie jars."""
+    global cookie_jar, ram_cookie_jar
+    cookie_jar = CookieJar(qapp)
+    ram_cookie_jar = RAMCookieJar(qapp)

@@ -40,7 +40,7 @@ class SignalFilter(QObject):
         BLACKLIST: List of signal names which should not be logged.
     """
 
-    BLACKLIST = ['cur_scroll_perc_changed', 'cur_progress', 'cur_link_hovered']
+    BLACKLIST = {'cur_scroll_perc_changed', 'cur_progress', 'cur_link_hovered'}
 
     def __init__(self, win_id, parent=None):
         super().__init__(parent)
@@ -56,9 +56,12 @@ class SignalFilter(QObject):
         Return:
             A partial function calling _filter_signals with a signal.
         """
-        return functools.partial(self._filter_signals, signal, tab)
+        log_signal = debug.signal_name(signal) not in self.BLACKLIST
+        return functools.partial(
+            self._filter_signals, signal=signal,
+            log_signal=log_signal, tab=tab)
 
-    def _filter_signals(self, signal, tab, *args):
+    def _filter_signals(self, *args, signal, log_signal, tab):
         """Filter signals and trigger TabbedBrowser signals if needed.
 
         Triggers signal if the original signal was sent from the _current_ tab
@@ -72,7 +75,6 @@ class SignalFilter(QObject):
             tab: The WebView which the filter belongs to.
             *args: The args to pass to the signal.
         """
-        log_signal = debug.signal_name(signal) not in self.BLACKLIST
         tabbed_browser = objreg.get('tabbed-browser', scope='window',
                                     window=self._win_id)
         try:

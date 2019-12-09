@@ -32,9 +32,7 @@ from qutebrowser.utils import utils, log, jinja, urlmatch
 from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.keyinput import keyutils
 
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
+if typing.TYPE_CHECKING:
     from typing import Tuple, MutableMapping
     from qutebrowser.config import configcache, configfiles
     from qutebrowser.misc import savemanager
@@ -285,6 +283,7 @@ class Config(QObject):
         self._yaml = yaml_config
         self._init_values()
         self.yaml_loaded = False
+        self.config_py_loaded = False
 
     def _init_values(self) -> None:
         """Populate the self._values dict."""

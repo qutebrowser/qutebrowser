@@ -126,3 +126,9 @@ Fake traceback
     """)
     # Make sure the traceback is not indented
     assert '<pre>\nFake traceback\n' in html
+
+
+def test_config_file_errors_fatal():
+    err = configexc.ConfigErrorDesc("Text", Exception("Text"))
+    errors = configexc.ConfigFileErrors("state", [err], fatal=True)
+    assert errors.fatal

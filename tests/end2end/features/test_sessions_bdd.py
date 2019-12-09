@@ -20,8 +20,14 @@
 import os.path
 import logging
 
+import pytest
 import pytest_bdd as bdd
 bdd.scenarios('sessions.feature')
+
+
+@pytest.fixture(autouse=True)
+def turn_on_scroll_logging(quteproc):
+    quteproc.turn_on_scroll_logging()
 
 
 @bdd.when(bdd.parsers.parse('I have a "{name}" session file:\n{contents}'))

@@ -22,7 +22,7 @@
 import typing
 import argparse
 
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, pyqtSlot
 from PyQt5.QtGui import QFont
 
 from qutebrowser.config import config, configutils
@@ -198,6 +198,7 @@ def init(args: argparse.Namespace) -> None:
                                 pattern=urlmatch.UrlPattern(pattern))
 
 
+@pyqtSlot()
 def shutdown() -> None:
     """Shut down QWeb(Engine)Settings."""
     if objects.backend == usertypes.Backend.QtWebEngine:

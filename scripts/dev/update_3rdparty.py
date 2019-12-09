@@ -149,7 +149,7 @@ def test_dicts():
     configdata.init()
     for lang in dictcli.available_languages():
         print('Testing dictionary {}... '.format(lang.code), end='')
-        lang_url = urllib.parse.urljoin(dictcli.API_URL, lang.remote_path)
+        lang_url = urllib.parse.urljoin(dictcli.API_URL, lang.remote_filename)
         request = urllib.request.Request(lang_url, method='HEAD')
         response = urllib.request.urlopen(request)
         if response.status == 200:

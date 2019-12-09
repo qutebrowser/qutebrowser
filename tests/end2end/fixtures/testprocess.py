@@ -310,7 +310,9 @@ class Process(QObject):
             self.proc.terminate()
 
         ok = self.proc.waitForFinished()
-        assert ok
+        if not ok:
+            self.proc.kill()
+            self.proc.waitForFinished()
 
     def is_running(self):
         """Check if the process is currently running."""

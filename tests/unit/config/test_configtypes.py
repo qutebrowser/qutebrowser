@@ -423,7 +423,7 @@ class TestMappingType:
                                      configtypes.Position(),
                                      configtypes.SelectOnRemove()])
     def test_mapping_type_matches_valid_values(self, typ):
-        assert list(sorted(typ.MAPPING)) == list(sorted(typ.valid_values))
+        assert sorted(typ.MAPPING) == sorted(typ.valid_values)
 
 
 class TestString:
@@ -936,6 +936,9 @@ class TestNumeric:
         ({'maxval': 2}, 3, False),
         ({'minval': 2, 'maxval': 3}, 1, False),
         ({'minval': 2, 'maxval': 3}, 4, False),
+
+        ({'zero_ok': False}, 0, False),
+        ({'minval': -1}, 0, True),
     ])
     def test_validate_bounds_invalid(self, klass, kwargs, val, valid):
         if valid:

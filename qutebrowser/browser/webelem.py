@@ -27,11 +27,9 @@ from PyQt5.QtGui import QMouseEvent
 
 from qutebrowser.config import config
 from qutebrowser.keyinput import modeman
-from qutebrowser.mainwindow import mainwindow
 from qutebrowser.utils import log, usertypes, utils, qtutils, objreg
-MYPY = False
-if MYPY:
-    # pylint: disable=unused-import,useless-suppression
+
+if typing.TYPE_CHECKING:
     from qutebrowser.browser import browsertab
 
 
@@ -104,7 +102,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
 
     def __repr__(self) -> str:
         try:
-            html = utils.compact_text(self.outer_xml(), 500)
+            html = utils.compact_text(
+                self.outer_xml(), 500)  # type: typing.Optional[str]
         except Error:
             html = None
         return utils.get_repr(self, html=html)
@@ -351,7 +350,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
         """Move cursor to end after clicking."""
         raise NotImplementedError
 
-    def _click_fake_event(self, click_target: usertypes.ClickTarget) -> None:
+    def _click_fake_event(self, click_target: usertypes.ClickTarget,
+                          button: Qt.MouseButton = Qt.LeftButton) -> None:
         """Send a fake click event to the element."""
         pos = self._mouse_pos()
 
@@ -375,10 +375,10 @@ class AbstractWebElement(collections.abc.MutableMapping):
         events = [
             QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                         Qt.NoModifier),
-            QMouseEvent(QEvent.MouseButtonPress, pos, Qt.LeftButton,
-                        Qt.LeftButton, modifiers),
-            QMouseEvent(QEvent.MouseButtonRelease, pos, Qt.LeftButton,
-                        Qt.NoButton, modifiers),
+            QMouseEvent(QEvent.MouseButtonPress, pos, button, button,
+                        modifiers),
+            QMouseEvent(QEvent.MouseButtonRelease, pos, button, Qt.NoButton,
+                        modifiers),
         ]
 
         for evt in events:
@@ -414,9 +414,12 @@ class AbstractWebElement(collections.abc.MutableMapping):
             background = click_target == usertypes.ClickTarget.tab_bg
             tabbed_browser.tabopen(url, background=background)
         elif click_target == usertypes.ClickTarget.window:
+            from qutebrowser.mainwindow import mainwindow
             window = mainwindow.MainWindow(private=tabbed_browser.is_private)
             window.show()
-            window.tabbed_browser.tabopen(url)
+            # FIXME:typing Why can't mypy determine the type of
+            # window.tabbed_browser?
+            window.tabbed_browser.tabopen(url)  # type: ignore
         else:
             raise ValueError("Unknown ClickTarget {}".format(click_target))
 
@@ -466,3 +469,8 @@ class AbstractWebElement(collections.abc.MutableMapping):
         event = QMouseEvent(QEvent.MouseMove, pos, Qt.NoButton, Qt.NoButton,
                             Qt.NoModifier)
         self._tab.send_event(event)
+
+    def right_click(self) -> None:
+        """Simulate a right-click on the element."""
+        self._click_fake_event(usertypes.ClickTarget.normal,
+                               button=Qt.RightButton)

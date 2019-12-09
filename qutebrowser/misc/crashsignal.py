@@ -27,6 +27,7 @@ import pdb  # noqa: T002
 import signal
 import functools
 import faulthandler
+import typing
 try:
     # WORKAROUND for segfaults when using pdb in pytest for some reason...
     import readline  # pylint: disable=unused-import
@@ -38,7 +39,7 @@ from PyQt5.QtCore import (pyqtSlot, qInstallMessageHandler, QObject,
                           QSocketNotifier, QTimer, QUrl)
 
 from qutebrowser.api import cmdutils
-from qutebrowser.misc import earlyinit, crashdialog, ipc
+from qutebrowser.misc import earlyinit, crashdialog, ipc, objects
 from qutebrowser.utils import usertypes, standarddir, log, objreg, debug, utils
 
 
@@ -157,10 +158,14 @@ class CrashHandler(QObject):
         """Report a bug in qutebrowser."""
         pages = self._recover_pages()
         cmd_history = objreg.get('command-history')[-5:]
-        objects = debug.get_all_objects()
+        all_objects = debug.get_all_objects()
         self._crash_dialog = crashdialog.ReportDialog(pages, cmd_history,
-                                                      objects)
+                                                      all_objects)
         self._crash_dialog.show()
+
+    @pyqtSlot()
+    def shutdown(self):
+        self.destroy_crashlogfile()
 
     def destroy_crashlogfile(self):
         """Clean up the crash log file and delete it."""
@@ -198,11 +203,11 @@ class CrashHandler(QObject):
             cmd_history = []
 
         try:
-            objects = debug.get_all_objects()
+            all_objects = debug.get_all_objects()
         except Exception:
             log.destroy.exception("Error while getting objects")
-            objects = ""
-        return ExceptionInfo(pages, cmd_history, objects)
+            all_objects = ""
+        return ExceptionInfo(pages, cmd_history, all_objects)
 
     def exception_hook(self, exctype, excvalue, tb):
         """Handle uncaught python exceptions.
@@ -222,20 +227,21 @@ class CrashHandler(QObject):
         is_ignored_exception = (exctype is bdb.BdbQuit or
                                 not issubclass(exctype, Exception))
 
-        if 'pdb-postmortem' in self._args.debug_flags:
+        if 'pdb-postmortem' in objects.debug_flags:
             pdb.post_mortem(tb)
 
-        if is_ignored_exception or 'pdb-postmortem' in self._args.debug_flags:
+        if is_ignored_exception or 'pdb-postmortem' in objects.debug_flags:
             # pdb exit, KeyboardInterrupt, ...
             sys.exit(usertypes.Exit.exception)
 
         self._quitter.quit_status['crash'] = False
         info = self._get_exception_info()
 
-        try:
-            ipc.server.ignored = True
-        except Exception:
-            log.destroy.exception("Error while ignoring ipc")
+        if ipc.server is not None:
+            try:
+                ipc.server.ignored = True
+            except Exception:
+                log.destroy.exception("Error while ignoring ipc")
 
         try:
             self._app.lastWindowClosed.disconnect(
@@ -291,9 +297,10 @@ class SignalHandler(QObject):
         self._quitter = quitter
         self._notifier = None
         self._timer = usertypes.Timer(self, 'python_hacks')
-        self._orig_handlers = {}
+        self._orig_handlers = {
+        }  # type: typing.MutableMapping[int, signal._HANDLER]
         self._activated = False
-        self._orig_wakeup_fd = None
+        self._orig_wakeup_fd = None  # type: typing.Optional[int]
 
     def activate(self):
         """Set up signal handlers.
@@ -318,7 +325,8 @@ class SignalHandler(QObject):
                 fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
             self._notifier = QSocketNotifier(read_fd, QSocketNotifier.Read,
                                              self)
-            self._notifier.activated.connect(self.handle_signal_wakeup)
+            self._notifier.activated.connect(  # type: ignore
+                self.handle_signal_wakeup)
             self._orig_wakeup_fd = signal.set_wakeup_fd(write_fd)
             # pylint: enable=import-error,no-member,useless-suppression
         else:
@@ -331,6 +339,7 @@ class SignalHandler(QObject):
         if not self._activated:
             return
         if self._notifier is not None:
+            assert self._orig_wakeup_fd is not None
             self._notifier.setEnabled(False)
             rfd = self._notifier.socket()
             wfd = signal.set_wakeup_fd(self._orig_wakeup_fd)
@@ -349,6 +358,7 @@ class SignalHandler(QObject):
 
         Python will get control here, so the signal will get handled.
         """
+        assert self._notifier is not None
         log.destroy.debug("Handling signal wakeup!")
         self._notifier.setEnabled(False)
         read_fd = self._notifier.socket()
