@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with qutebrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Entry point for qutebrowser. Simply execute qutebrowser."""
+"""Simple launcher for qutebrowser."""
 
 import sys
 

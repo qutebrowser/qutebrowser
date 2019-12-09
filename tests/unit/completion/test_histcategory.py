@@ -241,3 +241,12 @@ def test_timestamp_fmt(fmt, expected, model_validator, config_stub, init_sql):
     model_validator.set_model(cat)
     cat.set_pattern('')
     model_validator.validate([('foo', '', expected)])
+
+
+def test_skip_duplicate_set(message_mock, caplog, hist):
+    cat = histcategory.HistoryCategory()
+    cat.set_pattern('foo')
+    cat.set_pattern('foobarbaz')
+    msg = caplog.messages[-1]
+    assert msg.startswith(
+        "Skipping query on foobarbaz due to prefix foo returning nothing.")

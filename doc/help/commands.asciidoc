@@ -556,12 +556,14 @@ How many pages to go forward.
 
 [[fullscreen]]
 === fullscreen
-Syntax: +:fullscreen [*--leave*]+
+Syntax: +:fullscreen [*--leave*] [*--enter*]+
 
 Toggle fullscreen mode.
 
 ==== optional arguments
 * +*-l*+, +*--leave*+: Only leave fullscreen if it was entered by the page.
+* +*-e*+, +*--enter*+: Activate fullscreen and do not toggle if it is already active.
+
 
 [[greasemonkey-reload]]
 === greasemonkey-reload
@@ -624,6 +626,7 @@ Start hinting.
  - `tab-bg`: Open the link in a new background tab.
  - `window`: Open the link in a new window.
  - `hover` : Hover over the link.
+ - `right-click`: Right-click the element.
  - `yank`: Yank the link to the clipboard.
  - `yank-primary`: Yank the link to the primary selection.
  - `run`: Run the argument as command.
@@ -1166,7 +1169,6 @@ Delete a session.
 ==== optional arguments
 * +*-f*+, +*--force*+: Force deleting internal sessions (starting with an underline).
 
-
 [[session-load]]
 === session-load
 Syntax: +:session-load [*--clear*] [*--temp*] [*--force*] [*--delete*] 'name'+
@@ -1180,7 +1182,6 @@ Load a session.
 * +*-c*+, +*--clear*+: Close all existing windows.
 * +*-t*+, +*--temp*+: Don't set the current session for :session-save.
 * +*-f*+, +*--force*+: Force loading internal sessions (starting with an underline).
-
 * +*-d*+, +*--delete*+: Delete the saved session once it has loaded.
 
 [[session-save]]
@@ -1317,9 +1318,10 @@ Select the tab given as argument/[count].
 If neither count nor index are given, it behaves like tab-next. If both are given, use count.
 
 ==== positional arguments
-* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab (regardless of count).
- Negative indices count from the end, such that -1 is the
- last tab.
+* +'index'+: The tab index to focus, starting with 1. The special value `last` focuses the last focused tab (regardless of count),
+ and `stack-prev`/`stack-next` traverse a stack of visited
+ tabs. Negative indices count from the end, such that -1 is
+ the last tab.
 
 
 ==== optional arguments
@@ -1742,13 +1744,16 @@ How many blocks to move.
 
 [[prompt-accept]]
 === prompt-accept
-Syntax: +:prompt-accept ['value']+
+Syntax: +:prompt-accept [*--save*] ['value']+
 
 Accept the current prompt.
 
 ==== positional arguments
 * +'value'+: If given, uses this value instead of the entered one. For boolean prompts, "yes"/"no" are accepted as value.
 
+
+==== optional arguments
+* +*-s*+, +*--save*+: Save the value to the config.
 
 [[prompt-item-focus]]
 === prompt-item-focus

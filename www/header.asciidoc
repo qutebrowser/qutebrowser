@@ -16,5 +16,21 @@
 	<a href="https://www.github.com/qutebrowser/qutebrowser">GitHub</a>
 	<a href="https://github.com/qutebrowser/qutebrowser/releases">Releases</a>
 	<a href="https://blog.qutebrowser.org/">Blog</a>
+	<a href="https://github.com/sponsors/The-Compiler/" id="announcement-button">❤ Donate</a>
+</div>
+<div id="announcement">
+<p>
+<b>qutebrowser's primary maintainer, The-Compiler, is currently working
+part-time on qutebrowser, funded by donations.</b></p>
+<p>To sustain this for a long
+time, your help is needed! See the
+<a href="https://github.com/sponsors/The-Compiler/">GitHub Sponsors page</a> for more
+information. Depending on your sign-up date and how long you keep a certain
+level, you can get qutebrowser t-shirts, stickers and more!
+</p>
+<p>
+Thanks to the GitHub Sponsors Matching Fund, all donations done via GitHub
+Sponsors (up to a $5000 total) will be doubled until October 2020.
+</p>
 </div>
 +++

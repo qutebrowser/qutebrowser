@@ -28,7 +28,7 @@ import pytest
 from qutebrowser.misc import checkpyver
 
 
-TEXT = (r"At least Python 3.5 is required to run qutebrowser, but it's "
+TEXT = (r"At least Python 3.5.2 is required to run qutebrowser, but it's "
         r"running with \d+\.\d+\.\d+.\n")
 
 
@@ -39,7 +39,8 @@ def test_python2():
         proc = subprocess.run(
             ['python2', checkpyver.__file__, '--no-err-windows'],
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
+            stderr=subprocess.PIPE,
+            check=False)
     except FileNotFoundError:
         pytest.skip("python2 not found")
     assert not proc.stdout

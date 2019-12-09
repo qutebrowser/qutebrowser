@@ -403,12 +403,12 @@ def update_documentation():
 
     try:
         subprocess.run(['asciidoc'], stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL)
+                       stderr=subprocess.DEVNULL, check=True)
     except OSError:
         pytest.skip("Docs outdated and asciidoc unavailable!")
 
     update_script = os.path.join(script_path, 'asciidoc2html.py')
-    subprocess.run([sys.executable, update_script])
+    subprocess.run([sys.executable, update_script], check=True)
 
 
 ## Then
@@ -675,4 +675,12 @@ def check_not_scrolled(request, quteproc):
 @bdd.then(bdd.parsers.parse("the option {option} should be set to {value}"))
 def check_option(quteproc, option, value):
     actual_value = quteproc.get_setting(option)
+    assert actual_value == value
+
+
+@bdd.then(bdd.parsers.parse("the per-domain option {option} should be set to "
+                            "{value} for {pattern}"))
+def check_option_per_domain(quteproc, option, value, pattern, server):
+    pattern = pattern.replace('(port)', str(server.port))
+    actual_value = quteproc.get_setting(option, pattern=pattern)
     assert actual_value == value

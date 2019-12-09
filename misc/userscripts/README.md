@@ -19,9 +19,13 @@ The following userscripts are included in the current directory.
   databases using pykeepass.
 - [qute-pass](./qute-pass): Insert login information using pass and a
   dmenu-compatible application (e.g. dmenu, rofi -dmenu, ...).
+- [qute-lastpass](./qute-lastpass): Similar to qute-pass, for Lastpass.
+- [qute-bitwarden](./qute-bitwarden): Similar to qute-pass, for Bitwarden.
 - [qutedmenu](./qutedmenu): Handle open -s && open -t with bemenu.
 - [readability](./readability): Executes python-readability on current page and
   opens the summary as new tab.
+- [readability-js](./readability-js): Processes the current page with the readability 
+  library used in Firefox Reader View and opens the summary as new tab.
 - [ripbang](./ripbang): Adds DuckDuckGo bang as searchengine.
 - [rss](./rss): Keeps track of URLs in RSS feeds and opens new ones.
 - [taskadd](./taskadd): Adds a task to taskwarrior.
@@ -55,6 +59,8 @@ The following userscripts can be found on their own repositories.
   [Pinboard][] bookmark manager.
 - [qute-capture](https://github.com/alcah/qute-capture): Capture links with
   Emacs's org-mode to a read-later file.
+- [qute-code-hint](https://github.com/LaurenceWarne/qute-code-hint): Copy code
+  snippets on web pages to the clipboard via hints.
 
 [Zotero]: https://www.zotero.org/
 [Pocket]: https://getpocket.com/

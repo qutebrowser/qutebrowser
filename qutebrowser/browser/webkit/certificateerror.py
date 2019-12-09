@@ -41,7 +41,7 @@ class CertificateErrorWrapper(usertypes.AbstractCertificateErrorWrapper):
         return hash(self._error)
 
     def __eq__(self, other):
-        return self._error == other._error  # pylint: disable=protected-access
+        return self._error == other._error
 
     def is_overridable(self):
         return True

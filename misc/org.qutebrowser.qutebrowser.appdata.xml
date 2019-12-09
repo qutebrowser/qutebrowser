@@ -40,9 +40,65 @@
 	<url type="help">https://qutebrowser.org/doc/help/</url>
 	<url type="bugtracker">https://github.com/qutebrowser/qutebrowser/issues/</url>
 	<url type="donation">https://github.com/qutebrowser/qutebrowser#donating</url>
+	<content_rating type="oars-1.1">
+	</content_rating>
 	<releases>
-		<release version="1.3.0" date="2018-05-04"/>
-		<release version="1.2.1" date="2018-03-14"/>
-		<release version="1.2.0" date="2018-03-09"/>
+<!-- Add new releases here -->
+<release version="1.8.3" date="2019-12-05"/>
+<release version="1.8.2" date="2019-11-22"/>
+<release version="1.8.1" date="2019-09-27"/>
+<release version="1.8.0" date="2019-09-25"/>
+<release version="1.7.0" date="2019-07-18"/>
+<release version="1.6.3" date="2019-06-18"/>
+<release version="1.6.2" date="2019-05-06"/>
+<release version="1.6.1" date="2019-03-20"/>
+<release version="1.6.0" date="2019-02-25"/>
+<release version="1.5.2" date="2018-10-26"/>
+<release version="1.5.1" date="2018-10-10"/>
+<release version="1.5.0" date="2018-10-03"/>
+<release version="1.4.2" date="2018-09-02"/>
+<release version="1.4.1" date="2018-07-11"/>
+<release version="1.4.0" date="2018-07-03"/>
+<release version="1.3.3" date="2018-06-21"/>
+<release version="1.3.2" date="2018-06-10"/>
+<release version="1.3.1" date="2018-05-29"/>
+<release version="1.3.0" date="2018-05-03"/>
+<release version="1.2.1" date="2018-03-14"/>
+<release version="1.2.0" date="2018-03-09"/>
+<release version="1.1.2" date="2018-03-01"/>
+<release version="1.1.1" date="2018-01-20"/>
+<release version="1.1.0" date="2018-01-15"/>
+<release version="1.0.4" date="2017-11-28"/>
+<release version="1.0.3" date="2017-11-04"/>
+<release version="1.0.2" date="2017-10-17"/>
+<release version="1.0.1" date="2017-10-13"/>
+<release version="1.0.0" date="2017-10-12"/>
+<release version="0.11.1" date="2017-10-09"/>
+<release version="0.11.0" date="2017-07-04"/>
+<release version="0.10.1" date="2017-03-08"/>
+<release version="0.10.0" date="2017-02-25"/>
+<release version="0.9.1" date="2017-01-13"/>
+<release version="0.9.0" date="2016-12-28"/>
+<release version="0.8.4" date="2016-11-06"/>
+<release version="0.8.3" date="2016-11-05"/>
+<release version="0.8.2" date="2016-08-02"/>
+<release version="0.8.1" date="2016-07-27"/>
+<release version="0.8.0" date="2016-07-26"/>
+<release version="0.7.0" date="2016-06-10"/>
+<release version="0.6.2" date="2016-04-30"/>
+<release version="0.6.1" date="2016-04-10"/>
+<release version="0.6.0" date="2016-04-04"/>
+<release version="0.5.1" date="2016-01-18"/>
+<release version="0.5.0" date="2016-01-05"/>
+<release version="0.4.1" date="2015-09-30"/>
+<release version="0.4.0" date="2015-09-11"/>
+<release version="0.3.0" date="2015-06-28"/>
+<release version="0.2.1" date="2015-04-19"/>
+<release version="0.2.0" date="2015-04-19"/>
+<release version="0.1.4" date="2015-03-19"/>
+<release version="0.1.3" date="2015-02-12"/>
+<release version="0.1.2" date="2015-01-09"/>
+<release version="0.1.1" date="2014-12-28"/>
+<release version="0.1" date="2014-12-14"/>
 	</releases>
 </component>

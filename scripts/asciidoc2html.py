@@ -226,7 +226,7 @@ class AsciiDoc:
 
         try:
             subprocess.run(['asciidoc'], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL)
+                           stderr=subprocess.DEVNULL, check=True)
         except OSError:
             pass
         else:
@@ -234,7 +234,7 @@ class AsciiDoc:
 
         try:
             subprocess.run(['asciidoc.py'], stdout=subprocess.DEVNULL,
-                           stderr=subprocess.DEVNULL)
+                           stderr=subprocess.DEVNULL, check=True)
         except OSError:
             pass
         else:

@@ -26,6 +26,7 @@ Module attributes:
 
 import os
 import operator
+import typing
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
@@ -37,11 +38,11 @@ from qutebrowser.config.websettings import AttributeInfo as Attr
 from qutebrowser.utils import utils, standarddir, qtutils, message, log
 
 # The default QWebEngineProfile
-default_profile = None
+default_profile = typing.cast(QWebEngineProfile, None)
 # The QWebEngineProfile used for private (off-the-record) windows
-private_profile = None
+private_profile = None  # type: typing.Optional[QWebEngineProfile]
 # The global WebEngineSettings object
-global_settings = None
+global_settings = typing.cast('WebEngineSettings', None)
 
 default_user_agent = None
 
@@ -58,33 +59,33 @@ class _SettingsWrapper:
         if private_profile:
             self._settings.append(private_profile.settings())
 
-    def setAttribute(self, *args, **kwargs):
+    def setAttribute(self, attribute, on):
         for settings in self._settings:
-            settings.setAttribute(*args, **kwargs)
+            settings.setAttribute(attribute, on)
 
-    def setFontFamily(self, *args, **kwargs):
+    def setFontFamily(self, which, family):
         for settings in self._settings:
-            settings.setFontFamily(*args, **kwargs)
+            settings.setFontFamily(which, family)
 
-    def setFontSize(self, *args, **kwargs):
+    def setFontSize(self, fonttype, size):
         for settings in self._settings:
-            settings.setFontSize(*args, **kwargs)
+            settings.setFontSize(fonttype, size)
 
-    def setDefaultTextEncoding(self, *args, **kwargs):
+    def setDefaultTextEncoding(self, encoding):
         for settings in self._settings:
-            settings.setDefaultTextEncoding(*args, **kwargs)
+            settings.setDefaultTextEncoding(encoding)
 
-    def testAttribute(self, *args, **kwargs):
-        return self._settings[0].testAttribute(*args, **kwargs)
+    def testAttribute(self, attribute):
+        return self._settings[0].testAttribute(attribute)
 
-    def fontSize(self, *args, **kwargs):
-        return self._settings[0].fontSize(*args, **kwargs)
+    def fontSize(self, fonttype):
+        return self._settings[0].fontSize(fonttype)
 
-    def fontFamily(self, *args, **kwargs):
-        return self._settings[0].fontFamily(*args, **kwargs)
+    def fontFamily(self, which):
+        return self._settings[0].fontFamily(which)
 
-    def defaultTextEncoding(self, *args, **kwargs):
-        return self._settings[0].defaultTextEncoding(*args, **kwargs)
+    def defaultTextEncoding(self):
+        return self._settings[0].defaultTextEncoding()
 
 
 class WebEngineSettings(websettings.AbstractSettings):
@@ -196,10 +197,17 @@ class ProfileSetter:
         """Initialize settings on the given profile."""
         self.set_http_headers()
         self.set_http_cache_size()
+        self._set_hardcoded_settings()
+        if qtutils.version_check('5.8'):
+            self.set_dictionary_language()
 
+    def _set_hardcoded_settings(self):
+        """Set up settings with a fixed value."""
         settings = self._profile.settings()
+
         settings.setAttribute(
             QWebEngineSettings.FullScreenSupportEnabled, True)
+
         try:
             settings.setAttribute(
                 QWebEngineSettings.FocusOnNavigationEnabled, False)
@@ -207,8 +215,11 @@ class ProfileSetter:
             # Added in Qt 5.8
             pass
 
-        if qtutils.version_check('5.8'):
-            self.set_dictionary_language()
+        try:
+            settings.setAttribute(QWebEngineSettings.PdfViewerEnabled, False)
+        except AttributeError:
+            # Added in Qt 5.13
+            pass
 
     def set_http_headers(self):
         """Set the user agent and accept-language for the given profile.
@@ -254,7 +265,7 @@ class ProfileSetter:
                                     "sources".format(code))
                 continue
 
-            filenames.append(local_filename)
+            filenames.append(os.path.splitext(local_filename)[0])
 
         log.config.debug("Found dicts: {}".format(filenames))
         self._profile.setSpellCheckLanguages(filenames)

@@ -82,7 +82,7 @@ new_instance_open_target_window:
   desc: >-
     Which window to choose when opening links as new tabs.
 
-    When `new_instance_open_target` is not set to `window`, this is ignored.
+    When `new_instance_open_target` is set to `window`, this is ignored.
 
 session_default_name:
   renamed: session.default_name
@@ -232,8 +232,8 @@ qt.highdpi:
   desc: >-
     Turn on Qt HighDPI scaling.
 
-    This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 in the
-    environment.
+    This is equivalent to setting QT_AUTO_SCREEN_SCALE_FACTOR=1 or
+    QT_ENABLE_HIGHDPI_SCALING=1 (Qt >= 5.14) in the environment.
 
     It's off by default as it can cause issues with some bitmap fonts.
     As an alternative to this, it's possible to set font sizes and the
@@ -378,7 +378,7 @@ content.developer_extras:
   deleted: true
 
 content.dns_prefetch:
-  default: true
+  default: false
   type: Bool
   backend:
     QtWebKit: true
@@ -480,11 +480,11 @@ content.headers.user_agent:
       # Vim-protip: Place your cursor below this comment and run
       # :r!python scripts/dev/ua_fetch.py
       - - "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
-          like Gecko) Chrome/71.0.3578.98 Safari/537.36"
-        - Chrome 71.0 Win10
+          like Gecko) Chrome/76.0.3809.132 Safari/537.36"
+        - Chrome 76 Win10
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
-          Gecko) Chrome/71.0.3578.98 Safari/537.36"
-        - Chrome 71.0 Linux
+          Gecko) Chrome/76.0.3809.132 Safari/537.36"
+        - Chrome 76 Linux
       - - ""
         - Use default QtWebKit/QtWebEngine User-Agent
 
@@ -523,8 +523,7 @@ content.host_blocking.lists:
     The file `~/.config/qutebrowser/blocked-hosts` is always read if it exists.
 
 content.host_blocking.whitelist:
-  default:
-  - piwik.org
+  default: []
   type:
     name: List
     valtype: UrlPattern
@@ -612,6 +611,9 @@ content.javascript.log:
     to use.
 
     On QtWebKit, the "unknown" setting is always used.
+
+    The following levels are valid: `none`, `debug`, `info`, `warning`,
+    `error`.
 
 content.javascript.modal_dialog:
   type: Bool
@@ -782,13 +784,17 @@ content.webrtc_ip_handling_policy:
 
 content.xss_auditing:
   type: Bool
-  default: true
+  default: false
   supports_pattern: true
   desc: >-
     Monitor load requests for cross-site scripting attempts.
 
     Suspicious scripts will be blocked and reported in the inspector's
     JavaScript console.
+
+    Note that bypasses for the XSS auditor are widely known and it can be
+    abused for cross-site info leaks in some scenarios, see:
+    https://www.chromium.org/developers/design-documents/xss-auditor
 
 content.mute:
   default: false
@@ -1765,10 +1771,35 @@ tabs.pinned.frozen:
     default: True
     desc: Force pinned tabs to stay at fixed URL.
 
+tabs.undo_stack_size:
+  default: 100
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+  desc: Number of close tab actions to remember, per window (-1 for no maximum).
+
 tabs.wrap:
   default: true
   type: Bool
   desc: Wrap when changing tabs.
+
+tabs.focus_stack_size:
+  default: 10
+  type:
+    name: Int
+    minval: -1
+    maxval: maxint
+    zero_ok: false
+  desc: Maximum stack size to remember for tab switches (-1 for no maximum).
+
+tabs.tooltips:
+  default: true
+  type: Bool
+  desc: >-
+    Show tooltips on tabs.
+
+    Note this setting only affects windows opened after it has been set.
 
 ## url
 
@@ -1983,12 +2014,17 @@ colors.completion.item.selected.bg:
 colors.completion.item.selected.border.top:
   default: '#bbbb00'
   type: QssColor
-  desc: Top border color of the completion widget category headers.
+  desc: Top border color of the selected completion item.
 
 colors.completion.item.selected.border.bottom:
   default: '#bbbb00'
   type: QssColor
   desc: Bottom border color of the selected completion item.
+
+colors.completion.item.selected.match.fg:
+  default: '#ff4444'
+  type: QtColor
+  desc: Foreground color of the matched text in the selected completion item.
 
 colors.completion.match.fg:
   default: '#ff4444'
@@ -2066,7 +2102,7 @@ colors.hints.bg:
 
 colors.hints.match.fg:
   default: green
-  type: QssColor
+  type: QtColor
   desc: Font color for the matched part of hints.
 
 colors.keyhint.fg:
@@ -2381,7 +2417,7 @@ colors.webpage.bg:
 ## fonts
 
 fonts.monospace:
-  default: '"xos4 Terminus", Terminus, Monospace, "DejaVu Sans Mono", Monaco,
+  default: 'Monospace, "DejaVu Sans Mono", Monaco,
     "Bitstream Vera Sans Mono", "Andale Mono", "Courier New", Courier,
     "Liberation Mono", monospace, Fixed, Consolas, Terminal'
   type: Font
@@ -2744,7 +2780,7 @@ bindings.default:
       tIu: config-cycle -p -u {url} content.images ;; reload
     insert:
       <Ctrl-E>: open-editor
-      <Shift-Ins>: insert-text {primary}
+      <Shift-Ins>: insert-text -- {primary}
       <Escape>: leave-mode
     hint:
       <Return>: follow-hint
@@ -2813,6 +2849,8 @@ bindings.default:
       <Return>: prompt-accept
       y: prompt-accept yes
       n: prompt-accept no
+      Y: prompt-accept --save yes
+      N: prompt-accept --save no
       <Alt-Y>: prompt-yank
       <Alt-Shift-Y>: prompt-yank --sel
       <Escape>: leave-mode
