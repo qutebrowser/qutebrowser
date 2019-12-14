@@ -50,6 +50,8 @@ Changed
 - qutebrowser now enables the new PyQt exit scheme, which should result in
   things being cleaned up more properly (e.g. cookies being saved even without
   a timeout) on PyQt 5.13.1 and newer.
+- The `:spawn` command has a new `-m` / `--output-messages` argument which
+  shows qutebrowser messages based on a command's standard output/error.
 - Performance improvements for the following areas:
   * Adding settings with URL patterns
   * Matching of settings using URL patterns

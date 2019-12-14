@@ -994,8 +994,9 @@ class CommandDispatcher:
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0, no_replace_variables=True)
     @cmdutils.argument('count', value=cmdutils.Value.count)
+    @cmdutils.argument('output_messages', flag='m')
     def spawn(self, cmdline, userscript=False, verbose=False,
-              output=False, detach=False, count=None):
+              output=False, output_messages=False, detach=False, count=None):
         """Spawn a command in a shell.
 
         Args:
@@ -1006,7 +1007,8 @@ class CommandDispatcher:
                               (or `$XDG_DATA_HOME`)
                             - `/usr/share/qutebrowser/userscripts`
             verbose: Show notifications when the command started/exited.
-            output: Whether the output should be shown in a new tab.
+            output: Show the output in a new tab.
+            output_messages: Show the output as messages.
             detach: Whether the command should be detached from qutebrowser.
             cmdline: The commandline to execute.
             count: Given to userscripts as $QUTE_COUNT.
@@ -1048,6 +1050,7 @@ class CommandDispatcher:
         else:
             cmd = os.path.expanduser(cmd)
             proc = guiprocess.GUIProcess(what='command', verbose=verbose,
+                                         output_messages=output_messages,
                                          parent=self._tabbed_browser)
             if detach:
                 ok = proc.start_detached(cmd, args)
