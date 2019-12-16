@@ -21,7 +21,7 @@
 
 import typing
 
-from qutebrowser.config import configdata
+from qutebrowser.config import configdata, config
 from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
 
@@ -112,6 +112,10 @@ def _buffer(skip_win_id=None):
 
     model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
 
+    # abbreviate tabs_are_windows for convenience
+    taw = True if config.val.tabs.tabs_are_windows else False
+    if taw: windows = []
+
     for win_id in objreg.window_registry:
         if skip_win_id is not None and win_id == skip_win_id:
             continue
@@ -122,12 +126,23 @@ def _buffer(skip_win_id=None):
         tabs = []
         for idx in range(tabbed_browser.widget.count()):
             tab = tabbed_browser.widget.widget(idx)
-            tabs.append(("{}/{}".format(win_id, idx + 1),
+            label = ("{}".format(win_id + 1) if taw
+                    else "{}/{}".format(win_id, idx + 1))
+            tabs.append((label,
                          tab.url().toDisplayString(),
                          tabbed_browser.widget.page_title(idx)))
         cat = listcategory.ListCategory(
             str(win_id), tabs, delete_func=delete_buffer, sort=False)
+        if taw:
+            windows += tabs
+            continue
         model.add_category(cat)
+
+    # add the single list category of windows to the model
+    if taw:
+        win = listcategory.ListCategory(
+            "Windows", windows, delete_func=delete_buffer, sort=False)
+        model.add_category(win)
 
     return model
 
