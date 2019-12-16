@@ -105,7 +105,7 @@ Useful utilities
 Checkers
 ~~~~~~~~
 
-qutebrowser uses http://tox.readthedocs.org/en/latest/[tox] to run its
+qutebrowser uses https://tox.readthedocs.io/en/latest/[tox] to run its
 unittests and several linters/checkers.
 
 Currently, the following tox environments are available:
