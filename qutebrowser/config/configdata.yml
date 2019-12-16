@@ -2040,6 +2040,26 @@ colors.completion.scrollbar.bg:
   type: QssColor
   desc: Color of the scrollbar in the completion view.
 
+colors.contextmenu.bg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Background color of the context menu.
+
+    If set to null, the Qt default is used.
+
+colors.contextmenu.fg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Foreground color of the context menu.
+
+    If set to null, the Qt default is used.
+
 colors.downloads.bar.bg:
   default: black
   type: QssColor
@@ -2437,6 +2457,16 @@ fonts.completion.category:
   default: bold 10pt monospace
   type: Font
   desc: Font used in the completion categories.
+
+fonts.contextmenu:
+  type:
+    name: Font
+    none_ok: true
+  default: null
+  desc: >-
+    Font used for the context menu.
+
+    If set to null, the Qt default is used.
 
 fonts.debug_console:
   default: 10pt monospace

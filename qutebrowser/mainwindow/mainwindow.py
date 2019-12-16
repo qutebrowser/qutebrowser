@@ -160,6 +160,18 @@ class MainWindow(QWidget):
             padding-left: 3px;
             padding-right: 3px;
         }
+
+        QMenu {
+            {% if conf.fonts.contextmenu %}
+                font: {{ conf.fonts.contextmenu }};
+            {% endif %}
+            {% if conf.colors.contextmenu.bg %}
+                background-color: {{ conf.colors.contextmenu.bg }};
+            {% endif %}
+            {% if conf.colors.contextmenu.fg %}
+                color: {{ conf.colors.contextmenu.fg }};
+            {% endif %}
+        }
     """
 
     def __init__(self, *, private, geometry=None, parent=None):
