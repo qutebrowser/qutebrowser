@@ -138,7 +138,7 @@
 |<<content.headers.custom,content.headers.custom>>|Custom headers for qutebrowser HTTP requests.
 |<<content.headers.do_not_track,content.headers.do_not_track>>|Value to send in the `DNT` header.
 |<<content.headers.referer,content.headers.referer>>|When to send the Referer header.
-|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send. Unset to send the default.
+|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send.
 |<<content.host_blocking.enabled,content.host_blocking.enabled>>|Enable host blocking.
 |<<content.host_blocking.lists,content.host_blocking.lists>>|List of URLs of lists which contain hosts to block.
 |<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|A list of patterns that should always be loaded, despite being ad-blocked.
@@ -1840,14 +1840,19 @@ Default: +pass:[same-domain]+
 
 [[content.headers.user_agent]]
 === content.headers.user_agent
-User agent to send. Unset to send the default.
+User agent to send.
+The following placeholders are defined:
+* `{os_info}`: Something like "X11; Linux x86_64". * `{webkit_version}`: The underlying WebKit version (set to a fixed value
+  with QtWebEngine).
+* `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine. * `{qt_version}`: The underlying Qt version. * `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for QtWebEngine. * `{upstream_browser_version}`: The corresponding Safari/Chrome version. * `{qutebrowser_version}`: The currently running qutebrowser version.
+The default value is equal to the unchanged user agent of QtWebKit/QtWebEngine.
 Note that the value read from JavaScript is always the global value.
 
 This setting supports URL patterns.
 
-Type: <<types,String>>
+Type: <<types,FormatString>>
 
-Default: empty
+Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version} Safari/{webkit_version}]+
 
 [[content.host_blocking.enabled]]
 === content.host_blocking.enabled

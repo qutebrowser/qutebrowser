@@ -32,6 +32,10 @@ Added
 Changed
 ~~~~~~~
 
+- The `content.headers.user_agent` setting now is a format string with the
+  default value resembling the behavior of it being set to null before.
+  This slightly changes the sent user agent for QtWebKit: Instead of mentioning
+  qutebrowser and its version it now mentions the Qt version.
 - The `qute-pass` userscript now has a new `--extra-url-suffixes` (`-s`)
   argument which passes extra URL suffixes to the tldextract library.
 - A stack is now used for `:tab-focus last` rather than just saving one tab.

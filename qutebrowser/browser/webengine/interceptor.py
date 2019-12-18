@@ -25,7 +25,7 @@ from PyQt5.QtCore import QUrl, QByteArray
 from PyQt5.QtWebEngineCore import (QWebEngineUrlRequestInterceptor,
                                    QWebEngineUrlRequestInfo)
 
-from qutebrowser.config import config
+from qutebrowser.config import websettings
 from qutebrowser.browser import shared
 from qutebrowser.utils import utils, log, debug, qtutils
 from qutebrowser.extensions import interceptors
@@ -204,6 +204,5 @@ class RequestInterceptor(QWebEngineUrlRequestInterceptor):
         for header, value in shared.custom_headers(url=url):
             info.setHttpHeader(header, value)
 
-        user_agent = config.instance.get('content.headers.user_agent', url=url)
-        if user_agent is not None:
-            info.setHttpHeader(b'User-Agent', user_agent.encode('ascii'))
+        user_agent = websettings.user_agent(url)
+        info.setHttpHeader(b'User-Agent', user_agent.encode('ascii'))

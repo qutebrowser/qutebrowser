@@ -354,6 +354,17 @@ class TestYaml:
     def test_title_format_migrations(self, migration_test, setting, old, new):
         migration_test(setting, old, new)
 
+    @pytest.mark.parametrize('old, new', [
+        (None, ('Mozilla/5.0 ({os_info}) '
+                'AppleWebKit/{webkit_version} (KHTML, like Gecko) '
+                '{qt_key}/{qt_version} '
+                '{upstream_browser_key}/{upstream_browser_version} '
+                'Safari/{webkit_version}')),
+        ('toaster', 'toaster'),
+    ])
+    def test_user_agent_migration(self, migration_test, old, new):
+        migration_test('content.headers.user_agent', old, new)
+
     def test_renamed_key_unknown_target(self, monkeypatch, yaml,
                                         autoconfig):
         """A key marked as renamed with invalid name should raise an error."""

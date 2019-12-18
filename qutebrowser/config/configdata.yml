@@ -469,10 +469,20 @@ content.headers.referer:
     No restart is needed with QtWebKit.
 
 content.headers.user_agent:
-  default: null
+  default: 'Mozilla/5.0 ({os_info})
+      AppleWebKit/{webkit_version} (KHTML, like Gecko)
+      {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version}
+      Safari/{webkit_version}'
   type:
-    name: String
-    none_ok: true
+    name: FormatString
+    fields:
+      - os_info
+      - webkit_version
+      - qt_key
+      - qt_version
+      - upstream_browser_key
+      - upstream_browser_version
+      - qutebrowser_version
     completions:
       # To update the following list of user agents, run the script
       # 'ua_fetch.py'
@@ -484,12 +494,23 @@ content.headers.user_agent:
       - - "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like
           Gecko) Chrome/76.0.3809.132 Safari/537.36"
         - Chrome 76 Linux
-      - - ""
-        - Use default QtWebKit/QtWebEngine User-Agent
-
   supports_pattern: true
   desc: >-
-    User agent to send. Unset to send the default.
+    User agent to send.
+
+    The following placeholders are defined:
+
+    * `{os_info}`: Something like "X11; Linux x86_64".
+    * `{webkit_version}`: The underlying WebKit version (set to a fixed value
+      with QtWebEngine).
+    * `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine.
+    * `{qt_version}`: The underlying Qt version.
+    * `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for QtWebEngine.
+    * `{upstream_browser_version}`: The corresponding Safari/Chrome version.
+    * `{qutebrowser_version}`: The currently running qutebrowser version.
+
+    The default value is equal to the unchanged user agent of
+    QtWebKit/QtWebEngine.
 
     Note that the value read from JavaScript is always the global value.
 

@@ -44,7 +44,7 @@ private_profile = None  # type: typing.Optional[QWebEngineProfile]
 # The global WebEngineSettings object
 global_settings = typing.cast('WebEngineSettings', None)
 
-default_user_agent = None
+parsed_user_agent = None
 
 
 class _SettingsWrapper:
@@ -228,7 +228,9 @@ class ProfileSetter:
         per-domain values), but this one still gets used for things like
         window.navigator.userAgent/.languages in JS.
         """
-        self._profile.setHttpUserAgent(config.val.content.headers.user_agent)
+        user_agent = websettings.user_agent()
+        self._profile.setHttpUserAgent(user_agent)
+
         accept_language = config.val.content.headers.accept_language
         if accept_language is not None:
             self._profile.setHttpAcceptLanguage(accept_language)
@@ -296,12 +298,22 @@ def _update_settings(option):
             private_profile.setter.set_dictionary_language(warn=False)
 
 
+def _init_user_agent_str(ua):
+    global parsed_user_agent
+    parsed_user_agent = websettings.UserAgent.parse(ua)
+
+
+def init_user_agent():
+    _init_user_agent_str(QWebEngineProfile.defaultProfile().httpUserAgent())
+
+
 def _init_profiles():
     """Init the two used QWebEngineProfiles."""
-    global default_profile, private_profile, default_user_agent
+    global default_profile, private_profile
 
     default_profile = QWebEngineProfile.defaultProfile()
-    default_user_agent = default_profile.httpUserAgent()
+    init_user_agent()
+
     default_profile.setter = ProfileSetter(default_profile)
     default_profile.setCachePath(
         os.path.join(standarddir.cache(), 'webengine'))

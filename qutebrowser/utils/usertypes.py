@@ -25,7 +25,7 @@ import typing
 
 import attr
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QTimer
-from PyQt5.QtCore import QUrl  # pylint: disable=unused-import
+from PyQt5.QtCore import QUrl
 
 from qutebrowser.utils import log, qtutils, utils
 

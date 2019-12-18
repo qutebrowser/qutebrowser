@@ -271,6 +271,14 @@ class YamlConfig(QObject):
                     settings[name][scope] = true_value if val else false_value
                     self._mark_changed()
 
+    def _migrate_none(self, settings: _SettingsType, name: str,
+                      value: str) -> None:
+        if name in settings:
+            for scope, val in settings[name].items():
+                if val is None:
+                    settings[name][scope] = value
+                    self._mark_changed()
+
     def _migrate_string_value(self, settings: _SettingsType, name: str,
                               source: str, target: str) -> None:
         if name in settings:
@@ -342,6 +350,10 @@ class YamlConfig(QObject):
                   'window.title_format']:
             self._migrate_string_value(
                 settings, s, r'(?<!{)\{title\}(?!})', r'{current_title}')
+
+        # content.headers.user_agent can't be empty to get the default anymore.
+        s = 'content.headers.user_agent'
+        self._migrate_none(settings, s, configdata.DATA[s].default)
 
         return settings
 

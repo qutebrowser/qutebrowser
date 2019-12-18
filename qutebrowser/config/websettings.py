@@ -19,17 +19,63 @@
 
 """Bridge from QWeb(Engine)Settings to our own settings."""
 
+import re
 import typing
 import argparse
+import functools
 
-from PyQt5.QtCore import QUrl, pyqtSlot
+import attr
+from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
 from PyQt5.QtGui import QFont
 
+import qutebrowser
 from qutebrowser.config import config, configutils
 from qutebrowser.utils import log, usertypes, urlmatch, qtutils
-from qutebrowser.misc import objects
+from qutebrowser.misc import objects, debugcachestats
 
 UNSET = object()
+
+
+@attr.s
+class UserAgent:
+
+    """A parsed user agent."""
+
+    os_info = attr.ib()  # type: str
+    webkit_version = attr.ib()  # type: str
+    upstream_browser_key = attr.ib()  # type: str
+    upstream_browser_version = attr.ib()  # type: str
+    qt_key = attr.ib()  # type: str
+
+    @classmethod
+    def parse(cls, ua: str) -> 'UserAgent':
+        """Parse a user agent string into its components."""
+        comment_matches = re.finditer(r'\(([^)]*)\)', ua)
+        os_info = list(comment_matches)[0].group(1)
+
+        version_matches = re.finditer(r'(\S+)/(\S+)', ua)
+        versions = {}
+        for match in version_matches:
+            versions[match.group(1)] = match.group(2)
+
+        webkit_version = versions['AppleWebKit']
+
+        if 'Chrome' in versions:
+            upstream_browser_key = 'Chrome'
+            qt_key = 'QtWebEngine'
+        elif 'Version' in versions:
+            upstream_browser_key = 'Version'
+            qt_key = 'Qt'
+        else:
+            raise ValueError("Invalid upstream browser key: {}".format(ua))
+
+        upstream_browser_version = versions[upstream_browser_key]
+
+        return cls(os_info=os_info,
+                   webkit_version=webkit_version,
+                   upstream_browser_key=upstream_browser_key,
+                   upstream_browser_version=upstream_browser_version,
+                   qt_key=qt_key)
 
 
 class AttributeInfo:
@@ -181,6 +227,34 @@ class AbstractSettings:
         for setting in (list(self._ATTRIBUTES) + list(self._FONT_SIZES) +
                         list(self._FONT_FAMILIES)):
             self.update_setting(setting)
+
+
+@debugcachestats.register(name='user agent cache')
+@functools.lru_cache()
+def _format_user_agent(template: str, backend: usertypes.Backend) -> str:
+    if backend == usertypes.Backend.QtWebEngine:
+        from qutebrowser.browser.webengine import webenginesettings
+        parsed = webenginesettings.parsed_user_agent
+    else:
+        from qutebrowser.browser.webkit import webkitsettings
+        parsed = webkitsettings.parsed_user_agent
+
+    assert parsed is not None
+
+    return template.format(
+        os_info=parsed.os_info,
+        webkit_version=parsed.webkit_version,
+        qt_key=parsed.qt_key,
+        qt_version=qVersion(),
+        upstream_browser_key=parsed.upstream_browser_key,
+        upstream_browser_version=parsed.upstream_browser_version,
+        qutebrowser_version=qutebrowser.__version__,
+    )
+
+
+def user_agent(url: QUrl = None) -> str:
+    template = config.instance.get('content.headers.user_agent', url=url)
+    return _format_user_agent(template=template, backend=objects.backend)
 
 
 def init(args: argparse.Namespace) -> None:
