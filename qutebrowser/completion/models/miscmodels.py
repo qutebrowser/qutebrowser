@@ -125,9 +125,8 @@ def _buffer(skip_win_id=None):
         tabs = []
         for idx in range(tabbed_browser.widget.count()):
             tab = tabbed_browser.widget.widget(idx)
-            label = (str(win_id + 1) if tabs_are_windows
-                     else "{}/{}".format(win_id, idx + 1))
-            tabs.append((label, tab.url().toDisplayString(),
+            tabs.append(("{}/{}".format(win_id, idx + 1),
+                         tab.url().toDisplayString(),
                          tabbed_browser.widget.page_title(idx)))
         if tabs_are_windows:
             windows += tabs

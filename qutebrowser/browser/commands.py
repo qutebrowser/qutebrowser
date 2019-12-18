@@ -852,8 +852,6 @@ class CommandDispatcher:
         if len(index_parts) == 2:
             win_id = int(index_parts[0])
             idx = int(index_parts[1])
-        elif len(index_parts) == 1 and config.val.tabs.tabs_are_windows:
-            win_id, idx = int(index_parts[0]) - 1, 1
         elif len(index_parts) == 1:
             idx = int(index_parts[0])
             active_win = QApplication.activeWindow()
