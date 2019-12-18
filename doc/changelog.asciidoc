@@ -68,6 +68,9 @@ Changed
 Fixed
 ~~~~~
 
+- Downloads (e.g. via `:download`) now see the same user agent header as
+  webpages, which fixes cases where overly restrictive servers/WAFs closed the
+  connection before.
 - dictcli.py now works correctly on Windows again.
 - The logic for `:restart` has been revisited which should fix issues with
   relative basedirs.

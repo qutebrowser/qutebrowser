@@ -682,10 +682,6 @@ class WebKitTabPrivate(browsertab.AbstractTabPrivate):
     def networkaccessmanager(self):
         return self._widget.page().networkAccessManager()
 
-    def user_agent(self):
-        page = self._widget.page()
-        return page.userAgentForUrl(self._tab.url())
-
     def clear_ssl_errors(self):
         self.networkaccessmanager().clear_all_ssl_errors()
 

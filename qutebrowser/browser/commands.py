@@ -1269,7 +1269,6 @@ class CommandDispatcher:
             target = downloads.FileDownloadTarget(dest)
 
         tab = self._current_widget()
-        user_agent = tab.private_api.user_agent()
 
         if url:
             if mhtml_:
@@ -1277,7 +1276,7 @@ class CommandDispatcher:
                                             "page as mhtml.")
             url = urlutils.qurl_from_user_input(url)
             urlutils.raise_cmdexc_if_invalid(url)
-            download_manager.get(url, user_agent=user_agent, target=target)
+            download_manager.get(url, target=target)
         elif mhtml_:
             tab = self._current_widget()
             if tab.backend == usertypes.Backend.QtWebEngine:
@@ -1298,7 +1297,6 @@ class CommandDispatcher:
 
             download_manager.get(
                 self._current_url(),
-                user_agent=user_agent,
                 qnam=qnam,
                 target=target,
                 suggested_fn=suggested_fn
