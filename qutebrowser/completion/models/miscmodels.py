@@ -113,7 +113,8 @@ def _buffer(skip_win_id=None):
     model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
 
     tabs_are_windows = config.val.tabs.tabs_are_windows
-    windows = []  # list storing single-tab windows when tabs_are_windows
+    # list storing all single-tabbed windows when tabs_are_windows
+    windows = []  # type: typing.List[typing.Tuple[str, str, str]]
 
     for win_id in objreg.window_registry:
         if skip_win_id is not None and win_id == skip_win_id:
@@ -122,7 +123,7 @@ def _buffer(skip_win_id=None):
                                     window=win_id)
         if tabbed_browser.shutting_down:
             continue
-        tabs = []
+        tabs = []  # type: typing.List[typing.Tuple[str, str, str]]
         for idx in range(tabbed_browser.widget.count()):
             tab = tabbed_browser.widget.widget(idx)
             tabs.append(("{}/{}".format(win_id, idx + 1),
