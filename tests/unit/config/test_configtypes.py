@@ -1838,8 +1838,12 @@ class TestDirectory:
 class TestFormatString:
 
     @pytest.fixture
-    def typ(self):
-        return configtypes.FormatString(fields=('foo', 'bar'))
+    def klass(self):
+        return configtypes.FormatString
+
+    @pytest.fixture
+    def typ(self, klass):
+        return klass(fields=('foo', 'bar'))
 
     @pytest.mark.parametrize('val', [
         'foo bar baz',
@@ -1856,6 +1860,14 @@ class TestFormatString:
     def test_to_py_invalid(self, typ, val):
         with pytest.raises(configexc.ValidationError):
             typ.to_py(val)
+
+    @pytest.mark.parametrize('value', [
+        None,
+        ['one', 'two'],
+        [('1', 'one'), ('2', 'two')],
+    ])
+    def test_complete(self, klass, value):
+        assert klass(fields=('foo'), completions=value).complete() == value
 
 
 class TestShellCommand:

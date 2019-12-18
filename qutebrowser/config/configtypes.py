@@ -1530,12 +1530,19 @@ class Directory(BaseType):
 
 class FormatString(BaseType):
 
-    """A string with placeholders."""
+    """A string with placeholders.
+
+    Attributes:
+        fields: Which replacements are allowed in the format string.
+        completions: completions to be used, or None
+    """
 
     def __init__(self, fields: typing.Iterable[str],
-                 none_ok: bool = False) -> None:
+                 none_ok: bool = False,
+                 completions: _Completions = None) -> None:
         super().__init__(none_ok)
         self.fields = fields
+        self._completions = completions
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
@@ -1553,6 +1560,12 @@ class FormatString(BaseType):
             raise configexc.ValidationError(value, str(e))
 
         return value
+
+    def complete(self) -> _Completions:
+        if self._completions is not None:
+            return self._completions
+        else:
+            return super().complete()
 
     def __repr__(self) -> str:
         return utils.get_repr(self, none_ok=self.none_ok, fields=self.fields)
