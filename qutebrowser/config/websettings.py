@@ -269,7 +269,8 @@ def init(args: argparse.Namespace) -> None:
     # Make sure special URLs always get JS support
     for pattern in ['file://*', 'chrome://*/*', 'qute://*/*']:
         config.instance.set_obj('content.javascript.enabled', True,
-                                pattern=urlmatch.UrlPattern(pattern))
+                                pattern=urlmatch.UrlPattern(pattern),
+                                hide_userconfig=True)
 
 
 @pyqtSlot()

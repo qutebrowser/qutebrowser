@@ -90,3 +90,15 @@ def test_user_agent(monkeypatch, config_stub, qapp):
 
     config_stub.val.content.headers.user_agent = 'test2 {qt_key}'
     assert websettings.user_agent() == 'test2 QtWebEngine'
+
+
+def test_config_init(request, monkeypatch, config_stub):
+    if request.config.webengine:
+        from qutebrowser.browser.webengine import webenginesettings
+        monkeypatch.setattr(webenginesettings, 'init', lambda _args: None)
+    else:
+        from qutebrowser.browser.webkit import webkitsettings
+        monkeypatch.setattr(webkitsettings, 'init', lambda _args: None)
+
+    websettings.init(args=None)
+    assert config_stub.dump_userconfig() == '<Default configuration>'

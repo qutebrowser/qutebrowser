@@ -62,6 +62,14 @@ def values(opt, pattern):
 
 
 @pytest.fixture
+def mixed_values(opt, pattern):
+    scoped_values = [configutils.ScopedValue('global value', None),
+                     configutils.ScopedValue('example value', pattern,
+                                             hide_userconfig=True)]
+    return configutils.Values(opt, scoped_values)
+
+
+@pytest.fixture
 def empty_values(opt):
     return configutils.Values(opt)
 
@@ -74,8 +82,21 @@ def test_str(values):
     assert str(values) == '\n'.join(expected)
 
 
-def test_str_empty(empty_values):
-    assert str(empty_values) == 'example.option: <unchanged>'
+def test_str_mixed(mixed_values):
+    expected = [
+        'example.option = global value',
+        '*://www.example.com/: example.option = example value',
+    ]
+    assert str(mixed_values) == '\n'.join(expected)
+
+
+@pytest.mark.parametrize('include_hidden, expected', [
+    (True, ['example.option = global value',
+            '*://www.example.com/: example.option = example value']),
+    (False, ['example.option = global value']),
+])
+def test_dump(mixed_values, include_hidden, expected):
+    assert mixed_values.dump(include_hidden=include_hidden) == expected
 
 
 def test_bool(values, empty_values):

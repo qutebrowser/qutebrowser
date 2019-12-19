@@ -78,6 +78,8 @@ Fixed
   QtWebKit.
 - Workaround for a Qt bug where a page never finishes loading with a
   non-overridable TLS error (e.g. due to HSTS).
+- The `qute://configdiff` page now doesn't show built-in settings (e.g.
+  javascript being enabled for `qute://` and `chrome://` pages) anymore.
 - Various improvements for URL/searchengine detection:
   - Strings with a dot but with characters not allowed in a URL (e.g. an
     underscore) are now not treated as URL anymore.
