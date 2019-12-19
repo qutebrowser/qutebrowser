@@ -288,6 +288,10 @@ def is_url(urlstr: str) -> bool:
         # URLs with explicit schemes are always URLs
         log.url.debug("Contains explicit scheme")
         url = True
+    elif autosearch == 'no-url-scheme' and not _has_explicit_scheme(qurl):
+        # When autosearch=no-url-scheme, URLs must contain schemes to be valid
+        log.url.debug("No scheme in URL while using no-url-scheme.")
+        url = False
     elif qurl_userinput.host() in ['localhost', '127.0.0.1', '::1']:
         log.url.debug("Is localhost.")
         url = True

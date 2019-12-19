@@ -1932,6 +1932,7 @@ url.auto_search:
       - naive: Use simple/naive check.
       - dns: Use DNS requests (might be slow!).
       - never: Never search automatically.
+      - no-url-scheme: Auto search unless URL contains scheme.
   default: naive
   desc: What search to start when something else than a URL is entered.
 
