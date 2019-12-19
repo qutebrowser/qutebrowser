@@ -1003,9 +1003,9 @@ def test_version_output(params, stubs, monkeypatch, config_stub):
     template = textwrap.dedent("""
         qutebrowser vVERSION{git_commit}
         Backend: {backend}
+        Qt: {qt}
 
         PYTHON IMPLEMENTATION: PYTHON VERSION
-        Qt: {qt}
         PyQt: PYQT VERSION
 
         MODULE VERSION 1

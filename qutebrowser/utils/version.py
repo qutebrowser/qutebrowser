@@ -419,13 +419,13 @@ def version() -> str:
     if gitver is not None:
         lines.append("Git commit: {}".format(gitver))
 
-    lines.append("Backend: {}".format(_backend()))
+    lines.append('Backend: {}'.format(_backend()))
+    lines.append('Qt: {}'.format(earlyinit.qt_version()))
 
     lines += [
         '',
         '{}: {}'.format(platform.python_implementation(),
                         platform.python_version()),
-        'Qt: {}'.format(earlyinit.qt_version()),
         'PyQt: {}'.format(PYQT_VERSION_STR),
         '',
     ]
