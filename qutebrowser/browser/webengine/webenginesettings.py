@@ -35,7 +35,8 @@ from PyQt5.QtWebEngineWidgets import (QWebEngineSettings, QWebEngineProfile,
 from qutebrowser.browser.webengine import spell, webenginequtescheme
 from qutebrowser.config import config, websettings
 from qutebrowser.config.websettings import AttributeInfo as Attr
-from qutebrowser.utils import utils, standarddir, qtutils, message, log
+from qutebrowser.utils import (utils, standarddir, qtutils, message, log,
+                               urlmatch)
 
 # The default QWebEngineProfile
 default_profile = typing.cast(QWebEngineProfile, None)
@@ -329,6 +330,41 @@ def _init_profiles():
         private_profile.setter.init_profile()
 
 
+def _init_site_specific_quirks():
+    if not config.val.content.site_specific_quirks:
+        return
+
+    # default_ua = ("Mozilla/5.0 ({os_info}) "
+    #               "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
+    #               "{qt_key}/{qt_version} "
+    #               "{upstream_browser_key}/{upstream_browser_version} "
+    #               "Safari/{webkit_version}")
+    no_qtwe_ua = ("Mozilla/5.0 ({os_info}) "
+                  "AppleWebKit/{webkit_version} (KHTML, like Gecko) "
+                  "{upstream_browser_key}/{upstream_browser_version} "
+                  "Safari/{webkit_version}")
+    firefox_ua = "Mozilla/5.0 ({os_info}; rv:71.0) Gecko/20100101 Firefox/71.0"
+    new_chrome_ua = ("Mozilla/5.0 ({os_info}) "
+                     "AppleWebKit/537.36 (KHTML, like Gecko) "
+                     "Chrome/99 "
+                     "Safari/537.36")
+
+    user_agents = {
+        'https://web.whatsapp.com/': no_qtwe_ua,
+        'https://accounts.google.com/ServiceLogin': firefox_ua,
+        'https://*.slack.com/*': new_chrome_ua,
+        'https://docs.google.com/*': firefox_ua,
+    }
+
+    if not qtutils.version_check('5.9'):
+        user_agents['https://www.dell.com/support/*'] = new_chrome_ua
+
+    for pattern, ua in user_agents.items():
+        config.instance.set_obj('content.headers.user_agent', ua,
+                                pattern=urlmatch.UrlPattern(pattern),
+                                hide_userconfig=True)
+
+
 def init(args):
     """Initialize the global QWebSettings."""
     if (args.enable_webengine_inspector and
@@ -344,6 +380,8 @@ def init(args):
     global global_settings
     global_settings = WebEngineSettings(_SettingsWrapper())
     global_settings.init_settings()
+
+    _init_site_specific_quirks()
 
 
 def shutdown():

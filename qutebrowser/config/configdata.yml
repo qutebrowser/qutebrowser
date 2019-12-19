@@ -395,6 +395,15 @@ content.frame_flattening:
 
     This will flatten all the frames to become one scrollable page.
 
+content.site_specific_quirks:
+  default: true
+  restart: true
+  type: Bool
+  desc: 'Enable quirks (such as faked user agent headers) needed to get
+      specific sites to work properly.'
+
+# emacs: '
+
 content.geolocation:
   default: ask
   type: BoolAsk

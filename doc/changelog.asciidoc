@@ -28,6 +28,9 @@ Added
   - `fonts.contextmenu`
   - `colors.contextmenu.bg`
   - `colors.contextmenu.fg`
+- New `content.site_specific_quirks` setting which enables workarounds for
+  websites with broken user agent parsing (enabled by default, see the "Fixed"
+  section for fixed websites).
 
 Changed
 ~~~~~~~
@@ -94,6 +97,12 @@ Fixed
   - `url.open_base_url = True` together with `url.auto_search = 'never'` is now
     handled correctly.
   - Fixed crash when a search engine URL turns out to be invalid.
+- Site specific quirks which work around some broken websites:
+  - WhatsApp Web
+  - Google Accounts
+  - Slack (with older QtWebEngine versions)
+  - Dell.com support pages (with Qt 5.7)
+  - Google Docs (fixes broken IME/compose key)
 
 v1.8.3 (2019-12-05)
 -------------------
