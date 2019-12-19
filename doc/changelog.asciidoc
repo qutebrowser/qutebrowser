@@ -61,6 +61,9 @@ Changed
   a timeout) on PyQt 5.13.1 and newer.
 - The `:spawn` command has a new `-m` / `--output-messages` argument which
   shows qutebrowser messages based on a command's standard output/error.
+- If JavaScript is disabled globally, `file://*` now doesn't automatically have
+  it enabled anymore. Run `:set -u file://* content.javascript.enabled true` to
+  restore the previous behavior.
 - Performance improvements for the following areas:
   * Adding settings with URL patterns
   * Matching of settings using URL patterns

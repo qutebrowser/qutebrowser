@@ -267,7 +267,7 @@ def init(args: argparse.Namespace) -> None:
         webkitsettings.init(args)
 
     # Make sure special URLs always get JS support
-    for pattern in ['file://*', 'chrome://*/*', 'qute://*/*']:
+    for pattern in ['chrome://*/*', 'qute://*/*']:
         config.instance.set_obj('content.javascript.enabled', True,
                                 pattern=urlmatch.UrlPattern(pattern),
                                 hide_userconfig=True)
