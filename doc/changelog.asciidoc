@@ -21,6 +21,7 @@ v1.9.0 (unreleased)
 Added
 ~~~~~
 
+- Initial support for Qt 5.14.
 - New `tabs.tooltips` setting which can be used to disable hover tooltips for
   tabs.
 - New settings to configure the appearance of context menus:
