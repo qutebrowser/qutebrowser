@@ -28,11 +28,20 @@ import operator
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlmatch, urlutils, usertypes
+from qutebrowser.utils import utils, urlmatch, usertypes
 from qutebrowser.config import configexc
 
 if typing.TYPE_CHECKING:
     from qutebrowser.config import configdata
+
+
+def _widened_hostnames(hostname: str) -> typing.Iterable[str]:
+    """A generator for widening string hostnames.
+
+    Ex: a.c.foo -> [a.c.foo, c.foo, foo]"""
+    while hostname:
+        yield hostname
+        hostname = hostname.partition(".")[-1]
 
 
 class ScopedValue:
@@ -216,7 +225,7 @@ class Values:
             return self._get_fallback(fallback)
 
         candidates = []  # type: typing.List[ScopedValue]
-        widened_hosts = urlutils.widened_hostnames(url.host())
+        widened_hosts = _widened_hostnames(url.host())
         # We must check the 'None' key as well, in case any patterns that
         # did not have a domain match.
         for host in itertools.chain(widened_hosts, [None]):
