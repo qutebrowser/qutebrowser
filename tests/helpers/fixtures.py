@@ -43,7 +43,7 @@ from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 from qutebrowser.config import (config, configdata, configtypes, configexc,
-                                configfiles, configcache)
+                                configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
 from qutebrowser.browser import greasemonkey, history, qutescheme
@@ -319,6 +319,9 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
         pass
 
     conf.val = container  # For easier use in tests
+
+    stylesheet.init()
+
     return conf
 
 

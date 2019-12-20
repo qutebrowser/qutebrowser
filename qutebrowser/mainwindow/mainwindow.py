@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QApplication, QSizePolicy
 
 from qutebrowser.commands import runners
 from qutebrowser.api import cmdutils
-from qutebrowser.config import config, configfiles
+from qutebrowser.config import config, configfiles, stylesheet
 from qutebrowser.utils import (message, log, usertypes, qtutils, objreg, utils,
                                jinja, debug)
 from qutebrowser.mainwindow import messageview, prompt
@@ -269,7 +269,7 @@ class MainWindow(QWidget):
         self._set_decoration(config.val.window.hide_decoration)
 
         self.state_before_fullscreen = self.windowState()
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
 
     def _init_geometry(self, geometry):
         """Initialize the window geometry or load it from disk."""

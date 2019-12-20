@@ -23,7 +23,7 @@ import unittest.mock
 import functools
 
 import pytest
-from PyQt5.QtCore import QObject, QUrl
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor
 
 from qutebrowser.config import config, configdata, configexc
@@ -766,57 +766,3 @@ class TestContainer:
         with pytest.raises(TypeError,
                            match="Can't use pattern without configapi!"):
             config.ConfigContainer(config_stub, pattern=pattern)
-
-
-class StyleObj(QObject):
-
-    def __init__(self, stylesheet=None, parent=None):
-        super().__init__(parent)
-        if stylesheet is not None:
-            self.STYLESHEET = stylesheet  # noqa: N801,N806 pylint: disable=invalid-name
-        self.rendered_stylesheet = None
-
-    def setStyleSheet(self, stylesheet):
-        self.rendered_stylesheet = stylesheet
-
-
-def test_get_stylesheet(config_stub):
-    config_stub.val.colors.hints.fg = 'magenta'
-    observer = config.StyleSheetObserver(
-        StyleObj(), stylesheet="{{ conf.colors.hints.fg }}", update=False)
-    assert observer._get_stylesheet() == 'magenta'
-
-
-@pytest.mark.parametrize('delete', [True, False])
-@pytest.mark.parametrize('stylesheet_param', [True, False])
-@pytest.mark.parametrize('update', [True, False])
-def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
-                                 config_stub, caplog):
-    config_stub.val.colors.hints.fg = 'magenta'
-    stylesheet = "{{ conf.colors.hints.fg }}"
-
-    with caplog.at_level(9):  # VDEBUG
-        if stylesheet_param:
-            obj = StyleObj()
-            config.set_register_stylesheet(obj, stylesheet=stylesheet,
-                                           update=update)
-        else:
-            obj = StyleObj(stylesheet)
-            config.set_register_stylesheet(obj, update=update)
-
-    assert caplog.messages[-1] == 'stylesheet for StyleObj: magenta'
-
-    assert obj.rendered_stylesheet == 'magenta'
-
-    if delete:
-        with qtbot.waitSignal(obj.destroyed):
-            obj.deleteLater()
-
-    config_stub.val.colors.hints.fg = 'yellow'
-
-    if delete or not update:
-        expected = 'magenta'
-    else:
-        expected = 'yellow'
-
-    assert obj.rendered_stylesheet == expected

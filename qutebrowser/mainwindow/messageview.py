@@ -24,7 +24,7 @@ import typing
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QTimer, Qt, QSize
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
 from qutebrowser.utils import usertypes
 
 
@@ -36,19 +36,19 @@ class Message(QLabel):
         super().__init__(text, parent)
         self.replace = replace
         self.setAttribute(Qt.WA_StyledBackground, True)
-        stylesheet = """
+        qss = """
             padding-top: 2px;
             padding-bottom: 2px;
         """
         if level == usertypes.MessageLevel.error:
-            stylesheet += """
+            qss += """
                 background-color: {{ conf.colors.messages.error.bg }};
                 color: {{ conf.colors.messages.error.fg }};
                 font: {{ conf.fonts.messages.error }};
                 border-bottom: 1px solid {{ conf.colors.messages.error.border }};
             """
         elif level == usertypes.MessageLevel.warning:
-            stylesheet += """
+            qss += """
                 background-color: {{ conf.colors.messages.warning.bg }};
                 color: {{ conf.colors.messages.warning.fg }};
                 font: {{ conf.fonts.messages.warning }};
@@ -56,7 +56,7 @@ class Message(QLabel):
                     1px solid {{ conf.colors.messages.warning.border }};
             """
         elif level == usertypes.MessageLevel.info:
-            stylesheet += """
+            qss += """
                 background-color: {{ conf.colors.messages.info.bg }};
                 color: {{ conf.colors.messages.info.fg }};
                 font: {{ conf.fonts.messages.info }};
@@ -66,8 +66,7 @@ class Message(QLabel):
             raise ValueError("Invalid level {!r}".format(level))
         # We don't bother with set_register_stylesheet here as it's short-lived
         # anyways.
-        config.set_register_stylesheet(self, stylesheet=stylesheet,
-                                       update=False)
+        stylesheet.set_register(self, qss, update=False)
 
 
 class MessageView(QWidget):
