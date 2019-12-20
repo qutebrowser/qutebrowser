@@ -82,6 +82,10 @@ def test_str(values):
     assert str(values) == '\n'.join(expected)
 
 
+def test_str_empty(empty_values):
+    assert str(empty_values) == 'example.option: <unchanged>'
+
+
 def test_str_mixed(mixed_values):
     expected = [
         'example.option = global value',
