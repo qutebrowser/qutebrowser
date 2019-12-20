@@ -495,7 +495,7 @@ content.headers.user_agent:
           Gecko) Chrome/76.0.3809.132 Safari/537.36"
         - Chrome 76 Linux
   supports_pattern: true
-  desc: >-
+  desc: |
     User agent to send.
 
     The following placeholders are defined:
@@ -1029,7 +1029,7 @@ editor.command:
     name: ShellCommand
     placeholder: true
   default: ["gvim", "-f", "{file}", "-c", "normal {line}G{column0}l"]
-  desc: >-
+  desc: |
     Editor (and arguments) to use for the `open-editor` command.
     The following placeholders are defined:
 

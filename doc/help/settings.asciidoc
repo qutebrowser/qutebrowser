@@ -181,7 +181,7 @@
 |<<downloads.open_dispatcher,downloads.open_dispatcher>>|Default program used to open downloads.
 |<<downloads.position,downloads.position>>|Where to show the downloaded files.
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
-|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
+|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
 |<<fonts.completion.category,fonts.completion.category>>|Font used in the completion categories.
 |<<fonts.completion.entry,fonts.completion.entry>>|Font used in the completion widget.
@@ -1841,12 +1841,23 @@ Default: +pass:[same-domain]+
 [[content.headers.user_agent]]
 === content.headers.user_agent
 User agent to send.
+
 The following placeholders are defined:
-* `{os_info}`: Something like "X11; Linux x86_64". * `{webkit_version}`: The underlying WebKit version (set to a fixed value
+
+* `{os_info}`: Something like "X11; Linux x86_64".
+* `{webkit_version}`: The underlying WebKit version (set to a fixed value
   with QtWebEngine).
-* `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine. * `{qt_version}`: The underlying Qt version. * `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for QtWebEngine. * `{upstream_browser_version}`: The corresponding Safari/Chrome version. * `{qutebrowser_version}`: The currently running qutebrowser version.
-The default value is equal to the unchanged user agent of QtWebKit/QtWebEngine.
+* `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine.
+* `{qt_version}`: The underlying Qt version.
+* `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for QtWebEngine.
+* `{upstream_browser_version}`: The corresponding Safari/Chrome version.
+* `{qutebrowser_version}`: The currently running qutebrowser version.
+
+The default value is equal to the unchanged user agent of
+QtWebKit/QtWebEngine.
+
 Note that the value read from JavaScript is always the global value.
+
 
 This setting supports URL patterns.
 
@@ -2360,8 +2371,15 @@ Default: +pass:[-1]+
 
 [[editor.command]]
 === editor.command
-Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
-* `{file}`: Filename of the file to be edited. * `{line}`: Line in which the caret is found in the text. * `{column}`: Column in which the caret is found in the text. * `{line0}`: Same as `{line}`, but starting from index 0. * `{column0}`: Same as `{column}`, but starting from index 0.
+Editor (and arguments) to use for the `open-editor` command.
+The following placeholders are defined:
+
+* `{file}`: Filename of the file to be edited.
+* `{line}`: Line in which the caret is found in the text.
+* `{column}`: Column in which the caret is found in the text.
+* `{line0}`: Same as `{line}`, but starting from index 0.
+* `{column0}`: Same as `{column}`, but starting from index 0.
+
 
 Type: <<types,ShellCommand>>
 
