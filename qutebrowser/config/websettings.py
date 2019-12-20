@@ -29,7 +29,7 @@ from PyQt5.QtCore import QUrl, pyqtSlot, qVersion
 from PyQt5.QtGui import QFont
 
 import qutebrowser
-from qutebrowser.config import config, configutils
+from qutebrowser.config import config
 from qutebrowser.utils import log, usertypes, urlmatch, qtutils
 from qutebrowser.misc import objects, debugcachestats
 
@@ -106,7 +106,7 @@ class AbstractSettings:
     def set_attribute(self, name: str, value: typing.Any) -> bool:
         """Set the given QWebSettings/QWebEngineSettings attribute.
 
-        If the value is configutils.UNSET, the value is reset instead.
+        If the value is usertypes.UNSET, the value is reset instead.
 
         Return:
             True if there was a change, False otherwise.
@@ -115,7 +115,7 @@ class AbstractSettings:
 
         info = self._ATTRIBUTES[name]
         for attribute in info.attributes:
-            if value is configutils.UNSET:
+            if value is usertypes.UNSET:
                 self._settings.resetAttribute(attribute)
                 new_value = self.test_attribute(name)
             else:
@@ -139,7 +139,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert value is not configutils.UNSET  # type: ignore
+        assert value is not usertypes.UNSET  # type: ignore
         family = self._FONT_SIZES[name]
         old_value = self._settings.fontSize(family)
         self._settings.setFontSize(family, value)
@@ -154,7 +154,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert value is not configutils.UNSET  # type: ignore
+        assert value is not usertypes.UNSET  # type: ignore
         family = self._FONT_FAMILIES[name]
         if value is None:
             font = QFont()
@@ -172,7 +172,7 @@ class AbstractSettings:
         Return:
             True if there was a change, False otherwise.
         """
-        assert encoding is not configutils.UNSET  # type: ignore
+        assert encoding is not usertypes.UNSET  # type: ignore
         old_value = self._settings.defaultTextEncoding()
         self._settings.setDefaultTextEncoding(encoding)
         return old_value != encoding

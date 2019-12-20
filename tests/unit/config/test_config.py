@@ -26,7 +26,7 @@ import pytest
 from PyQt5.QtCore import QObject, QUrl
 from PyQt5.QtGui import QColor
 
-from qutebrowser.config import config, configdata, configexc, configutils
+from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
@@ -410,7 +410,7 @@ class TestConfig:
 
         assert conf.get(name) == 'always'
         if save_yaml:
-            assert yaml_value(name) is configutils.UNSET
+            assert yaml_value(name) is usertypes.UNSET
         else:
             assert yaml_value(name) == 'never'
 
@@ -439,8 +439,8 @@ class TestConfig:
         assert options == {name1, name2}
 
         if save_yaml:
-            assert yaml_value(name1) is configutils.UNSET
-            assert yaml_value(name2) is configutils.UNSET
+            assert yaml_value(name1) is usertypes.UNSET
+            assert yaml_value(name2) is usertypes.UNSET
         else:
             assert yaml_value(name1) == 'never'
             assert yaml_value(name2) is True
@@ -482,7 +482,7 @@ class TestConfig:
 
     @pytest.mark.parametrize('fallback, expected', [
         (True, True),
-        (False, configutils.UNSET)
+        (False, usertypes.UNSET)
     ])
     def test_get_for_url_fallback(self, conf, fallback, expected):
         """Test conf.get() with a URL and fallback."""
@@ -617,7 +617,7 @@ class TestConfig:
         pattern = urlmatch.UrlPattern('*://example.com')
         name = 'content.javascript.enabled'
         value = conf.get_obj_for_pattern(name, pattern=pattern)
-        assert value is configutils.UNSET
+        assert value is usertypes.UNSET
 
     def test_get_str(self, conf):
         assert conf.get_str('content.plugins') == 'false'
@@ -637,7 +637,7 @@ class TestConfig:
         if save_yaml:
             assert yaml_value(option) is True
         else:
-            assert yaml_value(option) is configutils.UNSET
+            assert yaml_value(option) is usertypes.UNSET
 
     @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
     def test_set_invalid(self, conf, qtbot, method):
@@ -669,7 +669,7 @@ class TestConfig:
                 meth(option, value, save_yaml=True)
 
         assert not conf._values[option]
-        assert yaml_value(option) is configutils.UNSET
+        assert yaml_value(option) is usertypes.UNSET
 
     @pytest.mark.parametrize('method, value', [
         ('set_obj', {}),

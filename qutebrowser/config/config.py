@@ -397,7 +397,7 @@ class Config(QObject):
         """Get the given setting as object (for YAML/config.py).
 
         This gets the overridden value for a given pattern, or
-        configutils.UNSET if no such override exists.
+        usertypes.UNSET if no such override exists.
         """
         self.ensure_has_opt(name)
         value = self._values[name].get_for_pattern(pattern, fallback=False)
@@ -434,7 +434,7 @@ class Config(QObject):
         """Get the given setting as string.
 
         If a pattern is given, get the setting for the given pattern or
-        configutils.UNSET.
+        usertypes.UNSET.
         """
         opt = self.get_opt(name)
         values = self._values[name]

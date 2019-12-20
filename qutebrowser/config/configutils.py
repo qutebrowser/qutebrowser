@@ -28,24 +28,11 @@ import operator
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlmatch, urlutils
+from qutebrowser.utils import utils, urlmatch, urlutils, usertypes
 from qutebrowser.config import configexc
 
 if typing.TYPE_CHECKING:
     from qutebrowser.config import configdata
-
-
-class Unset:
-
-    """Sentinel object."""
-
-    __slots__ = ()
-
-    def __repr__(self) -> str:
-        return '<UNSET>'
-
-
-UNSET = Unset()
 
 
 class ScopedValue:
@@ -213,7 +200,7 @@ class Values:
         if fallback:
             return self.opt.default
         else:
-            return UNSET
+            return usertypes.UNSET
 
     def get_for_url(self, url: QUrl = None, *,
                     fallback: bool = True) -> typing.Any:
@@ -222,7 +209,7 @@ class Values:
         This first tries to find a value matching the URL (if given).
         If there's no match:
           With fallback=True, the global/default setting is returned.
-          With fallback=False, UNSET is returned.
+          With fallback=False, usertypes.UNSET is returned.
         """
         self._check_pattern_support(url)
         if url is None:
@@ -243,7 +230,7 @@ class Values:
             return scoped.value
 
         if not fallback:
-            return UNSET
+            return usertypes.UNSET
 
         return self._get_fallback(fallback)
 
@@ -256,7 +243,7 @@ class Values:
 
         If there's no match:
           With fallback=True, the global/default setting is returned.
-          With fallback=False, UNSET is returned.
+          With fallback=False, usertypes.UNSET is returned.
         """
         self._check_pattern_support(pattern)
         if pattern is not None:
@@ -264,6 +251,6 @@ class Values:
                 return self._vmap[pattern].value
 
             if not fallback:
-                return UNSET
+                return usertypes.UNSET
 
         return self._get_fallback(fallback)

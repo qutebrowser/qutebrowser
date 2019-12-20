@@ -33,14 +33,17 @@ from qutebrowser.utils import log, qtutils, utils
 _T = typing.TypeVar('_T')
 
 
-class UnsetObject:
+class Unset:
 
     """Class for an unset object."""
 
     __slots__ = ()
 
+    def __repr__(self) -> str:
+        return '<UNSET>'
 
-UNSET = UnsetObject()
+
+UNSET = Unset()
 
 
 class NeighborList(typing.Sequence[_T]):
@@ -60,7 +63,7 @@ class NeighborList(typing.Sequence[_T]):
     Modes = enum.Enum('Modes', ['edge', 'exception'])
 
     def __init__(self, items: typing.Sequence[_T] = None,
-                 default: typing.Union[_T, UnsetObject] = UNSET,
+                 default: typing.Union[_T, Unset] = UNSET,
                  mode: Modes = Modes.exception) -> None:
         """Constructor.
 
@@ -79,7 +82,7 @@ class NeighborList(typing.Sequence[_T]):
             self._items = list(items)
         self._default = default
 
-        if not isinstance(default, UnsetObject):
+        if not isinstance(default, Unset):
             idx = self._items.index(default)
             self._idx = idx  # type: typing.Optional[int]
         else:
