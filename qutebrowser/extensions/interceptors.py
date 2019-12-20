@@ -52,6 +52,9 @@ class ResourceType(enum.Enum):
     service_worker = 15
     csp_report = 16
     plugin_resource = 17
+    # 18 is "preload", deprecated in Chromium
+    preload_main_frame = 19
+    preload_sub_frame = 20
     unknown = 255
 
 

@@ -29,11 +29,15 @@ from PyQt5.QtWebEngineCore import QWebEngineUrlRequestInfo
 from qutebrowser.browser.webengine import interceptor
 
 
-class TestWebengineInterceptor:
+def test_no_missing_resource_types():
+    request_interceptor = interceptor.RequestInterceptor()
+    qb_keys = request_interceptor._resource_types.keys()
+    qt_keys = {i for i in vars(QWebEngineUrlRequestInfo).values()
+               if isinstance(i, QWebEngineUrlRequestInfo.ResourceType)}
+    assert qt_keys == qb_keys
 
-    def test_requestinfo_dict_valid(self):
-        """Test that the RESOURCE_TYPES dict is not missing any values."""
-        qb_keys = interceptor.RequestInterceptor.RESOURCE_TYPES.keys()
-        qt_keys = {i for i in vars(QWebEngineUrlRequestInfo).values()
-                   if isinstance(i, QWebEngineUrlRequestInfo.ResourceType)}
-        assert qt_keys == qb_keys
+
+def test_resource_type_values():
+    request_interceptor = interceptor.RequestInterceptor()
+    for qt_value, qb_item in request_interceptor._resource_types.items():
+        assert qt_value == qb_item.value
