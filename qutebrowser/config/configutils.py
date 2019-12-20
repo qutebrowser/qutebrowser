@@ -106,8 +106,8 @@ class Values:
         self._domain_map = collections.defaultdict(set)  \
             # type: typing.Dict[typing.Optional[str], typing.Set[ScopedValue]]
 
-        for v in values:
-            self.add(value=v.value, pattern=v.pattern)
+        for scoped in values:
+            self._add_scoped(scoped)
 
     def __repr__(self) -> str:
         return utils.get_repr(self, opt=self.opt,
@@ -168,12 +168,17 @@ class Values:
         If hide_userconfig is given, the value is hidden from
         config.dump_userconfig() and thus qute://configdiff.
         """
-        self._check_pattern_support(pattern)
-        self.remove(pattern)
         scoped = ScopedValue(value, pattern, hide_userconfig=hide_userconfig)
-        self._vmap[pattern] = scoped
+        self._add_scoped(scoped)
 
-        host = pattern.host if pattern else None
+    def _add_scoped(self, scoped: ScopedValue) -> None:
+        """Add an existing ScopedValue object."""
+        self._check_pattern_support(scoped.pattern)
+        self.remove(scoped.pattern)
+
+        self._vmap[scoped.pattern] = scoped
+
+        host = scoped.pattern.host if scoped.pattern else None
         self._domain_map[host].add(scoped)
 
     def remove(self, pattern: urlmatch.UrlPattern = None) -> bool:
