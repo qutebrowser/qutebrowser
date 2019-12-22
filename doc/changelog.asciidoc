@@ -57,6 +57,8 @@ Changed
   a timeout) on PyQt 5.13.1 and newer.
 - The `:spawn` command has a new `-m` / `--output-messages` argument which
   shows qutebrowser messages based on a command's standard output/error.
+- Improved insert mode detection for some CodeMirror usages (e.g. in
+  JupyterLab and Jupyter Notebook).
 - Performance improvements for the following areas:
   * Adding settings with URL patterns
   * Matching of settings using URL patterns

@@ -218,6 +218,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
                     'kix-',  # Google Docs editor
                     'ace_'],  # http://ace.c9.io/
             'pre': ['CodeMirror'],
+            'span': ['cm-'],  # Jupyter Notebook
         }
         relevant_classes = classes[self.tag_name()]
         for klass in self.classes():
@@ -252,7 +253,7 @@ class AbstractWebElement(collections.abc.MutableMapping):
             return config.val.input.insert_mode.plugins and not strict
         elif tag == 'object':
             return self._is_editable_object() and not strict
-        elif tag in ['div', 'pre']:
+        elif tag in ['div', 'pre', 'span']:
             return self._is_editable_classes() and not strict
         return False
 
