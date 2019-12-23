@@ -96,15 +96,10 @@ Those were handled appropriately
 security bugs, please contact me directly at mail@qutebrowser.org, GPG ID
 https://www.the-compiler.org/pubkey.asc[0x916eb0c8fd55a072].
 
-Is there an adblocker?::
-    There is a host-based adblocker which takes /etc/hosts-like lists. A "real"
-    adblocker has a
-    https://www.reddit.com/r/programming/comments/25j41u/adblock_pluss_effect_on_firefoxs_memory_usage/chhpomw[big
-    impact] on browsing speed and
-    https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM
-    usage], so implementing support for AdBlockPlus-like lists is currently not
-    a priority.
-
+Is there an ad blocker?::
+    There is a simple host-based ad blocker that takes `/etc/hosts`-like lists. 
++
+More advanced ad blockers can have a big impact on browsing speed and https://blog.mozilla.org/nnethercote/2014/05/14/adblock-pluss-effect-on-firefoxs-memory-usage/[RAM usage], so implementing support for AdBlock Plus-like lists is not a priority.
 How can I get No-Script-like behavior?::
     To disable JavaScript by default:
 +
