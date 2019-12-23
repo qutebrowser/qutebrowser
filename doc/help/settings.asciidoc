@@ -138,7 +138,7 @@
 |<<content.headers.custom,content.headers.custom>>|Custom headers for qutebrowser HTTP requests.
 |<<content.headers.do_not_track,content.headers.do_not_track>>|Value to send in the `DNT` header.
 |<<content.headers.referer,content.headers.referer>>|When to send the Referer header.
-|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send. Unset to send the default.
+|<<content.headers.user_agent,content.headers.user_agent>>|User agent to send.
 |<<content.host_blocking.enabled,content.host_blocking.enabled>>|Enable host blocking.
 |<<content.host_blocking.lists,content.host_blocking.lists>>|List of URLs of lists which contain hosts to block.
 |<<content.host_blocking.whitelist,content.host_blocking.whitelist>>|A list of patterns that should always be loaded, despite being ad-blocked.
@@ -168,6 +168,7 @@
 |<<content.proxy,content.proxy>>|Proxy to use.
 |<<content.proxy_dns_requests,content.proxy_dns_requests>>|Send DNS requests over the configured proxy.
 |<<content.register_protocol_handler,content.register_protocol_handler>>|Allow websites to register protocol handlers via `navigator.registerProtocolHandler`.
+|<<content.site_specific_quirks,content.site_specific_quirks>>|Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
 |<<content.ssl_strict,content.ssl_strict>>|Validate SSL handshakes.
 |<<content.user_stylesheets,content.user_stylesheets>>|List of user stylesheet filenames to use.
 |<<content.webgl,content.webgl>>|Enable WebGL.
@@ -181,7 +182,7 @@
 |<<downloads.open_dispatcher,downloads.open_dispatcher>>|Default program used to open downloads.
 |<<downloads.position,downloads.position>>|Where to show the downloaded files.
 |<<downloads.remove_finished,downloads.remove_finished>>|Duration (in milliseconds) to wait before removing finished downloads.
-|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
+|<<editor.command,editor.command>>|Editor (and arguments) to use for the `open-editor` command.
 |<<editor.encoding,editor.encoding>>|Encoding to use for the editor.
 |<<fonts.completion.category,fonts.completion.category>>|Font used in the completion categories.
 |<<fonts.completion.entry,fonts.completion.entry>>|Font used in the completion widget.
@@ -1840,14 +1841,30 @@ Default: +pass:[same-domain]+
 
 [[content.headers.user_agent]]
 === content.headers.user_agent
-User agent to send. Unset to send the default.
+User agent to send.
+
+The following placeholders are defined:
+
+* `{os_info}`: Something like "X11; Linux x86_64".
+* `{webkit_version}`: The underlying WebKit version (set to a fixed value
+  with QtWebEngine).
+* `{qt_key}`: "Qt" for QtWebKit, "QtWebEngine" for QtWebEngine.
+* `{qt_version}`: The underlying Qt version.
+* `{upstream_browser_key}`: "Version" for QtWebKit, "Chrome" for QtWebEngine.
+* `{upstream_browser_version}`: The corresponding Safari/Chrome version.
+* `{qutebrowser_version}`: The currently running qutebrowser version.
+
+The default value is equal to the unchanged user agent of
+QtWebKit/QtWebEngine.
+
 Note that the value read from JavaScript is always the global value.
+
 
 This setting supports URL patterns.
 
-Type: <<types,String>>
+Type: <<types,FormatString>>
 
-Default: empty
+Default: +pass:[Mozilla/5.0 ({os_info}) AppleWebKit/{webkit_version} (KHTML, like Gecko) {qt_key}/{qt_version} {upstream_browser_key}/{upstream_browser_version} Safari/{webkit_version}]+
 
 [[content.host_blocking.enabled]]
 === content.host_blocking.enabled
@@ -2206,6 +2223,15 @@ On QtWebEngine, this setting requires Qt 5.11 or newer.
 
 On QtWebKit, this setting is unavailable.
 
+[[content.site_specific_quirks]]
+=== content.site_specific_quirks
+Enable quirks (such as faked user agent headers) needed to get specific sites to work properly.
+This setting requires a restart.
+
+Type: <<types,Bool>>
+
+Default: +pass:[true]+
+
 [[content.ssl_strict]]
 === content.ssl_strict
 Validate SSL handshakes.
@@ -2355,8 +2381,15 @@ Default: +pass:[-1]+
 
 [[editor.command]]
 === editor.command
-Editor (and arguments) to use for the `open-editor` command. The following placeholders are defined:
-* `{file}`: Filename of the file to be edited. * `{line}`: Line in which the caret is found in the text. * `{column}`: Column in which the caret is found in the text. * `{line0}`: Same as `{line}`, but starting from index 0. * `{column0}`: Same as `{column}`, but starting from index 0.
+Editor (and arguments) to use for the `open-editor` command.
+The following placeholders are defined:
+
+* `{file}`: Filename of the file to be edited.
+* `{line}`: Line in which the caret is found in the text.
+* `{column}`: Column in which the caret is found in the text.
+* `{line0}`: Same as `{line}`, but starting from index 0.
+* `{column0}`: Same as `{column}`, but starting from index 0.
+
 
 Type: <<types,ShellCommand>>
 

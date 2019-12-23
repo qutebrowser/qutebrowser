@@ -307,7 +307,8 @@ class Config(QObject):
     def _set_value(self,
                    opt: 'configdata.Option',
                    value: Any,
-                   pattern: urlmatch.UrlPattern = None) -> None:
+                   pattern: urlmatch.UrlPattern = None,
+                   hide_userconfig: bool = False) -> None:
         """Set the given option to the given value."""
         if not isinstance(objects.backend, objects.NoBackend):
             if objects.backend not in opt.backends:
@@ -316,7 +317,8 @@ class Config(QObject):
 
         opt.typ.to_py(value)  # for validation
 
-        self._values[opt.name].add(opt.typ.from_obj(value), pattern)
+        self._values[opt.name].add(opt.typ.from_obj(value),
+                                   pattern, hide_userconfig=hide_userconfig)
 
         self.changed.emit(opt.name)
         log.config.debug("Config option changed: {} = {}".format(
@@ -442,14 +444,19 @@ class Config(QObject):
     def set_obj(self, name: str,
                 value: Any, *,
                 pattern: urlmatch.UrlPattern = None,
-                save_yaml: bool = False) -> None:
+                save_yaml: bool = False,
+                hide_userconfig: bool = False) -> None:
         """Set the given setting from a YAML/config.py object.
 
         If save_yaml=True is given, store the new value to YAML.
+
+        If hide_userconfig=True is given, hide the value from
+        dump_userconfig().
         """
         opt = self.get_opt(name)
         self._check_yaml(opt, save_yaml)
-        self._set_value(opt, value, pattern=pattern)
+        self._set_value(opt, value, pattern=pattern,
+                        hide_userconfig=hide_userconfig)
         if save_yaml:
             self._yaml.set_obj(name, value, pattern=pattern)
 
@@ -519,15 +526,14 @@ class Config(QObject):
         Return:
             The changed config part as string.
         """
-        blocks = []
+        lines = []  # type: typing.List[str]
         for values in sorted(self, key=lambda v: v.opt.name):
-            if values:
-                blocks.append(str(values))
+            lines += values.dump()
 
-        if not blocks:
+        if not lines:
             return '<Default configuration>'
 
-        return '\n'.join(blocks)
+        return '\n'.join(lines)
 
 
 class ConfigContainer:

@@ -55,18 +55,22 @@ class ScopedValue:
     Attributes:
         value: The value itself.
         pattern: The UrlPattern for the value, or None for global values.
+        hide_userconfig: Hide this customization from config.dump_userconfig().
     """
 
     id_gen = itertools.count(0)
 
     def __init__(self, value: typing.Any,
-                 pattern: typing.Optional[urlmatch.UrlPattern]) -> None:
+                 pattern: typing.Optional[urlmatch.UrlPattern],
+                 hide_userconfig: bool = False) -> None:
         self.value = value
         self.pattern = pattern
+        self.hide_userconfig = hide_userconfig
         self.pattern_id = next(ScopedValue.id_gen)
 
     def __repr__(self) -> str:
         return utils.get_repr(self, value=self.value, pattern=self.pattern,
+                              hide_userconfig=self.hide_userconfig,
                               pattern_id=self.pattern_id)
 
 
@@ -102,8 +106,8 @@ class Values:
         self._domain_map = collections.defaultdict(set)  \
             # type: typing.Dict[typing.Optional[str], typing.Set[ScopedValue]]
 
-        for v in values:
-            self.add(value=v.value, pattern=v.pattern)
+        for scoped in values:
+            self._add_scoped(scoped)
 
     def __repr__(self) -> str:
         return utils.get_repr(self, opt=self.opt,
@@ -112,18 +116,31 @@ class Values:
 
     def __str__(self) -> str:
         """Get the values as human-readable string."""
-        if not self:
-            return '{}: <unchanged>'.format(self.opt.name)
+        lines = self.dump(include_hidden=True)
+        if lines:
+            return '\n'.join(lines)
+        return '{}: <unchanged>'.format(self.opt.name)
 
+    def dump(self, include_hidden: bool = False) -> typing.Sequence[str]:
+        """Dump all customizations for this value.
+
+        Arguments:
+           include_hidden: Also show values with hide_userconfig=True.
+        """
         lines = []
+
         for scoped in self._vmap.values():
+            if scoped.hide_userconfig and not include_hidden:
+                continue
+
             str_value = self.opt.typ.to_str(scoped.value)
             if scoped.pattern is None:
                 lines.append('{} = {}'.format(self.opt.name, str_value))
             else:
                 lines.append('{}: {} = {}'.format(
                     scoped.pattern, self.opt.name, str_value))
-        return '\n'.join(lines)
+
+        return lines
 
     def __iter__(self) -> typing.Iterator['ScopedValue']:
         """Yield ScopedValue elements.
@@ -144,14 +161,24 @@ class Values:
             raise configexc.NoPatternError(self.opt.name)
 
     def add(self, value: typing.Any,
-            pattern: urlmatch.UrlPattern = None) -> None:
-        """Add a value with the given pattern to the list of values."""
-        self._check_pattern_support(pattern)
-        self.remove(pattern)
-        scoped = ScopedValue(value, pattern)
-        self._vmap[pattern] = scoped
+            pattern: urlmatch.UrlPattern = None, *,
+            hide_userconfig: bool = False) -> None:
+        """Add a value with the given pattern to the list of values.
 
-        host = pattern.host if pattern else None
+        If hide_userconfig is given, the value is hidden from
+        config.dump_userconfig() and thus qute://configdiff.
+        """
+        scoped = ScopedValue(value, pattern, hide_userconfig=hide_userconfig)
+        self._add_scoped(scoped)
+
+    def _add_scoped(self, scoped: ScopedValue) -> None:
+        """Add an existing ScopedValue object."""
+        self._check_pattern_support(scoped.pattern)
+        self.remove(scoped.pattern)
+
+        self._vmap[scoped.pattern] = scoped
+
+        host = scoped.pattern.host if scoped.pattern else None
         self._domain_map[host].add(scoped)
 
     def remove(self, pattern: urlmatch.UrlPattern = None) -> bool:

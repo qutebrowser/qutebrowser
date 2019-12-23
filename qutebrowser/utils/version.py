@@ -45,11 +45,6 @@ try:
 except ImportError:  # pragma: no cover
     qWebKitVersion = None  # type: ignore  # noqa: N816
 
-try:
-    from PyQt5.QtWebEngineWidgets import QWebEngineProfile
-except ImportError:  # pragma: no cover
-    QWebEngineProfile = None  # type: ignore
-
 import qutebrowser
 from qutebrowser.utils import log, utils, standarddir, usertypes, message
 from qutebrowser.misc import objects, earlyinit, sql, httpclient, pastebin
@@ -369,18 +364,14 @@ def _chromium_version() -> str:
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
     """
-    if webenginesettings is None or QWebEngineProfile is None:  # type: ignore
-        # This should never happen
+    if webenginesettings is None:
         return 'unavailable'  # type: ignore
-    ua = webenginesettings.default_user_agent
-    if ua is None:
-        profile = QWebEngineProfile.defaultProfile()
-        ua = profile.httpUserAgent()
-    match = re.search(r' Chrome/([^ ]*) ', ua)
-    if not match:
-        log.misc.error("Could not get Chromium version from: {}".format(ua))
-        return 'unknown'
-    return match.group(1)
+
+    if webenginesettings.parsed_user_agent is None:
+        webenginesettings.init_user_agent()
+        assert webenginesettings.parsed_user_agent is not None
+
+    return webenginesettings.parsed_user_agent.upstream_browser_version
 
 
 def _backend() -> str:

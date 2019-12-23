@@ -821,14 +821,6 @@ class AbstractTabPrivate:
         """
         raise NotImplementedError
 
-    def user_agent(self) -> typing.Optional[str]:
-        """Get the user agent for this tab.
-
-        This is only implemented for QtWebKit.
-        For QtWebEngine, always returns None.
-        """
-        raise NotImplementedError
-
     def shutdown(self) -> None:
         raise NotImplementedError
 

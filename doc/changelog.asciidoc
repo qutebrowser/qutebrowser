@@ -28,10 +28,17 @@ Added
   - `fonts.contextmenu`
   - `colors.contextmenu.bg`
   - `colors.contextmenu.fg`
+- New `content.site_specific_quirks` setting which enables workarounds for
+  websites with broken user agent parsing (enabled by default, see the "Fixed"
+  section for fixed websites).
 
 Changed
 ~~~~~~~
 
+- The `content.headers.user_agent` setting now is a format string with the
+  default value resembling the behavior of it being set to null before.
+  This slightly changes the sent user agent for QtWebKit: Instead of mentioning
+  qutebrowser and its version it now mentions the Qt version.
 - The `qute-pass` userscript now has a new `--extra-url-suffixes` (`-s`)
   argument which passes extra URL suffixes to the tldextract library.
 - A stack is now used for `:tab-focus last` rather than just saving one tab.
@@ -59,6 +66,9 @@ Changed
   shows qutebrowser messages based on a command's standard output/error.
 - Improved insert mode detection for some CodeMirror usages (e.g. in
   JupyterLab and Jupyter Notebook).
+- If JavaScript is disabled globally, `file://*` now doesn't automatically have
+  it enabled anymore. Run `:set -u file://* content.javascript.enabled true` to
+  restore the previous behavior.
 - Performance improvements for the following areas:
   * Adding settings with URL patterns
   * Matching of settings using URL patterns
@@ -66,6 +76,9 @@ Changed
 Fixed
 ~~~~~
 
+- Downloads (e.g. via `:download`) now see the same user agent header as
+  webpages, which fixes cases where overly restrictive servers/WAFs closed the
+  connection before.
 - dictcli.py now works correctly on Windows again.
 - The logic for `:restart` has been revisited which should fix issues with
   relative basedirs.
@@ -73,6 +86,8 @@ Fixed
   QtWebKit.
 - Workaround for a Qt bug where a page never finishes loading with a
   non-overridable TLS error (e.g. due to HSTS).
+- The `qute://configdiff` page now doesn't show built-in settings (e.g.
+  javascript being enabled for `qute://` and `chrome://` pages) anymore.
 - Various improvements for URL/searchengine detection:
   - Strings with a dot but with characters not allowed in a URL (e.g. an
     underscore) are now not treated as URL anymore.
@@ -84,6 +99,12 @@ Fixed
   - `url.open_base_url = True` together with `url.auto_search = 'never'` is now
     handled correctly.
   - Fixed crash when a search engine URL turns out to be invalid.
+- Site specific quirks which work around some broken websites:
+  - WhatsApp Web
+  - Google Accounts
+  - Slack (with older QtWebEngine versions)
+  - Dell.com support pages (with Qt 5.7)
+  - Google Docs (fixes broken IME/compose key)
 
 v1.8.3 (2019-12-05)
 -------------------

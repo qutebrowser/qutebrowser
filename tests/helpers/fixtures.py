@@ -204,12 +204,13 @@ def web_tab_setup(qtbot, tab_registry, session_manager_stub,
 
 @pytest.fixture
 def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
-               widget_container):
+               widget_container, webpage):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
 
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
     widget_container.set_widget(tab)
+
     return tab
 
 
@@ -416,6 +417,7 @@ def webengineview(qtbot, monkeypatch, web_tab_setup):
 def webpage(qnam):
     """Get a new QWebPage object."""
     QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
+
     class WebPageStub(QtWebKitWidgets.QWebPage):
 
         """QWebPage with default error pages disabled."""
@@ -425,8 +427,13 @@ def webpage(qnam):
             return False
 
     page = WebPageStub()
+
     page.networkAccessManager().deleteLater()
     page.setNetworkAccessManager(qnam)
+
+    from qutebrowser.browser.webkit import webkitsettings
+    webkitsettings._init_user_agent()
+
     return page
 
 
