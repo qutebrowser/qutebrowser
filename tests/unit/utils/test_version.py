@@ -863,8 +863,12 @@ def test_chromium_version(monkeypatch, caplog):
     version.webenginesettings._init_user_agent_str(
         _QTWE_USER_AGENT.format(ver))
 
-    with caplog.at_level(logging.ERROR):
-        assert version._chromium_version() == ver
+    assert version._chromium_version() == ver
+
+
+def test_chromium_version_no_webengine(monkeypatch):
+    monkeypatch.setattr(version, 'webenginesettings', None)
+    assert version._chromium_version() == 'unavailable'
 
 
 def test_chromium_version_prefers_saved_user_agent(monkeypatch):

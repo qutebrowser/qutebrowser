@@ -364,6 +364,9 @@ def _chromium_version() -> str:
     Also see https://www.chromium.org/developers/calendar
     and https://chromereleases.googleblog.com/
     """
+    if webenginesettings is None:
+        return 'unavailable'  # type: ignore
+
     if webenginesettings.parsed_user_agent is None:
         webenginesettings.init_user_agent()
         assert webenginesettings.parsed_user_agent is not None
