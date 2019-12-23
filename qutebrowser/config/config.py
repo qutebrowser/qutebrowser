@@ -23,13 +23,13 @@ import copy
 import contextlib
 import functools
 import typing
-from typing import Any, Optional, FrozenSet
+from typing import Any, Optional
 
-from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QUrl
+from PyQt5.QtCore import pyqtSignal, QObject, QUrl
 
 from qutebrowser.config import configdata, configexc, configutils
-from qutebrowser.utils import utils, log, jinja, urlmatch
-from qutebrowser.misc import objects, debugcachestats
+from qutebrowser.utils import utils, log, urlmatch
+from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
 
 if typing.TYPE_CHECKING:
@@ -278,7 +278,6 @@ class Config(QObject):
                  yaml_config: 'configfiles.YamlConfig',
                  parent: QObject = None) -> None:
         super().__init__(parent)
-        self.changed.connect(_render_stylesheet.cache_clear)
         self._mutables = {}  # type: MutableMapping[str, Tuple[Any, Any]]
         self._yaml = yaml_config
         self._init_values()
@@ -397,7 +396,7 @@ class Config(QObject):
         """Get the given setting as object (for YAML/config.py).
 
         This gets the overridden value for a given pattern, or
-        configutils.UNSET if no such override exists.
+        usertypes.UNSET if no such override exists.
         """
         self.ensure_has_opt(name)
         value = self._values[name].get_for_pattern(pattern, fallback=False)
@@ -434,7 +433,7 @@ class Config(QObject):
         """Get the given setting as string.
 
         If a pattern is given, get the setting for the given pattern or
-        configutils.UNSET.
+        usertypes.UNSET.
         """
         opt = self.get_opt(name)
         values = self._values[name]
@@ -617,86 +616,3 @@ class ConfigContainer:
             return '{}.{}'.format(self._prefix, attr)
         else:
             return attr
-
-
-def set_register_stylesheet(obj: QObject, *,
-                            stylesheet: str = None,
-                            update: bool = True) -> None:
-    """Set the stylesheet for an object.
-
-    Also, register an update when the config is changed.
-
-    Args:
-        obj: The object to set the stylesheet for and register.
-             Must have a STYLESHEET attribute if stylesheet is not given.
-        stylesheet: The stylesheet to use.
-        update: Whether to update the stylesheet on config changes.
-    """
-    observer = StyleSheetObserver(obj, stylesheet, update)
-    observer.register()
-
-
-@debugcachestats.register()
-@functools.lru_cache()
-def _render_stylesheet(stylesheet: str) -> str:
-    """Render the given stylesheet jinja template."""
-    with jinja.environment.no_autoescape():
-        template = jinja.environment.from_string(stylesheet)
-    return template.render(conf=val)
-
-
-class StyleSheetObserver(QObject):
-
-    """Set the stylesheet on the given object and update it on changes.
-
-    Attributes:
-        _obj: The object to observe.
-        _stylesheet: The stylesheet template to use.
-        _options: The config options that the stylesheet uses. When it's not
-                  necessary to listen for config changes, this attribute may be
-                  None.
-    """
-
-    def __init__(self, obj: QObject,
-                 stylesheet: Optional[str], update: bool) -> None:
-        super().__init__()
-        self._obj = obj
-        self._update = update
-
-        # We only need to hang around if we are asked to update.
-        if update:
-            self.setParent(self._obj)
-        if stylesheet is None:
-            self._stylesheet = obj.STYLESHEET  # type: str
-        else:
-            self._stylesheet = stylesheet
-
-        if update:
-            self._options = jinja.template_config_variables(
-                self._stylesheet)  # type: Optional[FrozenSet[str]]
-        else:
-            self._options = None
-
-    def _get_stylesheet(self) -> str:
-        """Format a stylesheet based on a template.
-
-        Return:
-            The formatted template as string.
-        """
-        return _render_stylesheet(self._stylesheet)
-
-    @pyqtSlot(str)
-    def _maybe_update_stylesheet(self, option: str) -> None:
-        """Update the stylesheet for obj if the option changed affects it."""
-        assert self._options is not None
-        if option in self._options:
-            self._obj.setStyleSheet(self._get_stylesheet())
-
-    def register(self) -> None:
-        """Do a first update and listen for more."""
-        qss = self._get_stylesheet()
-        log.config.vdebug(  # type: ignore
-            "stylesheet for {}: {}".format(self._obj.__class__.__name__, qss))
-        self._obj.setStyleSheet(qss)
-        if self._update:
-            instance.changed.connect(self._maybe_update_stylesheet)

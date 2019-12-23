@@ -34,8 +34,8 @@ from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
 from qutebrowser.misc import objects
-from qutebrowser.config import configtypes, configexc, configutils
-from qutebrowser.utils import debug, utils, qtutils, urlmatch
+from qutebrowser.config import configtypes, configexc
+from qutebrowser.utils import debug, utils, qtutils, urlmatch, usertypes
 from qutebrowser.browser.network import pac
 from qutebrowser.keyinput import keyutils
 from helpers import utils as testutils
@@ -277,7 +277,7 @@ class TestAll:
     @pytest.mark.parametrize('none_ok', [True, False])
     def test_unset(self, klass, none_ok):
         typ = klass(none_ok=none_ok)
-        assert typ.to_py(configutils.UNSET) is configutils.UNSET
+        assert typ.to_py(usertypes.UNSET) is usertypes.UNSET
 
     def test_to_str_none(self, klass):
         assert klass().to_str(None) == ''

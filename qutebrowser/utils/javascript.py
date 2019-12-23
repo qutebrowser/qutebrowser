@@ -21,8 +21,6 @@
 
 import typing
 
-from qutebrowser.utils import jinja
-
 _InnerJsArgType = typing.Union[None, str, bool, int, float]
 _JsArgType = typing.Union[_InnerJsArgType, typing.Sequence[_InnerJsArgType]]
 
@@ -83,5 +81,6 @@ def assemble(module: str, function: str, *args: _JsArgType) -> str:
 
 def wrap_global(name: str, *sources: str) -> str:
     """Wrap a script using window._qutebrowser."""
+    from qutebrowser.utils import jinja  # circular import
     template = jinja.js_environment.get_template('global_wrapper.js')
     return template.render(code='\n'.join(sources), name=name)

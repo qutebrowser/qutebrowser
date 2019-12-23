@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import (QTabWidget, QTabBar, QSizePolicy, QCommonStyle,
 from PyQt5.QtGui import QIcon, QPalette, QColor
 
 from qutebrowser.utils import qtutils, objreg, utils, usertypes, log
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
 from qutebrowser.misc import objects, debugcachestats
 from qutebrowser.browser import browsertab
 
@@ -400,7 +400,7 @@ class TabBar(QTabBar):
         self._on_show_switching_delay_changed()
         self.setAutoFillBackground(True)
         self.drag_in_progress = False
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
         QTimer.singleShot(0, self.maybe_hide)
 
     def __repr__(self):

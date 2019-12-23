@@ -28,24 +28,20 @@ import operator
 
 from PyQt5.QtCore import QUrl
 
-from qutebrowser.utils import utils, urlmatch, urlutils
+from qutebrowser.utils import utils, urlmatch, usertypes
 from qutebrowser.config import configexc
 
 if typing.TYPE_CHECKING:
     from qutebrowser.config import configdata
 
 
-class Unset:
+def _widened_hostnames(hostname: str) -> typing.Iterable[str]:
+    """A generator for widening string hostnames.
 
-    """Sentinel object."""
-
-    __slots__ = ()
-
-    def __repr__(self) -> str:
-        return '<UNSET>'
-
-
-UNSET = Unset()
+    Ex: a.c.foo -> [a.c.foo, c.foo, foo]"""
+    while hostname:
+        yield hostname
+        hostname = hostname.partition(".")[-1]
 
 
 class ScopedValue:
@@ -213,7 +209,7 @@ class Values:
         if fallback:
             return self.opt.default
         else:
-            return UNSET
+            return usertypes.UNSET
 
     def get_for_url(self, url: QUrl = None, *,
                     fallback: bool = True) -> typing.Any:
@@ -222,14 +218,14 @@ class Values:
         This first tries to find a value matching the URL (if given).
         If there's no match:
           With fallback=True, the global/default setting is returned.
-          With fallback=False, UNSET is returned.
+          With fallback=False, usertypes.UNSET is returned.
         """
         self._check_pattern_support(url)
         if url is None:
             return self._get_fallback(fallback)
 
         candidates = []  # type: typing.List[ScopedValue]
-        widened_hosts = urlutils.widened_hostnames(url.host())
+        widened_hosts = _widened_hostnames(url.host())
         # We must check the 'None' key as well, in case any patterns that
         # did not have a domain match.
         for host in itertools.chain(widened_hosts, [None]):
@@ -243,7 +239,7 @@ class Values:
             return scoped.value
 
         if not fallback:
-            return UNSET
+            return usertypes.UNSET
 
         return self._get_fallback(fallback)
 
@@ -256,7 +252,7 @@ class Values:
 
         If there's no match:
           With fallback=True, the global/default setting is returned.
-          With fallback=False, UNSET is returned.
+          With fallback=False, usertypes.UNSET is returned.
         """
         self._check_pattern_support(pattern)
         if pattern is not None:
@@ -264,6 +260,6 @@ class Values:
                 return self._vmap[pattern].value
 
             if not fallback:
-                return UNSET
+                return usertypes.UNSET
 
         return self._get_fallback(fallback)

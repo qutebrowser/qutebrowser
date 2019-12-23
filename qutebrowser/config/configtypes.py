@@ -61,7 +61,7 @@ from PyQt5.QtWidgets import QTabWidget, QTabBar
 from PyQt5.QtNetwork import QNetworkProxy
 
 from qutebrowser.misc import objects, debugcachestats
-from qutebrowser.config import configexc, configutils
+from qutebrowser.config import configexc
 from qutebrowser.utils import (standarddir, utils, qtutils, urlutils, urlmatch,
                                usertypes)
 from qutebrowser.keyinput import keyutils
@@ -80,8 +80,8 @@ BOOLEAN_STATES = {'1': True, 'yes': True, 'true': True, 'on': True,
 
 
 _Completions = typing.Optional[typing.Iterable[typing.Tuple[str, str]]]
-_StrUnset = typing.Union[str, configutils.Unset]
-_StrUnsetNone = typing.Union[None, str, configutils.Unset]
+_StrUnset = typing.Union[str, usertypes.Unset]
+_StrUnsetNone = typing.Union[None, str, usertypes.Unset]
 
 
 class ValidValues:
@@ -168,7 +168,7 @@ class BaseType:
             value: The value to check.
             pytype: A Python type to check the value against.
         """
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return
 
         if (value is None or (pytype == list and value == []) or
@@ -342,7 +342,7 @@ class MappingType(BaseType):
 
     def to_py(self, value: typing.Any) -> typing.Any:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -408,7 +408,7 @@ class String(BaseType):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -450,7 +450,7 @@ class UniqueCharString(String):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         py_value = super().to_py(value)
-        if isinstance(py_value, configutils.Unset):
+        if isinstance(py_value, usertypes.Unset):
             return py_value
         elif not py_value:
             return None
@@ -510,10 +510,10 @@ class List(BaseType):
 
     def to_py(
             self,
-            value: typing.Union[typing.List, configutils.Unset]
-    ) -> typing.Union[typing.List, configutils.Unset]:
+            value: typing.Union[typing.List, usertypes.Unset]
+    ) -> typing.Union[typing.List, usertypes.Unset]:
         self._basic_py_validation(value, list)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return []
@@ -601,7 +601,7 @@ class ListOrValue(BaseType):
         return value
 
     def to_py(self, value: typing.Any) -> typing.Any:
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
 
         try:
@@ -652,10 +652,10 @@ class FlagList(List):
 
     def to_py(
             self,
-            value: typing.Union[configutils.Unset, typing.List],
-    ) -> typing.Union[configutils.Unset, typing.List]:
+            value: typing.Union[usertypes.Unset, typing.List],
+    ) -> typing.Union[usertypes.Unset, typing.List]:
         vals = super().to_py(value)
-        if not isinstance(vals, configutils.Unset):
+        if not isinstance(vals, usertypes.Unset):
             self._check_duplicates(vals)
         return vals
 
@@ -866,10 +866,10 @@ class Perc(_Numeric):
 
     def to_py(
             self,
-            value: typing.Union[None, float, int, str, configutils.Unset]
-    ) -> typing.Union[None, float, int, configutils.Unset]:
+            value: typing.Union[None, float, int, str, usertypes.Unset]
+    ) -> typing.Union[None, float, int, usertypes.Unset]:
         self._basic_py_validation(value, (float, int, str))
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1062,10 +1062,10 @@ class QtColor(BaseType):
         except ValueError:
             raise configexc.ValidationError(val, "must be a valid color value")
 
-    def to_py(self, value: _StrUnset) -> typing.Union[configutils.Unset,
+    def to_py(self, value: _StrUnset) -> typing.Union[usertypes.Unset,
                                                       None, QColor]:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1123,7 +1123,7 @@ class QssColor(BaseType):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1170,7 +1170,7 @@ class Font(BaseType):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1191,7 +1191,7 @@ class FontFamily(Font):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1215,10 +1215,10 @@ class QtFont(Font):
 
     __doc__ = Font.__doc__  # for src2asciidoc.py
 
-    def to_py(self, value: _StrUnset) -> typing.Union[configutils.Unset,
+    def to_py(self, value: _StrUnset) -> typing.Union[usertypes.Unset,
                                                       None, QFont]:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1333,11 +1333,11 @@ class Regex(BaseType):
 
     def to_py(
             self,
-            value: typing.Union[str, typing.Pattern[str], configutils.Unset]
-    ) -> typing.Union[configutils.Unset, None, typing.Pattern[str]]:
+            value: typing.Union[str, typing.Pattern[str], usertypes.Unset]
+    ) -> typing.Union[usertypes.Unset, None, typing.Pattern[str]]:
         """Get a compiled regex from either a string or a regex object."""
         self._basic_py_validation(value, (str, self._regex_type))
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1425,10 +1425,10 @@ class Dict(BaseType):
 
     def to_py(
             self,
-            value: typing.Union[typing.Dict, configutils.Unset, None]
-    ) -> typing.Union[typing.Dict, configutils.Unset]:
+            value: typing.Union[typing.Dict, usertypes.Unset, None]
+    ) -> typing.Union[typing.Dict, usertypes.Unset]:
         self._basic_py_validation(value, dict)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return self._fill_fixed_keys({})
@@ -1477,7 +1477,7 @@ class File(BaseType):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1509,7 +1509,7 @@ class Directory(BaseType):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1546,7 +1546,7 @@ class FormatString(BaseType):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1590,10 +1590,10 @@ class ShellCommand(List):
 
     def to_py(
             self,
-            value: typing.Union[typing.List, configutils.Unset],
-    ) -> typing.Union[typing.List, configutils.Unset]:
+            value: typing.Union[typing.List, usertypes.Unset],
+    ) -> typing.Union[typing.List, usertypes.Unset]:
         py_value = super().to_py(value)
-        if isinstance(py_value, configutils.Unset):
+        if isinstance(py_value, usertypes.Unset):
             return py_value
         elif not py_value:
             return []
@@ -1624,9 +1624,9 @@ class Proxy(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> typing.Union[configutils.Unset, None, QNetworkProxy, _SystemProxy]:
+    ) -> typing.Union[usertypes.Unset, None, QNetworkProxy, _SystemProxy]:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1666,7 +1666,7 @@ class SearchEngineUrl(BaseType):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1696,7 +1696,7 @@ class FuzzyUrl(BaseType):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1732,10 +1732,10 @@ class Padding(Dict):
 
     def to_py(  # type: ignore
             self,
-            value: typing.Union[configutils.Unset, typing.Dict, None],
-    ) -> typing.Union[configutils.Unset, PaddingValues]:
+            value: typing.Union[usertypes.Unset, typing.Dict, None],
+    ) -> typing.Union[usertypes.Unset, PaddingValues]:
         d = super().to_py(value)
-        if isinstance(d, configutils.Unset):
+        if isinstance(d, usertypes.Unset):
             return d
 
         return PaddingValues(**d)
@@ -1747,7 +1747,7 @@ class Encoding(BaseType):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1807,9 +1807,9 @@ class Url(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> typing.Union[configutils.Unset, None, QUrl]:
+    ) -> typing.Union[usertypes.Unset, None, QUrl]:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1827,7 +1827,7 @@ class SessionName(BaseType):
 
     def to_py(self, value: _StrUnset) -> _StrUnsetNone:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1877,10 +1877,10 @@ class ConfirmQuit(FlagList):
 
     def to_py(
             self,
-            value: typing.Union[configutils.Unset, typing.List],
-    ) -> typing.Union[typing.List, configutils.Unset]:
+            value: typing.Union[usertypes.Unset, typing.List],
+    ) -> typing.Union[typing.List, usertypes.Unset]:
         values = super().to_py(value)
-        if isinstance(values, configutils.Unset):
+        if isinstance(values, usertypes.Unset):
             return values
         elif not values:
             return []
@@ -1921,9 +1921,9 @@ class Key(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> typing.Union[configutils.Unset, None, keyutils.KeySequence]:
+    ) -> typing.Union[usertypes.Unset, None, keyutils.KeySequence]:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None
@@ -1945,9 +1945,9 @@ class UrlPattern(BaseType):
     def to_py(
             self,
             value: _StrUnset
-    ) -> typing.Union[configutils.Unset, None, urlmatch.UrlPattern]:
+    ) -> typing.Union[usertypes.Unset, None, urlmatch.UrlPattern]:
         self._basic_py_validation(value, str)
-        if isinstance(value, configutils.Unset):
+        if isinstance(value, usertypes.Unset):
             return value
         elif not value:
             return None

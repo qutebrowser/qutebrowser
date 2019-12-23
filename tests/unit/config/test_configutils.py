@@ -23,17 +23,8 @@ import pytest
 from PyQt5.QtCore import QUrl
 
 from qutebrowser.config import configutils, configdata, configtypes
-from qutebrowser.utils import urlmatch
+from qutebrowser.utils import urlmatch, usertypes
 from tests.helpers import utils
-
-
-def test_unset_object_identity():
-    assert configutils.Unset() is not configutils.Unset()
-    assert configutils.UNSET is configutils.UNSET
-
-
-def test_unset_object_repr():
-    assert repr(configutils.UNSET) == '<UNSET>'
 
 
 @pytest.fixture
@@ -146,7 +137,7 @@ def test_clear(values):
     assert values
     values.clear()
     assert not values
-    assert values.get_for_url(fallback=False) is configutils.UNSET
+    assert values.get_for_url(fallback=False) is usertypes.UNSET
 
 
 def test_get_matching(values):
@@ -155,12 +146,12 @@ def test_get_matching(values):
 
 
 def test_get_unset(empty_values):
-    assert empty_values.get_for_url(fallback=False) is configutils.UNSET
+    assert empty_values.get_for_url(fallback=False) is usertypes.UNSET
 
 
 def test_get_no_global(empty_values, other_pattern, pattern):
     empty_values.add('example.org value', pattern)
-    assert empty_values.get_for_url(fallback=False) is configutils.UNSET
+    assert empty_values.get_for_url(fallback=False) is usertypes.UNSET
 
 
 def test_get_unset_fallback(empty_values):
@@ -169,7 +160,7 @@ def test_get_unset_fallback(empty_values):
 
 def test_get_non_matching(values):
     url = QUrl('https://www.example.ch/')
-    assert values.get_for_url(url, fallback=False) is configutils.UNSET
+    assert values.get_for_url(url, fallback=False) is usertypes.UNSET
 
 
 def test_get_non_matching_fallback(values):
@@ -205,13 +196,13 @@ def test_get_pattern_none(values, pattern):
 
 def test_get_unset_pattern(empty_values, pattern):
     value = empty_values.get_for_pattern(pattern, fallback=False)
-    assert value is configutils.UNSET
+    assert value is usertypes.UNSET
 
 
 def test_get_no_global_pattern(empty_values, pattern, other_pattern):
     empty_values.add('example.org value', other_pattern)
     value = empty_values.get_for_pattern(pattern, fallback=False)
-    assert value is configutils.UNSET
+    assert value is usertypes.UNSET
 
 
 def test_get_unset_fallback_pattern(empty_values, pattern):
@@ -220,7 +211,7 @@ def test_get_unset_fallback_pattern(empty_values, pattern):
 
 def test_get_non_matching_pattern(values, other_pattern):
     value = values.get_for_pattern(other_pattern, fallback=False)
-    assert value is configutils.UNSET
+    assert value is usertypes.UNSET
 
 
 def test_get_non_matching_fallback_pattern(values, other_pattern):
@@ -263,3 +254,26 @@ def test_domain_lookup_sparse_benchmark(url, values, benchmark):
             values.add(False, urlmatch.UrlPattern(line))
 
     benchmark(lambda: values.get_for_url(url))
+
+
+class TestWiden:
+
+    @pytest.mark.parametrize('hostname, expected', [
+        ('a.b.c', ['a.b.c', 'b.c', 'c']),
+        ('foobarbaz', ['foobarbaz']),
+        ('', []),
+        ('.c', ['.c', 'c']),
+        ('c.', ['c.']),
+        ('.c.', ['.c.', 'c.']),
+        (None, []),
+    ])
+    def test_widen_hostnames(self, hostname, expected):
+        assert list(configutils._widened_hostnames(hostname)) == expected
+
+    @pytest.mark.parametrize('hostname', [
+        'test.qutebrowser.org',
+        'a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.z.y.z',
+        'qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq.c',
+    ])
+    def test_bench_widen_hostnames(self, hostname, benchmark):
+        benchmark(lambda: list(configutils._widened_hostnames(hostname)))

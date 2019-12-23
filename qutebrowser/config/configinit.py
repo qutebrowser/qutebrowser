@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.api import config as configapi
 from qutebrowser.config import (config, configdata, configfiles, configtypes,
-                                configexc, configcommands)
+                                configexc, configcommands, stylesheet)
 from qutebrowser.utils import (objreg, usertypes, log, standarddir, message,
                                qtutils)
 from qutebrowser.config import configcache
@@ -87,6 +87,8 @@ def early_init(args: argparse.Namespace) -> None:
 
     configtypes.Font.monospace_fonts = config.val.fonts.monospace
     config.instance.changed.connect(_update_monospace_fonts)
+
+    stylesheet.init()
 
     _init_envvars()
 
