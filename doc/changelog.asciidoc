@@ -90,6 +90,7 @@ Fixed
   javascript being enabled for `qute://` and `chrome://` pages) anymore.
 - The `qute-lastpass` userscript now stops prompting for passwords when
   cancelling the password input.
+- The tab hover text now shows ampersands (&) correctly.
 - Various improvements for URL/searchengine detection:
   - Strings with a dot but with characters not allowed in a URL (e.g. an
     underscore) are now not treated as URL anymore.

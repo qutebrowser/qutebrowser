@@ -116,7 +116,13 @@ class TabWidget(QTabWidget):
 
     def set_page_title(self, idx, title):
         """Set the tab title user data."""
-        self.tabBar().set_tab_data(idx, 'page-title', title)
+        tabbar = self.tabBar()
+
+        if config.cache['tabs.tooltips']:
+            # always show only plain title in tooltips
+            tabbar.setTabToolTip(idx, title)
+
+        tabbar.set_tab_data(idx, 'page-title', title)
         self.update_tab_title(idx)
 
     def page_title(self, idx):
@@ -152,10 +158,6 @@ class TabWidget(QTabWidget):
         # a size recalculation which is slow.
         if tabbar.tabText(idx) != title:
             tabbar.setTabText(idx, title)
-
-        if config.cache['tabs.tooltips']:
-            # always show only plain title in tooltips
-            tabbar.setTabToolTip(idx, fields['current_title'])
 
     def get_tab_fields(self, idx):
         """Get the tab field data."""
