@@ -351,7 +351,7 @@ def _init_site_specific_quirks():
 
     user_agents = {
         'https://web.whatsapp.com/': no_qtwe_ua,
-        'https://accounts.google.com/ServiceLogin': firefox_ua,
+        'https://accounts.google.com/*': firefox_ua,
         'https://*.slack.com/*': new_chrome_ua,
         'https://docs.google.com/*': firefox_ua,
     }
