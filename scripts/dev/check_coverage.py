@@ -147,6 +147,8 @@ PERFECT_FILES = [
 
     ('tests/unit/config/test_config.py',
      'config/config.py'),
+    ('tests/unit/config/test_stylesheet.py',
+     'config/stylesheet.py'),
     ('tests/unit/config/test_configdata.py',
      'config/configdata.py'),
     ('tests/unit/config/test_configexc.py',
