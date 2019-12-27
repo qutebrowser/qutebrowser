@@ -1109,11 +1109,11 @@ hints.extended_filter_attrs:
       name: String
       none_ok: true
       valid_values:
-        - text: "the actual node text"
-        - title: "the 'title' attribute"
-        - alt: "the 'alt' attribute"
+        - text: Use the element's text for filtering against.
+        - title: Use the element's 'title' attribute text.
+        - alt: Use the element's 'alt' attribute text.
   desc: >-
-    Which HTML element attributes to use additionally when filtering links in
+    Which additional HTML element attributes to use when filtering links in
     `hints.mode` number.
 
 hints.next_regexes:
