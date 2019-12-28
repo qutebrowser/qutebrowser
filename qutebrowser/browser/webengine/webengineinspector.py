@@ -55,7 +55,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         if page is None:
             self._widget.load(QUrl('about:blank'))
         else:
-            self._widget.load(QUrl('http://localhost:{}/'.format(port))
+            self._widget.load(QUrl('http://localhost:{}/'.format(port)))
 
     def _inspect_new(self, page):
         """Set up the inspector for Qt >= 5.11."""
