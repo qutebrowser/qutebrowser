@@ -365,6 +365,15 @@ def _init_site_specific_quirks():
                                 hide_userconfig=True)
 
 
+def _init_devtools_settings():
+    """Make sure the devtools always get images/JS permissions."""
+    for setting in ['content.javascript.enabled', 'content.images']:
+        for pattern in ['chrome-devtools://*', 'devtools://*']:
+            config.instance.set_obj(setting, True,
+                                    pattern=urlmatch.UrlPattern(pattern),
+                                    hide_userconfig=True)
+
+
 def init(args):
     """Initialize the global QWebSettings."""
     if (args.enable_webengine_inspector and
@@ -382,6 +391,7 @@ def init(args):
     global_settings.init_settings()
 
     _init_site_specific_quirks()
+    _init_devtools_settings()
 
 
 def shutdown():

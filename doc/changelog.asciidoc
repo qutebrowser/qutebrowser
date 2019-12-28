@@ -69,6 +69,9 @@ Changed
 - If JavaScript is disabled globally, `file://*` now doesn't automatically have
   it enabled anymore. Run `:set -u file://* content.javascript.enabled true` to
   restore the previous behavior.
+- Settings with URL patterns can now be used to affect the behavior of the
+  QtWebEngine inspector. Note that the underlying URL is `chrome-devtools://*`
+  from Qt 5.11 to Qt 5.13, but `devtools://*` with Qt 5.14.
 - Performance improvements for the following areas:
   * Adding settings with URL patterns
   * Matching of settings using URL patterns
@@ -91,6 +94,8 @@ Fixed
 - The `qute-lastpass` userscript now stops prompting for passwords when
   cancelling the password input.
 - The tab hover text now shows ampersands (&) correctly.
+- With QtWebEngine and Qt >= 5.11, the inspector now shows its icons correctly
+  even if loading of images is disabled via the `content.images` setting.
 - Various improvements for URL/searchengine detection:
   - Strings with a dot but with characters not allowed in a URL (e.g. an
     underscore) are now not treated as URL anymore.

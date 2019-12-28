@@ -25,6 +25,7 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
 
 from qutebrowser.browser import inspector
+from qutebrowser.browser.webengine import webenginesettings
 
 
 class WebEngineInspector(inspector.AbstractWebInspector):
@@ -35,8 +36,7 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         super().__init__(parent)
         self.port = None
         view = QWebEngineView()
-        settings = view.settings()
-        settings.setAttribute(QWebEngineSettings.JavascriptEnabled, True)
+        self._settings = webenginesettings.WebEngineSettings(view.settings())
         self._set_widget(view)
 
     def _inspect_old(self, page):
@@ -47,6 +47,11 @@ class WebEngineInspector(inspector.AbstractWebInspector):
             raise inspector.WebInspectorError(
                 "QtWebEngine inspector is not enabled. See "
                 "'qutebrowser --help' for details.")
+
+        # We're lying about the URL here a bit, but this way, URL patterns for
+        # Qt 5.11/5.12/5.13 also work in this case.
+        self._settings.update_for_url(QUrl('chrome-devtools://devtools'))
+
         url = QUrl('http://localhost:{}/'.format(port))
 
         if page is None:
@@ -56,7 +61,9 @@ class WebEngineInspector(inspector.AbstractWebInspector):
 
     def _inspect_new(self, page):
         """Set up the inspector for Qt >= 5.11."""
-        self._widget.page().setInspectedPage(page)
+        inspector_page = self._widget.page()
+        inspector_page.setInspectedPage(page)
+        self._settings.update_for_url(inspector_page.requestedUrl())
 
     def inspect(self, page):
         try:
