@@ -22,7 +22,7 @@
 import os
 
 from PyQt5.QtCore import QUrl
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineSettings
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 from qutebrowser.browser import inspector
 from qutebrowser.browser.webengine import webenginesettings
