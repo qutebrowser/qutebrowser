@@ -52,12 +52,10 @@ class WebEngineInspector(inspector.AbstractWebInspector):
         # Qt 5.11/5.12/5.13 also work in this case.
         self._settings.update_for_url(QUrl('chrome-devtools://devtools'))
 
-        url = QUrl('http://localhost:{}/'.format(port))
-
         if page is None:
             self._widget.load(QUrl('about:blank'))
         else:
-            self._widget.load(url)
+            self._widget.load(QUrl('http://localhost:{}/'.format(port))
 
     def _inspect_new(self, page):
         """Set up the inspector for Qt >= 5.11."""
