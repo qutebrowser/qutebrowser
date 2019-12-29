@@ -245,6 +245,7 @@
 |<<prompt.radius,prompt.radius>>|Rounding radius (in pixels) for the edges of prompts.
 |<<qt.args,qt.args>>|Additional arguments to pass to Qt, without leading `--`.
 |<<qt.force_platform,qt.force_platform>>|Force a Qt platform to use.
+|<<qt.force_platformtheme,qt.force_platformtheme>>|Force a Qt platformtheme to use.
 |<<qt.force_software_rendering,qt.force_software_rendering>>|Force software rendering for QtWebEngine.
 |<<qt.highdpi,qt.highdpi>>|Turn on Qt HighDPI scaling.
 |<<qt.low_end_device_mode,qt.low_end_device_mode>>|When to use Chromium's low-end device mode.
@@ -3030,6 +3031,16 @@ Default: empty
 === qt.force_platform
 Force a Qt platform to use.
 This sets the `QT_QPA_PLATFORM` environment variable and is useful to force using the XCB plugin when running QtWebEngine on Wayland.
+This setting requires a restart.
+
+Type: <<types,String>>
+
+Default: empty
+
+[[qt.force_platformtheme]]
+=== qt.force_platformtheme
+Force a Qt platformtheme to use.
+This sets the `QT_QPA_PLATFORMTHEME` environment variable which controls dialogs like the filepicker. By default, Qt determines the platform theme based on the desktop environment.
 This setting requires a restart.
 
 Type: <<types,String>>

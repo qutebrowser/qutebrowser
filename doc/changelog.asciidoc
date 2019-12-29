@@ -31,6 +31,8 @@ Added
 - New `content.site_specific_quirks` setting which enables workarounds for
   websites with broken user agent parsing (enabled by default, see the "Fixed"
   section for fixed websites).
+- New `qt.force_platformtheme` setting to force Qt to use a given platform
+  theme.
 
 Changed
 ~~~~~~~

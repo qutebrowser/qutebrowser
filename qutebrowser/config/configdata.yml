@@ -178,6 +178,19 @@ qt.force_platform:
     This sets the `QT_QPA_PLATFORM` environment variable and is useful to force
     using the XCB plugin when running QtWebEngine on Wayland.
 
+qt.force_platformtheme:
+  type:
+    name: String
+    none_ok: true
+  default: null
+  restart: true
+  desc: >-
+    Force a Qt platformtheme to use.
+
+    This sets the `QT_QPA_PLATFORMTHEME` environment variable which controls
+    dialogs like the filepicker. By default, Qt determines the platform theme
+    based on the desktop environment.
+
 qt.process_model:
   type:
     name: String

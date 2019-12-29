@@ -308,6 +308,7 @@ class TestEarlyInit:
         ('qt.force_software_rendering', 'chromium',
          'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND', '1'),
         ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
+        ('qt.force_platformtheme', 'lxde', 'QT_QPA_PLATFORMTHEME', 'lxde'),
         ('window.hide_decoration', True,
          'QT_WAYLAND_DISABLE_WINDOWDECORATION', '1')
     ])

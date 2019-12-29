@@ -106,6 +106,8 @@ def _init_envvars() -> None:
 
     if config.val.qt.force_platform is not None:
         os.environ['QT_QPA_PLATFORM'] = config.val.qt.force_platform
+    if config.val.qt.force_platformtheme is not None:
+        os.environ['QT_QPA_PLATFORMTHEME'] = config.val.qt.force_platformtheme
 
     if config.val.window.hide_decoration:
         os.environ['QT_WAYLAND_DISABLE_WINDOWDECORATION'] = '1'
