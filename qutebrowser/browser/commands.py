@@ -34,7 +34,7 @@ from qutebrowser.browser import (urlmarks, browsertab, inspector, navigate,
                                  webelem, downloads)
 from qutebrowser.keyinput import modeman, keyutils
 from qutebrowser.utils import (message, usertypes, log, qtutils, urlutils,
-                               objreg, utils, standarddir, debug)
+                               objreg, utils, standarddir, debug, tabutils)
 from qutebrowser.utils.usertypes import KeyMode
 from qutebrowser.misc import editor, guiprocess, objects
 from qutebrowser.completion.models import urlmodel, miscmodels
@@ -110,7 +110,7 @@ class CommandDispatcher:
         return widget
 
     def _open(self, url, tab=False, background=False, window=False,
-              related=False, private=None):
+              related=False, private=None, reuse=True):
         """Helper function to open a page.
 
         Args:
@@ -120,8 +120,16 @@ class CommandDispatcher:
             window: Whether to open in a new window
             private: If opening a new window, open it in private browsing mode.
                      If not given, inherit the current window's mode.
+            reuse: If tabs.switch_to_open_url is enabled, switch to existing
+                   tab.
         """
         urlutils.raise_cmdexc_if_invalid(url)
+
+        tab = tabutils.tab_for_url(url)
+        if config.val.tabs.switch_to_open_url and reuse and tab is not None:
+            tabutils.switch_to_tab(tab)
+            return
+
         tabbed_browser = self._tabbed_browser
         cmdutils.check_exclusive((tab, background, window, private), 'tbwp')
         if window and private is None:
@@ -310,6 +318,12 @@ class CommandDispatcher:
         for i, cur_url in enumerate(urls):
             if secure:
                 cur_url.setScheme('https')
+
+            existing_tab = tabutils.tab_for_url(url)
+            if config.val.tabs.switch_to_open_url and existing_tab is not None:
+                tabutils.switch_to_tab(existing_tab)
+                continue
+
             if not window and i > 0:
                 tab = False
                 bg = True
@@ -434,13 +448,16 @@ class CommandDispatcher:
                    in which case the closest match will be taken.
             keep: If given, keep the old tab around.
         """
-        tabbed_browser, tab = self._resolve_buffer_index(index)
+        tab = tabutils.resolve_tab_index(index)
+
+        tabbed_browser = objreg.get('tabbed-browser', scope='window',
+                                    window=tab.win_id)
 
         if tabbed_browser is self._tabbed_browser:
             raise cmdutils.CommandError("Can't take a tab from the same "
                                         "window")
 
-        self._open(tab.url(), tab=True)
+        self._open(tab.url(), tab=True, reuse=False)
         if not keep:
             tabbed_browser.close_tab(tab, add_undo=False)
 
@@ -823,52 +840,6 @@ class CommandDispatcher:
         else:
             log.webview.debug("Last tab")
 
-    def _resolve_buffer_index(self, index):
-        """Resolve a buffer index to the tabbedbrowser and tab.
-
-        Args:
-            index: The [win_id/]index of the tab to be selected. Or a substring
-                   in which case the closest match will be focused.
-        """
-        index_parts = index.split('/', 1)
-
-        try:
-            for part in index_parts:
-                int(part)
-        except ValueError:
-            model = miscmodels.buffer()
-            model.set_pattern(index)
-            if model.count() > 0:
-                index = model.data(model.first_item())
-                index_parts = index.split('/', 1)
-            else:
-                raise cmdutils.CommandError(
-                    "No matching tab for: {}".format(index))
-
-        if len(index_parts) == 2:
-            win_id = int(index_parts[0])
-            idx = int(index_parts[1])
-        elif len(index_parts) == 1:
-            idx = int(index_parts[0])
-            active_win = QApplication.activeWindow()
-            if active_win is None:
-                # Not sure how you enter a command without an active window...
-                raise cmdutils.CommandError(
-                    "No window specified and couldn't find active window!")
-            win_id = active_win.win_id
-
-        if win_id not in objreg.window_registry:
-            raise cmdutils.CommandError(
-                "There's no window with id {}!".format(win_id))
-
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=win_id)
-        if not 0 < idx <= tabbed_browser.widget.count():
-            raise cmdutils.CommandError(
-                "There's no tab with index {}!".format(idx))
-
-        return (tabbed_browser, tabbed_browser.widget.widget(idx-1))
-
     @cmdutils.register(instance='command-dispatcher', scope='window',
                        maxsplit=0)
     @cmdutils.argument('index', completion=miscmodels.buffer)
@@ -893,12 +864,13 @@ class CommandDispatcher:
         if count is not None:
             index = str(count)
 
-        tabbed_browser, tab = self._resolve_buffer_index(index)
+        tab = tabutils.resolve_tab_index(index)
 
-        window = tabbed_browser.widget.window()
-        window.activateWindow()
-        window.raise_()
-        tabbed_browser.widget.setCurrentWidget(tab)
+        if tab is None:
+            raise cmdutils.CommandError("There's no tab with index {}!".format(
+                index))
+
+        tabutils.switch_to_tab(tab)
 
     @cmdutils.register(instance='command-dispatcher', scope='window')
     @cmdutils.argument('index', choices=['last', 'stack-next', 'stack-prev'])

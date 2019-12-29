@@ -514,6 +514,8 @@ class TabWidgetStub(QObject):
         self._qtabbar = QTabBar()
         self.index_of = None
         self.current_index = None
+        self._window = None
+        self.current_widget = None
 
     def count(self):
         return len(self.tabs)
@@ -545,6 +547,15 @@ class TabWidgetStub(QObject):
         if idx == -1:
             return None
         return self.tabs[idx - 1]
+
+    def setWindow(self, window):
+        self._window = window
+
+    def window(self):
+        return self._window
+
+    def setCurrentWidget(self, widget):
+        self.current_widget = widget
 
 
 class HTTPPostStub(QObject):

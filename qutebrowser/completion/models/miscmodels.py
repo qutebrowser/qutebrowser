@@ -21,9 +21,9 @@
 
 import typing
 
-from qutebrowser.config import configdata
-from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
+from qutebrowser.config import configdata
+from qutebrowser.utils import log, objreg, tabutils
 
 
 def command(*, info):
@@ -103,30 +103,13 @@ def _buffer(skip_win_id=None):
     Args:
         skip_win_id: The id of the window to skip, or None to include all.
     """
-    def delete_buffer(data):
-        """Close the selected tab."""
-        win_id, tab_index = data[0].split('/')
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=int(win_id))
-        tabbed_browser.on_tab_close_requested(int(tab_index) - 1)
-
     model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
 
-    for win_id in objreg.window_registry:
-        if skip_win_id is not None and win_id == skip_win_id:
-            continue
-        tabbed_browser = objreg.get('tabbed-browser', scope='window',
-                                    window=win_id)
-        if tabbed_browser.shutting_down:
-            continue
-        tabs = []
-        for idx in range(tabbed_browser.widget.count()):
-            tab = tabbed_browser.widget.widget(idx)
-            tabs.append(("{}/{}".format(win_id, idx + 1),
-                         tab.url().toDisplayString(),
-                         tabbed_browser.widget.page_title(idx)))
+    for win_id, tabs in tabutils.all_tabs_by_window(skip_win_id).items():
+        f_tab = (("{}/{}".format(t.win_id, i + 1), t.url().toDisplayString(),
+                  t.title()) for i, t in enumerate(tabs))
         cat = listcategory.ListCategory(
-            str(win_id), tabs, delete_func=delete_buffer, sort=False)
+            str(win_id), f_tab, delete_func=tabutils.delete_tab(0), sort=False)
         model.add_category(cat)
 
     return model

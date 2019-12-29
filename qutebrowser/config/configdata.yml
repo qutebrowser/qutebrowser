@@ -994,7 +994,7 @@ downloads.location.suggestion:
 completion.open_categories:
   type:
     name: FlagList
-    valid_values: [searchengines, quickmarks, bookmarks, history]
+    valid_values: [searchengines, quickmarks, bookmarks, history, tabs]
     none_ok: true
   default:
     - searchengines
@@ -1829,6 +1829,11 @@ tabs.tooltips:
     Show tooltips on tabs.
 
     Note this setting only affects windows opened after it has been set.
+
+tabs.switch_to_open_url:
+  type: Bool
+  default: false
+  desc: Switch to tab in case the desired URL is already open.
 
 ## url
 

@@ -121,3 +121,17 @@ Feature: Opening pages
         When I run :quickmark-add http://localhost:(port)/data/numbers/10.txt quickmarktest
         And I run :open quickmarktest
         Then data/numbers/10.txt should be loaded
+
+    Scenario: :open an open URL with tabs.switch_to_open_url set
+        Given I open about:blank
+        When I run :tab-only
+        And I run :window-only
+        And I run :open http://localhost:(port)/data/numbers/1.txt
+        And I wait until data/numbers/1.txt is loaded
+        And I run :open -t http://localhost:(port)/data/numbers/2.txt
+        And I wait until data/numbers/2.txt is loaded
+        And I set tabs.switch_to_open_url to true
+        And I run :open -t http://localhost:(port)/data/numbers/1.txt
+        Then the following tabs should be open:
+            - data/numbers/1.txt (active)
+            - data/numbers/2.txt

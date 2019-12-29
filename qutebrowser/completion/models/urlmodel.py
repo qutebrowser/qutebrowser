@@ -23,10 +23,9 @@ import typing
 
 from qutebrowser.completion.models import (completionmodel, listcategory,
                                            histcategory)
-from qutebrowser.browser import history
-from qutebrowser.utils import log, objreg
 from qutebrowser.config import config
-
+from qutebrowser.browser import history
+from qutebrowser.utils import log, objreg, tabutils
 
 _URLCOL = 0
 _TEXTCOL = 1
@@ -59,6 +58,7 @@ def url(*, info):
     - bookmarks
     - quickmarks
     - search engines
+    - open tabs
     - web history URLs
 
     Used for the `open` command.
@@ -87,6 +87,16 @@ def url(*, info):
     if bookmarks and 'bookmarks' in categories:
         models['bookmarks'] = listcategory.ListCategory(
             'Bookmarks', bookmarks, delete_func=_delete_bookmark, sort=False)
+
+    if config.val.tabs.switch_to_open_url and 'tabs' in categories:
+        all_tabs = []
+        for _, tabs in tabutils.all_tabs_by_window().items():
+            for i, t in enumerate(tabs):
+                all_tabs.append((t.url().toDisplayString(), t.title(),
+                                 "{}/{}".format(t.win_id, i + 1)))
+
+        models['tabs'] = listcategory.ListCategory(
+            'Tabs', all_tabs, delete_func=tabutils.delete_tab(2), sort=False)
 
     history_disabled = info.config.get('completion.web_history.max_items') == 0
     if not history_disabled and 'history' in categories:

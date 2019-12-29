@@ -283,6 +283,7 @@
 |<<tabs.select_on_remove,tabs.select_on_remove>>|Which tab to select when the focused tab is removed.
 |<<tabs.show,tabs.show>>|When to show the tab bar.
 |<<tabs.show_switching_delay,tabs.show_switching_delay>>|Duration (in milliseconds) to show the tab bar before hiding it when tabs.show is set to 'switching'.
+|<<tabs.switch_to_open_url,tabs.switch_to_open_url>>|Switch to tab in case the desired URL is already open.
 |<<tabs.tabs_are_windows,tabs.tabs_are_windows>>|Open a new window for every tab.
 |<<tabs.title.alignment,tabs.title.alignment>>|Alignment of the text inside of tabs.
 |<<tabs.title.format,tabs.title.format>>|Format to use for the tab title.
@@ -1528,6 +1529,7 @@ Valid values:
  * +quickmarks+
  * +bookmarks+
  * +history+
+ * +tabs+
 
 Default: 
 
@@ -3557,6 +3559,14 @@ Duration (in milliseconds) to show the tab bar before hiding it when tabs.show i
 Type: <<types,Int>>
 
 Default: +pass:[800]+
+
+[[tabs.switch_to_open_url]]
+=== tabs.switch_to_open_url
+Switch to tab in case the desired URL is already open.
+
+Type: <<types,Bool>>
+
+Default: +pass:[false]+
 
 [[tabs.tabs_are_windows]]
 === tabs.tabs_are_windows
