@@ -1261,6 +1261,13 @@ Feature: Tab management
         And I run :tab-give 99
         Then the error "There's no window with id 99!" should be shown
 
+    Scenario: Give a tab while using tabs_are_windows
+        When I open data/numbers/1.txt
+        And I open data/numbers/2.txt in a new window
+        And I set tabs.tabs_are_windows to true
+        And I run :tab-give 0/1
+        Then the error "Can't give tabs when using windows as tabs" should be shown
+
     # Other
 
     Scenario: Using :tab-next after closing last tab (#1448)

@@ -462,6 +462,10 @@ class CommandDispatcher:
             keep: If given, keep the old tab around.
             count: Overrides win_id (index starts at 1 for win_id=0).
         """
+        if config.val.tabs.tabs_are_windows:
+            raise cmdutils.CommandError("Can't give tabs when using "
+                                        "windows as tabs")
+
         if count is not None:
             win_id = count - 1
 
