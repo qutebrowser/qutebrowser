@@ -76,6 +76,11 @@ Changed
 - Settings with URL patterns can now be used to affect the behavior of the
   QtWebEngine inspector. Note that the underlying URL is `chrome-devtools://*`
   from Qt 5.11 to Qt 5.13, but `devtools://*` with Qt 5.14.
+- Improvements when `tabs.tabs_are_windows` is set:
+  * Using `:tab-take` and `:tab-give` now shows an error, as the effect of
+    doing so would be equal to `:tab-clone`.
+  * The `:buffer` completion doesn't show any window sections anymore, only a
+    flat list of tabs.
 - Performance improvements for the following areas:
   * Adding settings with URL patterns
   * Matching of settings using URL patterns
