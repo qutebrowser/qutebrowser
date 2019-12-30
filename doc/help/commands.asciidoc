@@ -720,7 +720,7 @@ Insert text at cursor position.
 === inspector
 Toggle the web inspector.
 
-Note: Due a bug in Qt, the inspector will show incorrect request headers in the network tab.
+Note: Due to a bug in Qt, the inspector will show incorrect request headers in the network tab.
 
 [[jseval]]
 === jseval
