@@ -434,6 +434,10 @@ class CommandDispatcher:
                    in which case the closest match will be taken.
             keep: If given, keep the old tab around.
         """
+        if config.val.tabs.tabs_are_windows:
+            raise cmdutils.CommandError("Can't take tabs when using "
+                                        "windows as tabs")
+
         tabbed_browser, tab = self._resolve_buffer_index(index)
 
         if tabbed_browser is self._tabbed_browser:
@@ -1233,7 +1237,7 @@ class CommandDispatcher:
     def toggle_inspector(self):
         """Toggle the web inspector.
 
-        Note: Due a bug in Qt, the inspector will show incorrect request
+        Note: Due to a bug in Qt, the inspector will show incorrect request
         headers in the network tab.
         """
         tab = self._current_widget()
