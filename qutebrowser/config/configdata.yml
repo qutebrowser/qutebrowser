@@ -2084,6 +2084,12 @@ colors.completion.scrollbar.bg:
   desc: Color of the scrollbar in the completion view.
 
 colors.contextmenu.bg:
+  renamed: colors.contextmenu.menu.bg
+
+colors.contextmenu.fg:
+  renamed: colors.contextmenu.menu.fg
+
+colors.contextmenu.menu.bg:
   type:
     name: QssColor
     none_ok: true
@@ -2093,13 +2099,33 @@ colors.contextmenu.bg:
 
     If set to null, the Qt default is used.
 
-colors.contextmenu.fg:
+colors.contextmenu.menu.fg:
   type:
     name: QssColor
     none_ok: true
   default: null
   desc: >-
     Foreground color of the context menu.
+
+    If set to null, the Qt default is used.
+
+colors.contextmenu.selected.bg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Background color of the context menu's selected item.
+
+    If set to null, the Qt default is used.
+
+colors.contextmenu.selected.fg:
+  type:
+    name: QssColor
+    none_ok: true
+  default: null
+  desc: >-
+    Foreground color of the context menu's selected item.
 
     If set to null, the Qt default is used.
 

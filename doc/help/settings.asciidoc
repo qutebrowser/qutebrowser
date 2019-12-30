@@ -32,8 +32,10 @@
 |<<colors.completion.odd.bg,colors.completion.odd.bg>>|Background color of the completion widget for odd rows.
 |<<colors.completion.scrollbar.bg,colors.completion.scrollbar.bg>>|Color of the scrollbar in the completion view.
 |<<colors.completion.scrollbar.fg,colors.completion.scrollbar.fg>>|Color of the scrollbar handle in the completion view.
-|<<colors.contextmenu.bg,colors.contextmenu.bg>>|Background color of the context menu.
-|<<colors.contextmenu.fg,colors.contextmenu.fg>>|Foreground color of the context menu.
+|<<colors.contextmenu.menu.bg,colors.contextmenu.menu.bg>>|Background color of the context menu.
+|<<colors.contextmenu.menu.fg,colors.contextmenu.menu.fg>>|Foreground color of the context menu.
+|<<colors.contextmenu.selected.bg,colors.contextmenu.selected.bg>>|Background color of the context menu's selected item.
+|<<colors.contextmenu.selected.fg,colors.contextmenu.selected.fg>>|Foreground color of the context menu's selected item.
 |<<colors.downloads.bar.bg,colors.downloads.bar.bg>>|Background color for the download bar.
 |<<colors.downloads.error.bg,colors.downloads.error.bg>>|Background color for downloads with errors.
 |<<colors.downloads.error.fg,colors.downloads.error.fg>>|Foreground color for downloads with errors.
@@ -860,8 +862,8 @@ Type: <<types,QssColor>>
 
 Default: +pass:[white]+
 
-[[colors.contextmenu.bg]]
-=== colors.contextmenu.bg
+[[colors.contextmenu.menu.bg]]
+=== colors.contextmenu.menu.bg
 Background color of the context menu.
 If set to null, the Qt default is used.
 
@@ -869,9 +871,27 @@ Type: <<types,QssColor>>
 
 Default: empty
 
-[[colors.contextmenu.fg]]
-=== colors.contextmenu.fg
+[[colors.contextmenu.menu.fg]]
+=== colors.contextmenu.menu.fg
 Foreground color of the context menu.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.selected.bg]]
+=== colors.contextmenu.selected.bg
+Background color of the context menu's selected item.
+If set to null, the Qt default is used.
+
+Type: <<types,QssColor>>
+
+Default: empty
+
+[[colors.contextmenu.selected.fg]]
+=== colors.contextmenu.selected.fg
+Foreground color of the context menu's selected item.
 If set to null, the Qt default is used.
 
 Type: <<types,QssColor>>

@@ -26,8 +26,10 @@ Added
   tabs.
 - New settings to configure the appearance of context menus:
   - `fonts.contextmenu`
-  - `colors.contextmenu.bg`
-  - `colors.contextmenu.fg`
+  - `colors.contextmenu.menu.bg`
+  - `colors.contextmenu.menu.fg`
+  - `colors.contextmenu.active.bg`
+  - `colors.contextmenu.active.fg`
 - New `content.site_specific_quirks` setting which enables workarounds for
   websites with broken user agent parsing (enabled by default, see the "Fixed"
   section for fixed websites).

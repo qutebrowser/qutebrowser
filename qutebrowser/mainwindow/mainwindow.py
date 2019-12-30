@@ -165,11 +165,20 @@ class MainWindow(QWidget):
             {% if conf.fonts.contextmenu %}
                 font: {{ conf.fonts.contextmenu }};
             {% endif %}
-            {% if conf.colors.contextmenu.bg %}
-                background-color: {{ conf.colors.contextmenu.bg }};
+            {% if conf.colors.contextmenu.menu.bg %}
+                background-color: {{ conf.colors.contextmenu.menu.bg }};
             {% endif %}
-            {% if conf.colors.contextmenu.fg %}
-                color: {{ conf.colors.contextmenu.fg }};
+            {% if conf.colors.contextmenu.menu.fg %}
+                color: {{ conf.colors.contextmenu.menu.fg }};
+            {% endif %}
+        }
+
+        QMenu::item:selected {
+            {% if conf.colors.contextmenu.selected.bg %}
+                background-color: {{ conf.colors.contextmenu.selected.bg }};
+            {% endif %}
+            {% if conf.colors.contextmenu.selected.fg %}
+                color: {{ conf.colors.contextmenu.selected.fg }};
             {% endif %}
         }
     """
