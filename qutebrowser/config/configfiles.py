@@ -31,7 +31,7 @@ import typing
 import re
 
 import yaml
-from PyQt5.QtCore import pyqtSignal, QObject, QSettings, qVersion
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject, QSettings, qVersion
 
 import qutebrowser
 from qutebrowser.config import configexc, config, configdata, configutils
@@ -44,6 +44,9 @@ if typing.TYPE_CHECKING:
 
 # The StateConfig instance
 state = typing.cast('StateConfig', None)
+
+
+_SettingsType = typing.Dict[str, typing.Dict[str, typing.Any]]
 
 
 class StateConfig(configparser.ConfigParser):
@@ -103,8 +106,6 @@ class YamlConfig(QObject):
     VERSION = 2
     changed = pyqtSignal()
 
-    _SettingsType = typing.Dict[str, typing.Dict[str, typing.Any]]
-
     def __init__(self, parent: QObject = None) -> None:
         super().__init__(parent)
         self._filename = os.path.join(standarddir.config(auto=True),
@@ -128,6 +129,7 @@ class YamlConfig(QObject):
         """Iterate over configutils.Values items."""
         yield from self._values.values()
 
+    @pyqtSlot()
     def _mark_changed(self) -> None:
         """Mark the YAML config as changed."""
         self._dirty = True
@@ -138,7 +140,7 @@ class YamlConfig(QObject):
         if not self._dirty:
             return
 
-        settings = {}  # type: YamlConfig._SettingsType
+        settings = {}  # type: _SettingsType
         for name, values in sorted(self._values.items()):
             if not values:
                 continue
@@ -213,7 +215,10 @@ class YamlConfig(QObject):
             settings = self._load_settings_object(yaml_data)
             self._dirty = False
 
-        settings = self._handle_migrations(settings)
+        migrations = YamlMigrations(settings, parent=self)
+        migrations.changed.connect(self._mark_changed)
+        migrations.migrate()
+
         self._validate(settings)
         self._build_values(settings)
 
@@ -262,101 +267,6 @@ class YamlConfig(QObject):
         if errors:
             raise configexc.ConfigFileErrors('autoconfig.yml', errors)
 
-    def _migrate_bool(self, settings: _SettingsType, name: str,
-                      true_value: str, false_value: str) -> None:
-        """Migrate a boolean in the settings."""
-        if name in settings:
-            for scope, val in settings[name].items():
-                if isinstance(val, bool):
-                    settings[name][scope] = true_value if val else false_value
-                    self._mark_changed()
-
-    def _migrate_none(self, settings: _SettingsType, name: str,
-                      value: str) -> None:
-        if name in settings:
-            for scope, val in settings[name].items():
-                if val is None:
-                    settings[name][scope] = value
-                    self._mark_changed()
-
-    def _migrate_string_value(self, settings: _SettingsType, name: str,
-                              source: str, target: str) -> None:
-        if name in settings:
-            for scope, val in settings[name].items():
-                if isinstance(val, str):
-                    new_val = re.sub(source, target, val)
-                    if new_val != val:
-                        settings[name][scope] = new_val
-                        self._mark_changed()
-
-    def _handle_migrations(self, settings: _SettingsType) -> '_SettingsType':
-        """Migrate older configs to the newest format."""
-        # Simple renamed/deleted options
-        for name in list(settings):
-            if name in configdata.MIGRATIONS.renamed:
-                new_name = configdata.MIGRATIONS.renamed[name]
-                log.config.debug("Renaming {} to {}".format(name, new_name))
-                settings[new_name] = settings[name]
-                del settings[name]
-                self._mark_changed()
-            elif name in configdata.MIGRATIONS.deleted:
-                log.config.debug("Removing {}".format(name))
-                del settings[name]
-                self._mark_changed()
-
-        # tabs.persist_mode_on_change got merged into tabs.mode_on_change
-        old = 'tabs.persist_mode_on_change'
-        new = 'tabs.mode_on_change'
-        if old in settings:
-            settings[new] = {}
-            for scope, val in settings[old].items():
-                if val:
-                    settings[new][scope] = 'persist'
-                else:
-                    settings[new][scope] = 'normal'
-
-            del settings[old]
-            self._mark_changed()
-
-        # bindings.default can't be set in autoconfig.yml anymore, so ignore
-        # old values.
-        if 'bindings.default' in settings:
-            del settings['bindings.default']
-            self._mark_changed()
-
-        # content.webrtc_public_interfaces_only got merged into
-        # content.webrtc_ip_handling_policy.
-        old = 'content.webrtc_public_interfaces_only'
-        new = 'content.webrtc_ip_handling_policy'
-        if old in settings:
-            settings[new] = {}
-            for scope, val in settings[old].items():
-                if val:
-                    settings[new][scope] = 'default-public-interface-only'
-                else:
-                    settings[new][scope] = 'all-interfaces'
-
-            del settings[old]
-            self._mark_changed()
-
-        self._migrate_bool(settings, 'tabs.favicons.show', 'always', 'never')
-        self._migrate_bool(settings, 'scrolling.bar',
-                           'always', 'when-searching')
-        self._migrate_bool(settings, 'qt.force_software_rendering',
-                           'software-opengl', 'none')
-
-        for s in ['tabs.title.format',
-                  'tabs.title.format_pinned',
-                  'window.title_format']:
-            self._migrate_string_value(
-                settings, s, r'(?<!{)\{title\}(?!})', r'{current_title}')
-
-        # content.headers.user_agent can't be empty to get the default anymore.
-        s = 'content.headers.user_agent'
-        self._migrate_none(settings, s, configdata.DATA[s].default)
-
-        return settings
-
     def _validate(self, settings: _SettingsType) -> None:
         """Make sure all settings exist."""
         unknown = []
@@ -387,6 +297,124 @@ class YamlConfig(QObject):
         for values in self._values.values():
             values.clear()
         self._mark_changed()
+
+
+class YamlMigrations(QObject):
+
+    """Automated migrations for autoconfig.yml."""
+
+    changed = pyqtSignal()
+
+    def __init__(self, settings: _SettingsType,
+                 parent: QObject = None) -> None:
+        super().__init__(parent)
+        self._settings = settings
+
+    def migrate(self) -> None:
+        """Migrate older configs to the newest format."""
+        self._migrate_configdata()
+        self._migrate_bindings_default()
+
+        self._migrate_bool('tabs.favicons.show', 'always', 'never')
+        self._migrate_bool('scrolling.bar', 'always', 'when-searching')
+        self._migrate_bool('qt.force_software_rendering',
+                           'software-opengl', 'none')
+        self._migrate_renamed_bool(
+            old_name='content.webrtc_public_interfaces_only',
+            new_name='content.webrtc_ip_handling_policy',
+            true_value='default-public-interface-only',
+            false_value='all-interfaces')
+        self._migrate_renamed_bool(
+            old_name='tabs.persist_mode_on_change',
+            new_name='tabs.mode_on_change',
+            true_value='persist',
+            false_value='normal')
+
+        for setting in ['tabs.title.format',
+                        'tabs.title.format_pinned',
+                        'window.title_format']:
+            self._migrate_string_value(setting,
+                                       r'(?<!{)\{title\}(?!})',
+                                       r'{current_title}')
+
+        # content.headers.user_agent can't be empty to get the default anymore.
+        setting = 'content.headers.user_agent'
+        self._migrate_none(setting, configdata.DATA[setting].default)
+
+    def _migrate_configdata(self) -> None:
+        """Migrate simple renamed/deleted options."""
+        for name in list(self._settings):
+            if name in configdata.MIGRATIONS.renamed:
+                new_name = configdata.MIGRATIONS.renamed[name]
+                log.config.debug("Renaming {} to {}".format(name, new_name))
+                self._settings[new_name] = self._settings[name]
+                del self._settings[name]
+                self.changed.emit()
+            elif name in configdata.MIGRATIONS.deleted:
+                log.config.debug("Removing {}".format(name))
+                del self._settings[name]
+                self.changed.emit()
+
+    def _migrate_bindings_default(self) -> None:
+        """bindings.default can't be set in autoconfig.yml anymore.
+
+        => Ignore old values.
+        """
+        if 'bindings.default' not in self._settings:
+            return
+
+        del self._settings['bindings.default']
+        self.changed.emit()
+
+    def _migrate_bool(self, name: str,
+                      true_value: str,
+                      false_value: str) -> None:
+        if name not in self._settings:
+            return
+
+        for scope, val in self._settings[name].items():
+            if isinstance(val, bool):
+                new_value = true_value if val else false_value
+                self._settings[name][scope] = new_value
+                self.changed.emit()
+
+    def _migrate_renamed_bool(self, old_name: str,
+                              new_name: str,
+                              true_value: str,
+                              false_value: str) -> None:
+        if old_name not in self._settings:
+            return
+
+        self._settings[new_name] = {}
+
+        for scope, val in self._settings[old_name].items():
+            new_value = true_value if val else false_value
+            self._settings[new_name][scope] = new_value
+
+        del self._settings[old_name]
+        self.changed.emit()
+
+    def _migrate_none(self, name: str, value: str) -> None:
+        if name not in self._settings:
+            return
+
+        for scope, val in self._settings[name].items():
+            if val is None:
+                self._settings[name][scope] = value
+                self.changed.emit()
+
+    def _migrate_string_value(self, name: str,
+                              source: str,
+                              target: str) -> None:
+        if name not in self._settings:
+            return
+
+        for scope, val in self._settings[name].items():
+            if isinstance(val, str):
+                new_val = re.sub(source, target, val)
+                if new_val != val:
+                    self._settings[name][scope] = new_val
+                    self.changed.emit()
 
 
 class ConfigAPI:
