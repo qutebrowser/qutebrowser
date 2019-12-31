@@ -39,6 +39,8 @@ Added
 Changed
 ~~~~~~~
 
+- The macOS binaries now require macOS 10.13 High Sierra or newer. Support for
+  macOS 10.12 Sierra has been dropped.
 - The `content.headers.user_agent` setting now is a format string with the
   default value resembling the behavior of it being set to null before.
   This slightly changes the sent user agent for QtWebKit: Instead of mentioning
