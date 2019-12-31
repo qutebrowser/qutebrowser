@@ -1267,12 +1267,23 @@ class QtFont(Font):
 
         if family == 'monospace' and self.monospace_fonts is not None:
             family = self.monospace_fonts
-        # The Qt CSS parser handles " and ' before passing the string to
-        # QFont.setFamily. We could do proper CSS-like parsing here, but since
-        # hopefully nobody will ever have a font with quotes in the family (if
-        # that's even possible), we take a much more naive approach.
-        family = family.replace('"', '').replace("'", '')
-        font.setFamily(family)
+
+        families = []
+        for part in family.split(','):
+            part = part.strip()
+            # The Qt CSS parser handles " and ' before passing the string to
+            # QFont.setFamily.
+            if ((part.startswith("'") and part.endswith("'")) or
+                    (part.startswith('"') and part.endswith('"'))):
+                part = part[1:-1]
+            families.append(part)
+
+        if hasattr(font, 'setFamilies'):
+            font.setFamily(families[0])
+            font.setFamilies(families)
+        else:
+            # Added in Qt 5.13
+            font.setFamily(', '.join(families))
 
         return font
 

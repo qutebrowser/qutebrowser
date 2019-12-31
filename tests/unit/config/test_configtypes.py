@@ -48,21 +48,41 @@ class Font(QFont):
     def __repr__(self):
         weight = debug.qenum_key(QFont, self.weight(), add_base=True,
                                  klass=QFont.Weight)
-        return utils.get_repr(self, family=self.family(), pt=self.pointSize(),
-                              px=self.pixelSize(), weight=weight,
-                              style=self.style())
+        kwargs = {
+            'family': self.family(),
+            'pt': self.pointSize(),
+            'px': self.pixelSize(),
+            'weight': weight,
+            'style': self.style(),
+        }
+        try:
+            kwargs['families'] = self.families()
+        except AttributeError:
+            # Added in Qt 5.13
+            pass
+
+        return utils.get_repr(self, **kwargs)
 
     @classmethod
     def fromdesc(cls, desc):
         """Get a Font based on a font description."""
         f = cls()
+
         f.setStyle(desc.style)
         f.setWeight(desc.weight)
+
         if desc.pt is not None and desc.pt != -1:
             f.setPointSize(desc.pt)
         if desc.px is not None and desc.pt != -1:
             f.setPixelSize(desc.px)
+
         f.setFamily(desc.family)
+        try:
+            f.setFamilies([desc.family])
+        except AttributeError:
+            # Added in Qt 5.13
+            pass
+
         return f
 
 
@@ -1407,16 +1427,30 @@ class TestFont:
             expected = Font.fromdesc(desc)
         assert klass().to_py(val) == expected
 
+    def test_qtfont(self, qtfont_class):
+        """Test QtFont's to_py."""
+        value = Font(qtfont_class().to_py('10pt "Foobar Neue", Fubar'))
+
+        if hasattr(value, 'families'):
+            # Added in Qt 5.13
+            assert value.family() == 'Foobar Neue'
+            assert value.families() == ['Foobar Neue', 'Fubar']
+        else:
+            assert value.family() == 'Foobar Neue, Fubar'
+
+        assert value.weight() == QFont.Normal
+        assert value.style() == QFont.StyleNormal
+
+        assert value.pointSize() == 10
+
     def test_qtfont_float(self, qtfont_class):
         """Test QtFont's to_py with a float as point size.
 
         We can't test the point size for equality as Qt seems to do some
         rounding as appropriate.
         """
-        value = Font(qtfont_class().to_py('10.5pt "Foobar Neue"'))
-        assert value.family() == 'Foobar Neue'
-        assert value.weight() == QFont.Normal
-        assert value.style() == QFont.StyleNormal
+        value = Font(qtfont_class().to_py('10.5pt Test'))
+        assert value.family() == 'Test'
         assert value.pointSize() >= 10
         assert value.pointSize() <= 11
 

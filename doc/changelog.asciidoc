@@ -81,6 +81,8 @@ Changed
     doing so would be equal to `:tab-clone`.
   * The `:buffer` completion doesn't show any window sections anymore, only a
     flat list of tabs.
+- Improved parsing in some corner cases for the `QtFont` type (used for
+  `fonts.tabs` and `fonts.debug_console`).
 - Performance improvements for the following areas:
   * Adding settings with URL patterns
   * Matching of settings using URL patterns
