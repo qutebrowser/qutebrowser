@@ -1215,6 +1215,22 @@ class QtFont(Font):
 
     __doc__ = Font.__doc__  # for src2asciidoc.py
 
+    def _parse_families(self, family_str: str) -> typing.List[str]:
+        if family_str == 'monospace' and self.monospace_fonts is not None:
+            family_str = self.monospace_fonts
+
+        families = []
+        for part in family_str.split(','):
+            part = part.strip()
+            # The Qt CSS parser handles " and ' before passing the string to
+            # QFont.setFamily.
+            if ((part.startswith("'") and part.endswith("'")) or
+                    (part.startswith('"') and part.endswith('"'))):
+                part = part[1:-1]
+            families.append(part)
+
+        return families
+
     def to_py(self, value: _StrUnset) -> typing.Union[usertypes.Unset,
                                                       None, QFont]:
         self._basic_py_validation(value, str)
@@ -1223,15 +1239,6 @@ class QtFont(Font):
         elif not value:
             return None
 
-        style_map = {
-            'normal': QFont.StyleNormal,
-            'italic': QFont.StyleItalic,
-            'oblique': QFont.StyleOblique,
-        }
-        weight_map = {
-            'normal': QFont.Normal,
-            'bold': QFont.Bold,
-        }
         font = QFont()
         font.setStyle(QFont.StyleNormal)
         font.setWeight(QFont.Normal)
@@ -1247,13 +1254,25 @@ class QtFont(Font):
         namedweight = match.group('namedweight')
         size = match.group('size')
         family = match.group('family')
+
+        style_map = {
+            'normal': QFont.StyleNormal,
+            'italic': QFont.StyleItalic,
+            'oblique': QFont.StyleOblique,
+        }
         if style:
             font.setStyle(style_map[style])
+
+        weight_map = {
+            'normal': QFont.Normal,
+            'bold': QFont.Bold,
+        }
         if namedweight:
             font.setWeight(weight_map[namedweight])
-        if weight:
+        elif weight:
             # based on qcssparser.cpp:setFontWeightFromValue
             font.setWeight(min(int(weight) // 8, 99))
+
         if size:
             if size.lower().endswith('pt'):
                 font.setPointSizeF(float(size[:-2]))
@@ -1265,24 +1284,12 @@ class QtFont(Font):
                 raise ValueError("Unexpected size unit in {!r}!".format(
                     size))  # pragma: no cover
 
-        if family == 'monospace' and self.monospace_fonts is not None:
-            family = self.monospace_fonts
-
-        families = []
-        for part in family.split(','):
-            part = part.strip()
-            # The Qt CSS parser handles " and ' before passing the string to
-            # QFont.setFamily.
-            if ((part.startswith("'") and part.endswith("'")) or
-                    (part.startswith('"') and part.endswith('"'))):
-                part = part[1:-1]
-            families.append(part)
-
+        families = self._parse_families(family)
         if hasattr(font, 'setFamilies'):
+            # Added in Qt 5.13
             font.setFamily(families[0])
             font.setFamilies(families)
-        else:
-            # Added in Qt 5.13
+        else:  # pragma: no cover
             font.setFamily(', '.join(families))
 
         return font
