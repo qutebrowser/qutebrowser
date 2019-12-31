@@ -28,8 +28,8 @@ Added
   - `fonts.contextmenu`
   - `colors.contextmenu.menu.bg`
   - `colors.contextmenu.menu.fg`
-  - `colors.contextmenu.active.bg`
-  - `colors.contextmenu.active.fg`
+  - `colors.contextmenu.selected.bg`
+  - `colors.contextmenu.selected.fg`
 - New `content.site_specific_quirks` setting which enables workarounds for
   websites with broken user agent parsing (enabled by default, see the "Fixed"
   section for fixed websites).
