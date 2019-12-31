@@ -78,6 +78,7 @@ group = argument_parser.add_mutually_exclusive_group()
 group.add_argument('--username-only', '-e', action='store_true', help='Only insert username')
 group.add_argument('--password-only', '-w', action='store_true', help='Only insert password')
 group.add_argument('--otp-only', '-o', action='store_true', help='Only insert OTP code')
+group.add_argument('--use-gopass', '-g', action='store_true', help='use gopass instead of pass')
 
 stderr = functools.partial(print, file=sys.stderr)
 
@@ -116,9 +117,23 @@ def find_pass_candidates(domain, password_store_path):
     return candidates
 
 
+def find_gopass_candidates(domain):
+    candidates = []
+    for secret in _run_pass(['gopass', 'list', '--flat'], arguments.io_encoding).split('\n'):
+        if domain not in secret.split('/'):
+            continue
+
+        candidates.append(secret)
+    return candidates
+
+
 def _run_pass(command, encoding):
     process = subprocess.run(command, stdout=subprocess.PIPE)
     return process.stdout.decode(encoding).strip()
+
+
+def gopass_(path, encoding):
+    return _run_pass(['gopass', path], encoding)
 
 
 def pass_(path, encoding):
@@ -166,7 +181,10 @@ def main(arguments):
 
     for target in filter(None, [extract_result.fqdn, extract_result.registered_domain, extract_result.ipv4, private_domain]):
         attempted_targets.append(target)
-        target_candidates = find_pass_candidates(target, password_store_path)
+        if arguments.use_gopass:
+            target_candidates = find_gopass_candidates(target)
+        else:
+            target_candidates = find_pass_candidates(target, password_store_path)
         if not target_candidates:
             continue
 
@@ -187,7 +205,10 @@ def main(arguments):
     # If username-target is path and user asked for username-only, we don't need to run pass
     secret = None
     if not (arguments.username_target == 'path' and arguments.username_only):
-        secret = pass_(selection, arguments.io_encoding)
+        if arguments.use_gopass:
+            secret = gopass_(selection, arguments.io_encoding)
+        else:
+            secret = pass_(selection, arguments.io_encoding)
 
         # Match password
         match = re.match(arguments.password_pattern, secret)
