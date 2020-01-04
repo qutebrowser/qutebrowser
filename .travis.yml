@@ -1,4 +1,4 @@
-dist: xenial
+dist: bionic
 language: python
 group: edge
 python: 3.8
