@@ -57,6 +57,11 @@ def convert_line(line, comments):
     except KeyError:
         pass
 
+    try:
+        line += ' ; {}'.format(comments['markers'][pkgname])
+    except KeyError:
+        pass
+
     return line
 
 
@@ -71,8 +76,10 @@ def read_comments(fobj):
     """
     comments = {
         'filter': {},
+        'markers': {},
         'comment': {},
         'ignore': [],
+        'add': [],
         'replace': {},
     }
     for line in fobj:
@@ -91,6 +98,11 @@ def read_comments(fobj):
             elif command == 'replace':
                 pattern, replacement = args.split(' ', maxsplit=1)
                 comments['replace'][pattern] = replacement
+            elif command == 'markers':
+                pkg, markers = args.split(' ', maxsplit=1)
+                comments['markers'][pkg] = markers
+            elif command == 'add':
+                comments['add'].append(args)
     return comments
 
 
@@ -147,6 +159,9 @@ def main():
                 if line.startswith('qutebrowser=='):
                     continue
                 f.write(convert_line(line, comments) + '\n')
+
+            for line in comments['add']:
+                f.write(line + '\n')
 
 
 if __name__ == '__main__':
