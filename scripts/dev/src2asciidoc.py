@@ -545,6 +545,7 @@ def regenerate_cheatsheet():
         subprocess.run(['inkscape', '-e', filename, '-b', 'white',
                         '-w', str(x), '-h', str(y),
                         'misc/cheatsheet.svg'], check=True)
+        subprocess.run(['optipng', filename], check=True)
 
 
 def main():
