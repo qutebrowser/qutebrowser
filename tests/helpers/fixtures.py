@@ -43,12 +43,12 @@ from PyQt5.QtNetwork import QNetworkCookieJar
 
 import helpers.stubs as stubsmod
 from qutebrowser.config import (config, configdata, configtypes, configexc,
-                                configfiles, configcache)
+                                configfiles, configcache, stylesheet)
 from qutebrowser.api import config as configapi
 from qutebrowser.utils import objreg, standarddir, utils, usertypes
 from qutebrowser.browser import greasemonkey, history, qutescheme
-from qutebrowser.browser.webkit import cookies
-from qutebrowser.misc import savemanager, sql, objects
+from qutebrowser.browser.webkit import cookies, cache
+from qutebrowser.misc import savemanager, sql, objects, sessions
 from qutebrowser.keyinput import modeman
 
 
@@ -158,11 +158,9 @@ def fake_web_tab(stubs, tab_registry, mode_manager, qapp):
 
 
 @pytest.fixture
-def greasemonkey_manager(data_tmpdir):
+def greasemonkey_manager(monkeypatch, data_tmpdir):
     gm_manager = greasemonkey.GreasemonkeyManager()
-    objreg.register('greasemonkey', gm_manager)
-    yield
-    objreg.delete('greasemonkey')
+    monkeypatch.setattr(greasemonkey, 'gm_manager', gm_manager)
 
 
 @pytest.fixture(scope='session')
@@ -206,12 +204,13 @@ def web_tab_setup(qtbot, tab_registry, session_manager_stub,
 
 @pytest.fixture
 def webkit_tab(web_tab_setup, qtbot, cookiejar_and_cache, mode_manager,
-               widget_container):
+               widget_container, webpage):
     webkittab = pytest.importorskip('qutebrowser.browser.webkit.webkittab')
 
     tab = webkittab.WebKitTab(win_id=0, mode_manager=mode_manager,
                               private=False)
     widget_container.set_widget(tab)
+
     return tab
 
 
@@ -320,6 +319,9 @@ def config_stub(stubs, monkeypatch, configdata_init, yaml_config_stub):
         pass
 
     conf.val = container  # For easier use in tests
+
+    stylesheet.init()
+
     return conf
 
 
@@ -350,12 +352,11 @@ def bookmark_manager_stub(stubs):
 
 
 @pytest.fixture
-def session_manager_stub(stubs):
+def session_manager_stub(stubs, monkeypatch):
     """Fixture which provides a fake session-manager object."""
     stub = stubs.SessionManagerStub()
-    objreg.register('session-manager', stub)
-    yield stub
-    objreg.delete('session-manager')
+    monkeypatch.setattr(sessions, 'session_manager', stub)
+    return stub
 
 
 @pytest.fixture
@@ -368,15 +369,6 @@ def tabbed_browser_stubs(qapp, stubs, win_registry):
     yield stubs
     objreg.delete('tabbed-browser', scope='window', window=0)
     objreg.delete('tabbed-browser', scope='window', window=1)
-
-
-@pytest.fixture
-def app_stub(stubs):
-    """Fixture which provides a fake app object."""
-    stub = stubs.ApplicationStub()
-    objreg.register('app', stub)
-    yield stub
-    objreg.delete('app')
 
 
 @pytest.fixture
@@ -428,9 +420,23 @@ def webengineview(qtbot, monkeypatch, web_tab_setup):
 def webpage(qnam):
     """Get a new QWebPage object."""
     QtWebKitWidgets = pytest.importorskip('PyQt5.QtWebKitWidgets')
-    page = QtWebKitWidgets.QWebPage()
+
+    class WebPageStub(QtWebKitWidgets.QWebPage):
+
+        """QWebPage with default error pages disabled."""
+
+        def supportsExtension(self, _ext):
+            """No extensions needed."""
+            return False
+
+    page = WebPageStub()
+
     page.networkAccessManager().deleteLater()
     page.setNetworkAccessManager(qnam)
+
+    from qutebrowser.browser.webkit import webkitsettings
+    webkitsettings._init_user_agent()
+
     return page
 
 
@@ -457,18 +463,11 @@ def webframe(webpage):
 
 
 @pytest.fixture
-def cookiejar_and_cache(stubs):
+def cookiejar_and_cache(stubs, monkeypatch):
     """Fixture providing a fake cookie jar and cache."""
-    jar = QNetworkCookieJar()
-    ram_jar = cookies.RAMCookieJar()
-    cache = stubs.FakeNetworkCache()
-    objreg.register('cookie-jar', jar)
-    objreg.register('ram-cookie-jar', ram_jar)
-    objreg.register('cache', cache)
-    yield
-    objreg.delete('cookie-jar')
-    objreg.delete('ram-cookie-jar')
-    objreg.delete('cache')
+    monkeypatch.setattr(cookies, 'cookie_jar', QNetworkCookieJar())
+    monkeypatch.setattr(cookies, 'ram_cookie_jar', cookies.RAMCookieJar())
+    monkeypatch.setattr(cache, 'diskcache', stubs.FakeNetworkCache())
 
 
 @pytest.fixture
@@ -493,18 +492,18 @@ def fake_save_manager():
 
 
 @pytest.fixture
-def fake_args(request):
+def fake_args(request, monkeypatch):
     ns = types.SimpleNamespace()
     ns.backend = 'webengine' if request.config.webengine else 'webkit'
     ns.debug_flags = []
-    objreg.register('args', ns)
-    yield ns
-    objreg.delete('args')
+
+    monkeypatch.setattr(objects, 'args', ns)
+    return ns
 
 
 @pytest.fixture
 def mode_manager(win_registry, config_stub, key_config_stub, qapp):
-    mm = modeman.init(0, parent=qapp)
+    mm = modeman.init(win_id=0, parent=qapp)
     yield mm
     objreg.delete('mode-manager', scope='window', window=0)
 
@@ -537,7 +536,20 @@ def config_tmpdir(monkeypatch, tmpdir):
 
     Use this to avoid creating a 'real' config dir (~/.config/qute_test).
     """
+    monkeypatch.setattr(
+        standarddir, 'config_py',
+        lambda **_kwargs: str(tmpdir / 'config' / 'config.py'))
     return standarddir_tmpdir('config', monkeypatch, tmpdir)
+
+
+@pytest.fixture
+def config_py_arg(tmpdir, monkeypatch):
+    """Set the config_py arg with a custom value for init."""
+    f = tmpdir / 'temp_config.py'
+    monkeypatch.setattr(
+        standarddir, 'config_py',
+        lambda **_kwargs: str(f))
+    return f
 
 
 @pytest.fixture
@@ -631,11 +643,11 @@ def download_stub(win_registry, tmpdir, stubs):
 
 
 @pytest.fixture
-def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs):
-    """Create a web history and register it into objreg."""
+def web_history(fake_save_manager, tmpdir, init_sql, config_stub, stubs,
+                monkeypatch):
+    """Create a WebHistory object."""
     config_stub.val.completion.timestamp_format = '%Y-%m-%d'
     config_stub.val.completion.web_history.max_items = -1
     web_history = history.WebHistory(stubs.FakeHistoryProgress())
-    objreg.register('web-history', web_history)
-    yield web_history
-    objreg.delete('web-history')
+    monkeypatch.setattr(history, 'web_history', web_history)
+    return web_history

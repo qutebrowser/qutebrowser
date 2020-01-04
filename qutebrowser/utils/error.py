@@ -19,12 +19,14 @@
 
 """Tools related to error printing/displaying."""
 
+import argparse
+
 from PyQt5.QtWidgets import QMessageBox
 
 from qutebrowser.utils import log, utils
 
 
-def _get_name(exc):
+def _get_name(exc: BaseException) -> str:
     """Get a suitable exception name as a string."""
     prefixes = ['qutebrowser', 'builtins']
     name = utils.qualname(exc.__class__)
@@ -35,7 +37,11 @@ def _get_name(exc):
     return name
 
 
-def handle_fatal_exc(exc, args, title, *, pre_text='', post_text=''):
+def handle_fatal_exc(exc: BaseException,
+                     args: argparse.Namespace,
+                     title: str, *,
+                     pre_text: str = '',
+                     post_text: str = '') -> None:
     """Handle a fatal "expected" exception by displaying an error box.
 
     If --no-err-windows is given as argument, the text is logged to the error

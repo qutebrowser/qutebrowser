@@ -29,7 +29,7 @@ import pytest
 
 from qutebrowser.api import cmdutils
 from qutebrowser.browser.network import pac
-from qutebrowser.utils import utils, urlutils, qtutils, usertypes
+from qutebrowser.utils import utils, urlutils, usertypes
 from helpers import utils as testutils
 
 
@@ -210,17 +210,14 @@ class TestFuzzyUrl:
         url = urlutils.fuzzy_url('foo', do_search=False)
         assert url == QUrl('http://foo')
 
-    @pytest.mark.parametrize('do_search, exception', [
-        (True, qtutils.QtValueError),
-        (False, urlutils.InvalidUrlError),
-    ])
-    def test_invalid_url(self, do_search, exception, is_url_mock, monkeypatch,
+    @pytest.mark.parametrize('do_search', [True, False])
+    def test_invalid_url(self, do_search, is_url_mock, monkeypatch,
                          caplog):
         """Test with an invalid URL."""
         is_url_mock.return_value = True
         monkeypatch.setattr(urlutils, 'qurl_from_user_input',
                             lambda url: QUrl())
-        with pytest.raises(exception):
+        with pytest.raises(urlutils.InvalidUrlError):
             with caplog.at_level(logging.ERROR):
                 urlutils.fuzzy_url('foo', do_search=do_search)
 
@@ -290,6 +287,7 @@ def test_special_urls(url, special):
     ('stripped ', 'www.example.com', 'q=stripped'),
     ('test-with-dash testfoo', 'www.example.org', 'q=testfoo'),
     ('test/with/slashes', 'www.example.com', 'q=test%2Fwith%2Fslashes'),
+    ('test path-search', 'www.qutebrowser.org', 'q=path-search'),
 ])
 def test_get_search_url(config_stub, url, host, query, open_base_url):
     """Test _get_search_url().
@@ -338,11 +336,19 @@ def test_get_search_url_invalid(url):
     (True, True, True, 'qutebrowser.org'),
     (True, True, True, ' qutebrowser.org '),
     (True, True, False, 'http://user:password@example.com/foo?bar=baz#fish'),
+    (True, True, True, 'existing-tld.domains'),
+    # Internationalized domain names
+    (True, True, True, '\u4E2D\u56FD.\u4E2D\u56FD'),  # Chinese TLD
+    (True, True, True, 'xn--fiqs8s.xn--fiqs8s'),  # The same in punycode
+    # Encoded space in explicit url
+    (True, True, False, 'http://sharepoint/sites/it/IT%20Documentation/Forms/AllItems.aspx'),
     # IPs
     (True, True, False, '127.0.0.1'),
     (True, True, False, '::1'),
     (True, True, True, '2001:41d0:2:6c11::1'),
+    (True, True, True, '[2001:41d0:2:6c11::1]:8000'),
     (True, True, True, '94.23.233.17'),
+    (True, True, True, '94.23.233.17:8000'),
     # Special URLs
     (True, True, False, 'file:///tmp/foo'),
     (True, True, False, 'about:blank'),
@@ -362,15 +368,19 @@ def test_get_search_url_invalid(url):
     (False, True, False, 'another . test'),  # no DNS because of space
     (False, True, True, 'foo'),
     (False, True, False, 'this is: not a URL'),  # no DNS because of space
+    (False, True, False, 'foo user@host.tld'),  # no DNS because of space
     (False, True, False, '23.42'),  # no DNS because bogus-IP
     (False, True, False, '1337'),  # no DNS because bogus-IP
     (False, True, True, 'deadbeef'),
     (False, True, True, 'hello.'),
     (False, True, False, 'site:cookies.com oatmeal raisin'),
+    (False, True, True, 'example.search_string'),
+    (False, True, True, 'example_search.string'),
     # no DNS because there is no host
     (False, True, False, 'foo::bar'),
     # Valid search term with autosearch
     (False, False, False, 'test foo'),
+    (False, False, False, 'test user@host.tld'),
     # autosearch = False
     (False, True, False, 'This is a URL without autosearch'),
 ])
@@ -414,6 +424,18 @@ def test_is_url(config_stub, fake_dns,
     else:
         raise ValueError("Invalid value {!r} for auto_search!".format(
             auto_search))
+
+
+@pytest.mark.parametrize('auto_search, open_base_url, is_url', [
+    ('naive', True, False),
+    ('naive', False, False),
+    ('never', True, False),
+    ('never', False, True),
+])
+def test_searchengine_is_url(config_stub, auto_search, open_base_url, is_url):
+    config_stub.val.url.auto_search = auto_search
+    config_stub.val.url.open_base_url = open_base_url
+    assert urlutils.is_url('test') == is_url
 
 
 @pytest.mark.parametrize('user_input, output', [
@@ -511,11 +533,7 @@ def test_filename_from_url(qurl, output):
     assert urlutils.filename_from_url(qurl) == output
 
 
-@pytest.mark.parametrize('qurl, tpl', [
-    (QUrl(), None),
-    (QUrl('qute://'), None),
-    (QUrl('qute://foobar'), None),
-    (QUrl('mailto:nobody'), None),
+@pytest.mark.parametrize('qurl, expected', [
     (QUrl('ftp://example.com/'), ('ftp', 'example.com', 21)),
     (QUrl('ftp://example.com:2121/'), ('ftp', 'example.com', 2121)),
     (QUrl('http://qutebrowser.org:8010/waterfall'),
@@ -525,18 +543,19 @@ def test_filename_from_url(qurl, output):
     (QUrl('http://user:password@qutebrowser.org/foo?bar=baz#fish'),
      ('http', 'qutebrowser.org', 80)),
 ])
-def test_host_tuple(qurl, tpl):
-    """Test host_tuple().
+def test_host_tuple_valid(qurl, expected):
+    assert urlutils.host_tuple(qurl) == expected
 
-    Args:
-        qurl: The QUrl to pass.
-        tpl: The expected tuple, or None if a ValueError is expected.
-    """
-    if tpl is None:
-        with pytest.raises(ValueError):
-            urlutils.host_tuple(qurl)
-    else:
-        assert urlutils.host_tuple(qurl) == tpl
+
+@pytest.mark.parametrize('qurl, expected', [
+    (QUrl(), urlutils.InvalidUrlError),
+    (QUrl('qute://'), ValueError),
+    (QUrl('qute://foobar'), ValueError),
+    (QUrl('mailto:nobody'), ValueError),
+])
+def test_host_tuple_invalid(qurl, expected):
+    with pytest.raises(expected):
+        urlutils.host_tuple(qurl)
 
 
 class TestInvalidUrlError:
@@ -568,11 +587,6 @@ class TestInvalidUrlError:
             if has_err_string:
                 expected_text += " - " + url.errorString()
             assert str(excinfo.value) == expected_text
-
-    def test_value_error_subclass(self):
-        """Make sure InvalidUrlError is a ValueError subclass."""
-        with pytest.raises(ValueError):
-            raise urlutils.InvalidUrlError(QUrl())
 
 
 @pytest.mark.parametrize('are_same, url1, url2', [
@@ -612,160 +626,6 @@ def test_same_domain_invalid_url(url1, url2):
 def test_encoded_url(url, expected):
     url = QUrl(url)
     assert urlutils.encoded_url(url) == expected
-
-
-class TestIncDecNumber:
-
-    """Tests for urlutils.incdec_number()."""
-
-    @pytest.mark.parametrize('incdec', ['increment', 'decrement'])
-    @pytest.mark.parametrize('value', [
-        '{}foo', 'foo{}', 'foo{}bar', '42foo{}'
-    ])
-    @pytest.mark.parametrize('url', [
-        'http://example.com:80/v1/path/{}/test',
-        'http://example.com:80/v1/query_test?value={}',
-        'http://example.com:80/v1/anchor_test#{}',
-        'http://host_{}_test.com:80',
-        'http://m4ny.c0m:80/number5/3very?where=yes#{}'
-    ])
-    def test_incdec_number(self, incdec, value, url):
-        """Test incdec_number with valid URLs."""
-        # The integer used should not affect test output, as long as it's
-        # bigger than 1
-        # 20 was chosen by dice roll, guaranteed to be random
-        base_value = value.format(20)
-        if incdec == 'increment':
-            expected_value = value.format(21)
-        else:
-            expected_value = value.format(19)
-
-        base_url = QUrl(url.format(base_value))
-        expected_url = QUrl(url.format(expected_value))
-        new_url = urlutils.incdec_number(
-            base_url, incdec, segments={'host', 'path', 'query', 'anchor'})
-        assert new_url == expected_url
-
-    def test_incdec_port(self):
-        """Test incdec_number with port."""
-        base_url = QUrl('http://localhost:8000')
-        new_url = urlutils.incdec_number(
-            base_url, 'increment', segments={'port'})
-        assert new_url == QUrl('http://localhost:8001')
-        new_url = urlutils.incdec_number(
-            base_url, 'decrement', segments={'port'})
-        assert new_url == QUrl('http://localhost:7999')
-
-    def test_incdec_port_default(self):
-        """Test that a default port (with url.port() == -1) is not touched."""
-        base_url = QUrl('http://localhost')
-        with pytest.raises(urlutils.IncDecError):
-            urlutils.incdec_number(base_url, 'increment', segments={'port'})
-
-    @pytest.mark.parametrize('incdec', ['increment', 'decrement'])
-    @pytest.mark.parametrize('value', [
-        '{}foo', 'foo{}', 'foo{}bar', '42foo{}'
-    ])
-    @pytest.mark.parametrize('url', [
-        'http://example.com:80/v1/path/{}/test',
-        'http://example.com:80/v1/query_test?value={}',
-        'http://example.com:80/v1/anchor_test#{}',
-        'http://host_{}_test.com:80',
-        'http://m4ny.c0m:80/number5/3very?where=yes#{}'
-    ])
-    @pytest.mark.parametrize('count', [1, 5, 100])
-    def test_incdec_number_count(self, incdec, value, url, count):
-        """Test incdec_number with valid URLs and a count."""
-        base_value = value.format(20)
-        if incdec == 'increment':
-            expected_value = value.format(20 + count)
-        else:
-            expected_value = value.format(20 - count)
-
-        base_url = QUrl(url.format(base_value))
-        expected_url = QUrl(url.format(expected_value))
-        new_url = urlutils.incdec_number(
-            base_url, incdec, count,
-            segments={'host', 'path', 'query', 'anchor'})
-        assert new_url == expected_url
-
-    @pytest.mark.parametrize('number, expected, incdec', [
-        ('01', '02', 'increment'),
-        ('09', '10', 'increment'),
-        ('009', '010', 'increment'),
-        ('02', '01', 'decrement'),
-        ('10', '9', 'decrement'),
-        ('010', '009', 'decrement')
-    ])
-    def test_incdec_leading_zeroes(self, number, expected, incdec):
-        """Test incdec_number with leading zeroes."""
-        url = 'http://example.com/{}'
-        base_url = QUrl(url.format(number))
-        expected_url = QUrl(url.format(expected))
-        new_url = urlutils.incdec_number(base_url, incdec, segments={'path'})
-        assert new_url == expected_url
-
-    @pytest.mark.parametrize('url, segments, expected', [
-        ('http://ex4mple.com/test_4?page=3#anchor2', {'host'},
-         'http://ex5mple.com/test_4?page=3#anchor2'),
-        ('http://ex4mple.com/test_4?page=3#anchor2', {'host', 'path'},
-         'http://ex4mple.com/test_5?page=3#anchor2'),
-        ('http://ex4mple.com/test_4?page=3#anchor5', {'host', 'path', 'query'},
-         'http://ex4mple.com/test_4?page=4#anchor5'),
-    ])
-    def test_incdec_segment_ignored(self, url, segments, expected):
-        new_url = urlutils.incdec_number(QUrl(url), 'increment',
-                                         segments=segments)
-        assert new_url == QUrl(expected)
-
-    @pytest.mark.parametrize('url', [
-        "http://example.com/long/path/but/no/number",
-        "http://ex4mple.com/number/in/hostname",
-        "http://example.com:42/number/in/port",
-        "http://www2.example.com/number/in/subdomain",
-        "http://example.com/%C3%B6/urlencoded/data",
-        "http://example.com/number/in/anchor#5",
-        "http://www2.ex4mple.com:42/all/of/the/%C3%A4bove#5",
-    ])
-    def test_no_number(self, url):
-        """Test incdec_number with URLs that don't contain a number."""
-        with pytest.raises(urlutils.IncDecError):
-            urlutils.incdec_number(QUrl(url), "increment")
-
-    def test_number_below_0(self):
-        """Test incdec_number with a number <0 after decrementing."""
-        with pytest.raises(urlutils.IncDecError):
-            urlutils.incdec_number(QUrl('http://example.com/page_0.html'),
-                                   'decrement')
-
-    def test_invalid_url(self):
-        """Test if incdec_number rejects an invalid URL."""
-        with pytest.raises(urlutils.InvalidUrlError):
-            urlutils.incdec_number(QUrl(""), "increment")
-
-    def test_wrong_mode(self):
-        """Test if incdec_number rejects a wrong parameter for incdec."""
-        valid_url = QUrl("http://example.com/0")
-        with pytest.raises(ValueError):
-            urlutils.incdec_number(valid_url, "foobar")
-
-    def test_wrong_segment(self):
-        """Test if incdec_number rejects a wrong segment."""
-        with pytest.raises(urlutils.IncDecError):
-            urlutils.incdec_number(QUrl('http://example.com'),
-                                   'increment', segments={'foobar'})
-
-    @pytest.mark.parametrize("url, msg, expected_str", [
-        ("http://example.com", "Invalid", "Invalid: http://example.com"),
-    ])
-    def test_incdec_error(self, url, msg, expected_str):
-        """Test IncDecError."""
-        url = QUrl(url)
-        with pytest.raises(urlutils.IncDecError) as excinfo:
-            raise urlutils.IncDecError(msg, url)
-
-        assert excinfo.value.url == url
-        assert str(excinfo.value) == expected_str
 
 
 def test_file_url():

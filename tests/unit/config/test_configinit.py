@@ -65,6 +65,12 @@ def configdata_init(monkeypatch):
 
 class TestEarlyInit:
 
+    def test_config_py_path(self, args, init_patch, config_py_arg):
+        config_py_arg.write('c.colors.hints.bg = "red"\n')
+        configinit.early_init(args)
+        expected = 'colors.hints.bg = red'
+        assert config.instance.dump_userconfig() == expected
+
     @pytest.mark.parametrize('config_py', [True, 'error', False])
     def test_config_py(self, init_patch, config_tmpdir, caplog, args,
                        config_py):
@@ -95,7 +101,6 @@ class TestEarlyInit:
         assert actual_errors == expected_errors
 
         # Make sure things have been init'ed
-        objreg.get('config-commands')
         assert isinstance(config.instance, config.Config)
         assert isinstance(config.key_instance, config.KeyConfig)
 
@@ -110,7 +115,8 @@ class TestEarlyInit:
     @pytest.mark.parametrize('config_py', [True, 'error', False])
     @pytest.mark.parametrize('invalid_yaml', ['42', 'list', 'unknown',
                                               'wrong-type', False])
-    def test_autoconfig_yml(self, init_patch, config_tmpdir, caplog, args,
+    def test_autoconfig_yml(self, init_patch, config_tmpdir,  # noqa: C901
+                            caplog, args,
                             load_autoconfig, config_py, invalid_yaml):
         """Test interaction between config.py and autoconfig.yml."""
         # Prepare files
@@ -198,6 +204,12 @@ class TestEarlyInit:
             expected = ['colors.hints.fg = magenta']
 
         assert dump == '\n'.join(expected)
+
+    def test_state_init_errors(self, init_patch, args, data_tmpdir):
+        state_file = data_tmpdir / 'state'
+        state_file.write_binary(b'\x00')
+        configinit.early_init(args)
+        assert configinit._init_errors.errors
 
     def test_invalid_change_filter(self, init_patch, args):
         config.change_filter('foobar')
@@ -296,7 +308,7 @@ class TestEarlyInit:
         ('qt.force_software_rendering', 'chromium',
          'QT_WEBENGINE_DISABLE_NOUVEAU_WORKAROUND', '1'),
         ('qt.force_platform', 'toaster', 'QT_QPA_PLATFORM', 'toaster'),
-        ('qt.highdpi', True, 'QT_AUTO_SCREEN_SCALE_FACTOR', '1'),
+        ('qt.force_platformtheme', 'lxde', 'QT_QPA_PLATFORMTHEME', 'lxde'),
         ('window.hide_decoration', True,
          'QT_WAYLAND_DISABLE_WINDOWDECORATION', '1')
     ])
@@ -313,22 +325,56 @@ class TestEarlyInit:
 
         assert os.environ[envvar] == expected
 
+    @pytest.mark.parametrize('new_qt', [True, False])
+    def test_highdpi(self, monkeypatch, config_stub, new_qt):
+        """Test HighDPI environment variables.
+
+        Depending on the Qt version, there's a different variable which should
+        be set...
+        """
+        new_var = 'QT_ENABLE_HIGHDPI_SCALING'
+        old_var = 'QT_AUTO_SCREEN_SCALE_FACTOR'
+
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, exact=False, compiled=True:
+                            new_qt)
+
+        for envvar in [new_var, old_var]:
+            monkeypatch.setenv(envvar, '')  # to make sure it gets restored
+            monkeypatch.delenv(envvar)
+
+        config_stub.set_obj('qt.highdpi', True)
+        configinit._init_envvars()
+
+        envvar = new_var if new_qt else old_var
+
+        assert os.environ[envvar] == '1'
+
     def test_env_vars_webkit(self, monkeypatch, config_stub):
         monkeypatch.setattr(configinit.objects, 'backend',
                             usertypes.Backend.QtWebKit)
         configinit._init_envvars()
 
 
-@pytest.mark.parametrize('errors', [True, False])
+@pytest.mark.parametrize('errors', [True, 'fatal', False])
 def test_late_init(init_patch, monkeypatch, fake_save_manager, args,
                    mocker, errors):
     configinit.early_init(args)
+
     if errors:
         err = configexc.ConfigErrorDesc("Error text", Exception("Exception"))
         errs = configexc.ConfigFileErrors("config.py", [err])
+        if errors == 'fatal':
+            errs.fatal = True
+
         monkeypatch.setattr(configinit, '_init_errors', errs)
+
     msgbox_mock = mocker.patch('qutebrowser.config.configinit.msgbox.msgbox',
                                autospec=True)
+    exit_mock = mocker.patch('qutebrowser.config.configinit.sys.exit',
+                             autospec=True)
 
     configinit.late_init(fake_save_manager)
 
@@ -336,12 +382,15 @@ def test_late_init(init_patch, monkeypatch, fake_save_manager, args,
         'state-config', unittest.mock.ANY)
     fake_save_manager.add_saveable.assert_any_call(
         'yaml-config', unittest.mock.ANY, unittest.mock.ANY)
+
     if errors:
         assert len(msgbox_mock.call_args_list) == 1
         _call_posargs, call_kwargs = msgbox_mock.call_args_list[0]
         text = call_kwargs['text'].strip()
         assert text.startswith('Errors occurred while reading config.py:')
         assert '<b>Error text</b>: Exception' in text
+
+        assert exit_mock.called == (errors == 'fatal')
     else:
         assert not msgbox_mock.called
 
@@ -401,8 +450,8 @@ class TestQtArgs:
         assert configinit.qt_args(parsed) == [sys.argv[0], '--foo', '--bar']
 
     @pytest.mark.parametrize('backend, expected', [
-        (usertypes.Backend.QtWebEngine, ['--disable-shared-workers']),
-        (usertypes.Backend.QtWebKit, []),
+        (usertypes.Backend.QtWebEngine, True),
+        (usertypes.Backend.QtWebKit, False),
     ])
     def test_shared_workers(self, config_stub, monkeypatch, parser,
                             backend, expected):
@@ -410,6 +459,49 @@ class TestQtArgs:
                             lambda version, compiled=False: False)
         monkeypatch.setattr(configinit.objects, 'backend', backend)
         parsed = parser.parse_args([])
+        args = configinit.qt_args(parsed)
+        assert ('--disable-shared-workers' in args) == expected
+
+    @pytest.mark.parametrize('backend, version_check, debug_flag, expected', [
+        # Qt >= 5.12.3: Enable with -D stack, do nothing without it.
+        (usertypes.Backend.QtWebEngine, True, True, True),
+        (usertypes.Backend.QtWebEngine, True, False, None),
+        # Qt < 5.12.3: Do nothing with -D stack, disable without it.
+        (usertypes.Backend.QtWebEngine, False, True, None),
+        (usertypes.Backend.QtWebEngine, False, False, False),
+        # QtWebKit: Do nothing
+        (usertypes.Backend.QtWebKit, True, True, None),
+        (usertypes.Backend.QtWebKit, True, False, None),
+        (usertypes.Backend.QtWebKit, False, True, None),
+        (usertypes.Backend.QtWebKit, False, False, None),
+    ])
+    def test_in_process_stack_traces(self, monkeypatch, parser, backend,
+                                     version_check, debug_flag, expected):
+        monkeypatch.setattr(configinit.qtutils, 'version_check',
+                            lambda version, compiled=False: version_check)
+        monkeypatch.setattr(configinit.objects, 'backend', backend)
+        parsed = parser.parse_args(['--debug-flag', 'stack'] if debug_flag
+                                   else [])
+        args = configinit.qt_args(parsed)
+
+        if expected is None:
+            assert '--disable-in-process-stack-traces' not in args
+            assert '--enable-in-process-stack-traces' not in args
+        elif expected:
+            assert '--disable-in-process-stack-traces' not in args
+            assert '--enable-in-process-stack-traces' in args
+        else:
+            assert '--disable-in-process-stack-traces' in args
+            assert '--enable-in-process-stack-traces' not in args
+
+    @pytest.mark.parametrize('flags, expected', [
+        ([], []),
+        (['--debug-flag', 'chromium'], ['--enable-logging', '--v=1']),
+    ])
+    def test_chromium_debug(self, monkeypatch, parser, flags, expected):
+        monkeypatch.setattr(configinit.objects, 'backend',
+                            usertypes.Backend.QtWebEngine)
+        parsed = parser.parse_args(flags)
         assert configinit.qt_args(parsed) == [sys.argv[0]] + expected
 
     def test_disable_gpu(self, config_stub, monkeypatch, parser):

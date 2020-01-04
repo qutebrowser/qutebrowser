@@ -310,7 +310,9 @@ class Process(QObject):
             self.proc.terminate()
 
         ok = self.proc.waitForFinished()
-        assert ok
+        if not ok:
+            self.proc.kill()
+            self.proc.waitForFinished()
 
     def is_running(self):
         """Check if the process is currently running."""
@@ -468,7 +470,7 @@ class Process(QObject):
             else:
                 timeout = 5000
 
-        timeout /= divisor
+        timeout //= divisor
 
         if not kwargs:
             raise TypeError("No keyword arguments given!")

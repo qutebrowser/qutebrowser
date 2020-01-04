@@ -74,10 +74,11 @@ def test_command(qtbot, py_proc, runner):
         with open(os.environ['QUTE_FIFO'], 'w') as f:
             f.write('foo\n')
     """)
-    with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
-        runner.prepare_run(cmd, *args)
-        runner.store_html('')
-        runner.store_text('')
+    with qtbot.waitSignal(runner.finished, timeout=10000):
+        with qtbot.waitSignal(runner.got_cmd, timeout=10000) as blocker:
+            runner.prepare_run(cmd, *args)
+            runner.store_html('')
+            runner.store_text('')
     assert blocker.args == ['foo']
 
 

@@ -8,7 +8,6 @@ pytest
 pytest-bdd
 pytest-benchmark
 pytest-cov
-pytest-faulthandler
 pytest-instafail
 pytest-mock
 pytest-qt

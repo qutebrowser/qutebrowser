@@ -34,8 +34,8 @@ from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtNetwork import QNetworkProxy
 
 from qutebrowser.misc import objects
-from qutebrowser.config import configtypes, configexc, configutils
-from qutebrowser.utils import debug, utils, qtutils, urlmatch
+from qutebrowser.config import configtypes, configexc
+from qutebrowser.utils import debug, utils, qtutils, urlmatch, usertypes
 from qutebrowser.browser.network import pac
 from qutebrowser.keyinput import keyutils
 from helpers import utils as testutils
@@ -48,21 +48,41 @@ class Font(QFont):
     def __repr__(self):
         weight = debug.qenum_key(QFont, self.weight(), add_base=True,
                                  klass=QFont.Weight)
-        return utils.get_repr(self, family=self.family(), pt=self.pointSize(),
-                              px=self.pixelSize(), weight=weight,
-                              style=self.style())
+        kwargs = {
+            'family': self.family(),
+            'pt': self.pointSize(),
+            'px': self.pixelSize(),
+            'weight': weight,
+            'style': self.style(),
+        }
+        try:
+            kwargs['families'] = self.families()
+        except AttributeError:
+            # Added in Qt 5.13
+            pass
+
+        return utils.get_repr(self, **kwargs)
 
     @classmethod
     def fromdesc(cls, desc):
         """Get a Font based on a font description."""
         f = cls()
+
         f.setStyle(desc.style)
         f.setWeight(desc.weight)
+
         if desc.pt is not None and desc.pt != -1:
             f.setPointSize(desc.pt)
         if desc.px is not None and desc.pt != -1:
             f.setPixelSize(desc.px)
+
         f.setFamily(desc.family)
+        try:
+            f.setFamilies([desc.family])
+        except AttributeError:
+            # Added in Qt 5.13
+            pass
+
         return f
 
 
@@ -277,7 +297,7 @@ class TestAll:
     @pytest.mark.parametrize('none_ok', [True, False])
     def test_unset(self, klass, none_ok):
         typ = klass(none_ok=none_ok)
-        assert typ.to_py(configutils.UNSET) is configutils.UNSET
+        assert typ.to_py(usertypes.UNSET) is usertypes.UNSET
 
     def test_to_str_none(self, klass):
         assert klass().to_str(None) == ''
@@ -423,7 +443,7 @@ class TestMappingType:
                                      configtypes.Position(),
                                      configtypes.SelectOnRemove()])
     def test_mapping_type_matches_valid_values(self, typ):
-        assert list(sorted(typ.MAPPING)) == list(sorted(typ.valid_values))
+        assert sorted(typ.MAPPING) == sorted(typ.valid_values)
 
 
 class TestString:
@@ -936,6 +956,9 @@ class TestNumeric:
         ({'maxval': 2}, 3, False),
         ({'minval': 2, 'maxval': 3}, 1, False),
         ({'minval': 2, 'maxval': 3}, 4, False),
+
+        ({'zero_ok': False}, 0, False),
+        ({'minval': -1}, 0, True),
     ])
     def test_validate_bounds_invalid(self, klass, kwargs, val, valid):
         if valid:
@@ -1377,7 +1400,7 @@ class TestFont:
         'bold italic 10pt "Foobar Neue"':
             FontDesc(QFont.StyleItalic, QFont.Bold, 10, None, 'Foobar Neue'),
         'normal 300 10pt "Foobar Neue"':
-            FontDesc(QFont.StyleNormal, 37.5, 10, None, 'Foobar Neue'),
+            FontDesc(QFont.StyleNormal, 37, 10, None, 'Foobar Neue'),
         'normal 800 10pt "Foobar Neue"':
             FontDesc(QFont.StyleNormal, 99, 10, None, 'Foobar Neue'),
     }
@@ -1404,16 +1427,30 @@ class TestFont:
             expected = Font.fromdesc(desc)
         assert klass().to_py(val) == expected
 
+    def test_qtfont(self, qtfont_class):
+        """Test QtFont's to_py."""
+        value = Font(qtfont_class().to_py('10pt "Foobar Neue", Fubar'))
+
+        if hasattr(value, 'families'):
+            # Added in Qt 5.13
+            assert value.family() == 'Foobar Neue'
+            assert value.families() == ['Foobar Neue', 'Fubar']
+        else:
+            assert value.family() == 'Foobar Neue, Fubar'
+
+        assert value.weight() == QFont.Normal
+        assert value.style() == QFont.StyleNormal
+
+        assert value.pointSize() == 10
+
     def test_qtfont_float(self, qtfont_class):
         """Test QtFont's to_py with a float as point size.
 
         We can't test the point size for equality as Qt seems to do some
         rounding as appropriate.
         """
-        value = Font(qtfont_class().to_py('10.5pt "Foobar Neue"'))
-        assert value.family() == 'Foobar Neue'
-        assert value.weight() == QFont.Normal
-        assert value.style() == QFont.StyleNormal
+        value = Font(qtfont_class().to_py('10.5pt Test'))
+        assert value.family() == 'Test'
         assert value.pointSize() >= 10
         assert value.pointSize() <= 11
 
@@ -1835,8 +1872,12 @@ class TestDirectory:
 class TestFormatString:
 
     @pytest.fixture
-    def typ(self):
-        return configtypes.FormatString(fields=('foo', 'bar'))
+    def klass(self):
+        return configtypes.FormatString
+
+    @pytest.fixture
+    def typ(self, klass):
+        return klass(fields=('foo', 'bar'))
 
     @pytest.mark.parametrize('val', [
         'foo bar baz',
@@ -1853,6 +1894,14 @@ class TestFormatString:
     def test_to_py_invalid(self, typ, val):
         with pytest.raises(configexc.ValidationError):
             typ.to_py(val)
+
+    @pytest.mark.parametrize('value', [
+        None,
+        ['one', 'two'],
+        [('1', 'one'), ('2', 'two')],
+    ])
+    def test_complete(self, klass, value):
+        assert klass(fields=('foo'), completions=value).complete() == value
 
 
 class TestShellCommand:

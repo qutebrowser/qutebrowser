@@ -33,6 +33,7 @@ from qutebrowser.misc import objects
 def init(qapp, config_stub, cache_tmpdir, data_tmpdir, monkeypatch):
     monkeypatch.setattr(webenginesettings.webenginequtescheme, 'init',
                         lambda: None)
+    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     init_args = types.SimpleNamespace(enable_webengine_inspector=False)
     webenginesettings.init(init_args)
     config_stub.changed.disconnect(webenginesettings._update_settings)
@@ -49,7 +50,6 @@ def test_big_cache_size(config_stub):
 @pytest.mark.skipif(
     not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
-    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: None)
     config_stub.val.spellcheck.languages = ['af-ZA']
@@ -66,7 +66,6 @@ def test_non_existing_dict(config_stub, monkeypatch, message_mock, caplog):
 @pytest.mark.skipif(
     not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_existing_dict(config_stub, monkeypatch):
-    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     monkeypatch.setattr(webenginesettings.spell, 'local_filename',
                         lambda _code: 'en-US-8-0')
     config_stub.val.spellcheck.languages = ['en-US']
@@ -80,9 +79,19 @@ def test_existing_dict(config_stub, monkeypatch):
 @pytest.mark.skipif(
     not qtutils.version_check('5.8'), reason="Needs Qt 5.8 or newer")
 def test_spell_check_disabled(config_stub, monkeypatch):
-    monkeypatch.setattr(objects, 'backend', usertypes.Backend.QtWebEngine)
     config_stub.val.spellcheck.languages = []
     webenginesettings._update_settings('spellcheck.languages')
     for profile in [webenginesettings.default_profile,
                     webenginesettings.private_profile]:
         assert not profile.isSpellCheckEnabled()
+
+
+def test_default_user_agent_saved():
+    assert webenginesettings.parsed_user_agent is not None
+
+
+def test_parsed_user_agent(qapp):
+    webenginesettings.init_user_agent()
+    parsed = webenginesettings.parsed_user_agent
+    assert parsed.upstream_browser_key == 'Chrome'
+    assert parsed.qt_key == 'QtWebEngine'

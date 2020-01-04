@@ -23,13 +23,17 @@ Defines a CompletionView which uses CompletionFiterModel and CompletionModel
 subclasses to provide completions.
 """
 
-from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory
+import typing
+
+from PyQt5.QtWidgets import QTreeView, QSizePolicy, QStyleFactory, QWidget
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QItemSelectionModel, QSize
 
-from qutebrowser.config import config
+from qutebrowser.config import config, stylesheet
 from qutebrowser.completion import completiondelegate
-from qutebrowser.utils import utils, usertypes, debug, log, objreg
+from qutebrowser.utils import utils, usertypes, debug, log
 from qutebrowser.api import cmdutils
+if typing.TYPE_CHECKING:
+    from qutebrowser.mainwindow.statusbar import command
 
 
 class CompletionView(QTreeView):
@@ -47,6 +51,7 @@ class CompletionView(QTreeView):
         _delegate: The item delegate used.
         _column_widths: A list of column widths, in percent.
         _active: Whether a selection is active.
+        _cmd: The statusbar Command object.
 
     Signals:
         update_geometry: Emitted when the completion should be resized.
@@ -105,18 +110,22 @@ class CompletionView(QTreeView):
     update_geometry = pyqtSignal()
     selection_changed = pyqtSignal(str)
 
-    def __init__(self, win_id, parent=None):
+    def __init__(self, *,
+                 cmd: 'command.Command',
+                 win_id: int,
+                 parent: QWidget = None) -> None:
         super().__init__(parent)
-        self.pattern = ''
+        self.pattern = None  # type: typing.Optional[str]
         self._win_id = win_id
-        config.instance.changed.connect(self._on_config_changed)
-
+        self._cmd = cmd
         self._active = False
+
+        config.instance.changed.connect(self._on_config_changed)
 
         self._delegate = completiondelegate.CompletionItemDelegate(self)
         self.setItemDelegate(self._delegate)
         self.setStyle(QStyleFactory.create('Fusion'))
-        config.set_register_stylesheet(self)
+        stylesheet.set_register(self)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setHeaderHidden(True)
         self.setAlternatingRowColors(True)
@@ -240,15 +249,13 @@ class CompletionView(QTreeView):
             history: Navigate through command history if no text was typed.
         """
         if history:
-            status = objreg.get('status-command', scope='window',
-                                window=self._win_id)
-            if (status.text() == ':' or status.history.is_browsing() or
+            if (self._cmd.text() == ':' or self._cmd.history.is_browsing() or
                     not self._active):
                 if which == 'next':
-                    status.command_history_next()
+                    self._cmd.command_history_next()
                     return
                 elif which == 'prev':
-                    status.command_history_prev()
+                    self._cmd.command_history_prev()
                     return
                 else:
                     raise cmdutils.CommandError("Can't combine --history with "
@@ -270,7 +277,9 @@ class CompletionView(QTreeView):
             return
 
         selmodel.setCurrentIndex(
-            idx, QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Rows)
+            idx,
+            QItemSelectionModel.ClearAndSelect |  # type: ignore
+            QItemSelectionModel.Rows)
 
         # if the last item is focused, try to fetch more
         if idx.row() == self.model().rowCount(idx.parent()) - 1:
@@ -305,15 +314,21 @@ class CompletionView(QTreeView):
 
         model.setParent(self)
         self._active = True
+        self.pattern = None
         self._maybe_show()
 
         self._resize_columns()
         for i in range(model.rowCount()):
             self.expand(model.index(i, 0))
 
-    def set_pattern(self, pattern):
+    def set_pattern(self, pattern: str) -> None:
         """Set the pattern on the underlying model."""
         if not self.model():
+            return
+        if self.pattern == pattern:
+            # no changes, abort
+            log.completion.debug(
+                "Ignoring pattern set request as pattern has not changed.")
             return
         self.pattern = pattern
         with debug.log_time(log.completion, 'Set pattern {}'.format(pattern)):
@@ -349,7 +364,7 @@ class CompletionView(QTreeView):
         confheight = str(config.val.completion.height)
         if confheight.endswith('%'):
             perc = int(confheight.rstrip('%'))
-            height = self.window().height() * perc / 100
+            height = self.window().height() * perc // 100
         else:
             height = int(confheight)
         # Shrink to content size if needed and shrinking is enabled
@@ -403,9 +418,7 @@ class CompletionView(QTreeView):
         Args:
             sel: Use the primary selection instead of the clipboard.
         """
-        status = objreg.get('status-command', scope='window',
-                            window=self._win_id)
-        text = status.selectedText()
+        text = self._cmd.selectedText()
         if not text:
             index = self.currentIndex()
             if not index.isValid():

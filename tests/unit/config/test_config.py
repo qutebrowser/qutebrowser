@@ -23,10 +23,10 @@ import unittest.mock
 import functools
 
 import pytest
-from PyQt5.QtCore import QObject, QUrl
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QColor
 
-from qutebrowser.config import config, configdata, configexc, configutils
+from qutebrowser.config import config, configdata, configexc
 from qutebrowser.utils import usertypes, urlmatch
 from qutebrowser.misc import objects
 from qutebrowser.keyinput import keyutils
@@ -410,7 +410,7 @@ class TestConfig:
 
         assert conf.get(name) == 'always'
         if save_yaml:
-            assert yaml_value(name) is configutils.UNSET
+            assert yaml_value(name) is usertypes.UNSET
         else:
             assert yaml_value(name) == 'never'
 
@@ -439,8 +439,8 @@ class TestConfig:
         assert options == {name1, name2}
 
         if save_yaml:
-            assert yaml_value(name1) is configutils.UNSET
-            assert yaml_value(name2) is configutils.UNSET
+            assert yaml_value(name1) is usertypes.UNSET
+            assert yaml_value(name2) is usertypes.UNSET
         else:
             assert yaml_value(name1) == 'never'
             assert yaml_value(name2) is True
@@ -482,7 +482,7 @@ class TestConfig:
 
     @pytest.mark.parametrize('fallback, expected', [
         (True, True),
-        (False, configutils.UNSET)
+        (False, usertypes.UNSET)
     ])
     def test_get_for_url_fallback(self, conf, fallback, expected):
         """Test conf.get() with a URL and fallback."""
@@ -617,7 +617,7 @@ class TestConfig:
         pattern = urlmatch.UrlPattern('*://example.com')
         name = 'content.javascript.enabled'
         value = conf.get_obj_for_pattern(name, pattern=pattern)
-        assert value is configutils.UNSET
+        assert value is usertypes.UNSET
 
     def test_get_str(self, conf):
         assert conf.get_str('content.plugins') == 'false'
@@ -637,7 +637,7 @@ class TestConfig:
         if save_yaml:
             assert yaml_value(option) is True
         else:
-            assert yaml_value(option) is configutils.UNSET
+            assert yaml_value(option) is usertypes.UNSET
 
     @pytest.mark.parametrize('method', ['set_obj', 'set_str'])
     def test_set_invalid(self, conf, qtbot, method):
@@ -669,7 +669,7 @@ class TestConfig:
                 meth(option, value, save_yaml=True)
 
         assert not conf._values[option]
-        assert yaml_value(option) is configutils.UNSET
+        assert yaml_value(option) is usertypes.UNSET
 
     @pytest.mark.parametrize('method, value', [
         ('set_obj', {}),
@@ -766,57 +766,3 @@ class TestContainer:
         with pytest.raises(TypeError,
                            match="Can't use pattern without configapi!"):
             config.ConfigContainer(config_stub, pattern=pattern)
-
-
-class StyleObj(QObject):
-
-    def __init__(self, stylesheet=None, parent=None):
-        super().__init__(parent)
-        if stylesheet is not None:
-            self.STYLESHEET = stylesheet  # noqa: N801,N806 pylint: disable=invalid-name
-        self.rendered_stylesheet = None
-
-    def setStyleSheet(self, stylesheet):
-        self.rendered_stylesheet = stylesheet
-
-
-def test_get_stylesheet(config_stub):
-    config_stub.val.colors.hints.fg = 'magenta'
-    observer = config.StyleSheetObserver(
-        StyleObj(), stylesheet="{{ conf.colors.hints.fg }}", update=False)
-    assert observer._get_stylesheet() == 'magenta'
-
-
-@pytest.mark.parametrize('delete', [True, False])
-@pytest.mark.parametrize('stylesheet_param', [True, False])
-@pytest.mark.parametrize('update', [True, False])
-def test_set_register_stylesheet(delete, stylesheet_param, update, qtbot,
-                                 config_stub, caplog):
-    config_stub.val.colors.hints.fg = 'magenta'
-    stylesheet = "{{ conf.colors.hints.fg }}"
-
-    with caplog.at_level(9):  # VDEBUG
-        if stylesheet_param:
-            obj = StyleObj()
-            config.set_register_stylesheet(obj, stylesheet=stylesheet,
-                                           update=update)
-        else:
-            obj = StyleObj(stylesheet)
-            config.set_register_stylesheet(obj, update=update)
-
-    assert caplog.messages[-1] == 'stylesheet for StyleObj: magenta'
-
-    assert obj.rendered_stylesheet == 'magenta'
-
-    if delete:
-        with qtbot.waitSignal(obj.destroyed):
-            obj.deleteLater()
-
-    config_stub.val.colors.hints.fg = 'yellow'
-
-    if delete or not update:
-        expected = 'magenta'
-    else:
-        expected = 'yellow'
-
-    assert obj.rendered_stylesheet == expected

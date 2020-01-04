@@ -72,9 +72,9 @@ class ArgumentParser(argparse.ArgumentParser):
         name: The command name.
     """
 
-    def __init__(self, name, *args, **kwargs):
+    def __init__(self, name, **kwargs):
         self.name = name
-        super().__init__(*args, add_help=False, prog=name, **kwargs)
+        super().__init__(add_help=False, prog=name, **kwargs)
 
     def exit(self, status=0, message=None):
         raise ArgumentParserExit(status, message)

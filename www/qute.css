@@ -28,7 +28,7 @@ p {
 	padding: 20px 20px;
 	overflow: auto;
 	color: #888;
-	
+
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
@@ -64,12 +64,17 @@ p {
     margin-bottom: 10px;
 }
 
+#menu > #announcement-button {
+    color: #000000;
+    background-color: #a6dfff;
+}
+
 #menu {
 	padding: 0px 20px;
 	background-color: #555555;
 	color: #CCC;
 	overflow: auto;
-	
+
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
@@ -121,7 +126,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .ulist {
 	padding-left: 20px;
-	margin-top: 10px; 
+	margin-top: 10px;
 }
 
 #footer {
@@ -203,11 +208,11 @@ table td {
 		height: auto;
 		float: none;
 	}
-	
+
 	#headline .text {
 		display: none;
 	}
-	
+
 	#menu {
 		padding: 0px 0px;
 		background-color: #555555;
@@ -215,7 +220,7 @@ table td {
 		overflow: hidden;
 		width: 100%;
 	}
-	
+
 	#menu a {
 		color: #CCC;
 		text-decoration: none;

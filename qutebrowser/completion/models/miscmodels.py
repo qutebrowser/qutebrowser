@@ -19,7 +19,9 @@
 
 """Functions that return miscellaneous completion models."""
 
-from qutebrowser.config import configdata
+import typing
+
+from qutebrowser.config import config, configdata
 from qutebrowser.utils import objreg, log
 from qutebrowser.completion.models import completionmodel, listcategory, util
 
@@ -49,7 +51,7 @@ def helptopic(*, info):
 
 def quickmark(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with all quickmarks."""
-    def delete(data):
+    def delete(data: typing.Sequence[str]) -> None:
         """Delete a quickmark from the completion menu."""
         name = data[0]
         quickmark_manager = objreg.get('quickmark-manager')
@@ -66,7 +68,7 @@ def quickmark(*, info=None):  # pylint: disable=unused-argument
 
 def bookmark(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with all bookmarks."""
-    def delete(data):
+    def delete(data: typing.Sequence[str]) -> None:
         """Delete a bookmark from the completion menu."""
         urlstr = data[0]
         log.completion.debug('Deleting bookmark {}'.format(urlstr))
@@ -83,12 +85,13 @@ def bookmark(*, info=None):  # pylint: disable=unused-argument
 
 def session(*, info=None):  # pylint: disable=unused-argument
     """A CompletionModel filled with session names."""
+    from qutebrowser.misc import sessions
     model = completionmodel.CompletionModel()
     try:
-        manager = objreg.get('session-manager')
-        sessions = ((name,) for name in manager.list_sessions()
-                    if not name.startswith('_'))
-        model.add_category(listcategory.ListCategory("Sessions", sessions))
+        sess = ((name,) for name
+                in sessions.session_manager.list_sessions()
+                if not name.startswith('_'))
+        model.add_category(listcategory.ListCategory("Sessions", sess))
     except OSError:
         log.completion.exception("Failed to list sessions!")
     return model
@@ -109,6 +112,10 @@ def _buffer(skip_win_id=None):
 
     model = completionmodel.CompletionModel(column_widths=(6, 40, 54))
 
+    tabs_are_windows = config.val.tabs.tabs_are_windows
+    # list storing all single-tabbed windows when tabs_are_windows
+    windows = []  # type: typing.List[typing.Tuple[str, str, str]]
+
     for win_id in objreg.window_registry:
         if skip_win_id is not None and win_id == skip_win_id:
             continue
@@ -116,15 +123,23 @@ def _buffer(skip_win_id=None):
                                     window=win_id)
         if tabbed_browser.shutting_down:
             continue
-        tabs = []
+        tabs = []  # type: typing.List[typing.Tuple[str, str, str]]
         for idx in range(tabbed_browser.widget.count()):
             tab = tabbed_browser.widget.widget(idx)
             tabs.append(("{}/{}".format(win_id, idx + 1),
                          tab.url().toDisplayString(),
                          tabbed_browser.widget.page_title(idx)))
-        cat = listcategory.ListCategory(
-            str(win_id), tabs, delete_func=delete_buffer, sort=False)
-        model.add_category(cat)
+        if tabs_are_windows:
+            windows += tabs
+        else:
+            cat = listcategory.ListCategory(
+                str(win_id), tabs, delete_func=delete_buffer, sort=False)
+            model.add_category(cat)
+
+    if tabs_are_windows:
+        win = listcategory.ListCategory(
+            "Windows", windows, delete_func=delete_buffer, sort=False)
+        model.add_category(win)
 
     return model
 
