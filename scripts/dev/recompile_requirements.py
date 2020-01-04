@@ -127,10 +127,14 @@ def main():
         with tempfile.TemporaryDirectory() as tmpdir:
             subprocess.run([host_python, '-m', 'venv', tmpdir], check=True)
 
-            pip_bin = os.path.join(tmpdir, 'bin', 'pip')
-            subprocess.run([pip_bin, 'install', '-r', filename], check=True)
-            proc = subprocess.run([pip_bin, 'freeze'], check=True,
-                                  stdout=subprocess.PIPE)
+            venv_python = os.path.join(tmpdir, 'bin', 'python')
+            subprocess.run([venv_python, '-m', 'pip',
+                            'install', '-U', 'pip'], check=True)
+
+            subprocess.run([venv_python, '-m', 'pip',
+                            'install', '-r', filename], check=True)
+            proc = subprocess.run([venv_python, '-m', 'pip', 'freeze'],
+                                  check=True, stdout=subprocess.PIPE)
             reqs = proc.stdout.decode('utf-8')
 
         with open(filename, 'r', encoding='utf-8') as f:
