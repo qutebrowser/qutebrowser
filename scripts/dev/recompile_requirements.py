@@ -114,7 +114,11 @@ def main():
         else:
             outfile = os.path.join(REQ_DIR, 'requirements-{}.txt'.format(name))
 
-        host_python = sys.executable
+        if name in ['pyqt-5.7', 'pyqt-5.9', 'pyqt-5.10', 'pyqt-5.11',
+                    'pyqt-5.12']:
+            host_python = 'python3.7'
+        else:
+            host_python = sys.executable
 
         with tempfile.TemporaryDirectory() as tmpdir:
             subprocess.run([host_python, '-m', 'venv', tmpdir], check=True)
