@@ -9,7 +9,7 @@ coverage==5.0.1
 EasyProcess==0.2.8
 Flask==1.1.1
 glob2==0.7
-hunter==3.1.0
+hunter==3.0.5  # rq.filter: != 3.1.0
 hypothesis==5.1.0
 itsdangerous==1.1.0
 jaraco.functools==3.0.0
